@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <!-- Required meta tag for camera access -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <!--
+    If you are serving your web app in a path other than the root, change the
+    href value below to reflect the base path you are serving from.
+
+    The path provided below has to start and end with a slash "/" in order for
+    it to work correctly.
+
+    For more details:
+    * https://developer.mozilla.org/en-US/docs/Web/HTML/Element/base
+
+    This is a placeholder for base href that will be replaced by the value of
+    the `--base-href` argument provided to `flutter build`.
+  -->
+  <base href="$FLUTTER_BASE_HREF">
+
+  <meta charset="UTF-8">
+  <meta content="IE=Edge" http-equiv="X-UA-Compatible">
+  <meta name="description" content="A new Flutter project.">
+  
+  <!-- Camera permissions for web -->
+  <meta name="camera-permissions" content="true">
+  <meta http-equiv="permissions-policy" content="camera=(), microphone=()">
+
+  <!-- iOS meta tags & icons -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="apple-mobile-web-app-title" content="waste_segregation_app">
+  <link rel="apple-touch-icon" href="icons/Icon-192.png">
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" href="favicon.png"/>
+
+  <title>waste_segregation_app</title>
+  <link rel="manifest" href="manifest.json">
+  
+  <!-- Camera access scripts -->
+  <script src="camera-access.js"></script>
+</head>
+<body>
+  <!-- Add camera support for web -->
+  <script>
+    // Define a global function that Flutter can call to access camera
+    window.requestCameraPermission = function() {
+      return new Promise((resolve, reject) => {
+        if (typeof navigator.mediaDevices === 'undefined' || 
+            typeof navigator.mediaDevices.getUserMedia === 'undefined') {
+          console.warn('Camera access not supported in this browser');
+          reject('Camera not supported');
+          return;
+        }
+        
+        navigator.mediaDevices.getUserMedia({ 
+          video: {
+            facingMode: 'environment' // Prefer back camera
+          } 
+        })
+        .then(function(stream) {
+          // Release camera immediately after permission
+          stream.getTracks().forEach(track => track.stop());
+          console.log('Camera permission granted');
+          resolve('granted');
+        })
+        .catch(function(err) {
+          console.error('Camera permission denied: ', err);
+          reject(err);
+        });
+      });
+    };
+    
+    // Try to request permission early
+    window.requestCameraPermission().catch(err => console.log('Initial camera request:', err));
+  </script>
+  <script src="flutter_bootstrap.js" async></script>
+</body>
+</html>
