@@ -19,7 +19,7 @@ class AiService {
         _client = client ?? http.Client();
 
   Future<WasteClassification> classifyImage(Uint8List imageBytes) async {
-    final endpoint = '$baseUrl/v1/chat/completions';
+    final endpoint = '$baseUrl/models/${ApiConfig.model}:generateContent?key=$apiKey';
     
     // Determine MIME type dynamically
     String? mimeType = lookupMimeType('', headerBytes: imageBytes);
@@ -28,42 +28,30 @@ class AiService {
 
     // Encode image bytes to base64
     String base64Image = base64Encode(imageBytes);
-    
-    // System prompt to analyze the waste item
-    const systemPrompt = "You are a waste classification expert. Analyze the image to identify the primary waste item. Classify it into one category: Wet Waste, Dry Waste, Hazardous Waste, Medical Waste, or Non-Waste. If applicable, provide a specific subcategory (e.g., Food Waste, Plastic, E-waste, Sharps, Reusable Item). Give a brief explanation for the classification and suggest a general disposal method.";
-    
-    // User prompt with the analysis request
-    const userPrompt = "Please analyze this image and identify the waste item. Provide the result ONLY in valid JSON format like this: {\"item_name\": \"Identified Item Name\", \"category\": \"Matched Category\", \"subcategory\": \"Matched Subcategory or null\", \"explanation\": \"Brief reason\", \"disposal_method\": \"General disposal tip\", \"material_type\": \"Detected material like Plastic, Metal, Glass, Organic, Paper, etc., or null\", \"recycling_code\": \"Plastic recycling code 1-7 or null\", \"is_recyclable\": true/false/null, \"is_compostable\": true/false/null, \"requires_special_disposal\": true/false/null}";
 
-    // OpenAI-compatible format
+    // Gemini API format
     final requestBody = jsonEncode({
-      "model": ApiConfig.model,
-      "messages": [
+      "contents": [
         {
-          "role": "system",
-          "content": systemPrompt
-        },
-        {
-          "role": "user",
-          "content": [
+          "parts": [
             {
-              "type": "text",
-              "text": userPrompt
+              "text": "Analyze the image to identify the primary waste item. Classify it into one category: Wet Waste, Dry Waste, Hazardous Waste, Medical Waste, or Non-Waste. If applicable, provide a specific subcategory (e.g., Food Waste, Plastic, E-waste, Sharps, Reusable Item). Give a brief explanation for the classification and suggest a general disposal method. Provide the result ONLY in valid JSON format like this: {\"item_name\": \"Identified Item Name\", \"category\": \"Matched Category\", \"subcategory\": \"Matched Subcategory or null\", \"explanation\": \"Brief reason\", \"disposal_method\": \"General disposal tip\", \"material_type\": \"Detected material like Plastic, Metal, Glass, Organic, Paper, etc., or null\", \"recycling_code\": \"Plastic recycling code 1-7 or null\", \"is_recyclable\": true/false/null, \"is_compostable\": true/false/null, \"requires_special_disposal\": true/false/null}"
             },
             {
-              "type": "image_url",
-              "image_url": {
-                "url": "data:$mimeType;base64,$base64Image"
+              "inline_data": {
+                "mime_type": mimeType,
+                "data": base64Image
               }
             }
           ]
         }
       ],
-      "temperature": 0.4,
-      "max_tokens": 4096,
-      "top_p": 1,
-      "frequency_penalty": 0,
-      "presence_penalty": 0
+      "generationConfig": {
+        "temperature": 0.4,
+        "topK": 32,
+        "topP": 1,
+        "maxOutputTokens": 4096
+      }
     });
 
     try {
@@ -76,13 +64,15 @@ class AiService {
       if (response.statusCode == 200) {
         final responseBody = jsonDecode(response.body);
         
-        // OpenAI format has choices array with messages
-        if (responseBody['choices'] != null && responseBody['choices'].isNotEmpty) {
-          final messageContent = responseBody['choices'][0]['message']['content'];
+        // Gemini format: check for candidates
+        if (responseBody['candidates'] != null && responseBody['candidates'].isNotEmpty) {
+          final content = responseBody['candidates'][0]['content'];
           
-          if (messageContent != null) {
+          if (content != null && content['parts'] != null && content['parts'].isNotEmpty) {
+             final textPart = content['parts'][0]['text'];
+             
              // Clean the response text: remove potential markdown/code blocks
-             String cleanedText = messageContent.replaceAll('```json', '').replaceAll('```', '').trim();
+             String cleanedText = textPart.replaceAll('```json', '').replaceAll('```', '').trim();
              
              try {
                 final parsedJson = jsonDecode(cleanedText);
@@ -107,17 +97,17 @@ class AiService {
                   // No image URL here, should be added by the caller
                 );
              } catch (e) {
-                 debugPrint('Error decoding JSON from AI: $e Raw Text: $messageContent');
+                 debugPrint('Error decoding JSON from AI: $e Raw Text: $textPart');
                  throw FormatException('Failed to parse AI response: $e');
              }
           } else {
-            throw const FormatException('Missing content in AI response message.');
+            throw const FormatException('Missing parts in AI response content.');
           }
         } else {
            // Handle cases where the API might block the response due to safety settings or other reasons
-           final errorMessage = responseBody['error']?['message'] ?? 'Unknown reason';
-           debugPrint('AI Response blocked or empty. Reason: $errorMessage');
-           throw FormatException('AI response blocked or empty. Reason: $errorMessage');
+           String blockReason = responseBody['promptFeedback']?['blockReason'] ?? 'Unknown reason';
+           debugPrint('AI Response blocked or empty. Reason: $blockReason');
+           throw FormatException('AI response blocked or empty. Reason: $blockReason');
         }
       } else {
         debugPrint('AI Error: ${response.statusCode} ${response.body}');
@@ -136,69 +126,54 @@ class AiService {
 
     // Overload for providing image URL (less efficient for API, might be useful internally)
     Future<WasteClassification> classifyImageUrl(String imageUrl) async {
-    final endpoint = '$baseUrl/v1/chat/completions';
+    final endpoint = '$baseUrl/models/${ApiConfig.model}:generateContent?key=$apiKey';
     
-    // If it's a public URL, we can use it directly without downloading
-    bool isPublicUrl = imageUrl.startsWith('http://') || imageUrl.startsWith('https://');
-    String? mimeType;
-    String? base64Image;
-    
-    // If not a public URL or if we need to support local URLs, download and encode
-    if (!isPublicUrl) {
-      try {
+    // Fetch image bytes from URL
+    Uint8List imageBytes;
+    String mimeType = 'image/jpeg'; // Default MIME type
+    try {
         final response = await _client.get(Uri.parse(imageUrl));
         if (response.statusCode == 200) {
-          Uint8List imageBytes = response.bodyBytes;
-          // Try to determine MIME type
-          mimeType = lookupMimeType(imageUrl, headerBytes: imageBytes) ?? 'image/jpeg';
-          base64Image = base64Encode(imageBytes);
+            imageBytes = response.bodyBytes;
+            // Try to determine MIME type from headers or extension if possible
+            final detectedMime = lookupMimeType(imageUrl, headerBytes: imageBytes);
+            if (detectedMime != null) {
+              mimeType = detectedMime;
+            }
         } else {
-          throw Exception('Failed to download image from URL: ${response.statusCode}');
+            throw Exception('Failed to download image from URL: ${response.statusCode}');
         }
-      } catch (e) {
-        debugPrint('Error fetching image from URL $imageUrl: $e');
-        throw Exception('Failed to fetch image from URL: $e');
-      }
+    } catch (e) {
+         debugPrint('Error fetching image from URL $imageUrl: $e');
+         throw Exception('Failed to fetch image from URL: $e');
     }
-    
-    // System prompt to analyze the waste item
-    const systemPrompt = "You are a waste classification expert. Analyze the image to identify the primary waste item. Classify it into one category: Wet Waste, Dry Waste, Hazardous Waste, Medical Waste, or Non-Waste. If applicable, provide a specific subcategory (e.g., Food Waste, Plastic, E-waste, Sharps, Reusable Item). Give a brief explanation for the classification and suggest a general disposal method.";
-    
-    // User prompt with the analysis request
-    const userPrompt = "Please analyze this image and identify the waste item. Provide the result ONLY in valid JSON format like this: {\"item_name\": \"Identified Item Name\", \"category\": \"Matched Category\", \"subcategory\": \"Matched Subcategory or null\", \"explanation\": \"Brief reason\", \"disposal_method\": \"General disposal tip\", \"material_type\": \"Detected material like Plastic, Metal, Glass, Organic, Paper, etc., or null\", \"recycling_code\": \"Plastic recycling code 1-7 or null\", \"is_recyclable\": true/false/null, \"is_compostable\": true/false/null, \"requires_special_disposal\": true/false/null}";
 
-    // Configure the image URL based on whether it's a public URL or a base64-encoded image
-    var imageUrlConfig = isPublicUrl 
-        ? { "url": imageUrl }
-        : { "url": "data:$mimeType;base64,$base64Image" };
+    // Encode image bytes to base64
+    String base64Image = base64Encode(imageBytes);
 
-    // OpenAI-compatible format
+    // Gemini API format
     final requestBody = jsonEncode({
-      "model": ApiConfig.model,
-      "messages": [
+      "contents": [
         {
-          "role": "system",
-          "content": systemPrompt
-        },
-        {
-          "role": "user",
-          "content": [
+          "parts": [
             {
-              "type": "text",
-              "text": userPrompt
+              "text": "Analyze the image to identify the primary waste item. Classify it into one category: Wet Waste, Dry Waste, Hazardous Waste, Medical Waste, or Non-Waste. If applicable, provide a specific subcategory (e.g., Food Waste, Plastic, E-waste, Sharps, Reusable Item). Give a brief explanation for the classification and suggest a general disposal method. Provide the result ONLY in valid JSON format like this: {\"item_name\": \"Identified Item Name\", \"category\": \"Matched Category\", \"subcategory\": \"Matched Subcategory or null\", \"explanation\": \"Brief reason\", \"disposal_method\": \"General disposal tip\", \"material_type\": \"Detected material like Plastic, Metal, Glass, Organic, Paper, etc., or null\", \"recycling_code\": \"Plastic recycling code 1-7 or null\", \"is_recyclable\": true/false/null, \"is_compostable\": true/false/null, \"requires_special_disposal\": true/false/null}"
             },
             {
-              "type": "image_url",
-              "image_url": imageUrlConfig
+              "inline_data": {
+                "mime_type": mimeType,
+                "data": base64Image
+              }
             }
           ]
         }
       ],
-      "temperature": 0.4,
-      "max_tokens": 4096,
-      "top_p": 1,
-      "frequency_penalty": 0,
-      "presence_penalty": 0
+      "generationConfig": {
+        "temperature": 0.4,
+        "topK": 32,
+        "topP": 1,
+        "maxOutputTokens": 4096
+      }
     });
 
     try {
@@ -211,13 +186,15 @@ class AiService {
       if (response.statusCode == 200) {
         final responseBody = jsonDecode(response.body);
         
-        // OpenAI format has choices array with messages
-        if (responseBody['choices'] != null && responseBody['choices'].isNotEmpty) {
-          final messageContent = responseBody['choices'][0]['message']['content'];
+        // Gemini format: check for candidates
+        if (responseBody['candidates'] != null && responseBody['candidates'].isNotEmpty) {
+          final content = responseBody['candidates'][0]['content'];
           
-          if (messageContent != null) {
+          if (content != null && content['parts'] != null && content['parts'].isNotEmpty) {
+             final textPart = content['parts'][0]['text'];
+             
              // Clean the response text: remove potential markdown/code blocks
-             String cleanedText = messageContent.replaceAll('```json', '').replaceAll('```', '').trim();
+             String cleanedText = textPart.replaceAll('```json', '').replaceAll('```', '').trim();
              
              try {
                 final parsedJson = jsonDecode(cleanedText);
@@ -242,17 +219,17 @@ class AiService {
                   timestamp: DateTime.now(),
                 );
              } catch (e) {
-                 debugPrint('Error decoding JSON from AI (URL method): $e Raw Text: $messageContent');
+                 debugPrint('Error decoding JSON from AI (URL method): $e Raw Text: $textPart');
                  throw FormatException('Failed to parse AI response (URL method): $e');
              }
           } else {
-            throw const FormatException('Missing content in AI response message (URL method).');
+            throw const FormatException('Missing parts in AI response content (URL method).');
           }
         } else {
            // Handle cases where the API might block the response due to safety settings or other reasons
-           final errorMessage = responseBody['error']?['message'] ?? 'Unknown reason';
-           debugPrint('AI Response blocked or empty (URL method). Reason: $errorMessage');
-           throw FormatException('AI response blocked or empty (URL method). Reason: $errorMessage');
+           String blockReason = responseBody['promptFeedback']?['blockReason'] ?? 'Unknown reason';
+           debugPrint('AI Response blocked or empty (URL method). Reason: $blockReason');
+           throw FormatException('AI response blocked or empty (URL method). Reason: $blockReason');
         }
       } else {
          debugPrint('AI Error (URL method): ${response.statusCode} ${response.body}');
