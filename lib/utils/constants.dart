@@ -52,8 +52,8 @@ class AppStrings {
 
 // --- API Configuration ---
 class ApiConfig {
-  // Direct Gemini API endpoint for vision model
-  static const String geminiBaseUrl = 'https://generativelanguage.googleapis.com/v1beta';
+  // Gemini API via OpenAI-compatible endpoint
+  static const String geminiBaseUrl = 'https://generativelanguage.googleapis.com/v1beta/openai';
   
   // API Key - Gemini API key
   static const String apiKey = 'AIzaSyDYXPY95PneMi0m7UTiI6ciY8sQyst2jV8';
@@ -65,6 +65,7 @@ class ApiConfig {
   static Map<String, String> getHeaders() {
     return {
       'Content-Type': 'application/json',
+      'x-goog-api-key': apiKey,
     };
   }
 }
