@@ -65,7 +65,7 @@ class ApiConfig {
   static Map<String, String> getHeaders() {
     return {
       'Content-Type': 'application/json',
-      'x-goog-api-key': apiKey,
+      'Authorization': 'Bearer $apiKey',
     };
   }
 }
