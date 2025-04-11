@@ -14,10 +14,10 @@ class ResultScreen extends StatefulWidget {
   final bool showActions;
 
   const ResultScreen({
-    Key? key,
+    super.key,
     required this.classification,
     this.showActions = true,
-  }) : super(key: key);
+  });
 
   @override
   State<ResultScreen> createState() => _ResultScreenState();
@@ -129,7 +129,7 @@ class _ResultScreenState extends State<ResultScreen> {
             Container(
               padding: const EdgeInsets.all(AppTheme.paddingRegular),
               decoration: BoxDecoration(
-                color: Colors.black.withOpacity(0.05),
+                color: Colors.black.withValues(alpha: 0.05,),
                 borderRadius: BorderRadius.circular(AppTheme.borderRadiusRegular),
               ),
               child: Column(
@@ -178,7 +178,7 @@ class _ResultScreenState extends State<ResultScreen> {
               Container(
                 padding: const EdgeInsets.all(AppTheme.paddingRegular),
                 decoration: BoxDecoration(
-                  color: Colors.black.withOpacity(0.05),
+                  color: Colors.black.withValues(alpha: 0.05,),
                   borderRadius: BorderRadius.circular(AppTheme.borderRadiusRegular),
                 ),
                 child: Column(
@@ -426,7 +426,7 @@ class _ResultScreenState extends State<ResultScreen> {
     return Container(
       padding: const EdgeInsets.all(AppTheme.paddingRegular),
       decoration: BoxDecoration(
-        color: Colors.black.withOpacity(0.05),
+        color: Colors.black.withValues(alpha: 0.05,),
         borderRadius: BorderRadius.circular(AppTheme.borderRadiusRegular),
       ),
       child: Column(

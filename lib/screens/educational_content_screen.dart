@@ -9,9 +9,9 @@ class EducationalContentScreen extends StatefulWidget {
   final String? initialCategory;
   
   const EducationalContentScreen({
-    Key? key,
+    super.key,
     this.initialCategory,
-  }) : super(key: key);
+  });
 
   @override
   State<EducationalContentScreen> createState() => _EducationalContentScreenState();
@@ -405,7 +405,7 @@ class _EducationalContentScreenState extends State<EducationalContentScreen> wit
                             vertical: 2,
                           ),
                           decoration: BoxDecoration(
-                            color: _getCategoryColor(content.categories.first).withOpacity(0.2),
+                            color: _getCategoryColor(content.categories.first).withValues(alpha: 0.2),
                             borderRadius: BorderRadius.circular(AppTheme.borderRadiusSmall),
                           ),
                           child: Text(

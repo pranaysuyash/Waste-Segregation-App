@@ -33,9 +33,9 @@ class HomeScreen extends StatefulWidget {
   final bool isGuestMode;
 
   const HomeScreen({
-    Key? key,
+    super.key,
     this.isGuestMode = false,
-  }) : super(key: key);
+  });
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -871,7 +871,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               color: _getCategoryColorCase(content.categories.first),
                             ),
                           ),
-                        ),
+        ).withOpacity(0.1),
                       
                       // Duration
                       Row(
@@ -1203,7 +1203,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                                       vertical: 2,
                                                     ),
                                                     decoration: BoxDecoration(
-                                                      color: _getCategoryColorCase(classification.category),
+                            color: _getCategoryColorCase(content.categories.first),
                                                       borderRadius: BorderRadius.circular(AppTheme.borderRadiusSmall),
                                                     ),
                                                     child: Text(

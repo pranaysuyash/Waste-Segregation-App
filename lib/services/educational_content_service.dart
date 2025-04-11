@@ -1,4 +1,3 @@
-import 'package:flutter/material.dart';
 import '../models/educational_content.dart';
 
 /// Service for managing educational content in the app

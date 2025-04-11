@@ -6,9 +6,9 @@ class QuizScreen extends StatefulWidget {
   final EducationalContent quizContent;
   
   const QuizScreen({
-    Key? key,
+    super.key,
     required this.quizContent,
-  }) : super(key: key);
+  });
   
   @override
   State<QuizScreen> createState() => _QuizScreenState();
@@ -418,7 +418,7 @@ class _QuizScreenState extends State<QuizScreen> {
               width: double.infinity,
               padding: const EdgeInsets.all(AppTheme.paddingLarge),
               decoration: BoxDecoration(
-                color: resultColor.withOpacity(0.1),
+                color: resultColor.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(AppTheme.borderRadiusLarge),
                 border: Border.all(color: resultColor.withOpacity(0.3)),
               ),

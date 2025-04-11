@@ -10,11 +10,11 @@ class ClassificationCard extends StatelessWidget {
   final VoidCallback? onSave;
 
   const ClassificationCard({
-    Key? key,
+    super.key,
     required this.classification,
     this.onShare,
     this.onSave,
-  }) : super(key: key);
+  });
   
   // Helper method to build the image widget based on platform
   Widget _buildImage(String imageUrl) {
@@ -117,8 +117,6 @@ class ClassificationCard extends StatelessWidget {
     }
   }
 
-  // This is now replaced by the improved version defined above
-
   String _getExamples() {
     // Try to get subcategory examples first, falling back to category examples if not available
     if (classification.subcategory != null && 
@@ -138,6 +136,15 @@ class ClassificationCard extends StatelessWidget {
     return WasteInfo.disposalInstructions[classification.category] ??
         'Dispose according to local guidelines.';
   }
+
+  // Helper method to parse instructions into steps
+  List<String> _parseInstructions(String instructions) {
+    // Simple split by sentence (period followed by space). Adjust regex if needed.
+    return instructions.split(RegExp(r'(?<=\.)\s+')) 
+                      .map((s) => s.trim()) // Trim whitespace
+                      .where((s) => s.isNotEmpty) // Remove empty strings
+                      .toList();
+  }
   
   // Helper method to create property badges
   Widget _buildPropertyBadge(IconData icon, String label, Color color) {
@@ -148,8 +155,8 @@ class ClassificationCard extends StatelessWidget {
           horizontal: 8,
           vertical: 4,
         ),
-        decoration: BoxDecoration(
-          color: color.withOpacity(0.1),
+        decoration: BoxDecoration(          
+          color: color.withValues(alpha: .1),
           borderRadius: BorderRadius.circular(AppTheme.borderRadiusSmall),
           border: Border.all(color: color.withOpacity(0.5)),
         ),
@@ -175,6 +182,7 @@ class ClassificationCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final Color categoryColor = _getCategoryColor();
+    final List<String> disposalSteps = _parseInstructions(_getDisposalInstructions());
     
     return Card(
       elevation: 4,
@@ -265,10 +273,10 @@ class ClassificationCard extends StatelessWidget {
                       Container(
                         padding: const EdgeInsets.symmetric(
                           horizontal: AppTheme.paddingRegular,
-                          vertical: AppTheme.paddingSmall,
+                          vertical: AppTheme.paddingSmall,  
                         ),
                         decoration: BoxDecoration(
-                          color: Colors.black.withOpacity(0.1),
+                          color: Colors.black.withValues(alpha: .1),
                           borderRadius: BorderRadius.circular(AppTheme.borderRadiusSmall),
                           border: Border.all(color: categoryColor.withOpacity(0.5)),
                         ),
@@ -385,12 +393,12 @@ class ClassificationCard extends StatelessWidget {
                 
                 const SizedBox(height: AppTheme.paddingRegular),
                 
-                // Disposal instructions
+                // --- NEW: Enhanced Disposal Instructions Section ---
                 Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(AppTheme.paddingRegular),
-                  decoration: BoxDecoration(
-                    color: categoryColor.withOpacity(0.1),
+                  width: double.infinity,                  
+                  padding: const EdgeInsets.all(AppTheme.paddingRegular),                  
+                  decoration: BoxDecoration(                    
+                    color: categoryColor.withValues(alpha: .1),
                     borderRadius: BorderRadius.circular(AppTheme.borderRadiusSmall),
                     border: Border.all(color: categoryColor.withOpacity(0.5)),
                   ),
@@ -410,8 +418,26 @@ class ClassificationCard extends StatelessWidget {
                           ),
                         ],
                       ),
-                      const SizedBox(height: 4),
-                      Text(_getDisposalInstructions()),
+                      const SizedBox(height: 8),
+
+                      // Bulleted list of steps
+                      if (disposalSteps.isNotEmpty)
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: disposalSteps.map((step) => Padding(
+                            padding: const EdgeInsets.only(bottom: 4.0),
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text('• ', style: TextStyle(fontWeight: FontWeight.bold)),
+                                Expanded(child: Text(step)),
+                              ],
+                            ),
+                          )).toList(),
+                        )
+                      else 
+                        const Text('Please follow local waste management guidelines.'), 
+
                       const SizedBox(height: 8),
                       Text(
                         'Examples: ${_getExamples()}',
@@ -420,13 +446,54 @@ class ClassificationCard extends StatelessWidget {
                           fontStyle: FontStyle.italic,
                         ),
                       ),
+                      const SizedBox(height: AppTheme.paddingLarge), // Add space before buttons
+
+                      // Quick Action Buttons
+                      Row(
+                        children: [
+                          Expanded(
+                            child: ElevatedButton.icon(
+                              icon: const Icon(Icons.location_on, size: 16),
+                              label: const Text('Find Local Site', style: TextStyle(fontSize: 12)),
+                              onPressed: () {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(content: Text('Feature coming soon!')),
+                                );
+                              },
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: categoryColor.withOpacity(0.7),
+                                foregroundColor: Colors.white,
+                                padding: const EdgeInsets.symmetric(vertical: 8),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: AppTheme.paddingSmall),
+                          Expanded(
+                            child: ElevatedButton.icon(
+                              icon: const Icon(Icons.video_library, size: 16),
+                              label: const Text('View How-To', style: TextStyle(fontSize: 12)),
+                              onPressed: () {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(content: Text('Feature coming soon!')),
+                                );
+                              },
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: categoryColor.withOpacity(0.7),
+                                foregroundColor: Colors.white,
+                                padding: const EdgeInsets.symmetric(vertical: 8),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
                     ],
                   ),
                 ),
+                // --- End of Enhanced Disposal Section ---
                 
                 const SizedBox(height: AppTheme.paddingRegular),
                 
-                // Action buttons
+                // Action buttons (Save/Share)
                 if (onShare != null || onSave != null)
                   Row(
                     mainAxisAlignment: MainAxisAlignment.end,

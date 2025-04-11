@@ -185,9 +185,7 @@ class GoogleDriveService {
       final String appFolderName = 'WasteSegregationApp';
       String? folderId = await findFileOrFolder(appFolderName, isFolder: true);
       
-      if (folderId == null) {
-        folderId = await createFolder(appFolderName);
-      }
+      folderId ??= await createFolder(appFolderName);
 
       // Backup file name with timestamp
       final String fileName = 'waste_seg_backup_${DateTime.now().millisecondsSinceEpoch}.json';

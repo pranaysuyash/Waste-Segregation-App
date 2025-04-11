@@ -26,8 +26,19 @@ The app provides educational content about each category, stores classification 
 
 - **Educational Content**:
   - Detailed explanations for each waste category
-  - Tips and facts about proper waste disposal
-  - Daily waste reduction challenges
+  - Articles, videos, infographics, quizzes, and tutorials
+  - Bookmarkable content for quick access
+  - Advanced filtering and search capabilities
+  - Difficulty levels clearly indicated (Beginner, Intermediate, Advanced)
+  - Daily waste reduction tips
+
+- **Gamification & User Engagement**:
+  - Points and levels system with user ranks
+  - Achievement badges for app usage and waste identification
+  - Daily streaks with bonus incentives
+  - Team or friend-based challenges
+  - Community-based leaderboards
+  - Social sharing capabilities for achievements and challenges
 
 - **Data Management**:
   - Local storage of classifications and user preferences
@@ -55,7 +66,7 @@ The app provides educational content about each category, stores classification 
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/yourusername/waste_segregation_app.git
+   git clone https://github.com/pranaysuyash/Waste-Segregation-App.git
    cd waste_segregation_app
    ```
 
@@ -79,19 +90,32 @@ The app provides educational content about each category, stores classification 
 ```
 lib/
 ├── models/
-│   └── waste_classification.dart
+│   ├── waste_classification.dart
+│   ├── educational_content.dart
+│   └── gamification.dart
 ├── screens/
 │   ├── auth_screen.dart
 │   ├── home_screen.dart
+│   ├── camera_screen.dart
 │   ├── image_capture_screen.dart
-│   └── result_screen.dart
+│   ├── result_screen.dart
+│   ├── educational_content_screen.dart
+│   ├── content_detail_screen.dart
+│   ├── quiz_screen.dart
+│   ├── achievements_screen.dart
+│   └── leaderboard_screen.dart
 ├── services/
 │   ├── ai_service.dart
 │   ├── storage_service.dart
-│   └── google_drive_service.dart
+│   ├── google_drive_service.dart
+│   ├── educational_content_service.dart
+│   └── gamification_service.dart
 ├── widgets/
 │   ├── capture_button.dart
-│   └── classification_card.dart
+│   ├── classification_card.dart
+│   ├── platform_camera.dart
+│   ├── enhanced_camera.dart
+│   └── gamification_widgets.dart
 ├── utils/
 │   └── constants.dart
 └── main.dart
@@ -103,10 +127,13 @@ lib/
 - hive: ^2.2.3
 - hive_flutter: ^1.1.0
 - path_provider: ^2.1.1
-- image_picker: ^1.0.4
+- image_picker: ^1.0.7
+- image_picker_for_web: ^3.0.1
+- camera: ^0.10.5+9
+- permission_handler: ^11.2.0
 - http: ^1.1.0
 - google_sign_in: ^6.1.6
-- googleapis: ^12.0.0
+- googleapis: ^13.2.0
 - share_plus: ^7.2.1
 
 ## License

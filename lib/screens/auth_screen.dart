@@ -5,7 +5,7 @@ import '../utils/constants.dart';
 import 'home_screen.dart';
 
 class AuthScreen extends StatefulWidget {
-  const AuthScreen({Key? key}) : super(key: key);
+  const AuthScreen({super.key});
 
   @override
   State<AuthScreen> createState() => _AuthScreenState();
@@ -191,8 +191,7 @@ class _AuthScreenState extends State<AuthScreen> {
                   // Education note
                   Container(
                     padding: const EdgeInsets.all(AppTheme.paddingRegular),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.15),
+                    decoration: BoxDecoration(                      color: Colors.white.withValues(alpha: 0.15),
                       borderRadius: BorderRadius.circular(AppTheme.borderRadiusRegular),
                     ),
                     child: const Row(

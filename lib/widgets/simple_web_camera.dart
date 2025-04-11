@@ -12,11 +12,11 @@ class SimpleWebCamera extends StatefulWidget {
   final String buttonText;
   
   const SimpleWebCamera({
-    Key? key,
+    super.key,
     required this.onCapture,
     this.title = 'Camera Access',
     this.buttonText = 'Take Photo',
-  }) : super(key: key);
+  });
 
   @override
   State<SimpleWebCamera> createState() => _SimpleWebCameraState();

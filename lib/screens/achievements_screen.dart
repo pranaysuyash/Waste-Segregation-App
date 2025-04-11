@@ -8,9 +8,9 @@ class AchievementsScreen extends StatefulWidget {
   final int initialTabIndex;
   
   const AchievementsScreen({
-    Key? key,
+    super.key,
     this.initialTabIndex = 0,
-  }) : super(key: key);
+  });
 
   @override
   State<AchievementsScreen> createState() => _AchievementsScreenState();
@@ -302,7 +302,7 @@ class _AchievementsScreenState extends State<AchievementsScreen> with SingleTick
                 const SizedBox(height: AppTheme.paddingLarge),
               ],
             );
-          }).toList(),
+          }),
         ],
       ),
     );
@@ -323,7 +323,7 @@ class _AchievementsScreenState extends State<AchievementsScreen> with SingleTick
               padding: const EdgeInsets.all(AppTheme.paddingSmall),
               decoration: BoxDecoration(
                 color: isEarned 
-                    ? achievement.color.withOpacity(0.2)
+                    ? achievement.color.withValues(alpha: 0.2)
                     : Colors.grey.shade200,
                 shape: BoxShape.circle,
               ),
@@ -363,7 +363,7 @@ class _AchievementsScreenState extends State<AchievementsScreen> with SingleTick
                     value: achievement.progress,
                     minHeight: 4,
                     backgroundColor: Colors.grey.shade200,
-                    valueColor: AlwaysStoppedAnimation<Color>(achievement.color.withOpacity(0.7)),
+                    valueColor: AlwaysStoppedAnimation<Color>(achievement.color.withValues(alpha: 0.7)),
                   ),
                 ),
               )
@@ -397,7 +397,7 @@ class _AchievementsScreenState extends State<AchievementsScreen> with SingleTick
               padding: const EdgeInsets.all(AppTheme.paddingRegular),
               decoration: BoxDecoration(
                 color: achievement.isEarned 
-                    ? achievement.color.withOpacity(0.2)
+                    ? achievement.color.withValues(alpha: 0.2)
                     : Colors.grey.shade200,
                 shape: BoxShape.circle,
               ),
@@ -589,7 +589,7 @@ class _AchievementsScreenState extends State<AchievementsScreen> with SingleTick
                 Container(
                   padding: const EdgeInsets.all(AppTheme.paddingSmall),
                   decoration: BoxDecoration(
-                    color: challenge.color.withOpacity(0.2),
+                    color: challenge.color.withValues(alpha: 0.2),
                     shape: BoxShape.circle,
                   ),
                   child: Icon(
@@ -963,7 +963,7 @@ class _AchievementsScreenState extends State<AchievementsScreen> with SingleTick
         child: Container(
           padding: const EdgeInsets.all(AppTheme.paddingSmall),
           decoration: BoxDecoration(
-            color: color.withOpacity(0.1),
+            color: color.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(AppTheme.borderRadiusSmall),
           ),
           child: Row(
@@ -971,7 +971,7 @@ class _AchievementsScreenState extends State<AchievementsScreen> with SingleTick
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: color.withOpacity(0.2),
+                  color: color.withValues(alpha: 0.2),
                   shape: BoxShape.circle,
                 ),
                 child: Icon(

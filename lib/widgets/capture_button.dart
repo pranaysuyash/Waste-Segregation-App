@@ -18,11 +18,11 @@ class CaptureButton extends StatefulWidget {
   final bool isLoading;
 
   const CaptureButton({
-    Key? key,
+    super.key,
     required this.type,
     required this.onPressed,
     this.isLoading = false,
-  }) : super(key: key);
+  });
   
   @override
   State<CaptureButton> createState() => _CaptureButtonState();

@@ -16,12 +16,11 @@ class ImageCaptureScreen extends StatefulWidget {
   final Uint8List? webImage;
 
   const ImageCaptureScreen({
-    Key? key,
+    super.key,
     this.imageFile,
     this.xFile,
     this.webImage,
-  }) : assert(imageFile != null || xFile != null || webImage != null),
-       super(key: key);
+  }) : assert(imageFile != null || xFile != null || webImage != null);
 
   // Factory constructor for creating from XFile (useful for web)
   factory ImageCaptureScreen.fromXFile(XFile xFile) => ImageCaptureScreen(xFile: xFile);
@@ -86,7 +85,7 @@ class _ImageCaptureScreenState extends State<ImageCaptureScreen> {
           }
           
           // Ensure we have bytes before proceeding
-          if (imageBytes == null || imageBytes.isEmpty) {
+          if (imageBytes.isEmpty) {
             throw Exception('Image data is empty or could not be read');
           }
           
@@ -181,7 +180,7 @@ class _ImageCaptureScreenState extends State<ImageCaptureScreen> {
           if (!_isAnalyzing)
             Container(
               padding: const EdgeInsets.all(AppTheme.paddingRegular),
-              color: Colors.black.withOpacity(0.05),
+              color: Colors.black.withValues(alpha: 0.05),
               child: const Row(
                 children: [
                   Icon(Icons.info_outline, color: AppTheme.primaryColor),

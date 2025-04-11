@@ -9,9 +9,9 @@ class ContentDetailScreen extends StatelessWidget {
   final String contentId;
   
   const ContentDetailScreen({
-    Key? key,
+    super.key,
     required this.contentId,
-  }) : super(key: key);
+  });
   
   @override
   Widget build(BuildContext context) {
@@ -143,7 +143,7 @@ class ContentDetailScreen extends StatelessWidget {
                   vertical: 4,
                 ),
                 decoration: BoxDecoration(
-                  color: categoryColor.withOpacity(0.1),
+                  color: categoryColor.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(AppTheme.borderRadiusSmall),
                   border: Border.all(color: categoryColor.withOpacity(0.5)),
                 ),
@@ -303,7 +303,7 @@ class ContentDetailScreen extends StatelessWidget {
                   vertical: 4,
                 ),
                 decoration: BoxDecoration(
-                  color: categoryColor.withOpacity(0.1),
+                  color: categoryColor.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(AppTheme.borderRadiusSmall),
                   border: Border.all(color: categoryColor.withOpacity(0.5)),
                 ),
@@ -413,7 +413,7 @@ class ContentDetailScreen extends StatelessWidget {
                   vertical: 4,
                 ),
                 decoration: BoxDecoration(
-                  color: categoryColor.withOpacity(0.1),
+                  color: categoryColor.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(AppTheme.borderRadiusSmall),
                   border: Border.all(color: categoryColor.withOpacity(0.5)),
                 ),
@@ -680,7 +680,7 @@ class ContentDetailScreen extends StatelessWidget {
                       ),
                       child: Text(option),
                     );
-                  }).toList(),
+                  }),
                   
                   const SizedBox(height: AppTheme.paddingSmall),
                   
@@ -803,7 +803,7 @@ class ContentDetailScreen extends StatelessWidget {
                   vertical: 4,
                 ),
                 decoration: BoxDecoration(
-                  color: categoryColor.withOpacity(0.1),
+                  color: categoryColor.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(AppTheme.borderRadiusSmall),
                   border: Border.all(color: categoryColor.withOpacity(0.5)),
                 ),
@@ -1040,7 +1040,7 @@ class ContentDetailScreen extends StatelessWidget {
                   vertical: 4,
                 ),
                 decoration: BoxDecoration(
-                  color: categoryColor.withOpacity(0.1),
+                  color: categoryColor.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(AppTheme.borderRadiusSmall),
                   border: Border.all(color: categoryColor.withOpacity(0.5)),
                 ),
