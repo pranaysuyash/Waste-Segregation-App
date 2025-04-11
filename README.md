@@ -4,7 +4,7 @@ An educational Flutter application that teaches proper waste segregation to both
 
 ## Overview
 
-This cross-platform app allows users to capture or upload images, then uses Google's Gemini API (via an OpenAI-compatible endpoint) to identify items and classify them into waste categories:
+This cross-platform app allows users to capture or upload images, then uses Google's Gemini API (via OpenAI-compatible endpoint with the gemini-2.0-flash model) to identify items and classify them into waste categories:
 - Wet Waste
 - Dry Waste
 - Hazardous Waste
@@ -50,6 +50,7 @@ The app provides educational content about each category, stores classification 
 - **Framework**: Flutter
 - **State Management**: Provider
 - **Local Storage**: Hive with encryption
+- **Backend Services**: Firebase for authentication, storage, and analytics 
 - **Image Handling**: image_picker package
 - **AI Integration**: Gemini API via OpenAI-compatible endpoint using the gemini-2.0-flash model
 - **Google Integration**: google_sign_in and googleapis packages
@@ -79,6 +80,7 @@ The app provides educational content about each category, stores classification 
    - Open `lib/utils/constants.dart`
    - Update the `ApiConfig` class with your own Gemini API key
    - The app uses Gemini API via OpenAI-compatible endpoint and the gemini-2.0-flash model
+   - The API authentication uses the standard Bearer token format
 
 4. Run the app:
    ```bash

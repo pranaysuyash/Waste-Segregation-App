@@ -31,7 +31,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **State Management**: Provider pattern with context.watch/read
 - **File Organization**: Keep files under 400 lines, extract reusable widgets
 - **Constants**: Use AppTheme and AppStrings from utils/constants.dart
-- **APIs**: Use the Gemini API via OpenAI-compatible endpoint (see ApiConfig)
+- **APIs**: Use the Gemini API via OpenAI-compatible endpoint with Bearer token authentication
+- **Firebase**: Use Firebase services for authentication, storage, and analytics
 
 ## Important Notes
 - Test on both web and mobile platforms before submitting changes
