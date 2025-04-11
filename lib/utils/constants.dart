@@ -60,6 +60,14 @@ class ApiConfig {
   
   // Model to use - free tier with vision capabilities and good throughput
   static const String model = 'gemini-2.0-flash';
+  
+  // Headers for API request (may need to be added for authentication)
+  static Map<String, String> getHeaders() {
+    return {
+      'Content-Type': 'application/json',
+      'x-goog-api-key': apiKey,
+    };
+  }
 }
 
 // --- Storage Keys ---
