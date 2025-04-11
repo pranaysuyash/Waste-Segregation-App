@@ -51,7 +51,7 @@ The app provides educational content about each category, stores classification 
 - **State Management**: Provider
 - **Local Storage**: Hive with encryption
 - **Image Handling**: image_picker package
-- **AI Integration**: Gemini Vision API via HTTP calls (OpenAI-compatible)
+- **AI Integration**: Gemini API via OpenAI-compatible endpoint using the gemini-2.0-flash model
 - **Google Integration**: google_sign_in and googleapis packages
 
 ## Getting Started
@@ -77,8 +77,8 @@ The app provides educational content about each category, stores classification 
 
 3. Configure API keys:
    - Open `lib/utils/constants.dart`
-   - Replace `YOUR_GEMINI_API_ENDPOINT` with your Gemini API endpoint
-   - Replace `YOUR_API_KEY` with your API key
+   - Update the `ApiConfig` class with your own Gemini API key
+   - The app uses Gemini API via OpenAI-compatible endpoint and the gemini-2.0-flash model
 
 4. Run the app:
    ```bash
@@ -142,6 +142,6 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 ## Acknowledgments
 
-- Google Gemini API for AI vision capabilities
+- Google Gemini API for AI vision capabilities through the OpenAI-compatible endpoint
 - Flutter team for the amazing framework
 - All contributors to the open-source packages used in this project

@@ -14,7 +14,7 @@ This document provides a comprehensive guide to all features in the Waste Segreg
 
 ### AI-Powered Image Recognition
 
-The Waste Segregation App uses advanced AI to identify waste items:
+The Waste Segregation App uses Google's Gemini AI (gemini-2.0-flash model) to identify waste items:
 
 - **Camera capture**: Take photos of waste items directly in the app
 - **Gallery upload**: Select existing images from your device
@@ -153,6 +153,11 @@ Share your achievements:
 ## Recent Updates
 
 The following features have been recently implemented:
+
+### API Improvements
+
+- **Enhanced AI model**: Updated to the gemini-2.0-flash model for faster and more accurate image analysis
+- **OpenAI-compatible endpoint**: Integration with Gemini API through OpenAI-compatible format
 
 ### Educational Content Enhancements
 

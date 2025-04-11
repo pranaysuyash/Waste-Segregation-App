@@ -1,5 +1,11 @@
 # Waste Segregation App Developer Guide
 
+## API Configuration
+- The app uses Google's Gemini API via an OpenAI-compatible endpoint
+- The configuration is in `lib/utils/constants.dart` under the `ApiConfig` class
+- Model used: `gemini-2.0-flash` for fast vision capabilities
+- Base URL format: `https://generativelanguage.googleapis.com/v1beta/openai`
+
 ## Build & Run Commands
 - Run app: `flutter run` or for specific platform: `flutter run -d chrome/ios/android`
 - Dev mode with hot reload: `flutter run --debug`
