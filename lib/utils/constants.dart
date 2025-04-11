@@ -58,8 +58,8 @@ class ApiConfig {
   // API Key - Gemini API key
   static const String apiKey = 'AIzaSyDYXPY95PneMi0m7UTiI6ciY8sQyst2jV8';
   
-  // Model to use - vision model for image analysis
-  static const String model = 'gemini-pro-vision';
+  // Model to use - free tier with vision capabilities and good throughput
+  static const String model = 'gemini-2.0-flash';
   
   // Headers for API request
   static Map<String, String> getHeaders() {
