@@ -50,11 +50,16 @@ class AppStrings {
   // Add more strings as needed
 }
 
-// --- API Configuration (Placeholder) ---
+// --- API Configuration ---
 class ApiConfig {
-  static const String geminiBaseUrl = 'YOUR_GEMINI_BASE_URL_HERE'; // Replace with actual URL
-  static const String apiKey = 'YOUR_API_KEY_HERE'; // Replace with actual key
-  static const String model = 'gemini-pro-vision'; // Or your chosen model
+  // Gemini API via OpenAI-compatible endpoint
+  static const String geminiBaseUrl = 'https://generativelanguage.googleapis.com/v1beta/openai';
+  
+  // API Key - Gemini API key
+  static const String apiKey = 'AIzaSyDYXPY95PneMi0m7UTiI6ciY8sQyst2jV8';
+  
+  // Model to use - free tier with vision capabilities and good throughput
+  static const String model = 'gemini-2.0-flash';
 }
 
 // --- Storage Keys ---
@@ -84,6 +89,7 @@ class AppTheme {
   static const double paddingSmall = 8.0;
   static const double paddingRegular = 16.0;
   static const double paddingLarge = 24.0;
+  static const double paddingExtraLarge = 32.0;
   static const double borderRadiusSmall = 4.0;
   static const double borderRadiusRegular = 8.0;
   static const double borderRadiusLarge = 16.0;
@@ -97,9 +103,14 @@ class AppTheme {
 
   // --- Refined Color Palette ---
   // Base Colors (Using slightly different shades for UI vs Categories)
-  static const Color _primaryBase = Color(0xFF388E3C); // Green 700
-  static const Color _secondaryBase = Color(0xFF1976D2); // Blue 700
-  static const Color _accentBase = Color(0xFFF57C00); // Orange 700 - Keep for accents if needed
+  static const Color primaryColor = Color(0xFF388E3C); // Green 700
+  static const Color secondaryColor = Color(0xFF1976D2); // Blue 700
+  static const Color accentColor = Color(0xFFF57C00); // Orange 700 - Keep for accents if needed
+  
+  // Private base colors used in themes - keep in sync with above colors
+  static const Color _primaryBase = Color(0xFF388E3C); // Same as primaryColor
+  static const Color _secondaryBase = Color(0xFF1976D2); // Same as secondaryColor
+  static const Color _accentBase = Color(0xFFF57C00); // Same as accentColor
 
   // Category Specific Colors (Using original 500 shades for distinction)
   static const Color wetWasteColor = Color(0xFF4CAF50); // Green 500
@@ -109,8 +120,10 @@ class AppTheme {
   static const Color nonWasteColor = Color(0xFF607D8B); // Blue Grey 500
   
   // Text Colors
-  static const Color textPrimaryLight = Color(0xFF212121);
-  static const Color textSecondaryLight = Color(0xFF757575);
+  static const Color textPrimaryColor = Color(0xFF212121);
+  static const Color textSecondaryColor = Color(0xFF757575);
+  static const Color textPrimaryLight = Color(0xFF212121); // Same as textPrimaryColor for compatibility
+  static const Color textSecondaryLight = Color(0xFF757575); // Same as textSecondaryColor for compatibility
   static const Color textPrimaryDark = Color(0xFFFFFFFF);
   static const Color textSecondaryDark = Color(0xFFBDBDBD);
   
@@ -126,22 +139,20 @@ class AppTheme {
     final textTheme = GoogleFonts.latoTextTheme(baseTheme.textTheme);
 
     return baseTheme.copyWith(
-      primaryColor: _primaryBase,
+      primaryColor: primaryColor,
       scaffoldBackgroundColor: backgroundLight,
       colorScheme: ColorScheme.light(
-        primary: _primaryBase,
-        secondary: _secondaryBase,
-        tertiary: _accentBase, // Use Orange 700 as tertiary
+        primary: primaryColor,
+        secondary: secondaryColor,
+        tertiary: accentColor, // Use Orange 700 as tertiary
         error: medicalWasteColor,
-        background: backgroundLight,
         surface: backgroundLight, 
         onPrimary: Colors.white,
         onSecondary: Colors.white,
         onTertiary: Colors.white,
-        onBackground: textPrimaryLight,
         onSurface: textPrimaryLight,
         onError: Colors.white,
-        surfaceVariant: cardBackgroundLight, // Use for card backgrounds etc
+        surfaceContainerHighest: cardBackgroundLight, // Use for card backgrounds etc
         outline: textSecondaryLight.withOpacity(0.5),
       ),
       appBarTheme: AppBarTheme(
@@ -237,22 +248,20 @@ class AppTheme {
     final textTheme = GoogleFonts.latoTextTheme(baseTheme.textTheme);
 
     return baseTheme.copyWith(
-      primaryColor: _primaryBase, // Keep primary vibrant
+      primaryColor: primaryColor, // Keep primary vibrant
       scaffoldBackgroundColor: backgroundDark,
       colorScheme: ColorScheme.dark(
-        primary: _primaryBase,
-        secondary: _secondaryBase,
-        tertiary: _accentBase, // Use Orange 700 as tertiary
+        primary: primaryColor,
+        secondary: secondaryColor,
+        tertiary: accentColor, // Use Orange 700 as tertiary
         error: medicalWasteColor,
-        background: backgroundDark,
         surface: cardBackgroundDark, // Use for card backgrounds etc
         onPrimary: Colors.white,
         onSecondary: Colors.white,
         onTertiary: Colors.white,
-        onBackground: textPrimaryDark,
         onSurface: textPrimaryDark,
         onError: Colors.white,
-        surfaceVariant: cardBackgroundDark, // Use for card backgrounds etc
+        surfaceContainerHighest: cardBackgroundDark, // Use for card backgrounds etc
         outline: textSecondaryDark.withOpacity(0.5),
       ),
       appBarTheme: AppBarTheme(
@@ -384,7 +393,7 @@ class WasteInfo {
   // Disposal instructions for specific subcategories (More specific)
   // NOTE: Fixed syntax error - removed curly braces around the map literal value
   static const Map<String, String> subcategoryDisposal = {
-    'Food Waste': 'Best composted. If composting isn't available, double-bag and place in general waste bin designated for wet waste.',
+    'Food Waste': 'Best composted. If composting is not available, double-bag and place in general waste bin designated for wet waste.',
     'Garden Waste': 'Compost at home or use municipal green waste collection services. Avoid composting diseased plants.',
     'Paper': 'Keep dry and clean. Remove plastic windows from envelopes. Flatten cardboard boxes. Check if pizza boxes (clean parts) are accepted.',
     'Plastic': 'Check the recycling code (1-7). Rinse containers. Many local programs accept #1 (PET) and #2 (HDPE). Check local rules for others.',
@@ -408,4 +417,26 @@ class WasteInfo {
     '6': 'PS (Polystyrene): Includes Styrofoam, disposable cups, and cutlery. Difficult to recycle; often not accepted.',
     '7': 'Other: Includes various plastics like polycarbonate (PC), acrylic, and bioplastics. Recyclability is rare.',
   };
+}
+
+// Extension on Color to add withValues method
+extension ColorExtensions on Color {
+  Color withValues({double? opacity, double? alpha, double lightness = 1.0, double saturation = 1.0}) {
+    // Convert to HSL
+    final HSLColor hsl = HSLColor.fromColor(this);
+    
+    // Use alpha if provided, otherwise use opacity, defaulting to 1.0 if neither is provided
+    final double opacityValue = alpha ?? opacity ?? 1.0;
+    
+    // Apply scaling factors
+    final HSLColor adjusted = HSLColor.fromAHSL(
+      opacityValue * hsl.alpha,
+      hsl.hue,
+      saturation * hsl.saturation,
+      lightness * hsl.lightness,
+    );
+    
+    // Convert back to Color
+    return adjusted.toColor();
+  }
 }
