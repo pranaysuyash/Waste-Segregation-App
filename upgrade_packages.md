@@ -48,10 +48,11 @@ Based on the `flutter pub outdated` analysis, here's a plan to update your depen
 - This issue should be fixed by making IconData instances constants
 
 ### Package Deprecation Issues
-- ✅ Fixed: The Share class used in result_screen.dart is now updated:
-  - Line 59: Replaced `Share.share` with `SharePlus.instance.share()`
-  - Line 79: Replaced `Share.shareXFiles` with `SharePlus.instance.share()` with files parameter
-  - Changes committed to work with share_plus package version 11.0.0
+- ✅ Fixed: The Share class used in result_screen.dart is now updated properly:
+  - Line 59-63: Updated to use `SharePlus.instance.share(ShareParams(text: ...))` format
+  - Line 81-89: Updated to use `SharePlus.instance.share(ShareParams(text: ..., files: ...))` format
+  - Added import for ShareParams from share_plus_platform_interface
+  - Changes committed and verified with successful web build
 
 ### Test File Issues
 - test/widget_test.dart has several issues with constructor arguments:
