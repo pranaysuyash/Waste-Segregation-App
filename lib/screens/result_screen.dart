@@ -28,13 +28,14 @@ class _ResultScreenState extends State<ResultScreen> {
 
   Future<void> _saveResult() async {
     try {
-      final storageService = Provider.of<StorageService>(context, listen: false);
+      final storageService =
+          Provider.of<StorageService>(context, listen: false);
       await storageService.saveClassification(widget.classification);
-      
+
       setState(() {
         _isSaved = true;
       });
-      
+
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text(AppStrings.successSaved)),
@@ -52,40 +53,42 @@ class _ResultScreenState extends State<ResultScreen> {
   Future<void> _shareResult() async {
     try {
       // Web sharing is more limited
-      if (kIsWeb || widget.classification.imageUrl == null || widget.classification.imageUrl!.startsWith('web_image:')) {
-        await Share.share(
+      if (kIsWeb ||
+          widget.classification.imageUrl == null ||
+          widget.classification.imageUrl!.startsWith('web_image:')) {
+        await SharePlus.instance.share(
           'I identified ${widget.classification.itemName} as ${widget.classification.category} waste using the Waste Segregation app!',
         );
         return;
       }
-      
+
       // Mobile sharing with image
       final imageFile = File(widget.classification.imageUrl!);
-      
+
       // Create a temporary text file with the classification details
       final tempDir = await getTemporaryDirectory();
       final tempTextFile = File('${tempDir.path}/classification_details.txt');
-      
+
       await tempTextFile.writeAsString(
         'Item: ${widget.classification.itemName}\n'
         'Category: ${widget.classification.category}\n\n'
         'Explanation: ${widget.classification.explanation}\n\n'
         'Identified using the Waste Segregation app',
       );
-      
-      await Share.shareXFiles(
-        [
+
+      await SharePlus.instance.share(
+        'Waste Classification Results',
+        files: [
           XFile(imageFile.path),
           XFile(tempTextFile.path),
         ],
-        text: 'Waste Classification Results',
       );
-      
+
       // Clean up
       if (await tempTextFile.exists()) {
         await tempTextFile.delete();
       }
-      
+
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text(AppStrings.successShared)),
@@ -116,21 +119,22 @@ class _ResultScreenState extends State<ResultScreen> {
               onSave: widget.showActions && !_isSaved ? _saveResult : null,
               onShare: widget.showActions ? _shareResult : null,
             ),
-            
+
             const SizedBox(height: AppTheme.paddingLarge),
-            
+
             // Recycling code info section if available
             if (widget.classification.recyclingCode != null) ...[
               _buildRecyclingCodeInfo(widget.classification.recyclingCode!),
               const SizedBox(height: AppTheme.paddingLarge),
             ],
-            
+
             // Educational section
             Container(
               padding: const EdgeInsets.all(AppTheme.paddingRegular),
               decoration: BoxDecoration(
-                color: Colors.black.withValues(alpha: 0.05,),
-                borderRadius: BorderRadius.circular(AppTheme.borderRadiusRegular),
+                color: Colors.black.withOpacity(0.05),
+                borderRadius:
+                    BorderRadius.circular(AppTheme.borderRadiusRegular),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -148,17 +152,17 @@ class _ResultScreenState extends State<ResultScreen> {
                       ),
                     ],
                   ),
-                  
+
                   const SizedBox(height: AppTheme.paddingRegular),
-                  
+
                   // Educational fact based on waste category and subcategory
                   Text(_getEducationalFact(
                     widget.classification.category,
                     widget.classification.subcategory,
                   )),
-                  
+
                   const SizedBox(height: AppTheme.paddingRegular),
-                  
+
                   // Impact statement
                   const Text(
                     'Proper waste segregation can reduce landfill waste by up to 80% and significantly decrease greenhouse gas emissions.',
@@ -170,16 +174,17 @@ class _ResultScreenState extends State<ResultScreen> {
                 ],
               ),
             ),
-            
+
             const SizedBox(height: AppTheme.paddingLarge),
-            
+
             // Material properties section if materialType is available
             if (widget.classification.materialType != null) ...[
               Container(
                 padding: const EdgeInsets.all(AppTheme.paddingRegular),
                 decoration: BoxDecoration(
-                  color: Colors.black.withValues(alpha: 0.05,),
-                  borderRadius: BorderRadius.circular(AppTheme.borderRadiusRegular),
+                  color: Colors.black.withOpacity(0.05),
+                  borderRadius:
+                      BorderRadius.circular(AppTheme.borderRadiusRegular),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -197,9 +202,9 @@ class _ResultScreenState extends State<ResultScreen> {
                         ),
                       ],
                     ),
-                    
+
                     const SizedBox(height: AppTheme.paddingRegular),
-                    
+
                     // Material type
                     Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -213,9 +218,9 @@ class _ResultScreenState extends State<ResultScreen> {
                         ),
                       ],
                     ),
-                    
+
                     const SizedBox(height: 8),
-                    
+
                     // Properties table
                     Table(
                       border: TableBorder.all(
@@ -261,13 +266,16 @@ class _ResultScreenState extends State<ResultScreen> {
                               child: Text(
                                 widget.classification.isRecyclable == true
                                     ? 'Yes'
-                                    : widget.classification.isRecyclable == false
+                                    : widget.classification.isRecyclable ==
+                                            false
                                         ? 'No'
                                         : 'Unknown',
                                 style: TextStyle(
-                                  color: widget.classification.isRecyclable == true
+                                  color: widget.classification.isRecyclable ==
+                                          true
                                       ? Colors.green
-                                      : widget.classification.isRecyclable == false
+                                      : widget.classification.isRecyclable ==
+                                              false
                                           ? Colors.red
                                           : Colors.grey,
                                   fontWeight: FontWeight.bold,
@@ -287,13 +295,16 @@ class _ResultScreenState extends State<ResultScreen> {
                               child: Text(
                                 widget.classification.isCompostable == true
                                     ? 'Yes'
-                                    : widget.classification.isCompostable == false
+                                    : widget.classification.isCompostable ==
+                                            false
                                         ? 'No'
                                         : 'Unknown',
                                 style: TextStyle(
-                                  color: widget.classification.isCompostable == true
+                                  color: widget.classification.isCompostable ==
+                                          true
                                       ? Colors.green
-                                      : widget.classification.isCompostable == false
+                                      : widget.classification.isCompostable ==
+                                              false
                                           ? Colors.red
                                           : Colors.grey,
                                   fontWeight: FontWeight.bold,
@@ -311,15 +322,22 @@ class _ResultScreenState extends State<ResultScreen> {
                             Padding(
                               padding: const EdgeInsets.all(8.0),
                               child: Text(
-                                widget.classification.requiresSpecialDisposal == true
+                                widget.classification.requiresSpecialDisposal ==
+                                        true
                                     ? 'Yes'
-                                    : widget.classification.requiresSpecialDisposal == false
+                                    : widget.classification
+                                                .requiresSpecialDisposal ==
+                                            false
                                         ? 'No'
                                         : 'Unknown',
                                 style: TextStyle(
-                                  color: widget.classification.requiresSpecialDisposal == true
+                                  color: widget.classification
+                                              .requiresSpecialDisposal ==
+                                          true
                                       ? Colors.orange
-                                      : widget.classification.requiresSpecialDisposal == false
+                                      : widget.classification
+                                                  .requiresSpecialDisposal ==
+                                              false
                                           ? Colors.green
                                           : Colors.grey,
                                   fontWeight: FontWeight.bold,
@@ -335,7 +353,7 @@ class _ResultScreenState extends State<ResultScreen> {
               ),
               const SizedBox(height: AppTheme.paddingLarge),
             ],
-            
+
             // Back to home button
             SizedBox(
               width: double.infinity,
@@ -372,7 +390,7 @@ class _ResultScreenState extends State<ResultScreen> {
           return 'Composting garden waste can reduce waste volume by up to 70%. The resulting compost improves soil structure, water retention, and provides nutrients for plants.';
         case 'biodegradable packaging':
           return 'Not all biodegradable packaging decomposes in home composting systems. Industrial composting facilities maintain higher temperatures needed for some materials.';
-      
+
         // Dry waste subcategories
         case 'paper':
           return 'Recycling one ton of paper saves 17 trees, 7,000 gallons of water, 380 gallons of oil, and 3.3 cubic yards of landfill space. Paper can typically be recycled 5-7 times before fibers become too short.';
@@ -382,19 +400,19 @@ class _ResultScreenState extends State<ResultScreen> {
           return 'Glass can be recycled endlessly without loss in quality or purity. Recycling glass reduces energy consumption by 40% compared to making new glass from raw materials.';
         case 'metal':
           return 'Recycling aluminum saves 95% of the energy needed to make new aluminum from raw materials. A recycled aluminum can can be back on the shelf in just 60 days.';
-        
+
         // Hazardous waste subcategories
         case 'electronic waste':
           return 'E-waste contains valuable materials like gold, silver, copper, and rare earth elements. One ton of circuit boards contains 40-800 times more gold than one ton of ore.';
         case 'batteries':
           return 'Batteries contain heavy metals and toxic chemicals that can leach into soil and groundwater. Recycling batteries recovers valuable metals and prevents environmental contamination.';
-        
+
         // Medical waste subcategories
         case 'sharps':
           return 'Improper disposal of sharps can cause injury and potentially transmit diseases. FDA-approved sharps containers are required for safe disposal.';
         case 'pharmaceutical':
           return 'Pharmaceuticals should never be flushed down toilets as they can contaminate water sources. Many pharmacies offer drug take-back programs.';
-        
+
         // Non-waste subcategories
         case 'reusable items':
           return 'Single-use items account for a significant portion of landfill waste. Switching to reusable alternatives like water bottles and shopping bags can prevent hundreds of items from entering the waste stream annually.';
@@ -402,7 +420,7 @@ class _ResultScreenState extends State<ResultScreen> {
           return 'About one-third of all food produced globally is wasted. Food redistribution programs can help direct surplus food to people in need rather than landfills.';
       }
     }
-    
+
     // Fall back to category-level facts if no subcategory match
     switch (category.toLowerCase()) {
       case 'wet waste':
@@ -419,14 +437,15 @@ class _ResultScreenState extends State<ResultScreen> {
         return 'Proper waste segregation is crucial for effective recycling and composting. It helps reduce landfill usage and minimizes environmental impact.';
     }
   }
-  
+
   Widget _buildRecyclingCodeInfo(String code) {
-    String description = WasteInfo.recyclingCodes[code] ?? 'Unknown plastic type';
-    
+    String description =
+        WasteInfo.recyclingCodes[code] ?? 'Unknown plastic type';
+
     return Container(
       padding: const EdgeInsets.all(AppTheme.paddingRegular),
       decoration: BoxDecoration(
-        color: Colors.black.withValues(alpha: 0.05,),
+        color: Colors.black.withOpacity(0.05),
         borderRadius: BorderRadius.circular(AppTheme.borderRadiusRegular),
       ),
       child: Column(
