@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:share_plus_platform_interface/share_plus_platform_interface.dart';
 import 'package:path_provider/path_provider.dart';
 import '../models/waste_classification.dart';
 import '../services/storage_service.dart';
@@ -57,7 +58,9 @@ class _ResultScreenState extends State<ResultScreen> {
           widget.classification.imageUrl == null ||
           widget.classification.imageUrl!.startsWith('web_image:')) {
         await SharePlus.instance.share(
-          'I identified ${widget.classification.itemName} as ${widget.classification.category} waste using the Waste Segregation app!',
+          ShareParams(
+            text: 'I identified ${widget.classification.itemName} as ${widget.classification.category} waste using the Waste Segregation app!',
+          ),
         );
         return;
       }
@@ -77,11 +80,13 @@ class _ResultScreenState extends State<ResultScreen> {
       );
 
       await SharePlus.instance.share(
-        'Waste Classification Results',
-        files: [
-          XFile(imageFile.path),
-          XFile(tempTextFile.path),
-        ],
+        ShareParams(
+          text: 'Waste Classification Results',
+          files: [
+            XFile(imageFile.path),
+            XFile(tempTextFile.path),
+          ],
+        ),
       );
 
       // Clean up
