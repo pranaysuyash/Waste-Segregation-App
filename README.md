@@ -5,11 +5,11 @@ An educational Flutter application that teaches proper waste segregation to both
 ## Overview
 
 This cross-platform app allows users to capture or upload images, then uses Google's Gemini API (via OpenAI-compatible endpoint with the gemini-2.0-flash model) to identify items and classify them into waste categories:
-- Wet Waste
-- Dry Waste
-- Hazardous Waste
-- Medical Waste
-- Non-Waste
+- Wet Waste (organic, compostable)
+- Dry Waste (recyclable)
+- Hazardous Waste (requires special handling)
+- Medical Waste (potentially contaminated)
+- Non-Waste (reusable items, edible food)
 
 The app provides educational content about each category, stores classification data locally using Hive, and optionally synchronizes user data to Google Drive.
 
@@ -26,19 +26,16 @@ The app provides educational content about each category, stores classification 
 
 - **Educational Content**:
   - Detailed explanations for each waste category
-  - Articles, videos, infographics, quizzes, and tutorials
+  - Articles, videos, infographics, and quizzes
   - Bookmarkable content for quick access
-  - Advanced filtering and search capabilities
-  - Difficulty levels clearly indicated (Beginner, Intermediate, Advanced)
-  - Daily waste reduction tips
+  - Waste category-specific information
 
 - **Gamification & User Engagement**:
-  - Points and levels system with user ranks
-  - Achievement badges for app usage and waste identification
+  - Points and levels system
+  - Achievement badges for waste identification
   - Daily streaks with bonus incentives
-  - Team or friend-based challenges
-  - Community-based leaderboards
-  - Social sharing capabilities for achievements and challenges
+  - Challenges with rewards
+  - Weekly statistics tracking
 
 - **Data Management**:
   - Local storage of classifications and user preferences
@@ -49,11 +46,11 @@ The app provides educational content about each category, stores classification 
 
 - **Framework**: Flutter
 - **State Management**: Provider
-- **Local Storage**: Hive with encryption
-- **Backend Services**: Firebase for authentication, storage, and analytics 
+- **Local Storage**: Hive
+- **Backend Services**: Planned Firebase integration for authentication and analytics
 - **Image Handling**: image_picker package
 - **AI Integration**: Gemini API via OpenAI-compatible endpoint using the gemini-2.0-flash model
-- **Google Integration**: google_sign_in and googleapis packages
+- **Google Integration**: google_sign_in package
 
 ## Getting Started
 
@@ -76,13 +73,18 @@ The app provides educational content about each category, stores classification 
    flutter pub get
    ```
 
-3. Configure API keys:
+3. Generate model code:
+   ```bash
+   flutter pub run build_runner build
+   ```
+
+4. Configure API keys:
    - Open `lib/utils/constants.dart`
    - Update the `ApiConfig` class with your own Gemini API key
    - The app uses Gemini API via OpenAI-compatible endpoint and the gemini-2.0-flash model
    - The API authentication uses the standard Bearer token format
 
-4. Run the app:
+5. Run the app:
    ```bash
    flutter run
    ```
@@ -122,6 +124,26 @@ lib/
 │   └── constants.dart
 └── main.dart
 ```
+
+## Current Status
+
+### Implemented Features
+- AI integration with Gemini Vision API
+- Waste classification with detailed categories
+- Basic image capture and upload functionality
+- Core UI screens (home, auth, image capture, results)
+- Educational content framework
+- Comprehensive gamification system (points, achievements, challenges)
+- Local storage with Hive
+- Google Sign-In
+
+### In Progress/Pending
+- Leaderboard implementation
+- Enhanced camera features
+- Quiz functionality completion
+- Firebase integration for analytics
+- Social sharing capabilities
+- Enhanced web camera support
 
 ## Dependencies
 

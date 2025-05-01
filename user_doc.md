@@ -1,195 +1,265 @@
-# Waste Segregation App - User Guide
+# Waste Segregation App - Technical Documentation
 
-This document provides a comprehensive guide to all features in the Waste Segregation App, including the recently implemented enhancements.
+## Project Overview
 
-## Table of Contents
+The Waste Segregation App is a Flutter-based educational application designed to teach proper waste segregation practices using AI technology. The app analyzes images of waste items and classifies them into appropriate categories, providing educational content on proper disposal and environmental impact.
 
-1. [Core Features](#core-features)
-2. [Educational Content](#educational-content)
-3. [Gamification System](#gamification-system)
-4. [Social Features](#social-features)
-5. [Recent Updates](#recent-updates)
+## System Architecture
 
-## Core Features
+### Technology Stack
 
-### AI-Powered Image Recognition
+- **Framework**: Flutter (cross-platform)
+- **State Management**: Provider pattern
+- **Local Storage**: Hive database
+- **AI Integration**: Google Gemini API via OpenAI-compatible endpoint
+- **Authentication**: Google Sign-In
+- **Cloud Storage**: Google Drive API
 
-The Waste Segregation App uses Google's Gemini AI (gemini-2.0-flash model via OpenAI-compatible endpoint) to identify waste items with enhanced accuracy:
+### Directory Structure
 
-- **Camera capture**: Take photos of waste items directly in the app
-- **Gallery upload**: Select existing images from your device
-- **Instant classification**: Items are categorized into:
-  - Wet Waste
-  - Dry Waste
-  - Hazardous Waste
-  - Medical Waste
-  - Non-Waste
+```
+lib/
+├── main.dart             # Application entry point
+├── models/               # Data structures
+│   ├── waste_classification.dart     # Waste item classification model
+│   ├── waste_classification.g.dart   # Generated code for model
+│   ├── educational_content.dart      # Educational content model
+│   ├── educational_content.g.dart    # Generated code for model
+│   ├── gamification.dart             # Gamification features model
+│   └── gamification.g.dart           # Generated code for model
+├── screens/              # UI screens
+│   ├── home_screen.dart             # Main app screen
+│   ├── auth_screen.dart             # User authentication
+│   ├── camera_screen.dart           # Camera interface
+│   ├── image_capture_screen.dart    # Captured image review
+│   ├── result_screen.dart           # Classification results
+│   ├── educational_content_screen.dart  # Educational materials
+│   ├── content_detail_screen.dart    # Detailed content view
+│   ├── quiz_screen.dart             # Interactive quizzes
+│   ├── achievements_screen.dart     # User progress & achievements
+│   └── leaderboard_screen.dart      # Competitive rankings
+├── services/             # Business logic
+│   ├── ai_service.dart              # AI classification service
+│   ├── educational_content_service.dart  # Content management
+│   ├── gamification_service.dart    # User progress tracking
+│   ├── storage_service.dart         # Local data persistence
+│   └── google_drive_service.dart    # Cloud synchronization
+├── utils/                # Utility functions
+│   ├── constants.dart              # App-wide constants & configuration
+│   ├── web.dart                    # Web platform interface
+│   ├── web_handler.dart            # Web-specific implementations
+│   ├── web_impl.dart               # Web implementation details
+│   ├── web_stubs.dart              # Mobile stubs for web features
+│   └── js_stub.dart                # JavaScript interop stub
+└── widgets/              # Reusable UI components
+    ├── capture_button.dart         # Camera capture UI
+    ├── classification_card.dart    # Result display component
+    ├── platform_camera.dart        # Base camera abstraction
+    ├── enhanced_camera.dart        # Advanced camera features
+    ├── web_camera.dart             # Web camera implementation
+    ├── web_camera_access.dart      # Web permissions handling
+    ├── direct_web_camera.dart      # Alternative web camera
+    ├── simple_web_camera.dart      # Minimal web camera
+    └── gamification_widgets.dart   # Achievement & progress UI
+```
 
-### Classification Results
+## Implementation Status
 
-After analyzing an image, you'll receive:
+### Implemented Features
 
-- Item identification
-- Waste category and subcategory
-- **Step-by-step disposal instructions (bullet points)**
-- **Action buttons for finding local disposal sites and viewing how-to videos (coming soon)**
-- Environmental impact information
-- Related educational content
+1. **Core AI Classification**
+   - Integration with Gemini Vision API via OpenAI-compatible endpoint
+   - Detailed waste categorization system (5 main categories, multiple subcategories)
+   - Comprehensive image analysis with material type identification
+   - Support for both mobile and web platforms
 
-## Educational Content
+2. **User Authentication**
+   - Google Sign-In implementation
+   - Guest mode for anonymous usage
+   - User profile management
 
-### Content Types
+3. **Image Handling**
+   - Basic camera integration for image capture
+   - Gallery image selection
+   - Image processing and formatting for AI analysis
 
-Access diverse educational materials:
+4. **Local Storage**
+   - Hive database implementation
+   - Classification history storage
+   - User preferences and settings
+   - Gamification data persistence
 
-- **Articles**: In-depth information about waste management topics
-- **Videos**: Visual demonstrations and explanations
-- **Infographics**: Visual representations of data and processes
-- **Quizzes**: Test your knowledge about waste categories
-- **Tutorials**: Step-by-step guides for proper waste handling
-- **Tips**: Quick, practical advice for daily waste reduction
+5. **Gamification System**
+   - Points and level progression
+   - Achievement badges with progress tracking
+   - Daily usage streaks
+   - Dynamic challenges with rewards
+   - Weekly statistics tracking
 
-### Difficulty Levels
+6. **Educational Framework**
+   - Content models for various educational formats
+   - Category-specific disposal instructions
+   - Material type information
 
-Content is clearly marked by difficulty level:
+### Features in Progress
 
-- **Beginner** (Green): Fundamental concepts for newcomers
-- **Intermediate** (Orange): More detailed information for those with some knowledge
-- **Advanced** (Red): In-depth content for experienced users
+1. **Advanced Camera Features**
+   - Enhanced camera controls
+   - Real-time preview analysis
+   - Improved web camera support
 
-### Advanced Filtering
+2. **Leaderboard System**
+   - User rankings and comparisons
+   - Community challenges
+   - Social features
 
-Find content that interests you using multiple filters:
+3. **Quiz Functionality**
+   - Interactive learning assessments
+   - Progress tracking for educational content
 
-- Content type (articles, videos, etc.)
-- Difficulty level
-- Category (wet waste, dry waste, etc.)
-- Tags
-- Bookmarked items
-- Search text
+4. **Firebase Integration**
+   - Analytics implementation
+   - Remote configuration
+   - Cloud messaging
 
-### Bookmarks
+5. **Sharing Capabilities**
+   - Social media integration
+   - Result sharing
 
-Save content for later:
+## Core Module Documentation
 
-1. Browse educational content
-2. Tap the bookmark icon on any content card
-3. Access all bookmarked content from the "Bookmarks" tab
-4. Bookmarks persist between app sessions
+### AI Service
 
-### Search Features
+The AI Service uses the Gemini Vision API through an OpenAI-compatible endpoint to analyze images and classify waste items.
 
-Find content quickly:
+**Key Features:**
+- Supports different image formats (File, Uint8List)
+- Uses the gemini-2.0-flash model for efficient processing
+- Formats responses into structured WasteClassification objects
+- Provides detailed information about proper disposal methods
 
-- Full-text search across all content
-- Search history saved for quick access
-- Recent searches displayed as clickable chips
-- Clear search history option
+**Implementation Notes:**
+- Uses Bearer token authentication
+- Formats prompts to extract specific waste characteristics
+- Handles API responses with JSON parsing
+- Includes error handling for API failures
 
-## Gamification System
+### Gamification Service
 
-### Points and Levels
+A comprehensive gamification system to encourage user engagement and learning.
 
-Track your progress with:
+**Key Features:**
+- Points system for various user actions
+- Level progression based on points earned
+- Achievement badges with progress tracking
+- Daily streak maintenance
+- Dynamic challenges with requirements and rewards
+- Weekly statistics tracking
 
-- Points earned for identifying waste items
-- Bonuses for maintaining daily streaks
-- Level progression (1 level per 100 points)
-- Rank titles that reflect your expertise level
+**Implementation Notes:**
+- Stores data in Hive database
+- Tracks multiple achievement types
+- Generates challenges dynamically
+- Updates user progress in real-time
 
-### Achievements
+### Storage Service
 
-Earn badges for various accomplishments:
+Handles local data persistence and optional cloud synchronization.
 
-- **Waste Identified**: Classify specific numbers of items
-- **Categories Identified**: Identify items across different categories
-- **Streak Maintained**: Maintain consecutive days of app usage
-- **Challenges Completed**: Complete special challenges
-- **Perfect Week**: Use the app every day for a week
-- **Knowledge Master**: Complete educational content
-- **Quiz Completed**: Successfully complete quizzes
+**Key Features:**
+- Stores classification history
+- Manages user preferences
+- Saves gamification progress
+- Handles educational content caching
 
-### Challenges
+**Implementation Notes:**
+- Uses Hive for efficient local storage
+- Implements data models with JSON serialization
+- Provides methods for data retrieval and filtering
 
-Participate in time-limited tasks:
+### Educational Content Service
 
-- Individual challenges for personal progress
-- Team challenges to collaborate with friends
-- Community-based challenges with leaderboards
-- Earn bonus points upon completion
+Manages educational materials about waste management and proper disposal.
 
-### Leaderboards
+**Key Features:**
+- Multiple content types (articles, videos, quizzes)
+- Category-specific information
+- Difficulty levels for content
+- Daily tips feature
 
-Compare your progress with others:
+**Implementation Notes:**
+- Content structured by waste categories
+- Searchable by keywords and tags
+- Supports different media formats
 
-- Weekly rankings
-- Monthly rankings
-- Challenge-specific rankings
-- Visual podium display for top performers
+## Data Flow
 
-## Social Features
+### Classification Flow
+1. User captures/selects image
+2. Image sent to AI Service for analysis
+3. AI returns detailed classification
+4. Results displayed to user
+5. Classification saved to local storage
+6. Gamification system updated with points/achievements
+7. Related educational content suggested
 
-### Team Challenges
+### User Engagement Flow
+1. User earns points for various actions
+2. Points contribute to level progression
+3. Achievements unlocked based on specific milestones
+4. Challenges completed for additional rewards
+5. Streak maintained for daily usage
+6. Statistics tracked for leaderboard position
 
-Collaborate with friends:
+## Platform-Specific Implementations
 
-1. Go to the Achievements screen > Challenges tab
-2. Look for challenges marked as "Team Challenge"
-3. Tap "Add Friends" to invite team members
-4. Share the invitation code via your preferred method
-5. Track team progress together
-6. Earn rewards collectively
+### Web Platform
+- Camera access via JavaScript interop
+- Image processing using base64 encoding
+- Alternative camera implementations for browser compatibility
 
-### Social Sharing
+### Mobile Platforms
+- Native camera integration
+- File system access for image storage
+- Platform-specific permission handling
 
-Share your achievements:
+## Future Development
 
-- **Achievement sharing**: When you earn badges
-- **Challenge completion**: When you complete challenges
-- **Team invitations**: When you want friends to join your team
-- **Custom share messages**: With hashtags for social media visibility
-- **Multiple sharing options**: Social media, messaging, email
+### Planned Enhancements
+1. Complete leaderboard implementation
+2. Finalize quiz functionality
+3. Enhance camera features
+4. Implement Firebase integration
+5. Add social sharing capabilities
+6. Improve web platform support
 
-## Recent Updates
+### Optimization Goals
+1. Reduce image processing time
+2. Improve offline capabilities
+3. Enhance cross-platform consistency
+4. Optimize storage usage
 
-The following features have been recently implemented:
+## API Documentation
 
-### API and Backend Improvements
+### Gemini API Integration
+- **Endpoint**: OpenAI-compatible endpoint for Gemini
+- **Model**: gemini-2.0-flash
+- **Authentication**: Bearer token
+- **Request Format**: OpenAI chat completions format
+- **Response Handling**: JSON parsing with specific fields
 
-- **Enhanced AI model**: Updated to the gemini-2.0-flash model for faster and more accurate image analysis
-- **OpenAI-compatible endpoint**: Integration with Gemini API through OpenAI-compatible format with Bearer token authentication
-- **Firebase Integration**: Added Firebase services for improved authentication, storage, and analytics
-- **Cross-platform optimization**: Better performance across web, mobile, and desktop devices
+## Error Handling
 
-### Educational Content Enhancements
+The application implements robust error handling:
+- Network connectivity checks
+- API response validation
+- Permission fallbacks
+- Cross-platform compatibility checks
+- Graceful degradation for unavailable features
 
-- **Advanced filtering system**: Filter by multiple criteria simultaneously
-- **Bookmark feature**: Save favorite content for easy access
-- **Enhanced difficulty indicators**: Color-coding and icons for clear level identification
-- **Search history**: Track and quickly access previous searches
+## Security Considerations
 
-### Gamification & User Engagement
-
-- **Community leaderboards**: Compare progress with other users
-- **Team challenges**: Collaborate with friends on shared goals
-- **Social sharing**: Share achievements and challenge completions
-
-### UI/UX Improvements
-
-- **Enhanced UI**: Improved visualization for points, streaks, and achievements
-- **Improved disposal instructions display**: Shows steps in a clear, bulleted list
-- **Added quick action buttons**: Buttons for finding disposal sites and viewing videos
-- **Optimized image capture**: Better camera functionality with fallback mechanisms
-- **Improved authentication**: Smoother login process with Google Sign-in and guest mode
-
-### How to Access New Features
-
-- **Bookmarks**: Look for the bookmark icon on content cards
-- **Advanced Filtering**: Tap the filter icon in the Educational Content screen
-- **Team Challenges**: Check the Challenges tab in the Achievements screen
-- **Leaderboards**: Tap the leaderboard icon in the Achievements screen
-- **Social Sharing**: Look for share buttons on achievement and challenge cards
-
----
-
-We hope these features enhance your waste management journey! For technical assistance or feedback, please contact support@wasteapp.example.com.
+- API key protection
+- User data encryption for sensitive information
+- Proper authentication scopes for Google Sign-In
+- Image data handling with privacy considerations
