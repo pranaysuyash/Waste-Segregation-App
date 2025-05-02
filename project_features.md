@@ -221,6 +221,15 @@ If you're interested in contributing to the project, here are some areas that wo
 10. UI Refactoring & Modularization: break down large build methods in key screens into dedicated, reusable widgets to improve readability and maintainability
     - Extract HomeScreen's Recent Identifications list into a RecentClassificationsList widget
     - Extract HomeScreen's Gamification section (streak, challenges, achievements) into a GamificationSection widget
+## Monetization Strategies
+
+- Freemium Subscription: monthly/annual subscription unlocking premium features (advanced analytics, personalized challenges, ad-free experience, exclusive content).
+- In-App Purchases: one-time purchase options (e.g., remove ads, purchase additional daily tips or quizzes, unlock custom themes or avatars).
+- Advertising Integration: non-intrusive banner/interstitial ads (e.g., via AdMob), with rewarded video ads to grant users bonuses (extra points or content).
+- Sponsorship & Partnerships: sponsored educational content or challenges from environmental NGOs, recycling companies, or municipalities.
+- Affiliate Marketing: curated eco-friendly product recommendations with affiliate links.
+- Donation Model: voluntary in-app donations or one-time contributions to support app development and environmental causes.
+- Data Insights: anonymized, aggregated analytics sold to research institutions or municipalities for waste management planning, ensuring privacy compliance.
     - Extract QuizScreen's question view and option cards into separate QuestionCard and OptionCard widgets
     - Extract ResultScreen's recycling code info into RecyclingCodeInfoCard (done) and material info into a MaterialInfoCard
     - Extract ResultScreen's educational fact section and action buttons into dedicated widgets (EducationalFactCard, ActionButtonsRow)
