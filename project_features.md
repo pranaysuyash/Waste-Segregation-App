@@ -136,6 +136,8 @@ This document provides a comprehensive overview of the project's features, categ
 - 🔮 Integration with smart home assistants
 - 🔮 Smart-bin integration (IoT)
 - 🔮 Offline syncing queue management
+- 🔮 Geospatial Mapping & Geotagging: integrate OpenStreetMap (e.g., via flutter_map) to record and display user classification locations, generate category-specific heatmaps (e.g., medical waste hotspots), and enable community-driven cleanup planning
+- 🔮 Location-based AR/VR scavenger hunts: gamified missions that prompt users to find and classify waste in real-world locations using AR overlays on a map
 
 ### User Experience Enhancements
 - 🔮 Voice-based interaction and search
