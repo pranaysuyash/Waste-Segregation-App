@@ -16,73 +16,135 @@ class ClassificationCard extends StatelessWidget {
     this.onSave,
   });
 
-  // Helper method to build the image widget based on platform
+  /// Helper method to build the image widget based on platform with improved error handling
   Widget _buildImage(String imageUrl) {
+    // For web platform
     if (kIsWeb) {
-      // Handle web image formats
+      // Handle web image formats (data URLs)
       if (imageUrl.startsWith('web_image:')) {
-        // Check if it's a data URL (starts with data:image)
-        final dataPrefix = 'web_image:data:';
-        if (imageUrl.startsWith(dataPrefix)) {
-          try {
-            // Extract the base64 data
-            final dataUrl = imageUrl.substring('web_image:'.length);
-
+        try {
+          // Extract the data URL
+          final dataUrl = imageUrl.substring('web_image:'.length);
+          
+          // Check if it's a valid data URL
+          if (dataUrl.startsWith('data:image')) {
             // Create Image widget from data URL
             return Image.network(
               dataUrl,
               height: 200,
               width: double.infinity,
               fit: BoxFit.cover,
+              // Fade-in animation for smoother loading
+              frameBuilder: (context, child, frame, wasSynchronouslyLoaded) {
+                if (wasSynchronouslyLoaded) return child;
+                return AnimatedOpacity(
+                  opacity: frame == null ? 0 : 1,
+                  duration: const Duration(milliseconds: 300),
+                  curve: Curves.easeInOut,
+                  child: child,
+                );
+              },
+              // Handle errors better
               errorBuilder: (context, error, stackTrace) {
-                print('Error loading image: $error');
+                debugPrint('Error loading web image: $error');
                 return _buildImagePlaceholder();
               },
+              // Cache images for better performance
+              cacheWidth: 600, // 3x display size for high-DPI displays
+              cacheHeight: 400,
             );
-          } catch (e) {
-            print('Error processing image data: $e');
-            return _buildImagePlaceholder();
           }
-        } else {
-          // It's a web image but not a data URL
+        } catch (e) {
+          debugPrint('Error processing web image data: $e');
           return _buildImagePlaceholder();
         }
       }
-
-      // Try to display the image if it's a path or URL
-      try {
-        if (imageUrl.startsWith('http:') || imageUrl.startsWith('https:')) {
-          return Image.network(
-            imageUrl,
-            height: 200,
-            width: double.infinity,
-            fit: BoxFit.cover,
-            errorBuilder: (context, error, stackTrace) {
-              return _buildImagePlaceholder();
-            },
-          );
-        }
-      } catch (e) {
-        print('Error loading image URL: $e');
-        return _buildImagePlaceholder();
+      
+      // Handle regular URLs
+      if (imageUrl.startsWith('http:') || imageUrl.startsWith('https:')) {
+        return Image.network(
+          imageUrl,
+          height: 200,
+          width: double.infinity,
+          fit: BoxFit.cover,
+          frameBuilder: (context, child, frame, wasSynchronouslyLoaded) {
+            if (wasSynchronouslyLoaded) return child;
+            return AnimatedOpacity(
+              opacity: frame == null ? 0 : 1,
+              duration: const Duration(milliseconds: 300),
+              curve: Curves.easeInOut,
+              child: child,
+            );
+          },
+          errorBuilder: (context, error, stackTrace) {
+            debugPrint('Error loading network image: $error');
+            return _buildImagePlaceholder();
+          },
+          cacheWidth: 600,
+          cacheHeight: 400,
+        );
       }
-    }
-
-    // For mobile platforms with file path
+      
+      // If we got here, it's an unsupported image format for web
+      return _buildImagePlaceholder();
+    } 
+    
+    // For mobile platforms - handle file existence check properly
     try {
-      return Image.file(
-        File(imageUrl),
-        height: 200,
-        width: double.infinity,
-        fit: BoxFit.cover,
-        errorBuilder: (context, error, stackTrace) {
+      final file = File(imageUrl);
+      
+      // Use FutureBuilder to check if the file exists before rendering
+      return FutureBuilder<bool>(
+        future: file.exists(),
+        builder: (context, snapshot) {
+          // Show placeholder while checking
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return _buildLoadingPlaceholder();
+          }
+          
+          // If file exists, show it
+          if (snapshot.hasData && snapshot.data == true) {
+            return Image.file(
+              file,
+              height: 200,
+              width: double.infinity,
+              fit: BoxFit.cover,
+              errorBuilder: (context, error, stackTrace) {
+                debugPrint('Error rendering image file: $error');
+                return _buildImagePlaceholder();
+              },
+              cacheWidth: 600,
+              cacheHeight: 400,
+            );
+          } 
+          
+          // File doesn't exist or check failed
           return _buildImagePlaceholder();
         },
       );
     } catch (e) {
-      print('Error loading image file: $e');
+      debugPrint('Error handling image file: $e');
       return _buildImagePlaceholder();
     }
+  }
+  
+  /// Builds a loading placeholder while checking file existence
+  Widget _buildLoadingPlaceholder() {
+    return Container(
+      height: 200,
+      width: double.infinity,
+      color: Colors.grey.shade100,
+      child: const Center(
+        child: SizedBox(
+          width: 40,
+          height: 40,
+          child: CircularProgressIndicator(
+            strokeWidth: 3,
+            valueColor: AlwaysStoppedAnimation<Color>(Colors.grey),
+          ),
+        ),
+      ),
+    );
   }
 
   Widget _buildImagePlaceholder() {

@@ -9,6 +9,7 @@ import '../models/waste_classification.dart';
 import '../services/storage_service.dart';
 import '../utils/constants.dart';
 import '../widgets/classification_card.dart';
+import '../widgets/recycling_code_info.dart';
 
 class ResultScreen extends StatefulWidget {
   final WasteClassification classification;
@@ -129,7 +130,7 @@ class _ResultScreenState extends State<ResultScreen> {
 
             // Recycling code info section if available
             if (widget.classification.recyclingCode != null) ...[
-              _buildRecyclingCodeInfo(widget.classification.recyclingCode!),
+              RecyclingCodeInfoCard(code: widget.classification.recyclingCode!),
               const SizedBox(height: AppTheme.paddingLarge),
             ],
 

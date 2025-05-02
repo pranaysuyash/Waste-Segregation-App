@@ -1,18 +1,18 @@
 import 'package:flutter/material.dart';
 import '../models/gamification.dart';
-import '../utils/constants.dart';
+import '../utils/constants.dart'; // This imports AppIcons, AppTheme, and AppStrings
 
 /// A widget that displays the user's current streak
 class StreakIndicator extends StatelessWidget {
   final Streak streak;
   final VoidCallback? onTap;
-  
+
   const StreakIndicator({
     super.key,
     required this.streak,
     this.onTap,
   });
-  
+
   @override
   Widget build(BuildContext context) {
     return InkWell(
@@ -21,10 +21,10 @@ class StreakIndicator extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(AppTheme.paddingRegular),
         decoration: BoxDecoration(
-          color: _getStreakColor(streak.current).withValues(alpha: 0.1),
+          color: _getStreakColor(streak.current).withOpacity(0.1),
           borderRadius: BorderRadius.circular(AppTheme.borderRadiusRegular),
           border: Border.all(
-            color: _getStreakColor(streak.current).withValues(alpha: 0.3),
+            color: _getStreakColor(streak.current).withOpacity(0.3),
           ),
         ),
         child: Row(
@@ -66,9 +66,10 @@ class StreakIndicator extends StatelessWidget {
                   ),
                   decoration: BoxDecoration(
                     color: Colors.white,
-                    borderRadius: BorderRadius.circular(AppTheme.borderRadiusSmall),
+                    borderRadius:
+                        BorderRadius.circular(AppTheme.borderRadiusSmall),
                     border: Border.all(
-                      color: _getStreakColor(streak.current).withValues(alpha: 0.3),
+                      color: _getStreakColor(streak.current).withOpacity(0.3),
                     ),
                   ),
                   child: Row(
@@ -96,7 +97,7 @@ class StreakIndicator extends StatelessWidget {
       ),
     );
   }
-  
+
   Color _getStreakColor(int streakCount) {
     if (streakCount <= 0) {
       return Colors.grey;
@@ -118,18 +119,18 @@ class StreakIndicator extends StatelessWidget {
 class ChallengeCard extends StatelessWidget {
   final Challenge challenge;
   final VoidCallback? onTap;
-  
+
   const ChallengeCard({
     super.key,
     required this.challenge,
     this.onTap,
   });
-  
+
   @override
   Widget build(BuildContext context) {
     final endDate = challenge.endDate;
     final daysLeft = endDate.difference(DateTime.now()).inDays;
-    
+
     return Card(
       clipBehavior: Clip.antiAlias,
       shape: RoundedRectangleBorder(
@@ -143,14 +144,11 @@ class ChallengeCard extends StatelessWidget {
             // Header
             Container(
               padding: const EdgeInsets.all(AppTheme.paddingSmall),
-              color: challenge.color.withValues(alpha: 0.1),
+              color: challenge.color.withOpacity(0.1),
               child: Row(
                 children: [
                   Icon(
-                    IconData(
-                      _getIconCodePoint(challenge.iconName),
-                      fontFamily: 'MaterialIcons',
-                    ),
+                    AppIcons.fromString(challenge.iconName),
                     color: challenge.color,
                     size: 18,
                   ),
@@ -173,8 +171,8 @@ class ChallengeCard extends StatelessWidget {
                     ),
                     const SizedBox(width: 2),
                     Text(
-                      daysLeft > 0 
-                          ? '$daysLeft ${daysLeft == 1 ? 'day' : 'days'} left' 
+                      daysLeft > 0
+                          ? '$daysLeft ${daysLeft == 1 ? 'day' : 'days'} left'
                           : 'Today',
                       style: TextStyle(
                         fontSize: 10,
@@ -193,7 +191,7 @@ class ChallengeCard extends StatelessWidget {
                 ],
               ),
             ),
-            
+
             // Challenge content
             Padding(
               padding: const EdgeInsets.all(AppTheme.paddingSmall),
@@ -227,12 +225,14 @@ class ChallengeCard extends StatelessWidget {
                       Expanded(
                         flex: 3,
                         child: ClipRRect(
-                          borderRadius: BorderRadius.circular(AppTheme.borderRadiusSmall),
+                          borderRadius:
+                              BorderRadius.circular(AppTheme.borderRadiusSmall),
                           child: LinearProgressIndicator(
                             value: challenge.progress,
                             minHeight: 8,
                             backgroundColor: Colors.grey.shade200,
-                            valueColor: AlwaysStoppedAnimation<Color>(challenge.color),
+                            valueColor:
+                                AlwaysStoppedAnimation<Color>(challenge.color),
                           ),
                         ),
                       ),
@@ -243,8 +243,8 @@ class ChallengeCard extends StatelessWidget {
                         style: TextStyle(
                           fontSize: AppTheme.fontSizeSmall,
                           fontWeight: FontWeight.bold,
-                          color: challenge.isCompleted 
-                              ? challenge.color 
+                          color: challenge.isCompleted
+                              ? challenge.color
                               : AppTheme.textSecondaryColor,
                         ),
                       ),
@@ -256,10 +256,11 @@ class ChallengeCard extends StatelessWidget {
                           vertical: 2,
                         ),
                         decoration: BoxDecoration(
-                          color: Colors.amber.withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(AppTheme.borderRadiusSmall),
+                          color: Colors.amber.withOpacity(0.1),
+                          borderRadius:
+                              BorderRadius.circular(AppTheme.borderRadiusSmall),
                           border: Border.all(
-                            color: Colors.amber.withValues(alpha: 0.3),
+                            color: Colors.amber.withOpacity(0.3),
                           ),
                         ),
                         child: Row(
@@ -290,54 +291,21 @@ class ChallengeCard extends StatelessWidget {
       ),
     );
   }
-  
-  int _getIconCodePoint(String iconName) {
-    // Map of icon names to code points
-    const Map<String, int> iconMap = {
-      'emoji_objects': 0xe23e,
-      'recycling': 0xe7c0,
-      'workspace_premium': 0xef56,
-      'category': 0xe574,
-      'local_fire_department': 0xe78d,
-      'event_available': 0xe614,
-      'emoji_events': 0xea65,
-      'school': 0xe80c,
-      'quiz': 0xf04c,
-      'eco': 0xe63f,
-      'task_alt': 0xe8fe,
-      'shopping_bag': 0xf1cc,
-      'restaurant': 0xe56c,
-      'compost': 0xe761,
-      'warning': 0xe002,
-      'medical_services': 0xe95a,
-      'autorenew': 0xe5d5,
-      'description': 0xe873,
-      'water_drop': 0xef71,
-      'hardware': 0xe890,
-      'devices': 0xe1b4,
-      'auto_awesome': 0xe65f,
-      'military_tech': 0xe3d0,
-      'stars': 0xe8d0,
-      'search': 0xe8b6,
-      'verified': 0xef76,
-      'timer_outlined': 0xef71,
-    };
-    
-    return iconMap[iconName] ?? 0xe5d5; // Default to refresh icon
-  }
+
+  // We now use AppIcons.fromString(iconName) instead of this method
 }
 
 /// A widget that displays the user's level and points
 class PointsIndicator extends StatelessWidget {
   final UserPoints points;
   final VoidCallback? onTap;
-  
+
   const PointsIndicator({
     super.key,
     required this.points,
     this.onTap,
   });
-  
+
   @override
   Widget build(BuildContext context) {
     return InkWell(
@@ -346,10 +314,10 @@ class PointsIndicator extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(AppTheme.paddingSmall),
         decoration: BoxDecoration(
-          color: AppTheme.primaryColor.withValues(alpha: 0.1),
+          color: AppTheme.primaryColor.withOpacity(0.1),
           borderRadius: BorderRadius.circular(AppTheme.borderRadiusRegular),
           border: Border.all(
-            color: AppTheme.primaryColor.withValues(alpha: 0.3),
+            color: AppTheme.primaryColor.withOpacity(0.3),
           ),
         ),
         child: Row(
@@ -395,12 +363,14 @@ class PointsIndicator extends StatelessWidget {
                 SizedBox(
                   width: 60,
                   child: ClipRRect(
-                    borderRadius: BorderRadius.circular(AppTheme.borderRadiusSmall),
+                    borderRadius:
+                        BorderRadius.circular(AppTheme.borderRadiusSmall),
                     child: LinearProgressIndicator(
                       value: (points.total % 100) / 100,
                       minHeight: 4,
-                      backgroundColor: Colors.grey.withValues(alpha: 0.3),
-                      valueColor: AlwaysStoppedAnimation<Color>(AppTheme.primaryColor),
+                      backgroundColor: Colors.grey.withOpacity(0.3),
+                      valueColor:
+                          AlwaysStoppedAnimation<Color>(AppTheme.primaryColor),
                     ),
                   ),
                 ),
@@ -417,23 +387,21 @@ class PointsIndicator extends StatelessWidget {
 class AchievementGrid extends StatelessWidget {
   final List<Achievement> achievements;
   final VoidCallback? onViewAll;
-  
+
   const AchievementGrid({
     super.key,
     required this.achievements,
     this.onViewAll,
   });
-  
+
   @override
   Widget build(BuildContext context) {
     // Get only earned achievements and take latest 4
-    final earnedAchievements = achievements
-        .where((a) => a.isEarned)
-        .toList()
+    final earnedAchievements = achievements.where((a) => a.isEarned).toList()
       ..sort((a, b) => b.earnedOn!.compareTo(a.earnedOn!));
-    
+
     final displayAchievements = earnedAchievements.take(4).toList();
-    
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -455,7 +423,6 @@ class AchievementGrid extends StatelessWidget {
           ],
         ),
         const SizedBox(height: AppTheme.paddingSmall),
-        
         if (displayAchievements.isEmpty)
           Container(
             width: double.infinity,
@@ -501,62 +468,42 @@ class AchievementGrid extends StatelessWidget {
       ],
     );
   }
-  
+
   Widget _buildAchievementBadge(Achievement achievement) {
     return Tooltip(
       message: achievement.title,
       child: Container(
         decoration: BoxDecoration(
-          color: achievement.color.withValues(alpha: 0.1),
+          color: achievement.color.withOpacity(0.1),
           shape: BoxShape.circle,
           border: Border.all(
-            color: achievement.color.withValues(alpha: 0.3),
+            color: achievement.color.withOpacity(0.3),
             width: 2,
           ),
         ),
         child: Icon(
-          IconData(
-            _getIconCodePoint(achievement.iconName),
-            fontFamily: 'MaterialIcons',
-          ),
+          AppIcons.fromString(achievement.iconName),
           color: achievement.color,
           size: 32,
         ),
       ),
     );
   }
-  
-  int _getIconCodePoint(String iconName) {
-    // Map of icon names to code points
-    const Map<String, int> iconMap = {
-      'emoji_objects': 0xe23e,
-      'recycling': 0xe7c0,
-      'workspace_premium': 0xef56,
-      'category': 0xe574,
-      'local_fire_department': 0xe78d,
-      'event_available': 0xe614,
-      'emoji_events': 0xea65,
-      'school': 0xe80c,
-      'quiz': 0xf04c,
-      'eco': 0xe63f,
-      'task_alt': 0xe8fe,
-    };
-    
-    return iconMap[iconName] ?? 0xe5d5; // Default to refresh icon
-  }
+
+  // We now use AppIcons.fromString(iconName) instead of this method
 }
 
 /// A widget that displays a notification when a user earns an achievement
 class AchievementNotification extends StatelessWidget {
   final Achievement achievement;
   final VoidCallback? onDismiss;
-  
+
   const AchievementNotification({
     super.key,
     required this.achievement,
     this.onDismiss,
   });
-  
+
   @override
   Widget build(BuildContext context) {
     return Card(
@@ -576,14 +523,11 @@ class AchievementNotification extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.all(AppTheme.paddingSmall),
                   decoration: BoxDecoration(
-                    color: achievement.color.withValues(alpha: 0.2),
+                    color: achievement.color.withOpacity(0.2),
                     shape: BoxShape.circle,
                   ),
                   child: Icon(
-                    IconData(
-                      _getIconCodePoint(achievement.iconName),
-                      fontFamily: 'MaterialIcons',
-                    ),
+                    AppIcons.fromString(achievement.iconName),
                     color: achievement.color,
                     size: 28,
                   ),
@@ -655,23 +599,6 @@ class AchievementNotification extends StatelessWidget {
       ),
     );
   }
-  
-  int _getIconCodePoint(String iconName) {
-    // Map of icon names to code points
-    const Map<String, int> iconMap = {
-      'emoji_objects': 0xe23e,
-      'recycling': 0xe7c0,
-      'workspace_premium': 0xef56,
-      'category': 0xe574,
-      'local_fire_department': 0xe78d,
-      'event_available': 0xe614,
-      'emoji_events': 0xea65,
-      'school': 0xe80c,
-      'quiz': 0xf04c,
-      'eco': 0xe63f,
-      'task_alt': 0xe8fe,
-    };
-    
-    return iconMap[iconName] ?? 0xe5d5; // Default to refresh icon
-  }
+
+  // We now use AppIcons.fromString(iconName) instead of this method
 }

@@ -17,7 +17,7 @@ class WebCameraHelper {
   Future<XFile?> takePicture() async {
     // Only works on web
     if (!kIsWeb) return null;
-    
+
     // On non-web platforms, use standard image picker
     return null;
   }

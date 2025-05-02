@@ -3,10 +3,11 @@ import 'package:provider/provider.dart';
 import '../models/gamification.dart';
 import '../services/gamification_service.dart';
 import '../utils/constants.dart';
+import '../widgets/profile_summary_card.dart';
 
 class AchievementsScreen extends StatefulWidget {
   final int initialTabIndex;
-  
+
   const AchievementsScreen({
     super.key,
     this.initialTabIndex = 0,
@@ -16,28 +17,31 @@ class AchievementsScreen extends StatefulWidget {
   State<AchievementsScreen> createState() => _AchievementsScreenState();
 }
 
-class _AchievementsScreenState extends State<AchievementsScreen> with SingleTickerProviderStateMixin {
+class _AchievementsScreenState extends State<AchievementsScreen>
+    with SingleTickerProviderStateMixin {
   late TabController _tabController;
   late Future<GamificationProfile> _profileFuture;
-  
+
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 3, vsync: this, initialIndex: widget.initialTabIndex);
+    _tabController = TabController(
+        length: 3, vsync: this, initialIndex: widget.initialTabIndex);
     _loadProfile();
   }
-  
+
   void _loadProfile() {
-    final gamificationService = Provider.of<GamificationService>(context, listen: false);
+    final gamificationService =
+        Provider.of<GamificationService>(context, listen: false);
     _profileFuture = gamificationService.getProfile();
   }
-  
+
   @override
   void dispose() {
     _tabController.dispose();
     super.dispose();
   }
-  
+
   @override
   Widget build(BuildContext context) {
     return DefaultTabController(
@@ -60,21 +64,21 @@ class _AchievementsScreenState extends State<AchievementsScreen> with SingleTick
             if (snapshot.connectionState == ConnectionState.waiting) {
               return const Center(child: CircularProgressIndicator());
             }
-            
+
             if (snapshot.hasError) {
               return Center(
                 child: Text('Error loading profile: ${snapshot.error}'),
               );
             }
-            
+
             if (!snapshot.hasData) {
               return const Center(
                 child: Text('No profile data available'),
               );
             }
-            
+
             final profile = snapshot.data!;
-            
+
             return TabBarView(
               controller: _tabController,
               children: [
@@ -88,11 +92,11 @@ class _AchievementsScreenState extends State<AchievementsScreen> with SingleTick
       ),
     );
   }
-  
+
   Widget _buildAchievementsTab(GamificationProfile profile) {
     // Group achievements by type
     final Map<AchievementType, List<Achievement>> achievementsByType = {};
-    
+
     for (final achievement in profile.achievements) {
       if (!achievement.isSecret || achievement.isEarned) {
         if (!achievementsByType.containsKey(achievement.type)) {
@@ -101,115 +105,16 @@ class _AchievementsScreenState extends State<AchievementsScreen> with SingleTick
         achievementsByType[achievement.type]!.add(achievement);
       }
     }
-    
+
     return SingleChildScrollView(
       padding: const EdgeInsets.all(AppTheme.paddingRegular),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // User level and points
-          Card(
-            child: Padding(
-              padding: const EdgeInsets.all(AppTheme.paddingRegular),
-              child: Column(
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text(
-                            AppStrings.level,
-                            style: TextStyle(
-                              color: AppTheme.textSecondaryColor,
-                              fontSize: AppTheme.fontSizeSmall,
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-                          Row(
-                            children: [
-                              Icon(
-                                Icons.military_tech,
-                                color: AppTheme.primaryColor,
-                                size: 28,
-                              ),
-                              const SizedBox(width: 4),
-                              Text(
-                                '${profile.points.level}',
-                                style: const TextStyle(
-                                  fontSize: 24,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        children: [
-                          const Text(
-                            AppStrings.rank,
-                            style: TextStyle(
-                              color: AppTheme.textSecondaryColor,
-                              fontSize: AppTheme.fontSizeSmall,
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            profile.points.rankName,
-                            style: const TextStyle(
-                              fontSize: AppTheme.fontSizeMedium,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: AppTheme.paddingRegular),
-                  // Points progress bar
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            '${AppStrings.points}: ${profile.points.total}',
-                            style: const TextStyle(
-                              fontSize: AppTheme.fontSizeSmall,
-                            ),
-                          ),
-                          Text(
-                            '${profile.points.pointsToNextLevel} ${AppStrings.pointsEarned} to ${AppStrings.level} ${profile.points.level + 1}',
-                            style: const TextStyle(
-                              fontSize: AppTheme.fontSizeSmall,
-                              color: AppTheme.textSecondaryColor,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 4),
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(AppTheme.borderRadiusSmall),
-                        child: LinearProgressIndicator(
-                          value: (profile.points.total % 100) / 100,
-                          minHeight: 8,
-                          backgroundColor: Colors.grey.shade200,
-                          valueColor: AlwaysStoppedAnimation<Color>(AppTheme.primaryColor),
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          ),
-          
+          // User level and points summary
+          ProfileSummaryCard(points: profile.points),
           const SizedBox(height: AppTheme.paddingRegular),
-          
+
           // Current streak
           Card(
             child: Padding(
@@ -265,14 +170,14 @@ class _AchievementsScreenState extends State<AchievementsScreen> with SingleTick
               ),
             ),
           ),
-          
+
           const SizedBox(height: AppTheme.paddingLarge),
-          
+
           // Achievement types
           ...achievementsByType.entries.map((entry) {
             final type = entry.key;
             final achievements = entry.value;
-            
+
             return Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -307,10 +212,10 @@ class _AchievementsScreenState extends State<AchievementsScreen> with SingleTick
       ),
     );
   }
-  
+
   Widget _buildAchievementCard(Achievement achievement) {
     final bool isEarned = achievement.isEarned;
-    
+
     return Card(
       clipBehavior: Clip.antiAlias,
       child: InkWell(
@@ -322,8 +227,8 @@ class _AchievementsScreenState extends State<AchievementsScreen> with SingleTick
             Container(
               padding: const EdgeInsets.all(AppTheme.paddingSmall),
               decoration: BoxDecoration(
-                color: isEarned 
-                    ? achievement.color.withValues(alpha: 0.2)
+                color: isEarned
+                    ? achievement.color.withOpacity(0.2)
                     : Colors.grey.shade200,
                 shape: BoxShape.circle,
               ),
@@ -358,12 +263,14 @@ class _AchievementsScreenState extends State<AchievementsScreen> with SingleTick
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 12),
                 child: ClipRRect(
-                  borderRadius: BorderRadius.circular(AppTheme.borderRadiusSmall),
+                  borderRadius:
+                      BorderRadius.circular(AppTheme.borderRadiusSmall),
                   child: LinearProgressIndicator(
                     value: achievement.progress,
                     minHeight: 4,
                     backgroundColor: Colors.grey.shade200,
-                    valueColor: AlwaysStoppedAnimation<Color>(achievement.color.withValues(alpha: 0.7)),
+                    valueColor: AlwaysStoppedAnimation<Color>(
+                        achievement.color.withOpacity(0.7)),
                   ),
                 ),
               )
@@ -383,7 +290,7 @@ class _AchievementsScreenState extends State<AchievementsScreen> with SingleTick
       ),
     );
   }
-  
+
   void _showAchievementDetails(Achievement achievement) {
     showDialog(
       context: context,
@@ -396,8 +303,8 @@ class _AchievementsScreenState extends State<AchievementsScreen> with SingleTick
             Container(
               padding: const EdgeInsets.all(AppTheme.paddingRegular),
               decoration: BoxDecoration(
-                color: achievement.isEarned 
-                    ? achievement.color.withValues(alpha: 0.2)
+                color: achievement.isEarned
+                    ? achievement.color.withOpacity(0.2)
                     : Colors.grey.shade200,
                 shape: BoxShape.circle,
               ),
@@ -437,12 +344,14 @@ class _AchievementsScreenState extends State<AchievementsScreen> with SingleTick
                   ),
                   const SizedBox(height: 8),
                   ClipRRect(
-                    borderRadius: BorderRadius.circular(AppTheme.borderRadiusSmall),
+                    borderRadius:
+                        BorderRadius.circular(AppTheme.borderRadiusSmall),
                     child: LinearProgressIndicator(
                       value: achievement.progress,
                       minHeight: 8,
                       backgroundColor: Colors.grey.shade200,
-                      valueColor: AlwaysStoppedAnimation<Color>(achievement.color),
+                      valueColor:
+                          AlwaysStoppedAnimation<Color>(achievement.color),
                     ),
                   ),
                 ],
@@ -458,7 +367,7 @@ class _AchievementsScreenState extends State<AchievementsScreen> with SingleTick
       ),
     );
   }
-  
+
   Widget _buildChallengesTab(GamificationProfile profile) {
     final activeChallenges = profile.activeChallenges
         .where((challenge) => !challenge.isExpired && !challenge.isCompleted)
@@ -466,7 +375,7 @@ class _AchievementsScreenState extends State<AchievementsScreen> with SingleTick
     final completedChallenges = profile.completedChallenges
         .take(5) // Show only the 5 most recent
         .toList();
-    
+
     return RefreshIndicator(
       onRefresh: () async {
         setState(() {
@@ -487,10 +396,11 @@ class _AchievementsScreenState extends State<AchievementsScreen> with SingleTick
               ),
             ),
             const SizedBox(height: AppTheme.paddingSmall),
-            
+
             if (activeChallenges.isEmpty)
               Padding(
-                padding: const EdgeInsets.symmetric(vertical: AppTheme.paddingLarge),
+                padding:
+                    const EdgeInsets.symmetric(vertical: AppTheme.paddingLarge),
                 child: Center(
                   child: Column(
                     children: [
@@ -531,9 +441,9 @@ class _AchievementsScreenState extends State<AchievementsScreen> with SingleTick
                   return _buildChallengeCard(challenge);
                 },
               ),
-            
+
             const SizedBox(height: AppTheme.paddingLarge),
-            
+
             // Completed challenges
             if (completedChallenges.isNotEmpty) ...[
               Text(
@@ -544,7 +454,6 @@ class _AchievementsScreenState extends State<AchievementsScreen> with SingleTick
                 ),
               ),
               const SizedBox(height: AppTheme.paddingSmall),
-              
               ListView.builder(
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
@@ -554,7 +463,6 @@ class _AchievementsScreenState extends State<AchievementsScreen> with SingleTick
                   return _buildChallengeCard(challenge, isCompleted: true);
                 },
               ),
-              
               if (profile.completedChallenges.length > 5)
                 Center(
                   child: TextButton.icon(
@@ -571,11 +479,11 @@ class _AchievementsScreenState extends State<AchievementsScreen> with SingleTick
       ),
     );
   }
-  
+
   Widget _buildChallengeCard(Challenge challenge, {bool isCompleted = false}) {
     final endDate = challenge.endDate;
     final daysLeft = endDate.difference(DateTime.now()).inDays;
-    
+
     return Card(
       margin: const EdgeInsets.only(bottom: AppTheme.paddingRegular),
       child: Padding(
@@ -589,7 +497,7 @@ class _AchievementsScreenState extends State<AchievementsScreen> with SingleTick
                 Container(
                   padding: const EdgeInsets.all(AppTheme.paddingSmall),
                   decoration: BoxDecoration(
-                    color: challenge.color.withValues(alpha: 0.2),
+                    color: challenge.color.withOpacity(0.2),
                     shape: BoxShape.circle,
                   ),
                   child: Icon(
@@ -627,9 +535,9 @@ class _AchievementsScreenState extends State<AchievementsScreen> with SingleTick
                 ),
               ],
             ),
-            
+
             const SizedBox(height: AppTheme.paddingRegular),
-            
+
             // Progress indicator and reward
             Row(
               children: [
@@ -639,8 +547,8 @@ class _AchievementsScreenState extends State<AchievementsScreen> with SingleTick
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        isCompleted 
-                            ? 'Completed!' 
+                        isCompleted
+                            ? 'Completed!'
                             : '${AppStrings.progress}: ${(challenge.progress * 100).round()}%',
                         style: TextStyle(
                           fontSize: AppTheme.fontSizeSmall,
@@ -650,20 +558,22 @@ class _AchievementsScreenState extends State<AchievementsScreen> with SingleTick
                       ),
                       const SizedBox(height: 4),
                       ClipRRect(
-                        borderRadius: BorderRadius.circular(AppTheme.borderRadiusSmall),
+                        borderRadius:
+                            BorderRadius.circular(AppTheme.borderRadiusSmall),
                         child: LinearProgressIndicator(
                           value: isCompleted ? 1.0 : challenge.progress,
                           minHeight: 8,
                           backgroundColor: Colors.grey.shade200,
-                          valueColor: AlwaysStoppedAnimation<Color>(challenge.color),
+                          valueColor:
+                              AlwaysStoppedAnimation<Color>(challenge.color),
                         ),
                       ),
                     ],
                   ),
                 ),
-                
+
                 const SizedBox(width: AppTheme.paddingRegular),
-                
+
                 // Reward
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.end,
@@ -696,10 +606,10 @@ class _AchievementsScreenState extends State<AchievementsScreen> with SingleTick
                 ),
               ],
             ),
-            
+
             if (!isCompleted) ...[
               const SizedBox(height: AppTheme.paddingRegular),
-              
+
               // Time left and action button
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -714,12 +624,14 @@ class _AchievementsScreenState extends State<AchievementsScreen> with SingleTick
                       ),
                       const SizedBox(width: 4),
                       Text(
-                        daysLeft > 0 
-                            ? '$daysLeft ${daysLeft == 1 ? 'day' : 'days'} left' 
+                        daysLeft > 0
+                            ? '$daysLeft ${daysLeft == 1 ? 'day' : 'days'} left'
                             : 'Expires today',
                         style: TextStyle(
                           fontSize: AppTheme.fontSizeSmall,
-                          color: daysLeft < 2 ? Colors.orange : Colors.grey.shade600,
+                          color: daysLeft < 2
+                              ? Colors.orange
+                              : Colors.grey.shade600,
                         ),
                       ),
                     ],
@@ -732,11 +644,11 @@ class _AchievementsScreenState extends State<AchievementsScreen> with SingleTick
       ),
     );
   }
-  
+
   Widget _buildStatsTab(GamificationProfile profile) {
     // Get weekly stats
     final weeklyStats = profile.weeklyStats;
-    
+
     return SingleChildScrollView(
       padding: const EdgeInsets.all(AppTheme.paddingRegular),
       child: Column(
@@ -757,7 +669,7 @@ class _AchievementsScreenState extends State<AchievementsScreen> with SingleTick
                     ),
                   ),
                   const SizedBox(height: AppTheme.paddingRegular),
-                  
+
                   // Stats grid
                   Row(
                     children: [
@@ -780,7 +692,10 @@ class _AchievementsScreenState extends State<AchievementsScreen> with SingleTick
                     children: [
                       _buildStatItem(
                         'Achievements',
-                        profile.achievements.where((a) => a.isEarned).length.toString(),
+                        profile.achievements
+                            .where((a) => a.isEarned)
+                            .length
+                            .toString(),
                         Icons.emoji_events,
                         Colors.amber,
                       ),
@@ -813,9 +728,9 @@ class _AchievementsScreenState extends State<AchievementsScreen> with SingleTick
               ),
             ),
           ),
-          
+
           const SizedBox(height: AppTheme.paddingLarge),
-          
+
           // Category breakdown
           const Text(
             'Waste Categories',
@@ -825,7 +740,7 @@ class _AchievementsScreenState extends State<AchievementsScreen> with SingleTick
             ),
           ),
           const SizedBox(height: AppTheme.paddingSmall),
-          
+
           Card(
             child: Padding(
               padding: const EdgeInsets.all(AppTheme.paddingRegular),
@@ -834,7 +749,8 @@ class _AchievementsScreenState extends State<AchievementsScreen> with SingleTick
                   final categoryName = entry.key;
                   final count = entry.value;
                   return Padding(
-                    padding: const EdgeInsets.only(bottom: AppTheme.paddingSmall),
+                    padding:
+                        const EdgeInsets.only(bottom: AppTheme.paddingSmall),
                     child: Row(
                       children: [
                         Container(
@@ -862,9 +778,9 @@ class _AchievementsScreenState extends State<AchievementsScreen> with SingleTick
               ),
             ),
           ),
-          
+
           const SizedBox(height: AppTheme.paddingLarge),
-          
+
           // Weekly stats
           const Text(
             'Weekly Progress',
@@ -874,7 +790,7 @@ class _AchievementsScreenState extends State<AchievementsScreen> with SingleTick
             ),
           ),
           const SizedBox(height: AppTheme.paddingSmall),
-          
+
           if (weeklyStats.isEmpty)
             Center(
               child: Padding(
@@ -955,15 +871,16 @@ class _AchievementsScreenState extends State<AchievementsScreen> with SingleTick
       ),
     );
   }
-  
-  Widget _buildStatItem(String label, String value, IconData icon, Color color) {
+
+  Widget _buildStatItem(
+      String label, String value, IconData icon, Color color) {
     return Expanded(
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 4),
         child: Container(
           padding: const EdgeInsets.all(AppTheme.paddingSmall),
           decoration: BoxDecoration(
-            color: color.withValues(alpha: 0.1),
+            color: color.withOpacity(0.1),
             borderRadius: BorderRadius.circular(AppTheme.borderRadiusSmall),
           ),
           child: Row(
@@ -971,7 +888,7 @@ class _AchievementsScreenState extends State<AchievementsScreen> with SingleTick
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: color.withValues(alpha: 0.2),
+                  color: color.withOpacity(0.2),
                   shape: BoxShape.circle,
                 ),
                 child: Icon(
@@ -1010,7 +927,7 @@ class _AchievementsScreenState extends State<AchievementsScreen> with SingleTick
       ),
     );
   }
-  
+
   Widget _buildMiniStat(String label, String value, IconData icon) {
     return Column(
       children: [
@@ -1036,7 +953,7 @@ class _AchievementsScreenState extends State<AchievementsScreen> with SingleTick
       ],
     );
   }
-  
+
   // Helper functions
   String _getAchievementTypeTitle(AchievementType type) {
     switch (type) {
@@ -1060,7 +977,7 @@ class _AchievementsScreenState extends State<AchievementsScreen> with SingleTick
         return 'Community Contributions';
     }
   }
-  
+
   int _getIconCodePoint(String iconName) {
     // Map of icon names to code points
     const Map<String, int> iconMap = {
@@ -1093,26 +1010,39 @@ class _AchievementsScreenState extends State<AchievementsScreen> with SingleTick
       'timer_outlined': 0xef71,
       'bar_chart': 0xe26b,
     };
-    
+
     return iconMap[iconName] ?? 0xe5d5; // Default to refresh icon
   }
-  
+
   String _formatDate(DateTime date) {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
     final yesterday = DateTime(now.year, now.month, now.day - 1);
     final dateToCheck = DateTime(date.year, date.month, date.day);
-    
+
     if (dateToCheck == today) {
       return 'Today';
     } else if (dateToCheck == yesterday) {
       return 'Yesterday';
     } else {
-      final months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+      final months = [
+        'Jan',
+        'Feb',
+        'Mar',
+        'Apr',
+        'May',
+        'Jun',
+        'Jul',
+        'Aug',
+        'Sep',
+        'Oct',
+        'Nov',
+        'Dec'
+      ];
       return '${months[date.month - 1]} ${date.day}, ${date.year}';
     }
   }
-  
+
   int _getTotalItemsIdentified(GamificationProfile profile) {
     int total = 0;
     for (final entry in profile.points.categoryPoints.entries) {
@@ -1120,7 +1050,7 @@ class _AchievementsScreenState extends State<AchievementsScreen> with SingleTick
     }
     return total;
   }
-  
+
   Color _getCategoryColor(String category) {
     // Standard category colors from app theme
     if (category.toLowerCase().contains('wet')) {
@@ -1134,7 +1064,7 @@ class _AchievementsScreenState extends State<AchievementsScreen> with SingleTick
     } else if (category.toLowerCase().contains('non')) {
       return AppTheme.nonWasteColor;
     }
-    
+
     // Additional colors for subcategories
     if (category.toLowerCase().contains('paper')) {
       return Colors.blue.shade300;
@@ -1149,7 +1079,7 @@ class _AchievementsScreenState extends State<AchievementsScreen> with SingleTick
     } else if (category.toLowerCase().contains('food')) {
       return Colors.green.shade300;
     }
-    
+
     return Colors.grey; // Default color
   }
 }

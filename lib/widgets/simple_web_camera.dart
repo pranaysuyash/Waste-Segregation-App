@@ -1,5 +1,3 @@
-import 'dart:convert';
-import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
@@ -10,7 +8,7 @@ class SimpleWebCamera extends StatefulWidget {
   final Function(XFile?) onCapture;
   final String title;
   final String buttonText;
-  
+
   const SimpleWebCamera({
     super.key,
     required this.onCapture,
@@ -25,14 +23,14 @@ class SimpleWebCamera extends StatefulWidget {
 class _SimpleWebCameraState extends State<SimpleWebCamera> {
   final ImagePicker _picker = ImagePicker();
   bool _isCapturing = false;
-  
+
   Future<void> _captureImage() async {
     if (_isCapturing) return;
-    
+
     setState(() {
       _isCapturing = true;
     });
-    
+
     try {
       // Use standard image_picker with camera source
       // On web, this will prompt the browser's file picker,
@@ -44,7 +42,7 @@ class _SimpleWebCameraState extends State<SimpleWebCamera> {
         imageQuality: 90,
         preferredCameraDevice: CameraDevice.rear,
       );
-      
+
       if (mounted) {
         Navigator.of(context).pop();
         widget.onCapture(image);
@@ -63,7 +61,7 @@ class _SimpleWebCameraState extends State<SimpleWebCamera> {
       }
     }
   }
-  
+
   @override
   Widget build(BuildContext context) {
     return AlertDialog(

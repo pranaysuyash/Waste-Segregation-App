@@ -1,43 +1,54 @@
-import 'dart:async';
-import 'dart:io';
-import 'package:flutter/foundation.dart'; // For kIsWeb
+import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:path_provider/path_provider.dart';
 import '../models/waste_classification.dart';
-import '../models/gamification.dart';
-import '../models/educational_content.dart';
-import '../utils/constants.dart'; // Import StorageKeys
+import '../models/filter_options.dart';
+import '../utils/constants.dart';
 
 class StorageService {
+  // Initialize Hive database
+  static Future<void> initializeHive() async {
+    if (kIsWeb) {
+      // For web, initialize Hive without a specific path
+      await Hive.initFlutter();
+    } else {
+      // For mobile platforms, use the app document directory
+      try {
+        final appDocumentDirectory = await getApplicationDocumentsDirectory();
+        await Hive.initFlutter(appDocumentDirectory.path);
+      } catch (e) {
+        // Fallback initialization if path_provider fails
+        await Hive.initFlutter();
+      }
+    }
 
-  // --- Box Names (moved from main.dart for better organization) ---
-  // These are now defined in StorageKeys in constants.dart
-  // static const String classificationsBoxName = 'classifications';
-  // static const String gamificationBoxName = 'gamification';
-  // static const String educationalContentBoxName = 'educationalContent';
-  // static const String userInfoBoxName = 'userInfo';
-  // static const String appSettingsBoxName = 'appSettings';
+    // Register adapters if needed
+    // Note: For simple objects we can use JSON serialization
+    // For complex objects, create custom TypeAdapters
 
-  // Check if boxes are open and ready
-  bool areBoxesReady() {
-    return Hive.isBoxOpen(StorageKeys.classificationsBox) &&
-           Hive.isBoxOpen(StorageKeys.gamificationBox) &&
-           Hive.isBoxOpen(StorageKeys.educationalContentBox) &&
-           Hive.isBoxOpen(StorageKeys.userInfoBox) &&
-           Hive.isBoxOpen(StorageKeys.appSettingsBox);
+    // Open boxes
+    await Hive.openBox(StorageKeys.userBox);
+    await Hive.openBox(StorageKeys.classificationsBox);
+    await Hive.openBox(StorageKeys.settingsBox);
+    // Open cache box for image classification caching
+    await Hive.openBox(StorageKeys.cacheBox);
   }
 
-  // --- User Info --- 
-  Future<void> saveUserInfo(String userId, String email, String displayName) async {
-    final userBox = Hive.box(StorageKeys.userInfoBox);
+  // User methods
+  Future<void> saveUserInfo({
+    required String userId,
+    required String email,
+    required String displayName,
+  }) async {
+    final userBox = Hive.box(StorageKeys.userBox);
     await userBox.put(StorageKeys.userIdKey, userId);
     await userBox.put(StorageKeys.userEmailKey, email);
     await userBox.put(StorageKeys.userDisplayNameKey, displayName);
-    debugPrint('User info saved: $userId, $displayName');
   }
 
-  Future<Map<String, String?>> getUserInfo() async {
-    final userBox = Hive.box(StorageKeys.userInfoBox);
+  Future<Map<String, dynamic>> getUserInfo() async {
+    final userBox = Hive.box(StorageKeys.userBox);
     return {
       'userId': userBox.get(StorageKeys.userIdKey),
       'email': userBox.get(StorageKeys.userEmailKey),
@@ -46,179 +57,378 @@ class StorageService {
   }
 
   Future<void> clearUserInfo() async {
-    final userBox = Hive.box(StorageKeys.userInfoBox);
+    final userBox = Hive.box(StorageKeys.userBox);
     await userBox.clear();
-    debugPrint('User info cleared.');
   }
 
   bool isUserLoggedIn() {
-    final userBox = Hive.box(StorageKeys.userInfoBox);
+    final userBox = Hive.box(StorageKeys.userBox);
     return userBox.get(StorageKeys.userIdKey) != null;
   }
 
-  // --- Waste Classifications --- 
+  // Classification methods
   Future<void> saveClassification(WasteClassification classification) async {
-    final classificationsBox = Hive.box<WasteClassification>(StorageKeys.classificationsBox);
-    // Use a unique key, e.g., timestamp
-    await classificationsBox.put(DateTime.now().toIso8601String(), classification);
-    debugPrint('Classification saved: ${classification.itemName}');
+    final classificationsBox = Hive.box(StorageKeys.classificationsBox);
+    final String key =
+        'classification_${DateTime.now().millisecondsSinceEpoch}';
+    await classificationsBox.put(key, jsonEncode(classification.toJson()));
   }
 
-  Future<List<WasteClassification>> getAllClassifications() async {
-    final classificationsBox = Hive.box<WasteClassification>(StorageKeys.classificationsBox);
-    final classifications = classificationsBox.values.toList();
-    // Sort descending by timestamp before returning
+  Future<List<WasteClassification>> getAllClassifications({FilterOptions? filterOptions}) async {
+    final classificationsBox = Hive.box(StorageKeys.classificationsBox);
+    final List<WasteClassification> classifications = [];
+
+    for (var key in classificationsBox.keys) {
+      final String jsonString = classificationsBox.get(key);
+      final Map<String, dynamic> json = jsonDecode(jsonString);
+      classifications.add(WasteClassification.fromJson(json));
+    }
+
+    // Apply filters if provided
+    if (filterOptions != null && filterOptions.isNotEmpty) {
+      return _applyFilters(classifications, filterOptions);
+    }
+
+    // Default sorting by timestamp in descending order (newest first)
     classifications.sort((a, b) => b.timestamp.compareTo(a.timestamp));
+
     return classifications;
   }
   
-  Future<WasteClassification?> getClassification(String key) async {
-     final classificationsBox = Hive.box<WasteClassification>(StorageKeys.classificationsBox);
-     return classificationsBox.get(key);
+  /// Applies filters to the list of classifications
+  List<WasteClassification> _applyFilters(
+    List<WasteClassification> classifications, 
+    FilterOptions filterOptions
+  ) {
+    // Create a filtered list
+    List<WasteClassification> filteredClassifications = List.from(classifications);
+    
+    // Filter by search text (case-insensitive)
+    if (filterOptions.searchText != null && filterOptions.searchText!.isNotEmpty) {
+      final searchText = filterOptions.searchText!.toLowerCase();
+      filteredClassifications = filteredClassifications.where((classification) {
+        return classification.itemName.toLowerCase().contains(searchText) ||
+          (classification.subcategory != null && 
+           classification.subcategory!.toLowerCase().contains(searchText)) ||
+          (classification.materialType != null && 
+           classification.materialType!.toLowerCase().contains(searchText)) ||
+          classification.category.toLowerCase().contains(searchText);
+      }).toList();
+    }
+    
+    // Filter by categories
+    if (filterOptions.categories != null && filterOptions.categories!.isNotEmpty) {
+      filteredClassifications = filteredClassifications.where((classification) {
+        // Case-insensitive category comparison
+        return filterOptions.categories!.any((category) => 
+          classification.category.toLowerCase() == category.toLowerCase());
+      }).toList();
+    }
+    
+    // Filter by subcategories
+    if (filterOptions.subcategories != null && filterOptions.subcategories!.isNotEmpty) {
+      filteredClassifications = filteredClassifications.where((classification) {
+        if (classification.subcategory == null) return false;
+        // Case-insensitive subcategory comparison
+        return filterOptions.subcategories!.any((subcategory) => 
+          classification.subcategory!.toLowerCase() == subcategory.toLowerCase());
+      }).toList();
+    }
+    
+    // Filter by material types
+    if (filterOptions.materialTypes != null && filterOptions.materialTypes!.isNotEmpty) {
+      filteredClassifications = filteredClassifications.where((classification) {
+        if (classification.materialType == null) return false;
+        // Case-insensitive material type comparison
+        return filterOptions.materialTypes!.any((materialType) => 
+          classification.materialType!.toLowerCase() == materialType.toLowerCase());
+      }).toList();
+    }
+    
+    // Filter by recyclable status
+    if (filterOptions.isRecyclable != null) {
+      filteredClassifications = filteredClassifications.where((classification) =>
+        classification.isRecyclable == filterOptions.isRecyclable).toList();
+    }
+    
+    // Filter by compostable status
+    if (filterOptions.isCompostable != null) {
+      filteredClassifications = filteredClassifications.where((classification) =>
+        classification.isCompostable == filterOptions.isCompostable).toList();
+    }
+    
+    // Filter by special disposal requirement
+    if (filterOptions.requiresSpecialDisposal != null) {
+      filteredClassifications = filteredClassifications.where((classification) =>
+        classification.requiresSpecialDisposal == filterOptions.requiresSpecialDisposal).toList();
+    }
+    
+    // Filter by date range
+    if (filterOptions.startDate != null) {
+      final startDate = DateTime(
+        filterOptions.startDate!.year,
+        filterOptions.startDate!.month,
+        filterOptions.startDate!.day,
+      );
+      
+      filteredClassifications = filteredClassifications.where((classification) {
+        final classificationDate = DateTime(
+          classification.timestamp.year,
+          classification.timestamp.month,
+          classification.timestamp.day,
+        );
+        return classificationDate.isAtSameMomentAs(startDate) || 
+               classificationDate.isAfter(startDate);
+      }).toList();
+    }
+    
+    if (filterOptions.endDate != null) {
+      final endDate = DateTime(
+        filterOptions.endDate!.year,
+        filterOptions.endDate!.month,
+        filterOptions.endDate!.day,
+        23, 59, 59, 999, // End of day
+      );
+      
+      filteredClassifications = filteredClassifications.where((classification) {
+        return classification.timestamp.isBefore(endDate) || 
+               classification.timestamp.isAtSameMomentAs(endDate);
+      }).toList();
+    }
+    
+    // Apply sorting
+    switch (filterOptions.sortBy) {
+      case SortField.date:
+        if (filterOptions.sortNewestFirst) {
+          filteredClassifications.sort((a, b) => b.timestamp.compareTo(a.timestamp));
+        } else {
+          filteredClassifications.sort((a, b) => a.timestamp.compareTo(b.timestamp));
+        }
+        break;
+      case SortField.name:
+        if (filterOptions.sortNewestFirst) {
+          // "Newest first" isn't applicable for names, so we'll interpret it as A-Z vs Z-A
+          filteredClassifications.sort((a, b) => a.itemName.compareTo(b.itemName));
+        } else {
+          filteredClassifications.sort((a, b) => b.itemName.compareTo(a.itemName));
+        }
+        break;
+      case SortField.category:
+        if (filterOptions.sortNewestFirst) {
+          // "Newest first" isn't applicable for categories, so we'll interpret it as A-Z vs Z-A
+          filteredClassifications.sort((a, b) => a.category.compareTo(b.category));
+        } else {
+          filteredClassifications.sort((a, b) => b.category.compareTo(a.category));
+        }
+        break;
+    }
+    
+    return filteredClassifications;
+  }
+  
+  /// Get classifications with pagination support
+  Future<List<WasteClassification>> getClassificationsWithPagination({
+    FilterOptions? filterOptions,
+    int pageSize = 20,
+    int page = 0,
+  }) async {
+    final allClassifications = await getAllClassifications(filterOptions: filterOptions);
+    
+    // Calculate start and end indexes for pagination
+    final startIndex = page * pageSize;
+    final endIndex = (page + 1) * pageSize;
+    
+    // Return the specified page of classifications
+    if (startIndex >= allClassifications.length) {
+      return []; // No more items
+    }
+    
+    final actualEndIndex = endIndex > allClassifications.length 
+      ? allClassifications.length 
+      : endIndex;
+      
+    return allClassifications.sublist(startIndex, actualEndIndex);
+  }
+  
+  /// Get the total count of classifications matching the filter
+  Future<int> getClassificationsCount({FilterOptions? filterOptions}) async {
+    final allClassifications = await getAllClassifications(filterOptions: filterOptions);
+    return allClassifications.length;
+  }
+  
+  /// Export classifications to a CSV file format as a string
+  Future<String> exportClassificationsToCSV({FilterOptions? filterOptions}) async {
+    final classifications = await getAllClassifications(filterOptions: filterOptions);
+    
+    // Create CSV header
+    List<String> headers = [
+      'Item Name',
+      'Category',
+      'Subcategory',
+      'Material Type',
+      'Recyclable',
+      'Compostable',
+      'Special Disposal',
+      'Disposal Method',
+      'Recycling Code',
+      'Date'
+    ];
+    
+    // Create CSV content with header row
+    String csvContent = headers.join(',') + '\n';
+    
+    // Add each classification as a row
+    for (var classification in classifications) {
+      List<String> row = [
+        _escapeCsvField(classification.itemName),
+        _escapeCsvField(classification.category),
+        _escapeCsvField(classification.subcategory ?? ''),
+        _escapeCsvField(classification.materialType ?? ''),
+        classification.isRecyclable == true ? 'Yes' : classification.isRecyclable == false ? 'No' : '',
+        classification.isCompostable == true ? 'Yes' : classification.isCompostable == false ? 'No' : '',
+        classification.requiresSpecialDisposal == true ? 'Yes' : classification.requiresSpecialDisposal == false ? 'No' : '',
+        _escapeCsvField(classification.disposalMethod ?? ''),
+        _escapeCsvField(classification.recyclingCode ?? ''),
+        _formatDateForCsv(classification.timestamp)
+      ];
+      
+      csvContent += row.join(',') + '\n';
+    }
+    
+    return csvContent;
+  }
+  
+  /// Helper method to escape fields for CSV
+  String _escapeCsvField(String field) {
+    // If the field contains commas, quotes, or newlines, wrap it in quotes
+    if (field.contains(',') || field.contains('"') || field.contains('\n')) {
+      // Replace any double quotes with two double quotes
+      field = field.replaceAll('"', '""');
+      // Wrap the field in double quotes
+      return '"$field"';
+    }
+    return field;
+  }
+  
+  /// Helper method to format dates for CSV
+  String _formatDateForCsv(DateTime date) {
+    return '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
   }
 
   Future<void> deleteClassification(String key) async {
-    final classificationsBox = Hive.box<WasteClassification>(StorageKeys.classificationsBox);
+    final classificationsBox = Hive.box(StorageKeys.classificationsBox);
     await classificationsBox.delete(key);
-     debugPrint('Classification deleted: $key');
   }
 
   Future<void> clearAllClassifications() async {
-     final classificationsBox = Hive.box<WasteClassification>(StorageKeys.classificationsBox);
-     await classificationsBox.clear();
-      debugPrint('All classifications cleared.');
+    final classificationsBox = Hive.box(StorageKeys.classificationsBox);
+    await classificationsBox.clear();
   }
 
-  // --- App Settings --- 
-  Future<void> saveAppSettings(bool isDarkMode, bool isGoogleSyncEnabled) async {
-    final settingsBox = Hive.box(StorageKeys.appSettingsBox);
+  // Settings methods
+  Future<void> saveSettings({
+    required bool isDarkMode,
+    required bool isGoogleSyncEnabled,
+  }) async {
+    final settingsBox = Hive.box(StorageKeys.settingsBox);
     await settingsBox.put(StorageKeys.isDarkModeKey, isDarkMode);
-    await settingsBox.put(StorageKeys.isGoogleSyncEnabledKey, isGoogleSyncEnabled);
+    await settingsBox.put(
+        StorageKeys.isGoogleSyncEnabledKey, isGoogleSyncEnabled);
   }
 
-  Future<Map<String, bool>> getAppSettings() async {
-    final settingsBox = Hive.box(StorageKeys.appSettingsBox);
+  Future<Map<String, dynamic>> getSettings() async {
+    final settingsBox = Hive.box(StorageKeys.settingsBox);
     return {
-      'isDarkMode': settingsBox.get(StorageKeys.isDarkModeKey, defaultValue: false),
-      'isGoogleSyncEnabled': settingsBox.get(StorageKeys.isGoogleSyncEnabledKey, defaultValue: false),
+      'isDarkMode':
+          settingsBox.get(StorageKeys.isDarkModeKey, defaultValue: false),
+      'isGoogleSyncEnabled': settingsBox.get(StorageKeys.isGoogleSyncEnabledKey,
+          defaultValue: false),
     };
   }
 
-  // --- Gamification Data --- 
-  Future<void> saveGamificationProfile(GamificationProfile profile) async {
-    final gamificationBox = Hive.box<GamificationProfile>(StorageKeys.gamificationBox);
-    // Assuming only one profile, use a fixed key
-    await gamificationBox.put('userProfile', profile);
-     debugPrint('Gamification profile saved. Level: ${profile.points.level}');
-  }
-
-  Future<GamificationProfile?> getGamificationProfile() async {
-    final gamificationBox = Hive.box<GamificationProfile>(StorageKeys.gamificationBox);
-    return gamificationBox.get('userProfile');
-  }
-  
-   Future<void> saveLastStreakUpdate(DateTime date) async {
-      final settingsBox = Hive.box(StorageKeys.appSettingsBox);
-      await settingsBox.put(StorageKeys.lastStreakUpdateKey, date.toIso8601String());
-   }
-
-   Future<DateTime?> getLastStreakUpdate() async {
-      final settingsBox = Hive.box(StorageKeys.appSettingsBox);
-      final dateString = settingsBox.get(StorageKeys.lastStreakUpdateKey);
-      return dateString != null ? DateTime.parse(dateString) : null;
-   }
-
-  // --- Educational Content --- 
-  Future<void> saveEducationalContent(List<EducationalContent> contents) async {
-    final contentBox = Hive.box<EducationalContent>(StorageKeys.educationalContentBox);
-    await contentBox.clear(); // Clear old content before saving new
-    for (var content in contents) {
-      await contentBox.put(content.id, content); // Use content ID as key
+  // --------------------------------------------------------------------------
+  // Classification Cache methods (local hash-based cache)
+  // --------------------------------------------------------------------------
+  /// Retrieve a cached classification by image hash, or null if none exists.
+  Future<WasteClassification?> getCachedClassification(String hash) async {
+    final cacheBox = Hive.box(StorageKeys.cacheBox);
+    final String? jsonString = cacheBox.get(hash);
+    if (jsonString == null) return null;
+    try {
+      final Map<String, dynamic> jsonMap = jsonDecode(jsonString);
+      return WasteClassification.fromJson(jsonMap);
+    } catch (_) {
+      return null;
     }
-     debugPrint('Saved ${contents.length} educational content items.');
   }
 
-  Future<List<EducationalContent>> getAllEducationalContent() async {
-    final contentBox = Hive.box<EducationalContent>(StorageKeys.educationalContentBox);
-    return contentBox.values.toList();
+  /// Save a classification to cache keyed by image hash.
+  Future<void> saveCachedClassification(
+    String hash,
+    WasteClassification classification,
+  ) async {
+    final cacheBox = Hive.box(StorageKeys.cacheBox);
+    final String jsonString = jsonEncode(classification.toJson());
+    await cacheBox.put(hash, jsonString);
   }
 
-  Future<EducationalContent?> getEducationalContent(String id) async {
-    final contentBox = Hive.box<EducationalContent>(StorageKeys.educationalContentBox);
-    return contentBox.get(id);
-  }
-
-   // --- Sync Timestamp ---
-   Future<void> saveLastSyncTimestamp(DateTime timestamp) async {
-      final settingsBox = Hive.box(StorageKeys.appSettingsBox);
-      await settingsBox.put(StorageKeys.lastSyncTimestampKey, timestamp.toIso8601String());
-   }
-
-   Future<DateTime?> getLastSyncTimestamp() async {
-      final settingsBox = Hive.box(StorageKeys.appSettingsBox);
-      final timestampString = settingsBox.get(StorageKeys.lastSyncTimestampKey);
-      return timestampString != null ? DateTime.parse(timestampString) : null;
-   }
-
-  // --- Export/Import for Google Drive Sync --- 
-
-  // Get all relevant data as a Map for export
-  Future<Map<String, dynamic>> exportData() async {
-    final classificationsBox = Hive.box<WasteClassification>(StorageKeys.classificationsBox);
-    final gamificationBox = Hive.box<GamificationProfile>(StorageKeys.gamificationBox);
-    // Add other boxes if needed
-    
-    return {
-      StorageKeys.classificationsBox: classificationsBox.toMap().map((k, v) => MapEntry(k.toString(), v.toJson())), // Convert key to string
-      StorageKeys.gamificationBox: gamificationBox.toMap().map((k,v) => MapEntry(k.toString(), v.toJson())), // Convert key to string
-      // Add other data maps here
+  // Export all user data for backup
+  Future<String> exportUserData() async {
+    final Map<String, dynamic> exportData = {
+      'userData': await getUserInfo(),
+      'settings': await getSettings(),
+      'classifications': await getAllClassifications().then(
+        (list) => list.map((item) => item.toJson()).toList(),
+      ),
     };
+
+    return jsonEncode(exportData);
   }
 
-  // Import data from a Map (e.g., downloaded from Google Drive)
-  Future<void> importData(Map<String, dynamic> data) async {
-     debugPrint('Importing data...');
-    // Import Classifications
-    if (data.containsKey(StorageKeys.classificationsBox)) {
-      final classificationsData = data[StorageKeys.classificationsBox] as Map<dynamic, dynamic>; // Might be Map<String, dynamic>
-      final classificationsBox = Hive.box<WasteClassification>(StorageKeys.classificationsBox);
-      await classificationsBox.clear(); // Clear existing before import
-      classificationsData.forEach((key, value) {
-        try {
-           if (value is Map) { // Check if value is a map
-              final classification = WasteClassification.fromJson(Map<String, dynamic>.from(value));
-              classificationsBox.put(key.toString(), classification);
-           } else {
-             debugPrint('Skipping invalid classification data for key $key: $value');
-           }
-        } catch (e) {
-          debugPrint('Error importing classification for key $key: $e');
+  // Import user data from backup
+  Future<void> importUserData(String jsonData) async {
+    try {
+      final Map<String, dynamic> importData = jsonDecode(jsonData);
+
+      // Clear existing data
+      await clearUserInfo();
+      await clearAllClassifications();
+
+      // Import user data
+      if (importData.containsKey('userData')) {
+        final userData = importData['userData'];
+        await saveUserInfo(
+          userId: userData['userId'] ?? '',
+          email: userData['email'] ?? '',
+          displayName: userData['displayName'] ?? '',
+        );
+      }
+
+      // Import settings
+      if (importData.containsKey('settings')) {
+        final settings = importData['settings'];
+        await saveSettings(
+          isDarkMode: settings['isDarkMode'] ?? false,
+          isGoogleSyncEnabled: settings['isGoogleSyncEnabled'] ?? false,
+        );
+      }
+
+      // Import classifications
+      if (importData.containsKey('classifications')) {
+        final List<dynamic> classifications = importData['classifications'];
+        final classificationsBox = Hive.box(StorageKeys.classificationsBox);
+
+        for (var i = 0; i < classifications.length; i++) {
+          final classification =
+              WasteClassification.fromJson(classifications[i]);
+          final String key =
+              'classification_${classification.timestamp.millisecondsSinceEpoch}';
+          await classificationsBox.put(
+              key, jsonEncode(classification.toJson()));
         }
-      });
-        debugPrint('Imported ${classificationsBox.length} classifications.');
+      }
+    } catch (e) {
+      throw Exception('Failed to import data: $e');
     }
-
-    // Import Gamification Profile
-    if (data.containsKey(StorageKeys.gamificationBox)) {
-      final gamificationData = data[StorageKeys.gamificationBox] as Map<dynamic, dynamic>; // Might be Map<String, dynamic>
-      final gamificationBox = Hive.box<GamificationProfile>(StorageKeys.gamificationBox);
-      await gamificationBox.clear(); // Clear existing
-       gamificationData.forEach((key, value) {
-         try {
-           if (value is Map) { // Check if value is a map
-             final profile = GamificationProfile.fromJson(Map<String, dynamic>.from(value));
-             gamificationBox.put(key.toString(), profile);
-           } else {
-              debugPrint('Skipping invalid gamification data for key $key: $value');
-           }
-         } catch (e) {
-            debugPrint('Error importing gamification profile for key $key: $e');
-         }
-      });
-      debugPrint('Imported ${gamificationBox.length} gamification profiles.');
-    }
-
-    // Add import logic for other data types if needed
-     debugPrint('Data import finished.');
   }
 }

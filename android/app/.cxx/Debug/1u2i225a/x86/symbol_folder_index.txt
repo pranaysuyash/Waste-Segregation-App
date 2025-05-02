@@ -1,0 +1,1 @@
+/Users/pranay/Projects/LLM/image/waste_seg/waste_segregation_app/build/app/intermediates/cxx/Debug/1u2i225a/obj/x86

@@ -1,0 +1,73 @@
+platform :osx, '10.15'
+
+# Disable CocoaPods analytics to reduce build latency.
+ENV['COCOAPODS_DISABLE_STATS'] = 'true'
+
+# Map Flutter build modes to CocoaPods configurations.
+project 'Runner', {
+  'Debug'   => :debug,
+  'Profile' => :release,
+  'Release' => :release,
+}
+
+# Locate the Flutter SDK root by reading the generated Xcconfig.
+def flutter_root
+  generated_xcode_build_settings_path = File.expand_path(
+    File.join('..', 'Flutter', 'ephemeral', 'Flutter-Generated.xcconfig'),
+    __FILE__
+  )
+  unless File.exist?(generated_xcode_build_settings_path)
+    raise "#{generated_xcode_build_settings_path} must exist. Run 'flutter pub get' first."
+  end
+  File.foreach(generated_xcode_build_settings_path) do |line|
+    matches = line.match(/FLUTTER_ROOT\=(.*)/)
+    return matches[1].strip if matches
+  end
+  raise "FLUTTER_ROOT not found in #{generated_xcode_build_settings_path}."
+end
+
+# Load the Flutter Pod helper.
+require File.expand_path(File.join('packages', 'flutter_tools', 'bin', 'podhelper'), flutter_root)
+flutter_macos_podfile_setup
+
+target 'Runner' do
+  use_frameworks!
+  use_modular_headers!
+
+  flutter_install_all_macos_pods File.dirname(File.realpath(__FILE__))
+end
+
+post_install do |installer|
+  # Determine the correct architecture - only using darwin-x64 as darwin-arm64 doesn't exist
+  flutterFrameworkDir = File.join(flutter_root, 'bin', 'cache', 'artifacts', 'engine', 'darwin-x64')
+
+  installer.pods_project.targets.each do |target|
+    target.build_configurations.each do |config|
+      # Ensure the framework search paths include the Flutter framework directory.
+      config.build_settings['FRAMEWORK_SEARCH_PATHS'] ||= '$(inherited)'
+      config.build_settings['FRAMEWORK_SEARCH_PATHS'] << " #{flutterFrameworkDir}"
+      
+      # Set ENABLE_BITCODE to NO
+      config.build_settings['ENABLE_BITCODE'] = 'NO'
+      
+      # Set architectures as needed
+      config.build_settings['ONLY_ACTIVE_ARCH'] = 'YES' if config.name == 'Debug'
+      
+      # For Debug builds, set the optimization level and Swift version.
+      if config.name == 'Debug'
+        config.build_settings['SWIFT_OPTIMIZATION_LEVEL'] = '-Onone'
+        config.build_settings['SWIFT_VERSION'] = '5.0'
+      end
+
+      # Set the macOS deployment target.
+      config.build_settings['MACOSX_DEPLOYMENT_TARGET'] = '10.15'
+    end
+
+    # Optionally remove targets not needed for macOS.
+    if target.name == 'google_sign_in_ios'
+      target.remove_from_project
+    end
+  end
+
+  flutter_post_install(installer) if defined?(flutter_post_install)
+end

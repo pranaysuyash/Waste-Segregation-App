@@ -433,7 +433,7 @@ class GamificationService {
       itemsIdentified: newItemsIdentified,
       challengesCompleted: newChallengesCompleted,
       pointsEarned: newPointsEarned,
-      streakMaximum: streakValue > currentWeekStats.streakMaximum
+      streakMaximum: streakValue > currentWeekStats.streakMaximum 
           ? streakValue 
           : currentWeekStats.streakMaximum,
       categoryCounts: newCategoryCounts,

@@ -188,3 +188,10 @@ If you're interested in contributing to the project, here are some areas that wo
 6. Performance optimization for image processing
 7. Documentation improvements
 8. Gamification features expansion
+9. Cross-user classification caching with Firestore: integrate Firebase Firestore to store and retrieve classification results by image hash, allowing shared cache across users/devices and reducing redundant AI calls
+10. UI Refactoring & Modularization: break down large build methods in key screens into dedicated, reusable widgets to improve readability and maintainability
+    - Extract HomeScreen's Recent Identifications list into a RecentClassificationsList widget
+    - Extract HomeScreen's Gamification section (streak, challenges, achievements) into a GamificationSection widget
+    - Extract QuizScreen's question view and option cards into separate QuestionCard and OptionCard widgets
+    - Extract ResultScreen's recycling code info into RecyclingCodeInfoCard (done) and material info into a MaterialInfoCard
+    - Extract ResultScreen's educational fact section and action buttons into dedicated widgets (EducationalFactCard, ActionButtonsRow)

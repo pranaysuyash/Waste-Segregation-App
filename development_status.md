@@ -1,3 +1,5 @@
+# > **DEPRECATED:** This document has been consolidated into `project_features.md` as the single source-of-truth for feature planning.
++
 # Waste Segregation App - Development Status
 
 ## Implementation Status Overview

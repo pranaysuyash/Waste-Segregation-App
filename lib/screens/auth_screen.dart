@@ -20,7 +20,8 @@ class _AuthScreenState extends State<AuthScreen> {
     });
 
     try {
-      final googleDriveService = Provider.of<GoogleDriveService>(context, listen: false);
+      final googleDriveService =
+          Provider.of<GoogleDriveService>(context, listen: false);
       final user = await googleDriveService.signIn();
 
       if (user != null && mounted) {
@@ -47,7 +48,8 @@ class _AuthScreenState extends State<AuthScreen> {
   void _continueAsGuest(BuildContext context) {
     Navigator.pushReplacement(
       context,
-      MaterialPageRoute(builder: (context) => const HomeScreen(isGuestMode: true)),
+      MaterialPageRoute(
+          builder: (context) => const HomeScreen(isGuestMode: true)),
     );
   }
 
@@ -87,9 +89,9 @@ class _AuthScreenState extends State<AuthScreen> {
                       color: AppTheme.primaryColor,
                     ),
                   ),
-                  
+
                   const SizedBox(height: AppTheme.paddingLarge),
-                  
+
                   // App title
                   const Text(
                     AppStrings.appName,
@@ -99,9 +101,9 @@ class _AuthScreenState extends State<AuthScreen> {
                       color: Colors.white,
                     ),
                   ),
-                  
+
                   const SizedBox(height: AppTheme.paddingSmall),
-                  
+
                   // App description
                   const Text(
                     AppStrings.welcomeMessage,
@@ -111,16 +113,15 @@ class _AuthScreenState extends State<AuthScreen> {
                     ),
                     textAlign: TextAlign.center,
                   ),
-                  
+
                   const SizedBox(height: AppTheme.paddingExtraLarge * 2),
-                  
+
                   // Google Sign-in button
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton.icon(
-                      onPressed: _isLoading
-                          ? null
-                          : () => _signInWithGoogle(context),
+                      onPressed:
+                          _isLoading ? null : () => _signInWithGoogle(context),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.white,
                         foregroundColor: Colors.black87,
@@ -128,7 +129,8 @@ class _AuthScreenState extends State<AuthScreen> {
                           vertical: AppTheme.paddingRegular,
                         ),
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(AppTheme.borderRadiusRegular),
+                          borderRadius: BorderRadius.circular(
+                              AppTheme.borderRadiusRegular),
                         ),
                       ),
                       icon: _isLoading
@@ -143,7 +145,8 @@ class _AuthScreenState extends State<AuthScreen> {
                               ),
                             )
                           : Icon(
-                              Icons.g_mobiledata, // Using a Material icon as fallback
+                              Icons
+                                  .g_mobiledata, // Using a Material icon as fallback
                               size: 24,
                               color: Colors.blue,
                             ),
@@ -156,16 +159,15 @@ class _AuthScreenState extends State<AuthScreen> {
                       ),
                     ),
                   ),
-                  
+
                   const SizedBox(height: AppTheme.paddingRegular),
-                  
+
                   // Guest mode button
                   SizedBox(
                     width: double.infinity,
                     child: OutlinedButton(
-                      onPressed: _isLoading
-                          ? null
-                          : () => _continueAsGuest(context),
+                      onPressed:
+                          _isLoading ? null : () => _continueAsGuest(context),
                       style: OutlinedButton.styleFrom(
                         foregroundColor: Colors.white,
                         side: const BorderSide(color: Colors.white),
@@ -173,7 +175,8 @@ class _AuthScreenState extends State<AuthScreen> {
                           vertical: AppTheme.paddingRegular,
                         ),
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(AppTheme.borderRadiusRegular),
+                          borderRadius: BorderRadius.circular(
+                              AppTheme.borderRadiusRegular),
                         ),
                       ),
                       child: const Text(
@@ -185,14 +188,16 @@ class _AuthScreenState extends State<AuthScreen> {
                       ),
                     ),
                   ),
-                  
+
                   const SizedBox(height: AppTheme.paddingLarge),
-                  
+
                   // Education note
                   Container(
                     padding: const EdgeInsets.all(AppTheme.paddingRegular),
-                    decoration: BoxDecoration(                      color: Colors.white.withValues(alpha: 0.15),
-                      borderRadius: BorderRadius.circular(AppTheme.borderRadiusRegular),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.15),
+                      borderRadius:
+                          BorderRadius.circular(AppTheme.borderRadiusRegular),
                     ),
                     child: const Row(
                       children: [

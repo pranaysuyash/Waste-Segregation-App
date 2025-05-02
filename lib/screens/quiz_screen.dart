@@ -4,12 +4,12 @@ import '../utils/constants.dart';
 
 class QuizScreen extends StatefulWidget {
   final EducationalContent quizContent;
-  
+
   const QuizScreen({
     super.key,
     required this.quizContent,
   });
-  
+
   @override
   State<QuizScreen> createState() => _QuizScreenState();
 }
@@ -21,24 +21,24 @@ class _QuizScreenState extends State<QuizScreen> {
   List<int> _userAnswers = [];
   bool _quizFinished = false;
   late List<QuizQuestion> _questions;
-  
+
   @override
   void initState() {
     super.initState();
     _questions = widget.quizContent.questions ?? [];
     _userAnswers = List<int>.filled(_questions.length, -1);
   }
-  
+
   void _selectOption(int optionIndex) {
     if (_hasAnswered) return;
-    
+
     setState(() {
       _selectedOptionIndex = optionIndex;
       _hasAnswered = true;
       _userAnswers[_currentQuestionIndex] = optionIndex;
     });
   }
-  
+
   void _nextQuestion() {
     setState(() {
       if (_currentQuestionIndex < _questions.length - 1) {
@@ -50,7 +50,7 @@ class _QuizScreenState extends State<QuizScreen> {
       }
     });
   }
-  
+
   void _resetQuiz() {
     setState(() {
       _currentQuestionIndex = 0;
@@ -60,7 +60,7 @@ class _QuizScreenState extends State<QuizScreen> {
       _quizFinished = false;
     });
   }
-  
+
   int _calculateScore() {
     int correctAnswers = 0;
     for (int i = 0; i < _questions.length; i++) {
@@ -70,10 +70,10 @@ class _QuizScreenState extends State<QuizScreen> {
     }
     return correctAnswers;
   }
-  
+
   String _getScoreMessage(int score) {
     final percentage = (score / _questions.length) * 100;
-    
+
     if (percentage >= 90) {
       return 'Excellent! You\'re a waste segregation expert!';
     } else if (percentage >= 70) {
@@ -84,7 +84,7 @@ class _QuizScreenState extends State<QuizScreen> {
       return 'You could use more practice. Try reviewing the materials again.';
     }
   }
-  
+
   @override
   Widget build(BuildContext context) {
     // If there are no questions, show error message
@@ -98,12 +98,12 @@ class _QuizScreenState extends State<QuizScreen> {
         ),
       );
     }
-    
+
     // If quiz is finished, show results screen
     if (_quizFinished) {
       return _buildResultsScreen();
     }
-    
+
     // Otherwise show quiz question screen
     return Scaffold(
       appBar: AppBar(
@@ -119,7 +119,7 @@ class _QuizScreenState extends State<QuizScreen> {
             backgroundColor: Colors.orange.shade100,
             color: Colors.orange,
           ),
-          
+
           // Question number indicator
           Padding(
             padding: const EdgeInsets.all(AppTheme.paddingRegular),
@@ -149,7 +149,7 @@ class _QuizScreenState extends State<QuizScreen> {
               ],
             ),
           ),
-          
+
           // Question card
           Expanded(
             child: SingleChildScrollView(
@@ -162,7 +162,8 @@ class _QuizScreenState extends State<QuizScreen> {
                     padding: const EdgeInsets.all(AppTheme.paddingRegular),
                     decoration: BoxDecoration(
                       color: Colors.orange.shade50,
-                      borderRadius: BorderRadius.circular(AppTheme.borderRadiusRegular),
+                      borderRadius:
+                          BorderRadius.circular(AppTheme.borderRadiusRegular),
                       border: Border.all(color: Colors.orange.shade200),
                     ),
                     child: Text(
@@ -173,18 +174,21 @@ class _QuizScreenState extends State<QuizScreen> {
                       ),
                     ),
                   ),
-                  
+
                   const SizedBox(height: AppTheme.paddingLarge),
-                  
+
                   // Options
-                  ...List.generate(_questions[_currentQuestionIndex].options.length, (index) {
-                    bool isCorrect = index == _questions[_currentQuestionIndex].correctOptionIndex;
+                  ...List.generate(
+                      _questions[_currentQuestionIndex].options.length,
+                      (index) {
+                    bool isCorrect = index ==
+                        _questions[_currentQuestionIndex].correctOptionIndex;
                     bool isSelected = index == _selectedOptionIndex;
-                    
+
                     // Determine option card style based on selection and correctness
                     Color backgroundColor = Colors.white;
                     Color borderColor = Colors.grey.shade300;
-                    
+
                     if (_hasAnswered) {
                       if (isCorrect) {
                         backgroundColor = Colors.green.shade50;
@@ -197,17 +201,19 @@ class _QuizScreenState extends State<QuizScreen> {
                       backgroundColor = Colors.blue.shade50;
                       borderColor = Colors.blue;
                     }
-                    
+
                     return GestureDetector(
                       onTap: () {
                         _selectOption(index);
                       },
                       child: Container(
-                        margin: const EdgeInsets.only(bottom: AppTheme.paddingRegular),
+                        margin: const EdgeInsets.only(
+                            bottom: AppTheme.paddingRegular),
                         padding: const EdgeInsets.all(AppTheme.paddingRegular),
                         decoration: BoxDecoration(
                           color: backgroundColor,
-                          borderRadius: BorderRadius.circular(AppTheme.borderRadiusRegular),
+                          borderRadius: BorderRadius.circular(
+                              AppTheme.borderRadiusRegular),
                           border: Border.all(color: borderColor),
                           boxShadow: [
                             BoxShadow(
@@ -238,26 +244,34 @@ class _QuizScreenState extends State<QuizScreen> {
                               child: Center(
                                 child: _hasAnswered
                                     ? Icon(
-                                        isCorrect ? Icons.check : isSelected ? Icons.close : null,
+                                        isCorrect
+                                            ? Icons.check
+                                            : isSelected
+                                                ? Icons.close
+                                                : null,
                                         color: Colors.white,
                                         size: 16,
                                       )
                                     : Text(
-                                        String.fromCharCode(65 + index), // A, B, C, D...
+                                        String.fromCharCode(
+                                            65 + index), // A, B, C, D...
                                         style: TextStyle(
-                                          color: isSelected ? Colors.white : Colors.black,
+                                          color: isSelected
+                                              ? Colors.white
+                                              : Colors.black,
                                           fontWeight: FontWeight.bold,
                                         ),
                                       ),
                               ),
                             ),
-                            
+
                             const SizedBox(width: AppTheme.paddingRegular),
-                            
+
                             // Option text
                             Expanded(
                               child: Text(
-                                _questions[_currentQuestionIndex].options[index],
+                                _questions[_currentQuestionIndex]
+                                    .options[index],
                                 style: TextStyle(
                                   fontSize: AppTheme.fontSizeRegular,
                                   color: _hasAnswered && isCorrect
@@ -273,16 +287,18 @@ class _QuizScreenState extends State<QuizScreen> {
                       ),
                     );
                   }),
-                  
+
                   // Explanation after answering
-                  if (_hasAnswered && _questions[_currentQuestionIndex].explanation != null) ...[
+                  if (_hasAnswered &&
+                      _questions[_currentQuestionIndex].explanation !=
+                          null) ...[
                     const SizedBox(height: AppTheme.paddingRegular),
-                    
                     Container(
                       padding: const EdgeInsets.all(AppTheme.paddingRegular),
                       decoration: BoxDecoration(
                         color: Colors.blue.shade50,
-                        borderRadius: BorderRadius.circular(AppTheme.borderRadiusRegular),
+                        borderRadius:
+                            BorderRadius.circular(AppTheme.borderRadiusRegular),
                         border: Border.all(color: Colors.blue.shade200),
                       ),
                       child: Column(
@@ -306,9 +322,7 @@ class _QuizScreenState extends State<QuizScreen> {
                               ),
                             ],
                           ),
-                          
                           const SizedBox(height: AppTheme.paddingSmall),
-                          
                           Text(
                             _questions[_currentQuestionIndex].explanation!,
                             style: const TextStyle(
@@ -324,7 +338,7 @@ class _QuizScreenState extends State<QuizScreen> {
               ),
             ),
           ),
-          
+
           // Navigation buttons
           Container(
             padding: const EdgeInsets.all(AppTheme.paddingRegular),
@@ -347,8 +361,10 @@ class _QuizScreenState extends State<QuizScreen> {
                     onPressed: () {
                       setState(() {
                         _currentQuestionIndex--;
-                        _hasAnswered = _userAnswers[_currentQuestionIndex] != -1;
-                        _selectedOptionIndex = _userAnswers[_currentQuestionIndex];
+                        _hasAnswered =
+                            _userAnswers[_currentQuestionIndex] != -1;
+                        _selectedOptionIndex =
+                            _userAnswers[_currentQuestionIndex];
                       });
                     },
                     icon: const Icon(Icons.arrow_back),
@@ -365,7 +381,7 @@ class _QuizScreenState extends State<QuizScreen> {
                     icon: const Icon(Icons.skip_next),
                     label: const Text('Skip'),
                   ),
-                
+
                 // Next/Finish button
                 ElevatedButton(
                   onPressed: _hasAnswered ? _nextQuestion : null,
@@ -375,7 +391,9 @@ class _QuizScreenState extends State<QuizScreen> {
                     disabledBackgroundColor: Colors.grey.shade300,
                   ),
                   child: Text(
-                    _currentQuestionIndex < _questions.length - 1 ? 'Next' : 'Finish',
+                    _currentQuestionIndex < _questions.length - 1
+                        ? 'Next'
+                        : 'Finish',
                   ),
                 ),
               ],
@@ -385,11 +403,11 @@ class _QuizScreenState extends State<QuizScreen> {
       ),
     );
   }
-  
+
   Widget _buildResultsScreen() {
     final score = _calculateScore();
     final percentage = (score / _questions.length) * 100;
-    
+
     // Determine result color based on score
     Color resultColor;
     if (percentage >= 90) {
@@ -401,7 +419,7 @@ class _QuizScreenState extends State<QuizScreen> {
     } else {
       resultColor = Colors.red;
     }
-    
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Quiz Results'),
@@ -418,7 +436,7 @@ class _QuizScreenState extends State<QuizScreen> {
               width: double.infinity,
               padding: const EdgeInsets.all(AppTheme.paddingLarge),
               decoration: BoxDecoration(
-                color: resultColor.withValues(alpha: 0.1),
+                color: resultColor.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(AppTheme.borderRadiusLarge),
                 border: Border.all(color: resultColor.withOpacity(0.3)),
               ),
@@ -459,9 +477,9 @@ class _QuizScreenState extends State<QuizScreen> {
                       ),
                     ),
                   ),
-                  
+
                   const SizedBox(height: AppTheme.paddingRegular),
-                  
+
                   // Result message
                   Text(
                     _getScoreMessage(score),
@@ -475,9 +493,9 @@ class _QuizScreenState extends State<QuizScreen> {
                 ],
               ),
             ),
-            
+
             const SizedBox(height: AppTheme.paddingLarge),
-            
+
             // Question review section
             const Text(
               'Question Review',
@@ -486,9 +504,9 @@ class _QuizScreenState extends State<QuizScreen> {
                 fontWeight: FontWeight.bold,
               ),
             ),
-            
+
             const SizedBox(height: AppTheme.paddingRegular),
-            
+
             // List of questions with answers
             ListView.builder(
               shrinkWrap: true,
@@ -498,12 +516,14 @@ class _QuizScreenState extends State<QuizScreen> {
                 final question = _questions[index];
                 final userAnswer = _userAnswers[index];
                 final isCorrect = userAnswer == question.correctOptionIndex;
-                
+
                 return Container(
-                  margin: const EdgeInsets.only(bottom: AppTheme.paddingRegular),
+                  margin:
+                      const EdgeInsets.only(bottom: AppTheme.paddingRegular),
                   decoration: BoxDecoration(
                     color: Colors.white,
-                    borderRadius: BorderRadius.circular(AppTheme.borderRadiusRegular),
+                    borderRadius:
+                        BorderRadius.circular(AppTheme.borderRadiusRegular),
                     border: Border.all(
                       color: userAnswer == -1
                           ? Colors.grey.shade300
@@ -532,8 +552,10 @@ class _QuizScreenState extends State<QuizScreen> {
                                   ? Colors.green.shade50
                                   : Colors.red.shade50,
                           borderRadius: const BorderRadius.only(
-                            topLeft: Radius.circular(AppTheme.borderRadiusRegular - 1),
-                            topRight: Radius.circular(AppTheme.borderRadiusRegular - 1),
+                            topLeft: Radius.circular(
+                                AppTheme.borderRadiusRegular - 1),
+                            topRight: Radius.circular(
+                                AppTheme.borderRadiusRegular - 1),
                           ),
                         ),
                         child: Row(
@@ -562,9 +584,9 @@ class _QuizScreenState extends State<QuizScreen> {
                                 ),
                               ),
                             ),
-                            
+
                             const SizedBox(width: AppTheme.paddingRegular),
-                            
+
                             // Question text
                             Expanded(
                               child: Text(
@@ -583,7 +605,7 @@ class _QuizScreenState extends State<QuizScreen> {
                           ],
                         ),
                       ),
-                      
+
                       // Question and answers
                       Padding(
                         padding: const EdgeInsets.all(AppTheme.paddingRegular),
@@ -597,9 +619,9 @@ class _QuizScreenState extends State<QuizScreen> {
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
-                            
+
                             const SizedBox(height: AppTheme.paddingRegular),
-                            
+
                             // Correct answer
                             Row(
                               children: [
@@ -617,14 +639,16 @@ class _QuizScreenState extends State<QuizScreen> {
                                 ),
                                 Expanded(
                                   child: Text(
-                                    question.options[question.correctOptionIndex],
+                                    question
+                                        .options[question.correctOptionIndex],
                                   ),
                                 ),
                               ],
                             ),
-                            
+
                             // User answer if different
-                            if (userAnswer != -1 && userAnswer != question.correctOptionIndex) ...[
+                            if (userAnswer != -1 &&
+                                userAnswer != question.correctOptionIndex) ...[
                               const SizedBox(height: 4),
                               Row(
                                 children: [
@@ -667,15 +691,17 @@ class _QuizScreenState extends State<QuizScreen> {
                                 ],
                               ),
                             ],
-                            
+
                             // Explanation if available
                             if (question.explanation != null) ...[
                               const SizedBox(height: AppTheme.paddingSmall),
                               Container(
-                                padding: const EdgeInsets.all(AppTheme.paddingSmall),
+                                padding:
+                                    const EdgeInsets.all(AppTheme.paddingSmall),
                                 decoration: BoxDecoration(
                                   color: Colors.blue.shade50,
-                                  borderRadius: BorderRadius.circular(AppTheme.borderRadiusSmall),
+                                  borderRadius: BorderRadius.circular(
+                                      AppTheme.borderRadiusSmall),
                                 ),
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -717,9 +743,9 @@ class _QuizScreenState extends State<QuizScreen> {
                 );
               },
             ),
-            
+
             const SizedBox(height: AppTheme.paddingLarge),
-            
+
             // Action buttons
             Row(
               children: [
@@ -737,9 +763,9 @@ class _QuizScreenState extends State<QuizScreen> {
                     child: const Text('Try Again'),
                   ),
                 ),
-                
+
                 const SizedBox(width: AppTheme.paddingRegular),
-                
+
                 // Back to content button
                 Expanded(
                   child: ElevatedButton(

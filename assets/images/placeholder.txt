@@ -1,0 +1,2 @@
+This is a placeholder file.
+It ensures the assets/images directory exists for Flutter.
