@@ -143,6 +143,20 @@ This document provides a comprehensive overview of the project's features, categ
 - 🔮 Animated recycling lifecycle visualizations
 - 🔮 Personalized goal setting with AI guidance
 - 🔮 Crisis alert mode for hazardous waste
+  
+### Analysis Pipeline Enhancements
+- Pre-Analysis Image Prep: auto-cropping, exposure/contrast correction, edge detection, user-driven ROI cropping
+- Segmentation & Region-Based Classification: dynamic object detection, tap-selectable regions, overlay previews
+- Caching & De-duplication: local & Firestore cache keyed by SHA-256 + perceptual hashing for near-duplicates
+- Resilience & Retry Logic: exponential backoff, fallback models, offline queueing
+- AI Prompt & Model Improvements: confidence thresholds, multi-model passes, interactive clarifications
+- Post-Analysis Enrichment: link to similar educational content, context-aware infographics, material tutorials
+- Result UI/UX Enhancements: animated analyzer state, confidence meters, image overlays, collapsible detail drawers
+- User Feedback Loop: in-app correction submission, thumbs-up/down rating for continuous improvement
+- Analytics & Instrumentation: latency/error logging, segmentation path metrics, usage analytics
+- Accessibility & Multi-Modal: TTS results, voice commands, hands-free operation
+- Scalability & Cost Control: batch segment calls, network-aware throttling, metered network detection
+- Security & Privacy: background blurring, on-device-only toggle, data anonymization
 
 ## Implementation Priority Plan
 
