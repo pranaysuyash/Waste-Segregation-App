@@ -1,5 +1,27 @@
 # > **DEPRECATED:** This document has been consolidated into `project_features.md` as the single source-of-truth for feature planning.
 
+## Summary of Feature Plan
+
+- AI-powered waste classification (camera & gallery) with detailed categories and disposal guidance
+- Comprehensive educational content (articles, videos, infographics, quizzes, daily tips)
+- Gamification (points, levels, achievements, daily streaks, challenges)
+- Local storage via Hive with optional Google Drive sync and thumbnail generation
+
+## Observations & Recommendations
+
+- Implement local thumbnail caching and SHA-256 image hash cache; extend to Firestore for cross-user reuse
+- Refactor large screens into reusable widgets (ProfileSummaryCard, RecentClassificationsList, GamificationSection, QuestionCard, OptionCard)
+- Add settings UI for theme, language, and notification preferences
+- Explore offline classification models for no-network usage
+- Enhance test coverage with unit and widget tests for core features
+
+## Related Documents
+
+- Roadmap: [project_features.md](project_features.md)
+- Issues: [issues.md](issues.md)
+- Development Status: [development_status.md](development_status.md)
+- User Guide: [user_doc.md](user_doc.md)
+
 Final Consolidated Feature Table (1-277)
 
 # Feature Description Source/Status
