@@ -150,7 +150,7 @@ lib/
 
 ## Roadmap
 
-For a consolidated feature roadmap—including implemented, in-progress, pending, and future plans—see [project_features.md](project_features.md).
+For a consolidated feature roadmap—including implemented, in-progress, pending, and future plans—see [project_features.md](docs/project_features.md).
 
 ## Dependencies
 
