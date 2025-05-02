@@ -50,6 +50,12 @@ class WasteClassification {
 
   // Factory constructor to create a model from JSON
   factory WasteClassification.fromJson(Map<String, dynamic> json) {
+    // Handle different data types for recyclingCode
+    String? recyclingCode;
+    if (json['recyclingCode'] != null) {
+      recyclingCode = json['recyclingCode'].toString();
+    }
+    
     return WasteClassification(
       itemName: json['itemName'] ?? '',
       category: json['category'] ?? '',
@@ -57,7 +63,7 @@ class WasteClassification {
       explanation: json['explanation'] ?? '',
       imageUrl: json['imageUrl'],
       disposalMethod: json['disposalMethod'],
-      recyclingCode: json['recyclingCode'],
+      recyclingCode: recyclingCode,
       isRecyclable: json['isRecyclable'],
       isCompostable: json['isCompostable'],
       requiresSpecialDisposal: json['requiresSpecialDisposal'],

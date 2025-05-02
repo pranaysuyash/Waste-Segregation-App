@@ -47,10 +47,10 @@ The app provides educational content about each category, stores classification 
 - **Framework**: Flutter
 - **State Management**: Provider
 - **Local Storage**: Hive
-- **Backend Services**: Planned Firebase integration for authentication and analytics
+- **Backend Services**: Firebase for authentication
 - **Image Handling**: image_picker package
 - **AI Integration**: Gemini API via OpenAI-compatible endpoint using the gemini-2.0-flash model
-- **Google Integration**: google_sign_in package
+- **Google Integration**: google_sign_in package with Firebase authentication
 
 ## Getting Started
 
@@ -141,7 +141,6 @@ lib/
 - Leaderboard implementation
 - Enhanced camera features
 - Quiz functionality completion
-- Firebase integration for analytics
 - Social sharing capabilities
 - Enhanced web camera support
 

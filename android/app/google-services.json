@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "1093372542184",
+    "project_id": "waste-segregation-app-df523",
+    "storage_bucket": "waste-segregation-app-df523.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1093372542184:android:160b71eb63bc7004355d5d",
+        "android_client_info": {
+          "package_name": "com.example.waste_segregation_app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1093372542184-vt0daid8t327soohu1um5hf5lpmkqg92.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.waste_segregation_app",
+            "certificate_hash": "960ed9bf3a9d33b58e3f8301ecc6c5395e9acc1d"
+          }
+        },
+        {
+          "client_id": "1093372542184-r9fpan6camcgpas8o967ksrg01h2h28u.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCvMKQNvA00QZHTg6BQ4mOaKtRXgKNqbpo"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1093372542184-r9fpan6camcgpas8o967ksrg01h2h28u.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -69,8 +69,9 @@ This document outlines the current development status of features in the Waste S
 - ❌ User data management (deletion, export)
 
 ### User Authentication
-- ✅ Google Sign-In implementation
+- ✅ Google Sign-In implementation with Firebase
 - ✅ Guest mode for anonymous usage
+- ✅ Firebase SDK integration with SHA-1 fingerprint
 - 🌓 User profile management
 - ❌ Additional authentication methods
 
