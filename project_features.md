@@ -156,7 +156,17 @@ This document provides a comprehensive overview of the project's features, categ
 - Analytics & Instrumentation: latency/error logging, segmentation path metrics, usage analytics
 - Accessibility & Multi-Modal: TTS results, voice commands, hands-free operation
 - Scalability & Cost Control: batch segment calls, network-aware throttling, metered network detection
-- Security & Privacy: background blurring, on-device-only toggle, data anonymization
+ - Security & Privacy: background blurring, on-device-only toggle, data anonymization
+
+### Gamification Enhancements
+- Tiered user levels and status tiers (Bronze, Silver, Gold, Platinum) with unique perks
+- Community missions and "Local Guides"-style contributions: user-generated tips, item reports, Q&A
+- Unlockable privileges: early content access, custom avatars, region-based challenges
+- Reputation scores and trust levels derived from contributions and user feedback
+- Reward incentives: digital vouchers, exclusive badges, profile showcase
+- In-app marketplace: redeem points for virtual goods or partner offers
+- Social collaboration: team challenges, friend referrals, community clean-up events
+- Personalized challenges recommended based on user history and location
 
 ## Implementation Priority Plan
 
