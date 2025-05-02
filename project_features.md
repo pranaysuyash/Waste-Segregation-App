@@ -147,11 +147,16 @@ This document provides a comprehensive overview of the project's features, categ
 ## Implementation Priority Plan
 
 ### High Priority (Next Sprint)
-1. Complete camera enhancements for better cross-platform support
-2. Finish leaderboard implementation
-3. Add data export/import capabilities
-4. Implement full quiz functionality
-5. Complete settings screen implementation
+1. Cross-user classification caching with Firestore: share hashed classification results across users/devices to cut AI API usage and improve response times
+2. UI Refactoring & Modularization: break down HomeScreen, AchievementsScreen, QuizScreen, and ResultScreen into reusable widget components for better maintainability
+3. Settings Screen Implementation: complete UI for theme (light/dark), language selection, and notification preferences
+4. Quiz System Completion: finalize quiz UI, scoring logic, and feedback screens
+5. Leaderboard Feature: build leaderboard UI and backend integration for community challenges
+6. Data Export/Import Flows: add export to CSV/JSON and import functionality in settings/history
+7. Educational Content Filtering & Search: advanced category, difficulty, and keyword filters in educational screens
+8. Offline Classification Support: enable on-device classification fallback or local caching when network is unavailable
+9. Social Sharing & Feedback: allow users to share classification results and submit feedback/corrections to improve AI accuracy
+10. Localization & Internationalization: integrate Flutter localization for multi-language support and RTL layout
 
 ### Medium Priority
 1. Implement theme customization
