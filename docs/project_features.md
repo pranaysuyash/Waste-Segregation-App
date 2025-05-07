@@ -121,7 +121,7 @@ This document provides a comprehensive overview of the project's features, categ
 ### Feedback Systems
 
 - ❌ In-app feedback forms
-- ❌ AI accuracy feedback loop
+- 🚧 AI accuracy feedback loop ("Was this correct?" on results screen)
 - ❌ Feature suggestion mechanism
 
 ## Future Enhancement Opportunities
