@@ -1,5 +1,5 @@
 import 'dart:io';
-import 'dart:ui';
+import 'dart:ui' as ui;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
@@ -7,6 +7,7 @@ import 'package:provider/provider.dart';
 import '../models/waste_classification.dart';
 import '../services/ai_service.dart';
 import '../utils/constants.dart';
+import '../utils/image_utils.dart' show Rect;
 import '../widgets/capture_button.dart';
 import 'result_screen.dart';
 
@@ -120,6 +121,7 @@ class _ImageCaptureScreenState extends State<ImageCaptureScreen> {
               'Analyzing web image: ${widget.xFile!.name}, size: ${imageBytes.length} bytes');
 
           if (_useSegmentation && _selectedSegments.isNotEmpty) {
+            // Already using our custom Rect type from segmentImage()
             classification = await aiService.analyzeImageSegmentsWeb(
               imageBytes,
               _selectedSegments.map((i) => _segments[i]).toList(),
@@ -140,6 +142,7 @@ class _ImageCaptureScreenState extends State<ImageCaptureScreen> {
               'Analyzing web image from bytes, size: ${widget.webImage!.length} bytes');
 
           if (_useSegmentation && _selectedSegments.isNotEmpty) {
+            // Using our custom Rect class from segmentImage()
             classification = await aiService.analyzeImageSegmentsWeb(
               widget.webImage!,
               _selectedSegments.map((i) => _segments[i]).toList(),
@@ -166,6 +169,7 @@ class _ImageCaptureScreenState extends State<ImageCaptureScreen> {
           // Check if file exists and is readable
           if (await widget.imageFile!.exists()) {
             if (_useSegmentation && _selectedSegments.isNotEmpty) {
+              // Using our custom Rect class from segmentImage()
               classification = await aiService.analyzeImageSegments(
                 widget.imageFile!,
                 _selectedSegments.map((i) => _segments[i]).toList(),
@@ -236,6 +240,7 @@ class _ImageCaptureScreenState extends State<ImageCaptureScreen> {
                               return Stack(
                                 children:
                                     List.generate(_segments.length, (index) {
+                                  // Using our custom Rect class
                                   final rect = _segments[index];
                                   final left = rect.left * imageWidth;
                                   final top = rect.top * imageHeight;

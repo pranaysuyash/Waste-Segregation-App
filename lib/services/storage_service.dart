@@ -31,8 +31,10 @@ class StorageService {
     await Hive.openBox(StorageKeys.userBox);
     await Hive.openBox(StorageKeys.classificationsBox);
     await Hive.openBox(StorageKeys.settingsBox);
+    
     // Open cache box for image classification caching
-    await Hive.openBox(StorageKeys.cacheBox);
+    // We're using String type to store serialized CachedClassification objects
+    await Hive.openBox<String>(StorageKeys.cacheBox);
   }
 
   // User methods

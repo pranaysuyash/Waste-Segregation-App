@@ -33,6 +33,9 @@ migrate_working_dir/
 .pub/
 /build/
 
+# Ignore backup files
+*.bak
+
 # Symbolication related
 app.*.symbols
 
@@ -45,3 +48,5 @@ app.*.map.json
 /android/app/release
 # CMake/NDK build artifacts
 /android/app/.cxx/
+
+**/.claude/settings.local.json

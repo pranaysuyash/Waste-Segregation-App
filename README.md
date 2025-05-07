@@ -127,7 +127,7 @@ lib/
 
 ## Current Status
 
--### Implemented Features
+### Implemented Features
 - AI integration with Gemini Vision API
 - Waste classification with detailed categories
 - Basic image capture and upload functionality
@@ -137,9 +137,10 @@ lib/
 - Local storage with Hive
 - Google Sign-In
 - Thumbnail generation and storage for classifications (local image caching)
-- Local in-memory SHA-256 image classification cache
+- Device-local SHA-256 based image classification caching system
+- Cache statistics monitoring and visualization
 
--### In Progress / Pending
+### In Progress / Pending
 - Leaderboard implementation
 - Enhanced camera features
 - Quiz functionality completion

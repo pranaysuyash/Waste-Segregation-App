@@ -25,6 +25,8 @@ dependencies:
   google_fonts: ^6.2.1
   flutter_svg: ^2.0.7
   openai_api: ^0.2.0  # For OpenAI API fallback
+  crypto: ^3.0.3  # For SHA-256 hashing
+  image: ^4.0.17  # For image preprocessing
 
 dev_dependencies:
   flutter_test:

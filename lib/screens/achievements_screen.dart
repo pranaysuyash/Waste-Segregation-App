@@ -215,91 +215,252 @@ class _AchievementsScreenState extends State<AchievementsScreen>
 
   Widget _buildAchievementCard(Achievement achievement) {
     final bool isEarned = achievement.isEarned;
+    final bool isLocked = achievement.isLocked;
+    final bool isClaimable = achievement.isClaimable;
 
     return Card(
       clipBehavior: Clip.antiAlias,
+      elevation: isEarned ? 3 : 1,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(AppTheme.borderRadiusSmall),
+        side: isClaimable 
+            ? BorderSide(color: Colors.amber, width: 2)
+            : BorderSide.none,
+      ),
       child: InkWell(
         onTap: () => _showAchievementDetails(achievement),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
+        child: Stack(
           children: [
-            // Achievement icon
-            Container(
-              padding: const EdgeInsets.all(AppTheme.paddingSmall),
-              decoration: BoxDecoration(
-                color: isEarned
-                    ? achievement.color.withOpacity(0.2)
-                    : Colors.grey.shade200,
-                shape: BoxShape.circle,
-              ),
-              child: Icon(
-                IconData(
-                  _getIconCodePoint(achievement.iconName),
-                  fontFamily: 'MaterialIcons',
-                ),
-                color: isEarned ? achievement.color : Colors.grey,
-                size: 36,
-              ),
-            ),
-            const SizedBox(height: 8),
-            // Achievement title
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 4),
-              child: Text(
-                achievement.title,
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: AppTheme.fontSizeSmall,
-                  fontWeight: FontWeight.bold,
-                  color: isEarned ? AppTheme.textPrimaryColor : Colors.grey,
-                ),
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ),
-            const SizedBox(height: 4),
-            // Progress indicator
-            if (!isEarned)
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 12),
-                child: ClipRRect(
-                  borderRadius:
-                      BorderRadius.circular(AppTheme.borderRadiusSmall),
-                  child: LinearProgressIndicator(
-                    value: achievement.progress,
-                    minHeight: 4,
-                    backgroundColor: Colors.grey.shade200,
-                    valueColor: AlwaysStoppedAnimation<Color>(
-                        achievement.color.withOpacity(0.7)),
+            // Tier badge in corner
+            Positioned(
+              top: 0,
+              right: 0,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                decoration: BoxDecoration(
+                  color: achievement.getTierColor(),
+                  borderRadius: const BorderRadius.only(
+                    bottomLeft: Radius.circular(AppTheme.borderRadiusSmall),
                   ),
                 ),
-              )
-            else
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 12),
                 child: Text(
-                  'Earned',
+                  achievement.tierName,
                   style: TextStyle(
-                    fontSize: 10,
-                    color: achievement.color,
+                    fontSize: 8,
+                    fontWeight: FontWeight.bold,
+                    color: _getContrastColor(achievement.getTierColor()),
                   ),
                 ),
               ),
+            ),
+            
+            // Locked overlay
+            if (isLocked)
+              Positioned.fill(
+                child: Container(
+                  color: Colors.black45,
+                  child: Center(
+                    child: Icon(
+                      Icons.lock,
+                      color: Colors.white,
+                      size: 28,
+                    ),
+                  ),
+                ),
+              ),
+            
+            // Main content
+            Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                // Achievement icon
+                Container(
+                  padding: const EdgeInsets.all(AppTheme.paddingSmall),
+                  decoration: BoxDecoration(
+                    color: isEarned
+                        ? achievement.color.withOpacity(0.2)
+                        : Colors.grey.shade200,
+                    shape: BoxShape.circle,
+                    border: isEarned && achievement.tier != AchievementTier.bronze
+                        ? Border.all(color: achievement.getTierColor(), width: 2)
+                        : null,
+                  ),
+                  child: Icon(
+                    IconData(
+                      _getIconCodePoint(achievement.iconName),
+                      fontFamily: 'MaterialIcons',
+                    ),
+                    color: isEarned ? achievement.color : Colors.grey,
+                    size: 36,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                // Achievement title
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 4),
+                  child: Text(
+                    achievement.title,
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: AppTheme.fontSizeSmall,
+                      fontWeight: FontWeight.bold,
+                      color: isEarned ? AppTheme.textPrimaryColor : Colors.grey,
+                    ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                // Progress indicator or status
+                if (!isEarned && !isLocked)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    child: ClipRRect(
+                      borderRadius:
+                          BorderRadius.circular(AppTheme.borderRadiusSmall),
+                      child: LinearProgressIndicator(
+                        value: achievement.progress,
+                        minHeight: 4,
+                        backgroundColor: Colors.grey.shade200,
+                        valueColor: AlwaysStoppedAnimation<Color>(
+                            achievement.color.withOpacity(0.7)),
+                      ),
+                    ),
+                  )
+                else if (isEarned && isClaimable)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    child: Text(
+                      'Claim Reward!',
+                      style: TextStyle(
+                        fontSize: 10,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.amber,
+                      ),
+                    ),
+                  )
+                else if (isEarned)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    child: Text(
+                      'Earned',
+                      style: TextStyle(
+                        fontSize: 10,
+                        color: achievement.color,
+                      ),
+                    ),
+                  )
+                else if (isLocked)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    child: Text(
+                      'Unlocks at level ${achievement.unlocksAtLevel}',
+                      style: TextStyle(
+                        fontSize: 9,
+                        color: Colors.grey,
+                      ),
+                    ),
+                  ),
+              ],
+            ),
           ],
         ),
       ),
     );
   }
+  
+  // Helper method to determine contrasting text color for tier badges
+  Color _getContrastColor(Color backgroundColor) {
+    // Calculate perceived brightness using the formula: (R * 0.299 + G * 0.587 + B * 0.114)
+    final double brightness = (backgroundColor.red * 0.299 + 
+                           backgroundColor.green * 0.587 + 
+                           backgroundColor.blue * 0.114) / 255;
+    return brightness > 0.5 ? Colors.black : Colors.white;
+  }
 
   void _showAchievementDetails(Achievement achievement) {
+    final gamificationService = Provider.of<GamificationService>(context, listen: false);
+    
+    // Helper function to handle claiming rewards
+    Future<void> _claimReward() async {
+      try {
+        final profile = await gamificationService.getProfile();
+        final updatedAchievements = List<Achievement>.from(profile.achievements);
+        
+        // Find the achievement by ID and update its claim status
+        for (int i = 0; i < updatedAchievements.length; i++) {
+          if (updatedAchievements[i].id == achievement.id) {
+            updatedAchievements[i] = updatedAchievements[i].copyWith(
+              claimStatus: ClaimStatus.claimed,
+            );
+            break;
+          }
+        }
+        
+        // Update profile with claimed achievement
+        await gamificationService.saveProfile(
+          profile.copyWith(achievements: updatedAchievements)
+        );
+        
+        // Add points for claiming achievement
+        await gamificationService.addPoints(
+          'achievement_claim',
+          customPoints: achievement.pointsReward
+        );
+        
+        // Refresh the profile data
+        setState(() {
+          _loadProfile();
+        });
+        
+        // Close the dialog
+        Navigator.of(context).pop();
+        
+        // Show success message
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('${achievement.pointsReward} points added to your account!'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      } catch (e) {
+        // Show error message
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to claim reward: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text(achievement.title),
+        title: Row(
+          children: [
+            Expanded(child: Text(achievement.title)),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              decoration: BoxDecoration(
+                color: achievement.getTierColor(),
+                borderRadius: BorderRadius.circular(AppTheme.borderRadiusSmall),
+              ),
+              child: Text(
+                achievement.tierName,
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold,
+                  color: _getContrastColor(achievement.getTierColor()),
+                ),
+              ),
+            ),
+          ],
+        ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            // Achievement icon
+            // Achievement icon with tier-specific styling
             Container(
               padding: const EdgeInsets.all(AppTheme.paddingRegular),
               decoration: BoxDecoration(
@@ -307,6 +468,9 @@ class _AchievementsScreenState extends State<AchievementsScreen>
                     ? achievement.color.withOpacity(0.2)
                     : Colors.grey.shade200,
                 shape: BoxShape.circle,
+                border: achievement.isEarned && achievement.tier != AchievementTier.bronze
+                    ? Border.all(color: achievement.getTierColor(), width: 3)
+                    : null,
               ),
               child: Icon(
                 IconData(
@@ -318,19 +482,109 @@ class _AchievementsScreenState extends State<AchievementsScreen>
               ),
             ),
             const SizedBox(height: AppTheme.paddingRegular),
+            
             // Achievement description
             Text(
               achievement.description,
               textAlign: TextAlign.center,
             ),
-            const SizedBox(height: AppTheme.paddingRegular),
+            const SizedBox(height: AppTheme.paddingSmall),
+            
+            // Achievement family ID info (if available)
+            if (achievement.achievementFamilyId != null)
+              Padding(
+                padding: const EdgeInsets.only(bottom: AppTheme.paddingSmall),
+                child: Text(
+                  'Part of the ${achievement.achievementFamilyId} achievement series',
+                  style: TextStyle(
+                    fontSize: AppTheme.fontSizeSmall,
+                    fontStyle: FontStyle.italic,
+                    color: Colors.grey.shade600,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ),
+              
+            // Achievement points reward info
+            Container(
+              margin: const EdgeInsets.symmetric(vertical: AppTheme.paddingSmall),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              decoration: BoxDecoration(
+                color: Colors.amber.withOpacity(0.2),
+                borderRadius: BorderRadius.circular(AppTheme.borderRadiusSmall),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    Icons.stars,
+                    color: Colors.amber,
+                    size: 18,
+                  ),
+                  const SizedBox(width: 4),
+                  Text(
+                    "${achievement.pointsReward} ${AppStrings.points}",
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: Colors.amber.shade900,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            
+            const SizedBox(height: AppTheme.paddingSmall),
+            
             // Achievement status
-            if (achievement.isEarned)
-              Text(
-                'Earned on ${_formatDate(achievement.earnedOn!)}',
-                style: TextStyle(
-                  color: achievement.color,
-                  fontWeight: FontWeight.bold,
+            if (achievement.isEarned) 
+              Column(
+                children: [
+                  Text(
+                    'Earned on ${_formatDate(achievement.earnedOn!)}',
+                    style: TextStyle(
+                      color: achievement.color,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  if (achievement.isClaimable)
+                    Padding(
+                      padding: const EdgeInsets.only(top: AppTheme.paddingRegular),
+                      child: ElevatedButton.icon(
+                        onPressed: _claimReward,
+                        icon: Icon(Icons.redeem),
+                        label: Text('Claim Reward'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.amber,
+                          foregroundColor: Colors.black,
+                        ),
+                      ),
+                    ),
+                ],
+              )
+            else if (achievement.isLocked)
+              Container(
+                margin: const EdgeInsets.only(top: AppTheme.paddingSmall),
+                padding: const EdgeInsets.all(AppTheme.paddingSmall),
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade200,
+                  borderRadius: BorderRadius.circular(AppTheme.borderRadiusSmall),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.lock,
+                      color: Colors.grey.shade700,
+                      size: 18,
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      'Unlocks at level ${achievement.unlocksAtLevel}',
+                      style: TextStyle(
+                        color: Colors.grey.shade700,
+                      ),
+                    ),
+                  ],
                 ),
               )
             else
@@ -355,6 +609,38 @@ class _AchievementsScreenState extends State<AchievementsScreen>
                     ),
                   ),
                 ],
+              ),
+              
+            // Metadata (if any)
+            if (achievement.metadata.isNotEmpty && achievement.isEarned)
+              Container(
+                margin: const EdgeInsets.only(top: AppTheme.paddingRegular),
+                padding: const EdgeInsets.all(AppTheme.paddingSmall),
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade100,
+                  borderRadius: BorderRadius.circular(AppTheme.borderRadiusSmall),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Details:',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: AppTheme.fontSizeSmall,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    ...achievement.metadata.entries.map((entry) => 
+                      Text(
+                        '${entry.key}: ${entry.value}',
+                        style: TextStyle(
+                          fontSize: AppTheme.fontSizeSmall,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
           ],
         ),
@@ -975,6 +1261,14 @@ class _AchievementsScreenState extends State<AchievementsScreen>
         return 'Special Achievements';
       case AchievementType.communityContribution:
         return 'Community Contributions';
+      case AchievementType.metaAchievement:
+        return 'Meta Achievements';
+      case AchievementType.specialEvent:
+        return 'Special Events';
+      case AchievementType.userGoal:
+        return 'Personal Goals';
+      case AchievementType.collectionMilestone:
+        return 'Collection Milestones';
     }
   }
 
