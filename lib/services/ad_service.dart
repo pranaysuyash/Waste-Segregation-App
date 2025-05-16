@@ -2,13 +2,11 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
-import '../services/premium_service.dart';
-import 'package:provider/provider.dart';
 
 class AdService extends ChangeNotifier {
   static const String _removeAdsFeatureId = 'remove_ads';
   
-  final PremiumService _premiumService = PremiumService();
+  bool _hasPremium = false;
   
   // Ad unit IDs
   static const Map<String, String> _bannerAdUnitIds = {
@@ -33,14 +31,18 @@ class AdService extends ChangeNotifier {
   bool _isInSettings = false;
   
   bool _isInitialized = false;
+  bool _isInitializing = false;
   int _classificationCount = 0;
   DateTime? _lastInterstitialAdTime;
   
   BannerAd? _bannerAd;
+  AdWidget? _adWidget;
   
+  // Getters
   bool get isInitialized => _isInitialized;
+  
   bool get shouldShowAds => !kIsWeb && 
-         !_premiumService.isPremiumFeature(_removeAdsFeatureId) &&
+         !_hasPremium &&
          !_isInClassificationFlow && 
          !_isInEducationalContent && 
          !_isInSettings;
@@ -50,19 +52,79 @@ class AdService extends ChangeNotifier {
     return DateTime.now().difference(_lastInterstitialAdTime!).inMinutes >= 5;
   }
   
+  // Set premium status
+  void setPremiumStatus(bool hasPremium) {
+    if (_hasPremium != hasPremium) {
+      _hasPremium = hasPremium;
+      notifyListeners();
+    }
+  }
+  
   // Initialize the ad service
   Future<void> initialize() async {
-    if (kIsWeb) return; // Skip ad initialization on web
+    if (kIsWeb) {
+      _isInitialized = true;
+      return; // Skip ad initialization on web
+    }
     
-    if (_isInitialized) return;
+    if (_isInitialized || _isInitializing) return;
+    
+    _isInitializing = true;
     
     try {
+      // Initialize MobileAds
       await MobileAds.instance.initialize();
       _isInitialized = true;
+      
+      // Preload interstitial ad
       _loadInterstitialAd();
+      
+      // Preload banner ad
+      _loadBannerAd();
+      
       notifyListeners();
     } catch (e) {
       debugPrint('Error initializing ads: $e');
+    } finally {
+      _isInitializing = false;
+    }
+  }
+  
+  // Preload banner ad
+  void _loadBannerAd() {
+    if (kIsWeb || _bannerAd != null) return;
+    
+    try {
+      final adUnitId = Platform.isAndroid 
+          ? _bannerAdUnitIds['android']! 
+          : _bannerAdUnitIds['ios']!;
+      
+      _bannerAd = BannerAd(
+        adUnitId: adUnitId,
+        size: AdSize.banner,
+        request: const AdRequest(),
+        listener: BannerAdListener(
+          onAdLoaded: (_) {
+            debugPrint('Banner ad loaded successfully');
+            _adWidget = AdWidget(ad: _bannerAd!);
+            notifyListeners();
+          },
+          onAdFailedToLoad: (ad, error) {
+            debugPrint('Banner ad failed to load: $error');
+            ad.dispose();
+            _bannerAd = null;
+            _adWidget = null;
+            
+            // Retry after delay
+            Future.delayed(const Duration(minutes: 1), _loadBannerAd);
+          },
+        ),
+      );
+      
+      // Start loading the ad
+      _bannerAd!.load();
+    } catch (e) {
+      debugPrint('Error creating banner ad: $e');
     }
   }
   
@@ -72,39 +134,46 @@ class AdService extends ChangeNotifier {
     
     _isInterstitialAdLoading = true;
     
-    final adUnitId = Platform.isAndroid 
-        ? _interstitialAdUnitIds['android']! 
-        : _interstitialAdUnitIds['ios']!;
-    
-    InterstitialAd.load(
-      adUnitId: adUnitId,
-      request: const AdRequest(),
-      adLoadCallback: InterstitialAdLoadCallback(
-        onAdLoaded: (ad) {
-          _interstitialAd = ad;
-          _isInterstitialAdLoading = false;
-          
-          // Set callback for ad close
-          ad.fullScreenContentCallback = FullScreenContentCallback(
-            onAdDismissedFullScreenContent: (ad) {
-              ad.dispose();
-              _interstitialAd = null;
-              _loadInterstitialAd(); // Reload for next time
-            },
-            onAdFailedToShowFullScreenContent: (ad, error) {
-              ad.dispose();
-              _interstitialAd = null;
-              _loadInterstitialAd(); // Reload for next time
-            },
-          );
-        },
-        onAdFailedToLoad: (error) {
-          _isInterstitialAdLoading = false;
-          // Retry after delay with exponential backoff
-          Future.delayed(const Duration(minutes: 1), _loadInterstitialAd);
-        },
-      ),
-    );
+    try {
+      final adUnitId = Platform.isAndroid 
+          ? _interstitialAdUnitIds['android']! 
+          : _interstitialAdUnitIds['ios']!;
+      
+      InterstitialAd.load(
+        adUnitId: adUnitId,
+        request: const AdRequest(),
+        adLoadCallback: InterstitialAdLoadCallback(
+          onAdLoaded: (ad) {
+            _interstitialAd = ad;
+            _isInterstitialAdLoading = false;
+            
+            // Set callback for ad close
+            ad.fullScreenContentCallback = FullScreenContentCallback(
+              onAdDismissedFullScreenContent: (ad) {
+                ad.dispose();
+                _interstitialAd = null;
+                _loadInterstitialAd(); // Reload for next time
+              },
+              onAdFailedToShowFullScreenContent: (ad, error) {
+                ad.dispose();
+                _interstitialAd = null;
+                _loadInterstitialAd(); // Reload for next time
+              },
+            );
+            
+            notifyListeners();
+          },
+          onAdFailedToLoad: (error) {
+            _isInterstitialAdLoading = false;
+            // Retry after delay with exponential backoff
+            Future.delayed(const Duration(minutes: 1), _loadInterstitialAd);
+          },
+        ),
+      );
+    } catch (e) {
+      debugPrint('Error loading interstitial ad: $e');
+      _isInterstitialAdLoading = false;
+    }
   }
   
   // Get banner ad widget
@@ -113,52 +182,47 @@ class AdService extends ChangeNotifier {
       return const SizedBox.shrink(); // No ads on web or for premium users
     }
     
-    // Return a placeholder if the ad is already being loaded
-    if (_bannerAd != null) {
-      _bannerAd!.dispose();
-      _bannerAd = null;
+    // If not initialized, try to initialize
+    if (!_isInitialized && !_isInitializing) {
+      initialize();
+      return _buildPlaceholderAd();
     }
     
-    final adUnitId = Platform.isAndroid 
-        ? _bannerAdUnitIds['android']! 
-        : _bannerAdUnitIds['ios']!;
+    // If we don't have a loaded ad widget yet, show placeholder
+    if (_adWidget == null) {
+      // Try loading an ad if not already loading
+      if (_bannerAd == null && !_isInitializing) {
+        _loadBannerAd();
+      }
+      return _buildPlaceholderAd();
+    }
     
-    // Create a banner ad
-    _bannerAd = BannerAd(
-      adUnitId: adUnitId,
-      size: AdSize.banner,
-      request: const AdRequest(),
-      listener: BannerAdListener(
-        onAdLoaded: (_) {
-          debugPrint('Banner ad loaded successfully');
-          notifyListeners();
-        },
-        onAdFailedToLoad: (ad, error) {
-          debugPrint('Banner ad failed to load: $error');
-          ad.dispose();
-          _bannerAd = null;
-        },
-      ),
-    );
-    
-    // Start loading the ad
-    _bannerAd!.load();
-    
-    // Return a container with a fixed height until the ad loads
+    // Return the ad widget wrapped in a container
     return Container(
       alignment: Alignment.center,
       width: _bannerAd!.size.width.toDouble(),
       height: _bannerAd!.size.height.toDouble(),
+      child: _adWidget,
+    );
+  }
+  
+  // Build a placeholder for the ad
+  Widget _buildPlaceholderAd() {
+    return Container(
+      alignment: Alignment.center,
+      width: 320, // Standard banner width
+      height: 50,  // Standard banner height
       color: Colors.black12, // Light gray background for the ad space
-      child: _bannerAd == null
-          ? const Text('Ad loading...', style: TextStyle(fontSize: 12, color: Colors.grey))
-          : AdWidget(ad: _bannerAd!),
+      child: const Text(
+        'Ad loading...', 
+        style: TextStyle(fontSize: 12, color: Colors.grey)
+      ),
     );
   }
   
   // Show interstitial ad
   Future<bool> showInterstitialAd() async {
-    if (kIsWeb || !shouldShowAds || !canShowInterstitialAd) {
+    if (kIsWeb || !shouldShowAds || !canShowInterstitialAd || _interstitialAd == null) {
       return false;
     }
     

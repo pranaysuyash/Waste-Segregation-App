@@ -41,37 +41,37 @@ class PremiumFeature {
     PremiumFeature(
       id: 'remove_ads',
       title: 'Remove Ads',
-      description: 'Enjoy an ad-free experience',
+      description: 'Enjoy an ad-free experience throughout the app',
       icon: 'block',
       route: '/settings/ads',
     ),
     PremiumFeature(
       id: 'theme_customization',
       title: 'Theme Customization',
-      description: 'Choose between light and dark mode',
+      description: 'Choose between light, dark, and custom theme options',
       icon: 'palette',
       route: '/settings/theme',
     ),
     PremiumFeature(
       id: 'offline_mode',
       title: 'Offline Classification',
-      description: 'Classify items without internet connection',
+      description: 'Classify waste items without an internet connection',
       icon: 'offline_bolt',
       route: '/settings/offline',
     ),
     PremiumFeature(
       id: 'advanced_analytics',
       title: 'Advanced Analytics',
-      description: 'Detailed insights about your waste segregation habits',
+      description: 'Get detailed insights and statistics about your waste habits',
       icon: 'analytics',
       route: '/analytics',
     ),
     PremiumFeature(
       id: 'export_data',
       title: 'Data Export',
-      description: 'Export your classification history and statistics',
+      description: 'Export your classification history and statistics to CSV or PDF',
       icon: 'file_download',
       route: '/settings/export',
     ),
   ];
-} 
+}

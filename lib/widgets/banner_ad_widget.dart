@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../services/ad_service.dart';
+import '../services/premium_service.dart';
 
 class BannerAdWidget extends StatelessWidget {
   final double height;
@@ -14,17 +15,32 @@ class BannerAdWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final adService = Provider.of<AdService>(context, listen: false);
+    final adService = Provider.of<AdService>(context);
+    final premiumService = Provider.of<PremiumService>(context);
+    
+    // Update ad service with premium status
+    adService.setPremiumStatus(premiumService.isPremiumFeature('remove_ads'));
     
     if (showAtBottom) {
       return Positioned(
         bottom: 0,
         left: 0,
         right: 0,
-        child: adService.getBannerAd(),
+        child: Container(
+          color: Colors.white,
+          child: SafeArea(
+            top: false,
+            child: adService.getBannerAd(),
+          ),
+        ),
       );
     }
     
-    return adService.getBannerAd();
+    return Container(
+      width: double.infinity,
+      height: height,
+      alignment: Alignment.center,
+      child: adService.getBannerAd(),
+    );
   }
 }

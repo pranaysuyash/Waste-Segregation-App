@@ -37,49 +37,66 @@ void main() async {
   // Initialize Hive for local storage
   await StorageService.initializeHive();
 
-  // Initialize Gamification Service
+  // Create service instances early to allow initialization
+  final storageService = StorageService();
+  final aiService = AiService();
+  final educationalContentService = EducationalContentService();
   final gamificationService = GamificationService();
-  await gamificationService.initGamification();
-
-  // Initialize Premium Service
   final premiumService = PremiumService();
-  await premiumService.initialize();
-
-  // Initialize Ad Service
   final adService = AdService();
-  await adService.initialize();
+  final googleDriveService = GoogleDriveService(storageService);
 
-  runApp(const MyApp());
+  // Initialize services in parallel
+  await Future.wait([
+    gamificationService.initGamification(),
+    premiumService.initialize(),
+    adService.initialize(),
+  ]);
+
+  runApp(MyApp(
+    storageService: storageService,
+    aiService: aiService,
+    educationalContentService: educationalContentService,
+    gamificationService: gamificationService,
+    premiumService: premiumService,
+    adService: adService,
+    googleDriveService: googleDriveService,
+  ));
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  final StorageService storageService;
+  final AiService aiService;
+  final EducationalContentService educationalContentService;
+  final GamificationService gamificationService;
+  final PremiumService premiumService;
+  final AdService adService;
+  final GoogleDriveService googleDriveService;
+
+  const MyApp({
+    super.key,
+    required this.storageService,
+    required this.aiService,
+    required this.educationalContentService,
+    required this.gamificationService,
+    required this.premiumService,
+    required this.adService,
+    required this.googleDriveService,
+  });
 
   @override
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
-        Provider<StorageService>(
-          create: (_) => StorageService(),
-        ),
-        Provider<AiService>(
-          create: (_) => AiService(),
-        ),
-        Provider<EducationalContentService>(
-          create: (_) => EducationalContentService(),
-        ),
-        Provider<GamificationService>(
-          create: (_) => GamificationService(),
-        ),
-        Provider<PremiumService>(
-          create: (_) => PremiumService(),
-        ),
-        Provider<AdService>(
-          create: (_) => AdService(),
-        ),
-        ProxyProvider<StorageService, GoogleDriveService>(
-          update: (_, storageService, __) => GoogleDriveService(storageService),
-        ),
+        Provider<StorageService>.value(value: storageService),
+        Provider<AiService>.value(value: aiService),
+        Provider<EducationalContentService>.value(value: educationalContentService),
+        Provider<GamificationService>.value(value: gamificationService),
+        // Use ChangeNotifierProvider for PremiumService
+        ChangeNotifierProvider<PremiumService>.value(value: premiumService),
+        // Use ChangeNotifierProvider for AdService 
+        ChangeNotifierProvider<AdService>.value(value: adService),
+        Provider<GoogleDriveService>.value(value: googleDriveService),
       ],
       child: MaterialApp(
         title: AppStrings.appName,
@@ -120,8 +137,7 @@ class MyApp extends StatelessWidget {
             ),
           ),
         ),
-        themeMode:
-            ThemeMode.system, // Allows the system to choose light or dark theme
+        themeMode: ThemeMode.system, // Allows the system to choose light or dark theme
         home: FutureBuilder<bool>(
           future: _checkIfUserLoggedIn(context),
           builder: (context, snapshot) {
@@ -144,7 +160,6 @@ class MyApp extends StatelessWidget {
     await Future.delayed(const Duration(seconds: 1));
 
     // Check if user is logged in
-    final storageService = Provider.of<StorageService>(context, listen: false);
     return storageService.isUserLoggedIn();
   }
 }
@@ -175,12 +190,22 @@ class _SplashScreen extends StatelessWidget {
                 'assets/images/splash_screen.svg',
                 width: 100,
                 height: 100,
+                placeholderBuilder: (context) => Container(
+                  width: 100,
+                  height: 100,
+                  color: Colors.white.withOpacity(0.3),
+                  child: const Icon(
+                    Icons.restore_from_trash,
+                    size: 60,
+                    color: Colors.white,
+                  ),
+                ),
               ),
 
-              SizedBox(height: AppTheme.paddingRegular),
+              const SizedBox(height: AppTheme.paddingRegular),
 
               // App name
-              Text(
+              const Text(
                 AppStrings.appName,
                 style: TextStyle(
                   fontSize: 32,
@@ -189,10 +214,10 @@ class _SplashScreen extends StatelessWidget {
                 ),
               ),
 
-              SizedBox(height: AppTheme.paddingLarge),
+              const SizedBox(height: AppTheme.paddingLarge),
 
               // Loading indicator
-              CircularProgressIndicator(
+              const CircularProgressIndicator(
                 valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
               ),
             ],
