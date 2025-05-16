@@ -12,6 +12,7 @@ class WasteClassification {
   final bool? requiresSpecialDisposal;
   final String? colorCode; // Added for color-coding representation
   final String? materialType; // Added for material type identification
+  bool isSaved; // Track whether this classification has been saved
 
   WasteClassification({
     required this.itemName,
@@ -26,6 +27,7 @@ class WasteClassification {
     this.requiresSpecialDisposal,
     this.colorCode,
     this.materialType,
+    this.isSaved = false,
     DateTime? timestamp,
   }) : timestamp = timestamp ?? DateTime.now();
 
@@ -44,6 +46,7 @@ class WasteClassification {
       'requiresSpecialDisposal': requiresSpecialDisposal,
       'colorCode': colorCode,
       'materialType': materialType,
+      'isSaved': isSaved,
       'timestamp': timestamp.toIso8601String(),
     };
   }
@@ -69,6 +72,7 @@ class WasteClassification {
       requiresSpecialDisposal: json['requiresSpecialDisposal'],
       colorCode: json['colorCode'],
       materialType: json['materialType'],
+      isSaved: json['isSaved'] ?? false,
       timestamp: json['timestamp'] != null
           ? DateTime.parse(json['timestamp'])
           : DateTime.now(),
