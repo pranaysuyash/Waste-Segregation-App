@@ -22,6 +22,30 @@ The home screen provides access to all main features:
 - **History**: View your previously classified items
 - **Educational Content**: Learn about waste categories
 - **Achievements**: View your progress and accomplishments
+- **Premium Features**: View upcoming premium features
+
+## Premium Features
+
+### Current Premium Features
+The app offers several premium features that enhance your waste segregation experience:
+
+- **Theme Customization**: Choose between light and dark mode
+- **Offline Classification**: Classify items without internet connection
+- **Advanced Analytics**: Get detailed insights about your waste habits
+- **Data Export**: Export your classification history and statistics
+
+### Coming Soon Features
+Some features are marked as "Coming Soon" and will be available in future updates:
+
+- **Language Settings**: Use the app in your preferred language
+- **Advanced Accessibility**: Enhanced features for users with special needs
+- **Community Features**: Connect with other users and share achievements
+- **Advanced Search**: Find specific items in your classification history
+
+### Premium Feature Indicators
+- Features marked with a "Coming Soon" badge will be available in future updates
+- Premium features are clearly marked in the app
+- You can preview upcoming features in the Premium Features screen
 
 ## Classifying Waste Items
 
@@ -113,7 +137,7 @@ The History screen shows:
 
 Access Settings to customize:
 
-- **Theme**: Light or dark mode
+- **Theme**: Light or dark mode (Premium)
 - **Notifications**: Challenge reminders
 - **Google Drive Sync**: Enable/disable cloud backup
 - **Clear Data**: Reset history or achievements
@@ -157,6 +181,11 @@ When classifying new items offline:
 - Check your internet connection
 - Sign out and sign back in
 - Ensure Google Drive sync is enabled in Settings
+
+**Premium feature access issues**
+- Check your internet connection
+- Ensure you're signed in with the correct account
+- Contact support if the issue persists
 
 ### Getting Help
 

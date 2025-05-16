@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../models/educational_content.dart';
 import '../services/educational_content_service.dart';
+import '../services/ad_service.dart';
 import '../utils/constants.dart';
+import '../widgets/banner_ad_widget.dart';
 import 'content_detail_screen.dart';
 
 class EducationalContentScreen extends StatefulWidget {
@@ -116,6 +118,12 @@ class _EducationalContentScreenState extends State<EducationalContentScreen>
 
   @override
   Widget build(BuildContext context) {
+    // Set ad context
+    final adService = Provider.of<AdService>(context, listen: false);
+    adService.setInClassificationFlow(false);
+    adService.setInEducationalContent(true);
+    adService.setInSettings(false);
+    
     return Scaffold(
       appBar: AppBar(
         title: const Text('Learn'),
@@ -135,7 +143,9 @@ class _EducationalContentScreenState extends State<EducationalContentScreen>
           },
         ),
       ),
-      body: Column(
+      body: Stack(
+        children: [
+          Column(
         children: [
           // Search and filter bar
           Container(
@@ -217,6 +227,11 @@ class _EducationalContentScreenState extends State<EducationalContentScreen>
               }).toList(),
             ),
           ),
+        ],
+      ),
+          
+          // Banner ad at the bottom
+          const BannerAdWidget(showAtBottom: true),
         ],
       ),
     );

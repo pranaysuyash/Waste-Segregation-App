@@ -7,6 +7,8 @@ import 'services/google_drive_service.dart';
 import 'services/storage_service.dart';
 import 'services/educational_content_service.dart';
 import 'services/gamification_service.dart';
+import 'services/premium_service.dart';
+import 'services/ad_service.dart';
 import 'screens/auth_screen.dart';
 import 'utils/constants.dart';
 
@@ -39,6 +41,14 @@ void main() async {
   final gamificationService = GamificationService();
   await gamificationService.initGamification();
 
+  // Initialize Premium Service
+  final premiumService = PremiumService();
+  await premiumService.initialize();
+
+  // Initialize Ad Service
+  final adService = AdService();
+  await adService.initialize();
+
   runApp(const MyApp());
 }
 
@@ -60,6 +70,12 @@ class MyApp extends StatelessWidget {
         ),
         Provider<GamificationService>(
           create: (_) => GamificationService(),
+        ),
+        Provider<PremiumService>(
+          create: (_) => PremiumService(),
+        ),
+        Provider<AdService>(
+          create: (_) => AdService(),
         ),
         ProxyProvider<StorageService, GoogleDriveService>(
           update: (_, storageService, __) => GoogleDriveService(storageService),

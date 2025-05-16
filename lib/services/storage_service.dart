@@ -433,4 +433,15 @@ class StorageService {
       throw Exception('Failed to import data: $e');
     }
   }
+
+  Future<void> clearClassifications() async {
+    try {
+      final box = await Hive.openBox<WasteClassification>('classifications');
+      await box.clear();
+      await box.close();
+    } catch (e) {
+      debugPrint('Error clearing classifications: $e');
+      rethrow;
+    }
+  }
 }

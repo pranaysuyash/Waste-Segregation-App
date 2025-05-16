@@ -8,6 +8,7 @@ import '../utils/web_handler.dart';
 import 'package:image_picker/image_picker.dart';
 // Use a platform-agnostic camera interface instead
 import '../widgets/platform_camera.dart';
+import '../widgets/banner_ad_widget.dart';
 import 'package:provider/provider.dart';
 import '../models/waste_classification.dart';
 import '../models/educational_content.dart';
@@ -16,6 +17,7 @@ import '../services/google_drive_service.dart';
 import '../services/storage_service.dart';
 import '../services/educational_content_service.dart';
 import '../services/gamification_service.dart';
+import '../services/ad_service.dart';
 import '../utils/constants.dart';
 import '../widgets/capture_button.dart';
 import '../widgets/gamification_widgets.dart';
@@ -26,6 +28,9 @@ import 'result_screen.dart';
 import 'educational_content_screen.dart';
 import 'content_detail_screen.dart';
 import 'achievements_screen.dart';
+import 'premium_features_screen.dart';
+import 'settings_screen.dart';
+import '../services/premium_service.dart';
 
 class HomeScreen extends StatefulWidget {
   final bool isGuestMode;
@@ -425,6 +430,15 @@ class _HomeScreenState extends State<HomeScreen> {
 
       // Process classification for gamification if available
       if (result != null && result is WasteClassification) {
+        // Track classification completion for ad frequency
+        final adService = Provider.of<AdService>(context, listen: false);
+        adService.trackClassificationCompleted();
+        
+        // Check if we should show an interstitial ad
+        if (adService.shouldShowInterstitial()) {
+          adService.showInterstitialAd();
+        }
+        
         _processClassificationForGamification(result).then((newAchievements) {
           // Show achievement notifications
           for (final achievement in newAchievements) {
@@ -453,6 +467,15 @@ class _HomeScreenState extends State<HomeScreen> {
 
       // Process classification for gamification if available
       if (result != null && result is WasteClassification) {
+        // Track classification completion for ad frequency
+        final adService = Provider.of<AdService>(context, listen: false);
+        adService.trackClassificationCompleted();
+        
+        // Check if we should show an interstitial ad
+        if (adService.shouldShowInterstitial()) {
+          adService.showInterstitialAd();
+        }
+        
         _processClassificationForGamification(result).then((newAchievements) {
           // Show achievement notifications
           for (final achievement in newAchievements) {
@@ -1046,6 +1069,12 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Set the ad context
+    final adService = Provider.of<AdService>(context, listen: false);
+    adService.setInClassificationFlow(false);
+    adService.setInEducationalContent(false);
+    adService.setInSettings(false);
+    
     return Scaffold(
       appBar: AppBar(
         title: const Text(AppStrings.appName),
@@ -1083,9 +1112,11 @@ class _HomeScreenState extends State<HomeScreen> {
           IconButton(
             icon: const Icon(Icons.settings),
             onPressed: () {
-              // In a real app, this would navigate to settings
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Settings coming soon!')),
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const SettingsScreen(),
+                ),
               );
             },
           ),
@@ -1096,268 +1127,286 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
         ],
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(AppTheme.paddingRegular),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Welcome message
-            Text(
-              'Hello, $_userName!',
-              style: const TextStyle(
-                fontSize: AppTheme.fontSizeExtraLarge,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 4),
-            const Text(
-              'What waste would you like to identify today?',
-              style: TextStyle(
-                fontSize: AppTheme.fontSizeRegular,
-                color: AppTheme.textSecondaryColor,
-              ),
-            ),
-
-            const SizedBox(height: AppTheme.paddingLarge),
-
-            // Capture image button
-            CaptureButton(
-              type: CaptureButtonType.camera,
-              onPressed: _takePicture,
-            ),
-
-            const SizedBox(height: AppTheme.paddingRegular),
-
-            // Upload image button
-            CaptureButton(
-              type: CaptureButtonType.gallery,
-              onPressed: _pickImage,
-            ),
-
-            const SizedBox(height: AppTheme.paddingLarge),
-
-            // Gamification section
-            _buildGamificationSection(),
-
-            const SizedBox(height: AppTheme.paddingLarge),
-
-            // Daily tip
-            _buildDailyTip(),
-
-            const SizedBox(height: AppTheme.paddingLarge),
-
-            // Educational content section
-            _buildEducationalSection(),
-
-            const SizedBox(height: AppTheme.paddingLarge),
-
-            // Recent classifications
-            if (_recentClassifications.isNotEmpty) ...[
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Text(
-                    'Recent Identifications',
-                    style: TextStyle(
-                      fontSize: AppTheme.fontSizeLarge,
-                      fontWeight: FontWeight.bold,
-                    ),
+      body: Stack(
+        children: [
+          // Main content
+          SingleChildScrollView(
+            padding: const EdgeInsets.all(AppTheme.paddingRegular),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Welcome message
+                Text(
+                  'Hello, $_userName!',
+                  style: const TextStyle(
+                    fontSize: AppTheme.fontSizeExtraLarge,
+                    fontWeight: FontWeight.bold,
                   ),
-                  TextButton(
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const HistoryScreen(),
-                        ),
-                      );
-                    },
-                    child: const Text('View All'),
+                ),
+                const SizedBox(height: 4),
+                const Text(
+                  'What waste would you like to identify today?',
+                  style: TextStyle(
+                    fontSize: AppTheme.fontSizeRegular,
+                    color: AppTheme.textSecondaryColor,
                   ),
-                ],
-              ),
-              const SizedBox(height: AppTheme.paddingSmall),
-              _isLoading
-                  ? const Center(child: CircularProgressIndicator())
-                  : ListView.builder(
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      itemCount: _recentClassifications.length,
-                      itemBuilder: (context, index) {
-                        final classification = _recentClassifications[index];
-                        return Padding(
-                          padding: const EdgeInsets.only(
-                              bottom: AppTheme.paddingRegular),
-                          child: InkWell(
-                            onTap: () =>
-                                _showClassificationDetails(classification),
-                            child: Card(
-                              elevation: 2,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(
-                                    AppTheme.borderRadiusRegular),
-                              ),
-                              child: Padding(
-                                padding: const EdgeInsets.all(
-                                    AppTheme.paddingRegular),
-                                child: Row(
-                                  children: [
-                                    // Thumbnail - with improved cross-platform handling
-                                    if (classification.imageUrl != null)
-                                      ClipRRect(
-                                        borderRadius: BorderRadius.circular(
-                                            AppTheme.borderRadiusSmall),
-                                        child: SizedBox(
-                                          width: 60,
-                                          height: 60,
-                                          child: _buildClassificationImage(classification),
-                                        ),
-                                      ),
+                ),
 
-                                    const SizedBox(
-                                        width: AppTheme.paddingRegular),
+                const SizedBox(height: AppTheme.paddingLarge),
 
-                                    // Item details
-                                    Expanded(
-                                      child: Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          Text(
-                                            classification.itemName,
-                                            style: const TextStyle(
-                                              fontWeight: FontWeight.bold,
-                                              fontSize: AppTheme.fontSizeMedium,
-                                            ),
-                                            maxLines: 1,
-                                            overflow: TextOverflow.ellipsis,
-                                          ),
-                                          const SizedBox(height: 4),
-                                          // Replace nested Row with Column and Wrap
-                                          Column(
-                                            crossAxisAlignment: CrossAxisAlignment.start,
-                                            children: [
-                                              // First row with category badges
-                                              Wrap(
-                                                spacing: 4,
-                                                runSpacing: 4,
-                                                children: [
-                                                  // Main category badge
-                                                  Container(
-                                                    padding: const EdgeInsets.symmetric(
-                                                      horizontal: 8,
-                                                      vertical: 2,
-                                                    ),
-                                                    decoration: BoxDecoration(
-                                                      color: _getCategoryColorCase(
-                                                          classification.category),
-                                                      borderRadius: BorderRadius.circular(
-                                                          AppTheme.borderRadiusSmall),
-                                                    ),
-                                                    child: Text(
-                                                      classification.category,
-                                                      style: const TextStyle(
-                                                        color: Colors.white,
-                                                        fontSize: AppTheme.fontSizeSmall,
-                                                        fontWeight: FontWeight.bold,
-                                                      ),
-                                                    ),
-                                                  ),
-                                                  
-                                                  // Subcategory badge if available
-                                                  if (classification.subcategory != null)
-                                                    Container(
-                                                      padding: const EdgeInsets.symmetric(
-                                                        horizontal: 6,
-                                                        vertical: 2,
-                                                      ),
-                                                      decoration: BoxDecoration(
-                                                        color: Colors.black.withOpacity(0.05),
-                                                        borderRadius: BorderRadius.circular(
-                                                            AppTheme.borderRadiusSmall),
-                                                        border: Border.all(
-                                                          color: _getCategoryColorCase(
-                                                              classification.category)
-                                                          .withOpacity(0.5),
-                                                          width: 1,
-                                                        ),
-                                                      ),
-                                                      child: Text(
-                                                        classification.subcategory!,
-                                                        style: TextStyle(
-                                                          color: _getCategoryColorCase(
-                                                              classification.category),
-                                                          fontSize: 10,
-                                                          fontWeight: FontWeight.bold,
-                                                        ),
-                                                      ),
-                                                    ),
-                                                ],
-                                              ),
-                                              
-                                              // Second row with date
-                                              const SizedBox(height: 4),
-                                              Text(
-                                                _formatDate(classification.timestamp),
-                                                style: const TextStyle(
-                                                  fontSize: AppTheme.fontSizeSmall,
-                                                  color: AppTheme.textSecondaryColor,
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                        ],
-                                      ),
-                                    ),
+                // Capture image button
+                CaptureButton(
+                  type: CaptureButtonType.camera,
+                  onPressed: _takePicture,
+                ),
 
-                                    // Arrow icon
-                                    const Icon(
-                                      Icons.arrow_forward_ios,
-                                      size: 16,
-                                      color: AppTheme.textSecondaryColor,
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ),
-                        );
-                      },
-                    ),
-            ] else if (!_isLoading) ...[
-              const Center(
-                child: Padding(
-                  padding: EdgeInsets.all(AppTheme.paddingLarge),
-                  child: Column(
+                const SizedBox(height: AppTheme.paddingRegular),
+
+                // Upload image button
+                CaptureButton(
+                  type: CaptureButtonType.gallery,
+                  onPressed: _pickImage,
+                ),
+
+                const SizedBox(height: AppTheme.paddingLarge),
+
+                // Gamification section
+                _buildGamificationSection(),
+
+                const SizedBox(height: AppTheme.paddingLarge),
+
+                // Daily tip
+                _buildDailyTip(),
+
+                const SizedBox(height: AppTheme.paddingLarge),
+
+                // Educational content section
+                _buildEducationalSection(),
+
+                const SizedBox(height: AppTheme.paddingLarge),
+
+                // Recent classifications
+                if (_recentClassifications.isNotEmpty) ...[
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Icon(
-                        Icons.history,
-                        size: 48,
-                        color: AppTheme.textSecondaryColor,
-                      ),
-                      SizedBox(height: AppTheme.paddingRegular),
-                      Text(
-                        'No identifications yet',
+                      const Text(
+                        'Recent Identifications',
                         style: TextStyle(
-                          fontSize: AppTheme.fontSizeMedium,
+                          fontSize: AppTheme.fontSizeLarge,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
-                      SizedBox(height: 4),
-                      Text(
-                        'Take a photo or upload an image to get started',
-                        style: TextStyle(
-                          color: AppTheme.textSecondaryColor,
-                        ),
-                        textAlign: TextAlign.center,
+                      TextButton(
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const HistoryScreen(),
+                            ),
+                          );
+                        },
+                        child: const Text('View All'),
                       ),
                     ],
                   ),
-                ),
-              ),
-            ],
-          ],
-        ),
+                  const SizedBox(height: AppTheme.paddingSmall),
+                  _isLoading
+                      ? const Center(child: CircularProgressIndicator())
+                      : ListView.builder(
+                          shrinkWrap: true,
+                          physics: const NeverScrollableScrollPhysics(),
+                          itemCount: _recentClassifications.length,
+                          itemBuilder: (context, index) {
+                            final classification = _recentClassifications[index];
+                            return Padding(
+                              padding: const EdgeInsets.only(
+                                  bottom: AppTheme.paddingRegular),
+                              child: InkWell(
+                                onTap: () =>
+                                    _showClassificationDetails(classification),
+                                child: Card(
+                                  elevation: 2,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(
+                                        AppTheme.borderRadiusRegular),
+                                  ),
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(
+                                        AppTheme.paddingRegular),
+                                    child: Row(
+                                      children: [
+                                        // Thumbnail - with improved cross-platform handling
+                                        if (classification.imageUrl != null)
+                                          ClipRRect(
+                                            borderRadius: BorderRadius.circular(
+                                                AppTheme.borderRadiusSmall),
+                                            child: SizedBox(
+                                              width: 60,
+                                              height: 60,
+                                              child: _buildClassificationImage(classification),
+                                            ),
+                                          ),
+
+                                        const SizedBox(
+                                            width: AppTheme.paddingRegular),
+
+                                        // Item details
+                                        Expanded(
+                                          child: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              Text(
+                                                classification.itemName,
+                                                style: const TextStyle(
+                                                  fontWeight: FontWeight.bold,
+                                                  fontSize: AppTheme.fontSizeMedium,
+                                                ),
+                                                maxLines: 1,
+                                                overflow: TextOverflow.ellipsis,
+                                              ),
+                                              const SizedBox(height: 4),
+                                              // Replace nested Row with Column and Wrap
+                                              Column(
+                                                crossAxisAlignment: CrossAxisAlignment.start,
+                                                children: [
+                                                  // First row with category badges
+                                                  Wrap(
+                                                    spacing: 4,
+                                                    runSpacing: 4,
+                                                    children: [
+                                                      // Main category badge
+                                                      Container(
+                                                        padding: const EdgeInsets.symmetric(
+                                                          horizontal: 8,
+                                                          vertical: 2,
+                                                        ),
+                                                        decoration: BoxDecoration(
+                                                          color: _getCategoryColorCase(
+                                                              classification.category),
+                                                          borderRadius: BorderRadius.circular(
+                                                              AppTheme.borderRadiusSmall),
+                                                        ),
+                                                        child: Text(
+                                                          classification.category,
+                                                          style: const TextStyle(
+                                                            color: Colors.white,
+                                                            fontSize: AppTheme.fontSizeSmall,
+                                                            fontWeight: FontWeight.bold,
+                                                          ),
+                                                        ),
+                                                      ),
+                                                      
+                                                      // Subcategory badge if available
+                                                      if (classification.subcategory != null)
+                                                        Container(
+                                                          padding: const EdgeInsets.symmetric(
+                                                            horizontal: 6,
+                                                            vertical: 2,
+                                                          ),
+                                                          decoration: BoxDecoration(
+                                                            color: Colors.black.withOpacity(0.05),
+                                                            borderRadius: BorderRadius.circular(
+                                                                AppTheme.borderRadiusSmall),
+                                                            border: Border.all(
+                                                              color: _getCategoryColorCase(
+                                                                  classification.category)
+                                                              .withOpacity(0.5),
+                                                              width: 1,
+                                                            ),
+                                                          ),
+                                                          child: Text(
+                                                            classification.subcategory!,
+                                                            style: TextStyle(
+                                                              color: _getCategoryColorCase(
+                                                                  classification.category),
+                                                              fontSize: 10,
+                                                              fontWeight: FontWeight.bold,
+                                                            ),
+                                                          ),
+                                                        ),
+                                                    ],
+                                                  ),
+                                                  
+                                                  // Second row with date
+                                                  const SizedBox(height: 4),
+                                                  Text(
+                                                    _formatDate(classification.timestamp),
+                                                    style: const TextStyle(
+                                                      fontSize: AppTheme.fontSizeSmall,
+                                                      color: AppTheme.textSecondaryColor,
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+
+                                        // Arrow icon
+                                        const Icon(
+                                          Icons.arrow_forward_ios,
+                                          size: 16,
+                                          color: AppTheme.textSecondaryColor,
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                ] else if (!_isLoading) ...[
+                  const Center(
+                    child: Padding(
+                      padding: EdgeInsets.all(AppTheme.paddingLarge),
+                      child: Column(
+                        children: [
+                          Icon(
+                            Icons.history,
+                            size: 48,
+                            color: AppTheme.textSecondaryColor,
+                          ),
+                          SizedBox(height: AppTheme.paddingRegular),
+                          Text(
+                            'No identifications yet',
+                            style: TextStyle(
+                              fontSize: AppTheme.fontSizeMedium,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          SizedBox(height: 4),
+                          Text(
+                            'Take a photo or upload an image to get started',
+                            style: TextStyle(
+                              color: AppTheme.textSecondaryColor,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+
+                // Add padding at the bottom for banner ad
+                const SizedBox(height: 60),
+              ],
+            ),
+          ),
+          
+          // Banner ad at the bottom
+          Positioned(
+            bottom: 0,
+            left: 0,
+            right: 0,
+            child: !Provider.of<PremiumService>(context).isPremiumFeature('remove_ads')
+              ? Provider.of<AdService>(context).getBannerAd()
+              : const SizedBox.shrink(),
+          ),
+        ],
       ),
     );
   }

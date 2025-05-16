@@ -1,5 +1,16 @@
 # Waste Segregation App - Developer Documentation
 
+## Table of Contents
+1. [Introduction](#introduction)
+2. [Architecture Overview](#architecture-overview)
+3. [Core Features](#core-features)
+4. [Code Organization](#code-organization)
+5. [Development Guidelines](#development-guidelines)
+6. [Integration Points](#integration-points)
+7. [Testing](#testing)
+8. [Future Enhancements](#future-enhancements)
+9. [Troubleshooting](#troubleshooting)
+
 ## Introduction
 
 The Waste Segregation App is a Flutter-based educational application that helps users properly segregate waste items using AI-powered image classification. This document provides comprehensive documentation for developers working on the project.
@@ -19,10 +30,69 @@ The application follows a layered architecture with:
 - **Google Drive Service**: Provides cloud sync capabilities
 - **Educational Content Service**: Delivers learning materials
 - **Gamification Service**: Manages points, achievements, and challenges
+- **Premium Service**: Manages premium feature states and access
 
 ## Core Features
 
-### 1. Classification Caching System
+### 1. Premium Feature Management
+
+#### Overview
+The premium feature management system provides a framework for marking features as premium or coming soon, with a clean UI for displaying these states to users.
+
+#### Key Files
+
+| File | Purpose |
+|------|---------|
+| `/lib/widgets/premium_badge.dart` | Premium feature indicator badge |
+| `/lib/widgets/premium_feature_card.dart` | Premium feature display card |
+| `/lib/models/premium_feature.dart` | Premium feature data model |
+| `/lib/services/premium_service.dart` | Premium feature state management |
+| `/lib/screens/premium_features_screen.dart` | Premium features display screen |
+
+#### Implementation
+
+1. Premium Feature Model:
+```dart
+class PremiumFeature {
+  final String id;
+  final String title;
+  final String description;
+  final String icon;
+  final String route;
+  final bool isEnabled;
+}
+```
+
+2. Premium Service:
+```dart
+class PremiumService {
+  Future<void> initialize() async {
+    _premiumBox = await Hive.openBox<bool>(_premiumBoxName);
+  }
+
+  bool isPremiumFeature(String featureId) {
+    return _premiumBox.get(featureId) ?? false;
+  }
+}
+```
+
+3. Usage in UI:
+```dart
+PremiumFeatureCard(
+  title: feature.title,
+  description: feature.description,
+  icon: IconData(int.parse(feature.icon), fontFamily: 'MaterialIcons'),
+)
+```
+
+#### Integration
+
+To mark a feature as premium:
+1. Add the feature to `PremiumFeature.features` list
+2. Use `PremiumBadge` widget in the feature's UI
+3. Check feature access using `PremiumService.isPremiumFeature()`
+
+### 2. Classification Caching System
 
 #### Overview
 The classification caching system provides local device-based caching of AI classification results indexed by image hash. This significantly reduces API calls, improves response times, and ensures consistent results for the same image.
@@ -67,7 +137,7 @@ if (cachingEnabled) {
 
 The `CacheStatisticsCard` widget provides real-time visibility into cache performance including hit rate, size, and estimated data savings.
 
-### 2. AI Classification Service
+### 3. AI Classification Service
 
 #### Overview
 The AI service sends images to Google's Gemini API (with OpenAI fallback) for waste classification.
@@ -101,7 +171,7 @@ The service includes:
 - Fallback to OpenAI when Gemini is unavailable
 - Graceful degradation for offline usage via cache
 
-### 3. Local Storage System
+### 4. Local Storage System
 
 #### Overview
 The app uses Hive for efficient local storage of all data.
@@ -137,7 +207,7 @@ static Future<void> initializeHive() async {
 }
 ```
 
-### 4. Authentication
+### 5. Authentication
 
 #### Overview
 The app supports both Google Sign-In and a Guest Mode.
@@ -148,7 +218,7 @@ The app supports both Google Sign-In and a Guest Mode.
 - Guest mode stores data locally without online account
 - Automatic session persistence with Hive
 
-### 5. Gamification
+### 6. Gamification
 
 #### Overview
 The app includes a comprehensive gamification system to enhance user engagement.
@@ -166,10 +236,19 @@ The app includes a comprehensive gamification system to enhance user engagement.
 ```
 lib/
 ├── models/          # Data models
+│   ├── premium_feature.dart
+│   └── ...
 ├── screens/         # UI screens
+│   ├── premium_features_screen.dart
+│   └── ...
 ├── services/        # Business logic
+│   ├── premium_service.dart
+│   └── ...
 ├── utils/           # Utilities and constants
 ├── widgets/         # Reusable UI components
+│   ├── premium_badge.dart
+│   ├── premium_feature_card.dart
+│   └── ...
 └── main.dart        # Application entry point
 ```
 
@@ -251,6 +330,11 @@ For users who opt in, the app can synchronize classification history to Google D
 2. **Image Processing Errors**: Large images may cause memory issues on low-end devices. The app incorporates image downsizing before processing.
 
 3. **Cache Corruption**: If the cache becomes corrupted, the app will automatically rebuild it from scratch. This is handled in the catch blocks of cache operations.
+
+4. **Premium Feature Access**: If premium features are not accessible:
+   - Check if the feature is properly registered in `PremiumFeature.features`
+   - Verify the feature state in Hive storage
+   - Ensure the premium service is properly initialized
 
 ## Environment Setup
 
