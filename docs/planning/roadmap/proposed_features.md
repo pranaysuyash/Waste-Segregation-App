@@ -1,3 +1,5 @@
+# > **DEPRECATED:** This document contains an older list of proposed features. Please refer to [`project_features.md`](./project_features.md) for the current and comprehensive list of features, their status, and priorities.
+
 # Proposed New Features for Waste Segregation App
 
 These features are proposed to enhance the waste segregation app with unique, niche, and advanced functionalities.

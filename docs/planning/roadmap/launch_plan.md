@@ -13,10 +13,10 @@ This document outlines the launch strategy for the Waste Segregation App, focusi
 - Gamification system
 
 ### Premium Features (Coming Soon)
-1. Theme Customization
-   - Light/dark mode toggle
-   - Custom color schemes
-   - Accessibility options
+1. Advanced Theme Customization
+   - Basic Light/Dark mode is implemented.
+   - Premium: Custom color schemes, additional themes.
+   - Premium: Enhanced accessibility options beyond standard.
 
 2. Offline Mode
    - Local model storage
@@ -49,7 +49,7 @@ This document outlines the launch strategy for the Waste Segregation App, focusi
 - [ ] Ad performance tracking
 
 ### Phase 3: Premium Features Development
-- [ ] Theme customization implementation
+- [ ] Advanced theme customization implementation (custom color schemes, etc.)
 - [ ] Offline mode development
 - [ ] Analytics dashboard
 - [ ] Data export functionality

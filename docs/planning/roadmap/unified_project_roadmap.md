@@ -133,6 +133,8 @@ The Waste Segregation App is evolving from a utility-focused classification tool
 
 ## Feature Implementation Timeline
 
+> **Note:** For the most granular and up-to-date status of individual features, please refer to the [`project_features.md`](./project_features.md) document.
+
 ### Technical Features
 
 | Feature | Status | Timeline | Priority |

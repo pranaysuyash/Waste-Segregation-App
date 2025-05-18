@@ -200,7 +200,7 @@ When updating documentation:
 
 1. Check if the document is marked as deprecated before making changes
 2. For architecture changes, update the comprehensive architecture document
-3. For feature status updates, modify the project_features.md document
+3. For feature status updates, modify the `project_features.md` document located in `docs/planning/roadmap/`
 4. For user flows, update the appropriate current or future user flows document
 
 ## Premium Features and Ad Implementation
