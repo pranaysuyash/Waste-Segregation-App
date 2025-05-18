@@ -70,7 +70,7 @@ Several documentation improvements have been made:
 - [Advanced AI Image Features](technical/ai_and_machine_learning/advanced_ai_image_features.md) - Advanced image recognition capabilities
 - [Multi-Model AI Strategy](technical/ai_and_machine_learning/multi_model_ai_strategy.md) - Comprehensive AI strategy for utilizing multiple models
 - [AI-Powered Image Segmentation](technical/ai_and_machine_learning/ai_powered_image_segmentation.md) - Advanced techniques for image segmentation
-- [API Key Management and Security](technical/ai_and_machine_learning/api_key_management_and_security.md) - Security protocols for API key management
+- [API Key Management and Security](technical/api_and_machine_learning/api_key_management_and_security.md) - Security protocols for API key management
 - [AI Model Management and Retraining Strategy](technical/ai_and_machine_learning/ai_model_management_and_retraining_strategy.md) - Strategy for maintaining and improving AI models
 
 ### Architecture

@@ -135,6 +135,9 @@ class ClassificationResult extends HiveObject {
   
   @HiveField(10)
   Map<String, dynamic> additionalData;
+
+  // Note: The runtime WasteClassification model may have additional transient fields 
+  // like 'isSaved' that are handled by the StorageService before persistence.
 }
 
 // Achievement
@@ -246,6 +249,10 @@ class ClassificationRepository {
 ### Image and Media Management
 
 #### Image Processing Pipeline
+
+(Details of the image processing pipeline, from capture/selection to pre-processing for AI, thumbnail generation, and caching, should be documented here.)
+
+#### Image Caching Strategy
 
 ```dart
 class ImageManager {
