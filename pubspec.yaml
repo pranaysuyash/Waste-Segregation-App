@@ -2,7 +2,7 @@ name: waste_segregation_app
 description: An app to help users properly segregate waste using AI classification.
 publish_to: 'none'
 
-version: 1.0.0+1
+version: 0.9.0+90  # Using semantic versioning (major.minor.patch+build)
 
 environment:
   sdk: '>=3.0.0 <4.0.0'
@@ -15,19 +15,29 @@ dependencies:
   http: ^1.1.0
   image_picker: ^1.0.4
   image_picker_for_web: ^3.0.1
-  camera: ^0.11.1
+  camera: ^0.10.5+5
   path_provider: ^2.1.1
-  google_sign_in: ^6.1.6
+  # google_sign_in upgraded in Firebase section to ensure compatibility
   googleapis: ^13.2.0
-  share_plus: ^11.0.0
+  share_plus: ^7.2.1  # Downgraded to a version that works with our setup
+  cross_file: ^0.3.3+8  # Required for XFile for share_plus
   hive: ^2.2.3
   hive_flutter: ^1.1.0
   google_fonts: ^6.2.1
   flutter_svg: ^2.0.7
+  shared_preferences: ^2.2.2
   openai_api: ^0.2.0  # For OpenAI API fallback
   crypto: ^3.0.3  # For SHA-256 hashing
   image: ^4.0.17  # For image preprocessing
-  google_mobile_ads: ^4.0.0
+  google_mobile_ads: ^6.0.0  # Updated for iOS compatibility
+  fl_chart: ^0.55.0  # For data visualization in dashboard
+  flutter_markdown: ^0.6.18  # For displaying markdown documents
+  intl: ^0.19.0  # For internationalization and date formatting
+  webview_flutter: ^4.8.0  # For webview integration
+  # Updated Firebase dependencies with web-compatible versions
+  firebase_core: ^3.13.0  # Updated for iOS compatibility
+  firebase_auth: ^5.5.3  # Updated for iOS compatibility
+  google_sign_in: ^6.3.0  # Updated for iOS compatibility
 
 dev_dependencies:
   flutter_test:
@@ -37,9 +47,12 @@ dev_dependencies:
   json_serializable: ^6.7.1
   hive_generator: ^2.0.1
 
+  share_plus_platform_interface: any
+dependency_overrides:
+  web: ^0.5.1  # Override to make Firebase Auth Web happy
+
 flutter:
   uses-material-design: true
-  
   assets:
     - assets/images/
     - assets/icons/

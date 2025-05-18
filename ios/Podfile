@@ -1,7 +1,8 @@
-# Define a global platform for your project
-platform :ios, '12.0'
+source 'https://cdn.cocoapods.org/'
 
-# CocoaPods analytics sends network stats synchronously affecting flutter build latency.
+# Keep iOS platform version at 12.0
+platform :ios, '13.0'
+
 ENV['COCOAPODS_DISABLE_STATS'] = 'true'
 
 project 'Runner', {
@@ -30,7 +31,10 @@ flutter_ios_podfile_setup
 target 'Runner' do
   use_frameworks!
   use_modular_headers!
-
+  
+  # We don't need to force GoogleUtilities version as the updated Firebase packages 
+  # should pull in the correct version
+  
   flutter_install_all_ios_pods File.dirname(File.realpath(__FILE__))
   target 'RunnerTests' do
     inherit! :search_paths
@@ -40,5 +44,9 @@ end
 post_install do |installer|
   installer.pods_project.targets.each do |target|
     flutter_additional_ios_build_settings(target)
+    target.build_configurations.each do |config|
+      config.build_settings['ENABLE_BITCODE'] = 'NO'
+      config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '12.0'
+    end
   end
 end
