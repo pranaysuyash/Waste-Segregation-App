@@ -98,8 +98,10 @@ Several documentation improvements have been made:
 ## User Experience Documentation
 
 ### User Flows
-- [Current User Flows](user_experience/user_flows/current_user_flows.md) - Detailed user journeys for implemented features
-- [Future User Flows](user_experience/user_flows/future_user_flows.md) - Planned user journeys for upcoming features
+- [Current User Flows](user_experience/user_flows/current_user_flows.md) - Visual representation of main user journeys
+- [Future User Flows](user_experience/user_flows/future_user_flows.md) - Planned enhancements to user navigation
+- [Accessibility Implementation Guide](user_experience/accessibility/accessibility_implementation_guide.md) - Guidelines for making the app accessible
+- [Gamification Design](user_experience/gamification/enhanced_gamification_spec.md) - Design principles for gamification features
 
 ### Gamification
 - [Enhanced Gamification Specification](user_experience/gamification/enhanced_gamification_spec.md) - Comprehensive gamification system specification
