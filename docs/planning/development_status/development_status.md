@@ -1,6 +1,22 @@
-# > **DEPRECATED:** This document has been consolidated into `project_features.md` as the single source-of-truth for feature planning.
-+
-# Waste Segregation App - Development Status
+# DEPRECATED: Development Status
+
+> **IMPORTANT**: This document is deprecated. The current source of truth for feature planning and development status is now [`/docs/project_features.md`](/docs/project_features.md).
+
+This document has been consolidated into the comprehensive project_features.md file to maintain a single source of truth for all feature planning and status tracking.
+
+Please refer to the project_features.md document for the most up-to-date information on:
+- Current implementation status of all features
+- Roadmap for future development
+- Prioritization of upcoming features
+- Technical debt and planned refactoring work
+
+## Historical Content
+
+The content below is maintained for historical reference only and should not be used for current development planning.
+
+---
+
+# Waste Segregation App - Development Status (Historical)
 
 ## Implementation Status Overview
 

@@ -8,14 +8,17 @@ This is the comprehensive documentation index for the Waste Segregation App. The
 docs/
 ├── technical/               # Technical implementation details
 │   ├── ai_and_machine_learning/     # AI models and ML functionality
+│   ├── architecture/                # Component-specific architecture
 │   ├── data_storage/               # Data storage and management
 │   ├── system_architecture/        # System architecture design
-│   └── implementation/             # Implementation guidelines and specifics
+│   ├── implementation/             # Implementation guidelines and specifics
+│   └── unified_architecture/       # Consolidated architecture documentation
 ├── user_experience/         # User-facing features and experience
 │   ├── gamification/               # Gamification systems
 │   ├── educational_content/        # Educational content strategy
 │   ├── community/                  # Community features
-│   └── user_interface/             # User interface design
+│   ├── user_interface/             # User interface design
+│   └── user_flows/                 # User journey flows and interactions
 ├── business/               # Business and monetization strategy
 │   ├── monetization/               # Revenue models and strategies
 │   ├── marketing/                  # Marketing and growth strategies
@@ -31,20 +34,54 @@ docs/
     └── api_documentation/          # API references
 ```
 
+## Recent Updates to Documentation
+
+Several documentation improvements have been made:
+
+1. **Consolidated Architecture Documentation**:
+   - Created a unified architecture document at [`technical/unified_architecture/comprehensive_architecture.md`](technical/unified_architecture/comprehensive_architecture.md)
+   - Deprecated redundant architecture files with redirects to the new comprehensive document
+
+2. **AI Strategy Consolidation**:
+   - Unified multiple AI strategy documents into a single source of truth at [`technical/ai_and_machine_learning/multi_model_ai_strategy.md`](technical/ai_and_machine_learning/multi_model_ai_strategy.md)
+   - Marked obsolete documents as deprecated with appropriate redirects
+
+3. **User Flows Documentation**:
+   - Created detailed user flows for current app functionality at [`user_experience/user_flows/current_user_flows.md`](user_experience/user_flows/current_user_flows.md)
+   - Created planned future user flows at [`user_experience/user_flows/future_user_flows.md`](user_experience/user_flows/future_user_flows.md)
+   - Added a README to explain usage of user flow documentation
+
+4. **Development Status Updates**:
+   - Updated the development status document to direct to the project_features.md as the single source of truth
+
+5. **Premium Features and Ad Implementation**:
+   - Added documentation for premium feature management system
+   - Added documentation for ad service implementation
+   - Updated technical architecture to include premium features and ad integration
+   - Added implementation guidelines for premium features and ads
+
 ## Technical Documentation
 
+### Unified Architecture
+- [Comprehensive Architecture](technical/unified_architecture/comprehensive_architecture.md) - Complete technical architecture documentation
+
 ### AI and Machine Learning
-- [AI Strategy & Multi-Model Integration](technical/ai_and_machine_learning/ai_strategy_multimodel.md) - Comprehensive strategy for integrating multiple AI models
+- [AI Strategy & Multi-Model Integration](technical/ai_and_machine_learning/ai_strategy_multimodel.md) - **DEPRECATED**
 - [Advanced AI Image Features](technical/ai_and_machine_learning/advanced_ai_image_features.md) - Advanced image recognition capabilities
-- [Multi-Model AI Strategy](technical/ai_and_machine_learning/multi_model_ai_strategy.md) - Strategy for utilizing multiple AI models
+- [Multi-Model AI Strategy](technical/ai_and_machine_learning/multi_model_ai_strategy.md) - Comprehensive AI strategy for utilizing multiple models
 - [AI-Powered Image Segmentation](technical/ai_and_machine_learning/ai_powered_image_segmentation.md) - Advanced techniques for image segmentation
+- [API Key Management and Security](technical/ai_and_machine_learning/api_key_management_and_security.md) - Security protocols for API key management
+- [AI Model Management and Retraining Strategy](technical/ai_and_machine_learning/ai_model_management_and_retraining_strategy.md) - Strategy for maintaining and improving AI models
+
+### Architecture
+- [Classification Pipeline](technical/architecture/classification_pipeline.md) - **DEPRECATED**
+
+### System Architecture
+- [Technical Architecture](technical/system_architecture/technical_architecture.md) - **DEPRECATED**
 
 ### Data Storage
 - [Data Storage and Management](technical/data_storage/data_storage_and_management.md) - Core data storage architecture
 - [Enhanced Storage and Asset Management](technical/data_storage/enhanced_storage_and_asset_management.md) - Advanced strategies for optimizing storage
-
-### System Architecture
-- [Technical Architecture](technical/system_architecture/technical_architecture.md) - Overall system architecture
 
 ### Implementation
 - [Classification Caching Implementation](technical/implementation/classification_caching_implementation.md) - Implementation of caching for classifications
@@ -61,6 +98,10 @@ docs/
 - [Comprehensive Testing Strategy](technical/implementation/comprehensive_testing_strategy.md) - Detailed testing approach
 
 ## User Experience Documentation
+
+### User Flows
+- [Current User Flows](user_experience/user_flows/current_user_flows.md) - Detailed user journeys for implemented features
+- [Future User Flows](user_experience/user_flows/future_user_flows.md) - Planned user journeys for upcoming features
 
 ### Gamification
 - [Enhanced Gamification Specification](user_experience/gamification/enhanced_gamification_spec.md) - Comprehensive gamification system specification
@@ -107,6 +148,8 @@ docs/
 - [Ideas to Explore](planning/ideas_to_explore.md) - Potential areas for future exploration and enhancement
 - [Documentation Gaps](planning/documentation_gaps.md) - Analysis of documentation areas needing improvement
 - [Documentation Best Practices](planning/documentation_best_practices.md) - Guidelines for creating and maintaining documentation
+- [Documentation Update Summary](planning/documentation_update_summary.md) - Summary of recent documentation updates
+- [Comprehensive Gap Analysis](planning/comprehensive_gap_analysis.md) - Analysis of gaps in the project
 
 ### Roadmap
 - [Innovative Features Roadmap](planning/roadmap/innovative_features_roadmap.md) - Roadmap for innovative features
@@ -120,7 +163,7 @@ docs/
 - [Unified Project Roadmap](planning/roadmap/unified_project_roadmap.md) - Comprehensive integrated roadmap
 
 ### Development Status
-- [Development Status](planning/development_status/development_status.md) - Current development status
+- [Development Status](planning/development_status/development_status.md) - **DEPRECATED** - See [Project Features](planning/roadmap/project_features.md)
 - [Changes Summary](planning/development_status/changes_summary.md) - Summary of recent changes
 - [Code Review](planning/development_status/code_review.md) - Code review findings
 
@@ -139,148 +182,52 @@ docs/
 - [CLAUDE Documentation](reference/developer_documentation/CLAUDE.md) - Documentation related to Claude AI integration
 - [Test Write](reference/developer_documentation/test_write.md) - Test documentation
 
-## Documentation Notes
+## Documentation Maintenance Guidelines
 
-### Document Overlap and Consolidation
-Several documents have overlapping content due to the merging of the main docs folder and the enhancements folder. The following documents have significant overlap and may be candidates for future consolidation:
+### Deprecated Documents
 
-1. **Gamification Documentation**:
-   - `enhanced_gamification_spec.md` and `advanced_gamification_system.md` cover similar topics with different levels of detail.
-   - Recommendation: Keep both for now, but consider merging into a comprehensive gamification document in the future.
+Documents marked as **DEPRECATED** have been consolidated into more comprehensive documents and should not be updated. They contain redirects to the current sources of truth.
 
-2. **AI Strategy Documents**:
-   - `ai_strategy_multimodel.md` and `multi_model_ai_strategy.md` have overlapping content.
-   - Recommendation: Consider consolidating these into a single AI strategy document.
+### Document Consolidation Strategy
 
-3. **App Store Launch Documents**:
-   - `app_store_launch_playbook.md` and `app_store_launch_strategy.md` cover related content.
-   - Recommendation: Consider merging these into a single app store launch guide.
+To reduce documentation fragmentation and improve maintainability, we've implemented a consolidation strategy:
 
-4. **Industry Trends Documents**:
-   - `industry_trends_2025.md` and `industry_trends_and_competitive_positioning.md` have related content.
-   - Recommendation: Consider merging these into a comprehensive industry analysis document.
+1. **Single Source of Truth**: Each major component or feature should have one authoritative document
+2. **Redirects from Legacy Documents**: Old documents contain redirects to their replacements
+3. **Unified Architecture**: The comprehensive architecture document provides a complete system overview
 
-5. **Enhancement Documentation**:
-   - Several documents from the former enhancements folder represent "Part 2" or extensions of concepts in the main docs.
-   - Recommendation: Consider creating consolidated versions that incorporate both parts of related documents.
+### Updating Documentation
 
-### Documentation Maintenance Guidelines
+When updating documentation:
 
-1. **File Naming Convention**:
-   - Use descriptive, lowercase names with underscores for spaces
-   - Append version numbers or dates only when maintaining multiple versions is necessary
+1. Check if the document is marked as deprecated before making changes
+2. For architecture changes, update the comprehensive architecture document
+3. For feature status updates, modify the project_features.md document
+4. For user flows, update the appropriate current or future user flows document
 
-2. **Document Structure**:
-   - Each document should begin with a clear title and brief overview
-   - Use consistent heading levels (# for title, ## for main sections, etc.)
-   - Include links to related documents where appropriate
+## Premium Features and Ad Implementation
 
-3. **Updates and Versioning**:
-   - When updating documents, add a "Last Updated" date at the top
-   - For significant revisions, consider adding a change log at the end of the document
-   - Avoid creating multiple versions of the same document; update in place when possible
+### Premium Features
+- Theme customization (light, dark, custom colors)
+- Offline classification with local models
+- Advanced analytics dashboard
+- Data export functionality (CSV, PDF)
 
-## Contributing to Documentation
+### Ad Implementation
+- Google Mobile Ads SDK integration
+- Banner ads with proper initialization
+- Interstitial ads with configurable frequency
+- Ad display rules and management
 
-When adding new documentation:
+### Implementation Guidelines
+1. **Premium Features**
+   - Use `PremiumService` for feature activation state
+   - Implement feature-specific UI components
+   - Add test mode for development
+   - Follow premium feature design guidelines
 
-1. Place it in the appropriate directory based on the content category
-2. Add a link to the new document in this README index
-3. Follow the established formatting and naming conventions
-4. Consider whether the new document should replace or extend existing documentation
-
-# Premium Features and Ad Implementation
-
-## Recent Changes
-We've integrated the following features into the application:
-
-1. **Premium Feature Management System**
-   - Created the `PremiumFeature` model to represent premium features
-   - Implemented `PremiumService` to manage feature activation state
-   - Added UI components for premium features display
-   - Created a test mode for toggling premium features in development
-
-2. **Ad Service Implementation**
-   - Added Google Mobile Ads SDK integration
-   - Created `AdService` for managing ad display rules and frequency
-   - Implemented banner ads with proper initialization and error handling
-   - Added interstitial ads with configurable display frequency
-
-## Todo List
-The following tasks need to be completed:
-
-### High Priority
-- [x] Fix `PremiumService` initialization issues to prevent LateInitializationError
-- [x] Fix AdWidget loading by properly initializing banner ads before display
-- [x] Add missing assets directories for proper app compilation
-- [x] Update iOS and Android configurations for AdMob
-- [ ] Test premium feature toggles in the test mode to verify they work correctly
-
-### Premium Feature Implementation
-- [ ] **Theme Customization Feature**
-  - [ ] Create theme selection UI in settings screen
-  - [ ] Implement light, dark, and custom color themes
-  - [ ] Add theme persistence using `PremiumService`
-  - [ ] Implement theme preview in premium features screen
-
-- [ ] **Offline Classification**
-  - [ ] Add a local model for offline image classification
-  - [ ] Implement model download management
-  - [ ] Create UI for downloading/managing offline models
-  - [ ] Add fallback to online classification when needed
-
-- [ ] **Advanced Analytics Dashboard**
-  - [ ] Design analytics data models and storage
-  - [ ] Create visualization components (charts, graphs)
-  - [ ] Implement waste tracking statistics by category
-  - [ ] Add trends analysis and environmental impact metrics
-
-- [ ] **Data Export Functionality**
-  - [ ] Implement CSV export for classification history
-  - [ ] Add PDF report generation with statistics
-  - [ ] Create sharing options for exported data
-  - [ ] Add scheduling for automatic exports
-
-### Ad Service Refinement
-- [ ] **Ad Integration**
-  - [ ] Create an ad-free experience option for premium users
-  - [ ] Optimize banner ad positioning for better user experience
-  - [ ] Implement native ads for educational content
-  - [ ] Replace test ad unit IDs with production IDs before release
-
-- [ ] **Ad Experience**
-  - [ ] Fine-tune ad frequency based on user testing
-  - [ ] Add rewarded ads for premium feature previews
-  - [ ] Implement A/B testing for ad placements
-  - [ ] Create graceful fallbacks when ads fail to load
-
-- [ ] **Analytics**
-  - [ ] Add analytics for ad impressions and click-through rates
-  - [ ] Implement conversion tracking for premium upgrades
-  - [ ] Create dashboard for monitoring ad performance
-  - [ ] Set up alerts for unusual ad behavior
-
-### Subscription Management
-- [ ] **In-App Purchase Integration**
-  - [ ] Integrate platform-specific IAP libraries
-  - [ ] Create subscription product tiers
-  - [ ] Implement purchase flow with user feedback
-  - [ ] Add sandbox testing configuration
-
-- [ ] **Subscription UI**
-  - [ ] Design subscription tier comparison UI
-  - [ ] Create account management screen for subscriptions
-  - [ ] Add subscription status indicators throughout the app
-  - [ ] Implement promotional UI for special offers
-
-- [ ] **Backend Services**
-  - [ ] Set up server-side subscription verification
-  - [ ] Implement receipt validation logic
-  - [ ] Create subscription restoration flow
-  - [ ] Add secure storage for purchase records
-
-## Notes for Developers
-- The `PremiumService` manages the state of premium features using Hive for persistent storage
-- A test mode is available in the settings screen (only in debug mode) to toggle premium features
-- Ad display follows rules defined in `AdService` - classifications, educational content, and settings screens do not show ads
-- Interstitial ads are shown after every 5 classifications, with a minimum 5-minute interval between displays
+2. **Ad Integration**
+   - Initialize ads before display
+   - Handle ad loading errors gracefully
+   - Follow ad placement guidelines
+   - Implement proper ad frequency controls
