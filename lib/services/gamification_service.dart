@@ -175,7 +175,8 @@ class GamificationService {
   }
   
   // Process a waste classification for gamification
-  Future<void> processClassification(WasteClassification classification) async {
+  // Returns a list of completed challenges
+  Future<List<Challenge>> processClassification(WasteClassification classification) async {
     // Add points for classifying an item
     await addPoints('classification', category: classification.category);
     
@@ -195,7 +196,9 @@ class GamificationService {
     }
     
     // Update active challenges
-    await updateChallengeProgress(classification);
+    final completedChallenges = await updateChallengeProgress(classification);
+    
+    return completedChallenges;
   }
   
   // Process educational content interaction

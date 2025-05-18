@@ -802,23 +802,28 @@ Manual battery testing process:
 
 ### Security Testing Areas
 
-| Security Area | Testing Approach | Tools |
-|---------------|------------------|-------|
-| Secure Storage | Penetration testing | Secure Code Review, Manual Testing |
-| Network Security | SSL/TLS validation | SSL Labs, OWASP ZAP |
-| Authentication | Security flow analysis | Manual Testing, Auth Flow Verification |
-| API Security | Endpoint security testing | API Security Scanner |
-| Dependency Security | Vulnerability scanning | Flutter Analyze, OWASP Dependency Check |
+Ensure the application is resilient against common vulnerabilities and protects user data.
+
+| Category | Test Focus | Examples & Tools |
+|---|---|---|
+| **Data Storage & Transmission** | Encryption of sensitive data at rest (local storage, database) and in transit (API calls). | Verify local data encryption (e.g., Hive encryption keys). Check HTTPS usage for all API calls, SSL certificate validation. Tools: MobSF, `nmap`. |
+| **Authentication & Session Management** | Secure login, session handling, token management, protection against replay attacks, brute-force. | Test password policies, token expiration, secure token storage. Verify OAuth implementations. |
+| **API Security** | Endpoint protection (AuthN/AuthZ), input validation to prevent injection (SQLi, XSS if webviews are used extensively), rate limiting. | Test API endpoints with invalid/malicious inputs. Use tools like Postman, ZAP. |
+| **Permissions** | Adherence to least privilege principle for app permissions (camera, location, storage). | Verify permissions are requested only when needed and handled gracefully if denied. |
+| **Code Security** | Secure coding practices, dependency vulnerability scanning. | Static Application Security Testing (SAST) tools, dynamic analysis (DAST). Check for hardcoded secrets. |
+| **Third-Party SDKs** | Security implications of integrated SDKs. | Review SDK documentation for security best practices, check for known vulnerabilities. |
 
 ### Privacy Compliance Testing
 
-| Privacy Aspect | Testing Approach | Requirements |
-|----------------|------------------|--------------|
-| Data Collection | Permission validation | Only collect necessary data |
-| Data Storage | Encryption verification | Encrypt sensitive data |
-| Data Transmission | Traffic analysis | Use secure transmission |
-| User Consent | Flow verification | Clear opt-in process |
-| Data Deletion | Verification testing | Complete data removal |
+Ensure the app adheres to its privacy policy and relevant data protection regulations (e.g., GDPR, CCPA).
+
+| Category | Test Focus | Approach & Considerations |
+|---|---|---|
+| **Data Collection & Usage** | Verify app collects only data explicitly stated in the privacy policy and necessary for functionality. | Manual review against privacy policy. Check data sent to third-party analytics or ad services. |
+| **User Consent** | Ensure clear and informed consent is obtained for data collection, especially PII and sensitive data. | Review consent mechanisms for clarity and granularity. Test opt-out flows. |
+| **Data Minimization** | Ensure only essential data is stored and for no longer than necessary. | Review data models and storage logic. Check data retention policies. |
+| **User Rights** | Test mechanisms for users to access, modify, or delete their data if provided. | Verify functionality of data export or deletion features. |
+| **Transparency** | Ensure privacy policy is easily accessible and understandable. | Check in-app links to privacy policy. |
 
 ### Implementation Approach
 
@@ -962,6 +967,46 @@ void main() {
   });
 }
 ```
+
+### Compatibility Testing
+
+Ensuring the app functions correctly across a diverse range of devices, operating systems, and configurations is crucial for a good user experience.
+
+#### Key Areas for Compatibility Testing:
+- **Device Compatibility**:
+    - Test on a representative range of physical iOS and Android devices (phones, tablets).
+    - Prioritize popular devices in the target market.
+    - Include devices with different screen sizes, resolutions, and hardware capabilities (CPU, memory).
+- **Operating System (OS) Version Compatibility**:
+    - Test on the minimum supported OS versions (e.g., iOS 14+, Android 7.0+).
+    - Test on the latest publicly available OS versions.
+    - Test on major OS versions in between.
+- **Screen Size and Resolution**:
+    - Verify UI layouts adapt correctly to various screen dimensions and densities.
+    - Check for clipped text, overlapping elements, or unreadable content.
+- **Orientation Handling**:
+    - Test both portrait and landscape orientations if supported.
+    - Ensure UI elements and layouts adjust correctly during orientation changes.
+- **Network Conditions**: (Also part of Performance Testing and Offline Mode Testing if that section exists)
+    - Test on different network types (Wi-Fi, 5G, 4G, 3G, Edge).
+    - Test behavior with unstable or intermittent connections.
+
+#### Tools and Approaches for Compatibility Testing:
+- **Cloud-Based Testing Services**:
+    - Utilize services like Firebase Test Lab or AWS Device Farm to run automated tests on a wide array of virtual and physical devices. This helps cover many configurations efficiently.
+- **Emulators and Simulators**:
+    - Use Android Emulators and iOS Simulators for rapid testing of different OS versions and screen sizes during development.
+- **Physical Device Matrix**:
+    - Maintain a small, curated set of physical test devices representing common and edge-case configurations for manual and exploratory testing.
+- **User Feedback**:
+    - Actively collect and analyze user feedback and crash reports for compatibility issues encountered in the wild.
+
+#### Sample Test Cases:
+- Verify app installation and launch on all target OS versions.
+- Test core features (image capture, classification, history) on devices with varying performance characteristics.
+- Confirm UI elements are correctly displayed and interactive on small, medium, and large screens.
+- Ensure the app handles low-memory situations gracefully on older devices.
+- Check that the app respects OS-level settings (e.g., font size, dark mode if supported).
 
 ## 7. Localization Testing
 
@@ -1430,7 +1475,94 @@ void main() {
 }
 ```
 
-## 9. User Acceptance Testing
+## 9. AI/ML Model Testing
+
+Testing AI/ML components, particularly the waste classification models, requires a specialized approach focusing on accuracy, reliability, and robustness.
+
+### Key Areas for AI/ML Testing:
+
+| Test Area | Focus | Approach & Tools |
+|---|---|---|
+| **Classification Accuracy** | Correctness of waste categorization against a labeled dataset. | Automated testing using a ground truth dataset, precision/recall/F1 scores per category, overall accuracy. |
+| **Confidence Score Calibration** | Reliability of the model's confidence scores. | Analysis of confidence distribution for correct vs. incorrect classifications. |
+| **Edge Case Handling** | Behavior with ambiguous, unusual, or poorly lit/occluded images. | Curated test set of edge cases. Manual review and automated checks for graceful failure. |
+| **Model Fallback Mechanisms** | Correct functioning of multi-model orchestration (e.g., primary to secondary/tertiary/offline). | Integration tests simulating model failures or low confidence. |
+| **Offline Model Performance** | Accuracy and speed of the on-device TFLite model. | Testing in airplane mode with a specific offline test dataset. |
+| **Robustness to Input Variations** | Sensitivity to image quality, lighting, angles, backgrounds. | Test dataset with augmented image variations. |
+| **Bias and Fairness** | Ensuring the model doesn't perform significantly worse for specific types of items or image sources. | Analysis of accuracy across different data segments. |
+| **Model Drift** | Tracking performance over time as new data or item types emerge. | Regular re-evaluation against new data and ground truth. |
+
+### Test Dataset Strategy
+
+A well-curated and organized test dataset is crucial for effective AI model testing.
+
+1.  **Ground Truth Dataset**: 
+    -   Create and maintain a labeled dataset of diverse waste item images with definitive classifications.
+    -   Include regional variations of common items if applicable.
+    -   Actively incorporate challenging examples, ambiguous items, and common misclassification scenarios.
+    -   Regularly update with user-submitted corrections (after verification) and new item types.
+
+2.  **Dataset Organization Example**:
+    ```
+    test_assets/
+      ai_model_test_set/
+        ground_truth/
+          recyclable/
+            plastic_bottles/
+              bottle_001.jpg (label: PET, clear, no cap)
+              bottle_002.jpg (label: HDPE, colored, with cap)
+              ...
+            paper/
+              newspaper_001.jpg
+              cardboard_box_001.jpg
+              ...
+          compostable/
+            food_scraps/
+              apple_core_001.jpg
+              ...
+          hazardous/
+            batteries/
+              aa_battery_001.jpg
+              ...
+          general_waste/
+            styrofoam_container_001.jpg
+            ...
+        edge_cases/
+          blurry_images/
+            blurry_bottle_001.jpg
+          occluded_items/
+            partially_hidden_can_001.jpg
+          mixed_waste_piles/
+            pile_001.jpg
+        input_variations/
+          low_light/
+            bottle_low_light_001.jpg
+          different_angles/
+            can_top_view_001.jpg
+    ```
+
+### Model Evaluation Metrics
+
+Beyond overall accuracy, track detailed metrics:
+-   **Precision, Recall, F1-Score**: Per-class metrics to understand performance for specific waste categories.
+-   **Confusion Matrix**: To identify patterns of misclassification (e.g., model frequently confuses X with Y).
+-   **Confidence Score Analysis**: Evaluate if high confidence scores correlate with high accuracy.
+-   **Latency**: Time taken for the model to return a classification.
+
+### A/B Testing Framework for Models
+
+If multiple models or model versions are in play (e.g., Gemini vs. OpenAI, or new vs. old TFLite model):
+-   Implement infrastructure to route a percentage of traffic to different models.
+-   Compare classification accuracy, user correction rates, and subjective feedback.
+-   Evaluate performance and cost implications across different models/versions.
+-   Test variations in prompt engineering for cloud-based models.
+
+### Continuous Learning and Retraining Pipeline (Considerations)
+-   Establish a process for incorporating user feedback (e.g., corrected classifications) into training data for future model improvements.
+-   Implement a validation framework for any data derived from user feedback before using it for retraining.
+-   Periodically evaluate the need for model retraining based on performance monitoring and model drift detection.
+
+## 10. User Acceptance Testing
 
 ### UAT Test Plan
 
@@ -1446,23 +1578,30 @@ void main() {
 
 **Implementation Steps**:
 1. **Recruitment Strategy**:
-   - Targeted social media outreach
-   - Environmental organization partnerships
-   - Direct invitation to early adopters
-   - Professional testing services for specialized feedback
+   - Targeted social media outreach (e.g., environmental groups, tech enthusiast forums).
+   - Partnerships with local recycling programs or environmental organizations.
+   - Direct invitations to users who have shown interest (e.g., via a pre-launch signup).
+   - Consider using platforms like TestFlight (iOS) and Google Play Console internal/beta testing tracks for distribution.
+   - For specific demographic feedback, consider small-scale recruitment via user testing platforms.
 
-2. **Test Cohorts**:
-   - Group A: Environmental enthusiasts (feature feedback)
-   - Group B: Technical users (performance feedback)
-   - Group C: Non-technical users (usability feedback)
-   - Group D: Educators/Institutions (educational aspect feedback)
+2. **Test Cohorts** (Examples):
+   - Group A: Environmental enthusiasts (for feature feedback and accuracy of waste knowledge).
+   - Group B: Technologically savvy users (for performance, advanced features, and bug spotting).
+   - Group C: Non-technical or casual users (for general usability, FTUE, clarity of instructions).
+   - Group D: Users from different geographical regions (if applicable, for regional waste differences).
 
-3. **Feedback Collection Mechanisms**:
-   - In-app feedback form
-   - Automated crash reporting
-   - Scheduled interviews with key testers
-   - Usage analytics review
-   - Feedback community (Discord/Slack group)
+3. **Test Guidance and Structure**:
+    - Provide testers with clear instructions and objectives.
+    - Develop structured usability test scripts for key user journeys (e.g., first-time classification, exploring educational content, using a new feature).
+    - Also encourage exploratory testing where users freely use the app and report any issues or suggestions.
+    - Define specific tasks for users to complete and measure success rates and time-on-task.
+
+4. **Feedback Collection Mechanisms**:
+   - In-app feedback form (with options for categorization, screenshots).
+   - Automated crash reporting (e.g., Firebase Crashlytics).
+   - Scheduled feedback sessions or surveys (e.g., after one week of use).
+   - Dedicated communication channel (e.g., private Discord/Slack, email group) for testers.
+   - Usage analytics to understand how features are being used during the beta.
 
 ### UAT Test Scenarios
 
@@ -1555,7 +1694,7 @@ Define success metrics for UAT:
 - 80%+ user retention during beta period
 - <5% crash rate across all devices
 
-## 10. Testing Implementation Strategy for Solo Developer
+## 11. Testing Implementation Strategy for Solo Developer
 
 ### Prioritization Framework
 
@@ -1669,7 +1808,7 @@ jobs:
    - BrowserStack or similar for cross-platform testing
    - GitHub Actions for CI/CD automation
 
-## 11. Testing Documentation
+## 12. Testing Documentation
 
 ### Test Plan Document Template
 

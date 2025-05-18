@@ -7,17 +7,17 @@ import 'quiz_screen.dart';
 
 class ContentDetailScreen extends StatelessWidget {
   final String contentId;
-  
+
   const ContentDetailScreen({
     super.key,
     required this.contentId,
   });
-  
+
   @override
   Widget build(BuildContext context) {
     final educationalService = Provider.of<EducationalContentService>(context);
     final content = educationalService.getContentById(contentId);
-    
+
     if (content == null) {
       return Scaffold(
         appBar: AppBar(
@@ -28,7 +28,7 @@ class ContentDetailScreen extends StatelessWidget {
         ),
       );
     }
-    
+
     return Scaffold(
       appBar: AppBar(
         title: Text(content.title),
@@ -38,7 +38,7 @@ class ContentDetailScreen extends StatelessWidget {
       body: _buildContentBody(context, content),
     );
   }
-  
+
   Widget _buildContentBody(BuildContext context, EducationalContent content) {
     switch (content.type) {
       case ContentType.article:
@@ -55,7 +55,7 @@ class ContentDetailScreen extends StatelessWidget {
         return _buildTipView(context, content);
     }
   }
-  
+
   Widget _buildArticleView(BuildContext context, EducationalContent content) {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(AppTheme.paddingRegular),
@@ -76,9 +76,9 @@ class ContentDetailScreen extends StatelessWidget {
               color: Colors.grey.shade400,
             ),
           ),
-          
+
           const SizedBox(height: AppTheme.paddingRegular),
-          
+
           // Title and metadata
           Text(
             content.title,
@@ -87,9 +87,9 @@ class ContentDetailScreen extends StatelessWidget {
               fontWeight: FontWeight.bold,
             ),
           ),
-          
+
           const SizedBox(height: AppTheme.paddingSmall),
-          
+
           // Metadata row
           Row(
             children: [
@@ -108,9 +108,9 @@ class ContentDetailScreen extends StatelessWidget {
                   ),
                 ],
               ),
-              
+
               const SizedBox(width: AppTheme.paddingRegular),
-              
+
               // Difficulty level
               Row(
                 mainAxisSize: MainAxisSize.min,
@@ -128,9 +128,9 @@ class ContentDetailScreen extends StatelessWidget {
               ),
             ],
           ),
-          
+
           const SizedBox(height: AppTheme.paddingRegular),
-          
+
           // Content categories
           Wrap(
             spacing: 8,
@@ -143,8 +143,9 @@ class ContentDetailScreen extends StatelessWidget {
                   vertical: 4,
                 ),
                 decoration: BoxDecoration(
-                  color: categoryColor.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(AppTheme.borderRadiusSmall),
+                  color: categoryColor.withOpacity(0.1),
+                  borderRadius:
+                      BorderRadius.circular(AppTheme.borderRadiusSmall),
                   border: Border.all(color: categoryColor.withOpacity(0.5)),
                 ),
                 child: Text(
@@ -158,9 +159,9 @@ class ContentDetailScreen extends StatelessWidget {
               );
             }).toList(),
           ),
-          
+
           const SizedBox(height: AppTheme.paddingLarge),
-          
+
           // Content text
           if (content.contentText != null)
             Text(
@@ -170,9 +171,9 @@ class ContentDetailScreen extends StatelessWidget {
                 height: 1.5,
               ),
             ),
-          
+
           const SizedBox(height: AppTheme.paddingLarge),
-          
+
           // Related tags
           if (content.tags.isNotEmpty) ...[
             const Text(
@@ -182,9 +183,7 @@ class ContentDetailScreen extends StatelessWidget {
                 fontWeight: FontWeight.bold,
               ),
             ),
-            
             const SizedBox(height: AppTheme.paddingSmall),
-            
             Wrap(
               spacing: 8,
               runSpacing: 8,
@@ -196,7 +195,8 @@ class ContentDetailScreen extends StatelessWidget {
                   ),
                   decoration: BoxDecoration(
                     color: Colors.grey.shade200,
-                    borderRadius: BorderRadius.circular(AppTheme.borderRadiusSmall),
+                    borderRadius:
+                        BorderRadius.circular(AppTheme.borderRadiusSmall),
                   ),
                   child: Text(
                     '#$tag',
@@ -213,7 +213,7 @@ class ContentDetailScreen extends StatelessWidget {
       ),
     );
   }
-  
+
   Widget _buildVideoView(BuildContext context, EducationalContent content) {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(AppTheme.paddingRegular),
@@ -236,9 +236,9 @@ class ContentDetailScreen extends StatelessWidget {
               ),
             ),
           ),
-          
+
           const SizedBox(height: AppTheme.paddingRegular),
-          
+
           // Title and metadata
           Text(
             content.title,
@@ -247,9 +247,9 @@ class ContentDetailScreen extends StatelessWidget {
               fontWeight: FontWeight.bold,
             ),
           ),
-          
+
           const SizedBox(height: AppTheme.paddingSmall),
-          
+
           // Metadata row
           Row(
             children: [
@@ -268,9 +268,9 @@ class ContentDetailScreen extends StatelessWidget {
                   ),
                 ],
               ),
-              
+
               const SizedBox(width: AppTheme.paddingRegular),
-              
+
               // Difficulty level
               Row(
                 mainAxisSize: MainAxisSize.min,
@@ -288,9 +288,9 @@ class ContentDetailScreen extends StatelessWidget {
               ),
             ],
           ),
-          
+
           const SizedBox(height: AppTheme.paddingRegular),
-          
+
           // Content categories
           Wrap(
             spacing: 8,
@@ -303,8 +303,9 @@ class ContentDetailScreen extends StatelessWidget {
                   vertical: 4,
                 ),
                 decoration: BoxDecoration(
-                  color: categoryColor.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(AppTheme.borderRadiusSmall),
+                  color: categoryColor.withOpacity(0.1),
+                  borderRadius:
+                      BorderRadius.circular(AppTheme.borderRadiusSmall),
                   border: Border.all(color: categoryColor.withOpacity(0.5)),
                 ),
                 child: Text(
@@ -318,9 +319,9 @@ class ContentDetailScreen extends StatelessWidget {
               );
             }).toList(),
           ),
-          
+
           const SizedBox(height: AppTheme.paddingLarge),
-          
+
           // Description
           const Text(
             'Description',
@@ -329,9 +330,9 @@ class ContentDetailScreen extends StatelessWidget {
               fontWeight: FontWeight.bold,
             ),
           ),
-          
+
           const SizedBox(height: AppTheme.paddingSmall),
-          
+
           Text(
             content.description,
             style: const TextStyle(
@@ -339,9 +340,9 @@ class ContentDetailScreen extends StatelessWidget {
               height: 1.5,
             ),
           ),
-          
+
           const SizedBox(height: AppTheme.paddingLarge),
-          
+
           // Video transcript placeholder
           const Text(
             'Transcript',
@@ -350,9 +351,9 @@ class ContentDetailScreen extends StatelessWidget {
               fontWeight: FontWeight.bold,
             ),
           ),
-          
+
           const SizedBox(height: AppTheme.paddingSmall),
-          
+
           Container(
             padding: const EdgeInsets.all(AppTheme.paddingRegular),
             decoration: BoxDecoration(
@@ -372,8 +373,9 @@ class ContentDetailScreen extends StatelessWidget {
       ),
     );
   }
-  
-  Widget _buildInfographicView(BuildContext context, EducationalContent content) {
+
+  Widget _buildInfographicView(
+      BuildContext context, EducationalContent content) {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(AppTheme.paddingRegular),
       child: Column(
@@ -387,9 +389,9 @@ class ContentDetailScreen extends StatelessWidget {
               fontWeight: FontWeight.bold,
             ),
           ),
-          
+
           const SizedBox(height: AppTheme.paddingSmall),
-          
+
           // Description
           Text(
             content.description,
@@ -398,9 +400,9 @@ class ContentDetailScreen extends StatelessWidget {
               color: AppTheme.textSecondaryColor,
             ),
           ),
-          
+
           const SizedBox(height: AppTheme.paddingRegular),
-          
+
           // Content categories
           Wrap(
             spacing: 8,
@@ -413,8 +415,9 @@ class ContentDetailScreen extends StatelessWidget {
                   vertical: 4,
                 ),
                 decoration: BoxDecoration(
-                  color: categoryColor.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(AppTheme.borderRadiusSmall),
+                  color: categoryColor.withOpacity(0.1),
+                  borderRadius:
+                      BorderRadius.circular(AppTheme.borderRadiusSmall),
                   border: Border.all(color: categoryColor.withOpacity(0.5)),
                 ),
                 child: Text(
@@ -428,9 +431,9 @@ class ContentDetailScreen extends StatelessWidget {
               );
             }).toList(),
           ),
-          
+
           const SizedBox(height: AppTheme.paddingLarge),
-          
+
           // Infographic image (placeholder)
           Container(
             width: double.infinity,
@@ -446,9 +449,9 @@ class ContentDetailScreen extends StatelessWidget {
               color: Colors.grey.shade400,
             ),
           ),
-          
+
           const SizedBox(height: AppTheme.paddingLarge),
-          
+
           // Additional explanation
           if (content.contentText != null) ...[
             const Text(
@@ -458,9 +461,7 @@ class ContentDetailScreen extends StatelessWidget {
                 fontWeight: FontWeight.bold,
               ),
             ),
-            
             const SizedBox(height: AppTheme.paddingSmall),
-            
             Text(
               content.contentText!,
               style: const TextStyle(
@@ -473,7 +474,7 @@ class ContentDetailScreen extends StatelessWidget {
       ),
     );
   }
-  
+
   Widget _buildQuizView(BuildContext context, EducationalContent content) {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(AppTheme.paddingRegular),
@@ -512,9 +513,9 @@ class ContentDetailScreen extends StatelessWidget {
               ),
             ),
           ),
-          
+
           const SizedBox(height: AppTheme.paddingLarge),
-          
+
           // Quiz description
           Text(
             content.description,
@@ -523,9 +524,9 @@ class ContentDetailScreen extends StatelessWidget {
               height: 1.5,
             ),
           ),
-          
+
           const SizedBox(height: AppTheme.paddingRegular),
-          
+
           // Quiz metadata
           Container(
             padding: const EdgeInsets.all(AppTheme.paddingRegular),
@@ -553,9 +554,9 @@ class ContentDetailScreen extends StatelessWidget {
                     ),
                   ],
                 ),
-                
+
                 const SizedBox(height: AppTheme.paddingSmall),
-                
+
                 // Estimated time
                 Row(
                   children: [
@@ -573,9 +574,9 @@ class ContentDetailScreen extends StatelessWidget {
                     ),
                   ],
                 ),
-                
+
                 const SizedBox(height: AppTheme.paddingSmall),
-                
+
                 // Difficulty level
                 Row(
                   children: [
@@ -596,9 +597,9 @@ class ContentDetailScreen extends StatelessWidget {
               ],
             ),
           ),
-          
+
           const SizedBox(height: AppTheme.paddingLarge),
-          
+
           // Start quiz button
           SizedBox(
             width: double.infinity,
@@ -621,7 +622,8 @@ class ContentDetailScreen extends StatelessWidget {
                   vertical: AppTheme.paddingRegular,
                 ),
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(AppTheme.borderRadiusRegular),
+                  borderRadius:
+                      BorderRadius.circular(AppTheme.borderRadiusRegular),
                 ),
               ),
               child: const Text(
@@ -633,9 +635,9 @@ class ContentDetailScreen extends StatelessWidget {
               ),
             ),
           ),
-          
+
           const SizedBox(height: AppTheme.paddingRegular),
-          
+
           // Quiz preview
           if (content.questions != null && content.questions!.isNotEmpty) ...[
             const Text(
@@ -645,14 +647,13 @@ class ContentDetailScreen extends StatelessWidget {
                 fontWeight: FontWeight.bold,
               ),
             ),
-            
             const SizedBox(height: AppTheme.paddingSmall),
-            
             Container(
               padding: const EdgeInsets.all(AppTheme.paddingRegular),
               decoration: BoxDecoration(
                 color: Colors.grey.shade100,
-                borderRadius: BorderRadius.circular(AppTheme.borderRadiusRegular),
+                borderRadius:
+                    BorderRadius.circular(AppTheme.borderRadiusRegular),
                 border: Border.all(color: Colors.grey.shade300),
               ),
               child: Column(
@@ -665,25 +666,27 @@ class ContentDetailScreen extends StatelessWidget {
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-                  
+
                   const SizedBox(height: AppTheme.paddingRegular),
-                  
+
                   // First two options preview
                   ...content.questions!.first.options.take(2).map((option) {
                     return Container(
-                      margin: const EdgeInsets.only(bottom: AppTheme.paddingSmall),
+                      margin:
+                          const EdgeInsets.only(bottom: AppTheme.paddingSmall),
                       padding: const EdgeInsets.all(AppTheme.paddingSmall),
                       decoration: BoxDecoration(
                         color: Colors.white,
-                        borderRadius: BorderRadius.circular(AppTheme.borderRadiusSmall),
+                        borderRadius:
+                            BorderRadius.circular(AppTheme.borderRadiusSmall),
                         border: Border.all(color: Colors.grey.shade300),
                       ),
                       child: Text(option),
                     );
                   }),
-                  
+
                   const SizedBox(height: AppTheme.paddingSmall),
-                  
+
                   // More options text
                   if (content.questions!.first.options.length > 2)
                     Text(
@@ -702,7 +705,7 @@ class ContentDetailScreen extends StatelessWidget {
       ),
     );
   }
-  
+
   Widget _buildTutorialView(BuildContext context, EducationalContent content) {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(AppTheme.paddingRegular),
@@ -717,9 +720,9 @@ class ContentDetailScreen extends StatelessWidget {
               fontWeight: FontWeight.bold,
             ),
           ),
-          
+
           const SizedBox(height: AppTheme.paddingSmall),
-          
+
           // Description
           Text(
             content.description,
@@ -728,9 +731,9 @@ class ContentDetailScreen extends StatelessWidget {
               color: AppTheme.textSecondaryColor,
             ),
           ),
-          
+
           const SizedBox(height: AppTheme.paddingRegular),
-          
+
           // Tutorial metadata
           Row(
             children: [
@@ -749,9 +752,9 @@ class ContentDetailScreen extends StatelessWidget {
                   ),
                 ],
               ),
-              
+
               const SizedBox(width: AppTheme.paddingRegular),
-              
+
               // Difficulty level
               Row(
                 mainAxisSize: MainAxisSize.min,
@@ -767,9 +770,9 @@ class ContentDetailScreen extends StatelessWidget {
                   ),
                 ],
               ),
-              
+
               const SizedBox(width: AppTheme.paddingRegular),
-              
+
               // Number of steps
               if (content.steps != null)
                 Row(
@@ -788,9 +791,9 @@ class ContentDetailScreen extends StatelessWidget {
                 ),
             ],
           ),
-          
+
           const SizedBox(height: AppTheme.paddingRegular),
-          
+
           // Content categories
           Wrap(
             spacing: 8,
@@ -803,8 +806,9 @@ class ContentDetailScreen extends StatelessWidget {
                   vertical: 4,
                 ),
                 decoration: BoxDecoration(
-                  color: categoryColor.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(AppTheme.borderRadiusSmall),
+                  color: categoryColor.withOpacity(0.1),
+                  borderRadius:
+                      BorderRadius.circular(AppTheme.borderRadiusSmall),
                   border: Border.all(color: categoryColor.withOpacity(0.5)),
                 ),
                 child: Text(
@@ -818,9 +822,9 @@ class ContentDetailScreen extends StatelessWidget {
               );
             }).toList(),
           ),
-          
+
           const SizedBox(height: AppTheme.paddingLarge),
-          
+
           // Tutorial steps
           if (content.steps != null && content.steps!.isNotEmpty) ...[
             const Text(
@@ -830,9 +834,9 @@ class ContentDetailScreen extends StatelessWidget {
                 fontWeight: FontWeight.bold,
               ),
             ),
-            
+
             const SizedBox(height: AppTheme.paddingRegular),
-            
+
             // List of steps
             ListView.builder(
               shrinkWrap: true,
@@ -841,10 +845,12 @@ class ContentDetailScreen extends StatelessWidget {
               itemBuilder: (context, index) {
                 final step = content.steps![index];
                 return Container(
-                  margin: const EdgeInsets.only(bottom: AppTheme.paddingRegular),
+                  margin:
+                      const EdgeInsets.only(bottom: AppTheme.paddingRegular),
                   decoration: BoxDecoration(
                     color: Colors.white,
-                    borderRadius: BorderRadius.circular(AppTheme.borderRadiusRegular),
+                    borderRadius:
+                        BorderRadius.circular(AppTheme.borderRadiusRegular),
                     border: Border.all(color: Colors.grey.shade300),
                     boxShadow: [
                       BoxShadow(
@@ -863,8 +869,10 @@ class ContentDetailScreen extends StatelessWidget {
                         decoration: BoxDecoration(
                           color: AppTheme.primaryColor.withOpacity(0.1),
                           borderRadius: const BorderRadius.only(
-                            topLeft: Radius.circular(AppTheme.borderRadiusRegular - 1),
-                            topRight: Radius.circular(AppTheme.borderRadiusRegular - 1),
+                            topLeft: Radius.circular(
+                                AppTheme.borderRadiusRegular - 1),
+                            topRight: Radius.circular(
+                                AppTheme.borderRadiusRegular - 1),
                           ),
                         ),
                         child: Row(
@@ -888,9 +896,9 @@ class ContentDetailScreen extends StatelessWidget {
                                 ),
                               ),
                             ),
-                            
+
                             const SizedBox(width: AppTheme.paddingRegular),
-                            
+
                             // Step title
                             Expanded(
                               child: Text(
@@ -904,7 +912,7 @@ class ContentDetailScreen extends StatelessWidget {
                           ],
                         ),
                       ),
-                      
+
                       // Step image (placeholder)
                       if (step.imageUrl != null)
                         Container(
@@ -917,7 +925,7 @@ class ContentDetailScreen extends StatelessWidget {
                             color: Colors.grey.shade400,
                           ),
                         ),
-                      
+
                       // Step description
                       Padding(
                         padding: const EdgeInsets.all(AppTheme.paddingRegular),
@@ -939,7 +947,7 @@ class ContentDetailScreen extends StatelessWidget {
       ),
     );
   }
-  
+
   Widget _buildTipView(BuildContext context, EducationalContent content) {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(AppTheme.paddingRegular),
@@ -978,9 +986,9 @@ class ContentDetailScreen extends StatelessWidget {
                     ),
                   ],
                 ),
-                
+
                 const SizedBox(height: AppTheme.paddingRegular),
-                
+
                 // Tip content
                 if (content.contentText != null)
                   Text(
@@ -993,9 +1001,9 @@ class ContentDetailScreen extends StatelessWidget {
               ],
             ),
           ),
-          
+
           const SizedBox(height: AppTheme.paddingLarge),
-          
+
           // Why this matters section
           const Text(
             'Why This Matters',
@@ -1004,9 +1012,9 @@ class ContentDetailScreen extends StatelessWidget {
               fontWeight: FontWeight.bold,
             ),
           ),
-          
+
           const SizedBox(height: AppTheme.paddingSmall),
-          
+
           // Detailed explanation
           Text(
             content.description,
@@ -1015,9 +1023,9 @@ class ContentDetailScreen extends StatelessWidget {
               height: 1.5,
             ),
           ),
-          
+
           const SizedBox(height: AppTheme.paddingLarge),
-          
+
           // Related categories
           const Text(
             'Related Categories',
@@ -1026,9 +1034,9 @@ class ContentDetailScreen extends StatelessWidget {
               fontWeight: FontWeight.bold,
             ),
           ),
-          
+
           const SizedBox(height: AppTheme.paddingSmall),
-          
+
           Wrap(
             spacing: 8,
             runSpacing: 8,
@@ -1040,8 +1048,9 @@ class ContentDetailScreen extends StatelessWidget {
                   vertical: 4,
                 ),
                 decoration: BoxDecoration(
-                  color: categoryColor.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(AppTheme.borderRadiusSmall),
+                  color: categoryColor.withOpacity(0.1),
+                  borderRadius:
+                      BorderRadius.circular(AppTheme.borderRadiusSmall),
                   border: Border.all(color: categoryColor.withOpacity(0.5)),
                 ),
                 child: Text(
@@ -1059,7 +1068,7 @@ class ContentDetailScreen extends StatelessWidget {
       ),
     );
   }
-  
+
   Color _getCategoryColor(String category) {
     switch (category) {
       case 'Wet Waste':

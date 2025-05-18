@@ -29,6 +29,7 @@ class StorageKeys {
   static const String userEmailKey = 'userEmail';
   static const String userDisplayNameKey = 'userDisplayName';
   static const String isDarkModeKey = 'isDarkMode';
+  static const String themeModeKey = 'themeMode';
   static const String isGoogleSyncEnabledKey = 'isGoogleSyncEnabled';
   static const String userGamificationProfileKey = 'userGamificationProfile';
   static const String achievementsKey = 'achievements';
@@ -62,6 +63,7 @@ class AppTheme {
   static const Color hazardousWasteColor = Color(0xFFFF5722); // Deep Orange
   static const Color medicalWasteColor = Color(0xFFF44336); // Red
   static const Color nonWasteColor = Color(0xFF9C27B0); // Purple
+  static const Color lightGreyColor = Color(0xFFD3D3D3); // Added this line
   
   // Font Sizes
   static const double fontSizeSmall = 12.0;
@@ -75,6 +77,7 @@ class AppTheme {
   static const double paddingRegular = 16.0;
   static const double paddingLarge = 24.0;
   static const double paddingExtraLarge = 32.0;
+  static const double paddingMicro = 4.0;
   
   // Border Radius
   static const double borderRadiusSmall = 4.0;

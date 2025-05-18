@@ -2,50 +2,56 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../models/educational_content.dart';
 import '../services/educational_content_service.dart';
+import '../services/ad_service.dart';
 import '../utils/constants.dart';
+import '../widgets/banner_ad_widget.dart';
 import 'content_detail_screen.dart';
 
 class EducationalContentScreen extends StatefulWidget {
   final String? initialCategory;
-  
+
   const EducationalContentScreen({
     super.key,
     this.initialCategory,
   });
 
   @override
-  State<EducationalContentScreen> createState() => _EducationalContentScreenState();
+  State<EducationalContentScreen> createState() =>
+      _EducationalContentScreenState();
 }
 
-class _EducationalContentScreenState extends State<EducationalContentScreen> with SingleTickerProviderStateMixin {
+class _EducationalContentScreenState extends State<EducationalContentScreen>
+    with SingleTickerProviderStateMixin {
   late TabController _tabController;
   String _searchQuery = '';
   final TextEditingController _searchController = TextEditingController();
   String? _selectedCategory;
   List<String> _allCategories = [];
-  
+
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 6, vsync: this);
     _selectedCategory = widget.initialCategory;
-    
+
     // Initialize all categories
-    final educationalService = Provider.of<EducationalContentService>(context, listen: false);
+    final educationalService =
+        Provider.of<EducationalContentService>(context, listen: false);
     final allContent = educationalService.getAllContent();
-    
+
     // Extract all unique categories
     final Set<String> categorySet = {};
     for (final content in allContent) {
       categorySet.addAll(content.categories);
     }
-    
+
     _allCategories = ['All', ...categorySet.toList()..sort()];
-    
+
     // Set initial tab based on initialCategory if provided
     if (widget.initialCategory != null) {
       // Find content type corresponding to category
-      final categoryContent = educationalService.getContentByCategory(widget.initialCategory!);
+      final categoryContent =
+          educationalService.getContentByCategory(widget.initialCategory!);
       if (categoryContent.isNotEmpty) {
         // Get most common content type for this category
         Map<ContentType, int> typeCount = {};
@@ -60,55 +66,64 @@ class _EducationalContentScreenState extends State<EducationalContentScreen> wit
             mostCommonType = type;
           }
         });
-        
+
         // Use null-aware operator to safely access the index
         final typeIndex = mostCommonType?.index;
-        if (typeIndex != null && _tabController.index >= 0 && typeIndex < _tabController.length) {
+        if (typeIndex != null &&
+            _tabController.index >= 0 &&
+            typeIndex < _tabController.length) {
           _tabController.index = typeIndex;
         }
       }
     }
   }
-  
+
   @override
   void dispose() {
     _tabController.dispose();
     _searchController.dispose();
     super.dispose();
   }
-  
+
   List<EducationalContent> _getFilteredContent(BuildContext context) {
     final educationalService = Provider.of<EducationalContentService>(context);
     List<EducationalContent> filteredContent = [];
-    
+
     // First filter by tab (content type)
     final contentType = ContentType.values[_tabController.index];
     filteredContent = educationalService.getContentByType(contentType);
-    
+
     // Then filter by category if selected
     if (_selectedCategory != null && _selectedCategory != 'All') {
       filteredContent = filteredContent
           .where((content) => content.categories.contains(_selectedCategory))
           .toList();
     }
-    
+
     // Then filter by search query if provided
     if (_searchQuery.isNotEmpty) {
       final query = _searchQuery.toLowerCase();
       filteredContent = filteredContent
-          .where((content) => 
+          .where((content) =>
               content.title.toLowerCase().contains(query) ||
               content.description.toLowerCase().contains(query) ||
               content.tags.any((tag) => tag.toLowerCase().contains(query)) ||
-              content.categories.any((category) => category.toLowerCase().contains(query)))
+              content.categories
+                  .any((category) => category.toLowerCase().contains(query)))
           .toList();
     }
-    
+
     return filteredContent;
   }
-  
+
   @override
   Widget build(BuildContext context) {
+    // Set ad context
+    final adService = Provider.of<AdService>(context, listen: false);
+    adService.setInClassificationFlow(false);
+    adService.setInEducationalContent(true);
+    adService.setInSettings(false);
+    
     return Scaffold(
       appBar: AppBar(
         title: const Text('Learn'),
@@ -128,7 +143,9 @@ class _EducationalContentScreenState extends State<EducationalContentScreen> wit
           },
         ),
       ),
-      body: Column(
+      body: Stack(
+        children: [
+          Column(
         children: [
           // Search and filter bar
           Container(
@@ -143,7 +160,8 @@ class _EducationalContentScreenState extends State<EducationalContentScreen> wit
                       hintText: 'Search...',
                       prefixIcon: const Icon(Icons.search),
                       border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(AppTheme.borderRadiusRegular),
+                        borderRadius:
+                            BorderRadius.circular(AppTheme.borderRadiusRegular),
                       ),
                       contentPadding: const EdgeInsets.symmetric(vertical: 0),
                     ),
@@ -154,13 +172,15 @@ class _EducationalContentScreenState extends State<EducationalContentScreen> wit
                     },
                   ),
                 ),
-                
+
                 const SizedBox(width: AppTheme.paddingRegular),
-                
+
                 // Category filter dropdown
                 DropdownButton<String>(
                   // Make sure the value exists in the items list
-                  value: _allCategories.contains(_selectedCategory) ? _selectedCategory : 'All',
+                  value: _allCategories.contains(_selectedCategory)
+                      ? _selectedCategory
+                      : 'All',
                   icon: const Icon(Icons.filter_list),
                   underline: Container(
                     height: 2,
@@ -182,20 +202,20 @@ class _EducationalContentScreenState extends State<EducationalContentScreen> wit
               ],
             ),
           ),
-          
+
           // Content list
           Expanded(
             child: TabBarView(
               controller: _tabController,
               children: ContentType.values.map((contentType) {
                 final filteredContent = _getFilteredContent(context);
-                
+
                 if (filteredContent.isEmpty) {
                   return const Center(
                     child: Text('No content found matching your criteria'),
                   );
                 }
-                
+
                 return ListView.builder(
                   padding: const EdgeInsets.all(AppTheme.paddingRegular),
                   itemCount: filteredContent.length,
@@ -209,9 +229,14 @@ class _EducationalContentScreenState extends State<EducationalContentScreen> wit
           ),
         ],
       ),
+          
+          // Banner ad at the bottom
+          const BannerAdWidget(showAtBottom: true),
+        ],
+      ),
     );
   }
-  
+
   Widget _buildContentCard(EducationalContent content) {
     return Card(
       margin: const EdgeInsets.only(bottom: AppTheme.paddingRegular),
@@ -245,7 +270,7 @@ class _EducationalContentScreenState extends State<EducationalContentScreen> wit
                     color: Colors.grey.shade500,
                   ),
                 ),
-                
+
                 // Content type badge
                 Positioned(
                   top: AppTheme.paddingSmall,
@@ -257,7 +282,8 @@ class _EducationalContentScreenState extends State<EducationalContentScreen> wit
                     ),
                     decoration: BoxDecoration(
                       color: content.getTypeColor(),
-                      borderRadius: BorderRadius.circular(AppTheme.borderRadiusSmall),
+                      borderRadius:
+                          BorderRadius.circular(AppTheme.borderRadiusSmall),
                     ),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
@@ -280,7 +306,7 @@ class _EducationalContentScreenState extends State<EducationalContentScreen> wit
                     ),
                   ),
                 ),
-                
+
                 // Premium badge if applicable
                 if (content.isPremium)
                   Positioned(
@@ -293,7 +319,8 @@ class _EducationalContentScreenState extends State<EducationalContentScreen> wit
                       ),
                       decoration: BoxDecoration(
                         color: Colors.amber,
-                        borderRadius: BorderRadius.circular(AppTheme.borderRadiusSmall),
+                        borderRadius:
+                            BorderRadius.circular(AppTheme.borderRadiusSmall),
                       ),
                       child: const Row(
                         mainAxisSize: MainAxisSize.min,
@@ -318,7 +345,7 @@ class _EducationalContentScreenState extends State<EducationalContentScreen> wit
                   ),
               ],
             ),
-            
+
             // Content details
             Padding(
               padding: const EdgeInsets.all(AppTheme.paddingRegular),
@@ -335,9 +362,9 @@ class _EducationalContentScreenState extends State<EducationalContentScreen> wit
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                   ),
-                  
+
                   const SizedBox(height: 4),
-                  
+
                   // Description
                   Text(
                     content.description,
@@ -348,9 +375,9 @@ class _EducationalContentScreenState extends State<EducationalContentScreen> wit
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                   ),
-                  
+
                   const SizedBox(height: AppTheme.paddingSmall),
-                  
+
                   // Metadata
                   Row(
                     children: [
@@ -362,7 +389,8 @@ class _EducationalContentScreenState extends State<EducationalContentScreen> wit
                         ),
                         decoration: BoxDecoration(
                           color: Colors.grey.shade200,
-                          borderRadius: BorderRadius.circular(AppTheme.borderRadiusSmall),
+                          borderRadius:
+                              BorderRadius.circular(AppTheme.borderRadiusSmall),
                         ),
                         child: Text(
                           content.getLevelText(),
@@ -372,9 +400,9 @@ class _EducationalContentScreenState extends State<EducationalContentScreen> wit
                           ),
                         ),
                       ),
-                      
+
                       const SizedBox(width: 8),
-                      
+
                       // Duration
                       Row(
                         mainAxisSize: MainAxisSize.min,
@@ -394,9 +422,9 @@ class _EducationalContentScreenState extends State<EducationalContentScreen> wit
                           ),
                         ],
                       ),
-                      
+
                       const Spacer(),
-                      
+
                       // Category chip
                       if (content.categories.isNotEmpty)
                         Container(
@@ -405,14 +433,17 @@ class _EducationalContentScreenState extends State<EducationalContentScreen> wit
                             vertical: 2,
                           ),
                           decoration: BoxDecoration(
-                            color: _getCategoryColor(content.categories.first).withValues(alpha: 0.2),
-                            borderRadius: BorderRadius.circular(AppTheme.borderRadiusSmall),
+                            color: _getCategoryColor(content.categories.first)
+                                .withOpacity(0.2),
+                            borderRadius: BorderRadius.circular(
+                                AppTheme.borderRadiusSmall),
                           ),
                           child: Text(
                             content.categories.first,
                             style: TextStyle(
                               fontSize: 10,
-                              color: _getCategoryColor(content.categories.first),
+                              color:
+                                  _getCategoryColor(content.categories.first),
                               fontWeight: FontWeight.bold,
                             ),
                           ),
@@ -427,7 +458,7 @@ class _EducationalContentScreenState extends State<EducationalContentScreen> wit
       ),
     );
   }
-  
+
   Color _getCategoryColor(String category) {
     switch (category) {
       case 'Wet Waste':

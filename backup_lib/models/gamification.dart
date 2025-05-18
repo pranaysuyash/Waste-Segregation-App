@@ -11,7 +11,26 @@ enum AchievementType {
   knowledgeMaster,      // Complete educational content
   quizCompleted,        // Complete quizzes
   specialItem,          // Identify special or rare items
-  communityContribution // Contribute to community challenges
+  communityContribution, // Contribute to community challenges
+  metaAchievement,      // Achievements for earning other achievements
+  specialEvent,         // Limited-time or event-based achievements
+  userGoal,             // User-defined goal achievements
+  collectionMilestone   // Milestone in waste type collection
+}
+
+/// Represents the tiers of achievements (increasing difficulty/rarity)
+enum AchievementTier {
+  bronze,
+  silver,
+  gold,
+  platinum
+}
+
+/// Represents the claim status of an achievement
+enum ClaimStatus {
+  claimed,      // User has claimed the reward
+  unclaimed,    // User is eligible but hasn't claimed the reward
+  ineligible    // User is not yet eligible to claim
 }
 
 /// Represents a badge or trophy that can be earned
@@ -27,6 +46,15 @@ class Achievement {
   final DateTime? earnedOn;
   final double progress; // Progress from 0.0 to 1.0
   
+  // New properties for enhanced gamification
+  final AchievementTier tier;                 // Bronze, Silver, Gold, Platinum
+  final String? achievementFamilyId;          // Groups related tiered achievements
+  final int? unlocksAtLevel;                  // Level required to unlock this achievement
+  final ClaimStatus claimStatus;              // Whether the achievement reward is claimed
+  final Map<String, dynamic> metadata;        // Additional achievement-specific data
+  final int pointsReward;                     // Points earned when achievement is completed
+  final List<String> relatedAchievementIds;   // For meta-achievements
+
   const Achievement({
     required this.id,
     required this.title,
@@ -38,9 +66,39 @@ class Achievement {
     this.isSecret = false,
     this.earnedOn,
     this.progress = 0.0,
+    this.tier = AchievementTier.bronze,
+    this.achievementFamilyId,
+    this.unlocksAtLevel,
+    this.claimStatus = ClaimStatus.ineligible,
+    this.metadata = const {},
+    this.pointsReward = 50,
+    this.relatedAchievementIds = const [],
   });
   
   bool get isEarned => earnedOn != null;
+  
+  bool get isClaimable => isEarned && claimStatus == ClaimStatus.unclaimed;
+  
+  bool get isLocked => unlocksAtLevel != null && unlocksAtLevel! > 0;
+  
+  // Get tier-specific text color for visual distinction
+  Color getTierColor() {
+    switch (tier) {
+      case AchievementTier.bronze:
+        return Color(0xFFCD7F32); // Bronze
+      case AchievementTier.silver:
+        return Color(0xFFC0C0C0); // Silver
+      case AchievementTier.gold:
+        return Color(0xFFFFD700); // Gold
+      case AchievementTier.platinum:
+        return Color(0xFFE5E4E2); // Platinum
+    }
+  }
+  
+  // Get tier-specific name
+  String get tierName {
+    return tier.toString().split('.').last.capitalize();
+  }
   
   // For serialization
   Map<String, dynamic> toJson() {
@@ -55,6 +113,13 @@ class Achievement {
       'isSecret': isSecret,
       'earnedOn': earnedOn?.toIso8601String(),
       'progress': progress,
+      'tier': tier.toString(),
+      'achievementFamilyId': achievementFamilyId,
+      'unlocksAtLevel': unlocksAtLevel,
+      'claimStatus': claimStatus.toString(),
+      'metadata': metadata,
+      'pointsReward': pointsReward,
+      'relatedAchievementIds': relatedAchievementIds,
     };
   }
   
@@ -74,6 +139,27 @@ class Achievement {
       isSecret: json['isSecret'] ?? false,
       earnedOn: json['earnedOn'] != null ? DateTime.parse(json['earnedOn']) : null,
       progress: json['progress'] ?? 0.0,
+      tier: json['tier'] != null 
+          ? AchievementTier.values.firstWhere(
+              (e) => e.toString() == json['tier'],
+              orElse: () => AchievementTier.bronze,
+            )
+          : AchievementTier.bronze,
+      achievementFamilyId: json['achievementFamilyId'],
+      unlocksAtLevel: json['unlocksAtLevel'],
+      claimStatus: json['claimStatus'] != null
+          ? ClaimStatus.values.firstWhere(
+              (e) => e.toString() == json['claimStatus'],
+              orElse: () => ClaimStatus.ineligible,
+            )
+          : ClaimStatus.ineligible,
+      metadata: json['metadata'] != null
+          ? Map<String, dynamic>.from(json['metadata'])
+          : {},
+      pointsReward: json['pointsReward'] ?? 50,
+      relatedAchievementIds: json['relatedAchievementIds'] != null
+          ? List<String>.from(json['relatedAchievementIds'])
+          : [],
     );
   }
   
@@ -89,6 +175,13 @@ class Achievement {
     bool? isSecret,
     DateTime? earnedOn,
     double? progress,
+    AchievementTier? tier,
+    String? achievementFamilyId,
+    int? unlocksAtLevel,
+    ClaimStatus? claimStatus,
+    Map<String, dynamic>? metadata,
+    int? pointsReward,
+    List<String>? relatedAchievementIds,
   }) {
     return Achievement(
       id: id ?? this.id,
@@ -101,7 +194,21 @@ class Achievement {
       isSecret: isSecret ?? this.isSecret,
       earnedOn: earnedOn ?? this.earnedOn,
       progress: progress ?? this.progress,
+      tier: tier ?? this.tier,
+      achievementFamilyId: achievementFamilyId ?? this.achievementFamilyId,
+      unlocksAtLevel: unlocksAtLevel ?? this.unlocksAtLevel,
+      claimStatus: claimStatus ?? this.claimStatus,
+      metadata: metadata ?? this.metadata,
+      pointsReward: pointsReward ?? this.pointsReward,
+      relatedAchievementIds: relatedAchievementIds ?? this.relatedAchievementIds,
     );
+  }
+}
+
+// Helper extension for string capitalization
+extension StringExtension on String {
+  String capitalize() {
+    return "${this[0].toUpperCase()}${substring(1)}";
   }
 }
 

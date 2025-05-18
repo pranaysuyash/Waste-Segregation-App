@@ -277,7 +277,7 @@ class StorageService {
     ];
     
     // Create CSV content with header row
-    String csvContent = headers.join(',') + '\n';
+    String csvContent = '${headers.join(',')}\n';
     
     // Add each classification as a row
     for (var classification in classifications) {
@@ -294,7 +294,7 @@ class StorageService {
         _formatDateForCsv(classification.timestamp)
       ];
       
-      csvContent += row.join(',') + '\n';
+      csvContent += '${row.join(',')}\n';
     }
     
     return csvContent;

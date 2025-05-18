@@ -1,0 +1,8 @@
+--- Podfile.orig      2023-05-18 12:00:00
++++ Podfile  2023-05-18 12:01:00
+@@ -30,0 +31,5 @@
++  # Override all Firebase and Google Sign-In dependencies to use same GoogleUtilities version
++  pod 'FirebaseCore', :modular_headers => true
++  pod 'GoogleUtilities', '8.0.0', :modular_headers => true
++  pod 'GoogleUtilities/Environment', '8.0.0', :modular_headers => true
++  pod 'AppCheckCore', '11.2.0', :modular_headers => true

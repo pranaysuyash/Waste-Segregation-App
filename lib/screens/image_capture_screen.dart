@@ -1,5 +1,4 @@
 import 'dart:io';
-import 'dart:ui' as ui;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
@@ -37,7 +36,7 @@ class _ImageCaptureScreenState extends State<ImageCaptureScreen> {
 
   bool _useSegmentation = false;
   List<Rect> _segments = [];
-  Set<int> _selectedSegments = {};
+  final Set<int> _selectedSegments = {};
 
   @override
   void initState() {

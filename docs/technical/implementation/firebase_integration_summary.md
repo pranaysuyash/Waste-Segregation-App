@@ -103,10 +103,13 @@ Firebase has been configured for the web platform:
 1. **Firebase Configuration in index.html**:
 ```html
 <!-- Firebase Core JS SDK -->
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 
 <!-- Firebase Auth JS SDK -->
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+
+<!-- Firebase Firestore JS SDK -->
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 
 <!-- Initialize Firebase -->
 <script>

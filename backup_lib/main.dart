@@ -1,74 +1,75 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:hive_flutter/hive_flutter.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';
-import 'models/waste_classification.dart';
-import 'models/gamification.dart';
-import 'models/educational_content.dart';
-import 'screens/auth_screen.dart';
-import 'screens/home_screen.dart';
-import 'screens/splash_screen.dart';
+import 'package:firebase_core/firebase_core.dart'; // Add this import
+import 'services/ai_service.dart';
+import 'services/google_drive_service.dart';
 import 'services/storage_service.dart';
 import 'services/educational_content_service.dart';
 import 'services/gamification_service.dart';
-import 'services/google_drive_service.dart';
-import 'services/ai_service.dart';
-import 'utils/constants.dart'; 
+import 'services/premium_service.dart';
+import 'services/ad_service.dart';
+import 'services/user_consent_service.dart';
+import 'screens/auth_screen.dart';
+import 'screens/consent_dialog_screen.dart';
+import 'utils/constants.dart';
+import 'providers/theme_provider.dart';
 
-// Import generated Hive Adapters
-import 'models/waste_classification.g.dart';
-import 'models/gamification.g.dart';
-import 'models/educational_content.g.dart';
+/*
+Required packages:
+  provider: ^6.1.1
+  hive: ^2.2.3
+  hive_flutter: ^1.1.0
+  path_provider: ^2.1.1
+  image_picker: ^1.0.4
+  http: ^1.1.0
+  google_sign_in: ^6.1.6
+  googleapis: ^12.0.0
+  share_plus: ^7.2.1
+  firebase_core: ^latest_version
+  firebase_auth: ^latest_version
+*/
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
+
   // Set preferred orientations
   await SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,
   ]);
-  
-  // Initialize Hive
-  await Hive.initFlutter();
 
-  // Register Hive Adapters
-  try {
-    Hive.registerAdapter(WasteClassificationAdapter());
-    Hive.registerAdapter(AchievementAdapter());
-    Hive.registerAdapter(ChallengeAdapter());
-    Hive.registerAdapter(GamificationProfileAdapter());
-    Hive.registerAdapter(ContentProgressAdapter());
-    Hive.registerAdapter(EducationalContentAdapter());
-    Hive.registerAdapter(ContentTypeAdapter());
-    Hive.registerAdapter(DifficultyLevelAdapter());
-  } catch (e) {
-    print('Error registering Hive adapters: $e');
-  }
+  // Initialize Firebase
+  await Firebase.initializeApp();
 
-  // Open Hive boxes
-  await Hive.openBox<WasteClassification>(StorageKeys.classificationsBox);
-  await Hive.openBox<GamificationProfile>(StorageKeys.gamificationBox);
-  await Hive.openBox<EducationalContent>(StorageKeys.educationalContentBox);
-  await Hive.openBox(StorageKeys.userInfoBox);
-  await Hive.openBox(StorageKeys.appSettingsBox);
+  // Initialize Hive for local storage
+  await StorageService.initializeHive();
 
-  // Initialize services
+  // Create service instances early to allow initialization
   final storageService = StorageService();
   final aiService = AiService();
-  final googleDriveService = GoogleDriveService(storageService: storageService);
-  final gamificationService = GamificationService(storageService: storageService);
-  final educationalContentService = EducationalContentService(
-    storageService: storageService, 
-    gamificationService: gamificationService
-  );
+  final educationalContentService = EducationalContentService();
+  final gamificationService = GamificationService();
+  final premiumService = PremiumService();
+  final adService = AdService();
+  final googleDriveService = GoogleDriveService(storageService);
+
+  // Initialize services in parallel
+  await Future.wait([
+    gamificationService.initGamification(),
+    premiumService.initialize(),
+    adService.initialize(),
+  ]);
 
   runApp(WasteSegregationApp(
     storageService: storageService,
     aiService: aiService,
-    googleDriveService: googleDriveService,
-    gamificationService: gamificationService,
     educationalContentService: educationalContentService,
+    gamificationService: gamificationService,
+    premiumService: premiumService,
+    adService: adService,
+    googleDriveService: googleDriveService,
   ));
 }
 
@@ -78,6 +79,8 @@ class WasteSegregationApp extends StatelessWidget {
   final GoogleDriveService googleDriveService;
   final GamificationService gamificationService;
   final EducationalContentService educationalContentService;
+  final PremiumService premiumService;
+  final AdService adService;
 
   const WasteSegregationApp({
     super.key,
@@ -86,6 +89,8 @@ class WasteSegregationApp extends StatelessWidget {
     required this.googleDriveService,
     required this.gamificationService,
     required this.educationalContentService,
+    required this.premiumService,
+    required this.adService,
   });
 
   @override
@@ -97,19 +102,171 @@ class WasteSegregationApp extends StatelessWidget {
         Provider<GoogleDriveService>.value(value: googleDriveService),
         Provider<GamificationService>.value(value: gamificationService),
         Provider<EducationalContentService>.value(value: educationalContentService),
+        ChangeNotifierProvider<PremiumService>.value(value: premiumService),
+        ChangeNotifierProvider<AdService>.value(value: adService),
+        ChangeNotifierProvider(create: (_) => ThemeProvider()),
       ],
-      child: MaterialApp(
-        title: AppStrings.appName,
-        theme: AppTheme.lightTheme,
-        darkTheme: AppTheme.darkTheme,
-        themeMode: ThemeMode.system,
-        debugShowCheckedModeBanner: false,
-        initialRoute: '/',
-        routes: {
-          '/': (context) => const SplashScreen(),
-          '/home': (context) => const HomeScreen(),
-          '/auth': (context) => const AuthScreen(),
+      child: Consumer<ThemeProvider>(
+        builder: (context, themeProvider, child) {
+          return MaterialApp(
+            title: AppStrings.appName,
+            theme: ThemeData(
+              primaryColor: AppTheme.primaryColor,
+              colorScheme: ColorScheme.fromSeed(
+                seedColor: AppTheme.primaryColor,
+                secondary: AppTheme.secondaryColor,
+              ),
+              appBarTheme: const AppBarTheme(
+                backgroundColor: AppTheme.primaryColor,
+                foregroundColor: Colors.white,
+                elevation: 0,
+              ),
+              scaffoldBackgroundColor: AppTheme.backgroundColor,
+              textTheme: const TextTheme(
+                bodyMedium: TextStyle(
+                  color: AppTheme.textPrimaryColor,
+                ),
+              ),
+            ),
+            darkTheme: ThemeData(
+              primaryColor: AppTheme.darkPrimaryColor,
+              colorScheme: ColorScheme.fromSeed(
+                seedColor: AppTheme.darkPrimaryColor,
+                secondary: AppTheme.darkSecondaryColor,
+                brightness: Brightness.dark,
+              ),
+              appBarTheme: const AppBarTheme(
+                backgroundColor: AppTheme.darkPrimaryColor,
+                foregroundColor: Colors.white,
+                elevation: 0,
+              ),
+              scaffoldBackgroundColor: AppTheme.darkBackgroundColor,
+              textTheme: const TextTheme(
+                bodyMedium: TextStyle(
+                  color: AppTheme.darkTextPrimaryColor,
+                ),
+              ),
+            ),
+            themeMode: themeProvider.themeMode,
+            home: FutureBuilder<Map<String, bool>>(
+              future: _checkInitialConditions(),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const _SplashScreen();
+                }
+
+                final Map<String, bool> conditions = snapshot.data ?? {
+                  'hasConsent': false,
+                  'isLoggedIn': false,
+                };
+                
+                final bool hasConsent = conditions['hasConsent'] ?? false;
+                final bool isLoggedIn = conditions['isLoggedIn'] ?? false;
+                
+                // First, check if user has accepted privacy policy and terms
+                if (!hasConsent) {
+                  return ConsentDialogScreen(
+                    onConsent: () {
+                      // After consent, navigate to auth screen
+                      Navigator.pushReplacement(
+                        context,
+                        MaterialPageRoute(builder: (context) => const AuthScreen()),
+                      );
+                    },
+                    onDecline: () {
+                      // If user declines, exit the app
+                      SystemNavigator.pop();
+                    },
+                  );
+                }
+                
+                // Then check login status
+                return const AuthScreen(); // Will automatically redirect to HomeScreen if logged in
+              },
+            ),
+          );
         },
+      ),
+    );
+  }
+
+  Future<Map<String, bool>> _checkInitialConditions() async {
+    // Wait a bit to show splash screen
+    await Future.delayed(const Duration(seconds: 1));
+
+    // Check user consent status
+    final userConsentService = UserConsentService();
+    final bool hasConsent = await userConsentService.hasAllRequiredConsents();
+    
+    // Check if user is logged in
+    final bool isLoggedIn = storageService.isUserLoggedIn();
+    
+    return {
+      'hasConsent': hasConsent,
+      'isLoggedIn': isLoggedIn,
+    };
+  }
+}
+
+class _SplashScreen extends StatelessWidget {
+  const _SplashScreen();
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              AppTheme.primaryColor,
+              AppTheme.secondaryColor,
+            ],
+          ),
+        ),
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              // App logo
+              SvgPicture.asset(
+                'assets/images/splash_screen.svg',
+                width: 100,
+                height: 100,
+                placeholderBuilder: (context) => Container(
+                  width: 100,
+                  height: 100,
+                  color: Colors.white.withOpacity(0.3),
+                  child: const Icon(
+                    Icons.restore_from_trash,
+                    size: 60,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+
+              const SizedBox(height: AppTheme.paddingRegular),
+
+              // App name
+              const Text(
+                AppStrings.appName,
+                style: TextStyle(
+                  fontSize: 32,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+              ),
+
+              const SizedBox(height: AppTheme.paddingLarge),
+
+              // Loading indicator
+              const CircularProgressIndicator(
+                valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

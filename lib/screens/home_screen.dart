@@ -8,7 +8,6 @@ import '../utils/web_handler.dart';
 import 'package:image_picker/image_picker.dart';
 // Use a platform-agnostic camera interface instead
 import '../widgets/platform_camera.dart';
-import '../widgets/banner_ad_widget.dart';
 import 'package:provider/provider.dart';
 import '../models/waste_classification.dart';
 import '../models/educational_content.dart';
@@ -20,6 +19,7 @@ import '../services/gamification_service.dart';
 import '../services/ad_service.dart';
 import '../utils/constants.dart';
 import '../widgets/capture_button.dart';
+import '../widgets/enhanced_gamification_widgets.dart';
 import '../widgets/gamification_widgets.dart';
 import 'auth_screen.dart';
 import 'history_screen.dart';
@@ -28,8 +28,8 @@ import 'result_screen.dart';
 import 'educational_content_screen.dart';
 import 'content_detail_screen.dart';
 import 'achievements_screen.dart';
-import 'premium_features_screen.dart';
 import 'settings_screen.dart';
+import 'waste_dashboard_screen.dart';
 import '../services/premium_service.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -425,26 +425,63 @@ class _HomeScreenState extends State<HomeScreen> {
       MaterialPageRoute(
         builder: (context) => ImageCaptureScreen(imageFile: imageFile),
       ),
-    ).then((result) {
+    ).then((result) async {
+      // Ensure all classifications are loaded in the recents list
       _loadRecentClassifications();
 
       // Process classification for gamification if available
       if (result != null && result is WasteClassification) {
-        // Track classification completion for ad frequency
-        final adService = Provider.of<AdService>(context, listen: false);
-        adService.trackClassificationCompleted();
+      // Track classification completion for ad frequency
+      final adService = Provider.of<AdService>(context, listen: false);
+      adService.trackClassificationCompleted();
+      
+      // Check if we should show an interstitial ad
+      if (adService.shouldShowInterstitial()) {
+      adService.showInterstitialAd();
+      }
+      
+      // Process classification with improved feedback
+      final gamificationService = Provider.of<GamificationService>(context, listen: false);
+      
+      // Get previous profile for comparison
+      final oldProfile = await gamificationService.getProfile();
+      
+        // Process the classification
+        final completedChallenges = await gamificationService.processClassification(result);
         
-        // Check if we should show an interstitial ad
-        if (adService.shouldShowInterstitial()) {
-          adService.showInterstitialAd();
+        // Get updated profile
+        final newProfile = await gamificationService.getProfile();
+        
+        // Calculate points difference
+        final pointsEarned = newProfile.points.total - oldProfile.points.total;
+        
+        // Show points earned popup if any
+        if (pointsEarned > 0) {
+          _showPointsEarnedPopup(pointsEarned, 'classification');
         }
         
-        _processClassificationForGamification(result).then((newAchievements) {
-          // Show achievement notifications
-          for (final achievement in newAchievements) {
-            _showAchievementNotification(achievement);
-          }
-        });
+        // Show completed challenge notification if any
+        if (completedChallenges.isNotEmpty) {
+          _showChallengeCompletedPopup(completedChallenges.first);
+        }
+        
+        // Check for new achievements
+        final oldAchievementIds = oldProfile.achievements
+            .where((a) => a.isEarned)
+            .map((a) => a.id)
+            .toSet();
+            
+        final newlyEarnedAchievements = newProfile.achievements
+            .where((a) => a.isEarned && !oldAchievementIds.contains(a.id))
+            .toList();
+            
+        // Show achievement notifications
+        for (final achievement in newlyEarnedAchievements) {
+          _showAchievementNotification(achievement);
+        }
+        
+        // Refresh gamification data
+        _loadGamificationData();
       }
     });
   }
@@ -462,7 +499,8 @@ class _HomeScreenState extends State<HomeScreen> {
           webImage: imageBytes,
         ),
       ),
-    ).then((result) {
+    ).then((result) async {
+      // Ensure all classifications are loaded in the recents list
       _loadRecentClassifications();
 
       // Process classification for gamification if available
@@ -494,7 +532,7 @@ class _HomeScreenState extends State<HomeScreen> {
         return Dialog(
           backgroundColor: Colors.transparent,
           elevation: 0,
-          child: AchievementNotification(
+          child: EnhancedAchievementNotification(
             achievement: achievement,
             onDismiss: () {
               Navigator.of(context).pop();
@@ -1035,7 +1073,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ],
           ),
           const SizedBox(height: AppTheme.paddingSmall),
-          ChallengeCard(
+          EnhancedChallengeCard(
             challenge: _activeChallenges.first,
             onTap: () {
               Navigator.push(
@@ -1084,7 +1122,7 @@ class _HomeScreenState extends State<HomeScreen> {
             Padding(
               padding: const EdgeInsets.only(right: 8.0),
               child: Center(
-                child: PointsIndicator(
+                child: EnhancedPointsIndicator(
                   points: _gamificationProfile!.points,
                   onTap: () {
                     Navigator.push(
@@ -1098,6 +1136,19 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ),
             ),
+          // Analytics button
+          IconButton(
+            icon: const Icon(Icons.analytics),
+            tooltip: 'Analytics Dashboard',
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const WasteDashboardScreen(),
+                ),
+              );
+            },
+          ),
           IconButton(
             icon: const Icon(Icons.emoji_events),
             onPressed: () {
@@ -1172,6 +1223,66 @@ class _HomeScreenState extends State<HomeScreen> {
 
                 // Gamification section
                 _buildGamificationSection(),
+
+                const SizedBox(height: AppTheme.paddingLarge),
+
+                // Analytics Card
+                Card(
+                  elevation: 3,
+                  child: InkWell(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const WasteDashboardScreen(),
+                        ),
+                      );
+                    },
+                    child: Padding(
+                      padding: const EdgeInsets.all(AppTheme.paddingRegular),
+                      child: Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: AppTheme.primaryColor.withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(AppTheme.borderRadiusRegular),
+                            ),
+                            child: const Icon(
+                              Icons.analytics,
+                              color: AppTheme.primaryColor,
+                              size: 36,
+                            ),
+                          ),
+                          const SizedBox(width: AppTheme.paddingRegular),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: const [
+                                Text(
+                                  'Waste Analytics Dashboard',
+                                  style: TextStyle(
+                                    fontSize: AppTheme.fontSizeMedium,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                SizedBox(height: 4),
+                                Text(
+                                  'View insights and statistics about your waste classifications',
+                                  style: TextStyle(
+                                    fontSize: AppTheme.fontSizeSmall,
+                                    color: AppTheme.textSecondaryColor,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const Icon(Icons.chevron_right),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
 
                 const SizedBox(height: AppTheme.paddingLarge),
 
@@ -1587,7 +1698,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _buildLoadingPlaceholder() {
     return Container(
       color: Colors.grey.shade100,
-      child: const Center(
+      child: Center(
         child: SizedBox(
           width: 20,
           height: 20,
@@ -1609,6 +1720,145 @@ class _HomeScreenState extends State<HomeScreen> {
           Icons.image,
           size: 24,
           color: Colors.grey,
+        ),
+      ),
+    );
+  }
+
+  // Show a points earned popup
+  void _showPointsEarnedPopup(int points, String action) {
+    // Create an overlay entry
+    final overlayState = Overlay.of(context);
+    late OverlayEntry overlayEntry;
+
+    overlayEntry = OverlayEntry(
+      builder: (context) => Positioned(
+        top: MediaQuery.of(context).padding.top + 50,
+        left: 0,
+        right: 0,
+        child: Center(
+          child: PointsEarnedPopup(
+            points: points,
+            action: action,
+            onDismiss: () {
+              overlayEntry.remove();
+            },
+          ),
+        ),
+      ),
+    );
+
+    overlayState.insert(overlayEntry);
+
+    // Auto-dismiss after a delay
+    Future.delayed(const Duration(seconds: 3), () {
+      if (mounted) {
+        try {
+          overlayEntry.remove();
+        } catch (e) {
+          // Overlay may have already been removed
+        }
+      }
+    });
+  }
+
+  // Show a challenge completed popup
+  void _showChallengeCompletedPopup(Challenge challenge) {
+    // Display an overlay notification
+    showDialog(
+      context: context,
+      builder: (context) => Dialog(
+        backgroundColor: Colors.transparent,
+        child: Card(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(AppTheme.borderRadiusRegular),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(AppTheme.paddingRegular),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Row(
+                  children: [
+                    Icon(
+                      AppIcons.fromString(challenge.iconName),
+                      color: challenge.color,
+                      size: 28,
+                    ),
+                    const SizedBox(width: AppTheme.paddingSmall),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            'Challenge Completed!',
+                            style: TextStyle(
+                              fontSize: AppTheme.fontSizeMedium,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.amber,
+                            ),
+                          ),
+                          Text(
+                            challenge.title,
+                            style: const TextStyle(
+                              fontSize: AppTheme.fontSizeRegular,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: AppTheme.paddingRegular),
+                Text(
+                  challenge.description,
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: AppTheme.paddingRegular),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppTheme.paddingRegular,
+                    vertical: AppTheme.paddingSmall,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.amber.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(AppTheme.borderRadiusRegular),
+                    border: Border.all(color: Colors.amber.withOpacity(0.5)),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        Icons.stars,
+                        color: Colors.amber,
+                        size: 20,
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        '+${challenge.pointsReward} Points', // Ensure Challenge model has pointsReward
+                        style: const TextStyle(
+                          fontSize: AppTheme.fontSizeRegular,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: AppTheme.paddingRegular),
+                ElevatedButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: challenge.color,
+                    foregroundColor: Colors.white,
+                  ),
+                  child: const Text('Great!'),
+                ),
+              ],
+            ),
+          ),
         ),
       ),
     );

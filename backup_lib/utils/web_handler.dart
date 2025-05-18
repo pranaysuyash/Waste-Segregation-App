@@ -13,26 +13,28 @@ class WebImageHandler {
       return null;
     }
   }
-  
+
   /// Determines if the path is a web blob URL
   static bool isBlobUrl(String path) {
     return path.startsWith('blob:');
   }
-  
+
   /// Extracts a display name from a blob URL or path
   static String getDisplayName(String path) {
     // Extract the last part of a blob URL as a simple ID
     if (isBlobUrl(path)) {
       // For blob URLs, extract the UUID part
       final uriParts = path.split('/');
-      return uriParts.last.length > 8 ? uriParts.last.substring(0, 8) : uriParts.last;
+      return uriParts.last.length > 8
+          ? uriParts.last.substring(0, 8)
+          : uriParts.last;
     }
-    
+
     // Otherwise extract filename from a regular path
     final parts = path.split('/');
     return parts.isNotEmpty ? parts.last : 'unknown';
   }
-  
+
   /// Validates if a web image blob URL is available
   static Future<bool> isWebImageValid(XFile file) async {
     try {

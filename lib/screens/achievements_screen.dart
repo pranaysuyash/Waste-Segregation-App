@@ -382,7 +382,7 @@ class _AchievementsScreenState extends State<AchievementsScreen>
     final gamificationService = Provider.of<GamificationService>(context, listen: false);
     
     // Helper function to handle claiming rewards
-    Future<void> _claimReward() async {
+    Future<void> claimReward() async {
       try {
         final profile = await gamificationService.getProfile();
         final updatedAchievements = List<Achievement>.from(profile.achievements);
@@ -550,7 +550,7 @@ class _AchievementsScreenState extends State<AchievementsScreen>
                     Padding(
                       padding: const EdgeInsets.only(top: AppTheme.paddingRegular),
                       child: ElevatedButton.icon(
-                        onPressed: _claimReward,
+                        onPressed: claimReward,
                         icon: Icon(Icons.redeem),
                         label: Text('Claim Reward'),
                         style: ElevatedButton.styleFrom(

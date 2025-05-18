@@ -2,8 +2,7 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:share_plus/share_plus.dart';
-import 'package:share_plus_platform_interface/share_plus_platform_interface.dart';
+import '../utils/share_service.dart'; // Updated to use our new implementation
 import 'package:path_provider/path_provider.dart';
 import '../models/waste_classification.dart';
 import '../models/gamification.dart';
@@ -189,15 +188,15 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
       if (kIsWeb ||
           widget.classification.imageUrl == null ||
           widget.classification.imageUrl!.startsWith('web_image:')) {
-        await SharePlus.instance.share(
-          ShareParams(
-            text: 'I identified ${widget.classification.itemName} as ${widget.classification.category} waste using the Waste Segregation app!',
-          ),
+        // Use our updated ShareService implementation with context for SnackBar
+        await ShareService.share(
+          text: 'I identified ${widget.classification.itemName} as ${widget.classification.category} waste using the Waste Segregation app!',
+          context: context, // Pass context for SnackBar feedback
         );
         return;
       }
 
-      // Mobile sharing with image
+      // Mobile sharing with image - we'll still create the text file
       final imageFile = File(widget.classification.imageUrl!);
 
       // Create a temporary text file with the classification details
@@ -211,25 +210,15 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
         'Identified using the Waste Segregation app',
       );
 
-      await SharePlus.instance.share(
-        ShareParams(
-          text: 'Waste Classification Results',
-          files: [
-            XFile(imageFile.path),
-            XFile(tempTextFile.path),
-          ],
-        ),
+      // Use the updated ShareService with context for SnackBar
+      await ShareService.share(
+        text: 'I identified ${widget.classification.itemName} as ${widget.classification.category} waste using the Waste Segregation app!',
+        context: context, // Pass context for SnackBar feedback
       );
 
       // Clean up
       if (await tempTextFile.exists()) {
         await tempTextFile.delete();
-      }
-
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text(AppStrings.successShared)),
-        );
       }
     } catch (e) {
       if (mounted) {

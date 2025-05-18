@@ -1,9 +1,6 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart';
 import '../utils/constants.dart';
 // Use platform-agnostic camera
-import 'platform_camera.dart';
 
 enum CaptureButtonType {
   camera,
@@ -23,7 +20,7 @@ class CaptureButton extends StatefulWidget {
     required this.onPressed,
     this.isLoading = false,
   });
-  
+
   @override
   State<CaptureButton> createState() => _CaptureButtonState();
 }

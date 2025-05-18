@@ -340,6 +340,7 @@ function selectOptimalModel(request) {
 
 ### Frontend (Mobile Application)
 - **Framework**: Flutter (Dart)
+- **Kotlin Version**: 2.0.0 (for Android platform)
 - **State Management**: Provider + ValueNotifier pattern with Repository layer
 - **UI Component Library**: Custom Material Design 3 implementation
 - **Navigation**: Go Router for declarative routing

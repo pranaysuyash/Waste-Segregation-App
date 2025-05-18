@@ -12,6 +12,7 @@ class WasteClassification {
   final bool? requiresSpecialDisposal;
   final String? colorCode; // Added for color-coding representation
   final String? materialType; // Added for material type identification
+  bool isSaved; // Track whether this classification has been saved
 
   WasteClassification({
     required this.itemName,
@@ -26,6 +27,7 @@ class WasteClassification {
     this.requiresSpecialDisposal,
     this.colorCode,
     this.materialType,
+    this.isSaved = false,
     DateTime? timestamp,
   }) : timestamp = timestamp ?? DateTime.now();
 
@@ -44,12 +46,19 @@ class WasteClassification {
       'requiresSpecialDisposal': requiresSpecialDisposal,
       'colorCode': colorCode,
       'materialType': materialType,
+      'isSaved': isSaved,
       'timestamp': timestamp.toIso8601String(),
     };
   }
 
   // Factory constructor to create a model from JSON
   factory WasteClassification.fromJson(Map<String, dynamic> json) {
+    // Handle different data types for recyclingCode
+    String? recyclingCode;
+    if (json['recyclingCode'] != null) {
+      recyclingCode = json['recyclingCode'].toString();
+    }
+    
     return WasteClassification(
       itemName: json['itemName'] ?? '',
       category: json['category'] ?? '',
@@ -57,12 +66,13 @@ class WasteClassification {
       explanation: json['explanation'] ?? '',
       imageUrl: json['imageUrl'],
       disposalMethod: json['disposalMethod'],
-      recyclingCode: json['recyclingCode'],
+      recyclingCode: recyclingCode,
       isRecyclable: json['isRecyclable'],
       isCompostable: json['isCompostable'],
       requiresSpecialDisposal: json['requiresSpecialDisposal'],
       colorCode: json['colorCode'],
       materialType: json['materialType'],
+      isSaved: json['isSaved'] ?? false,
       timestamp: json['timestamp'] != null
           ? DateTime.parse(json['timestamp'])
           : DateTime.now(),

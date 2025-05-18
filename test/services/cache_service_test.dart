@@ -1,13 +1,9 @@
-import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hive/hive.dart';
 import 'package:hive_flutter/hive_flutter.dart';
-import 'package:waste_segregation_app/models/cached_classification.dart';
 import 'package:waste_segregation_app/models/waste_classification.dart';
 import 'package:waste_segregation_app/services/cache_service.dart';
-import 'package:waste_segregation_app/utils/constants.dart';
-import 'package:waste_segregation_app/utils/image_utils.dart';
 
 class MockBox extends Mock implements Box<String> {}
 
@@ -216,7 +212,7 @@ void main() {
       
       // Calculate the actual hamming distance to verify our test setup
       // Convert to binary
-      String _hexToBinary(String hex) {
+      String hexToBinary(String hex) {
         String binary = '';
         for (int i = 0; i < hex.length; i++) {
           final int value = int.parse(hex[i], radix: 16);
@@ -227,7 +223,7 @@ void main() {
       }
       
       // Calculate hamming distance
-      int _hammingDistance(String a, String b) {
+      int hammingDistance(String a, String b) {
         if (a.length != b.length) {
           throw ArgumentError('Strings must be of equal length');
         }
@@ -238,9 +234,9 @@ void main() {
         return distance;
       }
       
-      final baseBinary = _hexToBinary(baseHash.substring(6));
-      final modifiedBinary = _hexToBinary(modifiedHash.substring(6));
-      final distance = _hammingDistance(baseBinary, modifiedBinary);
+      final baseBinary = hexToBinary(baseHash.substring(6));
+      final modifiedBinary = hexToBinary(modifiedHash.substring(6));
+      final distance = hammingDistance(baseBinary, modifiedBinary);
       
       print('Hamming distance between test hashes: $distance');
       

@@ -1,0 +1,82 @@
+source 'https://cdn.cocoapods.org/'
+
+# Keep iOS platform version at 12.0
+platform :ios, '12.0'
+
+ENV['COCOAPODS_DISABLE_STATS'] = 'true'
+
+project 'Runner', {
+  'Debug' => :debug,
+  'Profile' => :release,
+  'Release' => :release,
+}
+
+def flutter_root
+  generated_xcode_build_settings_path = File.expand_path(File.join('..', 'Flutter', 'Generated.xcconfig'), __FILE__)
+  unless File.exist?(generated_xcode_build_settings_path)
+    raise "#{generated_xcode_build_settings_path} must exist. If you're running pod install manually, make sure flutter pub get is executed first"
+  end
+
+  File.foreach(generated_xcode_build_settings_path) do |line|
+    matches = line.match(/FLUTTER_ROOT\=(.*)/)
+    return matches[1].strip if matches
+  end
+  raise "FLUTTER_ROOT not found in #{generated_xcode_build_settings_path}. Try deleting Generated.xcconfig, then run flutter pub get"
+end
+
+require File.expand_path(File.join('packages', 'flutter_tools', 'bin', 'podhelper'), flutter_root)
+
+flutter_ios_podfile_setup
+
+target 'Runner' do
+  use_frameworks!
+  use_modular_headers!
+  
+  # SOLUTION: Force specific versions to resolve the dependency conflict
+  # The issue is that google_sign_in requires GoogleUtilities 8.x
+  # but firebase_auth and firebase_core want GoogleUtilities 7.x
+  
+  # Force all dependencies to use GoogleUtilities 8.0.0
+  pod 'GoogleUtilities', '8.0.0', :modular_headers => true
+  pod 'GoogleUtilities/Environment', '8.0.0', :modular_headers => true
+  pod 'AppCheckCore', '11.2.0', :modular_headers => true
+  
+  # Force Firebase to use modular_headers to avoid conflicts
+  pod 'FirebaseCore', :modular_headers => true
+  pod 'FirebaseAuth', :modular_headers => true
+  
+  flutter_install_all_ios_pods File.dirname(File.realpath(__FILE__))
+  target 'RunnerTests' do
+    inherit! :search_paths
+  end
+end
+
+post_install do |installer|
+  installer.pods_project.targets.each do |target|
+    flutter_additional_ios_build_settings(target)
+    target.build_configurations.each do |config|
+      config.build_settings['ENABLE_BITCODE'] = 'NO'
+      config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '12.0'
+      
+      # Force GoogleUtilities to be compatible across all dependencies
+      if target.name.include?('GoogleUtilities') 
+        # Set specific build flags to ensure compatibility
+        config.build_settings['SWIFT_VERSION'] = '5.0'
+      end
+      
+      # If target is Firebase related, ensure compatibility with GoogleUtilities
+      if target.name.include?('Firebase')
+        # Enable modular headers and other compatibility flags
+        config.build_settings['CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES'] = 'YES'
+      end
+    end
+  end
+  
+  # Force dependency resolution for all pods
+  installer.aggregate_targets.each do |aggregate_target|
+    aggregate_target.xcconfigs.each do |config_name, config_file|
+      config_file.attributes['OTHER_LDFLAGS'] = '$(inherited) -ObjC'
+      aggregate_target.xcconfigs[config_name] = config_file
+    end
+  end
+end

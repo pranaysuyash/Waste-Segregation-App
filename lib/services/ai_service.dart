@@ -1,18 +1,14 @@
 import 'dart:convert';
 import 'dart:io';
-import 'dart:ui' as ui;
 import 'dart:math' show pow;
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
-import 'package:openai_api/openai_api.dart';
 import '../models/waste_classification.dart';
-import '../models/cached_classification.dart';
 import '../utils/constants.dart';
 import '../utils/image_utils.dart';
 import '../services/cache_service.dart';
 
 // Use the custom Rect class
-import '../utils/image_utils.dart' show Rect;
 
 class AiService {
   final String baseUrl;
@@ -128,7 +124,7 @@ class AiService {
           final classification = _processAiResponseData(responseData, webImageUrl);
           
           // Cache the result if we have a valid hash
-          if (imageHash != null && cachingEnabled) {
+          if (cachingEnabled) {
             debugPrint('Caching web classification result for hash: $imageHash');
             await cacheService.cacheClassification(
               imageHash, 
@@ -1043,7 +1039,7 @@ class AiService {
           final classification = _processAiResponseData(responseData, imageFile.path);
           
           // Cache the result if we have a valid hash
-          if (imageHash != null && cachingEnabled) {
+          if (cachingEnabled) {
             debugPrint('Caching classification result for hash: $imageHash');
             await cacheService.cacheClassification(
               imageHash, 

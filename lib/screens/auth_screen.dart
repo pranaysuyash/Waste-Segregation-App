@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import '../services/google_drive_service.dart';
 import '../utils/constants.dart';
 import 'home_screen.dart';
@@ -15,6 +16,17 @@ class _AuthScreenState extends State<AuthScreen> {
   bool _isLoading = false;
 
   Future<void> _signInWithGoogle(BuildContext context) async {
+    // Don't proceed if on web platform
+    if (kIsWeb) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Google Sign In is not supported on web platform'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+    
     setState(() {
       _isLoading = true;
     });
@@ -114,14 +126,46 @@ class _AuthScreenState extends State<AuthScreen> {
                     textAlign: TextAlign.center,
                   ),
 
+                  // Web platform warning
+                  if (kIsWeb) ...[
+                    const SizedBox(height: AppTheme.paddingRegular),
+                    Container(
+                      padding: const EdgeInsets.all(AppTheme.paddingRegular),
+                      decoration: BoxDecoration(
+                        color: Colors.red.withOpacity(0.2),
+                        borderRadius: BorderRadius.circular(AppTheme.borderRadiusRegular),
+                        border: Border.all(color: Colors.red.withOpacity(0.5)),
+                      ),
+                      child: const Row(
+                        children: [
+                          Icon(
+                            Icons.warning_amber_rounded,
+                            color: Colors.white,
+                          ),
+                          SizedBox(width: AppTheme.paddingSmall),
+                          Expanded(
+                            child: Text(
+                              'Web version has limited functionality. For full features, please use the mobile app.',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: AppTheme.fontSizeSmall,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+
                   const SizedBox(height: AppTheme.paddingExtraLarge * 2),
 
-                  // Google Sign-in button
+                  // Google Sign-in button (disabled on web)
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton.icon(
-                      onPressed:
-                          _isLoading ? null : () => _signInWithGoogle(context),
+                      onPressed: (kIsWeb || _isLoading) 
+                          ? null 
+                          : () => _signInWithGoogle(context),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.white,
                         foregroundColor: Colors.black87,
@@ -150,9 +194,11 @@ class _AuthScreenState extends State<AuthScreen> {
                               size: 24,
                               color: Colors.blue,
                             ),
-                      label: const Text(
-                        AppStrings.signInWithGoogle,
-                        style: TextStyle(
+                      label: Text(
+                        kIsWeb 
+                            ? 'Sign In Unavailable on Web' 
+                            : AppStrings.signInWithGoogle,
+                        style: const TextStyle(
                           fontSize: AppTheme.fontSizeMedium,
                           fontWeight: FontWeight.bold,
                         ),

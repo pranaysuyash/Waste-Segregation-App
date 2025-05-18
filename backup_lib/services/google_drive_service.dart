@@ -184,11 +184,12 @@ class GoogleDriveService {
       // Find app folder or create it
       final String appFolderName = 'WasteSegregationApp';
       String? folderId = await findFileOrFolder(appFolderName, isFolder: true);
-      
+
       folderId ??= await createFolder(appFolderName);
 
       // Backup file name with timestamp
-      final String fileName = 'waste_seg_backup_${DateTime.now().millisecondsSinceEpoch}.json';
+      final String fileName =
+          'waste_seg_backup_${DateTime.now().millisecondsSinceEpoch}.json';
 
       // Upload backup to drive
       return await uploadToDrive(
@@ -222,14 +223,16 @@ class GoogleDriveService {
 
       // Find app folder
       final String appFolderName = 'WasteSegregationApp';
-      final String? folderId = await findFileOrFolder(appFolderName, isFolder: true);
+      final String? folderId =
+          await findFileOrFolder(appFolderName, isFolder: true);
 
       if (folderId == null) {
         return [];
       }
 
       // List files in the folder
-      final String query = "'$folderId' in parents and name contains 'waste_seg_backup_' and trashed = false";
+      final String query =
+          "'$folderId' in parents and name contains 'waste_seg_backup_' and trashed = false";
       final fileList = await driveApi.files.list(q: query);
 
       if (fileList.files == null) {
