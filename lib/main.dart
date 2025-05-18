@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
+import 'firebase_options.dart'; // Import the Firebase options
 import 'services/ai_service.dart';
 import 'services/google_drive_service.dart';
 import 'services/storage_service.dart';
@@ -9,8 +12,11 @@ import 'services/educational_content_service.dart';
 import 'services/gamification_service.dart';
 import 'services/premium_service.dart';
 import 'services/ad_service.dart';
+import 'services/user_consent_service.dart';
 import 'screens/auth_screen.dart';
+import 'screens/consent_dialog_screen.dart';
 import 'utils/constants.dart';
+import 'providers/theme_provider.dart';
 
 /*
 Required packages:
@@ -23,6 +29,8 @@ Required packages:
   google_sign_in: ^6.1.6
   googleapis: ^12.0.0
   share_plus: ^7.2.1
+  firebase_core: ^latest_version
+  firebase_auth: ^latest_version
 */
 
 void main() async {
@@ -33,6 +41,17 @@ void main() async {
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,
   ]);
+
+  // Initialize Firebase with configuration options
+  try {
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
+    print('Firebase initialized successfully');
+  } catch (e) {
+    print('Failed to initialize Firebase: $e');
+    // Continue with app initialization even if Firebase fails
+  }
 
   // Initialize Hive for local storage
   await StorageService.initializeHive();
@@ -53,7 +72,7 @@ void main() async {
     adService.initialize(),
   ]);
 
-  runApp(MyApp(
+  runApp(WasteSegregationApp(
     storageService: storageService,
     aiService: aiService,
     educationalContentService: educationalContentService,
@@ -64,24 +83,24 @@ void main() async {
   ));
 }
 
-class MyApp extends StatelessWidget {
+class WasteSegregationApp extends StatelessWidget {
   final StorageService storageService;
   final AiService aiService;
-  final EducationalContentService educationalContentService;
+  final GoogleDriveService googleDriveService;
   final GamificationService gamificationService;
+  final EducationalContentService educationalContentService;
   final PremiumService premiumService;
   final AdService adService;
-  final GoogleDriveService googleDriveService;
 
-  const MyApp({
+  const WasteSegregationApp({
     super.key,
     required this.storageService,
     required this.aiService,
-    required this.educationalContentService,
+    required this.googleDriveService,
     required this.gamificationService,
+    required this.educationalContentService,
     required this.premiumService,
     required this.adService,
-    required this.googleDriveService,
   });
 
   @override
@@ -90,77 +109,112 @@ class MyApp extends StatelessWidget {
       providers: [
         Provider<StorageService>.value(value: storageService),
         Provider<AiService>.value(value: aiService),
-        Provider<EducationalContentService>.value(value: educationalContentService),
-        Provider<GamificationService>.value(value: gamificationService),
-        // Use ChangeNotifierProvider for PremiumService
-        ChangeNotifierProvider<PremiumService>.value(value: premiumService),
-        // Use ChangeNotifierProvider for AdService 
-        ChangeNotifierProvider<AdService>.value(value: adService),
         Provider<GoogleDriveService>.value(value: googleDriveService),
+        Provider<GamificationService>.value(value: gamificationService),
+        Provider<EducationalContentService>.value(value: educationalContentService),
+        ChangeNotifierProvider<PremiumService>.value(value: premiumService),
+        ChangeNotifierProvider<AdService>.value(value: adService),
+        ChangeNotifierProvider(create: (_) => ThemeProvider()),
       ],
-      child: MaterialApp(
-        title: AppStrings.appName,
-        theme: ThemeData(
-          primaryColor: AppTheme.primaryColor,
-          colorScheme: ColorScheme.fromSeed(
-            seedColor: AppTheme.primaryColor,
-            secondary: AppTheme.secondaryColor,
-          ),
-          appBarTheme: const AppBarTheme(
-            backgroundColor: AppTheme.primaryColor,
-            foregroundColor: Colors.white,
-            elevation: 0,
-          ),
-          scaffoldBackgroundColor: AppTheme.backgroundColor,
-          textTheme: const TextTheme(
-            bodyMedium: TextStyle(
-              color: AppTheme.textPrimaryColor,
+      child: Consumer<ThemeProvider>(
+        builder: (context, themeProvider, child) {
+          return MaterialApp(
+            title: AppStrings.appName,
+            theme: ThemeData(
+              primaryColor: AppTheme.primaryColor,
+              colorScheme: ColorScheme.fromSeed(
+                seedColor: AppTheme.primaryColor,
+                secondary: AppTheme.secondaryColor,
+              ),
+              appBarTheme: const AppBarTheme(
+                backgroundColor: AppTheme.primaryColor,
+                foregroundColor: Colors.white,
+                elevation: 0,
+              ),
+              scaffoldBackgroundColor: AppTheme.backgroundColor,
+              textTheme: const TextTheme(
+                bodyMedium: TextStyle(
+                  color: AppTheme.textPrimaryColor,
+                ),
+              ),
             ),
-          ),
-        ),
-        darkTheme: ThemeData(
-          primaryColor: AppTheme.darkPrimaryColor,
-          colorScheme: ColorScheme.fromSeed(
-            seedColor: AppTheme.darkPrimaryColor,
-            secondary: AppTheme.darkSecondaryColor,
-            brightness: Brightness.dark,
-          ),
-          appBarTheme: const AppBarTheme(
-            backgroundColor: AppTheme.darkPrimaryColor,
-            foregroundColor: Colors.white,
-            elevation: 0,
-          ),
-          scaffoldBackgroundColor: AppTheme.darkBackgroundColor,
-          textTheme: const TextTheme(
-            bodyMedium: TextStyle(
-              color: AppTheme.darkTextPrimaryColor,
+            darkTheme: ThemeData(
+              primaryColor: AppTheme.darkPrimaryColor,
+              colorScheme: ColorScheme.fromSeed(
+                seedColor: AppTheme.darkPrimaryColor,
+                secondary: AppTheme.darkSecondaryColor,
+                brightness: Brightness.dark,
+              ),
+              appBarTheme: const AppBarTheme(
+                backgroundColor: AppTheme.darkPrimaryColor,
+                foregroundColor: Colors.white,
+                elevation: 0,
+              ),
+              scaffoldBackgroundColor: AppTheme.darkBackgroundColor,
+              textTheme: const TextTheme(
+                bodyMedium: TextStyle(
+                  color: AppTheme.darkTextPrimaryColor,
+                ),
+              ),
             ),
-          ),
-        ),
-        themeMode: ThemeMode.system, // Allows the system to choose light or dark theme
-        home: FutureBuilder<bool>(
-          future: _checkIfUserLoggedIn(context),
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return const _SplashScreen();
-            }
+            themeMode: themeProvider.themeMode,
+            home: FutureBuilder<Map<String, bool>>(
+              future: _checkInitialConditions(),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const _SplashScreen();
+                }
 
-            final bool isLoggedIn = snapshot.data ?? false;
-            return isLoggedIn
-                ? const AuthScreen() // Will automatically redirect to HomeScreen if logged in
-                : const AuthScreen();
-          },
-        ),
+                final Map<String, bool> conditions = snapshot.data ?? {
+                  'hasConsent': false,
+                  'isLoggedIn': false,
+                };
+                
+                final bool hasConsent = conditions['hasConsent'] ?? false;
+                final bool isLoggedIn = conditions['isLoggedIn'] ?? false;
+                
+                // First, check if user has accepted privacy policy and terms
+                if (!hasConsent) {
+                  return ConsentDialogScreen(
+                    onConsent: () {
+                      // After consent, navigate to auth screen
+                      Navigator.pushReplacement(
+                        context,
+                        MaterialPageRoute(builder: (context) => const AuthScreen()),
+                      );
+                    },
+                    onDecline: () {
+                      // If user declines, exit the app
+                      SystemNavigator.pop();
+                    },
+                  );
+                }
+                
+                // Then check login status
+                return const AuthScreen(); // Will automatically redirect to HomeScreen if logged in
+              },
+            ),
+          );
+        },
       ),
     );
   }
 
-  Future<bool> _checkIfUserLoggedIn(BuildContext context) async {
+  Future<Map<String, bool>> _checkInitialConditions() async {
     // Wait a bit to show splash screen
     await Future.delayed(const Duration(seconds: 1));
 
+    // Check user consent status
+    final userConsentService = UserConsentService();
+    final bool hasConsent = await userConsentService.hasAllRequiredConsents();
+    
     // Check if user is logged in
-    return storageService.isUserLoggedIn();
+    final bool isLoggedIn = storageService.isUserLoggedIn();
+    
+    return {
+      'hasConsent': hasConsent,
+      'isLoggedIn': isLoggedIn,
+    };
   }
 }
 
