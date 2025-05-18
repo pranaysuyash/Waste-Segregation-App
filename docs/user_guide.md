@@ -12,25 +12,25 @@ When you classify a waste item, you'll now see:
 
 1. **Immediate Success Animation**
    
-   [Screenshot: Classification success animation]
+   (Placeholder for Classification success animation screenshot)
    
    A satisfying checkmark animation confirms your classification has been processed, with particle effects in the color of the waste category.
 
 2. **Points Popup**
    
-   [Screenshot: Points popup]
+   (Placeholder for Points popup screenshot)
    
    You'll immediately see how many points you've earned for your classification, with a brief explanation of the action.
 
 3. **Achievement Notifications**
    
-   [Screenshot: Achievement notification]
+   (Placeholder for Achievement notification screenshot)
    
    If you unlock a new achievement, a celebratory notification with confetti animation will appear, showing your achievement and reward.
 
 4. **Challenge Completion**
    
-   [Screenshot: Challenge completion notification]
+   (Placeholder for Challenge completion notification screenshot)
    
    When you complete a challenge, you'll see a special notification highlighting your accomplishment and the points earned.
 
@@ -40,19 +40,19 @@ The home screen now features more interactive gamification elements:
 
 1. **Animated Streak Counter**
    
-   [Screenshot: Enhanced streak counter]
+   (Placeholder for Enhanced streak counter screenshot)
    
    Your daily streak now features flame animations that intensify with longer streaks, and motivational messages to encourage you to maintain your momentum.
 
 2. **Dynamic Challenge Cards**
    
-   [Screenshot: Enhanced challenge card]
+   (Placeholder for Enhanced challenge card screenshot)
    
    Challenge cards now show animated progress, with celebratory effects when you get close to completion.
 
 3. **Level and Points Indicator**
    
-   [Screenshot: Enhanced points indicator]
+   (Placeholder for Enhanced points indicator screenshot)
    
    The points indicator in the top bar now shows level-up animations and clearer progress toward your next level.
 
@@ -73,19 +73,19 @@ You can access the Waste Dashboard through multiple entry points:
 
 1. **From the Home Screen**
    
-   [Screenshot: Dashboard button on home screen]
+   (Placeholder for Dashboard button on home screen screenshot)
    
    Tap the "View Waste Analytics Dashboard" button on the home screen.
 
 2. **After Classification**
    
-   [Screenshot: Dashboard button on results screen]
+   (Placeholder for Dashboard button on results screen screenshot)
    
    After classifying an item, tap "View Waste Analytics Dashboard" on the results screen.
 
 3. **From App Navigation**
    
-   [Screenshot: Dashboard icon in app bar]
+   (Placeholder for Dashboard icon in app bar screenshot)
    
    Tap the chart icon in the app bar from most screens.
 
@@ -105,7 +105,7 @@ The dashboard consists of three main tabs:
 
 #### 1. Overview Tab
 
-[Screenshot: Overview tab]
+(Placeholder for Overview tab screenshot)
 
 The Overview tab provides a high-level summary of your waste patterns:
 
@@ -116,7 +116,7 @@ The Overview tab provides a high-level summary of your waste patterns:
 
 #### 2. Trends Tab
 
-[Screenshot: Trends tab]
+(Placeholder for Trends tab screenshot)
 
 The Trends tab shows how your waste patterns change over time:
 
@@ -126,7 +126,7 @@ The Trends tab shows how your waste patterns change over time:
 
 #### 3. Insights Tab
 
-[Screenshot: Insights tab]
+(Placeholder for Insights tab screenshot)
 
 The Insights tab offers deeper analysis and personalized recommendations:
 
@@ -136,7 +136,7 @@ The Insights tab offers deeper analysis and personalized recommendations:
 
 ### Using the Time Filter
 
-[Screenshot: Time filter options]
+(Placeholder for Time filter options screenshot)
 
 You can filter the dashboard data by different time periods:
 
@@ -150,7 +150,7 @@ To change the time range, tap the corresponding button at the top of the Overvie
 
 #### Waste Composition Pie Chart
 
-[Screenshot: Annotated pie chart]
+(Placeholder for Annotated pie chart screenshot)
 
 * Each colored segment represents a waste category
 * Tap on a segment to see the exact percentage and item count
@@ -158,7 +158,7 @@ To change the time range, tap the corresponding button at the top of the Overvie
 
 #### Top Subcategories Bar Chart
 
-[Screenshot: Annotated bar chart]
+(Placeholder for Annotated bar chart screenshot)
 
 * Each bar represents a specific subcategory of waste
 * The height of the bar shows how many items of that type you've classified
@@ -166,7 +166,7 @@ To change the time range, tap the corresponding button at the top of the Overvie
 
 #### Waste Generation Chart
 
-[Screenshot: Annotated line chart]
+(Placeholder for Annotated line chart screenshot)
 
 * The line shows the number of items classified over time
 * Higher points indicate days with more classifications

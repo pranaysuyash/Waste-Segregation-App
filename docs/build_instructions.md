@@ -33,34 +33,30 @@ Before you begin, ensure you have the following installed:
 
 ## Configuration
 
-### API Keys
+### API Keys & Firebase Configuration
 
-1. Create a file `lib/utils/api_keys.dart` (this file is in .gitignore) with your API keys:
-   ```dart
-   // API Keys for Waste Segregation App
-   class ApiKeys {
-     // Gemini API key through OpenAI-compatible endpoint
-     static const String geminiApiKey = 'YOUR_GEMINI_API_KEY';
-     
-     // Google Sign-In Client ID (optional)
-     static const String googleClientId = 'YOUR_GOOGLE_CLIENT_ID';
-   }
-   ```
+API keys for Firebase services are managed through the `lib/firebase_options.dart` file (primarily for web configurations) and platform-specific configuration files:
 
-### Firebase Configuration (Optional)
+- **Firebase**:
+  1. Create a Firebase project in the [Firebase Console](https://console.firebase.google.com/).
+  2. Add your Android, iOS, and Web applications to the project.
+  3. **For Android**: Download `google-services.json` and place it in the `android/app/` directory.
+  4. **For iOS**: Download `GoogleService-Info.plist` and place it in the `ios/Runner/` directory. Ensure it's added to the Xcode project.
+  5. **For Web**: The necessary Firebase configuration (API key, auth domain, project ID, etc.) is typically managed within `lib/firebase_options.dart` and referenced by `web/index.html`. The `flutterfire configure` command helps generate `lib/firebase_options.dart`.
+  6. Ensure Firebase is initialized in `lib/main.dart` for all platforms.
 
-If you're using Firebase for authentication:
-
-1. **Create a Firebase project** in the [Firebase Console](https://console.firebase.google.com/)
-2. **Add applications** (Android, iOS, Web) to your Firebase project
-3. **Download configuration files**:
-   - For Android: `google-services.json` to `android/app/`
-   - For iOS: `GoogleService-Info.plist` to `ios/Runner/`
-   - For Web: Update the Firebase config in `web/index.html` and in `lib/firebase_options.dart`
-4. **Initialize Firebase in the app**:
-   ```dart
-   // Already implemented in the app
-   ```
+- **Other API Keys (e.g., for a separate AI service like Gemini if not used via a Firebase extension)**:
+  - If your project requires API keys for services not managed by Firebase (e.g., a direct Gemini API key), you must manage these securely.
+  - **Do not hardcode API keys directly in version-controlled files.**
+  - A common practice is to use a gitignored file (e.g., `lib/config/runtime_constants.dart` or similar) to define these keys, or pass them via environment variables at build time.
+  - Example of a gitignored constants file:
+    ```dart
+    // lib/config/runtime_constants.dart (add this file to .gitignore)
+    // class RuntimeConstants {
+    //   static const String thirdPartyApiKey = 'YOUR_ACTUAL_API_KEY';
+    // }
+    ```
+  - Ensure any such file is included in your `.gitignore`.
 
 ## Building the App
 

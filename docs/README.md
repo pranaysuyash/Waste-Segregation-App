@@ -90,11 +90,9 @@ Several documentation improvements have been made:
 - [Implementation Options](technical/implementation/implementation_options.md) - General implementation options
 - [Firebase Integration](technical/implementation/firebase_integration_summary.md) - Firebase integration details
 - [Firebase Studio Changes](technical/implementation/firebase-studio-changes.md) - Changes made in Firebase Studio
-- [Instructions for Firebase](technical/implementation/instructions_for_firebase.md) - Instructions for setting up Firebase
 - [Package Upgrades](technical/implementation/upgrade_packages.md) - Package upgrade guidelines
 - [Blockchain Waste Tracking](technical/implementation/blockchain_waste_tracking.md) - Blockchain integration for waste tracking
 - [Smart Bin Integration](technical/implementation/smart_bin_integration.md) - Integration with smart waste bins
-- [Testing Strategy](technical/implementation/testing_strategy.md) - Testing strategy and methodologies
 - [Comprehensive Testing Strategy](technical/implementation/comprehensive_testing_strategy.md) - Detailed testing approach
 
 ## User Experience Documentation
