@@ -36,11 +36,16 @@ The app provides educational content about each category, stores classification 
   - Daily streaks with bonus incentives
   - Challenges with rewards
   - Weekly statistics tracking
+  - Animated rewards with immediate visual feedback
+  - Enhanced achievement notifications
+  - Challenge completion celebrations
 
 - **Data Management**:
   - Local storage of classifications and user preferences
   - Optional sync to Google Drive for cross-device access
   - History of previously identified items
+  - Personal waste analytics dashboard
+  - Waste composition trends and insights
 
 ## Technical Implementation
 
@@ -51,6 +56,7 @@ The app provides educational content about each category, stores classification 
 - **Image Handling**: image_picker package
 - **AI Integration**: Gemini API via OpenAI-compatible endpoint using the gemini-2.0-flash model
 - **Google Integration**: google_sign_in package with Firebase authentication
+- **Data Visualization**: fl_chart package for waste analytics
 
 ## Getting Started
 
@@ -107,6 +113,7 @@ lib/
 │   ├── content_detail_screen.dart
 │   ├── quiz_screen.dart
 │   ├── achievements_screen.dart
+│   ├── waste_dashboard_screen.dart
 │   └── leaderboard_screen.dart
 ├── services/
 │   ├── ai_service.dart
@@ -119,9 +126,12 @@ lib/
 │   ├── classification_card.dart
 │   ├── platform_camera.dart
 │   ├── enhanced_camera.dart
-│   └── gamification_widgets.dart
+│   ├── gamification_widgets.dart
+│   ├── enhanced_gamification_widgets.dart
+│   └── waste_chart_widgets.dart
 ├── utils/
-│   └── constants.dart
+│   ├── constants.dart
+│   └── animation_helpers.dart
 └── main.dart
 ```
 
@@ -134,6 +144,9 @@ lib/
 - Core UI screens (home, auth, image capture, results)
 - Educational content framework
 - Comprehensive gamification system (points, achievements, challenges)
+- Enhanced gamification with immediate visual feedback
+- Animated rewards and achievement notifications
+- Personal waste analytics dashboard with visualizations
 - Local storage with Hive
 - Google Sign-In
 - Thumbnail generation and storage for classifications (local image caching)
@@ -167,6 +180,8 @@ For a consolidated feature roadmap—including implemented, in-progress, pending
 - google_sign_in: ^6.1.6
 - googleapis: ^13.2.0
 - share_plus: ^7.2.1
+- fl_chart: ^0.65.0
+- intl: ^0.19.0
 
 ## License
 
