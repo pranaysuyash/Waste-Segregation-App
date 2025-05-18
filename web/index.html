@@ -1,80 +1,115 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-  <!-- Required meta tag for camera access -->
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <!--
-    If you are serving your web app in a path other than the root, change the
-    href value below to reflect the base path you are serving from.
-
-    The path provided below has to start and end with a slash "/" in order for
-    it to work correctly.
-
-    For more details:
-    * https://developer.mozilla.org/en-US/docs/Web/HTML/Element/base
-
-    This is a placeholder for base href that will be replaced by the value of
-    the `--base-href` argument provided to `flutter build`.
-  -->
   <base href="$FLUTTER_BASE_HREF">
 
   <meta charset="UTF-8">
   <meta content="IE=Edge" http-equiv="X-UA-Compatible">
-  <meta name="description" content="A new Flutter project.">
-  
-  <!-- Camera permissions for web -->
-  <meta name="camera-permissions" content="true">
-  <meta http-equiv="permissions-policy" content="camera=(), microphone=()">
+  <meta name="description" content="A waste segregation app">
 
   <!-- iOS meta tags & icons -->
   <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black">
-  <meta name="apple-mobile-web-app-title" content="waste_segregation_app">
+  <meta name="apple-mobile-web-app-title" content="Waste Segregation">
   <link rel="apple-touch-icon" href="icons/Icon-192.png">
 
   <!-- Favicon -->
   <link rel="icon" type="image/png" href="favicon.png"/>
 
-  <title>waste_segregation_app</title>
+  <title>Waste Segregation App</title>
   <link rel="manifest" href="manifest.json">
-  
-  <!-- Camera access scripts -->
-  <script src="camera-access.js"></script>
-</head>
-<body>
-  <!-- Add camera support for web -->
+
   <script>
-    // Define a global function that Flutter can call to access camera
-    window.requestCameraPermission = function() {
-      return new Promise((resolve, reject) => {
-        if (typeof navigator.mediaDevices === 'undefined' || 
-            typeof navigator.mediaDevices.getUserMedia === 'undefined') {
-          console.warn('Camera access not supported in this browser');
-          reject('Camera not supported');
-          return;
-        }
-        
-        navigator.mediaDevices.getUserMedia({ 
-          video: {
-            facingMode: 'environment' // Prefer back camera
-          } 
-        })
-        .then(function(stream) {
-          // Release camera immediately after permission
-          stream.getTracks().forEach(track => track.stop());
-          console.log('Camera permission granted');
-          resolve('granted');
-        })
-        .catch(function(err) {
-          console.error('Camera permission denied: ', err);
-          reject(err);
-        });
-      });
+    // The value below is injected by flutter build, do not touch.
+    var serviceWorkerVersion = null;
+  </script>
+  
+  <!-- This script adds the flutter initialization JS code -->
+  <script src="flutter.js" defer></script>
+  
+  <!-- Firebase Core JS SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js"></script>
+  
+  <!-- Firebase Auth JS SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js"></script>
+  
+  <!-- Initialize Firebase -->
+  <script>
+    // Firebase configuration
+    const firebaseConfig = {
+      apiKey: "AIzaSyA6u5t0aBkVB6h_6AKeGEOhhUF9oHqFXUA",
+      authDomain: "waste-segregation-app.firebaseapp.com",
+      projectId: "waste-segregation-app",
+      storageBucket: "waste-segregation-app.appspot.com",
+      messagingSenderId: "123456789012",
+      appId: "1:123456789012:web:1234567890abcdef123456"
     };
     
-    // Try to request permission early
-    window.requestCameraPermission().catch(err => console.log('Initial camera request:', err));
+    // Initialize Firebase - will be used by FlutterFire
+    // We don't immediately initialize here as Firebase will be initialized by Flutter
   </script>
-  <script src="flutter_bootstrap.js" async></script>
+</head>
+<body>
+  <script>
+    window.addEventListener('load', function(ev) {
+      // Download main.dart.js
+      _flutter = {};
+      _flutter.loader = _flutter.loader || {};
+      
+      // Initialize service worker
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('flutter_service_worker.js?v=' + serviceWorkerVersion);
+      }
+      
+      // Configure clipboard access
+      window.copyToClipboard = function(text) {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          return navigator.clipboard.writeText(text);
+        } else {
+          // Fallback for older browsers
+          const textArea = document.createElement('textarea');
+          textArea.value = text;
+          textArea.style.position = 'fixed';
+          textArea.style.opacity = '0';
+          document.body.appendChild(textArea);
+          textArea.select();
+          document.execCommand('copy');
+          document.body.removeChild(textArea);
+          return Promise.resolve();
+        }
+      };
+      
+      // Updated Flutter loader initialization
+      var loadOptions = {
+        serviceWorker: {
+          serviceWorkerVersion: serviceWorkerVersion,
+        }
+      };
+      
+      // Properly initialize Flutter
+      flutter = { loader: {} };
+      window._flutter_loader = flutter.loader;
+      
+      flutter.loader.loadEntrypoint({
+        serviceWorker: {
+          serviceWorkerVersion: serviceWorkerVersion,
+        },
+        onEntrypointLoaded: async function(engineInitializer) {
+          // Initialize the Flutter engine
+          let appRunner = await engineInitializer.initializeEngine({
+            hostElement: document.querySelector('#flutter_app'),
+            renderer: 'html'
+          });
+          
+          // Run the app
+          await appRunner.runApp();
+        }
+      });
+    });
+  </script>
+  
+  <!-- Create a container for Flutter app rendering -->
+  <div id="flutter_app" style="width: 100%; height: 100vh;"></div>
 </body>
 </html>
