@@ -545,10 +545,12 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Future<void> _signOut() async {
     try {
-      final googleDriveService =
-          Provider.of<GoogleDriveService>(context, listen: false);
-      await googleDriveService.signOut();
-
+      final storageService = Provider.of<StorageService>(context, listen: false);
+      await storageService.clearAllUserData(); // Clear all local data
+      if (!widget.isGuestMode) {
+        final googleDriveService = Provider.of<GoogleDriveService>(context, listen: false);
+        await googleDriveService.signOut();
+      }
       if (mounted) {
         Navigator.pushReplacement(
           context,
@@ -1171,11 +1173,14 @@ class _HomeScreenState extends State<HomeScreen> {
               );
             },
           ),
-          if (!widget.isGuestMode)
-            IconButton(
-              icon: const Icon(Icons.logout),
-              onPressed: _signOut,
+          IconButton(
+            icon: Icon(
+              Icons.logout,
+              color: Colors.white,
             ),
+            tooltip: widget.isGuestMode ? 'Exit Guest Mode' : 'Sign Out',
+            onPressed: _signOut,
+          ),
         ],
       ),
       body: Stack(

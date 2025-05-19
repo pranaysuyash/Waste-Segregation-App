@@ -444,4 +444,14 @@ class StorageService {
       rethrow;
     }
   }
+
+  /// Clear all user-specific data (user info, classifications, settings, cache)
+  Future<void> clearAllUserData() async {
+    await clearUserInfo();
+    await clearAllClassifications();
+    final settingsBox = Hive.box(StorageKeys.settingsBox);
+    await settingsBox.clear();
+    final cacheBox = Hive.box<String>(StorageKeys.cacheBox);
+    await cacheBox.clear();
+  }
 }

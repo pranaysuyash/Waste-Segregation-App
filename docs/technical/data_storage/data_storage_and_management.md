@@ -49,6 +49,26 @@ User
 5. **Security by Design**: Implement appropriate protection measures
 6. **Privacy by Default**: Privacy-preserving settings as default
 
+### User Data Isolation and Sign-Out Behavior
+
+To ensure privacy and data integrity, the app now enforces strict separation between guest and signed-in user data:
+
+- **On Sign-Out (for both guest and signed-in users):**
+  - All user-specific local data is cleared, including:
+    - User profile info
+    - Classification history
+    - App settings
+    - Local classification cache
+  - For signed-in users, the app also signs out from Google and clears any synced user info.
+  - For guest users, only local data is cleared.
+  - After sign-out, the app returns to the authentication screen.
+
+- **On Switching to Guest Mode:**
+  - The app starts with a clean state, ensuring no data from previous users is visible.
+  - Any analysis or history performed in guest mode is not visible to signed-in users and vice versa.
+
+This is implemented via a `clearAllUserData()` method in the `StorageService`, which is called on sign-out for all user types.
+
 ## 2. Local Storage Strategy
 
 ### Local Database Architecture
