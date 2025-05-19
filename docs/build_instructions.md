@@ -276,3 +276,46 @@ If you encounter any issues during the build process, please check the following
    ```
 
 For any additional issues, please refer to the developer documentation or create an issue in the GitHub repository.
+
+# Play Store Release Checklist
+
+## 1. App & Codebase
+- [x] All code, assets, and documentation are up to date and pushed to remote.
+- [x] App name is set via `strings.xml` and referenced in the manifest.
+- [x] Release AAB (`app-release.aab`) is built and ready for upload.
+- [x] No debug/test code or banners in release build.
+- [x] Version and build number are set in `pubspec.yaml`.
+
+## 2. Play Store Listing Assets
+- [ ] App Icon: 512x512px PNG (no alpha)
+- [ ] Feature Graphic: 1024x500px PNG
+- [ ] Screenshots: At least 2 for each device type (phone, 7" tablet, 10" tablet)
+- [ ] Short Description: Up to 80 characters
+- [ ] Full Description: Up to 4000 characters
+- [ ] App Name: Up to 50 characters (choose your final name, e.g., WasteWise, RecycleMate, etc.)
+- [ ] Promo Video: (Optional, YouTube link)
+
+## 3. Compliance & Policy
+- [ ] Privacy Policy URL: Required for apps using Firebase, Google Sign-In, or AdMob
+- [ ] Content Rating Questionnaire: Complete in Play Console
+- [ ] Data Safety Section: Fill out in Play Console
+- [ ] Declare Ad Presence: If using AdMob, declare ads in Play Console
+- [ ] Contact Email: Set in Play Console
+
+## 4. Technical
+- [x] Target API level is up to date (API 33+)
+- [x] App Bundle (AAB) is used for upload
+- [x] App name, icon, and manifest are correct
+- [x] Firebase and Google Sign-In are working
+
+## 5. Internal Testing
+- [ ] Create an internal testing track in Play Console
+- [ ] Add tester email addresses
+- [ ] Upload your AAB and roll out to testers
+- [ ] Share opt-in link with testers
+
+## 6. (Optional) Branding
+- [ ] Finalize your app name and tagline for the store
+- [ ] Update app icon if you change the name/branding
+
+For privacy policy templates, Play Store description help, screenshots, or branding, see the README or ask for guidance.
