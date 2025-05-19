@@ -4,6 +4,7 @@ import '../models/gamification.dart';
 import '../services/gamification_service.dart';
 import '../utils/constants.dart';
 import '../widgets/profile_summary_card.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 
 class AchievementsScreen extends StatefulWidget {
   final int initialTabIndex;
@@ -285,14 +286,7 @@ class _AchievementsScreenState extends State<AchievementsScreen>
                         ? Border.all(color: achievement.getTierColor(), width: 2)
                         : null,
                   ),
-                  child: Icon(
-                    IconData(
-                      _getIconCodePoint(achievement.iconName),
-                      fontFamily: 'MaterialIcons',
-                    ),
-                    color: isEarned ? achievement.color : Colors.grey,
-                    size: 36,
-                  ),
+                  child: getAchievementIcon(achievement.iconName, color: isEarned ? achievement.color : Colors.grey, size: 36),
                 ),
                 const SizedBox(height: 8),
                 // Achievement title
@@ -472,14 +466,7 @@ class _AchievementsScreenState extends State<AchievementsScreen>
                     ? Border.all(color: achievement.getTierColor(), width: 3)
                     : null,
               ),
-              child: Icon(
-                IconData(
-                  _getIconCodePoint(achievement.iconName),
-                  fontFamily: 'MaterialIcons',
-                ),
-                color: achievement.isEarned ? achievement.color : Colors.grey,
-                size: 48,
-              ),
+              child: getAchievementIcon(achievement.iconName, color: achievement.isEarned ? achievement.color : Colors.grey, size: 48),
             ),
             const SizedBox(height: AppTheme.paddingRegular),
             
@@ -786,14 +773,7 @@ class _AchievementsScreenState extends State<AchievementsScreen>
                     color: challenge.color.withOpacity(0.2),
                     shape: BoxShape.circle,
                   ),
-                  child: Icon(
-                    IconData(
-                      _getIconCodePoint(challenge.iconName),
-                      fontFamily: 'MaterialIcons',
-                    ),
-                    color: challenge.color,
-                    size: 28,
-                  ),
+                  child: getAchievementIcon(challenge.iconName, color: challenge.color, size: 28),
                 ),
                 const SizedBox(width: AppTheme.paddingSmall),
                 Expanded(
@@ -1375,5 +1355,20 @@ class _AchievementsScreenState extends State<AchievementsScreen>
     }
 
     return Colors.grey; // Default color
+  }
+
+  // Helper to get a safe icon for achievements (constant for web, dynamic for mobile)
+  Icon getAchievementIcon(String iconName, {Color? color, double? size}) {
+    if (kIsWeb) {
+      // Use a constant icon for web to avoid tree shaking issues
+      return Icon(Icons.emoji_events, color: color, size: size);
+    } else {
+      // Use dynamic icon for mobile
+      return Icon(
+        IconData(_getIconCodePoint(iconName), fontFamily: 'MaterialIcons'),
+        color: color,
+        size: size,
+      );
+    }
   }
 }

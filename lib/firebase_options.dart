@@ -22,44 +22,51 @@ class DefaultFirebaseOptions {
     }
   }
 
-  // Firebase configuration settings for Android
   static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'YOUR_ANDROID_API_KEY',
-    appId: 'YOUR_ANDROID_APP_ID',
-    messagingSenderId: 'YOUR_SENDER_ID',
-    projectId: 'waste-segregation-app',
-    storageBucket: 'waste-segregation-app.appspot.com',
+    apiKey: 'AIzaSyCvMKQNvA00QZHTg6BQ4mOaKtRXgKNqbpo',
+    appId: '1:1093372542184:android:160b71eb63bc7004355d5d',
+    messagingSenderId: '1093372542184',
+    projectId: 'waste-segregation-app-df523',
+    storageBucket: 'waste-segregation-app-df523.firebasestorage.app',
+  );
+
+  // Firebase configuration settings for Android
+
+  static const FirebaseOptions ios = FirebaseOptions(
+    apiKey: 'AIzaSyB6r1DqZvXQtMEEYtJTZ8dxlXWU_26_1Hk',
+    appId: '1:1093372542184:ios:90435500e0965a1c355d5d',
+    messagingSenderId: '1093372542184',
+    projectId: 'waste-segregation-app-df523',
+    storageBucket: 'waste-segregation-app-df523.firebasestorage.app',
+    androidClientId: '1093372542184-vt0daid8t327soohu1um5hf5lpmkqg92.apps.googleusercontent.com',
+    iosClientId: '1093372542184-ce0c41hlrj11il6tnrisugjud0l5u3j7.apps.googleusercontent.com',
+    iosBundleId: 'com.example.wasteSegregationApp',
   );
 
   // Firebase configuration settings for iOS
-  static const FirebaseOptions ios = FirebaseOptions(
-    apiKey: 'YOUR_IOS_API_KEY',
-    appId: 'YOUR_IOS_APP_ID', 
-    messagingSenderId: 'YOUR_SENDER_ID',
-    projectId: 'waste-segregation-app',
-    storageBucket: 'waste-segregation-app.appspot.com',
-    iosClientId: 'YOUR_IOS_CLIENT_ID',
+
+  static const FirebaseOptions macos = FirebaseOptions(
+    apiKey: 'AIzaSyB6r1DqZvXQtMEEYtJTZ8dxlXWU_26_1Hk',
+    appId: '1:1093372542184:ios:90435500e0965a1c355d5d',
+    messagingSenderId: '1093372542184',
+    projectId: 'waste-segregation-app-df523',
+    storageBucket: 'waste-segregation-app-df523.firebasestorage.app',
+    androidClientId: '1093372542184-vt0daid8t327soohu1um5hf5lpmkqg92.apps.googleusercontent.com',
+    iosClientId: '1093372542184-ce0c41hlrj11il6tnrisugjud0l5u3j7.apps.googleusercontent.com',
     iosBundleId: 'com.example.wasteSegregationApp',
   );
 
   // Firebase configuration settings for macOS
-  static const FirebaseOptions macos = FirebaseOptions(
-    apiKey: 'YOUR_MACOS_API_KEY',
-    appId: 'YOUR_MACOS_APP_ID',
-    messagingSenderId: 'YOUR_SENDER_ID',
-    projectId: 'waste-segregation-app',
-    storageBucket: 'waste-segregation-app.appspot.com',
-    iosClientId: 'YOUR_MACOS_CLIENT_ID',
-    iosBundleId: 'com.example.wasteSegregationApp',
+
+  static const FirebaseOptions web = FirebaseOptions(
+    apiKey: 'AIzaSyBKU5b43AxbK4S_SHotfT8vYTabNVGyWOk',
+    appId: '1:1093372542184:web:f6d7c0170b4a16a6355d5d',
+    messagingSenderId: '1093372542184',
+    projectId: 'waste-segregation-app-df523',
+    authDomain: 'waste-segregation-app-df523.firebaseapp.com',
+    storageBucket: 'waste-segregation-app-df523.firebasestorage.app',
+    measurementId: 'G-4NHHDPWNYJ',
   );
 
   // Firebase configuration settings for Web
-  static const FirebaseOptions web = FirebaseOptions(
-    apiKey: 'AIzaSyA6u5t0aBkVB6h_6AKeGEOhhUF9oHqFXUA',
-    appId: '1:123456789012:web:1234567890abcdef123456',
-    messagingSenderId: '123456789012',
-    projectId: 'waste-segregation-app',
-    storageBucket: 'waste-segregation-app.appspot.com',
-    authDomain: 'waste-segregation-app.firebaseapp.com',
-  );
 } 

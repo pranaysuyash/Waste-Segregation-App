@@ -33,16 +33,31 @@ Required packages:
   firebase_auth: ^latest_version
 */
 
-void main() async {
+void main() {
+  if (kIsWeb) {
+    runApp(const MaterialApp(
+      home: Scaffold(
+        body: Center(child: Text('It works!')),
+      ),
+    ));
+  } else {
+    originalMain();
+  }
+}
+
+Future<void> originalMain() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Set preferred orientations
-  await SystemChrome.setPreferredOrientations([
-    DeviceOrientation.portraitUp,
-    DeviceOrientation.portraitDown,
-  ]);
+  if (!kIsWeb) {
+    print('Before setPreferredOrientations');
+    await SystemChrome.setPreferredOrientations([
+      DeviceOrientation.portraitUp,
+      DeviceOrientation.portraitDown,
+    ]);
+    print('After setPreferredOrientations');
+  }
 
-  // Initialize Firebase with configuration options
+  print('Before Firebase.initializeApp');
   try {
     await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,
@@ -53,8 +68,9 @@ void main() async {
     // Continue with app initialization even if Firebase fails
   }
 
-  // Initialize Hive for local storage
+  print('Before StorageService.initializeHive');
   await StorageService.initializeHive();
+  print('After StorageService.initializeHive');
 
   // Create service instances early to allow initialization
   final storageService = StorageService();
@@ -65,13 +81,15 @@ void main() async {
   final adService = AdService();
   final googleDriveService = GoogleDriveService(storageService);
 
-  // Initialize services in parallel
+  print('Before service initializations');
   await Future.wait([
     gamificationService.initGamification(),
     premiumService.initialize(),
     adService.initialize(),
   ]);
+  print('After service initializations');
 
+  print('Before runApp');
   runApp(WasteSegregationApp(
     storageService: storageService,
     aiService: aiService,
@@ -81,6 +99,7 @@ void main() async {
     adService: adService,
     googleDriveService: googleDriveService,
   ));
+  print('After runApp');
 }
 
 class WasteSegregationApp extends StatelessWidget {

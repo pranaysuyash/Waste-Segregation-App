@@ -37,6 +37,13 @@
             {
               "client_id": "1093372542184-r9fpan6camcgpas8o967ksrg01h2h28u.apps.googleusercontent.com",
               "client_type": 3
+            },
+            {
+              "client_id": "1093372542184-ce0c41hlrj11il6tnrisugjud0l5u3j7.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.wasteSegregationApp"
+              }
             }
           ]
         }
