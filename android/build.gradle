@@ -48,7 +48,7 @@ buildscript {
         // Kotlin Gradle plugin
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:${kotlin_version}"
 
-        // Google Services Gradle plugin
+        // Google Services Gradle plugin (use only 4.4.2)
         classpath 'com.google.gms:google-services:4.4.2'
     }
 }
