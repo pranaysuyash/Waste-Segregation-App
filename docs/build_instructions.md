@@ -282,6 +282,7 @@ For any additional issues, please refer to the developer documentation or create
 ## 1. App & Codebase
 - [x] All code, assets, and documentation are up to date and pushed to remote.
 - [x] App name is set via `strings.xml` and referenced in the manifest.
+- [x] Package name is set to `com.pranaysuyash.wastewise` (required for Play Store).
 - [x] Release AAB (`app-release.aab`) is built and ready for upload.
 - [x] No debug/test code or banners in release build.
 - [x] Version and build number are set in `pubspec.yaml`.
@@ -307,6 +308,7 @@ For any additional issues, please refer to the developer documentation or create
 - [x] App Bundle (AAB) is used for upload
 - [x] App name, icon, and manifest are correct
 - [x] Firebase and Google Sign-In are working
+- [x] `google-services.json` is updated for the new package name (`com.pranaysuyash.wastewise`).
 
 ## 5. Internal Testing
 - [ ] Create an internal testing track in Play Console
@@ -317,5 +319,22 @@ For any additional issues, please refer to the developer documentation or create
 ## 6. (Optional) Branding
 - [ ] Finalize your app name and tagline for the store
 - [ ] Update app icon if you change the name/branding
+
+## Release Notes Template
+For your first release, you can use:
+
+```
+Welcome to the first release of WasteWise!
+
+• AI-powered waste identification and sorting
+• Google Sign-In and guest mode
+• Gamification: achievements, challenges, and daily streaks
+• Educational content and waste analytics dashboard
+• Local data storage with optional Google Drive sync
+• Camera and gallery support for waste classification
+• Clean, modern UI with dark mode
+
+Thank you for helping make waste segregation smarter and easier!
+```
 
 For privacy policy templates, Play Store description help, screenshots, or branding, see the README or ask for guidance.

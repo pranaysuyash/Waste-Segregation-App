@@ -1,4 +1,4 @@
-package com.example.waste_segregation_app
+package com.pranaysuyash.wastewise
 
 import io.flutter.embedding.android.FlutterActivity
 

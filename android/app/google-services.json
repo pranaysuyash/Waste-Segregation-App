@@ -48,6 +48,50 @@
           ]
         }
       }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1093372542184:android:f7749b5e5878dcf2355d5d",
+        "android_client_info": {
+          "package_name": "com.pranaysuyash.wastewise"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1093372542184-e583rrrk0j2apa6b9vreo41a7lvk2o4o.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.pranaysuyash.wastewise",
+            "certificate_hash": "af9430cdb1daf021366152bf50540f7743973108"
+          }
+        },
+        {
+          "client_id": "1093372542184-r9fpan6camcgpas8o967ksrg01h2h28u.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCvMKQNvA00QZHTg6BQ4mOaKtRXgKNqbpo"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1093372542184-r9fpan6camcgpas8o967ksrg01h2h28u.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "1093372542184-ce0c41hlrj11il6tnrisugjud0l5u3j7.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.wasteSegregationApp"
+              }
+            }
+          ]
+        }
+      }
     }
   ],
   "configuration_version": "1"
