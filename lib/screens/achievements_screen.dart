@@ -1357,18 +1357,9 @@ class _AchievementsScreenState extends State<AchievementsScreen>
     return Colors.grey; // Default color
   }
 
-  // Helper to get a safe icon for achievements (constant for web, dynamic for mobile)
+  // Helper to get a safe icon for achievements (constant for release)
   Icon getAchievementIcon(String iconName, {Color? color, double? size}) {
-    if (kIsWeb) {
-      // Use a constant icon for web to avoid tree shaking issues
-      return Icon(Icons.emoji_events, color: color, size: size);
-    } else {
-      // Use dynamic icon for mobile
-      return Icon(
-        IconData(_getIconCodePoint(iconName), fontFamily: 'MaterialIcons'),
-        color: color,
-        size: size,
-      );
-    }
+    // Always use a constant icon for release builds to avoid tree shaking issues
+    return Icon(Icons.emoji_events, color: color, size: size);
   }
 }
