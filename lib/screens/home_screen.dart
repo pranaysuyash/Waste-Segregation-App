@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'dart:typed_data';
 
 // Import the platform-agnostic web utilities
 // Platform-agnostic stub
@@ -18,6 +19,7 @@ import '../services/educational_content_service.dart';
 import '../services/gamification_service.dart';
 import '../services/ad_service.dart';
 import '../utils/constants.dart';
+import '../utils/safe_collection_utils.dart';
 import '../widgets/capture_button.dart';
 import '../widgets/enhanced_gamification_widgets.dart';
 import '../widgets/gamification_widgets.dart';
@@ -86,12 +88,11 @@ class _HomeScreenState extends State<HomeScreen> {
       final challenges = await gamificationService.getActiveChallenges();
 
       setState(() {
-        _gamificationProfile = profile;
-        _activeChallenges = challenges;
-        _recentAchievements = profile.achievements
-            .where((a) => a.isEarned)
-            .toList()
-          ..sort((a, b) => b.earnedOn!.compareTo(a.earnedOn!));
+      _gamificationProfile = profile;
+      _activeChallenges = challenges;
+      _recentAchievements = profile.achievements
+      .safeWhere((a) => a.isEarned)
+      ..sort((a, b) => (b.earnedOn ?? DateTime.now()).compareTo(a.earnedOn ?? DateTime.now()));
       });
     } catch (e) {
       debugPrint('Error loading gamification data: $e');
@@ -138,8 +139,7 @@ class _HomeScreenState extends State<HomeScreen> {
       final classifications = await storageService.getAllClassifications();
 
       setState(() {
-        _recentClassifications =
-            classifications.take(5).toList(); // Show only 5 most recent
+        _recentClassifications = classifications.safeTake(5); // Show only 5 most recent using safe collection
       });
     } catch (e) {
       if (mounted) {
@@ -1049,7 +1049,7 @@ class _HomeScreenState extends State<HomeScreen> {
         const SizedBox(height: AppTheme.paddingRegular),
 
         // Active challenges
-        if (_activeChallenges.isNotEmpty) ...[
+        if (_activeChallenges.isNotNullOrEmpty) ...[
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -1174,7 +1174,7 @@ class _HomeScreenState extends State<HomeScreen> {
             },
           ),
           IconButton(
-            icon: Icon(
+            icon: const Icon(
               Icons.logout,
               color: Colors.white,
             ),
@@ -1302,7 +1302,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 const SizedBox(height: AppTheme.paddingLarge),
 
                 // Recent classifications
-                if (_recentClassifications.isNotEmpty) ...[
+                if (_recentClassifications.isNotNullOrEmpty) ...[
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [

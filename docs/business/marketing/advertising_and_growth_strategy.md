@@ -229,6 +229,41 @@ class AdManager {
 | Extended History | 7-day history extension | Utility enhancement | Temporary limit increase |
 | Offline Mode Trial | 24-hour offline capability | Feature preview | Time-based feature flag |
 
+## Ad-Unlocked Premium Features: Unique Value Exchange Ideas
+
+In addition to the value exchange opportunities above, consider these unique ad-based premium unlock mechanisms:
+
+1. **Ad-Unlocked Premium Pass (Time-Limited):**
+   - Watch a rewarded ad to unlock all premium features for 24 hours.
+   - Show a countdown timer and a "Premium Unlocked" badge.
+
+2. **Feature-Specific Unlocks:**
+   - Watch an ad to unlock a single premium feature (e.g., advanced analytics, offline mode) for a set period (e.g., 1 hour, 1 day).
+
+3. **Premium Classification Credits:**
+   - Each ad watched grants 1–5 "premium credits" that can be spent on premium-only actions (e.g., exporting data, advanced classification).
+
+4. **Double Points/XP Boost:**
+   - Watch an ad to activate a double points/XP boost for the next 5 classifications.
+
+5. **Ad-Unlocked Data Export:**
+   - Allow free users to export their data (CSV/PDF) once after watching a rewarded ad.
+
+6. **Ad-Unlocked Customization:**
+   - Watch an ad to unlock custom themes or avatars for a limited time.
+
+7. **Ad-Unlocked History Extension:**
+   - Watch an ad to temporarily extend classification history access (e.g., see 30 days instead of 7).
+
+8. **Offline Mode Trial:**
+   - Watch an ad to enable offline classification for 24 hours.
+
+9. **Premium Educational Content:**
+   - Watch an ad to access a premium educational article or video.
+
+10. **"Streak Saver":**
+    - If a user misses a day, let them watch an ad to preserve their streak.
+
 ### Ad Performance Optimization Strategy
 
 1. **A/B Testing Framework**:

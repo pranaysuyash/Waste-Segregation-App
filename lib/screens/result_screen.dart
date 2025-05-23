@@ -2,19 +2,23 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../utils/share_service.dart'; // Updated to use our new implementation
+import '../utils/share_service.dart';
 import 'package:path_provider/path_provider.dart';
 import '../models/waste_classification.dart';
 import '../models/gamification.dart';
 import '../services/storage_service.dart';
 import '../services/gamification_service.dart';
 import '../utils/constants.dart';
-import '../utils/error_handler.dart'; // Add this import
+import '../utils/error_handler.dart';
 import '../utils/animation_helpers.dart';
+import '../utils/safe_collection_utils.dart';
 import '../widgets/classification_card.dart';
 import '../widgets/recycling_code_info.dart';
 import '../widgets/enhanced_gamification_widgets.dart';
+import '../widgets/interactive_tag.dart';
 import '../screens/waste_dashboard_screen.dart';
+import '../screens/educational_content_screen.dart';
+import '../screens/history_screen.dart';
 
 class ResultScreen extends StatefulWidget {
   final WasteClassification classification;
@@ -49,15 +53,11 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
       duration: const Duration(milliseconds: 1500),
     );
     
-    // Automatically save the classification
-    _autoSaveClassification();
-    
     // Process the classification for gamification only if it's a new classification
     if (widget.showActions) {
+      _autoSaveClassification();
       _processClassification();
     } else {
-      // If we are not processing for gamification (i.e., viewing from history),
-      // we should ensure the main content is visible immediately without feedback animations.
       _showingClassificationFeedback = false;
     }
   }
@@ -78,17 +78,18 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
       
       await storageService.saveClassification(widget.classification);
       
-      setState(() {
-        _isSaved = true;
-      });
-      
-      // No need to show a snackbar since it's automatic
+      if (mounted) {
+        setState(() {
+          _isSaved = true;
+        });
+      }
     } catch (e, stackTrace) {
       ErrorHandler.handleError(e, stackTrace);
-      // If auto-save fails, we'll let the user try manual save
-      setState(() {
-        _isSaved = false;
-      });
+      if (mounted) {
+        setState(() {
+          _isSaved = false;
+        });
+      }
     }
   }
   
@@ -108,24 +109,22 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
       // Calculate points earned
       final earnedPoints = newProfile.points.total - oldProfile.points.total;
       
-      // Check for new achievements
+      // Check for new achievements using safe collection access
       final oldAchievementIds = oldProfile.achievements
-          .where((a) => a.isEarned)
+          .safeWhere((a) => a.isEarned)
           .map((a) => a.id)
           .toSet();
           
       final newAchievements = newProfile.achievements
-          .where((a) => a.isEarned && !oldAchievementIds.contains(a.id))
-          .toList();
+          .safeWhere((a) => a.isEarned && !oldAchievementIds.contains(a.id));
           
-      // Check for completed challenges
+      // Check for completed challenges using safe access
       final oldChallengeIds = oldProfile.completedChallenges
           .map((c) => c.id)
           .toSet();
           
       final completedChallenges = newProfile.completedChallenges
-          .where((c) => !oldChallengeIds.contains(c.id))
-          .toList();
+          .safeWhere((c) => !oldChallengeIds.contains(c.id));
       
       // Update the state after classification feedback is done
       Future.delayed(const Duration(milliseconds: 2000), () {
@@ -134,13 +133,12 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
             _showingClassificationFeedback = false;
             _pointsEarned = earnedPoints;
             _newlyEarnedAchievements = newAchievements;
-            _completedChallenge = completedChallenges.isNotEmpty ? completedChallenges.first : null;
+            _completedChallenge = completedChallenges.safeFirst;
             
             // Show points popup
             if (earnedPoints > 0) {
               _showingPointsPopup = true;
               
-              // Hide points popup after 2 seconds
               Future.delayed(const Duration(milliseconds: 3000), () {
                 if (mounted) {
                   setState(() {
@@ -155,10 +153,11 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
       
     } catch (e, stackTrace) {
       ErrorHandler.handleError(e, stackTrace);
-      // In case of error, still show the result without gamification elements
-      setState(() {
-        _showingClassificationFeedback = false;
-      });
+      if (mounted) {
+        setState(() {
+          _showingClassificationFeedback = false;
+        });
+      }
     }
   }
 
@@ -166,16 +165,14 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
     try {
       final storageService = Provider.of<StorageService>(context, listen: false);
       
-      // Update the classification's saved state
       widget.classification.isSaved = true;
-      
       await storageService.saveClassification(widget.classification);
 
-      setState(() {
-        _isSaved = true;
-      });
-
       if (mounted) {
+        setState(() {
+          _isSaved = true;
+        });
+        
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text(AppStrings.successSaved)),
         );
@@ -192,42 +189,10 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
 
   Future<void> _shareResult() async {
     try {
-      // Web sharing is more limited
-      if (kIsWeb ||
-          widget.classification.imageUrl == null ||
-          widget.classification.imageUrl!.startsWith('web_image:')) {
-        // Use our updated ShareService implementation with context for SnackBar
-        await ShareService.share(
-          text: 'I identified ${widget.classification.itemName} as ${widget.classification.category} waste using the Waste Segregation app!',
-          context: context, // Pass context for SnackBar feedback
-        );
-        return;
-      }
-
-      // Mobile sharing with image - we'll still create the text file
-      final imageFile = File(widget.classification.imageUrl!);
-
-      // Create a temporary text file with the classification details
-      final tempDir = await getTemporaryDirectory();
-      final tempTextFile = File('${tempDir.path}/classification_details.txt');
-
-      await tempTextFile.writeAsString(
-        'Item: ${widget.classification.itemName}\n'
-        'Category: ${widget.classification.category}\n\n'
-        'Explanation: ${widget.classification.explanation}\n\n'
-        'Identified using the Waste Segregation app',
-      );
-
-      // Use the updated ShareService with context for SnackBar
       await ShareService.share(
         text: 'I identified ${widget.classification.itemName} as ${widget.classification.category} waste using the Waste Segregation app!',
-        context: context, // Pass context for SnackBar feedback
+        context: context,
       );
-
-      // Clean up
-      if (await tempTextFile.exists()) {
-        await tempTextFile.delete();
-      }
     } catch (e, stackTrace) {
       ErrorHandler.handleError(e, stackTrace);
       if (mounted) {
@@ -250,43 +215,80 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
       ),
     );
   }
-  
-  void _showEducationalFactDialog() {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Did You Know?'),
-        content: SingleChildScrollView(
-          child: Text(
-            _getEducationalFact(
-              widget.classification.category,
-              widget.classification.subcategory,
-            ),
-            style: const TextStyle(
-              fontSize: AppTheme.fontSizeRegular,
-              height: 1.5,
-            ),
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Close'),
-          ),
-        ],
-      ),
-    );
+
+  // Build interactive tags for the classification
+  List<TagData> _buildInteractiveTags() {
+    final tags = <TagData>[];
+    
+    // Category tag
+    tags.add(TagFactory.category(widget.classification.category));
+    
+    // Subcategory tag if available
+    if (widget.classification.subcategory != null) {
+      tags.add(TagFactory.subcategory(
+        widget.classification.subcategory!,
+        widget.classification.category,
+      ));
+    }
+    
+    // Material type tag if available
+    if (widget.classification.materialType != null) {
+      tags.add(TagFactory.material(widget.classification.materialType!));
+    }
+    
+    // Property tags
+    if (widget.classification.isRecyclable == true) {
+      tags.add(TagFactory.property('Recyclable', true));
+    }
+    
+    if (widget.classification.isCompostable == true) {
+      tags.add(TagFactory.property('Compostable', true));
+    }
+    
+    if (widget.classification.requiresSpecialDisposal == true) {
+      tags.add(TagData(
+        text: 'Special Disposal',
+        color: Colors.orange,
+        action: TagAction.info,
+        icon: Icons.warning,
+      ));
+    }
+    
+    // Add filter tags for finding similar items
+    tags.add(TagFactory.filter(
+      'Similar Items',
+      widget.classification.category,
+      subcategory: widget.classification.subcategory,
+    ));
+    
+    return tags;
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.grey.shade50, // Better background contrast
       appBar: AppBar(
-        title: const Text('Classification Result'),
+        title: Text(
+          'Classification Result',
+          style: TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+            shadows: [
+              Shadow(
+                color: Colors.black.withOpacity(0.3),
+                offset: const Offset(1, 1),
+                blurRadius: 2,
+              ),
+            ],
+          ),
+        ),
+        backgroundColor: AppTheme.primaryColor,
+        foregroundColor: Colors.white,
+        elevation: 2,
         actions: [
-          // Dashboard button
           IconButton(
-            icon: const Icon(Icons.bar_chart),
+            icon: const Icon(Icons.bar_chart, color: Colors.white),
             tooltip: 'View Waste Dashboard',
             onPressed: () {
               Navigator.push(
@@ -301,18 +303,190 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
       ),
       body: Stack(
         children: [
-          // Main content, only visible after feedback animation
+          // Main content
           Visibility(
             visible: !_showingClassificationFeedback,
             child: SingleChildScrollView(
               padding: const EdgeInsets.all(AppTheme.paddingRegular),
               child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Classification card
-                  ClassificationCard(
-                    classification: widget.classification,
-                    onSave: widget.showActions && !_isSaved ? _saveResult : null,
-                    onShare: widget.showActions ? _shareResult : null,
+                  // Enhanced Classification Card with better contrast
+                  Card(
+                    elevation: 4,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(AppTheme.borderRadiusLarge),
+                    ),
+                    child: Container(
+                      padding: const EdgeInsets.all(AppTheme.paddingLarge),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(AppTheme.borderRadiusLarge),
+                        gradient: LinearGradient(
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                          colors: [
+                            Colors.white,
+                            Colors.grey.shade50,
+                          ],
+                        ),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // Classification result header
+                          Row(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.all(12),
+                                decoration: BoxDecoration(
+                                  color: _getCategoryColor(widget.classification.category),
+                                  borderRadius: BorderRadius.circular(AppTheme.borderRadiusRegular),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: _getCategoryColor(widget.classification.category).withOpacity(0.3),
+                                      offset: const Offset(0, 2),
+                                      blurRadius: 8,
+                                    ),
+                                  ],
+                                ),
+                                child: Icon(
+                                  _getCategoryIcon(widget.classification.category),
+                                  color: Colors.white,
+                                  size: 32,
+                                ),
+                              ),
+                              const SizedBox(width: AppTheme.paddingRegular),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'Identified As',
+                                      style: TextStyle(
+                                        fontSize: AppTheme.fontSizeSmall,
+                                        color: Colors.grey.shade600,
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      widget.classification.itemName,
+                                      style: const TextStyle(
+                                        fontSize: AppTheme.fontSizeExtraLarge,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.black87,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                          
+                          const SizedBox(height: AppTheme.paddingLarge),
+                          
+                          // Interactive Tags Section
+                          Text(
+                            'Tags & Actions',
+                            style: TextStyle(
+                              fontSize: AppTheme.fontSizeMedium,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.grey.shade800,
+                            ),
+                          ),
+                          const SizedBox(height: AppTheme.paddingSmall),
+                          InteractiveTagCollection(
+                            tags: _buildInteractiveTags(),
+                            maxTags: 6,
+                          ),
+                          
+                          const SizedBox(height: AppTheme.paddingLarge),
+                          
+                          // Explanation section with better contrast
+                          Container(
+                            padding: const EdgeInsets.all(AppTheme.paddingRegular),
+                            decoration: BoxDecoration(
+                              color: Colors.blue.shade50,
+                              borderRadius: BorderRadius.circular(AppTheme.borderRadiusRegular),
+                              border: Border.all(color: Colors.blue.shade200),
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  children: [
+                                    Icon(
+                                      Icons.info_outline,
+                                      color: Colors.blue.shade700,
+                                      size: 20,
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Text(
+                                      'Explanation',
+                                      style: TextStyle(
+                                        fontSize: AppTheme.fontSizeMedium,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.blue.shade800,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: AppTheme.paddingSmall),
+                                Text(
+                                  widget.classification.explanation,
+                                  style: TextStyle(
+                                    fontSize: AppTheme.fontSizeRegular,
+                                    color: Colors.grey.shade800,
+                                    height: 1.5,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          
+                          const SizedBox(height: AppTheme.paddingLarge),
+                          
+                          // Action buttons with better contrast
+                          if (widget.showActions) ...[
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: ElevatedButton.icon(
+                                    onPressed: !_isSaved ? _saveResult : null,
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: _isSaved ? Colors.green : AppTheme.primaryColor,
+                                      foregroundColor: Colors.white,
+                                      padding: const EdgeInsets.symmetric(vertical: 12),
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(AppTheme.borderRadiusRegular),
+                                      ),
+                                    ),
+                                    icon: Icon(_isSaved ? Icons.check : Icons.save),
+                                    label: Text(_isSaved ? 'Saved' : 'Save'),
+                                  ),
+                                ),
+                                const SizedBox(width: AppTheme.paddingRegular),
+                                Expanded(
+                                  child: OutlinedButton.icon(
+                                    onPressed: _shareResult,
+                                    style: OutlinedButton.styleFrom(
+                                      foregroundColor: AppTheme.primaryColor,
+                                      side: BorderSide(color: AppTheme.primaryColor, width: 2),
+                                      padding: const EdgeInsets.symmetric(vertical: 12),
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(AppTheme.borderRadiusRegular),
+                                      ),
+                                    ),
+                                    icon: const Icon(Icons.share),
+                                    label: const Text('Share'),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ],
+                      ),
+                    ),
                   ),
 
                   const SizedBox(height: AppTheme.paddingLarge),
@@ -322,335 +496,182 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
                     FadeSlideAnimation(
                       startOffset: const Offset(0, 30),
                       duration: const Duration(milliseconds: 600),
+                      child: Card(
+                        elevation: 3,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(AppTheme.borderRadiusLarge),
+                        ),
+                        child: Container(
+                          padding: const EdgeInsets.all(AppTheme.paddingLarge),
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(AppTheme.borderRadiusLarge),
+                            gradient: LinearGradient(
+                              colors: [Colors.amber.shade50, Colors.orange.shade50],
+                            ),
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  Icon(
+                                    Icons.emoji_events,
+                                    color: Colors.amber.shade700,
+                                    size: 28,
+                                  ),
+                                  const SizedBox(width: AppTheme.paddingSmall),
+                                  Text(
+                                    'Challenge Completed!',
+                                    style: TextStyle(
+                                      fontSize: AppTheme.fontSizeMedium,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.amber.shade800,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: AppTheme.paddingSmall),
+                              EnhancedChallengeCard(
+                                challenge: _completedChallenge!,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: AppTheme.paddingLarge),
+                  ],
+
+                  // Enhanced Educational Section
+                  Card(
+                    elevation: 3,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(AppTheme.borderRadiusLarge),
+                    ),
+                    child: Container(
+                      padding: const EdgeInsets.all(AppTheme.paddingLarge),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Row(
                             children: [
                               Icon(
-                                Icons.emoji_events,
-                                color: Colors.amber,
+                                Icons.school,
+                                color: AppTheme.secondaryColor,
+                                size: 24,
                               ),
-                              const SizedBox(width: AppTheme.paddingSmall),
-                              const Text(
-                                'Challenge Completed!',
+                              const SizedBox(width: 8),
+                              Text(
+                                'Did You Know?',
                                 style: TextStyle(
-                                  fontSize: AppTheme.fontSizeMedium,
+                                  fontSize: AppTheme.fontSizeLarge,
                                   fontWeight: FontWeight.bold,
+                                  color: Colors.grey.shade800,
                                 ),
                               ),
                             ],
                           ),
-                          const SizedBox(height: AppTheme.paddingSmall),
-                          EnhancedChallengeCard(
-                            challenge: _completedChallenge!,
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: AppTheme.paddingLarge),
-                  ],
-
-                  // Recycling code info section if available
-                  if (widget.classification.recyclingCode != null) ...[
-                    RecyclingCodeInfoCard(code: widget.classification.recyclingCode!),
-                    const SizedBox(height: AppTheme.paddingLarge),
-                  ],
-
-                  // Educational section
-                  Container(
-                    padding: const EdgeInsets.all(AppTheme.paddingRegular),
-                    decoration: BoxDecoration(
-                      color: Colors.black.withOpacity(0.05),
-                      borderRadius:
-                          BorderRadius.circular(AppTheme.borderRadiusRegular),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Row(
-                          children: [
-                            Icon(Icons.school, color: AppTheme.secondaryColor),
-                            SizedBox(width: 8),
-                            Text(
-                              'Did You Know?',
-                              style: TextStyle(
-                                fontSize: AppTheme.fontSizeMedium,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ],
-                        ),
-
-                        const SizedBox(height: AppTheme.paddingRegular),
-
-                          // Educational fact based on waste category and subcategory
+                          const SizedBox(height: AppTheme.paddingRegular),
                           Text(
                             _getEducationalFact(
                               widget.classification.category,
                               widget.classification.subcategory,
                             ),
-                            maxLines: 5,
-                            overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: AppTheme.fontSizeRegular,
-                              height: 1.4,
+                              height: 1.6,
+                              color: Colors.grey.shade700,
                             ),
                           ),
-                          
-                          // "Read More" button for long educational facts
-                          TextButton(
-                            onPressed: () {
-                              _showEducationalFactDialog();
-                            },
-                            child: const Text('Read More'),
-                          ),
-
-                        const SizedBox(height: AppTheme.paddingRegular),
-
-                        // Impact statement
-                        const Text(
-                          'Proper waste segregation can reduce landfill waste by up to 80% and significantly decrease greenhouse gas emissions.',
-                          style: TextStyle(
-                            fontStyle: FontStyle.italic,
-                            color: AppTheme.textSecondaryColor,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-
-                  const SizedBox(height: AppTheme.paddingLarge),
-
-                  // Material properties section if materialType is available
-                  if (widget.classification.materialType != null) ...[
-                    Container(
-                      padding: const EdgeInsets.all(AppTheme.paddingRegular),
-                      decoration: BoxDecoration(
-                        color: Colors.black.withOpacity(0.05),
-                        borderRadius:
-                            BorderRadius.circular(AppTheme.borderRadiusRegular),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Row(
-                            children: [
-                              Icon(Icons.science, color: AppTheme.accentColor),
-                              SizedBox(width: 8),
-                              Text(
-                                'Material Information',
-                                style: TextStyle(
-                                  fontSize: AppTheme.fontSizeMedium,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ],
-                          ),
-
                           const SizedBox(height: AppTheme.paddingRegular),
-
-                          // Material type
                           Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              const SizedBox(
-                                width: 100,
-                                child: Text(
-                                  'Material Type:',
-                                  style: TextStyle(fontWeight: FontWeight.bold),
-                                ),
-                              ),
-                              const SizedBox(width: 8),
-                              Expanded(
-                                child: Text(
-                                  widget.classification.materialType!,
-                                  maxLines: 3,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: const TextStyle(
-                                    fontSize: AppTheme.fontSizeRegular,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-
-                          const SizedBox(height: 8),
-
-                          // Properties table
-                          Table(
-                            border: TableBorder.all(
-                              color: Colors.grey.withOpacity(0.3),
-                              width: 1,
-                            ),
-                            children: [
-                              const TableRow(
-                                decoration: BoxDecoration(
-                                  color: Colors.grey,
-                                ),
-                                children: [
-                                  Padding(
-                                    padding: EdgeInsets.all(8.0),
-                                    child: Text(
-                                      'Property',
-                                      style: TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.white,
+                              TextButton.icon(
+                                onPressed: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => EducationalContentScreen(
+                                        initialCategory: widget.classification.category,
                                       ),
                                     ),
-                                  ),
-                                  Padding(
-                                    padding: EdgeInsets.all(8.0),
-                                    child: Text(
-                                      'Value',
-                                      style: TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.white,
-                                      ),
-                                    ),
-                                  ),
-                                ],
+                                  );
+                                },
+                                icon: const Icon(Icons.menu_book),
+                                label: const Text('Learn More'),
                               ),
-                              TableRow(
-                                children: [
-                                  const Padding(
-                                    padding: EdgeInsets.all(8.0),
-                                    child: Text('Recyclable'),
-                                  ),
-                                  Padding(
-                                    padding: const EdgeInsets.all(8.0),
-                                    child: Text(
-                                      widget.classification.isRecyclable == true
-                                          ? 'Yes'
-                                          : widget.classification.isRecyclable ==
-                                                  false
-                                              ? 'No'
-                                              : 'Unknown',
-                                      style: TextStyle(
-                                        color: widget.classification.isRecyclable ==
-                                                true
-                                            ? Colors.green
-                                            : widget.classification.isRecyclable ==
-                                                    false
-                                                ? Colors.red
-                                                : Colors.grey,
-                                        fontWeight: FontWeight.bold,
+                              const SizedBox(width: AppTheme.paddingSmall),
+                              TextButton.icon(
+                                onPressed: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => HistoryScreen(
+                                        filterCategory: widget.classification.category,
                                       ),
                                     ),
-                                  ),
-                                ],
-                              ),
-                              TableRow(
-                                children: [
-                                  const Padding(
-                                    padding: EdgeInsets.all(8.0),
-                                    child: Text('Compostable'),
-                                  ),
-                                  Padding(
-                                    padding: const EdgeInsets.all(8.0),
-                                    child: Text(
-                                      widget.classification.isCompostable == true
-                                          ? 'Yes'
-                                          : widget.classification.isCompostable ==
-                                                  false
-                                              ? 'No'
-                                              : 'Unknown',
-                                      style: TextStyle(
-                                        color: widget.classification.isCompostable ==
-                                                true
-                                            ? Colors.green
-                                            : widget.classification.isCompostable ==
-                                                    false
-                                                ? Colors.red
-                                                : Colors.grey,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              TableRow(
-                                children: [
-                                  const Padding(
-                                    padding: EdgeInsets.all(8.0),
-                                    child: Text('Special Disposal Required'),
-                                  ),
-                                  Padding(
-                                    padding: const EdgeInsets.all(8.0),
-                                    child: Text(
-                                      widget.classification.requiresSpecialDisposal ==
-                                              true
-                                          ? 'Yes'
-                                          : widget.classification
-                                                      .requiresSpecialDisposal ==
-                                                  false
-                                              ? 'No'
-                                              : 'Unknown',
-                                      style: TextStyle(
-                                        color: widget.classification
-                                                    .requiresSpecialDisposal ==
-                                                true
-                                            ? Colors.orange
-                                            : widget.classification
-                                                        .requiresSpecialDisposal ==
-                                                    false
-                                                ? Colors.green
-                                                : Colors.grey,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                  ),
-                                ],
+                                  );
+                                },
+                                icon: const Icon(Icons.history),
+                                label: const Text('Similar Items'),
                               ),
                             ],
                           ),
                         ],
                       ),
                     ),
-                    const SizedBox(height: AppTheme.paddingLarge),
-                  ],
-
-                  // View dashboard button
-                  SizedBox(
-                    width: double.infinity,
-                    child: OutlinedButton.icon(
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => const WasteDashboardScreen(),
-                          ),
-                        );
-                      },
-                      icon: const Icon(Icons.bar_chart),
-                      label: const Text('View Waste Analytics Dashboard'),
-                      style: OutlinedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(
-                          vertical: AppTheme.paddingRegular,
-                        ),
-                      ),
-                    ),
                   ),
-                  
-                  const SizedBox(height: AppTheme.paddingRegular),
 
-                  // Back to home button
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton.icon(
-                      onPressed: () {
-                        // Navigate back to home screen
-                        Navigator.popUntil(context, (route) => route.isFirst);
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppTheme.primaryColor,
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(
-                          vertical: AppTheme.paddingRegular,
-                        ),
+                  const SizedBox(height: AppTheme.paddingLarge),
+
+                  // Navigation buttons
+                  Card(
+                    elevation: 2,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(AppTheme.borderRadiusLarge),
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.all(AppTheme.paddingRegular),
+                      child: Column(
+                        children: [
+                          SizedBox(
+                            width: double.infinity,
+                            child: OutlinedButton.icon(
+                              onPressed: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => const WasteDashboardScreen(),
+                                  ),
+                                );
+                              },
+                              icon: const Icon(Icons.analytics),
+                              label: const Text('View Analytics Dashboard'),
+                              style: OutlinedButton.styleFrom(
+                                padding: const EdgeInsets.symmetric(vertical: 16),
+                                side: BorderSide(color: AppTheme.secondaryColor),
+                                foregroundColor: AppTheme.secondaryColor,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: AppTheme.paddingRegular),
+                          SizedBox(
+                            width: double.infinity,
+                            child: ElevatedButton.icon(
+                              onPressed: () {
+                                Navigator.popUntil(context, (route) => route.isFirst);
+                              },
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: AppTheme.primaryColor,
+                                foregroundColor: Colors.white,
+                                padding: const EdgeInsets.symmetric(vertical: 16),
+                              ),
+                              icon: const Icon(Icons.home),
+                              label: const Text(AppStrings.backToHome),
+                            ),
+                          ),
+                        ],
                       ),
-                      icon: const Icon(Icons.home),
-                      label: const Text(AppStrings.backToHome),
                     ),
                   ),
                 ],
@@ -658,7 +679,7 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
             ),
           ),
           
-          // Initial classification success feedback overlay
+          // Classification feedback overlay
           if (_showingClassificationFeedback)
             Positioned.fill(
               child: Container(
@@ -695,23 +716,22 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
               ),
             ),
             
-          // Achievement badge notifications
+          // Achievement notifications
           if (_newlyEarnedAchievements.isNotEmpty)
             Positioned(
               top: MediaQuery.of(context).padding.top + (_showingPointsPopup ? 120 : 50),
               right: 16,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  for (final achievement in _newlyEarnedAchievements)
-                    Padding(
-                      padding: const EdgeInsets.only(bottom: 8.0),
-                      child: FloatingAchievementBadge(
-                        achievement: achievement,
-                        onTap: () => _showAchievementDetails(achievement),
-                      ),
+                children: _newlyEarnedAchievements.map((achievement) => 
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 8.0),
+                    child: FloatingAchievementBadge(
+                      achievement: achievement,
+                      onTap: () => _showAchievementDetails(achievement),
                     ),
-                ],
+                  ),
+                ).toList(),
               ),
             ),
         ],
@@ -719,62 +739,65 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
     );
   }
 
-  String _getEducationalFact(String category, String? subcategory) {
-    // Try to get more specific educational facts based on subcategory if available
-    if (subcategory != null) {
-      switch (subcategory.toLowerCase()) {
-        // Wet waste subcategories
-        case 'food waste':
-          return 'Food waste in landfills produces methane, a greenhouse gas 25 times more potent than CO2. Composting food waste reduces these emissions and creates valuable soil amendments.';
-        case 'garden waste':
-          return 'Composting garden waste can reduce waste volume by up to 70%. The resulting compost improves soil structure, water retention, and provides nutrients for plants.';
-        case 'biodegradable packaging':
-          return 'Not all biodegradable packaging decomposes in home composting systems. Industrial composting facilities maintain higher temperatures needed for some materials.';
-
-        // Dry waste subcategories
-        case 'paper':
-          return 'Recycling one ton of paper saves 17 trees, 7,000 gallons of water, 380 gallons of oil, and 3.3 cubic yards of landfill space. Paper can typically be recycled 5-7 times before fibers become too short.';
-        case 'plastic':
-          return 'Different plastic types (indicated by recycling codes 1-7) require different recycling processes. Only about 9% of all plastic ever produced has been recycled.';
-        case 'glass':
-          return 'Glass can be recycled endlessly without loss in quality or purity. Recycling glass reduces energy consumption by 40% compared to making new glass from raw materials.';
-        case 'metal':
-          return 'Recycling aluminum saves 95% of the energy needed to make new aluminum from raw materials. A recycled aluminum can can be back on the shelf in just 60 days.';
-
-        // Hazardous waste subcategories
-        case 'electronic waste':
-          return 'E-waste contains valuable materials like gold, silver, copper, and rare earth elements. One ton of circuit boards contains 40-800 times more gold than one ton of ore.';
-        case 'batteries':
-          return 'Batteries contain heavy metals and toxic chemicals that can leach into soil and groundwater. Recycling batteries recovers valuable metals and prevents environmental contamination.';
-
-        // Medical waste subcategories
-        case 'sharps':
-          return 'Improper disposal of sharps can cause injury and potentially transmit diseases. FDA-approved sharps containers are required for safe disposal.';
-        case 'pharmaceutical':
-          return 'Pharmaceuticals should never be flushed down toilets as they can contaminate water sources. Many pharmacies offer drug take-back programs.';
-
-        // Non-waste subcategories
-        case 'reusable items':
-          return 'Single-use items account for a significant portion of landfill waste. Switching to reusable alternatives like water bottles and shopping bags can prevent hundreds of items from entering the waste stream annually.';
-        case 'edible food':
-          return 'About one-third of all food produced globally is wasted. Food redistribution programs can help direct surplus food to people in need rather than landfills.';
-      }
-    }
-
-    // Fall back to category-level facts if no subcategory match
+  Color _getCategoryColor(String category) {
     switch (category.toLowerCase()) {
       case 'wet waste':
-        return 'Wet waste can be composted to create nutrient-rich soil for gardening. The composting process typically takes 2-3 months and reduces methane emissions from landfills.';
+        return AppTheme.wetWasteColor;
       case 'dry waste':
-        return 'Recycling one ton of paper saves 17 trees, 7,000 gallons of water, 380 gallons of oil, and 3.3 cubic yards of landfill space. Plastic recycling rates are improving globally but still only about 9% of all plastic is recycled.';
+        return AppTheme.dryWasteColor;
       case 'hazardous waste':
-        return 'Improper disposal of hazardous waste can contaminate soil and water sources for decades. Many electronic items contain valuable metals like gold, silver, and platinum that can be recovered through proper recycling.';
+        return AppTheme.hazardousWasteColor;
       case 'medical waste':
-        return 'Medical waste requires special treatment to prevent the spread of infections. Autoclaving (steam sterilization) is commonly used to sterilize medical waste before disposal.';
+        return AppTheme.medicalWasteColor;
       case 'non-waste':
-        return 'Reusing items extends their lifecycle and reduces the need for new resources. Donating usable items helps support communities and reduces waste in landfills.';
+        return AppTheme.nonWasteColor;
       default:
-        return 'Proper waste segregation is crucial for effective recycling and composting. It helps reduce landfill usage and minimizes environmental impact.';
+        return AppTheme.accentColor;
     }
+  }
+
+  IconData _getCategoryIcon(String category) {
+    switch (category.toLowerCase()) {
+      case 'wet waste':
+        return Icons.eco;
+      case 'dry waste':
+        return Icons.recycling;
+      case 'hazardous waste':
+        return Icons.warning;
+      case 'medical waste':
+        return Icons.medical_services;
+      case 'non-waste':
+        return Icons.refresh;
+      default:
+        return Icons.category;
+    }
+  }
+
+  String _getEducationalFact(String category, String? subcategory) {
+    // Enhanced educational facts with more detailed information
+    if (subcategory != null) {
+      final subcategoryFacts = {
+        'food waste': 'Food waste generates methane in landfills - a greenhouse gas 25x more potent than CO2. Home composting can reduce this by 70% while creating nutrient-rich soil.',
+        'garden waste': 'Garden waste composting reduces volume by 70% and creates valuable soil conditioner. Browns (carbon) and greens (nitrogen) should be balanced 3:1.',
+        'paper': 'Each ton of recycled paper saves 17 trees, 7,000 gallons of water, and 380 gallons of oil. Paper fibers can be recycled 5-7 times before becoming too short.',
+        'plastic': 'Only 9% of all plastic ever made has been recycled. Different plastic types (codes 1-7) require separate processing - check your local guidelines.',
+        'electronic waste': 'E-waste contains precious metals worth billions annually. One ton of circuit boards has 40-800x more gold than ore. Proper recycling recovers these materials.',
+        'batteries': 'Battery recycling prevents toxic heavy metals from contaminating groundwater for decades. Many auto parts stores accept used batteries for free.',
+      };
+      
+      final fact = subcategoryFacts[subcategory.toLowerCase()];
+      if (fact != null) return fact;
+    }
+
+    // Category-level facts
+    final categoryFacts = {
+      'wet waste': 'Composting wet waste creates nutrient-rich soil amendment while reducing methane emissions from landfills by up to 80%.',
+      'dry waste': 'Proper recycling of dry waste saves energy, reduces raw material extraction, and creates jobs in the recycling industry.',
+      'hazardous waste': 'Hazardous waste can contaminate soil and water for decades. Proper disposal protects both human health and the environment.',
+      'medical waste': 'Medical waste requires specialized treatment to prevent disease transmission. Autoclaving sterilizes waste before safe disposal.',
+      'non-waste': 'Reusing and repurposing items reduces manufacturing demand and keeps valuable materials in circulation longer.',
+    };
+    
+    return categoryFacts[category.toLowerCase()] ?? 'Proper waste management is essential for environmental protection and resource conservation.';
   }
 }

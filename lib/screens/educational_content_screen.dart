@@ -9,10 +9,12 @@ import 'content_detail_screen.dart';
 
 class EducationalContentScreen extends StatefulWidget {
   final String? initialCategory;
+  final String? initialSubcategory;
 
   const EducationalContentScreen({
     super.key,
     this.initialCategory,
+    this.initialSubcategory,
   });
 
   @override

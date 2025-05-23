@@ -196,4 +196,48 @@ class AdService {
    - Native ads integration
    - Rewarded ads
    - A/B testing
-   - Performance optimization 
+   - Performance optimization
+
+## Rewarded Ad-Based Premium Unlocks
+
+The following mechanisms can be implemented to allow users to unlock premium features by watching rewarded ads:
+
+1. **Ad-Unlocked Premium Pass (Time-Limited):**
+   - Unlock all premium features for 24 hours after watching an ad.
+   - Implement with a feature flag and countdown timer.
+
+2. **Feature-Specific Unlocks:**
+   - Unlock a specific premium feature (e.g., analytics, offline mode) for a set period after an ad.
+   - Use per-feature timers and flags.
+
+3. **Premium Classification Credits:**
+   - Each ad watched grants credits that can be spent on premium actions (e.g., export, advanced classification).
+   - Implement a credit system and decrement on use.
+
+4. **Double Points/XP Boost:**
+   - Activate a double points/XP boost for the next 5 classifications after an ad.
+   - Use a counter and multiplier flag.
+
+5. **Ad-Unlocked Data Export:**
+   - Allow a one-time data export after watching an ad.
+   - Use a one-time unlock token.
+
+6. **Ad-Unlocked Customization:**
+   - Unlock custom themes or avatars for a limited time after an ad.
+   - Use a timer and feature flag.
+
+7. **Ad-Unlocked History Extension:**
+   - Temporarily extend classification history access after an ad.
+   - Use a timer and adjust history query logic.
+
+8. **Offline Mode Trial:**
+   - Enable offline classification for 24 hours after an ad.
+   - Use a timer and offline mode flag.
+
+9. **Premium Educational Content:**
+   - Unlock a premium educational article or video after an ad.
+   - Use a one-time or time-limited unlock token.
+
+10. **"Streak Saver":**
+    - Let users watch an ad to preserve their streak if they miss a day.
+    - Implement with a streak override flag and ad completion check. 
