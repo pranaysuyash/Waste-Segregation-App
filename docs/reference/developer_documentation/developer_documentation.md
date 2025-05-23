@@ -11,6 +11,7 @@
 8. [Future Enhancements](#future-enhancements)
 9. [Troubleshooting](#troubleshooting)
 10. [Recent Code Improvements](#recent-code-improvements)
+11. [Crash Reporting & Error Handling](#crash-reporting-error-handling)
 
 ## Introduction
 
@@ -385,3 +386,13 @@ flutter build web --release
 - **Centralized Error Handling**: All major screens now use a centralized `ErrorHandler` and `AppException` pattern for consistent error logging and user feedback. See `constants.dart`.
 - **Web Camera Access**: Camera capture is now supported in the browser using `image_picker_for_web` (see `web_camera_access.dart`).
 - **UI and Media Rendering**: Improved text overflow handling and media (video/image) rendering in educational content screens (see `result_screen.dart`, `content_detail_screen.dart`).
+
+## Crash Reporting & Error Handling
+
+- **Crashlytics Integration:**
+  - All errors are reported to Firebase Crashlytics via the centralized `ErrorHandler`.
+  - A force crash button is available in the Settings screen (Developer Options) for testing fatal crash reporting.
+  - Non-fatal errors are sent on app startup for verification.
+- **How to Test:**
+  - Use the force crash button in Settings > Developer Options to trigger a fatal crash and verify Crashlytics reporting in the Firebase Console.
+  - Check terminal logs for Crashlytics submission messages.
