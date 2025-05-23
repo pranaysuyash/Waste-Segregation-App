@@ -9,7 +9,7 @@
       "client_info": {
         "mobilesdk_app_id": "1:1093372542184:android:160b71eb63bc7004355d5d",
         "android_client_info": {
-          "package_name": "com.example.waste_segregation_app"
+          "package_name": "com.pranaysuyash.wastewise"
         }
       },
       "oauth_client": [
@@ -17,7 +17,7 @@
           "client_id": "1093372542184-vt0daid8t327soohu1um5hf5lpmkqg92.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
-            "package_name": "com.example.waste_segregation_app",
+            "package_name": "com.pranaysuyash.wastewise",
             "certificate_hash": "960ed9bf3a9d33b58e3f8301ecc6c5395e9acc1d"
           }
         },

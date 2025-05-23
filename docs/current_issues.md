@@ -105,3 +105,12 @@ _Move completed items here with resolution date and notes._
    - Created keystore with alias 'wastewise'
    - Configured key.properties and build.gradle
    - Successfully built signed app bundle 
+
+## [Resolved] Play Store Package/Class Name & Versioning Issue (May 2025)
+- **Problem:** App crashed on real device due to mismatch between Play Store package name (`com.pranaysuyash.wastewise`) and MainActivity class path (`com.example.waste_segregation_app.MainActivity`).
+- **Also:** Versioning started at 0.9.x for internal testing, but was reset to 0.1.x for public clarity.
+- **Solution:**
+  - Refactored all package references to `com.pranaysuyash.wastewise` in build.gradle, AndroidManifest.xml, google-services.json, and MainActivity.
+  - Set versionCode to 92 (higher than previous 91) and versionName to 0.1.0 for Play Console compatibility.
+  - Updated documentation and changelog.
+- **Status:** Resolved as of 2025-05-19. 

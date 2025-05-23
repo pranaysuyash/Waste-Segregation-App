@@ -340,3 +340,7 @@ Thank you for helping make waste segregation smarter and easier!
 ```
 
 For privacy policy templates, Play Store description help, screenshots, or branding, see the README or ask for guidance.
+
+## Note on Versioning and Play Store Package/Class Issue (May 2025)
+- Versioning was reset from 0.9.x to 0.1.x for public release clarity. Always ensure versionCode is incremented for Play Console.
+- Ensure all Android package references (build.gradle, AndroidManifest.xml, google-services.json, MainActivity) match the Play Store package name to avoid runtime crashes.

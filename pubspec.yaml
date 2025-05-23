@@ -2,7 +2,7 @@ name: waste_segregation_app
 description: An app to help users properly segregate waste using AI classification.
 publish_to: 'none'
 
-version: 0.9.1+91  # Bump for new internal testing release
+version: 0.1.0+92  # Restart versioning at 0.1.0, build number 92 for Play Console compatibility
 
 environment:
   sdk: '>=3.0.0 <4.0.0'

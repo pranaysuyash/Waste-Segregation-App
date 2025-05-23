@@ -143,4 +143,9 @@ This document captures key technical learnings, issues, and solutions discovered
 3. **Release Automation**
    - Create CI/CD pipeline for release builds
    - Automate obfuscation and debug symbol generation
-   - Streamline Play Store and App Store deployment 
+   - Streamline Play Store and App Store deployment
+
+### Play Store Package/Class Name & Versioning Issue (May 2025)
+- Internal builds used 0.9.x versioning, but public release was reset to 0.1.x for clarity.
+- Play Store crash due to mismatch between published package name and MainActivity class path.
+- Solution: Unified all package references to `com.pranaysuyash.wastewise`, set versionCode to 92+, and updated documentation. 

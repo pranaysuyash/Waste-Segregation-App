@@ -199,3 +199,9 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 - Google Gemini API for AI vision capabilities through the OpenAI-compatible endpoint
 - Flutter team for the amazing framework
 - All contributors to the open-source packages used in this project
+
+## Versioning and Play Store Issue (May 2025)
+- The app initially used 0.9.x versions for internal testing, but was reset to 0.1.x for public release clarity.
+- A Play Store crash was caused by a mismatch between the published package name and the MainActivity class path.
+- All Android package references are now unified as `com.pranaysuyash.wastewise` and versioning is reset to 0.1.x (with versionCode 92+ for Play Console compatibility).
+- See CHANGELOG.md and docs/current_issues.md for details.

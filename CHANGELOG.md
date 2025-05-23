@@ -74,3 +74,11 @@
 - Google Sign-In integration
 - History of classified items
 - Basic reporting features
+
+## [0.1.0+92] - 2025-05-19
+### Changed
+- Versioning reset: Restarted public versioning at 0.1.0 for clarity, after internal 0.9.x builds.
+- Updated Android package name and all references to `com.pranaysuyash.wastewise` for Play Store compliance.
+- Fixed MainActivity class/package mismatch that caused Play Store runtime crash.
+- Ensured versionCode is incremented to 92 for Play Console compatibility.
+- Updated documentation to reflect new versioning and Play Store issues.

@@ -24,7 +24,7 @@ You'll need to add configurations for each platform your app targets (Android, i
 
 1.  In your Firebase project dashboard, click **Add app** and select the **Android** icon.
 2.  **Register app**:
-    *   **Android package name**: Find this in your `android/app/build.gradle` file (usually `applicationId`). Example: `com.example.waste_segregation_app`.
+    *   **Android package name**: Find this in your `android/app/build.gradle` file (usually `applicationId`). Example: `com.pranaysuyash.wastewise`.
     *   **App nickname** (optional): E.g., "Waste App Android".
     *   **Debug signing certificate SHA-1** (optional but recommended for auth features like Google Sign-In):
         *   Open a terminal and navigate to your project's `android` directory.
@@ -161,4 +161,6 @@ For easier configuration and to keep your Firebase setup in sync, use the Flutte
   }
   ```
 
-Refer to the specific FlutterFire plugin documentation for details on how to use each Firebase service. 
+Refer to the specific FlutterFire plugin documentation for details on how to use each Firebase service.
+
+> **Note (May 2025):** Versioning was reset from 0.9.x to 0.1.x for public release. Ensure all package references match the Play Store package name to avoid runtime crashes. 
