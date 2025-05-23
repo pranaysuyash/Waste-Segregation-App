@@ -4,10 +4,11 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
-import 'firebase_options.dart'; // Import the Firebase options
+import 'firebase_options.dart';
 import 'services/ai_service.dart';
 import 'services/google_drive_service.dart';
 import 'services/storage_service.dart';
+import 'services/enhanced_storage_service.dart';
 import 'services/educational_content_service.dart';
 import 'services/gamification_service.dart';
 import 'services/premium_service.dart';
@@ -15,8 +16,14 @@ import 'services/ad_service.dart';
 import 'services/user_consent_service.dart';
 import 'screens/auth_screen.dart';
 import 'screens/consent_dialog_screen.dart';
-import 'utils/constants.dart';
+import 'utils/constants.dart'; // For app constants, themes, and strings
+import 'utils/design_system.dart';
+import 'utils/error_handler.dart'; // Correct import for ErrorHandler
 import 'providers/theme_provider.dart';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
+
+// Global Navigator Key for Error Handling
+final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
 /*
 Required packages:
@@ -63,6 +70,14 @@ Future<void> originalMain() async {
       options: DefaultFirebaseOptions.currentPlatform,
     );
     print('Firebase initialized successfully');
+    // --- Crashlytics test: Remove after verification ---
+    await FirebaseCrashlytics.instance.recordError(
+      Exception('Test non-fatal error from Flutter!'),
+      StackTrace.current,
+      reason: 'Crashlytics integration test',
+      fatal: false,
+    );
+    // --- End test ---
   } catch (e) {
     print('Failed to initialize Firebase: $e');
     // Continue with app initialization even if Firebase fails
@@ -72,8 +87,11 @@ Future<void> originalMain() async {
   await StorageService.initializeHive();
   print('After StorageService.initializeHive');
 
-  // Create service instances early to allow initialization
-  final storageService = StorageService();
+  // Initialize Error Handler
+  ErrorHandler.initialize(navigatorKey);
+
+  // Create enhanced storage service instance
+  final storageService = EnhancedStorageService();
   final aiService = AiService();
   final educationalContentService = EducationalContentService();
   final gamificationService = GamificationService();
@@ -138,45 +156,11 @@ class WasteSegregationApp extends StatelessWidget {
       child: Consumer<ThemeProvider>(
         builder: (context, themeProvider, child) {
           return MaterialApp(
-            title: AppStrings.appName,
-            theme: ThemeData(
-              primaryColor: AppTheme.primaryColor,
-              colorScheme: ColorScheme.fromSeed(
-                seedColor: AppTheme.primaryColor,
-                secondary: AppTheme.secondaryColor,
-              ),
-              appBarTheme: const AppBarTheme(
-                backgroundColor: AppTheme.primaryColor,
-                foregroundColor: Colors.white,
-                elevation: 0,
-              ),
-              scaffoldBackgroundColor: AppTheme.backgroundColor,
-              textTheme: const TextTheme(
-                bodyMedium: TextStyle(
-                  color: AppTheme.textPrimaryColor,
-                ),
-              ),
-            ),
-            darkTheme: ThemeData(
-              primaryColor: AppTheme.darkPrimaryColor,
-              colorScheme: ColorScheme.fromSeed(
-                seedColor: AppTheme.darkPrimaryColor,
-                secondary: AppTheme.darkSecondaryColor,
-                brightness: Brightness.dark,
-              ),
-              appBarTheme: const AppBarTheme(
-                backgroundColor: AppTheme.darkPrimaryColor,
-                foregroundColor: Colors.white,
-                elevation: 0,
-              ),
-              scaffoldBackgroundColor: AppTheme.darkBackgroundColor,
-              textTheme: const TextTheme(
-                bodyMedium: TextStyle(
-                  color: AppTheme.darkTextPrimaryColor,
-                ),
-              ),
-            ),
-            themeMode: themeProvider.themeMode,
+          navigatorKey: navigatorKey,
+          title: AppStrings.appName,
+          theme: WasteAppDesignSystem.lightTheme,
+          darkTheme: WasteAppDesignSystem.darkTheme,
+          themeMode: themeProvider.themeMode,
             home: FutureBuilder<Map<String, bool>>(
               future: _checkInitialConditions(),
               builder: (context, snapshot) {

@@ -109,6 +109,11 @@ void initState() {
   
   // Automatically save the classification
   _autoSaveClassification();
+  
+  // Only process gamification if this is a new classification
+  if (widget.showActions) {
+    _processClassification();
+  }
 }
 
 // Automatically save classification when screen loads

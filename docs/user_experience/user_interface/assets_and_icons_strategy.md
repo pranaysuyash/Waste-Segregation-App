@@ -153,4 +153,10 @@ This document outlines the strategy for sourcing, organizing, and integrating vi
 
 ---
 
+## 10. Changelog
+- **May 2025:**
+    - Fixed a bug where gamification points/popups would incorrectly display when viewing an already analyzed image from history. The `ResultScreen` now checks if it's a new classification before processing gamification rewards.
+
+---
+
 _This document should be updated as new asset needs or workflows are identified._ 

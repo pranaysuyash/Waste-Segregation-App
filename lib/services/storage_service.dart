@@ -31,6 +31,7 @@ class StorageService {
     await Hive.openBox(StorageKeys.userBox);
     await Hive.openBox(StorageKeys.classificationsBox);
     await Hive.openBox(StorageKeys.settingsBox);
+    await Hive.openBox(StorageKeys.gamificationBox);
     
     // Open cache box for image classification caching
     // We're using String type to store serialized CachedClassification objects
@@ -445,12 +446,14 @@ class StorageService {
     }
   }
 
-  /// Clear all user-specific data (user info, classifications, settings, cache)
+  /// Clear all user-specific data (user info, classifications, settings, gamification, cache)
   Future<void> clearAllUserData() async {
     await clearUserInfo();
     await clearAllClassifications();
     final settingsBox = Hive.box(StorageKeys.settingsBox);
     await settingsBox.clear();
+    final gamificationBox = Hive.box(StorageKeys.gamificationBox);
+    await gamificationBox.clear();
     final cacheBox = Hive.box<String>(StorageKeys.cacheBox);
     await cacheBox.clear();
   }

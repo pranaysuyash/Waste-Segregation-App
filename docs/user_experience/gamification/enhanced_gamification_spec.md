@@ -36,6 +36,8 @@ The following enhancements will directly address the disconnected action-reward 
 - Show streak maintenance confirmation ("Streak Day 1 maintained!")
 - Create visual and audio feedback for achievement progress
 
++> Note: Points/XP popups and reward animations only trigger for new classifications, not when viewing history. The `ResultScreen` uses a `showActions` flag to ensure this logic.
+
 **Implementation in Results Screen**
 ```dart
 class ClassificationResultScreen extends StatelessWidget {

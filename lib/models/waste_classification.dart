@@ -1,4 +1,5 @@
 class WasteClassification {
+  // Core classification data
   final String itemName;
   final String category;
   final String? subcategory;
@@ -10,9 +11,26 @@ class WasteClassification {
   final bool? isRecyclable;
   final bool? isCompostable;
   final bool? requiresSpecialDisposal;
-  final String? colorCode; // Added for color-coding representation
-  final String? materialType; // Added for material type identification
-  bool isSaved; // Track whether this classification has been saved
+  final String? colorCode;
+  final String? materialType;
+  bool isSaved;
+
+  // AI Model Performance Data
+  final double? confidence; // 0.0 to 1.0 - AI classification confidence
+  final String? modelVersion; // Which AI model version was used
+  final int? processingTimeMs; // Processing time in milliseconds
+  final List<AlternativeClassification>? alternatives; // Alternative classifications
+
+  // User Interaction Data
+  final bool? userConfirmed; // Did user confirm this classification?
+  final String? userCorrection; // What did user change it to?
+  final String? userNotes; // User's personal notes
+  final int? viewCount; // How many times viewed
+
+  // Processing Context
+  final String? source; // 'camera', 'gallery', 'web_upload'
+  final Map<String, double>? imageMetrics; // blur, brightness, contrast scores
+  final String? imageHash; // For deduplication and caching
 
   WasteClassification({
     required this.itemName,
@@ -29,6 +47,20 @@ class WasteClassification {
     this.materialType,
     this.isSaved = false,
     DateTime? timestamp,
+    // AI Model Performance Data
+    this.confidence,
+    this.modelVersion,
+    this.processingTimeMs,
+    this.alternatives,
+    // User Interaction Data
+    this.userConfirmed,
+    this.userCorrection,
+    this.userNotes,
+    this.viewCount,
+    // Processing Context
+    this.source,
+    this.imageMetrics,
+    this.imageHash,
   }) : timestamp = timestamp ?? DateTime.now();
 
   // Method to convert model to JSON for storage
@@ -48,6 +80,20 @@ class WasteClassification {
       'materialType': materialType,
       'isSaved': isSaved,
       'timestamp': timestamp.toIso8601String(),
+      // AI Model Performance Data
+      'confidence': confidence,
+      'modelVersion': modelVersion,
+      'processingTimeMs': processingTimeMs,
+      'alternatives': alternatives?.map((alt) => alt.toJson()).toList(),
+      // User Interaction Data
+      'userConfirmed': userConfirmed,
+      'userCorrection': userCorrection,
+      'userNotes': userNotes,
+      'viewCount': viewCount,
+      // Processing Context
+      'source': source,
+      'imageMetrics': imageMetrics,
+      'imageHash': imageHash,
     };
   }
 
@@ -57,6 +103,20 @@ class WasteClassification {
     String? recyclingCode;
     if (json['recyclingCode'] != null) {
       recyclingCode = json['recyclingCode'].toString();
+    }
+    
+    // Parse alternatives if present
+    List<AlternativeClassification>? alternatives;
+    if (json['alternatives'] != null) {
+      alternatives = (json['alternatives'] as List)
+          .map((alt) => AlternativeClassification.fromJson(alt))
+          .toList();
+    }
+    
+    // Parse imageMetrics if present
+    Map<String, double>? imageMetrics;
+    if (json['imageMetrics'] != null) {
+      imageMetrics = Map<String, double>.from(json['imageMetrics']);
     }
     
     return WasteClassification(
@@ -76,6 +136,20 @@ class WasteClassification {
       timestamp: json['timestamp'] != null
           ? DateTime.parse(json['timestamp'])
           : DateTime.now(),
+      // AI Model Performance Data
+      confidence: json['confidence']?.toDouble(),
+      modelVersion: json['modelVersion'],
+      processingTimeMs: json['processingTimeMs'],
+      alternatives: alternatives,
+      // User Interaction Data
+      userConfirmed: json['userConfirmed'],
+      userCorrection: json['userCorrection'],
+      userNotes: json['userNotes'],
+      viewCount: json['viewCount'],
+      // Processing Context
+      source: json['source'],
+      imageMetrics: imageMetrics,
+      imageHash: json['imageHash'],
     );
   }
 }
@@ -329,5 +403,38 @@ extension NonWasteSubcategoryExtension on NonWasteSubcategory {
 
   String get color {
     return '#9C27B0'; // Purple (same as parent category)
+  }
+}
+
+/// Alternative classification suggestion from AI model
+class AlternativeClassification {
+  final String category;
+  final String? subcategory;
+  final double confidence;
+  final String reason;
+
+  AlternativeClassification({
+    required this.category,
+    this.subcategory,
+    required this.confidence,
+    required this.reason,
+  });
+
+  Map<String, dynamic> toJson() {
+    return {
+      'category': category,
+      'subcategory': subcategory,
+      'confidence': confidence,
+      'reason': reason,
+    };
+  }
+
+  factory AlternativeClassification.fromJson(Map<String, dynamic> json) {
+    return AlternativeClassification(
+      category: json['category'],
+      subcategory: json['subcategory'],
+      confidence: json['confidence']?.toDouble() ?? 0.0,
+      reason: json['reason'] ?? '',
+    );
   }
 }

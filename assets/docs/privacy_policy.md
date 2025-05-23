@@ -1,77 +1,54 @@
 # Privacy Policy
 
-**Last Updated: May 17, 2025**
+_Last updated: May 2025_
 
-## Introduction
+Thank you for using the Waste Segregation App ("the App"). Your privacy is important to us. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our mobile application.
 
-Welcome to the Waste Segregation App ("the App"). We respect your privacy and are committed to protecting your personal data. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our mobile application.
+## 1. Information We Collect
 
-Please read this Privacy Policy carefully. If you do not agree with the terms of this Privacy Policy, please do not access the App.
+### a. Personal Data
+- **Account Information:** If you sign in with Google or other providers, we collect your name, email address, and profile picture.
+- **Device Information:** Device model, OS version, and unique device identifiers.
 
-## Information We Collect
+### b. Usage Data
+- **App Usage:** Features used, screens viewed, and actions taken within the app.
+- **Crash Reports:** Diagnostic and crash data via Firebase Crashlytics.
+- **Analytics:** Aggregated, anonymized usage statistics via Firebase Analytics.
 
-### Information You Provide
+### c. Media Data
+- **Images:** Photos you capture or upload for waste classification are processed for classification and may be stored temporarily for analytics or improvement purposes.
 
-We may collect information that you provide when you use the App, including:
+## 2. How We Use Your Information
+- To provide and improve app functionality.
+- To personalize your experience (e.g., gamification, dashboard).
+- To analyze usage and improve features.
+- To detect and fix bugs or crashes.
+- To comply with legal obligations.
 
-- **Account Information**: When you create an account, we may collect your name, email address, and profile picture.
-- **User Content**: Images you upload for waste classification, classification history, and user feedback.
-- **Communications**: Information you provide when you contact us for support or feedback.
+## 3. Sharing Your Information
+- **Third-Party Services:** We use Firebase (Google) for authentication, analytics, and crash reporting. Data may be processed by Google according to their privacy policies.
+- **No Sale of Data:** We do not sell your personal information to third parties.
+- **Legal Requirements:** We may disclose information if required by law or to protect our rights.
 
-### Information Collected Automatically
+## 4. Data Security
+We use industry-standard security measures to protect your data. However, no method of transmission or storage is 100% secure.
 
-When you use our App, we may automatically collect:
+## 5. Your Rights
+- **Access & Correction:** You may request access to or correction of your personal data.
+- **Deletion:** You may request deletion of your account and associated data by contacting us.
+- **Opt-Out:** You may opt out of analytics and crash reporting in the app settings (if available).
 
-- **Device Information**: Device type, operating system, unique device identifiers.
-- **Usage Data**: How you interact with the App, including classification attempts, educational content viewed, and features used.
-- **Location Data**: With your permission, we collect your approximate location to provide location-specific waste disposal information.
+## 6. Children's Privacy
+The app is not intended for children under 13. We do not knowingly collect data from children under 13.
 
-## How We Use Your Information
+## 7. Changes to This Policy
+We may update this Privacy Policy from time to time. Changes will be posted in the app and/or on our website.
 
-We use the information we collect to:
+## 8. Contact Us
+If you have questions or requests regarding your privacy, please contact:
 
-- Provide, maintain, and improve the App's functionality
-- Process and classify waste items through image recognition
-- Track your environmental impact and provide personalized insights
-- Improve our classification algorithms and educational content
-- Communicate with you regarding updates, features, or support requests
-- Provide personalized features, including gamification elements
+**Email:** founder@psrstech.com
 
-## Data Storage and Security
+---
 
-- All user data is stored securely using industry-standard encryption.
-- Classification images are stored temporarily during processing and may be retained to improve our classification algorithms, unless you opt out.
-- We implement appropriate technical and organizational measures to protect your personal data.
-
-## Sharing Your Information
-
-We do not sell your personal data. We may share your information in the following circumstances:
-
-- With service providers who assist in delivering the App's functionality
-- To comply with legal obligations
-- With your consent, or at your direction
-- In aggregated or anonymized form that cannot reasonably be used to identify you
-
-## Your Choices
-
-You have the following rights regarding your personal data:
-
-- **Access**: You can request access to your personal data.
-- **Correction**: You can request correction of inaccurate data.
-- **Deletion**: You can request deletion of your data, subject to certain exceptions.
-- **Opt-out**: You can opt out of certain data collection or processing activities.
-- **Account Settings**: You can update your preferences through your account settings.
-
-## Children's Privacy
-
-The App is not intended for children under 13 years of age. We do not knowingly collect personal information from children under 13.
-
-## Changes to This Privacy Policy
-
-We may update our Privacy Policy from time to time. We will notify you of any changes by posting the new Privacy Policy on this page and updating the "Last Updated" date.
-
-## Contact Us
-
-If you have any questions about this Privacy Policy, please contact us at:
-
-- Email: founder@psrstech.com
+_This document is provided for informational purposes and does not constitute legal advice. Please consult legal counsel for compliance with applicable laws._

@@ -6,6 +6,10 @@ import 'package:provider/provider.dart';
 import '../services/storage_service.dart';
 import '../utils/constants.dart';
 import '../models/waste_classification.dart';
+import '../widgets/gamification_widgets.dart';
+import '../widgets/enhanced_gamification_widgets.dart';
+import '../services/gamification_service.dart';
+import '../models/gamification.dart';
 // Removed import for '../widgets/empty_state_widget.dart'; as EmptyStateWidget is defined below
 
 class WasteDashboardScreen extends StatefulWidget {
@@ -172,6 +176,9 @@ class _WasteDashboardScreenState extends State<WasteDashboardScreen> {
           _buildSectionHeader('Your Environmental Impact'),
           _buildImpactSection(),
           const SizedBox(height: AppTheme.paddingLarge),
+          
+          // Gamification section
+          _buildGamificationSection(),
         ],
       ),
     );
@@ -594,6 +601,122 @@ class _WasteDashboardScreenState extends State<WasteDashboardScreen> {
       ..sort((a, b) => b.value.compareTo(a.value));
     
     return sortedEntries.take(count).toList();
+  }
+
+  Widget _buildGamificationSection() {
+    return FutureBuilder<GamificationProfile>(
+      future: GamificationService().getProfile(),
+      builder: (context, snapshot) {
+        if (!snapshot.hasData) {
+          return const Center(child: CircularProgressIndicator());
+        }
+        final profile = snapshot.data!;
+        final points = profile.points;
+        final streak = profile.streak;
+        final achievements = profile.achievements.where((a) => a.isEarned).toList();
+        final activeChallenges = profile.activeChallenges.where((c) => !c.isExpired && !c.isCompleted).toList();
+        final pointsToNextLevel = points.pointsToNextLevel;
+        final motivational = pointsToNextLevel > 0
+            ? 'Only $pointsToNextLevel points to reach the next level!'
+            : 'Level up! Keep going!';
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _buildSectionHeader('Gamification & Progress'),
+            const SizedBox(height: AppTheme.paddingSmall),
+            Row(
+              children: [
+                Expanded(child: StreakIndicator(streak: streak)),
+                const SizedBox(width: AppTheme.paddingSmall),
+                Expanded(child: EnhancedPointsIndicator(points: points)),
+              ],
+            ),
+            const SizedBox(height: AppTheme.paddingRegular),
+            Text(motivational, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500)),
+            const SizedBox(height: AppTheme.paddingRegular),
+            if (achievements.isNotEmpty)
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text('Recent Badges', style: TextStyle(fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 8),
+                  SizedBox(
+                    height: 80,
+                    child: ListView.separated(
+                      scrollDirection: Axis.horizontal,
+                      itemCount: achievements.length > 3 ? 3 : achievements.length,
+                      separatorBuilder: (_, __) => const SizedBox(width: 8),
+                      itemBuilder: (context, i) {
+                        final a = achievements[i];
+                        return _BadgePreview(achievement: a);
+                      },
+                    ),
+                  ),
+                ],
+              ),
+            if (activeChallenges.isNotEmpty) ...[
+              const SizedBox(height: AppTheme.paddingRegular),
+              const Text('Active Challenge', style: TextStyle(fontWeight: FontWeight.bold)),
+              const SizedBox(height: 8),
+              ChallengeCard(challenge: activeChallenges.first),
+            ],
+            const SizedBox(height: AppTheme.paddingRegular),
+            Card(
+              color: Colors.grey[100],
+              child: Padding(
+                padding: const EdgeInsets.all(AppTheme.paddingRegular),
+                child: Row(
+                  children: [
+                    const Icon(Icons.leaderboard, color: Colors.blueGrey),
+                    const SizedBox(width: 8),
+                    const Expanded(
+                      child: Text(
+                        "Leaderboard coming soon! Compete with others to see who's the top recycler.",
+                        style: TextStyle(fontSize: 13),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+}
+
+// --- Badge preview widget ---
+class _BadgePreview extends StatelessWidget {
+  final Achievement achievement;
+  const _BadgePreview({required this.achievement});
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        CircleAvatar(
+          radius: 28,
+          backgroundColor: achievement.color.withOpacity(0.2),
+          child: Icon(
+            Icons.emoji_events,
+            color: achievement.color,
+            size: 32,
+          ),
+        ),
+        const SizedBox(height: 4),
+        SizedBox(
+          width: 60,
+          child: Text(
+            achievement.title,
+            style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w500),
+            textAlign: TextAlign.center,
+            overflow: TextOverflow.ellipsis,
+            maxLines: 2,
+          ),
+        ),
+      ],
+    );
   }
 }
 

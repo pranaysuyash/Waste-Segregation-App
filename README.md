@@ -137,6 +137,13 @@ lib/
 
 ## Current Status
 
+### App Store Status
+
+- ✅ Google Play Developer Account created
+- ✅ App bundle uploaded to Google Play Console (May 2025)
+- ⏳ Waiting for Google Play review and approval
+- ❌ Apple App Store submission (not started)
+
 ### Implemented Features
 - AI integration with Gemini Vision API
 - Waste classification with detailed categories

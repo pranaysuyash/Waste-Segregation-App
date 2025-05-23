@@ -9,6 +9,7 @@ import '../models/gamification.dart';
 import '../services/storage_service.dart';
 import '../services/gamification_service.dart';
 import '../utils/constants.dart';
+import '../utils/error_handler.dart'; // Add this import
 import '../utils/animation_helpers.dart';
 import '../widgets/classification_card.dart';
 import '../widgets/recycling_code_info.dart';
@@ -51,8 +52,14 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
     // Automatically save the classification
     _autoSaveClassification();
     
-    // Process the classification for gamification
-    _processClassification();
+    // Process the classification for gamification only if it's a new classification
+    if (widget.showActions) {
+      _processClassification();
+    } else {
+      // If we are not processing for gamification (i.e., viewing from history),
+      // we should ensure the main content is visible immediately without feedback animations.
+      _showingClassificationFeedback = false;
+    }
   }
   
   @override
@@ -76,8 +83,8 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
       });
       
       // No need to show a snackbar since it's automatic
-    } catch (e) {
-      debugPrint('Error auto-saving classification: $e');
+    } catch (e, stackTrace) {
+      ErrorHandler.handleError(e, stackTrace);
       // If auto-save fails, we'll let the user try manual save
       setState(() {
         _isSaved = false;
@@ -146,8 +153,8 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
         }
       });
       
-    } catch (e) {
-      debugPrint('Error processing gamification: $e');
+    } catch (e, stackTrace) {
+      ErrorHandler.handleError(e, stackTrace);
       // In case of error, still show the result without gamification elements
       setState(() {
         _showingClassificationFeedback = false;
@@ -173,10 +180,11 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
           const SnackBar(content: Text(AppStrings.successSaved)),
         );
       }
-    } catch (e) {
+    } catch (e, stackTrace) {
+      ErrorHandler.handleError(e, stackTrace);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to save: ${e.toString()}')),
+          SnackBar(content: Text('Failed to save: ${ErrorHandler.getUserFriendlyMessage(e)}')),
         );
       }
     }
@@ -220,10 +228,11 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
       if (await tempTextFile.exists()) {
         await tempTextFile.delete();
       }
-    } catch (e) {
+    } catch (e, stackTrace) {
+      ErrorHandler.handleError(e, stackTrace);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to share: ${e.toString()}')),
+          SnackBar(content: Text('Failed to share: ${ErrorHandler.getUserFriendlyMessage(e)}')),
         );
       }
     }
@@ -238,6 +247,33 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
           achievement: achievement,
           onDismiss: () => Navigator.of(context).pop(),
         ),
+      ),
+    );
+  }
+  
+  void _showEducationalFactDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Did You Know?'),
+        content: SingleChildScrollView(
+          child: Text(
+            _getEducationalFact(
+              widget.classification.category,
+              widget.classification.subcategory,
+            ),
+            style: const TextStyle(
+              fontSize: AppTheme.fontSizeRegular,
+              height: 1.5,
+            ),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Close'),
+          ),
+        ],
       ),
     );
   }
@@ -348,11 +384,27 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
 
                         const SizedBox(height: AppTheme.paddingRegular),
 
-                        // Educational fact based on waste category and subcategory
-                        Text(_getEducationalFact(
-                          widget.classification.category,
-                          widget.classification.subcategory,
-                        )),
+                          // Educational fact based on waste category and subcategory
+                          Text(
+                            _getEducationalFact(
+                              widget.classification.category,
+                              widget.classification.subcategory,
+                            ),
+                            maxLines: 5,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              fontSize: AppTheme.fontSizeRegular,
+                              height: 1.4,
+                            ),
+                          ),
+                          
+                          // "Read More" button for long educational facts
+                          TextButton(
+                            onPressed: () {
+                              _showEducationalFactDialog();
+                            },
+                            child: const Text('Read More'),
+                          ),
 
                         const SizedBox(height: AppTheme.paddingRegular),
 
@@ -402,12 +454,23 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
                           Row(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              const Text(
-                                'Material Type: ',
-                                style: TextStyle(fontWeight: FontWeight.bold),
+                              const SizedBox(
+                                width: 100,
+                                child: Text(
+                                  'Material Type:',
+                                  style: TextStyle(fontWeight: FontWeight.bold),
+                                ),
                               ),
+                              const SizedBox(width: 8),
                               Expanded(
-                                child: Text(widget.classification.materialType!),
+                                child: Text(
+                                  widget.classification.materialType!,
+                                  maxLines: 3,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: const TextStyle(
+                                    fontSize: AppTheme.fontSizeRegular,
+                                  ),
+                                ),
                               ),
                             ],
                           ),

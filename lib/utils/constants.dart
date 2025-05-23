@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+// import 'package:firebase_crashlytics/firebase_crashlytics.dart'; // ErrorHandler should not be in constants
+// import '../utils/error_handler.dart'; // Ensure ErrorHandler is not imported here
 
 // API Configuration
 class ApiConfig {
@@ -356,3 +358,4 @@ class WasteInfo {
     '7': 'Other (BPA, Polycarbonate, etc.) - Various plastic products',
   };
 }
+

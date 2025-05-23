@@ -10,6 +10,9 @@ import 'premium_features_screen.dart';
 import 'theme_settings_screen.dart';
 import 'waste_dashboard_screen.dart';
 import 'legal_document_screen.dart';
+import 'offline_mode_settings_screen.dart';
+import 'data_export_screen.dart';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -148,6 +151,21 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     'export_data',
                     premiumService,
                   ),
+                  // --- TEMPORARY: Force Crash button for Crashlytics testing ---
+                  const SizedBox(height: 16),
+                  ElevatedButton.icon(
+                    icon: Icon(Icons.warning, color: Colors.red),
+                    label: Text('Force Crash (Crashlytics Test)', style: TextStyle(color: Colors.red)),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.white,
+                      foregroundColor: Colors.red,
+                      side: BorderSide(color: Colors.red),
+                    ),
+                    onPressed: () {
+                      FirebaseCrashlytics.instance.crash();
+                    },
+                  ),
+                  // --- END TEMPORARY ---
                 ],
               ),
             ),
@@ -181,9 +199,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
             isThreeLine: false,
             onTap: () {
               if (premiumService.isPremiumFeature('offline_mode')) {
-                // TODO: Implement offline mode settings
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Offline mode settings coming soon!')),
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const OfflineModeSettingsScreen(),
+                  ),
                 );
               } else {
                 _showPremiumFeaturePrompt(context, 'Offline Mode');
@@ -253,9 +273,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
             isThreeLine: false,
             onTap: () {
               if (premiumService.isPremiumFeature('export_data')) {
-                // TODO: Implement data export
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Data export coming soon!')),
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const DataExportScreen(),
+                  ),
                 );
               } else {
                 _showPremiumFeaturePrompt(context, 'Data Export');

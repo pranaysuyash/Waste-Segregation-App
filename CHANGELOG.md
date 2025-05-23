@@ -2,6 +2,30 @@
 
 All notable changes to the Waste Segregation App will be documented in this file.
 
+## [Unreleased]
+
+### Added
+- Google Play Store submission (May 2025)
+  - Created Google Play Developer account
+  - Uploaded initial app bundle (version 0.9.0+90)
+  - Submitted for review
+  - Documentation updated for tracking submission status
+
+### Planned for v0.9.1
+- UI Fixes
+  - Result screen text overflow fixes
+  - Recycling code info widget improvement
+  - Material information display enhancement
+- Settings Screen Completion
+  - Offline mode settings implementation
+  - Data export functionality
+- Gamification Improvements
+  - Enhanced feedback connection
+  - Challenge progress visualization
+- AI Classification Enhancements
+  - Improved consistency for complex scenes
+  - Feedback loop implementation
+
 ## [1.1.0] - 2025-05-16
 
 ### Added

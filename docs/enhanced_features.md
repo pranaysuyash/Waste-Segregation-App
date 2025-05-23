@@ -31,6 +31,8 @@ The Enhanced Gamification System significantly improves user engagement by provi
 - Category-specific animations and colors
 - Particle effects and checkmark animations
 
++> Note: Points earned popup and reward animations only trigger for new classifications, not when viewing history. The `ResultScreen` uses a `showActions` flag to ensure this logic.
+
 #### Rewards Acknowledgment
 - Points earned popup after successful actions
 - Level-up animations when advancing to next level

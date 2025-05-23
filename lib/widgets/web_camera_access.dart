@@ -2,23 +2,18 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
-// Simple stub implementation for cross-platform compatibility
 class WebCameraAccess {
-  // Setup camera access - returns false on non-web platforms
+  // Setup camera access - returns true if camera is available (always true on web with image_picker_for_web)
   static Future<bool> setup() async {
-    // Only works on web
-    if (!kIsWeb) return false;
-    
-    // Web implementation would go here, but we're keeping a stub
-    return false;
+    // On web, assume camera is available if running in browser
+    if (kIsWeb) return true;
+    // On mobile, handled by image_picker
+    return true;
   }
 }
 
-// Helper method for getting images on web
+// Helper method for getting images from the camera (works on web and mobile)
 Future<XFile?> getImageFromWebCamera(BuildContext context) async {
-  // Only works on web
-  if (!kIsWeb) return null;
-  
-  // For non-web platforms, use standard image picker
+  // Use image_picker for both web and mobile
   return ImagePicker().pickImage(source: ImageSource.camera);
 }

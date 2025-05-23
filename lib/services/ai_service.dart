@@ -842,6 +842,9 @@ class AiService {
   // Process AI response data and create WasteClassification object
   WasteClassification _processAiResponseData(
       Map<String, dynamic> responseData, String imageUrl) {
+    // Track processing start time
+    final processingStart = DateTime.now();
+    
     // Extract content from the OpenAI-formatted response
     final String textContent =
         responseData['choices'][0]['message']['content'] ?? '{}';
@@ -867,6 +870,22 @@ class AiService {
     String? recyclingCode;
     if (parsedJson['recyclingCode'] != null) {
       recyclingCode = parsedJson['recyclingCode'].toString();
+    }
+    
+    // Calculate processing time
+    final processingTime = DateTime.now().difference(processingStart).inMilliseconds;
+    
+    // Generate confidence score (this should come from the AI model in the future)
+    double confidence = _estimateConfidence(parsedJson);
+    
+    // Determine source
+    String source = 'unknown';
+    if (imageUrl.startsWith('web_image:')) {
+      source = kIsWeb ? 'web_upload' : 'gallery';
+    } else if (imageUrl.contains('/cache/')) {
+      source = 'camera';
+    } else {
+      source = 'gallery';
     }
     
     return WasteClassification(
@@ -899,7 +918,49 @@ class AiService {
           : null,
       colorCode: parsedJson['colorCode'] ?? colorCode,
       imageUrl: imageUrl,
+      // AI Model Performance Data
+      confidence: confidence,
+      modelVersion: ApiConfig.model,
+      processingTimeMs: processingTime,
+      // Processing Context
+      source: source,
     );
+  }
+  
+  /// Estimate confidence score based on response quality
+  /// In future versions, this should come directly from the AI model
+  double _estimateConfidence(Map<String, dynamic> parsedJson) {
+    double confidence = 0.5; // Base confidence
+    
+    // Increase confidence if detailed information is provided
+    if (parsedJson['itemName'] != null && parsedJson['itemName'].toString().length > 3) {
+      confidence += 0.1;
+    }
+    
+    if (parsedJson['subcategory'] != null) {
+      confidence += 0.1;
+    }
+    
+    if (parsedJson['materialType'] != null) {
+      confidence += 0.1;
+    }
+    
+    if (parsedJson['recyclingCode'] != null) {
+      confidence += 0.1;
+    }
+    
+    if (parsedJson['explanation'] != null && parsedJson['explanation'].toString().length > 50) {
+      confidence += 0.1;
+    }
+    
+    // Decrease confidence for vague responses
+    final itemName = parsedJson['itemName']?.toString().toLowerCase() ?? '';
+    if (itemName.contains('unknown') || itemName.contains('unclear') || itemName.contains('unsure')) {
+      confidence -= 0.2;
+    }
+    
+    // Ensure confidence is between 0.0 and 1.0
+    return confidence.clamp(0.0, 1.0);
   }
   
   // Fallback to OpenAI API when Gemini is unavailable

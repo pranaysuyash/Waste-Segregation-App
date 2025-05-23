@@ -50,3 +50,11 @@ app.*.map.json
 /android/app/.cxx/
 
 **/.claude/settings.local.json
+
+# Python asset download scripts
+freepik_badge_downloader.py
+*.asset_downloader.py
+
+# Python virtual environments
+.venv/
+venv/

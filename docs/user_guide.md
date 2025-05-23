@@ -21,6 +21,8 @@ When you classify a waste item, you'll now see:
    (Placeholder for Points popup screenshot)
    
    You'll immediately see how many points you've earned for your classification, with a brief explanation of the action.
+   
+   > Note: Points are only shown for new classifications. If you view an item from your history, the points popup will not appear again.
 
 3. **Achievement Notifications**
    

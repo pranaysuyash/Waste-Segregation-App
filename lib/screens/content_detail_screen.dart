@@ -4,6 +4,7 @@ import '../models/educational_content.dart';
 import '../services/educational_content_service.dart';
 import '../utils/constants.dart';
 import 'quiz_screen.dart';
+import 'package:video_player/video_player.dart';
 
 class ContentDetailScreen extends StatelessWidget {
   final String contentId;
@@ -220,22 +221,25 @@ class ContentDetailScreen extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Video player (placeholder)
-          Container(
-            height: 200,
-            width: double.infinity,
-            decoration: BoxDecoration(
-              color: Colors.black,
-              borderRadius: BorderRadius.circular(AppTheme.borderRadiusRegular),
-            ),
-            child: const Center(
-              child: Icon(
-                Icons.play_circle_fill,
-                size: 64,
-                color: Colors.white,
+          // Video player or placeholder
+          if (content.videoUrl != null && content.videoUrl!.isNotEmpty)
+            _VideoPlayerWidget(url: content.videoUrl!)
+          else
+            Container(
+              height: 200,
+              width: double.infinity,
+              decoration: BoxDecoration(
+                color: Colors.black,
+                borderRadius: BorderRadius.circular(AppTheme.borderRadiusRegular),
+              ),
+              child: const Center(
+                child: Icon(
+                  Icons.play_circle_fill,
+                  size: 64,
+                  color: Colors.white,
+                ),
               ),
             ),
-          ),
 
           const SizedBox(height: AppTheme.paddingRegular),
 
@@ -434,21 +438,42 @@ class ContentDetailScreen extends StatelessWidget {
 
           const SizedBox(height: AppTheme.paddingLarge),
 
-          // Infographic image (placeholder)
-          Container(
-            width: double.infinity,
-            height: 500,
-            decoration: BoxDecoration(
-              color: Colors.grey.shade200,
+          // Infographic image or placeholder
+          if (content.imageUrl != null && content.imageUrl!.isNotEmpty)
+            ClipRRect(
               borderRadius: BorderRadius.circular(AppTheme.borderRadiusRegular),
-              border: Border.all(color: Colors.grey.shade300),
+              child: Image.network(
+                content.imageUrl!,
+                width: double.infinity,
+                height: 500,
+                fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) => Container(
+                  width: double.infinity,
+                  height: 500,
+                  color: Colors.grey.shade200,
+                  child: Icon(
+                    Icons.broken_image,
+                    size: 80,
+                    color: Colors.grey.shade400,
+                  ),
+                ),
+              ),
+            )
+          else
+            Container(
+              width: double.infinity,
+              height: 500,
+              decoration: BoxDecoration(
+                color: Colors.grey.shade200,
+                borderRadius: BorderRadius.circular(AppTheme.borderRadiusRegular),
+                border: Border.all(color: Colors.grey.shade300),
+              ),
+              child: Icon(
+                Icons.image,
+                size: 80,
+                color: Colors.grey.shade400,
+              ),
             ),
-            child: Icon(
-              Icons.image,
-              size: 80,
-              color: Colors.grey.shade400,
-            ),
-          ),
 
           const SizedBox(height: AppTheme.paddingLarge),
 
@@ -1098,5 +1123,86 @@ class ContentDetailScreen extends StatelessWidget {
       default:
         return Colors.grey;
     }
+  }
+}
+
+// Video player widget with error handling
+class _VideoPlayerWidget extends StatefulWidget {
+  final String url;
+  const _VideoPlayerWidget({required this.url});
+
+  @override
+  State<_VideoPlayerWidget> createState() => _VideoPlayerWidgetState();
+}
+
+class _VideoPlayerWidgetState extends State<_VideoPlayerWidget> {
+  late VideoPlayerController _controller;
+  bool _initialized = false;
+  bool _error = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = VideoPlayerController.network(widget.url)
+      ..initialize().then((_) {
+        if (mounted) setState(() => _initialized = true);
+      }).catchError((_) {
+        if (mounted) setState(() => _error = true);
+      });
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_error) {
+      return Container(
+        height: 200,
+        width: double.infinity,
+        color: Colors.black,
+        child: const Center(
+          child: Icon(Icons.error, color: Colors.red, size: 48),
+        ),
+      );
+    }
+    if (!_initialized) {
+      return Container(
+        height: 200,
+        width: double.infinity,
+        color: Colors.black,
+        child: const Center(child: CircularProgressIndicator()),
+      );
+    }
+    return AspectRatio(
+      aspectRatio: _controller.value.aspectRatio,
+      child: Stack(
+        alignment: Alignment.bottomCenter,
+        children: [
+          VideoPlayer(_controller),
+          VideoProgressIndicator(_controller, allowScrubbing: true),
+          Align(
+            alignment: Alignment.center,
+            child: IconButton(
+              icon: Icon(
+                _controller.value.isPlaying ? Icons.pause : Icons.play_arrow,
+                color: Colors.white,
+                size: 48,
+              ),
+              onPressed: () {
+                setState(() {
+                  _controller.value.isPlaying
+                      ? _controller.pause()
+                      : _controller.play();
+                });
+              },
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }

@@ -71,6 +71,8 @@ This document outlines the specific development tasks to be addressed in the nex
   - Show achievement progress updates with clear visual cues
   - Implement "tap for details" functionality on notifications
 
+> Bug Fix: The issue where points/animations would show when viewing history is now fixed. `ResultScreen` now only shows points for new classifications.
+
 ### 2. Challenge Progress Visualization
 - **File:** Potentially new widget and changes to existing gamification widgets
 - **Tasks:**
