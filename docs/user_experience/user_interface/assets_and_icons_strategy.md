@@ -30,7 +30,38 @@ This document outlines the strategy for sourcing, organizing, and integrating vi
 
 ---
 
-## 2. Sourcing Assets: Manual Curation Recommended
+## 2. Style Recommendations for Icons & Illustrations
+
+### A. Main App (All Ages/Education)
+- **Recommended Styles:**
+  - **Outline:** Clean, modern, and accessible for all ages. Works well for educational content and is easy to theme.
+  - **Lineal Color:** Adds vibrancy and friendliness without being too childish. Great for making the app feel engaging and lively for both adults and younger users.
+- **Why:**
+  - Outline icons are universally readable and professional, but not intimidating.
+  - Lineal Color icons are inviting and can make learning feel more fun, but still look "grown up" enough for adults.
+
+### B. Kid-Friendly Section (Future/Optional)
+- **Recommended Styles:**
+  - **Hand drawn:** Playful, friendly, and approachable—perfect for kids' content, games, or special "junior" modes.
+  - **Lineal Color:** Also works well for kids, especially if you use brighter, more saturated colors.
+- **Why:**
+  - Hand drawn icons create a sense of play and creativity, which is great for engaging children.
+  - Consistent use of color and playful shapes helps kids recognize and remember actions and categories.
+
+### C. Consistency & Theming
+- Keep the style consistent within each section (main app vs. kid mode).
+- Use the same icon style for similar actions across the app.
+- Organize assets in folders (e.g., `assets/icons/outline/`, `assets/icons/handdrawn/`) to support easy theming or switching styles in the future.
+
+#### Summary Table
+| Section         | Recommended Style(s)   | Why?                                 |
+|-----------------|-----------------------|--------------------------------------|
+| Main App        | Outline, Lineal Color | Universal, modern, friendly, clear   |
+| Kid Section     | Hand drawn, Lineal Color | Playful, engaging, age-appropriate   |
+
+---
+
+## 3. Sourcing Assets: Manual Curation Recommended
 
 ### A. Why Manual Curation?
 - **Freepik API** (even with premium) does not always guarantee that search results are directly downloadable as SVGs, or that the asset is available in the desired format/license.
@@ -74,15 +105,16 @@ This document outlines the strategy for sourcing, organizing, and integrating vi
 
 ---
 
-## 3. Asset Organization
+## 4. Asset Organization
 - `assets/icons/` — UI and category icons
 - `assets/badges/` — Gamification badges and rewards
 - `assets/images/` — Illustrations, banners, infographics
 - `assets/docs/` — Legal and documentation assets
+- (Optional) Use subfolders for different styles: `assets/icons/outline/`, `assets/icons/handdrawn/`, etc.
 
 ---
 
-## 4. Design & Theming Guidelines
+## 5. Design & Theming Guidelines
 - **Style:** Choose a consistent style (e.g., flat, outline, or filled) for all icons and badges
 - **Color Palette:** Use the app's primary/secondary colors for theming SVGs
 - **Size:** Standardize icon sizes (e.g., 24x24, 48x48 for badges)
@@ -91,14 +123,14 @@ This document outlines the strategy for sourcing, organizing, and integrating vi
 
 ---
 
-## 5. License Compliance & Attribution
+## 6. License Compliance & Attribution
 - **Premium License:** If you have a premium Freepik license, attribution may not be required, but always check the terms
 - **Attribution File:** Keep `assets/ATTRIBUTION.md` up to date with all sourced assets
 - **No Redistribution:** Do not redistribute Freepik assets outside the app
 
 ---
 
-## 6. Adding New Assets: Step-by-Step
+## 7. Adding New Assets: Step-by-Step
 1. Search and download asset from Freepik/Flaticon (website recommended)
 2. Optimize and rename asset file
 3. Place in appropriate `assets/` subdirectory
@@ -108,13 +140,13 @@ This document outlines the strategy for sourcing, organizing, and integrating vi
 
 ---
 
-## 7. Future Automation
+## 8. Future Automation
 - Consider writing a script to automate asset download by ID if you have a curated list.
 - Review and curate assets regularly for freshness and consistency.
 
 ---
 
-## 8. References
+## 9. References
 - [Freepik API Documentation](https://docs.freepik.com/api-reference/resources/get-all-resources)
 - [SVGOMG Optimizer](https://jakearchibald.github.io/svgomg/)
 - [Flutter SVG Package](https://pub.dev/packages/flutter_svg)
