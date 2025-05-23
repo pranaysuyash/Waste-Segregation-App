@@ -2,7 +2,7 @@ name: waste_segregation_app
 description: An app to help users properly segregate waste using AI classification.
 publish_to: 'none'
 
-version: 0.1.1+93  # Bump for Google Sign-In fix and Play Store upload
+version: 0.1.2+94  # Bump for Play Store internal test with correct SHA-1s
 
 environment:
   sdk: '>=3.0.0 <4.0.0'

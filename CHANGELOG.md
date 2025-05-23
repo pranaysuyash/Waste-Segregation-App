@@ -82,3 +82,8 @@
 - Fixed MainActivity class/package mismatch that caused Play Store runtime crash.
 - Ensured versionCode is incremented to 92 for Play Console compatibility.
 - Updated documentation to reflect new versioning and Play Store issues.
+
+## [0.1.2+94] - 2025-05-19
+### Fixed
+- Added Google Play App Signing SHA-1 to Firebase for Play Store internal testing compatibility.
+- Bumped version to 0.1.2 (build 94) for new Play Store/internal test release.

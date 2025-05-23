@@ -113,4 +113,8 @@ _Move completed items here with resolution date and notes._
   - Refactored all package references to `com.pranaysuyash.wastewise` in build.gradle, AndroidManifest.xml, google-services.json, and MainActivity.
   - Set versionCode to 92 (higher than previous 91) and versionName to 0.1.0 for Play Console compatibility.
   - Updated documentation and changelog.
-- **Status:** Resolved as of 2025-05-19. 
+- **Status:** Resolved as of 2025-05-19.
+
+3. **Play Store Internal Testing SHA-1** - _Resolved: [2025-05-19]_
+   - Added Google Play App Signing SHA-1 to Firebase for internal testing compatibility
+   - Bumped version to 0.1.2+94 
