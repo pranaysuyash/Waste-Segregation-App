@@ -1,5 +1,7 @@
 # Developer Documentation: Enhanced Gamification & Waste Dashboard
 
+> **NOTE:** The canonical, comprehensive developer guide is [`enhanced_developer_guide.md`](./enhanced_developer_guide.md). This file is focused on the gamification and waste analytics dashboard features for developers extending those systems.
+
 This document provides technical details for developers working on or extending the Enhanced Gamification System and Waste Analytics Dashboard features.
 
 ## Code Organization

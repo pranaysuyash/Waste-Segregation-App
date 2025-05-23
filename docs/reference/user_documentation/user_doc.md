@@ -1,5 +1,7 @@
 # Waste Segregation App - Technical Documentation
 
+> **NOTE:** The canonical, comprehensive user guide is [`user_documentation.md`](./user_documentation.md). This file is a quick technical reference for developers or advanced users who want a summary of the system architecture and models.
+
 ## Project Overview
 
 The Waste Segregation App is a Flutter-based application designed to educate users about proper waste segregation using AI technology. It classifies waste images into detailed categories and provides educational content and gamification to motivate users.

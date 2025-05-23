@@ -21,7 +21,7 @@ This document outlines the comprehensive strategy for successfully launching the
 
 | Requirement | Details | Status |
 |-------------|---------|--------|
-| **Developer Account** | Google Play Developer account ($25 one-time fee) | ⬜ |
+| **Developer Account** | Google Play Developer account ($25 one-time fee) | ✅ |
 | **Privacy Policy** | Privacy policy URL | ⬜ |
 | **Content Rating** | Questionnaire completion | ⬜ |
 | **Target API Level** | Android API level 33+ (Android 13.0+) | ⬜ |
@@ -284,7 +284,7 @@ This document outlines the comprehensive strategy for successfully launching the
 3. Set up pricing and distribution
 4. Set up content rating questionnaire
 5. Complete Data safety form
-6. Upload APK or App Bundle
+6. Upload APK or App Bundle ✅
 7. Set up store listing:
    - Screenshots
    - Feature graphic

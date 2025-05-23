@@ -1,7 +1,13 @@
 # DEPRECATED: AI Strategy & Multi-Model Integration
 
-> **IMPORTANT**: This document is deprecated. The current source of truth for multi-model AI strategy is now [`/docs/technical/ai_and_machine_learning/multi_model_ai_strategy.md`](/docs/technical/ai_and_machine_learning/multi_model_ai_strategy.md).
+> **IMPORTANT**: This document is deprecated. The current source of truth for multi-model AI strategy is now [`multi_model_ai_strategy.md`](./multi_model_ai_strategy.md).
 
-This document has been consolidated into the comprehensive multi_model_ai_strategy.md file to maintain a single source of truth for all AI strategy documentation.
+## Summary
 
-Please refer to the multi_model_ai_strategy.md document for the most up-to-date information on our multi-model AI approach.
+This file previously described the AI strategy and multi-model integration approach. All up-to-date details are now maintained in the comprehensive multi_model_ai_strategy.md file.
+
+---
+
+# [Historical Reference Only]
+
+This document is preserved for historical context. Please refer to the multi_model_ai_strategy.md document for all current and future development.

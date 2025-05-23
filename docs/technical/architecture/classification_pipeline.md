@@ -2,9 +2,15 @@
 
 > **IMPORTANT**: This document is deprecated. The current source of truth for application architecture is now available in the [`/docs/technical/unified_architecture/comprehensive_architecture.md`](/docs/technical/unified_architecture/comprehensive_architecture.md) document.
 
-Please refer to the unified architecture documentation for the most up-to-date information on the classification pipeline and overall system architecture.
+## Summary
 
-The content below is maintained for historical reference only.
+This file previously described the end-to-end classification pipeline, from image capture to result display, with a focus on multi-object segmentation. All up-to-date details are now maintained in the unified architecture documentation.
+
+---
+
+# [Historical Reference Only]
+
+This document is preserved for historical context. Please refer to the unified architecture documentation for all current and future development.
 
 ---
 
