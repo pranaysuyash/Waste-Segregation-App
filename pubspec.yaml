@@ -38,6 +38,8 @@ dependencies:
   firebase_core: ^3.13.0  # Updated for iOS compatibility
   firebase_auth: ^5.5.3  # Updated for iOS compatibility
   google_sign_in: ^6.3.0  # Updated for iOS compatibility
+  firebase_crashlytics: ^4.3.5
+  video_player: ^2.9.5
 
 dev_dependencies:
   flutter_test:
@@ -56,3 +58,4 @@ flutter:
   assets:
     - assets/images/
     - assets/icons/
+    - assets/docs/
