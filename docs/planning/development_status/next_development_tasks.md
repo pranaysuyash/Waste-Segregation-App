@@ -184,8 +184,8 @@ Based on critical nature and user impact, the suggested implementation order is:
 
 ## Version Update Information
 
-- **Current Version:** 0.9.0+90
-- **Target Version:** 0.9.1+91
+- **Current Version:** 0.9.1+91
+- **Target Version:** 0.9.2+92
 - **Focus:** UI Polishing and Core Feature Completion
 - **Estimated Effort:** 2-3 development weeks
 

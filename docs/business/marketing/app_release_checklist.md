@@ -237,7 +237,7 @@ This document provides a comprehensive checklist for preparing and executing app
 | Version | Release Date | Status | Notes |
 |---------|--------------|--------|-------|
 | 0.9.0+90 | May 2025 | Submitted | Initial Google Play Store submission |
-| | | | |
+| 0.9.1+91 | 2025-05-20 | Internal Testing | Points popup fix, UI improvements, new features |
 | | | | |
 
 ## Lessons Learned

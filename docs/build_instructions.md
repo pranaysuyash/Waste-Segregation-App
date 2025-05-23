@@ -285,7 +285,9 @@ For any additional issues, please refer to the developer documentation or create
 - [x] Package name is set to `com.pranaysuyash.wastewise` (required for Play Store).
 - [x] Release AAB (`app-release.aab`) is built and ready for upload.
 - [x] No debug/test code or banners in release build.
-- [x] Version and build number are set in `pubspec.yaml`.
+- [x] Version and build number are set in `pubspec.yaml` (now 0.9.1+91)
+
+> Note: Always increment the version and build number for each new release to Play Store internal testing.
 
 ## 2. Play Store Listing Assets
 - [ ] App Icon: 512x512px PNG (no alpha)

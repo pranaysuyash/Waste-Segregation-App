@@ -183,15 +183,15 @@ After implementing these P0 features, ensure the following items are prepared fo
 For the initial app store release, we recommend the following version scheme:
 
 ```
-Version: 0.9.0 (90)
+Version: 0.9.1 (91)
 ```
 
 Where:
-- `0.9.0` is the semantic version (major.minor.patch)
+- `0.9.1` is the semantic version (major.minor.patch)
   - `0` major version indicates pre-1.0 status
   - `9` minor version indicates feature-complete beta
-  - `0` patch level for initial release
-- `90` is the build number (for internal tracking)
+  - `1` patch level for this release
+- `91` is the build number (for internal tracking)
 
 ### Versioning Convention
 

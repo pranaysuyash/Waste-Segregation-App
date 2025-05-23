@@ -1,6 +1,14 @@
 # Changelog
 
-All notable changes to the Waste Segregation App will be documented in this file.
+## [0.9.1] - 2025-05-20
+
+### Improvements & Fixes
+- Points popup and reward animations now only show for new classifications, not when viewing history
+- UI fixes: result screen text overflow, recycling code info widget improvements, material info display
+- Settings: offline mode settings, data export functionality
+- Gamification: enhanced feedback connection, challenge progress visualization
+- AI: improved classification consistency, feedback loop implementation
+- Documentation: updated for new features, ad-unlocked premium ideas, and bug fixes
 
 ## [Unreleased]
 
@@ -11,20 +19,8 @@ All notable changes to the Waste Segregation App will be documented in this file
   - Submitted for review
   - Documentation updated for tracking submission status
 
-### Planned for v0.9.1
-- UI Fixes
-  - Result screen text overflow fixes
-  - Recycling code info widget improvement
-  - Material information display enhancement
-- Settings Screen Completion
-  - Offline mode settings implementation
-  - Data export functionality
-- Gamification Improvements
-  - Enhanced feedback connection
-  - Challenge progress visualization
-- AI Classification Enhancements
-  - Improved consistency for complex scenes
-  - Feedback loop implementation
+### Planned for v0.9.2
+- (Planned features and fixes)
 
 ## [1.1.0] - 2025-05-16
 

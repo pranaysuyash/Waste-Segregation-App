@@ -13,7 +13,14 @@ import '../widgets/history_list_item.dart';
 
 /// A screen that displays the complete history of waste classifications with filtering and searching
 class HistoryScreen extends StatefulWidget {
-  const HistoryScreen({super.key});
+  final String? filterCategory;
+  final String? filterSubcategory;
+  
+  const HistoryScreen({
+    super.key,
+    this.filterCategory,
+    this.filterSubcategory,
+  });
 
   @override
   State<HistoryScreen> createState() => _HistoryScreenState();
@@ -58,6 +65,15 @@ class _HistoryScreenState extends State<HistoryScreen> {
   @override
   void initState() {
     super.initState();
+    
+    // Apply initial filters if provided
+    if (widget.filterCategory != null) {
+      _selectedCategories.add(widget.filterCategory!);
+      _filterOptions = _filterOptions.copyWith(
+        categories: [widget.filterCategory!],
+      );
+    }
+    
     _loadClassifications();
     
     // Add scroll listener for pagination
