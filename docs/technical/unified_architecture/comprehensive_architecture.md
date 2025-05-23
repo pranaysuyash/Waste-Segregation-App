@@ -815,37 +815,11 @@ The web implementation follows these key principles:
 4. **Shared Codebase**: Maximize code reuse between mobile and web platforms
 5. **Optimized Loading**: Optimize application load times and resource usage for web
 
-### Web-Specific Implementations
+### Recent UI and Platform Improvements
 
-#### 1. Entry Point and Initialization
-- Dedicated `web_standalone.dart` entry point for web-specific initialization
-- Custom `index.html` with optimized loading sequence
-- Web-specific Firebase initialization
-
-#### 2. Camera and Image Handling
-- WebRTC camera access for modern browsers
-- File upload fallback for image processing
-- Browser-based image optimization before processing
-
-#### 3. Storage Strategy
-- IndexedDB for structured data storage
-- LocalStorage for simple key-value pairs
-- Graceful degradation when storage limits are reached
-
-#### 4. Authentication
-- Firebase Web Auth integration
-- Browser-specific authentication flows
-- Token persistence using secure browser storage
-
-#### 5. Fallback Mechanisms
-- `WebFallbackScreen` for core feature unavailability
-- Feature-specific UI adaptations
-- Clear user messaging for browser compatibility
-
-#### 6. Web Performance Optimizations
-- Lazy loading of non-critical assets
-- Deferred component initialization
-- Web-specific state management optimizations
-- Image and asset compression strategies
+- **UI Text Overflow Fixes**: The result screen and educational content screens now use `TextOverflow.ellipsis` and `maxLines` to prevent text clipping and improve accessibility. See `result_screen.dart` and `content_detail_screen.dart` for implementation details.
+- **Media Rendering**: Educational content detail screens now render videos using a video player and infographics using `Image.network`, with error/fallback handling for missing or broken media links.
+- **Web Camera Access**: The app now uses `image_picker` and `image_picker_for_web` to enable camera capture in the browser, with graceful fallback for unsupported browsers. See `web_camera_access.dart` for details.
+- **Centralized Error Handling**: All major screens now use a centralized `ErrorHandler` and `AppException` pattern for consistent error logging and user feedback. See `constants.dart` for the error handling implementation.
 
 This web architecture enables the Waste Segregation App to provide a consistent experience across platforms while adapting to the specific capabilities and constraints of web browsers.

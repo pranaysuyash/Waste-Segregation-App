@@ -108,6 +108,20 @@ Several documentation improvements have been made:
 - [Smart Bin Integration](technical/implementation/smart_bin_integration.md) - Integration with smart waste bins
 - [Comprehensive Testing Strategy](technical/implementation/comprehensive_testing_strategy.md) - Detailed testing approach
 
+### Mobile-Based Classifier & Segmentation Model Plans
+
+The app is designed to support future on-device (mobile) classification and segmentation models for offline use. Plans for:
+- TensorFlow Lite (TFLite) models for offline waste classification
+- Mobile-optimized segmentation models (e.g., SAM Lite, EfficientSeg)
+- Hybrid and tiered approaches (server + on-device)
+are documented in:
+- [Multi-Model AI Strategy](technical/ai_and_machine_learning/multi_model_ai_strategy.md)
+- [AI-Powered Image Segmentation](technical/ai_and_machine_learning/ai_powered_image_segmentation.md)
+- [Implementation Options](technical/implementation/implementation_options.md)
+- [Comprehensive Architecture](technical/unified_architecture/comprehensive_architecture.md)
+
+See these docs for technical details, update strategies, and future roadmap for mobile AI/ML features.
+
 ## User Experience Documentation
 
 ### User Flows

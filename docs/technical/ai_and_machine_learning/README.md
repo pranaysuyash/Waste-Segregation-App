@@ -1,5 +1,11 @@
 # AI and Machine Learning Documentation
 
+## Recent Improvements
+
+- **Web Camera Access**: Camera capture is now supported in the browser using `image_picker_for_web` (see `web_camera_access.dart`).
+- **UI and Media Rendering**: Improved text overflow handling and media (video/image) rendering in educational content screens (see `result_screen.dart`, `content_detail_screen.dart`).
+- **Centralized Error Handling**: Error handling is now standardized using `AppException` and `ErrorHandler` (see `constants.dart`).
+
 This directory contains documentation related to the AI and machine learning components of the Waste Segregation App.
 
 ## Main Files

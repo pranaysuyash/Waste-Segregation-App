@@ -1,5 +1,11 @@
 # Project Files Archive
 
+## Recent Improvements
+
+- **Centralized Error Handling**: All major screens now use a centralized `ErrorHandler` and `AppException` pattern for consistent error logging and user feedback. See `constants.dart`.
+- **Web Camera Access**: Camera capture is now supported in the browser using `image_picker_for_web` (see `web_camera_access.dart`).
+- **UI and Media Rendering**: Improved text overflow handling and media (video/image) rendering in educational content screens (see `result_screen.dart`, `content_detail_screen.dart`).
+
 This directory contains sample and reference configuration files for the Waste Segregation App, primarily for iOS and Flutter setup.
 
 ## Files

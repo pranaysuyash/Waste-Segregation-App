@@ -10,6 +10,7 @@
 7. [Testing](#testing)
 8. [Future Enhancements](#future-enhancements)
 9. [Troubleshooting](#troubleshooting)
+10. [Recent Code Improvements](#recent-code-improvements)
 
 ## Introduction
 
@@ -378,3 +379,9 @@ flutter build web --release
 - Project Roadmap: See `project_features.md`
 - Classification Options Analysis: See `classification_caching_options.md`
 - Implementation Details: See `classification_caching_implementation.md`
+
+## Recent Code Improvements
+
+- **Centralized Error Handling**: All major screens now use a centralized `ErrorHandler` and `AppException` pattern for consistent error logging and user feedback. See `constants.dart`.
+- **Web Camera Access**: Camera capture is now supported in the browser using `image_picker_for_web` (see `web_camera_access.dart`).
+- **UI and Media Rendering**: Improved text overflow handling and media (video/image) rendering in educational content screens (see `result_screen.dart`, `content_detail_screen.dart`).
