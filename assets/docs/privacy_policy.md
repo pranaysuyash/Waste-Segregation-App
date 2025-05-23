@@ -18,6 +18,11 @@ Thank you for using the Waste Segregation App ("the App"). Your privacy is impor
 ### c. Media Data
 - **Images:** Photos you capture or upload for waste classification are processed for classification and may be stored temporarily for analytics or improvement purposes.
 
+### d. Camera Access and Permissions
+- **Camera Permission:** The app requests access to your device's camera (android.permission.CAMERA) solely to allow you to capture photos for waste classification.
+- **How Camera Data is Used:** Images captured using the camera are only used for the purpose of classifying waste and providing you with results. These images are not shared with third parties and are not stored beyond what is necessary for classification and app improvement (such as anonymized analytics or user feedback, if you opt in).
+- **No Background or Unauthorized Use:** The camera is only activated when you choose to take a photo within the app. The app does not access your camera in the background or without your explicit action.
+
 ## 2. How We Use Your Information
 - To provide and improve app functionality.
 - To personalize your experience (e.g., gamification, dashboard).
