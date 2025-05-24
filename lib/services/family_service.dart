@@ -614,16 +614,206 @@ class FamilyService extends ChangeNotifier {
   /// Helper to get a single invitation by its ID (internal use or for specific scenarios)
   Future<FamilyInvitation?> getInvitationById(String invitationId) async {
     try {
-        final invitationsBox = Hive.box<String>(StorageKeys.invitationsBox);
-        final inviteJsonString = invitationsBox.get(invitationId);
-        if (inviteJsonString != null) {
-            return FamilyInvitation.fromJson(jsonDecode(inviteJsonString));
-        }
-        return null;
-    } catch (_) {
-        return null;
+      final invitationsBox = Hive.box<String>(StorageKeys.invitationsBox);
+      final invitationJsonString = invitationsBox.get(invitationId);
+
+      if (invitationJsonString != null) {
+        final Map<String, dynamic> invitationJson = jsonDecode(invitationJsonString);
+        return FamilyInvitation.fromJson(invitationJson);
+      }
+      debugPrint('FamilyService: Invitation with ID $invitationId not found.');
+      return null;
+    } catch (e, stackTrace) {
+      debugPrint('FamilyService: Error retrieving invitation $invitationId: $e\n$stackTrace');
+      return null;
     }
   }
 
-  // TODO: Implement other methods like leaveFamily, deleteFamily etc.
-} 
+  /// Allows the currently logged-in user to leave their family.
+  ///
+  /// Returns true if successful, false otherwise.
+  /// If the user is the admin and other members exist, they cannot leave
+  /// without transferring admin rights (not yet implemented).
+  /// If the user is the admin and is the sole member, the family may be deleted (future enhancement).
+  Future<bool> leaveFamily() async {
+    try {
+      // 1. Get current user
+      UserProfile? currentUser = await _storageService.getCurrentUserProfile();
+      if (currentUser == null) {
+        debugPrint('FamilyService: No logged-in user found. Cannot leave family.');
+        return false;
+      }
+
+      // 2. Check if user is in a family
+      if (currentUser.familyId == null || currentUser.familyId!.isEmpty) {
+        debugPrint('FamilyService: User ${currentUser.id} is not in a family. Cannot leave.');
+        // Consider this a success if the goal is "not in a family"
+        return true;
+      }
+
+      String familyId = currentUser.familyId!;
+
+      // 3. Retrieve the Family
+      Family? family = await getFamily(familyId);
+      if (family == null) {
+        debugPrint('FamilyService: Family $familyId not found for user ${currentUser.id}. Clearing profile.');
+        // Family doesn't exist, but user profile points to it. Clean up user profile.
+        final updatedUserProfile = currentUser.copyWith(
+          familyId: null,
+          role: null,
+          updatedAt: DateTime.now(),
+        );
+        await _storageService.saveUserProfile(updatedUserProfile);
+        notifyListeners();
+        return true; // User is effectively out of a non-existent family.
+      }
+
+      // 4. Handle admin leaving
+      if (family.adminUserId == currentUser.id) {
+        if (family.memberUserIds.length > 1) {
+          debugPrint('FamilyService: Admin ${currentUser.id} cannot leave family ${family.id} as other members exist. Admin transfer required.');
+          // TODO: Implement admin transfer logic or prompt.
+          // For now, prevent leaving.
+          return false;
+        } else {
+          // Admin is the only member.
+          // Future: Consider deleting the family here or marking it for deletion.
+          debugPrint('FamilyService: Admin ${currentUser.id} is the only member of family ${family.id}. Leaving will make the family memberless (or could delete it).');
+          // Proceed to remove them. The family will become memberless.
+        }
+      }
+
+      // 5. Remove user from family's member list
+      bool familyModified = false;
+      if (family.memberUserIds.contains(currentUser.id)) {
+        family.memberUserIds.remove(currentUser.id);
+        familyModified = true;
+      }
+
+      if (familyModified) {
+        family.updatedAt = DateTime.now();
+        // If the family becomes empty after the user leaves
+        if (family.memberUserIds.isEmpty) {
+            debugPrint('FamilyService: Family ${family.id} is now empty after user ${currentUser.id} left.');
+            // Future: Decide if an empty family should be deleted or archived.
+            // For now, it remains an empty family.
+        }
+        bool familyUpdateSuccess = await updateFamily(family);
+        if (!familyUpdateSuccess) {
+          debugPrint('FamilyService: Failed to update family ${family.id} after user ${currentUser.id} left.');
+          // Attempt to rollback? For now, profile will still be updated.
+          // This could lead to inconsistency if family update fails.
+        }
+      }
+
+      // 6. Update UserProfile
+      final updatedUserProfile = currentUser.copyWith(
+        familyId: null,
+        role: null,
+        updatedAt: DateTime.now(),
+      );
+      await _storageService.saveUserProfile(updatedUserProfile);
+
+      debugPrint('FamilyService: User ${currentUser.id} successfully left family ${family.id}.');
+      notifyListeners();
+      return true;
+
+    } catch (e, stackTrace) {
+      debugPrint('FamilyService: Error leaving family: $e\n$stackTrace');
+      return false;
+    }
+  }
+
+  /// Allows the admin of a family to delete the family.
+  /// 
+  /// All members will be removed from the family (their profiles updated).
+  /// All pending invitations for this family will be cancelled.
+  /// Returns true if successful, false otherwise.
+  /// Optional: `confirmDeletionIfMembersExist` - if false (default), deletion is blocked if >1 member.
+  Future<bool> deleteFamily(String familyId, String adminUserId, {bool confirmDeletionIfMembersExist = false}) async {
+    try {
+      // 1. Get current user (admin)
+      UserProfile? adminProfile = await _storageService.getUserProfile(adminUserId);
+      if (adminProfile == null) {
+        debugPrint('FamilyService: Admin profile $adminUserId not found. Cannot delete family.');
+        return false;
+      }
+      if (adminProfile.familyId != familyId) {
+          debugPrint('FamilyService: Admin $adminUserId is not part of family $familyId they are trying to delete.');
+          return false;
+      }
+
+      // 2. Retrieve the Family
+      Family? family = await getFamily(familyId);
+      if (family == null) {
+        debugPrint('FamilyService: Family $familyId not found. Cannot delete.');
+        // If family doesn't exist, it's already effectively deleted.
+        // We should still ensure the admin's profile is clean if it somehow still references it.
+        if (adminProfile.familyId == familyId) {
+            final updatedAdminProfile = adminProfile.copyWith(familyId: null, role: null, updatedAt: DateTime.now());
+            await _storageService.saveUserProfile(updatedAdminProfile);
+        }
+        return true; 
+      }
+
+      // 3. Check if the user is the admin of this family
+      if (family.adminUserId != adminUserId) {
+        debugPrint('FamilyService: User $adminUserId is not the admin of family ${family.id}. Cannot delete.');
+        return false;
+      }
+
+      // 4. Check for other members if confirmation is not given
+      if (family.memberUserIds.length > 1 && !confirmDeletionIfMembersExist) {
+        debugPrint('FamilyService: Family ${family.id} has other members. Admin $adminUserId must confirm deletion.');
+        // TODO: This could throw a specific exception or return a specific status code
+        // to inform the UI to ask for confirmation.
+        return false; 
+      }
+
+      // 5. Remove/update all members
+      List<String> membersToRemove = List.from(family.memberUserIds); // Create a copy to iterate
+      for (String memberId in membersToRemove) {
+        UserProfile? memberProfile = await _storageService.getUserProfile(memberId);
+        if (memberProfile != null && memberProfile.familyId == familyId) {
+          final updatedMemberProfile = memberProfile.copyWith(
+            familyId: null,
+            role: null, // Clear role
+            updatedAt: DateTime.now(),
+          );
+          await _storageService.saveUserProfile(updatedMemberProfile);
+          debugPrint('FamilyService: Cleared family info for member $memberId from deleted family ${family.id}.');
+        }
+      }
+      // The family object's member list will be effectively cleared by deleting the family.
+
+      // 6. Cancel all pending invitations for this family
+      List<FamilyInvitation> pendingInvites = await getPendingInvitesForFamily(familyId);
+      for (FamilyInvitation invite in pendingInvites) {
+        if (invite.status == InvitationStatus.pending) {
+          invite.status = InvitationStatus.cancelled; // Or a new status like 'family_deleted'
+          invite.respondedAt = DateTime.now();
+          final invitationsBox = Hive.box<String>(StorageKeys.invitationsBox);
+          await invitationsBox.put(invite.id, jsonEncode(invite.toJson()));
+          debugPrint('FamilyService: Cancelled pending invitation ${invite.id} for deleted family ${family.id}.');
+        }
+      }
+      // The family object's pendingInviteIds list will be cleared by deleting the family.
+
+      // 7. Delete the Family from Hive box
+      final familiesBox = Hive.box<String>(StorageKeys.familiesBox);
+      await familiesBox.delete(familyId);
+
+      debugPrint('FamilyService: Family ${family.id} deleted by admin $adminUserId.');
+      notifyListeners(); // Notify listeners about the change (e.g., admin's UI might update)
+      return true;
+
+    } catch (e, stackTrace) {
+      debugPrint('FamilyService: Error deleting family $familyId: $e\n$stackTrace');
+      return false;
+    }
+  }
+
+  // TODO: Implement admin transfer logic for when an admin leaves/is removed
+}
+
+</rewritten_file>
