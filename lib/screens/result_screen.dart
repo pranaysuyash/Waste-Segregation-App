@@ -231,7 +231,7 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
     );
   }
 
-  // Build interactive tags for the classification
+  // Build enhanced interactive tags for the classification
   List<TagData> _buildInteractiveTags() {
     final tags = <TagData>[];
     
@@ -254,20 +254,47 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
     // Property tags
     if (widget.classification.isRecyclable == true) {
       tags.add(TagFactory.property('Recyclable', true));
+      
+      // Add recycling difficulty based on category/material
+      final difficulty = _getRecyclingDifficulty();
+      tags.add(TagFactory.recyclingDifficulty('to recycle', difficulty));
     }
     
     if (widget.classification.isCompostable == true) {
       tags.add(TagFactory.property('Compostable', true));
+      tags.add(TagFactory.didYouKnow('Composting reduces methane emissions by 70%', Colors.green));
     }
     
     if (widget.classification.requiresSpecialDisposal == true) {
       tags.add(TagData(
         text: 'Special Disposal',
         color: Colors.orange,
-        action: TagAction.info,
+        action: TagAction.warning,
         icon: Icons.warning,
       ));
+      tags.add(TagFactory.actionRequired('Find specialized facility', Colors.red));
     }
+    
+    // Environmental impact tags
+    final co2Savings = _calculateCO2Savings();
+    if (co2Savings > 0) {
+      tags.add(TagFactory.co2Savings(co2Savings));
+    }
+    
+    // Resource conservation tags
+    final waterSaved = _calculateWaterSavings();
+    if (waterSaved > 0) {
+      tags.add(TagFactory.resourceSaved('water', waterSaved, 'L'));
+    }
+    
+    // Local information tags (Bangalore-specific)
+    _addLocalInformationTags(tags);
+    
+    // Urgency tags
+    _addUrgencyTags(tags);
+    
+    // Educational tips
+    _addEducationalTips(tags);
     
     // Add filter tags for finding similar items
     tags.add(TagFactory.filter(
@@ -277,6 +304,102 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
     ));
     
     return tags;
+  }
+  
+  DifficultyLevel _getRecyclingDifficulty() {
+    final category = widget.classification.category.toLowerCase();
+    final material = widget.classification.materialType?.toLowerCase();
+    
+    if (category == 'hazardous waste' || category == 'medical waste') {
+      return DifficultyLevel.expert;
+    }
+    
+    if (material == 'plastic') {
+      // Check recycling code for difficulty
+      final code = widget.classification.recyclingCode;
+      if (code == '1' || code == '2') return DifficultyLevel.easy;
+      if (code == '5') return DifficultyLevel.medium;
+      return DifficultyLevel.hard;
+    }
+    
+    if (material == 'paper') return DifficultyLevel.easy;
+    if (material == 'glass') return DifficultyLevel.medium;
+    if (material == 'metal') return DifficultyLevel.easy;
+    
+    return DifficultyLevel.medium;
+  }
+  
+  double _calculateCO2Savings() {
+    final category = widget.classification.category.toLowerCase();
+    switch (category) {
+      case 'paper':
+      case 'dry waste':
+        return 2.3; // Average CO2 savings for recycling paper
+      case 'plastic':
+        return 1.8; // Average CO2 savings for recycling plastic
+      case 'wet waste':
+        return 0.5; // CO2 savings from composting vs landfill
+      default:
+        return 0.0;
+    }
+  }
+  
+  double _calculateWaterSavings() {
+    final category = widget.classification.category.toLowerCase();
+    switch (category) {
+      case 'paper':
+      case 'dry waste':
+        return 45.0; // Liters saved by recycling paper
+      case 'plastic':
+        return 12.0; // Liters saved by recycling plastic
+      default:
+        return 0.0;
+    }
+  }
+  
+  void _addLocalInformationTags(List<TagData> tags) {
+    final category = widget.classification.category.toLowerCase();
+    
+    switch (category) {
+      case 'wet waste':
+        tags.add(TagFactory.localInfo('BBMP collects daily 6-10 AM', Icons.schedule));
+        break;
+      case 'dry waste':
+        tags.add(TagFactory.localInfo('BBMP dry waste: Mon, Wed, Fri', Icons.schedule));
+        tags.add(TagFactory.nearbyFacility('Kabadiwala available', Icons.store));
+        break;
+      case 'hazardous waste':
+        tags.add(TagFactory.nearbyFacility('KSPCB facility - Bidadi', Icons.location_on));
+        break;
+    }
+  }
+  
+  void _addUrgencyTags(List<TagData> tags) {
+    final category = widget.classification.category.toLowerCase();
+    
+    if (category == 'medical waste') {
+      tags.add(TagFactory.timeUrgent('Medical waste', UrgencyLevel.critical));
+    } else if (category == 'hazardous waste') {
+      tags.add(TagFactory.timeUrgent('Hazardous materials', UrgencyLevel.high));
+    } else if (category == 'wet waste') {
+      tags.add(TagFactory.timeUrgent('Prevent odors', UrgencyLevel.medium));
+    }
+  }
+  
+  void _addEducationalTips(List<TagData> tags) {
+    final category = widget.classification.category.toLowerCase();
+    final subcategory = widget.classification.subcategory?.toLowerCase();
+    
+    if (subcategory == 'plastic') {
+      tags.add(TagFactory.didYouKnow('Remove caps before recycling', Colors.blue));
+      tags.add(TagFactory.commonMistake('Leaving food residue on containers', Colors.amber));
+    } else if (subcategory == 'paper') {
+      tags.add(TagFactory.didYouKnow('Paper can be recycled 5-7 times', Colors.blue));
+      tags.add(TagFactory.commonMistake('Mixing wet and dry paper', Colors.amber));
+    } else if (category == 'wet waste') {
+      tags.add(TagFactory.didYouKnow('Composting creates nutrient-rich soil', Colors.green));
+      tags.add(TagFactory.commonMistake('Adding meat or oil to compost', Colors.amber));
+    }
   }
 
   @override

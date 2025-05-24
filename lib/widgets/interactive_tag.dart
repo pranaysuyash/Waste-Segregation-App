@@ -64,20 +64,24 @@ class InteractiveTag extends StatelessWidget {
               ),
               const SizedBox(width: 4),
             ],
-            Text(
-              text,
-              style: TextStyle(
-                color: isOutlined ? color : textColor,
-                fontSize: AppTheme.fontSizeSmall,
-                fontWeight: FontWeight.bold,
-                // Add text shadow for better readability on colored backgrounds
-                shadows: isOutlined ? null : [
-                  Shadow(
-                    color: Colors.black.withOpacity(0.5),
-                    offset: const Offset(1, 1),
-                    blurRadius: 2,
-                  ),
-                ],
+            Flexible(
+              child: Text(
+                text,
+                style: TextStyle(
+                  color: isOutlined ? color : textColor,
+                  fontSize: AppTheme.fontSizeSmall,
+                  fontWeight: FontWeight.bold,
+                  // Add text shadow for better readability on colored backgrounds
+                  shadows: isOutlined ? null : [
+                    Shadow(
+                      color: Colors.black.withOpacity(0.5),
+                      offset: const Offset(1, 1),
+                      blurRadius: 2,
+                    ),
+                  ],
+                ),
+                overflow: TextOverflow.ellipsis,
+                maxLines: 1,
               ),
             ),
             // Add chevron icon to indicate interactivity
@@ -108,6 +112,24 @@ class InteractiveTag extends StatelessWidget {
         break;
       case TagAction.info:
         _showInfoDialog(context);
+        break;
+      case TagAction.environmental:
+        _showEnvironmentalDialog(context);
+        break;
+      case TagAction.location:
+        _showLocationDialog(context);
+        break;
+      case TagAction.warning:
+        _showWarningDialog(context);
+        break;
+      case TagAction.local:
+        _showLocalInfoDialog(context);
+        break;
+      case TagAction.action:
+        _showActionDialog(context);
+        break;
+      case TagAction.tip:
+        _showTipDialog(context);
         break;
     }
   }
@@ -173,6 +195,198 @@ class InteractiveTag extends StatelessWidget {
     
     // Fallback information
     return 'Tap "Learn More" to discover educational content about $text and proper waste management practices.';
+  }
+
+  /// Show environmental impact dialog
+  void _showEnvironmentalDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Row(
+          children: [
+            Icon(Icons.eco, color: Colors.green.shade600),
+            const SizedBox(width: 8),
+            const Text('Environmental Impact'),
+          ],
+        ),
+        content: Text(_getEnvironmentalText()),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Close'),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+              _navigateToEducation(context);
+            },
+            child: const Text('Learn More'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Show location/facility information dialog
+  void _showLocationDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Row(
+          children: [
+            Icon(Icons.location_on, color: Colors.teal.shade600),
+            const SizedBox(width: 8),
+            const Text('Nearby Facilities'),
+          ],
+        ),
+        content: Text(_getLocationText()),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Close'),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+              // TODO: Open maps or directions
+            },
+            child: const Text('Get Directions'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Show warning dialog
+  void _showWarningDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Row(
+          children: [
+            Icon(Icons.warning, color: Colors.orange.shade600),
+            const SizedBox(width: 8),
+            const Text('Important Notice'),
+          ],
+        ),
+        content: Text(_getWarningText()),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Understood'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Show local information dialog (BBMP schedules, etc.)
+  void _showLocalInfoDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Row(
+          children: [
+            Icon(Icons.schedule, color: Colors.indigo.shade600),
+            const SizedBox(width: 8),
+            const Text('Local Information'),
+          ],
+        ),
+        content: Text(_getLocalInfoText()),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Close'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Show action required dialog
+  void _showActionDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Row(
+          children: [
+            Icon(Icons.priority_high, color: Colors.red.shade600),
+            const SizedBox(width: 8),
+            const Text('Action Required'),
+          ],
+        ),
+        content: Text(_getActionText()),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Got it'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Show educational tip dialog
+  void _showTipDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Row(
+          children: [
+            Icon(Icons.lightbulb, color: Colors.amber.shade600),
+            const SizedBox(width: 8),
+            const Text('Helpful Tip'),
+          ],
+        ),
+        content: Text(_getTipText()),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Thanks'),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+              _navigateToEducation(context);
+            },
+            child: const Text('Learn More'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  String _getEnvironmentalText() {
+    if (text.contains('CO₂')) {
+      return 'By properly disposing of this item, you\'re helping reduce carbon emissions. Every kilogram of CO₂ saved contributes to fighting climate change.';
+    }
+    return 'Proper disposal of this item has a positive environmental impact. Learn more about sustainable waste management practices.';
+  }
+
+  String _getLocationText() {
+    return 'This facility accepts $category waste. Call ahead to confirm availability and operating hours. Some facilities may have special requirements.';
+  }
+
+  String _getWarningText() {
+    if (text.contains('Avoid')) {
+      return 'This is a common mistake that can contaminate recycling or cause disposal problems. Following proper procedures helps everyone.';
+    }
+    return 'Please pay attention to this important information for safe and proper waste disposal.';
+  }
+
+  String _getLocalInfoText() {
+    if (text.contains('BBMP')) {
+      return 'Bruhat Bengaluru Mahanagara Palike (BBMP) provides waste collection services. Check your area-specific schedule for collection timings.';
+    }
+    return 'This information is specific to the Bangalore area. Local waste management schedules and services may vary by location.';
+  }
+
+  String _getActionText() {
+    return 'This action is recommended for proper disposal. Following these steps helps ensure the item is handled correctly and safely.';
+  }
+
+  String _getTipText() {
+    return text.replaceFirst('Tip: ', '') + '\n\nThis tip can help you dispose of waste more effectively and contribute to better environmental outcomes.';
   }
 }
 
@@ -300,14 +514,86 @@ class TagData {
   });
 }
 
-/// Actions that tags can perform
+/// Actions that tags can perform - Enhanced version
 enum TagAction {
-  educate,  // Navigate to educational content
-  filter,   // Filter history/search results
-  info,     // Show information dialog
+  educate,      // Navigate to educational content
+  filter,       // Filter history/search results
+  info,         // Show information dialog
+  environmental, // Environmental impact information
+  location,     // Location/facility information
+  warning,      // Important warnings or alerts
+  local,        // Local information (BBMP, schedules)
+  action,       // Required actions
+  tip,          // Educational tips
 }
 
-/// Helper class to create common tag configurations
+/// Enhanced difficulty levels for recycling/disposal
+enum DifficultyLevel {
+  easy,
+  medium,
+  hard,
+  expert;
+  
+  Color get color {
+    switch (this) {
+      case DifficultyLevel.easy:
+        return Colors.green;
+      case DifficultyLevel.medium:
+        return Colors.orange;
+      case DifficultyLevel.hard:
+        return Colors.red;
+      case DifficultyLevel.expert:
+        return Colors.purple;
+    }
+  }
+  
+  String get label {
+    switch (this) {
+      case DifficultyLevel.easy:
+        return 'Easy';
+      case DifficultyLevel.medium:
+        return 'Medium';
+      case DifficultyLevel.hard:
+        return 'Hard';
+      case DifficultyLevel.expert:
+        return 'Expert';
+    }
+  }
+}
+
+/// Enhanced urgency levels
+enum UrgencyLevel {
+  low,
+  medium,
+  high,
+  critical;
+  
+  Color get color {
+    switch (this) {
+      case UrgencyLevel.low:
+        return Colors.green;
+      case UrgencyLevel.medium:
+        return Colors.blue;
+      case UrgencyLevel.high:
+        return Colors.orange;
+      case UrgencyLevel.critical:
+        return Colors.red;
+    }
+  }
+  
+  String get urgencyText {
+    switch (this) {
+      case UrgencyLevel.low:
+        return 'No rush';
+      case UrgencyLevel.medium:
+        return 'This week';
+      case UrgencyLevel.high:
+        return 'Within 24h';
+      case UrgencyLevel.critical:
+        return 'Immediately';
+    }
+  }
+}
 class TagFactory {
   /// Create a category tag
   static TagData category(String category) {
@@ -361,6 +647,106 @@ class TagFactory {
       subcategory: subcategory,
       action: TagAction.filter,
       icon: Icons.filter_list,
+    );
+  }
+
+  /// Create an environmental impact tag
+  static TagData environmentalImpact(String impact, Color color) {
+    return TagData(
+      text: impact,
+      color: color,
+      action: TagAction.environmental,
+      icon: Icons.eco,
+    );
+  }
+
+  /// Create a recycling difficulty tag
+  static TagData recyclingDifficulty(String text, DifficultyLevel level) {
+    return TagData(
+      text: '${level.label} - $text',
+      color: level.color,
+      action: TagAction.info,
+      icon: Icons.build,
+    );
+  }
+
+  /// Create a local information tag (BBMP schedules, etc.)
+  static TagData localInfo(String info, IconData icon) {
+    return TagData(
+      text: info,
+      color: Colors.indigo,
+      action: TagAction.local,
+      icon: icon,
+    );
+  }
+
+  /// Create a nearby facility tag
+  static TagData nearbyFacility(String distance, IconData icon) {
+    return TagData(
+      text: distance,
+      color: Colors.teal,
+      action: TagAction.location,
+      icon: icon,
+    );
+  }
+
+  /// Create an action required tag
+  static TagData actionRequired(String action, Color color) {
+    return TagData(
+      text: action,
+      color: color,
+      action: TagAction.action,
+      icon: Icons.priority_high,
+    );
+  }
+
+  /// Create a time urgency tag
+  static TagData timeUrgent(String message, UrgencyLevel level) {
+    return TagData(
+      text: '${level.urgencyText} - $message',
+      color: level.color,
+      action: TagAction.warning,
+      icon: Icons.schedule,
+    );
+  }
+
+  /// Create an educational tip tag
+  static TagData didYouKnow(String tip, Color color) {
+    return TagData(
+      text: 'Tip: $tip',
+      color: color,
+      action: TagAction.tip,
+      icon: Icons.lightbulb,
+    );
+  }
+
+  /// Create a common mistake warning tag
+  static TagData commonMistake(String mistake, Color color) {
+    return TagData(
+      text: 'Avoid: $mistake',
+      color: color,
+      action: TagAction.warning,
+      icon: Icons.error_outline,
+    );
+  }
+
+  /// Create a CO2 savings tag
+  static TagData co2Savings(double kgCO2Saved) {
+    return TagData(
+      text: 'Saves ${kgCO2Saved.toStringAsFixed(1)}kg CO₂',
+      color: Colors.green.shade600,
+      action: TagAction.environmental,
+      icon: Icons.cloud_off,
+    );
+  }
+
+  /// Create a resource conservation tag
+  static TagData resourceSaved(String resource, double amount, String unit) {
+    return TagData(
+      text: 'Saves ${amount.toStringAsFixed(1)}$unit $resource',
+      color: Colors.blue.shade600,
+      action: TagAction.environmental,
+      icon: Icons.water_drop,
     );
   }
 
