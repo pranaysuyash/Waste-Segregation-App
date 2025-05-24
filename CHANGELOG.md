@@ -11,7 +11,7 @@
   - Improved empty state handling with helpful user guidance
 - **Fixed Achievement Unlock Timing Issue**: Resolved critical issue where level-locked achievements (like "Waste Apprentice" at Level 2) weren't tracking progress until the level requirement was met. Now achievements accumulate progress regardless of lock status and unlock immediately when both progress and level requirements are satisfied.
 - **Fixed Statistics Display Inconsistency**: Resolved issue where "Items Identified" count (1) didn't match individual category counts (e.g., "Wet Waste: 10 items"). The achievements screen now correctly converts points to item counts for consistent display across all statistics.
-- **Fixed Quiz Navigation Issue**: Resolved issue where quiz functionality showed only headers when accessed via "Learn More" from classification results. Added category-specific quizzes for Wet Waste, Dry Waste, and Hazardous Waste to ensure quizzes are always available when navigating from classification results.
+- **Fixed Educational Content Navigation Issue**: Resolved issue where educational content (quizzes, articles, videos, infographics, tutorials) showed limited or no content when accessed via "Learn More" from classification results. Updated all content categories and added new category-specific educational materials to ensure comprehensive content availability for all waste types.
 - Count multiplication bug fixes
 - Tab visibility improvements  
 - About page overflow fixes

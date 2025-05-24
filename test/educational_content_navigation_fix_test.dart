@@ -3,7 +3,7 @@ import 'package:waste_segregation_app/services/educational_content_service.dart'
 import 'package:waste_segregation_app/models/educational_content.dart';
 
 void main() {
-  group('Quiz Navigation Fix Tests', () {
+  group('Educational Content Navigation Fix Tests', () {
     late EducationalContentService educationalService;
 
     setUp(() {
@@ -81,26 +81,51 @@ void main() {
       print('✅ All quiz questions are properly formatted');
     });
 
-    test('should handle educational content screen navigation scenario', () {
-      // Simulate the exact scenario: user classifies "Wet Waste" and clicks "Learn More"
+    test('should handle educational content screen navigation scenario for all content types', () {
+      final testCategories = ['Wet Waste', 'Dry Waste', 'Hazardous Waste', 'Medical Waste'];
+      final contentTypes = ContentType.values;
+      
+      for (final category in testCategories) {
+        print('\n🔍 Testing category: $category');
+        
+        for (final contentType in contentTypes) {
+          // This is the filtering logic from EducationalContentScreen._getFilteredContent
+          var filteredContent = educationalService.getContentByType(contentType);
+          
+          // Then filter by category
+          filteredContent = filteredContent
+              .where((content) => content.categories.contains(category))
+              .toList();
+          
+          if (filteredContent.isNotEmpty) {
+            print('   ✅ ${contentType.toString().split('.').last}: ${filteredContent.length} item(s)');
+            for (final content in filteredContent) {
+              print('      - ${content.title}');
+            }
+          } else {
+            print('   ⚠️ ${contentType.toString().split('.').last}: No content found');
+          }
+        }
+      }
+      
+      // Test the specific scenario from the bug report
       const initialCategory = 'Wet Waste';
       
-      // This is the filtering logic from EducationalContentScreen._getFilteredContent
-      final allContent = educationalService.getAllContent();
-      final contentType = ContentType.quiz;
-      
-      // First filter by content type (Quizzes tab)
-      var filteredContent = educationalService.getContentByType(contentType);
-      
-      // Then filter by category
-      filteredContent = filteredContent
-          .where((content) => content.categories.contains(initialCategory))
-          .toList();
-      
-      expect(filteredContent.isNotEmpty, true, 
-             reason: 'Should find quiz content for $initialCategory via Learn More navigation');
-      
-      print('✅ Learn More navigation for $initialCategory will show ${filteredContent.length} quiz(es)');
+      for (final contentType in contentTypes) {
+        var filteredContent = educationalService.getContentByType(contentType);
+        filteredContent = filteredContent
+            .where((content) => content.categories.contains(initialCategory))
+            .toList();
+        
+        // At minimum, we should have content for most types in Wet Waste
+        if (contentType == ContentType.quiz || 
+            contentType == ContentType.article || 
+            contentType == ContentType.video ||
+            contentType == ContentType.tutorial) {
+          expect(filteredContent.isNotEmpty, true, 
+                 reason: 'Should find ${contentType.toString().split('.').last} content for $initialCategory');
+        }
+      }
     });
   });
 } 

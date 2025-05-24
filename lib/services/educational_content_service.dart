@@ -175,7 +175,7 @@ Remember to always check your local recycling guidelines, as they can vary signi
         imageUrl: 'assets/images/education/waste_segregation_infographic.jpg',
         contentText:
             'This infographic shows common household items and guides you on which bin to place them in for proper waste segregation.',
-        categories: ['General', 'Segregation'],
+        categories: ['General', 'Segregation', 'Wet Waste', 'Dry Waste', 'Hazardous Waste', 'Medical Waste'],
         level: ContentLevel.beginner,
         durationMinutes: 3,
         tags: ['visual', 'guide', 'sorting'],
@@ -472,7 +472,7 @@ Remember to always check your local recycling guidelines, as they can vary signi
             imageUrl: 'assets/images/education/schedule.jpg',
           ),
         ],
-        categories: ['General', 'Home Organization'],
+        categories: ['General', 'Home Organization', 'Dry Waste', 'Recycling'],
         level: ContentLevel.beginner,
         durationMinutes: 10,
         tags: ['guide', 'setup', 'home'],
@@ -762,10 +762,243 @@ Safety should always be your top priority when handling and disposing of medical
                 'Most disposable coffee cups have a plastic lining that prevents them from being recycled with paper or composted. They typically need to go in general waste.',
           ),
         ],
-        categories: ['General', 'Sorting'],
+        categories: ['General', 'Sorting', 'Wet Waste', 'Dry Waste', 'Hazardous Waste'],
         level: ContentLevel.beginner,
         durationMinutes: 5,
         tags: ['quiz', 'sorting', 'bins'],
+      ),
+    );
+
+    // Wet Waste Article
+    _allContent.add(
+      EducationalContent.article(
+        id: 'article4',
+        title: 'Complete Guide to Home Composting',
+        description: 'Everything you need to know about composting wet waste at home for better soil and reduced waste.',
+        thumbnailUrl: 'assets/images/education/composting_guide.jpg',
+        contentText: '''
+# Complete Guide to Home Composting
+
+Composting is one of the most effective ways to manage wet waste while creating valuable soil amendments for your garden.
+
+## What Can Be Composted?
+
+### Green Materials (Nitrogen-rich)
+- Fruit and vegetable scraps
+- Fresh grass clippings
+- Coffee grounds and tea bags
+- Fresh garden trimmings
+- Eggshells (crushed)
+
+### Brown Materials (Carbon-rich)
+- Dry leaves
+- Newspaper and cardboard
+- Straw and hay
+- Wood chips
+- Sawdust (untreated wood only)
+
+## What NOT to Compost
+- Meat, fish, or dairy products
+- Pet waste
+- Diseased plants
+- Weeds with seeds
+- Cooked food with oils
+
+## Setting Up Your Compost
+
+### Location
+Choose a partially shaded area with good drainage, away from your house but accessible for regular maintenance.
+
+### Method Options
+1. **Bin Composting**: Use a commercial bin or build one from pallets
+2. **Pile Composting**: Simple open pile method
+3. **Tumbler Composting**: Faster method with easier turning
+
+### Layering
+- Start with a 4-inch layer of brown materials
+- Add 2-inch layer of green materials
+- Continue alternating layers
+- Water lightly between layers
+
+## Maintenance
+
+### Temperature
+- Active compost reaches 140-160°F (60-71°C)
+- Turn when temperature drops below 100°F
+
+### Moisture
+- Keep as moist as a wrung-out sponge
+- Cover during heavy rains
+- Water during dry periods
+
+### Turning
+- Turn every 2-3 weeks
+- Mix outer materials into the center
+- This provides oxygen for decomposition
+
+## Timeline
+- Hot composting: 3-6 months
+- Cold composting: 6-12 months
+- Finished compost is dark, crumbly, and earthy-smelling
+
+## Using Finished Compost
+- Mix into garden soil before planting
+- Use as top dressing around plants
+- Create potting mix (1 part compost + 2 parts soil)
+- Apply 1-2 inches annually to established beds
+
+Composting reduces household waste by up to 30% while creating valuable soil amendment worth its weight in garden gold!
+''',
+        categories: ['Wet Waste', 'Composting', 'Gardening'],
+        level: ContentLevel.intermediate,
+        durationMinutes: 8,
+        tags: ['composting', 'gardening', 'soil', 'organic'],
+      ),
+    );
+
+    // Dry Waste Article
+    _allContent.add(
+      EducationalContent.article(
+        id: 'article5',
+        title: 'Maximizing Your Recycling Impact',
+        description: 'Learn advanced recycling techniques and how to properly prepare different materials for maximum environmental benefit.',
+        thumbnailUrl: 'assets/images/education/recycling_impact.jpg',
+        contentText: '''
+# Maximizing Your Recycling Impact
+
+Proper recycling preparation can significantly increase the environmental benefits of your efforts.
+
+## Paper Products
+
+### Preparation
+- Remove all metal attachments (staples, clips)
+- Separate magazines from newspapers
+- Flatten cardboard boxes
+- Remove plastic windows from envelopes
+
+### Best Practices
+- Keep paper dry and clean
+- Avoid paper contaminated with food or chemicals
+- Bundle newspaper and magazines separately
+- Break down large cardboard pieces
+
+## Plastic Recycling
+
+### Reading Recycling Codes
+Each plastic type has different recycling requirements:
+
+**Code 1 (PET)**: Water bottles, soda bottles
+- Rinse thoroughly
+- Remove caps (different plastic type)
+- Crush to save space
+
+**Code 2 (HDPE)**: Milk jugs, detergent bottles
+- Rinse completely
+- Remove pumps and triggers
+- Labels can stay on
+
+**Code 5 (PP)**: Yogurt containers, bottle caps
+- Increasingly accepted
+- Clean thoroughly
+- Check local guidelines
+
+### Preparation Tips
+- Rinse with cold water (saves energy)
+- Remove all food residue
+- Remove lids and caps
+- Don't crush bottles lengthwise (affects sorting)
+
+## Glass Recycling
+
+### Colors Matter
+- Clear glass: Most valuable
+- Brown/amber: Beer and medicine bottles
+- Green: Wine and some food jars
+
+### Preparation
+- Remove all lids and caps
+- Rinse lightly (no need to scrub)
+- Remove metal rings from jars
+- Labels can remain (removed during processing)
+
+## Metal Recycling
+
+### Aluminum
+- Rinse food cans
+- Remove paper labels (optional)
+- Don't crush cans flat
+- Separate from steel
+
+### Steel
+- Use magnet test (steel is magnetic)
+- Remove paper labels
+- Rinse food containers
+
+## Common Mistakes
+
+### Wishcycling
+Don't put non-recyclable items in recycling bins hoping they'll be processed. This contaminates entire loads.
+
+### Bagging Recyclables
+Most programs want loose recyclables, not bagged. Plastic bags jam sorting equipment.
+
+### Not Following Local Rules
+Recycling rules vary by location. Check your local program's specific requirements.
+
+## Impact Numbers
+
+When done correctly:
+- 1 ton of recycled paper saves 17 trees
+- 1 recycled aluminum can saves enough energy to power a TV for 3 hours
+- Recycling 1 glass bottle saves enough energy to light a 100W bulb for 4 hours
+
+Your proper preparation ensures these benefits are realized!
+''',
+        categories: ['Dry Waste', 'Recycling', 'Sustainability'],
+        level: ContentLevel.intermediate,
+        durationMinutes: 10,
+        tags: ['recycling', 'preparation', 'impact', 'environment'],
+      ),
+    );
+
+    // Hazardous Waste Infographic
+    _allContent.add(
+      EducationalContent.infographic(
+        id: 'infographic3',
+        title: 'Household Hazardous Waste Identification Chart',
+        description: 'Visual guide to identifying and safely handling common household hazardous materials.',
+        thumbnailUrl: 'assets/images/education/hazardous_chart.jpg',
+        imageUrl: 'assets/images/education/hazardous_waste_chart.jpg',
+        contentText: '''
+This comprehensive chart helps you identify hazardous waste in your home:
+
+🔋 **Electronic Waste**: Phones, computers, batteries
+⚠️ **Chemicals**: Cleaning products, pesticides, paint
+🚗 **Automotive**: Motor oil, antifreeze, brake fluid
+💊 **Medical**: Medications, sharps, thermometers
+🏠 **Household**: Fluorescent bulbs, aerosols, pool chemicals
+
+Each category requires special handling and disposal methods to protect human health and the environment.
+''',
+        categories: ['Hazardous Waste', 'Safety', 'Identification'],
+        level: ContentLevel.beginner,
+        durationMinutes: 5,
+        tags: ['hazardous', 'safety', 'identification', 'visual'],
+      ),
+    );
+
+    // Medical Waste Video
+    _allContent.add(
+      EducationalContent.video(
+        id: 'video2',
+        title: 'Safe Home Medical Waste Disposal',
+        description: 'Learn the proper techniques for safely disposing of medical waste generated at home.',
+        thumbnailUrl: 'assets/images/education/medical_disposal.jpg',
+        videoUrl: 'https://example.com/videos/medical_waste_disposal.mp4',
+        categories: ['Medical Waste', 'Safety', 'Healthcare'],
+        level: ContentLevel.beginner,
+        durationMinutes: 6,
+        tags: ['medical', 'safety', 'disposal', 'healthcare'],
       ),
     );
   }
