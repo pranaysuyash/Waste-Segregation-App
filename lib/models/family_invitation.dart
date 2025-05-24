@@ -1,3 +1,4 @@
+import 'package:uuid/uuid.dart';
 import 'user_profile.dart';
 
 /// Status of a family invitation.
@@ -12,6 +13,8 @@ enum InvitationStatus {
   expired,
   /// Invitation has been revoked by the sender.
   revoked,
+  /// Invitation has been cancelled by the inviter.
+  cancelled,
 }
 
 /// Represents an invitation to join a family.
@@ -22,14 +25,26 @@ class FamilyInvitation {
   /// The ID of the family being joined.
   final String familyId;
 
+  /// The name of the family being joined.
+  final String familyName;
+
   /// The user ID of who created the invitation.
-  final String createdBy;
+  final String inviterUserId;
+
+  /// The name of the inviter.
+  final String? inviterName;
 
   /// The email address of the person being invited.
-  final String email;
+  final String invitedEmail;
+
+  /// The user ID of the invited person (if they accept).
+  String? invitedUserId;
+
+  /// Current status of the invitation.
+  InvitationStatus status;
 
   /// The role the invitee will have in the family.
-  final UserRole role;
+  final UserRole roleToAssign;
 
   /// When the invitation was created.
   final DateTime createdAt;
@@ -37,82 +52,55 @@ class FamilyInvitation {
   /// When the invitation expires.
   final DateTime expiresAt;
 
-  /// Current status of the invitation.
-  final InvitationStatus status;
-
   /// When the invitation was accepted/declined (if applicable).
-  final DateTime? respondedAt;
-
-  /// The user ID of who responded to the invitation (if accepted).
-  final String? respondedBy;
-
-  /// Optional message from the inviter.
-  final String? message;
-
-  /// Invitation code for quick joining.
-  final String inviteCode;
-
-  /// Whether this invitation can be used multiple times.
-  final bool isReusable;
-
-  /// How many times this invitation has been used (for reusable invitations).
-  final int usageCount;
-
-  /// Maximum number of uses (for reusable invitations).
-  final int? maxUses;
+  DateTime? respondedAt;
 
   FamilyInvitation({
-    required this.id,
+    String? id,
     required this.familyId,
-    required this.createdBy,
-    required this.email,
-    required this.role,
-    required this.createdAt,
-    required this.expiresAt,
+    required this.familyName,
+    required this.inviterUserId,
+    this.inviterName,
+    required this.invitedEmail,
+    this.invitedUserId,
     this.status = InvitationStatus.pending,
+    this.roleToAssign = UserRole.member,
+    DateTime? createdAt,
+    DateTime? expiresAt,
     this.respondedAt,
-    this.respondedBy,
-    this.message,
-    required this.inviteCode,
-    this.isReusable = false,
-    this.usageCount = 0,
-    this.maxUses,
-  });
+  })  : this.id = id ?? Uuid().v4(),
+        this.createdAt = createdAt ?? DateTime.now(),
+        this.expiresAt = expiresAt ?? (createdAt ?? DateTime.now()).add(const Duration(days: 7));
 
   /// Creates a copy of this FamilyInvitation with the given fields replaced.
   FamilyInvitation copyWith({
     String? id,
     String? familyId,
-    String? createdBy,
-    String? email,
-    UserRole? role,
+    String? familyName,
+    String? inviterUserId,
+    String? inviterName,
+    String? invitedEmail,
+    String? invitedUserId,
+    InvitationStatus? status,
+    UserRole? roleToAssign,
     DateTime? createdAt,
     DateTime? expiresAt,
-    InvitationStatus? status,
     DateTime? respondedAt,
-    String? respondedBy,
-    String? message,
-    String? inviteCode,
-    bool? isReusable,
-    int? usageCount,
-    int? maxUses,
+    bool? clearRespondedAt, // Special flag to nullify respondedAt
   }) {
     return FamilyInvitation(
       id: id ?? this.id,
       familyId: familyId ?? this.familyId,
-      createdBy: createdBy ?? this.createdBy,
-      email: email ?? this.email,
-      role: role ?? this.role,
+      familyName: familyName ?? this.familyName,
+      inviterUserId: inviterUserId ?? this.inviterUserId,
+      inviterName: inviterName ?? this.inviterName,
+      invitedEmail: invitedEmail ?? this.invitedEmail,
+      invitedUserId: invitedUserId ?? this.invitedUserId,
+      status: status ?? this.status,
+      roleToAssign: roleToAssign ?? this.roleToAssign,
       createdAt: createdAt ?? this.createdAt,
       expiresAt: expiresAt ?? this.expiresAt,
-      status: status ?? this.status,
-      respondedAt: respondedAt ?? this.respondedAt,
-      respondedBy: respondedBy ?? this.respondedBy,
-      message: message ?? this.message,
-      inviteCode: inviteCode ?? this.inviteCode,
-      isReusable: isReusable ?? this.isReusable,
-      usageCount: usageCount ?? this.usageCount,
-      maxUses: maxUses ?? this.maxUses,
+      respondedAt: clearRespondedAt == true ? null : (respondedAt ?? this.respondedAt),
     );
   }
 
@@ -121,19 +109,16 @@ class FamilyInvitation {
     return {
       'id': id,
       'familyId': familyId,
-      'createdBy': createdBy,
-      'email': email,
-      'role': role.toString().split('.').last,
+      'familyName': familyName,
+      'inviterUserId': inviterUserId,
+      'inviterName': inviterName,
+      'invitedEmail': invitedEmail,
+      'invitedUserId': invitedUserId,
+      'status': status.toString().split('.').last,
+      'roleToAssign': roleToAssign.toString().split('.').last,
       'createdAt': createdAt.toIso8601String(),
       'expiresAt': expiresAt.toIso8601String(),
-      'status': status.toString().split('.').last,
       'respondedAt': respondedAt?.toIso8601String(),
-      'respondedBy': respondedBy,
-      'message': message,
-      'inviteCode': inviteCode,
-      'isReusable': isReusable,
-      'usageCount': usageCount,
-      'maxUses': maxUses,
     };
   }
 
@@ -142,27 +127,24 @@ class FamilyInvitation {
     return FamilyInvitation(
       id: json['id'] as String,
       familyId: json['familyId'] as String,
-      createdBy: json['createdBy'] as String,
-      email: json['email'] as String,
-      role: UserRole.values.firstWhere(
-        (e) => e.toString().split('.').last == json['role'],
-        orElse: () => UserRole.member,
-      ),
-      createdAt: DateTime.parse(json['createdAt'] as String),
-      expiresAt: DateTime.parse(json['expiresAt'] as String),
+      familyName: json['familyName'] as String? ?? 'Unknown Family',
+      inviterUserId: json['inviterUserId'] as String,
+      inviterName: json['inviterName'] as String?,
+      invitedEmail: json['invitedEmail'] as String,
+      invitedUserId: json['invitedUserId'] as String?,
       status: InvitationStatus.values.firstWhere(
         (e) => e.toString().split('.').last == json['status'],
         orElse: () => InvitationStatus.pending,
       ),
+      roleToAssign: UserRole.values.firstWhere(
+        (e) => e.toString().split('.').last == json['roleToAssign'],
+        orElse: () => UserRole.member,
+      ),
+      createdAt: DateTime.parse(json['createdAt'] as String),
+      expiresAt: DateTime.parse(json['expiresAt'] as String),
       respondedAt: json['respondedAt'] != null
           ? DateTime.parse(json['respondedAt'] as String)
           : null,
-      respondedBy: json['respondedBy'] as String?,
-      message: json['message'] as String?,
-      inviteCode: json['inviteCode'] as String,
-      isReusable: json['isReusable'] as bool? ?? false,
-      usageCount: json['usageCount'] as int? ?? 0,
-      maxUses: json['maxUses'] as int?,
     );
   }
 
@@ -170,18 +152,17 @@ class FamilyInvitation {
   bool get isValid {
     return status == InvitationStatus.pending && 
            DateTime.now().isBefore(expiresAt) &&
-           (!isReusable || maxUses == null || usageCount < maxUses!);
+           (invitedUserId == null || invitedUserId!.isNotEmpty);
   }
 
   /// Checks if the invitation has expired.
   bool get isExpired {
-    return DateTime.now().isAfter(expiresAt) || 
-           status == InvitationStatus.expired;
+    return DateTime.now().isAfter(expiresAt) && status == InvitationStatus.pending;
   }
 
   /// Checks if the invitation can still be used.
   bool get canBeUsed {
-    return isValid && (isReusable || usageCount == 0);
+    return isValid && (invitedUserId == null || invitedUserId!.isNotEmpty);
   }
 
   /// Gets the number of days until expiration.

@@ -28,6 +28,7 @@ class StorageKeys {
   static const String cacheBox = 'cacheBox';
   static const String gamificationBox = 'gamificationBox';
   static const String familiesBox = 'familiesBox';
+  static const String invitationsBox = 'invitationsBox';
   
   // Keys for UserProfile object (New way)
   static const String userProfileKey = 'userProfile';

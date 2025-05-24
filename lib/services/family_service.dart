@@ -301,10 +301,329 @@ class FamilyService extends ChangeNotifier {
     }
   }
 
-  // TODO: Implement other methods:
-  // - inviteUserToFamily(familyId, emailOrIdentifierToInvite)
-  // - acceptFamilyInvite(inviteId, userIdAccepting)
-  // - declineFamilyInvite(inviteId)
-  // - leaveFamily(familyId, userIdLeaving) // User initiated
-  // - deleteFamily(familyId, adminUserId) // Admin initiated, careful with this!
+  /// Invites a user (by email) to join a specific family.
+  ///
+  /// Only family admins can send invitations.
+  /// Returns the created FamilyInvitation object if successful, null otherwise.
+  Future<FamilyInvitation?> inviteUserToFamily(
+    String familyId,
+    String invitedEmail,
+    {UserRole roleToAssign = UserRole.member}
+  ) async {
+    try {
+      // 1. Get the current user (inviter)
+      UserProfile? inviterProfile = await _storageService.getCurrentUserProfile();
+      if (inviterProfile == null) {
+        debugPrint('FamilyService: Inviter profile not found. User must be logged in to invite.');
+        return null;
+      }
+
+      // 2. Get the family
+      Family? family = await getFamily(familyId);
+      if (family == null) {
+        debugPrint('FamilyService: Family $familyId not found to send invitation from.');
+        return null;
+      }
+
+      // 3. Check if inviter is an admin of the family
+      if (family.adminUserId != inviterProfile.id) {
+        // More complex permission check could go here if non-admins can invite
+        debugPrint('FamilyService: User ${inviterProfile.id} is not an admin of family $familyId. Cannot send invite.');
+        return null;
+      }
+
+      // 4. Check if the invited email already corresponds to an existing member
+      List<UserProfile> currentMembers = await getFamilyMembers(familyId);
+      for (UserProfile member in currentMembers) {
+        if (member.email == invitedEmail) {
+          debugPrint('FamilyService: User with email $invitedEmail is already a member of family $familyId.');
+          // Optionally, could return an error or a specific status code
+          return null; // Or throw Exception('User is already a member.');
+        }
+      }
+
+      // 5. Check for existing, non-expired, pending invitation for this email to this family
+      final invitationsBox = Hive.box<String>(StorageKeys.invitationsBox);
+      for (var key in invitationsBox.keys) {
+        final inviteJsonString = invitationsBox.get(key);
+        if (inviteJsonString != null) {
+          final existingInvite = FamilyInvitation.fromJson(jsonDecode(inviteJsonString));
+          if (existingInvite.familyId == familyId &&
+              existingInvite.invitedEmail == invitedEmail &&
+              existingInvite.status == InvitationStatus.pending &&
+              !existingInvite.isExpired) {
+            debugPrint('FamilyService: Active pending invitation already exists for $invitedEmail to family $familyId.');
+            return existingInvite; // Return existing active invite
+          }
+        }
+      }
+
+      // 6. Create FamilyInvitation object
+      final newInvitation = FamilyInvitation(
+        familyId: family.id,
+        familyName: family.familyName,
+        inviterUserId: inviterProfile.id,
+        inviterName: inviterProfile.displayName,
+        invitedEmail: invitedEmail,
+        roleToAssign: roleToAssign,
+      );
+
+      // 7. Save the invitation
+      await invitationsBox.put(newInvitation.id, jsonEncode(newInvitation.toJson()));
+
+      // 8. Add invitation ID to Family.pendingInviteIds and update family
+      if (!family.pendingInviteIds.contains(newInvitation.id)) {
+        family.pendingInviteIds.add(newInvitation.id);
+        family.updatedAt = DateTime.now();
+        await updateFamily(family); // This will also notify listeners if successful
+      }
+
+      debugPrint('FamilyService: Invitation sent to $invitedEmail for family "${family.familyName}" by ${inviterProfile.displayName}.');
+      // notifyListeners(); // updateFamily already calls notifyListeners
+      return newInvitation;
+
+    } catch (e, stackTrace) {
+      debugPrint('FamilyService: Error inviting user to family: $e\n$stackTrace');
+      return null;
+    }
+  }
+
+  /// Accepts a family invitation.
+  /// 
+  /// The currently logged-in user accepts the invitation specified by invitationId.
+  /// Returns true if successful, false otherwise.
+  Future<bool> acceptFamilyInvite(String invitationId) async {
+    try {
+      // 1. Get current user (acceptingUser)
+      UserProfile? acceptingUser = await _storageService.getCurrentUserProfile();
+      if (acceptingUser == null) {
+        debugPrint('FamilyService: User must be logged in to accept an invitation.');
+        return false;
+      }
+
+      // 2. Retrieve the FamilyInvitation
+      final invitationsBox = Hive.box<String>(StorageKeys.invitationsBox);
+      final inviteJsonString = invitationsBox.get(invitationId);
+      if (inviteJsonString == null) {
+        debugPrint('FamilyService: Invitation $invitationId not found.');
+        return false;
+      }
+      FamilyInvitation invitation = FamilyInvitation.fromJson(jsonDecode(inviteJsonString));
+
+      // 3. Validate the invitation
+      if (invitation.status != InvitationStatus.pending) {
+        debugPrint('FamilyService: Invitation $invitationId is not pending (status: ${invitation.status}).');
+        return false;
+      }
+      if (invitation.isExpired) {
+        invitation.status = InvitationStatus.expired;
+        invitation.respondedAt = DateTime.now();
+        await invitationsBox.put(invitation.id, jsonEncode(invitation.toJson()));
+        debugPrint('FamilyService: Invitation $invitationId has expired.');
+        // Attempt to remove from family's pending list if it was still there
+        _removeInviteIdFromFamilyPendingList(invitation.familyId, invitation.id);
+        return false;
+      }
+      if (invitation.invitedEmail.toLowerCase() != acceptingUser.email?.toLowerCase()) {
+        debugPrint('FamilyService: Invitation $invitationId for ${invitation.invitedEmail} cannot be accepted by ${acceptingUser.email}.');
+        return false;
+      }
+
+      // 4. Check if user is already in another family
+      if (acceptingUser.familyId != null && acceptingUser.familyId!.isNotEmpty) {
+        debugPrint('FamilyService: User ${acceptingUser.id} is already in family ${acceptingUser.familyId}. Must leave current family first.');
+        return false;
+      }
+
+      // 5. Process acceptance
+      bool addedToFamily = await addUserToFamily(invitation.familyId, acceptingUser.id, role: invitation.roleToAssign);
+
+      if (addedToFamily) {
+        invitation.status = InvitationStatus.accepted;
+        invitation.respondedAt = DateTime.now();
+        invitation.invitedUserId = acceptingUser.id;
+        await invitationsBox.put(invitation.id, jsonEncode(invitation.toJson()));
+
+        // Remove from family's pending list (addUserToFamily already calls notifyListeners)
+        await _removeInviteIdFromFamilyPendingList(invitation.familyId, invitation.id);
+        
+        debugPrint('FamilyService: User ${acceptingUser.id} accepted invitation $invitationId for family ${invitation.familyId}.');
+        // notifyListeners(); // addUserToFamily and updateFamily (called by _removeInviteId...) will notify
+        return true;
+      } else {
+        debugPrint('FamilyService: Failed to add user ${acceptingUser.id} to family ${invitation.familyId} after accepting invite $invitationId.');
+        // Invitation remains pending if addUserToFamily failed
+        return false;
+      }
+    } catch (e, stackTrace) {
+      debugPrint('FamilyService: Error accepting family invitation $invitationId: $e\n$stackTrace');
+      return false;
+    }
+  }
+
+  /// Declines a family invitation.
+  ///
+  /// The currently logged-in user declines the invitation.
+  Future<bool> declineFamilyInvite(String invitationId) async {
+    try {
+      UserProfile? decliningUser = await _storageService.getCurrentUserProfile();
+      if (decliningUser == null) {
+        debugPrint('FamilyService: User must be logged in to decline an invitation.');
+        return false;
+      }
+
+      final invitationsBox = Hive.box<String>(StorageKeys.invitationsBox);
+      final inviteJsonString = invitationsBox.get(invitationId);
+      if (inviteJsonString == null) {
+        debugPrint('FamilyService: Invitation $invitationId not found to decline.');
+        return false;
+      }
+      FamilyInvitation invitation = FamilyInvitation.fromJson(jsonDecode(inviteJsonString));
+
+      if (invitation.status != InvitationStatus.pending) {
+        debugPrint('FamilyService: Invitation $invitationId cannot be declined (status: ${invitation.status}).');
+        return false; // Or already handled
+      }
+      if (invitation.isExpired) {
+        invitation.status = InvitationStatus.expired;
+        // No need to update respondedAt for an auto-expiration while trying to decline
+        await invitationsBox.put(invitation.id, jsonEncode(invitation.toJson()));
+        _removeInviteIdFromFamilyPendingList(invitation.familyId, invitation.id);
+        return false; // Already expired
+      }
+      if (invitation.invitedEmail.toLowerCase() != decliningUser.email?.toLowerCase()) {
+        debugPrint('FamilyService: Invitation $invitationId for ${invitation.invitedEmail} cannot be declined by ${decliningUser.email}.');
+        return false;
+      }
+
+      invitation.status = InvitationStatus.declined;
+      invitation.respondedAt = DateTime.now();
+      invitation.invitedUserId = decliningUser.id; // Record who declined
+      await invitationsBox.put(invitation.id, jsonEncode(invitation.toJson()));
+
+      await _removeInviteIdFromFamilyPendingList(invitation.familyId, invitation.id);
+
+      debugPrint('FamilyService: User ${decliningUser.id} declined invitation $invitationId for family ${invitation.familyId}.');
+      // notifyListeners(); // updateFamily (called by _removeInviteId...) will notify
+      return true;
+    } catch (e, stackTrace) {
+      debugPrint('FamilyService: Error declining family invitation $invitationId: $e\n$stackTrace');
+      return false;
+    }
+  }
+
+  /// Helper to remove an invitation ID from a family's pending list.
+  Future<void> _removeInviteIdFromFamilyPendingList(String familyId, String invitationId) async {
+    Family? family = await getFamily(familyId);
+    if (family != null && family.pendingInviteIds.contains(invitationId)) {
+      family.pendingInviteIds.remove(invitationId);
+      family.updatedAt = DateTime.now();
+      await updateFamily(family); // This handles notifyListeners
+    }
+  }
+
+  /// Retrieves all non-expired, pending invitations for a given user email.
+  Future<List<FamilyInvitation>> getPendingInvitesForUser(String userEmail) async {
+    final List<FamilyInvitation> pendingInvites = [];
+    try {
+      final invitationsBox = Hive.box<String>(StorageKeys.invitationsBox);
+      final lowercasedUserEmail = userEmail.toLowerCase();
+
+      for (var key in invitationsBox.keys) {
+        final inviteJsonString = invitationsBox.get(key);
+        if (inviteJsonString != null) {
+          final invitation = FamilyInvitation.fromJson(jsonDecode(inviteJsonString));
+          if (invitation.invitedEmail.toLowerCase() == lowercasedUserEmail &&
+              invitation.status == InvitationStatus.pending &&
+              !invitation.isExpired) {
+            pendingInvites.add(invitation);
+          }
+        }
+      }
+      // Sort by creation date, newest first
+      pendingInvites.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+      return pendingInvites;
+    } catch (e, stackTrace) {
+      debugPrint('FamilyService: Error retrieving pending invites for user $userEmail: $e\n$stackTrace');
+      return []; // Return empty list on error
+    }
+  }
+
+  /// Retrieves all non-expired, pending invitations for a given family ID.
+  Future<List<FamilyInvitation>> getPendingInvitesForFamily(String familyId) async {
+    final List<FamilyInvitation> pendingInvites = [];
+    try {
+      final invitationsBox = Hive.box<String>(StorageKeys.invitationsBox);
+
+      for (var key in invitationsBox.keys) {
+        final inviteJsonString = invitationsBox.get(key);
+        if (inviteJsonString != null) {
+          final invitation = FamilyInvitation.fromJson(jsonDecode(inviteJsonString));
+          if (invitation.familyId == familyId &&
+              invitation.status == InvitationStatus.pending &&
+              !invitation.isExpired) {
+            pendingInvites.add(invitation);
+          }
+        }
+      }
+      // Sort by creation date, newest first
+      pendingInvites.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+      return pendingInvites;
+    } catch (e, stackTrace) {
+      debugPrint('FamilyService: Error retrieving pending invites for family $familyId: $e\n$stackTrace');
+      return [];
+    }
+  }
+  
+  /// Admin action to cancel a pending invitation.
+  Future<bool> cancelFamilyInvitation(String invitationId, String adminUserId) async {
+    try {
+        FamilyInvitation? invitation = await getInvitationById(invitationId);
+        if (invitation == null) {
+            debugPrint('FamilyService: Invitation $invitationId not found to cancel.');
+            return false;
+        }
+
+        Family? family = await getFamily(invitation.familyId);
+        if (family == null || family.adminUserId != adminUserId) {
+            debugPrint('FamilyService: User $adminUserId is not authorized to cancel invites for family ${invitation.familyId}.');
+            return false;
+        }
+
+        if (invitation.status != InvitationStatus.pending || invitation.isExpired) {
+            debugPrint('FamilyService: Invitation $invitationId cannot be cancelled (status: ${invitation.status}, expired: ${invitation.isExpired}).');
+            return false;
+        }
+
+        invitation.status = InvitationStatus.cancelled;
+        invitation.respondedAt = DateTime.now(); // Time of cancellation
+        
+        final invitationsBox = Hive.box<String>(StorageKeys.invitationsBox);
+        await invitationsBox.put(invitation.id, jsonEncode(invitation.toJson()));
+
+        await _removeInviteIdFromFamilyPendingList(invitation.familyId, invitation.id);
+        notifyListeners();
+        debugPrint('FamilyService: Invitation $invitationId cancelled by admin $adminUserId.');
+        return true;
+    } catch (e, stackTrace) {
+        debugPrint('FamilyService: Error cancelling invitation $invitationId: $e\n$stackTrace');
+        return false;
+    }
+  }
+
+  /// Helper to get a single invitation by its ID (internal use or for specific scenarios)
+  Future<FamilyInvitation?> getInvitationById(String invitationId) async {
+    try {
+        final invitationsBox = Hive.box<String>(StorageKeys.invitationsBox);
+        final inviteJsonString = invitationsBox.get(invitationId);
+        if (inviteJsonString != null) {
+            return FamilyInvitation.fromJson(jsonDecode(inviteJsonString));
+        }
+        return null;
+    } catch (_) {
+        return null;
+    }
+  }
+
+  // TODO: Implement other methods like leaveFamily, deleteFamily etc.
 } 
