@@ -249,10 +249,180 @@ Remember to always check your local recycling guidelines, as they can vary signi
                 'The chasing arrows symbol with a number inside identifies the type of plastic resin used to make the product, not its recyclability.',
           ),
         ],
-        categories: ['General', 'Recycling'],
+        categories: ['General', 'Recycling', 'Wet Waste', 'Dry Waste', 'Hazardous Waste'],
         level: ContentLevel.intermediate,
         durationMinutes: 5,
         tags: ['quiz', 'test', 'knowledge'],
+      ),
+    );
+
+    // Wet Waste Quiz
+    _allContent.add(
+      EducationalContent.quiz(
+        id: 'quiz2',
+        title: 'Wet Waste and Composting Quiz',
+        description: 'Test your knowledge about wet waste management and composting.',
+        thumbnailUrl: 'assets/images/education/wet_waste_quiz.jpg',
+        questions: [
+          QuizQuestion(
+            question: 'Which of these items can be composted?',
+            options: [
+              'Meat and dairy products',
+              'Fruit and vegetable scraps',
+              'Cooked food with oil',
+              'Pet waste'
+            ],
+            correctOptionIndex: 1,
+            explanation: 'Fruit and vegetable scraps are ideal for composting. Meat, dairy, and oily foods can attract pests and create odors.',
+          ),
+          QuizQuestion(
+            question: 'What is the ideal carbon to nitrogen ratio for composting?',
+            options: ['1:1', '2:1', '3:1', '4:1'],
+            correctOptionIndex: 2,
+            explanation: 'A 3:1 ratio of carbon-rich materials (browns) to nitrogen-rich materials (greens) creates optimal composting conditions.',
+          ),
+          QuizQuestion(
+            question: 'How often should you turn your compost pile?',
+            options: [
+              'Daily',
+              'Every few weeks',
+              'Once a month',
+              'Never'
+            ],
+            correctOptionIndex: 1,
+            explanation: 'Turning every few weeks provides adequate aeration while not being too labor-intensive.',
+          ),
+          QuizQuestion(
+            question: 'Which materials are considered "browns" in composting?',
+            options: [
+              'Fresh grass clippings',
+              'Food scraps',
+              'Dry leaves and twigs',
+              'Coffee grounds'
+            ],
+            correctOptionIndex: 2,
+            explanation: 'Browns are carbon-rich materials like dry leaves, twigs, and paper that balance nitrogen-rich greens.',
+          ),
+        ],
+        categories: ['Wet Waste', 'Composting'],
+        level: ContentLevel.beginner,
+        durationMinutes: 3,
+        tags: ['quiz', 'composting', 'organic'],
+      ),
+    );
+
+    // Dry Waste Quiz
+    _allContent.add(
+      EducationalContent.quiz(
+        id: 'quiz3',
+        title: 'Dry Waste and Recycling Quiz',
+        description: 'Test your knowledge about dry waste recycling and management.',
+        thumbnailUrl: 'assets/images/education/dry_waste_quiz.jpg',
+        questions: [
+          QuizQuestion(
+            question: 'Which plastic recycling code indicates the most recyclable plastic?',
+            options: ['Code 1 (PET)', 'Code 3 (PVC)', 'Code 6 (PS)', 'Code 7 (OTHER)'],
+            correctOptionIndex: 0,
+            explanation: 'Code 1 (PET) plastics like water bottles are the most widely recycled plastic type.',
+          ),
+          QuizQuestion(
+            question: 'Should you remove labels from glass bottles before recycling?',
+            options: [
+              'Yes, always remove all labels',
+              'No, labels are removed during processing',
+              'Only remove plastic labels',
+              'Only if the label is dirty'
+            ],
+            correctOptionIndex: 1,
+            explanation: 'Most recycling facilities can handle labels on glass bottles - they\'re removed during the recycling process.',
+          ),
+          QuizQuestion(
+            question: 'What should you do with cardboard boxes before recycling?',
+            options: [
+              'Leave them assembled',
+              'Flatten them',
+              'Cut them into small pieces',
+              'Remove all tape'
+            ],
+            correctOptionIndex: 1,
+            explanation: 'Flattening boxes saves space and makes them easier to process at recycling facilities.',
+          ),
+          QuizQuestion(
+            question: 'Which type of paper cannot be recycled?',
+            options: [
+              'Newspaper',
+              'Wax-coated paper',
+              'Office paper',
+              'Magazines'
+            ],
+            correctOptionIndex: 1,
+            explanation: 'Wax-coated paper like some food packaging cannot be recycled due to the wax coating.',
+          ),
+        ],
+        categories: ['Dry Waste', 'Recycling'],
+        level: ContentLevel.beginner,
+        durationMinutes: 3,
+        tags: ['quiz', 'recycling', 'plastic'],
+      ),
+    );
+
+    // Hazardous Waste Quiz
+    _allContent.add(
+      EducationalContent.quiz(
+        id: 'quiz4',
+        title: 'Hazardous Waste Safety Quiz',
+        description: 'Test your knowledge about safe handling and disposal of hazardous waste.',
+        thumbnailUrl: 'assets/images/education/hazardous_quiz.jpg',
+        questions: [
+          QuizQuestion(
+            question: 'What should you do with old car batteries?',
+            options: [
+              'Put them in regular trash',
+              'Take them to an auto parts store',
+              'Bury them in your backyard',
+              'Break them open to recycle parts'
+            ],
+            correctOptionIndex: 1,
+            explanation: 'Auto parts stores typically accept old car batteries for recycling and may offer credit toward new battery purchases.',
+          ),
+          QuizQuestion(
+            question: 'Which of these items contains hazardous materials?',
+            options: [
+              'Old smartphones',
+              'Cotton clothing',
+              'Glass bottles',
+              'Wooden furniture'
+            ],
+            correctOptionIndex: 0,
+            explanation: 'Smartphones contain heavy metals and other hazardous materials and should be recycled through e-waste programs.',
+          ),
+          QuizQuestion(
+            question: 'How should you dispose of household paint?',
+            options: [
+              'Pour it down the drain',
+              'Mix it with regular trash',
+              'Take it to a hazardous waste collection center',
+              'Burn it in your fireplace'
+            ],
+            correctOptionIndex: 2,
+            explanation: 'Paint contains chemicals that can harm the environment and must be disposed of at hazardous waste collection centers.',
+          ),
+          QuizQuestion(
+            question: 'What should you do before disposing of electronic devices?',
+            options: [
+              'Remove the battery only',
+              'Wipe all personal data',
+              'Break the screen',
+              'Nothing special needed'
+            ],
+            correctOptionIndex: 1,
+            explanation: 'Always wipe or properly destroy personal data before disposing of electronic devices to protect your privacy.',
+          ),
+        ],
+        categories: ['Hazardous Waste', 'E-waste'],
+        level: ContentLevel.intermediate,
+        durationMinutes: 4,
+        tags: ['quiz', 'safety', 'hazardous'],
       ),
     );
 
