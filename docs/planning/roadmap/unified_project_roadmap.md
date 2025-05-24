@@ -142,6 +142,7 @@ The Waste Segregation App is evolving from a utility-focused classification tool
 | Enhanced image classification | Complete | - | High |
 | Classification caching | Complete | - | High |
 | Offline mode | In Progress | Phase 1 | High |
+| Firebase Storage Migration | Planned | Phase 2 | Medium |
 | Multi-item detection | Planned | Phase 2 | High |
 | Interactive segmentation | Planned | Phase 3 | Medium |
 | AR object recognition | Planned | Phase 3 | Medium |

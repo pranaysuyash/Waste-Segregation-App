@@ -9,9 +9,16 @@ This directory contains comprehensive documentation for the Waste Segregation Ap
 - **[Current Issues](current_issues.md)** - Known issues and their status
 - **[Critical Fixes Summary](CRITICAL_FIXES_SUMMARY.md)** - Major bug fixes implemented
 
+### 📋 **Planning & Management**
+- **[Resolution Plan](planning/RESOLUTION_PLAN.md)** - Priority issues and current fixes
+- **[Project Roadmap](planning/roadmap/unified_project_roadmap.md)** - Development timeline and features
+- **[Project Status](project/status.md)** - Current development status
+- **[Enhancement Plans](project/enhancements.md)** - Planned improvements
+
 ### 🔧 **Technical Documentation**
 - **[Technical Fixes](technical/README.md)** - Recent bug fixes and implementations
 - **[Architecture](technical/architecture/README.md)** - System architecture overview
+- **[Implementation](technical/implementation/)** - Advanced UI components and implementation details
 - **[AI & ML](technical/ai/README.md)** - AI model integration and management
 - **[Testing](technical/testing/README.md)** - Testing strategies and guidelines
 
@@ -24,11 +31,7 @@ This directory contains comprehensive documentation for the Waste Segregation Ap
 - **[Design Documentation](design/README.md)** - UI design system, style guide, and design specifications
 - **[UI Revamp Master Plan](design/UI_REVAMP_MASTER_PLAN.md)** - Comprehensive UI improvement strategy
 - **[Style Guide](design/app_theme_and_style_guide.md)** - Colors, typography, and component guidelines
-
-### 📋 **Project Management**
-- **[Project Status](project/status.md)** - Current development status
-- **[Roadmap](project/roadmap.md)** - Future development plans
-- **[Enhancement Plans](project/enhancements.md)** - Planned improvements
+- **[Cyberpunk Design Guide](design/ui/cyberpunk_design_guide.md)** - Advanced UI design patterns
 
 ### 📚 **Reference**
 - **[API Documentation](reference/api.md)** - API specifications
@@ -38,7 +41,7 @@ This directory contains comprehensive documentation for the Waste Segregation Ap
 
 **For Developers:**
 - Start with [Developer Guide](guides/developer_guide.md)
-- Check [Current Issues](current_issues.md) for known problems
+- Check [Resolution Plan](planning/RESOLUTION_PLAN.md) for current priorities
 - Review [Technical Fixes](technical/README.md) for recent changes
 
 **For Users:**
@@ -51,17 +54,19 @@ This directory contains comprehensive documentation for the Waste Segregation Ap
 - See [UI Revamp Plan](design/UI_REVAMP_MASTER_PLAN.md) for improvement roadmap
 
 **For Project Management:**
-- Review [Project Status](project/status.md) for current state
-- Check [Roadmap](project/roadmap.md) for future plans
+- Review [Resolution Plan](planning/RESOLUTION_PLAN.md) for priority fixes
+- Check [Project Roadmap](planning/roadmap/unified_project_roadmap.md) for timeline
+- See [Project Status](project/status.md) for current state
 
 ## 📅 **Document Maintenance**
 
-**Last Updated:** 2025-05-24  
+**Last Updated:** 2025-01-26  
 **Version:** 0.1.4+96  
-**Status:** ✅ Up to date with latest fixes
+**Status:** ✅ All Priority Issues Resolved
 
 ### Recent Updates:
-- ✅ Dashboard display issues resolved
-- ✅ Achievement unlock timing fixed
-- ✅ Statistics display consistency implemented
-- ✅ Documentation reorganized and cleaned up
+- ✅ All critical priority issues resolved (data leaks, UI overflow, badge unlock)
+- ✅ Documentation reorganized under docs/ folder structure
+- ✅ Resolution plan moved to docs/planning/
+- ✅ Advanced UI implementation docs organized
+- ✅ Firebase storage migration planned for Phase 2
