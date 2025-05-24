@@ -27,6 +27,7 @@ class StorageKeys {
   /// Box for caching image classification results by hash
   static const String cacheBox = 'cacheBox';
   static const String gamificationBox = 'gamificationBox';
+  static const String familiesBox = 'familiesBox';
   
   // Keys for UserProfile object (New way)
   static const String userProfileKey = 'userProfile';

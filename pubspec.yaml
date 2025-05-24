@@ -39,8 +39,12 @@ dependencies:
   firebase_auth: ^5.5.3  # Updated for iOS compatibility
   google_sign_in: ^6.3.0  # Updated for iOS compatibility
   firebase_crashlytics: ^4.3.5
+  cloud_firestore: ^5.8.0  # For family data and real-time sync
+  qr_flutter: ^4.1.0  # For QR code generation
+  qr_code_scanner: ^1.0.1  # For QR code scanning
   video_player: ^2.9.5
   url_launcher: ^6.3.0  # For launching URLs and making phone calls
+  uuid: ^4.5.0  # For generating unique IDs
 
 dev_dependencies:
   flutter_test:
