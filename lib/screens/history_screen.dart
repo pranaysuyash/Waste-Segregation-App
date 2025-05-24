@@ -32,7 +32,6 @@ class _HistoryScreenState extends State<HistoryScreen> {
   
   // Pagination state
   int _currentPage = 0;
-  int _totalItems = 0;
   final int _itemsPerPage = 20;
   bool _isLoadingMore = false;
   bool _hasMorePages = true;
@@ -46,6 +45,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
   
   // List of classifications
   List<WasteClassification> _classifications = [];
+  Map<String, List<WasteClassification>> _groupedClassifications = {};
   
   // Scroll controller for pagination
   final ScrollController _scrollController = ScrollController();
@@ -110,9 +110,9 @@ class _HistoryScreenState extends State<HistoryScreen> {
       final storageService = Provider.of<StorageService>(context, listen: false);
       
       // Get total count for pagination
-      _totalItems = await storageService.getClassificationsCount(
-        filterOptions: _filterOptions,
-      );
+      // _totalItems = await storageService.getClassificationsCount(
+      //   filterOptions: _filterOptions,
+      // );
       
       // Get first page of classifications
       final classifications = await storageService.getClassificationsWithPagination(

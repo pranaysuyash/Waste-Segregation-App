@@ -661,6 +661,9 @@ class FamilyComment {
   final String text;
   final DateTime timestamp;
   final String? parentCommentId; // For threaded comments
+  final bool isEdited;
+  final DateTime? editedAt;
+  final List<FamilyComment> replies;
 
   const FamilyComment({
     required this.id,
@@ -670,7 +673,22 @@ class FamilyComment {
     required this.text,
     required this.timestamp,
     this.parentCommentId,
+    this.isEdited = false,
+    this.editedAt,
+    this.replies = const [],
   });
+
+  /// Checks if this is a reply to another comment.
+  bool get isReply => parentCommentId != null;
+
+  /// Gets the total number of replies (including nested replies).
+  int get totalReplies {
+    int count = replies.length;
+    for (final reply in replies) {
+      count += reply.totalReplies;
+    }
+    return count;
+  }
 
   /// Creates a new comment with auto-generated ID.
   factory FamilyComment.create({
@@ -691,6 +709,33 @@ class FamilyComment {
     );
   }
 
+  /// Creates a copy of this FamilyComment with the given fields replaced.
+  FamilyComment copyWith({
+    String? id,
+    String? userId,
+    String? displayName,
+    String? photoUrl,
+    String? text,
+    DateTime? timestamp,
+    String? parentCommentId,
+    bool? isEdited,
+    DateTime? editedAt,
+    List<FamilyComment>? replies,
+  }) {
+    return FamilyComment(
+      id: id ?? this.id,
+      userId: userId ?? this.userId,
+      displayName: displayName ?? this.displayName,
+      photoUrl: photoUrl ?? this.photoUrl,
+      text: text ?? this.text,
+      timestamp: timestamp ?? this.timestamp,
+      parentCommentId: parentCommentId ?? this.parentCommentId,
+      isEdited: isEdited ?? this.isEdited,
+      editedAt: editedAt ?? this.editedAt,
+      replies: replies ?? this.replies,
+    );
+  }
+
   /// Converts this comment to a JSON map.
   Map<String, dynamic> toJson() {
     return {
@@ -701,6 +746,9 @@ class FamilyComment {
       'text': text,
       'timestamp': timestamp.toIso8601String(),
       'parentCommentId': parentCommentId,
+      'isEdited': isEdited,
+      'editedAt': editedAt?.toIso8601String(),
+      'replies': replies.map((r) => r.toJson()).toList(),
     };
   }
 
@@ -714,6 +762,14 @@ class FamilyComment {
       text: json['text'] as String,
       timestamp: DateTime.parse(json['timestamp'] as String),
       parentCommentId: json['parentCommentId'] as String?,
+      isEdited: json['isEdited'] as bool? ?? false,
+      editedAt: json['editedAt'] != null
+          ? DateTime.parse(json['editedAt'] as String)
+          : null,
+      replies: (json['replies'] as List<dynamic>?)
+              ?.map((r) => FamilyComment.fromJson(r as Map<String, dynamic>))
+              .toList() ??
+          [],
     );
   }
 }

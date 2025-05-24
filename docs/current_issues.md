@@ -6,7 +6,24 @@ _Last updated: May 24, 2025_
 
 ## 🔥 CRITICAL ISSUES (Immediate Action Required)
 
-### 1. **Play Store Google Sign-In Certificate Mismatch** ⚠️ 
+### 1. **Compilation Errors** ✅ **RESOLVED**
+   - **Status**: **FIXED** - May 24, 2025
+   - **Issue**: Multiple compilation errors preventing app build
+   - **Root Causes**: 
+     - Missing method parameters in AiService retry logic
+     - AppVersion import conflicts between files
+     - Missing Rect import for image segmentation
+   - **Actions Completed**:
+     - [x] Fixed AiService method signatures with proper retry parameters
+     - [x] Resolved AppVersion import conflicts by using single source of truth
+     - [x] Added dart:ui import for Rect class
+     - [x] Updated app version to match pubspec.yaml (0.1.4+96)
+     - [x] Enhanced constants.dart with comprehensive waste management data
+   - **Resolution Date**: May 24, 2025
+   - **Files Modified**: `ai_service.dart`, `app_version.dart`, `data_export_screen.dart`, `constants.dart`
+   - **Documentation**: `docs/technical/compilation_fixes_may_2025.md`
+
+### 2. **Play Store Google Sign-In Certificate Mismatch** ⚠️ 
    - **Status**: **REQUIRES IMMEDIATE ATTENTION**
    - **Issue**: `PlatformException(sign_in_failed, error code: 10)` when app is deployed to Play Store internal testing
    - **Root Cause**: Play Store App Signing certificate SHA-1 fingerprint missing from Firebase Console

@@ -564,10 +564,10 @@ class CategoryDistributionChart extends StatelessWidget {
           belowBarData: BarAreaData(
             show: true,
             color: color.withOpacity(0.7),
-            // For area below, we need the previous category's spots
+            // For area below, we need the previous category's value
             cutOffY: i > 0 
-                ? result[i - 1].spots.map((spot) => spot.y).toList()
-                : List.generate(data.length, (index) => 0.0),
+                ? (result[i - 1].spots.isNotEmpty ? result[i - 1].spots.last.y : 0.0)
+                : 0.0,
             applyCutOffY: true,
           ),
         ),

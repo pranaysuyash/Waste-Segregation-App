@@ -19,6 +19,9 @@ class ApiConfig {
   static const String openAiModel = 'gpt-4-vision-preview'; // Vision-capable model
 }
 
+// App Version Information
+// NOTE: AppVersion is defined in lib/utils/app_version.dart
+
 // Local Storage Keys
 class StorageKeys {
   static const String userBox = 'userBox';
@@ -270,7 +273,6 @@ class AppStrings {
   static const String completeChallenge = 'Complete Challenge';
 }
 
-// Waste Category Descriptions for Education
 // Material Icons constants
 class AppIcons {
   // Standard icons used throughout the app
@@ -339,6 +341,7 @@ class AppIcons {
   }
 }
 
+// Waste Category Descriptions for Education
 class WasteInfo {
   static const Map<String, String> categoryExamples = {
     'Wet Waste': 'Food scraps, fruit peels, vegetable waste, garden trimmings, tea bags, coffee grounds',
@@ -476,4 +479,3 @@ class WasteInfo {
     '7': 'Other (BPA, Polycarbonate, etc.) - Various plastic products',
   };
 }
-

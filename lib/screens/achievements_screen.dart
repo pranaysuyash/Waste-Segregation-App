@@ -1,10 +1,10 @@
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../models/gamification.dart';
 import '../services/gamification_service.dart';
 import '../utils/constants.dart';
 import '../widgets/profile_summary_card.dart';
-import 'package:flutter/foundation.dart' show kIsWeb;
 
 class AchievementsScreen extends StatefulWidget {
   final int initialTabIndex;
@@ -1250,6 +1250,25 @@ class _AchievementsScreenState extends State<AchievementsScreen>
         return 'Personal Goals';
       case AchievementType.collectionMilestone:
         return 'Collection Milestones';
+      // New achievement types for family features
+      case AchievementType.firstClassification:
+        return 'First Classification';
+      case AchievementType.weekStreak:
+        return 'Week Streak';
+      case AchievementType.monthStreak:
+        return 'Month Streak';
+      case AchievementType.recyclingExpert:
+        return 'Recycling Expert';
+      case AchievementType.compostMaster:
+        return 'Compost Master';
+      case AchievementType.ecoWarrior:
+        return 'Eco Warrior';
+      case AchievementType.familyTeamwork:
+        return 'Family Teamwork';
+      case AchievementType.helpfulMember:
+        return 'Helpful Member';
+      case AchievementType.educationalContent:
+        return 'Educational Content';
     }
   }
 

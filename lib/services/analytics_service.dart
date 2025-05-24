@@ -1,14 +1,14 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
 import 'package:uuid/uuid.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import '../models/gamification.dart';
-import '../models/user_profile.dart';
+import '../models/analytics_event.dart';
 import '../services/storage_service.dart';
 
 /// Service for tracking and analyzing user behavior and app usage.
 class AnalyticsService extends ChangeNotifier {
   static const String _analyticsCollection = 'analytics_events';
-  static const String _sessionsCollection = 'user_sessions';
   
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final StorageService _storageService;
@@ -36,6 +36,16 @@ class AnalyticsService extends ChangeNotifier {
     };
     
     _trackSessionStart();
+  }
+
+  /// Clears all analytics session data and pending events.
+  /// Should be called on user sign-out to prevent data leakage.
+  void clearAnalyticsData() {
+    _currentSessionId = null;
+    _sessionStartTime = null;
+    _sessionParameters = {};
+    _pendingEvents.clear();
+    debugPrint('✅ Analytics data cleared');
   }
 
   /// Tracks the start of a user session.

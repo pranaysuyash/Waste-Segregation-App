@@ -1,18 +1,20 @@
 import 'dart:convert';
-import 'dart:io';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:path_provider/path_provider.dart';
-import 'package:intl/intl.dart';
+import 'package:share_plus/share_plus.dart';
+import 'package:intl/intl.dart'; // Added for DateFormat
+// import 'package:path_provider/path_provider.dart'; // Unused
 import '../services/storage_service.dart';
+import '../services/google_drive_service.dart';
 import '../models/waste_classification.dart';
+import '../utils/share_service.dart'; // Added for ShareService
 import '../utils/constants.dart';
-import '../utils/design_system.dart';
-import '../utils/enhanced_animations.dart';
-import '../utils/performance_monitor.dart';
-import '../utils/share_service.dart';
-import '../utils/app_version.dart';
+import '../utils/app_version.dart'; // For AppVersion.displayVersion
+// import '../utils/design_system.dart'; // Unused
+// import '../utils/enhanced_animations.dart'; // Unused
+// import '../utils/performance_monitor.dart'; // Unused
+import '../widgets/advanced_ui/glass_morphism.dart';
+import 'package:flutter/foundation.dart' show kIsWeb; // Keep kIsWeb
 
 /// Data Export Screen
 /// Allows users to export their classification history in various formats

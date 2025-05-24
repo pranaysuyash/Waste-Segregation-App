@@ -3,9 +3,9 @@ import 'package:uuid/uuid.dart';
 import '../models/enhanced_family.dart';
 import '../models/family_invitation.dart';
 import '../models/user_profile.dart';
-import '../models/shared_waste_classification.dart';
-import '../models/gamification.dart';
 import '../models/waste_classification.dart';
+import '../models/gamification.dart' show FamilyReaction, FamilyComment, FamilyReactionType, ClassificationLocation, AnalyticsEvent;
+import '../models/shared_waste_classification.dart' show SharedWasteClassification;
 
 /// Service for managing family-related data in Firebase Firestore.
 class FirebaseFamilyService {
@@ -268,7 +268,7 @@ class FirebaseFamilyService {
       final totalClassifications = classifications.length;
       final totalPoints = classifications.fold<int>(
         0, 
-        (sum, classification) => sum + classification.pointsEarned,
+        (sum, classification) => sum + 10, // Default 10 points per classification
       );
 
       // Calculate category breakdown
@@ -361,16 +361,14 @@ class FirebaseFamilyService {
 
       final sharedClassification = SharedWasteClassification(
         id: _uuid.v4(),
-        familyId: familyId,
-        classifiedBy: userId,
-        classifierName: userProfile.displayName ?? 'Unknown User',
-        classifierPhotoUrl: userProfile.photoUrl,
         classification: classification,
-        timestamp: DateTime.now(),
-        pointsEarned: pointsEarned,
-        educationalNote: educationalNote,
-        tags: tags,
+        sharedBy: userId,
+        sharedByDisplayName: userProfile.displayName ?? 'Unknown User',
+        sharedByPhotoUrl: userProfile.photoUrl,
+        sharedAt: DateTime.now(),
+        familyId: familyId,
         location: location,
+        familyTags: tags,
       );
 
       await _firestore

@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../services/premium_service.dart';
 import '../services/ad_service.dart';
 import '../services/storage_service.dart';
+import '../services/analytics_service.dart';
 import '../utils/constants.dart';
 import '../utils/app_version.dart';
 import 'premium_features_screen.dart';
@@ -29,6 +30,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final premiumService = Provider.of<PremiumService>(context);
     final storageService = Provider.of<StorageService>(context);
     final adService = Provider.of<AdService>(context, listen: false);
+    final analyticsService = Provider.of<AnalyticsService>(context, listen: false);
     
     // Set context for ads
     adService.setInClassificationFlow(false);
@@ -290,14 +292,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ListTile(
             leading: const Icon(Icons.delete_forever),
             title: const Text('Clear Data'),
-            subtitle: const Text('Reset your classification history'),
+            subtitle: const Text('Reset all app data (history, settings, preferences)'),
             onTap: () {
               showDialog(
                 context: context,
                 builder: (context) => AlertDialog(
                   title: const Text('Clear Data'),
                   content: const Text(
-                    'Are you sure you want to clear all your classification history? This action cannot be undone.',
+                    'Are you sure you want to clear ALL your data including classification history, settings, and preferences? This action cannot be undone.',
                   ),
                   actions: [
                     TextButton(
@@ -306,11 +308,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     ),
                     TextButton(
                       onPressed: () async {
-                        await storageService.clearClassifications();
+                        // Clear analytics data first
+                        analyticsService.clearAnalyticsData();
+                        
+                        // Clear all user data
+                        await storageService.clearAllUserData();
+                        
                         if (context.mounted) {
                           Navigator.pop(context);
                           ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Data cleared successfully')),
+                            const SnackBar(content: Text('All data cleared successfully')),
                           );
                         }
                       },

@@ -17,10 +17,10 @@ import 'services/user_consent_service.dart';
 import 'screens/auth_screen.dart';
 import 'screens/consent_dialog_screen.dart';
 import 'utils/constants.dart'; // For app constants, themes, and strings
-import 'utils/design_system.dart';
 import 'utils/error_handler.dart'; // Correct import for ErrorHandler
 import 'providers/theme_provider.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
+import 'package:waste_segregation_app/utils/image_utils.dart';
 
 // Global Navigator Key for Error Handling
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
@@ -170,11 +170,9 @@ class WasteSegregationApp extends StatelessWidget {
 
                 final Map<String, bool> conditions = snapshot.data ?? {
                   'hasConsent': false,
-                  'isLoggedIn': false,
                 };
                 
                 final bool hasConsent = conditions['hasConsent'] ?? false;
-                final bool isLoggedIn = conditions['isLoggedIn'] ?? false;
                 
                 // First, check if user has accepted privacy policy and terms
                 if (!hasConsent) {
@@ -211,12 +209,8 @@ class WasteSegregationApp extends StatelessWidget {
     final userConsentService = UserConsentService();
     final bool hasConsent = await userConsentService.hasAllRequiredConsents();
     
-    // Check if user is logged in
-    final bool isLoggedIn = storageService.isUserLoggedIn();
-    
     return {
       'hasConsent': hasConsent,
-      'isLoggedIn': isLoggedIn,
     };
   }
 }

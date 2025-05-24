@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../models/waste_classification.dart';
 import '../models/filter_options.dart';
 import '../models/user_profile.dart';
@@ -58,12 +59,10 @@ class StorageService {
 
   Future<void> clearUserInfo() async {
     final userBox = Hive.box(StorageKeys.userBox);
-    // Clear the new userProfileKey and also the old individual keys for now
-    // to ensure a clean slate during transition.
+    // Clear the new userProfileKey 
     await userBox.delete(StorageKeys.userProfileKey);
-    await userBox.delete(StorageKeys.userIdKey); 
-    await userBox.delete(StorageKeys.userEmailKey); 
-    await userBox.delete(StorageKeys.userDisplayNameKey);
+    // Note: Old individual keys (userIdKey, userEmailKey, userDisplayNameKey) were removed
+    // during UserProfile refactoring and are no longer needed
   }
 
   Future<bool> isUserLoggedIn() async {
@@ -464,15 +463,27 @@ class StorageService {
     }
   }
 
-  /// Clear all user-specific data (user info, classifications, settings, gamification, cache)
+  /// Clear all user-specific data (user info, classifications, settings, gamification, cache, SharedPreferences)
   Future<void> clearAllUserData() async {
-    await clearUserInfo();
-    await clearAllClassifications();
-    final settingsBox = Hive.box(StorageKeys.settingsBox);
-    await settingsBox.clear();
-    final gamificationBox = Hive.box(StorageKeys.gamificationBox);
-    await gamificationBox.clear();
-    final cacheBox = Hive.box<String>(StorageKeys.cacheBox);
-    await cacheBox.clear();
+    try {
+      // Clear Hive boxes
+      await clearUserInfo();
+      await clearAllClassifications();
+      final settingsBox = Hive.box(StorageKeys.settingsBox);
+      await settingsBox.clear();
+      final gamificationBox = Hive.box(StorageKeys.gamificationBox);
+      await gamificationBox.clear();
+      final cacheBox = Hive.box<String>(StorageKeys.cacheBox);
+      await cacheBox.clear();
+      
+      // Clear SharedPreferences (theme, user consent, etc.)
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.clear();
+      
+      debugPrint('✅ All user data cleared successfully');
+    } catch (e) {
+      debugPrint('❌ Error clearing user data: $e');
+      rethrow;
+    }
   }
 }

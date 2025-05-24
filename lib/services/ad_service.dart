@@ -4,7 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 
 class AdService extends ChangeNotifier {
-  static const String _removeAdsFeatureId = 'remove_ads';
+  // static const String _removeAdsFeatureId = 'remove_ads'; // Unused field removed
+  static const int _classificationsBeforeAd = 5;
+  static const Duration _minAdInterval = Duration(minutes: 5);
   
   bool _hasPremium = false;
   
@@ -39,7 +41,7 @@ class AdService extends ChangeNotifier {
   // Ad state tracking
   InterstitialAd? _interstitialAd;
   bool _isInterstitialAdLoading = false;
-  DateTime? _lastInterstitialShown;
+  DateTime? _lastInterstitialAdTime;
   int _classificationsSinceLastAd = 0;
   
   // Ad context management - FIXED: Prevent notifyListeners during build
@@ -50,7 +52,6 @@ class AdService extends ChangeNotifier {
   bool _isInitialized = false;
   bool _isInitializing = false;
   int _classificationCount = 0;
-  DateTime? _lastInterstitialAdTime;
   
   BannerAd? _bannerAd;
   AdWidget? _adWidget;

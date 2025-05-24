@@ -2,17 +2,17 @@
 class AppVersion {
   // Semantic version components
   static const int major = 0;
-  static const int minor = 9;
-  static const int patch = 1;
+  static const int minor = 1;
+  static const int patch = 4;
   
   // Build number (incremented with each build)
-  static const int buildNumber = 91;
+  static const int buildNumber = 96;
   
   // Android version code
   static const int versionCode = major * 10000 + minor * 100 + patch;
   
   // Is this a beta version?
-  static const bool isBeta = true;
+  static const bool isBeta = false;
   
   // Beta version suffix
   static const String betaSuffix = isBeta ? ' (beta)' : '';

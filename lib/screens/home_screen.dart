@@ -33,6 +33,7 @@ import 'achievements_screen.dart';
 import 'settings_screen.dart';
 import 'waste_dashboard_screen.dart';
 import '../services/premium_service.dart';
+import '../services/analytics_service.dart';
 
 class HomeScreen extends StatefulWidget {
   final bool isGuestMode;
@@ -46,7 +47,7 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
+class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   final ImagePicker _imagePicker = ImagePicker();
   List<WasteClassification> _recentClassifications = [];
   bool _isLoading = false;
@@ -55,7 +56,6 @@ class _HomeScreenState extends State<HomeScreen> {
   // Gamification state
   GamificationProfile? _gamificationProfile;
   List<Challenge> _activeChallenges = [];
-  List<Achievement> _recentAchievements = [];
   bool _isLoadingGamification = false;
 
   @override
@@ -90,9 +90,6 @@ class _HomeScreenState extends State<HomeScreen> {
       setState(() {
       _gamificationProfile = profile;
       _activeChallenges = challenges;
-      _recentAchievements = profile.achievements
-      .safeWhere((a) => a.isEarned)
-      ..sort((a, b) => (b.earnedOn ?? DateTime.now()).compareTo(a.earnedOn ?? DateTime.now()));
       });
     } catch (e) {
       debugPrint('Error loading gamification data: $e');
@@ -556,11 +553,19 @@ class _HomeScreenState extends State<HomeScreen> {
   Future<void> _signOut() async {
     try {
       final storageService = Provider.of<StorageService>(context, listen: false);
-      await storageService.clearAllUserData(); // Clear all local data
+      
+      // Clear analytics data first to prevent data leakage
+      final analyticsService = Provider.of<AnalyticsService>(context, listen: false);
+      analyticsService.clearAnalyticsData();
+      
+      // Clear all local data
+      await storageService.clearAllUserData();
+      
       if (!widget.isGuestMode) {
         final googleDriveService = Provider.of<GoogleDriveService>(context, listen: false);
         await googleDriveService.signOut();
       }
+      
       if (mounted) {
         Navigator.pushReplacement(
           context,
@@ -1007,11 +1012,6 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
       ),
     );
-  }
-
-  // Add missing method as a compatibility wrapper to avoid duplication errors
-  Color _getCategoryColor(String category) {
-    return _getCategoryColorCase(category);
   }
 
   // Build the gamification section of the home screen

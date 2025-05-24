@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 import 'dart:math' show pow;
+import 'dart:ui' show Rect;
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import '../models/waste_classification.dart';
@@ -346,14 +347,14 @@ class AiService {
   // Image segmentation method for mobile platforms
   Future<List<Rect>> segmentImage(dynamic image) async {
     try {
-      List<Rect> segments = [];
+      final List<Rect> segments = [];
       
       // For simplicity, we'll create a grid-based segmentation
       // In a real app, this would use ML for object detection
       
       if (image is File) {
         // Wait for the image dimensions to be determined
-        final File file = image;
+        // final File file = image; // Unused local variable
         
         // Create a simple grid of segments
         final List<Rect> gridSegments = _createGridSegments();
@@ -1028,7 +1029,7 @@ class AiService {
   }
   
   // Analyze image with retry and fallback mechanism
-  Future<WasteClassification> analyzeImage(File imageFile, {int retryCount = 0, int maxRetries = 3}) async {
+  Future<WasteClassification> analyzeImage(File imageFile, {bool useEnhancedModel = false, int retryCount = 0, int maxRetries = 3}) async {
     String? imageHash;
     
     try {

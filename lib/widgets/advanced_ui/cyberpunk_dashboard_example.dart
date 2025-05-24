@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
-import 'futuristic_impact_ring.dart';
-import '../../utils/design_system.dart';
+import 'dart:math' as math;
+// import '../../utils/design_system.dart'; // Removed unused import
+import '../../utils/constants.dart';
+// import 'futuristic_impact_ring.dart'; // File was corrupted and removed
 
 /// 🚀 EPIC FUTURISTIC DASHBOARD THAT WILL BLOW USERS' MINDS! 🚀
 /// 
@@ -62,9 +64,52 @@ class _CyberpunkWasteImpactDashboardState extends State<CyberpunkWasteImpactDash
           child: Column(
             children: [
               // 🎯 MAIN CYBERPUNK CLASSIFICATION RING 🎯
-              CyberpunkImpactConfigurations.cyberpunkWasteGoal(
-                itemsClassified: wasteItemsClassified,
-                dailyTarget: dailyTarget,
+              Container(
+                width: 200,
+                height: 200,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: const Color(0xFF00ffff).withOpacity(0.5),
+                    width: 3,
+                  ),
+                  gradient: RadialGradient(
+                    colors: [
+                      const Color(0xFF00ffff).withOpacity(0.1),
+                      Colors.transparent,
+                    ],
+                  ),
+                ),
+                child: Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        '${wasteItemsClassified.toInt()}',
+                        style: const TextStyle(
+                          fontSize: 32,
+                          fontWeight: FontWeight.w900,
+                          color: Color(0xFF00ffff),
+                        ),
+                      ),
+                      Text(
+                        'of ${dailyTarget.toInt()}',
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: Colors.white.withOpacity(0.7),
+                        ),
+                      ),
+                      const Text(
+                        'ITEMS CLASSIFIED',
+                        style: TextStyle(
+                          fontSize: 10,
+                          color: Color(0xFF00ffff),
+                          letterSpacing: 1,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               ),
               
               const SizedBox(height: 40),

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:provider/provider.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 import 'main.dart' as app;
 import 'services/storage_service.dart';
 import 'services/ai_service.dart';
@@ -8,130 +9,110 @@ import 'services/gamification_service.dart';
 import 'services/premium_service.dart';
 import 'services/ad_service.dart';
 import 'services/google_drive_service.dart';
+import 'providers/theme_provider.dart';
+import 'utils/constants.dart';
 
 /// Entry point specifically for the web version
 void main() async {
-  if (kIsWeb) {
-    // Web-specific initializations
-    print('Initializing web-specific features...');
-    
-    // Initialize main app
-    await _initializeApp();
-  } else {
-    // Should never happen, but fall back to normal app initialization
-    app.main();
-  }
-}
-
-/// Initialize the app with web-optimized settings
-Future<void> _initializeApp() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  
   try {
-    // Initialize services like in main.dart but with web-specific adaptations
+    print('🌐 Initializing Web Standalone Mode...');
+    
+    // Initialize Hive for web
+    await Hive.initFlutter();
+    
+    // Open required boxes
+    await Hive.openBox<String>(StorageKeys.userBox);
+    await Hive.openBox<String>(StorageKeys.classificationsBox);
+    await Hive.openBox<String>(StorageKeys.gamificationBox);
+    await Hive.openBox<String>(StorageKeys.settingsBox);
+    
+    print('✅ Hive initialized successfully');
+    
+    // Initialize storage service
     final storageService = StorageService();
-    final aiService = AiService();
-    final educationalContentService = EducationalContentService();
-    final gamificationService = GamificationService();
-    final premiumService = PremiumService();
-    final adService = AdService();
-    final googleDriveService = GoogleDriveService(storageService);
     
-    // Initialize storage early
-    await StorageService.initializeHive();
-    
-    // Initialize services in parallel
-    await Future.wait([
-      gamificationService.initGamification(),
-      premiumService.initialize(),
-      adService.initialize(),
-    ]);
-    
-    // Run the app with the initialized services
-    app.runApp(app.WasteSegregationApp(
-      storageService: storageService,
-      aiService: aiService,
-      educationalContentService: educationalContentService,
-      gamificationService: gamificationService,
-      premiumService: premiumService,
-      adService: adService,
-      googleDriveService: googleDriveService,
-    ));
-  } catch (e) {
-    print('Error initializing web app: $e');
-    
-    // Fallback to basic app initialization if there's an error
-    app.main();
-  }
-}
-
-class WasteWebApp extends StatelessWidget {
-  const WasteWebApp({Key? key}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Waste Segregation',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: Colors.green,
-          primary: Colors.green.shade600,
-          secondary: Colors.teal,
-        ),
-        useMaterial3: true,
+    // Use the Flutter runApp function
+    runApp(
+      MultiProvider(
+        providers: [
+          ChangeNotifierProvider(create: (_) => ThemeProvider()),
+          Provider<StorageService>.value(value: storageService),
+        ],
+        child: const WasteSegregationWebApp(),
       ),
-      home: const WasteWebHomePage(),
+    );
+  } catch (e) {
+    print('❌ Error initializing web app: $e');
+    // Use the Flutter runApp function
+    runApp(
+      MaterialApp(
+        home: Scaffold(
+          body: Center(
+            child: Text('Error initializing app: $e'),
+          ),
+        ),
+      ),
     );
   }
 }
 
-class WasteWebHomePage extends StatefulWidget {
-  const WasteWebHomePage({Key? key}) : super(key: key);
+/// Simple web app class for standalone web version
+class WasteSegregationWebApp extends StatelessWidget {
+  const WasteSegregationWebApp({super.key});
 
   @override
-  State<WasteWebHomePage> createState() => _WasteWebHomePageState();
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: 'Waste Segregation App - Web',
+      theme: ThemeData(
+        primarySwatch: Colors.green,
+        useMaterial3: true,
+      ),
+      home: const WebHomePage(),
+    );
+  }
 }
 
-class _WasteWebHomePageState extends State<WasteWebHomePage> {
-  int _selectedIndex = 0;
-  
-  final List<Widget> _screens = [
-    const HomeTab(),
-    const LearnTab(),
-    const AboutTab(),
-  ];
-  
-  void _onItemTapped(int index) {
-    setState(() {
-      _selectedIndex = index;
-    });
-  }
+/// Simple home page for web version
+class WebHomePage extends StatelessWidget {
+  const WebHomePage({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Waste Segregation App'),
-        backgroundColor: Theme.of(context).colorScheme.primary,
-        foregroundColor: Colors.white,
+        backgroundColor: Colors.green,
       ),
-      body: _screens[_selectedIndex],
-      bottomNavigationBar: BottomNavigationBar(
-        items: const <BottomNavigationBarItem>[
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home),
-            label: 'Home',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.school),
-            label: 'Learn',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.info),
-            label: 'About',
-          ),
-        ],
-        currentIndex: _selectedIndex,
-        selectedItemColor: Theme.of(context).colorScheme.primary,
-        onTap: _onItemTapped,
+      body: const Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.recycling,
+              size: 100,
+              color: Colors.green,
+            ),
+            SizedBox(height: 20),
+            Text(
+              'Welcome to Waste Segregation App',
+              style: TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            SizedBox(height: 10),
+            Text(
+              'Web version coming soon!',
+              style: TextStyle(
+                fontSize: 16,
+                color: Colors.grey,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
