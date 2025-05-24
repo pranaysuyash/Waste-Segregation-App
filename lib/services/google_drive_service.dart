@@ -6,6 +6,7 @@ import 'package:googleapis/drive/v3.dart' as drive;
 import 'package:http/http.dart' as http;
 import 'package:path_provider/path_provider.dart';
 import 'storage_service.dart';
+import '../models/user_profile.dart';
 
 class GoogleDriveService {
   final GoogleSignIn _googleSignIn = GoogleSignIn(
@@ -24,12 +25,17 @@ class GoogleDriveService {
     try {
       final GoogleSignInAccount? account = await _googleSignIn.signIn();
       if (account != null) {
-        // Save user info to local storage
-        await _storageService.saveUserInfo(
-          userId: account.id,
+        // Create UserProfile object
+        final userProfile = UserProfile(
+          id: account.id,
           email: account.email,
           displayName: account.displayName ?? account.email.split('@').first,
+          createdAt: DateTime.now(),
+          lastActive: DateTime.now(),
+          // familyId and role will be null by default upon initial sign-in
         );
+        // Save UserProfile to local storage
+        await _storageService.saveUserProfile(userProfile);
       }
       return account;
     } catch (e) {

@@ -119,11 +119,21 @@ class _HomeScreenState extends State<HomeScreen> {
     }
 
     final storageService = Provider.of<StorageService>(context, listen: false);
-    final userInfo = await storageService.getUserInfo();
+    final userProfile = await storageService.getCurrentUserProfile();
 
-    if (userInfo['displayName'] != null) {
+    if (userProfile != null && userProfile.displayName != null && userProfile.displayName!.isNotEmpty) {
       setState(() {
-        _userName = userInfo['displayName'];
+        _userName = userProfile.displayName!;
+      });
+    } else if (userProfile != null && userProfile.email != null && userProfile.email!.isNotEmpty) {
+      // Fallback to email if displayName is null or empty but email is available
+      setState(() {
+        _userName = userProfile.email!.split('@').first;
+      });
+    } else {
+      setState(() {
+        // Default if no valid name or email in profile (e.g. freshly created guest profile converted to full)
+        _userName = 'User'; 
       });
     }
   }

@@ -4,6 +4,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:path_provider/path_provider.dart';
 import '../models/waste_classification.dart';
 import '../models/filter_options.dart';
+import '../models/user_profile.dart';
 import '../utils/constants.dart';
 
 class StorageService {
@@ -39,34 +40,33 @@ class StorageService {
   }
 
   // User methods
-  Future<void> saveUserInfo({
-    required String userId,
-    required String email,
-    required String displayName,
-  }) async {
+  Future<void> saveUserProfile(UserProfile userProfile) async {
     final userBox = Hive.box(StorageKeys.userBox);
-    await userBox.put(StorageKeys.userIdKey, userId);
-    await userBox.put(StorageKeys.userEmailKey, email);
-    await userBox.put(StorageKeys.userDisplayNameKey, displayName);
+    await userBox.put(StorageKeys.userProfileKey, jsonEncode(userProfile.toJson()));
   }
 
-  Future<Map<String, dynamic>> getUserInfo() async {
+  Future<UserProfile?> getCurrentUserProfile() async {
     final userBox = Hive.box(StorageKeys.userBox);
-    return {
-      'userId': userBox.get(StorageKeys.userIdKey),
-      'email': userBox.get(StorageKeys.userEmailKey),
-      'displayName': userBox.get(StorageKeys.userDisplayNameKey),
-    };
+    final String? userProfileJson = userBox.get(StorageKeys.userProfileKey);
+    if (userProfileJson != null) {
+      return UserProfile.fromJson(jsonDecode(userProfileJson));
+    }
+    return null;
   }
 
   Future<void> clearUserInfo() async {
     final userBox = Hive.box(StorageKeys.userBox);
-    await userBox.clear();
+    // Clear the new userProfileKey and also the old individual keys for now
+    // to ensure a clean slate during transition.
+    await userBox.delete(StorageKeys.userProfileKey);
+    await userBox.delete(StorageKeys.userIdKey); 
+    await userBox.delete(StorageKeys.userEmailKey); 
+    await userBox.delete(StorageKeys.userDisplayNameKey);
   }
 
-  bool isUserLoggedIn() {
-    final userBox = Hive.box(StorageKeys.userBox);
-    return userBox.get(StorageKeys.userIdKey) != null;
+  Future<bool> isUserLoggedIn() async {
+    final userProfile = await getCurrentUserProfile();
+    return userProfile != null && userProfile.id.isNotEmpty;
   }
 
   // Classification methods
@@ -377,12 +377,15 @@ class StorageService {
 
   // Export all user data for backup
   Future<String> exportUserData() async {
+    final UserProfile? userProfile = await getCurrentUserProfile();
     final Map<String, dynamic> exportData = {
-      'userData': await getUserInfo(),
+      // Store UserProfile if available, otherwise store old user info for backward compatibility
+      'userProfileData': userProfile?.toJson(), 
       'settings': await getSettings(),
       'classifications': await getAllClassifications().then(
         (list) => list.map((item) => item.toJson()).toList(),
       ),
+      // Consider adding gamification data to export here too
     };
 
     return jsonEncode(exportData);
@@ -393,18 +396,31 @@ class StorageService {
     try {
       final Map<String, dynamic> importData = jsonDecode(jsonData);
 
-      // Clear existing data
+      // Clear existing data first (clearUserInfo now handles UserProfile and old keys)
       await clearUserInfo();
       await clearAllClassifications();
+      // Consider clearing gamification data too
+      final gamificationBox = Hive.box(StorageKeys.gamificationBox);
+      await gamificationBox.clear();
 
-      // Import user data
-      if (importData.containsKey('userData')) {
-        final userData = importData['userData'];
-        await saveUserInfo(
-          userId: userData['userId'] ?? '',
-          email: userData['email'] ?? '',
-          displayName: userData['displayName'] ?? '',
-        );
+      // Import UserProfile data if present (new format)
+      if (importData.containsKey('userProfileData') && importData['userProfileData'] != null) {
+        final userProfile = UserProfile.fromJson(importData['userProfileData']);
+        await saveUserProfile(userProfile);
+      } 
+      // Else, try to import old format userData if present
+      else if (importData.containsKey('userData')) {
+        final oldUserData = importData['userData'];
+        if (oldUserData != null && oldUserData['userId'] != null) {
+          final userProfile = UserProfile(
+            id: oldUserData['userId'] ?? 'guest_id_${DateTime.now().millisecondsSinceEpoch}', // Ensure ID is not empty
+            email: oldUserData['email'],
+            displayName: oldUserData['displayName'],
+            createdAt: DateTime.now(), // Assign current time as these weren't tracked before
+            lastActive: DateTime.now(),
+          );
+          await saveUserProfile(userProfile);
+        }
       }
 
       // Import settings

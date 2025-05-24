@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import '../services/storage_service.dart';
 import '../utils/constants.dart';
+import '../models/user_profile.dart';
 
 /// Enhanced Storage Service with Smart Caching
 /// Extends the base storage service with LRU cache and performance optimizations
@@ -57,8 +58,7 @@ class EnhancedStorageService extends StorageService {
       // Determine which box to use based on key pattern
       late Box box;
       
-      if (key.startsWith('user_') || key == StorageKeys.userIdKey || 
-          key == StorageKeys.userEmailKey || key == StorageKeys.userDisplayNameKey) {
+      if (key == StorageKeys.userProfileKey || key.startsWith('user_')) {
         box = Hive.box(StorageKeys.userBox);
       } else if (key.startsWith('settings_') || key == StorageKeys.isDarkModeKey || 
                  key == StorageKeys.isGoogleSyncEnabledKey || key == StorageKeys.themeModeKey) {
@@ -88,8 +88,7 @@ class EnhancedStorageService extends StorageService {
       // Determine which box to use based on key pattern
       late Box box;
       
-      if (key.startsWith('user_') || key == StorageKeys.userIdKey || 
-          key == StorageKeys.userEmailKey || key == StorageKeys.userDisplayNameKey) {
+      if (key == StorageKeys.userProfileKey || key.startsWith('user_')) {
         box = Hive.box(StorageKeys.userBox);
       } else if (key.startsWith('settings_') || key == StorageKeys.isDarkModeKey || 
                  key == StorageKeys.isGoogleSyncEnabledKey || key == StorageKeys.themeModeKey) {
@@ -131,7 +130,7 @@ class EnhancedStorageService extends StorageService {
     try {
       // Load critical data using the base class methods
       await Future.wait([
-        getUserInfo().then((data) => _addToCache('user_info', data)),
+        getCurrentUserProfile().then((data) => _addToCache(StorageKeys.userProfileKey, data)),
         getSettings().then((data) => _addToCache('settings', data)),
         getAllClassifications().then((data) => _addToCache('all_classifications', data)),
       ]);
@@ -140,10 +139,10 @@ class EnhancedStorageService extends StorageService {
     }
   }
   
-  /// Enhanced getUserInfo with caching
+  /// Enhanced getCurrentUserProfile with caching
   @override
-  Future<Map<String, dynamic>> getUserInfo() async {
-    const key = 'user_info';
+  Future<UserProfile?> getCurrentUserProfile() async {
+    const key = StorageKeys.userProfileKey;
     
     // Check cache first
     if (_lruCache.containsKey(key)) {
@@ -151,7 +150,7 @@ class EnhancedStorageService extends StorageService {
       if (!entry.isExpired) {
         _lruCache[key] = entry;
         _cacheHits++;
-        return entry.value as Map<String, dynamic>;
+        return entry.value as UserProfile?;
       } else {
         _lruCache.remove(key);
       }
@@ -159,8 +158,10 @@ class EnhancedStorageService extends StorageService {
     
     // Cache miss - get from base class
     _cacheMisses++;
-    final result = await super.getUserInfo();
-    _addToCache(key, result);
+    final result = await super.getCurrentUserProfile();
+    if (result != null) {
+      _addToCache(key, result);
+    }
     return result;
   }
   

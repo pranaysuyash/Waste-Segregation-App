@@ -27,9 +27,15 @@ class StorageKeys {
   /// Box for caching image classification results by hash
   static const String cacheBox = 'cacheBox';
   static const String gamificationBox = 'gamificationBox';
-  static const String userIdKey = 'userId';
-  static const String userEmailKey = 'userEmail';
-  static const String userDisplayNameKey = 'userDisplayName';
+  
+  // Keys for UserProfile object (New way)
+  static const String userProfileKey = 'userProfile';
+
+  // Old individual user keys (REMOVED)
+  // static const String userIdKey = 'userId'; 
+  // static const String userEmailKey = 'userEmail';
+  // static const String userDisplayNameKey = 'userDisplayName';
+
   static const String isDarkModeKey = 'isDarkMode';
   static const String themeModeKey = 'themeMode';
   static const String isGoogleSyncEnabledKey = 'isGoogleSyncEnabled';
