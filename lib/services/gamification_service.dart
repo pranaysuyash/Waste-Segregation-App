@@ -571,9 +571,9 @@ class GamificationService {
       Achievement(
         id: 'waste_apprentice',
         title: 'Waste Apprentice',
-        description: 'Identify 25 waste items',
+        description: 'Identify 15 waste items',
         type: AchievementType.wasteIdentified,
-        threshold: 25,
+        threshold: 15,
         iconName: 'recycling',
         color: AppTheme.primaryColor,
         tier: AchievementTier.silver,
