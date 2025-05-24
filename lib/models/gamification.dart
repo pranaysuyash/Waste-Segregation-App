@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:uuid/uuid.dart';
 
 /// Represents the types of achievements available in the app
 enum AchievementType {
@@ -15,7 +16,16 @@ enum AchievementType {
   metaAchievement,      // Achievements for earning other achievements
   specialEvent,         // Limited-time or event-based achievements
   userGoal,             // User-defined goal achievements
-  collectionMilestone   // Milestone in waste type collection
+  collectionMilestone,  // Milestone in waste type collection
+  firstClassification,
+  weekStreak,
+  monthStreak,
+  recyclingExpert,
+  compostMaster,
+  ecoWarrior,
+  familyTeamwork,
+  helpfulMember,
+  educationalContent,
 }
 
 /// Represents the tiers of achievements (increasing difficulty/rarity)
@@ -106,7 +116,7 @@ class Achievement {
       'id': id,
       'title': title,
       'description': description,
-      'type': type.toString(),
+      'type': type.toString().split('.').last,
       'threshold': threshold,
       'iconName': iconName,
       'color': color.value,
@@ -130,7 +140,7 @@ class Achievement {
       title: json['title'],
       description: json['description'],
       type: AchievementType.values.firstWhere(
-        (e) => e.toString() == json['type'],
+        (e) => e.toString().split('.').last == json['type'],
         orElse: () => AchievementType.wasteIdentified,
       ),
       threshold: json['threshold'],
@@ -584,4 +594,339 @@ class GamificationProfile {
       weeklyStats: weeklyStats ?? this.weeklyStats,
     );
   }
+}
+
+/// Types of reactions that can be added to family content.
+enum FamilyReactionType {
+  like,
+  love,
+  helpful,
+  amazing,
+  wellDone,
+  educational,
+}
+
+/// A reaction that a family member can give to shared content.
+class FamilyReaction {
+  final String userId;
+  final String displayName;
+  final String? photoUrl;
+  final FamilyReactionType type;
+  final DateTime timestamp;
+  final String? comment;
+
+  const FamilyReaction({
+    required this.userId,
+    required this.displayName,
+    this.photoUrl,
+    required this.type,
+    required this.timestamp,
+    this.comment,
+  });
+
+  /// Converts this reaction to a JSON map.
+  Map<String, dynamic> toJson() {
+    return {
+      'userId': userId,
+      'displayName': displayName,
+      'photoUrl': photoUrl,
+      'type': type.toString().split('.').last,
+      'timestamp': timestamp.toIso8601String(),
+      'comment': comment,
+    };
+  }
+
+  /// Creates a reaction from a JSON map.
+  factory FamilyReaction.fromJson(Map<String, dynamic> json) {
+    return FamilyReaction(
+      userId: json['userId'] as String,
+      displayName: json['displayName'] as String,
+      photoUrl: json['photoUrl'] as String?,
+      type: FamilyReactionType.values.firstWhere(
+        (e) => e.toString().split('.').last == json['type'],
+        orElse: () => FamilyReactionType.like,
+      ),
+      timestamp: DateTime.parse(json['timestamp'] as String),
+      comment: json['comment'] as String?,
+    );
+  }
+}
+
+/// A comment that a family member can add to shared content.
+class FamilyComment {
+  final String id;
+  final String userId;
+  final String displayName;
+  final String? photoUrl;
+  final String text;
+  final DateTime timestamp;
+  final String? parentCommentId; // For threaded comments
+
+  const FamilyComment({
+    required this.id,
+    required this.userId,
+    required this.displayName,
+    this.photoUrl,
+    required this.text,
+    required this.timestamp,
+    this.parentCommentId,
+  });
+
+  /// Creates a new comment with auto-generated ID.
+  factory FamilyComment.create({
+    required String userId,
+    required String displayName,
+    String? photoUrl,
+    required String text,
+    String? parentCommentId,
+  }) {
+    return FamilyComment(
+      id: const Uuid().v4(),
+      userId: userId,
+      displayName: displayName,
+      photoUrl: photoUrl,
+      text: text,
+      timestamp: DateTime.now(),
+      parentCommentId: parentCommentId,
+    );
+  }
+
+  /// Converts this comment to a JSON map.
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'userId': userId,
+      'displayName': displayName,
+      'photoUrl': photoUrl,
+      'text': text,
+      'timestamp': timestamp.toIso8601String(),
+      'parentCommentId': parentCommentId,
+    };
+  }
+
+  /// Creates a comment from a JSON map.
+  factory FamilyComment.fromJson(Map<String, dynamic> json) {
+    return FamilyComment(
+      id: json['id'] as String,
+      userId: json['userId'] as String,
+      displayName: json['displayName'] as String,
+      photoUrl: json['photoUrl'] as String?,
+      text: json['text'] as String,
+      timestamp: DateTime.parse(json['timestamp'] as String),
+      parentCommentId: json['parentCommentId'] as String?,
+    );
+  }
+}
+
+/// Classification location information for context.
+class ClassificationLocation {
+  final double? latitude;
+  final double? longitude;
+  final String? address;
+  final String? locationName;
+  final String? city;
+  final String? country;
+
+  const ClassificationLocation({
+    this.latitude,
+    this.longitude,
+    this.address,
+    this.locationName,
+    this.city,
+    this.country,
+  });
+
+  /// Converts this location to a JSON map.
+  Map<String, dynamic> toJson() {
+    return {
+      'latitude': latitude,
+      'longitude': longitude,
+      'address': address,
+      'locationName': locationName,
+      'city': city,
+      'country': country,
+    };
+  }
+
+  /// Creates a location from a JSON map.
+  factory ClassificationLocation.fromJson(Map<String, dynamic> json) {
+    return ClassificationLocation(
+      latitude: (json['latitude'] as num?)?.toDouble(),
+      longitude: (json['longitude'] as num?)?.toDouble(),
+      address: json['address'] as String?,
+      locationName: json['locationName'] as String?,
+      city: json['city'] as String?,
+      country: json['country'] as String?,
+    );
+  }
+}
+
+/// Leaderboard entry for family competitions.
+class LeaderboardEntry {
+  final String userId;
+  final String displayName;
+  final String? photoUrl;
+  final int points;
+  final int classificationsCount;
+  final int rank;
+  final List<String> achievements;
+  final DateTime lastActive;
+
+  const LeaderboardEntry({
+    required this.userId,
+    required this.displayName,
+    this.photoUrl,
+    required this.points,
+    required this.classificationsCount,
+    required this.rank,
+    required this.achievements,
+    required this.lastActive,
+  });
+
+  /// Converts this entry to a JSON map.
+  Map<String, dynamic> toJson() {
+    return {
+      'userId': userId,
+      'displayName': displayName,
+      'photoUrl': photoUrl,
+      'points': points,
+      'classificationsCount': classificationsCount,
+      'rank': rank,
+      'achievements': achievements,
+      'lastActive': lastActive.toIso8601String(),
+    };
+  }
+
+  /// Creates an entry from a JSON map.
+  factory LeaderboardEntry.fromJson(Map<String, dynamic> json) {
+    return LeaderboardEntry(
+      userId: json['userId'] as String,
+      displayName: json['displayName'] as String,
+      photoUrl: json['photoUrl'] as String?,
+      points: json['points'] as int,
+      classificationsCount: json['classificationsCount'] as int,
+      rank: json['rank'] as int,
+      achievements: (json['achievements'] as List<dynamic>)
+          .map((a) => a as String)
+          .toList(),
+      lastActive: DateTime.parse(json['lastActive'] as String),
+    );
+  }
+}
+
+/// Analytics data for tracking user behavior and app usage.
+class AnalyticsEvent {
+  final String id;
+  final String userId;
+  final String eventType;
+  final String eventName;
+  final Map<String, dynamic> parameters;
+  final DateTime timestamp;
+  final String? sessionId;
+  final String? deviceInfo;
+
+  const AnalyticsEvent({
+    required this.id,
+    required this.userId,
+    required this.eventType,
+    required this.eventName,
+    required this.parameters,
+    required this.timestamp,
+    this.sessionId,
+    this.deviceInfo,
+  });
+
+  /// Creates a new analytics event.
+  factory AnalyticsEvent.create({
+    required String userId,
+    required String eventType,
+    required String eventName,
+    Map<String, dynamic> parameters = const {},
+    String? sessionId,
+    String? deviceInfo,
+  }) {
+    return AnalyticsEvent(
+      id: const Uuid().v4(),
+      userId: userId,
+      eventType: eventType,
+      eventName: eventName,
+      parameters: parameters,
+      timestamp: DateTime.now(),
+      sessionId: sessionId,
+      deviceInfo: deviceInfo,
+    );
+  }
+
+  /// Converts this event to a JSON map.
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'userId': userId,
+      'eventType': eventType,
+      'eventName': eventName,
+      'parameters': parameters,
+      'timestamp': timestamp.toIso8601String(),
+      'sessionId': sessionId,
+      'deviceInfo': deviceInfo,
+    };
+  }
+
+  /// Creates an event from a JSON map.
+  factory AnalyticsEvent.fromJson(Map<String, dynamic> json) {
+    return AnalyticsEvent(
+      id: json['id'] as String,
+      userId: json['userId'] as String,
+      eventType: json['eventType'] as String,
+      eventName: json['eventName'] as String,
+      parameters: json['parameters'] as Map<String, dynamic>,
+      timestamp: DateTime.parse(json['timestamp'] as String),
+      sessionId: json['sessionId'] as String?,
+      deviceInfo: json['deviceInfo'] as String?,
+    );
+  }
+}
+
+/// Common analytics event types.
+class AnalyticsEventTypes {
+  static const String userAction = 'user_action';
+  static const String screenView = 'screen_view';
+  static const String classification = 'classification';
+  static const String social = 'social';
+  static const String achievement = 'achievement';
+  static const String error = 'error';
+}
+
+/// Common analytics event names.
+class AnalyticsEventNames {
+  // User Actions
+  static const String buttonClick = 'button_click';
+  static const String screenSwipe = 'screen_swipe';
+  static const String searchPerformed = 'search_performed';
+  
+  // Screen Views
+  static const String homeScreenView = 'home_screen_view';
+  static const String cameraScreenView = 'camera_screen_view';
+  static const String resultsScreenView = 'results_screen_view';
+  static const String familyScreenView = 'family_screen_view';
+  
+  // Classifications
+  static const String classificationStarted = 'classification_started';
+  static const String classificationCompleted = 'classification_completed';
+  static const String classificationShared = 'classification_shared';
+  
+  // Social
+  static const String familyCreated = 'family_created';
+  static const String familyJoined = 'family_joined';
+  static const String invitationSent = 'invitation_sent';
+  static const String reactionAdded = 'reaction_added';
+  static const String commentAdded = 'comment_added';
+  
+  // Achievements
+  static const String achievementUnlocked = 'achievement_unlocked';
+  static const String levelUp = 'level_up';
+  
+  // Errors
+  static const String classificationError = 'classification_error';
+  static const String networkError = 'network_error';
+  static const String authError = 'auth_error';
 }
