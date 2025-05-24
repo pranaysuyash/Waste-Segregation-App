@@ -1,9 +1,6 @@
-import 'dart:io';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../utils/share_service.dart';
-import 'package:path_provider/path_provider.dart';
 import '../models/waste_classification.dart';
 import '../models/gamification.dart';
 import '../services/storage_service.dart';
@@ -12,10 +9,11 @@ import '../utils/constants.dart';
 import '../utils/error_handler.dart';
 import '../utils/animation_helpers.dart';
 import '../utils/safe_collection_utils.dart';
-import '../widgets/classification_card.dart';
-import '../widgets/recycling_code_info.dart';
 import '../widgets/enhanced_gamification_widgets.dart';
 import '../widgets/interactive_tag.dart';
+import '../widgets/disposal_instructions_widget.dart';
+import '../widgets/classification_feedback_widget.dart';
+import '../models/disposal_instructions.dart';
 import '../screens/waste_dashboard_screen.dart';
 import '../screens/educational_content_screen.dart';
 import '../screens/history_screen.dart';
@@ -56,9 +54,26 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
     // Process the classification for gamification only if it's a new classification
     if (widget.showActions) {
       _autoSaveClassification();
+      _enhanceClassificationWithDisposalInstructions();
       _processClassification();
     } else {
       _showingClassificationFeedback = false;
+    }
+  }
+  
+  // Enhance classification with disposal instructions if not already present
+  Future<void> _enhanceClassificationWithDisposalInstructions() async {
+    if (widget.classification.disposalInstructions == null) {
+      // Generate disposal instructions for this classification
+      final enhancedClassification = widget.classification.withDisposalInstructions();
+      
+      // Update the classification in storage with disposal instructions
+      try {
+        final storageService = Provider.of<StorageService>(context, listen: false);
+        await storageService.saveClassification(enhancedClassification);
+      } catch (e, stackTrace) {
+        ErrorHandler.handleError(e, stackTrace);
+      }
     }
   }
   
@@ -542,6 +557,30 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
                     const SizedBox(height: AppTheme.paddingLarge),
                   ],
 
+                  // User Feedback Section (for training AI model)
+                  if (widget.showActions) ...[
+                    ClassificationFeedbackWidget(
+                      classification: widget.classification,
+                      onFeedbackSubmitted: _handleFeedbackSubmission,
+                      showCompactVersion: true,
+                    ),
+                    const SizedBox(height: AppTheme.paddingLarge),
+                  ],
+
+                  // Disposal Instructions Section
+                  if (widget.classification.disposalInstructions != null ||
+                      widget.classification.hasUrgentDisposal) ...[
+                    DisposalInstructionsWidget(
+                      instructions: widget.classification.disposalInstructions ??
+                          _generateFallbackDisposalInstructions(),
+                      onStepCompleted: (step) {
+                        // Award points for completing disposal steps
+                        _awardPointsForDisposalStep();
+                      },
+                    ),
+                    const SizedBox(height: AppTheme.paddingLarge),
+                  ],
+
                   // Enhanced Educational Section
                   Card(
                     elevation: 3,
@@ -799,5 +838,66 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
     };
     
     return categoryFacts[category.toLowerCase()] ?? 'Proper waste management is essential for environmental protection and resource conservation.';
+  }
+  
+  // Generate fallback disposal instructions if none are available
+  DisposalInstructions _generateFallbackDisposalInstructions() {
+    return DisposalInstructionsGenerator.generateForItem(
+      category: widget.classification.category,
+      subcategory: widget.classification.subcategory,
+      materialType: widget.classification.materialType,
+      isRecyclable: widget.classification.isRecyclable,
+      isCompostable: widget.classification.isCompostable,
+      requiresSpecialDisposal: widget.classification.requiresSpecialDisposal,
+    );
+  }
+  
+  // Award points for completing disposal steps
+  Future<void> _awardPointsForDisposalStep() async {
+    try {
+      final gamificationService = Provider.of<GamificationService>(context, listen: false);
+      // Award small points for following proper disposal procedures
+      await gamificationService.addPoints('disposal_step_completed', customPoints: 2);
+    } catch (e, stackTrace) {
+      ErrorHandler.handleError(e, stackTrace);
+    }
+  }
+  
+  // Handle user feedback submission
+  Future<void> _handleFeedbackSubmission(WasteClassification updatedClassification) async {
+    try {
+      final storageService = Provider.of<StorageService>(context, listen: false);
+      await storageService.saveClassification(updatedClassification);
+      
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Row(
+              children: [
+                Icon(Icons.check_circle, color: Colors.white, size: 20),
+                const SizedBox(width: 8),
+                const Text('Thank you for your feedback!'),
+              ],
+            ),
+            backgroundColor: Colors.green.shade600,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+        
+        // Award points for providing feedback
+        final gamificationService = Provider.of<GamificationService>(context, listen: false);
+        await gamificationService.addPoints('feedback_provided', customPoints: 5);
+      }
+    } catch (e, stackTrace) {
+      ErrorHandler.handleError(e, stackTrace);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to save feedback: ${ErrorHandler.getUserFriendlyMessage(e)}'),
+            backgroundColor: Colors.red.shade600,
+          ),
+        );
+      }
+    }
   }
 }

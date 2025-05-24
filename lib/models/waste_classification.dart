@@ -1,3 +1,5 @@
+import 'disposal_instructions.dart';
+
 class WasteClassification {
   // Core classification data
   final String itemName;
@@ -14,6 +16,9 @@ class WasteClassification {
   final String? colorCode;
   final String? materialType;
   bool isSaved;
+
+  // Disposal instructions
+  final DisposalInstructions? disposalInstructions;
 
   // AI Model Performance Data
   final double? confidence; // 0.0 to 1.0 - AI classification confidence
@@ -47,6 +52,8 @@ class WasteClassification {
     this.materialType,
     this.isSaved = false,
     DateTime? timestamp,
+    // Disposal instructions
+    this.disposalInstructions,
     // AI Model Performance Data
     this.confidence,
     this.modelVersion,
@@ -62,6 +69,60 @@ class WasteClassification {
     this.imageMetrics,
     this.imageHash,
   }) : timestamp = timestamp ?? DateTime.now();
+
+  /// Generate disposal instructions for this classification
+  WasteClassification withDisposalInstructions() {
+    final instructions = DisposalInstructionsGenerator.generateForItem(
+      category: category,
+      subcategory: subcategory,
+      materialType: materialType,
+      isRecyclable: isRecyclable,
+      isCompostable: isCompostable,
+      requiresSpecialDisposal: requiresSpecialDisposal,
+    );
+    
+    return WasteClassification(
+      itemName: itemName,
+      category: category,
+      subcategory: subcategory,
+      explanation: explanation,
+      imageUrl: imageUrl,
+      disposalMethod: disposalMethod,
+      recyclingCode: recyclingCode,
+      isRecyclable: isRecyclable,
+      isCompostable: isCompostable,
+      requiresSpecialDisposal: requiresSpecialDisposal,
+      colorCode: colorCode,
+      materialType: materialType,
+      isSaved: isSaved,
+      timestamp: timestamp,
+      confidence: confidence,
+      modelVersion: modelVersion,
+      processingTimeMs: processingTimeMs,
+      alternatives: alternatives,
+      userConfirmed: userConfirmed,
+      userCorrection: userCorrection,
+      userNotes: userNotes,
+      viewCount: viewCount,
+      source: source,
+      imageMetrics: imageMetrics,
+      imageHash: imageHash,
+      disposalInstructions: instructions,
+    );
+  }
+
+  /// Check if this item has urgent disposal requirements
+  bool get hasUrgentDisposal {
+    return disposalInstructions?.hasUrgentTimeframe ?? false ||
+           requiresSpecialDisposal == true ||
+           category.toLowerCase() == 'medical waste' ||
+           category.toLowerCase() == 'hazardous waste';
+  }
+
+  /// Get the estimated time needed for proper disposal
+  Duration get estimatedDisposalTime {
+    return disposalInstructions?.estimatedTotalTime ?? Duration(minutes: 5);
+  }
 
   // Method to convert model to JSON for storage
   Map<String, dynamic> toJson() {
@@ -94,6 +155,8 @@ class WasteClassification {
       'source': source,
       'imageMetrics': imageMetrics,
       'imageHash': imageHash,
+      // Disposal instructions
+      'disposalInstructions': disposalInstructions?.toJson(),
     };
   }
 
@@ -117,6 +180,12 @@ class WasteClassification {
     Map<String, double>? imageMetrics;
     if (json['imageMetrics'] != null) {
       imageMetrics = Map<String, double>.from(json['imageMetrics']);
+    }
+    
+    // Parse disposal instructions if present
+    DisposalInstructions? disposalInstructions;
+    if (json['disposalInstructions'] != null) {
+      disposalInstructions = DisposalInstructions.fromJson(json['disposalInstructions']);
     }
     
     return WasteClassification(
@@ -150,6 +219,8 @@ class WasteClassification {
       source: json['source'],
       imageMetrics: imageMetrics,
       imageHash: json['imageHash'],
+      // Disposal instructions
+      disposalInstructions: disposalInstructions,
     );
   }
 }
