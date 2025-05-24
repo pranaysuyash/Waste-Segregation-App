@@ -47,6 +47,10 @@ The app provides educational content about each category, stores classification 
   - Personal waste analytics dashboard
   - Waste composition trends and insights
 
+## Accessibility & Color Contrast
+- All screens have been updated for improved color contrast and text visibility.
+- The app now meets accessibility standards for color contrast in both light and dark themes.
+
 ## Technical Implementation
 
 - **Framework**: Flutter

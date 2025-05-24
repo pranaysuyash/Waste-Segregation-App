@@ -566,7 +566,7 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
                                 style: TextStyle(
                                   fontSize: AppTheme.fontSizeLarge,
                                   fontWeight: FontWeight.bold,
-                                  color: Colors.grey.shade800,
+                                  color: AppTheme.textPrimaryColor,
                                 ),
                               ),
                             ],
@@ -580,7 +580,7 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
                             style: TextStyle(
                               fontSize: AppTheme.fontSizeRegular,
                               height: 1.6,
-                              color: Colors.grey.shade700,
+                              color: AppTheme.textPrimaryColor,
                             ),
                           ),
                           const SizedBox(height: AppTheme.paddingRegular),

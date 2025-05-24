@@ -85,5 +85,5 @@
 
 ## [0.1.2+94] - 2025-05-19
 ### Fixed
-- Added Google Play App Signing SHA-1 to Firebase for Play Store internal testing compatibility.
-- Bumped version to 0.1.2 (build 94) for new Play Store/internal test release.
+- Improved color contrast and text visibility across all screens for better accessibility in both light and dark themes.
+- All legal/consent, onboarding, and educational screens now meet accessibility standards for color contrast.

@@ -247,7 +247,7 @@ class _AchievementsScreenState extends State<AchievementsScreen>
                 child: Text(
                   achievement.tierName,
                   style: TextStyle(
-                    fontSize: 8,
+                    fontSize: 12,
                     fontWeight: FontWeight.bold,
                     color: _getContrastColor(achievement.getTierColor()),
                   ),

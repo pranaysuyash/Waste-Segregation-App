@@ -30,6 +30,14 @@
           }
         },
         {
+          "client_id": "1093372542184-is2h52keruohs2cksnc00hq18tt56til.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.pranaysuyash.wastewise",
+            "certificate_hash": "f87826a32681488abf7895dad2c01236649631b3"
+          }
+        },
+        {
           "client_id": "1093372542184-r9fpan6camcgpas8o967ksrg01h2h28u.apps.googleusercontent.com",
           "client_type": 3
         }

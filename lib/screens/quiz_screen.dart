@@ -278,7 +278,7 @@ class _QuizScreenState extends State<QuizScreen> {
                                       ? Colors.green.shade800
                                       : _hasAnswered && isSelected
                                           ? Colors.red.shade800
-                                          : Colors.black,
+                                          : AppTheme.textPrimaryColor,
                                 ),
                               ),
                             ),
@@ -595,7 +595,7 @@ class _QuizScreenState extends State<QuizScreen> {
                                   fontSize: AppTheme.fontSizeMedium,
                                   fontWeight: FontWeight.bold,
                                   color: userAnswer == -1
-                                      ? Colors.grey.shade700
+                                      ? AppTheme.textPrimaryColor
                                       : isCorrect
                                           ? Colors.green.shade700
                                           : Colors.red.shade700,

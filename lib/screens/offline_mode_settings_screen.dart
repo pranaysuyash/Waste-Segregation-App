@@ -141,7 +141,7 @@ class _OfflineModeSettingsScreenState extends State<OfflineModeSettingsScreen> {
                     const SizedBox(height: WasteAppDesignSystem.spacingS),
                     const Text(
                       'Classify waste items without an internet connection. Offline models will be downloaded to your device.',
-                      style: TextStyle(color: Colors.grey),
+                      style: TextStyle(color: AppTheme.textPrimaryColor),
                     ),
                     const SizedBox(height: WasteAppDesignSystem.spacingM),
                     SwitchListTile(
@@ -205,6 +205,7 @@ class _OfflineModeSettingsScreenState extends State<OfflineModeSettingsScreen> {
                             style: TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.bold,
+                              color: AppTheme.textPrimaryColor,
                             ),
                           ),
                         ],

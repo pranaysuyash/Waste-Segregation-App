@@ -714,6 +714,7 @@ class _HomeScreenState extends State<HomeScreen> {
               style: TextStyle(
                 fontSize: AppTheme.fontSizeLarge,
                 fontWeight: FontWeight.bold,
+                color: AppTheme.textPrimaryColor,
               ),
             ),
             TextButton(
@@ -1269,6 +1270,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                   style: TextStyle(
                                     fontSize: AppTheme.fontSizeMedium,
                                     fontWeight: FontWeight.bold,
+                                    color: AppTheme.textPrimaryColor,
                                   ),
                                 ),
                                 SizedBox(height: 4),
@@ -1276,7 +1278,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                   'View insights and statistics about your waste classifications',
                                   style: TextStyle(
                                     fontSize: AppTheme.fontSizeSmall,
-                                    color: AppTheme.textSecondaryColor,
+                                    color: AppTheme.textPrimaryColor,
                                   ),
                                 ),
                               ],

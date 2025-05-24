@@ -83,9 +83,10 @@ class ContentDetailScreen extends StatelessWidget {
           // Title and metadata
           Text(
             content.title,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: AppTheme.fontSizeExtraLarge,
               fontWeight: FontWeight.bold,
+              color: AppTheme.textPrimaryColor,
             ),
           ),
 
@@ -104,7 +105,7 @@ class ContentDetailScreen extends StatelessWidget {
                     content.getFormattedDuration(),
                     style: const TextStyle(
                       fontSize: AppTheme.fontSizeSmall,
-                      color: AppTheme.textSecondaryColor,
+                      color: AppTheme.textPrimaryColor,
                     ),
                   ),
                 ],
@@ -122,7 +123,7 @@ class ContentDetailScreen extends StatelessWidget {
                     content.getLevelText(),
                     style: const TextStyle(
                       fontSize: AppTheme.fontSizeSmall,
-                      color: AppTheme.textSecondaryColor,
+                      color: AppTheme.textPrimaryColor,
                     ),
                   ),
                 ],
@@ -246,9 +247,10 @@ class ContentDetailScreen extends StatelessWidget {
           // Title and metadata
           Text(
             content.title,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: AppTheme.fontSizeExtraLarge,
               fontWeight: FontWeight.bold,
+              color: AppTheme.textPrimaryColor,
             ),
           ),
 
@@ -267,7 +269,7 @@ class ContentDetailScreen extends StatelessWidget {
                     content.getFormattedDuration(),
                     style: const TextStyle(
                       fontSize: AppTheme.fontSizeSmall,
-                      color: AppTheme.textSecondaryColor,
+                      color: AppTheme.textPrimaryColor,
                     ),
                   ),
                 ],
@@ -285,7 +287,7 @@ class ContentDetailScreen extends StatelessWidget {
                     content.getLevelText(),
                     style: const TextStyle(
                       fontSize: AppTheme.fontSizeSmall,
-                      color: AppTheme.textSecondaryColor,
+                      color: AppTheme.textPrimaryColor,
                     ),
                   ),
                 ],
@@ -339,9 +341,9 @@ class ContentDetailScreen extends StatelessWidget {
 
           Text(
             content.description,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: AppTheme.fontSizeRegular,
-              height: 1.5,
+              color: AppTheme.textPrimaryColor,
             ),
           ),
 
@@ -368,7 +370,7 @@ class ContentDetailScreen extends StatelessWidget {
               'Transcript not available for this video yet.',
               style: TextStyle(
                 fontSize: AppTheme.fontSizeRegular,
-                color: AppTheme.textSecondaryColor,
+                color: AppTheme.textPrimaryColor,
                 fontStyle: FontStyle.italic,
               ),
             ),
@@ -401,7 +403,7 @@ class ContentDetailScreen extends StatelessWidget {
             content.description,
             style: const TextStyle(
               fontSize: AppTheme.fontSizeRegular,
-              color: AppTheme.textSecondaryColor,
+              color: AppTheme.textPrimaryColor,
             ),
           ),
 
@@ -753,7 +755,7 @@ class ContentDetailScreen extends StatelessWidget {
             content.description,
             style: const TextStyle(
               fontSize: AppTheme.fontSizeRegular,
-              color: AppTheme.textSecondaryColor,
+              color: AppTheme.textPrimaryColor,
             ),
           ),
 
@@ -772,7 +774,7 @@ class ContentDetailScreen extends StatelessWidget {
                     content.getFormattedDuration(),
                     style: const TextStyle(
                       fontSize: AppTheme.fontSizeSmall,
-                      color: AppTheme.textSecondaryColor,
+                      color: AppTheme.textPrimaryColor,
                     ),
                   ),
                 ],
@@ -790,7 +792,7 @@ class ContentDetailScreen extends StatelessWidget {
                     content.getLevelText(),
                     style: const TextStyle(
                       fontSize: AppTheme.fontSizeSmall,
-                      color: AppTheme.textSecondaryColor,
+                      color: AppTheme.textPrimaryColor,
                     ),
                   ),
                 ],
@@ -809,7 +811,7 @@ class ContentDetailScreen extends StatelessWidget {
                       '${content.steps!.length} Steps',
                       style: const TextStyle(
                         fontSize: AppTheme.fontSizeSmall,
-                        color: AppTheme.textSecondaryColor,
+                        color: AppTheme.textPrimaryColor,
                       ),
                     ),
                   ],

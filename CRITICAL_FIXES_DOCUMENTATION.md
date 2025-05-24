@@ -71,6 +71,23 @@
 - `lib/screens/educational_content_screen.dart` - Added subcategory support
 - `lib/screens/history_screen.dart` - Added initial filter support
 
+### 🔥 **6. Play Store Google Sign-In Issue (CRITICAL)**
+**Problem**: `PlatformException(sign_in_failed, error code: 10)` when app is deployed to Play Store internal testing
+
+**Root Cause**: Play Store App Signing certificate SHA-1 fingerprint not configured in Firebase Console
+
+**Solution**:
+1. Get Play App Signing SHA-1 from Play Console → Release → Setup → App signing
+2. Add SHA-1 to Firebase Console → Project Settings → Android App → SHA certificate fingerprints
+3. Download updated `google-services.json` and replace existing file
+4. Clean build and upload new AAB
+
+**Files Updated**:
+- `android/app/google-services.json` - Must be updated with new OAuth client for Play Store certificate
+- Created `fix_play_store_signin.sh` - Automated script to clean and rebuild after Firebase config update
+
+**Status**: ⚠️ **REQUIRES IMMEDIATE ACTION** - Affects all Play Store deployments
+
 ---
 
 ## 🚀 **New Features Added**

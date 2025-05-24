@@ -58,7 +58,7 @@ class ConsentDialogScreen extends StatelessWidget {
                 'Please review and accept our Privacy Policy and Terms of Service to continue',
                 style: TextStyle(
                   fontSize: AppTheme.fontSizeMedium,
-                  color: AppTheme.textSecondaryColor,
+                  color: AppTheme.textPrimaryColor,
                 ),
                 textAlign: TextAlign.center,
               ),
@@ -68,7 +68,7 @@ class ConsentDialogScreen extends StatelessWidget {
               // Explanation text
               const Text(
                 'We care about your privacy and data security. We only collect data necessary to provide our waste classification service and improve your experience.',
-                style: TextStyle(fontSize: AppTheme.fontSizeRegular),
+                style: TextStyle(fontSize: AppTheme.fontSizeRegular, color: AppTheme.textPrimaryColor),
                 textAlign: TextAlign.center,
               ),
               
@@ -151,7 +151,7 @@ class ConsentDialogScreen extends StatelessWidget {
                     'Decline & Exit',
                     style: TextStyle(
                       fontSize: AppTheme.fontSizeRegular,
-                      color: AppTheme.textSecondaryColor,
+                      color: AppTheme.textPrimaryColor,
                     ),
                   ),
                 ),
