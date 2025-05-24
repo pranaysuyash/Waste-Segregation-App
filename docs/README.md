@@ -20,6 +20,11 @@ This directory contains comprehensive documentation for the Waste Segregation Ap
 - **[Developer Guide](guides/developer_guide.md)** - Setup and development instructions
 - **[Build Instructions](guides/build_instructions.md)** - Build and deployment guide
 
+### 🎨 **Design & UI**
+- **[Design Documentation](design/README.md)** - UI design system, style guide, and design specifications
+- **[UI Revamp Master Plan](design/UI_REVAMP_MASTER_PLAN.md)** - Comprehensive UI improvement strategy
+- **[Style Guide](design/app_theme_and_style_guide.md)** - Colors, typography, and component guidelines
+
 ### 📋 **Project Management**
 - **[Project Status](project/status.md)** - Current development status
 - **[Roadmap](project/roadmap.md)** - Future development plans
@@ -39,6 +44,11 @@ This directory contains comprehensive documentation for the Waste Segregation Ap
 **For Users:**
 - See [User Guide](guides/user_guide.md) for app usage
 - Check [Troubleshooting](reference/troubleshooting.md) for help
+
+**For Designers:**
+- Review [Design Documentation](design/README.md) for UI system
+- Check [Style Guide](design/app_theme_and_style_guide.md) for design standards
+- See [UI Revamp Plan](design/UI_REVAMP_MASTER_PLAN.md) for improvement roadmap
 
 **For Project Management:**
 - Review [Project Status](project/status.md) for current state

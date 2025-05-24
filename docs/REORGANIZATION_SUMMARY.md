@@ -174,4 +174,34 @@ The documentation is now:
 - **📚 Comprehensive** - All necessary documentation preserved and accessible
 - **🔧 Maintainable** - Clear guidelines for future updates
 
-**Status: ✅ Documentation reorganization complete and ready for production use** 
+## 🎨 **Design Documentation Restoration** (Added 2025-05-24)
+
+### **UI Documentation Recovery**
+After the initial reorganization, important UI and design documentation was restored from the archive to improve accessibility:
+
+#### **New Design Folder Structure**
+```
+docs/design/
+├── README.md                          # Design documentation index
+├── UI_REVAMP_MASTER_PLAN.md          # Comprehensive UI improvement strategy
+├── app_theme_and_style_guide.md      # Design system and style guide
+├── assets_and_icons_strategy.md      # Icon design and asset management
+├── waste_app_ui_revamp.md            # Detailed UI revamp specifications
+└── user_personas_and_engagement.md   # User research and personas
+```
+
+#### **Restored Content**
+- **Design System Documentation** - Colors, typography, component guidelines
+- **UI Revamp Strategy** - Comprehensive improvement roadmap and vision
+- **Style Guide** - Complete design standards and accessibility guidelines
+- **User Experience Research** - Personas, engagement strategies, and user insights
+- **Asset Management** - Icon design philosophy and asset organization
+
+#### **Archive Preservation**
+The original UI documentation remains in the archive at:
+- `docs/archive/ui/` - Original UI implementation docs
+- `docs/archive/user_experience/` - Original UX design materials
+
+This ensures both accessibility and historical preservation.
+
+**Status: ✅ Documentation reorganization complete and ready for production use with full design documentation access** 
