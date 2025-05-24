@@ -1544,7 +1544,7 @@ class _HomeScreenState extends State<HomeScreen> {
       case 'non-waste':
         return AppTheme.nonWasteColor;
       default:
-        return AppTheme.accentColor;
+        return AppTheme.secondaryColor;
     }
   }
 

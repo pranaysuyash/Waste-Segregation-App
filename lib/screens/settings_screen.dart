@@ -400,36 +400,40 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      TextButton(
-                        onPressed: () {
-                          Navigator.pop(context);
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => const LegalDocumentScreen(
-                                title: 'Privacy Policy',
-                                assetPath: 'assets/docs/privacy_policy.md',
+                      Flexible(
+                        child: TextButton(
+                          onPressed: () {
+                            Navigator.pop(context);
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => const LegalDocumentScreen(
+                                  title: 'Privacy Policy',
+                                  assetPath: 'assets/docs/privacy_policy.md',
+                                ),
                               ),
-                            ),
-                          );
-                        },
-                        child: const Text('Privacy Policy'),
+                            );
+                          },
+                          child: const Text('Privacy Policy'),
+                        ),
                       ),
                       const Text(' | '),
-                      TextButton(
-                        onPressed: () {
-                          Navigator.pop(context);
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => const LegalDocumentScreen(
-                                title: 'Terms of Service',
-                                assetPath: 'assets/docs/terms_of_service.md',
+                      Flexible(
+                        child: TextButton(
+                          onPressed: () {
+                            Navigator.pop(context);
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => const LegalDocumentScreen(
+                                  title: 'Terms of Service',
+                                  assetPath: 'assets/docs/terms_of_service.md',
+                                ),
                               ),
-                            ),
-                          );
-                        },
-                        child: const Text('Terms of Service'),
+                            );
+                          },
+                          child: const Text('Terms of Service'),
+                        ),
                       ),
                     ],
                   ),

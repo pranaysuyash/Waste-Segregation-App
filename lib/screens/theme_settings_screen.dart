@@ -11,18 +11,14 @@ class ThemeSettingsScreen extends StatefulWidget {
 }
 
 class _ThemeSettingsScreenState extends State<ThemeSettingsScreen> {
-  late ThemeMode _currentThemeMode;
+  ThemeMode? _currentThemeMode;
 
   @override
   void initState() {
     super.initState();
-    // Initialize with the value from ThemeProvider
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      final themeProvider = Provider.of<ThemeProvider>(context, listen: false);
-      setState(() {
-        _currentThemeMode = themeProvider.themeMode;
-      });
-    });
+    // Initialize immediately with the current theme provider value
+    final themeProvider = Provider.of<ThemeProvider>(context, listen: false);
+    _currentThemeMode = themeProvider.themeMode;
   }
 
   @override
@@ -30,6 +26,9 @@ class _ThemeSettingsScreenState extends State<ThemeSettingsScreen> {
     final premiumService = Provider.of<PremiumService>(context);
     final themeProvider = Provider.of<ThemeProvider>(context);
     final isPremium = premiumService.isPremiumFeature('theme_customization');
+    
+    // Ensure _currentThemeMode is always set
+    _currentThemeMode ??= themeProvider.themeMode;
     
     return Scaffold(
       appBar: AppBar(

@@ -543,7 +543,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
       case 'non-waste':
         return AppTheme.nonWasteColor;
       default:
-        return AppTheme.accentColor;
+        return AppTheme.secondaryColor;
     }
   }
   

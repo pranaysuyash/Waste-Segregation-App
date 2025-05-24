@@ -158,8 +158,8 @@ class WasteSegregationApp extends StatelessWidget {
           return MaterialApp(
           navigatorKey: navigatorKey,
           title: AppStrings.appName,
-          theme: WasteAppDesignSystem.lightTheme,
-          darkTheme: WasteAppDesignSystem.darkTheme,
+          theme: AppTheme.lightTheme,
+          darkTheme: AppTheme.darkTheme,
           themeMode: themeProvider.themeMode,
             home: FutureBuilder<Map<String, bool>>(
               future: _checkInitialConditions(),
@@ -233,8 +233,8 @@ class _SplashScreen extends StatelessWidget {
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
             colors: [
-              AppTheme.primaryColor,
-              AppTheme.secondaryColor,
+              AppTheme.lightTheme.colorScheme.primary,
+              AppTheme.lightTheme.colorScheme.secondary,
             ],
           ),
         ),

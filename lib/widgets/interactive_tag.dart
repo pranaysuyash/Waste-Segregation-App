@@ -377,7 +377,7 @@ class TagFactory {
       case 'non-waste':
         return AppTheme.nonWasteColor;
       default:
-        return AppTheme.accentColor;
+        return AppTheme.secondaryColor;
     }
   }
 

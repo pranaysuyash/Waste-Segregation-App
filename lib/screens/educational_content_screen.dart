@@ -476,7 +476,7 @@ class _EducationalContentScreenState extends State<EducationalContentScreen>
       case 'General':
         return AppTheme.secondaryColor;
       case 'Sorting':
-        return AppTheme.accentColor;
+        return AppTheme.secondaryColor;
       case 'Composting':
         return Colors.green.shade800;
       case 'Recycling':

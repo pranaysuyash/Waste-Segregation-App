@@ -752,7 +752,7 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
       case 'non-waste':
         return AppTheme.nonWasteColor;
       default:
-        return AppTheme.accentColor;
+        return AppTheme.secondaryColor;
     }
   }
 

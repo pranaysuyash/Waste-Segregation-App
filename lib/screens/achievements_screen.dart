@@ -1318,9 +1318,11 @@ class _AchievementsScreenState extends State<AchievementsScreen>
   }
 
   int _getTotalItemsIdentified(GamificationProfile profile) {
+    // Fix: Count items, not points! Each classification adds 10 points,
+    // so we need to divide by 10 to get the actual item count
     int total = 0;
     for (final entry in profile.points.categoryPoints.entries) {
-      total += entry.value;
+      total += (entry.value / 10).round(); // Convert points back to item count
     }
     return total;
   }

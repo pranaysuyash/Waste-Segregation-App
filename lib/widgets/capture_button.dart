@@ -52,7 +52,7 @@ class _CaptureButtonState extends State<CaptureButton> {
       case CaptureButtonType.analyze:
         icon = Icons.analytics_rounded;
         label = AppStrings.analyzeImage;
-        color = AppTheme.accentColor;
+        color = AppTheme.secondaryColor;
         break;
       case CaptureButtonType.retry:
         icon = Icons.refresh_rounded;

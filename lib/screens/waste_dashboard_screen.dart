@@ -220,7 +220,7 @@ class _WasteDashboardScreenState extends State<WasteDashboardScreen> {
           'Recyclable',
           '$recyclableItems',
           Icons.recycling,
-          AppTheme.accentColor,
+          AppTheme.secondaryColor,
         ),
       ],
     );

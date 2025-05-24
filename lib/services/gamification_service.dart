@@ -541,7 +541,7 @@ class GamificationService {
         endDate: now.add(const Duration(days: 7)),
         pointsReward: templateData['pointsReward'] ?? 25,
         iconName: templateData['iconName'] ?? 'task_alt',
-        color: Color(templateData['color'] ?? AppTheme.accentColor.value),
+        color: Color(templateData['color'] ?? AppTheme.secondaryColor.value),
         requirements: templateData['requirements'] ?? {'any_item': true, 'count': 5},
         isCompleted: false,
         progress: 0.0,

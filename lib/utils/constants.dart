@@ -43,30 +43,120 @@ class StorageKeys {
 
 // App Theme Constants
 class AppTheme {
-  // Light Theme Colors
-  static const Color primaryColor = Color(0xFF4CAF50);
-  static const Color secondaryColor = Color(0xFF2196F3);
-  static const Color accentColor = Color(0xFFFF9800);
-  static const Color backgroundColor = Color(0xFFFFFFFF);
-  static const Color textPrimaryColor = Color(0xFF212121);
-  static const Color textSecondaryColor = Color(0xFF757575);
-  
-  // Dark Theme Colors
-  static const Color darkPrimaryColor = Color(0xFF388E3C);
-  static const Color darkSecondaryColor = Color(0xFF1976D2);
-  static const Color darkAccentColor = Color(0xFFFFA726);
-  static const Color darkBackgroundColor = Color(0xFF121212);
-  static const Color darkTextPrimaryColor = Color(0xFFFFFFFF);
-  static const Color darkTextSecondaryColor = Color(0xFFBDBDBD);
-  
-  // Category Colors
+  // Light Theme
+  static final ThemeData lightTheme = ThemeData(
+    brightness: Brightness.light,
+    primaryColor: const Color(0xFF4CAF50),
+    colorScheme: ColorScheme.light(
+      primary: const Color(0xFF4CAF50),
+      secondary: const Color(0xFF2196F3),
+      background: const Color(0xFFFFFFFF),
+      surface: const Color(0xFFFFFFFF),
+      error: const Color(0xFFF44336),
+      onPrimary: Colors.white,
+      onSecondary: Colors.white,
+      onBackground: const Color(0xFF212121),
+      onSurface: const Color(0xFF212121),
+      onError: Colors.white,
+    ),
+    scaffoldBackgroundColor: const Color(0xFFFFFFFF),
+    cardColor: Colors.white,
+    textTheme: const TextTheme(
+      bodyLarge: TextStyle(color: Color(0xFF212121)),
+      bodyMedium: TextStyle(color: Color(0xFF212121)),
+      bodySmall: TextStyle(color: Color(0xFF757575)),
+      titleLarge: TextStyle(color: Color(0xFF212121), fontWeight: FontWeight.bold),
+      titleMedium: TextStyle(color: Color(0xFF212121)),
+      titleSmall: TextStyle(color: Color(0xFF757575)),
+    ),
+    appBarTheme: const AppBarTheme(
+      backgroundColor: Color(0xFF4CAF50),
+      foregroundColor: Colors.white,
+      elevation: 2,
+    ),
+    elevatedButtonTheme: ElevatedButtonThemeData(
+      style: ElevatedButton.styleFrom(
+        backgroundColor: const Color(0xFF4CAF50),
+        foregroundColor: Colors.white,
+      ),
+    ),
+    outlinedButtonTheme: OutlinedButtonThemeData(
+      style: OutlinedButton.styleFrom(
+        foregroundColor: const Color(0xFF4CAF50),
+      ),
+    ),
+    radioTheme: RadioThemeData(
+      fillColor: MaterialStateProperty.all(const Color(0xFF4CAF50)),
+    ),
+    tabBarTheme: const TabBarTheme(
+      labelColor: Colors.white, // Selected tab text color
+      unselectedLabelColor: Color(0x99FFFFFF), // Unselected tab text color (white with opacity)
+      indicatorColor: Colors.white, // Indicator line color
+      indicatorSize: TabBarIndicatorSize.tab,
+    ),
+  );
+
+  // Dark Theme
+  static final ThemeData darkTheme = ThemeData(
+    brightness: Brightness.dark,
+    primaryColor: const Color(0xFF388E3C),
+    colorScheme: ColorScheme.dark(
+      primary: const Color(0xFF388E3C),
+      secondary: const Color(0xFF1976D2),
+      background: const Color(0xFF121212),
+      surface: const Color(0xFF1E1E1E),
+      error: const Color(0xFFF44336),
+      onPrimary: Colors.white,
+      onSecondary: Colors.white,
+      onBackground: Colors.white,
+      onSurface: Colors.white,
+      onError: Colors.white,
+    ),
+    scaffoldBackgroundColor: const Color(0xFF121212),
+    cardColor: const Color(0xFF1E1E1E),
+    textTheme: const TextTheme(
+      bodyLarge: TextStyle(color: Colors.white),
+      bodyMedium: TextStyle(color: Colors.white),
+      bodySmall: TextStyle(color: Color(0xFFBDBDBD)),
+      titleLarge: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+      titleMedium: TextStyle(color: Colors.white),
+      titleSmall: TextStyle(color: Color(0xFFBDBDBD)),
+    ),
+    appBarTheme: const AppBarTheme(
+      backgroundColor: Color(0xFF388E3C),
+      foregroundColor: Colors.white,
+      elevation: 2,
+    ),
+    elevatedButtonTheme: ElevatedButtonThemeData(
+      style: ElevatedButton.styleFrom(
+        backgroundColor: const Color(0xFF388E3C),
+        foregroundColor: Colors.white,
+      ),
+    ),
+    outlinedButtonTheme: OutlinedButtonThemeData(
+      style: OutlinedButton.styleFrom(
+        foregroundColor: const Color(0xFF388E3C),
+      ),
+    ),
+    radioTheme: RadioThemeData(
+      fillColor: MaterialStateProperty.all(const Color(0xFF388E3C)),
+    ),
+    tabBarTheme: const TabBarTheme(
+      labelColor: Colors.white, // Selected tab text color
+      unselectedLabelColor: Color(0x99FFFFFF), // Unselected tab text color (white with opacity)
+      indicatorColor: Colors.white, // Indicator line color
+      indicatorSize: TabBarIndicatorSize.tab,
+    ),
+  );
+
+  // Category Colors (used for badges, etc.)
   static const Color wetWasteColor = Color(0xFF4CAF50); // Green
   static const Color dryWasteColor = Color(0xFF2196F3); // Blue
   static const Color hazardousWasteColor = Color(0xFFFF5722); // Deep Orange
   static const Color medicalWasteColor = Color(0xFFF44336); // Red
   static const Color nonWasteColor = Color(0xFF9C27B0); // Purple
-  static const Color lightGreyColor = Color(0xFFD3D3D3); // Added this line
-  
+  static const Color lightGreyColor = Color(0xFFD3D3D3); // For chips, etc.
+
   // Font Sizes
   static const double fontSizeSmall = 12.0;
   static const double fontSizeRegular = 14.0;
@@ -86,6 +176,26 @@ class AppTheme {
   static const double borderRadiusRegular = 8.0;
   static const double borderRadiusLarge = 16.0;
   static const double borderRadiusExtraLarge = 24.0;
+
+  // Backward compatibility - individual color constants
+  static const Color primaryColor = Color(0xFF4CAF50);
+  static const Color secondaryColor = Color(0xFF2196F3);
+  static const Color accentColor = Color(0xFF8BC34A);
+  static const Color textPrimaryColor = Color(0xFF212121);
+  static const Color textSecondaryColor = Color(0xFF757575);
+  static const Color backgroundColor = Color(0xFFFFFFFF);
+  static const Color surfaceColor = Color(0xFFFFFFFF);
+  static const Color errorColor = Color(0xFFF44336);
+  
+  // Dark theme individual color constants
+  static const Color darkPrimaryColor = Color(0xFF4CAF50);
+  static const Color darkSecondaryColor = Color(0xFF2196F3);
+  static const Color darkAccentColor = Color(0xFF8BC34A);
+  static const Color darkTextPrimaryColor = Color(0xFFE0E0E0);
+  static const Color darkTextSecondaryColor = Color(0xFFBDBDBD);
+  static const Color darkBackgroundColor = Color(0xFF121212);
+  static const Color darkSurfaceColor = Color(0xFF1E1E1E);
+  static const Color darkErrorColor = Color(0xFFCF6679);
 }
 
 // App String Constants

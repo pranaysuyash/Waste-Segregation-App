@@ -87,11 +87,11 @@ class Achievement {
       case AchievementTier.bronze:
         return Color(0xFFCD7F32); // Bronze
       case AchievementTier.silver:
-        return Color(0xFFC0C0C0); // Silver
+        return Color(0xFF8C8C8C); // Darker Silver for better contrast
       case AchievementTier.gold:
-        return Color(0xFFFFD700); // Gold
+        return Color(0xFFDAA520); // Darker Gold for better contrast
       case AchievementTier.platinum:
-        return Color(0xFFE5E4E2); // Platinum
+        return Color(0xFF71797E); // Darker Platinum for better contrast
     }
   }
   
