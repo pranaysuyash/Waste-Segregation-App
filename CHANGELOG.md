@@ -87,3 +87,8 @@
 ### Fixed
 - Improved color contrast and text visibility across all screens for better accessibility in both light and dark themes.
 - All legal/consent, onboarding, and educational screens now meet accessibility standards for color contrast.
+
+## [0.1.3+95] - 2025-05-19
+### Changed
+- Minor accessibility and color contrast polish based on user feedback.
+- Version bump to 0.1.3 (build 95) for Play Store/internal test release.
