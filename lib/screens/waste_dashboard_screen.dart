@@ -273,26 +273,70 @@ class _WasteDashboardScreenState extends State<WasteDashboardScreen> {
   Widget _buildActivityChart() {
     final timeSeriesData = _getWasteTimeSeriesData();
     if (timeSeriesData.isEmpty) {
-      return const Padding(
-        padding: EdgeInsets.all(AppTheme.paddingLarge),
-        child: Center(child: Text('Not enough data yet')),
+      return Card(
+        child: Container(
+          height: 200,
+          padding: const EdgeInsets.all(AppTheme.paddingLarge),
+          child: const Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.show_chart, size: 48, color: Colors.grey),
+                SizedBox(height: 8),
+                Text('Not enough data yet'),
+                Text('Classify some items to see your activity chart!', 
+                     style: TextStyle(fontSize: 12, color: Colors.grey)),
+              ],
+            ),
+          ),
+        ),
       );
     }
     
-    return SizedBox(
-      height: 200,
-      child: WebChartWidget(
-        data: timeSeriesData,
-        title: 'Recent Activity',
+    return Card(
+      child: Container(
+        height: 250, // Increased height for better visibility
+        padding: const EdgeInsets.all(AppTheme.paddingSmall),
+        child: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Text(
+                'Items classified over time',
+                style: Theme.of(context).textTheme.titleSmall,
+              ),
+            ),
+            Expanded(
+              child: WebChartWidget(
+                data: timeSeriesData,
+                title: 'Recent Activity',
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
   
   Widget _buildCategoryDistribution() {
     if (_wasteCategoryCounts.isEmpty) {
-      return const Padding(
-        padding: EdgeInsets.all(AppTheme.paddingLarge),
-        child: Center(child: Text('Not enough data yet')),
+      return Card(
+        child: Container(
+          height: 200,
+          padding: const EdgeInsets.all(AppTheme.paddingLarge),
+          child: const Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.pie_chart, size: 48, color: Colors.grey),
+                SizedBox(height: 8),
+                Text('Not enough data yet'),
+                Text('Classify items to see category breakdown!', 
+                     style: TextStyle(fontSize: 12, color: Colors.grey)),
+              ],
+            ),
+          ),
+        ),
       );
     }
     
@@ -317,23 +361,33 @@ class _WasteDashboardScreenState extends State<WasteDashboardScreen> {
       });
     }
     
-    return Column(
-      children: [
-        SizedBox(
-          height: 200,
-          child: WebPieChartWidget(data: pieData),
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(AppTheme.paddingRegular),
+        child: Column(
+          children: [
+            Text(
+              'Category breakdown of your classifications',
+              style: Theme.of(context).textTheme.titleSmall,
+            ),
+            const SizedBox(height: AppTheme.paddingRegular),
+            SizedBox(
+              height: 200,
+              child: WebPieChartWidget(data: pieData),
+            ),
+            const SizedBox(height: AppTheme.paddingRegular),
+            
+            // Legend
+            Wrap(
+              spacing: AppTheme.paddingRegular,
+              runSpacing: AppTheme.paddingSmall,
+              children: _wasteCategoryCounts.entries.map((entry) => 
+                _buildLegendItem(entry.key, _getCategoryColor(entry.key))
+              ).toList(),
+            ),
+          ],
         ),
-        const SizedBox(height: AppTheme.paddingRegular),
-        
-        // Legend
-        Wrap(
-          spacing: AppTheme.paddingRegular,
-          runSpacing: AppTheme.paddingSmall,
-          children: _wasteCategoryCounts.entries.map((entry) => 
-            _buildLegendItem(entry.key, _getCategoryColor(entry.key))
-          ).toList(),
-        ),
-      ],
+      ),
     );
   }
   
@@ -359,9 +413,21 @@ class _WasteDashboardScreenState extends State<WasteDashboardScreen> {
   
   Widget _buildTopSubcategories() {
     if (_wasteSubcategoryCounts.isEmpty) {
-      return const Padding(
-        padding: EdgeInsets.all(AppTheme.paddingLarge),
-        child: Center(child: Text('Not enough data yet')),
+      return Card(
+        child: Container(
+          padding: const EdgeInsets.all(AppTheme.paddingLarge),
+          child: const Center(
+            child: Column(
+              children: [
+                Icon(Icons.bar_chart, size: 48, color: Colors.grey),
+                SizedBox(height: 8),
+                Text('Not enough data yet'),
+                Text('Classify more items to see top waste types!', 
+                     style: TextStyle(fontSize: 12, color: Colors.grey)),
+              ],
+            ),
+          ),
+        ),
       );
     }
     
@@ -370,77 +436,117 @@ class _WasteDashboardScreenState extends State<WasteDashboardScreen> {
         ? topSubcategories.map((e) => e.value).reduce((a, b) => a > b ? a : b) 
         : 1;
     
-    return Column(
-      children: topSubcategories.map((entry) => 
-        Padding(
-          padding: const EdgeInsets.only(bottom: AppTheme.paddingSmall),
-          child: Row(
-            children: [
-              SizedBox(
-                width: 100,
-                child: Text(
-                  entry.key,
-                  style: const TextStyle(fontSize: AppTheme.fontSizeSmall),
-                  overflow: TextOverflow.ellipsis,
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(AppTheme.paddingRegular),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Most frequently identified waste types',
+              style: Theme.of(context).textTheme.titleSmall,
+            ),
+            const SizedBox(height: AppTheme.paddingRegular),
+            ...topSubcategories.map((entry) => 
+              Padding(
+                padding: const EdgeInsets.only(bottom: AppTheme.paddingSmall),
+                child: Row(
+                  children: [
+                    SizedBox(
+                      width: 100,
+                      child: Text(
+                        entry.key,
+                        style: const TextStyle(fontSize: AppTheme.fontSizeSmall),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    Expanded(
+                      child: LinearProgressIndicator(
+                        value: entry.value / maxValue,
+                        minHeight: 12,
+                        backgroundColor: Colors.grey.shade200,
+                        valueColor: AlwaysStoppedAnimation<Color>(AppTheme.primaryColor),
+                      ),
+                    ),
+                    SizedBox(
+                      width: 40,
+                      child: Padding(
+                        padding: const EdgeInsets.only(left: AppTheme.paddingSmall),
+                        child: Text(
+                          '${entry.value}',
+                          style: const TextStyle(fontSize: AppTheme.fontSizeSmall),
+                          textAlign: TextAlign.end,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
-              Expanded(
-                child: LinearProgressIndicator(
-                  value: entry.value / maxValue,
-                  minHeight: 12,
-                  backgroundColor: Colors.grey.shade200,
-                  valueColor: AlwaysStoppedAnimation<Color>(AppTheme.primaryColor),
-                ),
-              ),
-              SizedBox(
-                width: 40,
-                child: Padding(
-                  padding: const EdgeInsets.only(left: AppTheme.paddingSmall),
-                  child: Text(
-                    '${entry.value}',
-                    style: const TextStyle(fontSize: AppTheme.fontSizeSmall),
-                    textAlign: TextAlign.end,
-                  ),
-                ),
-              ),
-            ],
-          ),
+            ),
+          ],
         ),
-      ).toList(),
+      ),
     );
   }
 
   Widget _buildRecentClassifications() {
     if (_classifications.isEmpty) {
-      return const Padding(
-        padding: EdgeInsets.all(AppTheme.paddingLarge),
-        child: Center(child: Text('No classifications yet')),
+      return Card(
+        child: Container(
+          padding: const EdgeInsets.all(AppTheme.paddingLarge),
+          child: const Center(
+            child: Column(
+              children: [
+                Icon(Icons.history, size: 48, color: Colors.grey),
+                SizedBox(height: 8),
+                Text('No classifications yet'),
+                Text('Start classifying items to see your history!', 
+                     style: TextStyle(fontSize: 12, color: Colors.grey)),
+              ],
+            ),
+          ),
+        ),
       );
     }
     
     // Get the most recent classifications (up to 5)
-    final recentClassifications = _classifications
-        .sublist(0, _classifications.length > 5 ? 5 : _classifications.length);
+    final recentClassifications = _classifications.reversed
+        .take(5)
+        .toList();
     
-    return Column(
-      children: recentClassifications.map((classification) => 
-        Card(
-          margin: const EdgeInsets.only(bottom: 8),
-          child: ListTile(
-            leading: _getCategoryIcon(classification.category),
-            title: Text(
-              classification.itemName,
-              style: const TextStyle(fontWeight: FontWeight.bold),
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(AppTheme.paddingRegular),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Your latest classifications',
+              style: Theme.of(context).textTheme.titleSmall,
             ),
-            subtitle: Text(
-              '${classification.category} • ${DateFormat.yMMMd().format(classification.timestamp)}',
+            const SizedBox(height: AppTheme.paddingSmall),
+            ...recentClassifications.map((classification) => 
+              Container(
+                margin: const EdgeInsets.only(bottom: 8),
+                child: ListTile(
+                  dense: true,
+                  leading: _getCategoryIcon(classification.category),
+                  title: Text(
+                    classification.itemName,
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  subtitle: Text(
+                    '${classification.category} • ${DateFormat.yMMMd().format(classification.timestamp)}',
+                  ),
+                  trailing: classification.isRecyclable == true
+                      ? const Icon(Icons.recycling, color: AppTheme.primaryColor)
+                      : const Icon(Icons.do_not_disturb, color: Colors.red),
+                ),
+              ),
             ),
-            trailing: classification.isRecyclable == true
-                ? const Icon(Icons.recycling, color: AppTheme.primaryColor)
-                : const Icon(Icons.do_not_disturb, color: Colors.red),
-          ),
+          ],
         ),
-      ).toList(),
+      ),
     );
   }
 
@@ -456,74 +562,76 @@ class _WasteDashboardScreenState extends State<WasteDashboardScreen> {
     final estimatedCO2Saved = recyclableCount * 0.5; // kg of CO2
     final estimatedWaterSaved = recyclableCount * 100; // liters of water
     
-    return Column(
-      children: [
-        _buildImpactMetric(
-          'Recycling Rate', 
-          '${(recyclingRate * 100).toStringAsFixed(1)}%',
-          Icons.eco,
-          AppTheme.primaryColor,
-        ),
-        const SizedBox(height: AppTheme.paddingSmall),
-        _buildImpactMetric(
-          'CO₂ Emissions Saved', 
-          '${estimatedCO2Saved.toStringAsFixed(1)} kg',
-          Icons.cloud_outlined,
-          AppTheme.secondaryColor,
-        ),
-        const SizedBox(height: AppTheme.paddingSmall),
-        _buildImpactMetric(
-          'Water Saved', 
-          '${estimatedWaterSaved.toStringAsFixed(0)} L',
-          Icons.water_drop_outlined,
-          Colors.blue,
-        ),
-        const SizedBox(height: AppTheme.paddingSmall),
-        const Card(
-          child: Padding(
-            padding: EdgeInsets.all(AppTheme.paddingRegular),
-            child: Text(
-              'These are estimated figures based on average environmental impact data. '
-              'Actual impact varies based on local waste management practices.',
-              style: TextStyle(fontSize: 12, fontStyle: FontStyle.italic),
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(AppTheme.paddingRegular),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Your positive environmental impact',
+              style: Theme.of(context).textTheme.titleSmall,
             ),
-          ),
+            const SizedBox(height: AppTheme.paddingRegular),
+            _buildImpactMetric(
+              'Recycling Rate', 
+              '${(recyclingRate * 100).toStringAsFixed(1)}%',
+              Icons.eco,
+              AppTheme.primaryColor,
+            ),
+            const SizedBox(height: AppTheme.paddingSmall),
+            _buildImpactMetric(
+              'CO₂ Emissions Saved', 
+              '${estimatedCO2Saved.toStringAsFixed(1)} kg',
+              Icons.air,
+              Colors.green,
+            ),
+            const SizedBox(height: AppTheme.paddingSmall),
+            _buildImpactMetric(
+              'Water Saved', 
+              '${estimatedWaterSaved.toStringAsFixed(0)} L',
+              Icons.water_drop,
+              Colors.blue,
+            ),
+          ],
         ),
-      ],
+      ),
     );
   }
   
   Widget _buildImpactMetric(String label, String value, IconData icon, Color color) {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(AppTheme.paddingRegular),
-        child: Row(
-          children: [
-            Icon(icon, color: color, size: 36),
-            const SizedBox(width: AppTheme.paddingRegular),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    label,
-                    style: const TextStyle(
-                      fontSize: AppTheme.fontSizeSmall,
-                      color: AppTheme.textSecondaryColor,
-                    ),
+    return Container(
+      padding: const EdgeInsets.all(AppTheme.paddingSmall),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Row(
+        children: [
+          Icon(icon, color: color, size: 32),
+          const SizedBox(width: AppTheme.paddingRegular),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  label,
+                  style: const TextStyle(
+                    fontSize: AppTheme.fontSizeSmall,
+                    color: AppTheme.textSecondaryColor,
                   ),
-                  Text(
-                    value,
-                    style: const TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
+                ),
+                Text(
+                  value,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -592,7 +700,8 @@ class _WasteDashboardScreenState extends State<WasteDashboardScreen> {
     
     return CircleAvatar(
       backgroundColor: color.withOpacity(0.2),
-      child: Icon(iconData, color: color),
+      radius: 16,
+      child: Icon(iconData, color: color, size: 18),
     );
   }
   
@@ -608,7 +717,12 @@ class _WasteDashboardScreenState extends State<WasteDashboardScreen> {
       future: GamificationService().getProfile(),
       builder: (context, snapshot) {
         if (!snapshot.hasData) {
-          return const Center(child: CircularProgressIndicator());
+          return const Card(
+            child: Padding(
+              padding: EdgeInsets.all(AppTheme.paddingLarge),
+              child: Center(child: CircularProgressIndicator()),
+            ),
+          );
         }
         final profile = snapshot.data!;
         final points = profile.points;
@@ -620,25 +734,88 @@ class _WasteDashboardScreenState extends State<WasteDashboardScreen> {
             ? 'Only $pointsToNextLevel points to reach the next level!'
             : 'Level up! Keep going!';
 
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildSectionHeader('Gamification & Progress'),
-            const SizedBox(height: AppTheme.paddingSmall),
-            Row(
+        return Card(
+          child: Padding(
+            padding: const EdgeInsets.all(AppTheme.paddingRegular),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Expanded(child: StreakIndicator(streak: streak)),
-                const SizedBox(width: AppTheme.paddingSmall),
-                Expanded(child: EnhancedPointsIndicator(points: points)),
-              ],
-            ),
-            const SizedBox(height: AppTheme.paddingRegular),
-            Text(motivational, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500)),
-            const SizedBox(height: AppTheme.paddingRegular),
-            if (achievements.isNotEmpty)
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
+                Text(
+                  'Your Gamification Progress',
+                  style: Theme.of(context).textTheme.titleSmall,
+                ),
+                const SizedBox(height: AppTheme.paddingRegular),
+                
+                // Improved streak and points display
+                Row(
+                  children: [
+                    Expanded(
+                      child: Container(
+                        padding: const EdgeInsets.all(AppTheme.paddingSmall),
+                        decoration: BoxDecoration(
+                          color: Colors.orange.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Column(
+                          children: [
+                            Icon(Icons.local_fire_department, 
+                                 color: Colors.orange, size: 24),
+                            const SizedBox(height: 4),
+                            Text(
+                              '${streak.current}',
+                              style: const TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            const Text(
+                              'Day Streak',
+                              style: TextStyle(fontSize: 12),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: AppTheme.paddingSmall),
+                    Expanded(
+                      child: Container(
+                        padding: const EdgeInsets.all(AppTheme.paddingSmall),
+                        decoration: BoxDecoration(
+                          color: AppTheme.primaryColor.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Column(
+                          children: [
+                            Icon(Icons.stars, 
+                                 color: AppTheme.primaryColor, size: 24),
+                            const SizedBox(height: 4),
+                            Text(
+                              '${points.total}',
+                              style: const TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            Text(
+                              'Level ${points.level}',
+                              style: const TextStyle(fontSize: 12),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                
+                const SizedBox(height: AppTheme.paddingRegular),
+                Text(
+                  motivational, 
+                  style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+                  textAlign: TextAlign.center,
+                ),
+                
+                if (achievements.isNotEmpty) ...[
+                  const SizedBox(height: AppTheme.paddingRegular),
                   const Text('Recent Badges', style: TextStyle(fontWeight: FontWeight.bold)),
                   const SizedBox(height: 8),
                   SizedBox(
@@ -654,33 +831,37 @@ class _WasteDashboardScreenState extends State<WasteDashboardScreen> {
                     ),
                   ),
                 ],
-              ),
-            if (activeChallenges.isNotEmpty) ...[
-              const SizedBox(height: AppTheme.paddingRegular),
-              const Text('Active Challenge', style: TextStyle(fontWeight: FontWeight.bold)),
-              const SizedBox(height: 8),
-              ChallengeCard(challenge: activeChallenges.first),
-            ],
-            const SizedBox(height: AppTheme.paddingRegular),
-            Card(
-              color: Colors.grey[100],
-              child: Padding(
-                padding: const EdgeInsets.all(AppTheme.paddingRegular),
-                child: Row(
-                  children: [
-                    const Icon(Icons.leaderboard, color: Colors.blueGrey),
-                    const SizedBox(width: 8),
-                    const Expanded(
-                      child: Text(
-                        "Leaderboard coming soon! Compete with others to see who's the top recycler.",
-                        style: TextStyle(fontSize: 13),
+                
+                if (activeChallenges.isNotEmpty) ...[
+                  const SizedBox(height: AppTheme.paddingRegular),
+                  const Text('Active Challenge', style: TextStyle(fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 8),
+                  ChallengeCard(challenge: activeChallenges.first),
+                ],
+                
+                const SizedBox(height: AppTheme.paddingRegular),
+                Container(
+                  padding: const EdgeInsets.all(AppTheme.paddingRegular),
+                  decoration: BoxDecoration(
+                    color: Colors.grey[100],
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: const Row(
+                    children: [
+                      Icon(Icons.leaderboard, color: Colors.blueGrey),
+                      SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          "Leaderboard coming soon! Compete with others to see who's the top recycler.",
+                          style: TextStyle(fontSize: 13),
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
-              ),
+              ],
             ),
-          ],
+          ),
         );
       },
     );
@@ -786,12 +967,34 @@ class WebChartWidget extends StatefulWidget {
 
 class _WebChartWidgetState extends State<WebChartWidget> {
   late final WebViewController controller;
+  bool _isLoading = true;
+  bool _hasError = false;
 
   @override
   void initState() {
     super.initState();
+    _initializeWebView();
+  }
+
+  void _initializeWebView() {
     controller = WebViewController()
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
+      ..setNavigationDelegate(
+        NavigationDelegate(
+          onPageFinished: (String url) {
+            setState(() {
+              _isLoading = false;
+            });
+          },
+          onWebResourceError: (WebResourceError error) {
+            setState(() {
+              _hasError = true;
+              _isLoading = false;
+            });
+            debugPrint('WebView error: ${error.description}');
+          },
+        ),
+      )
       ..loadHtmlString(_generateChartHtml());
   }
 
@@ -813,10 +1016,24 @@ class _WebChartWidgetState extends State<WebChartWidget> {
       <html>
       <head>
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3.0.0/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
         <style>
-          body { margin: 0; padding: 0; }
-          .chart-container { width: 100%; height: 100%; }
+          body { 
+            margin: 0; 
+            padding: 8px; 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: transparent;
+          }
+          .chart-container { 
+            width: 100%; 
+            height: 100%; 
+            position: relative;
+          }
+          canvas {
+            max-width: 100%;
+            height: auto !important;
+          }
         </style>
       </head>
       <body>
@@ -825,81 +1042,101 @@ class _WebChartWidgetState extends State<WebChartWidget> {
         </div>
         
         <script>
-          // Parse the data passed from Flutter
-          const data = $jsonData;
-          
-          // Format dates for display
-          const formatDate = (timestamp) => {
-            const date = new Date(timestamp);
-            return date.toLocaleDateString();
-          };
-          
-          // Create chart
-          const ctx = document.getElementById('myChart');
-          new Chart(ctx, {
-            type: 'line',
-            data: {
-              datasets: [{
-                label: '${widget.title}',
-                data: data,
-                fill: true,
-                borderColor: '$primaryColorHex',
-                backgroundColor: '$primaryColorHex' + '33', // 20% opacity
-                tension: 0.3,
-                pointRadius: 3,
-                pointHoverRadius: 5
-              }]
-            },
-            options: {
-              responsive: true,
-              maintainAspectRatio: false,
-              parsing: {
-                xAxisKey: 'x',
-                yAxisKey: 'y'
+          try {
+            // Parse the data passed from Flutter
+            const data = $jsonData;
+            
+            // Format dates for display
+            const formatDate = (timestamp) => {
+              const date = new Date(timestamp);
+              return date.toLocaleDateString();
+            };
+            
+            // Create chart
+            const ctx = document.getElementById('myChart');
+            new Chart(ctx, {
+              type: 'line',
+              data: {
+                datasets: [{
+                  label: 'Items',
+                  data: data,
+                  fill: true,
+                  borderColor: '$primaryColorHex',
+                  backgroundColor: '$primaryColorHex' + '33', // 20% opacity
+                  tension: 0.3,
+                  pointRadius: 3,
+                  pointHoverRadius: 5,
+                  pointBackgroundColor: '$primaryColorHex',
+                  pointBorderColor: '#ffffff',
+                  pointBorderWidth: 2
+                }]
               },
-              scales: {
-                x: {
-                  type: 'time',
-                  time: {
-                    unit: 'day',
-                    displayFormats: {
-                      day: 'MMM d'
+              options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: {
+                  intersect: false,
+                  mode: 'index',
+                },
+                plugins: {
+                  tooltip: {
+                    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                    titleColor: '#ffffff',
+                    bodyColor: '#ffffff',
+                    borderColor: '$primaryColorHex',
+                    borderWidth: 1,
+                    cornerRadius: 8,
+                    padding: 12,
+                    displayColors: false,
+                    callbacks: {
+                      title: (context) => {
+                        return formatDate(context[0].parsed.x);
+                      },
+                      label: (context) => {
+                        const value = context.parsed.y;
+                        return value + (value === 1 ? ' item' : ' items');
+                      }
                     }
                   },
-                  title: {
+                  legend: {
                     display: false
                   }
                 },
-                y: {
-                  beginAtZero: true,
-                  ticks: {
-                    precision: 0
-                  },
-                  title: {
-                    display: false
-                  }
-                }
-              },
-              plugins: {
-                tooltip: {
-                  callbacks: {
-                    title: (context) => {
-                      return formatDate(context[0].parsed.x);
+                scales: {
+                  x: {
+                    type: 'time',
+                    time: {
+                      unit: 'day',
+                      displayFormats: {
+                        day: 'MMM d'
+                      }
                     },
-                    label: (context) => {
-                      return context.parsed.y + ' items';
+                    grid: {
+                      color: 'rgba(0,0,0,0.1)'
+                    },
+                    ticks: {
+                      maxTicksLimit: 6
                     }
                   },
-                  backgroundColor: 'rgba(0, 0, 0, 0.7)',
-                  padding: 10,
-                  cornerRadius: 6
-                },
-                legend: {
-                  display: false
+                  y: {
+                    beginAtZero: true,
+                    grid: {
+                      color: 'rgba(0,0,0,0.1)'
+                    },
+                    ticks: {
+                      precision: 0,
+                      callback: function(value) {
+                        return value + (value === 1 ? ' item' : ' items');
+                      }
+                    }
+                  }
                 }
               }
-            }
-          });
+            });
+          } catch (error) {
+            console.error('Chart creation failed:', error);
+            document.body.innerHTML = '<div style="text-align: center; padding: 20px; color: #666;">Chart loading failed</div>';
+          }
         </script>
       </body>
       </html>
@@ -908,7 +1145,34 @@ class _WebChartWidgetState extends State<WebChartWidget> {
 
   @override
   Widget build(BuildContext context) {
-    return WebViewWidget(controller: controller);
+    if (_hasError) {
+      return Container(
+        height: 200,
+        alignment: Alignment.center,
+        child: const Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.error_outline, size: 48, color: Colors.grey),
+            SizedBox(height: 8),
+            Text('Chart failed to load'),
+            Text('Please check your internet connection', 
+                 style: TextStyle(fontSize: 12, color: Colors.grey)),
+          ],
+        ),
+      );
+    }
+    
+    return Stack(
+      children: [
+        WebViewWidget(controller: controller),
+        if (_isLoading)
+          Container(
+            height: 200,
+            alignment: Alignment.center,
+            child: const CircularProgressIndicator(),
+          ),
+      ],
+    );
   }
 }
 
@@ -926,12 +1190,34 @@ class WebPieChartWidget extends StatefulWidget {
 
 class _WebPieChartWidgetState extends State<WebPieChartWidget> {
   late final WebViewController controller;
+  bool _isLoading = true;
+  bool _hasError = false;
 
   @override
   void initState() {
     super.initState();
+    _initializeWebView();
+  }
+
+  void _initializeWebView() {
     controller = WebViewController()
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
+      ..setNavigationDelegate(
+        NavigationDelegate(
+          onPageFinished: (String url) {
+            setState(() {
+              _isLoading = false;
+            });
+          },
+          onWebResourceError: (WebResourceError error) {
+            setState(() {
+              _hasError = true;
+              _isLoading = false;
+            });
+            debugPrint('WebView error: ${error.description}');
+          },
+        ),
+      )
       ..loadHtmlString(_generateChartHtml());
   }
 
@@ -943,10 +1229,23 @@ class _WebPieChartWidgetState extends State<WebPieChartWidget> {
       <html>
       <head>
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.js"></script>
         <style>
-          body { margin: 0; padding: 0; }
-          .chart-container { width: 100%; height: 100%; }
+          body { 
+            margin: 0; 
+            padding: 8px; 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: transparent;
+          }
+          .chart-container { 
+            width: 100%; 
+            height: 100%; 
+            position: relative;
+          }
+          canvas {
+            max-width: 100%;
+            height: auto !important;
+          }
         </style>
       </head>
       <body>
@@ -955,50 +1254,68 @@ class _WebPieChartWidgetState extends State<WebPieChartWidget> {
         </div>
         
         <script>
-          // Parse the data passed from Flutter
-          const data = $jsonData;
-          
-          // Extract data for the chart
-          const labels = data.map(item => item.label);
-          const values = data.map(item => item.value);
-          const colors = data.map(item => item.color);
-          const percentages = data.map(item => item.percentage);
-          
-          // Create chart
-          const ctx = document.getElementById('myChart');
-          new Chart(ctx, {
-            type: 'doughnut',
-            data: {
-              labels: labels,
-              datasets: [{
-                data: values,
-                backgroundColor: colors,
-                borderColor: colors.map(color => color),
-                borderWidth: 1,
-                hoverOffset: 5
-              }]
-            },
-            options: {
-              responsive: true,
-              maintainAspectRatio: false,
-              cutout: '40%',
-              plugins: {
-                tooltip: {
-                  callbacks: {
-                    label: (context) => {
-                      return context.parsed + ' items (' + percentages[context.dataIndex] + ')';
+          try {
+            // Parse the data passed from Flutter
+            const data = $jsonData;
+            
+            // Extract data for the chart
+            const labels = data.map(item => item.label);
+            const values = data.map(item => item.value);
+            const colors = data.map(item => item.color);
+            const percentages = data.map(item => item.percentage);
+            
+            // Create chart
+            const ctx = document.getElementById('myChart');
+            new Chart(ctx, {
+              type: 'doughnut',
+              data: {
+                labels: labels,
+                datasets: [{
+                  data: values,
+                  backgroundColor: colors,
+                  borderColor: colors.map(color => color),
+                  borderWidth: 2,
+                  hoverOffset: 8,
+                  hoverBorderWidth: 3
+                }]
+              },
+              options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: '50%',
+                plugins: {
+                  tooltip: {
+                    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                    titleColor: '#ffffff',
+                    bodyColor: '#ffffff',
+                    borderColor: '#ffffff',
+                    borderWidth: 1,
+                    cornerRadius: 8,
+                    padding: 12,
+                    displayColors: true,
+                    callbacks: {
+                      label: (context) => {
+                        const value = context.parsed;
+                        const percentage = percentages[context.dataIndex];
+                        return ` \${value} items (\${percentage})`;
+                      }
                     }
                   },
-                  backgroundColor: 'rgba(0, 0, 0, 0.7)',
-                  padding: 10,
-                  cornerRadius: 6
+                  legend: {
+                    display: false
+                  }
                 },
-                legend: {
-                  display: false
+                elements: {
+                  arc: {
+                    borderJoinStyle: 'round'
+                  }
                 }
               }
-            }
-          });
+            });
+          } catch (error) {
+            console.error('Chart creation failed:', error);
+            document.body.innerHTML = '<div style="text-align: center; padding: 20px; color: #666;">Chart loading failed</div>';
+          }
         </script>
       </body>
       </html>
@@ -1007,6 +1324,33 @@ class _WebPieChartWidgetState extends State<WebPieChartWidget> {
 
   @override
   Widget build(BuildContext context) {
-    return WebViewWidget(controller: controller);
+    if (_hasError) {
+      return Container(
+        height: 200,
+        alignment: Alignment.center,
+        child: const Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.error_outline, size: 48, color: Colors.grey),
+            SizedBox(height: 8),
+            Text('Chart failed to load'),
+            Text('Please check your internet connection', 
+                 style: TextStyle(fontSize: 12, color: Colors.grey)),
+          ],
+        ),
+      );
+    }
+    
+    return Stack(
+      children: [
+        WebViewWidget(controller: controller),
+        if (_isLoading)
+          Container(
+            height: 200,
+            alignment: Alignment.center,
+            child: const CircularProgressIndicator(),
+          ),
+      ],
+    );
   }
 }

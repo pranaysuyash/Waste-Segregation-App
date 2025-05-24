@@ -2,7 +2,7 @@ name: waste_segregation_app
 description: An app to help users properly segregate waste using AI classification.
 publish_to: 'none'
 
-version: 0.1.4+96  # Critical fixes: count multiplication bug, tab visibility, about page overflow
+version: 0.1.4+96  # Critical fixes: dashboard display issues, achievement unlock timing, statistics display consistency, count multiplication bug, tab visibility, about page overflow
 
 environment:
   sdk: '>=3.0.0 <4.0.0'

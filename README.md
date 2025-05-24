@@ -173,9 +173,21 @@ lib/
 - Cross-user classification caching with Firestore (planned)
 - UI Refactoring & Modularization (breaking screens into reusable widgets)
 
-## Roadmap
+## Documentation
 
-For a consolidated feature roadmap—including implemented, in-progress, pending, and future plans—see [project_features.md](docs/project_features.md).
+For comprehensive documentation including setup guides, technical details, and project status:
+
+- **[📖 Documentation Hub](docs/README.md)** - Main documentation index
+- **[🚀 Quick Start Guide](docs/guides/developer_guide.md)** - Development setup instructions
+- **[📊 Project Status](docs/project/status.md)** - Current development status
+- **[🔧 Technical Documentation](docs/technical/README.md)** - Recent fixes and technical details
+- **[❓ Troubleshooting](docs/reference/troubleshooting.md)** - Common issues and solutions
+
+## Current Project Status
+
+**Version:** 0.1.4+96  
+**Status:** ✅ Ready for Production  
+**Latest Changes:** All critical bugs resolved, dashboard enhanced, achievement system fixed
 
 ## Dependencies
 

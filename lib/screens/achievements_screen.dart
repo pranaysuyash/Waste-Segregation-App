@@ -1013,7 +1013,8 @@ class _AchievementsScreenState extends State<AchievementsScreen>
               child: Column(
                 children: profile.points.categoryPoints.entries.map((entry) {
                   final categoryName = entry.key;
-                  final count = entry.value;
+                  final points = entry.value;
+                  final itemCount = (points / 10).round(); // Convert points to item count
                   return Padding(
                     padding:
                         const EdgeInsets.only(bottom: AppTheme.paddingSmall),
@@ -1032,7 +1033,7 @@ class _AchievementsScreenState extends State<AchievementsScreen>
                           child: Text(categoryName),
                         ),
                         Text(
-                          '$count items',
+                          '$itemCount items',
                           style: const TextStyle(
                             fontWeight: FontWeight.bold,
                           ),

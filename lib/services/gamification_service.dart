@@ -229,18 +229,17 @@ class GamificationService {
     for (int i = 0; i < achievements.length; i++) {
       final achievement = achievements[i];
       
-      // Skip if achievement is already earned or is locked by level
-      if (achievement.type == type && 
-          !achievement.isEarned && 
-          (!achievement.isLocked || profile.points.level >= achievement.unlocksAtLevel!)) {
+      // Process achievements of the correct type that haven't been earned yet
+      if (achievement.type == type && !achievement.isEarned) {
         
         // Calculate new progress
         final currentProgress = achievement.progress * achievement.threshold;
         final newRawProgress = currentProgress + increment;
         final newProgress = newRawProgress / achievement.threshold;
         
-        // Check if achievement is now earned
-        if (newProgress >= 1.0) {
+        // Check if achievement is now earned (requires both progress AND level unlock)
+        final isLevelUnlocked = !achievement.isLocked || profile.points.level >= achievement.unlocksAtLevel!;
+        if (newProgress >= 1.0 && isLevelUnlocked) {
           // Achievement earned!
           final ClaimStatus claimStatus;
           
@@ -274,9 +273,9 @@ class GamificationService {
           await _checkMetaAchievements(achievements);
           
         } else {
-          // Update progress
+          // Update progress (even for locked achievements so they can track progress)
           achievements[i] = achievement.copyWith(
-            progress: newProgress,
+            progress: newProgress > 1.0 ? 1.0 : newProgress,
           );
         }
       }

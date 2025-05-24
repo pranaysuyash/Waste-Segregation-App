@@ -1,5 +1,26 @@
 # Changelog
 
+## [0.1.4+96] - 2025-05-24
+
+### Bug Fixes
+- **Fixed Analytics Dashboard Display Issues**: 
+  - Charts now display in full with proper sizing and responsive design
+  - Recent activities section no longer shows blank - improved data loading and error handling
+  - Daily streak box properly formatted with better visual layout
+  - Enhanced WebView chart reliability with CDN updates and error fallbacks
+  - Improved empty state handling with helpful user guidance
+- **Fixed Achievement Unlock Timing Issue**: Resolved critical issue where level-locked achievements (like "Waste Apprentice" at Level 2) weren't tracking progress until the level requirement was met. Now achievements accumulate progress regardless of lock status and unlock immediately when both progress and level requirements are satisfied.
+- **Fixed Statistics Display Inconsistency**: Resolved issue where "Items Identified" count (1) didn't match individual category counts (e.g., "Wet Waste: 10 items"). The achievements screen now correctly converts points to item counts for consistent display across all statistics.
+- Count multiplication bug fixes
+- Tab visibility improvements  
+- About page overflow fixes
+
+### Technical Improvements
+- Enhanced data consistency validation in gamification system
+- Improved code documentation for points-to-items conversion logic
+- Added comprehensive test coverage for statistics calculation to prevent regression
+- **Documentation Reorganization**: Cleaned up and reorganized docs folder structure for better navigation and maintenance
+
 ## [0.9.1] - 2025-05-20
 
 ### Improvements & Fixes
