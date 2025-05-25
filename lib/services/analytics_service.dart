@@ -17,9 +17,14 @@ class AnalyticsService extends ChangeNotifier {
   DateTime? _sessionStartTime;
   Map<String, dynamic> _sessionParameters = {};
   List<AnalyticsEvent> _pendingEvents = [];
+  List<AnalyticsEvent> _sessionEvents = [];
+  
+  // Connection state tracking
+  bool _isFirestoreAvailable = false;
   
   AnalyticsService(this._storageService) {
     _initializeSession();
+    _initializeFirestore();
   }
 
   // ================ SESSION MANAGEMENT ================
@@ -44,6 +49,7 @@ class AnalyticsService extends ChangeNotifier {
     _sessionStartTime = null;
     _sessionParameters = {};
     _pendingEvents.clear();
+    _sessionEvents.clear();
     debugPrint('✅ Analytics data cleared');
   }
 
@@ -213,90 +219,175 @@ class AnalyticsService extends ChangeNotifier {
 
   // ================ ANALYTICS QUERIES ================
 
-  /// Gets analytics data for a user within a date range.
+  /// Gets user analytics data for a specific time period.
   Future<Map<String, dynamic>> getUserAnalytics(
-    String userId, {
-    DateTime? startDate,
-    DateTime? endDate,
-  }) async {
+    String userId,
+    DateTime startDate,
+    DateTime endDate,
+  ) async {
     try {
-      startDate ??= DateTime.now().subtract(const Duration(days: 30));
-      endDate ??= DateTime.now();
-
+      if (!_isFirestoreAvailable) {
+        debugPrint('Analytics: Firestore not available for user analytics query');
+        return {'error': 'Analytics service unavailable'};
+      }
+      
       final querySnapshot = await _firestore
           .collection(_analyticsCollection)
           .where('userId', isEqualTo: userId)
-          .where('timestamp', isGreaterThanOrEqualTo: startDate.toIso8601String())
-          .where('timestamp', isLessThanOrEqualTo: endDate.toIso8601String())
-          .orderBy('timestamp', descending: true)
+          .where('timestamp', isGreaterThanOrEqualTo: Timestamp.fromDate(startDate))
+          .where('timestamp', isLessThanOrEqualTo: Timestamp.fromDate(endDate))
           .get();
 
       final events = querySnapshot.docs
           .map((doc) => AnalyticsEvent.fromJson(doc.data()))
           .toList();
 
-      return _calculateUserAnalytics(events);
+      return _aggregateUserAnalytics(events);
     } catch (e) {
-      debugPrint('Analytics: Failed to get user analytics: $e');
-      return {};
+      debugPrint('Analytics: Error getting user analytics: $e');
+      _isFirestoreAvailable = false;
+      return {'error': 'Failed to fetch analytics data'};
     }
   }
 
-  /// Gets analytics data for a family.
-  Future<Map<String, dynamic>> getFamilyAnalytics(
-    String familyId, {
-    DateTime? startDate,
-    DateTime? endDate,
-  }) async {
+  /// Gets system-wide analytics data.
+  Future<Map<String, dynamic>> getSystemAnalytics(
+    DateTime startDate,
+    DateTime endDate,
+  ) async {
     try {
-      startDate ??= DateTime.now().subtract(const Duration(days: 30));
-      endDate ??= DateTime.now();
-
+      if (!_isFirestoreAvailable) {
+        debugPrint('Analytics: Firestore not available for system analytics query');
+        return {'error': 'Analytics service unavailable'};
+      }
+      
       final querySnapshot = await _firestore
           .collection(_analyticsCollection)
-          .where('parameters.family_id', isEqualTo: familyId)
-          .where('timestamp', isGreaterThanOrEqualTo: startDate.toIso8601String())
-          .where('timestamp', isLessThanOrEqualTo: endDate.toIso8601String())
-          .orderBy('timestamp', descending: true)
+          .where('timestamp', isGreaterThanOrEqualTo: Timestamp.fromDate(startDate))
+          .where('timestamp', isLessThanOrEqualTo: Timestamp.fromDate(endDate))
           .get();
 
       final events = querySnapshot.docs
           .map((doc) => AnalyticsEvent.fromJson(doc.data()))
           .toList();
 
-      return _calculateFamilyAnalytics(events);
+      return _aggregateSystemAnalytics(events);
     } catch (e) {
-      debugPrint('Analytics: Failed to get family analytics: $e');
-      return {};
+      debugPrint('Analytics: Error getting system analytics: $e');
+      _isFirestoreAvailable = false;
+      return {'error': 'Failed to fetch system analytics data'};
     }
   }
 
-  /// Gets popular features based on usage analytics.
-  Future<List<Map<String, dynamic>>> getPopularFeatures({
-    DateTime? startDate,
-    DateTime? endDate,
-    int limit = 10,
-  }) async {
+  /// Gets popular content analytics.
+  Future<List<Map<String, dynamic>>> getPopularContent(int limit) async {
     try {
-      startDate ??= DateTime.now().subtract(const Duration(days: 7));
-      endDate ??= DateTime.now();
-
+      if (!_isFirestoreAvailable) {
+        debugPrint('Analytics: Firestore not available for popular content query');
+        return [];
+      }
+      
       final querySnapshot = await _firestore
           .collection(_analyticsCollection)
-          .where('eventType', isEqualTo: AnalyticsEventTypes.userAction)
-          .where('timestamp', isGreaterThanOrEqualTo: startDate.toIso8601String())
-          .where('timestamp', isLessThanOrEqualTo: endDate.toIso8601String())
+          .where('eventType', isEqualTo: 'content_interaction')
+          .orderBy('timestamp', descending: true)
+          .limit(limit * 10) // Get more to account for duplicates
           .get();
 
       final events = querySnapshot.docs
           .map((doc) => AnalyticsEvent.fromJson(doc.data()))
           .toList();
 
-      return _calculatePopularFeatures(events, limit);
+      return _aggregateContentAnalytics(events, limit);
     } catch (e) {
-      debugPrint('Analytics: Failed to get popular features: $e');
+      debugPrint('Analytics: Error getting popular content: $e');
+      _isFirestoreAvailable = false;
       return [];
     }
+  }
+
+  // ================ ANALYTICS AGGREGATION ================
+  
+  /// Aggregate user analytics from events
+  Map<String, dynamic> _aggregateUserAnalytics(List<AnalyticsEvent> events) {
+    final Map<String, int> eventCounts = {};
+    final Map<String, int> dailyActivity = {};
+    int totalEvents = events.length;
+    
+    for (final event in events) {
+      // Count event types
+      eventCounts[event.eventType] = (eventCounts[event.eventType] ?? 0) + 1;
+      
+      // Count daily activity
+      final dateKey = '${event.timestamp.year}-${event.timestamp.month}-${event.timestamp.day}';
+      dailyActivity[dateKey] = (dailyActivity[dateKey] ?? 0) + 1;
+    }
+    
+    return {
+      'totalEvents': totalEvents,
+      'eventCounts': eventCounts,
+      'dailyActivity': dailyActivity,
+      'periodStart': events.isNotEmpty ? events.last.timestamp : null,
+      'periodEnd': events.isNotEmpty ? events.first.timestamp : null,
+    };
+  }
+  
+  /// Aggregate system-wide analytics from events
+  Map<String, dynamic> _aggregateSystemAnalytics(List<AnalyticsEvent> events) {
+    final Map<String, int> eventTypeCounts = {};
+    final Map<String, int> userCounts = {};
+    final Map<String, int> dailyTotals = {};
+    final Set<String> uniqueUsers = {};
+    
+    for (final event in events) {
+      // Count event types
+      eventTypeCounts[event.eventType] = (eventTypeCounts[event.eventType] ?? 0) + 1;
+      
+      // Track unique users
+      if (event.userId != null) {
+        uniqueUsers.add(event.userId!);
+      }
+      
+      // Count daily totals
+      final dateKey = '${event.timestamp.year}-${event.timestamp.month}-${event.timestamp.day}';
+      dailyTotals[dateKey] = (dailyTotals[dateKey] ?? 0) + 1;
+    }
+    
+    return {
+      'totalEvents': events.length,
+      'uniqueUsers': uniqueUsers.length,
+      'eventTypeCounts': eventTypeCounts,
+      'dailyTotals': dailyTotals,
+      'averageEventsPerUser': uniqueUsers.isNotEmpty ? events.length / uniqueUsers.length : 0,
+    };
+  }
+  
+  /// Aggregate content analytics from events
+  List<Map<String, dynamic>> _aggregateContentAnalytics(List<AnalyticsEvent> events, int limit) {
+    final Map<String, int> contentCounts = {};
+    final Map<String, Map<String, dynamic>> contentDetails = {};
+    
+    for (final event in events) {
+      final contentId = event.parameters['content_id'] as String?;
+      final contentTitle = event.parameters['content_title'] as String?;
+      final contentType = event.parameters['content_type'] as String?;
+      
+      if (contentId != null) {
+        contentCounts[contentId] = (contentCounts[contentId] ?? 0) + 1;
+        contentDetails[contentId] = {
+          'id': contentId,
+          'title': contentTitle ?? 'Unknown',
+          'type': contentType ?? 'Unknown',
+          'count': contentCounts[contentId],
+        };
+      }
+    }
+    
+    // Sort by count and return top items
+    final sortedContent = contentDetails.values.toList()
+      ..sort((a, b) => (b['count'] as int).compareTo(a['count'] as int));
+    
+    return sortedContent.take(limit).toList();
   }
 
   // ================ HELPER METHODS ================
@@ -304,14 +395,66 @@ class AnalyticsService extends ChangeNotifier {
   /// Saves an event to Firestore.
   Future<void> _saveEventToFirestore(AnalyticsEvent event) async {
     try {
+      // Check if Firestore is available
+      if (!_isFirestoreAvailable) {
+        debugPrint('Analytics: Firestore not available, storing event locally');
+        _pendingEvents.add(event);
+        return;
+      }
+      
       await _firestore
-          .collection(_analyticsCollection)
+          .collection('analytics_events')
           .doc(event.id)
           .set(event.toJson());
+      debugPrint('Analytics: Event saved to Firestore successfully');
     } catch (e) {
       debugPrint('Analytics: Failed to save event to Firestore: $e');
+      
+      // If Firestore fails, mark as unavailable and store locally
+      _isFirestoreAvailable = false;
+      _pendingEvents.add(event);
+      
+      // Try to reinitialize Firestore connection in background
+      _initializeFirestore();
     }
   }
+
+  /// Process pending events when Firestore becomes available
+  Future<void> _processPendingEvents() async {
+    if (!_isFirestoreAvailable || _pendingEvents.isEmpty) {
+      return;
+    }
+    
+    debugPrint('Analytics: Processing ${_pendingEvents.length} pending events');
+    
+    final eventsToProcess = List<AnalyticsEvent>.from(_pendingEvents);
+    _pendingEvents.clear();
+    
+    for (final event in eventsToProcess) {
+      try {
+        await _firestore
+            .collection('analytics_events')
+            .doc(event.id)
+            .set(event.toJson());
+      } catch (e) {
+        debugPrint('Analytics: Failed to process pending event: $e');
+        // Add back to pending if still failing
+        _pendingEvents.add(event);
+        _isFirestoreAvailable = false;
+        break;
+      }
+    }
+    
+    if (_pendingEvents.isEmpty) {
+      debugPrint('✅ All pending analytics events processed successfully');
+    }
+  }
+  
+  /// Get connection status for diagnostics
+  bool get isFirestoreConnected => _isFirestoreAvailable;
+  
+  /// Get number of pending events
+  int get pendingEventsCount => _pendingEvents.length;
 
   /// Gets basic device information for analytics.
   String _getDeviceInfo() {
@@ -481,5 +624,22 @@ class AnalyticsService extends ChangeNotifier {
   Future<void> dispose() async {
     trackSessionEnd();
     super.dispose();
+  }
+
+  /// Initialize Firestore connection with fallback
+  Future<void> _initializeFirestore() async {
+    try {
+      // Test Firestore connection
+      await _firestore.settings.persistenceEnabled;
+      await _firestore.enableNetwork();
+      _isFirestoreAvailable = true;
+      debugPrint('✅ Firestore connected successfully');
+      
+      // Process any pending events
+      await _processPendingEvents();
+    } catch (e) {
+      _isFirestoreAvailable = false;
+      debugPrint('⚠️ Firestore not available, using local storage only: $e');
+    }
   }
 } 

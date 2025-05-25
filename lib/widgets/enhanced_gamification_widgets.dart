@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import '../utils/constants.dart';
 import '../models/gamification.dart';
 import '../utils/animation_helpers.dart';
+import 'package:provider/provider.dart';
+import '../services/gamification_service.dart';
 
 /// Enhanced version of the points indicator with animations and level-up effects
 class EnhancedPointsIndicator extends StatefulWidget {
@@ -1079,5 +1081,182 @@ class EnhancedChallengeCard extends StatelessWidget {
         ),
       ),
     );
+  }
+}
+
+/// Enhanced points indicator that shows lifetime points including archived data
+class EnhancedPointsIndicator extends StatelessWidget {
+  final UserPoints points;
+  final VoidCallback? onTap;
+  final bool showLifetimePoints;
+
+  const EnhancedPointsIndicator({
+    super.key,
+    required this.points,
+    this.onTap,
+    this.showLifetimePoints = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [
+              AppTheme.primaryColor,
+              AppTheme.primaryColor.withOpacity(0.8),
+            ],
+          ),
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: [
+            BoxShadow(
+              color: AppTheme.primaryColor.withOpacity(0.3),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(
+              Icons.stars,
+              color: Colors.white,
+              size: 18,
+            ),
+            const SizedBox(width: 6),
+            if (showLifetimePoints)
+              FutureBuilder<int>(
+                future: Provider.of<GamificationService>(context, listen: false).getTotalLifetimePoints(),
+                builder: (context, snapshot) {
+                  final lifetimePoints = snapshot.data ?? points.total;
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        '${points.total}',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 14,
+                        ),
+                      ),
+                      if (lifetimePoints > points.total)
+                        Text(
+                          'L: $lifetimePoints',
+                          style: const TextStyle(
+                            color: Colors.white70,
+                            fontSize: 10,
+                          ),
+                        ),
+                    ],
+                  );
+                },
+              )
+            else
+              Text(
+                '${points.total}',
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16,
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Widget to show archived points history
+class ArchivedPointsHistoryWidget extends StatelessWidget {
+  const ArchivedPointsHistoryWidget({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final gamificationService = Provider.of<GamificationService>(context, listen: false);
+    
+    return FutureBuilder<List<Map<String, dynamic>>>(
+      future: gamificationService.getArchivedPointsHistory(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        }
+        
+        final archivedHistory = snapshot.data ?? [];
+        
+        if (archivedHistory.isEmpty) {
+          return const Center(
+            child: Padding(
+              padding: EdgeInsets.all(16.0),
+              child: Text(
+                'No archived points history',
+                style: TextStyle(color: AppTheme.textSecondaryColor),
+              ),
+            ),
+          );
+        }
+        
+        return ListView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          itemCount: archivedHistory.length,
+          itemBuilder: (context, index) {
+            final archive = archivedHistory[index];
+            final archivedAt = DateTime.tryParse(archive['archivedAt'] ?? '') ?? DateTime.now();
+            final points = archive['totalLifetimePoints'] as int? ?? 0;
+            final reason = archive['reason'] as String? ?? 'unknown';
+            
+            return Card(
+              margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+              child: ListTile(
+                leading: Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Colors.amber.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: const Icon(
+                    Icons.archive,
+                    color: Colors.amber,
+                    size: 20,
+                  ),
+                ),
+                title: Text(
+                  '$points Points Archived',
+                  style: const TextStyle(fontWeight: FontWeight.bold),
+                ),
+                subtitle: Text(
+                  'Reason: ${_formatReason(reason)}\nDate: ${_formatDate(archivedAt)}',
+                ),
+                trailing: const Icon(Icons.history),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+  
+  String _formatReason(String reason) {
+    switch (reason) {
+      case 'user_data_clear':
+        return 'Data Reset';
+      case 'app_reinstall':
+        return 'App Reinstalled';
+      case 'manual_archive':
+        return 'Manual Archive';
+      default:
+        return 'Unknown';
+    }
+  }
+  
+  String _formatDate(DateTime date) {
+    return '${date.day}/${date.month}/${date.year}';
   }
 }

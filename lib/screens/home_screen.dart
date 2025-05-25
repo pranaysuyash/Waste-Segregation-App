@@ -1137,6 +1137,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
               child: Center(
                 child: EnhancedPointsIndicator(
                   points: _gamificationProfile!.points,
+                  showLifetimePoints: true,
                   onTap: () {
                     Navigator.push(
                       context,

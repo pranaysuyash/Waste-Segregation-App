@@ -1050,14 +1050,25 @@ class GamificationService {
     try {
       final box = Hive.box(_gamificationBox);
       
+      // Get existing profile to archive points
+      final existingProfileJson = box.get(_profileKey);
+      if (existingProfileJson != null) {
+        final existingProfile = GamificationProfile.fromJson(jsonDecode(existingProfileJson));
+        
+        // Archive current points if they exist
+        if (existingProfile.points.total > 0) {
+          await _archivePoints(existingProfile.points);
+        }
+      }
+      
       // Clear all gamification data
       await box.clear();
       
-      // Force recreation of fresh default profile
+      // Force recreation of fresh default profile with archived points reference
       final freshProfile = GamificationProfile(
         userId: 'default',
         streak: Streak(lastUsageDate: DateTime.now()),
-        points: const UserPoints(), // This ensures 0 points
+        points: const UserPoints(), // This ensures 0 current points
         achievements: _getDefaultAchievements(),
       );
       
@@ -1066,10 +1077,93 @@ class GamificationService {
       // Reset default challenges
       await box.put(_defaultChallengesKey, jsonEncode(_getDefaultChallenges()));
       
-      debugPrint('✅ Gamification data cleared and reset successfully');
+      debugPrint('✅ Gamification data cleared and reset successfully with points archived');
     } catch (e) {
       debugPrint('❌ Error clearing gamification data: $e');
       rethrow;
+    }
+  }
+  
+  /// Archive points when data is cleared
+  Future<void> _archivePoints(UserPoints points) async {
+    try {
+      final box = Hive.box(_gamificationBox);
+      final archivedPointsKey = 'archived_points_${DateTime.now().millisecondsSinceEpoch}';
+      
+      final archiveEntry = {
+        'points': points.toJson(),
+        'archivedAt': DateTime.now().toIso8601String(),
+        'reason': 'user_data_clear',
+        'totalLifetimePoints': points.total,
+      };
+      
+      // Store in a list of archived entries
+      final existingArchives = box.get('archived_points_list', defaultValue: <String>[]);
+      final List<String> archivesList = List<String>.from(existingArchives);
+      archivesList.add(jsonEncode(archiveEntry));
+      
+      await box.put('archived_points_list', archivesList);
+      
+      debugPrint('📦 Archived ${points.total} points from previous session');
+    } catch (e) {
+      debugPrint('❌ Error archiving points: $e');
+      // Don't rethrow - archiving failure shouldn't block data clearing
+    }
+  }
+  
+  /// Get total lifetime points including archived points
+  Future<int> getTotalLifetimePoints() async {
+    try {
+      final box = Hive.box(_gamificationBox);
+      final profile = await getProfile();
+      int totalLifetime = profile.points.total;
+      
+      // Add archived points
+      final archivedList = box.get('archived_points_list', defaultValue: <String>[]);
+      for (final archivedJson in archivedList) {
+        try {
+          final archived = jsonDecode(archivedJson);
+          totalLifetime += (archived['totalLifetimePoints'] as int? ?? 0);
+        } catch (e) {
+          debugPrint('Error parsing archived points: $e');
+        }
+      }
+      
+      return totalLifetime;
+    } catch (e) {
+      debugPrint('Error calculating lifetime points: $e');
+      final profile = await getProfile();
+      return profile.points.total; // Fallback to current points only
+    }
+  }
+  
+  /// Get archived points history
+  Future<List<Map<String, dynamic>>> getArchivedPointsHistory() async {
+    try {
+      final box = Hive.box(_gamificationBox);
+      final archivedList = box.get('archived_points_list', defaultValue: <String>[]);
+      
+      final List<Map<String, dynamic>> history = [];
+      for (final archivedJson in archivedList) {
+        try {
+          final archived = jsonDecode(archivedJson);
+          history.add(archived);
+        } catch (e) {
+          debugPrint('Error parsing archived entry: $e');
+        }
+      }
+      
+      // Sort by archived date (newest first)
+      history.sort((a, b) {
+        final dateA = DateTime.tryParse(a['archivedAt'] ?? '') ?? DateTime.now();
+        final dateB = DateTime.tryParse(b['archivedAt'] ?? '') ?? DateTime.now();
+        return dateB.compareTo(dateA);
+      });
+      
+      return history;
+    } catch (e) {
+      debugPrint('Error getting archived points history: $e');
+      return [];
     }
   }
 }
