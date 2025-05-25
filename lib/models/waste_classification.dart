@@ -1,4 +1,4 @@
-import 'package:flutter/foundation.dart';
+
 
 /// Represents a waste classification result with comprehensive disposal information
 class WasteClassification {

@@ -401,20 +401,20 @@ class ClassificationCard extends StatelessWidget {
                 ],
 
                 // Properties indicators (recyclable, compostable, special disposal)
-                if ((classification.isRecyclable == true) ||
-                    (classification.isCompostable == true) ||
-                    (classification.requiresSpecialDisposal == true)) ...[
+                if ((classification.isRecyclable ?? false) ||
+                    (classification.isCompostable ?? false) ||
+                    (classification.requiresSpecialDisposal ?? false)) ...[
                   const SizedBox(height: AppTheme.paddingRegular),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.start,
                     children: [
-                      if (classification.isRecyclable == true)
+                      if (classification.isRecyclable ?? false)
                         _buildPropertyBadge(
                             Icons.recycling, 'Recyclable', Colors.blue),
-                      if (classification.isCompostable == true)
+                      if (classification.isCompostable ?? false)
                         _buildPropertyBadge(
                             Icons.eco, 'Compostable', Colors.green),
-                      if (classification.requiresSpecialDisposal == true)
+                      if (classification.requiresSpecialDisposal ?? false)
                         _buildPropertyBadge(Icons.warning_amber,
                             'Special Disposal', Colors.orange),
                     ],
