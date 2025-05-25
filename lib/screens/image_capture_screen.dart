@@ -35,7 +35,7 @@ class _ImageCaptureScreenState extends State<ImageCaptureScreen> {
   Uint8List? _webImageBytes;
 
   bool _useSegmentation = false;
-  List<Rect> _segments = [];
+  List<Map<String, dynamic>> _segments = [];
   final Set<int> _selectedSegments = {};
 
   @override
@@ -57,7 +57,7 @@ class _ImageCaptureScreenState extends State<ImageCaptureScreen> {
 
   Future<void> _runSegmentation() async {
     final aiService = Provider.of<AiService>(context, listen: false);
-    List<Rect> segments;
+    List<Map<String, dynamic>> segments;
     if (kIsWeb) {
       Uint8List? imageBytes = _webImageBytes ?? widget.webImage;
       if (imageBytes == null || imageBytes.isEmpty) {
@@ -123,8 +123,8 @@ class _ImageCaptureScreenState extends State<ImageCaptureScreen> {
             // Already using our custom Rect type from segmentImage()
             classification = await aiService.analyzeImageSegmentsWeb(
               imageBytes,
-              _selectedSegments.map((i) => _segments[i]).toList(),
               widget.xFile!.name,
+              _selectedSegments.map((i) => _segments[i]).toList(),
             );
           } else {
             classification = await aiService.analyzeWebImage(
@@ -144,8 +144,8 @@ class _ImageCaptureScreenState extends State<ImageCaptureScreen> {
             // Using our custom Rect class from segmentImage()
             classification = await aiService.analyzeImageSegmentsWeb(
               widget.webImage!,
-              _selectedSegments.map((i) => _segments[i]).toList(),
               'uploaded_image.jpg',
+              _selectedSegments.map((i) => _segments[i]).toList(),
             );
           } else {
             classification = await aiService.analyzeWebImage(
@@ -239,12 +239,13 @@ class _ImageCaptureScreenState extends State<ImageCaptureScreen> {
                               return Stack(
                                 children:
                                     List.generate(_segments.length, (index) {
-                                  // Using our custom Rect class
-                                  final rect = _segments[index];
-                                  final left = rect.left * imageWidth;
-                                  final top = rect.top * imageHeight;
-                                  final width = rect.width * imageWidth;
-                                  final height = rect.height * imageHeight;
+                                  // Using segment bounds from Map
+                                  final segment = _segments[index];
+                                  final bounds = segment['bounds'] as Map<String, dynamic>;
+                                  final left = (bounds['x'] as num).toDouble() * imageWidth / 100;
+                                  final top = (bounds['y'] as num).toDouble() * imageHeight / 100;
+                                  final width = (bounds['width'] as num).toDouble() * imageWidth / 100;
+                                  final height = (bounds['height'] as num).toDouble() * imageHeight / 100;
                                   final selected =
                                       _selectedSegments.contains(index);
 

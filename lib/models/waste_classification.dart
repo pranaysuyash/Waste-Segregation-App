@@ -1,227 +1,432 @@
-import 'disposal_instructions.dart';
+import 'package:flutter/foundation.dart';
 
+/// Represents a waste classification result with comprehensive disposal information
 class WasteClassification {
-  // Core classification data
   final String itemName;
   final String category;
   final String? subcategory;
+  final String? materialType;
+  final int? recyclingCode;
   final String explanation;
-  final String? imageUrl;
   final String? disposalMethod;
-  final String? recyclingCode;
-  final DateTime timestamp;
+  final DisposalInstructions disposalInstructions;
+
+  // Location and guidelines
+  final String region;
+  final String? localGuidelinesReference;
+
+  // Image and visual data
+  final String? imageUrl;
+  final String? imageHash;
+  final Map<String, double>? imageMetrics;
+  final List<String> visualFeatures;
+
+  // Waste properties
   final bool? isRecyclable;
   final bool? isCompostable;
   final bool? requiresSpecialDisposal;
   final String? colorCode;
-  final String? materialType;
-  bool isSaved;
+  final String? riskLevel;
+  final List<String>? requiredPPE;
 
-  // Disposal instructions
-  final DisposalInstructions? disposalInstructions;
+  // Product identification
+  final String? brand;
+  final String? product;
+  final String? barcode;
 
-  // AI Model Performance Data
-  final double? confidence; // 0.0 to 1.0 - AI classification confidence
-  final String? modelVersion; // Which AI model version was used
-  final int? processingTimeMs; // Processing time in milliseconds
-  final List<AlternativeClassification>? alternatives; // Alternative classifications
+  // User interaction data
+  final bool? isSaved;
+  final bool? userConfirmed;
+  final String? userCorrection;
+  final String? disagreementReason;
+  final String? userNotes;
+  final int? viewCount;
+  final bool? clarificationNeeded;
 
-  // User Interaction Data
-  final bool? userConfirmed; // Did user confirm this classification?
-  final String? userCorrection; // What did user change it to?
-  final String? userNotes; // User's personal notes
-  final int? viewCount; // How many times viewed
+  // AI model performance data
+  final double? confidence;
+  final String? modelVersion;
+  final int? processingTimeMs;
+  final String? modelSource;
+  final String? analysisSessionId;
 
-  // Processing Context
-  final String? source; // 'camera', 'gallery', 'web_upload'
-  final Map<String, double>? imageMetrics; // blur, brightness, contrast scores
-  final String? imageHash; // For deduplication and caching
+  // Alternative classifications and actions
+  final List<AlternativeClassification> alternatives;
+  final String? suggestedAction;
+  final bool? hasUrgentTimeframe;
+
+  // Multilingual support
+  final String? instructionsLang;
+  final Map<String, String>? translatedInstructions;
+
+  // Processing context
+  final String? source;
+  final DateTime timestamp;
 
   WasteClassification({
     required this.itemName,
     required this.category,
     this.subcategory,
-    required this.explanation,
-    this.imageUrl,
-    this.disposalMethod,
+    this.materialType,
     this.recyclingCode,
+    required this.explanation,
+    this.disposalMethod,
+    required this.disposalInstructions,
+    required this.region,
+    this.localGuidelinesReference,
+    this.imageUrl,
+    this.imageHash,
+    this.imageMetrics,
+    required this.visualFeatures,
     this.isRecyclable,
     this.isCompostable,
     this.requiresSpecialDisposal,
     this.colorCode,
-    this.materialType,
-    this.isSaved = false,
-    DateTime? timestamp,
-    // Disposal instructions
-    this.disposalInstructions,
-    // AI Model Performance Data
+    this.riskLevel,
+    this.requiredPPE,
+    this.brand,
+    this.product,
+    this.barcode,
+    this.isSaved,
+    this.userConfirmed,
+    this.userCorrection,
+    this.disagreementReason,
+    this.userNotes,
+    this.viewCount,
+    this.clarificationNeeded,
     this.confidence,
     this.modelVersion,
     this.processingTimeMs,
-    this.alternatives,
-    // User Interaction Data
-    this.userConfirmed,
-    this.userCorrection,
-    this.userNotes,
-    this.viewCount,
-    // Processing Context
+    this.modelSource,
+    this.analysisSessionId,
+    required this.alternatives,
+    this.suggestedAction,
+    this.hasUrgentTimeframe,
+    this.instructionsLang,
+    this.translatedInstructions,
     this.source,
-    this.imageMetrics,
-    this.imageHash,
+    DateTime? timestamp,
   }) : timestamp = timestamp ?? DateTime.now();
 
-  /// Generate disposal instructions for this classification
-  WasteClassification withDisposalInstructions() {
-    final instructions = DisposalInstructionsGenerator.generateForItem(
-      category: category,
-      subcategory: subcategory,
-      materialType: materialType,
-      isRecyclable: isRecyclable,
-      isCompostable: isCompostable,
-      requiresSpecialDisposal: requiresSpecialDisposal,
-    );
-    
+  /// Creates a fallback classification when AI analysis fails
+  factory WasteClassification.fallback(String imagePath) {
     return WasteClassification(
-      itemName: itemName,
-      category: category,
-      subcategory: subcategory,
-      explanation: explanation,
-      imageUrl: imageUrl,
-      disposalMethod: disposalMethod,
-      recyclingCode: recyclingCode,
-      isRecyclable: isRecyclable,
-      isCompostable: isCompostable,
-      requiresSpecialDisposal: requiresSpecialDisposal,
-      colorCode: colorCode,
-      materialType: materialType,
-      isSaved: isSaved,
-      timestamp: timestamp,
-      confidence: confidence,
-      modelVersion: modelVersion,
-      processingTimeMs: processingTimeMs,
-      alternatives: alternatives,
-      userConfirmed: userConfirmed,
-      userCorrection: userCorrection,
-      userNotes: userNotes,
-      viewCount: viewCount,
-      source: source,
-      imageMetrics: imageMetrics,
-      imageHash: imageHash,
-      disposalInstructions: instructions,
+      itemName: 'Unknown Item',
+      category: 'Dry Waste',
+      subcategory: 'Other Dry Waste',
+      explanation: 'Unable to classify this item automatically. Please review and correct if needed.',
+      disposalInstructions: DisposalInstructions(
+        primaryMethod: 'Manual review required',
+        steps: ['Please review the item manually', 'Consult local waste guidelines'],
+        hasUrgentTimeframe: false,
+      ),
+      region: 'Unknown',
+      visualFeatures: [],
+      alternatives: [],
+      imageUrl: imagePath,
+      confidence: 0.0,
+      clarificationNeeded: true,
+      riskLevel: 'safe',
     );
   }
 
-  /// Check if this item has urgent disposal requirements
-  bool get hasUrgentDisposal {
-    return disposalInstructions?.hasUrgentTimeframe ?? false ||
-           requiresSpecialDisposal == true ||
-           category.toLowerCase() == 'medical waste' ||
-           category.toLowerCase() == 'hazardous waste';
+  /// Creates a WasteClassification from JSON data
+  factory WasteClassification.fromJson(Map<String, dynamic> json) {
+    return WasteClassification(
+      itemName: json['itemName'] ?? 'Unknown Item',
+      category: json['category'] ?? 'Dry Waste',
+      subcategory: json['subcategory'],
+      materialType: json['materialType'],
+      recyclingCode: json['recyclingCode'],
+      explanation: json['explanation'] ?? '',
+      disposalMethod: json['disposalMethod'],
+      disposalInstructions: json['disposalInstructions'] != null
+          ? DisposalInstructions.fromJson(json['disposalInstructions'])
+          : DisposalInstructions(
+              primaryMethod: 'Review required',
+              steps: ['Please review manually'],
+              hasUrgentTimeframe: false,
+            ),
+      region: json['region'] ?? 'Unknown',
+      localGuidelinesReference: json['localGuidelinesReference'],
+      imageUrl: json['imageUrl'],
+      imageHash: json['imageHash'],
+      imageMetrics: json['imageMetrics'] != null
+          ? Map<String, double>.from(json['imageMetrics'])
+          : null,
+      visualFeatures: json['visualFeatures'] != null
+          ? List<String>.from(json['visualFeatures'])
+          : [],
+      isRecyclable: json['isRecyclable'],
+      isCompostable: json['isCompostable'],
+      requiresSpecialDisposal: json['requiresSpecialDisposal'],
+      colorCode: json['colorCode'],
+      riskLevel: json['riskLevel'],
+      requiredPPE: json['requiredPPE'] != null
+          ? List<String>.from(json['requiredPPE'])
+          : null,
+      brand: json['brand'],
+      product: json['product'],
+      barcode: json['barcode'],
+      isSaved: json['isSaved'],
+      userConfirmed: json['userConfirmed'],
+      userCorrection: json['userCorrection'],
+      disagreementReason: json['disagreementReason'],
+      userNotes: json['userNotes'],
+      viewCount: json['viewCount'],
+      clarificationNeeded: json['clarificationNeeded'],
+      confidence: json['confidence']?.toDouble(),
+      modelVersion: json['modelVersion'],
+      processingTimeMs: json['processingTimeMs'],
+      modelSource: json['modelSource'],
+      analysisSessionId: json['analysisSessionId'],
+      alternatives: json['alternatives'] != null
+          ? (json['alternatives'] as List)
+              .map((alt) => AlternativeClassification.fromJson(alt))
+              .toList()
+          : [],
+      suggestedAction: json['suggestedAction'],
+      hasUrgentTimeframe: json['hasUrgentTimeframe'],
+      instructionsLang: json['instructionsLang'],
+      translatedInstructions: json['translatedInstructions'] != null
+          ? Map<String, String>.from(json['translatedInstructions'])
+          : null,
+      source: json['source'],
+      timestamp: json['timestamp'] != null
+          ? DateTime.parse(json['timestamp'])
+          : DateTime.now(),
+    );
   }
 
-  /// Get the estimated time needed for proper disposal
-  Duration get estimatedDisposalTime {
-    return disposalInstructions?.estimatedTotalTime ?? Duration(minutes: 5);
-  }
-
-  // Method to convert model to JSON for storage
+  /// Converts the classification to JSON
   Map<String, dynamic> toJson() {
     return {
       'itemName': itemName,
       'category': category,
       'subcategory': subcategory,
-      'explanation': explanation,
-      'imageUrl': imageUrl,
-      'disposalMethod': disposalMethod,
+      'materialType': materialType,
       'recyclingCode': recyclingCode,
+      'explanation': explanation,
+      'disposalMethod': disposalMethod,
+      'disposalInstructions': disposalInstructions.toJson(),
+      'region': region,
+      'localGuidelinesReference': localGuidelinesReference,
+      'imageUrl': imageUrl,
+      'imageHash': imageHash,
+      'imageMetrics': imageMetrics,
+      'visualFeatures': visualFeatures,
       'isRecyclable': isRecyclable,
       'isCompostable': isCompostable,
       'requiresSpecialDisposal': requiresSpecialDisposal,
       'colorCode': colorCode,
-      'materialType': materialType,
+      'riskLevel': riskLevel,
+      'requiredPPE': requiredPPE,
+      'brand': brand,
+      'product': product,
+      'barcode': barcode,
       'isSaved': isSaved,
-      'timestamp': timestamp.toIso8601String(),
-      // AI Model Performance Data
+      'userConfirmed': userConfirmed,
+      'userCorrection': userCorrection,
+      'disagreementReason': disagreementReason,
+      'userNotes': userNotes,
+      'viewCount': viewCount,
+      'clarificationNeeded': clarificationNeeded,
       'confidence': confidence,
       'modelVersion': modelVersion,
       'processingTimeMs': processingTimeMs,
-      'alternatives': alternatives?.map((alt) => alt.toJson()).toList(),
-      // User Interaction Data
-      'userConfirmed': userConfirmed,
-      'userCorrection': userCorrection,
-      'userNotes': userNotes,
-      'viewCount': viewCount,
-      // Processing Context
+      'modelSource': modelSource,
+      'analysisSessionId': analysisSessionId,
+      'alternatives': alternatives.map((alt) => alt.toJson()).toList(),
+      'suggestedAction': suggestedAction,
+      'hasUrgentTimeframe': hasUrgentTimeframe,
+      'instructionsLang': instructionsLang,
+      'translatedInstructions': translatedInstructions,
       'source': source,
-      'imageMetrics': imageMetrics,
-      'imageHash': imageHash,
-      // Disposal instructions
-      'disposalInstructions': disposalInstructions?.toJson(),
+      'timestamp': timestamp.toIso8601String(),
     };
   }
 
-  // Factory constructor to create a model from JSON
-  factory WasteClassification.fromJson(Map<String, dynamic> json) {
-    // Handle different data types for recyclingCode
-    String? recyclingCode;
-    if (json['recyclingCode'] != null) {
-      recyclingCode = json['recyclingCode'].toString();
-    }
-    
-    // Parse alternatives if present
-    List<AlternativeClassification>? alternatives;
-    if (json['alternatives'] != null) {
-      alternatives = (json['alternatives'] as List)
-          .map((alt) => AlternativeClassification.fromJson(alt))
-          .toList();
-    }
-    
-    // Parse imageMetrics if present
-    Map<String, double>? imageMetrics;
-    if (json['imageMetrics'] != null) {
-      imageMetrics = Map<String, double>.from(json['imageMetrics']);
-    }
-    
-    // Parse disposal instructions if present
-    DisposalInstructions? disposalInstructions;
-    if (json['disposalInstructions'] != null) {
-      disposalInstructions = DisposalInstructions.fromJson(json['disposalInstructions']);
-    }
-    
+  /// Creates a copy with updated fields
+  WasteClassification copyWith({
+    String? itemName,
+    String? category,
+    String? subcategory,
+    String? materialType,
+    int? recyclingCode,
+    String? explanation,
+    String? disposalMethod,
+    DisposalInstructions? disposalInstructions,
+    String? region,
+    String? localGuidelinesReference,
+    String? imageUrl,
+    String? imageHash,
+    Map<String, double>? imageMetrics,
+    List<String>? visualFeatures,
+    bool? isRecyclable,
+    bool? isCompostable,
+    bool? requiresSpecialDisposal,
+    String? colorCode,
+    String? riskLevel,
+    List<String>? requiredPPE,
+    String? brand,
+    String? product,
+    String? barcode,
+    bool? isSaved,
+    bool? userConfirmed,
+    String? userCorrection,
+    String? disagreementReason,
+    String? userNotes,
+    int? viewCount,
+    bool? clarificationNeeded,
+    double? confidence,
+    String? modelVersion,
+    int? processingTimeMs,
+    String? modelSource,
+    String? analysisSessionId,
+    List<AlternativeClassification>? alternatives,
+    String? suggestedAction,
+    bool? hasUrgentTimeframe,
+    String? instructionsLang,
+    Map<String, String>? translatedInstructions,
+    String? source,
+    DateTime? timestamp,
+  }) {
     return WasteClassification(
-      itemName: json['itemName'] ?? '',
+      itemName: itemName ?? this.itemName,
+      category: category ?? this.category,
+      subcategory: subcategory ?? this.subcategory,
+      materialType: materialType ?? this.materialType,
+      recyclingCode: recyclingCode ?? this.recyclingCode,
+      explanation: explanation ?? this.explanation,
+      disposalMethod: disposalMethod ?? this.disposalMethod,
+      disposalInstructions: disposalInstructions ?? this.disposalInstructions,
+      region: region ?? this.region,
+      localGuidelinesReference: localGuidelinesReference ?? this.localGuidelinesReference,
+      imageUrl: imageUrl ?? this.imageUrl,
+      imageHash: imageHash ?? this.imageHash,
+      imageMetrics: imageMetrics ?? this.imageMetrics,
+      visualFeatures: visualFeatures ?? this.visualFeatures,
+      isRecyclable: isRecyclable ?? this.isRecyclable,
+      isCompostable: isCompostable ?? this.isCompostable,
+      requiresSpecialDisposal: requiresSpecialDisposal ?? this.requiresSpecialDisposal,
+      colorCode: colorCode ?? this.colorCode,
+      riskLevel: riskLevel ?? this.riskLevel,
+      requiredPPE: requiredPPE ?? this.requiredPPE,
+      brand: brand ?? this.brand,
+      product: product ?? this.product,
+      barcode: barcode ?? this.barcode,
+      isSaved: isSaved ?? this.isSaved,
+      userConfirmed: userConfirmed ?? this.userConfirmed,
+      userCorrection: userCorrection ?? this.userCorrection,
+      disagreementReason: disagreementReason ?? this.disagreementReason,
+      userNotes: userNotes ?? this.userNotes,
+      viewCount: viewCount ?? this.viewCount,
+      clarificationNeeded: clarificationNeeded ?? this.clarificationNeeded,
+      confidence: confidence ?? this.confidence,
+      modelVersion: modelVersion ?? this.modelVersion,
+      processingTimeMs: processingTimeMs ?? this.processingTimeMs,
+      modelSource: modelSource ?? this.modelSource,
+      analysisSessionId: analysisSessionId ?? this.analysisSessionId,
+      alternatives: alternatives ?? this.alternatives,
+      suggestedAction: suggestedAction ?? this.suggestedAction,
+      hasUrgentTimeframe: hasUrgentTimeframe ?? this.hasUrgentTimeframe,
+      instructionsLang: instructionsLang ?? this.instructionsLang,
+      translatedInstructions: translatedInstructions ?? this.translatedInstructions,
+      source: source ?? this.source,
+      timestamp: timestamp ?? this.timestamp,
+    );
+  }
+}
+
+/// Alternative classification suggestion
+class AlternativeClassification {
+  final String category;
+  final String? subcategory;
+  final double confidence;
+  final String reason;
+
+  AlternativeClassification({
+    required this.category,
+    this.subcategory,
+    required this.confidence,
+    required this.reason,
+  });
+
+  factory AlternativeClassification.fromJson(Map<String, dynamic> json) {
+    return AlternativeClassification(
       category: json['category'] ?? '',
       subcategory: json['subcategory'],
-      explanation: json['explanation'] ?? '',
-      imageUrl: json['imageUrl'],
-      disposalMethod: json['disposalMethod'],
-      recyclingCode: recyclingCode,
-      isRecyclable: json['isRecyclable'],
-      isCompostable: json['isCompostable'],
-      requiresSpecialDisposal: json['requiresSpecialDisposal'],
-      colorCode: json['colorCode'],
-      materialType: json['materialType'],
-      isSaved: json['isSaved'] ?? false,
-      timestamp: json['timestamp'] != null
-          ? DateTime.parse(json['timestamp'])
-          : DateTime.now(),
-      // AI Model Performance Data
-      confidence: json['confidence']?.toDouble(),
-      modelVersion: json['modelVersion'],
-      processingTimeMs: json['processingTimeMs'],
-      alternatives: alternatives,
-      // User Interaction Data
-      userConfirmed: json['userConfirmed'],
-      userCorrection: json['userCorrection'],
-      userNotes: json['userNotes'],
-      viewCount: json['viewCount'],
-      // Processing Context
-      source: json['source'],
-      imageMetrics: imageMetrics,
-      imageHash: json['imageHash'],
-      // Disposal instructions
-      disposalInstructions: disposalInstructions,
+      confidence: (json['confidence'] ?? 0.0).toDouble(),
+      reason: json['reason'] ?? '',
     );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'category': category,
+      'subcategory': subcategory,
+      'confidence': confidence,
+      'reason': reason,
+    };
+  }
+}
+
+/// Detailed disposal instructions
+class DisposalInstructions {
+  final String primaryMethod;
+  final List<String> steps;
+  final String? timeframe;
+  final String? location;
+  final List<String>? warnings;
+  final List<String>? tips;
+  final String? recyclingInfo;
+  final String? estimatedTime;
+  final bool hasUrgentTimeframe;
+
+  DisposalInstructions({
+    required this.primaryMethod,
+    required this.steps,
+    this.timeframe,
+    this.location,
+    this.warnings,
+    this.tips,
+    this.recyclingInfo,
+    this.estimatedTime,
+    required this.hasUrgentTimeframe,
+  });
+
+  factory DisposalInstructions.fromJson(Map<String, dynamic> json) {
+    return DisposalInstructions(
+      primaryMethod: json['primaryMethod'] ?? 'Review required',
+      steps: json['steps'] != null
+          ? List<String>.from(json['steps'])
+          : ['Please review manually'],
+      timeframe: json['timeframe'],
+      location: json['location'],
+      warnings: json['warnings'] != null
+          ? List<String>.from(json['warnings'])
+          : null,
+      tips: json['tips'] != null
+          ? List<String>.from(json['tips'])
+          : null,
+      recyclingInfo: json['recyclingInfo'],
+      estimatedTime: json['estimatedTime'],
+      hasUrgentTimeframe: json['hasUrgentTimeframe'] ?? false,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'primaryMethod': primaryMethod,
+      'steps': steps,
+      'timeframe': timeframe,
+      'location': location,
+      'warnings': warnings,
+      'tips': tips,
+      'recyclingInfo': recyclingInfo,
+      'estimatedTime': estimatedTime,
+      'hasUrgentTimeframe': hasUrgentTimeframe,
+    };
   }
 }
 
@@ -474,38 +679,5 @@ extension NonWasteSubcategoryExtension on NonWasteSubcategory {
 
   String get color {
     return '#9C27B0'; // Purple (same as parent category)
-  }
-}
-
-/// Alternative classification suggestion from AI model
-class AlternativeClassification {
-  final String category;
-  final String? subcategory;
-  final double confidence;
-  final String reason;
-
-  AlternativeClassification({
-    required this.category,
-    this.subcategory,
-    required this.confidence,
-    required this.reason,
-  });
-
-  Map<String, dynamic> toJson() {
-    return {
-      'category': category,
-      'subcategory': subcategory,
-      'confidence': confidence,
-      'reason': reason,
-    };
-  }
-
-  factory AlternativeClassification.fromJson(Map<String, dynamic> json) {
-    return AlternativeClassification(
-      category: json['category'],
-      subcategory: json['subcategory'],
-      confidence: json['confidence']?.toDouble() ?? 0.0,
-      reason: json['reason'] ?? '',
-    );
   }
 }

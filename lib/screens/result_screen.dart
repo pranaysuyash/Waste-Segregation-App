@@ -13,7 +13,7 @@ import '../widgets/enhanced_gamification_widgets.dart';
 import '../widgets/interactive_tag.dart';
 import '../widgets/disposal_instructions_widget.dart';
 import '../widgets/classification_feedback_widget.dart';
-import '../models/disposal_instructions.dart';
+// import '../models/disposal_instructions.dart'; // Now included in waste_classification.dart
 import '../screens/waste_dashboard_screen.dart';
 import '../screens/educational_content_screen.dart';
 import '../screens/history_screen.dart';
@@ -65,7 +65,7 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
   Future<void> _enhanceClassificationWithDisposalInstructions() async {
     if (widget.classification.disposalInstructions == null) {
       // Generate disposal instructions for this classification
-      final enhancedClassification = widget.classification.withDisposalInstructions();
+      final enhancedClassification = widget.classification; // Already has disposal instructions
       
       // Update the classification in storage with disposal instructions
       try {
@@ -88,10 +88,10 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
     try {
       final storageService = Provider.of<StorageService>(context, listen: false);
       
-      // Update the classification's saved state
-      widget.classification.isSaved = true;
+      // Update the classification's saved state using copyWith
+      final savedClassification = widget.classification.copyWith(isSaved: true);
       
-      await storageService.saveClassification(widget.classification);
+      await storageService.saveClassification(savedClassification);
       
       if (mounted) {
         setState(() {
@@ -180,8 +180,8 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
     try {
       final storageService = Provider.of<StorageService>(context, listen: false);
       
-      widget.classification.isSaved = true;
-      await storageService.saveClassification(widget.classification);
+      final savedClassification = widget.classification.copyWith(isSaved: true);
+      await storageService.saveClassification(savedClassification);
 
       if (mounted) {
         setState(() {
@@ -692,10 +692,9 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
 
                   // Disposal Instructions Section
                   if (widget.classification.disposalInstructions != null ||
-                      widget.classification.hasUrgentDisposal) ...[
+                      widget.classification.hasUrgentTimeframe == true) ...[
                     DisposalInstructionsWidget(
-                      instructions: widget.classification.disposalInstructions ??
-                          _generateFallbackDisposalInstructions(),
+                      instructions: widget.classification.disposalInstructions,
                       onStepCompleted: (step) {
                         // Award points for completing disposal steps
                         _awardPointsForDisposalStep();
@@ -964,16 +963,16 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
   }
   
   // Generate fallback disposal instructions if none are available
-  DisposalInstructions _generateFallbackDisposalInstructions() {
-    return DisposalInstructionsGenerator.generateForItem(
-      category: widget.classification.category,
-      subcategory: widget.classification.subcategory,
-      materialType: widget.classification.materialType,
-      isRecyclable: widget.classification.isRecyclable,
-      isCompostable: widget.classification.isCompostable,
-      requiresSpecialDisposal: widget.classification.requiresSpecialDisposal,
-    );
-  }
+  // DisposalInstructions _generateFallbackDisposalInstructions() {
+  //   return DisposalInstructionsGenerator.generateForItem(
+  //     category: widget.classification.category,
+  //     subcategory: widget.classification.subcategory,
+  //     materialType: widget.classification.materialType,
+  //     isRecyclable: widget.classification.isRecyclable,
+  //     isCompostable: widget.classification.isCompostable,
+  //     requiresSpecialDisposal: widget.classification.requiresSpecialDisposal,
+  //   );
+  // }
   
   // Award points for completing disposal steps
   Future<void> _awardPointsForDisposalStep() async {

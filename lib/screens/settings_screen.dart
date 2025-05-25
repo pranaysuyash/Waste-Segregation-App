@@ -4,7 +4,10 @@ import 'package:provider/provider.dart';
 import '../services/premium_service.dart';
 import '../services/ad_service.dart';
 import '../services/storage_service.dart';
+import '../services/enhanced_storage_service.dart';
 import '../services/analytics_service.dart';
+import '../services/google_drive_service.dart';
+import '../services/navigation_settings_service.dart';
 import '../utils/constants.dart';
 import '../utils/app_version.dart';
 import 'premium_features_screen.dart';
@@ -14,6 +17,8 @@ import 'legal_document_screen.dart';
 import 'offline_mode_settings_screen.dart';
 import 'data_export_screen.dart';
 import 'navigation_demo_screen.dart';
+import 'modern_ui_showcase_screen.dart';
+import 'auth_screen.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 
 class SettingsScreen extends StatefulWidget {
@@ -32,6 +37,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final storageService = Provider.of<StorageService>(context);
     final adService = Provider.of<AdService>(context, listen: false);
     final analyticsService = Provider.of<AnalyticsService>(context, listen: false);
+    final googleDriveService = Provider.of<GoogleDriveService>(context, listen: false);
     
     // Set context for ads
     adService.setInClassificationFlow(false);
@@ -168,12 +174,82 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       FirebaseCrashlytics.instance.crash();
                     },
                   ),
+                  const SizedBox(height: 8),
+                  // Reset Full Data button for testing
+                  ElevatedButton.icon(
+                    icon: Icon(Icons.restore, color: Colors.orange),
+                    label: Text('Reset Full Data (Factory Reset)', style: TextStyle(color: Colors.orange)),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.white,
+                      foregroundColor: Colors.orange,
+                      side: BorderSide(color: Colors.orange),
+                    ),
+                    onPressed: () {
+                      _showFactoryResetDialog(context, storageService, analyticsService, premiumService);
+                    },
+                  ),
                   // --- END TEMPORARY ---
                 ],
               ),
             ),
             const Divider(),
           ],
+
+          // Navigation Settings
+          Consumer<NavigationSettingsService>(
+            builder: (context, navSettings, child) {
+              return ExpansionTile(
+                leading: const Icon(Icons.navigation),
+                title: const Text('Navigation Settings'),
+                subtitle: const Text('Customize navigation behavior'),
+                children: [
+                  SwitchListTile(
+                    title: const Text('Bottom Navigation'),
+                    subtitle: const Text('Show bottom navigation bar'),
+                    value: navSettings.bottomNavEnabled,
+                    onChanged: (value) {
+                      navSettings.setBottomNavEnabled(value);
+                    },
+                  ),
+                  SwitchListTile(
+                    title: const Text('Camera Button (FAB)'),
+                    subtitle: const Text('Show floating camera button'),
+                    value: navSettings.fabEnabled,
+                    onChanged: (value) {
+                      navSettings.setFabEnabled(value);
+                    },
+                  ),
+                  ListTile(
+                    title: const Text('Navigation Style'),
+                    subtitle: Text('Current: ${navSettings.navigationStyle}'),
+                    trailing: DropdownButton<String>(
+                      value: navSettings.navigationStyle,
+                      items: const [
+                        DropdownMenuItem(
+                          value: 'glassmorphism',
+                          child: Text('Glassmorphism'),
+                        ),
+                        DropdownMenuItem(
+                          value: 'material3',
+                          child: Text('Material 3'),
+                        ),
+                        DropdownMenuItem(
+                          value: 'floating',
+                          child: Text('Floating'),
+                        ),
+                      ],
+                      onChanged: (value) {
+                        if (value != null) {
+                          navSettings.setNavigationStyle(value);
+                        }
+                      },
+                    ),
+                  ),
+                ],
+              );
+            },
+          ),
+          const Divider(),
 
           // Theme Settings
           ListTile(
@@ -216,6 +292,38 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 context,
                 MaterialPageRoute(
                   builder: (context) => const NavigationDemoScreen(),
+                ),
+              );
+            },
+          ),
+          const Divider(),
+
+          // Modern UI Showcase
+          ListTile(
+            leading: const Icon(Icons.design_services, color: Colors.purple),
+            title: const Text('Modern UI Components'),
+            subtitle: const Text('Showcase of new design elements'),
+            trailing: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              decoration: BoxDecoration(
+                color: Colors.purple.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: Colors.purple.withOpacity(0.3)),
+              ),
+              child: const Text(
+                'UPDATED',
+                style: TextStyle(
+                  fontSize: 10,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.purple,
+                ),
+              ),
+            ),
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const ModernUIShowcaseScreen(),
                 ),
               );
             },
@@ -317,6 +425,29 @@ class _SettingsScreenState extends State<SettingsScreen> {
               } else {
                 _showPremiumFeaturePrompt(context, 'Data Export');
               }
+            },
+          ),
+          const Divider(),
+
+          // Sign Out / Switch Account
+          FutureBuilder<bool>(
+            future: googleDriveService.isSignedIn(),
+            builder: (context, snapshot) {
+              final bool isSignedIn = snapshot.data ?? false;
+              
+              return ListTile(
+                leading: Icon(
+                  isSignedIn ? Icons.logout : Icons.account_circle_outlined,
+                  color: isSignedIn ? Colors.red : Colors.blue,
+                ),
+                title: Text(isSignedIn ? 'Sign Out' : 'Switch to Google Account'),
+                subtitle: Text(
+                  isSignedIn 
+                      ? 'Sign out and return to login screen'
+                      : 'Currently in guest mode - sign in to sync data',
+                ),
+                onTap: () => _handleAccountAction(context, isSignedIn, googleDriveService),
+              );
             },
           ),
           const Divider(),
@@ -486,6 +617,109 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
+  // Handle account actions (sign in/sign out)
+  Future<void> _handleAccountAction(
+    BuildContext context, 
+    bool isSignedIn, 
+    GoogleDriveService googleDriveService,
+  ) async {
+    if (isSignedIn) {
+      // Show sign out confirmation
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Sign Out'),
+          content: const Text(
+            'Are you sure you want to sign out? You can sign back in anytime to sync your data.',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () async {
+                Navigator.pop(context); // Close dialog
+                
+                try {
+                  // Show loading indicator
+                  showDialog(
+                    context: context,
+                    barrierDismissible: false,
+                    builder: (context) => const AlertDialog(
+                      content: Row(
+                        children: [
+                          CircularProgressIndicator(),
+                          SizedBox(width: 16),
+                          Text('Signing out...'),
+                        ],
+                      ),
+                    ),
+                  );
+                  
+                  // Perform sign out
+                  await googleDriveService.signOut();
+                  
+                  if (context.mounted) {
+                    Navigator.pop(context); // Close loading dialog
+                    
+                    // Navigate back to auth screen
+                    Navigator.pushAndRemoveUntil(
+                      context,
+                      MaterialPageRoute(builder: (context) => const AuthScreen()),
+                      (route) => false,
+                    );
+                  }
+                } catch (e) {
+                  if (context.mounted) {
+                    Navigator.pop(context); // Close loading dialog
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('Error signing out: ${e.toString()}'),
+                        backgroundColor: Colors.red,
+                      ),
+                    );
+                  }
+                }
+              },
+              child: const Text('Sign Out', style: TextStyle(color: Colors.red)),
+            ),
+          ],
+        ),
+      );
+    } else {
+      // Currently in guest mode, show sign in dialog
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Switch to Google Account'),
+          content: const Text(
+            'You are currently using the app in guest mode. Would you like to sign in with your Google account to sync your data across devices?',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Stay in Guest Mode'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.pop(context); // Close dialog
+                
+                // Navigate to auth screen
+                Navigator.pushAndRemoveUntil(
+                  context,
+                  MaterialPageRoute(builder: (context) => const AuthScreen()),
+                  (route) => false,
+                );
+              },
+              child: const Text('Sign In'),
+            ),
+          ],
+        ),
+      );
+    }
+  }
+
   // Show a premium feature prompt
   void _showPremiumFeaturePrompt(BuildContext context, String featureName) {
     showDialog(
@@ -577,6 +811,119 @@ class _SettingsScreenState extends State<SettingsScreen> {
           );
         }
       },
+    );
+  }
+
+  void _showFactoryResetDialog(
+    BuildContext context,
+    StorageService storageService,
+    AnalyticsService analyticsService,
+    PremiumService premiumService,
+  ) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Row(
+          children: [
+            Icon(Icons.warning, color: Colors.red),
+            SizedBox(width: 8),
+            Text('Factory Reset'),
+          ],
+        ),
+        content: const Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'This will completely reset the app to factory settings and delete ALL data:',
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
+            SizedBox(height: 12),
+            Text('• All classification history'),
+            Text('• All gamification progress (points, streaks, achievements)'),
+            Text('• All user preferences and settings'),
+            Text('• All cached data'),
+            Text('• All premium feature settings'),
+            SizedBox(height: 12),
+            Text(
+              'This action cannot be undone!',
+              style: TextStyle(
+                color: Colors.red,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+              foregroundColor: Colors.white,
+            ),
+            onPressed: () async {
+              Navigator.pop(context);
+              
+              // Show loading dialog
+              showDialog(
+                context: context,
+                barrierDismissible: false,
+                builder: (context) => const AlertDialog(
+                  content: Row(
+                    children: [
+                      CircularProgressIndicator(),
+                      SizedBox(width: 16),
+                      Text('Resetting app to factory settings...'),
+                    ],
+                  ),
+                ),
+              );
+              
+              try {
+                // Clear all analytics data
+                analyticsService.clearAnalyticsData();
+                
+                // Reset all premium features
+                await premiumService.resetPremiumFeatures();
+                
+                // Clear all user data (includes gamification reset)
+                await storageService.clearAllUserData();
+                
+                // Clear enhanced storage cache if available
+                if (storageService is EnhancedStorageService) {
+                  (storageService as EnhancedStorageService).clearCache();
+                }
+                
+                if (context.mounted) {
+                  Navigator.pop(context); // Close loading dialog
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('App has been reset to factory settings'),
+                      backgroundColor: Colors.green,
+                      duration: Duration(seconds: 3),
+                    ),
+                  );
+                }
+              } catch (e) {
+                if (context.mounted) {
+                  Navigator.pop(context); // Close loading dialog
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Error during factory reset: ${e.toString()}'),
+                      backgroundColor: Colors.red,
+                      duration: const Duration(seconds: 5),
+                    ),
+                  );
+                }
+              }
+            },
+            child: const Text('FACTORY RESET'),
+          ),
+        ],
+      ),
     );
   }
 }

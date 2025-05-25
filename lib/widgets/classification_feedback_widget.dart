@@ -55,26 +55,7 @@ class _ClassificationFeedbackWidgetState extends State<ClassificationFeedbackWid
   }
 
   void _submitFeedback() {
-    final updatedClassification = WasteClassification(
-      itemName: widget.classification.itemName,
-      category: widget.classification.category,
-      subcategory: widget.classification.subcategory,
-      explanation: widget.classification.explanation,
-      imageUrl: widget.classification.imageUrl,
-      disposalMethod: widget.classification.disposalMethod,
-      recyclingCode: widget.classification.recyclingCode,
-      isRecyclable: widget.classification.isRecyclable,
-      isCompostable: widget.classification.isCompostable,
-      requiresSpecialDisposal: widget.classification.requiresSpecialDisposal,
-      colorCode: widget.classification.colorCode,
-      materialType: widget.classification.materialType,
-      isSaved: widget.classification.isSaved,
-      timestamp: widget.classification.timestamp,
-      disposalInstructions: widget.classification.disposalInstructions,
-      confidence: widget.classification.confidence,
-      modelVersion: widget.classification.modelVersion,
-      processingTimeMs: widget.classification.processingTimeMs,
-      alternatives: widget.classification.alternatives,
+    final updatedClassification = widget.classification.copyWith(
       // Updated user feedback data
       userConfirmed: _userConfirmed,
       userCorrection: _selectedCorrection == 'Custom correction...' 
@@ -86,9 +67,6 @@ class _ClassificationFeedbackWidgetState extends State<ClassificationFeedbackWid
           ? _notesController.text.trim() 
           : null,
       viewCount: (widget.classification.viewCount ?? 0) + 1,
-      source: widget.classification.source,
-      imageMetrics: widget.classification.imageMetrics,
-      imageHash: widget.classification.imageHash,
     );
 
     widget.onFeedbackSubmitted(updatedClassification);

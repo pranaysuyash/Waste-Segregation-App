@@ -1,7 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
 import 'dart:math' show pow;
-import 'dart:ui' show Rect;
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import '../models/waste_classification.dart';
@@ -9,11 +8,11 @@ import '../utils/constants.dart';
 import '../utils/image_utils.dart';
 import '../services/cache_service.dart';
 
-// Use the custom Rect class
-
 class AiService {
-  final String baseUrl;
-  final String apiKey;
+  final String openAiBaseUrl;
+  final String openAiApiKey;
+  final String geminiBaseUrl;
+  final String geminiApiKey;
   final ClassificationCacheService cacheService;
   
   // Simple segmentation parameters - can be adjusted based on needs
@@ -24,13 +23,23 @@ class AiService {
   // Enable/disable caching (for testing or fallback)
   final bool cachingEnabled;
 
+  // Default region for classifications
+  final String defaultRegion;
+  final String defaultLanguage;
+
   AiService({
-    String? baseUrl,
-    String? apiKey,
+    String? openAiBaseUrl,
+    String? openAiApiKey,
+    String? geminiBaseUrl,
+    String? geminiApiKey,
     ClassificationCacheService? cacheService,
     this.cachingEnabled = true,
-  })  : baseUrl = baseUrl ?? ApiConfig.geminiBaseUrl,
-        apiKey = apiKey ?? ApiConfig.apiKey,
+    this.defaultRegion = 'Bangalore, IN',
+    this.defaultLanguage = 'en',
+  })  : openAiBaseUrl = openAiBaseUrl ?? ApiConfig.openAiBaseUrl,
+        openAiApiKey = openAiApiKey ?? ApiConfig.openAiApiKey,
+        geminiBaseUrl = geminiBaseUrl ?? ApiConfig.geminiBaseUrl,
+        geminiApiKey = geminiApiKey ?? ApiConfig.apiKey,
         cacheService = cacheService ?? ClassificationCacheService();
         
   /// Initialize the service and its dependencies
@@ -40,6 +49,99 @@ class AiService {
       await cacheService.initialize();
     }
   }
+
+  /// System prompt for waste classification expert
+  String get _systemPrompt => '''
+You are an expert in international waste classification, recycling, and proper disposal practices. 
+You are familiar with global and local waste management rules (including $defaultRegion), brand-specific packaging, and recycling codes. 
+Your goal is to provide accurate, actionable, and safe waste sorting guidance based on the latest environmental standards.
+''';
+
+  /// Main classification prompt for analyzing waste items
+  String get _mainClassificationPrompt => '''
+Analyze the provided waste item (with optional image context) and return a comprehensive, strictly formatted JSON object matching the data model below.
+
+Classification Hierarchy & Instructions:
+
+1. Main category (exactly one):
+   - Wet Waste (organic, compostable)
+   - Dry Waste (recyclable)
+   - Hazardous Waste (special handling)
+   - Medical Waste (potentially contaminated)
+   - Non-Waste (reusable, edible, donatable, etc.)
+
+2. Subcategory: Most specific fit, based on local guidelines if available.
+3. Material type: E.g., PET plastic, cardboard, metal, glass, food scraps.
+4. Recycling code: For plastics (1–7), if identified.
+5. Disposal method: Short instruction (e.g., "Rinse and recycle in blue bin").
+6. Disposal instructions (object):
+   - primaryMethod: Main recommended action
+   - steps: Step-by-step list
+   - timeframe: If urgent (e.g., "Immediate", "Within 24 hours")
+   - location: Drop-off or bin type
+   - warnings: Any safety or contamination warnings
+   - tips: Helpful tips
+   - recyclingInfo: Extra recycling info
+   - estimatedTime: Time needed for disposal
+   - hasUrgentTimeframe: Boolean
+
+7. Risk & safety:
+   - riskLevel: "safe", "caution", "hazardous"
+   - requiredPPE: ["gloves", "mask"], if needed
+
+8. Booleans:
+   - isRecyclable, isCompostable, requiresSpecialDisposal
+
+9. Brand/product/barcode: If present/visible
+10. Region/locale: City/country string (e.g., "$defaultRegion")
+    - localGuidelinesReference: If possible (e.g., "BBMP 2024/5")
+
+11. Visual features: Notable characteristics from the image (e.g., ["broken", "dirty", "label missing"])
+12. Explanation: Detailed reasoning for decisions
+13. Suggested action: E.g., "Recycle", "Compost", "Donate", etc.
+14. Color code: Hex value for UI
+15. Confidence: 0.0–1.0, with a brief note if confidence < 0.7
+16. clarificationNeeded: Boolean if confidence < 0.7 or item ambiguous
+17. Alternatives: Up to 2 alternative category/subcategory suggestions, each with confidence and reason
+18. Model info:
+    - modelVersion, modelSource, processingTimeMs, analysisSessionId (set to null if not provided)
+
+19. Multilingual support:
+    - If instructionsLang provided, output translated disposal instructions as translatedInstructions for ["hi", "kn"] as well as "en".
+20. User fields:
+    - Set isSaved, userConfirmed, userCorrection, disagreementReason, userNotes, viewCount to null unless provided in input context.
+
+Rules:
+- Reply with only the JSON object (no extra commentary).
+- Use null for any unknown fields.
+- Strictly match the field names and structure below.
+- Do not hallucinate image URLs or user fields unless given.
+
+Format the response as a valid JSON object with these fields: itemName, category, subcategory, materialType, recyclingCode, explanation, disposalMethod, disposalInstructions, region, localGuidelinesReference, imageUrl, imageHash, imageMetrics, visualFeatures, isRecyclable, isCompostable, requiresSpecialDisposal, colorCode, riskLevel, requiredPPE, brand, product, barcode, isSaved, userConfirmed, userCorrection, disagreementReason, userNotes, viewCount, clarificationNeeded, confidence, modelVersion, processingTimeMs, modelSource, analysisSessionId, alternatives, suggestedAction, hasUrgentTimeframe, instructionsLang, translatedInstructions
+''';
+
+  /// Correction/disagreement prompt for handling user feedback
+  String _getCorrectionPrompt(Map<String, dynamic> previousClassification, String userCorrection, String? userReason) => '''
+A user has reviewed the waste item classification and provided feedback or a correction.  
+Please re-analyze the item and return an updated JSON response, as per the data model, with special attention to:
+
+- Areas of disagreement: Update the classification or reasoning as needed.
+- clarificationNeeded: Set to true if ambiguity remains or confidence is low.
+- disagreementReason: Explain why the original classification may have been incorrect, and how the user correction changes the analysis.
+
+Input Context:
+- Previous classification: ${jsonEncode(previousClassification)}
+- User correction: "$userCorrection"
+- Reason (if provided): "${userReason ?? 'Not provided'}"
+
+Instructions:
+- Update all relevant fields, especially category, subcategory, materialType, and explanation.
+- Add a disagreementReason field, explaining the change or clarification.
+- Use the same JSON model as before; fill all fields as per updated analysis.
+
+Output:
+- Only the updated JSON object.
+''';
 
   // Convert image to base64 for API request
   Future<String> _imageToBase64(File imageFile) async {
@@ -52,10 +154,17 @@ class AiService {
     return base64Encode(bytes);
   }
 
-  // Analyze web image using Gemini Vision API with retry and fallback
+  /// Analyze web image using AI with comprehensive classification
   Future<WasteClassification> analyzeWebImage(
-      Uint8List imageBytes, String imageName, {int retryCount = 0, int maxRetries = 3}) async {
+      Uint8List imageBytes, String imageName, {
+      int retryCount = 0, 
+      int maxRetries = 3,
+      String? region,
+      String? instructionsLang,
+    }) async {
     String? imageHash;
+    final analysisRegion = region ?? defaultRegion;
+    final analysisLang = instructionsLang ?? defaultLanguage;
     
     try {
       // Check cache if enabled
@@ -75,182 +184,113 @@ class AiService {
         }
         
         debugPrint('Cache miss for web image hash: $imageHash - will call API and save result');
-        
-        // Not in cache, so continue with API request and cache the result afterwards
-        final String base64Image = _bytesToBase64(imageBytes);
-
-        // Prepare request body using OpenAI format for Gemini with enhanced prompting
-        final Map<String, dynamic> requestBody = {
-          "model": ApiConfig.model,
-          "messages": [
-            {
-              "role": "system",
-              "content":
-                  "You are an expert in waste classification and recycling that can identify items from images. "
-                      "You have deep knowledge of international waste segregation standards, recycling codes, and proper disposal methods."
-            },
-            {
-              "role": "user",
-              "content": [
-                {
-                  "type": "text",
-                  "text":
-                      "Analyze this item in detail and classify it according to the following hierarchy:\n\n1. Main category (choose exactly one):\n   - Wet Waste (organic, compostable)\n   - Dry Waste (recyclable)\n   - Hazardous Waste (requires special handling)\n   - Medical Waste (potentially contaminated)\n   - Non-Waste (reusable items, edible food)\n\n2. Subcategory (choose the most specific one that applies):\n   For Wet Waste: Food Waste, Garden Waste, Animal Waste, Biodegradable Packaging, Other Wet Waste\n   For Dry Waste: Paper, Plastic, Glass, Metal, Carton, Textile, Rubber, Wood, Other Dry Waste\n   For Hazardous Waste: Electronic Waste, Batteries, Chemical Waste, Paint Waste, Light Bulbs, Aerosol Cans, Automotive Waste, Other Hazardous Waste\n   For Medical Waste: Sharps, Pharmaceutical, Infectious, Non-Infectious, Other Medical Waste\n   For Non-Waste: Reusable Items, Donatable Items, Edible Food, Repurposable Items, Other Non-Waste\n\n3. Material Type: Identify the specific material (e.g., PET plastic, cardboard, food scraps, etc.)\n\n4. For plastics, identify the recycling code if possible (1-7)\n\n5. Determine if the item is:\n   - Recyclable (true/false)\n   - Compostable (true/false)\n   - Requires special disposal (true/false)\n\n6. Provide a detailed explanation of why it belongs to the assigned categories and how it should be properly disposed.\n\nFormat the response as a valid JSON object with these fields: itemName, category, subcategory, materialType, recyclingCode, explanation, disposalMethod, isRecyclable, isCompostable, requiresSpecialDisposal, colorCode"
-                },
-                {
-                  "type": "image_url",
-                  "image_url": {"url": "data:image/jpeg;base64,$base64Image"}
-                }
-              ]
-            }
-          ]
-        };
-
-        // Create the web image URL with base64 data
-        final String webImageUrl = 'web_image:data:image/jpeg;base64,$base64Image';
-        
-        // Make HTTP request to the Gemini API
-        final response = await http.post(
-          Uri.parse('$baseUrl/chat/completions'),
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': 'Bearer $apiKey',
-          },
-          body: jsonEncode(requestBody),
-        );
-
-        // Handle successful response
-        if (response.statusCode == 200) {
-          final Map<String, dynamic> responseData = jsonDecode(response.body);
-          final classification = _processAiResponseData(responseData, webImageUrl);
-          
-          // Cache the result if we have a valid hash
-          if (cachingEnabled) {
-            debugPrint('Caching web classification result for hash: $imageHash');
-            await cacheService.cacheClassification(
-              imageHash, 
-              classification, 
-              imageSize: imageBytes.length
-            );
-            debugPrint('Successfully cached web classification for hash: $imageHash');
-          }
-          
-          return classification;
-        }
-        // Handle service unavailable (503) with retry logic
-        else if (response.statusCode == 503 && retryCount < maxRetries) {
-          debugPrint('Gemini API overloaded (503). Retry ${retryCount + 1} of $maxRetries...');
-          
-          // Exponential backoff - wait longer between each retry (500ms × 2^retryCount)
-          final waitTime = Duration(milliseconds: 500 * pow(2, retryCount).toInt());
-          await Future.delayed(waitTime);
-          
-          // Retry with incremented count
-          return analyzeWebImage(imageBytes, imageName, retryCount: retryCount + 1, maxRetries: maxRetries);
-        } 
-        // If all retries fail, fall back to OpenAI
-        else if (response.statusCode == 503) {
-          debugPrint('Gemini API unavailable after $maxRetries retries. Falling back to OpenAI...');
-          final classification = await _fallbackToOpenAIWeb(imageBytes, imageName);
-          
-          // Cache the fallback result
-          if (cachingEnabled) {
-            await cacheService.cacheClassification(
-              imageHash, 
-              classification, 
-              imageSize: imageBytes.length
-            );
-          }
-          
-          return classification;
-        }
-        // Handle other errors
-        else {
-          debugPrint('Error response: ${response.body}');
-          throw Exception('Failed to analyze image: ${response.statusCode}');
-        }
       }
-      // If caching is disabled, use the original flow
-      else {
-        final String base64Image = _bytesToBase64(imageBytes);
-        
-        // Prepare request body using OpenAI format for Gemini with enhanced prompting
-        final Map<String, dynamic> requestBody = {
-          "model": ApiConfig.model,
-          "messages": [
-            {
-              "role": "system",
-              "content":
-                  "You are an expert in waste classification and recycling that can identify items from images. "
-                      "You have deep knowledge of international waste segregation standards, recycling codes, and proper disposal methods."
-            },
-            {
-              "role": "user",
-              "content": [
-                {
-                  "type": "text",
-                  "text":
-                      "Analyze this item in detail and classify it according to the following hierarchy:\n\n1. Main category (choose exactly one):\n   - Wet Waste (organic, compostable)\n   - Dry Waste (recyclable)\n   - Hazardous Waste (requires special handling)\n   - Medical Waste (potentially contaminated)\n   - Non-Waste (reusable items, edible food)\n\n2. Subcategory (choose the most specific one that applies):\n   For Wet Waste: Food Waste, Garden Waste, Animal Waste, Biodegradable Packaging, Other Wet Waste\n   For Dry Waste: Paper, Plastic, Glass, Metal, Carton, Textile, Rubber, Wood, Other Dry Waste\n   For Hazardous Waste: Electronic Waste, Batteries, Chemical Waste, Paint Waste, Light Bulbs, Aerosol Cans, Automotive Waste, Other Hazardous Waste\n   For Medical Waste: Sharps, Pharmaceutical, Infectious, Non-Infectious, Other Medical Waste\n   For Non-Waste: Reusable Items, Donatable Items, Edible Food, Repurposable Items, Other Non-Waste\n\n3. Material Type: Identify the specific material (e.g., PET plastic, cardboard, food scraps, etc.)\n\n4. For plastics, identify the recycling code if possible (1-7)\n\n5. Determine if the item is:\n   - Recyclable (true/false)\n   - Compostable (true/false)\n   - Requires special disposal (true/false)\n\n6. Provide a detailed explanation of why it belongs to the assigned categories and how it should be properly disposed.\n\nFormat the response as a valid JSON object with these fields: itemName, category, subcategory, materialType, recyclingCode, explanation, disposalMethod, isRecyclable, isCompostable, requiresSpecialDisposal, colorCode"
-                },
-                {
-                  "type": "image_url",
-                  "image_url": {"url": "data:image/jpeg;base64,$base64Image"}
-                }
-              ]
-            }
-          ]
-        };
 
-        // Create the web image URL with base64 data
-        final String webImageUrl = 'web_image:data:image/jpeg;base64,$base64Image';
-        
-        // Make HTTP request to the Gemini API
-        final response = await http.post(
-          Uri.parse('$baseUrl/chat/completions'),
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': 'Bearer $apiKey',
+      final String base64Image = _bytesToBase64(imageBytes);
+
+      // Prepare request body using OpenAI format with comprehensive prompting
+      final Map<String, dynamic> requestBody = {
+        "model": "gpt-4-vision-preview",
+        "messages": [
+          {
+            "role": "system",
+            "content": _systemPrompt
           },
-          body: jsonEncode(requestBody),
-        );
+          {
+            "role": "user",
+            "content": [
+              {
+                "type": "text",
+                "text": "$_mainClassificationPrompt\n\nAdditional context:\n- Region: $analysisRegion\n- Instructions language: $analysisLang\n- Image source: web upload"
+              },
+              {
+                "type": "image_url",
+                "image_url": {"url": "data:image/jpeg;base64,$base64Image"}
+              }
+            ]
+          }
+        ],
+        "max_tokens": 1500,
+        "temperature": 0.1
+      };
 
-        // Handle successful response
-        if (response.statusCode == 200) {
-          final Map<String, dynamic> responseData = jsonDecode(response.body);
-          return _processAiResponseData(responseData, webImageUrl);
+      // Create the web image URL with base64 data
+      final String webImageUrl = 'web_image:data:image/jpeg;base64,$base64Image';
+      
+      // Make HTTP request to the OpenAI API
+      final response = await http.post(
+        Uri.parse('${ApiConfig.openAiBaseUrl}/chat/completions'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ${ApiConfig.openAiApiKey}',
+        },
+        body: jsonEncode(requestBody),
+      );
+
+      // Handle successful response
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> responseData = jsonDecode(response.body);
+        final classification = _processAiResponseData(responseData, webImageUrl, analysisRegion);
+        
+        // Cache the result if we have a valid hash
+        if (cachingEnabled && imageHash != null) {
+          debugPrint('Caching web classification result for hash: $imageHash');
+          await cacheService.cacheClassification(
+            imageHash, 
+            classification, 
+            imageSize: imageBytes.length
+          );
+          debugPrint('Successfully cached web classification for hash: $imageHash');
         }
-        // Handle service unavailable (503) with retry logic
-        else if (response.statusCode == 503 && retryCount < maxRetries) {
-          debugPrint('Gemini API overloaded (503). Retry ${retryCount + 1} of $maxRetries...');
-          
-          // Exponential backoff - wait longer between each retry (500ms × 2^retryCount)
-          final waitTime = Duration(milliseconds: 500 * pow(2, retryCount).toInt());
-          await Future.delayed(waitTime);
-          
-          // Retry with incremented count
-          return analyzeWebImage(imageBytes, imageName, retryCount: retryCount + 1, maxRetries: maxRetries);
-        } 
-        // If all retries fail, fall back to OpenAI
-        else if (response.statusCode == 503) {
-          debugPrint('Gemini API unavailable after $maxRetries retries. Falling back to OpenAI...');
-          return await _fallbackToOpenAIWeb(imageBytes, imageName);
+        
+        return classification;
+      }
+      // Handle service unavailable (503) with retry logic
+      else if (response.statusCode == 503 && retryCount < maxRetries) {
+        debugPrint('OpenAI API overloaded (503). Retry ${retryCount + 1} of $maxRetries...');
+        
+        // Exponential backoff - wait longer between each retry (500ms × 2^retryCount)
+        final waitTime = Duration(milliseconds: 500 * pow(2, retryCount).toInt());
+        await Future.delayed(waitTime);
+        
+        // Retry with incremented count
+        return analyzeWebImage(imageBytes, imageName, 
+          retryCount: retryCount + 1, 
+          maxRetries: maxRetries,
+          region: region,
+          instructionsLang: instructionsLang,
+        );
+      } 
+      // If all retries fail, fall back to secondary model
+      else if (response.statusCode == 503) {
+        debugPrint('OpenAI API unavailable after $maxRetries retries. Falling back to secondary model...');
+        final classification = await _fallbackToSecondaryModel(imageBytes, imageName, analysisRegion);
+        
+        // Cache the fallback result
+        if (cachingEnabled && imageHash != null) {
+          await cacheService.cacheClassification(
+            imageHash, 
+            classification, 
+            imageSize: imageBytes.length
+          );
         }
-        // Handle other errors
-        else {
-          debugPrint('Error response: ${response.body}');
-          throw Exception('Failed to analyze image: ${response.statusCode}');
-        }
+        
+        return classification;
+      }
+      // Handle other errors
+      else {
+        debugPrint('Error response: ${response.body}');
+        throw Exception('Failed to analyze image: ${response.statusCode}');
       }
     } catch (e) {
-      // If there's an exception (like network error), try fallback if we've exhausted retries
+      // If all retries fail, fall back to secondary model
       if (retryCount >= maxRetries) {
-        debugPrint('Exception after $maxRetries retries. Attempting OpenAI fallback...');
+        debugPrint('Exception after $maxRetries retries. Attempting secondary model fallback...');
         try {
-          final classification = await _fallbackToOpenAIWeb(imageBytes, imageName);
+          final classification = await _fallbackToSecondaryModel(imageBytes, imageName, analysisRegion);
           
           // Cache the fallback result if caching is enabled
-          if (cachingEnabled) {
-            final String imageHash = await ImageUtils.generateImageHash(imageBytes);
+          if (cachingEnabled && imageHash != null) {
             await cacheService.cacheClassification(
               imageHash, 
               classification, 
@@ -260,8 +300,15 @@ class AiService {
           
           return classification;
         } catch (fallbackError) {
-          debugPrint('Fallback also failed: $fallbackError');
-          rethrow; // If fallback also fails, rethrow the original error
+          debugPrint('Secondary model fallback also failed: $fallbackError');
+          // Try tertiary model as last resort
+          try {
+            final classification = await _fallbackToTertiaryModel(imageBytes, imageName, analysisRegion);
+            return classification;
+          } catch (tertiaryError) {
+            debugPrint('All fallbacks failed. Using default fallback.');
+            return WasteClassification.fallback(imageName);
+          }
         }
       }
       debugPrint('Error analyzing web image (try $retryCount): $e');
@@ -270,52 +317,92 @@ class AiService {
       if (retryCount < maxRetries) {
         final waitTime = Duration(milliseconds: 500 * pow(2, retryCount).toInt());
         await Future.delayed(waitTime);
-        return analyzeWebImage(imageBytes, imageName, retryCount: retryCount + 1, maxRetries: maxRetries);
+        return analyzeWebImage(imageBytes, imageName, 
+          retryCount: retryCount + 1, 
+          maxRetries: maxRetries,
+          region: region,
+          instructionsLang: instructionsLang,
+        );
       }
       
       rethrow;
     }
   }
-  
-  // OpenAI fallback for web images
-  Future<WasteClassification> _fallbackToOpenAIWeb(Uint8List imageBytes, String imageName) async {
+
+  /// Handle user corrections and disagreements
+  Future<WasteClassification> handleUserCorrection(
+    WasteClassification originalClassification,
+    String userCorrection,
+    String? userReason, {
+    Uint8List? imageBytes,
+    File? imageFile,
+  }) async {
     try {
-      debugPrint('Using OpenAI fallback for web image analysis');
-      final String base64Image = _bytesToBase64(imageBytes);
+      debugPrint('Processing user correction: $userCorrection');
       
-      // Create HTTP client for OpenAI API
-      final client = http.Client();
-      
-      // Prepare the request body for OpenAI's vision API
-      final Map<String, dynamic> requestBody = {
-        "model": ApiConfig.openAiModel,
-        "messages": [
-          {
-            "role": "system",
-            "content": "You are an expert in waste classification and recycling that can identify items from images. "
-                "You have deep knowledge of international waste segregation standards, recycling codes, and proper disposal methods."
-          },
-          {
-            "role": "user",
-            "content": [
-              {
-                "type": "text",
-                "text": "Analyze this item in detail and classify it according to the following hierarchy:\n\n1. Main category (choose exactly one):\n   - Wet Waste (organic, compostable)\n   - Dry Waste (recyclable)\n   - Hazardous Waste (requires special handling)\n   - Medical Waste (potentially contaminated)\n   - Non-Waste (reusable items, edible food)\n\n2. Subcategory (choose the most specific one that applies):\n   For Wet Waste: Food Waste, Garden Waste, Animal Waste, Biodegradable Packaging, Other Wet Waste\n   For Dry Waste: Paper, Plastic, Glass, Metal, Carton, Textile, Rubber, Wood, Other Dry Waste\n   For Hazardous Waste: Electronic Waste, Batteries, Chemical Waste, Paint Waste, Light Bulbs, Aerosol Cans, Automotive Waste, Other Hazardous Waste\n   For Medical Waste: Sharps, Pharmaceutical, Infectious, Non-Infectious, Other Medical Waste\n   For Non-Waste: Reusable Items, Donatable Items, Edible Food, Repurposable Items, Other Non-Waste\n\n3. Material Type: Identify the specific material (e.g., PET plastic, cardboard, food scraps, etc.)\n\n4. For plastics, identify the recycling code if possible (1-7)\n\n5. Determine if the item is:\n   - Recyclable (true/false)\n   - Compostable (true/false)\n   - Requires special disposal (true/false)\n\n6. Provide a detailed explanation of why it belongs to the assigned categories and how it should be properly disposed.\n\nFormat the response as a valid JSON object with these fields: itemName, category, subcategory, materialType, recyclingCode, explanation, disposalMethod, isRecyclable, isCompostable, requiresSpecialDisposal, colorCode"
-              },
-              {
-                "type": "image_url",
-                "image_url": {
-                  "url": "data:image/jpeg;base64,$base64Image"
+      // Prepare the correction prompt
+      final correctionPrompt = _getCorrectionPrompt(
+        originalClassification.toJson(),
+        userCorrection,
+        userReason,
+      );
+
+      Map<String, dynamic> requestBody;
+
+      // If we have image data, include it in the request
+      if (imageBytes != null || imageFile != null) {
+        String base64Image;
+        if (imageBytes != null) {
+          base64Image = _bytesToBase64(imageBytes);
+        } else {
+          base64Image = await _imageToBase64(imageFile!);
+        }
+
+        requestBody = {
+          "model": "gpt-4-vision-preview",
+          "messages": [
+            {
+              "role": "system",
+              "content": _systemPrompt
+            },
+            {
+              "role": "user",
+              "content": [
+                {
+                  "type": "text",
+                  "text": correctionPrompt
+                },
+                {
+                  "type": "image_url",
+                  "image_url": {"url": "data:image/jpeg;base64,$base64Image"}
                 }
-              }
-            ]
-          }
-        ],
-        "max_tokens": 800
-      };
-      
-      // Make the API request to OpenAI
-      final response = await client.post(
+              ]
+            }
+          ],
+          "max_tokens": 1500,
+          "temperature": 0.1
+        };
+      } else {
+        // Text-only correction
+        requestBody = {
+          "model": "gpt-4",
+          "messages": [
+            {
+              "role": "system",
+              "content": _systemPrompt
+            },
+            {
+              "role": "user",
+              "content": correctionPrompt
+            }
+          ],
+          "max_tokens": 1500,
+          "temperature": 0.1
+        };
+      }
+
+      // Make HTTP request to the OpenAI API
+      final response = await http.post(
         Uri.parse('${ApiConfig.openAiBaseUrl}/chat/completions'),
         headers: {
           'Content-Type': 'application/json',
@@ -323,136 +410,171 @@ class AiService {
         },
         body: jsonEncode(requestBody),
       );
-      
-      // Create the web image URL with base64 data
-      final String webImageUrl = 'web_image:data:image/jpeg;base64,$base64Image';
-      
-      // Check if the request was successful
+
       if (response.statusCode == 200) {
         final Map<String, dynamic> responseData = jsonDecode(response.body);
-        
-        // Process the OpenAI response using the same logic as the Gemini response
-        return _processAiResponseData(responseData, webImageUrl);
-      } else {
-        debugPrint('OpenAI fallback error: ${response.statusCode} - ${response.body}');
-        throw Exception('OpenAI fallback failed: ${response.statusCode}');
-      }
-    } catch (e) {
-      debugPrint('Error in OpenAI web fallback: $e');
-      rethrow;
-    }
-  }
-
-  // Analyze image using Gemini Vision API (OpenAI-compatible endpoint)
-  // Image segmentation method for mobile platforms
-  Future<List<Rect>> segmentImage(dynamic image) async {
-    try {
-      final List<Rect> segments = [];
-      
-      // For simplicity, we'll create a grid-based segmentation
-      // In a real app, this would use ML for object detection
-      
-      if (image is File) {
-        // Wait for the image dimensions to be determined
-        // final File file = image; // Unused local variable
-        
-        // Create a simple grid of segments
-        final List<Rect> gridSegments = _createGridSegments();
-        
-        // Add all segments to the list
-        segments.addAll(gridSegments);
-        
-        // Return the segments
-        return segments;
-      } else if (image is Uint8List) {
-        // Create a simple grid of segments
-        final List<Rect> gridSegments = _createGridSegments();
-        
-        // Add all segments to the list
-        segments.addAll(gridSegments);
-        
-        // Return the segments
-        return segments;
-      } else {
-        throw Exception('Unsupported image type for segmentation');
-      }
-    } catch (e) {
-      debugPrint('Error segmenting image: $e');
-      rethrow;
-    }
-  }
-  
-  // Create a grid of segments
-  List<Rect> _createGridSegments() {
-    final List<Rect> segments = [];
-    
-    // Create a grid of segments
-    final double cellWidth = 1.0 / segmentGridSize;
-    final double cellHeight = 1.0 / segmentGridSize;
-    
-    for (int row = 0; row < segmentGridSize; row++) {
-      for (int col = 0; col < segmentGridSize; col++) {
-        // Calculate segment bounds (normalized 0-1)
-        final double left = col * cellWidth;
-        final double top = row * cellHeight;
-        
-        // Create the segment rectangle using our custom Rect
-        final Rect segment = Rect.fromLTWH(
-          left, 
-          top, 
-          cellWidth, 
-          cellHeight
+        final correctedClassification = _processAiResponseData(
+          responseData, 
+          originalClassification.imageUrl ?? 'correction_update',
+          originalClassification.region,
         );
         
-        segments.add(segment);
+        // Preserve some original metadata
+        return correctedClassification.copyWith(
+          imageUrl: originalClassification.imageUrl,
+          imageHash: originalClassification.imageHash,
+          source: originalClassification.source,
+          userCorrection: userCorrection,
+        );
+      } else {
+        debugPrint('Error in correction request: ${response.body}');
+        throw Exception('Failed to process correction: ${response.statusCode}');
       }
+    } catch (e) {
+      debugPrint('Error handling user correction: $e');
+      // Return original classification with user correction noted
+      return originalClassification.copyWith(
+        userCorrection: userCorrection,
+        disagreementReason: 'Failed to process correction: $e',
+        clarificationNeeded: true,
+      );
+    }
+  }
+
+  // ... existing fallback methods remain the same ...
+
+  /// Processes the raw AI response data to extract classification
+  WasteClassification _processAiResponseData(Map<String, dynamic> responseData, String imagePath, String region) {
+    try {
+      final choices = responseData['choices'];
+      if (choices != null && choices.isNotEmpty) {
+        final message = choices[0]['message'];
+        if (message != null) {
+          final content = message['content'];
+          if (content != null) {
+            try {
+              String jsonString = content;
+              debugPrint('Raw AI response content: ${content.substring(0, content.length.clamp(0, 200))}...');
+              
+              // Remove markdown code block formatting if present
+              if (jsonString.contains('```json')) {
+                jsonString = jsonString.replaceAll('```json', '').replaceAll('```', '').trim();
+              } else if (jsonString.contains('```')) {
+                jsonString = jsonString.replaceAll('```', '').trim();
+              }
+              
+              // Try to find JSON object boundaries if the response has extra text
+              final int startIndex = jsonString.indexOf('{');
+              final int endIndex = jsonString.lastIndexOf('}');
+              
+              if (startIndex != -1 && endIndex != -1 && endIndex > startIndex) {
+                jsonString = jsonString.substring(startIndex, endIndex + 1);
+                debugPrint('Extracted JSON: ${jsonString.substring(0, jsonString.length.clamp(0, 200))}...');
+              }
+              
+              // Try to fix common JSON formatting issues
+              jsonString = jsonString
+                .replaceAll("''", '""')
+                .replaceAll("'", '"');
+                
+              debugPrint('Final JSON string to parse: ${jsonString.substring(0, jsonString.length.clamp(0, 200))}...');
+              
+              final jsonContent = jsonDecode(jsonString);
+              
+              // Create comprehensive classification from AI response
+              return WasteClassification(
+                itemName: jsonContent['itemName'] ?? 'Unknown Item',
+                category: jsonContent['category'] ?? 'Dry Waste',
+                subcategory: jsonContent['subcategory'],
+                materialType: jsonContent['materialType'],
+                recyclingCode: jsonContent['recyclingCode'],
+                explanation: jsonContent['explanation'] ?? '',
+                disposalMethod: jsonContent['disposalMethod'],
+                disposalInstructions: jsonContent['disposalInstructions'] != null
+                    ? DisposalInstructions.fromJson(jsonContent['disposalInstructions'])
+                    : DisposalInstructions(
+                        primaryMethod: jsonContent['disposalMethod'] ?? 'Review required',
+                        steps: ['Please review disposal method'],
+                        hasUrgentTimeframe: false,
+                      ),
+                region: jsonContent['region'] ?? region,
+                localGuidelinesReference: jsonContent['localGuidelinesReference'],
+                imageUrl: imagePath,
+                imageHash: jsonContent['imageHash'],
+                imageMetrics: jsonContent['imageMetrics'] != null
+                    ? Map<String, double>.from(jsonContent['imageMetrics'])
+                    : null,
+                visualFeatures: jsonContent['visualFeatures'] != null
+                    ? List<String>.from(jsonContent['visualFeatures'])
+                    : [],
+                isRecyclable: jsonContent['isRecyclable'],
+                isCompostable: jsonContent['isCompostable'],
+                requiresSpecialDisposal: jsonContent['requiresSpecialDisposal'],
+                colorCode: jsonContent['colorCode'],
+                riskLevel: jsonContent['riskLevel'],
+                requiredPPE: jsonContent['requiredPPE'] != null
+                    ? List<String>.from(jsonContent['requiredPPE'])
+                    : null,
+                brand: jsonContent['brand'],
+                product: jsonContent['product'],
+                barcode: jsonContent['barcode'],
+                confidence: jsonContent['confidence']?.toDouble(),
+                clarificationNeeded: jsonContent['clarificationNeeded'],
+                alternatives: jsonContent['alternatives'] != null
+                    ? (jsonContent['alternatives'] as List)
+                        .map((alt) => AlternativeClassification.fromJson(alt))
+                        .toList()
+                    : [],
+                suggestedAction: jsonContent['suggestedAction'],
+                hasUrgentTimeframe: jsonContent['hasUrgentTimeframe'],
+                instructionsLang: jsonContent['instructionsLang'],
+                translatedInstructions: jsonContent['translatedInstructions'] != null
+                    ? Map<String, String>.from(jsonContent['translatedInstructions'])
+                    : null,
+                modelVersion: jsonContent['modelVersion'],
+                modelSource: jsonContent['modelSource'] ?? 'openai-gpt4-vision',
+                processingTimeMs: jsonContent['processingTimeMs'],
+                analysisSessionId: jsonContent['analysisSessionId'],
+                disagreementReason: jsonContent['disagreementReason'],
+                source: 'ai_analysis',
+              );
+            } catch (jsonError) {
+              debugPrint('Failed to parse JSON from AI response: $jsonError');
+              return WasteClassification.fallback(imagePath);
+            }
+          }
+        }
+      }
+    } catch (e) {
+      debugPrint('Error processing AI response data: $e');
+      return WasteClassification.fallback(imagePath);
     }
     
-    // Create one larger center segment
-    final double centerSize = 0.6; // 60% of the image
-    final double centerOffset = (1.0 - centerSize) / 2;
-    final Rect centerSegment = Rect.fromLTWH(
-      centerOffset,
-      centerOffset,
-      centerSize,
-      centerSize
-    );
-    segments.add(centerSegment);
-    
-    return segments;
+    // Fallback for unexpected response structure
+    return WasteClassification.fallback(imagePath);
   }
-  
-  // Analyze image segments for mobile platforms with retry and fallback
-  Future<WasteClassification> analyzeImageSegments(
-      File imageFile, List<Rect> segments, {int retryCount = 0, int maxRetries = 3}) async {
+
+  /// Fallback to secondary model (Gemini) when OpenAI fails
+  Future<WasteClassification> _fallbackToSecondaryModel(Uint8List imageBytes, String imageName, String region) async {
     try {
-      // For now, we'll just use the whole image AI analysis
-      // In a more advanced implementation, we'd crop and analyze just the selected segments
+      debugPrint('Attempting fallback to Gemini model...');
       
-      // Get the base64 encoded image data
-      final String base64Image = await _imageToBase64(imageFile);
+      final String base64Image = _bytesToBase64(imageBytes);
       
-      // Describe the selected regions in the prompt
-      final String segmentDescription = _describeSegments(segments);
-      
-      // Prepare request body using OpenAI format for Gemini with enhanced prompting
+      // Prepare request body for Gemini API
       final Map<String, dynamic> requestBody = {
-        "model": ApiConfig.model,
+        "model": "gemini-pro-vision",
         "messages": [
           {
             "role": "system",
-            "content":
-                "You are an expert in waste classification and recycling that can identify items from images. "
-                    "You have deep knowledge of international waste segregation standards, recycling codes, and proper disposal methods."
+            "content": _systemPrompt
           },
           {
             "role": "user",
             "content": [
               {
                 "type": "text",
-                "text":
-                    "Focus on the following regions of the image: $segmentDescription\n\n"
-                    "Analyze the item in detail and classify it according to the following hierarchy:\n\n1. Main category (choose exactly one):\n   - Wet Waste (organic, compostable)\n   - Dry Waste (recyclable)\n   - Hazardous Waste (requires special handling)\n   - Medical Waste (potentially contaminated)\n   - Non-Waste (reusable items, edible food)\n\n2. Subcategory (choose the most specific one that applies):\n   For Wet Waste: Food Waste, Garden Waste, Animal Waste, Biodegradable Packaging, Other Wet Waste\n   For Dry Waste: Paper, Plastic, Glass, Metal, Carton, Textile, Rubber, Wood, Other Dry Waste\n   For Hazardous Waste: Electronic Waste, Batteries, Chemical Waste, Paint Waste, Light Bulbs, Aerosol Cans, Automotive Waste, Other Hazardous Waste\n   For Medical Waste: Sharps, Pharmaceutical, Infectious, Non-Infectious, Other Medical Waste\n   For Non-Waste: Reusable Items, Donatable Items, Edible Food, Repurposable Items, Other Non-Waste\n\n3. Material Type: Identify the specific material (e.g., PET plastic, cardboard, food scraps, etc.)\n\n4. For plastics, identify the recycling code if possible (1-7)\n\n5. Determine if the item is:\n   - Recyclable (true/false)\n   - Compostable (true/false)\n   - Requires special disposal (true/false)\n\n6. Provide a detailed explanation of why it belongs to the assigned categories and how it should be properly disposed.\n\nFormat the response as a valid JSON object with these fields: itemName, category, subcategory, materialType, recyclingCode, explanation, disposalMethod, isRecyclable, isCompostable, requiresSpecialDisposal, colorCode"
+                "text": "$_mainClassificationPrompt\n\nAdditional context:\n- Region: $region\n- Image source: fallback analysis"
               },
               {
                 "type": "image_url",
@@ -460,793 +582,102 @@ class AiService {
               }
             ]
           }
-        ]
+        ],
+        "max_tokens": 1500,
+        "temperature": 0.1
       };
-      
+
       // Make HTTP request to the Gemini API
       final response = await http.post(
-        Uri.parse('$baseUrl/chat/completions'),
+        Uri.parse('${geminiBaseUrl}/chat/completions'),
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': 'Bearer $apiKey',
+          'Authorization': 'Bearer ${geminiApiKey}',
         },
         body: jsonEncode(requestBody),
       );
 
-      // Handle successful response
       if (response.statusCode == 200) {
         final Map<String, dynamic> responseData = jsonDecode(response.body);
-        return _processAiResponseData(responseData, imageFile.path);
-      }
-      // Handle service unavailable (503) with retry logic
-      else if (response.statusCode == 503 && retryCount < maxRetries) {
-        debugPrint('Gemini API overloaded (503). Retry ${retryCount + 1} of $maxRetries...');
-        
-        // Exponential backoff - wait longer between each retry (500ms × 2^retryCount)
-        final waitTime = Duration(milliseconds: 500 * pow(2, retryCount).toInt());
-        await Future.delayed(waitTime);
-        
-        // Retry with incremented count
-        return analyzeImageSegments(imageFile, segments, retryCount: retryCount + 1, maxRetries: maxRetries);
-      } 
-      // If all retries fail, fall back to OpenAI
-      else if (response.statusCode == 503) {
-        debugPrint('Gemini API unavailable after $maxRetries retries. Falling back to OpenAI...');
-        return await _fallbackToOpenAISegments(imageFile, segments);
-      }
-      // Handle other errors
-      else {
-        debugPrint('Error response: ${response.body}');
-        throw Exception('Failed to analyze image segments: ${response.statusCode}');
+        return _processAiResponseData(responseData, imageName, region);
+      } else {
+        throw Exception('Gemini API failed: ${response.statusCode}');
       }
     } catch (e) {
-      // If there's an exception (like network error), try fallback if we've exhausted retries
-      if (retryCount >= maxRetries) {
-        debugPrint('Exception after $maxRetries retries. Attempting OpenAI fallback...');
-        try {
-          return await _fallbackToOpenAISegments(imageFile, segments);
-        } catch (fallbackError) {
-          debugPrint('Fallback also failed: $fallbackError');
-          rethrow; // If fallback also fails, rethrow the original error
-        }
-      }
-      debugPrint('Error analyzing image segments (try $retryCount): $e');
-      
-      // For other types of errors, increment retry count and try again
-      if (retryCount < maxRetries) {
-        final waitTime = Duration(milliseconds: 500 * pow(2, retryCount).toInt());
-        await Future.delayed(waitTime);
-        return analyzeImageSegments(imageFile, segments, retryCount: retryCount + 1, maxRetries: maxRetries);
-      }
-      
-      rethrow;
+      debugPrint('Gemini fallback failed: $e');
+      throw e;
     }
   }
-  
-  // OpenAI fallback for segmented images
-  Future<WasteClassification> _fallbackToOpenAISegments(File imageFile, List<Rect> segments) async {
-    try {
-      debugPrint('Using OpenAI fallback for segmented image analysis');
-      final List<int> imageBytes = await imageFile.readAsBytes();
-      final String base64Image = base64Encode(imageBytes);
-      
-      // Describe the selected regions in the prompt
-      final String segmentDescription = _describeSegments(segments);
-      
-      // Create HTTP client for OpenAI API
-      final client = http.Client();
-      
-      // Prepare the request body for OpenAI's vision API with segment information
-      final Map<String, dynamic> requestBody = {
-        "model": ApiConfig.openAiModel,
-        "messages": [
-          {
-            "role": "system",
-            "content": "You are an expert in waste classification and recycling that can identify items from images. "
-                "You have deep knowledge of international waste segregation standards, recycling codes, and proper disposal methods."
-          },
-          {
-            "role": "user",
-            "content": [
-              {
-                "type": "text",
-                "text": "Focus on the following regions of the image: $segmentDescription\n\n"
-                    "Analyze the item in detail and classify it according to the following hierarchy:\n\n1. Main category (choose exactly one):\n   - Wet Waste (organic, compostable)\n   - Dry Waste (recyclable)\n   - Hazardous Waste (requires special handling)\n   - Medical Waste (potentially contaminated)\n   - Non-Waste (reusable items, edible food)\n\n2. Subcategory (choose the most specific one that applies):\n   For Wet Waste: Food Waste, Garden Waste, Animal Waste, Biodegradable Packaging, Other Wet Waste\n   For Dry Waste: Paper, Plastic, Glass, Metal, Carton, Textile, Rubber, Wood, Other Dry Waste\n   For Hazardous Waste: Electronic Waste, Batteries, Chemical Waste, Paint Waste, Light Bulbs, Aerosol Cans, Automotive Waste, Other Hazardous Waste\n   For Medical Waste: Sharps, Pharmaceutical, Infectious, Non-Infectious, Other Medical Waste\n   For Non-Waste: Reusable Items, Donatable Items, Edible Food, Repurposable Items, Other Non-Waste\n\n3. Material Type: Identify the specific material (e.g., PET plastic, cardboard, food scraps, etc.)\n\n4. For plastics, identify the recycling code if possible (1-7)\n\n5. Determine if the item is:\n   - Recyclable (true/false)\n   - Compostable (true/false)\n   - Requires special disposal (true/false)\n\n6. Provide a detailed explanation of why it belongs to the assigned categories and how it should be properly disposed.\n\nFormat the response as a valid JSON object with these fields: itemName, category, subcategory, materialType, recyclingCode, explanation, disposalMethod, isRecyclable, isCompostable, requiresSpecialDisposal, colorCode"
-              },
-              {
-                "type": "image_url",
-                "image_url": {
-                  "url": "data:image/jpeg;base64,$base64Image"
-                }
-              }
-            ]
-          }
-        ],
-        "max_tokens": 800
-      };
-      
-      // Make the API request to OpenAI
-      final response = await client.post(
-        Uri.parse('${ApiConfig.openAiBaseUrl}/chat/completions'),
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer ${ApiConfig.openAiApiKey}',
-        },
-        body: jsonEncode(requestBody),
-      );
-      
-      // Check if the request was successful
-      if (response.statusCode == 200) {
-        final Map<String, dynamic> responseData = jsonDecode(response.body);
-        
-        // Process the OpenAI response using the same logic as the Gemini response
-        return _processAiResponseData(responseData, imageFile.path);
-      } else {
-        debugPrint('OpenAI fallback error: ${response.statusCode} - ${response.body}');
-        throw Exception('OpenAI fallback failed: ${response.statusCode}');
-      }
-    } catch (e) {
-      debugPrint('Error in OpenAI segments fallback: $e');
-      rethrow;
-    }
-  }
-  
-  // Analyze web image segments with retry and fallback
-  Future<WasteClassification> analyzeImageSegmentsWeb(
-      Uint8List imageBytes, List<Rect> segments, String imageName, {int retryCount = 0, int maxRetries = 3}) async {
-    try {
-      // Get the base64 encoded image data
-      final String base64Image = _bytesToBase64(imageBytes);
-      
-      // Describe the selected regions in the prompt
-      final String segmentDescription = _describeSegments(segments);
-      
-      // Prepare request body using OpenAI format for Gemini with enhanced prompting
-      final Map<String, dynamic> requestBody = {
-        "model": ApiConfig.model,
-        "messages": [
-          {
-            "role": "system",
-            "content":
-                "You are an expert in waste classification and recycling that can identify items from images. "
-                    "You have deep knowledge of international waste segregation standards, recycling codes, and proper disposal methods."
-          },
-          {
-            "role": "user",
-            "content": [
-              {
-                "type": "text",
-                "text":
-                    "Focus on the following regions of the image: $segmentDescription\n\n"
-                    "Analyze the item in detail and classify it according to the following hierarchy:\n\n1. Main category (choose exactly one):\n   - Wet Waste (organic, compostable)\n   - Dry Waste (recyclable)\n   - Hazardous Waste (requires special handling)\n   - Medical Waste (potentially contaminated)\n   - Non-Waste (reusable items, edible food)\n\n2. Subcategory (choose the most specific one that applies):\n   For Wet Waste: Food Waste, Garden Waste, Animal Waste, Biodegradable Packaging, Other Wet Waste\n   For Dry Waste: Paper, Plastic, Glass, Metal, Carton, Textile, Rubber, Wood, Other Dry Waste\n   For Hazardous Waste: Electronic Waste, Batteries, Chemical Waste, Paint Waste, Light Bulbs, Aerosol Cans, Automotive Waste, Other Hazardous Waste\n   For Medical Waste: Sharps, Pharmaceutical, Infectious, Non-Infectious, Other Medical Waste\n   For Non-Waste: Reusable Items, Donatable Items, Edible Food, Repurposable Items, Other Non-Waste\n\n3. Material Type: Identify the specific material (e.g., PET plastic, cardboard, food scraps, etc.)\n\n4. For plastics, identify the recycling code if possible (1-7)\n\n5. Determine if the item is:\n   - Recyclable (true/false)\n   - Compostable (true/false)\n   - Requires special disposal (true/false)\n\n6. Provide a detailed explanation of why it belongs to the assigned categories and how it should be properly disposed.\n\nFormat the response as a valid JSON object with these fields: itemName, category, subcategory, materialType, recyclingCode, explanation, disposalMethod, isRecyclable, isCompostable, requiresSpecialDisposal, colorCode"
-              },
-              {
-                "type": "image_url",
-                "image_url": {"url": "data:image/jpeg;base64,$base64Image"}
-              }
-            ]
-          }
-        ]
-      };
-      
-      // Create the web image URL with base64 data
-      final String webImageUrl = 'web_image:data:image/jpeg;base64,$base64Image';
-      
-      // Make HTTP request to the Gemini API
-      final response = await http.post(
-        Uri.parse('$baseUrl/chat/completions'),
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer $apiKey',
-        },
-        body: jsonEncode(requestBody),
-      );
 
-      // Handle successful response
-      if (response.statusCode == 200) {
-        final Map<String, dynamic> responseData = jsonDecode(response.body);
-        return _processAiResponseData(responseData, webImageUrl);
-      }
-      // Handle service unavailable (503) with retry logic
-      else if (response.statusCode == 503 && retryCount < maxRetries) {
-        debugPrint('Gemini API overloaded (503). Retry ${retryCount + 1} of $maxRetries...');
-        
-        // Exponential backoff - wait longer between each retry (500ms × 2^retryCount)
-        final waitTime = Duration(milliseconds: 500 * pow(2, retryCount).toInt());
-        await Future.delayed(waitTime);
-        
-        // Retry with incremented count
-        return analyzeImageSegmentsWeb(imageBytes, segments, imageName, retryCount: retryCount + 1, maxRetries: maxRetries);
-      } 
-      // If all retries fail, fall back to OpenAI
-      else if (response.statusCode == 503) {
-        debugPrint('Gemini API unavailable after $maxRetries retries. Falling back to OpenAI...');
-        return await _fallbackToOpenAISegmentsWeb(imageBytes, segments, imageName);
-      }
-      // Handle other errors
-      else {
-        debugPrint('Error response: ${response.body}');
-        throw Exception('Failed to analyze web image segments: ${response.statusCode}');
-      }
-    } catch (e) {
-      // If there's an exception (like network error), try fallback if we've exhausted retries
-      if (retryCount >= maxRetries) {
-        debugPrint('Exception after $maxRetries retries. Attempting OpenAI fallback...');
-        try {
-          return await _fallbackToOpenAISegmentsWeb(imageBytes, segments, imageName);
-        } catch (fallbackError) {
-          debugPrint('Fallback also failed: $fallbackError');
-          rethrow; // If fallback also fails, rethrow the original error
-        }
-      }
-      debugPrint('Error analyzing web image segments (try $retryCount): $e');
-      
-      // For other types of errors, increment retry count and try again
-      if (retryCount < maxRetries) {
-        final waitTime = Duration(milliseconds: 500 * pow(2, retryCount).toInt());
-        await Future.delayed(waitTime);
-        return analyzeImageSegmentsWeb(imageBytes, segments, imageName, retryCount: retryCount + 1, maxRetries: maxRetries);
-      }
-      
-      rethrow;
-    }
-  }
-  
-  // OpenAI fallback for web segmented images
-  Future<WasteClassification> _fallbackToOpenAISegmentsWeb(Uint8List imageBytes, List<Rect> segments, String imageName) async {
-    try {
-      debugPrint('Using OpenAI fallback for web segmented image analysis');
-      final String base64Image = _bytesToBase64(imageBytes);
-      
-      // Describe the selected regions in the prompt
-      final String segmentDescription = _describeSegments(segments);
-      
-      // Create HTTP client for OpenAI API
-      final client = http.Client();
-      
-      // Prepare the request body for OpenAI's vision API with segment information
-      final Map<String, dynamic> requestBody = {
-        "model": ApiConfig.openAiModel,
-        "messages": [
-          {
-            "role": "system",
-            "content": "You are an expert in waste classification and recycling that can identify items from images. "
-                "You have deep knowledge of international waste segregation standards, recycling codes, and proper disposal methods."
-          },
-          {
-            "role": "user",
-            "content": [
-              {
-                "type": "text",
-                "text": "Focus on the following regions of the image: $segmentDescription\n\n"
-                    "Analyze the item in detail and classify it according to the following hierarchy:\n\n1. Main category (choose exactly one):\n   - Wet Waste (organic, compostable)\n   - Dry Waste (recyclable)\n   - Hazardous Waste (requires special handling)\n   - Medical Waste (potentially contaminated)\n   - Non-Waste (reusable items, edible food)\n\n2. Subcategory (choose the most specific one that applies):\n   For Wet Waste: Food Waste, Garden Waste, Animal Waste, Biodegradable Packaging, Other Wet Waste\n   For Dry Waste: Paper, Plastic, Glass, Metal, Carton, Textile, Rubber, Wood, Other Dry Waste\n   For Hazardous Waste: Electronic Waste, Batteries, Chemical Waste, Paint Waste, Light Bulbs, Aerosol Cans, Automotive Waste, Other Hazardous Waste\n   For Medical Waste: Sharps, Pharmaceutical, Infectious, Non-Infectious, Other Medical Waste\n   For Non-Waste: Reusable Items, Donatable Items, Edible Food, Repurposable Items, Other Non-Waste\n\n3. Material Type: Identify the specific material (e.g., PET plastic, cardboard, food scraps, etc.)\n\n4. For plastics, identify the recycling code if possible (1-7)\n\n5. Determine if the item is:\n   - Recyclable (true/false)\n   - Compostable (true/false)\n   - Requires special disposal (true/false)\n\n6. Provide a detailed explanation of why it belongs to the assigned categories and how it should be properly disposed.\n\nFormat the response as a valid JSON object with these fields: itemName, category, subcategory, materialType, recyclingCode, explanation, disposalMethod, isRecyclable, isCompostable, requiresSpecialDisposal, colorCode"
-              },
-              {
-                "type": "image_url",
-                "image_url": {
-                  "url": "data:image/jpeg;base64,$base64Image"
-                }
-              }
-            ]
-          }
-        ],
-        "max_tokens": 800
-      };
-      
-      // Make the API request to OpenAI
-      final response = await client.post(
-        Uri.parse('${ApiConfig.openAiBaseUrl}/chat/completions'),
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer ${ApiConfig.openAiApiKey}',
-        },
-        body: jsonEncode(requestBody),
-      );
-      
-      // Create the web image URL with base64 data
-      final String webImageUrl = 'web_image:data:image/jpeg;base64,$base64Image';
-      
-      // Check if the request was successful
-      if (response.statusCode == 200) {
-        final Map<String, dynamic> responseData = jsonDecode(response.body);
-        
-        // Process the OpenAI response using the same logic as the Gemini response
-        return _processAiResponseData(responseData, webImageUrl);
-      } else {
-        debugPrint('OpenAI fallback error: ${response.statusCode} - ${response.body}');
-        throw Exception('OpenAI fallback failed: ${response.statusCode}');
-      }
-    } catch (e) {
-      debugPrint('Error in OpenAI web segments fallback: $e');
-      rethrow;
-    }
-  }
-  
-  // Helper to describe segments in natural language for the AI prompt
-  String _describeSegments(List<Rect> segments) {
-    if (segments.isEmpty) {
-      return "the entire image";
-    }
+  /// Tertiary fallback using basic classification
+  Future<WasteClassification> _fallbackToTertiaryModel(Uint8List imageBytes, String imageName, String region) async {
+    debugPrint('Using tertiary fallback - basic classification');
     
-    // Prioritize center or larger segments in the description
-    final List<String> descriptions = [];
-    
-    // Sort segments by area (largest first)
-    final sortedSegments = List<Rect>.from(segments)
-      ..sort((a, b) => (b.width * b.height).compareTo(a.width * a.height));
-    
-    // Describe each segment using relative positioning
-    for (int i = 0; i < sortedSegments.length; i++) {
-      final segment = sortedSegments[i];
-      
-      // Determine position in image
-      String position = "";
-      
-      // Vertical position
-      if (segment.top < 0.33) {
-        position += "top";
-      } else if (segment.top + segment.height > 0.66) {
-        position += "bottom";
-      } else {
-        position += "middle";
-      }
-      
-      // Horizontal position
-      if (segment.left < 0.33) {
-        position += " left";
-      } else if (segment.left + segment.width > 0.66) {
-        position += " right";
-      } else {
-        position += " center";
-      }
-      
-      // Add size descriptor for very large or small segments
-      final area = segment.width * segment.height;
-      String sizePrefix = "";
-      if (area > 0.25) { // Larger than 25% of image
-        sizePrefix = "large ";
-      } else if (area < 0.1) { // Smaller than 10% of image
-        sizePrefix = "small ";
-      }
-      
-      descriptions.add("the $sizePrefix$position region");
-      
-      // Limit to 3 descriptions to avoid overwhelming the prompt
-      if (i >= 2) break;
-    }
-    
-    return descriptions.join(", ");
-  }
-  
-  // Process AI response and create WasteClassification object
-  Future<WasteClassification> _processAiResponse(
-      Map<String, dynamic> requestBody, String imageUrl) async {
-    // Make HTTP request to OpenAI-compatible Gemini API endpoint
-    final response = await http.post(
-      Uri.parse('$baseUrl/chat/completions'),
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer $apiKey',
-      },
-      body: jsonEncode(requestBody),
-    );
-
-    if (response.statusCode == 200) {
-      final Map<String, dynamic> responseData = jsonDecode(response.body);
-      return _processAiResponseData(responseData, imageUrl);
-    } else {
-      debugPrint('Error response: ${response.body}');
-      throw Exception('Failed to analyze image: ${response.statusCode}');
-    }
-  }
-  
-  // Process AI response data and create WasteClassification object
-  WasteClassification _processAiResponseData(
-      Map<String, dynamic> responseData, String imageUrl) {
-    // Track processing start time
-    final processingStart = DateTime.now();
-    
-    // Extract content from the OpenAI-formatted response
-    final String textContent =
-        responseData['choices'][0]['message']['content'] ?? '{}';
-
-    // Parse the JSON from the text content
-    final RegExp jsonRegex = RegExp(r'\{.*\}', dotAll: true);
-    final Match? jsonMatch = jsonRegex.firstMatch(textContent);
-
-    if (jsonMatch == null) {
-      throw Exception('Could not parse AI response');
-    }
-
-    final String jsonString = jsonMatch.group(0) ?? '{}';
-    final Map<String, dynamic> parsedJson = jsonDecode(jsonString);
-
-    // Get the appropriate color code based on category or subcategory
-    String? colorCode = WasteInfo.colorCoding[parsedJson['category']];
-    if (colorCode == null && parsedJson['subcategory'] != null) {
-      colorCode = WasteInfo.colorCoding[parsedJson['subcategory']];
-    }
-
-    // Handle recyclingCode which might come as an int from AI
-    String? recyclingCode;
-    if (parsedJson['recyclingCode'] != null) {
-      recyclingCode = parsedJson['recyclingCode'].toString();
-    }
-    
-    // Calculate processing time
-    final processingTime = DateTime.now().difference(processingStart).inMilliseconds;
-    
-    // Generate confidence score (this should come from the AI model in the future)
-    double confidence = _estimateConfidence(parsedJson);
-    
-    // Determine source
-    String source = 'unknown';
-    if (imageUrl.startsWith('web_image:')) {
-      source = kIsWeb ? 'web_upload' : 'gallery';
-    } else if (imageUrl.contains('/cache/')) {
-      source = 'camera';
-    } else {
-      source = 'gallery';
-    }
-    
+    // Simple heuristic-based classification as last resort
     return WasteClassification(
-      itemName: parsedJson['itemName'] ?? 'Unknown Item',
-      category: parsedJson['category'] ?? 'Unknown Category',
-      subcategory: parsedJson['subcategory'],
-      materialType: parsedJson['materialType'],
-      explanation: parsedJson['explanation'] ?? 'No explanation provided',
-      disposalMethod: parsedJson['disposalMethod'],
-      recyclingCode: recyclingCode,
-      isRecyclable: parsedJson['isRecyclable'] != null
-          ? parsedJson['isRecyclable'] is bool
-              ? parsedJson['isRecyclable']
-              : parsedJson['isRecyclable'].toString().toLowerCase() ==
-                  'true'
-          : null,
-      isCompostable: parsedJson['isCompostable'] != null
-          ? parsedJson['isCompostable'] is bool
-              ? parsedJson['isCompostable']
-              : parsedJson['isCompostable'].toString().toLowerCase() ==
-                  'true'
-          : null,
-      requiresSpecialDisposal: parsedJson['requiresSpecialDisposal'] != null
-          ? parsedJson['requiresSpecialDisposal'] is bool
-              ? parsedJson['requiresSpecialDisposal']
-              : parsedJson['requiresSpecialDisposal']
-                      .toString()
-                      .toLowerCase() ==
-                  'true'
-          : null,
-      colorCode: parsedJson['colorCode'] ?? colorCode,
-      imageUrl: imageUrl,
-      // AI Model Performance Data
-      confidence: confidence,
-      modelVersion: ApiConfig.model,
-      processingTimeMs: processingTime,
-      // Processing Context
-      source: source,
+      itemName: 'Unidentified Item',
+      category: 'Dry Waste',
+      subcategory: 'Other',
+      explanation: 'Unable to classify automatically. All AI models failed. Please manually review and correct.',
+      disposalInstructions: DisposalInstructions(
+        primaryMethod: 'Manual review required',
+        steps: [
+          'Please review the item manually',
+          'Consult local waste management guidelines',
+          'When in doubt, treat as dry waste'
+        ],
+        hasUrgentTimeframe: false,
+      ),
+      region: region,
+      visualFeatures: ['unidentified'],
+      alternatives: [],
+      imageUrl: imageName,
+      confidence: 0.1,
+      clarificationNeeded: true,
+      riskLevel: 'safe',
+      modelSource: 'fallback-heuristic',
+      source: 'tertiary_fallback',
     );
   }
-  
-  /// Estimate confidence score based on response quality
-  /// In future versions, this should come directly from the AI model
-  double _estimateConfidence(Map<String, dynamic> parsedJson) {
-    double confidence = 0.5; // Base confidence
-    
-    // Increase confidence if detailed information is provided
-    if (parsedJson['itemName'] != null && parsedJson['itemName'].toString().length > 3) {
-      confidence += 0.1;
-    }
-    
-    if (parsedJson['subcategory'] != null) {
-      confidence += 0.1;
-    }
-    
-    if (parsedJson['materialType'] != null) {
-      confidence += 0.1;
-    }
-    
-    if (parsedJson['recyclingCode'] != null) {
-      confidence += 0.1;
-    }
-    
-    if (parsedJson['explanation'] != null && parsedJson['explanation'].toString().length > 50) {
-      confidence += 0.1;
-    }
-    
-    // Decrease confidence for vague responses
-    final itemName = parsedJson['itemName']?.toString().toLowerCase() ?? '';
-    if (itemName.contains('unknown') || itemName.contains('unclear') || itemName.contains('unsure')) {
-      confidence -= 0.2;
-    }
-    
-    // Ensure confidence is between 0.0 and 1.0
-    return confidence.clamp(0.0, 1.0);
+
+  /// Analyze image using file input (for mobile platforms)
+  Future<WasteClassification> analyzeImage(File imageFile) async {
+    final imageBytes = await imageFile.readAsBytes();
+    return analyzeWebImage(imageBytes, imageFile.path);
   }
-  
-  // Fallback to OpenAI API when Gemini is unavailable
-  Future<WasteClassification> _fallbackToOpenAI(File imageFile) async {
-    try {
-      debugPrint('Using OpenAI fallback for image analysis');
-      final List<int> imageBytes = await imageFile.readAsBytes();
-      final String base64Image = base64Encode(imageBytes);
-      
-      // Create HTTP client for OpenAI API
-      final client = http.Client();
-      
-      // Prepare the request body for OpenAI's vision API
-      final Map<String, dynamic> requestBody = {
-        "model": ApiConfig.openAiModel,
-        "messages": [
-          {
-            "role": "system",
-            "content": "You are an expert in waste classification and recycling that can identify items from images. "
-                "You have deep knowledge of international waste segregation standards, recycling codes, and proper disposal methods."
-          },
-          {
-            "role": "user",
-            "content": [
-              {
-                "type": "text",
-                "text": "Analyze this item in detail and classify it according to the following hierarchy:\n\n1. Main category (choose exactly one):\n   - Wet Waste (organic, compostable)\n   - Dry Waste (recyclable)\n   - Hazardous Waste (requires special handling)\n   - Medical Waste (potentially contaminated)\n   - Non-Waste (reusable items, edible food)\n\n2. Subcategory (choose the most specific one that applies):\n   For Wet Waste: Food Waste, Garden Waste, Animal Waste, Biodegradable Packaging, Other Wet Waste\n   For Dry Waste: Paper, Plastic, Glass, Metal, Carton, Textile, Rubber, Wood, Other Dry Waste\n   For Hazardous Waste: Electronic Waste, Batteries, Chemical Waste, Paint Waste, Light Bulbs, Aerosol Cans, Automotive Waste, Other Hazardous Waste\n   For Medical Waste: Sharps, Pharmaceutical, Infectious, Non-Infectious, Other Medical Waste\n   For Non-Waste: Reusable Items, Donatable Items, Edible Food, Repurposable Items, Other Non-Waste\n\n3. Material Type: Identify the specific material (e.g., PET plastic, cardboard, food scraps, etc.)\n\n4. For plastics, identify the recycling code if possible (1-7)\n\n5. Determine if the item is:\n   - Recyclable (true/false)\n   - Compostable (true/false)\n   - Requires special disposal (true/false)\n\n6. Provide a detailed explanation of why it belongs to the assigned categories and how it should be properly disposed.\n\nFormat the response as a valid JSON object with these fields: itemName, category, subcategory, materialType, recyclingCode, explanation, disposalMethod, isRecyclable, isCompostable, requiresSpecialDisposal, colorCode"
-              },
-              {
-                "type": "image_url",
-                "image_url": {
-                  "url": "data:image/jpeg;base64,$base64Image"
-                }
-              }
-            ]
-          }
-        ],
-        "max_tokens": 800
-      };
-      
-      // Make the API request to OpenAI
-      final response = await client.post(
-        Uri.parse('${ApiConfig.openAiBaseUrl}/chat/completions'),
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer ${ApiConfig.openAiApiKey}',
-        },
-        body: jsonEncode(requestBody),
-      );
-      
-      // Check if the request was successful
-      if (response.statusCode == 200) {
-        final Map<String, dynamic> responseData = jsonDecode(response.body);
-        
-        // Process the OpenAI response using the same logic as the Gemini response
-        return _processAiResponseData(responseData, imageFile.path);
-      } else {
-        debugPrint('OpenAI fallback error: ${response.statusCode} - ${response.body}');
-        throw Exception('OpenAI fallback failed: ${response.statusCode}');
+
+  /// Segment image for analysis (placeholder implementation)
+  Future<List<Map<String, dynamic>>> segmentImage(dynamic input) async {
+    // Basic segmentation - returns the full image as a single segment
+    return [
+      {
+        'bounds': {'x': 0, 'y': 0, 'width': 100, 'height': 100},
+        'confidence': 1.0,
+        'area': 1.0,
       }
-    } catch (e) {
-      debugPrint('Error in OpenAI fallback: $e');
-      rethrow;
-    }
+    ];
   }
-  
-  // Analyze image with retry and fallback mechanism
-  Future<WasteClassification> analyzeImage(File imageFile, {bool useEnhancedModel = false, int retryCount = 0, int maxRetries = 3}) async {
-    String? imageHash;
-    
-    try {
-      // Check cache if enabled
-      if (cachingEnabled) {
-        // Read the image bytes
-        final List<int> imageBytes = await imageFile.readAsBytes();
-        final Uint8List uint8List = Uint8List.fromList(imageBytes);
-        
-        // Generate image hash
-        imageHash = await ImageUtils.generateImageHash(uint8List);
-        debugPrint('Generated perceptual hash for image: $imageHash');
-        
-        // Try to get from cache
-        final cachedResult = await cacheService.getCachedClassification(
-          imageHash,
-          similarityThreshold: 10 // Larger threshold for better matching of similar images
-        );
-        if (cachedResult != null) {
-          debugPrint('Cache hit for image hash: $imageHash - returning cached classification');
-          return cachedResult.classification;
-        }
-        
-        debugPrint('Cache miss for image hash: $imageHash - will call API and save result');
-        
-        // Not in cache, so continue with API request and cache the result afterwards
-        final String base64Image = await _imageToBase64(imageFile);
 
-        // Prepare request body using OpenAI format for Gemini with enhanced prompting
-        final Map<String, dynamic> requestBody = {
-          "model": ApiConfig.model,
-          "messages": [
-            {
-              "role": "system",
-              "content":
-                  "You are an expert in waste classification and recycling that can identify items from images. "
-                      "You have deep knowledge of international waste segregation standards, recycling codes, and proper disposal methods."
-            },
-            {
-              "role": "user",
-              "content": [
-                {
-                  "type": "text",
-                  "text":
-                      "Analyze this item in detail and classify it according to the following hierarchy:\n\n1. Main category (choose exactly one):\n   - Wet Waste (organic, compostable)\n   - Dry Waste (recyclable)\n   - Hazardous Waste (requires special handling)\n   - Medical Waste (potentially contaminated)\n   - Non-Waste (reusable items, edible food)\n\n2. Subcategory (choose the most specific one that applies):\n   For Wet Waste: Food Waste, Garden Waste, Animal Waste, Biodegradable Packaging, Other Wet Waste\n   For Dry Waste: Paper, Plastic, Glass, Metal, Carton, Textile, Rubber, Wood, Other Dry Waste\n   For Hazardous Waste: Electronic Waste, Batteries, Chemical Waste, Paint Waste, Light Bulbs, Aerosol Cans, Automotive Waste, Other Hazardous Waste\n   For Medical Waste: Sharps, Pharmaceutical, Infectious, Non-Infectious, Other Medical Waste\n   For Non-Waste: Reusable Items, Donatable Items, Edible Food, Repurposable Items, Other Non-Waste\n\n3. Material Type: Identify the specific material (e.g., PET plastic, cardboard, food scraps, etc.)\n\n4. For plastics, identify the recycling code if possible (1-7)\n\n5. Determine if the item is:\n   - Recyclable (true/false)\n   - Compostable (true/false)\n   - Requires special disposal (true/false)\n\n6. Provide a detailed explanation of why it belongs to the assigned categories and how it should be properly disposed.\n\nFormat the response as a valid JSON object with these fields: itemName, category, subcategory, materialType, recyclingCode, explanation, disposalMethod, isRecyclable, isCompostable, requiresSpecialDisposal, colorCode"
-                },
-                {
-                  "type": "image_url",
-                  "image_url": {"url": "data:image/jpeg;base64,$base64Image"}
-                }
-              ]
-            }
-          ]
-        };
+  /// Analyze image segments for web
+  Future<WasteClassification> analyzeImageSegmentsWeb(
+    Uint8List imageBytes,
+    String imageName,
+    List<Map<String, dynamic>> segments, {
+    String? region,
+    String? instructionsLang,
+  }) async {
+    // For now, just analyze the full image
+    return analyzeWebImage(imageBytes, imageName, region: region, instructionsLang: instructionsLang);
+  }
 
-        // Make HTTP request to the Gemini API
-        final response = await http.post(
-          Uri.parse('$baseUrl/chat/completions'),
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': 'Bearer $apiKey',
-          },
-          body: jsonEncode(requestBody),
-        );
-
-        // Handle successful response
-        if (response.statusCode == 200) {
-          final Map<String, dynamic> responseData = jsonDecode(response.body);
-          final classification = _processAiResponseData(responseData, imageFile.path);
-          
-          // Cache the result if we have a valid hash
-          if (cachingEnabled) {
-            debugPrint('Caching classification result for hash: $imageHash');
-            await cacheService.cacheClassification(
-              imageHash, 
-              classification, 
-              imageSize: imageBytes.length
-            );
-            debugPrint('Successfully cached classification for hash: $imageHash');
-          }
-          
-          return classification;
-        }
-        // Handle service unavailable (503) with retry logic
-        else if (response.statusCode == 503 && retryCount < maxRetries) {
-          debugPrint('Gemini API overloaded (503). Retry ${retryCount + 1} of $maxRetries...');
-          
-          // Exponential backoff - wait longer between each retry (500ms × 2^retryCount)
-          final waitTime = Duration(milliseconds: 500 * pow(2, retryCount).toInt());
-          await Future.delayed(waitTime);
-          
-          // Retry with incremented count
-          return analyzeImage(imageFile, retryCount: retryCount + 1, maxRetries: maxRetries);
-        } 
-        // If all retries fail, fall back to OpenAI
-        else if (response.statusCode == 503) {
-          debugPrint('Gemini API unavailable after $maxRetries retries. Falling back to OpenAI...');
-          final classification = await _fallbackToOpenAI(imageFile);
-          
-          // Cache the fallback result
-          await cacheService.cacheClassification(
-            imageHash, 
-            classification, 
-            imageSize: imageBytes.length
-          );
-          
-          return classification;
-        }
-        // Handle other errors
-        else {
-          debugPrint('Error response: ${response.body}');
-          throw Exception('Failed to analyze image: ${response.statusCode}');
-        }
-      } 
-      // If caching is disabled, use the original flow
-      else {
-        final String base64Image = await _imageToBase64(imageFile);
-
-        // Prepare request body using OpenAI format for Gemini with enhanced prompting
-        final Map<String, dynamic> requestBody = {
-          "model": ApiConfig.model,
-          "messages": [
-            {
-              "role": "system",
-              "content":
-                  "You are an expert in waste classification and recycling that can identify items from images. "
-                      "You have deep knowledge of international waste segregation standards, recycling codes, and proper disposal methods."
-            },
-            {
-              "role": "user",
-              "content": [
-                {
-                  "type": "text",
-                  "text":
-                      "Analyze this item in detail and classify it according to the following hierarchy:\n\n1. Main category (choose exactly one):\n   - Wet Waste (organic, compostable)\n   - Dry Waste (recyclable)\n   - Hazardous Waste (requires special handling)\n   - Medical Waste (potentially contaminated)\n   - Non-Waste (reusable items, edible food)\n\n2. Subcategory (choose the most specific one that applies):\n   For Wet Waste: Food Waste, Garden Waste, Animal Waste, Biodegradable Packaging, Other Wet Waste\n   For Dry Waste: Paper, Plastic, Glass, Metal, Carton, Textile, Rubber, Wood, Other Dry Waste\n   For Hazardous Waste: Electronic Waste, Batteries, Chemical Waste, Paint Waste, Light Bulbs, Aerosol Cans, Automotive Waste, Other Hazardous Waste\n   For Medical Waste: Sharps, Pharmaceutical, Infectious, Non-Infectious, Other Medical Waste\n   For Non-Waste: Reusable Items, Donatable Items, Edible Food, Repurposable Items, Other Non-Waste\n\n3. Material Type: Identify the specific material (e.g., PET plastic, cardboard, food scraps, etc.)\n\n4. For plastics, identify the recycling code if possible (1-7)\n\n5. Determine if the item is:\n   - Recyclable (true/false)\n   - Compostable (true/false)\n   - Requires special disposal (true/false)\n\n6. Provide a detailed explanation of why it belongs to the assigned categories and how it should be properly disposed.\n\nFormat the response as a valid JSON object with these fields: itemName, category, subcategory, materialType, recyclingCode, explanation, disposalMethod, isRecyclable, isCompostable, requiresSpecialDisposal, colorCode"
-                },
-                {
-                  "type": "image_url",
-                  "image_url": {"url": "data:image/jpeg;base64,$base64Image"}
-                }
-              ]
-            }
-          ]
-        };
-
-        // Make HTTP request to the Gemini API
-        final response = await http.post(
-          Uri.parse('$baseUrl/chat/completions'),
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': 'Bearer $apiKey',
-          },
-          body: jsonEncode(requestBody),
-        );
-
-        // Handle successful response
-        if (response.statusCode == 200) {
-          final Map<String, dynamic> responseData = jsonDecode(response.body);
-          // Use the existing _processAiResponseData method to process the response
-          return _processAiResponseData(responseData, imageFile.path);
-        }
-        // Handle service unavailable (503) with retry logic and fallback
-        else if (response.statusCode == 503 && retryCount < maxRetries) {
-          debugPrint('Gemini API overloaded (503). Retry ${retryCount + 1} of $maxRetries...');
-          
-          // Exponential backoff - wait longer between each retry (500ms × 2^retryCount)
-          final waitTime = Duration(milliseconds: 500 * pow(2, retryCount).toInt());
-          await Future.delayed(waitTime);
-          
-          // Retry with incremented count
-          return analyzeImage(imageFile, retryCount: retryCount + 1, maxRetries: maxRetries);
-        } 
-        // If all retries fail, fall back to OpenAI
-        else if (response.statusCode == 503) {
-          debugPrint('Gemini API unavailable after $maxRetries retries. Falling back to OpenAI...');
-          return await _fallbackToOpenAI(imageFile);
-        }
-        // Handle other errors
-        else {
-          debugPrint('Error response: ${response.body}');
-          throw Exception('Failed to analyze image: ${response.statusCode}');
-        }
-      }
-    } catch (e) {
-      // If there's an exception (like network error), try fallback if we've exhausted retries
-      if (retryCount >= maxRetries) {
-        debugPrint('Exception after $maxRetries retries. Attempting OpenAI fallback...');
-        try {
-          final classification = await _fallbackToOpenAI(imageFile);
-          
-          // Cache the fallback result if caching is enabled
-          if (cachingEnabled) {
-            final Uint8List imageBytes = Uint8List.fromList(await imageFile.readAsBytes());
-            final String imageHash = await ImageUtils.generateImageHash(imageBytes);
-            await cacheService.cacheClassification(
-              imageHash, 
-              classification, 
-              imageSize: imageBytes.length
-            );
-          }
-          
-          return classification;
-        } catch (fallbackError) {
-          debugPrint('Fallback also failed: $fallbackError');
-          rethrow; // If fallback also fails, rethrow the original error
-        }
-      }
-      debugPrint('Error analyzing image (try $retryCount): $e');
-      
-      // For other types of errors, increment retry count and try again
-      if (retryCount < maxRetries) {
-        final waitTime = Duration(milliseconds: 500 * pow(2, retryCount).toInt());
-        await Future.delayed(waitTime);
-        return analyzeImage(imageFile, retryCount: retryCount + 1, maxRetries: maxRetries);
-      }
-      
-      rethrow;
-    }
+  /// Analyze image segments for mobile
+  Future<WasteClassification> analyzeImageSegments(
+    File imageFile,
+    List<Map<String, dynamic>> segments, {
+    String? region,
+    String? instructionsLang,
+  }) async {
+    // For now, just analyze the full image
+    return analyzeImage(imageFile);
   }
 }

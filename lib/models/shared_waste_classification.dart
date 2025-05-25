@@ -1,7 +1,7 @@
 import 'package:uuid/uuid.dart';
 import 'waste_classification.dart';
 // Import family reaction/comment classes from gamification.dart
-import 'gamification.dart' show FamilyReaction, FamilyComment, FamilyReactionType, ClassificationLocation;
+import 'gamification.dart' show FamilyReaction, FamilyComment, ClassificationLocation;
 
 /// Types of visibility levels for shared classifications.
 enum ClassificationVisibility {

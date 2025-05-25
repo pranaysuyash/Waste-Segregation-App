@@ -58,3 +58,4 @@ freepik_badge_downloader.py
 # Python virtual environments
 .venv/
 venv/
+.env

@@ -565,28 +565,64 @@ class FirebaseFamilyService {
     }
   }
 
+  /// Resends a family invitation.
+  Future<void> resendInvitation(String invitationId) async {
+    try {
+      final docRef = _firestore.collection(_invitationsCollection).doc(invitationId);
+      await docRef.update({
+        'status': InvitationStatus.pending.toString().split('.').last,
+        'createdAt': DateTime.now().toIso8601String(),
+        'expiresAt': DateTime.now().add(const Duration(days: 7)).toIso8601String(),
+        'respondedAt': null, // Reset respondedAt
+      });
+    } catch (e) {
+      throw Exception('Failed to resend invitation: $e');
+    }
+  }
+
+  /// Cancels a family invitation.
+  Future<void> cancelInvitation(String invitationId) async {
+    try {
+      final docRef = _firestore.collection(_invitationsCollection).doc(invitationId);
+      await docRef.update({
+        'status': InvitationStatus.cancelled.toString().split('.').last,
+        'respondedAt': DateTime.now().toIso8601String(),
+      });
+    } catch (e) {
+      throw Exception('Failed to cancel invitation: $e');
+    }
+  }
+
+  /// Gets all invitations for a family.
+  Future<List<FamilyInvitation>> getInvitations(String familyId) async {
+    try {
+      final snapshot = await _firestore
+          .collection(_invitationsCollection)
+          .where('familyId', isEqualTo: familyId)
+          .orderBy('createdAt', descending: true)
+          .get();
+
+      return snapshot.docs
+          .map((doc) => FamilyInvitation.fromJson(doc.data()))
+          .toList();
+    } catch (e) {
+      throw Exception('Failed to get invitations: $e');
+    }
+  }
+
   // ================ HELPER METHODS ================
 
   /// Updates a user's family ID and role in their profile.
   Future<void> _updateUserFamilyId(String userId, String? familyId, UserRole? role) async {
     try {
-      final userDoc = _firestore.collection(_usersCollection).doc(userId);
-      
-      if (familyId != null && role != null) {
-        await userDoc.update({
-          'familyId': familyId,
-          'role': role.toString().split('.').last,
-          'updatedAt': DateTime.now().toIso8601String(),
-        });
-      } else {
-        await userDoc.update({
-          'familyId': FieldValue.delete(),
-          'role': FieldValue.delete(),
-          'updatedAt': DateTime.now().toIso8601String(),
-        });
-      }
+      final data = {'familyId': familyId, 'role': role?.toString().split('.').last};
+      // Remove null values to avoid overwriting existing data with null if not intended
+      data.removeWhere((key, value) => value == null);
+
+      await _firestore.collection(_usersCollection).doc(userId).update(data);
     } catch (e) {
-      throw Exception('Failed to update user family ID: $e');
+      // Log the error but don't re-throw, as this is a helper function and the main operation might still succeed
+      print('Error updating user familyId: $e');
     }
   }
 

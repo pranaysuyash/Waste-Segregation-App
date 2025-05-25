@@ -387,7 +387,7 @@ class ClassificationCard extends StatelessWidget {
                             border: Border.all(color: categoryColor),
                           ),
                           child: Text(
-                            classification.recyclingCode!,
+                            classification.recyclingCode!.toString(),
                             style: TextStyle(
                               fontSize: 12,
                               fontWeight: FontWeight.bold,
@@ -401,9 +401,9 @@ class ClassificationCard extends StatelessWidget {
                 ],
 
                 // Properties indicators (recyclable, compostable, special disposal)
-                if (classification.isRecyclable != null ||
-                    classification.isCompostable != null ||
-                    classification.requiresSpecialDisposal != null) ...[
+                if ((classification.isRecyclable == true) ||
+                    (classification.isCompostable == true) ||
+                    (classification.requiresSpecialDisposal == true)) ...[
                   const SizedBox(height: AppTheme.paddingRegular),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.start,

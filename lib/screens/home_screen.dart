@@ -1,7 +1,7 @@
 import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'dart:typed_data';
+// import 'dart:typed_data';
 
 // Import the platform-agnostic web utilities
 // Platform-agnostic stub
@@ -23,6 +23,7 @@ import '../utils/safe_collection_utils.dart';
 import '../widgets/capture_button.dart';
 import '../widgets/enhanced_gamification_widgets.dart';
 import '../widgets/gamification_widgets.dart';
+import '../widgets/responsive_text.dart';
 import 'auth_screen.dart';
 import 'history_screen.dart';
 import 'image_capture_screen.dart';
@@ -30,9 +31,9 @@ import 'result_screen.dart';
 import 'educational_content_screen.dart';
 import 'content_detail_screen.dart';
 import 'achievements_screen.dart';
-import 'settings_screen.dart';
+// import 'settings_screen.dart';
 import 'waste_dashboard_screen.dart';
-import '../services/premium_service.dart';
+// import '../services/premium_service.dart';
 import '../services/analytics_service.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -1128,26 +1129,26 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     
     return Scaffold(
       appBar: AppBar(
-        title: const Text(AppStrings.appName),
+        title: const ResponsiveAppBarTitle(title: AppStrings.appName),
         actions: [
           // Points indicator in app bar
           if (_gamificationProfile != null)
             Padding(
               padding: const EdgeInsets.only(right: 8.0),
               child: Center(
-                child: EnhancedPointsIndicator(
-                  points: _gamificationProfile!.points,
-                  showLifetimePoints: true,
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) =>
-                            const AchievementsScreen(initialTabIndex: 2),
-                      ),
-                    );
-                  },
-                ),
+                              child: LifetimePointsIndicator(
+                points: _gamificationProfile!.points,
+                showLifetimePoints: true,
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) =>
+                          const AchievementsScreen(initialTabIndex: 2),
+                    ),
+                  );
+                },
+              ),
               ),
             ),
           // Analytics button
@@ -1171,12 +1172,15 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Welcome message
-            Text(
-              'Hello, $_userName!',
+            GreetingText(
+              greeting: 'Hello',
+              userName: _userName ?? 'User',
               style: const TextStyle(
                 fontSize: AppTheme.fontSizeExtraLarge,
                 fontWeight: FontWeight.bold,
               ),
+              color: AppTheme.textPrimaryColor,
+              maxLines: 1,
             ),
                 const SizedBox(height: 4),
                 const Text(

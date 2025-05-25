@@ -15,13 +15,13 @@ import 'services/gamification_service.dart';
 import 'services/premium_service.dart';
 import 'services/ad_service.dart';
 import 'services/user_consent_service.dart';
+import 'services/navigation_settings_service.dart';
 import 'screens/auth_screen.dart';
 import 'screens/consent_dialog_screen.dart';
 import 'utils/constants.dart'; // For app constants, themes, and strings
 import 'utils/error_handler.dart'; // Correct import for ErrorHandler
 import 'providers/theme_provider.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
-import 'package:waste_segregation_app/utils/image_utils.dart';
 
 // Global Navigator Key for Error Handling
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
@@ -100,6 +100,7 @@ Future<void> originalMain() async {
   final premiumService = PremiumService();
   final adService = AdService();
   final googleDriveService = GoogleDriveService(storageService);
+  final navigationSettingsService = NavigationSettingsService();
 
   print('Before service initializations');
   await Future.wait([
@@ -119,6 +120,7 @@ Future<void> originalMain() async {
     premiumService: premiumService,
     adService: adService,
     googleDriveService: googleDriveService,
+    navigationSettingsService: navigationSettingsService,
   ));
   print('After runApp');
 }
@@ -132,6 +134,7 @@ class WasteSegregationApp extends StatelessWidget {
   final EducationalContentService educationalContentService;
   final PremiumService premiumService;
   final AdService adService;
+  final NavigationSettingsService navigationSettingsService;
 
   const WasteSegregationApp({
     super.key,
@@ -143,6 +146,7 @@ class WasteSegregationApp extends StatelessWidget {
     required this.educationalContentService,
     required this.premiumService,
     required this.adService,
+    required this.navigationSettingsService,
   });
 
   @override
@@ -157,6 +161,7 @@ class WasteSegregationApp extends StatelessWidget {
         Provider<EducationalContentService>.value(value: educationalContentService),
         ChangeNotifierProvider<PremiumService>.value(value: premiumService),
         ChangeNotifierProvider<AdService>.value(value: adService),
+        ChangeNotifierProvider<NavigationSettingsService>.value(value: navigationSettingsService),
         ChangeNotifierProvider(create: (_) => ThemeProvider()),
       ],
       child: Consumer<ThemeProvider>(

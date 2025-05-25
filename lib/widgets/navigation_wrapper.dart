@@ -2,21 +2,26 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../services/premium_service.dart';
 import '../services/ad_service.dart';
-import '../screens/home_screen.dart';
+import '../services/navigation_settings_service.dart';
+import '../screens/modern_home_screen.dart';
 import '../screens/history_screen.dart';
 import '../screens/educational_content_screen.dart';
 import '../screens/achievements_screen.dart';
 import '../screens/settings_screen.dart';
+import '../screens/family_dashboard_screen.dart';
 import '../widgets/bottom_navigation/modern_bottom_nav.dart';
 import '../utils/constants.dart';
+import '../models/user_profile.dart';
 
 /// Main navigation wrapper that manages the bottom navigation and screen switching
 class MainNavigationWrapper extends StatefulWidget {
   final bool isGuestMode;
+  final UserProfile? userProfile;
 
   const MainNavigationWrapper({
     super.key,
     this.isGuestMode = false,
+    this.userProfile,
   });
 
   @override
@@ -60,11 +65,10 @@ class _MainNavigationWrapperState extends State<MainNavigationWrapper> {
 
   List<Widget> _getScreens() {
     return [
-      HomeScreen(isGuestMode: widget.isGuestMode),
+      ModernHomeScreen(isGuestMode: widget.isGuestMode),
       const HistoryScreen(),
       const EducationalContentScreen(),
       const AchievementsScreen(),
-      const SettingsScreen(),
     ];
   }
 
@@ -80,6 +84,7 @@ class _MainNavigationWrapperState extends State<MainNavigationWrapper> {
         selectedIcon: Icons.history,
         label: 'History',
       ),
+      // Center item kept empty for FAB
       const BottomNavItem(
         icon: Icons.school_outlined,
         selectedIcon: Icons.school,
@@ -90,12 +95,75 @@ class _MainNavigationWrapperState extends State<MainNavigationWrapper> {
         selectedIcon: Icons.emoji_events,
         label: 'Rewards',
       ),
-      const BottomNavItem(
-        icon: Icons.settings_outlined,
-        selectedIcon: Icons.settings,
-        label: 'Settings',
-      ),
     ];
+  }
+
+  // Camera/upload actions
+  void _showCaptureOptions(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (context) => Container(
+        decoration: BoxDecoration(
+          color: Theme.of(context).colorScheme.surface,
+          borderRadius: const BorderRadius.only(
+            topLeft: Radius.circular(AppTheme.borderRadiusLarge),
+            topRight: Radius.circular(AppTheme.borderRadiusLarge),
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.2),
+              blurRadius: 10,
+              offset: const Offset(0, -5),
+            ),
+          ],
+        ),
+        padding: const EdgeInsets.all(AppTheme.paddingLarge),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const CircleAvatar(
+                backgroundColor: AppTheme.primaryColor,
+                child: Icon(Icons.camera_alt, color: Colors.white),
+              ),
+              title: const Text('Take Photo'),
+              subtitle: const Text('Use camera to capture image'),
+              onTap: () {
+                // Get instance of ModernHomeScreen
+                Navigator.pop(context);
+                // Access the home screen widget and call its public method
+                final homeScreen = _getScreens()[0] as ModernHomeScreen;
+                homeScreen.takePicture();
+              },
+            ),
+            const SizedBox(height: AppTheme.paddingSmall),
+            ListTile(
+              leading: const CircleAvatar(
+                backgroundColor: AppTheme.secondaryColor,
+                child: Icon(Icons.photo_library, color: Colors.white),
+              ),
+              title: const Text('Upload Image'),
+              subtitle: const Text('Choose from gallery'),
+              onTap: () {
+                // Get instance of ModernHomeScreen
+                Navigator.pop(context);
+                // Access the home screen widget and call its public method
+                final homeScreen = _getScreens()[0] as ModernHomeScreen;
+                homeScreen.pickImage();
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _openSettingsScreen(BuildContext context) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const SettingsScreen()),
+    );
   }
 
   @override
@@ -103,46 +171,81 @@ class _MainNavigationWrapperState extends State<MainNavigationWrapper> {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
     
-    return Scaffold(
-      body: Stack(
-        children: [
-          // Main content pages
-          PageView(
-            controller: _pageController,
-            onPageChanged: _onPageChanged,
-            children: _getScreens(),
-          ),
-          
-          // Bottom navigation overlay
-          Positioned(
-            bottom: 0,
-            left: 0,
-            right: 0,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                // Banner ad space (if not premium)
-                if (!Provider.of<PremiumService>(context).isPremiumFeature('remove_ads'))
-                  Provider.of<AdService>(context).getBannerAd(),
-                
-                // Bottom navigation
-                Container(
-                  margin: const EdgeInsets.all(16),
-                  child: ModernBottomNavigation(
-                    currentIndex: _currentIndex,
-                    onTap: _onTabTapped,
-                    items: _getNavItems(),
-                    style: ModernBottomNavStyle.glassmorphism(
-                      primaryColor: AppTheme.primaryColor,
-                      isDark: isDark,
-                    ),
+    return Consumer<NavigationSettingsService>(
+      builder: (context, navSettings, child) {
+        // Get navigation style
+        ModernBottomNavStyle navStyle;
+        switch (navSettings.navigationStyle) {
+          case 'material3':
+            navStyle = ModernBottomNavStyle.material3(
+              primaryColor: AppTheme.primaryColor,
+              isDark: isDark,
+            );
+            break;
+          case 'floating':
+            navStyle = ModernBottomNavStyle.floating(
+              primaryColor: AppTheme.primaryColor,
+              isDark: isDark,
+            );
+            break;
+          default:
+            navStyle = ModernBottomNavStyle.glassmorphism(
+              primaryColor: AppTheme.primaryColor,
+              isDark: isDark,
+            );
+        }
+        
+        return Scaffold(
+          body: Stack(
+            children: [
+              // Main content pages
+              PageView(
+                controller: _pageController,
+                onPageChanged: _onPageChanged,
+                children: _getScreens(),
+              ),
+              
+              // Bottom navigation overlay (only if enabled)
+              if (navSettings.bottomNavEnabled)
+                Positioned(
+                  bottom: 0,
+                  left: 0,
+                  right: 0,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      // Banner ad space (if not premium)
+                      if (!Provider.of<PremiumService>(context).isPremiumFeature('remove_ads'))
+                        Provider.of<AdService>(context).getBannerAd(),
+                      
+                      // Bottom navigation
+                      Container(
+                        margin: const EdgeInsets.all(16),
+                        child: ModernBottomNavigation(
+                          currentIndex: _currentIndex,
+                          onTap: _onTabTapped,
+                          items: _getNavItems(),
+                          style: navStyle,
+                          hasNotch: navSettings.fabEnabled, // Only add notch if FAB is enabled
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-              ],
-            ),
+            ],
           ),
-        ],
-      ),
+          // Add the floating action button (only if enabled)
+          floatingActionButton: navSettings.fabEnabled ? FloatingActionButton(
+            onPressed: () => _showCaptureOptions(context),
+            backgroundColor: AppTheme.primaryColor,
+            elevation: 4,
+            child: const Icon(Icons.camera_alt, color: Colors.white),
+          ) : null,
+          floatingActionButtonLocation: navSettings.fabEnabled && navSettings.bottomNavEnabled 
+              ? FloatingActionButtonLocation.centerDocked 
+              : FloatingActionButtonLocation.endFloat,
+        );
+      },
     );
   }
 }
@@ -173,7 +276,7 @@ class _AlternativeNavigationWrapperState extends State<AlternativeNavigationWrap
 
   List<Widget> _getScreens() {
     return [
-      HomeScreen(isGuestMode: widget.isGuestMode),
+      ModernHomeScreen(isGuestMode: widget.isGuestMode),
       const HistoryScreen(),
       const EducationalContentScreen(),
       const AchievementsScreen(),

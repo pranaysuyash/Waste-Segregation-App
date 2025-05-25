@@ -5,8 +5,6 @@ import 'package:google_mobile_ads/google_mobile_ads.dart';
 
 class AdService extends ChangeNotifier {
   // static const String _removeAdsFeatureId = 'remove_ads'; // Unused field removed
-  static const int _classificationsBeforeAd = 5;
-  static const Duration _minAdInterval = Duration(minutes: 5);
   
   bool _hasPremium = false;
   

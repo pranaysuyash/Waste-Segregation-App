@@ -293,7 +293,7 @@ class StorageService {
         classification.isCompostable == true ? 'Yes' : classification.isCompostable == false ? 'No' : '',
         classification.requiresSpecialDisposal == true ? 'Yes' : classification.requiresSpecialDisposal == false ? 'No' : '',
         _escapeCsvField(classification.disposalMethod ?? ''),
-        _escapeCsvField(classification.recyclingCode ?? ''),
+        _escapeCsvField(classification.recyclingCode?.toString() ?? ''),
         _formatDateForCsv(classification.timestamp)
       ];
       

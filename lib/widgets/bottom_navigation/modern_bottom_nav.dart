@@ -11,6 +11,7 @@ class ModernBottomNavigation extends StatefulWidget {
   final ModernBottomNavStyle style;
   final Duration animationDuration;
   final bool enableHapticFeedback;
+  final bool hasNotch;
 
   const ModernBottomNavigation({
     super.key,
@@ -20,6 +21,7 @@ class ModernBottomNavigation extends StatefulWidget {
     this.style = const ModernBottomNavStyle(),
     this.animationDuration = const Duration(milliseconds: 300),
     this.enableHapticFeedback = true,
+    this.hasNotch = false,
   });
 
   @override
@@ -130,17 +132,35 @@ class _ModernBottomNavigationState extends State<ModernBottomNavigation>
       ),
       child: ClipRRect(
         borderRadius: widget.style.borderRadius ?? BorderRadius.zero,
-        child: Container(
-          height: widget.style.height,
-          padding: widget.style.padding,
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: List.generate(
-              widget.items.length,
-              (index) => _buildNavItem(index, isDark),
+        child: widget.hasNotch 
+          ? BottomAppBar(
+              shape: const CircularNotchedRectangle(),
+              color: Colors.transparent,
+              elevation: 0,
+              notchMargin: 8,
+              child: Container(
+                height: widget.style.height,
+                padding: widget.style.padding,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: List.generate(
+                    widget.items.length,
+                    (index) => _buildNavItem(index, isDark),
+                  ),
+                ),
+              ),
+            )
+          : Container(
+              height: widget.style.height,
+              padding: widget.style.padding,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: List.generate(
+                  widget.items.length,
+                  (index) => _buildNavItem(index, isDark),
+                ),
+              ),
             ),
-          ),
-        ),
       ),
     );
   }

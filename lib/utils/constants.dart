@@ -1,22 +1,28 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 // import 'package:firebase_crashlytics/firebase_crashlytics.dart'; // ErrorHandler should not be in constants
 // import '../utils/error_handler.dart'; // Ensure ErrorHandler is not imported here
 
 // API Configuration
 class ApiConfig {
-  // Gemini API via OpenAI-compatible endpoint
-  static const String geminiBaseUrl = 'https://generativelanguage.googleapis.com/v1beta/openai';
-  
-  // API Key - Gemini API key
-  static const String apiKey = 'AIzaSyDYXPY95PneMi0m7UTiI6ciY8sQyst2jV8';
-  
-  // Model to use - free tier with vision capabilities and good throughput
-  static const String model = 'gemini-2.0-flash';
-  
-  // OpenAI API Configuration (Fallback)
+  // OpenAI API Configuration (Primary)
   static const String openAiBaseUrl = 'https://api.openai.com/v1';
-  static const String openAiApiKey = 'YOUR_OPENAI_API_KEY'; // Replace with actual key in production
-  static const String openAiModel = 'gpt-4-vision-preview'; // Vision-capable model
+  static const String openAiApiKey = String.fromEnvironment('OPENAI_API_KEY', defaultValue: 'your-openai-api-key-here');
+  
+  // Primary model - Using the first model you specified
+  static const String primaryModel = String.fromEnvironment('PRIMARY_MODEL', defaultValue: 'gpt-4.1-nano');
+  
+  // Secondary models (fallbacks)
+  static const String secondaryModel1 = String.fromEnvironment('SECONDARY_MODEL_1', defaultValue: 'gpt-4o-mini');
+  static const String secondaryModel2 = String.fromEnvironment('SECONDARY_MODEL_2', defaultValue: 'gpt-4.1-mini');
+  
+  // Tertiary model (Gemini fallback)
+  static const String tertiaryModel = String.fromEnvironment('TERTIARY_MODEL', defaultValue: 'gemini-2.0-flash');
+  
+  // Gemini API Configuration (Tertiary Fallback)
+  static const String geminiBaseUrl = 'https://generativelanguage.googleapis.com/v1beta';
+  static const String apiKey = String.fromEnvironment('GEMINI_API_KEY', defaultValue: 'your-gemini-api-key-here');
+  static const String geminiModel = String.fromEnvironment('TERTIARY_MODEL', defaultValue: 'gemini-2.0-flash');
 }
 
 // App Version Information
@@ -162,7 +168,7 @@ class AppTheme {
 
   // Category Colors (used for badges, etc.)
   static const Color wetWasteColor = Color(0xFF4CAF50); // Green
-  static const Color dryWasteColor = Color(0xFF2196F3); // Blue
+  static const Color dryWasteColor = Color(0xFFFFC107); // Amber #FFC107
   static const Color hazardousWasteColor = Color(0xFFFF5722); // Deep Orange
   static const Color medicalWasteColor = Color(0xFFF44336); // Red
   static const Color nonWasteColor = Color(0xFF9C27B0); // Purple
@@ -174,19 +180,59 @@ class AppTheme {
   static const double fontSizeMedium = 16.0;
   static const double fontSizeLarge = 18.0;
   static const double fontSizeExtraLarge = 24.0;
+  static const double fontSizeHuge = 32.0;
   
-  // Padding and Margin
+  // Enhanced Spacing System - 8pt grid
+  static const double spacingXs = 4.0;
+  static const double spacingSm = 8.0;
+  static const double spacingMd = 16.0;
+  static const double spacingLg = 24.0;
+  static const double spacingXl = 32.0;
+  static const double spacingXxl = 48.0;
+  
+  // Padding and Margin (kept for backward compatibility)
   static const double paddingSmall = 8.0;
   static const double paddingRegular = 16.0;
   static const double paddingLarge = 24.0;
   static const double paddingExtraLarge = 32.0;
   static const double paddingMicro = 4.0;
   
-  // Border Radius
+  // Modern Border Radius System
+  static const double borderRadiusXs = 4.0;
+  static const double borderRadiusSm = 8.0;
+  static const double borderRadiusMd = 12.0;
+  static const double borderRadiusLg = 16.0;
+  static const double borderRadiusXl = 20.0;
+  static const double borderRadiusXxl = 24.0;
+  static const double borderRadiusRound = 50.0;
+  
+  // Border Radius (kept for backward compatibility)
   static const double borderRadiusSmall = 4.0;
   static const double borderRadiusRegular = 8.0;
   static const double borderRadiusLarge = 16.0;
   static const double borderRadiusExtraLarge = 24.0;
+  
+  // Modern Elevation System
+  static const double elevationNone = 0.0;
+  static const double elevationSm = 2.0;
+  static const double elevationMd = 4.0;
+  static const double elevationLg = 8.0;
+  static const double elevationXl = 12.0;
+  static const double elevationXxl = 24.0;
+  
+  // Animation Durations
+  static const Duration animationFast = Duration(milliseconds: 150);
+  static const Duration animationNormal = Duration(milliseconds: 300);
+  static const Duration animationSlow = Duration(milliseconds: 500);
+  
+  // Modern Component Sizes
+  static const double buttonHeightSm = 36.0;
+  static const double buttonHeightMd = 48.0;
+  static const double buttonHeightLg = 56.0;
+  static const double iconSizeSm = 20.0;
+  static const double iconSizeMd = 24.0;
+  static const double iconSizeLg = 32.0;
+  static const double iconSizeXl = 48.0;
 
   // Backward compatibility - individual color constants
   static const Color primaryColor = Color(0xFF4CAF50);
@@ -197,6 +243,12 @@ class AppTheme {
   static const Color backgroundColor = Color(0xFFFFFFFF);
   static const Color surfaceColor = Color(0xFFFFFFFF);
   static const Color errorColor = Color(0xFFF44336);
+  
+  // Additional semantic colors
+  static const Color successColor = Color(0xFF4CAF50);
+  static const Color warningColor = Color(0xFFFF9800);
+  static const Color infoColor = Color(0xFF2196F3);
+  static const Color neutralColor = Color(0xFF9E9E9E);
   
   // Dark theme individual color constants
   static const Color darkPrimaryColor = Color(0xFF4CAF50);

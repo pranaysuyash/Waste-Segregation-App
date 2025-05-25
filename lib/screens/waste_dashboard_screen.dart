@@ -9,7 +9,7 @@ import '../models/waste_classification.dart';
 import '../widgets/gamification_widgets.dart';
 import '../services/gamification_service.dart';
 import '../models/gamification.dart';
-import '../widgets/waste_chart_widgets.dart';
+// import '../widgets/waste_chart_widgets.dart'; // Unused import
 // Removed import for '../widgets/empty_state_widget.dart'; as EmptyStateWidget is defined below
 
 class WasteDashboardScreen extends StatefulWidget {

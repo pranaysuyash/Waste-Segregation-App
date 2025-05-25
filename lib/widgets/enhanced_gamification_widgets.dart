@@ -1085,12 +1085,12 @@ class EnhancedChallengeCard extends StatelessWidget {
 }
 
 /// Enhanced points indicator that shows lifetime points including archived data
-class EnhancedPointsIndicator extends StatelessWidget {
+class LifetimePointsIndicator extends StatelessWidget {
   final UserPoints points;
   final VoidCallback? onTap;
   final bool showLifetimePoints;
 
-  const EnhancedPointsIndicator({
+  const LifetimePointsIndicator({
     super.key,
     required this.points,
     this.onTap,

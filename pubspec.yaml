@@ -41,10 +41,11 @@ dependencies:
   firebase_crashlytics: ^4.3.5
   cloud_firestore: ^5.6.7  # For family data and real-time sync
   qr_flutter: ^4.1.0  # For QR code generation
-  mobile_scanner: ^5.0.0  # Updated QR/barcode scanner with better Android support
+  # mobile_scanner: ^4.0.1  # Temporarily disabled due to dependency conflicts
   video_player: ^2.9.5
   url_launcher: ^6.3.0  # For launching URLs and making phone calls
   uuid: ^4.5.0  # For generating unique IDs
+  auto_size_text: ^3.0.0  # For responsive text that auto-adjusts font size
 
 dev_dependencies:
   flutter_test:
