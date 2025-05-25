@@ -18,6 +18,7 @@ This directory contains comprehensive documentation for the Waste Segregation Ap
 ### 🔧 **Technical Documentation**
 - **[Technical Fixes](technical/README.md)** - Recent bug fixes and implementations
 - **[Architecture](technical/architecture/README.md)** - System architecture overview
+- **[Environment Setup](config/environment_variables.md)** - How to set up API keys and environment variables using the `.env` file.
 - **[Implementation](technical/implementation/)** - Advanced UI components and implementation details
 - **[AI & ML](technical/ai/README.md)** - AI model integration and management
 - **[Testing](technical/testing/README.md)** - Testing strategies and guidelines
@@ -41,6 +42,7 @@ This directory contains comprehensive documentation for the Waste Segregation Ap
 
 **For Developers:**
 - Start with [Developer Guide](guides/developer_guide.md)
+- **Set up your environment**: See [Environment Setup](config/environment_variables.md) for API keys.
 - Check [Resolution Plan](planning/RESOLUTION_PLAN.md) for current priorities
 - Review [Technical Fixes](technical/README.md) for recent changes
 
@@ -64,7 +66,24 @@ This directory contains comprehensive documentation for the Waste Segregation Ap
 **Version:** 0.1.4+96  
 **Status:** ✅ All Priority Issues Resolved
 
+### ✨ Key Features & Recent Enhancements:
+- **Fully Responsive UI**: All major UI sections now adapt to various screen sizes, eliminating overflow issues. This includes:
+    - Responsive AppBar titles and hero section greetings.
+    - Adaptive horizontal statistics cards.
+    - Overflow-protected quick action cards.
+    - Responsive active challenge previews with progress indicators.
+    - Dynamically adjusting "View All" buttons.
+- **User-Configurable Navigation**: Customize bottom navigation bar and Floating Action Button (FAB) visibility and style via Settings (See [Navigation Settings Service](services/navigation_settings_service.md)).
+- **Modern UI Components**: A new suite of modern, responsive widgets for badges, buttons, and cards. (See [Modern UI Components Overview](widgets/modern_ui_components.md)).
+- **Secure API Key Handling**: API keys are now managed via a `.env` file and accessed through environment variables, enhancing security. (See [Environment Setup](config/environment_variables.md)).
+- **Comprehensive Model Fallback**: AI service now includes a 4-tier model fallback (GPT-4.1-Nano, GPT-4o-Mini, GPT-4.1-Mini, Gemini-2.0-Flash).
+- **Factory Reset Option**: Developer setting to reset all app data for testing purposes.
+
 ### Recent Updates:
+- ✅ All UI overflow issues across 7 key areas resolved.
+- ✅ API Keys secured using `.env` and environment variables.
+- ✅ Navigation system made user-configurable.
+- ✅ Comprehensive test suites (unit and golden) for new UI components.
 - ✅ All critical priority issues resolved (data leaks, UI overflow, badge unlock)
 - ✅ Documentation reorganized under docs/ folder structure
 - ✅ Resolution plan moved to docs/planning/

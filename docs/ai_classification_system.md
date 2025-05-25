@@ -393,4 +393,37 @@ Future<WasteClassification> handleUserCorrection(
 - Use feedback for continuous model improvement
 - Monitor correction frequency by category/item type
 
+This comprehensive system provides accurate waste classification with built-in correction mechanisms to continuously improve through user feedback.
+
+## 3. AI Service (`lib/services/ai_service.dart`)
+
+### A. API Key Management & Security
+
+- **Environment Variables**: API keys for OpenAI and Gemini are **not** hardcoded. They are managed using a `.env` file in the project root.
+- **Access in Code**: Keys are accessed via `String.fromEnvironment()` in `lib/utils/constants.dart` (e.g., `ApiConfig.openAiApiKey`, `ApiConfig.apiKey` for Gemini).
+- **Setup**: Developers must create a `.env` file from `.env.example` (if provided) or manually, and populate it with their API keys. See `docs/config/environment_variables.md` for detailed setup instructions.
+- **Security**: The `.env` file is listed in `.gitignore` to prevent accidental commits of sensitive keys.
+
+### B. Model Fallback Strategy
+
+The `AiService` implements a multi-layered fallback strategy to ensure resilience and availability:
+
+1.  **Primary Model**: `ApiConfig.primaryModel` (e.g., 'gpt-4.1-nano') - Attempted first.
+2.  **Secondary Model 1**: `ApiConfig.secondaryModel1` (e.g., 'gpt-4o-mini') - Used if the primary model fails.
+3.  **Secondary Model 2**: `ApiConfig.secondaryModel2` (e.g., 'gpt-4.1-mini') - Used if the first secondary model fails.
+4.  **Tertiary Model (Gemini)**: `ApiConfig.tertiaryModel` (e.g., 'gemini-2.0-flash') using `ApiConfig.apiKey` for Gemini - Used if all OpenAI models fail.
+
+This tiered approach helps maintain functionality even if one or more models are unavailable or experience issues.
+
+### C. Core Classification Logic
+
+The AI service uses a combination of machine learning models and human-in-the-loop to classify waste items. The classification process involves the following steps:
+
+1. **Image Processing**: The AI service processes the image of the waste item to extract visual features.
+2. **Feature Extraction**: The extracted features are fed into the machine learning model to predict the category of the waste item.
+3. **Human Review**: If the machine learning model's prediction is not confident enough or if the item is ambiguous, it is sent to a human reviewer for further analysis.
+4. **Classification**: The human reviewer provides a final classification based on their analysis.
+
+The AI service ensures that the classification process is transparent and explainable. The AI service provides detailed reasoning for its classification decisions, which helps users understand the reasoning behind the AI's classification.
+
 This comprehensive system provides accurate waste classification with built-in correction mechanisms to continuously improve through user feedback. 

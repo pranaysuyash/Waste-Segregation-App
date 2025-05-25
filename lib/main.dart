@@ -4,6 +4,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
+
 import 'firebase_options.dart';
 import 'services/ai_service.dart';
 import 'services/analytics_service.dart';
@@ -55,6 +56,9 @@ void main() {
 
 Future<void> originalMain() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Environment variables are now loaded via --dart-define-from-file=.env
+  print('Environment variables loaded via --dart-define-from-file');
 
   if (!kIsWeb) {
     print('Before setPreferredOrientations');

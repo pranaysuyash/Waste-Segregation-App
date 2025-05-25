@@ -21,6 +21,26 @@ This document provides a consolidated overview of the technical architecture for
 
 The Waste Segregation App follows a hybrid architecture combining mobile client, cloud services, and on-device processing to deliver responsive performance, offline capabilities, and advanced AI features while maintaining data privacy and efficiency. The architecture also supports web platform deployment with appropriate adaptations.
 
+### UI Layer Architecture (New - 2025 Q1 Update)
+
+The UI layer has been significantly modernized to enhance responsiveness and user experience. Key aspects include:
+
+- **Responsive Design**: All major screens and components are designed to adapt to various screen sizes and orientations. This is achieved through:
+    - Use of `LayoutBuilder` for dynamic adjustments.
+    - Flexible and Expanded widgets for content flow.
+    - Responsive text widgets (`ResponsiveText`, `ResponsiveAppBarTitle`, `GreetingText`) leveraging `auto_size_text` to prevent overflow.
+    - Adaptive UI components from the `lib/widgets/modern_ui/` directory (e.g., `ModernCard` variants, `ModernButton` variants like `ViewAllButton`, `ModernBadge`).
+- **User-Configurable Navigation**: The `NavigationSettingsService` (`lib/services/navigation_settings_service.dart`) allows users to customize:
+    - Visibility of the bottom navigation bar.
+    - Visibility of the Floating Action Button (FAB).
+    - Visual style of the bottom navigation bar (Material 3, Glassmorphism, Floating).
+    - Settings are persisted using `shared_preferences`.
+- **Modern UI Toolkit**: A custom suite of widgets in `lib/widgets/modern_ui/` provides a consistent and modern look and feel. These components are built with responsiveness and overflow protection in mind.
+    - See `docs/widgets/modern_ui_components.md` for an overview.
+- **Theming**: Consistent application of `AppTheme` (from `lib/utils/constants.dart`) ensures a unified visual identity.
+
+This updated UI architecture aims to provide a seamless and intuitive experience across all supported devices, minimizing common UI frustrations like text overflow and fixed layouts.
+
 ### Architecture Diagram
 
 ```

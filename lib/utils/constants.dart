@@ -10,19 +10,19 @@ class ApiConfig {
   static const String openAiApiKey = String.fromEnvironment('OPENAI_API_KEY', defaultValue: 'your-openai-api-key-here');
   
   // Primary model - Using the first model you specified
-  static const String primaryModel = String.fromEnvironment('PRIMARY_MODEL', defaultValue: 'gpt-4.1-nano');
+  static const String primaryModel = String.fromEnvironment('OPENAI_API_MODEL_PRIMARY', defaultValue: 'gpt-4.1-nano');
   
   // Secondary models (fallbacks)
-  static const String secondaryModel1 = String.fromEnvironment('SECONDARY_MODEL_1', defaultValue: 'gpt-4o-mini');
-  static const String secondaryModel2 = String.fromEnvironment('SECONDARY_MODEL_2', defaultValue: 'gpt-4.1-mini');
+  static const String secondaryModel1 = String.fromEnvironment('OPENAI_API_MODEL_SECONDARY', defaultValue: 'gpt-4o-mini');
+  static const String secondaryModel2 = String.fromEnvironment('OPENAI_API_MODEL_TERTIARY', defaultValue: 'gpt-4.1-mini');
   
   // Tertiary model (Gemini fallback)
-  static const String tertiaryModel = String.fromEnvironment('TERTIARY_MODEL', defaultValue: 'gemini-2.0-flash');
+  static const String tertiaryModel = String.fromEnvironment('GEMINI_API_MODEL', defaultValue: 'gemini-2.0-flash');
   
   // Gemini API Configuration (Tertiary Fallback)
   static const String geminiBaseUrl = 'https://generativelanguage.googleapis.com/v1beta';
   static const String apiKey = String.fromEnvironment('GEMINI_API_KEY', defaultValue: 'your-gemini-api-key-here');
-  static const String geminiModel = String.fromEnvironment('TERTIARY_MODEL', defaultValue: 'gemini-2.0-flash');
+  static const String geminiModel = String.fromEnvironment('GEMINI_API_MODEL', defaultValue: 'gemini-2.0-flash');
 }
 
 // App Version Information
