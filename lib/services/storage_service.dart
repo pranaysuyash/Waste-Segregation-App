@@ -7,6 +7,7 @@ import '../models/waste_classification.dart';
 import '../models/filter_options.dart';
 import '../models/user_profile.dart';
 import '../utils/constants.dart';
+import 'gamification_service.dart';
 
 class StorageService {
   // Initialize Hive database
@@ -471,8 +472,11 @@ class StorageService {
       await clearAllClassifications();
       final settingsBox = Hive.box(StorageKeys.settingsBox);
       await settingsBox.clear();
-      final gamificationBox = Hive.box(StorageKeys.gamificationBox);
-      await gamificationBox.clear();
+      
+      // Import GamificationService to ensure proper clearing
+      final gamificationService = GamificationService();
+      await gamificationService.clearGamificationData(); // Use the proper clear method
+      
       final cacheBox = Hive.box<String>(StorageKeys.cacheBox);
       await cacheBox.clear();
       

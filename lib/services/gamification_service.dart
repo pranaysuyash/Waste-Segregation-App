@@ -1044,4 +1044,32 @@ class GamificationService {
       },
     ];
   }
+  
+  /// Clear all gamification data and reset to default state
+  Future<void> clearGamificationData() async {
+    try {
+      final box = Hive.box(_gamificationBox);
+      
+      // Clear all gamification data
+      await box.clear();
+      
+      // Force recreation of fresh default profile
+      final freshProfile = GamificationProfile(
+        userId: 'default',
+        streak: Streak(lastUsageDate: DateTime.now()),
+        points: const UserPoints(), // This ensures 0 points
+        achievements: _getDefaultAchievements(),
+      );
+      
+      await box.put(_profileKey, jsonEncode(freshProfile.toJson()));
+      
+      // Reset default challenges
+      await box.put(_defaultChallengesKey, jsonEncode(_getDefaultChallenges()));
+      
+      debugPrint('✅ Gamification data cleared and reset successfully');
+    } catch (e) {
+      debugPrint('❌ Error clearing gamification data: $e');
+      rethrow;
+    }
+  }
 }

@@ -344,7 +344,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         // Clear analytics data first
                         analyticsService.clearAnalyticsData();
                         
-                        // Clear all user data
+                        // Clear all user data (includes proper gamification reset)
                         await storageService.clearAllUserData();
                         
                         if (context.mounted) {

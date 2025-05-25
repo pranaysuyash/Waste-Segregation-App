@@ -558,7 +558,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       final analyticsService = Provider.of<AnalyticsService>(context, listen: false);
       analyticsService.clearAnalyticsData();
       
-      // Clear all local data
+      // Clear all local data (includes proper gamification reset)
       await storageService.clearAllUserData();
       
       if (!widget.isGuestMode) {
