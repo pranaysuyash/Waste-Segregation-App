@@ -11,6 +11,7 @@ import 'services/ad_service.dart';
 import 'services/google_drive_service.dart';
 import 'providers/theme_provider.dart';
 import 'utils/constants.dart';
+import 'widgets/responsive_text.dart';
 
 /// Entry point specifically for the web version
 void main() async {
@@ -83,7 +84,9 @@ class WebHomePage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Waste Segregation App'),
+        title: const ResponsiveAppBarTitle(
+          title: 'WasteWise',
+        ),
         backgroundColor: Colors.green,
       ),
       body: const Center(

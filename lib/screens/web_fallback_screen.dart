@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/services.dart';
+import '../widgets/responsive_text.dart';
 
 /// A simple web-specific fallback page that can be used if Firebase initialization fails
 class WebFallbackScreen extends StatelessWidget {
@@ -10,7 +11,9 @@ class WebFallbackScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Waste Segregation App'),
+        title: const ResponsiveAppBarTitle(
+          title: 'WasteWise',
+        ),
       ),
       body: Center(
         child: Column(

@@ -528,7 +528,7 @@ extension WasteCategoryExtension on WasteCategory {
       case WasteCategory.wet:
         return '#4CAF50'; // Green
       case WasteCategory.dry:
-        return '#2196F3'; // Blue
+        return '#FFC107'; // Amber
       case WasteCategory.hazardous:
         return '#FF5722'; // Deep Orange
       case WasteCategory.medical:
@@ -589,23 +589,23 @@ extension DryWasteSubcategoryExtension on DryWasteSubcategory {
   String get color {
     switch (this) {
       case DryWasteSubcategory.paper:
-        return '#90CAF9'; // Light Blue
+        return '#FFE082'; // Light Amber
       case DryWasteSubcategory.plastic:
-        return '#2196F3'; // Blue
+        return '#FFC107'; // Amber
       case DryWasteSubcategory.glass:
-        return '#1976D2'; // Dark Blue
+        return '#FFB300'; // Dark Amber
       case DryWasteSubcategory.metal:
-        return '#0D47A1'; // Deep Blue
+        return '#FF8F00'; // Deep Amber
       case DryWasteSubcategory.carton:
-        return '#64B5F6'; // Light Blue
+        return '#FFCC02'; // Light Amber
       case DryWasteSubcategory.textile:
-        return '#42A5F5'; // Blue
+        return '#FFB74D'; // Amber
       case DryWasteSubcategory.rubber:
-        return '#1E88E5'; // Blue
+        return '#FFA726'; // Amber
       case DryWasteSubcategory.wood:
-        return '#1565C0'; // Dark Blue
+        return '#FF9800'; // Dark Amber
       case DryWasteSubcategory.other:
-        return '#2196F3'; // Blue (same as parent category)
+        return '#FFC107'; // Amber (same as parent category)
     }
   }
 }
