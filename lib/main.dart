@@ -6,6 +6,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'firebase_options.dart';
 import 'services/ai_service.dart';
+import 'services/analytics_service.dart';
 import 'services/google_drive_service.dart';
 import 'services/storage_service.dart';
 import 'services/enhanced_storage_service.dart';
@@ -93,6 +94,7 @@ Future<void> originalMain() async {
   // Create enhanced storage service instance
   final storageService = EnhancedStorageService();
   final aiService = AiService();
+  final analyticsService = AnalyticsService(storageService);
   final educationalContentService = EducationalContentService();
   final gamificationService = GamificationService();
   final premiumService = PremiumService();
@@ -111,6 +113,7 @@ Future<void> originalMain() async {
   runApp(WasteSegregationApp(
     storageService: storageService,
     aiService: aiService,
+    analyticsService: analyticsService,
     educationalContentService: educationalContentService,
     gamificationService: gamificationService,
     premiumService: premiumService,
@@ -123,6 +126,7 @@ Future<void> originalMain() async {
 class WasteSegregationApp extends StatelessWidget {
   final StorageService storageService;
   final AiService aiService;
+  final AnalyticsService analyticsService;
   final GoogleDriveService googleDriveService;
   final GamificationService gamificationService;
   final EducationalContentService educationalContentService;
@@ -133,6 +137,7 @@ class WasteSegregationApp extends StatelessWidget {
     super.key,
     required this.storageService,
     required this.aiService,
+    required this.analyticsService,
     required this.googleDriveService,
     required this.gamificationService,
     required this.educationalContentService,
@@ -146,6 +151,7 @@ class WasteSegregationApp extends StatelessWidget {
       providers: [
         Provider<StorageService>.value(value: storageService),
         Provider<AiService>.value(value: aiService),
+        ChangeNotifierProvider<AnalyticsService>.value(value: analyticsService),
         Provider<GoogleDriveService>.value(value: googleDriveService),
         Provider<GamificationService>.value(value: gamificationService),
         Provider<EducationalContentService>.value(value: educationalContentService),
