@@ -13,6 +13,7 @@ import 'waste_dashboard_screen.dart';
 import 'legal_document_screen.dart';
 import 'offline_mode_settings_screen.dart';
 import 'data_export_screen.dart';
+import 'navigation_demo_screen.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 
 class SettingsScreen extends StatefulWidget {
@@ -183,6 +184,38 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 context,
                 MaterialPageRoute(
                   builder: (context) => const ThemeSettingsScreen(),
+                ),
+              );
+            },
+          ),
+          const Divider(),
+
+          // Navigation Styles Demo
+          ListTile(
+            leading: const Icon(Icons.navigation, color: Colors.blue),
+            title: const Text('Navigation Styles'),
+            subtitle: const Text('Try different navigation designs'),
+            trailing: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              decoration: BoxDecoration(
+                color: Colors.blue.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: Colors.blue.withOpacity(0.3)),
+              ),
+              child: const Text(
+                'NEW',
+                style: TextStyle(
+                  fontSize: 10,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.blue,
+                ),
+              ),
+            ),
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const NavigationDemoScreen(),
                 ),
               );
             },

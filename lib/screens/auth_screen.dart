@@ -3,7 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import '../services/google_drive_service.dart';
 import '../utils/constants.dart';
-import 'home_screen.dart';
+import '../widgets/navigation_wrapper.dart';
 
 class AuthScreen extends StatefulWidget {
   const AuthScreen({super.key});
@@ -39,7 +39,7 @@ class _AuthScreenState extends State<AuthScreen> {
       if (user != null && mounted) {
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => const HomeScreen()),
+          MaterialPageRoute(builder: (context) => const MainNavigationWrapper()),
         );
       }
     } catch (e) {
@@ -61,7 +61,7 @@ class _AuthScreenState extends State<AuthScreen> {
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(
-          builder: (context) => const HomeScreen(isGuestMode: true)),
+          builder: (context) => const MainNavigationWrapper(isGuestMode: true)),
     );
   }
 

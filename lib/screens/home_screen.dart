@@ -1162,54 +1162,21 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
               );
             },
           ),
-          IconButton(
-            icon: const Icon(Icons.emoji_events),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const AchievementsScreen(),
-                ),
-              );
-            },
-          ),
-          IconButton(
-            icon: const Icon(Icons.settings),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const SettingsScreen(),
-                ),
-              );
-            },
-          ),
-          IconButton(
-            icon: const Icon(
-              Icons.logout,
-              color: Colors.white,
-            ),
-            tooltip: widget.isGuestMode ? 'Exit Guest Mode' : 'Sign Out',
-            onPressed: _signOut,
-          ),
         ],
       ),
-      body: Stack(
-        children: [
-          // Main content
-          SingleChildScrollView(
-            padding: const EdgeInsets.all(AppTheme.paddingRegular),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Welcome message
-                Text(
-                  'Hello, $_userName!',
-                  style: const TextStyle(
-                    fontSize: AppTheme.fontSizeExtraLarge,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(AppTheme.paddingRegular),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Welcome message
+            Text(
+              'Hello, $_userName!',
+              style: const TextStyle(
+                fontSize: AppTheme.fontSizeExtraLarge,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
                 const SizedBox(height: 4),
                 const Text(
                   'What waste would you like to identify today?',
@@ -1519,22 +1486,10 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                   ),
                 ],
 
-                // Add padding at the bottom for banner ad
-                const SizedBox(height: 60),
-              ],
-            ),
-          ),
-          
-          // Banner ad at the bottom
-          Positioned(
-            bottom: 0,
-            left: 0,
-            right: 0,
-            child: !Provider.of<PremiumService>(context).isPremiumFeature('remove_ads')
-              ? Provider.of<AdService>(context).getBannerAd()
-              : const SizedBox.shrink(),
-          ),
-        ],
+            // Add padding at the bottom for navigation
+            const SizedBox(height: 100),
+          ],
+        ),
       ),
     );
   }
