@@ -3,7 +3,6 @@ import 'package:flutter/foundation.dart';
 import 'package:uuid/uuid.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../models/gamification.dart';
-import '../models/analytics_event.dart';
 import '../services/storage_service.dart';
 
 /// Service for tracking and analyzing user behavior and app usage.
