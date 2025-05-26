@@ -248,8 +248,7 @@ class _ModernHomeScreenState extends State<ModernHomeScreen> with TickerProvider
         return;
       }
 
-      final bool isEmulator = await PlatformCamera.isEmulator();
-      if (isEmulator && mounted) {
+              if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text(

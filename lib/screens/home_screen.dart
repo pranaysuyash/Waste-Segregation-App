@@ -221,11 +221,9 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
 
       // Mobile platform handling
       // Check if running on emulator using our enhanced detection
-      final bool isEmulator = await PlatformCamera.isEmulator();
-
-      // Show warning if using emulator
-      if (isEmulator && mounted) {
-        debugPrint('Detected emulator environment');
+      // Camera setup successful, proceed
+      if (mounted) {
+        debugPrint('Camera setup completed successfully');
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text(
@@ -1582,7 +1580,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       debugPrint('Camera setup completed. Success: $setupSuccess');
 
       // If setup failed on a real device (not emulator), show error message
-      if (!setupSuccess && !(await PlatformCamera.isEmulator()) && mounted) {
+              if (!setupSuccess && mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text(

@@ -167,11 +167,11 @@ class AppTheme {
   );
 
   // Category Colors (used for badges, etc.)
-  static const Color wetWasteColor = Color(0xFF4CAF50); // Green
-  static const Color dryWasteColor = Color(0xFFFFC107); // Amber #FFC107
-  static const Color hazardousWasteColor = Color(0xFFFF5722); // Deep Orange
-  static const Color medicalWasteColor = Color(0xFFF44336); // Red
-  static const Color nonWasteColor = Color(0xFF9C27B0); // Purple
+  static const Color wetWasteColor = Color(0xFF2E7D32); // Dark green for better contrast
+  static const Color dryWasteColor = Color(0xFFE65100); // Dark orange instead of yellow for accessibility
+  static const Color hazardousWasteColor = Color(0xFFD84315); // Dark red-orange
+  static const Color medicalWasteColor = Color(0xFFC62828); // Dark red
+  static const Color nonWasteColor = Color(0xFF6A1B9A); // Dark purple
   static const Color lightGreyColor = Color(0xFFD3D3D3); // For chips, etc.
 
   // Font Sizes
@@ -262,8 +262,10 @@ class AppTheme {
 
   // Dialog button styles for consistency
   static ButtonStyle dialogCancelButtonStyle(BuildContext context) {
+    final theme = Theme.of(context);
+    final bool isDarkMode = theme.brightness == Brightness.dark;
     return TextButton.styleFrom(
-      foregroundColor: Colors.grey.shade600,
+      foregroundColor: isDarkMode ? Colors.grey.shade300 : Colors.grey.shade700, // Explicit neutral colors
       textStyle: const TextStyle(
         fontSize: fontSizeRegular,
         fontWeight: FontWeight.w500,

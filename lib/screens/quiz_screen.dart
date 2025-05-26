@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/educational_content.dart';
 import '../utils/constants.dart';
+import '../utils/accessibility_contrast_fixes.dart';
 
 class QuizScreen extends StatefulWidget {
   final EducationalContent quizContent;
@@ -295,29 +296,24 @@ class _QuizScreenState extends State<QuizScreen> {
                     const SizedBox(height: AppTheme.paddingRegular),
                     Container(
                       padding: const EdgeInsets.all(AppTheme.paddingRegular),
-                      decoration: BoxDecoration(
-                        color: Colors.blue.shade50,
-                        borderRadius:
-                            BorderRadius.circular(AppTheme.borderRadiusRegular),
-                        border: Border.all(color: Colors.blue.shade200),
-                      ),
+                      decoration: AccessibilityContrastFixes.getAccessibleInfoBoxDecoration('blue'),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Row(
+                          Row(
                             children: [
                               Icon(
                                 Icons.info_outline,
-                                color: AppTheme.secondaryColor,
+                                color: AccessibilityContrastFixes.getContrastColors('blue_info_box').textColor,
                                 size: 20,
                               ),
-                              SizedBox(width: 8),
+                              const SizedBox(width: 8),
                               Text(
                                 'Explanation',
                                 style: TextStyle(
                                   fontSize: AppTheme.fontSizeMedium,
                                   fontWeight: FontWeight.bold,
-                                  color: AppTheme.secondaryColor,
+                                  color: AccessibilityContrastFixes.getContrastColors('blue_info_box').textColor,
                                 ),
                               ),
                             ],
@@ -698,28 +694,24 @@ class _QuizScreenState extends State<QuizScreen> {
                               Container(
                                 padding:
                                     const EdgeInsets.all(AppTheme.paddingSmall),
-                                decoration: BoxDecoration(
-                                  color: Colors.blue.shade50,
-                                  borderRadius: BorderRadius.circular(
-                                      AppTheme.borderRadiusSmall),
-                                ),
+                                decoration: AccessibilityContrastFixes.getAccessibleInfoBoxDecoration('blue'),
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    const Row(
+                                    Row(
                                       children: [
                                         Icon(
                                           Icons.info_outline,
-                                          color: AppTheme.secondaryColor,
+                                          color: AccessibilityContrastFixes.getContrastColors('blue_info_box').textColor,
                                           size: 14,
                                         ),
-                                        SizedBox(width: 4),
+                                        const SizedBox(width: 4),
                                         Text(
                                           'Explanation',
                                           style: TextStyle(
                                             fontSize: AppTheme.fontSizeSmall,
                                             fontWeight: FontWeight.bold,
-                                            color: AppTheme.secondaryColor,
+                                            color: AccessibilityContrastFixes.getContrastColors('blue_info_box').textColor,
                                           ),
                                         ),
                                       ],
@@ -727,9 +719,11 @@ class _QuizScreenState extends State<QuizScreen> {
                                     const SizedBox(height: 4),
                                     Text(
                                       question.explanation!,
-                                      style: const TextStyle(
+                                      style: TextStyle(
                                         fontSize: AppTheme.fontSizeSmall,
+                                        color: AccessibilityContrastFixes.getContrastColors('blue_info_box').textColor,
                                       ),
+                                      textAlign: TextAlign.justify,
                                     ),
                                   ],
                                 ),

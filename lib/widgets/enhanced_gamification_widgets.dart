@@ -1060,9 +1060,13 @@ class EnhancedChallengeCard extends StatelessWidget {
                       borderRadius: BorderRadius.circular(AppTheme.borderRadiusSmall),
                       child: LinearProgressIndicator(
                         value: progress,
-                        minHeight: 10, 
-                        backgroundColor: AppTheme.lightGreyColor, // Use theme color
-                        valueColor: AlwaysStoppedAnimation<Color>(challenge.color),
+                        minHeight: 10,
+                        backgroundColor: challenge.color.withOpacity(0.2), // Lighter shade of challenge color for background
+                        valueColor: AlwaysStoppedAnimation<Color>(
+                          challenge.isCompleted || progress >= 1.0 
+                              ? AppTheme.successColor // Green for completed
+                              : challenge.color // Original challenge color during progress
+                        ),
                       ),
                     ),
                   ),

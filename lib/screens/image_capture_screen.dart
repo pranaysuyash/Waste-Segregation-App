@@ -339,7 +339,12 @@ class _ImageCaptureScreenState extends State<ImageCaptureScreen> {
                         SwitchListTile(
                           title: Row(
                             children: [
-                              const Text('Advanced Segmentation'),
+                              const Expanded(
+                                child: Text(
+                                  'Advanced Segmentation',
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
                               const SizedBox(width: 8),
                               Container(
                                 padding: const EdgeInsets.symmetric(
@@ -458,25 +463,19 @@ class _ImageCaptureScreenState extends State<ImageCaptureScreen> {
         imageWidget = Image.memory(
           _webImageBytes!,
           fit: BoxFit.contain,
-          width: double.infinity,
-          height: double.infinity,
         );
       } else if (widget.webImage != null) {
         imageWidget = Image.memory(
           widget.webImage!,
           fit: BoxFit.contain,
-          width: double.infinity,
-          height: double.infinity,
         );
       } else {
-        return const CircularProgressIndicator();
+        return const Center(child: CircularProgressIndicator());
       }
     } else {
       imageWidget = Image.file(
         widget.imageFile!,
         fit: BoxFit.contain,
-        width: double.infinity,
-        height: double.infinity,
       );
     }
     
@@ -486,50 +485,48 @@ class _ImageCaptureScreenState extends State<ImageCaptureScreen> {
       scaleEnabled: true, // Allow zooming
       minScale: 0.5, // Minimum zoom out
       maxScale: 4.0, // Maximum zoom in
-      constrained: false, // Allow the image to be larger than the viewport
-      child: Container(
-        width: double.infinity,
-        height: double.infinity,
-        child: Stack(
-          children: [
-            imageWidget,
-            // Zoom instruction overlay (shows briefly)
-            Positioned(
-              top: 16,
-              left: 16,
-              right: 16,
-              child: Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 8,
-                ),
-                decoration: BoxDecoration(
-                  color: Colors.black.withOpacity(0.7),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: const Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(
-                      Icons.zoom_in,
+      constrained: true, // FIXED: Use constrained layout to prevent infinite constraints
+      child: Stack(
+        fit: StackFit.expand, // FIXED: Use StackFit.expand instead of infinite container
+        children: [
+          // FIXED: Center the image within available space
+          Center(child: imageWidget),
+          // Zoom instruction overlay (shows briefly)
+          Positioned(
+            top: 16,
+            left: 16,
+            right: 16,
+            child: Container(
+              padding: const EdgeInsets.symmetric(
+                horizontal: 12,
+                vertical: 8,
+              ),
+              decoration: BoxDecoration(
+                color: Colors.black.withOpacity(0.7),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: const Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    Icons.zoom_in,
+                    color: Colors.white,
+                    size: 16,
+                  ),
+                  SizedBox(width: 8),
+                  Text(
+                    'Pinch to zoom • Drag to pan',
+                    style: TextStyle(
                       color: Colors.white,
-                      size: 16,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w500,
                     ),
-                    SizedBox(width: 8),
-                    Text(
-                      'Pinch to zoom • Drag to pan',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 12,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ],
-                ),
+                  ),
+                ],
               ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

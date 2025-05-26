@@ -34,7 +34,7 @@ class ResultScreen extends StatefulWidget {
 
 class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderStateMixin {
   bool _isSaved = false;
-  bool _showSavedState = false; // New flag for temporary "Saved" display
+  bool _isAutoSaving = false;
   bool _showingClassificationFeedback = true;
   bool _showingPointsPopup = false;
   
@@ -86,25 +86,35 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
   
   // Automatically save the classification when the screen loads
   Future<void> _autoSaveClassification() async {
+    if (!widget.showActions || _isSaved) return;
+
+    setState(() {
+      _isAutoSaving = true;
+    });
+
     try {
       final storageService = Provider.of<StorageService>(context, listen: false);
-      
-      // Update the classification's saved state using copyWith
       final savedClassification = widget.classification.copyWith(isSaved: true);
-      
       await storageService.saveClassification(savedClassification);
-      
+
       if (mounted) {
         setState(() {
           _isSaved = true;
+          _isAutoSaving = false;
         });
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text(AppStrings.successSaved)),
+        );
       }
     } catch (e, stackTrace) {
       ErrorHandler.handleError(e, stackTrace);
       if (mounted) {
         setState(() {
-          _isSaved = false;
+          _isAutoSaving = false;
         });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Auto-save failed: ${ErrorHandler.getUserFriendlyMessage(e)}')), 
+        );
       }
     }
   }
@@ -178,36 +188,26 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
   }
 
   Future<void> _saveResult() async {
+    if (_isSaved) return;
+
     try {
       final storageService = Provider.of<StorageService>(context, listen: false);
-      
       final savedClassification = widget.classification.copyWith(isSaved: true);
       await storageService.saveClassification(savedClassification);
 
       if (mounted) {
         setState(() {
           _isSaved = true;
-          _showSavedState = true; // Show "Saved" temporarily
         });
-        
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text(AppStrings.successSaved)),
         );
-        
-        // After 1 second, hide the "Saved" state but keep _isSaved true
-        Future.delayed(const Duration(seconds: 1), () {
-          if (mounted) {
-            setState(() {
-              _showSavedState = false; // Revert to "Share" button
-            });
-          }
-        });
       }
     } catch (e, stackTrace) {
       ErrorHandler.handleError(e, stackTrace);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to save: ${ErrorHandler.getUserFriendlyMessage(e)}')),
+          SnackBar(content: Text('Failed to save: ${ErrorHandler.getUserFriendlyMessage(e)}')), 
         );
       }
     }
@@ -551,13 +551,13 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
                           
                           const SizedBox(height: AppTheme.paddingLarge),
                           
-                          // Explanation section with better contrast
+                          // Explanation section with WCAG AA compliant contrast
                           Container(
                             padding: const EdgeInsets.all(AppTheme.paddingRegular),
                             decoration: BoxDecoration(
-                              color: Colors.blue.shade50,
+                              color: const Color(0xFFE3F2FD), // Very light blue
                               borderRadius: BorderRadius.circular(AppTheme.borderRadiusRegular),
-                              border: Border.all(color: Colors.blue.shade200),
+                              border: Border.all(color: const Color(0xFF1976D2)), // Dark blue border
                             ),
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
@@ -566,7 +566,7 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
                                   children: [
                                     Icon(
                                       Icons.info_outline,
-                                      color: Colors.blue.shade700,
+                                      color: const Color(0xFF0D47A1), // Dark blue for contrast
                                       size: 20,
                                     ),
                                     const SizedBox(width: 8),
@@ -575,7 +575,7 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
                                       style: TextStyle(
                                         fontSize: AppTheme.fontSizeMedium,
                                         fontWeight: FontWeight.bold,
-                                        color: Colors.blue.shade800,
+                                        color: const Color(0xFF0D47A1), // Dark blue text
                                       ),
                                     ),
                                   ],
@@ -585,7 +585,7 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
                                   widget.classification.explanation,
                                   style: TextStyle(
                                     fontSize: AppTheme.fontSizeRegular,
-                                    color: Colors.grey.shade800,
+                                    color: const Color(0xFF212121), // Almost black for readability
                                     height: 1.5,
                                   ),
                                 ),
@@ -601,23 +601,35 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
                               children: [
                                 Expanded(
                                   child: ElevatedButton.icon(
-                                    onPressed: (!_isSaved || _showSavedState) ? _saveResult : _shareResult,
+                                    onPressed: _isAutoSaving 
+                                        ? null // Disabled while auto-saving
+                                        : (_isSaved ? _shareResult : _saveResult),
                                     style: ElevatedButton.styleFrom(
-                                      backgroundColor: _showSavedState ? Colors.green : AppTheme.primaryColor,
+                                      backgroundColor: _isAutoSaving 
+                                          ? Colors.grey // Neutral color when saving
+                                          : (_isSaved ? AppTheme.primaryColor : Colors.green), // Green for Save, Primary for Share
                                       foregroundColor: Colors.white,
                                       padding: const EdgeInsets.symmetric(vertical: 12),
                                       shape: RoundedRectangleBorder(
                                         borderRadius: BorderRadius.circular(AppTheme.borderRadiusRegular),
                                       ),
                                     ),
-                                    icon: Icon(_showSavedState ? Icons.check : (_isSaved ? Icons.share : Icons.save)),
-                                    label: Text(_showSavedState ? 'Saved' : (_isSaved ? 'Share' : 'Save')),
+                                    icon: Icon(
+                                      _isAutoSaving 
+                                          ? Icons.hourglass_empty // Saving icon
+                                          : (_isSaved ? Icons.share : Icons.save)
+                                    ),
+                                    label: Text(
+                                      _isAutoSaving 
+                                          ? 'Saving...' 
+                                          : (_isSaved ? 'Share' : 'Save')
+                                    ),
                                   ),
                                 ),
                                 const SizedBox(width: AppTheme.paddingRegular),
                                 Expanded(
                                   child: OutlinedButton.icon(
-                                    onPressed: _shareResult,
+                                    onPressed: _shareResult, // Share is always possible if item is shareable
                                     style: OutlinedButton.styleFrom(
                                       foregroundColor: AppTheme.primaryColor,
                                       side: BorderSide(color: AppTheme.primaryColor, width: 2),

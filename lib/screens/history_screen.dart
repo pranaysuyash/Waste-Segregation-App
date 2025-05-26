@@ -564,9 +564,12 @@ class _HistoryScreenState extends State<HistoryScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Classification History'),
+        title: const Text('History'),
+        backgroundColor: AppTheme.primaryColor,
+        foregroundColor: Colors.white,
+        elevation: 2,
         actions: [
-          // Export button
+          // Export button with accessibility
           if (_classifications.isNotEmpty)
             IconButton(
               onPressed: _isExporting ? null : _exportToCSV,
@@ -580,90 +583,120 @@ class _HistoryScreenState extends State<HistoryScreen> {
                       ),
                     )
                   : const Icon(Icons.file_download),
-              tooltip: 'Export to CSV',
+              tooltip: 'Export classification history to CSV',
             ),
           
-          // Filter button
+          // Filter button with accessibility
           IconButton(
             onPressed: _showFilterDialog,
             icon: Badge(
               isLabelVisible: _filterOptions.isNotEmpty,
               child: const Icon(Icons.filter_list),
             ),
-            tooltip: 'Filter',
+            tooltip: _filterOptions.isNotEmpty 
+                  ? 'Filter history (active filters applied)'
+                  : 'Filter history',
           ),
         ],
       ),
       body: Column(
         children: [
-          // Search bar
-          Padding(
-            padding: const EdgeInsets.all(AppTheme.paddingRegular),
-            child: TextField(
-              controller: _searchController,
-              decoration: InputDecoration(
-                hintText: 'Search classifications...',
-                prefixIcon: const Icon(Icons.search),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(AppTheme.borderRadiusRegular),
+          // Header section with search and filters
+          Container(
+            color: Colors.white,
+            child: Column(
+              children: [
+                // Search bar
+                Padding(
+                  padding: const EdgeInsets.all(AppTheme.paddingRegular),
+                  child: TextField(
+                    controller: _searchController,
+                    decoration: InputDecoration(
+                      hintText: 'Search classifications...',
+                      prefixIcon: const Icon(Icons.search),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(AppTheme.borderRadiusRegular),
+                      ),
+                      contentPadding: const EdgeInsets.symmetric(
+                        vertical: 12,
+                        horizontal: 16,
+                      ),
+                      suffixIcon: _searchController.text.isNotEmpty
+                          ? IconButton(
+                              icon: const Icon(Icons.clear),
+                              onPressed: () {
+                                _searchController.clear();
+                                _applySearchFilter('');
+                              },
+                              tooltip: 'Clear search',
+                            )
+                          : null,
+                    ),
+                    onChanged: (value) {
+                      // Debounce search input
+                      Future.delayed(const Duration(milliseconds: 300), () {
+                        if (value == _searchController.text) {
+                          _applySearchFilter(value);
+                        }
+                      });
+                    },
+                  ),
                 ),
-                contentPadding: const EdgeInsets.symmetric(
-                  vertical: 12,
-                  horizontal: 16,
-                ),
-                suffixIcon: _searchController.text.isNotEmpty
-                    ? IconButton(
-                        icon: const Icon(Icons.clear),
-                        onPressed: () {
-                          _searchController.clear();
-                          _applySearchFilter('');
-                        },
-                      )
-                    : null,
-              ),
-              onChanged: (value) {
-                // Debounce search input
-                Future.delayed(const Duration(milliseconds: 300), () {
-                  if (value == _searchController.text) {
-                    _applySearchFilter(value);
-                  }
-                });
-              },
+                
+                // Active filters display
+                if (_filterOptions.isNotEmpty)
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: AppTheme.paddingRegular,
+                      vertical: AppTheme.paddingSmall,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.blue.shade50,
+                      border: Border(
+                        top: BorderSide(color: Colors.blue.shade100),
+                        bottom: BorderSide(color: Colors.blue.shade100),
+                      ),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.filter_list,
+                          size: 16,
+                          color: Colors.blue.shade700,
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            'Active filters: ${_filterOptions.toString()}',
+                            style: TextStyle(
+                              fontSize: AppTheme.fontSizeSmall,
+                              color: Colors.blue.shade700,
+                              fontWeight: FontWeight.w500,
+                            ),
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        TextButton.icon(
+                          onPressed: _clearFilters,
+                          style: TextButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 4,
+                            ),
+                            minimumSize: Size.zero,
+                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                            foregroundColor: Colors.blue.shade700,
+                          ),
+                          icon: const Icon(Icons.clear, size: 16),
+                          label: const Text('Clear'),
+                        ),
+                      ],
+                    ),
+                  ),
+              ],
             ),
           ),
-          
-          // Active filters display
-          if (_filterOptions.isNotEmpty)
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: AppTheme.paddingRegular),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      'Filters: ${_filterOptions.toString()}',
-                      style: const TextStyle(
-                        fontSize: AppTheme.fontSizeSmall,
-                        color: AppTheme.textSecondaryColor,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                  TextButton(
-                    onPressed: _clearFilters,
-                    style: TextButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 4,
-                      ),
-                      minimumSize: Size.zero,
-                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                    ),
-                    child: const Text('Clear All'),
-                  ),
-                ],
-              ),
-            ),
           
           // List of classifications
           Expanded(

@@ -19,251 +19,280 @@ class HistoryListItem extends StatelessWidget {
   Widget build(BuildContext context) {
     final Color categoryColor = _getCategoryColor();
     
-    return Card(
-      elevation: 2,
-      margin: const EdgeInsets.symmetric(
-        vertical: AppTheme.paddingSmall, 
-        horizontal: AppTheme.paddingRegular
-      ),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(AppTheme.borderRadiusRegular),
-        side: BorderSide(color: categoryColor.withOpacity(0.3), width: 1),
-      ),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(AppTheme.borderRadiusRegular),
-        child: Padding(
-          padding: const EdgeInsets.all(AppTheme.paddingRegular),
-          child: Row(
-            children: [
-              // Thumbnail (if available)
-              if (classification.imageUrl != null)
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(AppTheme.borderRadiusSmall),
-                  child: SizedBox(
-                    width: 60,
-                    height: 60,
-                    child: _buildImage(),
-                  ),
-                ),
-              
-              // Gap between image and content
-              if (classification.imageUrl != null)
-                const SizedBox(width: AppTheme.paddingRegular),
-              
-              // Content
-              Expanded(
-                child: Column(
+    return Semantics(
+      button: true,
+      label: 'Classification result for ${classification.itemName}, ${classification.category}',
+      hint: 'Tap to view details',
+      child: Card(
+        elevation: 2,
+        margin: const EdgeInsets.symmetric(
+          vertical: AppTheme.paddingSmall, 
+          horizontal: AppTheme.paddingRegular
+        ),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(AppTheme.borderRadiusRegular),
+          side: BorderSide(color: categoryColor.withOpacity(0.3), width: 1),
+        ),
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(AppTheme.borderRadiusRegular),
+          child: Padding(
+            padding: const EdgeInsets.all(AppTheme.paddingRegular),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Top row: Item name, confidence, and thumbnail
+                Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Item name and confidence
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                            classification.itemName,
-                            style: const TextStyle(
-                              fontSize: AppTheme.fontSizeMedium,
-                              fontWeight: FontWeight.bold,
-                              color: AppTheme.textPrimaryColor,
-                            ),
-                            overflow: TextOverflow.ellipsis,
-                            maxLines: 1,
-                          ),
-                        ),
-                        // FIXED: Constrain confidence badge to prevent overflow
-                        ConstrainedBox(
-                          constraints: const BoxConstraints(maxWidth: 80),
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 6,
-                              vertical: 2,
-                            ),
-                            decoration: BoxDecoration(
-                              color: _getConfidenceColor().withOpacity(0.2),
-                              borderRadius: BorderRadius.circular(AppTheme.borderRadiusSmall),
-                              border: Border.all(
-                                color: _getConfidenceColor(),
-                                width: 1,
-                              ),
-                            ),
+                    // Content area (item name + confidence)
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // Item name with tooltip for long names
+                          Tooltip(
+                            message: classification.itemName,
                             child: Text(
-                              '${((classification.confidence ?? 0.0) * 100).round()}%',
-                              style: TextStyle(
-                                color: _getConfidenceColor(),
-                                fontSize: 10, // Reduced font size
+                              classification.itemName,
+                              style: const TextStyle(
+                                fontSize: AppTheme.fontSizeMedium,
                                 fontWeight: FontWeight.bold,
+                                color: AppTheme.textPrimaryColor,
                               ),
-                              textAlign: TextAlign.center,
+                              maxLines: 2, // Allow 2 lines for long names
                               overflow: TextOverflow.ellipsis,
-                              maxLines: 1,
                             ),
                           ),
-                        ),
-                      ],
-                    ),
-                    
-                    const SizedBox(height: 4),
-                    
-                    // Date and time
-                    Row(
-                      children: [
-                        Icon(
-                          Icons.access_time,
-                          size: 14,
-                          color: AppTheme.textSecondaryColor,
-                        ),
-                        const SizedBox(width: 4),
-                        Expanded(
-                          child: Text(
-                            _formatDateForDisplay(classification.timestamp),
-                            style: const TextStyle(
-                              color: AppTheme.textSecondaryColor,
-                              fontSize: AppTheme.fontSizeSmall,
-                            ),
-                            overflow: TextOverflow.ellipsis,
-                            maxLines: 1,
-                          ),
-                        ),
-                      ],
-                    ),
-                    
-                    const SizedBox(height: 8),
-                    
-                    // Categories row
-                    LayoutBuilder(
-                      builder: (context, constraints) {
-                        return Row(
-                          children: [
-                            // Main category badge
-                            Flexible(
-                              flex: 2,
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 8,
-                                  vertical: 2,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: categoryColor,
-                                  borderRadius: BorderRadius.circular(AppTheme.borderRadiusSmall),
-                                ),
+                          
+                          const SizedBox(height: 4),
+                          
+                          // Date and confidence row
+                          Row(
+                            children: [
+                              Icon(
+                                Icons.access_time,
+                                size: 14,
+                                color: AppTheme.textSecondaryColor,
+                              ),
+                              const SizedBox(width: 4),
+                              Expanded(
                                 child: Text(
-                                  classification.category,
+                                  _formatDateForDisplay(classification.timestamp),
                                   style: const TextStyle(
-                                    color: Colors.white,
+                                    color: AppTheme.textSecondaryColor,
                                     fontSize: AppTheme.fontSizeSmall,
-                                    fontWeight: FontWeight.bold,
                                   ),
                                   overflow: TextOverflow.ellipsis,
                                   maxLines: 1,
                                 ),
                               ),
-                            ),
-                            
-                            // Subcategory badge if available
-                            if (classification.subcategory != null) ...[
-                              const SizedBox(width: 4),
-                              Flexible(
-                                flex: 1,
-                                child: Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 6,
-                                    vertical: 2,
+                              const SizedBox(width: 8),
+                              // Confidence badge
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 6,
+                                  vertical: 2,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: _getConfidenceColor().withOpacity(0.2),
+                                  borderRadius: BorderRadius.circular(AppTheme.borderRadiusSmall),
+                                  border: Border.all(
+                                    color: _getConfidenceColor(),
+                                    width: 1,
                                   ),
-                                  decoration: BoxDecoration(
-                                    color: Colors.black.withOpacity(0.05),
-                                    borderRadius: BorderRadius.circular(AppTheme.borderRadiusSmall),
-                                    border: Border.all(
-                                      color: categoryColor.withOpacity(0.5),
-                                      width: 1,
-                                    ),
-                                  ),
-                                  child: Text(
-                                    classification.subcategory!,
-                                    style: TextStyle(
-                                      color: categoryColor,
-                                      fontSize: 10,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                    overflow: TextOverflow.ellipsis,
-                                    maxLines: 1,
+                                ),
+                                child: Text(
+                                  '${((classification.confidence ?? 0.0) * 100).round()}%',
+                                  style: TextStyle(
+                                    color: _getConfidenceColor(),
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.bold,
                                   ),
                                 ),
                               ),
                             ],
-                            
-                            // Spacer
-                            const Spacer(),
-                            
-                            // Properties indicators (recyclable, compostable, special disposal)
-                            // FIXED: Constrain icons to prevent overflow and make responsive
-                            ConstrainedBox(
-                              constraints: BoxConstraints(
-                                maxWidth: constraints.maxWidth * 0.2, // Reduced from 25% to 20%
-                              ),
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  // Only show most important indicators on narrow screens
-                                  if (constraints.maxWidth > 250 && classification.isRecyclable == true)
-                                    Padding(
-                                      padding: const EdgeInsets.only(right: 2),
-                                      child: Tooltip(
-                                        message: 'Recyclable',
-                                        child: Icon(
-                                          Icons.recycling,
-                                          size: 14, // Reduced size
-                                          color: Colors.blue,
-                                        ),
-                                      ),
-                                    ),
-                                  
-                                  if (constraints.maxWidth > 250 && classification.isCompostable == true)
-                                    Padding(
-                                      padding: const EdgeInsets.only(right: 2),
-                                      child: Tooltip(
-                                        message: 'Compostable',
-                                        child: Icon(
-                                          Icons.eco,
-                                          size: 14, // Reduced size
-                                          color: Colors.green,
-                                        ),
-                                      ),
-                                    ),
-                                  
-                                  if (classification.requiresSpecialDisposal == true)
-                                    Padding(
-                                      padding: const EdgeInsets.only(right: 2),
-                                      child: Tooltip(
-                                        message: 'Special Disposal Required',
-                                        child: Icon(
-                                          Icons.warning_amber,
-                                          size: 14, // Reduced size
-                                          color: Colors.orange,
-                                        ),
-                                      ),
-                                    ),
-                                  
-                                  // Arrow indicator - always show but smaller
-                                  Icon(
-                                    Icons.chevron_right,
-                                    size: 16, // Reduced size
-                                    color: AppTheme.textSecondaryColor,
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        );
-                      },
+                          ),
+                        ],
+                      ),
                     ),
+                    
+                    // Thumbnail (if available)
+                    if (classification.imageUrl != null) ...[
+                      const SizedBox(width: AppTheme.paddingRegular),
+                      Semantics(
+                        image: true,
+                        label: 'Thumbnail image of ${classification.itemName}',
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(AppTheme.borderRadiusSmall),
+                          child: SizedBox(
+                            width: 50,
+                            height: 50,
+                            child: _buildImage(),
+                          ),
+                        ),
+                      ),
+                    ],
                   ],
                 ),
-              ),
-            ],
+                
+                const SizedBox(height: 12),
+                
+                // Tags row with proper wrapping
+                _buildTagsSection(categoryColor),
+                
+                const SizedBox(height: 8),
+                
+                // Properties indicators row
+                _buildPropertiesRow(),
+              ],
+            ),
           ),
         ),
       ),
+    );
+  }
+  
+  /// Builds the tags section with proper wrapping to prevent overflow
+  Widget _buildTagsSection(Color categoryColor) {
+    final List<Widget> tags = [];
+    
+    // Main category tag
+    tags.add(
+      Container(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+        decoration: BoxDecoration(
+          color: categoryColor,
+          borderRadius: BorderRadius.circular(AppTheme.borderRadiusSmall),
+        ),
+        child: Text(
+          classification.category,
+          style: const TextStyle(
+            color: Colors.white,
+            fontSize: AppTheme.fontSizeSmall,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      ),
+    );
+    
+    // Subcategory tag if available
+    if (classification.subcategory != null) {
+      tags.add(
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+          decoration: BoxDecoration(
+            color: Colors.black.withOpacity(0.05),
+            borderRadius: BorderRadius.circular(AppTheme.borderRadiusSmall),
+            border: Border.all(
+              color: categoryColor.withOpacity(0.5),
+              width: 1,
+            ),
+          ),
+          child: Text(
+            classification.subcategory!,
+            style: TextStyle(
+              color: categoryColor,
+              fontSize: AppTheme.fontSizeSmall,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ),
+      );
+    }
+    
+    // Material type tag if available
+    if (classification.materialType != null) {
+      tags.add(
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+          decoration: BoxDecoration(
+            color: Colors.grey.shade100,
+            borderRadius: BorderRadius.circular(AppTheme.borderRadiusSmall),
+            border: Border.all(
+              color: Colors.grey.shade300,
+              width: 1,
+            ),
+          ),
+          child: Text(
+            classification.materialType!,
+            style: TextStyle(
+              color: Colors.grey.shade700,
+              fontSize: AppTheme.fontSizeSmall,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ),
+      );
+    }
+    
+    return Wrap(
+      spacing: 6,
+      runSpacing: 4,
+      children: tags,
+    );
+  }
+  
+  /// Builds the properties indicators row
+  Widget _buildPropertiesRow() {
+    final List<Widget> indicators = [];
+    
+    if (classification.isRecyclable == true) {
+      indicators.add(
+        Tooltip(
+          message: 'Recyclable',
+          child: Icon(
+            Icons.recycling,
+            size: 16,
+            color: Colors.blue,
+            semanticLabel: 'Recyclable',
+          ),
+        ),
+      );
+    }
+    
+    if (classification.isCompostable == true) {
+      indicators.add(
+        Tooltip(
+          message: 'Compostable',
+          child: Icon(
+            Icons.eco,
+            size: 16,
+            color: Colors.green,
+            semanticLabel: 'Compostable',
+          ),
+        ),
+      );
+    }
+    
+    if (classification.requiresSpecialDisposal == true) {
+      indicators.add(
+        Tooltip(
+          message: 'Special Disposal Required',
+          child: Icon(
+            Icons.warning_amber,
+            size: 16,
+            color: Colors.orange,
+            semanticLabel: 'Special disposal required',
+          ),
+        ),
+      );
+    }
+    
+    return Row(
+      children: [
+        ...indicators.map((indicator) => Padding(
+          padding: const EdgeInsets.only(right: 8),
+          child: indicator,
+        )),
+        const Spacer(),
+        Icon(
+          Icons.chevron_right,
+          size: 18,
+          color: AppTheme.textSecondaryColor,
+          semanticLabel: 'View details',
+        ),
+      ],
     );
   }
   
@@ -337,8 +366,8 @@ class HistoryListItem extends StatelessWidget {
             // Create Image widget from data URL
             return Image.network(
               dataUrl,
-              height: 60,
-              width: 60,
+              height: 50,
+              width: 50,
               fit: BoxFit.cover,
               // Fade-in animation for smoother loading
               frameBuilder: (context, child, frame, wasSynchronouslyLoaded) {
@@ -350,122 +379,76 @@ class HistoryListItem extends StatelessWidget {
                   child: child,
                 );
               },
-              // Handle errors better
               errorBuilder: (context, error, stackTrace) {
-                debugPrint('Error loading web image: $error');
                 return _buildImagePlaceholder();
               },
-              // Cache images for better performance
-              cacheWidth: 120, // 2x display size for high-DPI displays
-              cacheHeight: 120,
             );
           }
         } catch (e) {
-          debugPrint('Error processing web image data: $e');
           return _buildImagePlaceholder();
         }
       }
       
-      // Handle regular URLs
-      if (classification.imageUrl!.startsWith('http:') || 
-          classification.imageUrl!.startsWith('https:')) {
-        return Image.network(
-          classification.imageUrl!,
-          height: 60,
-          width: 60,
-          fit: BoxFit.cover,
-          frameBuilder: (context, child, frame, wasSynchronouslyLoaded) {
-            if (wasSynchronouslyLoaded) return child;
-            return AnimatedOpacity(
-              opacity: frame == null ? 0 : 1,
-              duration: const Duration(milliseconds: 300),
-              curve: Curves.easeInOut,
-              child: child,
-            );
-          },
-          errorBuilder: (context, error, stackTrace) {
-            debugPrint('Error loading network image: $error');
-            return _buildImagePlaceholder();
-          },
-          cacheWidth: 120,
-          cacheHeight: 120,
-        );
-      }
-      
-      // If we got here, it's an unsupported image format for web
-      return _buildImagePlaceholder();
-    } 
-    
-    // For mobile platforms - handle file existence check properly
-    try {
-      final file = File(classification.imageUrl!);
-      
-      // Use FutureBuilder to check if the file exists before rendering
-      return FutureBuilder<bool>(
-        future: file.exists(),
-        builder: (context, snapshot) {
-          // Show placeholder while checking
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return _buildLoadingPlaceholder();
-          }
-          
-          // If file exists, show it
-          if (snapshot.hasData && snapshot.data == true) {
-            return Image.file(
-              file,
-              height: 60,
-              width: 60,
-              fit: BoxFit.cover,
-              errorBuilder: (context, error, stackTrace) {
-                debugPrint('Error rendering image file: $error');
-                return _buildImagePlaceholder();
-              },
-              cacheWidth: 120,
-              cacheHeight: 120,
-            );
-          } 
-          
-          // File doesn't exist or check failed
+      // For regular web URLs
+      return Image.network(
+        classification.imageUrl!,
+        height: 50,
+        width: 50,
+        fit: BoxFit.cover,
+        frameBuilder: (context, child, frame, wasSynchronouslyLoaded) {
+          if (wasSynchronouslyLoaded) return child;
+          return AnimatedOpacity(
+            opacity: frame == null ? 0 : 1,
+            duration: const Duration(milliseconds: 300),
+            curve: Curves.easeInOut,
+            child: child,
+          );
+        },
+        errorBuilder: (context, error, stackTrace) {
           return _buildImagePlaceholder();
         },
       );
-    } catch (e) {
-      debugPrint('Error handling image file: $e');
-      return _buildImagePlaceholder();
     }
+    
+    // For mobile platforms (file paths)
+    final file = File(classification.imageUrl!);
+    if (file.existsSync()) {
+      return Image.file(
+        file,
+        height: 50,
+        width: 50,
+        fit: BoxFit.cover,
+        frameBuilder: (context, child, frame, wasSynchronouslyLoaded) {
+          if (wasSynchronouslyLoaded) return child;
+          return AnimatedOpacity(
+            opacity: frame == null ? 0 : 1,
+            duration: const Duration(milliseconds: 300),
+            curve: Curves.easeInOut,
+            child: child,
+          );
+        },
+        errorBuilder: (context, error, stackTrace) {
+          return _buildImagePlaceholder();
+        },
+      );
+    }
+    
+    return _buildImagePlaceholder();
   }
   
-  /// Builds a loading placeholder while checking file existence
-  Widget _buildLoadingPlaceholder() {
-    return Container(
-      height: 60,
-      width: 60,
-      color: Colors.grey.shade100,
-      child: const Center(
-        child: SizedBox(
-          width: 20,
-          height: 20,
-          child: CircularProgressIndicator(
-            strokeWidth: 2,
-            valueColor: AlwaysStoppedAnimation<Color>(Colors.grey),
-          ),
-        ),
-      ),
-    );
-  }
-  
-  /// Builds a placeholder for missing images
+  /// Builds a placeholder when image is not available
   Widget _buildImagePlaceholder() {
     return Container(
-      height: 60,
-      width: 60,
-      color: Colors.grey.shade200,
-      child: const Center(
-        child: Icon(
-          Icons.image,
-          size: 24,
-          color: Colors.grey,
-        ),
+      height: 50,
+      width: 50,
+      decoration: BoxDecoration(
+        color: Colors.grey.shade200,
+        borderRadius: BorderRadius.circular(AppTheme.borderRadiusSmall),
+      ),
+      child: Icon(
+        Icons.image_not_supported,
+        color: Colors.grey.shade400,
+        size: 24,
       ),
     );
   }

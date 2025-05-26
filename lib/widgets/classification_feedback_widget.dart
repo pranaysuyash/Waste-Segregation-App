@@ -55,7 +55,31 @@ class _ClassificationFeedbackWidgetState extends State<ClassificationFeedbackWid
   }
 
   void _submitFeedback() {
+    // Get the corrected category if user provided one
+    String? correctedCategory;
+    String? correctedSubcategory;
+    
+    if (_userConfirmed == false && _selectedCorrection != null) {
+      if (_selectedCorrection == 'Custom correction...') {
+        correctedCategory = _customCorrectionController.text.trim().isNotEmpty 
+            ? _customCorrectionController.text.trim()
+            : null;
+      } else {
+        correctedCategory = _selectedCorrection;
+      }
+    }
+    
+    // Generate updated disposal instructions if category was corrected
+    DisposalInstructions? updatedDisposalInstructions;
+    if (correctedCategory != null) {
+      updatedDisposalInstructions = _generateDisposalInstructionsForCategory(correctedCategory);
+    }
+    
     final updatedClassification = widget.classification.copyWith(
+      // Update category if corrected
+      category: correctedCategory ?? widget.classification.category,
+      // Update disposal instructions to match corrected category
+      disposalInstructions: updatedDisposalInstructions ?? widget.classification.disposalInstructions,
       // Updated user feedback data
       userConfirmed: _userConfirmed,
       userCorrection: _selectedCorrection == 'Custom correction...' 
@@ -71,6 +95,94 @@ class _ClassificationFeedbackWidgetState extends State<ClassificationFeedbackWid
 
     widget.onFeedbackSubmitted(updatedClassification);
   }
+  
+  /// Generate appropriate disposal instructions for a given category
+  DisposalInstructions _generateDisposalInstructionsForCategory(String category) {
+    switch (category.toLowerCase()) {
+      case 'wet waste':
+        return DisposalInstructions(
+          primaryMethod: 'Compost or wet waste bin',
+          steps: [
+            'Remove any non-biodegradable packaging',
+            'Place in designated wet waste bin',
+            'Ensure proper drainage to avoid odors',
+            'Collect daily for municipal pickup'
+          ],
+          timeframe: 'Daily collection',
+          location: 'Wet waste bin',
+          tips: ['Keep bin covered', 'Drain excess liquids'],
+          hasUrgentTimeframe: false,
+        );
+      case 'dry waste':
+        return DisposalInstructions(
+          primaryMethod: 'Recycle or dry waste bin',
+          steps: [
+            'Clean and dry the item',
+            'Remove any labels if possible',
+            'Sort by material type if required',
+            'Place in dry waste bin'
+          ],
+          timeframe: 'Weekly collection',
+          location: 'Dry waste bin or recycling center',
+          tips: ['Clean items recycle better', 'Sort by material when possible'],
+          hasUrgentTimeframe: false,
+        );
+      case 'hazardous waste':
+        return DisposalInstructions(
+          primaryMethod: 'Special disposal facility',
+          steps: [
+            'Do not mix with regular waste',
+            'Store safely until disposal',
+            'Take to designated hazardous waste facility',
+            'Follow facility-specific guidelines'
+          ],
+          timeframe: 'As soon as possible',
+          location: 'Hazardous waste collection center',
+          warnings: ['Never dispose in regular bins', 'Can contaminate other waste'],
+          hasUrgentTimeframe: true,
+        );
+      case 'medical waste':
+        return DisposalInstructions(
+          primaryMethod: 'Medical waste disposal',
+          steps: [
+            'Place in puncture-proof container',
+            'Seal container properly',
+            'Take to pharmacy or medical facility',
+            'Never dispose in regular waste'
+          ],
+          timeframe: 'Immediately',
+          location: 'Pharmacy or medical facility',
+          warnings: ['Risk of infection', 'Environmental contamination'],
+          hasUrgentTimeframe: true,
+        );
+      case 'non-waste':
+        return DisposalInstructions(
+          primaryMethod: 'Reuse, donate, or repurpose',
+          steps: [
+            'Clean the item if needed',
+            'Consider donating if in good condition',
+            'Repurpose for other uses',
+            'Only discard if truly unusable'
+          ],
+          timeframe: 'No urgency',
+          location: 'Donation centers, reuse',
+          tips: ['Extend item lifespan', 'Consider creative reuses'],
+          hasUrgentTimeframe: false,
+        );
+      default:
+        return DisposalInstructions(
+          primaryMethod: 'Review disposal method',
+          steps: [
+            'Identify the correct waste category',
+            'Consult local waste guidelines',
+            'Use appropriate disposal method'
+          ],
+          timeframe: 'When convenient',
+          location: 'Appropriate waste bin',
+          hasUrgentTimeframe: false,
+        );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -85,9 +197,9 @@ class _ClassificationFeedbackWidgetState extends State<ClassificationFeedbackWid
     return Container(
       padding: const EdgeInsets.all(AppTheme.paddingSmall),
       decoration: BoxDecoration(
-        color: Colors.blue.shade50,
+        color: const Color(0xFFE3F2FD), // Very light blue for accessibility
         borderRadius: BorderRadius.circular(AppTheme.borderRadiusRegular),
-        border: Border.all(color: Colors.blue.shade200),
+        border: Border.all(color: const Color(0xFF1976D2)), // Dark blue border
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -96,7 +208,7 @@ class _ClassificationFeedbackWidgetState extends State<ClassificationFeedbackWid
             children: [
               Icon(
                 Icons.feedback_outlined,
-                color: Colors.blue.shade700,
+                color: const Color(0xFF0D47A1), // Dark blue for contrast
                 size: 18,
               ),
               const SizedBox(width: 8),
@@ -106,7 +218,7 @@ class _ClassificationFeedbackWidgetState extends State<ClassificationFeedbackWid
                   style: TextStyle(
                     fontSize: AppTheme.fontSizeRegular,
                     fontWeight: FontWeight.w500,
-                    color: Colors.blue.shade800,
+                    color: const Color(0xFF0D47A1), // Dark blue text
                   ),
                   overflow: TextOverflow.ellipsis,
                   maxLines: 2, // Allow wrapping to 2 lines
@@ -227,7 +339,7 @@ class _ClassificationFeedbackWidgetState extends State<ClassificationFeedbackWid
               style: TextStyle(
                 fontSize: AppTheme.fontSizeSmall,
                 fontWeight: FontWeight.w500,
-                color: Colors.orange.shade800,
+                color: const Color(0xFFE65100), // Dark orange for contrast
               ),
             ),
             const SizedBox(height: AppTheme.paddingSmall),
@@ -258,47 +370,19 @@ class _ClassificationFeedbackWidgetState extends State<ClassificationFeedbackWid
   }
 
   Widget _buildFullFeedback() {
-    return Card(
-      elevation: 2,
-      margin: const EdgeInsets.all(AppTheme.paddingRegular),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(AppTheme.borderRadiusLarge),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(AppTheme.paddingLarge),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Header
-            Row(
-              children: [
-                Icon(
-                  Icons.feedback,
-                  color: AppTheme.primaryColor,
-                  size: 24,
-                ),
-                const SizedBox(width: 8),
-                Text(
-                  'Help us improve classification',
-                  style: TextStyle(
-                    fontSize: AppTheme.fontSizeLarge,
-                    fontWeight: FontWeight.bold,
-                    color: AppTheme.textPrimaryColor,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: AppTheme.paddingRegular),
-            
-            Text(
-              'Your feedback helps train our AI model to be more accurate.',
-              style: TextStyle(
-                fontSize: AppTheme.fontSizeRegular,
-                color: Colors.grey.shade600,
-              ),
-            ),
-            
-            const SizedBox(height: AppTheme.paddingLarge),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Description
+        Text(
+          'Your feedback helps train our AI model to be more accurate.',
+          style: TextStyle(
+            fontSize: AppTheme.fontSizeRegular,
+            color: Colors.grey.shade600,
+          ),
+        ),
+        
+        const SizedBox(height: AppTheme.paddingLarge),
             
             // Confirmation question
             Container(
@@ -468,8 +552,6 @@ class _ClassificationFeedbackWidgetState extends State<ClassificationFeedbackWid
               textAlign: TextAlign.center,
             ),
           ],
-        ),
-      ),
     );
   }
 
@@ -477,19 +559,26 @@ class _ClassificationFeedbackWidgetState extends State<ClassificationFeedbackWid
     final isSelected = _selectedCorrection == correction;
     final isCustom = correction == 'Custom correction...';
     
-    return GestureDetector(
-      onTap: () {
-        setState(() {
-          _selectedCorrection = correction;
-          if (isCustom) {
-            _showCustomCorrection = true;
-          } else {
-            _showCustomCorrection = false;
-            _customCorrectionController.clear();
-          }
-        });
-      },
-      child: Container(
+    return Semantics(
+      button: true,
+      selected: isSelected,
+      label: isCustom 
+          ? 'Custom correction option' 
+          : 'Select $correction as correct classification',
+      hint: isSelected ? 'Currently selected' : 'Tap to select',
+      child: GestureDetector(
+        onTap: () {
+          setState(() {
+            _selectedCorrection = correction;
+            if (isCustom) {
+              _showCustomCorrection = true;
+            } else {
+              _showCustomCorrection = false;
+              _customCorrectionController.clear();
+            }
+          });
+        },
+        child: Container(
         padding: const EdgeInsets.symmetric(
           horizontal: 12,
           vertical: 6,
@@ -534,6 +623,7 @@ class _ClassificationFeedbackWidgetState extends State<ClassificationFeedbackWid
           ],
         ),
       ),
+    ),
     );
   }
 
@@ -547,17 +637,63 @@ class _ClassificationFeedbackWidgetState extends State<ClassificationFeedbackWid
         child: Container(
           constraints: BoxConstraints(
             maxWidth: 500,
-            maxHeight: MediaQuery.of(context).size.height * 0.8, // Limit height to 80% of screen
+            maxHeight: MediaQuery.of(context).size.height * 0.85, // Increased to 85%
           ),
-          child: SingleChildScrollView(
-            child: ClassificationFeedbackWidget(
-              classification: widget.classification,
-              onFeedbackSubmitted: (updatedClassification) {
-                Navigator.of(context).pop();
-                widget.onFeedbackSubmitted(updatedClassification);
-              },
-              showCompactVersion: false,
-            ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Fixed header
+              Container(
+                padding: const EdgeInsets.all(AppTheme.paddingLarge),
+                decoration: BoxDecoration(
+                  color: AppTheme.primaryColor.withOpacity(0.1),
+                  borderRadius: const BorderRadius.only(
+                    topLeft: Radius.circular(AppTheme.borderRadiusLarge),
+                    topRight: Radius.circular(AppTheme.borderRadiusLarge),
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.feedback,
+                      color: AppTheme.primaryColor,
+                      size: 24,
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        'Help us improve classification',
+                        style: TextStyle(
+                          fontSize: AppTheme.fontSizeLarge,
+                          fontWeight: FontWeight.bold,
+                          color: AppTheme.textPrimaryColor,
+                        ),
+                      ),
+                    ),
+                    IconButton(
+                      onPressed: () => Navigator.of(context).pop(),
+                      icon: const Icon(Icons.close),
+                      iconSize: 20,
+                      tooltip: 'Close feedback dialog',
+                    ),
+                  ],
+                ),
+              ),
+              // Scrollable content
+              Flexible(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.all(AppTheme.paddingLarge),
+                  child: ClassificationFeedbackWidget(
+                    classification: widget.classification,
+                    onFeedbackSubmitted: (updatedClassification) {
+                      Navigator.of(context).pop();
+                      widget.onFeedbackSubmitted(updatedClassification);
+                    },
+                    showCompactVersion: false,
+                  ),
+                ),
+              ),
+            ],
           ),
         ),
       ),
@@ -607,14 +743,60 @@ class FeedbackButton extends StatelessWidget {
         child: Container(
           constraints: BoxConstraints(
             maxWidth: 500,
-            maxHeight: MediaQuery.of(context).size.height * 0.8, // Limit height to 80% of screen
+            maxHeight: MediaQuery.of(context).size.height * 0.85, // Increased to 85%
           ),
-          child: SingleChildScrollView(
-            child: ClassificationFeedbackWidget(
-              classification: classification,
-              onFeedbackSubmitted: onFeedbackSubmitted,
-              showCompactVersion: false,
-            ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Fixed header
+              Container(
+                padding: const EdgeInsets.all(AppTheme.paddingLarge),
+                decoration: BoxDecoration(
+                  color: AppTheme.primaryColor.withOpacity(0.1),
+                  borderRadius: const BorderRadius.only(
+                    topLeft: Radius.circular(AppTheme.borderRadiusLarge),
+                    topRight: Radius.circular(AppTheme.borderRadiusLarge),
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.feedback,
+                      color: AppTheme.primaryColor,
+                      size: 24,
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        'Help us improve classification',
+                        style: TextStyle(
+                          fontSize: AppTheme.fontSizeLarge,
+                          fontWeight: FontWeight.bold,
+                          color: AppTheme.textPrimaryColor,
+                        ),
+                      ),
+                    ),
+                    IconButton(
+                      onPressed: () => Navigator.of(context).pop(),
+                      icon: const Icon(Icons.close),
+                      iconSize: 20,
+                      tooltip: 'Close feedback dialog',
+                    ),
+                  ],
+                ),
+              ),
+              // Scrollable content
+              Flexible(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.all(AppTheme.paddingLarge),
+                  child: ClassificationFeedbackWidget(
+                    classification: classification,
+                    onFeedbackSubmitted: onFeedbackSubmitted,
+                    showCompactVersion: false,
+                  ),
+                ),
+              ),
+            ],
           ),
         ),
       ),
