@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:permission_handler/permission_handler.dart';
 import 'constants.dart';
-import 'package:app_theme/app_theme.dart';
 
 class PermissionHandler {
   /// Check and request camera permission

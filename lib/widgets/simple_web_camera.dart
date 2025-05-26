@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import '../utils/constants.dart';
 
 /// A simplified camera widget for Flutter web
 /// This widget displays a dialog with a button to capture a photo

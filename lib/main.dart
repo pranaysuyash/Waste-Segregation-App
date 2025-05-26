@@ -4,7 +4,9 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:flutter/foundation.dart' show kIsWeb, kDebugMode;
+import 'package:flutter/foundation.dart';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 
 import 'firebase_options.dart';
 import 'services/ai_service.dart';
@@ -32,7 +34,6 @@ import 'widgets/navigation_wrapper.dart';
 import 'utils/constants.dart'; // For app constants, themes, and strings
 import 'utils/error_handler.dart'; // Correct import for ErrorHandler
 import 'providers/theme_provider.dart';
-import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 
 // Global Navigator Key for Error Handling
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
@@ -52,7 +53,17 @@ Required packages:
   firebase_auth: ^latest_version
 */
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  
+  // Initialize Firebase
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
+
+  // Set up error handling
+  _setupErrorHandling();
+
   if (kIsWeb) {
     runApp(const MaterialApp(
       home: Scaffold(
@@ -153,6 +164,36 @@ Future<void> originalMain() async {
     navigationSettingsService: navigationSettingsService,
   ));
   print('After runApp');
+}
+
+void _setupErrorHandling() {
+  // Capture Flutter framework errors
+  FlutterError.onError = (FlutterErrorDetails details) {
+    // Log to console in debug mode
+    if (kDebugMode) {
+      FlutterError.presentError(details);
+      print('🚨 Flutter Error Captured: ${details.exception}');
+      print('📍 Stack: ${details.stack}');
+    }
+    
+    // Send to Crashlytics in release mode
+    if (!kDebugMode) {
+      FirebaseCrashlytics.instance.recordFlutterFatalError(details);
+    }
+  };
+
+  // Capture errors outside of Flutter framework
+  PlatformDispatcher.instance.onError = (error, stack) {
+    if (kDebugMode) {
+      print('🚨 Platform Error Captured: $error');
+      print('📍 Stack: $stack');
+    }
+    
+    if (!kDebugMode) {
+      FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
+    }
+    return true;
+  };
 }
 
 class WasteSegregationApp extends StatelessWidget {
