@@ -202,7 +202,7 @@ class _AchievementsScreenState extends State<AchievementsScreen>
                   itemCount: achievements.length,
                   itemBuilder: (context, index) {
                     final achievement = achievements[index];
-                    return _buildAchievementCard(achievement);
+                    return _buildAchievementCard(achievement, profile);
                   },
                 ),
                 const SizedBox(height: AppTheme.paddingLarge),
@@ -214,10 +214,23 @@ class _AchievementsScreenState extends State<AchievementsScreen>
     );
   }
 
-  Widget _buildAchievementCard(Achievement achievement) {
+  Widget _buildAchievementCard(Achievement achievement, GamificationProfile profile) {
     final bool isEarned = achievement.isEarned;
-    final bool isLocked = achievement.isLocked;
     final bool isClaimable = achievement.isClaimable;
+    // FIXED: Check if achievement is locked based on user's current level
+    final bool isLocked = achievement.unlocksAtLevel != null && 
+                         achievement.unlocksAtLevel! > profile.points.level;
+    
+    // DEBUGGING: Log achievement state for "Waste Apprentice"
+    if (achievement.id == 'waste_apprentice') {
+      debugPrint('🎯 UI DEBUG - Waste Apprentice Display:');
+      debugPrint('  - User level: ${profile.points.level}');
+      debugPrint('  - Unlocks at level: ${achievement.unlocksAtLevel}');
+      debugPrint('  - Is locked: $isLocked');
+      debugPrint('  - Is earned: $isEarned');
+      debugPrint('  - Progress: ${(achievement.progress * 100).round()}%');
+      debugPrint('  - Threshold: ${achievement.threshold}');
+    }
 
     return Card(
       clipBehavior: Clip.antiAlias,
@@ -229,7 +242,7 @@ class _AchievementsScreenState extends State<AchievementsScreen>
             : BorderSide.none,
       ),
       child: InkWell(
-        onTap: () => _showAchievementDetails(achievement),
+        onTap: () => _showAchievementDetails(achievement, profile),
         child: Stack(
           children: [
             // Tier badge in corner
@@ -372,7 +385,7 @@ class _AchievementsScreenState extends State<AchievementsScreen>
     return brightness > 0.5 ? Colors.black : Colors.white;
   }
 
-  void _showAchievementDetails(Achievement achievement) {
+  void _showAchievementDetails(Achievement achievement, GamificationProfile profile) {
     final gamificationService = Provider.of<GamificationService>(context, listen: false);
     
     // Helper function to handle claiming rewards
@@ -548,7 +561,8 @@ class _AchievementsScreenState extends State<AchievementsScreen>
                     ),
                 ],
               )
-            else if (achievement.isLocked)
+            else if (achievement.unlocksAtLevel != null && 
+                     achievement.unlocksAtLevel! > profile.points.level)
               Container(
                 margin: const EdgeInsets.only(top: AppTheme.paddingSmall),
                 padding: const EdgeInsets.all(AppTheme.paddingSmall),

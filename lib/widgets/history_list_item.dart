@@ -90,21 +90,25 @@ class HistoryListItem extends StatelessWidget {
                     Row(
                       children: [
                         // Main category badge
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 8,
-                            vertical: 2,
-                          ),
-                          decoration: BoxDecoration(
-                            color: categoryColor,
-                            borderRadius: BorderRadius.circular(AppTheme.borderRadiusSmall),
-                          ),
-                          child: Text(
-                            classification.category,
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: AppTheme.fontSizeSmall,
-                              fontWeight: FontWeight.bold,
+                        Flexible(
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 2,
+                            ),
+                            decoration: BoxDecoration(
+                              color: categoryColor,
+                              borderRadius: BorderRadius.circular(AppTheme.borderRadiusSmall),
+                            ),
+                            child: Text(
+                              classification.category,
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: AppTheme.fontSizeSmall,
+                                fontWeight: FontWeight.bold,
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                              maxLines: 1,
                             ),
                           ),
                         ),
@@ -112,25 +116,29 @@ class HistoryListItem extends StatelessWidget {
                         // Subcategory badge if available
                         if (classification.subcategory != null) ...[
                           const SizedBox(width: 4),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 6,
-                              vertical: 2,
-                            ),
-                            decoration: BoxDecoration(
-                              color: Colors.black.withOpacity(0.05),
-                              borderRadius: BorderRadius.circular(AppTheme.borderRadiusSmall),
-                              border: Border.all(
-                                color: categoryColor.withOpacity(0.5),
-                                width: 1,
+                          Flexible(
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 6,
+                                vertical: 2,
                               ),
-                            ),
-                            child: Text(
-                              classification.subcategory!,
-                              style: TextStyle(
-                                color: categoryColor,
-                                fontSize: 10,
-                                fontWeight: FontWeight.bold,
+                              decoration: BoxDecoration(
+                                color: Colors.black.withOpacity(0.05),
+                                borderRadius: BorderRadius.circular(AppTheme.borderRadiusSmall),
+                                border: Border.all(
+                                  color: categoryColor.withOpacity(0.5),
+                                  width: 1,
+                                ),
+                              ),
+                              child: Text(
+                                classification.subcategory!,
+                                style: TextStyle(
+                                  color: categoryColor,
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                                overflow: TextOverflow.ellipsis,
+                                maxLines: 1,
                               ),
                             ),
                           ),
@@ -140,50 +148,55 @@ class HistoryListItem extends StatelessWidget {
                         const Spacer(),
                         
                         // Properties indicators (recyclable, compostable, special disposal)
-                        if (classification.isRecyclable == true)
-                          Padding(
-                            padding: const EdgeInsets.only(right: 4),
-                            child: Tooltip(
-                              message: 'Recyclable',
-                              child: Icon(
-                                Icons.recycling,
-                                size: 16,
-                                color: Colors.blue,
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            if (classification.isRecyclable == true)
+                              Padding(
+                                padding: const EdgeInsets.only(right: 4),
+                                child: Tooltip(
+                                  message: 'Recyclable',
+                                  child: Icon(
+                                    Icons.recycling,
+                                    size: 16,
+                                    color: Colors.blue,
+                                  ),
+                                ),
                               ),
-                            ),
-                          ),
-                        
-                        if (classification.isCompostable == true)
-                          Padding(
-                            padding: const EdgeInsets.only(right: 4),
-                            child: Tooltip(
-                              message: 'Compostable',
-                              child: Icon(
-                                Icons.eco,
-                                size: 16,
-                                color: Colors.green,
+                            
+                            if (classification.isCompostable == true)
+                              Padding(
+                                padding: const EdgeInsets.only(right: 4),
+                                child: Tooltip(
+                                  message: 'Compostable',
+                                  child: Icon(
+                                    Icons.eco,
+                                    size: 16,
+                                    color: Colors.green,
+                                  ),
+                                ),
                               ),
-                            ),
-                          ),
-                        
-                        if (classification.requiresSpecialDisposal == true)
-                          Padding(
-                            padding: const EdgeInsets.only(right: 4),
-                            child: Tooltip(
-                              message: 'Special Disposal Required',
-                              child: Icon(
-                                Icons.warning_amber,
-                                size: 16,
-                                color: Colors.orange,
+                            
+                            if (classification.requiresSpecialDisposal == true)
+                              Padding(
+                                padding: const EdgeInsets.only(right: 4),
+                                child: Tooltip(
+                                  message: 'Special Disposal Required',
+                                  child: Icon(
+                                    Icons.warning_amber,
+                                    size: 16,
+                                    color: Colors.orange,
+                                  ),
+                                ),
                               ),
+                            
+                            // Arrow indicator
+                            const Icon(
+                              Icons.chevron_right,
+                              size: 20,
+                              color: AppTheme.textSecondaryColor,
                             ),
-                          ),
-                        
-                        // Arrow indicator
-                        const Icon(
-                          Icons.chevron_right,
-                          size: 20,
-                          color: AppTheme.textSecondaryColor,
+                          ],
                         ),
                       ],
                     ),

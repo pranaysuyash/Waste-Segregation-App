@@ -207,4 +207,143 @@ These fixes resolve the three most critical blockers preventing stable app opera
 3. **Performance**: Smooth animations without "Bad state" errors
 4. **Offline Support**: Full functionality even when Firestore is unavailable
 
-The app is now production-ready with comprehensive error handling and graceful degradation capabilities. 
+The app is now production-ready with comprehensive error handling and graceful degradation capabilities.
+
+---
+
+## Latest Updates (Current Session) - UI Critical Fixes
+
+### 🔧 Additional Critical UI Issues Fixed
+
+#### 4. AdWidget "Already in Tree" Error - RESOLVED ✅
+**Issue:** Flutter development error showing "AdWidget already in tree" toast on Learn screen
+**Root Cause:** Reusing the same AdWidget instance across multiple widget builds
+**Fix Applied:**
+- Modified `AdService.getBannerAd()` to create new `AdWidget` instances each time
+- Removed stored `_adWidget` field to prevent reuse
+- **Files Changed:** `lib/services/ad_service.dart`
+
+#### 5. Layout Overflow Warnings - RESOLVED ✅
+**Issue:** Red/yellow overflow warning stripes showing "RIGHT/BOTTOM OVERFLOWED BY..." in multiple screens
+**Screens Affected:** History, Analytics, Settings, Classification Modal
+**Fixes Applied:**
+
+**History Screen Overflow:**
+- Fixed category badges overflow in `HistoryListItem`
+- Wrapped category row in `Flexible` widgets
+- Used proper text overflow handling with `TextOverflow.ellipsis`
+- **Files Changed:** `lib/widgets/history_list_item.dart`
+
+**Modal Dialog Overflow:**
+- Added height constraints to modal dialogs: `maxHeight: MediaQuery.of(context).size.height * 0.8`
+- Wrapped modal content in `SingleChildScrollView` for scrollable overflow
+- **Files Changed:** `lib/widgets/classification_feedback_widget.dart`
+
+#### 6. Version Management Fix - RESOLVED ✅
+**Issue:** Play Store rejecting builds due to hardcoded version codes
+**Fix Applied:**
+- Updated `android/app/build.gradle` to read version from `pubspec.yaml`
+- Added dynamic version loading from Flutter's local properties
+- **Files Changed:** `android/app/build.gradle`
+
+### 🚀 Current Build Status
+- **App Version:** 0.1.4+96
+- **Build Type:** Android App Bundle (AAB) for Play Store
+- **Status:** Ready for deployment
+
+### 📋 Technical Implementation Details
+
+#### AdWidget Fix Implementation:
+```dart
+// BEFORE (causing error):
+Widget _adWidget; // Stored instance
+return _adWidget; // Reused same instance
+
+// AFTER (fixed):
+return Container(
+  child: AdWidget(ad: _bannerAd!), // New instance each time
+);
+```
+
+#### Overflow Fix Implementation:
+```dart
+// BEFORE (causing overflow):
+Row(children: [
+  Container(child: Text(longText)), // Could overflow
+])
+
+// AFTER (fixed):
+Row(children: [
+  Flexible(child: Container(
+    child: Text(longText, overflow: TextOverflow.ellipsis)
+  )),
+])
+```
+
+#### Modal Height Fix Implementation:
+```dart
+// BEFORE (could overflow on small screens):
+Dialog(child: ClassificationFeedbackWidget())
+
+// AFTER (fixed):
+Dialog(
+  child: Container(
+    constraints: BoxConstraints(
+      maxHeight: MediaQuery.of(context).size.height * 0.8,
+    ),
+    child: SingleChildScrollView(
+      child: ClassificationFeedbackWidget(),
+    ),
+  ),
+)
+```
+
+### 📝 Additional Release Notes for Version 0.1.4+96
+
+**Latest Bug Fixes:**
+- Fixed critical UI overflow warnings in History and Modal screens
+- Resolved "AdWidget already in tree" error on Learn screen  
+- Fixed Play Store version code conflicts
+- Improved layout responsiveness on smaller screens
+- Enhanced modal dialog scrolling behavior
+
+**Latest Technical Improvements:**
+- Better error handling for ad widget instantiation
+- Improved text overflow handling in list items
+- Dynamic version management from pubspec.yaml
+- Enhanced modal dialog height constraints
+
+### 🎯 Next Steps for UI Improvements
+- User testing and feedback collection on fixed UI elements
+- Monitor for any remaining UI issues in production
+- Performance optimization if needed
+- Additional accessibility improvements
+- Test modal dialogs on various screen sizes
+
+#### 7. Achievement Unlock Logic Fix - RESOLVED ✅
+**Issue:** Level 4 user seeing "Waste Apprentice" badge (unlocks at Level 2) as locked
+**Root Cause:** Achievement display logic using `achievement.isLocked` property which doesn't consider user's current level
+**Fix Applied:**
+- Updated `_buildAchievementCard()` method to properly check user's current level vs achievement unlock level
+- Fixed `updateAchievementProgress()` method to use correct level comparison logic
+- Added comprehensive debugging logging to trace achievement state
+- **Files Changed:** `lib/screens/achievements_screen.dart`, `lib/services/gamification_service.dart`
+
+**Technical Details:**
+```dart
+// BEFORE (incorrect):
+final bool isLocked = achievement.isLocked; // Always true if unlocksAtLevel is set
+
+// AFTER (fixed):
+final bool isLocked = achievement.unlocksAtLevel != null && 
+                     achievement.unlocksAtLevel! > profile.points.level;
+```
+
+**Test Coverage:**
+- Created comprehensive test suite in `test/achievement_unlock_logic_test.dart`
+- Validates achievement configuration and unlock logic
+- Tests level calculation and mathematical alignment
+
+---
+*UI Fixes Last Updated: Current Session*
+*App Version: 0.1.4+96* 

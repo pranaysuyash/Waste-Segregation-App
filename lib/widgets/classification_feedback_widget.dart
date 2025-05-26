@@ -459,14 +459,19 @@ class _ClassificationFeedbackWidgetState extends State<ClassificationFeedbackWid
           borderRadius: BorderRadius.circular(AppTheme.borderRadiusLarge),
         ),
         child: Container(
-          constraints: const BoxConstraints(maxWidth: 500),
-          child: ClassificationFeedbackWidget(
-            classification: widget.classification,
-            onFeedbackSubmitted: (updatedClassification) {
-              Navigator.of(context).pop();
-              widget.onFeedbackSubmitted(updatedClassification);
-            },
-            showCompactVersion: false,
+          constraints: BoxConstraints(
+            maxWidth: 500,
+            maxHeight: MediaQuery.of(context).size.height * 0.8, // Limit height to 80% of screen
+          ),
+          child: SingleChildScrollView(
+            child: ClassificationFeedbackWidget(
+              classification: widget.classification,
+              onFeedbackSubmitted: (updatedClassification) {
+                Navigator.of(context).pop();
+                widget.onFeedbackSubmitted(updatedClassification);
+              },
+              showCompactVersion: false,
+            ),
           ),
         ),
       ),
@@ -514,11 +519,16 @@ class FeedbackButton extends StatelessWidget {
           borderRadius: BorderRadius.circular(AppTheme.borderRadiusLarge),
         ),
         child: Container(
-          constraints: const BoxConstraints(maxWidth: 500),
-          child: ClassificationFeedbackWidget(
-            classification: classification,
-            onFeedbackSubmitted: onFeedbackSubmitted,
-            showCompactVersion: false,
+          constraints: BoxConstraints(
+            maxWidth: 500,
+            maxHeight: MediaQuery.of(context).size.height * 0.8, // Limit height to 80% of screen
+          ),
+          child: SingleChildScrollView(
+            child: ClassificationFeedbackWidget(
+              classification: classification,
+              onFeedbackSubmitted: onFeedbackSubmitted,
+              showCompactVersion: false,
+            ),
           ),
         ),
       ),

@@ -39,7 +39,7 @@ class GamificationService {
         userId: 'default',
         streak: Streak(lastUsageDate: DateTime.now()),
         points: const UserPoints(),
-        achievements: _getDefaultAchievements(),
+        achievements: getDefaultAchievements(),
       );
       
       await box.put(_profileKey, jsonEncode(defaultProfile.toJson()));
@@ -63,7 +63,7 @@ class GamificationService {
         userId: 'default',
         streak: Streak(lastUsageDate: DateTime.now()),
         points: const UserPoints(),
-        achievements: _getDefaultAchievements(),
+        achievements: getDefaultAchievements(),
       );
       
       await box.put(_profileKey, jsonEncode(newProfile.toJson()));
@@ -238,7 +238,20 @@ class GamificationService {
         final newProgress = newRawProgress / achievement.threshold;
         
         // Check if achievement is now earned (requires both progress AND level unlock)
-        final isLevelUnlocked = !achievement.isLocked || profile.points.level >= achievement.unlocksAtLevel!;
+        final isLevelUnlocked = achievement.unlocksAtLevel == null || profile.points.level >= achievement.unlocksAtLevel!;
+        
+        // DEBUGGING: Log achievement progress for "Waste Apprentice"
+        if (achievement.id == 'waste_apprentice') {
+          debugPrint('🔍 ACHIEVEMENT DEBUG - Waste Apprentice:');
+          debugPrint('  - Current progress: ${(achievement.progress * 100).round()}%');
+          debugPrint('  - New progress: ${(newProgress * 100).round()}%');
+          debugPrint('  - User level: ${profile.points.level}');
+          debugPrint('  - Unlocks at level: ${achievement.unlocksAtLevel}');
+          debugPrint('  - Is level unlocked: $isLevelUnlocked');
+          debugPrint('  - Is earned: ${achievement.isEarned}');
+          debugPrint('  - Progress >= 1.0: ${newProgress >= 1.0}');
+        }
+        
         if (newProgress >= 1.0 && isLevelUnlocked) {
           // Achievement earned!
           final ClaimStatus claimStatus;
@@ -553,7 +566,7 @@ class GamificationService {
   }
   
   // Generate default achievement templates
-  List<Achievement> _getDefaultAchievements() {
+  List<Achievement> getDefaultAchievements() {
     return [
       // Waste identification achievements - TIERED FAMILY
       Achievement(
@@ -1069,7 +1082,7 @@ class GamificationService {
         userId: 'default',
         streak: Streak(lastUsageDate: DateTime.now()),
         points: const UserPoints(), // This ensures 0 current points
-        achievements: _getDefaultAchievements(),
+        achievements: getDefaultAchievements(),
       );
       
       await box.put(_profileKey, jsonEncode(freshProfile.toJson()));

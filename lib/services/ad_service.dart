@@ -52,7 +52,6 @@ class AdService extends ChangeNotifier {
   int _classificationCount = 0;
   
   BannerAd? _bannerAd;
-  AdWidget? _adWidget;
   
   // Getters
   bool get isInitialized => _isInitialized;
@@ -149,7 +148,6 @@ class AdService extends ChangeNotifier {
           onAdLoaded: (_) {
             debugPrint('Banner ad loaded successfully');
             if (!_disposed) {
-              _adWidget = AdWidget(ad: _bannerAd!);
               // Use post-frame callback to avoid calling notifyListeners during build
               WidgetsBinding.instance.addPostFrameCallback((_) {
                 if (mounted) {
@@ -162,7 +160,6 @@ class AdService extends ChangeNotifier {
             debugPrint('Banner ad failed to load: $error');
             ad.dispose();
             _bannerAd = null;
-            _adWidget = null;
             
             // TODO: Implement exponential backoff for retries
             // Retry after delay
@@ -256,23 +253,11 @@ class AdService extends ChangeNotifier {
   // Get banner ad widget
   Widget getBannerAd() {
     if (kIsWeb || !shouldShowAds || _disposed) {
-      return const SizedBox.shrink(); // No ads on web or for premium users
+      return const SizedBox.shrink();
     }
     
-    // If not initialized, try to initialize
-    if (!_isInitialized && !_isInitializing) {
-      // Schedule initialization after the current build cycle
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (!_disposed) {
-          initialize();
-        }
-      });
-      return _buildPlaceholderAd();
-    }
-    
-    // If we don't have a loaded ad widget yet, show placeholder
-    if (_adWidget == null) {
-      // Try loading an ad if not already loading
+    if (_bannerAd == null) {
+      // If banner ad is not loaded yet, try to load it
       if (_bannerAd == null && !_isInitializing) {
         // Schedule ad loading after the current build cycle
         WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -285,11 +270,12 @@ class AdService extends ChangeNotifier {
     }
     
     // Return the ad widget wrapped in a container
+    // FIXED: Create a new AdWidget instance each time to avoid "already in tree" error
     return Container(
       alignment: Alignment.center,
       width: _bannerAd!.size.width.toDouble(),
       height: _bannerAd!.size.height.toDouble(),
-      child: _adWidget,
+      child: AdWidget(ad: _bannerAd!), // Create new instance each time
     );
   }
   
