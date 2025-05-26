@@ -747,34 +747,38 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
                           const SizedBox(height: AppTheme.paddingRegular),
                           Row(
                             children: [
-                              TextButton.icon(
-                                onPressed: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) => EducationalContentScreen(
-                                        initialCategory: widget.classification.category,
+                              Expanded(
+                                child: TextButton.icon(
+                                  onPressed: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => EducationalContentScreen(
+                                          initialCategory: widget.classification.category,
+                                        ),
                                       ),
-                                    ),
-                                  );
-                                },
-                                icon: const Icon(Icons.menu_book),
-                                label: const Text('Learn More'),
+                                    );
+                                  },
+                                  icon: const Icon(Icons.menu_book),
+                                  label: const Text('Learn More'),
+                                ),
                               ),
                               const SizedBox(width: AppTheme.paddingSmall),
-                              TextButton.icon(
-                                onPressed: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) => HistoryScreen(
-                                        filterCategory: widget.classification.category,
+                              Expanded(
+                                child: TextButton.icon(
+                                  onPressed: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => HistoryScreen(
+                                          filterCategory: widget.classification.category,
+                                        ),
                                       ),
-                                    ),
-                                  );
-                                },
-                                icon: const Icon(Icons.history),
-                                label: const Text('Similar Items'),
+                                    );
+                                  },
+                                  icon: const Icon(Icons.history),
+                                  label: const Text('Similar Items'),
+                                ),
                               ),
                             ],
                           ),
@@ -998,7 +1002,9 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
               children: [
                 Icon(Icons.check_circle, color: Colors.white, size: 20),
                 const SizedBox(width: 8),
-                const Text('Thank you for your feedback!'),
+                const Expanded(
+                  child: Text('Thank you for your feedback!'),
+                ),
               ],
             ),
             backgroundColor: Colors.green.shade600,

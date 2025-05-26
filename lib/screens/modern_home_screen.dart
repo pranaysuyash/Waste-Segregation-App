@@ -21,6 +21,7 @@ import 'result_screen.dart';
 import 'educational_content_screen.dart';
 import 'achievements_screen.dart';
 import 'waste_dashboard_screen.dart';
+import 'settings_screen.dart';
 
 // Import modern UI components
 import '../widgets/modern_ui/modern_cards.dart';
@@ -31,16 +32,11 @@ import '../widgets/dashboard_widgets.dart';
 
 class ModernHomeScreen extends StatefulWidget {
   final bool isGuestMode;
-  final GlobalKey<_ModernHomeScreenState> _key = GlobalKey<_ModernHomeScreenState>();
 
-  ModernHomeScreen({
+  const ModernHomeScreen({
     super.key,
     this.isGuestMode = false,
   });
-
-  // Public methods to access state methods
-  Future<void> takePicture() => _key.currentState!.takePicture();
-  Future<void> pickImage() => _key.currentState!.pickImage();
 
   @override
   State<ModernHomeScreen> createState() => _ModernHomeScreenState();
@@ -513,19 +509,24 @@ class _ModernHomeScreenState extends State<ModernHomeScreen> with TickerProvider
             onSelected: (value) {
               switch (value) {
                 case 'settings':
-                  // Navigate to settings screen
-                  Navigator.pushNamed(context, '/settings');
+                  // FIXED: Use direct navigation instead of named routes
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const SettingsScreen()),
+                  );
                   break;
                 case 'profile':
-                  // Navigate to profile screen
-                  Navigator.pushNamed(context, '/profile');
+                  // Navigate to profile/account screen - you can create this or redirect to settings
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const SettingsScreen()),
+                  );
                   break;
                 case 'help':
-                  // Navigate to help screen
-                  Navigator.pushNamed(context, '/help');
+                  // Show help dialog or navigate to help screen
+                  _showHelpDialog(context);
                   break;
                 case 'about':
-                  // Show about dialog
                   _showAboutDialog(context);
                   break;
               }
@@ -1045,6 +1046,45 @@ class _ModernHomeScreenState extends State<ModernHomeScreen> with TickerProvider
     } else {
       return '${date.day}/${date.month}/${date.year}';
     }
+  }
+
+  void _showHelpDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Help & Support'),
+        content: const Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('How to use WasteWise:'),
+            SizedBox(height: 8),
+            Text('1. Take a photo or upload an image of waste'),
+            Text('2. Get AI-powered classification'),
+            Text('3. Follow disposal instructions'),
+            Text('4. Earn points and achievements'),
+            SizedBox(height: 16),
+            Text('Need more help? Check the Settings for tutorials and guides.'),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Close'),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const SettingsScreen()),
+              );
+            },
+            child: const Text('Settings'),
+          ),
+        ],
+      ),
+    );
   }
 
   void _showAboutDialog(BuildContext context) {

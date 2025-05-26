@@ -1,5 +1,8 @@
+import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:image_picker/image_picker.dart';
 import '../services/premium_service.dart';
 import '../services/ad_service.dart';
 import '../services/navigation_settings_service.dart';
@@ -8,11 +11,14 @@ import '../screens/history_screen.dart';
 import '../screens/educational_content_screen.dart';
 import '../screens/achievements_screen.dart';
 import '../screens/settings_screen.dart';
-import '../screens/family_dashboard_screen.dart';
+import '../screens/image_capture_screen.dart';
 import '../widgets/bottom_navigation/modern_bottom_nav.dart';
 import '../widgets/animated_fab.dart';
+import '../widgets/platform_camera.dart';
 import '../utils/constants.dart';
+import '../utils/permission_handler.dart';
 import '../models/user_profile.dart';
+import '../models/waste_classification.dart';
 
 /// Main navigation wrapper that manages the bottom navigation and screen switching
 class MainNavigationWrapper extends StatefulWidget {
@@ -32,6 +38,9 @@ class MainNavigationWrapper extends StatefulWidget {
 class _MainNavigationWrapperState extends State<MainNavigationWrapper> {
   int _currentIndex = 0;
   late PageController _pageController;
+  
+  // ADD THESE FOR DIRECT CAMERA ACCESS:
+  final ImagePicker _imagePicker = ImagePicker();
 
   @override
   void initState() {
@@ -99,7 +108,7 @@ class _MainNavigationWrapperState extends State<MainNavigationWrapper> {
     ];
   }
 
-  // Camera/upload actions
+  // FIXED: Direct camera/upload implementation
   void _showCaptureOptions(BuildContext context) {
     showModalBottomSheet(
       context: context,
@@ -123,6 +132,17 @@ class _MainNavigationWrapperState extends State<MainNavigationWrapper> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
+            // Handle indicator
+            Container(
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: Colors.grey[300],
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            const SizedBox(height: AppTheme.paddingLarge),
+            
             ListTile(
               leading: const CircleAvatar(
                 backgroundColor: AppTheme.primaryColor,
@@ -132,13 +152,7 @@ class _MainNavigationWrapperState extends State<MainNavigationWrapper> {
               subtitle: const Text('Use camera to capture image'),
               onTap: () {
                 Navigator.pop(context);
-                // Navigate to the home screen and trigger camera
-                _onTabTapped(0); // Switch to home tab
-                // Use a post-frame callback to ensure the home screen is built
-                WidgetsBinding.instance.addPostFrameCallback((_) {
-                  final homeScreen = _getScreens()[0] as ModernHomeScreen;
-                  homeScreen.takePicture();
-                });
+                _takePictureDirectly();
               },
             ),
             const SizedBox(height: AppTheme.paddingSmall),
@@ -151,13 +165,7 @@ class _MainNavigationWrapperState extends State<MainNavigationWrapper> {
               subtitle: const Text('Choose from gallery'),
               onTap: () {
                 Navigator.pop(context);
-                // Navigate to the home screen and trigger gallery
-                _onTabTapped(0); // Switch to home tab
-                // Use a post-frame callback to ensure the home screen is built
-                WidgetsBinding.instance.addPostFrameCallback((_) {
-                  final homeScreen = _getScreens()[0] as ModernHomeScreen;
-                  homeScreen.pickImage();
-                });
+                _pickImageDirectly();
               },
             ),
           ],
@@ -166,11 +174,152 @@ class _MainNavigationWrapperState extends State<MainNavigationWrapper> {
     );
   }
 
-  void _openSettingsScreen(BuildContext context) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => const SettingsScreen()),
-    );
+  // FIXED: Direct camera implementation
+  Future<void> _takePictureDirectly() async {
+    try {
+      debugPrint('Taking picture directly from navigation...');
+      
+      // Check camera permission first (mobile only)
+      if (!kIsWeb) {
+        final hasPermission = await PermissionHandler.checkCameraPermission();
+        if (!hasPermission && mounted) {
+          PermissionHandler.showPermissionDeniedDialog(context, 'Camera');
+          return;
+        }
+      }
+
+      XFile? image;
+      
+      if (kIsWeb) {
+        image = await _imagePicker.pickImage(
+          source: ImageSource.camera,
+          maxWidth: 1200,
+          maxHeight: 1200,
+          imageQuality: 85,
+        );
+      } else {
+        // Use platform camera for mobile
+        final bool setupSuccess = await PlatformCamera.setup();
+        if (setupSuccess) {
+          image = await PlatformCamera.takePicture();
+        } else {
+          // Fallback to regular image picker
+          image = await _imagePicker.pickImage(
+            source: ImageSource.camera,
+            maxWidth: 1200,
+            maxHeight: 1200,
+            imageQuality: 85,
+          );
+        }
+      }
+
+      if (image != null && mounted) {
+        _navigateToImageCapture(image);
+      }
+    } catch (e) {
+      debugPrint('Error taking picture: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Camera error: ${e.toString()}')),
+        );
+      }
+    }
+  }
+
+  // FIXED: Direct gallery implementation
+  Future<void> _pickImageDirectly() async {
+    try {
+      debugPrint('Picking image directly from navigation...');
+      
+      // Check storage permission first (mobile only)
+      if (!kIsWeb) {
+        final hasPermission = await PermissionHandler.checkStoragePermission();
+        if (!hasPermission && mounted) {
+          PermissionHandler.showPermissionDeniedDialog(context, 'Storage');
+          return;
+        }
+      }
+      
+      final XFile? image = await _imagePicker.pickImage(
+        source: ImageSource.gallery,
+        maxWidth: 1200,
+        maxHeight: 1200,
+        imageQuality: 85,
+      );
+
+      if (image != null && mounted) {
+        _navigateToImageCapture(image);
+      }
+    } catch (e) {
+      debugPrint('Error picking image: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Gallery error: ${e.toString()}')),
+        );
+      }
+    }
+  }
+
+  // FIXED: Navigate to image capture screen
+  void _navigateToImageCapture(XFile image) async {
+    try {
+      if (kIsWeb) {
+        // Handle web
+        final bytes = await image.readAsBytes();
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => ImageCaptureScreen(
+              xFile: image,
+              webImage: bytes,
+            ),
+          ),
+        ).then(_handleClassificationResult);
+      } else {
+        // Handle mobile
+        final file = File(image.path);
+        if (await file.exists()) {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => ImageCaptureScreen(
+                imageFile: file,
+              ),
+            ),
+          ).then(_handleClassificationResult);
+        } else {
+          throw Exception('Image file not found');
+        }
+      }
+    } catch (e) {
+      debugPrint('Error navigating to image capture: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error processing image: ${e.toString()}')),
+        );
+      }
+    }
+  }
+
+  // Handle classification result
+  void _handleClassificationResult(dynamic result) {
+    if (result != null && result is WasteClassification) {
+      // Handle gamification and ads
+      final adService = Provider.of<AdService>(context, listen: false);
+      adService.trackClassificationCompleted();
+      
+      if (adService.shouldShowInterstitial()) {
+        adService.showInterstitialAd();
+      }
+      
+      // Show success message
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Image analyzed successfully!'),
+          backgroundColor: Colors.green,
+        ),
+      );
+    }
   }
 
   @override

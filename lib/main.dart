@@ -20,6 +20,15 @@ import 'services/user_consent_service.dart';
 import 'services/navigation_settings_service.dart';
 import 'screens/auth_screen.dart';
 import 'screens/consent_dialog_screen.dart';
+import 'screens/settings_screen.dart';
+import 'screens/history_screen.dart';
+import 'screens/achievements_screen.dart';
+import 'screens/educational_content_screen.dart';
+import 'screens/waste_dashboard_screen.dart';
+import 'screens/premium_features_screen.dart';
+import 'screens/data_export_screen.dart';
+import 'screens/offline_mode_settings_screen.dart';
+import 'widgets/navigation_wrapper.dart';
 import 'utils/constants.dart'; // For app constants, themes, and strings
 import 'utils/error_handler.dart'; // Correct import for ErrorHandler
 import 'providers/theme_provider.dart';
@@ -193,6 +202,19 @@ class WasteSegregationApp extends StatelessWidget {
           theme: AppTheme.lightTheme,
           darkTheme: AppTheme.darkTheme,
           themeMode: themeProvider.themeMode,
+          
+          // ADD ROUTE DEFINITIONS:
+          routes: {
+            '/home': (context) => const MainNavigationWrapper(),
+            '/settings': (context) => const SettingsScreen(),
+            '/history': (context) => const HistoryScreen(),
+            '/achievements': (context) => const AchievementsScreen(),
+            '/educational': (context) => const EducationalContentScreen(),
+            '/analytics': (context) => const WasteDashboardScreen(),
+            '/premium': (context) => const PremiumFeaturesScreen(),
+            '/data-export': (context) => const DataExportScreen(),
+            '/offline-settings': (context) => const OfflineModeSettingsScreen(),
+          },
             home: FutureBuilder<Map<String, bool>>(
               future: _checkInitialConditions(),
               builder: (context, snapshot) {
@@ -247,8 +269,78 @@ class WasteSegregationApp extends StatelessWidget {
   }
 }
 
-class _SplashScreen extends StatelessWidget {
+class _SplashScreen extends StatefulWidget {
   const _SplashScreen();
+
+  @override
+  State<_SplashScreen> createState() => _SplashScreenState();
+}
+
+class _SplashScreenState extends State<_SplashScreen> with TickerProviderStateMixin {
+  late AnimationController _logoController;
+  late AnimationController _textController;
+  late Animation<double> _logoScale;
+  late Animation<double> _textFade;
+  late Animation<Offset> _textSlide;
+
+  @override
+  void initState() {
+    super.initState();
+    
+    // Logo animation controller
+    _logoController = AnimationController(
+      duration: const Duration(milliseconds: 1200),
+      vsync: this,
+    );
+    
+    // Text animation controller
+    _textController = AnimationController(
+      duration: const Duration(milliseconds: 800),
+      vsync: this,
+    );
+    
+    // Logo scale animation
+    _logoScale = Tween<double>(
+      begin: 0.5,
+      end: 1.0,
+    ).animate(CurvedAnimation(
+      parent: _logoController,
+      curve: Curves.elasticOut,
+    ));
+    
+    // Text fade animation
+    _textFade = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(CurvedAnimation(
+      parent: _textController,
+      curve: Curves.easeInOut,
+    ));
+    
+    // Text slide animation
+    _textSlide = Tween<Offset>(
+      begin: const Offset(0, 0.3),
+      end: Offset.zero,
+    ).animate(CurvedAnimation(
+      parent: _textController,
+      curve: Curves.easeOutCubic,
+    ));
+    
+    // Start animations
+    _startAnimations();
+  }
+  
+  void _startAnimations() async {
+    await _logoController.forward();
+    await _textController.forward();
+  }
+  
+  @override
+  void dispose() {
+    _logoController.dispose();
+    _textController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -259,90 +351,213 @@ class _SplashScreen extends StatelessWidget {
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
             colors: [
-              AppTheme.lightTheme.colorScheme.primary,
-              AppTheme.lightTheme.colorScheme.secondary,
+              AppTheme.primaryColor,
+              AppTheme.primaryColor.withOpacity(0.8),
+              AppTheme.secondaryColor,
+              AppTheme.secondaryColor.withOpacity(0.6),
             ],
+            stops: const [0.0, 0.3, 0.7, 1.0],
           ),
         ),
         child: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              // App logo with proper branding
-              Container(
-                width: 120,
-                height: 120,
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(30),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.2),
-                      blurRadius: 20,
-                      offset: const Offset(0, 10),
-                    ),
-                  ],
-                ),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(30),
-                  child: SvgPicture.asset(
-                    'assets/images/splash_screen.svg',
-                    width: 120,
-                    height: 120,
-                    fit: BoxFit.contain,
-                    placeholderBuilder: (context) => Container(
-                      width: 120,
-                      height: 120,
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: [
-                            AppTheme.primaryColor,
-                            AppTheme.secondaryColor,
-                          ],
+              // Enhanced App logo with proper branding and animation
+              AnimatedBuilder(
+                animation: _logoScale,
+                builder: (context, child) => Transform.scale(
+                  scale: _logoScale.value,
+                  child: Container(
+                    width: 140,
+                    height: 140,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(35),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.3),
+                          blurRadius: 25,
+                          offset: const Offset(0, 15),
+                          spreadRadius: 5,
                         ),
-                        borderRadius: BorderRadius.circular(30),
-                      ),
-                      child: const Icon(
-                        Icons.eco,
-                        size: 60,
-                        color: Colors.white,
+                      ],
+                    ),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(35),
+                      child: Stack(
+                        children: [
+                          // Gradient background for the logo
+                          Container(
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                                colors: [
+                                  AppTheme.primaryColor.withOpacity(0.1),
+                                  AppTheme.secondaryColor.withOpacity(0.1),
+                                ],
+                              ),
+                            ),
+                          ),
+                          // Main logo icon
+                          Center(
+                            child: Container(
+                              width: 80,
+                              height: 80,
+                              decoration: BoxDecoration(
+                                gradient: LinearGradient(
+                                  colors: [
+                                    AppTheme.primaryColor,
+                                    AppTheme.secondaryColor,
+                                  ],
+                                  begin: Alignment.topLeft,
+                                  end: Alignment.bottomRight,
+                                ),
+                                borderRadius: BorderRadius.circular(20),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: AppTheme.primaryColor.withOpacity(0.3),
+                                    blurRadius: 10,
+                                    offset: const Offset(0, 5),
+                                  ),
+                                ],
+                              ),
+                              child: const Icon(
+                                Icons.recycling,
+                                size: 50,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ),
+                          // Eco leaves decoration
+                          Positioned(
+                            top: 15,
+                            right: 15,
+                            child: Icon(
+                              Icons.eco,
+                              size: 20,
+                              color: Colors.green.shade600,
+                            ),
+                          ),
+                          Positioned(
+                            bottom: 15,
+                            left: 15,
+                            child: Icon(
+                              Icons.science,
+                              size: 18,
+                              color: Colors.blue.shade600,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ),
                 ),
               ),
 
-              const SizedBox(height: AppTheme.paddingRegular),
-
-              // App name with branding
-              const Text(
-                'WasteWise',
-                style: TextStyle(
-                  fontSize: 36,
-                  fontWeight: FontWeight.w900,
-                  color: Colors.white,
-                  letterSpacing: 1.5,
-                ),
-              ),
-              
-              const SizedBox(height: AppTheme.paddingSmall),
-              
-              // Tagline
-              const Text(
-                'AI-Powered Waste Segregation',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w500,
-                  color: Colors.white70,
-                  letterSpacing: 0.5,
-                ),
-              ),
-
               const SizedBox(height: AppTheme.paddingLarge),
 
-              // Loading indicator
-              const CircularProgressIndicator(
-                valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+              // Enhanced App name with animation
+              SlideTransition(
+                position: _textSlide,
+                child: FadeTransition(
+                  opacity: _textFade,
+                  child: Column(
+                    children: [
+                      // Main app name
+                      const Text(
+                        AppStrings.appName,
+                        style: TextStyle(
+                          fontSize: 42,
+                          fontWeight: FontWeight.w900,
+                          color: Colors.white,
+                          letterSpacing: 2.0,
+                          shadows: [
+                            Shadow(
+                              color: Colors.black26,
+                              offset: Offset(2, 2),
+                              blurRadius: 4,
+                            ),
+                          ],
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                      
+                      const SizedBox(height: AppTheme.paddingSmall),
+                      
+                      // Enhanced tagline with gradient text effect
+                      ShaderMask(
+                        shaderCallback: (bounds) => LinearGradient(
+                          colors: [
+                            Colors.white,
+                            Colors.white70,
+                          ],
+                        ).createShader(bounds),
+                        child: const Text(
+                          'AI-Powered Waste Classification',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.white,
+                            letterSpacing: 0.8,
+                            shadows: [
+                              Shadow(
+                                color: Colors.black12,
+                                offset: Offset(1, 1),
+                                blurRadius: 2,
+                              ),
+                            ],
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                      
+                      const SizedBox(height: AppTheme.paddingSmall),
+                      
+                      // Community tagline
+                      Text(
+                        'Join the Eco-Warriors Community',
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                          color: Colors.white.withOpacity(0.8),
+                          letterSpacing: 0.5,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+
+              const SizedBox(height: AppTheme.paddingExtraLarge),
+
+              // Enhanced loading indicator with pulsing animation
+              FadeTransition(
+                opacity: _textFade,
+                child: Column(
+                  children: [
+                    SizedBox(
+                      width: 30,
+                      height: 30,
+                      child: CircularProgressIndicator(
+                        valueColor: const AlwaysStoppedAnimation<Color>(Colors.white),
+                        strokeWidth: 3.0,
+                        backgroundColor: Colors.white.withOpacity(0.3),
+                      ),
+                    ),
+                    const SizedBox(height: AppTheme.paddingRegular),
+                    Text(
+                      'Initializing...',
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: Colors.white.withOpacity(0.8),
+                        fontWeight: FontWeight.w400,
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ],
           ),

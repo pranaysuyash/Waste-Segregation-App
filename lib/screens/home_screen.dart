@@ -1171,16 +1171,44 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Welcome message
-            GreetingText(
-              greeting: 'Hello',
-              userName: _userName ?? 'User',
-              style: const TextStyle(
-                fontSize: AppTheme.fontSizeExtraLarge,
-                fontWeight: FontWeight.bold,
-              ),
-              color: AppTheme.textPrimaryColor,
-              maxLines: 1,
+            // Welcome message - Fixed with responsive text
+            LayoutBuilder(
+              builder: (context, constraints) {
+                final fullText = 'Hello, ${_userName ?? 'User'}!';
+                final textStyle = const TextStyle(
+                  fontSize: AppTheme.fontSizeExtraLarge,
+                  fontWeight: FontWeight.bold,
+                  color: AppTheme.textPrimaryColor,
+                );
+                
+                // Check if text will overflow
+                final textPainter = TextPainter(
+                  text: TextSpan(text: fullText, style: textStyle),
+                  textDirection: TextDirection.ltr,
+                  maxLines: 1,
+                );
+                
+                textPainter.layout(maxWidth: constraints.maxWidth);
+                
+                String displayText = fullText;
+                if (textPainter.didExceedMaxLines || textPainter.width > constraints.maxWidth) {
+                  // Try shorter greeting
+                  displayText = 'Hi, ${_userName ?? 'User'}!';
+                  textPainter.text = TextSpan(text: displayText, style: textStyle);
+                  textPainter.layout(maxWidth: constraints.maxWidth);
+                  
+                  if (textPainter.didExceedMaxLines || textPainter.width > constraints.maxWidth) {
+                    displayText = 'Hi!';
+                  }
+                }
+                
+                return Text(
+                  displayText,
+                  style: textStyle,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                );
+              },
             ),
                 const SizedBox(height: 4),
                 const Text(
@@ -1367,66 +1395,79 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                                                 overflow: TextOverflow.ellipsis,
                                               ),
                                               const SizedBox(height: 4),
-                                              // Replace nested Row with Column and Wrap
+                                              // Replace nested Row with Column and Flexible Wrap
                                               Column(
                                                 crossAxisAlignment: CrossAxisAlignment.start,
                                                 children: [
-                                                  // First row with category badges
-                                                  Wrap(
-                                                    spacing: 4,
-                                                    runSpacing: 4,
-                                                    children: [
-                                                      // Main category badge
-                                                      Container(
-                                                        padding: const EdgeInsets.symmetric(
-                                                          horizontal: 8,
-                                                          vertical: 2,
-                                                        ),
-                                                        decoration: BoxDecoration(
-                                                          color: _getCategoryColorCase(
-                                                              classification.category),
-                                                          borderRadius: BorderRadius.circular(
-                                                              AppTheme.borderRadiusSmall),
-                                                        ),
-                                                        child: Text(
-                                                          classification.category,
-                                                          style: const TextStyle(
-                                                            color: Colors.white,
-                                                            fontSize: AppTheme.fontSizeSmall,
-                                                            fontWeight: FontWeight.bold,
-                                                          ),
-                                                        ),
-                                                      ),
-                                                      
-                                                      // Subcategory badge if available
-                                                      if (classification.subcategory != null)
+                                                  // First row with category badges - Fixed with Flexible and constraints
+                                                  ConstrainedBox(
+                                                    constraints: BoxConstraints(
+                                                      maxWidth: MediaQuery.of(context).size.width * 0.6, // Limit to 60% of screen width
+                                                    ),
+                                                    child: Wrap(
+                                                      spacing: 4,
+                                                      runSpacing: 4,
+                                                      alignment: WrapAlignment.start,
+                                                      children: [
+                                                        // Main category badge
                                                         Container(
                                                           padding: const EdgeInsets.symmetric(
-                                                            horizontal: 6,
+                                                            horizontal: 8,
                                                             vertical: 2,
                                                           ),
                                                           decoration: BoxDecoration(
-                                                            color: Colors.black.withOpacity(0.05),
+                                                            color: _getCategoryColorCase(
+                                                                classification.category),
                                                             borderRadius: BorderRadius.circular(
                                                                 AppTheme.borderRadiusSmall),
-                                                            border: Border.all(
-                                                              color: _getCategoryColorCase(
-                                                                  classification.category)
-                                                              .withOpacity(0.5),
-                                                              width: 1,
-                                                            ),
                                                           ),
                                                           child: Text(
-                                                            classification.subcategory!,
-                                                            style: TextStyle(
-                                                              color: _getCategoryColorCase(
-                                                                  classification.category),
-                                                              fontSize: 10,
+                                                            classification.category,
+                                                            style: const TextStyle(
+                                                              color: Colors.white,
+                                                              fontSize: AppTheme.fontSizeSmall,
                                                               fontWeight: FontWeight.bold,
                                                             ),
+                                                            overflow: TextOverflow.ellipsis,
+                                                            maxLines: 1,
                                                           ),
                                                         ),
-                                                    ],
+                                                        
+                                                        // Subcategory badge if available
+                                                        if (classification.subcategory != null)
+                                                          Container(
+                                                            constraints: BoxConstraints(
+                                                              maxWidth: MediaQuery.of(context).size.width * 0.25, // Limit subcategory width
+                                                            ),
+                                                            padding: const EdgeInsets.symmetric(
+                                                              horizontal: 6,
+                                                              vertical: 2,
+                                                            ),
+                                                            decoration: BoxDecoration(
+                                                              color: Colors.black.withOpacity(0.05),
+                                                              borderRadius: BorderRadius.circular(
+                                                                  AppTheme.borderRadiusSmall),
+                                                              border: Border.all(
+                                                                color: _getCategoryColorCase(
+                                                                    classification.category)
+                                                                .withOpacity(0.5),
+                                                                width: 1,
+                                                              ),
+                                                            ),
+                                                            child: Text(
+                                                              classification.subcategory!,
+                                                              style: TextStyle(
+                                                                color: _getCategoryColorCase(
+                                                                    classification.category),
+                                                                fontSize: 10,
+                                                                fontWeight: FontWeight.bold,
+                                                              ),
+                                                              overflow: TextOverflow.ellipsis,
+                                                              maxLines: 1,
+                                                            ),
+                                                          ),
+                                                      ],
+                                                    ),
                                                   ),
                                                   
                                                   // Second row with date
