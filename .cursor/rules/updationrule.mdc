@@ -1,0 +1,6 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+Alwasy make sure docs are updated or created but not deleted unless it is extremely non relevant. Even then, make sure learnings are updated either in existing learning files or new ones.

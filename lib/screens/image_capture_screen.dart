@@ -6,8 +6,9 @@ import 'package:provider/provider.dart';
 import '../models/waste_classification.dart';
 import '../services/ai_service.dart';
 import '../utils/constants.dart';
-import '../utils/image_utils.dart' show Rect;
+
 import '../widgets/capture_button.dart';
+import '../widgets/enhanced_analysis_loader.dart';
 import 'result_screen.dart';
 
 class ImageCaptureScreen extends StatefulWidget {
@@ -221,169 +222,247 @@ class _ImageCaptureScreenState extends State<ImageCaptureScreen> {
       appBar: AppBar(
         title: const Text('Review Image'),
       ),
-      body: Column(
-        children: [
-          // Image preview
-          Expanded(
-            child: Center(
-              child: _useSegmentation
-                  ? Stack(
-                      children: [
-                        _buildImagePreview(),
-                        if (_segments.isNotEmpty)
-                          LayoutBuilder(
-                            builder: (context, constraints) {
-                              final imageWidth = constraints.maxWidth;
-                              final imageHeight = constraints.maxHeight;
+      body: _isAnalyzing
+          ? EnhancedAnalysisLoader(
+              imageName: widget.imageFile?.path.split('/').last ?? 
+                         widget.xFile?.name ?? 
+                         'captured_image.jpg',
+              onCancel: () {
+                setState(() {
+                  _isAnalyzing = false;
+                });
+              },
+              estimatedDuration: const Duration(seconds: 17), // 14-20s average
+              showEducationalTips: true,
+            )
+          : Column(
+              children: [
+                // Image preview
+                Expanded(
+                  child: Center(
+                    child: _useSegmentation
+                        ? Stack(
+                            children: [
+                              _buildImagePreview(),
+                              if (_segments.isNotEmpty)
+                                LayoutBuilder(
+                                  builder: (context, constraints) {
+                                    final imageWidth = constraints.maxWidth;
+                                    final imageHeight = constraints.maxHeight;
 
-                              return Stack(
-                                children:
-                                    List.generate(_segments.length, (index) {
-                                  // Using segment bounds from Map
-                                  final segment = _segments[index];
-                                  final bounds = segment['bounds'] as Map<String, dynamic>;
-                                  final left = (bounds['x'] as num).toDouble() * imageWidth / 100;
-                                  final top = (bounds['y'] as num).toDouble() * imageHeight / 100;
-                                  final width = (bounds['width'] as num).toDouble() * imageWidth / 100;
-                                  final height = (bounds['height'] as num).toDouble() * imageHeight / 100;
-                                  final selected =
-                                      _selectedSegments.contains(index);
+                                    return Stack(
+                                      children:
+                                          List.generate(_segments.length, (index) {
+                                        // Using segment bounds from Map
+                                        final segment = _segments[index];
+                                        final bounds = segment['bounds'] as Map<String, dynamic>;
+                                        final left = (bounds['x'] as num).toDouble() * imageWidth / 100;
+                                        final top = (bounds['y'] as num).toDouble() * imageHeight / 100;
+                                        final width = (bounds['width'] as num).toDouble() * imageWidth / 100;
+                                        final height = (bounds['height'] as num).toDouble() * imageHeight / 100;
+                                        final selected =
+                                            _selectedSegments.contains(index);
 
-                                  return Positioned(
-                                    left: left,
-                                    top: top,
-                                    width: width,
-                                    height: height,
-                                    child: GestureDetector(
-                                      onTap: () {
-                                        setState(() {
-                                          if (selected) {
-                                            _selectedSegments.remove(index);
-                                          } else {
-                                            _selectedSegments.add(index);
-                                          }
-                                        });
-                                      },
-                                      child: Container(
-                                        decoration: BoxDecoration(
-                                          color: selected
-                                              ? Colors.blue.withOpacity(0.3)
-                                              : Colors.transparent,
-                                          border: Border.all(
-                                            color: selected
-                                                ? Colors.blue
-                                                : Colors.white,
-                                            width: 2,
+                                        return Positioned(
+                                          left: left,
+                                          top: top,
+                                          width: width,
+                                          height: height,
+                                          child: GestureDetector(
+                                            onTap: () {
+                                              setState(() {
+                                                if (selected) {
+                                                  _selectedSegments.remove(index);
+                                                } else {
+                                                  _selectedSegments.add(index);
+                                                }
+                                              });
+                                            },
+                                            child: Container(
+                                              decoration: BoxDecoration(
+                                                color: selected
+                                                    ? Colors.blue.withOpacity(0.3)
+                                                    : Colors.transparent,
+                                                border: Border.all(
+                                                  color: selected
+                                                      ? Colors.blue
+                                                      : Colors.white,
+                                                  width: 2,
+                                                ),
+                                              ),
+                                            ),
                                           ),
-                                        ),
-                                      ),
+                                        );
+                                      }),
+                                    );
+                                  },
+                                ),
+                            ],
+                          )
+                        : _buildImagePreview(),
+                  ),
+                ),
+
+                // Instructions
+                Container(
+                  padding: const EdgeInsets.all(AppTheme.paddingRegular),
+                  color: Colors.black.withOpacity(0.05),
+                  child: const Row(
+                    children: [
+                      Icon(Icons.info_outline, color: AppTheme.primaryColor),
+                      SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          'Position the item clearly in the image for best results.',
+                          style: TextStyle(fontSize: AppTheme.fontSizeRegular),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
+                // Segmentation toggle with premium feature indication
+                Padding(
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: AppTheme.paddingRegular),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: Colors.blue.shade50,
+                      borderRadius: BorderRadius.circular(AppTheme.borderRadiusRegular),
+                      border: Border.all(
+                        color: Colors.blue.shade200,
+                        width: 1,
+                      ),
+                    ),
+                    child: Column(
+                      children: [
+                        SwitchListTile(
+                          title: Row(
+                            children: [
+                              const Text('Advanced Segmentation'),
+                              const SizedBox(width: 8),
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 6,
+                                  vertical: 2,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: Colors.blue.shade600,
+                                  borderRadius: BorderRadius.circular(4),
+                                ),
+                                child: const Text(
+                                  'PRO',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          subtitle: const Text(
+                            'Identify multiple objects in a single image',
+                            style: TextStyle(fontSize: 12),
+                          ),
+                          value: _useSegmentation,
+                          onChanged: (bool value) async {
+                            // For now, allow all users to use segmentation
+                            // In future, add subscription check here
+                            setState(() {
+                              _useSegmentation = value;
+                            });
+                            if (value && _segments.isEmpty) {
+                              try {
+                                await _runSegmentation();
+                              } catch (e) {
+                                debugPrint('Segmentation error: $e');
+                                if (mounted) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content:
+                                          Text('Segmentation failed: ${e.toString()}'),
+                                      duration: const Duration(seconds: 5),
                                     ),
                                   );
-                                }),
-                              );
-                            },
+                                  setState(() {
+                                    _useSegmentation = false;
+                                  });
+                                }
+                              }
+                            } else if (!value) {
+                              setState(() {
+                                _segments.clear();
+                                _selectedSegments.clear();
+                              });
+                            }
+                          },
+                        ),
+                        if (_useSegmentation && _segments.isNotEmpty)
+                          Padding(
+                            padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+                            child: Row(
+                              children: [
+                                Icon(
+                                  Icons.info_outline,
+                                  size: 16,
+                                  color: Colors.blue.shade600,
+                                ),
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: Text(
+                                    '${_segments.length} objects detected. Tap to select for analysis.',
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: Colors.blue.shade700,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
                       ],
-                    )
-                  : _buildImagePreview(),
-            ),
-          ),
-
-          // Instructions
-          if (!_isAnalyzing)
-            Container(
-              padding: const EdgeInsets.all(AppTheme.paddingRegular),
-              color: Colors.black.withOpacity(0.05),
-              child: const Row(
-                children: [
-                  Icon(Icons.info_outline, color: AppTheme.primaryColor),
-                  SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      'Position the item clearly in the image for best results.',
-                      style: TextStyle(fontSize: AppTheme.fontSizeRegular),
                     ),
                   ),
-                ],
-              ),
-            ),
-
-          // Segmentation toggle
-          if (!_isAnalyzing)
-            Padding(
-              padding: const EdgeInsets.symmetric(
-                  horizontal: AppTheme.paddingRegular),
-              child: SwitchListTile(
-                title: const Text('Segment'),
-                value: _useSegmentation,
-                onChanged: (bool value) async {
-                  setState(() {
-                    _useSegmentation = value;
-                  });
-                  if (value && _segments.isEmpty) {
-                    try {
-                      await _runSegmentation();
-                    } catch (e) {
-                      debugPrint('Segmentation error: $e');
-                      if (mounted) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content:
-                                Text('Segmentation failed: ${e.toString()}'),
-                            duration: const Duration(seconds: 5),
-                          ),
-                        );
-                        setState(() {
-                          _useSegmentation = false;
-                        });
-                      }
-                    }
-                  } else if (!value) {
-                    setState(() {
-                      _segments.clear();
-                      _selectedSegments.clear();
-                    });
-                  }
-                },
-              ),
-            ),
-
-          // Action buttons
-          Padding(
-            padding: const EdgeInsets.all(AppTheme.paddingRegular),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                CaptureButton(
-                  type: CaptureButtonType.analyze,
-                  onPressed: _analyzeImage,
-                  isLoading: _isAnalyzing,
                 ),
-                const SizedBox(height: AppTheme.paddingRegular),
-                if (!_isAnalyzing)
-                  CaptureButton(
-                    type: CaptureButtonType.retry,
-                    onPressed: () => Navigator.pop(context),
+
+                // Action buttons
+                Padding(
+                  padding: const EdgeInsets.all(AppTheme.paddingRegular),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      CaptureButton(
+                        type: CaptureButtonType.analyze,
+                        onPressed: _analyzeImage,
+                        isLoading: false, // Always false since we show custom loader
+                      ),
+                      const SizedBox(height: AppTheme.paddingRegular),
+                      CaptureButton(
+                        type: CaptureButtonType.retry,
+                        onPressed: () => Navigator.pop(context),
+                      ),
+                    ],
                   ),
+                ),
               ],
             ),
-          ),
-        ],
-      ),
     );
   }
 
   Widget _buildImagePreview() {
+    Widget imageWidget;
+    
     if (kIsWeb) {
       if (_webImageBytes != null) {
-        return Image.memory(
+        imageWidget = Image.memory(
           _webImageBytes!,
           fit: BoxFit.contain,
           width: double.infinity,
           height: double.infinity,
         );
       } else if (widget.webImage != null) {
-        return Image.memory(
+        imageWidget = Image.memory(
           widget.webImage!,
           fit: BoxFit.contain,
           width: double.infinity,
@@ -393,12 +472,65 @@ class _ImageCaptureScreenState extends State<ImageCaptureScreen> {
         return const CircularProgressIndicator();
       }
     } else {
-      return Image.file(
+      imageWidget = Image.file(
         widget.imageFile!,
         fit: BoxFit.contain,
         width: double.infinity,
         height: double.infinity,
       );
     }
+    
+    // Wrap with InteractiveViewer for zoom functionality
+    return InteractiveViewer(
+      panEnabled: true, // Allow panning
+      scaleEnabled: true, // Allow zooming
+      minScale: 0.5, // Minimum zoom out
+      maxScale: 4.0, // Maximum zoom in
+      constrained: false, // Allow the image to be larger than the viewport
+      child: Container(
+        width: double.infinity,
+        height: double.infinity,
+        child: Stack(
+          children: [
+            imageWidget,
+            // Zoom instruction overlay (shows briefly)
+            Positioned(
+              top: 16,
+              left: 16,
+              right: 16,
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 8,
+                ),
+                decoration: BoxDecoration(
+                  color: Colors.black.withOpacity(0.7),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      Icons.zoom_in,
+                      color: Colors.white,
+                      size: 16,
+                    ),
+                    SizedBox(width: 8),
+                    Text(
+                      'Pinch to zoom • Drag to pan',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }

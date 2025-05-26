@@ -37,8 +37,8 @@
 // android/build.gradle
 
 buildscript {
-    // --- Bump Kotlin to 1.9.10 to match Firebase / Play Services metadata ---
-    ext.kotlin_version = '2.0.0'
+    // --- Revert to Kotlin 1.9.10 for the last known successful build ---
+    ext.kotlin_version = '1.9.10'
 
     repositories {
         google()
@@ -48,8 +48,11 @@ buildscript {
         // Kotlin Gradle plugin
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:${kotlin_version}"
 
-        // Google Services Gradle plugin (use only 4.4.2)
+        // Google Services Gradle plugin (latest version)
         classpath 'com.google.gms:google-services:4.4.2'
+        
+        // Android Gradle Plugin (stable version for Kotlin 1.9.10 support)
+        classpath 'com.android.tools.build:gradle:8.5.0'
     }
 }
 

@@ -61,37 +61,70 @@ class _CaptureButtonState extends State<CaptureButton> {
         break;
     }
 
+    // Generate semantic label for accessibility
+    String semanticLabel;
+    switch (widget.type) {
+      case CaptureButtonType.camera:
+        semanticLabel = widget.isLoading 
+            ? 'Taking photo, please wait' 
+            : 'Take photo with camera';
+        break;
+      case CaptureButtonType.gallery:
+        semanticLabel = widget.isLoading 
+            ? 'Opening gallery, please wait' 
+            : 'Select image from gallery';
+        break;
+      case CaptureButtonType.analyze:
+        semanticLabel = widget.isLoading 
+            ? 'Analyzing image, please wait' 
+            : 'Analyze image for waste classification';
+        break;
+      case CaptureButtonType.retry:
+        semanticLabel = widget.isLoading 
+            ? 'Retaking photo, please wait' 
+            : 'Retake photo';
+        break;
+    }
+
     return SizedBox(
       width: double.infinity,
-      child: ElevatedButton.icon(
-        onPressed: widget.isLoading ? null : _handlePress,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: color,
-          foregroundColor: Colors.white,
-          padding: const EdgeInsets.symmetric(
-            vertical: AppTheme.paddingRegular,
+      child: Semantics(
+        label: semanticLabel,
+        button: true,
+        enabled: !widget.isLoading,
+        child: ElevatedButton.icon(
+          onPressed: widget.isLoading ? null : _handlePress,
+          style: ElevatedButton.styleFrom(
+            backgroundColor: color,
+            foregroundColor: Colors.white,
+            padding: const EdgeInsets.symmetric(
+              vertical: AppTheme.paddingRegular,
+            ),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(AppTheme.borderRadiusRegular),
+            ),
           ),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(AppTheme.borderRadiusRegular),
-          ),
-        ),
-        icon: widget.isLoading
-            ? const SizedBox(
-                width: 20,
-                height: 20,
-                child: CircularProgressIndicator(
-                  color: Colors.white,
-                  strokeWidth: 2.0,
+          icon: widget.isLoading
+              ? const SizedBox(
+                  width: 20,
+                  height: 20,
+                  child: CircularProgressIndicator(
+                    color: Colors.white,
+                    strokeWidth: 2.0,
+                  ),
+                )
+              : Semantics(
+                  excludeSemantics: true, // Exclude icon from semantics since button has label
+                  child: Icon(icon),
                 ),
-              )
-            : Icon(icon),
-        label: Text(
-          widget.isLoading && widget.type == CaptureButtonType.analyze
-              ? AppStrings.analyzing
-              : label,
-          style: const TextStyle(
-            fontSize: AppTheme.fontSizeMedium,
-            fontWeight: FontWeight.bold,
+          label: Text(
+            widget.isLoading && widget.type == CaptureButtonType.analyze
+                ? AppStrings.analyzing
+                : label,
+            style: const TextStyle(
+              fontSize: AppTheme.fontSizeMedium,
+              fontWeight: FontWeight.bold,
+            ),
           ),
         ),
       ),

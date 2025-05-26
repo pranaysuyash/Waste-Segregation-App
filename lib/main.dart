@@ -79,36 +79,52 @@ Future<void> originalMain() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   // Environment variables are now loaded via --dart-define-from-file=.env
-  print('Environment variables loaded via --dart-define-from-file');
+  if (kDebugMode) {
+    print('Environment variables loaded via --dart-define-from-file');
+  }
 
   if (!kIsWeb) {
-    print('Before setPreferredOrientations');
+    if (kDebugMode) {
+      print('Before setPreferredOrientations');
+    }
     await SystemChrome.setPreferredOrientations([
       DeviceOrientation.portraitUp,
       DeviceOrientation.portraitDown,
     ]);
-    print('After setPreferredOrientations');
+    if (kDebugMode) {
+      print('After setPreferredOrientations');
+    }
   }
 
-  print('Before Firebase.initializeApp');
+  if (kDebugMode) {
+    print('Before Firebase.initializeApp');
+  }
   try {
     await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,
     );
-    print('Firebase initialized successfully');
+    if (kDebugMode) {
+      print('Firebase initialized successfully');
+    }
     
     // Test Firestore connection and enable API if needed
     try {
       final firestore = FirebaseFirestore.instance;
       await firestore.enableNetwork();
-      print('Firestore network enabled successfully');
+      if (kDebugMode) {
+        print('Firestore network enabled successfully');
+      }
       
       // Test basic Firestore operation
       await firestore.collection('test').limit(1).get();
-      print('Firestore API is accessible');
+      if (kDebugMode) {
+        print('Firestore API is accessible');
+      }
     } catch (firestoreError) {
-      print('Firestore API error: $firestoreError');
-      print('Please enable Firestore API at: https://console.developers.google.com/apis/api/firestore.googleapis.com/overview?project=waste-segregation-app-df523');
+      if (kDebugMode) {
+        print('Firestore API error: $firestoreError');
+        print('Please enable Firestore API at: https://console.developers.google.com/apis/api/firestore.googleapis.com/overview?project=waste-segregation-app-df523');
+      }
       // Continue without Firestore - app can still function
     }
     
@@ -121,13 +137,19 @@ Future<void> originalMain() async {
     );
     // --- End test ---
   } catch (e) {
-    print('Failed to initialize Firebase: $e');
+    if (kDebugMode) {
+      print('Failed to initialize Firebase: $e');
+    }
     // Continue with app initialization even if Firebase fails
   }
 
-  print('Before StorageService.initializeHive');
+  if (kDebugMode) {
+    print('Before StorageService.initializeHive');
+  }
   await StorageService.initializeHive();
-  print('After StorageService.initializeHive');
+  if (kDebugMode) {
+    print('After StorageService.initializeHive');
+  }
 
   // Initialize Error Handler
   ErrorHandler.initialize(navigatorKey);
@@ -143,15 +165,21 @@ Future<void> originalMain() async {
   final googleDriveService = GoogleDriveService(storageService);
   final navigationSettingsService = NavigationSettingsService();
 
-  print('Before service initializations');
+  if (kDebugMode) {
+    print('Before service initializations');
+  }
   await Future.wait([
     gamificationService.initGamification(),
     premiumService.initialize(),
     adService.initialize(),
   ]);
-  print('After service initializations');
+  if (kDebugMode) {
+    print('After service initializations');
+  }
 
-  print('Before runApp');
+  if (kDebugMode) {
+    print('Before runApp');
+  }
   runApp(WasteSegregationApp(
     storageService: storageService,
     aiService: aiService,
@@ -163,7 +191,9 @@ Future<void> originalMain() async {
     googleDriveService: googleDriveService,
     navigationSettingsService: navigationSettingsService,
   ));
-  print('After runApp');
+  if (kDebugMode) {
+    print('After runApp');
+  }
 }
 
 void _setupErrorHandling() {
