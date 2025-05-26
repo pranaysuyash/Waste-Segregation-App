@@ -259,6 +259,51 @@ class AppTheme {
   static const Color darkBackgroundColor = Color(0xFF121212);
   static const Color darkSurfaceColor = Color(0xFF1E1E1E);
   static const Color darkErrorColor = Color(0xFFCF6679);
+
+  // Dialog button styles for consistency
+  static ButtonStyle dialogCancelButtonStyle(BuildContext context) {
+    return TextButton.styleFrom(
+      foregroundColor: Colors.grey.shade600,
+      textStyle: const TextStyle(
+        fontSize: fontSizeRegular,
+        fontWeight: FontWeight.w500,
+      ),
+    );
+  }
+
+  static ButtonStyle dialogConfirmButtonStyle(BuildContext context) {
+    return TextButton.styleFrom(
+      foregroundColor: primaryColor,
+      textStyle: const TextStyle(
+        fontSize: fontSizeRegular,
+        fontWeight: FontWeight.w600,
+      ),
+    );
+  }
+
+  static ButtonStyle dialogDestructiveButtonStyle(BuildContext context) {
+    return TextButton.styleFrom(
+      foregroundColor: Colors.red.shade600,
+      textStyle: const TextStyle(
+        fontSize: fontSizeRegular,
+        fontWeight: FontWeight.w600,
+      ),
+    );
+  }
+
+  static ButtonStyle dialogPrimaryButtonStyle(BuildContext context) {
+    return ElevatedButton.styleFrom(
+      backgroundColor: primaryColor,
+      foregroundColor: Colors.white,
+      textStyle: const TextStyle(
+        fontSize: fontSizeRegular,
+        fontWeight: FontWeight.w600,
+      ),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(borderRadiusRegular),
+      ),
+    );
+  }
 }
 
 // App String Constants

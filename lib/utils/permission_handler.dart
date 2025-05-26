@@ -1,6 +1,7 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'constants.dart';
+import 'package:app_theme/app_theme.dart';
 
 class PermissionHandler {
   /// Check and request camera permission
@@ -65,6 +66,7 @@ class PermissionHandler {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
+            style: AppTheme.dialogCancelButtonStyle(context),
             child: const Text('Cancel'),
           ),
           TextButton(
@@ -72,6 +74,7 @@ class PermissionHandler {
               Navigator.pop(context);
               openAppSettings();
             },
+            style: AppTheme.dialogConfirmButtonStyle(context),
             child: const Text('Settings'),
           ),
         ],

@@ -34,6 +34,7 @@ class ResultScreen extends StatefulWidget {
 
 class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderStateMixin {
   bool _isSaved = false;
+  bool _showSavedState = false; // New flag for temporary "Saved" display
   bool _showingClassificationFeedback = true;
   bool _showingPointsPopup = false;
   
@@ -186,11 +187,21 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
       if (mounted) {
         setState(() {
           _isSaved = true;
+          _showSavedState = true; // Show "Saved" temporarily
         });
         
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text(AppStrings.successSaved)),
         );
+        
+        // After 1 second, hide the "Saved" state but keep _isSaved true
+        Future.delayed(const Duration(seconds: 1), () {
+          if (mounted) {
+            setState(() {
+              _showSavedState = false; // Revert to "Share" button
+            });
+          }
+        });
       }
     } catch (e, stackTrace) {
       ErrorHandler.handleError(e, stackTrace);
@@ -590,17 +601,17 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
                               children: [
                                 Expanded(
                                   child: ElevatedButton.icon(
-                                    onPressed: !_isSaved ? _saveResult : null,
+                                    onPressed: (!_isSaved || _showSavedState) ? _saveResult : _shareResult,
                                     style: ElevatedButton.styleFrom(
-                                      backgroundColor: _isSaved ? Colors.green : AppTheme.primaryColor,
+                                      backgroundColor: _showSavedState ? Colors.green : AppTheme.primaryColor,
                                       foregroundColor: Colors.white,
                                       padding: const EdgeInsets.symmetric(vertical: 12),
                                       shape: RoundedRectangleBorder(
                                         borderRadius: BorderRadius.circular(AppTheme.borderRadiusRegular),
                                       ),
                                     ),
-                                    icon: Icon(_isSaved ? Icons.check : Icons.save),
-                                    label: Text(_isSaved ? 'Saved' : 'Save'),
+                                    icon: Icon(_showSavedState ? Icons.check : (_isSaved ? Icons.share : Icons.save)),
+                                    label: Text(_showSavedState ? 'Saved' : (_isSaved ? 'Share' : 'Save')),
                                   ),
                                 ),
                                 const SizedBox(width: AppTheme.paddingRegular),

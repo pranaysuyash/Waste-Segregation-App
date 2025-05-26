@@ -100,6 +100,7 @@ class _SimpleWebCameraState extends State<SimpleWebCamera> {
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
+          style: AppTheme.dialogCancelButtonStyle(context),
           child: const Text('Cancel'),
         ),
       ],
