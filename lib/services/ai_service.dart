@@ -1217,7 +1217,7 @@ Output:
   /// Removes markdown code block formatting (```json ... ``` or ``` ... ```).
   /// Extracts the JSON object if it's wrapped in extraneous text.
   /// Fixes common JSON issues like single quotes, 'None' instead of 'null',
-  /// and trailing commas in objects/arrays.
+  /// unescaped quotes in strings, and trailing commas in objects/arrays.
   String _cleanJsonString(String jsonString) {
     // Remove markdown formatting
     if (jsonString.contains('```json')) {
@@ -1234,10 +1234,26 @@ Output:
       jsonString = jsonString.substring(startIndex, endIndex + 1);
     }
     
+    // Fix unescaped quotes in string values (common AI response issue)
+    // This regex finds string values and escapes internal quotes
+    jsonString = jsonString.replaceAllMapped(
+      RegExp(r'"([^"]*)"(\s*:\s*)"([^"]*(?:[^"\\]|\\.)*)(?<!\\)"'),
+      (match) {
+        final key = match.group(1);
+        final separator = match.group(2);
+        final value = match.group(3);
+        if (value != null) {
+          // Escape unescaped quotes in the value
+          final escapedValue = value.replaceAll(RegExp(r'(?<!\\)"'), '\\"');
+          return '"$key"$separator"$escapedValue"';
+        }
+        return match.group(0)!;
+      },
+    );
+    
     // Fix common JSON issues
     jsonString = jsonString
         .replaceAll("''", '""')
-        .replaceAll("'", '"')
         .replaceAll('None', 'null')
         .replaceAll('True', 'true')
         .replaceAll('False', 'false')

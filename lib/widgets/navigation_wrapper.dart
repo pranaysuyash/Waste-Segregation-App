@@ -231,12 +231,19 @@ class _MainNavigationWrapperState extends State<MainNavigationWrapper> {
     try {
       debugPrint('Picking image directly from navigation...');
       
-      // Check storage permission first (mobile only)
+      // For modern Android (13+), image_picker handles permissions internally
+      // Only check permissions for older Android versions
       if (!kIsWeb) {
-        final hasPermission = await PermissionHandler.checkStoragePermission();
-        if (!hasPermission && mounted) {
-          PermissionHandler.showPermissionDeniedDialog(context, 'Storage');
-          return;
+        try {
+          // Try to check permission, but don't block if it fails
+          final hasPermission = await PermissionHandler.checkStoragePermission();
+          debugPrint('Storage/Photos permission check result: $hasPermission');
+          
+          // Don't block the flow - let image_picker handle it
+          // Modern Android versions handle this automatically
+        } catch (e) {
+          debugPrint('Permission check failed, proceeding anyway: $e');
+          // Continue - image_picker will handle permissions
         }
       }
       

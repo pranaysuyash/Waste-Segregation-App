@@ -27,25 +27,64 @@ class PermissionHandler {
     }
   }
   
-  /// Check and request storage permission
+  /// Check and request storage permission (for gallery access)
   static Future<bool> checkStoragePermission() async {
     if (kIsWeb) return true; // Web handles permissions differently
     
     try {
-      final status = await Permission.storage.status;
+      // For Android 13+ (API 33+), use photos permission instead of storage
+      // For older versions, fall back to storage permission
+      Permission permission;
       
-      if (status.isGranted) {
-        return true;
-      } else if (status.isDenied) {
-        final result = await Permission.storage.request();
-        return result.isGranted;
-      } else if (status.isPermanentlyDenied) {
-        return false;
+      // Try photos permission first (Android 13+)
+      try {
+        permission = Permission.photos;
+        final status = await permission.status;
+        
+        if (status.isGranted) {
+          debugPrint('Photos permission already granted');
+          return true;
+        } else if (status.isDenied) {
+          debugPrint('Photos permission denied, requesting...');
+          final result = await permission.request();
+          if (result.isGranted) {
+            debugPrint('Photos permission granted after request');
+            return true;
+          }
+        } else if (status.isPermanentlyDenied) {
+          debugPrint('Photos permission permanently denied');
+          return false;
+        }
+      } catch (e) {
+        debugPrint('Photos permission not available, trying storage: $e');
+      }
+      
+      // Fallback to storage permission for older Android versions
+      try {
+        permission = Permission.storage;
+        final status = await permission.status;
+        
+        if (status.isGranted) {
+          debugPrint('Storage permission already granted');
+          return true;
+        } else if (status.isDenied) {
+          debugPrint('Storage permission denied, requesting...');
+          final result = await permission.request();
+          if (result.isGranted) {
+            debugPrint('Storage permission granted after request');
+            return true;
+          }
+        } else if (status.isPermanentlyDenied) {
+          debugPrint('Storage permission permanently denied');
+          return false;
+        }
+      } catch (e) {
+        debugPrint('Storage permission check failed: $e');
       }
       
       return false;
     } catch (e) {
-      debugPrint('Error checking storage permission: $e');
+      debugPrint('Error checking storage/photos permission: $e');
       return false;
     }
   }
