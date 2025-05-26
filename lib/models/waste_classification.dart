@@ -130,6 +130,40 @@ class WasteClassification {
     );
   }
 
+  /// Parse disposal instructions from various input formats
+  static DisposalInstructions _parseDisposalInstructions(dynamic instructionsData) {
+    if (instructionsData == null) {
+      return DisposalInstructions(
+        primaryMethod: 'Review required',
+        steps: ['Please review manually'],
+        hasUrgentTimeframe: false,
+      );
+    }
+    
+    // If it's already a Map, use the standard fromJson
+    if (instructionsData is Map<String, dynamic>) {
+      return DisposalInstructions.fromJson(instructionsData);
+    }
+    
+    // If it's a string, create basic instructions from it
+    if (instructionsData is String) {
+      return DisposalInstructions(
+        primaryMethod: instructionsData.length > 100 
+            ? instructionsData.substring(0, 100) + '...'
+            : instructionsData,
+        steps: DisposalInstructions._parseStepsFromString(instructionsData),
+        hasUrgentTimeframe: false,
+      );
+    }
+    
+    // Fallback
+    return DisposalInstructions(
+      primaryMethod: 'Review required',
+      steps: ['Please review manually'],
+      hasUrgentTimeframe: false,
+    );
+  }
+
   /// Creates a WasteClassification from JSON data
   factory WasteClassification.fromJson(Map<String, dynamic> json) {
     return WasteClassification(
@@ -141,7 +175,7 @@ class WasteClassification {
       explanation: json['explanation'] ?? '',
       disposalMethod: json['disposalMethod'],
       disposalInstructions: json['disposalInstructions'] != null
-          ? DisposalInstructions.fromJson(json['disposalInstructions'])
+          ? _parseDisposalInstructions(json['disposalInstructions'])
           : DisposalInstructions(
               primaryMethod: 'Review required',
               steps: ['Please review manually'],
@@ -398,21 +432,97 @@ class DisposalInstructions {
   factory DisposalInstructions.fromJson(Map<String, dynamic> json) {
     return DisposalInstructions(
       primaryMethod: json['primaryMethod'] ?? 'Review required',
-      steps: json['steps'] != null
-          ? List<String>.from(json['steps'])
-          : ['Please review manually'],
+      steps: _parseStepsFromJson(json['steps']),
       timeframe: json['timeframe'],
       location: json['location'],
-      warnings: json['warnings'] != null
-          ? List<String>.from(json['warnings'])
-          : null,
-      tips: json['tips'] != null
-          ? List<String>.from(json['tips'])
-          : null,
+      warnings: _parseListFromJson(json['warnings']),
+      tips: _parseListFromJson(json['tips']),
       recyclingInfo: json['recyclingInfo'],
       estimatedTime: json['estimatedTime'],
       hasUrgentTimeframe: json['hasUrgentTimeframe'] ?? false,
     );
+  }
+
+  /// Parse steps from various input formats (List, String with separators)
+  static List<String> _parseStepsFromJson(dynamic stepsData) {
+    if (stepsData == null) {
+      return ['Please review manually'];
+    }
+    
+    if (stepsData is List) {
+      return List<String>.from(stepsData);
+    }
+    
+    if (stepsData is String) {
+      return _parseStepsFromString(stepsData);
+    }
+    
+    return ['Please review manually'];
+  }
+
+  /// Parse list from various input formats
+  static List<String>? _parseListFromJson(dynamic listData) {
+    if (listData == null) {
+      return null;
+    }
+    
+    if (listData is List) {
+      return List<String>.from(listData);
+    }
+    
+    if (listData is String) {
+      return _parseStepsFromString(listData);
+    }
+    
+    return null;
+  }
+
+  /// Parse steps from string with various separators
+  static List<String> _parseStepsFromString(String stepsString) {
+    if (stepsString.trim().isEmpty) {
+      return ['Please review manually'];
+    }
+    
+    List<String> steps = [];
+    
+    // Try newline separation first
+    if (stepsString.contains('\n')) {
+      steps = stepsString
+          .split('\n')
+          .map((step) => step.trim())
+          .where((step) => step.isNotEmpty)
+          .toList();
+    }
+    // Try comma separation
+    else if (stepsString.contains(',')) {
+      steps = stepsString
+          .split(',')
+          .map((step) => step.trim())
+          .where((step) => step.isNotEmpty)
+          .toList();
+    }
+    // Try semicolon separation
+    else if (stepsString.contains(';')) {
+      steps = stepsString
+          .split(';')
+          .map((step) => step.trim())
+          .where((step) => step.isNotEmpty)
+          .toList();
+    }
+    // Try numbered list pattern (1. 2. 3.)
+    else if (RegExp(r'\d+\.').hasMatch(stepsString)) {
+      steps = stepsString
+          .split(RegExp(r'\d+\.'))
+          .map((step) => step.trim())
+          .where((step) => step.isNotEmpty)
+          .toList();
+    }
+    // Single step
+    else {
+      steps = [stepsString.trim()];
+    }
+    
+    return steps.isNotEmpty ? steps : ['Please review manually'];
   }
 
   Map<String, dynamic> toJson() {

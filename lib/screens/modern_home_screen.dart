@@ -554,7 +554,7 @@ class _ModernHomeScreenState extends State<ModernHomeScreen> with TickerProvider
                   children: [
                     Icon(Icons.person),
                     SizedBox(width: 8),
-                    Text('Settings'),
+                    Text('Profile'),
                   ],
                 ),
               ),
