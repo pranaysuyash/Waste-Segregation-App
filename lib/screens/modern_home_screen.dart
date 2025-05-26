@@ -26,6 +26,7 @@ import '../widgets/modern_ui/modern_cards.dart';
 import '../widgets/modern_ui/modern_buttons.dart';
 import '../widgets/modern_ui/modern_badges.dart';
 import '../widgets/responsive_text.dart';
+import '../widgets/dashboard_widgets.dart';
 
 class ModernHomeScreen extends StatefulWidget {
   final bool isGuestMode;
@@ -526,7 +527,13 @@ class _ModernHomeScreenState extends State<ModernHomeScreen> with TickerProvider
               children: [
                 _buildWelcomeSection(theme),
                 const SizedBox(height: AppTheme.spacingLg),
+                _buildTodaysImpactGoal(),
+                const SizedBox(height: AppTheme.spacingLg),
                 _buildStatsSection(),
+                const SizedBox(height: AppTheme.spacingLg),
+                _buildGlobalImpactMeter(),
+                const SizedBox(height: AppTheme.spacingLg),
+                _buildCommunityFeedPreview(),
                 const SizedBox(height: AppTheme.spacingLg),
                 _buildGamificationSection(),
                 const SizedBox(height: AppTheme.spacingLg),
@@ -1005,5 +1012,53 @@ class _ModernHomeScreenState extends State<ModernHomeScreen> with TickerProvider
         ],
       ),
     );
+  }
+
+  Widget _buildTodaysImpactGoal() {
+    final todayClassifications = _recentClassifications
+        .where((c) => _isToday(c.timestamp))
+        .length;
+
+    return TodaysImpactGoal(
+      currentClassifications: todayClassifications,
+      dailyGoal: 10, // This could be user-configurable
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => const AchievementsScreen(),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildGlobalImpactMeter() {
+    return GlobalImpactMeter(
+      globalCO2Saved: 2.5, // Sample data - would come from backend
+      globalItemsClassified: 50000, // Sample data
+      activeUsers: 10500, // Sample data
+    );
+  }
+
+  Widget _buildCommunityFeedPreview() {
+    return CommunityFeedPreview(
+      activities: DashboardSampleData.getSampleActivities(),
+      onViewAll: () {
+        // Navigate to community screen when implemented
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Community features coming soon!'),
+          ),
+        );
+      },
+    );
+  }
+
+  bool _isToday(DateTime date) {
+    final now = DateTime.now();
+    return date.year == now.year &&
+           date.month == now.month &&
+           date.day == now.day;
   }
 }

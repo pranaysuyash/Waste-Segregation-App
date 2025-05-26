@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 
 import 'firebase_options.dart';
@@ -75,6 +76,22 @@ Future<void> originalMain() async {
       options: DefaultFirebaseOptions.currentPlatform,
     );
     print('Firebase initialized successfully');
+    
+    // Test Firestore connection and enable API if needed
+    try {
+      final firestore = FirebaseFirestore.instance;
+      await firestore.enableNetwork();
+      print('Firestore network enabled successfully');
+      
+      // Test basic Firestore operation
+      await firestore.collection('test').limit(1).get();
+      print('Firestore API is accessible');
+    } catch (firestoreError) {
+      print('Firestore API error: $firestoreError');
+      print('Please enable Firestore API at: https://console.developers.google.com/apis/api/firestore.googleapis.com/overview?project=waste-segregation-app-df523');
+      // Continue without Firestore - app can still function
+    }
+    
     // --- Crashlytics test: Remove after verification ---
     await FirebaseCrashlytics.instance.recordError(
       Exception('Test non-fatal error from Flutter!'),
@@ -251,32 +268,73 @@ class _SplashScreen extends StatelessWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              // App logo
-              SvgPicture.asset(
-                'assets/images/splash_screen.svg',
-                width: 100,
-                height: 100,
-                placeholderBuilder: (context) => Container(
-                  width: 100,
-                  height: 100,
-                  color: Colors.white.withOpacity(0.3),
-                  child: const Icon(
-                    Icons.restore_from_trash,
-                    size: 60,
-                    color: Colors.white,
+              // App logo with proper branding
+              Container(
+                width: 120,
+                height: 120,
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(30),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.2),
+                      blurRadius: 20,
+                      offset: const Offset(0, 10),
+                    ),
+                  ],
+                ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(30),
+                  child: SvgPicture.asset(
+                    'assets/images/splash_screen.svg',
+                    width: 120,
+                    height: 120,
+                    fit: BoxFit.contain,
+                    placeholderBuilder: (context) => Container(
+                      width: 120,
+                      height: 120,
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [
+                            AppTheme.primaryColor,
+                            AppTheme.secondaryColor,
+                          ],
+                        ),
+                        borderRadius: BorderRadius.circular(30),
+                      ),
+                      child: const Icon(
+                        Icons.eco,
+                        size: 60,
+                        color: Colors.white,
+                      ),
+                    ),
                   ),
                 ),
               ),
 
               const SizedBox(height: AppTheme.paddingRegular),
 
-              // App name
+              // App name with branding
               const Text(
-                AppStrings.appName,
+                'WasteWise',
                 style: TextStyle(
-                  fontSize: 32,
-                  fontWeight: FontWeight.bold,
+                  fontSize: 36,
+                  fontWeight: FontWeight.w900,
                   color: Colors.white,
+                  letterSpacing: 1.5,
+                ),
+              ),
+              
+              const SizedBox(height: AppTheme.paddingSmall),
+              
+              // Tagline
+              const Text(
+                'AI-Powered Waste Segregation',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w500,
+                  color: Colors.white70,
+                  letterSpacing: 0.5,
                 ),
               ),
 

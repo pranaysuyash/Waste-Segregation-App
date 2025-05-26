@@ -509,16 +509,16 @@ class ClassificationCard extends StatelessWidget {
                           OutlinedButton.icon(
                             onPressed: onSave,
                             icon: Icon(
-                              classification.isSaved ? Icons.check : Icons.save,
-                              color: classification.isSaved ? Colors.green : categoryColor,
+                              (classification.isSaved ?? false) ? Icons.check : Icons.save,
+                              color: (classification.isSaved ?? false) ? Colors.green : categoryColor,
                             ),
                             label: Text(
-                              classification.isSaved ? 'Saved' : AppStrings.saveResult,
+                              (classification.isSaved ?? false) ? 'Saved' : AppStrings.saveResult,
                             ),
                             style: OutlinedButton.styleFrom(
-                              foregroundColor: classification.isSaved ? Colors.green : categoryColor,
+                              foregroundColor: (classification.isSaved ?? false) ? Colors.green : categoryColor,
                               side: BorderSide(
-                                color: classification.isSaved ? Colors.green : categoryColor,
+                                color: (classification.isSaved ?? false) ? Colors.green : categoryColor,
                               ),
                             ),
                           ),

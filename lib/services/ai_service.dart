@@ -190,7 +190,7 @@ Output:
 
       // Prepare request body using OpenAI format with comprehensive prompting
       final Map<String, dynamic> requestBody = {
-        "model": "gpt-4-vision-preview",
+        "model": ApiConfig.primaryModel,
         "messages": [
           {
             "role": "system",
@@ -301,13 +301,30 @@ Output:
           return classification;
         } catch (fallbackError) {
           debugPrint('Secondary model fallback also failed: $fallbackError');
-          // Try tertiary model as last resort
+          // Try third OpenAI model
           try {
-            final classification = await _fallbackToTertiaryModel(imageBytes, imageName, analysisRegion);
+            final classification = await _fallbackToThirdModel(imageBytes, imageName, analysisRegion);
+            
+            // Cache the fallback result if caching is enabled
+            if (cachingEnabled && imageHash != null) {
+              await cacheService.cacheClassification(
+                imageHash, 
+                classification, 
+                imageSize: imageBytes.length
+              );
+            }
+            
             return classification;
-          } catch (tertiaryError) {
-            debugPrint('All fallbacks failed. Using default fallback.');
-            return WasteClassification.fallback(imageName);
+          } catch (thirdModelError) {
+            debugPrint('Third model fallback also failed: $thirdModelError');
+            // Try Gemini as final resort
+            try {
+              final classification = await _fallbackToTertiaryModel(imageBytes, imageName, analysisRegion);
+              return classification;
+            } catch (tertiaryError) {
+              debugPrint('All fallbacks failed. Using default fallback.');
+              return WasteClassification.fallback(imageName);
+            }
           }
         }
       }
@@ -359,7 +376,7 @@ Output:
         }
 
         requestBody = {
-          "model": "gpt-4-vision-preview",
+          "model": ApiConfig.primaryModel,
           "messages": [
             {
               "role": "system",
@@ -385,7 +402,7 @@ Output:
       } else {
         // Text-only correction
         requestBody = {
-          "model": "gpt-4",
+          "model": ApiConfig.secondaryModel1,
           "messages": [
             {
               "role": "system",
@@ -487,7 +504,7 @@ Output:
                 category: jsonContent['category'] ?? 'Dry Waste',
                 subcategory: jsonContent['subcategory'],
                 materialType: jsonContent['materialType'],
-                recyclingCode: jsonContent['recyclingCode'],
+                recyclingCode: _parseRecyclingCode(jsonContent['recyclingCode']),
                 explanation: jsonContent['explanation'] ?? '',
                 disposalMethod: jsonContent['disposalMethod'],
                 disposalInstructions: jsonContent['disposalInstructions'] != null
@@ -501,39 +518,27 @@ Output:
                 localGuidelinesReference: jsonContent['localGuidelinesReference'],
                 imageUrl: imagePath,
                 imageHash: jsonContent['imageHash'],
-                imageMetrics: jsonContent['imageMetrics'] != null
-                    ? Map<String, double>.from(jsonContent['imageMetrics'])
-                    : null,
-                visualFeatures: jsonContent['visualFeatures'] != null
-                    ? List<String>.from(jsonContent['visualFeatures'])
-                    : [],
-                isRecyclable: jsonContent['isRecyclable'],
-                isCompostable: jsonContent['isCompostable'],
-                requiresSpecialDisposal: jsonContent['requiresSpecialDisposal'],
+                imageMetrics: _parseImageMetrics(jsonContent['imageMetrics']),
+                visualFeatures: _parseStringList(jsonContent['visualFeatures']),
+                isRecyclable: _parseBool(jsonContent['isRecyclable']),
+                isCompostable: _parseBool(jsonContent['isCompostable']),
+                requiresSpecialDisposal: _parseBool(jsonContent['requiresSpecialDisposal']),
                 colorCode: jsonContent['colorCode'],
                 riskLevel: jsonContent['riskLevel'],
-                requiredPPE: jsonContent['requiredPPE'] != null
-                    ? List<String>.from(jsonContent['requiredPPE'])
-                    : null,
+                requiredPPE: _parseStringList(jsonContent['requiredPPE']),
                 brand: jsonContent['brand'],
                 product: jsonContent['product'],
                 barcode: jsonContent['barcode'],
-                confidence: jsonContent['confidence']?.toDouble(),
-                clarificationNeeded: jsonContent['clarificationNeeded'],
-                alternatives: jsonContent['alternatives'] != null
-                    ? (jsonContent['alternatives'] as List)
-                        .map((alt) => AlternativeClassification.fromJson(alt))
-                        .toList()
-                    : [],
+                confidence: _parseDouble(jsonContent['confidence']),
+                clarificationNeeded: _parseBool(jsonContent['clarificationNeeded']),
+                alternatives: _parseAlternatives(jsonContent['alternatives']),
                 suggestedAction: jsonContent['suggestedAction'],
-                hasUrgentTimeframe: jsonContent['hasUrgentTimeframe'],
+                hasUrgentTimeframe: _parseBool(jsonContent['hasUrgentTimeframe']),
                 instructionsLang: jsonContent['instructionsLang'],
-                translatedInstructions: jsonContent['translatedInstructions'] != null
-                    ? Map<String, String>.from(jsonContent['translatedInstructions'])
-                    : null,
+                translatedInstructions: _parseStringMap(jsonContent['translatedInstructions']),
                 modelVersion: jsonContent['modelVersion'],
-                modelSource: jsonContent['modelSource'] ?? 'openai-gpt4-vision',
-                processingTimeMs: jsonContent['processingTimeMs'],
+                modelSource: jsonContent['modelSource'] ?? 'openai-${ApiConfig.primaryModel}',
+                processingTimeMs: _parseInt(jsonContent['processingTimeMs']),
                 analysisSessionId: jsonContent['analysisSessionId'],
                 disagreementReason: jsonContent['disagreementReason'],
                 source: 'ai_analysis',
@@ -561,9 +566,9 @@ Output:
       
       final String base64Image = _bytesToBase64(imageBytes);
       
-      // Prepare request body for Gemini API
+      // Prepare request body for secondary OpenAI model
       final Map<String, dynamic> requestBody = {
-        "model": "gemini-pro-vision",
+        "model": ApiConfig.secondaryModel1,
         "messages": [
           {
             "role": "system",
@@ -587,12 +592,12 @@ Output:
         "temperature": 0.1
       };
 
-      // Make HTTP request to the Gemini API
+      // Make HTTP request to the OpenAI API with secondary model
       final response = await http.post(
-        Uri.parse('${geminiBaseUrl}/chat/completions'),
+        Uri.parse('${openAiBaseUrl}/chat/completions'),
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': 'Bearer ${geminiApiKey}',
+          'Authorization': 'Bearer ${openAiApiKey}',
         },
         body: jsonEncode(requestBody),
       );
@@ -601,17 +606,150 @@ Output:
         final Map<String, dynamic> responseData = jsonDecode(response.body);
         return _processAiResponseData(responseData, imageName, region);
       } else {
-        throw Exception('Gemini API failed: ${response.statusCode}');
+        throw Exception('Secondary OpenAI model failed: ${response.statusCode}');
       }
     } catch (e) {
-      debugPrint('Gemini fallback failed: $e');
+      debugPrint('Secondary model fallback failed: $e');
       throw e;
     }
   }
 
-  /// Tertiary fallback using basic classification
+  /// Third OpenAI model fallback
+  Future<WasteClassification> _fallbackToThirdModel(Uint8List imageBytes, String imageName, String region) async {
+    try {
+      debugPrint('Attempting fallback to third OpenAI model...');
+      
+      final String base64Image = _bytesToBase64(imageBytes);
+      
+      // Prepare request body for third OpenAI model
+      final Map<String, dynamic> requestBody = {
+        "model": ApiConfig.secondaryModel2,
+        "messages": [
+          {
+            "role": "system",
+            "content": _systemPrompt
+          },
+          {
+            "role": "user",
+            "content": [
+              {
+                "type": "text",
+                "text": "$_mainClassificationPrompt\n\nAdditional context:\n- Region: $region\n- Image source: third model fallback analysis"
+              },
+              {
+                "type": "image_url",
+                "image_url": {"url": "data:image/jpeg;base64,$base64Image"}
+              }
+            ]
+          }
+        ],
+        "max_tokens": 1500,
+        "temperature": 0.1
+      };
+
+      // Make HTTP request to the OpenAI API with third model
+      final response = await http.post(
+        Uri.parse('${openAiBaseUrl}/chat/completions'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ${openAiApiKey}',
+        },
+        body: jsonEncode(requestBody),
+      );
+
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> responseData = jsonDecode(response.body);
+        return _processAiResponseData(responseData, imageName, region);
+      } else {
+        throw Exception('Third OpenAI model failed: ${response.statusCode}');
+      }
+    } catch (e) {
+      debugPrint('Third model fallback failed: $e');
+      throw e;
+    }
+  }
+
+  /// Tertiary fallback using Gemini model
   Future<WasteClassification> _fallbackToTertiaryModel(Uint8List imageBytes, String imageName, String region) async {
-    debugPrint('Using tertiary fallback - basic classification');
+    try {
+      debugPrint('Attempting tertiary fallback to Gemini model...');
+      
+      final String base64Image = _bytesToBase64(imageBytes);
+      
+      // Prepare request body for Gemini API
+      final Map<String, dynamic> requestBody = {
+        "contents": [
+          {
+            "parts": [
+              {
+                "text": "$_systemPrompt\n\n$_mainClassificationPrompt\n\nAdditional context:\n- Region: $region\n- Image source: tertiary fallback analysis"
+              },
+              {
+                "inline_data": {
+                  "mime_type": "image/jpeg",
+                  "data": base64Image
+                }
+              }
+            ]
+          }
+        ],
+        "generationConfig": {
+          "temperature": 0.1,
+          "maxOutputTokens": 1500
+        }
+      };
+
+      // Make HTTP request to the Gemini API
+      final response = await http.post(
+        Uri.parse('${geminiBaseUrl}/models/${ApiConfig.tertiaryModel}:generateContent'),
+        headers: {
+          'Content-Type': 'application/json',
+          'x-goog-api-key': geminiApiKey,
+        },
+        body: jsonEncode(requestBody),
+      );
+
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> responseData = jsonDecode(response.body);
+        
+        // Extract content from Gemini response format
+        if (responseData['candidates'] != null && 
+            responseData['candidates'].isNotEmpty &&
+            responseData['candidates'][0]['content'] != null &&
+            responseData['candidates'][0]['content']['parts'] != null &&
+            responseData['candidates'][0]['content']['parts'].isNotEmpty) {
+          
+          final String content = responseData['candidates'][0]['content']['parts'][0]['text'];
+          
+          // Convert Gemini response to OpenAI format for processing
+          final Map<String, dynamic> openAiFormat = {
+            'choices': [
+              {
+                'message': {
+                  'content': content
+                }
+              }
+            ]
+          };
+          
+          return _processAiResponseData(openAiFormat, imageName, region);
+        } else {
+          throw Exception('Invalid Gemini response format');
+        }
+      } else {
+        throw Exception('Gemini API failed: ${response.statusCode}');
+      }
+    } catch (e) {
+      debugPrint('Gemini tertiary fallback failed: $e');
+      
+      // Final fallback - basic heuristic classification
+      return _basicHeuristicClassification(imageName, region);
+    }
+  }
+
+  /// Final fallback using basic heuristic classification
+  WasteClassification _basicHeuristicClassification(String imageName, String region) {
+    debugPrint('Using final heuristic fallback - basic classification');
     
     // Simple heuristic-based classification as last resort
     return WasteClassification(
@@ -679,5 +817,143 @@ Output:
   }) async {
     // For now, just analyze the full image
     return analyzeImage(imageFile);
+  }
+
+  // ================ DEFENSIVE PARSING HELPERS ================
+  
+  /// Safely parses recycling code from various input types
+  int? _parseRecyclingCode(dynamic value) {
+    if (value == null) return null;
+    if (value is int) return value;
+    if (value is String) {
+      // Handle common AI responses like "None visible", "Not visible", etc.
+      if (value.toLowerCase().contains('none') || 
+          value.toLowerCase().contains('not') ||
+          value.toLowerCase().contains('visible') ||
+          value.trim().isEmpty) {
+        return null;
+      }
+      // Try to parse numeric string
+      return int.tryParse(value.trim());
+    }
+    return null;
+  }
+  
+  /// Safely parses boolean values from various input types
+  bool? _parseBool(dynamic value) {
+    if (value == null) return null;
+    if (value is bool) return value;
+    if (value is String) {
+      final lower = value.toLowerCase().trim();
+      if (lower == 'true' || lower == 'yes' || lower == '1') return true;
+      if (lower == 'false' || lower == 'no' || lower == '0') return false;
+    }
+    if (value is int) {
+      return value != 0;
+    }
+    return null;
+  }
+  
+  /// Safely parses double values from various input types
+  double? _parseDouble(dynamic value) {
+    if (value == null) return null;
+    if (value is double) return value;
+    if (value is int) return value.toDouble();
+    if (value is String) {
+      return double.tryParse(value.trim());
+    }
+    return null;
+  }
+  
+  /// Safely parses integer values from various input types
+  int? _parseInt(dynamic value) {
+    if (value == null) return null;
+    if (value is int) return value;
+    if (value is double) return value.round();
+    if (value is String) {
+      return int.tryParse(value.trim());
+    }
+    return null;
+  }
+  
+  /// Safely parses string lists from various input types
+  List<String> _parseStringList(dynamic value) {
+    if (value == null) return [];
+    if (value is List) {
+      try {
+        return value.map((item) => item.toString()).toList();
+      } catch (e) {
+        debugPrint('Error parsing string list: $e');
+        return [];
+      }
+    }
+    if (value is String) {
+      // Handle comma-separated strings
+      return value.split(',').map((s) => s.trim()).where((s) => s.isNotEmpty).toList();
+    }
+    return [];
+  }
+  
+  /// Safely parses string maps from various input types
+  Map<String, String>? _parseStringMap(dynamic value) {
+    if (value == null) return null;
+    if (value is Map) {
+      try {
+        return Map<String, String>.from(value.map((k, v) => MapEntry(k.toString(), v.toString())));
+      } catch (e) {
+        debugPrint('Error parsing string map: $e');
+        return null;
+      }
+    }
+    return null;
+  }
+  
+  /// Safely parses image metrics from various input types
+  Map<String, double>? _parseImageMetrics(dynamic value) {
+    if (value == null) return null;
+    if (value is Map) {
+      try {
+        final Map<String, double> result = {};
+        value.forEach((k, v) {
+          final doubleValue = _parseDouble(v);
+          if (doubleValue != null) {
+            result[k.toString()] = doubleValue;
+          }
+        });
+        return result.isEmpty ? null : result;
+      } catch (e) {
+        debugPrint('Error parsing image metrics: $e');
+        return null;
+      }
+    }
+    return null;
+  }
+  
+  /// Safely parses alternative classifications from various input types
+  List<AlternativeClassification> _parseAlternatives(dynamic value) {
+    if (value == null) return [];
+    if (value is List) {
+      try {
+        return value
+            .map((alt) {
+              try {
+                if (alt is Map<String, dynamic>) {
+                  return AlternativeClassification.fromJson(alt);
+                }
+                return null;
+              } catch (e) {
+                debugPrint('Error parsing alternative classification: $e');
+                return null;
+              }
+            })
+            .where((alt) => alt != null)
+            .cast<AlternativeClassification>()
+            .toList();
+      } catch (e) {
+        debugPrint('Error parsing alternatives list: $e');
+        return [];
+      }
+    }
+    return [];
   }
 }

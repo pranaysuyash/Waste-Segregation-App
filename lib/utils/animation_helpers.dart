@@ -147,6 +147,13 @@ class CheckmarkPainter extends CustomPainter {
 
     // Use path metrics to animate the drawing of the path
     final PathMetrics pathMetrics = path.computeMetrics();
+    
+    // Guard against empty path metrics
+    if (pathMetrics.isEmpty) {
+      debugPrint('Warning: Path metrics is empty, skipping checkmark animation');
+      return;
+    }
+    
     final PathMetric pathMetric = pathMetrics.first;
     
     final double length = pathMetric.length;

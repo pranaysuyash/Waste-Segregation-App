@@ -626,22 +626,31 @@ class AnalyticsService extends ChangeNotifier {
     super.dispose();
   }
 
-  /// Initialize Firestore connection with fallback
-  Future<void> _initializeFirestore() async {
+  /// Initializes Firestore connection and checks availability
+  void _initializeFirestore() async {
     try {
-      // Test Firestore connection with a simple read operation
-      await _firestore.collection('_test').limit(1).get();
-      _isFirestoreAvailable = true;
-      debugPrint('✅ Firestore connected successfully');
+      // Test Firestore connection
+      await _firestore.enableNetwork();
       
-      // Process any pending events
-      await _processPendingEvents();
+      // Try a simple read operation to verify API access
+      await _firestore.collection('test').limit(1).get();
+      
+      _isFirestoreAvailable = true;
+      debugPrint('✅ Firestore connection established');
+      
+      // Sync any pending events
+      await _syncPendingEvents();
     } catch (e) {
       _isFirestoreAvailable = false;
-      debugPrint('⚠️ Firestore not available, storing events locally only: $e');
+      debugPrint('❌ Firestore unavailable: $e');
+      debugPrint('📱 Analytics will use local storage only');
       
-      // Store events locally instead
-      _storeEventsLocally();
+      // Check if it's a permission error and provide helpful message
+      if (e.toString().contains('PERMISSION_DENIED') || 
+          e.toString().contains('has not been used') ||
+          e.toString().contains('disabled')) {
+        debugPrint('🔧 To fix: Enable Firestore API at https://console.developers.google.com/apis/api/firestore.googleapis.com/overview?project=waste-segregation-app-df523');
+      }
     }
   }
   
@@ -653,5 +662,44 @@ class AnalyticsService extends ChangeNotifier {
     for (final event in _pendingEvents) {
       debugPrint('Analytics Event: ${event.eventName} - ${event.eventType}');
     }
+  }
+
+  // ================ PRIVATE HELPER METHODS ================
+
+  /// Syncs pending events to Firestore when connection is available
+  Future<void> _syncPendingEvents() async {
+    if (!_isFirestoreAvailable || _pendingEvents.isEmpty) return;
+    
+    try {
+      final batch = _firestore.batch();
+      
+      for (final event in _pendingEvents) {
+        final docRef = _firestore.collection(_analyticsCollection).doc();
+        batch.set(docRef, event.toJson());
+      }
+      
+      await batch.commit();
+      debugPrint('✅ Synced ${_pendingEvents.length} pending analytics events');
+      _pendingEvents.clear();
+      
+      // Save cleared pending events to local storage
+      await _storageService.saveAnalyticsEvents(_pendingEvents);
+    } catch (e) {
+      debugPrint('❌ Failed to sync pending events: $e');
+    }
+  }
+
+  /// Stores an event locally when Firestore is unavailable
+  void _storeEventLocally(AnalyticsEvent event) {
+    _pendingEvents.add(event);
+    
+    // Limit pending events to prevent memory issues
+    if (_pendingEvents.length > 100) {
+      _pendingEvents.removeAt(0);
+    }
+    
+    // Save to local storage
+    _storageService.saveAnalyticsEvents(_pendingEvents);
+    debugPrint('📱 Stored analytics event locally (${_pendingEvents.length} pending)');
   }
 } 

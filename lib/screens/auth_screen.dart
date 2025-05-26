@@ -71,12 +71,15 @@ class _AuthScreenState extends State<AuthScreen> {
       body: Container(
         decoration: BoxDecoration(
           gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
             colors: [
               AppTheme.primaryColor,
+              AppTheme.primaryColor.withOpacity(0.8),
               AppTheme.secondaryColor,
+              AppTheme.secondaryColor.withOpacity(0.6),
             ],
+            stops: const [0.0, 0.3, 0.7, 1.0],
           ),
         ),
         child: SafeArea(
@@ -116,14 +119,59 @@ class _AuthScreenState extends State<AuthScreen> {
 
                   const SizedBox(height: AppTheme.paddingSmall),
 
+                  // Community message
+                  const Text(
+                    'Join the Eco-Warriors Community',
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.white,
+                      letterSpacing: 0.5,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+
+                  const SizedBox(height: AppTheme.paddingSmall),
+
                   // App description
                   const Text(
                     AppStrings.welcomeMessage,
                     style: TextStyle(
                       fontSize: AppTheme.fontSizeMedium,
-                      color: Colors.white,
+                      color: Colors.white70,
                     ),
                     textAlign: TextAlign.center,
+                  ),
+
+                  const SizedBox(height: AppTheme.paddingLarge),
+
+                  // Impact statistics cards
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _buildImpactCard(
+                          '50K+',
+                          'Items Classified',
+                          Icons.recycling,
+                        ),
+                      ),
+                      const SizedBox(width: AppTheme.paddingSmall),
+                      Expanded(
+                        child: _buildImpactCard(
+                          '2.5T',
+                          'CO₂ Saved',
+                          Icons.eco,
+                        ),
+                      ),
+                      const SizedBox(width: AppTheme.paddingSmall),
+                      Expanded(
+                        child: _buildImpactCard(
+                          '10K+',
+                          'Eco-Warriors',
+                          Icons.people,
+                        ),
+                      ),
+                    ],
                   ),
 
                   // Web platform warning
@@ -159,80 +207,50 @@ class _AuthScreenState extends State<AuthScreen> {
 
                   const SizedBox(height: AppTheme.paddingExtraLarge * 2),
 
-                  // Google Sign-in button (disabled on web)
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton.icon(
-                      onPressed: (kIsWeb || _isLoading) 
-                          ? null 
-                          : () => _signInWithGoogle(context),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.white,
-                        foregroundColor: Colors.black87,
-                        padding: const EdgeInsets.symmetric(
-                          vertical: AppTheme.paddingRegular,
-                        ),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(
-                              AppTheme.borderRadiusRegular),
-                        ),
-                      ),
-                      icon: _isLoading
-                          ? const SizedBox(
-                              width: 20,
-                              height: 20,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2.0,
-                                valueColor: AlwaysStoppedAnimation<Color>(
-                                  AppTheme.primaryColor,
-                                ),
+                  // Google Sign-in card (disabled on web)
+                  _buildAuthCard(
+                    onPressed: (kIsWeb || _isLoading) 
+                        ? null 
+                        : () => _signInWithGoogle(context),
+                    icon: _isLoading
+                        ? const SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2.0,
+                              valueColor: AlwaysStoppedAnimation<Color>(
+                                AppTheme.primaryColor,
                               ),
-                            )
-                          : Icon(
-                              Icons
-                                  .g_mobiledata, // Using a Material icon as fallback
-                              size: 24,
-                              color: Colors.blue,
                             ),
-                      label: Text(
-                        kIsWeb 
-                            ? 'Sign In Unavailable on Web' 
-                            : AppStrings.signInWithGoogle,
-                        style: const TextStyle(
-                          fontSize: AppTheme.fontSizeMedium,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
+                          )
+                        : Icon(
+                            Icons.g_mobiledata,
+                            size: 24,
+                            color: Colors.blue,
+                          ),
+                    title: kIsWeb 
+                        ? 'Sign In Unavailable on Web' 
+                        : AppStrings.signInWithGoogle,
+                    subtitle: 'Sync your progress across devices',
+                    backgroundColor: Colors.white,
+                    textColor: Colors.black87,
                   ),
 
                   const SizedBox(height: AppTheme.paddingRegular),
 
-                  // Guest mode button
-                  SizedBox(
-                    width: double.infinity,
-                    child: OutlinedButton(
-                      onPressed:
-                          _isLoading ? null : () => _continueAsGuest(context),
-                      style: OutlinedButton.styleFrom(
-                        foregroundColor: Colors.white,
-                        side: const BorderSide(color: Colors.white),
-                        padding: const EdgeInsets.symmetric(
-                          vertical: AppTheme.paddingRegular,
-                        ),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(
-                              AppTheme.borderRadiusRegular),
-                        ),
-                      ),
-                      child: const Text(
-                        AppStrings.continueAsGuest,
-                        style: TextStyle(
-                          fontSize: AppTheme.fontSizeMedium,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
+                  // Guest mode card
+                  _buildAuthCard(
+                    onPressed: _isLoading ? null : () => _continueAsGuest(context),
+                    icon: const Icon(
+                      Icons.person_outline,
+                      size: 24,
+                      color: Colors.white,
                     ),
+                    title: AppStrings.continueAsGuest,
+                    subtitle: 'Try the app without signing in',
+                    backgroundColor: Colors.transparent,
+                    textColor: Colors.white,
+                    borderColor: Colors.white,
                   ),
 
                   const SizedBox(height: AppTheme.paddingLarge),
@@ -266,6 +284,121 @@ class _AuthScreenState extends State<AuthScreen> {
                   ),
                 ],
               ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildImpactCard(String value, String label, IconData icon) {
+    return Container(
+      padding: const EdgeInsets.all(AppTheme.paddingSmall),
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.15),
+        borderRadius: BorderRadius.circular(AppTheme.borderRadiusRegular),
+        border: Border.all(
+          color: Colors.white.withOpacity(0.3),
+          width: 1,
+        ),
+      ),
+      child: Column(
+        children: [
+          Icon(
+            icon,
+            color: Colors.white,
+            size: 24,
+          ),
+          const SizedBox(height: 4),
+          Text(
+            value,
+            style: const TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+            ),
+          ),
+          Text(
+            label,
+            style: const TextStyle(
+              fontSize: 10,
+              color: Colors.white70,
+            ),
+            textAlign: TextAlign.center,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAuthCard({
+    required VoidCallback? onPressed,
+    required Widget icon,
+    required String title,
+    required String subtitle,
+    required Color backgroundColor,
+    required Color textColor,
+    Color? borderColor,
+  }) {
+    return Container(
+      width: double.infinity,
+      margin: const EdgeInsets.symmetric(vertical: 4),
+      child: Material(
+        color: backgroundColor,
+        borderRadius: BorderRadius.circular(AppTheme.borderRadiusLarge),
+        child: InkWell(
+          onTap: onPressed,
+          borderRadius: BorderRadius.circular(AppTheme.borderRadiusLarge),
+          child: Container(
+            padding: const EdgeInsets.all(AppTheme.paddingRegular),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(AppTheme.borderRadiusLarge),
+              border: borderColor != null 
+                  ? Border.all(color: borderColor, width: 2)
+                  : null,
+              boxShadow: backgroundColor != Colors.transparent
+                  ? [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.1),
+                        blurRadius: 8,
+                        offset: const Offset(0, 4),
+                      ),
+                    ]
+                  : null,
+            ),
+            child: Row(
+              children: [
+                icon,
+                const SizedBox(width: AppTheme.paddingRegular),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        title,
+                        style: TextStyle(
+                          fontSize: AppTheme.fontSizeMedium,
+                          fontWeight: FontWeight.bold,
+                          color: textColor,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        subtitle,
+                        style: TextStyle(
+                          fontSize: AppTheme.fontSizeSmall,
+                          color: textColor.withOpacity(0.7),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Icon(
+                  Icons.arrow_forward_ios,
+                  size: 16,
+                  color: textColor.withOpacity(0.5),
+                ),
+              ],
             ),
           ),
         ),

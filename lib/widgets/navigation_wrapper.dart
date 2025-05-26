@@ -10,6 +10,7 @@ import '../screens/achievements_screen.dart';
 import '../screens/settings_screen.dart';
 import '../screens/family_dashboard_screen.dart';
 import '../widgets/bottom_navigation/modern_bottom_nav.dart';
+import '../widgets/animated_fab.dart';
 import '../utils/constants.dart';
 import '../models/user_profile.dart';
 
@@ -234,12 +235,13 @@ class _MainNavigationWrapperState extends State<MainNavigationWrapper> {
                 ),
             ],
           ),
-          // Add the floating action button (only if enabled)
-          floatingActionButton: navSettings.fabEnabled ? FloatingActionButton(
+          // Add the animated floating action button (only if enabled)
+          floatingActionButton: navSettings.fabEnabled ? AnimatedFAB(
             onPressed: () => _showCaptureOptions(context),
-            backgroundColor: AppTheme.primaryColor,
-            elevation: 4,
-            child: const Icon(Icons.camera_alt, color: Colors.white),
+            icon: Icons.camera_alt,
+            tooltip: 'Scan Waste',
+            isPulsing: true,
+            showCelebration: false,
           ) : null,
           floatingActionButtonLocation: navSettings.fabEnabled && navSettings.bottomNavEnabled 
               ? FloatingActionButtonLocation.centerDocked 

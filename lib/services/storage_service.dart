@@ -490,4 +490,32 @@ class StorageService {
       rethrow;
     }
   }
+
+  /// Saves analytics events to local storage for offline sync
+  Future<void> saveAnalyticsEvents(List<dynamic> events) async {
+    try {
+      final box = await Hive.openBox<String>('analytics_events');
+      final eventsJson = events.map((event) => jsonEncode(event.toJson())).toList();
+      await box.put('pending_events', jsonEncode(eventsJson));
+      debugPrint('✅ Saved ${events.length} analytics events to local storage');
+    } catch (e) {
+      debugPrint('❌ Failed to save analytics events: $e');
+    }
+  }
+
+  /// Loads analytics events from local storage
+  Future<List<Map<String, dynamic>>> loadAnalyticsEvents() async {
+    try {
+      final box = await Hive.openBox<String>('analytics_events');
+      final eventsJsonString = box.get('pending_events');
+      if (eventsJsonString != null) {
+        final List<dynamic> eventsJson = jsonDecode(eventsJsonString);
+        return eventsJson.map((eventJson) => jsonDecode(eventJson) as Map<String, dynamic>).toList();
+      }
+      return [];
+    } catch (e) {
+      debugPrint('❌ Failed to load analytics events: $e');
+      return [];
+    }
+  }
 }
