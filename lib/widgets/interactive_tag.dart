@@ -405,64 +405,74 @@ class InteractiveTagCollection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final displayTags = maxTags != null && tags.length > maxTags! 
-        ? tags.take(maxTags!).toList()
-        : tags;
-    
-    final hiddenCount = tags.length - displayTags.length;
-
-    return Wrap(
-      spacing: 8,
-      runSpacing: 8,
-      children: [
-        ...displayTags.map((tagData) => InteractiveTag(
-          text: tagData.text,
-          color: tagData.color,
-          textColor: tagData.textColor,
-          category: tagData.category,
-          subcategory: tagData.subcategory,
-          action: tagData.action,
-          icon: tagData.icon,
-          isOutlined: tagData.isOutlined,
-          onTap: tagData.onTap,
-        )),
+    // FIXED: Improved layout with better overflow handling
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        // Calculate how many tags can fit in the available space
+        final availableWidth = constraints.maxWidth;
+        final estimatedTagWidth = 80.0; // Estimated average tag width
+        final maxTagsPerRow = (availableWidth / estimatedTagWidth).floor().clamp(2, 6);
         
-        // Show "View More" button if there are hidden tags
-        if (hiddenCount > 0 && showViewMore)
-          GestureDetector(
-            onTap: () => _showAllTags(context),
-            child: Container(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 12,
-                vertical: 6,
-              ),
-              decoration: BoxDecoration(
-                color: Colors.grey.shade200,
-                borderRadius: BorderRadius.circular(AppTheme.borderRadiusLarge),
-                border: Border.all(color: Colors.grey.shade400),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    '+$hiddenCount more',
-                    style: TextStyle(
-                      color: Colors.grey.shade700,
-                      fontSize: AppTheme.fontSizeSmall,
-                      fontWeight: FontWeight.bold,
-                    ),
+        // Determine which tags to show
+        final tagsToShow = showViewMore && tags.length > maxTagsPerRow 
+            ? tags.take(maxTagsPerRow - 1).toList() 
+            : tags;
+        final hiddenCount = showViewMore && tags.length > maxTagsPerRow 
+            ? tags.length - (maxTagsPerRow - 1) 
+            : 0;
+
+        return Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: [
+            ...tagsToShow.map((tag) => InteractiveTag(
+              text: tag.text,
+              color: tag.color,
+              textColor: tag.textColor,
+              category: tag.category,
+              subcategory: tag.subcategory,
+              action: tag.action,
+              icon: tag.icon,
+              isOutlined: tag.isOutlined,
+              onTap: tag.onTap,
+            )),
+            if (hiddenCount > 0 && showViewMore)
+              GestureDetector(
+                onTap: () => _showAllTags(context),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 6,
                   ),
-                  const SizedBox(width: 4),
-                  Icon(
-                    Icons.expand_more,
-                    size: 14,
-                    color: Colors.grey.shade700,
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade200,
+                    borderRadius: BorderRadius.circular(AppTheme.borderRadiusLarge),
+                    border: Border.all(color: Colors.grey.shade400),
                   ),
-                ],
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        '+$hiddenCount more',
+                        style: TextStyle(
+                          color: Colors.grey.shade700,
+                          fontSize: AppTheme.fontSizeSmall,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(width: 4),
+                      Icon(
+                        Icons.expand_more,
+                        size: 14,
+                        color: Colors.grey.shade700,
+                      ),
+                    ],
+                  ),
+                ),
               ),
-            ),
-          ),
-      ],
+          ],
+        );
+      },
     );
   }
 
@@ -471,11 +481,16 @@ class InteractiveTagCollection extends StatelessWidget {
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('All Tags'),
-        content: SizedBox(
-          width: double.maxFinite,
-          child: InteractiveTagCollection(
-            tags: tags,
-            showViewMore: false,
+        content: Container(
+          constraints: BoxConstraints(
+            maxHeight: MediaQuery.of(context).size.height * 0.6,
+            maxWidth: MediaQuery.of(context).size.width * 0.9,
+          ),
+          child: SingleChildScrollView(
+            child: InteractiveTagCollection(
+              tags: tags,
+              showViewMore: false,
+            ),
           ),
         ),
         actions: [

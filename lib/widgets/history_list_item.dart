@@ -56,29 +56,73 @@ class HistoryListItem extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Item name and date row
+                    // Item name and confidence
                     Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        // Item name
                         Expanded(
                           child: Text(
                             classification.itemName,
                             style: const TextStyle(
+                              fontSize: AppTheme.fontSizeMedium,
                               fontWeight: FontWeight.bold,
-                              fontSize: AppTheme.fontSizeRegular,
+                              color: AppTheme.textPrimaryColor,
                             ),
-                            maxLines: 1,
                             overflow: TextOverflow.ellipsis,
+                            maxLines: 1,
                           ),
                         ),
-                        
-                        // Date
-                        Text(
-                          _formatDateForDisplay(classification.timestamp),
-                          style: const TextStyle(
-                            color: AppTheme.textSecondaryColor,
-                            fontSize: AppTheme.fontSizeSmall,
+                        // FIXED: Constrain confidence badge to prevent overflow
+                        ConstrainedBox(
+                          constraints: const BoxConstraints(maxWidth: 80),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 6,
+                              vertical: 2,
+                            ),
+                            decoration: BoxDecoration(
+                              color: _getConfidenceColor().withOpacity(0.2),
+                              borderRadius: BorderRadius.circular(AppTheme.borderRadiusSmall),
+                              border: Border.all(
+                                color: _getConfidenceColor(),
+                                width: 1,
+                              ),
+                            ),
+                            child: Text(
+                              '${((classification.confidence ?? 0.0) * 100).round()}%',
+                              style: TextStyle(
+                                color: _getConfidenceColor(),
+                                fontSize: 10, // Reduced font size
+                                fontWeight: FontWeight.bold,
+                              ),
+                              textAlign: TextAlign.center,
+                              overflow: TextOverflow.ellipsis,
+                              maxLines: 1,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    
+                    const SizedBox(height: 4),
+                    
+                    // Date and time
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.access_time,
+                          size: 14,
+                          color: AppTheme.textSecondaryColor,
+                        ),
+                        const SizedBox(width: 4),
+                        Expanded(
+                          child: Text(
+                            _formatDateForDisplay(classification.timestamp),
+                            style: const TextStyle(
+                              color: AppTheme.textSecondaryColor,
+                              fontSize: AppTheme.fontSizeSmall,
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                            maxLines: 1,
                           ),
                         ),
                       ],
@@ -87,118 +131,131 @@ class HistoryListItem extends StatelessWidget {
                     const SizedBox(height: 8),
                     
                     // Categories row
-                    Row(
-                      children: [
-                        // Main category badge
-                        Flexible(
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 8,
-                              vertical: 2,
-                            ),
-                            decoration: BoxDecoration(
-                              color: categoryColor,
-                              borderRadius: BorderRadius.circular(AppTheme.borderRadiusSmall),
-                            ),
-                            child: Text(
-                              classification.category,
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: AppTheme.fontSizeSmall,
-                                fontWeight: FontWeight.bold,
-                              ),
-                              overflow: TextOverflow.ellipsis,
-                              maxLines: 1,
-                            ),
-                          ),
-                        ),
-                        
-                        // Subcategory badge if available
-                        if (classification.subcategory != null) ...[
-                          const SizedBox(width: 4),
-                          Flexible(
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 6,
-                                vertical: 2,
-                              ),
-                              decoration: BoxDecoration(
-                                color: Colors.black.withOpacity(0.05),
-                                borderRadius: BorderRadius.circular(AppTheme.borderRadiusSmall),
-                                border: Border.all(
-                                  color: categoryColor.withOpacity(0.5),
-                                  width: 1,
-                                ),
-                              ),
-                              child: Text(
-                                classification.subcategory!,
-                                style: TextStyle(
-                                  color: categoryColor,
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                                overflow: TextOverflow.ellipsis,
-                                maxLines: 1,
-                              ),
-                            ),
-                          ),
-                        ],
-                        
-                        // Spacer
-                        const Spacer(),
-                        
-                        // Properties indicators (recyclable, compostable, special disposal)
-                        Row(
-                          mainAxisSize: MainAxisSize.min,
+                    LayoutBuilder(
+                      builder: (context, constraints) {
+                        return Row(
                           children: [
-                            if (classification.isRecyclable == true)
-                              Padding(
-                                padding: const EdgeInsets.only(right: 4),
-                                child: Tooltip(
-                                  message: 'Recyclable',
-                                  child: Icon(
-                                    Icons.recycling,
-                                    size: 16,
-                                    color: Colors.blue,
+                            // Main category badge
+                            Flexible(
+                              flex: 2,
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 8,
+                                  vertical: 2,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: categoryColor,
+                                  borderRadius: BorderRadius.circular(AppTheme.borderRadiusSmall),
+                                ),
+                                child: Text(
+                                  classification.category,
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: AppTheme.fontSizeSmall,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                  overflow: TextOverflow.ellipsis,
+                                  maxLines: 1,
+                                ),
+                              ),
+                            ),
+                            
+                            // Subcategory badge if available
+                            if (classification.subcategory != null) ...[
+                              const SizedBox(width: 4),
+                              Flexible(
+                                flex: 1,
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 6,
+                                    vertical: 2,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: Colors.black.withOpacity(0.05),
+                                    borderRadius: BorderRadius.circular(AppTheme.borderRadiusSmall),
+                                    border: Border.all(
+                                      color: categoryColor.withOpacity(0.5),
+                                      width: 1,
+                                    ),
+                                  ),
+                                  child: Text(
+                                    classification.subcategory!,
+                                    style: TextStyle(
+                                      color: categoryColor,
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                    overflow: TextOverflow.ellipsis,
+                                    maxLines: 1,
                                   ),
                                 ),
                               ),
+                            ],
                             
-                            if (classification.isCompostable == true)
-                              Padding(
-                                padding: const EdgeInsets.only(right: 4),
-                                child: Tooltip(
-                                  message: 'Compostable',
-                                  child: Icon(
-                                    Icons.eco,
-                                    size: 16,
-                                    color: Colors.green,
-                                  ),
-                                ),
+                            // Spacer
+                            const Spacer(),
+                            
+                            // Properties indicators (recyclable, compostable, special disposal)
+                            // FIXED: Constrain icons to prevent overflow and make responsive
+                            ConstrainedBox(
+                              constraints: BoxConstraints(
+                                maxWidth: constraints.maxWidth * 0.2, // Reduced from 25% to 20%
                               ),
-                            
-                            if (classification.requiresSpecialDisposal == true)
-                              Padding(
-                                padding: const EdgeInsets.only(right: 4),
-                                child: Tooltip(
-                                  message: 'Special Disposal Required',
-                                  child: Icon(
-                                    Icons.warning_amber,
-                                    size: 16,
-                                    color: Colors.orange,
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  // Only show most important indicators on narrow screens
+                                  if (constraints.maxWidth > 250 && classification.isRecyclable == true)
+                                    Padding(
+                                      padding: const EdgeInsets.only(right: 2),
+                                      child: Tooltip(
+                                        message: 'Recyclable',
+                                        child: Icon(
+                                          Icons.recycling,
+                                          size: 14, // Reduced size
+                                          color: Colors.blue,
+                                        ),
+                                      ),
+                                    ),
+                                  
+                                  if (constraints.maxWidth > 250 && classification.isCompostable == true)
+                                    Padding(
+                                      padding: const EdgeInsets.only(right: 2),
+                                      child: Tooltip(
+                                        message: 'Compostable',
+                                        child: Icon(
+                                          Icons.eco,
+                                          size: 14, // Reduced size
+                                          color: Colors.green,
+                                        ),
+                                      ),
+                                    ),
+                                  
+                                  if (classification.requiresSpecialDisposal == true)
+                                    Padding(
+                                      padding: const EdgeInsets.only(right: 2),
+                                      child: Tooltip(
+                                        message: 'Special Disposal Required',
+                                        child: Icon(
+                                          Icons.warning_amber,
+                                          size: 14, // Reduced size
+                                          color: Colors.orange,
+                                        ),
+                                      ),
+                                    ),
+                                  
+                                  // Arrow indicator - always show but smaller
+                                  Icon(
+                                    Icons.chevron_right,
+                                    size: 16, // Reduced size
+                                    color: AppTheme.textSecondaryColor,
                                   ),
-                                ),
+                                ],
                               ),
-                            
-                            // Arrow indicator
-                            const Icon(
-                              Icons.chevron_right,
-                              size: 20,
-                              color: AppTheme.textSecondaryColor,
                             ),
                           ],
-                        ),
-                      ],
+                        );
+                      },
                     ),
                   ],
                 ),
@@ -225,6 +282,18 @@ class HistoryListItem extends StatelessWidget {
         return AppTheme.nonWasteColor;
       default:
         return AppTheme.secondaryColor;
+    }
+  }
+  
+  /// Gets the confidence color based on confidence level
+  Color _getConfidenceColor() {
+    final confidence = classification.confidence ?? 0.0;
+    if (confidence >= 0.8) {
+      return Colors.green;
+    } else if (confidence >= 0.6) {
+      return Colors.orange;
+    } else {
+      return Colors.red;
     }
   }
   

@@ -313,6 +313,39 @@ Dialog(
 - Dynamic version management from pubspec.yaml
 - Enhanced modal dialog height constraints
 
+#### 8. Feedback Modal/History Tag Overflow Fix - RESOLVED ✅
+**Issue:** Inputs or chips overflow in classification modal and history list, making content unusable
+**Screens Affected:** Classification Modal, History List, Interactive Tags
+**Fix Applied:**
+- Fixed chip layout in feedback modals with proper constraints and overflow handling
+- Improved history list item category badges with responsive layout
+- Enhanced interactive tag collection with dynamic width calculation
+- Added height constraints to modal dialogs with scrollable content
+- **Files Changed:** `lib/widgets/classification_feedback_widget.dart`, `lib/widgets/history_list_item.dart`, `lib/widgets/interactive_tag.dart`
+
+**Technical Details:**
+```dart
+// BEFORE (causing overflow):
+Row(children: [
+  Container(child: Text(longText)), // Could overflow
+])
+
+// AFTER (fixed):
+LayoutBuilder(builder: (context, constraints) {
+  return Row(children: [
+    Flexible(child: Container(
+      constraints: BoxConstraints(maxWidth: constraints.maxWidth * 0.45),
+      child: Text(longText, overflow: TextOverflow.ellipsis)
+    )),
+  ]);
+})
+```
+
+**Test Coverage:**
+- Created comprehensive test suite in `test/ui_overflow_fixes_test.dart`
+- Tests modal dialogs, chip layouts, and tag collections
+- Validates overflow prevention on narrow screens
+
 ### 🎯 Next Steps for UI Improvements
 - User testing and feedback collection on fixed UI elements
 - Monitor for any remaining UI issues in production

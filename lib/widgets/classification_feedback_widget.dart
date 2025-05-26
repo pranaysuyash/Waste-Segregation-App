@@ -83,7 +83,7 @@ class _ClassificationFeedbackWidgetState extends State<ClassificationFeedbackWid
 
   Widget _buildCompactFeedback() {
     return Container(
-      padding: const EdgeInsets.all(AppTheme.paddingRegular),
+      padding: const EdgeInsets.all(AppTheme.paddingSmall),
       decoration: BoxDecoration(
         color: Colors.blue.shade50,
         borderRadius: BorderRadius.circular(AppTheme.borderRadiusRegular),
@@ -100,61 +100,125 @@ class _ClassificationFeedbackWidgetState extends State<ClassificationFeedbackWid
                 size: 18,
               ),
               const SizedBox(width: 8),
-              Text(
-                'Was this classification correct?',
-                style: TextStyle(
-                  fontSize: AppTheme.fontSizeRegular,
-                  fontWeight: FontWeight.w500,
-                  color: Colors.blue.shade800,
+              Expanded(
+                child: Text(
+                  'Was this classification correct?',
+                  style: TextStyle(
+                    fontSize: AppTheme.fontSizeRegular,
+                    fontWeight: FontWeight.w500,
+                    color: Colors.blue.shade800,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                  maxLines: 2, // Allow wrapping to 2 lines
                 ),
               ),
             ],
           ),
           const SizedBox(height: AppTheme.paddingSmall),
-          Row(
-            children: [
-              Expanded(
-                child: ElevatedButton.icon(
-                  onPressed: () {
-                    setState(() {
-                      _userConfirmed = true;
-                      _showCorrectionOptions = false;
-                    });
-                    _submitFeedback();
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: _userConfirmed == true 
-                        ? Colors.green.shade600 
-                        : Colors.green.shade100,
-                    foregroundColor: _userConfirmed == true 
-                        ? Colors.white 
-                        : Colors.green.shade800,
+          LayoutBuilder(
+            builder: (context, constraints) {
+              // If screen is very narrow, use column layout
+              if (constraints.maxWidth < 280) {
+                return Column(
+                  children: [
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton.icon(
+                        onPressed: () {
+                          setState(() {
+                            _userConfirmed = true;
+                            _showCorrectionOptions = false;
+                          });
+                          _submitFeedback();
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: _userConfirmed == true 
+                              ? Colors.green.shade600 
+                              : Colors.green.shade100,
+                          foregroundColor: _userConfirmed == true 
+                              ? Colors.white 
+                              : Colors.green.shade800,
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
+                        ),
+                        icon: Icon(_userConfirmed == true ? Icons.check_circle : Icons.thumb_up, size: 18),
+                        label: const Text('Correct', style: TextStyle(fontSize: 12)),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    SizedBox(
+                      width: double.infinity,
+                      child: OutlinedButton.icon(
+                        onPressed: () {
+                          setState(() {
+                            _userConfirmed = false;
+                            _showCorrectionOptions = true;
+                          });
+                        },
+                        style: OutlinedButton.styleFrom(
+                          backgroundColor: _userConfirmed == false 
+                              ? Colors.orange.shade50 
+                              : null,
+                          foregroundColor: Colors.orange.shade700,
+                          side: BorderSide(color: Colors.orange.shade300),
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
+                        ),
+                        icon: Icon(_userConfirmed == false ? Icons.error : Icons.thumb_down, size: 18),
+                        label: const Text('Incorrect', style: TextStyle(fontSize: 12)),
+                      ),
+                    ),
+                  ],
+                );
+              }
+              
+              // For wider screens, use row layout
+              return Row(
+                children: [
+                  Expanded(
+                    child: ElevatedButton.icon(
+                      onPressed: () {
+                        setState(() {
+                          _userConfirmed = true;
+                          _showCorrectionOptions = false;
+                        });
+                        _submitFeedback();
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: _userConfirmed == true 
+                            ? Colors.green.shade600 
+                            : Colors.green.shade100,
+                        foregroundColor: _userConfirmed == true 
+                            ? Colors.white 
+                            : Colors.green.shade800,
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
+                      ),
+                      icon: Icon(_userConfirmed == true ? Icons.check_circle : Icons.thumb_up, size: 18),
+                      label: const Text('Correct', style: TextStyle(fontSize: 12)),
+                    ),
                   ),
-                  icon: Icon(_userConfirmed == true ? Icons.check_circle : Icons.thumb_up),
-                  label: const Text('Correct'),
-                ),
-              ),
-              const SizedBox(width: AppTheme.paddingSmall),
-              Expanded(
-                child: OutlinedButton.icon(
-                  onPressed: () {
-                    setState(() {
-                      _userConfirmed = false;
-                      _showCorrectionOptions = true;
-                    });
-                  },
-                  style: OutlinedButton.styleFrom(
-                    backgroundColor: _userConfirmed == false 
-                        ? Colors.orange.shade50 
-                        : null,
-                    foregroundColor: Colors.orange.shade700,
-                    side: BorderSide(color: Colors.orange.shade300),
+                  const SizedBox(width: AppTheme.paddingSmall),
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      onPressed: () {
+                        setState(() {
+                          _userConfirmed = false;
+                          _showCorrectionOptions = true;
+                        });
+                      },
+                      style: OutlinedButton.styleFrom(
+                        backgroundColor: _userConfirmed == false 
+                            ? Colors.orange.shade50 
+                            : null,
+                        foregroundColor: Colors.orange.shade700,
+                        side: BorderSide(color: Colors.orange.shade300),
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
+                      ),
+                      icon: Icon(_userConfirmed == false ? Icons.error : Icons.thumb_down, size: 18),
+                      label: const Text('Incorrect', style: TextStyle(fontSize: 12)),
+                    ),
                   ),
-                  icon: Icon(_userConfirmed == false ? Icons.error : Icons.thumb_down),
-                  label: const Text('Incorrect'),
-                ),
-              ),
-            ],
+                ],
+              );
+            },
           ),
           if (_showCorrectionOptions) ...[
             const SizedBox(height: AppTheme.paddingRegular),
@@ -167,12 +231,21 @@ class _ClassificationFeedbackWidgetState extends State<ClassificationFeedbackWid
               ),
             ),
             const SizedBox(height: AppTheme.paddingSmall),
-            Wrap(
-              spacing: 8,
-              runSpacing: 4,
-              children: _commonCorrections.take(4).map((correction) =>
-                _buildCorrectionChip(correction),
-              ).toList(),
+            LayoutBuilder(
+              builder: (context, constraints) {
+                return Wrap(
+                  spacing: 6,
+                  runSpacing: 6,
+                  children: _commonCorrections.take(4).map((correction) {
+                    return ConstrainedBox(
+                      constraints: BoxConstraints(
+                        maxWidth: constraints.maxWidth * 0.45,
+                      ),
+                      child: _buildCorrectionChip(correction),
+                    );
+                  }).toList(),
+                );
+              },
             ),
             TextButton(
               onPressed: () => _showFullFeedbackDialog(),
@@ -306,12 +379,21 @@ class _ClassificationFeedbackWidgetState extends State<ClassificationFeedbackWid
                 ),
               ),
               const SizedBox(height: AppTheme.paddingRegular),
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: _commonCorrections.map((correction) =>
-                  _buildCorrectionChip(correction),
-                ).toList(),
+              LayoutBuilder(
+                builder: (context, constraints) {
+                  return Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: _commonCorrections.map((correction) {
+                      return ConstrainedBox(
+                        constraints: BoxConstraints(
+                          maxWidth: constraints.maxWidth * 0.48,
+                        ),
+                        child: _buildCorrectionChip(correction),
+                      );
+                    }).toList(),
+                  );
+                },
               ),
               
               if (_showCustomCorrection) ...[
@@ -433,16 +515,20 @@ class _ClassificationFeedbackWidgetState extends State<ClassificationFeedbackWid
                 color: Colors.white,
               ),
             if (isSelected) const SizedBox(width: 4),
-            Text(
-              correction,
-              style: TextStyle(
-                fontSize: AppTheme.fontSizeSmall,
-                color: isSelected 
-                    ? Colors.white 
-                    : Colors.grey.shade800,
-                fontWeight: isSelected 
-                    ? FontWeight.w500 
-                    : FontWeight.normal,
+            Flexible(
+              child: Text(
+                correction,
+                style: TextStyle(
+                  fontSize: AppTheme.fontSizeSmall,
+                  color: isSelected 
+                      ? Colors.white 
+                      : Colors.grey.shade800,
+                  fontWeight: isSelected 
+                      ? FontWeight.w500 
+                      : FontWeight.normal,
+                ),
+                overflow: TextOverflow.ellipsis,
+                maxLines: 1,
               ),
             ),
           ],
