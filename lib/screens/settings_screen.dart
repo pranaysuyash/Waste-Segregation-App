@@ -207,16 +207,32 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     title: const Text('Bottom Navigation'),
                     subtitle: const Text('Show bottom navigation bar'),
                     value: navSettings.bottomNavEnabled,
-                    onChanged: (value) {
-                      navSettings.setBottomNavEnabled(value);
+                    onChanged: (value) async {
+                      await navSettings.setBottomNavEnabled(value);
+                      if (mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text('Bottom navigation ${value ? 'enabled' : 'disabled'}'),
+                            duration: const Duration(seconds: 1),
+                          ),
+                        );
+                      }
                     },
                   ),
                   SwitchListTile(
                     title: const Text('Camera Button (FAB)'),
                     subtitle: const Text('Show floating camera button'),
                     value: navSettings.fabEnabled,
-                    onChanged: (value) {
-                      navSettings.setFabEnabled(value);
+                    onChanged: (value) async {
+                      await navSettings.setFabEnabled(value);
+                      if (mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text('Camera button ${value ? 'enabled' : 'disabled'}'),
+                            duration: const Duration(seconds: 1),
+                          ),
+                        );
+                      }
                     },
                   ),
                   ListTile(
@@ -238,9 +254,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           child: Text('Floating'),
                         ),
                       ],
-                      onChanged: (value) {
+                      onChanged: (value) async {
                         if (value != null) {
-                          navSettings.setNavigationStyle(value);
+                          await navSettings.setNavigationStyle(value);
+                          if (mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text('Navigation style changed to $value'),
+                                duration: const Duration(seconds: 1),
+                              ),
+                            );
+                          }
                         }
                       },
                     ),

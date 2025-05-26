@@ -14,6 +14,7 @@ import '../services/gamification_service.dart';
 import '../services/ad_service.dart';
 import '../utils/constants.dart';
 import '../utils/safe_collection_utils.dart';
+import '../utils/permission_handler.dart';
 import 'history_screen.dart';
 import 'image_capture_screen.dart';
 import 'result_screen.dart';
@@ -190,6 +191,35 @@ class _ModernHomeScreenState extends State<ModernHomeScreen> with TickerProvider
   Future<void> takePicture() async {
     try {
       debugPrint('Starting camera capture process...');
+      
+      // Show loading indicator
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Row(
+              children: [
+                SizedBox(
+                  width: 20,
+                  height: 20,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                ),
+                SizedBox(width: 16),
+                Text('Opening camera...'),
+              ],
+            ),
+            duration: Duration(seconds: 2),
+          ),
+        );
+      }
+
+      // Check camera permission first (mobile only)
+      if (!kIsWeb) {
+        final hasPermission = await PermissionHandler.checkCameraPermission();
+        if (!hasPermission && mounted) {
+          PermissionHandler.showPermissionDeniedDialog(context, 'Camera');
+          return;
+        }
+      }
 
       if (kIsWeb) {
         final XFile? image = await _imagePicker.pickImage(
@@ -261,6 +291,35 @@ class _ModernHomeScreenState extends State<ModernHomeScreen> with TickerProvider
   // Made public for access from the navigation wrapper
   Future<void> pickImage() async {
     try {
+      // Show loading indicator
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Row(
+              children: [
+                SizedBox(
+                  width: 20,
+                  height: 20,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                ),
+                SizedBox(width: 16),
+                Text('Opening gallery...'),
+              ],
+            ),
+            duration: Duration(seconds: 2),
+          ),
+        );
+      }
+      
+      // Check storage permission first (mobile only)
+      if (!kIsWeb) {
+        final hasPermission = await PermissionHandler.checkStoragePermission();
+        if (!hasPermission && mounted) {
+          PermissionHandler.showPermissionDeniedDialog(context, 'Storage');
+          return;
+        }
+      }
+      
       final XFile? image = await _imagePicker.pickImage(
         source: ImageSource.gallery,
         maxWidth: 1200,

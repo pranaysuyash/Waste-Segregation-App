@@ -46,6 +46,7 @@ dependencies:
   url_launcher: ^6.3.0  # For launching URLs and making phone calls
   uuid: ^4.5.0  # For generating unique IDs
   auto_size_text: ^3.0.0  # For responsive text that auto-adjusts font size
+  permission_handler: ^11.2.0  # For handling camera and storage permissions
 
 dev_dependencies:
   flutter_test:

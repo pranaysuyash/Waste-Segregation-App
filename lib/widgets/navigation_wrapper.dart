@@ -131,11 +131,14 @@ class _MainNavigationWrapperState extends State<MainNavigationWrapper> {
               title: const Text('Take Photo'),
               subtitle: const Text('Use camera to capture image'),
               onTap: () {
-                // Get instance of ModernHomeScreen
                 Navigator.pop(context);
-                // Access the home screen widget and call its public method
-                final homeScreen = _getScreens()[0] as ModernHomeScreen;
-                homeScreen.takePicture();
+                // Navigate to the home screen and trigger camera
+                _onTabTapped(0); // Switch to home tab
+                // Use a post-frame callback to ensure the home screen is built
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  final homeScreen = _getScreens()[0] as ModernHomeScreen;
+                  homeScreen.takePicture();
+                });
               },
             ),
             const SizedBox(height: AppTheme.paddingSmall),
@@ -147,11 +150,14 @@ class _MainNavigationWrapperState extends State<MainNavigationWrapper> {
               title: const Text('Upload Image'),
               subtitle: const Text('Choose from gallery'),
               onTap: () {
-                // Get instance of ModernHomeScreen
                 Navigator.pop(context);
-                // Access the home screen widget and call its public method
-                final homeScreen = _getScreens()[0] as ModernHomeScreen;
-                homeScreen.pickImage();
+                // Navigate to the home screen and trigger gallery
+                _onTabTapped(0); // Switch to home tab
+                // Use a post-frame callback to ensure the home screen is built
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  final homeScreen = _getScreens()[0] as ModernHomeScreen;
+                  homeScreen.pickImage();
+                });
               },
             ),
           ],

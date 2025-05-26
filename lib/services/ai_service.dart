@@ -490,9 +490,7 @@ Output:
               }
               
               // Try to fix common JSON formatting issues
-              jsonString = jsonString
-                .replaceAll("''", '""')
-                .replaceAll("'", '"');
+              jsonString = _cleanJsonString(jsonString);
                 
               debugPrint('Final JSON string to parse: ${jsonString.substring(0, jsonString.length.clamp(0, 200))}...');
               
@@ -778,6 +776,37 @@ Output:
     );
   }
 
+  /// Clean and prepare JSON string for parsing
+  String _cleanJsonString(String jsonString) {
+    // Remove markdown formatting
+    if (jsonString.contains('```json')) {
+      jsonString = jsonString.replaceAll('```json', '').replaceAll('```', '').trim();
+    } else if (jsonString.contains('```')) {
+      jsonString = jsonString.replaceAll('```', '').trim();
+    }
+    
+    // Extract JSON object if wrapped in text
+    final startIndex = jsonString.indexOf('{');
+    final endIndex = jsonString.lastIndexOf('}');
+    
+    if (startIndex != -1 && endIndex != -1 && endIndex > startIndex) {
+      jsonString = jsonString.substring(startIndex, endIndex + 1);
+    }
+    
+    // Fix common JSON issues
+    jsonString = jsonString
+        .replaceAll("''", '""')
+        .replaceAll("'", '"')
+        .replaceAll('None', 'null')
+        .replaceAll('True', 'true')
+        .replaceAll('False', 'false')
+        // Fix trailing commas
+        .replaceAll(RegExp(r',\s*}'), '}')
+        .replaceAll(RegExp(r',\s*]'), ']');
+        
+    return jsonString;
+  }
+
   /// Analyze image using file input (for mobile platforms)
   Future<WasteClassification> analyzeImage(File imageFile) async {
     final imageBytes = await imageFile.readAsBytes();
@@ -879,18 +908,37 @@ Output:
   /// Safely parses string lists from various input types
   List<String> _parseStringList(dynamic value) {
     if (value == null) return [];
+    
+    // Handle single string case
+    if (value is String) {
+      // Handle empty or null-like strings
+      if (value.trim().isEmpty || 
+          value.toLowerCase().contains('none') ||
+          value.toLowerCase().contains('null')) {
+        return [];
+      }
+      // Handle comma-separated strings
+      if (value.contains(',')) {
+        return value.split(',').map((s) => s.trim()).where((s) => s.isNotEmpty).toList();
+      }
+      // Single string value
+      return [value.trim()];
+    }
+    
+    // Handle list type
     if (value is List) {
       try {
-        return value.map((item) => item.toString()).toList();
+        return value
+            .where((item) => item != null)
+            .map((item) => item.toString().trim())
+            .where((s) => s.isNotEmpty)
+            .toList();
       } catch (e) {
         debugPrint('Error parsing string list: $e');
         return [];
       }
     }
-    if (value is String) {
-      // Handle comma-separated strings
-      return value.split(',').map((s) => s.trim()).where((s) => s.isNotEmpty).toList();
-    }
+    
     return [];
   }
   
@@ -932,28 +980,44 @@ Output:
   /// Safely parses alternative classifications from various input types
   List<AlternativeClassification> _parseAlternatives(dynamic value) {
     if (value == null) return [];
+    
+    // Handle string input (sometimes AI returns a string instead of array)
+    if (value is String) {
+      debugPrint('Alternatives provided as string, parsing as empty list');
+      return [];
+    }
+    
     if (value is List) {
       try {
-        return value
-            .map((alt) {
-              try {
-                if (alt is Map<String, dynamic>) {
-                  return AlternativeClassification.fromJson(alt);
-                }
-                return null;
-              } catch (e) {
-                debugPrint('Error parsing alternative classification: $e');
-                return null;
-              }
-            })
-            .where((alt) => alt != null)
-            .cast<AlternativeClassification>()
-            .toList();
+        final List<AlternativeClassification> alternatives = [];
+        
+        for (final alt in value) {
+          try {
+            if (alt is Map) {
+              // Convert Map to Map<String, dynamic> safely
+              final Map<String, dynamic> altMap = {};
+              alt.forEach((key, val) {
+                altMap[key.toString()] = val;
+              });
+              
+              final alternative = AlternativeClassification.fromJson(altMap);
+              alternatives.add(alternative);
+            } else {
+              debugPrint('Skipping invalid alternative format: ${alt.runtimeType}');
+            }
+          } catch (e) {
+            debugPrint('Error parsing individual alternative: $e');
+            // Continue processing other alternatives
+          }
+        }
+        
+        return alternatives;
       } catch (e) {
         debugPrint('Error parsing alternatives list: $e');
         return [];
       }
     }
+    
     return [];
   }
 }
