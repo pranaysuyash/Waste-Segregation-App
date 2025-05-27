@@ -42,11 +42,13 @@ class ModernHomeScreen extends StatefulWidget {
   State<ModernHomeScreen> createState() => _ModernHomeScreenState();
 }
 
-class _ModernHomeScreenState extends State<ModernHomeScreen> with TickerProviderStateMixin {
+class _ModernHomeScreenState extends State<ModernHomeScreen> with TickerProviderStateMixin, WidgetsBindingObserver {
   final ImagePicker _imagePicker = ImagePicker();
   List<WasteClassification> _recentClassifications = [];
+  List<WasteClassification> _allClassifications = [];
   bool _isLoading = false;
   String? _userName;
+  DateTime? _lastRefresh;
 
   // Gamification state
   GamificationProfile? _gamificationProfile;
@@ -62,11 +64,30 @@ class _ModernHomeScreenState extends State<ModernHomeScreen> with TickerProvider
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _initializeAnimations();
     _loadUserData();
     _loadRecentClassifications();
     _loadGamificationData();
     _ensureCameraAccess();
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    _fadeController.dispose();
+    _slideController.dispose();
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    super.didChangeAppLifecycleState(state);
+    if (state == AppLifecycleState.resumed) {
+      // Force refresh data when app comes back to foreground
+      debugPrint('App resumed - forcing data refresh');
+      _refreshDataWithTimestamp();
+    }
   }
 
   void _initializeAnimations() {
@@ -96,13 +117,6 @@ class _ModernHomeScreenState extends State<ModernHomeScreen> with TickerProvider
     // Start animations
     _fadeController.forward();
     _slideController.forward();
-  }
-
-  @override
-  void dispose() {
-    _fadeController.dispose();
-    _slideController.dispose();
-    super.dispose();
   }
 
   Future<void> _loadGamificationData() async {
@@ -168,6 +182,7 @@ class _ModernHomeScreenState extends State<ModernHomeScreen> with TickerProvider
       final classifications = await storageService.getAllClassifications();
 
       setState(() {
+        _allClassifications = classifications;
         _recentClassifications = classifications.safeTake(5);
       });
     } catch (e) {
@@ -208,7 +223,6 @@ class _ModernHomeScreenState extends State<ModernHomeScreen> with TickerProvider
         );
       }
 
-      // Check camera permission first (mobile only)
       if (!kIsWeb) {
         final hasPermission = await PermissionHandler.checkCameraPermission();
         if (!hasPermission && mounted) {
@@ -248,30 +262,12 @@ class _ModernHomeScreenState extends State<ModernHomeScreen> with TickerProvider
         return;
       }
 
-              if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text(
-                'Emulator camera support may be limited. Try using the gallery option instead.'),
-            duration: Duration(seconds: 5),
-          ),
-        );
-      }
-
-      final bool cameraSetupSuccess = await PlatformCamera.setup();
-      final XFile? image = await PlatformCamera.takePicture();
-
-      if (image != null && mounted) {
-        final File imageFile = File(image.path);
-        if (await imageFile.exists()) {
-          _navigateToImageCapture(imageFile);
-        } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-                content:
-                    Text('Error accessing captured image. Please try again.')),
-          );
-        }
+      // For mobile, capture directly
+      final XFile? capturedXFile = await PlatformCamera.takePicture(); 
+      if (capturedXFile != null && mounted) {
+        _navigateToImageCapture(File(capturedXFile.path)); 
+      } else if (mounted) {
+        debugPrint('Mobile camera capture cancelled or failed.');
       }
     } catch (e) {
       debugPrint('Error taking picture: $e');
@@ -306,8 +302,6 @@ class _ModernHomeScreenState extends State<ModernHomeScreen> with TickerProvider
         );
       }
       
-      // For modern Android (13+), image_picker handles permissions internally
-      // Only check permissions for older Android versions
       if (!kIsWeb) {
         try {
           // Try to check permission, but don't block if it fails
@@ -358,6 +352,8 @@ class _ModernHomeScreenState extends State<ModernHomeScreen> with TickerProvider
             } else {
               throw Exception('Selected image file is empty (0 bytes)');
             }
+          } else {
+             throw Exception('Selected image file does not exist.');
           }
         }
       }
@@ -371,52 +367,34 @@ class _ModernHomeScreenState extends State<ModernHomeScreen> with TickerProvider
     }
   }
 
-  void _navigateToImageCapture(File imageFile) {
-    Navigator.push(
+  void _navigateToImageCapture(File imageFile) async {
+    await Navigator.push(
       context,
       MaterialPageRoute(
         builder: (context) => ImageCaptureScreen(imageFile: imageFile),
       ),
-    ).then((result) async {
-      _loadRecentClassifications();
-
-      if (result != null && result is WasteClassification) {
-        final adService = Provider.of<AdService>(context, listen: false);
-        adService.trackClassificationCompleted();
-        
-        if (adService.shouldShowInterstitial()) {
-          adService.showInterstitialAd();
-        }
-        
-        await _processClassificationForGamification(result);
-        _loadGamificationData();
-      }
-    });
+    );
+    
+    // Force refresh data after returning from image capture flow
+    if (mounted) {
+      debugPrint('Returned from ImageCaptureScreen - forcing data refresh');
+      await _refreshDataWithTimestamp();
+    }
   }
 
-  void _navigateToWebImageCapture(XFile xFile, Uint8List imageBytes) {
-    Navigator.push(
+  void _navigateToWebImageCapture(XFile xFile, Uint8List imageBytes) async {
+    await Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => ImageCaptureScreen(
-          xFile: xFile,
-          webImage: imageBytes,
-        ),
+        builder: (context) => ImageCaptureScreen(xFile: xFile, webImage: imageBytes),
       ),
-    ).then((result) async {
-      _loadRecentClassifications();
-
-      if (result != null && result is WasteClassification) {
-        final adService = Provider.of<AdService>(context, listen: false);
-        adService.trackClassificationCompleted();
-        
-        if (adService.shouldShowInterstitial()) {
-          adService.showInterstitialAd();
-        }
-        
-        await _processClassificationForGamification(result);
-      }
-    });
+    );
+    
+    // Force refresh data after returning from image capture flow
+    if (mounted) {
+      debugPrint('Returned from WebImageCaptureScreen - forcing data refresh');
+      await _refreshDataWithTimestamp();
+    }
   }
 
   Future<void> _processClassificationForGamification(
@@ -1120,12 +1098,23 @@ class _ModernHomeScreenState extends State<ModernHomeScreen> with TickerProvider
   }
 
   Widget _buildTodaysImpactGoal() {
-    final todayClassifications = _recentClassifications
+    final now = DateTime.now();
+    final todayClassifications = _allClassifications 
         .where((c) => _isToday(c.timestamp))
-        .length;
+        .toList();
+    
+    // Debug logging
+    debugPrint('=== Today\'s Impact Debug ===');
+    debugPrint('Current date: ${now.year}-${now.month}-${now.day}');
+    debugPrint('Total classifications: ${_allClassifications.length}');
+    debugPrint('Today\'s classifications: ${todayClassifications.length}');
+    for (var classification in todayClassifications) {
+      debugPrint('  - ${classification.itemName} at ${classification.timestamp}');
+    }
+    debugPrint('========================');
 
     return TodaysImpactGoal(
-      currentClassifications: todayClassifications,
+      currentClassifications: todayClassifications.length,
       dailyGoal: 10, // This could be user-configurable
       onTap: () {
         Navigator.push(
@@ -1136,6 +1125,16 @@ class _ModernHomeScreenState extends State<ModernHomeScreen> with TickerProvider
         );
       },
     );
+  }
+
+  bool _isToday(DateTime date) {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final checkDate = DateTime(date.year, date.month, date.day);
+    
+    debugPrint('Checking if ${date} is today (${today}): ${today == checkDate}');
+    
+    return today == checkDate;
   }
 
   Widget _buildGlobalImpactMeter() {
@@ -1160,10 +1159,31 @@ class _ModernHomeScreenState extends State<ModernHomeScreen> with TickerProvider
     );
   }
 
-  bool _isToday(DateTime date) {
-    final now = DateTime.now();
-    return date.year == now.year &&
-           date.month == now.month &&
-           date.day == now.day;
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    
+    // Refresh data when returning to this screen from any navigation
+    // But only if it's been more than 2 seconds since last refresh to avoid excessive calls
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        final now = DateTime.now();
+        if (_lastRefresh == null || now.difference(_lastRefresh!).inSeconds > 2) {
+          debugPrint('ModernHomeScreen: didChangeDependencies - refreshing data');
+          _refreshDataWithTimestamp();
+        }
+      }
+    });
+  }
+
+  Future<void> _refreshDataWithTimestamp() async {
+    _lastRefresh = DateTime.now();
+    await _loadRecentClassifications();
+    await _loadGamificationData();
+  }
+
+  // Public method to refresh data - can be called from other screens
+  Future<void> refreshData() async {
+    await _refreshDataWithTimestamp();
   }
 }
