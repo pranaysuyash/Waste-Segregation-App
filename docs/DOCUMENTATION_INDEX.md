@@ -17,7 +17,7 @@ This index provides a comprehensive guide to all documentation in the Waste Segr
 - **[ai_classification_system.md](ai_classification_system.md)** - AI classification system documentation
 - **[NAVIGATION_SYSTEM.md](NAVIGATION_SYSTEM.md)** - App navigation system overview
 - **[current_issues.md](current_issues.md)** - Known issues and their status
-- **[TODO_COMPREHENSIVE.md](TODO_COMPREHENSIVE.md)** - Comprehensive todo list
+- **[MASTER_TODO_COMPREHENSIVE.md](MASTER_TODO_COMPREHENSIVE.md)** - 🚀 **MASTER TODO** - Consolidated comprehensive development roadmap
 - **[QA_CHECKLIST.md](QA_CHECKLIST.md)** - Quality assurance checklist
 
 ---
@@ -103,6 +103,17 @@ This index provides a comprehensive guide to all documentation in the Waste Segr
 ### **Feature Documentation**
 - **[DISPOSAL_INSTRUCTIONS_FEATURE.md](project/DISPOSAL_INSTRUCTIONS_FEATURE.md)** - Current disposal instructions implementation status
 - **[DISPOSAL_INSTRUCTIONS_ROADMAP.md](project/DISPOSAL_INSTRUCTIONS_ROADMAP.md)** - Advanced features roadmap and implementation choices
+
+---
+
+## 📦 **Archive Documentation (`docs/archive/`)**
+
+### **Archived TODOs**
+- **[todos/TODO_COMPREHENSIVE.md](archive/todos/TODO_COMPREHENSIVE.md)** - Original comprehensive TODO (archived)
+- **[todos/PRIORITY_TODOS.md](archive/todos/PRIORITY_TODOS.md)** - Original priority TODOs (archived)
+- **[todos/next_development_tasks.md](archive/todos/next_development_tasks.md)** - Original next development tasks (archived)
+
+> **Note**: These files have been consolidated into [MASTER_TODO_COMPREHENSIVE.md](MASTER_TODO_COMPREHENSIVE.md)
 
 ---
 
