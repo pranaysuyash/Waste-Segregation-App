@@ -37,7 +37,7 @@ class GamificationService {
     if (profileJson == null) {
       final defaultProfile = GamificationProfile(
         userId: 'default',
-        streak: Streak(lastUsageDate: DateTime.now()),
+        streak: Streak(current: 1, lastUsageDate: DateTime.now()), // Start with streak of 1
         points: const UserPoints(),
         achievements: getDefaultAchievements(),
       );
@@ -61,7 +61,7 @@ class GamificationService {
       // Create a new profile if none exists
       final newProfile = GamificationProfile(
         userId: 'default',
-        streak: Streak(lastUsageDate: DateTime.now()),
+        streak: Streak(current: 1, lastUsageDate: DateTime.now()), // Start with streak of 1
         points: const UserPoints(),
         achievements: getDefaultAchievements(),
       );
@@ -99,7 +99,8 @@ class GamificationService {
     int newCurrent = profile.streak.current;
     
     if (lastUsageDay.isAtSameMomentAs(today)) {
-      // Already used today, keep current streak
+      // Already used today, keep current streak (but ensure it's at least 1)
+      newCurrent = profile.streak.current == 0 ? 1 : profile.streak.current;
       debugPrint('  - Already used today, keeping streak: $newCurrent');
     } else if (lastUsageDay.isAtSameMomentAs(yesterday)) {
       // Last used yesterday, increment streak
@@ -1214,6 +1215,25 @@ class GamificationService {
     } catch (e) {
       debugPrint('Error getting archived points history: $e');
       return [];
+    }
+  }
+  
+  /// Reset streak to yesterday for testing (simulates missing a day)
+  Future<void> resetStreakToYesterday() async {
+    try {
+      final profile = await getProfile();
+      final yesterday = DateTime.now().subtract(const Duration(days: 1));
+      
+      final newStreak = Streak(
+        current: profile.streak.current,
+        longest: profile.streak.longest,
+        lastUsageDate: yesterday,
+      );
+      
+      await saveProfile(profile.copyWith(streak: newStreak));
+      debugPrint('🔄 Streak reset to yesterday for testing');
+    } catch (e) {
+      debugPrint('❌ Error resetting streak: $e');
     }
   }
 }
