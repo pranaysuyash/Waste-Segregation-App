@@ -74,20 +74,73 @@ class StorageService {
   // Classification methods
   Future<void> saveClassification(WasteClassification classification) async {
     final classificationsBox = Hive.box(StorageKeys.classificationsBox);
-    final String key =
-        'classification_${DateTime.now().millisecondsSinceEpoch}';
-    await classificationsBox.put(key, jsonEncode(classification.toJson()));
+    
+    // Get current user ID
+    final userProfile = await getCurrentUserProfile();
+    String currentUserId;
+    
+    if (userProfile != null && userProfile.id.isNotEmpty) {
+      // Signed-in user
+      currentUserId = userProfile.id;
+    } else {
+      // Guest user - use a consistent guest identifier
+      currentUserId = 'guest_user';
+    }
+    
+    // Ensure the classification has the correct user ID
+    final classificationWithUserId = classification.copyWith(userId: currentUserId);
+    
+    // Debug logging
+    debugPrint('💾 Saving classification for user: $currentUserId');
+    debugPrint('💾 Classification: ${classification.itemName}');
+    
+    final String key = 'classification_${currentUserId}_${DateTime.now().millisecondsSinceEpoch}';
+    await classificationsBox.put(key, jsonEncode(classificationWithUserId.toJson()));
   }
 
   Future<List<WasteClassification>> getAllClassifications({FilterOptions? filterOptions}) async {
     final classificationsBox = Hive.box(StorageKeys.classificationsBox);
     final List<WasteClassification> classifications = [];
 
+    // Get current user ID
+    final userProfile = await getCurrentUserProfile();
+    String currentUserId;
+    
+    if (userProfile != null && userProfile.id.isNotEmpty) {
+      // Signed-in user
+      currentUserId = userProfile.id;
+    } else {
+      // Guest user - use a consistent guest identifier
+      currentUserId = 'guest_user';
+    }
+
+    // Debug logging
+    debugPrint('📖 Loading classifications for user: $currentUserId');
+    
     for (var key in classificationsBox.keys) {
       final String jsonString = classificationsBox.get(key);
       final Map<String, dynamic> json = jsonDecode(jsonString);
-      classifications.add(WasteClassification.fromJson(json));
+      final classification = WasteClassification.fromJson(json);
+      
+      // Debug logging for each classification
+      debugPrint('📖 Found classification: ${classification.itemName} (userId: ${classification.userId})');
+      
+      // Only include classifications for the current user
+      // For backward compatibility, include classifications without userId if user is guest
+      // Also include old guest classifications with timestamp-based IDs if current user is guest
+      if (classification.userId == currentUserId || 
+          (classification.userId == null && currentUserId == 'guest_user') ||
+          (classification.userId != null && 
+           classification.userId!.startsWith('guest_') && 
+           currentUserId == 'guest_user')) {
+        classifications.add(classification);
+        debugPrint('📖 ✅ Including classification for current user');
+      } else {
+        debugPrint('📖 ❌ Excluding classification (different user)');
+      }
     }
+    
+    debugPrint('📖 Total classifications loaded: ${classifications.length}');
 
     // Apply filters if provided
     if (filterOptions != null && filterOptions.isNotEmpty) {
@@ -327,7 +380,37 @@ class StorageService {
 
   Future<void> clearAllClassifications() async {
     final classificationsBox = Hive.box(StorageKeys.classificationsBox);
-    await classificationsBox.clear();
+    
+    // Get current user ID
+    final userProfile = await getCurrentUserProfile();
+    String currentUserId;
+    
+    if (userProfile != null && userProfile.id.isNotEmpty) {
+      // Signed-in user
+      currentUserId = userProfile.id;
+    } else {
+      // Guest user - use a consistent guest identifier
+      currentUserId = 'guest_user';
+    }
+    
+    // Only clear classifications for the current user
+    final keysToDelete = <String>[];
+    for (var key in classificationsBox.keys) {
+      final String jsonString = classificationsBox.get(key);
+      final Map<String, dynamic> json = jsonDecode(jsonString);
+      final classification = WasteClassification.fromJson(json);
+      
+      // Delete if it belongs to current user or if both are null (backward compatibility)
+      if (classification.userId == currentUserId || 
+          (classification.userId == null && currentUserId == 'guest_user')) {
+        keysToDelete.add(key);
+      }
+    }
+    
+    // Delete the identified keys
+    for (final key in keysToDelete) {
+      await classificationsBox.delete(key);
+    }
   }
 
   // Settings methods

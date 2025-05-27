@@ -202,7 +202,7 @@ class _ModernHomeScreenState extends State<ModernHomeScreen> with TickerProvider
 
       setState(() {
         _allClassifications = classifications;
-        _recentClassifications = classifications.safeTake(5);
+        _recentClassifications = classifications.safeTake(3);
       });
     } catch (e) {
       if (mounted) {
@@ -589,21 +589,21 @@ class _ModernHomeScreenState extends State<ModernHomeScreen> with TickerProvider
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 _buildWelcomeSection(theme),
-                const SizedBox(height: AppTheme.spacingLg),
+                const SizedBox(height: AppTheme.spacingMd),
                 _buildTodaysImpactGoal(),
-                const SizedBox(height: AppTheme.spacingLg),
+                const SizedBox(height: AppTheme.spacingMd),
                 _buildStatsSection(),
-                const SizedBox(height: AppTheme.spacingLg),
+                const SizedBox(height: AppTheme.spacingMd),
                 _buildGlobalImpactMeter(),
-                const SizedBox(height: AppTheme.spacingLg),
+                const SizedBox(height: AppTheme.spacingMd),
                 _buildCommunityFeedPreview(),
-                const SizedBox(height: AppTheme.spacingLg),
+                const SizedBox(height: AppTheme.spacingMd),
                 _buildGamificationSection(),
-                const SizedBox(height: AppTheme.spacingLg),
+                const SizedBox(height: AppTheme.spacingMd),
                 _buildQuickAccessSection(),
-                const SizedBox(height: AppTheme.spacingLg),
+                const SizedBox(height: AppTheme.spacingMd),
                 _buildRecentClassifications(),
-                const SizedBox(height: AppTheme.spacingXxl),
+                const SizedBox(height: AppTheme.spacingXl),
               ],
             ),
           ),
@@ -732,7 +732,7 @@ class _ModernHomeScreenState extends State<ModernHomeScreen> with TickerProvider
         Expanded(
           child: StatsCard(
             title: 'Classifications',
-            value: '${_recentClassifications.length}',
+            value: '${_allClassifications.length}',
             icon: Icons.analytics,
             color: AppTheme.infoColor,
             trend: '+12%',
@@ -956,6 +956,7 @@ class _ModernHomeScreenState extends State<ModernHomeScreen> with TickerProvider
                 ),
                 const SizedBox(width: AppTheme.spacingSm),
                 ViewAllButton(
+                  text: 'View All (${_allClassifications.length})',
                   onPressed: () {
                     Navigator.push(
                       context,

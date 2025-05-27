@@ -620,6 +620,8 @@ class ViewAllButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    
     return LayoutBuilder(
       builder: (context, constraints) {
         // Determine if we need to show abbreviated text or icon only
@@ -635,6 +637,7 @@ class ViewAllButton extends StatelessWidget {
             size: size,
             onPressed: onPressed,
             tooltip: text,
+            foregroundColor: color ?? theme.colorScheme.primary,
           );
         } else if (isNarrow) {
           // Show abbreviated text for narrow spaces
@@ -654,6 +657,7 @@ class ViewAllButton extends StatelessWidget {
             style: style,
             size: size,
             onPressed: onPressed,
+            foregroundColor: color ?? theme.colorScheme.primary,
           );
         } else {
           // Show full text for normal spaces
@@ -663,6 +667,7 @@ class ViewAllButton extends StatelessWidget {
             style: style,
             size: size,
             onPressed: onPressed,
+            foregroundColor: color ?? theme.colorScheme.primary,
           );
         }
       },

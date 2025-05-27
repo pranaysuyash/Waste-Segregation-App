@@ -84,7 +84,7 @@ class _TodaysImpactGoalState extends State<TodaysImpactGoal>
     return ModernCard(
       onTap: widget.onTap,
       child: Padding(
-        padding: const EdgeInsets.all(AppTheme.paddingLarge),
+        padding: const EdgeInsets.all(AppTheme.paddingRegular),
         child: Column(
           children: [
             // Title
@@ -127,17 +127,17 @@ class _TodaysImpactGoalState extends State<TodaysImpactGoal>
               ],
             ),
 
-            const SizedBox(height: AppTheme.spacingLg),
+            const SizedBox(height: AppTheme.spacingMd),
 
-            // Progress Ring
+            // Progress Ring - Reduced size
             AnimatedBuilder(
               animation: _progressController,
               builder: (context, child) {
                 return Transform.scale(
                   scale: _pulseAnimation.value,
                   child: SizedBox(
-                    width: 160,
-                    height: 160,
+                    width: 120,
+                    height: 120,
                     child: CustomPaint(
                       painter: ImpactRingPainter(
                         progress: _progressAnimation.value,
@@ -152,22 +152,21 @@ class _TodaysImpactGoalState extends State<TodaysImpactGoal>
                             Text(
                               '${widget.currentClassifications}',
                               style: theme.textTheme.displayMedium?.copyWith(
-                                fontSize: 36,
+                                fontSize: 28,
                                 fontWeight: FontWeight.bold,
                                 color: AppTheme.primaryColor,
                               ),
                             ),
                             Text(
                               'of ${widget.dailyGoal}',
-                              style: theme.textTheme.bodyMedium?.copyWith(
+                              style: theme.textTheme.bodySmall?.copyWith(
                                 color: AppTheme.textSecondaryColor,
                                 fontWeight: FontWeight.w500,
                               ),
                             ),
-                            const SizedBox(height: 4),
                             Text(
                               '${(progress * 100).toInt()}%',
-                              style: theme.textTheme.titleMedium?.copyWith(
+                              style: theme.textTheme.titleSmall?.copyWith(
                                 color: AppTheme.primaryColor,
                                 fontWeight: FontWeight.w600,
                               ),
@@ -181,7 +180,7 @@ class _TodaysImpactGoalState extends State<TodaysImpactGoal>
               },
             ),
 
-            const SizedBox(height: AppTheme.spacingMd),
+            const SizedBox(height: AppTheme.spacingSm),
 
             // Motivational message
             Text(

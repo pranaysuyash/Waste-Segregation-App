@@ -116,20 +116,24 @@
 - ❌ **No event tracking** currently active
 
 ### 3. **User Feedback Mechanism** ⚠️
-**Status**: ✅ **WIDGET CREATED** → ❌ **NOT VISIBLE TO USERS**  
-**Files**: `lib/widgets/classification_feedback_widget.dart`
+**Status**: ✅ **WIDGET CREATED** → ❌ **MISSING RE-ANALYSIS FEATURES**  
+**Files**: `lib/widgets/classification_feedback_widget.dart`, `lib/screens/result_screen.dart`
 
 #### Completed Widget Code:
-- ✅ **ClassificationFeedbackWidget** with compact/full versions (code only)
-- ✅ **Smart correction options** with pre-populated choices (code only)
-- ✅ **Privacy-focused** anonymous feedback (code only)
-- ✅ **Visual feedback states** (code only)
+- ✅ **ClassificationFeedbackWidget** with compact/full versions
+- ✅ **Smart correction options** with pre-populated choices
+- ✅ **Privacy-focused** anonymous feedback
+- ✅ **Visual feedback states**
+- ✅ **Integrated in result_screen.dart** - users can provide feedback
+- ✅ **Storage integration** - feedback is saved to local storage
+- ✅ **Analytics tracking** - feedback events are tracked
 
-#### ❌ **NOT INTEGRATED - USERS CAN'T ACCESS**:
-- ❌ **Not in result_screen.dart** - users don't see feedback option
-- ❌ **Not in history items** - no feedback button visible
-- ❌ **No storage integration** - feedback not saved
-- ❌ **No analytics tracking** - feedback not tracked
+#### ❌ **CRITICAL MISSING FEATURES**:
+- ❌ **No re-analysis option** when marked as incorrect
+- ❌ **No confidence-based warnings** for low confidence results
+- ❌ **No learning from corrections** - feedback doesn't improve future classifications
+- ❌ **No batch correction** for similar items
+- ❌ **No correction validation** or sanity checks
 
 ### 4. **Disposal Instructions Feature** ✅
 **Status**: ✅ **BASIC IMPLEMENTATION COMPLETE**  
@@ -222,20 +226,27 @@ final basePreparation = [
 - [ ] 🔄 **Educational tags** ('Tip: Remove caps from bottles', Colors.blue)
 - [ ] 🔄 **Urgency tags** ('Dispose within 24h', Colors.red)
 
-### 4. **AI Classification Consistency** 🧠
-**Status**: ❌ **ISSUE IDENTIFIED**  
+### 4. **AI Classification Consistency & Re-Analysis** 🧠
+**Status**: ❌ **CRITICAL GAPS IDENTIFIED**  
 **Priority**: HIGH  
-**Files**: `lib/services/ai_service.dart`
+**Files**: `lib/services/ai_service.dart`, `lib/widgets/classification_feedback_widget.dart`
 
 #### Issues:
 - ❌ **Multiple attempts** produce different results for same image
 - ❌ **Complex scenes** with multiple items inconsistent
+- ❌ **No re-analysis trigger** when users mark classifications as incorrect
+- ❌ **No confidence-based handling** for uncertain results
+- ❌ **No learning mechanism** from user corrections
 
 #### Implementation Tasks:
+- [ ] 🔄 **URGENT: Add re-analysis option** when marked as incorrect
+- [ ] 🔄 **URGENT: Implement confidence warnings** for low confidence results (<70%)
+- [ ] 🔄 **URGENT: Create ReAnalysisDialog** component for loading state
 - [ ] 🔄 Improve pre-processing for consistent results
-- [ ] 🔄 Implement confidence score display
 - [ ] 🔄 Add mechanisms to refine classification results
 - [ ] 🔄 Create "object selection" mode for complex scenes
+- [ ] 🔄 Implement feedback aggregation system for learning
+- [ ] 🔄 Add batch correction interface for similar items
 
 ### 5. **Image Segmentation Enhancement** 🖼️
 **Status**: ❌ **UI PLACEHOLDERS EXIST** → **FUNCTIONALITY INCOMPLETE**  
@@ -529,12 +540,14 @@ final basePreparation = [
 ### **Week 1-2: Critical Blockers** 🚨
 1. ✅ **AdMob Configuration** (CRITICAL - blocking production)
 2. ✅ **UI Critical Fixes** (text overflow, recycling widget)
-3. ✅ **User Feedback Integration** (widget already created)
+3. ⚠️ **User Feedback Re-Analysis** (widget exists, missing re-analysis features)
 
 ### **Week 3-4: High Priority Features** 🔥
-1. 🔄 **LLM Disposal Instructions** (better accuracy)
-2. 🔄 **Firebase Integration** (services ready, need integration)
-3. 🔄 **AI Classification Consistency** (core functionality)
+1. 🔄 **Re-Analysis Implementation** (when marked as incorrect)
+2. 🔄 **Confidence-Based Warnings** (low confidence handling)
+3. 🔄 **LLM Disposal Instructions** (better accuracy)
+4. 🔄 **Firebase Integration** (services ready, need integration)
+5. 🔄 **AI Classification Consistency** (core functionality)
 
 ### **Week 5-6: Enhanced Features** 🎨
 1. 🔄 **Enhanced Interactive Tags** (immediate user value)
@@ -581,13 +594,15 @@ final basePreparation = [
 
 ## 🎯 **IMMEDIATE NEXT STEPS** (This Week)
 
-1. **🚨 URGENT: Firebase UI Integration** - Connect existing Firebase services to UI screens
-2. **🚨 URGENT: User Feedback Integration** - Add feedback widget to result_screen.dart (widget exists, just needs integration)
-3. **🚨 URGENT: Analytics Integration** - Add tracking calls throughout app (service exists, just needs calls)
-4. **Fix AdMob Configuration** - Replace placeholder IDs, test ad loading
-5. **Fix UI Critical Issues** - Text overflow, recycling widget
+1. **🚨 URGENT: Re-Analysis Implementation** - Add re-analysis option when users mark classifications as incorrect
+2. **🚨 URGENT: Confidence-Based Warnings** - Show warnings for low confidence classifications (<70%)
+3. **🚨 URGENT: Enhanced Feedback Integration** - Improve existing feedback system with re-analysis triggers
+4. **🚨 URGENT: Firebase UI Integration** - Connect existing Firebase services to UI screens
+5. **🚨 URGENT: Analytics Integration** - Add tracking calls throughout app (service exists, just needs calls)
+6. **Fix AdMob Configuration** - Replace placeholder IDs, test ad loading
+7. **Fix UI Critical Issues** - Text overflow, recycling widget
 
-**Reality Check**: We have powerful backend services but users can't access them!
+**Reality Check**: Users can provide feedback but can't trigger re-analysis when classifications are wrong!
 
 ---
 

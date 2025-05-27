@@ -85,21 +85,30 @@ class GamificationService {
     final now = DateTime.now();
     final lastUsage = profile.streak.lastUsageDate;
     
-    // Check if last usage was yesterday
+    // Create date objects for comparison (time-agnostic)
+    final today = DateTime(now.year, now.month, now.day);
     final yesterday = DateTime(now.year, now.month, now.day - 1);
     final lastUsageDay = DateTime(lastUsage.year, lastUsage.month, lastUsage.day);
     
-    // If last usage was yesterday, increment streak
-    // If it was today, keep streak the same
-    // If it was before yesterday, reset streak to 1
+    debugPrint('🔥 STREAK DEBUG:');
+    debugPrint('  - Today: $today');
+    debugPrint('  - Yesterday: $yesterday');
+    debugPrint('  - Last usage day: $lastUsageDay');
+    debugPrint('  - Current streak: ${profile.streak.current}');
+    
     int newCurrent = profile.streak.current;
     
-    if (lastUsageDay.isAtSameMomentAs(yesterday)) {
-      // Increment streak if last usage was yesterday
+    if (lastUsageDay.isAtSameMomentAs(today)) {
+      // Already used today, keep current streak
+      debugPrint('  - Already used today, keeping streak: $newCurrent');
+    } else if (lastUsageDay.isAtSameMomentAs(yesterday)) {
+      // Last used yesterday, increment streak
       newCurrent = profile.streak.current + 1;
-    } else if (!lastUsageDay.isAtSameMomentAs(DateTime(now.year, now.month, now.day))) {
-      // Reset streak if last usage was before yesterday
+      debugPrint('  - Used yesterday, incrementing streak to: $newCurrent');
+    } else {
+      // Last used before yesterday or never, start new streak
       newCurrent = 1;
+      debugPrint('  - Starting new streak: $newCurrent');
     }
     
     // Update longest streak if needed
@@ -116,20 +125,25 @@ class GamificationService {
     // Update the profile with the new streak
     await saveProfile(profile.copyWith(streak: newStreak));
     
-    // Award points for streak
-    if (newCurrent > 1) {
+    debugPrint('  - New streak saved: current=$newCurrent, longest=$newLongest');
+    
+    // Award points for streak (only if streak increased)
+    if (newCurrent > profile.streak.current) {
       await addPoints('daily_streak');
+      debugPrint('  - Awarded daily streak points');
     }
     
     // Check for streak achievements
-    if (newCurrent >= 7) {
+    if (newCurrent >= 3) {
       await updateAchievementProgress(AchievementType.streakMaintained, newCurrent);
+      debugPrint('  - Updated streak achievements for $newCurrent days');
     }
     
     // Check for perfect week
-    if (newCurrent % 7 == 0) {
+    if (newCurrent % 7 == 0 && newCurrent > 0) {
       await updateAchievementProgress(AchievementType.perfectWeek, newCurrent ~/ 7);
       await addPoints('perfect_week');
+      debugPrint('  - Perfect week achieved! ${newCurrent ~/ 7} weeks');
     }
     
     return newStreak;
@@ -177,22 +191,35 @@ class GamificationService {
   // Process a waste classification for gamification
   // Returns a list of completed challenges
   Future<List<Challenge>> processClassification(WasteClassification classification) async {
+    debugPrint('🎮 GAMIFICATION: Processing classification for ${classification.category}');
+    
+    // Get profile before making changes
+    final profileBefore = await getProfile();
+    final categoriesBeforeCount = profileBefore.points.categoryPoints.keys.length;
+    
     // Add points for classifying an item
     await addPoints('classification', category: classification.category);
     
     // Update waste identification achievements
     await updateAchievementProgress(AchievementType.wasteIdentified, 1);
     
-    // Track unique categories identified
-    final profile = await getProfile();
-    final categoriesIdentified = profile.points.categoryPoints.keys.toList();
+    // Get updated profile to check categories
+    final profileAfter = await getProfile();
+    final categoriesAfterCount = profileAfter.points.categoryPoints.keys.length;
     
-    if (!categoriesIdentified.contains(classification.category)) {
-      // Update categories achievement if this is a new category
+    debugPrint('🎮 CATEGORIES: Before=$categoriesBeforeCount, After=$categoriesAfterCount');
+    debugPrint('🎮 CATEGORIES: ${profileAfter.points.categoryPoints.keys.toList()}');
+    
+    // Check if this is a new category
+    if (categoriesAfterCount > categoriesBeforeCount) {
+      // This is a new category! Update categories achievement
+      debugPrint('🎮 NEW CATEGORY DETECTED! Updating categoriesIdentified achievement');
       await updateAchievementProgress(
         AchievementType.categoriesIdentified, 
-        categoriesIdentified.length + 1
+        categoriesAfterCount
       );
+    } else {
+      debugPrint('🎮 EXISTING CATEGORY: ${classification.category}');
     }
     
     // Update active challenges
@@ -233,9 +260,19 @@ class GamificationService {
       if (achievement.type == type && !achievement.isEarned) {
         
         // Calculate new progress
-        final currentProgress = achievement.progress * achievement.threshold;
-        final newRawProgress = currentProgress + increment;
-        final newProgress = newRawProgress / achievement.threshold;
+        double newProgress;
+        
+        if (achievement.type == AchievementType.categoriesIdentified) {
+          // For categories, use the actual count as progress
+          newProgress = increment / achievement.threshold;
+          debugPrint('🏆 CATEGORY ACHIEVEMENT: ${achievement.id} - progress: ${increment}/${achievement.threshold} = ${(newProgress * 100).round()}%');
+        } else {
+          // For other achievements, use incremental progress
+          final currentProgress = achievement.progress * achievement.threshold;
+          final newRawProgress = currentProgress + increment;
+          newProgress = newRawProgress / achievement.threshold;
+          debugPrint('🏆 ACHIEVEMENT: ${achievement.id} - progress: ${newRawProgress}/${achievement.threshold} = ${(newProgress * 100).round()}%');
+        }
         
         // Check if achievement is now earned (requires both progress AND level unlock)
         final isLevelUnlocked = achievement.unlocksAtLevel == null || profile.points.level >= achievement.unlocksAtLevel!;

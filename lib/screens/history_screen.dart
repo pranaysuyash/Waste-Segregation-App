@@ -626,37 +626,35 @@ class _HistoryScreenState extends State<HistoryScreen> {
   }
   
   Widget _buildHistoryList() {
-    return Expanded(
-      child: RefreshIndicator(
-        onRefresh: _loadClassifications,
-        child: ListView.builder(
-          controller: _scrollController,
-          padding: const EdgeInsets.only(
-            bottom: AppTheme.paddingRegular + 60, // Extra space for FAB
-          ),
-          itemCount: _classifications.length + (_hasMorePages ? 1 : 0),
-          itemBuilder: (context, index) {
-            if (index == _classifications.length) {
-              // Loading indicator at the end
-              return const Padding(
-                padding: EdgeInsets.all(16.0),
-                child: Center(
-                  child: SizedBox(
-                    width: 24,
-                    height: 24,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  ),
-                ),
-              );
-            }
-            
-            final classification = _classifications[index];
-            return HistoryListItem(
-              classification: classification,
-              onTap: () => _navigateToClassificationDetails(classification),
-            );
-          },
+    return RefreshIndicator(
+      onRefresh: _loadClassifications,
+      child: ListView.builder(
+        controller: _scrollController,
+        padding: const EdgeInsets.only(
+          bottom: AppTheme.paddingRegular + 60, // Extra space for FAB
         ),
+        itemCount: _classifications.length + (_hasMorePages ? 1 : 0),
+        itemBuilder: (context, index) {
+          if (index == _classifications.length) {
+            // Loading indicator at the end
+            return const Padding(
+              padding: EdgeInsets.all(16.0),
+              child: Center(
+                child: SizedBox(
+                  width: 24,
+                  height: 24,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                ),
+              ),
+            );
+          }
+          
+          final classification = _classifications[index];
+          return HistoryListItem(
+            classification: classification,
+            onTap: () => _navigateToClassificationDetails(classification),
+          );
+        },
       ),
     );
   }

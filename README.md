@@ -192,6 +192,8 @@ For comprehensive documentation including setup guides, technical details, and p
 **Latest Changes:** Critical UI fixes applied - AdWidget errors resolved, overflow warnings fixed, modal dialogs improved
 
 ### Recent Critical Fixes ✅
+- **User Data Isolation:** Fixed privacy issue where guest and Google account data was shared on same device
+- **ViewAllButton Styling:** Fixed invisible text in "View All" button for recent classifications
 - **AdWidget "Already in Tree" Error:** Fixed ad widget reuse causing development errors
 - **Layout Overflow Warnings:** Resolved overflow issues in History screen and modal dialogs  
 - **Version Management:** Fixed Play Store version code conflicts

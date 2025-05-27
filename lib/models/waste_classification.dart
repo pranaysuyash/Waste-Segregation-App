@@ -11,6 +11,9 @@ class WasteClassification {
   final String? disposalMethod;
   final DisposalInstructions disposalInstructions;
 
+  // User identification
+  final String? userId;
+
   // Location and guidelines
   final String region;
   final String? localGuidelinesReference;
@@ -72,6 +75,7 @@ class WasteClassification {
     required this.explanation,
     this.disposalMethod,
     required this.disposalInstructions,
+    this.userId,
     required this.region,
     this.localGuidelinesReference,
     this.imageUrl,
@@ -109,7 +113,7 @@ class WasteClassification {
   }) : timestamp = timestamp ?? DateTime.now();
 
   /// Creates a fallback classification when AI analysis fails
-  factory WasteClassification.fallback(String imagePath) {
+  factory WasteClassification.fallback(String imagePath, {String? userId}) {
     return WasteClassification(
       itemName: 'Unknown Item',
       category: 'Dry Waste',
@@ -120,6 +124,7 @@ class WasteClassification {
         steps: ['Please review the item manually', 'Consult local waste guidelines'],
         hasUrgentTimeframe: false,
       ),
+      userId: userId,
       region: 'Unknown',
       visualFeatures: [],
       alternatives: [],
@@ -181,6 +186,7 @@ class WasteClassification {
               steps: ['Please review manually'],
               hasUrgentTimeframe: false,
             ),
+      userId: json['userId'],
       region: json['region'] ?? 'Unknown',
       localGuidelinesReference: json['localGuidelinesReference'],
       imageUrl: json['imageUrl'],
@@ -243,6 +249,7 @@ class WasteClassification {
       'explanation': explanation,
       'disposalMethod': disposalMethod,
       'disposalInstructions': disposalInstructions.toJson(),
+      'userId': userId,
       'region': region,
       'localGuidelinesReference': localGuidelinesReference,
       'imageUrl': imageUrl,
@@ -290,6 +297,7 @@ class WasteClassification {
     String? explanation,
     String? disposalMethod,
     DisposalInstructions? disposalInstructions,
+    String? userId,
     String? region,
     String? localGuidelinesReference,
     String? imageUrl,
@@ -334,6 +342,7 @@ class WasteClassification {
       explanation: explanation ?? this.explanation,
       disposalMethod: disposalMethod ?? this.disposalMethod,
       disposalInstructions: disposalInstructions ?? this.disposalInstructions,
+      userId: userId ?? this.userId,
       region: region ?? this.region,
       localGuidelinesReference: localGuidelinesReference ?? this.localGuidelinesReference,
       imageUrl: imageUrl ?? this.imageUrl,
