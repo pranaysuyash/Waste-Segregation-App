@@ -18,6 +18,7 @@ This index provides a comprehensive guide to all documentation in the Waste Segr
 - **[NAVIGATION_SYSTEM.md](NAVIGATION_SYSTEM.md)** - App navigation system overview
 - **[current_issues.md](current_issues.md)** - Known issues and their status
 - **[MASTER_TODO_COMPREHENSIVE.md](MASTER_TODO_COMPREHENSIVE.md)** - 🚀 **MASTER TODO** - Consolidated comprehensive development roadmap
+- **[UI_ROADMAP_COMPREHENSIVE.md](UI_ROADMAP_COMPREHENSIVE.md)** - 🎨 **UI ROADMAP** - Complete user interface development plan
 - **[QA_CHECKLIST.md](QA_CHECKLIST.md)** - Quality assurance checklist
 
 ---
