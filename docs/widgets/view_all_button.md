@@ -8,7 +8,7 @@ It adapts its appearance based on the available width, transitioning between ful
 
 ## File Location
 
-`lib/widgets/modern_ui/modern_buttons.dart` (within the `ModernButton` class structure, specifically the `ViewAllButton` named constructor/variant).
+`lib/widgets/modern_ui/modern_buttons.dart` - Implemented as a standalone `ViewAllButton` class that extends `StatelessWidget`.
 
 ## Responsive Behavior
 
@@ -20,55 +20,120 @@ The button has three main display states determined by `LayoutBuilder`:
 
 ## Key Features
 
-- **Automatic Responsiveness**: Uses `LayoutBuilder` to adapt its content dynamically.
-- **Text Abbreviation**: Intelligently shortens the text for narrower contexts.
-- **Icon Support**: Can display a leading icon.
-- **Tooltip for Icon-Only**: Ensures usability even in the most compact form by showing a tooltip.
-- **Customizable Text**: While typically "View All", the text can be customized.
-- **Standard `ModernButton` Properties**: Inherits styling and behavior from the `ModernButton` base, such as `onPressed` callback, `icon`, `textStyle`, etc.
+- **Automatic Responsiveness**: Uses `LayoutBuilder` to adapt its content dynamically based on available width
+- **Intelligent Text Abbreviation**: Extracts last word from multi-word text or truncates long single words
+- **Icon Support**: Optional leading icon (defaults to `Icons.arrow_forward` in icon-only mode)
+- **Tooltip for Icon-Only**: Automatically shows full text as tooltip in icon-only mode for accessibility
+- **Customizable Text**: Defaults to "View All" but fully customizable
+- **Modern Button Integration**: Built on top of `ModernButton` with all its styling options
+- **Overflow Protection**: Prevents UI overflow in constrained spaces
 
 ## Parameters
 
-Being a specialized version of `ModernButton`, it primarily uses the standard `ModernButton` parameters, but its internal logic is tailored for the "View All" use case.
+The `ViewAllButton` has its own set of parameters optimized for the "View All" use case:
 
-- **`onPressed`**: `VoidCallback?` - The function to call when the button is tapped.
-- **`text`**: `String` - The text to display (defaults to "View All" effectively, but can be set).
-- **`icon`**: `IconData?` - The icon to display (e.g., `Icons.arrow_forward`).
-- **`iconSize`**: `double?` - Size of the icon.
-- **`textStyle`**: `TextStyle?` - Style for the button text.
-- **`buttonStyle`**: `ButtonStyle?` - Further customization of the button's appearance.
-- **`tooltip`**: `String?` - Custom tooltip text. If not provided, it defaults to the button `text` in icon-only mode.
+- **`text`**: `String` - The text to display (defaults to "View All")
+- **`onPressed`**: `VoidCallback` - Required callback function when the button is tapped
+- **`icon`**: `IconData?` - Optional icon to display (defaults to `Icons.arrow_forward` in icon-only mode)
+- **`color`**: `Color?` - Optional color override for the button
+- **`style`**: `ModernButtonStyle` - Button style (defaults to `ModernButtonStyle.text`)
+- **`size`**: `ModernButtonSize` - Button size (defaults to `ModernButtonSize.small`)
+
+### Inherited ModernButton Features
+Since `ViewAllButton` uses `ModernButton` internally, it inherits:
+- **Tooltip Support**: Automatic tooltip in icon-only mode
+- **Animation Effects**: Scale animation on press
+- **Theme Integration**: Automatic color and style theming
+- **Accessibility**: Screen reader support and semantic labels
 
 ## Usage Example
 
 ```dart
-// In a widget, typically at the end of a list section
+// Basic usage - typically at the end of a list section
 ViewAllButton(
   onPressed: () {
-    // Navigate to the full list screen
-    Navigator.push(context, MaterialPageRoute(builder: (_) => FullHistoryScreen()));
+    Navigator.push(
+      context, 
+      MaterialPageRoute(builder: (_) => FullHistoryScreen()),
+    );
   },
-  // Optional: icon: Icons.chevron_right,
 )
 
-// Example with custom text used in a section header
+// Custom text and icon
+ViewAllButton(
+  text: "See All Activity",
+  icon: Icons.read_more,
+  onPressed: () => Navigator.pushNamed(context, '/all-activity'),
+)
+
+// With custom styling
+ViewAllButton(
+  text: "View More",
+  style: ModernButtonStyle.outlined,
+  size: ModernButtonSize.medium,
+  color: Theme.of(context).colorScheme.secondary,
+  onPressed: () => _showMoreItems(),
+)
+
+// In a section header with responsive behavior
 Row(
   mainAxisAlignment: MainAxisAlignment.spaceBetween,
   children: [
-    Text("Recent Activity", style: Theme.of(context).textTheme.headline6),
+    Expanded(
+      child: Text(
+        "Recent Classifications",
+        style: Theme.of(context).textTheme.titleLarge,
+      ),
+    ),
     ViewAllButton(
-      text: "See All Activity",
-      onPressed: () => print("Navigate to all activity"),
-      icon: Icons.read_more,
+      text: "View All Classifications",
+      icon: Icons.history,
+      onPressed: () => _navigateToHistory(),
     ),
   ],
 )
 ```
 
-## Implementation Notes
+## Implementation Details
 
-- The responsive logic is encapsulated within the `_ViewAllButtonState` class.
-- Breakpoints (80px and 120px) are defined internally for switching between display states.
-- Text abbreviation logic attempts to extract the last word. If the text is a single long word, it will truncate it with an ellipsis.
+### Responsive Breakpoints
+- **< 80px**: Icon-only mode with tooltip
+- **80-120px**: Abbreviated text mode
+- **≥ 120px**: Full text mode
 
-This widget is crucial for creating clean and adaptive UIs where space is at a premium, ensuring that "View All" actions remain accessible and understandable across various device sizes. 
+### Text Abbreviation Algorithm
+1. **Multi-word text**: Extracts the last word (e.g., "View All Items" → "Items")
+2. **Single long word**: Truncates to 4 characters (e.g., "Classifications" → "Clas")
+3. **Short single word**: Displays as-is
+
+### Performance Considerations
+- Uses `LayoutBuilder` for efficient responsive behavior
+- Minimal widget rebuilds through proper state management
+- Leverages `ModernButton`'s optimized rendering
+
+## Accessibility Features
+
+- **Automatic Tooltips**: Full text shown as tooltip in icon-only mode
+- **Semantic Labels**: Proper screen reader support
+- **Touch Targets**: Maintains minimum 44px touch target size
+- **High Contrast**: Works with system accessibility settings
+
+## Best Practices
+
+### When to Use
+- ✅ At the end of list sections for navigation to full views
+- ✅ In constrained spaces where text might overflow
+- ✅ For consistent "View All" actions across the app
+
+### When Not to Use
+- ❌ For primary actions (use `ModernButton` instead)
+- ❌ When space is not constrained (use regular buttons)
+- ❌ For actions other than navigation/viewing more content
+
+## Related Components
+
+- **`ModernButton`**: Base button component with full styling options
+- **`ResponsiveText`**: For responsive text without button functionality
+- **`ModernFAB`**: For floating action buttons with similar responsive features
+
+This widget is crucial for creating clean and adaptive UIs where space is at a premium, ensuring that "View All" actions remain accessible and understandable across various device sizes while maintaining consistent user experience patterns. 
