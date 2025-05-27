@@ -33,6 +33,7 @@ class ImageCaptureScreen extends StatefulWidget {
 
 class _ImageCaptureScreenState extends State<ImageCaptureScreen> {
   bool _isAnalyzing = false;
+  bool _isCancelled = false;
   Uint8List? _webImageBytes;
 
   bool _useSegmentation = false;
@@ -82,6 +83,7 @@ class _ImageCaptureScreenState extends State<ImageCaptureScreen> {
 
     setState(() {
       _isAnalyzing = true;
+      _isCancelled = false; // Reset cancellation state
     });
 
     try {
@@ -99,6 +101,12 @@ class _ImageCaptureScreenState extends State<ImageCaptureScreen> {
             try {
               imageBytes = await widget.xFile!.readAsBytes();
 
+              // Check if cancelled during image reading
+              if (_isCancelled) {
+                debugPrint('Analysis cancelled during image reading');
+                return;
+              }
+
               // Cache the bytes
               if (mounted) {
                 setState(() {
@@ -114,6 +122,12 @@ class _ImageCaptureScreenState extends State<ImageCaptureScreen> {
           // Ensure we have bytes before proceeding
           if (imageBytes.isEmpty) {
             throw Exception('Image data is empty or could not be read');
+          }
+
+          // Check if cancelled before starting analysis
+          if (_isCancelled) {
+            debugPrint('Analysis cancelled before starting web analysis');
+            return;
           }
 
           // Log the image size for debugging
@@ -137,6 +151,12 @@ class _ImageCaptureScreenState extends State<ImageCaptureScreen> {
           // Log success for debugging
           debugPrint('Web image analysis complete: ${classification.itemName}');
         } else if (widget.webImage != null) {
+          // Check if cancelled before starting analysis
+          if (_isCancelled) {
+            debugPrint('Analysis cancelled before starting web bytes analysis');
+            return;
+          }
+
           // We were provided with the image bytes directly
           debugPrint(
               'Analyzing web image from bytes, size: ${widget.webImage!.length} bytes');
@@ -164,6 +184,12 @@ class _ImageCaptureScreenState extends State<ImageCaptureScreen> {
       } else {
         // For mobile platforms
         if (widget.imageFile != null) {
+          // Check if cancelled before starting analysis
+          if (_isCancelled) {
+            debugPrint('Analysis cancelled before starting mobile analysis');
+            return;
+          }
+
           debugPrint('Analyzing mobile image file: ${widget.imageFile!.path}');
 
           // Check if file exists and is readable
@@ -187,7 +213,13 @@ class _ImageCaptureScreenState extends State<ImageCaptureScreen> {
         }
       }
 
-      if (mounted) {
+      // Check if cancelled after analysis completes but before navigation
+      if (_isCancelled) {
+        debugPrint('Analysis cancelled after completion, not navigating to results');
+        return;
+      }
+
+      if (mounted && !_isCancelled) {
         debugPrint('Navigation to results screen with classification');
         Navigator.pushReplacement(
           context,
@@ -201,7 +233,7 @@ class _ImageCaptureScreenState extends State<ImageCaptureScreen> {
       }
     } catch (e) {
       debugPrint('Analysis error: $e');
-      if (mounted) {
+      if (mounted && !_isCancelled) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Analysis failed: ${e.toString()}'),
@@ -229,8 +261,20 @@ class _ImageCaptureScreenState extends State<ImageCaptureScreen> {
                          'captured_image.jpg',
               onCancel: () {
                 setState(() {
+                  _isCancelled = true;
                   _isAnalyzing = false;
                 });
+                debugPrint('Analysis cancelled by user');
+                
+                // Show cancellation feedback
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Analysis cancelled'),
+                      duration: Duration(seconds: 2),
+                    ),
+                  );
+                }
               },
               estimatedDuration: const Duration(seconds: 17), // 14-20s average
               showEducationalTips: true,
