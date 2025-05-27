@@ -7,7 +7,7 @@ class NavigationSettingsService extends ChangeNotifier {
   static const String _navigationStyleKey = 'navigation_style';
   
   bool _bottomNavEnabled = true;
-  bool _fabEnabled = true;
+  bool _fabEnabled = false;
   String _navigationStyle = 'glassmorphism'; // glassmorphism, material3, floating
   
   bool get bottomNavEnabled => _bottomNavEnabled;
@@ -22,7 +22,7 @@ class NavigationSettingsService extends ChangeNotifier {
     try {
       final prefs = await SharedPreferences.getInstance();
       _bottomNavEnabled = prefs.getBool(_bottomNavEnabledKey) ?? true;
-      _fabEnabled = prefs.getBool(_fabEnabledKey) ?? true;
+      _fabEnabled = prefs.getBool(_fabEnabledKey) ?? false;
       _navigationStyle = prefs.getString(_navigationStyleKey) ?? 'glassmorphism';
       notifyListeners();
     } catch (e) {
@@ -71,7 +71,7 @@ class NavigationSettingsService extends ChangeNotifier {
       await prefs.remove(_navigationStyleKey);
       
       _bottomNavEnabled = true;
-      _fabEnabled = true;
+      _fabEnabled = false;
       _navigationStyle = 'glassmorphism';
       notifyListeners();
     } catch (e) {

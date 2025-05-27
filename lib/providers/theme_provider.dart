@@ -4,7 +4,7 @@ import '../utils/constants.dart';
 
 class ThemeProvider extends ChangeNotifier {
   SharedPreferences? _prefs;
-  ThemeMode _themeMode = ThemeMode.system;
+  ThemeMode _themeMode = ThemeMode.light;
 
   ThemeProvider() {
     _loadThemeMode();
@@ -14,7 +14,7 @@ class ThemeProvider extends ChangeNotifier {
 
   Future<void> _loadThemeMode() async {
     _prefs = await SharedPreferences.getInstance();
-    final themeModeIndex = _prefs?.getInt(StorageKeys.themeModeKey) ?? 0;
+    final themeModeIndex = _prefs?.getInt(StorageKeys.themeModeKey) ?? 1;
     _themeMode = ThemeMode.values[themeModeIndex];
     notifyListeners();
   }

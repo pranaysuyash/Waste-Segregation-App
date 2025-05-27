@@ -889,23 +889,31 @@ class _SettingsScreenState extends State<SettingsScreen> {
               foregroundColor: Colors.white,
             ),
             onPressed: () async {
-              Navigator.pop(context);
-              
+              final BuildContext currentCapturedContext = context; // Capture context before async gap
+
+              Navigator.pop(currentCapturedContext); // Close confirmation dialog
+
               // Show loading dialog
               showDialog(
-                context: context,
+                context: currentCapturedContext, // Use captured context
                 barrierDismissible: false,
-                builder: (context) => const AlertDialog(
-                  content: Row(
-                    children: [
-                      CircularProgressIndicator(),
-                      SizedBox(width: 16),
-                      Text('Resetting app to factory settings...'),
-                    ],
-                  ),
-                ),
+                builder: (BuildContext dialogContext) { // It's good practice to name this context differently
+                  return const AlertDialog(
+                    content: Row(
+                      children: [
+                        CircularProgressIndicator(),
+                        SizedBox(width: 16),
+                        Text('Resetting app to factory settings...'),
+                      ],
+                    ),
+                  );
+                },
               );
-              
+
+              String? snackBarMessage;
+              Color? snackBarBackgroundColor;
+              bool success = false;
+
               try {
                 // Clear all analytics data
                 analyticsService.clearAnalyticsData();
@@ -921,26 +929,55 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   (storageService as EnhancedStorageService).clearCache();
                 }
                 
-                if (context.mounted) {
-                  Navigator.pop(context); // Close loading dialog
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('App has been reset to factory settings'),
-                      backgroundColor: Colors.green,
-                      duration: Duration(seconds: 3),
-                    ),
-                  );
-                }
+                success = true;
+                snackBarMessage = 'App has been reset to factory settings';
+                snackBarBackgroundColor = Colors.green;
+
               } catch (e) {
-                if (context.mounted) {
-                  Navigator.pop(context); // Close loading dialog
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text('Error during factory reset: ${e.toString()}'),
-                      backgroundColor: Colors.red,
-                      duration: const Duration(seconds: 5),
-                    ),
+                success = false;
+                snackBarMessage = 'Error during factory reset: ${e.toString()}';
+                snackBarBackgroundColor = Colors.red;
+                debugPrint('Factory Reset Error: $e');
+              } finally {
+                // Pop the loading dialog. Uses currentCapturedContext's navigator.
+                // This should happen regardless of success or failure of the try block.
+                if (currentCapturedContext.mounted) {
+                  Navigator.pop(currentCapturedContext); 
+                } else {
+                  // If the original context is unmounted, a root navigator pop might be needed
+                  // For now, we assume the auth state change might have already rebuilt the tree.
+                  // If the dialog is still stuck, a GlobalKey for the Navigator would be the next step.
+                  debugPrint("SettingsScreen context was unmounted before trying to pop loading dialog.");
+                }
+
+                if (snackBarMessage != null) {
+                  // Check mounted status again before showing SnackBar, as state might have changed
+                  if (currentCapturedContext.mounted) {
+                     ScaffoldMessenger.of(currentCapturedContext).showSnackBar(
+                      SnackBar(
+                        content: Text(snackBarMessage),
+                        backgroundColor: snackBarBackgroundColor,
+                        duration: const Duration(seconds: 3),
+                      ),
+                    );
+                  } else {
+                     debugPrint("SettingsScreen context unmounted, cannot show SnackBar: $snackBarMessage");
+                  }
+                }
+                
+                // After everything, if successful, navigate to AuthScreen
+                // Check mounted status before navigation as well
+                if (success && currentCapturedContext.mounted) {
+                  Navigator.of(currentCapturedContext).pushAndRemoveUntil(
+                    MaterialPageRoute(builder: (_) => const AuthScreen()),
+                    (Route<dynamic> route) => false,
                   );
+                } else if (!success && currentCapturedContext.mounted) {
+                  // Stay on settings or current screen if reset failed and screen is still mounted
+                  debugPrint("Factory reset failed, staying on current screen.");
+                } else if (!currentCapturedContext.mounted) {
+                  // If not mounted, assume an auth state listener has already handled navigation
+                  debugPrint("SettingsScreen context unmounted, assuming navigation handled by auth listener.");
                 }
               }
             },
