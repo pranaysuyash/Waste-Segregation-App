@@ -19,6 +19,9 @@ This index provides a comprehensive guide to all documentation in the Waste Segr
 - **[current_issues.md](current_issues.md)** - Known issues and their status
 - **[MASTER_TODO_COMPREHENSIVE.md](MASTER_TODO_COMPREHENSIVE.md)** - 🚀 **MASTER TODO** - Consolidated comprehensive development roadmap
 - **[UI_ROADMAP_COMPREHENSIVE.md](UI_ROADMAP_COMPREHENSIVE.md)** - 🎨 **UI ROADMAP** - Complete user interface development plan
+- **[STRATEGIC_ROADMAP_COMPREHENSIVE.md](STRATEGIC_ROADMAP_COMPREHENSIVE.md)** - 🚀 **STRATEGIC ROADMAP** - Innovation strategy with IoT, blockchain, and moonshot features
+- **[ROADMAP_INTEGRATION_SUMMARY.md](ROADMAP_INTEGRATION_SUMMARY.md)** - 🗺️ **INTEGRATION GUIDE** - Connecting immediate tasks to strategic vision
+- **[PROJECT_STATUS_COMPREHENSIVE.md](PROJECT_STATUS_COMPREHENSIVE.md)** - 📊 **PROJECT STATUS** - Complete current state assessment (business & product focus)
 - **[QA_CHECKLIST.md](QA_CHECKLIST.md)** - Quality assurance checklist
 
 ---

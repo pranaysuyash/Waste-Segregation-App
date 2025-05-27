@@ -633,4 +633,18 @@ final basePreparation = [
 
 **Key Insight**: We have ~15% backend-only implementation that provides no user value until integrated into UI.
 
+## 🔗 **RELATED STRATEGIC DOCUMENTATION**
+
+This Master TODO focuses on **immediate implementation tasks** and **current codebase issues**. For strategic vision and advanced features, see:
+
+- **[STRATEGIC_ROADMAP_COMPREHENSIVE.md](STRATEGIC_ROADMAP_COMPREHENSIVE.md)** - 🚀 Innovation strategy with IoT, blockchain, and moonshot features
+- **[UI_ROADMAP_COMPREHENSIVE.md](UI_ROADMAP_COMPREHENSIVE.md)** - 🎨 Complete UI development plan with design system
+- **[DISPOSAL_INSTRUCTIONS_ROADMAP.md](project/DISPOSAL_INSTRUCTIONS_ROADMAP.md)** - Advanced disposal features roadmap
+
+### **Documentation Hierarchy**:
+1. **Master TODO** (this document) - Immediate fixes and current implementation
+2. **Strategic Roadmap** - Long-term vision and market differentiation features  
+3. **UI Roadmap** - User interface and design system development
+4. **Feature Roadmaps** - Specific feature deep-dives and implementation choices
+
 This master TODO consolidates all previous TODO files and provides a single source of truth for development planning and progress tracking. 

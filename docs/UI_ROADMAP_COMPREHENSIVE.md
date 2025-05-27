@@ -262,9 +262,9 @@
 
 ## 🔮 **FUTURE UI VISION** (Next-Generation Interface)
 
-### 🎨 **Modern Design System Overhaul** (6-8 weeks)
+### 🎨 **Design System & Visual Language Overhaul** (6-8 weeks)
 
-#### **Visual Design Revolution**
+#### **Unified Color Palette & Typography**
 **Status**: ❌ **PLANNED** - Transform from functional to stunning
 **Priority**: HIGH - User retention and app store appeal
 
@@ -274,13 +274,60 @@
 - ❌ No dark mode support
 - ❌ Static, non-interactive elements
 
-**Future Vision**:
-- [ ] 🔮 **Modern Color Palette** - "Living Earth" theme with vibrant environmental colors
-- [ ] 🔮 **Glassmorphism Effects** - Semi-transparent overlays with blur effects
-- [ ] 🔮 **Micro-Interactions** - Hover effects, button animations, gesture feedback
-- [ ] 🔮 **Dynamic Theming** - Adaptive color schemes based on time/usage
-- [ ] 🔮 **Smooth Transitions** - Fluid animations between screens
-- [ ] 🔮 **Modern Loading States** - Skeleton screens and engaging loaders
+**Strategic Vision**:
+- [ ] 🔮 **Brand Color System**
+  - **Primary Colors**: "Recycling Green" (#4CAF50), "Action Blue" (#2196F3), "Alert Orange" (#FF9800)
+  - **Supporting Neutrals**: Warm grays and earth tones for environmental feel
+  - **Semantic Colors**: Success, warning, error, info with environmental context
+- [ ] 🔮 **Typography Scale**
+  - **Headers**: Friendly sans-serif (e.g., Inter, Poppins) for approachable feel
+  - **Body Text**: Highly legible font (e.g., Source Sans Pro) for accessibility
+  - **Scale**: H1–H6, body, captions with consistent line heights
+  - **Spacing Tokens**: 4/8/16/24/32px system in theme.dart
+- [ ] 🔮 **Component Library Audit**
+  - Inventory all custom widgets (ModernButton, ViewAllButton, ResponsiveText, StatsCard)
+  - Ensure consistent style props (size, color, icon, state)
+  - Map to theme tokens with automatic dark/light handling
+  - Build live "storybook" or Flutter Gallery page showing every component
+
+#### **Layout & Responsiveness Revolution**
+**Status**: ❌ **BASIC RESPONSIVE** → **FLUID ADAPTIVE DESIGN**
+**Priority**: HIGH - Multi-device support and modern feel
+
+**Features**:
+- [ ] 🔮 **Fluid Grids & Breakpoints**
+  - 12-column grid for wider screens (tablet/web)
+  - Single-column stack on phones with smart spacing
+  - Key breakpoints: ≤360dp (small), 360–600dp (typical), 600–1024dp (tablet), >1024dp (web)
+- [ ] 🔮 **Adaptive List Cards**
+  - Horizontal carousels on mobile → multi-column grids on tablet
+  - LayoutBuilder for dynamic padding and card aspect ratios
+  - Smart content reflow based on screen real estate
+- [ ] 🔮 **Consistent Navigation Architecture**
+  - Standardized app bar: title + optional back + overflow menu
+  - Persistent bottom nav with 3–5 main routes (Home, Scan, Stats, Community, Profile)
+  - Deep linking support for all screens
+
+#### **Motion & Micro-Interactions**
+**Status**: ❌ **STATIC UI** → **DELIGHTFUL ANIMATIONS**
+**Priority**: MEDIUM - User delight and engagement
+
+**State-Driven Animations**:
+- [ ] 🔮 **Button Interactions**: Subtle scale (0.95x) + ripple + haptic feedback
+- [ ] 🔮 **List Transitions**: Fade + slide for insert/remove operations
+- [ ] 🔮 **Theme Switching**: Smooth color-tween across entire app
+- [ ] 🔮 **Loading States**: Skeleton screens with shimmer effects
+
+**Progressive Feedback**:
+- [ ] 🔮 **Classification Flow**: Skeleton image + morphing progress bar → result card slide-in
+- [ ] 🔮 **ViewAll Overflow**: Icon-only → tooltip fade on hover/long-press
+- [ ] 🔮 **Data Updates**: Morphing charts and animated counters
+
+**Delightful Surprises**:
+- [ ] 🔮 **Achievement Celebrations**: Confetti explosion for streak milestones
+- [ ] 🔮 **Mission Completion**: Quick "thumbs-up" micro-animation
+- [ ] 🔮 **Successful Scan**: Checkmark animation with green pulse
+- [ ] 🔮 **Points Earned**: Counter increments with bounce effect
 
 ### 📱 **Platform-Specific UI** (6-8 weeks)
 
