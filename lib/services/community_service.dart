@@ -27,7 +27,10 @@ class CommunityService {
         totalUsers: 1, // Start with current user
         totalClassifications: 0,
         totalAchievements: 0,
+        totalPoints: 0,
         activeToday: 1,
+        activeUsers: 1,
+        weeklyClassifications: 0,
         categoryBreakdown: {},
         lastUpdated: DateTime.now(),
       );
@@ -92,7 +95,10 @@ class CommunityService {
           totalUsers: 1,
           totalClassifications: 0,
           totalAchievements: 0,
+          totalPoints: 0,
           activeToday: 1,
+          activeUsers: 1,
+          weeklyClassifications: 0,
           categoryBreakdown: {},
           lastUpdated: DateTime.now(),
         );
@@ -105,105 +111,80 @@ class CommunityService {
         totalUsers: 1,
         totalClassifications: 0,
         totalAchievements: 0,
+        totalPoints: 0,
         activeToday: 1,
+        activeUsers: 1,
+        weeklyClassifications: 0,
         categoryBreakdown: {},
         lastUpdated: DateTime.now(),
       );
     }
   }
   
-  /// Record user classification activity
-  Future<void> recordClassification(WasteClassification classification, String userName) async {
+  /// Get community statistics (alias for getCommunityStats)
+  Future<CommunityStats> getStats() async {
+    return await getCommunityStats();
+  }
+  
+  /// Record classification activity (simplified version)
+  Future<void> recordClassification(String category, String subcategory, int points) async {
     final feedItem = CommunityFeedItem(
       id: 'class_${DateTime.now().millisecondsSinceEpoch}',
-      userId: classification.userId ?? 'unknown',
-      userName: _sanitizeUserName(userName),
+      userId: 'current_user',
+      userName: 'You',
       activityType: CommunityActivityType.classification,
-      title: 'Classified ${classification.category}',
-      description: 'Identified ${classification.itemName} as ${classification.category}',
-      timestamp: classification.timestamp,
+      title: 'Classified $category',
+      description: 'Identified item as $category${subcategory.isNotEmpty ? ' ($subcategory)' : ''}',
+      timestamp: DateTime.now(),
+      points: points,
       metadata: {
-        'category': classification.category,
-        'subcategory': classification.subcategory,
-        'confidence': classification.confidence,
-        'itemName': classification.itemName,
+        'category': category,
+        'subcategory': subcategory,
+        'points': points,
       },
-      isAnonymous: _shouldBeAnonymous(classification.userId),
+      isAnonymous: false,
     );
     
     await addFeedItem(feedItem);
   }
   
-  /// Record achievement earned
-  Future<void> recordAchievement(Achievement achievement, String userName, String userId) async {
-    final feedItem = CommunityFeedItem(
-      id: 'achieve_${DateTime.now().millisecondsSinceEpoch}',
-      userId: userId,
-      userName: _sanitizeUserName(userName),
-      activityType: CommunityActivityType.achievement,
-      title: 'Earned ${achievement.title}',
-      description: achievement.description,
-      timestamp: achievement.earnedOn ?? DateTime.now(),
-      metadata: {
-        'achievementId': achievement.id,
-        'tier': achievement.tier.name,
-        'pointsReward': achievement.pointsReward,
-      },
-      isAnonymous: _shouldBeAnonymous(userId),
-    );
-    
-    await addFeedItem(feedItem);
-  }
-  
-  /// Record streak milestone
-  Future<void> recordStreakMilestone(int streakDays, String userName, String userId) async {
-    if (streakDays < 3) return; // Only record significant streaks
-    
-    String title;
-    if (streakDays == 3) {
-      title = 'Started a 3-day streak! 🔥';
-    } else if (streakDays == 7) {
-      title = 'Achieved a week-long streak! 🔥🔥';
-    } else if (streakDays == 30) {
-      title = 'Incredible 30-day streak! 🔥🔥🔥';
-    } else if (streakDays % 10 == 0) {
-      title = 'Amazing ${streakDays}-day streak! 🔥';
-    } else {
-      return; // Don't record every single day
-    }
-    
+  /// Record streak activity
+  Future<void> recordStreak(int streakDays, int points) async {
     final feedItem = CommunityFeedItem(
       id: 'streak_${DateTime.now().millisecondsSinceEpoch}',
-      userId: userId,
-      userName: _sanitizeUserName(userName),
+      userId: 'current_user',
+      userName: 'You',
       activityType: CommunityActivityType.streak,
-      title: title,
+      title: 'Daily Streak: $streakDays days',
       description: 'Maintained daily app usage for $streakDays consecutive days',
       timestamp: DateTime.now(),
+      points: points,
       metadata: {
         'streakDays': streakDays,
+        'points': points,
       },
-      isAnonymous: _shouldBeAnonymous(userId),
+      isAnonymous: false,
     );
     
     await addFeedItem(feedItem);
   }
   
-  /// Record challenge completion
-  Future<void> recordChallengeCompletion(Challenge challenge, String userName, String userId) async {
+  /// Record achievement activity (simplified version)
+  Future<void> recordAchievement(String title, int points) async {
     final feedItem = CommunityFeedItem(
-      id: 'challenge_${DateTime.now().millisecondsSinceEpoch}',
-      userId: userId,
-      userName: _sanitizeUserName(userName),
-      activityType: CommunityActivityType.challenge,
-      title: 'Completed "${challenge.title}"',
-      description: challenge.description,
+      id: 'achieve_${DateTime.now().millisecondsSinceEpoch}',
+      userId: 'current_user',
+      userName: 'You',
+      activityType: CommunityActivityType.achievement,
+      title: 'Earned $title',
+      description: 'Unlocked achievement: $title',
       timestamp: DateTime.now(),
+      points: points,
       metadata: {
-        'challengeId': challenge.id,
-        'pointsReward': challenge.pointsReward,
+        'achievementTitle': title,
+        'points': points,
       },
-      isAnonymous: _shouldBeAnonymous(userId),
+      isAnonymous: false,
     );
     
     await addFeedItem(feedItem);
@@ -319,7 +300,10 @@ class CommunityService {
         totalAchievements: item.activityType == CommunityActivityType.achievement
             ? currentStats.totalAchievements + 1
             : currentStats.totalAchievements,
+        totalPoints: currentStats.totalPoints + item.points,
         activeToday: isToday ? currentStats.activeToday + 1 : currentStats.activeToday,
+        activeUsers: currentStats.activeUsers,
+        weeklyClassifications: currentStats.weeklyClassifications,
         categoryBreakdown: newCategoryBreakdown,
         lastUpdated: DateTime.now(),
       );

@@ -146,6 +146,16 @@ class GamificationService {
     if (newCurrent > profile.streak.current) {
       await addPoints('daily_streak');
       debugPrint('  - Awarded daily streak points');
+      
+      // Record streak activity in community feed
+      try {
+        final communityService = CommunityService();
+        await communityService.initCommunity();
+        await communityService.recordStreak(newCurrent, 5); // 5 points for daily streak
+        debugPrint('🌍 COMMUNITY: Recorded streak activity');
+      } catch (e) {
+        debugPrint('🌍 COMMUNITY ERROR: Failed to record streak: $e');
+      }
     }
     
     // Check for streak achievements
@@ -240,6 +250,20 @@ class GamificationService {
     // Update active challenges
     final completedChallenges = await updateChallengeProgress(classification);
     
+    // Record classification activity in community feed
+    try {
+      final communityService = CommunityService();
+      await communityService.initCommunity();
+      await communityService.recordClassification(
+        classification.category,
+        classification.subcategory ?? '',
+        10, // Points earned for classification
+      );
+      debugPrint('🌍 COMMUNITY: Recorded classification activity');
+    } catch (e) {
+      debugPrint('🌍 COMMUNITY ERROR: Failed to record classification: $e');
+    }
+    
     return completedChallenges;
   }
   
@@ -327,6 +351,19 @@ class GamificationService {
           
           // Add to newly earned list
           newlyEarned.add(achievements[i]);
+          
+          // Record achievement activity in community feed
+          try {
+            final communityService = CommunityService();
+            await communityService.initCommunity();
+            await communityService.recordAchievement(
+              achievement.title,
+              achievement.pointsReward,
+            );
+            debugPrint('🌍 COMMUNITY: Recorded achievement activity');
+          } catch (e) {
+            debugPrint('🌍 COMMUNITY ERROR: Failed to record achievement: $e');
+          }
           
           // For auto-claimed achievements, points are already added above
           if (claimStatus == ClaimStatus.claimed) {

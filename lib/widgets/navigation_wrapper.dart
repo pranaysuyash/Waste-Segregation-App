@@ -9,6 +9,7 @@ import '../services/navigation_settings_service.dart';
 import '../screens/modern_home_screen.dart';
 import '../screens/history_screen.dart';
 import '../screens/educational_content_screen.dart';
+import '../screens/community_screen.dart';
 import '../screens/achievements_screen.dart';
 import '../screens/settings_screen.dart';
 import '../screens/image_capture_screen.dart';
@@ -78,6 +79,7 @@ class _MainNavigationWrapperState extends State<MainNavigationWrapper> {
       ModernHomeScreen(isGuestMode: widget.isGuestMode),
       const HistoryScreen(),
       const EducationalContentScreen(),
+      const CommunityScreen(),
       const AchievementsScreen(),
     ];
   }
@@ -99,6 +101,11 @@ class _MainNavigationWrapperState extends State<MainNavigationWrapper> {
         icon: Icons.school_outlined,
         selectedIcon: Icons.school,
         label: 'Learn',
+      ),
+      const BottomNavItem(
+        icon: Icons.people_outlined,
+        selectedIcon: Icons.people,
+        label: 'Community',
       ),
       const BottomNavItem(
         icon: Icons.emoji_events_outlined,
@@ -443,6 +450,7 @@ class _AlternativeNavigationWrapperState extends State<AlternativeNavigationWrap
       ModernHomeScreen(isGuestMode: widget.isGuestMode),
       const HistoryScreen(),
       const EducationalContentScreen(),
+      const CommunityScreen(),
       const AchievementsScreen(),
       const SettingsScreen(),
     ];
@@ -464,6 +472,11 @@ class _AlternativeNavigationWrapperState extends State<AlternativeNavigationWrap
         icon: Icons.school_outlined,
         selectedIcon: Icons.school,
         label: 'Learn',
+      ),
+      const BottomNavItem(
+        icon: Icons.people_outlined,
+        selectedIcon: Icons.people,
+        label: 'Community',
       ),
       const BottomNavItem(
         icon: Icons.emoji_events_outlined,

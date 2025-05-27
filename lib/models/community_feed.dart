@@ -14,6 +14,7 @@ class CommunityFeedItem {
   final int likes;
   final List<String> likedBy;
   final bool isAnonymous;
+  final int points;
 
   const CommunityFeedItem({
     required this.id,
@@ -28,6 +29,7 @@ class CommunityFeedItem {
     this.likes = 0,
     this.likedBy = const [],
     this.isAnonymous = false,
+    this.points = 0,
   });
 
   factory CommunityFeedItem.fromJson(Map<String, dynamic> json) {
@@ -47,6 +49,7 @@ class CommunityFeedItem {
       likes: json['likes'] ?? 0,
       likedBy: List<String>.from(json['likedBy'] ?? []),
       isAnonymous: json['isAnonymous'] ?? false,
+      points: json['points'] ?? 0,
     );
   }
 
@@ -64,6 +67,7 @@ class CommunityFeedItem {
       'likes': likes,
       'likedBy': likedBy,
       'isAnonymous': isAnonymous,
+      'points': points,
     };
   }
 
@@ -80,6 +84,7 @@ class CommunityFeedItem {
     int? likes,
     List<String>? likedBy,
     bool? isAnonymous,
+    int? points,
   }) {
     return CommunityFeedItem(
       id: id ?? this.id,
@@ -94,6 +99,7 @@ class CommunityFeedItem {
       likes: likes ?? this.likes,
       likedBy: likedBy ?? this.likedBy,
       isAnonymous: isAnonymous ?? this.isAnonymous,
+      points: points ?? this.points,
     );
   }
 
@@ -175,7 +181,10 @@ class CommunityStats {
   final int totalUsers;
   final int totalClassifications;
   final int totalAchievements;
+  final int totalPoints;
   final int activeToday;
+  final int activeUsers;
+  final int weeklyClassifications;
   final Map<String, int> categoryBreakdown;
   final DateTime lastUpdated;
 
@@ -183,7 +192,10 @@ class CommunityStats {
     required this.totalUsers,
     required this.totalClassifications,
     required this.totalAchievements,
+    this.totalPoints = 0,
     required this.activeToday,
+    this.activeUsers = 0,
+    this.weeklyClassifications = 0,
     required this.categoryBreakdown,
     required this.lastUpdated,
   });
@@ -193,7 +205,10 @@ class CommunityStats {
       totalUsers: json['totalUsers'] ?? 0,
       totalClassifications: json['totalClassifications'] ?? 0,
       totalAchievements: json['totalAchievements'] ?? 0,
+      totalPoints: json['totalPoints'] ?? 0,
       activeToday: json['activeToday'] ?? 0,
+      activeUsers: json['activeUsers'] ?? 0,
+      weeklyClassifications: json['weeklyClassifications'] ?? 0,
       categoryBreakdown: Map<String, int>.from(json['categoryBreakdown'] ?? {}),
       lastUpdated: DateTime.tryParse(json['lastUpdated'] ?? '') ?? DateTime.now(),
     );
@@ -204,9 +219,19 @@ class CommunityStats {
       'totalUsers': totalUsers,
       'totalClassifications': totalClassifications,
       'totalAchievements': totalAchievements,
+      'totalPoints': totalPoints,
       'activeToday': activeToday,
+      'activeUsers': activeUsers,
+      'weeklyClassifications': weeklyClassifications,
       'categoryBreakdown': categoryBreakdown,
       'lastUpdated': lastUpdated.toIso8601String(),
     };
+  }
+
+  /// Get top categories as a map for display
+  Map<String, int> get topCategories {
+    final sorted = categoryBreakdown.entries.toList()
+      ..sort((a, b) => b.value.compareTo(a.value));
+    return Map.fromEntries(sorted.take(5));
   }
 } 
