@@ -5,6 +5,7 @@ import '../models/gamification.dart';
 import '../models/waste_classification.dart';
 import '../models/educational_content.dart';
 import '../utils/constants.dart';
+import 'community_service.dart';
 
 /// Service for managing gamification features
 class GamificationService {
@@ -97,19 +98,32 @@ class GamificationService {
     debugPrint('  - Current streak: ${profile.streak.current}');
     
     int newCurrent = profile.streak.current;
+    bool shouldSave = false;
     
     if (lastUsageDay.isAtSameMomentAs(today)) {
       // Already used today, keep current streak (but ensure it's at least 1)
-      newCurrent = profile.streak.current == 0 ? 1 : profile.streak.current;
-      debugPrint('  - Already used today, keeping streak: $newCurrent');
+      if (profile.streak.current == 0) {
+        newCurrent = 1;
+        shouldSave = true;
+        debugPrint('  - First use today, setting streak to 1');
+      } else {
+        debugPrint('  - Already used today, keeping streak: ${profile.streak.current}');
+        return profile.streak; // No need to save or award points again
+      }
     } else if (lastUsageDay.isAtSameMomentAs(yesterday)) {
       // Last used yesterday, increment streak
       newCurrent = profile.streak.current + 1;
+      shouldSave = true;
       debugPrint('  - Used yesterday, incrementing streak to: $newCurrent');
     } else {
       // Last used before yesterday or never, start new streak
       newCurrent = 1;
+      shouldSave = true;
       debugPrint('  - Starting new streak: $newCurrent');
+    }
+    
+    if (!shouldSave) {
+      return profile.streak;
     }
     
     // Update longest streak if needed
