@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+// import 'package:provider/provider.dart'; // Removed if only for AnalyticsService
 import '../models/waste_classification.dart';
+// import '../services/analytics_service.dart'; // Removed
 import '../utils/constants.dart';
 
 /// Widget for collecting user feedback on classification accuracy
@@ -55,9 +57,12 @@ class _ClassificationFeedbackWidgetState extends State<ClassificationFeedbackWid
   }
 
   void _submitFeedback() {
-    // Get the corrected category if user provided one
+    // REMOVED: Feedback submission analytics
+    // final analyticsService = Provider.of<AnalyticsService>(context, listen: false);
+    // analyticsService.trackUserAction('classification_feedback_submitted', ...);
+    
     String? correctedCategory;
-    String? correctedSubcategory;
+    // String? correctedSubcategory; // This was declared but never used, can be kept or removed
     
     if (_userConfirmed == false && _selectedCorrection != null) {
       if (_selectedCorrection == 'Custom correction...') {
@@ -67,20 +72,21 @@ class _ClassificationFeedbackWidgetState extends State<ClassificationFeedbackWid
       } else {
         correctedCategory = _selectedCorrection;
       }
+      
+      // REMOVED: Correction analytics
+      // if (correctedCategory != null) {
+      //   analyticsService.trackUserAction('classification_corrected', ...);
+      // }
     }
     
-    // Generate updated disposal instructions if category was corrected
     DisposalInstructions? updatedDisposalInstructions;
     if (correctedCategory != null) {
       updatedDisposalInstructions = _generateDisposalInstructionsForCategory(correctedCategory);
     }
     
     final updatedClassification = widget.classification.copyWith(
-      // Update category if corrected
       category: correctedCategory ?? widget.classification.category,
-      // Update disposal instructions to match corrected category
       disposalInstructions: updatedDisposalInstructions ?? widget.classification.disposalInstructions,
-      // Updated user feedback data
       userConfirmed: _userConfirmed,
       userCorrection: _selectedCorrection == 'Custom correction...' 
           ? _customCorrectionController.text.trim().isNotEmpty 
@@ -90,7 +96,7 @@ class _ClassificationFeedbackWidgetState extends State<ClassificationFeedbackWid
       userNotes: _notesController.text.trim().isNotEmpty 
           ? _notesController.text.trim() 
           : null,
-      viewCount: (widget.classification.viewCount ?? 0) + 1,
+      viewCount: (widget.classification.viewCount ?? 0) + 1, // This seems like existing logic
     );
 
     widget.onFeedbackSubmitted(updatedClassification);

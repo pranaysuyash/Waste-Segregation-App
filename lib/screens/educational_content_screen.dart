@@ -36,26 +36,19 @@ class _EducationalContentScreenState extends State<EducationalContentScreen>
     _tabController = TabController(length: 6, vsync: this);
     _selectedCategory = widget.initialCategory;
 
-    // Initialize all categories
     final educationalService =
         Provider.of<EducationalContentService>(context, listen: false);
     final allContent = educationalService.getAllContent();
-
-    // Extract all unique categories
     final Set<String> categorySet = {};
     for (final content in allContent) {
       categorySet.addAll(content.categories);
     }
-
     _allCategories = ['All', ...categorySet.toList()..sort()];
 
-    // Set initial tab based on initialCategory if provided
     if (widget.initialCategory != null) {
-      // Find content type corresponding to category
       final categoryContent =
           educationalService.getContentByCategory(widget.initialCategory!);
       if (categoryContent.isNotEmpty) {
-        // Get most common content type for this category
         Map<ContentType, int> typeCount = {};
         for (final content in categoryContent) {
           typeCount[content.type] = (typeCount[content.type] ?? 0) + 1;
@@ -68,8 +61,6 @@ class _EducationalContentScreenState extends State<EducationalContentScreen>
             mostCommonType = type;
           }
         });
-
-        // Use null-aware operator to safely access the index
         final typeIndex = mostCommonType?.index;
         if (typeIndex != null &&
             _tabController.index >= 0 &&
@@ -90,19 +81,13 @@ class _EducationalContentScreenState extends State<EducationalContentScreen>
   List<EducationalContent> _getFilteredContent(BuildContext context) {
     final educationalService = Provider.of<EducationalContentService>(context);
     List<EducationalContent> filteredContent = [];
-
-    // First filter by tab (content type)
     final contentType = ContentType.values[_tabController.index];
     filteredContent = educationalService.getContentByType(contentType);
-
-    // Then filter by category if selected
     if (_selectedCategory != null && _selectedCategory != 'All') {
       filteredContent = filteredContent
           .where((content) => content.categories.contains(_selectedCategory))
           .toList();
     }
-
-    // Then filter by search query if provided
     if (_searchQuery.isNotEmpty) {
       final query = _searchQuery.toLowerCase();
       filteredContent = filteredContent
@@ -114,13 +99,11 @@ class _EducationalContentScreenState extends State<EducationalContentScreen>
                   .any((category) => category.toLowerCase().contains(query)))
           .toList();
     }
-
     return filteredContent;
   }
 
   @override
   Widget build(BuildContext context) {
-    // Set ad context
     final adService = Provider.of<AdService>(context, listen: false);
     adService.setInClassificationFlow(false);
     adService.setInEducationalContent(true);
@@ -148,91 +131,79 @@ class _EducationalContentScreenState extends State<EducationalContentScreen>
       body: Stack(
         children: [
           Column(
-        children: [
-          // Search and filter bar
-          Container(
-            padding: const EdgeInsets.all(AppTheme.paddingRegular),
-            child: Row(
-              children: [
-                // Search field
-                Expanded(
-                  child: TextField(
-                    controller: _searchController,
-                    decoration: InputDecoration(
-                      hintText: 'Search...',
-                      prefixIcon: const Icon(Icons.search),
-                      border: OutlineInputBorder(
-                        borderRadius:
-                            BorderRadius.circular(AppTheme.borderRadiusRegular),
+            children: [
+              Container(
+                padding: const EdgeInsets.all(AppTheme.paddingRegular),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: TextField(
+                        controller: _searchController,
+                        decoration: InputDecoration(
+                          hintText: 'Search...',
+                          prefixIcon: const Icon(Icons.search),
+                          border: OutlineInputBorder(
+                            borderRadius:
+                                BorderRadius.circular(AppTheme.borderRadiusRegular),
+                          ),
+                          contentPadding: const EdgeInsets.symmetric(vertical: 0),
+                        ),
+                        onChanged: (value) {
+                          setState(() {
+                            _searchQuery = value;
+                          });
+                        },
                       ),
-                      contentPadding: const EdgeInsets.symmetric(vertical: 0),
                     ),
-                    onChanged: (value) {
-                      setState(() {
-                        _searchQuery = value;
-                      });
-                    },
-                  ),
+                    const SizedBox(width: AppTheme.paddingRegular),
+                    DropdownButton<String>(
+                      value: _allCategories.contains(_selectedCategory)
+                          ? _selectedCategory
+                          : 'All',
+                      icon: const Icon(Icons.filter_list),
+                      underline: Container(
+                        height: 2,
+                        color: AppTheme.primaryColor,
+                      ),
+                      onChanged: (String? newValue) {
+                        setState(() {
+                          _selectedCategory = newValue == 'All' ? null : newValue;
+                        });
+                      },
+                      items: _allCategories
+                          .map<DropdownMenuItem<String>>((String value) {
+                        return DropdownMenuItem<String>(
+                          value: value,
+                          child: Text(value),
+                        );
+                      }).toList(),
+                    ),
+                  ],
                 ),
-
-                const SizedBox(width: AppTheme.paddingRegular),
-
-                // Category filter dropdown
-                DropdownButton<String>(
-                  // Make sure the value exists in the items list
-                  value: _allCategories.contains(_selectedCategory)
-                      ? _selectedCategory
-                      : 'All',
-                  icon: const Icon(Icons.filter_list),
-                  underline: Container(
-                    height: 2,
-                    color: AppTheme.primaryColor,
-                  ),
-                  onChanged: (String? newValue) {
-                    setState(() {
-                      _selectedCategory = newValue == 'All' ? null : newValue;
-                    });
-                  },
-                  items: _allCategories
-                      .map<DropdownMenuItem<String>>((String value) {
-                    return DropdownMenuItem<String>(
-                      value: value,
-                      child: Text(value),
+              ),
+              Expanded(
+                child: TabBarView(
+                  controller: _tabController,
+                  children: ContentType.values.map((contentType) {
+                    final filteredContent = _getFilteredContent(context);
+                    if (filteredContent.isEmpty) {
+                      return const Center(
+                        child: Text('No content found matching your criteria'),
+                      );
+                    }
+                    return ListView.builder(
+                      padding: const EdgeInsets.all(AppTheme.paddingRegular),
+                      itemCount: filteredContent.length,
+                      itemBuilder: (context, index) {
+                        final content = filteredContent[index];
+                        return _buildContentCard(content);
+                      },
                     );
                   }).toList(),
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
-
-          // Content list
-          Expanded(
-            child: TabBarView(
-              controller: _tabController,
-              children: ContentType.values.map((contentType) {
-                final filteredContent = _getFilteredContent(context);
-
-                if (filteredContent.isEmpty) {
-                  return const Center(
-                    child: Text('No content found matching your criteria'),
-                  );
-                }
-
-                return ListView.builder(
-                  padding: const EdgeInsets.all(AppTheme.paddingRegular),
-                  itemCount: filteredContent.length,
-                  itemBuilder: (context, index) {
-                    final content = filteredContent[index];
-                    return _buildContentCard(content);
-                  },
-                );
-              }).toList(),
-            ),
-          ),
-        ],
-      ),
-          
-          // Banner ad at the bottom
           const BannerAdWidget(showAtBottom: true),
         ],
       ),
@@ -258,10 +229,8 @@ class _EducationalContentScreenState extends State<EducationalContentScreen>
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Content type badge and thumbnail
             Stack(
               children: [
-                // Thumbnail (placeholder for now)
                 Container(
                   height: 150,
                   width: double.infinity,
@@ -272,8 +241,6 @@ class _EducationalContentScreenState extends State<EducationalContentScreen>
                     color: Colors.grey.shade500,
                   ),
                 ),
-
-                // Content type badge
                 Positioned(
                   top: AppTheme.paddingSmall,
                   left: AppTheme.paddingSmall,
@@ -308,8 +275,6 @@ class _EducationalContentScreenState extends State<EducationalContentScreen>
                     ),
                   ),
                 ),
-
-                // Premium badge if applicable
                 if (content.isPremium)
                   Positioned(
                     top: AppTheme.paddingSmall,
@@ -347,14 +312,11 @@ class _EducationalContentScreenState extends State<EducationalContentScreen>
                   ),
               ],
             ),
-
-            // Content details
             Padding(
               padding: const EdgeInsets.all(AppTheme.paddingRegular),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Title
                   Text(
                     content.title,
                     style: const TextStyle(
@@ -364,10 +326,7 @@ class _EducationalContentScreenState extends State<EducationalContentScreen>
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                   ),
-
                   const SizedBox(height: 4),
-
-                  // Description
                   Text(
                     content.description,
                     style: const TextStyle(
@@ -377,13 +336,9 @@ class _EducationalContentScreenState extends State<EducationalContentScreen>
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                   ),
-
                   const SizedBox(height: AppTheme.paddingSmall),
-
-                  // Metadata
                   Row(
                     children: [
-                      // Level indicator
                       Container(
                         padding: const EdgeInsets.symmetric(
                           horizontal: 6,
@@ -399,57 +354,32 @@ class _EducationalContentScreenState extends State<EducationalContentScreen>
                           style: TextStyle(
                             fontSize: 10,
                             color: Colors.grey.shade700,
+                            fontWeight: FontWeight.w500,
                           ),
                         ),
                       ),
-
-                      const SizedBox(width: 8),
-
-                      // Duration
-                      Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            Icons.access_time,
-                            size: 12,
-                            color: Colors.grey.shade700,
-                          ),
-                          const SizedBox(width: 4),
-                          Text(
-                            content.getFormattedDuration(),
-                            style: TextStyle(
-                              fontSize: 10,
-                              color: Colors.grey.shade700,
-                            ),
-                          ),
-                        ],
-                      ),
-
+                      const SizedBox(width: AppTheme.paddingSmall),
+                      // Icon(
+                      //   Icons.visibility,
+                      //   size: 12,
+                      //   color: Colors.grey.shade500,
+                      // ),
+                      // const SizedBox(width: 2),
+                      // Text(
+                      //   '${content.viewCount} views',
+                      //   style: TextStyle(
+                      //     fontSize: 10,
+                      //     color: Colors.grey.shade600,
+                      //   ),
+                      // ),
                       const Spacer(),
-
-                      // Category chip
-                      if (content.categories.isNotEmpty)
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 6,
-                            vertical: 2,
-                          ),
-                          decoration: BoxDecoration(
-                            color: _getCategoryColor(content.categories.first)
-                                .withOpacity(0.2),
-                            borderRadius: BorderRadius.circular(
-                                AppTheme.borderRadiusSmall),
-                          ),
-                          child: Text(
-                            content.categories.first,
-                            style: TextStyle(
-                              fontSize: 10,
-                              color:
-                                  _getCategoryColor(content.categories.first),
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
+                      Text(
+                        content.getFormattedDuration(),
+                        style: TextStyle(
+                          fontSize: 10,
+                          color: Colors.grey.shade600,
                         ),
+                      ),
                     ],
                   ),
                 ],

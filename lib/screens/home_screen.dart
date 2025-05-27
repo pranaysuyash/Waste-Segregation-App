@@ -35,6 +35,9 @@ import 'achievements_screen.dart';
 import 'waste_dashboard_screen.dart';
 // import '../services/premium_service.dart';
 import '../services/analytics_service.dart';
+import '../widgets/modern_ui/modern_cards.dart';
+import '../widgets/modern_ui/modern_badges.dart';
+import '../widgets/banner_ad_widget.dart';
 
 class HomeScreen extends StatefulWidget {
   final bool isGuestMode;
@@ -1016,17 +1019,11 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   // Build the gamification section of the home screen
   Widget _buildGamificationSection() {
     if (_isLoadingGamification) {
-      return const Center(
-        child: Padding(
-          padding: EdgeInsets.all(AppTheme.paddingRegular),
-          child: CircularProgressIndicator(),
-        ),
-      );
+      return const Center(child: CircularProgressIndicator());
     }
 
     if (_gamificationProfile == null) {
-      return const SizedBox
-          .shrink(); // Don't show anything if profile isn't loaded
+      return const SizedBox.shrink(); // Don't show anything if profile isn't loaded
     }
 
     return Column(
@@ -1164,7 +1161,9 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
           ),
         ],
       ),
-      body: SingleChildScrollView(
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : SingleChildScrollView(
         padding: const EdgeInsets.all(AppTheme.paddingRegular),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -1338,7 +1337,12 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                   ),
                   const SizedBox(height: AppTheme.paddingSmall),
                   _isLoading
-                      ? const Center(child: CircularProgressIndicator())
+                      ? const Center(
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            valueColor: AlwaysStoppedAnimation<Color>(Colors.grey),
+                          ),
+                        )
                       : ListView.builder(
                           shrinkWrap: true,
                           physics: const NeverScrollableScrollPhysics(),

@@ -63,7 +63,6 @@ class ContentDetailScreen extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Header image (placeholder)
           Container(
             height: 200,
             width: double.infinity,
@@ -77,10 +76,7 @@ class ContentDetailScreen extends StatelessWidget {
               color: Colors.grey.shade400,
             ),
           ),
-
           const SizedBox(height: AppTheme.paddingRegular),
-
-          // Title and metadata
           Text(
             content.title,
             style: TextStyle(
@@ -89,13 +85,9 @@ class ContentDetailScreen extends StatelessWidget {
               color: AppTheme.textPrimaryColor,
             ),
           ),
-
           const SizedBox(height: AppTheme.paddingSmall),
-
-          // Metadata row
           Row(
             children: [
-              // Reading time
               Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
@@ -110,10 +102,7 @@ class ContentDetailScreen extends StatelessWidget {
                   ),
                 ],
               ),
-
               const SizedBox(width: AppTheme.paddingRegular),
-
-              // Difficulty level
               Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
@@ -130,10 +119,7 @@ class ContentDetailScreen extends StatelessWidget {
               ),
             ],
           ),
-
           const SizedBox(height: AppTheme.paddingRegular),
-
-          // Content categories
           Wrap(
             spacing: 8,
             runSpacing: 8,
@@ -161,10 +147,7 @@ class ContentDetailScreen extends StatelessWidget {
               );
             }).toList(),
           ),
-
           const SizedBox(height: AppTheme.paddingLarge),
-
-          // Content text
           if (content.contentText != null)
             Text(
               content.contentText!,
@@ -173,10 +156,7 @@ class ContentDetailScreen extends StatelessWidget {
                 height: 1.5,
               ),
             ),
-
           const SizedBox(height: AppTheme.paddingLarge),
-
-          // Related tags
           if (content.tags.isNotEmpty) ...[
             const Text(
               'Related Topics',
@@ -222,7 +202,6 @@ class ContentDetailScreen extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Video player or placeholder
           if (content.videoUrl != null && content.videoUrl!.isNotEmpty)
             _VideoPlayerWidget(url: content.videoUrl!)
           else
@@ -241,10 +220,7 @@ class ContentDetailScreen extends StatelessWidget {
                 ),
               ),
             ),
-
           const SizedBox(height: AppTheme.paddingRegular),
-
-          // Title and metadata
           Text(
             content.title,
             style: TextStyle(
@@ -253,13 +229,9 @@ class ContentDetailScreen extends StatelessWidget {
               color: AppTheme.textPrimaryColor,
             ),
           ),
-
           const SizedBox(height: AppTheme.paddingSmall),
-
-          // Metadata row
           Row(
             children: [
-              // Video duration
               Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
@@ -274,10 +246,7 @@ class ContentDetailScreen extends StatelessWidget {
                   ),
                 ],
               ),
-
               const SizedBox(width: AppTheme.paddingRegular),
-
-              // Difficulty level
               Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
@@ -294,10 +263,7 @@ class ContentDetailScreen extends StatelessWidget {
               ),
             ],
           ),
-
           const SizedBox(height: AppTheme.paddingRegular),
-
-          // Content categories
           Wrap(
             spacing: 8,
             runSpacing: 8,
@@ -325,10 +291,7 @@ class ContentDetailScreen extends StatelessWidget {
               );
             }).toList(),
           ),
-
           const SizedBox(height: AppTheme.paddingLarge),
-
-          // Description
           const Text(
             'Description',
             style: TextStyle(
@@ -336,9 +299,7 @@ class ContentDetailScreen extends StatelessWidget {
               fontWeight: FontWeight.bold,
             ),
           ),
-
           const SizedBox(height: AppTheme.paddingSmall),
-
           Text(
             content.description,
             style: TextStyle(
@@ -346,10 +307,7 @@ class ContentDetailScreen extends StatelessWidget {
               color: AppTheme.textPrimaryColor,
             ),
           ),
-
           const SizedBox(height: AppTheme.paddingLarge),
-
-          // Video transcript placeholder
           const Text(
             'Transcript',
             style: TextStyle(
@@ -357,22 +315,13 @@ class ContentDetailScreen extends StatelessWidget {
               fontWeight: FontWeight.bold,
             ),
           ),
-
           const SizedBox(height: AppTheme.paddingSmall),
-
-          Container(
-            padding: const EdgeInsets.all(AppTheme.paddingRegular),
-            decoration: BoxDecoration(
-              color: Colors.grey.shade100,
-              borderRadius: BorderRadius.circular(AppTheme.borderRadiusRegular),
-            ),
-            child: const Text(
-              'Transcript not available for this video yet.',
-              style: TextStyle(
-                fontSize: AppTheme.fontSizeRegular,
-                color: AppTheme.textPrimaryColor,
-                fontStyle: FontStyle.italic,
-              ),
+          Text(
+            content.description,
+            style: TextStyle(
+              fontSize: AppTheme.fontSizeSmall,
+              color: AppTheme.textSecondaryColor,
+              fontStyle: content.description.isEmpty ? FontStyle.italic : FontStyle.normal,
             ),
           ),
         ],
@@ -380,36 +329,91 @@ class ContentDetailScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildInfographicView(
-      BuildContext context, EducationalContent content) {
+  Widget _buildInfographicView(BuildContext context, EducationalContent content) {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(AppTheme.paddingRegular),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Title
+          if (content.imageUrl != null && content.imageUrl!.isNotEmpty)
+            Image.network(
+              content.imageUrl!,
+              fit: BoxFit.cover,
+              loadingBuilder: (context, child, loadingProgress) {
+                if (loadingProgress == null) return child;
+                return Center(
+                  child: CircularProgressIndicator(
+                    value: loadingProgress.expectedTotalBytes != null
+                        ? loadingProgress.cumulativeBytesLoaded /
+                            loadingProgress.expectedTotalBytes!
+                        : null,
+                  ),
+                );
+              },
+              errorBuilder: (context, error, stackTrace) => Container(
+                height: 200,
+                color: Colors.grey.shade200,
+                child: const Icon(Icons.broken_image, size: 64, color: Colors.grey),
+              ),
+            )
+          else
+            Container(
+              height: 300,
+              width: double.infinity,
+              decoration: BoxDecoration(
+                color: Colors.grey.shade200,
+                borderRadius: BorderRadius.circular(AppTheme.borderRadiusRegular),
+              ),
+              child: Icon(
+                Icons.image_search,
+                size: 64,
+                color: Colors.grey.shade400,
+              ),
+            ),
+          const SizedBox(height: AppTheme.paddingRegular),
           Text(
             content.title,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: AppTheme.fontSizeExtraLarge,
               fontWeight: FontWeight.bold,
-            ),
-          ),
-
-          const SizedBox(height: AppTheme.paddingSmall),
-
-          // Description
-          Text(
-            content.description,
-            style: const TextStyle(
-              fontSize: AppTheme.fontSizeRegular,
               color: AppTheme.textPrimaryColor,
             ),
           ),
-
+          const SizedBox(height: AppTheme.paddingSmall),
+          Row(
+            children: [
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(Icons.remove_red_eye_outlined, size: 16),
+                  const SizedBox(width: 4),
+                  Text(
+                    content.getFormattedDuration(), 
+                    style: const TextStyle(
+                      fontSize: AppTheme.fontSizeSmall,
+                      color: AppTheme.textPrimaryColor,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(width: AppTheme.paddingRegular),
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(Icons.school, size: 16),
+                  const SizedBox(width: 4),
+                  Text(
+                    content.getLevelText(),
+                    style: const TextStyle(
+                      fontSize: AppTheme.fontSizeSmall,
+                      color: AppTheme.textPrimaryColor,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
           const SizedBox(height: AppTheme.paddingRegular),
-
-          // Content categories
           Wrap(
             spacing: 8,
             runSpacing: 8,
@@ -437,298 +441,42 @@ class ContentDetailScreen extends StatelessWidget {
               );
             }).toList(),
           ),
-
           const SizedBox(height: AppTheme.paddingLarge),
-
-          // Infographic image or placeholder
-          if (content.imageUrl != null && content.imageUrl!.isNotEmpty)
-            ClipRRect(
-              borderRadius: BorderRadius.circular(AppTheme.borderRadiusRegular),
-              child: Image.network(
-                content.imageUrl!,
-                width: double.infinity,
-                height: 500,
-                fit: BoxFit.cover,
-                errorBuilder: (context, error, stackTrace) => Container(
-                  width: double.infinity,
-                  height: 500,
-                  color: Colors.grey.shade200,
-                  child: Icon(
-                    Icons.broken_image,
-                    size: 80,
-                    color: Colors.grey.shade400,
-                  ),
-                ),
-              ),
-            )
-          else
-            Container(
-              width: double.infinity,
-              height: 500,
-              decoration: BoxDecoration(
-                color: Colors.grey.shade200,
-                borderRadius: BorderRadius.circular(AppTheme.borderRadiusRegular),
-                border: Border.all(color: Colors.grey.shade300),
-              ),
-              child: Icon(
-                Icons.image,
-                size: 80,
-                color: Colors.grey.shade400,
-              ),
+          Text(
+            content.description,
+            style: TextStyle(
+              fontSize: AppTheme.fontSizeRegular,
+              color: AppTheme.textPrimaryColor,
+              height: 1.5,
             ),
-
-          const SizedBox(height: AppTheme.paddingLarge),
-
-          // Additional explanation
-          if (content.contentText != null) ...[
-            const Text(
-              'Additional Information',
-              style: TextStyle(
-                fontSize: AppTheme.fontSizeMedium,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: AppTheme.paddingSmall),
-            Text(
-              content.contentText!,
-              style: const TextStyle(
-                fontSize: AppTheme.fontSizeRegular,
-                height: 1.5,
-              ),
-            ),
-          ],
+          ),
         ],
       ),
     );
   }
 
   Widget _buildQuizView(BuildContext context, EducationalContent content) {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(AppTheme.paddingRegular),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Header image (placeholder)
-          Container(
-            height: 150,
-            width: double.infinity,
-            decoration: BoxDecoration(
-              color: Colors.orange.shade100,
-              borderRadius: BorderRadius.circular(AppTheme.borderRadiusRegular),
-              border: Border.all(color: Colors.orange.shade200),
-            ),
-            child: Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    Icons.quiz,
-                    size: 48,
-                    color: Colors.orange.shade800,
-                  ),
-                  const SizedBox(height: AppTheme.paddingSmall),
-                  Text(
-                    'Quiz: ${content.title}',
-                    style: TextStyle(
-                      fontSize: AppTheme.fontSizeLarge,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.orange.shade800,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                ],
+    return Center(
+      child: ElevatedButton.icon(
+        icon: const Icon(Icons.quiz_outlined),
+        label: const Text('Start Quiz'),
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => QuizScreen(
+                quizContent: content,
               ),
             ),
+          );
+        },
+        style: ElevatedButton.styleFrom(
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppTheme.paddingLarge,
+            vertical: AppTheme.paddingRegular,
           ),
-
-          const SizedBox(height: AppTheme.paddingLarge),
-
-          // Quiz description
-          Text(
-            content.description,
-            style: const TextStyle(
-              fontSize: AppTheme.fontSizeRegular,
-              height: 1.5,
-            ),
-          ),
-
-          const SizedBox(height: AppTheme.paddingRegular),
-
-          // Quiz metadata
-          Container(
-            padding: const EdgeInsets.all(AppTheme.paddingRegular),
-            decoration: BoxDecoration(
-              color: Colors.grey.shade100,
-              borderRadius: BorderRadius.circular(AppTheme.borderRadiusRegular),
-              border: Border.all(color: Colors.grey.shade300),
-            ),
-            child: Column(
-              children: [
-                // Number of questions
-                Row(
-                  children: [
-                    const Icon(
-                      Icons.question_answer,
-                      size: 20,
-                      color: AppTheme.secondaryColor,
-                    ),
-                    const SizedBox(width: 8),
-                    Text(
-                      '${content.questions?.length ?? 0} Questions',
-                      style: const TextStyle(
-                        fontSize: AppTheme.fontSizeRegular,
-                      ),
-                    ),
-                  ],
-                ),
-
-                const SizedBox(height: AppTheme.paddingSmall),
-
-                // Estimated time
-                Row(
-                  children: [
-                    const Icon(
-                      Icons.access_time,
-                      size: 20,
-                      color: AppTheme.secondaryColor,
-                    ),
-                    const SizedBox(width: 8),
-                    Text(
-                      content.getFormattedDuration(),
-                      style: const TextStyle(
-                        fontSize: AppTheme.fontSizeRegular,
-                      ),
-                    ),
-                  ],
-                ),
-
-                const SizedBox(height: AppTheme.paddingSmall),
-
-                // Difficulty level
-                Row(
-                  children: [
-                    const Icon(
-                      Icons.school,
-                      size: 20,
-                      color: AppTheme.secondaryColor,
-                    ),
-                    const SizedBox(width: 8),
-                    Text(
-                      content.getLevelText(),
-                      style: const TextStyle(
-                        fontSize: AppTheme.fontSizeRegular,
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-
-          const SizedBox(height: AppTheme.paddingLarge),
-
-          // Start quiz button
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton(
-              onPressed: () {
-                // Navigate to quiz screen
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => QuizScreen(
-                      quizContent: content,
-                    ),
-                  ),
-                );
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.orange,
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(
-                  vertical: AppTheme.paddingRegular,
-                ),
-                shape: RoundedRectangleBorder(
-                  borderRadius:
-                      BorderRadius.circular(AppTheme.borderRadiusRegular),
-                ),
-              ),
-              child: const Text(
-                'Start Quiz',
-                style: TextStyle(
-                  fontSize: AppTheme.fontSizeMedium,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
-          ),
-
-          const SizedBox(height: AppTheme.paddingRegular),
-
-          // Quiz preview
-          if (content.questions != null && content.questions!.isNotEmpty) ...[
-            const Text(
-              'Preview Question',
-              style: TextStyle(
-                fontSize: AppTheme.fontSizeMedium,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: AppTheme.paddingSmall),
-            Container(
-              padding: const EdgeInsets.all(AppTheme.paddingRegular),
-              decoration: BoxDecoration(
-                color: Colors.grey.shade100,
-                borderRadius:
-                    BorderRadius.circular(AppTheme.borderRadiusRegular),
-                border: Border.all(color: Colors.grey.shade300),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    content.questions!.first.question,
-                    style: const TextStyle(
-                      fontSize: AppTheme.fontSizeMedium,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-
-                  const SizedBox(height: AppTheme.paddingRegular),
-
-                  // First two options preview
-                  ...content.questions!.first.options.take(2).map((option) {
-                    return Container(
-                      margin:
-                          const EdgeInsets.only(bottom: AppTheme.paddingSmall),
-                      padding: const EdgeInsets.all(AppTheme.paddingSmall),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius:
-                            BorderRadius.circular(AppTheme.borderRadiusSmall),
-                        border: Border.all(color: Colors.grey.shade300),
-                      ),
-                      child: Text(option),
-                    );
-                  }),
-
-                  const SizedBox(height: AppTheme.paddingSmall),
-
-                  // More options text
-                  if (content.questions!.first.options.length > 2)
-                    Text(
-                      '+ ${content.questions!.first.options.length - 2} more options',
-                      style: TextStyle(
-                        fontSize: AppTheme.fontSizeSmall,
-                        color: Colors.grey.shade600,
-                        fontStyle: FontStyle.italic,
-                      ),
-                    ),
-                ],
-              ),
-            ),
-          ],
-        ],
+          textStyle: const TextStyle(fontSize: AppTheme.fontSizeMedium),
+        ),
       ),
     );
   }
@@ -739,32 +487,17 @@ class ContentDetailScreen extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Title
           Text(
             content.title,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: AppTheme.fontSizeExtraLarge,
               fontWeight: FontWeight.bold,
-            ),
-          ),
-
-          const SizedBox(height: AppTheme.paddingSmall),
-
-          // Description
-          Text(
-            content.description,
-            style: const TextStyle(
-              fontSize: AppTheme.fontSizeRegular,
               color: AppTheme.textPrimaryColor,
             ),
           ),
-
-          const SizedBox(height: AppTheme.paddingRegular),
-
-          // Tutorial metadata
+          const SizedBox(height: AppTheme.paddingSmall),
           Row(
             children: [
-              // Duration
               Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
@@ -779,10 +512,7 @@ class ContentDetailScreen extends StatelessWidget {
                   ),
                 ],
               ),
-
               const SizedBox(width: AppTheme.paddingRegular),
-
-              // Difficulty level
               Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
@@ -797,31 +527,9 @@ class ContentDetailScreen extends StatelessWidget {
                   ),
                 ],
               ),
-
-              const SizedBox(width: AppTheme.paddingRegular),
-
-              // Number of steps
-              if (content.steps != null)
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Icon(Icons.list, size: 16),
-                    const SizedBox(width: 4),
-                    Text(
-                      '${content.steps!.length} Steps',
-                      style: const TextStyle(
-                        fontSize: AppTheme.fontSizeSmall,
-                        color: AppTheme.textPrimaryColor,
-                      ),
-                    ),
-                  ],
-                ),
             ],
           ),
-
           const SizedBox(height: AppTheme.paddingRegular),
-
-          // Content categories
           Wrap(
             spacing: 8,
             runSpacing: 8,
@@ -849,286 +557,83 @@ class ContentDetailScreen extends StatelessWidget {
               );
             }).toList(),
           ),
-
           const SizedBox(height: AppTheme.paddingLarge),
-
-          // Tutorial steps
-          if (content.steps != null && content.steps!.isNotEmpty) ...[
-            const Text(
-              'Steps',
-              style: TextStyle(
-                fontSize: AppTheme.fontSizeLarge,
-                fontWeight: FontWeight.bold,
+          if (content.steps != null && content.steps!.isNotEmpty)
+            Column(
+              children: content.steps!.asMap().entries.map((entry) {
+                int idx = entry.key;
+                TutorialStep step = entry.value;
+                return ListTile(
+                  leading: CircleAvatar(child: Text('${idx + 1}')),
+                  title: Text(step.title),
+                  subtitle: step.description != null ? Text(step.description!) : null,
+                  contentPadding: EdgeInsets.zero,
+                );
+              }).toList(),
+            )
+          else
+            Text(
+              content.contentText ?? 'Tutorial content coming soon.',
+              style: const TextStyle(
+                fontSize: AppTheme.fontSizeRegular,
+                height: 1.5,
               ),
             ),
-
-            const SizedBox(height: AppTheme.paddingRegular),
-
-            // List of steps
-            ListView.builder(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              itemCount: content.steps!.length,
-              itemBuilder: (context, index) {
-                final step = content.steps![index];
-                return Container(
-                  margin:
-                      const EdgeInsets.only(bottom: AppTheme.paddingRegular),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius:
-                        BorderRadius.circular(AppTheme.borderRadiusRegular),
-                    border: Border.all(color: Colors.grey.shade300),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.grey.withOpacity(0.1),
-                        blurRadius: 4,
-                        offset: const Offset(0, 2),
-                      ),
-                    ],
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Step header
-                      Container(
-                        padding: const EdgeInsets.all(AppTheme.paddingRegular),
-                        decoration: BoxDecoration(
-                          color: AppTheme.primaryColor.withOpacity(0.1),
-                          borderRadius: const BorderRadius.only(
-                            topLeft: Radius.circular(
-                                AppTheme.borderRadiusRegular - 1),
-                            topRight: Radius.circular(
-                                AppTheme.borderRadiusRegular - 1),
-                          ),
-                        ),
-                        child: Row(
-                          children: [
-                            // Step number
-                            Container(
-                              width: 32,
-                              height: 32,
-                              decoration: BoxDecoration(
-                                color: AppTheme.primaryColor,
-                                shape: BoxShape.circle,
-                              ),
-                              child: Center(
-                                child: Text(
-                                  '${index + 1}',
-                                  style: const TextStyle(
-                                    fontSize: AppTheme.fontSizeMedium,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.white,
-                                  ),
-                                ),
-                              ),
-                            ),
-
-                            const SizedBox(width: AppTheme.paddingRegular),
-
-                            // Step title
-                            Expanded(
-                              child: Text(
-                                step.title,
-                                style: const TextStyle(
-                                  fontSize: AppTheme.fontSizeMedium,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-
-                      // Step image (placeholder)
-                      if (step.imageUrl != null)
-                        Container(
-                          height: 150,
-                          width: double.infinity,
-                          color: Colors.grey.shade200,
-                          child: Icon(
-                            Icons.image,
-                            size: 48,
-                            color: Colors.grey.shade400,
-                          ),
-                        ),
-
-                      // Step description
-                      Padding(
-                        padding: const EdgeInsets.all(AppTheme.paddingRegular),
-                        child: Text(
-                          step.description,
-                          style: const TextStyle(
-                            fontSize: AppTheme.fontSizeRegular,
-                            height: 1.5,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                );
-              },
-            ),
-          ],
         ],
       ),
     );
   }
 
   Widget _buildTipView(BuildContext context, EducationalContent content) {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(AppTheme.paddingRegular),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Tip card
-          Container(
-            padding: const EdgeInsets.all(AppTheme.paddingRegular),
-            decoration: BoxDecoration(
-              color: AppTheme.primaryColor.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(AppTheme.borderRadiusLarge),
-              border: Border.all(color: AppTheme.primaryColor.withOpacity(0.3)),
+    return Container(
+      padding: const EdgeInsets.all(AppTheme.paddingLarge),
+      child: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.lightbulb_outline,
+              size: 64,
+              color: AppTheme.primaryColor,
             ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Tip icon and title
-                Row(
-                  children: [
-                    const Icon(
-                      Icons.lightbulb_outline,
-                      color: AppTheme.primaryColor,
-                      size: 28,
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        content.title,
-                        style: const TextStyle(
-                          fontSize: AppTheme.fontSizeLarge,
-                          fontWeight: FontWeight.bold,
-                          color: AppTheme.primaryColor,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-
-                const SizedBox(height: AppTheme.paddingRegular),
-
-                // Tip content
-                if (content.contentText != null)
-                  Text(
-                    content.contentText!,
-                    style: const TextStyle(
-                      fontSize: AppTheme.fontSizeRegular,
-                      height: 1.5,
-                    ),
-                  ),
-              ],
+            const SizedBox(height: AppTheme.paddingRegular),
+            Text(
+              content.title,
+              style: TextStyle(
+                fontSize: AppTheme.fontSizeLarge,
+                fontWeight: FontWeight.bold,
+                color: AppTheme.textPrimaryColor,
+              ),
+              textAlign: TextAlign.center,
             ),
-          ),
-
-          const SizedBox(height: AppTheme.paddingLarge),
-
-          // Why this matters section
-          const Text(
-            'Why This Matters',
-            style: TextStyle(
-              fontSize: AppTheme.fontSizeMedium,
-              fontWeight: FontWeight.bold,
+            const SizedBox(height: AppTheme.paddingSmall),
+            Text(
+              content.contentText ?? 'Detailed tip content coming soon.',
+              style: TextStyle(
+                fontSize: AppTheme.fontSizeRegular,
+                color: AppTheme.textSecondaryColor,
+                height: 1.5,
+              ),
+              textAlign: TextAlign.center,
             ),
-          ),
-
-          const SizedBox(height: AppTheme.paddingSmall),
-
-          // Detailed explanation
-          Text(
-            content.description,
-            style: const TextStyle(
-              fontSize: AppTheme.fontSizeRegular,
-              height: 1.5,
-            ),
-          ),
-
-          const SizedBox(height: AppTheme.paddingLarge),
-
-          // Related categories
-          const Text(
-            'Related Categories',
-            style: TextStyle(
-              fontSize: AppTheme.fontSizeMedium,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-
-          const SizedBox(height: AppTheme.paddingSmall),
-
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: content.categories.map((category) {
-              final categoryColor = _getCategoryColor(category);
-              return Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: AppTheme.paddingSmall,
-                  vertical: 4,
-                ),
-                decoration: BoxDecoration(
-                  color: categoryColor.withOpacity(0.1),
-                  borderRadius:
-                      BorderRadius.circular(AppTheme.borderRadiusSmall),
-                  border: Border.all(color: categoryColor.withOpacity(0.5)),
-                ),
-                child: Text(
-                  category,
-                  style: TextStyle(
-                    fontSize: AppTheme.fontSizeSmall,
-                    color: categoryColor,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              );
-            }).toList(),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
 
   Color _getCategoryColor(String category) {
-    switch (category) {
-      case 'Wet Waste':
-        return AppTheme.wetWasteColor;
-      case 'Dry Waste':
-        return AppTheme.dryWasteColor;
-      case 'Hazardous Waste':
-        return AppTheme.hazardousWasteColor;
-      case 'Medical Waste':
-        return AppTheme.medicalWasteColor;
-      case 'Non-Waste':
-        return AppTheme.nonWasteColor;
-      case 'General':
-        return AppTheme.secondaryColor;
-      case 'Sorting':
-        return AppTheme.secondaryColor;
-      case 'Composting':
-        return Colors.green.shade800;
-      case 'Recycling':
-        return Colors.blue.shade700;
-      case 'E-waste':
-        return Colors.orange;
-      case 'Plastic':
-        return Colors.lightBlue;
-      case 'Home Organization':
-        return Colors.purple;
-      default:
-        return Colors.grey;
+    switch (category.toLowerCase()) {
+      case 'recycling': return Colors.green;
+      case 'composting': return Colors.brown;
+      case 'waste reduction': return Colors.blue;
+      case 'hazardous waste': return Colors.red;
+      case 'e-waste': return Colors.purple;
+      default: return Colors.grey.shade400;
     }
   }
 }
 
-// Video player widget with error handling
 class _VideoPlayerWidget extends StatefulWidget {
   final String url;
   const _VideoPlayerWidget({required this.url});
@@ -1138,73 +643,136 @@ class _VideoPlayerWidget extends StatefulWidget {
 }
 
 class _VideoPlayerWidgetState extends State<_VideoPlayerWidget> {
-  late VideoPlayerController _controller;
-  bool _initialized = false;
-  bool _error = false;
+  VideoPlayerController? _controller;
+  bool _isPlaying = false;
+  bool _isInitialized = false;
+  String? _error;
 
   @override
   void initState() {
     super.initState();
-    _controller = VideoPlayerController.network(widget.url)
-      ..initialize().then((_) {
-        if (mounted) setState(() => _initialized = true);
-      }).catchError((_) {
-        if (mounted) setState(() => _error = true);
+    _initializePlayer();
+  }
+
+  Future<void> _initializePlayer() async {
+    try {
+      _controller = VideoPlayerController.networkUrl(Uri.parse(widget.url))
+        ..initialize().then((_) {
+          if (!mounted) return;
+          setState(() {
+            _isInitialized = true;
+          });
+          _controller?.addListener(() {
+            if (!mounted) return;
+            if (_controller?.value.isPlaying != _isPlaying) {
+              setState(() {
+                _isPlaying = _controller!.value.isPlaying;
+              });
+            }
+          });
+        }).catchError((e) {
+          if (!mounted) return;
+          setState(() {
+            _error = "Failed to load video: ${e.toString()}";
+            _isInitialized = true; 
+          });
+        });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _error = "Invalid video URL or format.";
+         _isInitialized = true; 
       });
+    }
   }
 
   @override
   void dispose() {
-    _controller.dispose();
+    _controller?.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    if (_error) {
+    if (_error != null) {
       return Container(
         height: 200,
-        width: double.infinity,
         color: Colors.black,
-        child: const Center(
-          child: Icon(Icons.error, color: Colors.red, size: 48),
+        alignment: Alignment.center,
+        child: Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Text(
+            _error!,
+            style: const TextStyle(color: Colors.white),
+            textAlign: TextAlign.center,
+          ),
         ),
       );
     }
-    if (!_initialized) {
+    if (!_isInitialized || _controller == null || !_controller!.value.isInitialized) {
       return Container(
         height: 200,
-        width: double.infinity,
         color: Colors.black,
-        child: const Center(child: CircularProgressIndicator()),
+        alignment: Alignment.center,
+        child: const CircularProgressIndicator(),
       );
     }
+
     return AspectRatio(
-      aspectRatio: _controller.value.aspectRatio,
+      aspectRatio: _controller!.value.aspectRatio,
       child: Stack(
         alignment: Alignment.bottomCenter,
-        children: [
-          VideoPlayer(_controller),
-          VideoProgressIndicator(_controller, allowScrubbing: true),
-          Align(
-            alignment: Alignment.center,
-            child: IconButton(
-              icon: Icon(
-                _controller.value.isPlaying ? Icons.pause : Icons.play_arrow,
-                color: Colors.white,
-                size: 48,
-              ),
-              onPressed: () {
-                setState(() {
-                  _controller.value.isPlaying
-                      ? _controller.pause()
-                      : _controller.play();
-                });
-              },
-            ),
-          ),
+        children: <Widget>[
+          VideoPlayer(_controller!),
+          _PlayPauseOverlay(controller: _controller!),
+          VideoProgressIndicator(_controller!, allowScrubbing: true),
         ],
       ),
+    );
+  }
+}
+
+class _PlayPauseOverlay extends StatelessWidget {
+  const _PlayPauseOverlay({required this.controller});
+
+  final VideoPlayerController controller;
+
+  @override
+  Widget build(BuildContext context) {
+    return ValueListenableBuilder(
+      valueListenable: controller,
+      builder: (context, VideoPlayerValue value, child) {
+        return Stack(
+          children: <Widget>[
+            AnimatedSwitcher(
+              duration: const Duration(milliseconds: 50),
+              reverseDuration: const Duration(milliseconds: 200),
+              child: value.isPlaying
+                  ? const SizedBox.shrink()
+                  : Container(
+                      color: Colors.black26,
+                      child: const Center(
+                        child: Icon(
+                          Icons.play_arrow,
+                          color: Colors.white,
+                          size: 100.0,
+                          semanticLabel: 'Play',
+                        ),
+                      ),
+                    ),
+            ),
+            GestureDetector(
+              onTap: () {
+                if (value.isPlaying) {
+                  controller.pause();
+                } else {
+                  controller.play();
+                }
+              },
+            ),
+          ],
+        );
+      },
     );
   }
 }

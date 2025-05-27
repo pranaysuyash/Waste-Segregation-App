@@ -1,4 +1,6 @@
 import 'dart:io';
+import 'dart:async';
+import 'dart:math';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
@@ -565,229 +567,163 @@ class _HistoryScreenState extends State<HistoryScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('History'),
-        backgroundColor: AppTheme.primaryColor,
-        foregroundColor: Colors.white,
-        elevation: 2,
         actions: [
-          // Export button with accessibility
-          if (_classifications.isNotEmpty)
-            IconButton(
-              onPressed: _isExporting ? null : _exportToCSV,
-              icon: _isExporting
-                  ? const SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: Colors.white,
-                      ),
-                    )
-                  : const Icon(Icons.file_download),
-              tooltip: 'Export classification history to CSV',
-            ),
-          
-          // Filter button with accessibility
           IconButton(
+            icon: const Icon(Icons.filter_list),
             onPressed: _showFilterDialog,
-            icon: Badge(
-              isLabelVisible: _filterOptions.isNotEmpty,
-              child: const Icon(Icons.filter_list),
-            ),
-            tooltip: _filterOptions.isNotEmpty 
-                  ? 'Filter history (active filters applied)'
-                  : 'Filter history',
+            tooltip: 'Filter',
+          ),
+          IconButton(
+            icon: const Icon(Icons.share),
+            onPressed: _exportToCSV,
+            tooltip: 'Export History',
           ),
         ],
       ),
-      body: Column(
-        children: [
-          // Header section with search and filters
-          Container(
-            color: Colors.white,
-            child: Column(
-              children: [
-                // Search bar
-                Padding(
-                  padding: const EdgeInsets.all(AppTheme.paddingRegular),
-                  child: TextField(
-                    controller: _searchController,
-                    decoration: InputDecoration(
-                      hintText: 'Search classifications...',
-                      prefixIcon: const Icon(Icons.search),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(AppTheme.borderRadiusRegular),
-                      ),
-                      contentPadding: const EdgeInsets.symmetric(
-                        vertical: 12,
-                        horizontal: 16,
-                      ),
-                      suffixIcon: _searchController.text.isNotEmpty
-                          ? IconButton(
-                              icon: const Icon(Icons.clear),
-                              onPressed: () {
-                                _searchController.clear();
-                                _applySearchFilter('');
-                              },
-                              tooltip: 'Clear search',
-                            )
-                          : null,
-                    ),
-                    onChanged: (value) {
-                      // Debounce search input
-                      Future.delayed(const Duration(milliseconds: 300), () {
-                        if (value == _searchController.text) {
-                          _applySearchFilter(value);
-                        }
-                      });
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : _classifications.isEmpty && !_isFilterActive()
+              ? EmptyStateWidget(
+                  title: 'No History Yet',
+                  message: 'Start classifying items to build your waste history.',
+                  icon: Icons.history_toggle_off_outlined,
+                  actionButton: ElevatedButton.icon(
+                    icon: const Icon(Icons.camera_alt),
+                    label: const Text('Start Classifying'),
+                    onPressed: () {
+                      if (Navigator.canPop(context)) Navigator.pop(context);
                     },
                   ),
+                )
+              : _classifications.isEmpty && _isFilterActive()
+                  ? EmptyStateWidget(
+                      title: 'No Results Found',
+                      message:
+                          'Try adjusting your filters or clearing them to see more items.',
+                      icon: Icons.filter_alt_off_outlined,
+                      actionButton: ElevatedButton.icon(
+                        icon: const Icon(Icons.clear_all),
+                        label: const Text('Clear Filters'),
+                        onPressed: _clearFilters,
+                      ),
+                    )
+                  : _buildHistoryList(),
+      floatingActionButton: _isLoadingMore
+          ? FloatingActionButton(
+              onPressed: null,
+              backgroundColor: AppTheme.primaryColor.withOpacity(0.5),
+              child: const SizedBox(
+                width: 24,
+                height: 24,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
                 ),
-                
-                // Active filters display
-                if (_filterOptions.isNotEmpty)
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: AppTheme.paddingRegular,
-                      vertical: AppTheme.paddingSmall,
-                    ),
-                    decoration: BoxDecoration(
-                      color: Colors.blue.shade50,
-                      border: Border(
-                        top: BorderSide(color: Colors.blue.shade100),
-                        bottom: BorderSide(color: Colors.blue.shade100),
-                      ),
-                    ),
-                    child: Row(
-                      children: [
-                        Icon(
-                          Icons.filter_list,
-                          size: 16,
-                          color: Colors.blue.shade700,
-                        ),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: Text(
-                            'Active filters: ${_filterOptions.toString()}',
-                            style: TextStyle(
-                              fontSize: AppTheme.fontSizeSmall,
-                              color: Colors.blue.shade700,
-                              fontWeight: FontWeight.w500,
-                            ),
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                        TextButton.icon(
-                          onPressed: _clearFilters,
-                          style: TextButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 8,
-                              vertical: 4,
-                            ),
-                            minimumSize: Size.zero,
-                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                            foregroundColor: Colors.blue.shade700,
-                          ),
-                          icon: const Icon(Icons.clear, size: 16),
-                          label: const Text('Clear'),
-                        ),
-                      ],
-                    ),
+              ),
+            )
+          : null,
+    );
+  }
+  
+  Widget _buildHistoryList() {
+    return Expanded(
+      child: RefreshIndicator(
+        onRefresh: _loadClassifications,
+        child: ListView.builder(
+          controller: _scrollController,
+          padding: const EdgeInsets.only(
+            bottom: AppTheme.paddingRegular + 60, // Extra space for FAB
+          ),
+          itemCount: _classifications.length + (_hasMorePages ? 1 : 0),
+          itemBuilder: (context, index) {
+            if (index == _classifications.length) {
+              // Loading indicator at the end
+              return const Padding(
+                padding: EdgeInsets.all(16.0),
+                child: Center(
+                  child: SizedBox(
+                    width: 24,
+                    height: 24,
+                    child: CircularProgressIndicator(strokeWidth: 2),
                   ),
-              ],
-            ),
-          ),
-          
-          // List of classifications
-          Expanded(
-            child: _isLoading
-                ? const Center(child: CircularProgressIndicator())
-                : _classifications.isEmpty
-                    ? _buildEmptyState()
-                    : RefreshIndicator(
-                        onRefresh: _loadClassifications,
-                        child: ListView.builder(
-                          controller: _scrollController,
-                          padding: const EdgeInsets.only(
-                            bottom: AppTheme.paddingRegular + 60, // Extra space for FAB
-                          ),
-                          itemCount: _classifications.length + (_hasMorePages ? 1 : 0),
-                          itemBuilder: (context, index) {
-                            if (index == _classifications.length) {
-                              // Loading indicator at the end
-                              return const Padding(
-                                padding: EdgeInsets.all(16.0),
-                                child: Center(
-                                  child: SizedBox(
-                                    width: 24,
-                                    height: 24,
-                                    child: CircularProgressIndicator(strokeWidth: 2),
-                                  ),
-                                ),
-                              );
-                            }
-                            
-                            final classification = _classifications[index];
-                            return HistoryListItem(
-                              classification: classification,
-                              onTap: () => _navigateToClassificationDetails(classification),
-                            );
-                          },
-                        ),
-                      ),
-          ),
-        ],
+                ),
+              );
+            }
+            
+            final classification = _classifications[index];
+            return HistoryListItem(
+              classification: classification,
+              onTap: () => _navigateToClassificationDetails(classification),
+            );
+          },
+        ),
       ),
     );
   }
   
-  // Empty state widget
-  Widget _buildEmptyState() {
+  bool _isFilterActive() {
+    return _filterOptions.isNotEmpty;
+  }
+  
+  Future<void> _exportHistory() async {
+    await _exportToCSV();
+  }
+}
+
+class EmptyStateWidget extends StatelessWidget {
+  final String title;
+  final String message;
+  final Widget? actionButton;
+  final IconData? icon;
+
+  const EmptyStateWidget({
+    super.key,
+    required this.title,
+    required this.message,
+    this.actionButton,
+    this.icon, 
+  });
+
+  @override
+  Widget build(BuildContext context) {
     return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          const Icon(
-            Icons.history,
-            size: 64,
-            color: AppTheme.textSecondaryColor,
-          ),
-          const SizedBox(height: AppTheme.paddingRegular),
-          Text(
-            _filterOptions.isNotEmpty
-                ? 'No classifications match your filters'
-                : 'No classifications yet',
-            style: const TextStyle(
-              fontSize: AppTheme.fontSizeLarge,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          const SizedBox(height: AppTheme.paddingSmall),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: AppTheme.paddingLarge),
-            child: Text(
-              _filterOptions.isNotEmpty
-                  ? 'Try changing or clearing your filters'
-                  : 'Capture or upload an image to analyze waste items',
+      child: Padding(
+        padding: const EdgeInsets.all(AppTheme.paddingLarge),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            if (icon != null) ...[
+              Icon(
+                icon,
+                size: 64,
+                color: Colors.grey.shade400,
+              ),
+              const SizedBox(height: AppTheme.paddingLarge),
+            ],
+            Text(
+              title,
+              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: AppTheme.textPrimaryColor,
+                  ),
               textAlign: TextAlign.center,
-              style: const TextStyle(
-                fontSize: AppTheme.fontSizeRegular,
+            ),
+            const SizedBox(height: AppTheme.paddingSmall),
+            Text(
+              message,
+              textAlign: TextAlign.center,
+              style: TextStyle(
                 color: AppTheme.textSecondaryColor,
+                fontSize: AppTheme.fontSizeRegular,
+                height: 1.4,
               ),
             ),
-          ),
-          const SizedBox(height: AppTheme.paddingLarge),
-          if (_filterOptions.isNotEmpty)
-            ElevatedButton.icon(
-              onPressed: _clearFilters,
-              icon: const Icon(Icons.clear),
-              label: const Text('Clear Filters'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppTheme.primaryColor,
-                foregroundColor: Colors.white,
-              ),
-            ),
-        ],
+            if (actionButton != null) ...[
+              const SizedBox(height: AppTheme.paddingLarge),
+              actionButton!,
+            ],
+          ],
+        ),
       ),
     );
   }

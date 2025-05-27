@@ -9,7 +9,7 @@ import '../models/waste_classification.dart';
 import '../widgets/gamification_widgets.dart';
 import '../services/gamification_service.dart';
 import '../models/gamification.dart';
-// import '../widgets/waste_chart_widgets.dart'; // Unused import
+// import '../widgets/enhanced_loading_widget.dart'; // Removed
 // Removed import for '../widgets/empty_state_widget.dart'; as EmptyStateWidget is defined below
 
 class WasteDashboardScreen extends StatefulWidget {
@@ -53,9 +53,11 @@ class _WasteDashboardScreenState extends State<WasteDashboardScreen> {
       });
     } catch (e) {
       debugPrint('Error loading analytics data: $e');
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to load data: $e')),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to load data: $e')),
+        );
+      }
       
       setState(() {
         _isLoading = false;
@@ -127,16 +129,9 @@ class _WasteDashboardScreenState extends State<WasteDashboardScreen> {
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : _classifications.isEmpty
-              ? EmptyStateWidget(
+              ? const EmptyStateWidget(
                   title: 'No Data Yet',
                   message: 'Start classifying waste items to see your personalized analytics dashboard.',
-                  actionButton: ElevatedButton.icon(
-                    onPressed: () {
-                      Navigator.of(context).pop();
-                    },
-                    icon: const Icon(Icons.camera_alt),
-                    label: const Text('Start Classifying'),
-                  ),
                 )
               : _buildDashboard(),
     );
@@ -716,144 +711,98 @@ class _WasteDashboardScreenState extends State<WasteDashboardScreen> {
     return FutureBuilder<GamificationProfile>(
       future: GamificationService().getProfile(),
       builder: (context, snapshot) {
-        if (!snapshot.hasData) {
-          return const Card(
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        }
+        if (!snapshot.hasData || snapshot.hasError) {
+          return Card(
             child: Padding(
-              padding: EdgeInsets.all(AppTheme.paddingLarge),
-              child: Center(child: CircularProgressIndicator()),
+              padding: const EdgeInsets.all(AppTheme.paddingLarge),
+              child: Center(
+                child: Text(snapshot.hasError 
+                    ? 'Error loading gamification data.' 
+                    : 'Gamification data not available.'),
+              ),
             ),
           );
         }
         final profile = snapshot.data!;
         final points = profile.points;
         final streak = profile.streak;
-        final achievements = profile.achievements.where((a) => a.isEarned).toList();
-        final activeChallenges = profile.activeChallenges.where((c) => !c.isExpired && !c.isCompleted).toList();
-        final pointsToNextLevel = points.pointsToNextLevel;
-        final motivational = pointsToNextLevel > 0
-            ? 'Only $pointsToNextLevel points to reach the next level!'
-            : 'Level up! Keep going!';
 
         return Card(
+          elevation: 2,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(AppTheme.borderRadiusRegular),
+          ),
           child: Padding(
             padding: const EdgeInsets.all(AppTheme.paddingRegular),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  'Your Gamification Progress',
-                  style: Theme.of(context).textTheme.titleSmall,
-                ),
-                const SizedBox(height: AppTheme.paddingRegular),
-                
-                // Improved streak and points display
-                Row(
-                  children: [
-                    Expanded(
-                      child: Container(
-                        padding: const EdgeInsets.all(AppTheme.paddingSmall),
-                        decoration: BoxDecoration(
-                          color: Colors.orange.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Column(
-                          children: [
-                            Icon(Icons.local_fire_department, 
-                                 color: Colors.orange, size: 24),
-                            const SizedBox(height: 4),
-                            Text(
-                              '${streak.current}',
-                              style: const TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            const Text(
-                              'Day Streak',
-                              style: TextStyle(fontSize: 12),
-                            ),
-                          ],
-                        ),
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.emoji_events,
+                        color: AppTheme.primaryColor,
+                        size: 24,
                       ),
-                    ),
-                    const SizedBox(width: AppTheme.paddingSmall),
-                    Expanded(
-                      child: Container(
-                        padding: const EdgeInsets.all(AppTheme.paddingSmall),
-                        decoration: BoxDecoration(
-                          color: AppTheme.primaryColor.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Column(
-                          children: [
-                            Icon(Icons.stars, 
-                                 color: AppTheme.primaryColor, size: 24),
-                            const SizedBox(height: 4),
-                            Text(
-                              '${points.total}',
-                              style: const TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
-                              ),
+                      const SizedBox(width: 8),
+                      Text(
+                        'Your Gamification Progress',
+                        style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                              fontWeight: FontWeight.bold,
+                              color: AppTheme.primaryColor,
                             ),
-                            Text(
-                              'Level ${points.level}',
-                              style: const TextStyle(fontSize: 12),
-                            ),
-                          ],
-                        ),
                       ),
-                    ),
-                  ],
-                ),
-                
-                const SizedBox(height: AppTheme.paddingRegular),
-                Text(
-                  motivational, 
-                  style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
-                  textAlign: TextAlign.center,
-                ),
-                
-                if (achievements.isNotEmpty) ...[
-                  const SizedBox(height: AppTheme.paddingRegular),
-                  const Text('Recent Badges', style: TextStyle(fontWeight: FontWeight.bold)),
-                  const SizedBox(height: 8),
-                  SizedBox(
-                    height: 80,
-                    child: ListView.separated(
-                      scrollDirection: Axis.horizontal,
-                      itemCount: achievements.length > 3 ? 3 : achievements.length,
-                      separatorBuilder: (_, __) => const SizedBox(width: 8),
-                      itemBuilder: (context, i) {
-                        final a = achievements[i];
-                        return _BadgePreview(achievement: a);
-                      },
-                    ),
+                    ],
                   ),
-                ],
-                
-                if (activeChallenges.isNotEmpty) ...[
                   const SizedBox(height: AppTheme.paddingRegular),
-                  const Text('Active Challenge', style: TextStyle(fontWeight: FontWeight.bold)),
-                  const SizedBox(height: 8),
-                  ChallengeCard(challenge: activeChallenges.first),
-                ],
+                  
+                  Row(
+                    children: [
+                      GamificationSummaryCard(
+                        title: 'Streak',
+                        value: streak.current.toString(),
+                        unit: 'days',
+                        icon: Icons.local_fire_department,
+                        color: Colors.orange,
+                      ),
+                      const SizedBox(width: AppTheme.paddingSmall),
+                      GamificationSummaryCard(
+                        title: 'Points',
+                        value: points.total.toString(),
+                        unit: 'Level ${points.level}',
+                        icon: Icons.stars,
+                        color: AppTheme.primaryColor,
+                      ),
+                    ],
+                  ),
                 
                 const SizedBox(height: AppTheme.paddingRegular),
                 Container(
                   padding: const EdgeInsets.all(AppTheme.paddingRegular),
                   decoration: BoxDecoration(
-                    color: Colors.grey[100],
+                      color: Colors.grey.shade50,
                     borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: Colors.grey.shade200),
                   ),
-                  child: const Row(
+                    child: Row(
                     children: [
-                      Icon(Icons.leaderboard, color: Colors.blueGrey),
-                      SizedBox(width: 8),
+                        Icon(
+                          Icons.leaderboard, 
+                          color: Colors.blueGrey.shade600,
+                          size: 20,
+                        ),
+                        const SizedBox(width: 8),
                       Expanded(
                         child: Text(
                           "Leaderboard coming soon! Compete with others to see who's the top recycler.",
-                          style: TextStyle(fontSize: 13),
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: Colors.blueGrey.shade700,
+                              fontStyle: FontStyle.italic,
+                            ),
                         ),
                       ),
                     ],
@@ -868,87 +817,64 @@ class _WasteDashboardScreenState extends State<WasteDashboardScreen> {
   }
 }
 
-// --- Badge preview widget ---
-class _BadgePreview extends StatelessWidget {
-  final Achievement achievement;
-  const _BadgePreview({required this.achievement});
+// Revert EmptyStateWidget to its simpler, original form (StatelessWidget)
+class EmptyStateWidget extends StatelessWidget {
+  final String title;
+  final String message;
+  final Widget? actionButton; // Kept for basic functionality
+  final IconData? icon; // Optional icon if it had one originally
+
+  const EmptyStateWidget({
+    super.key,
+    required this.title,
+    required this.message,
+    this.actionButton,
+    this.icon,
+  });
+
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        CircleAvatar(
-          radius: 28,
-          backgroundColor: achievement.color.withOpacity(0.2),
-          child: Icon(
-            Icons.emoji_events,
-            color: achievement.color,
-            size: 32,
-          ),
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(AppTheme.paddingLarge),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            if (icon != null) ...[
+              Icon(
+                icon,
+                size: 64,
+                color: Colors.grey.shade400,
+              ),
+              const SizedBox(height: AppTheme.paddingLarge),
+            ],
+            Text(
+              title,
+              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: AppTheme.textPrimaryColor, // Use theme color
+                  ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: AppTheme.paddingSmall),
+            Text(
+              message,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: AppTheme.textSecondaryColor,
+                fontSize: AppTheme.fontSizeRegular,
+                height: 1.4,
+              ),
+            ),
+            if (actionButton != null) ...[
+              const SizedBox(height: AppTheme.paddingLarge),
+              actionButton!,
+            ],
+          ],
         ),
-        const SizedBox(height: 4),
-        SizedBox(
-          width: 60,
-          child: Text(
-            achievement.title,
-            style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w500),
-            textAlign: TextAlign.center,
-            overflow: TextOverflow.ellipsis,
-            maxLines: 2,
-          ),
-        ),
-      ],
+      ),
     );
   }
-}
-
-class EmptyStateWidget extends StatelessWidget {
-final String title;
-final String message;
-final Widget? actionButton;
-
-const EmptyStateWidget({
-super.key,
-required this.title,
-required this.message,
-this.actionButton,
-});
-
-@override
-Widget build(BuildContext context) {
-return Center(
-child: Padding(
-padding: const EdgeInsets.all(AppTheme.paddingLarge),
-child: Column(
-mainAxisAlignment: MainAxisAlignment.center,
-children: [
-Icon(
-Icons.analytics_outlined,
-size: 64,
-color: AppTheme.primaryColor.withOpacity(0.5),
-),
-const SizedBox(height: AppTheme.paddingRegular),
-Text(
-title,
-style: Theme.of(context).textTheme.headlineSmall,
-textAlign: TextAlign.center,
-),
-const SizedBox(height: AppTheme.paddingSmall),
-Text(
-message,
-textAlign: TextAlign.center,
-style: TextStyle(
-color: AppTheme.textSecondaryColor,
-),
-),
-if (actionButton != null) ...[  
-const SizedBox(height: AppTheme.paddingRegular),
-actionButton!,
-],
-],
-),
-),
-);
-}
 }
 
 class WebChartWidget extends StatefulWidget {
@@ -1351,6 +1277,105 @@ class _WebPieChartWidgetState extends State<WebPieChartWidget> {
             child: const CircularProgressIndicator(),
           ),
       ],
+    );
+  }
+}
+
+// Gamification summary card for individual stats
+class GamificationSummaryCard extends StatelessWidget {
+  final String title;
+  final String value;
+  final String unit;
+  final IconData icon;
+  final Color color;
+  final String? trend; // e.g., "+12%"
+
+  const GamificationSummaryCard({
+    super.key,
+    required this.title,
+    required this.value,
+    required this.unit,
+    required this.icon,
+    required this.color,
+    this.trend,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Expanded(
+      child: Container(
+        padding: const EdgeInsets.all(AppTheme.paddingSmall),
+        decoration: BoxDecoration(
+          color: Theme.of(context).cardColor,
+          borderRadius: BorderRadius.circular(AppTheme.borderRadiusRegular),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.1),
+              blurRadius: 4,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  title,
+                  style: TextStyle(
+                    fontSize: AppTheme.fontSizeSmall,
+                    fontWeight: FontWeight.w500,
+                    color: AppTheme.textSecondaryColor.withOpacity(0.8),
+                  ),
+                ),
+                Icon(icon, color: color, size: 18),
+              ],
+            ),
+            const SizedBox(height: AppTheme.paddingMicro), 
+            Text(
+              value,
+              style: TextStyle(
+                fontSize: AppTheme.fontSizeExtraLarge,
+                fontWeight: FontWeight.bold,
+                color: AppTheme.textPrimaryColor,
+              ),
+            ),
+            const SizedBox(height: AppTheme.paddingMicro),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  unit,
+                  style: TextStyle(
+                    fontSize: AppTheme.fontSizeSmall,
+                    color: AppTheme.textSecondaryColor.withOpacity(0.7),
+                  ),
+                ),
+                if (trend != null)
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: AppTheme.paddingMicro, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: color.withOpacity(0.15),
+                      borderRadius:
+                          BorderRadius.circular(AppTheme.borderRadiusSmall),
+                    ),
+                    child: Text(
+                      trend!,
+                      style: TextStyle(
+                        fontSize: 10,
+                        fontWeight: FontWeight.bold,
+                        color: color,
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

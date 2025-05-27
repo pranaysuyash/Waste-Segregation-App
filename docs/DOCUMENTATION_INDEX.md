@@ -173,6 +173,12 @@ This index provides a comprehensive guide to all documentation in the Waste Segr
 
 ---
 
+## 📋 Implementation Reports
+- [`DISPOSAL_INSTRUCTIONS_FEATURE.md`](project/DISPOSAL_INSTRUCTIONS_FEATURE.md) - Complete disposal instructions feature documentation
+- [`DISPOSAL_INSTRUCTIONS_ROADMAP.md`](project/DISPOSAL_INSTRUCTIONS_ROADMAP.md) - Detailed implementation roadmap
+
+---
+
 **Last Updated**: 2025-01-27  
 **Maintained By**: Development Team  
 **Status**: ✅ Fully Organized and Current 
