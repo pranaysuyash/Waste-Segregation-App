@@ -17,6 +17,7 @@ import '../widgets/classification_feedback_widget.dart';
 import '../screens/waste_dashboard_screen.dart';
 import '../screens/educational_content_screen.dart';
 import '../screens/history_screen.dart';
+import '../screens/modern_home_screen.dart';
 
 class ResultScreen extends StatefulWidget {
   final WasteClassification classification;
@@ -102,6 +103,10 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
           _isSaved = true;
           _isAutoSaving = false;
         });
+        
+        // Trigger refresh of home screen data
+        ModernHomeScreen.triggerRefresh();
+        
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text(AppStrings.successSaved)),
         );
@@ -199,6 +204,10 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
         setState(() {
           _isSaved = true;
         });
+        
+        // Trigger refresh of home screen data
+        ModernHomeScreen.triggerRefresh();
+        
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text(AppStrings.successSaved)),
         );

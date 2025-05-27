@@ -32,11 +32,17 @@ import '../widgets/dashboard_widgets.dart';
 
 class ModernHomeScreen extends StatefulWidget {
   final bool isGuestMode;
+  static VoidCallback? _refreshCallback;
 
   const ModernHomeScreen({
     super.key,
     this.isGuestMode = false,
   });
+
+  // Static method to trigger refresh from anywhere in the app
+  static void triggerRefresh() {
+    _refreshCallback?.call();
+  }
 
   @override
   State<ModernHomeScreen> createState() => _ModernHomeScreenState();
@@ -65,6 +71,15 @@ class _ModernHomeScreenState extends State<ModernHomeScreen> with TickerProvider
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    
+    // Register the refresh callback
+    ModernHomeScreen._refreshCallback = () {
+      if (mounted) {
+        debugPrint('ModernHomeScreen: Static refresh triggered');
+        _refreshDataWithTimestamp();
+      }
+    };
+    
     _initializeAnimations();
     _loadUserData();
     _loadRecentClassifications();
@@ -75,6 +90,10 @@ class _ModernHomeScreenState extends State<ModernHomeScreen> with TickerProvider
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
+    
+    // Clean up the refresh callback
+    ModernHomeScreen._refreshCallback = null;
+    
     _fadeController.dispose();
     _slideController.dispose();
     super.dispose();
