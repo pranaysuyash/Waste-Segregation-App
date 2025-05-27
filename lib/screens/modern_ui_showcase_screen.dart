@@ -424,8 +424,11 @@ class _ModernUIShowcaseScreenState extends State<ModernUIShowcaseScreen> {
         const SizedBox(height: AppTheme.spacingLg),
         
         // Search bar
-        const ModernSearchBar(
+        ModernSearchBar(
           hint: 'Search waste items...',
+          onChanged: (value) {
+            // Handle search
+          },
         ),
         
         const SizedBox(height: AppTheme.spacingLg),
@@ -450,122 +453,4 @@ class _ModernUIShowcaseScreenState extends State<ModernUIShowcaseScreen> {
   }
 }
 
-/// Search bar widget for the modern UI
-class ModernSearchBar extends StatefulWidget {
-  final String hint;
-  final Function(String)? onChanged;
-  final Function(String)? onSubmitted;
-  final VoidCallback? onClear;
-  final bool autofocus;
 
-  const ModernSearchBar({
-    super.key,
-    this.hint = 'Search...',
-    this.onChanged,
-    this.onSubmitted,
-    this.onClear,
-    this.autofocus = false,
-  });
-
-  @override
-  State<ModernSearchBar> createState() => _ModernSearchBarState();
-}
-
-class _ModernSearchBarState extends State<ModernSearchBar>
-    with SingleTickerProviderStateMixin {
-  late TextEditingController _controller;
-  late AnimationController _animationController;
-  late Animation<double> _fadeAnimation;
-  bool _hasText = false;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = TextEditingController();
-    _animationController = AnimationController(
-      duration: AppTheme.animationFast,
-      vsync: this,
-    );
-    _fadeAnimation = CurvedAnimation(
-      parent: _animationController,
-      curve: Curves.easeInOut,
-    );
-    
-    _controller.addListener(_handleTextChange);
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    _animationController.dispose();
-    super.dispose();
-  }
-
-  void _handleTextChange() {
-    final hasText = _controller.text.isNotEmpty;
-    if (hasText != _hasText) {
-      setState(() {
-        _hasText = hasText;
-      });
-      
-      if (hasText) {
-        _animationController.forward();
-      } else {
-        _animationController.reverse();
-      }
-    }
-    
-    widget.onChanged?.call(_controller.text);
-  }
-
-  void _handleClear() {
-    _controller.clear();
-    widget.onClear?.call();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    
-    return Container(
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surfaceVariant.withOpacity(0.5),
-        borderRadius: BorderRadius.circular(AppTheme.borderRadiusXl),
-        border: Border.all(
-          color: theme.colorScheme.outline.withOpacity(0.2),
-        ),
-      ),
-      child: TextField(
-        controller: _controller,
-        autofocus: widget.autofocus,
-        onSubmitted: widget.onSubmitted,
-        decoration: InputDecoration(
-          hintText: widget.hint,
-          prefixIcon: Icon(
-            Icons.search,
-            color: theme.colorScheme.onSurfaceVariant,
-          ),
-          suffixIcon: AnimatedBuilder(
-            animation: _fadeAnimation,
-            builder: (context, child) {
-              return FadeTransition(
-                opacity: _fadeAnimation,
-                child: IconButton(
-                  icon: const Icon(Icons.clear),
-                  onPressed: _hasText ? _handleClear : null,
-                ),
-              );
-            },
-          ),
-          border: InputBorder.none,
-          enabledBorder: InputBorder.none,
-          focusedBorder: InputBorder.none,
-          contentPadding: const EdgeInsets.symmetric(
-            horizontal: AppTheme.spacingMd,
-            vertical: AppTheme.spacingMd,
-          ),
-        ),
-      ),
-    );
-  }
-}
