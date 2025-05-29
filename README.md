@@ -96,7 +96,7 @@ The app provides educational content about each category, stores classification 
 
 5. Run the app:
    ```bash
-   flutter run
+   flutter run --dart-define-from-file=.env
    ```
 
 ## Project Structure
@@ -192,6 +192,7 @@ For comprehensive documentation including setup guides, technical details, and p
 **Latest Changes:** Critical UI fixes applied - AdWidget errors resolved, overflow warnings fixed, modal dialogs improved
 
 ### Recent Critical Fixes ✅
+- **History Duplication Fix:** Fixed issue where scanning one item created two history entries due to duplicate save operations in result screen
 - **User Data Isolation:** Fixed privacy issue where guest and Google account data was shared on same device
 - **ViewAllButton Styling:** Fixed invisible text in "View All" button for recent classifications
 - **AdWidget "Already in Tree" Error:** Fixed ad widget reuse causing development errors

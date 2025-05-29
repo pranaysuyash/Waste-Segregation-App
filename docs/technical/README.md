@@ -2,9 +2,10 @@
 
 This folder contains technical documentation for recent fixes and implementations.
 
-## 🚀 **Recent Bug Fixes** (2025-05-24)
+## 🚀 **Recent Bug Fixes** (2025-05-29)
 
 ### ✅ **Critical Issues Resolved**
+- **[History Duplication Fix](history_duplication_fix.md)** - Fixed issue where scanning one item created two history entries
 - **[Dashboard Display Fixes](dashboard_display_fixes.md)** - Charts now display properly, recent activities working, streak box formatted correctly
 - **[Achievement Unlock Timing Fix](achievement_unlock_timing_fix.md)** - Level-locked achievements now track progress correctly
 - **[Statistics Display Fix](statistics_display_fix.md)** - Consistent item counts between achievements and categories
@@ -35,11 +36,12 @@ This folder contains technical documentation for recent fixes and implementation
 
 ## 🔧 **Implementation Details**
 
-### **Latest Fixes (Version 0.1.4+96)**
-1. **Dashboard Display Issues**: Complete WebView chart overhaul with error handling
-2. **Achievement System**: Fixed timing issues with level-locked progress tracking  
-3. **Statistics Consistency**: Resolved points-to-items conversion discrepancies
-4. **UI/UX Polish**: Enhanced card layouts and responsive design
+### **Latest Fixes (Version 0.1.5+98)**
+1. **History Duplication Issue**: Fixed duplicate save operations causing multiple history entries
+2. **Dashboard Display Issues**: Complete WebView chart overhaul with error handling
+3. **Achievement System**: Fixed timing issues with level-locked progress tracking  
+4. **Statistics Consistency**: Resolved points-to-items conversion discrepancies
+5. **UI/UX Polish**: Enhanced card layouts and responsive design
 
 ### **Technical Improvements**
 - Enhanced WebView error handling with loading states
@@ -49,11 +51,12 @@ This folder contains technical documentation for recent fixes and implementation
 
 ## 📊 **Current Status**
 
-**Version:** 0.1.4+96  
-**Last Updated:** 2025-05-24  
+**Version:** 0.1.5+98  
+**Last Updated:** 2025-05-29  
 **Status:** ✅ All critical issues resolved
 
 ### **Ready for Production:**
+- ✅ History duplication issue completely resolved
 - ✅ Dashboard fully functional with proper chart display
 - ✅ Achievement system working correctly
 - ✅ Statistics display consistent across all screens

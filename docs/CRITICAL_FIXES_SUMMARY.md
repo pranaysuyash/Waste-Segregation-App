@@ -2,7 +2,27 @@
 
 ## ✅ **MAJOR FIXES COMPLETED** (May 2025)
 
-### 1. **Play Store Google Sign-In Certificate Crisis** 🚨 **CRITICAL**
+### 1. **History Duplication Bug** ✅ **RESOLVED**
+**Status**: **FIXED**
+**Files Modified**: `/lib/screens/result_screen.dart`, `/test/history_duplication_fix_test.dart`
+- **Issue**: Scanning and analyzing one item created two separate history entries
+- **Root Cause**: Duplicate `saveClassification()` calls in `initState()` method
+  - `_autoSaveClassification()` was saving the classification
+  - `_enhanceClassificationWithDisposalInstructions()` was also saving the classification
+- **Solution**: Consolidated save operations into single method call
+- **Pattern**:
+  ```dart
+  // ❌ BAD - Multiple saves create duplicates
+  _autoSaveClassification();
+  _enhanceClassificationWithDisposalInstructions(); // Also saves!
+  
+  // ✅ GOOD - Single save operation
+  _autoSaveClassification(); // Now handles enhancement internally
+  ```
+- **Impact**: Users now see exactly one history entry per scanned item
+- **Testing**: Added comprehensive test suite to verify fix
+
+### 2. **Play Store Google Sign-In Certificate Crisis** 🚨 **CRITICAL**
 **Status**: **IDENTIFIED - REQUIRES IMMEDIATE ACTION**
 - **Issue**: `PlatformException(sign_in_failed, error code: 10)` in Play Store internal testing
 - **Root Cause**: Play Store App Signing SHA-1 fingerprint missing from Firebase Console
@@ -12,7 +32,7 @@
 - **Time to Fix**: 10 minutes
 - **Files**: `android/app/google-services.json`, `fix_play_store_signin.sh`
 
-### 2. **State Management Crashes** ✅ **RESOLVED**
+### 3. **State Management Crashes** ✅ **RESOLVED**
 **Files Modified**: `/lib/services/ad_service.dart`
 - **Issue**: `setState() or markNeedsBuild() called during build` causing cascading UI failures
 - **Solution**: Updated `AdService` with `WidgetsBinding.instance.addPostFrameCallback()`
@@ -28,7 +48,7 @@
   ```
 - **Impact**: Zero crashes from state management issues
 
-### 3. **Collection Access Errors** ✅ **RESOLVED**
+### 4. **Collection Access Errors** ✅ **RESOLVED**
 **Files Modified**: `/lib/utils/safe_collection_utils.dart`, `/lib/screens/home_screen.dart`, `/lib/screens/result_screen.dart`
 - **Issue**: Multiple `Bad state: No element` exceptions crashing the app
 - **Solution**: Enhanced `SafeCollectionUtils` with comprehensive safe operations
@@ -44,7 +64,7 @@
   ```
 - **Impact**: Eliminated collection-based crashes throughout app
 
-### 4. **Interactive Tags System** ✅ **IMPLEMENTED**
+### 5. **Interactive Tags System** ✅ **IMPLEMENTED**
 **Files Created**: `/lib/widgets/interactive_tag.dart`
 - **Features**: Complete tag system with category, filter, info, and property tags
 - **Navigation**: Context-aware routing with proper back stack management
@@ -62,14 +82,14 @@
   ```
 - **Impact**: Rich interactive experience with educational value
 
-### 5. **UI/UX Contrast Issues** ✅ **RESOLVED**
+### 6. **UI/UX Contrast Issues** ✅ **RESOLVED**
 **Files Modified**: `/lib/screens/result_screen.dart`, `/lib/screens/home_screen.dart`, `/lib/widgets/interactive_tag.dart`
 - **Issue**: Poor readability with white text on light backgrounds
 - **Solutions**: Enhanced color contrast, text shadows, improved visual hierarchy
 - **Features**: High-contrast tag design, better typography, accessibility compliance
 - **Impact**: Professional, accessible UI throughout app
 
-### 6. **Performance Monitoring System** ✅ **IMPLEMENTED**
+### 7. **Performance Monitoring System** ✅ **IMPLEMENTED**
 **Files Created**: `/lib/utils/performance_monitor.dart`
 - **Features**: Operation timing, automatic threshold warnings, performance statistics
 - **Usage**:

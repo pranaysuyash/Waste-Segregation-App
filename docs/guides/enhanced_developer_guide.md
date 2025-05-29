@@ -104,15 +104,15 @@ flutterfire configure
 # Check for issues
 flutter doctor
 
-# Run on connected device/simulator
-flutter run
+# Run on connected device/simulator with environment variables
+flutter run --dart-define-from-file=.env
 
 # Run in debug mode with hot reload
-flutter run --debug
+flutter run --dart-define-from-file=.env --debug
 
 # Run on specific device
 flutter devices
-flutter run -d <device_id>
+flutter run --dart-define-from-file=.env -d <device_id>
 ```
 
 ## Project Architecture

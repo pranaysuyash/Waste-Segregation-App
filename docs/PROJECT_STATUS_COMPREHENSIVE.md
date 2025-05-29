@@ -1,8 +1,8 @@
 # 📊 Project Status - Waste Segregation App
 **Comprehensive Current State Assessment**
 
-**Last Updated**: May 28, 2025  
-**Version**: 0.1.5+97  
+**Last Updated**: May 29, 2025  
+**Version**: 0.1.5+98  
 **Status**: Production-Ready with Enhanced Social Features
 
 ---
@@ -131,6 +131,7 @@ A comprehensive waste management application that helps users:
 - ✅ **Engaging feedback** with points and achievements
 - ✅ **Offline capability** for low-connectivity areas
 - ✅ **Recently fixed** analysis cancellation bug
+- ✅ **Recently fixed** history duplication bug (one scan = one history entry)
 
 #### **Community & Insights** ⭐⭐⭐⭐☆
 **Social & Family Features:**

@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.1.5+98] - 2025-05-29
+
+### Critical Bug Fixes
+- **Fixed History Duplication Issue**: Resolved critical bug where scanning and analyzing one item created two separate history entries. The issue was caused by duplicate `saveClassification()` calls in the result screen's `initState()` method. Now users see exactly one history entry per scanned item.
+  - Root cause: Both `_autoSaveClassification()` and `_enhanceClassificationWithDisposalInstructions()` were saving classifications
+  - Solution: Consolidated save operations into single method call
+  - Files modified: `lib/screens/result_screen.dart`, `test/history_duplication_fix_test.dart`
+  - Added comprehensive test suite to verify fix and prevent regression
+
+### Documentation Updates
+- Updated all flutter run commands in documentation to use `--dart-define-from-file=.env` format
+- Enhanced developer guides with correct environment variable usage
+- Updated project status and critical fixes documentation
+
 ## [0.1.4+96] - 2025-05-24
 
 ### Critical Fixes

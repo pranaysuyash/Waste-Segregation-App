@@ -76,6 +76,18 @@ _Last updated: May 24, 2025_
    - **Files Modified**: `waste_classification.dart`, `storage_service.dart`
    - **Documentation**: `docs/fixes/user_data_isolation_fix.md`
 
+### 5.1. **History Duplication Bug** ✅ **RESOLVED**
+   - **Status**: **FIXED** - May 29, 2025
+   - **Issue**: Scanning and analyzing one item created two separate history entries
+   - **Root Cause**: Duplicate `saveClassification()` calls in `result_screen.dart` initState method
+     - `_autoSaveClassification()` was saving the classification
+     - `_enhanceClassificationWithDisposalInstructions()` was also saving the classification
+   - **Solution**: Consolidated save operations into single method call in `_autoSaveClassification()`
+   - **Resolution Date**: May 29, 2025
+   - **Files Modified**: `lib/screens/result_screen.dart`, `test/history_duplication_fix_test.dart`
+   - **Testing**: Added comprehensive test suite to verify fix
+   - **Impact**: Users now see exactly one history entry per scanned item
+
 ### 6. **Cross-Platform Data Sync**
    - **Issue**: Data from iOS and Android is not synchronized
    - **Root Cause**: Currently using local-only storage with Hive, not Firestore

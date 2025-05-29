@@ -65,7 +65,7 @@ API keys for Firebase services are managed through the `lib/firebase_options.dar
 1. **Connect an Android device** or start an emulator
 2. **Build and run**:
    ```bash
-   flutter run
+   flutter run --dart-define-from-file=.env
    ```
    
    Or for a release build:
@@ -85,7 +85,7 @@ API keys for Firebase services are managed through the `lib/firebase_options.dar
 1. **Connect an iOS device** or start a simulator
 2. **Build and run**:
    ```bash
-   flutter run
+   flutter run --dart-define-from-file=.env
    ```
    
    Or for a release build:
@@ -97,7 +97,7 @@ API keys for Firebase services are managed through the `lib/firebase_options.dar
 
 1. **Build and run**:
    ```bash
-   flutter run -d chrome
+   flutter run --dart-define-from-file=.env -d chrome
    ```
    
    Or for a release build:
