@@ -5,11 +5,14 @@ This folder contains technical documentation for recent fixes and implementation
 ## 🚀 **Recent Bug Fixes** (2025-05-29)
 
 ### ✅ **Critical Issues Resolved**
-- **[History Duplication Fix](history_duplication_fix.md)** - Fixed issue where scanning one item created two history entries
 - **[Dashboard Display Fixes](dashboard_display_fixes.md)** - Charts now display properly, recent activities working, streak box formatted correctly
 - **[Achievement Unlock Timing Fix](achievement_unlock_timing_fix.md)** - Level-locked achievements now track progress correctly
 - **[Statistics Display Fix](statistics_display_fix.md)** - Consistent item counts between achievements and categories
 - **[Play Store Sign-In Fix](PLAY_STORE_SIGNIN_FIX.md)** - Google Sign-In issue resolution for Play Store
+
+### 🔄 **Planned Fixes** (Next Releases)
+- **[History Duplication Fix](history_duplication_fix.md)** - Fix issue where scanning one item creates two history entries (v0.1.5+98)
+- **[Security Audit Fixes](security_audit_fixes.md)** - Comprehensive security vulnerabilities resolution (v0.1.5+99)
 
 ### 📋 **Fix Summaries**
 - **[Achievement Unlock Summary](achievement_unlock_fix_summary.md)** - Quick overview of achievement fixes
@@ -36,12 +39,25 @@ This folder contains technical documentation for recent fixes and implementation
 
 ## 🔧 **Implementation Details**
 
-### **Latest Fixes (Version 0.1.5+98)**
-1. **History Duplication Issue**: Fixed duplicate save operations causing multiple history entries
-2. **Dashboard Display Issues**: Complete WebView chart overhaul with error handling
-3. **Achievement System**: Fixed timing issues with level-locked progress tracking  
-4. **Statistics Consistency**: Resolved points-to-items conversion discrepancies
+### **Latest Fixes (Version 0.1.4+96 - Current Deployed)**
+1. **Dashboard Display Issues**: Complete WebView chart overhaul with error handling
+2. **Achievement System**: Fixed timing issues with level-locked progress tracking  
+3. **Statistics Consistency**: Resolved points-to-items conversion discrepancies
+4. **Build System**: Fixed critical compilation errors for iOS builds
 5. **UI/UX Polish**: Enhanced card layouts and responsive design
+
+### **Play Store Release (Version 0.1.5+97)**
+- **Reserved for Google Play Store submission**
+- **No functional changes from 0.1.4+96**
+- **Play Store compliance and metadata updates only**
+
+### **Next Development Release (Version 0.1.5+98)**
+1. **History Duplication Issue**: Fix duplicate save operations causing multiple history entries
+2. **Documentation Updates**: Update all flutter run commands to use environment file format
+
+### **Future Enhancements (Version 0.1.5+99)**
+1. **Security Vulnerabilities**: Fix all critical security issues identified in infosec audit
+2. **Network Security**: Implement HTTPS-only communication and proper security attributes
 
 ### **Technical Improvements**
 - Enhanced WebView error handling with loading states
@@ -51,16 +67,32 @@ This folder contains technical documentation for recent fixes and implementation
 
 ## 📊 **Current Status**
 
-**Version:** 0.1.5+98  
-**Last Updated:** 2025-05-29  
-**Status:** ✅ All critical issues resolved
+**Version:** 0.1.4+96 (Current Deployed Release)  
+**Play Store Version:** 0.1.5+97 (Reserved)  
+**Last Updated:** 2025-05-24  
+**Status:** ✅ Production Ready
 
-### **Ready for Production:**
-- ✅ History duplication issue completely resolved
+### **Production Ready Features:**
 - ✅ Dashboard fully functional with proper chart display
 - ✅ Achievement system working correctly
 - ✅ Statistics display consistent across all screens
+- ✅ iOS build process verified and stable
 - ✅ Comprehensive error handling and loading states
+
+### **Play Store Release (0.1.5+97) - Reserved:**
+- 🏪 Version reserved for Google Play Store submission
+- 🏪 Based on stable 0.1.4+96 with Play Store compliance updates
+- 🏪 No functional changes from current deployed version
+
+### **Next Development Release (0.1.5+98) - Planned:**
+- 🔄 History duplication issue fix
+- 🔄 Documentation updates for environment variables
+- 🔄 Enhanced test coverage
+
+### **Future Release (0.1.5+99) - Planned:**
+- 🔄 Security audit fixes implementation
+- 🔄 HTTPS-only network communication
+- 🔄 Android minimum SDK update for security
 
 ### **Test Coverage:**
 - ✅ Statistics calculation tests
