@@ -56,7 +56,6 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
     // Process the classification for gamification only if it's a new classification
     if (widget.showActions) {
       _autoSaveClassification();
-      _enhanceClassificationWithDisposalInstructions();
       _processClassification();
     } else {
       _showingClassificationFeedback = false;
@@ -64,19 +63,14 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
   }
   
   // Enhance classification with disposal instructions if not already present
-  Future<void> _enhanceClassificationWithDisposalInstructions() async {
+  Future<WasteClassification> _enhanceClassificationWithDisposalInstructions() async {
+    // This method is now called from within _autoSaveClassification to prevent duplicate saves
     if (widget.classification.disposalInstructions == null) {
       // Generate disposal instructions for this classification
       final enhancedClassification = widget.classification; // Already has disposal instructions
-      
-      // Update the classification in storage with disposal instructions
-      try {
-        final storageService = Provider.of<StorageService>(context, listen: false);
-        await storageService.saveClassification(enhancedClassification);
-      } catch (e, stackTrace) {
-        ErrorHandler.handleError(e, stackTrace);
-      }
+      return enhancedClassification;
     }
+    return widget.classification;
   }
   
   @override
@@ -95,7 +89,12 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
 
     try {
       final storageService = Provider.of<StorageService>(context, listen: false);
-      final savedClassification = widget.classification.copyWith(isSaved: true);
+      
+      // Enhance classification with disposal instructions if needed
+      final enhancedClassification = await _enhanceClassificationWithDisposalInstructions();
+      
+      // Save the enhanced classification with isSaved flag
+      final savedClassification = enhancedClassification.copyWith(isSaved: true);
       await storageService.saveClassification(savedClassification);
 
       if (mounted) {
