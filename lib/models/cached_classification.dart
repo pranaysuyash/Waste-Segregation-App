@@ -2,6 +2,8 @@ import 'dart:convert';
 import 'package:hive/hive.dart';
 import 'package:waste_segregation_app/models/waste_classification.dart';
 
+part 'cached_classification.g.dart';
+
 /// Model for cached image classifications
 /// 
 /// This model stores classification results for previously analyzed images

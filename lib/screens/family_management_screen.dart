@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../models/enhanced_family.dart';
-import '../models/user_profile.dart';
-import '../models/family_invitation.dart';
+import '../models/enhanced_family.dart' as family_models;
+import '../models/user_profile.dart' as user_models;
+import '../models/family_invitation.dart' as invitation_models;
 import '../services/firebase_family_service.dart';
 import '../services/storage_service.dart';
 import '../utils/constants.dart';
 
 class FamilyManagementScreen extends StatefulWidget {
-  final Family family;
+  final family_models.Family family;
 
   const FamilyManagementScreen({
     super.key,
@@ -22,22 +22,16 @@ class FamilyManagementScreen extends StatefulWidget {
 class _FamilyManagementScreenState extends State<FamilyManagementScreen>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
-  // bool _isLoading = false; // Replaced by StreamBuilder states
-  List<UserProfile> _members = []; // Will be populated by a StreamBuilder
-  List<FamilyInvitation> _invitations = []; // Will be populated by a StreamBuilder
-  UserProfile? _currentUser;
-  final _familyService = FirebaseFamilyService();
-
-  // To hold the current family data, updated by stream
-  late Family _currentFamily;
+  user_models.UserProfile? _currentUser;
+  final FirebaseFamilyService _familyService = FirebaseFamilyService();
+  late family_models.Family _currentFamily;
 
   @override
   void initState() {
     super.initState();
-    _currentFamily = widget.family; // Initialize with passed data
+    _currentFamily = widget.family;
     _tabController = TabController(length: 3, vsync: this);
-    _loadInitialUserData(); // For _currentUser
-    // _loadData(); // Will be replaced by StreamBuilders
+    _loadInitialUserData();
   }
 
   @override
@@ -47,12 +41,11 @@ class _FamilyManagementScreenState extends State<FamilyManagementScreen>
   }
 
   Future<void> _loadInitialUserData() async {
-    // Only load current user profile initially, other data will be streamed
     try {
       final storageService = Provider.of<StorageService>(context, listen: false);
       _currentUser = await storageService.getCurrentUserProfile();
       if (mounted) {
-        setState(() {}); // Update UI if needed after getting current user
+        setState(() {});
       }
     } catch (e) {
       if (mounted) {
@@ -63,21 +56,16 @@ class _FamilyManagementScreenState extends State<FamilyManagementScreen>
     }
   }
 
-  // Placeholder for refreshing data, might be used by RefreshIndicator
   Future<void> _handleRefresh() async {
     await _loadInitialUserData();
-    // Streams will auto-refresh, but if members/invitations also need manual refresh trigger:
-    // This might involve re-subscribing or using a StreamController if not directly using Firestore streams.
-    // For now, Firestore streams handle their own updates.
-    setState(() {}); // Cause a rebuild to pick up any changes from _loadInitialUserData
+    setState(() {});
   }
-
 
   @override
   Widget build(BuildContext context) {
-    return StreamBuilder<Family?>(
+    return StreamBuilder<family_models.Family?>(
       stream: _familyService.getFamilyStream(widget.family.id),
-      initialData: _currentFamily, // Use initial family data
+      initialData: _currentFamily,
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting && !snapshot.hasData) {
           return Scaffold(
@@ -94,14 +82,12 @@ class _FamilyManagementScreenState extends State<FamilyManagementScreen>
         }
 
         if (snapshot.hasData && snapshot.data != null) {
-          _currentFamily = snapshot.data!; // Update _currentFamily with the latest from stream
+          _currentFamily = snapshot.data!;
         }
-        // If snapshot.data is null (e.g., family deleted), _currentFamily retains last known good state or initial.
-        // Consider how to handle if family is deleted while on this screen. For now, assumes it exists.
 
         return Scaffold(
           appBar: AppBar(
-            title: Text('Manage ${_currentFamily.name}'), // Use _currentFamily
+            title: Text('Manage ${_currentFamily.name}'),
             bottom: TabBar(
               controller: _tabController,
               tabs: const [
@@ -114,9 +100,9 @@ class _FamilyManagementScreenState extends State<FamilyManagementScreen>
           body: TabBarView(
             controller: _tabController,
             children: [
-              _buildMembersTab(_currentFamily), // Pass _currentFamily
-              _buildInvitationsTab(_currentFamily), // Pass _currentFamily
-              _buildSettingsTab(_currentFamily), // Pass _currentFamily
+              _buildMembersTab(_currentFamily),
+              _buildInvitationsTab(_currentFamily),
+              _buildSettingsTab(_currentFamily),
             ],
           ),
         );
@@ -124,8 +110,8 @@ class _FamilyManagementScreenState extends State<FamilyManagementScreen>
     );
   }
 
-  Widget _buildMembersTab(Family family) { // Now takes Family
-    return StreamBuilder<List<UserProfile>>(
+  Widget _buildMembersTab(family_models.Family family) {
+    return StreamBuilder<List<user_models.UserProfile>>(
       stream: _familyService.getFamilyMembersStream(family.id),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
@@ -140,7 +126,7 @@ class _FamilyManagementScreenState extends State<FamilyManagementScreen>
         }
 
         return RefreshIndicator(
-          onRefresh: _handleRefresh, // Manual refresh can still be useful
+          onRefresh: _handleRefresh,
           child: ListView.builder(
             padding: const EdgeInsets.all(AppTheme.paddingRegular),
             itemCount: members.length,
@@ -151,130 +137,132 @@ class _FamilyManagementScreenState extends State<FamilyManagementScreen>
               final canModify = _canModifyMember(family, memberProfile.id);
 
               return Card(
-            margin: const EdgeInsets.only(bottom: AppTheme.paddingRegular),
-            child: ListTile(
-              leading: CircleAvatar(
-                backgroundColor: AppTheme.primaryColor.withOpacity(0.1),
-                backgroundImage: member.photoUrl != null
-                    ? NetworkImage(member.photoUrl!)
-                    : null,
-                child: member.photoUrl == null
-                    ? Text(member.displayName?.substring(0, 1) ?? 'U')
-                    : null,
-              ),
-              title: Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      member.displayName ?? 'Unknown User',
-                      style: const TextStyle(fontWeight: FontWeight.bold),
-                    ),
+                margin: const EdgeInsets.only(bottom: AppTheme.paddingRegular),
+                child: ListTile(
+                  leading: CircleAvatar(
+                    backgroundColor: AppTheme.primaryColor.withOpacity(0.1),
+                    backgroundImage: memberProfile.photoUrl != null
+                        ? NetworkImage(memberProfile.photoUrl!)
+                        : null,
+                    child: memberProfile.photoUrl == null
+                        ? Text(memberProfile.displayName?.substring(0, 1) ?? 'U')
+                        : null,
                   ),
-                  if (isCurrentUser)
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 2,
-                      ),
-                      decoration: BoxDecoration(
-                        color: Colors.blue.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: const Text(
-                        'You',
-                        style: TextStyle(
-                          color: Colors.blue,
-                          fontSize: 12,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                ],
-              ),
-              subtitle: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(member.email ?? 'No email'),
-                  const SizedBox(height: 4),
-                  Row(
+                  title: Row(
                     children: [
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 2,
-                        ),
-                        decoration: BoxDecoration(
-                          color: _getRoleColor(familyMember?.role ?? UserRole.member),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
+                      Expanded(
                         child: Text(
-                          _getRoleText(familyMember?.role ?? UserRole.member),
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 12,
-                            fontWeight: FontWeight.bold,
+                          memberProfile.displayName ?? 'Unknown User',
+                          style: const TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                      ),
+                      if (isCurrentUser)
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 2,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.blue.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: const Text(
+                            'You',
+                            style: TextStyle(
+                              color: Colors.blue,
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
                         ),
-                      ),
-                      const SizedBox(width: 8),
-                      Text(
-                        'Joined ${_formatDate(familyMember?.joinedAt ?? DateTime.now())}',
-                        style: const TextStyle(
-                          fontSize: 12,
-                          color: AppTheme.textSecondaryColor,
-                        ),
-                      ),
                     ],
                   ),
-                  if (familyMember != null)
-                    Text(
-                      '${familyMember.individualStats.totalPoints} points • '
-                      '${familyMember.individualStats.totalClassifications} classifications',
-                      style: const TextStyle(
-                        fontSize: 12,
-                        color: AppTheme.textSecondaryColor,
+                  subtitle: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(memberProfile.email ?? 'No email'),
+                      const SizedBox(height: 4),
+                      Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 2,
+                            ),
+                            decoration: BoxDecoration(
+                              color: _getRoleColor(familyMemberData?.role ?? family_models.UserRole.member),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Text(
+                              _getRoleText(familyMemberData?.role ?? family_models.UserRole.member),
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 12,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            'Joined ${_formatDate(familyMemberData?.joinedAt ?? DateTime.now())}',
+                            style: const TextStyle(
+                              fontSize: 12,
+                              color: AppTheme.textSecondaryColor,
+                            ),
+                          ),
+                        ],
                       ),
-                    ),
-                ],
-              ),
-              trailing: canModify
-                  ? PopupMenuButton<String>(
-                      onSelected: (value) => _handleMemberAction(value, member),
-                      itemBuilder: (context) => [
-                        if (!isCurrentUser && _canChangeRole(member.id))
-                          const PopupMenuItem(
-                            value: 'change_role',
-                            child: Row(
-                              children: [
-                                Icon(Icons.admin_panel_settings),
-                                SizedBox(width: 8),
-                                Text('Change Role'),
-                              ],
-                            ),
+                      if (familyMemberData != null)
+                        Text(
+                          '${familyMemberData.individualStats.totalPoints} points • '
+                          '${familyMemberData.individualStats.totalClassifications} classifications',
+                          style: const TextStyle(
+                            fontSize: 12,
+                            color: AppTheme.textSecondaryColor,
                           ),
-                        if (!isCurrentUser && _canRemoveMember(member.id))
-                          const PopupMenuItem(
-                            value: 'remove',
-                            child: Row(
-                              children: [
-                                Icon(Icons.remove_circle, color: Colors.red),
-                                SizedBox(width: 8),
-                                Text('Remove', style: TextStyle(color: Colors.red)),
-                              ],
-                            ),
-                          ),
-                      ],
-                    )
-                  : null,
-            ),
-          );
-        },
-      ),
+                        ),
+                    ],
+                  ),
+                  trailing: canModify
+                      ? PopupMenuButton<String>(
+                          onSelected: (value) => _handleMemberAction(value, memberProfile, family),
+                          itemBuilder: (context) => [
+                            if (!isCurrentUser && _canChangeRole(family, memberProfile.id))
+                              const PopupMenuItem(
+                                value: 'change_role',
+                                child: Row(
+                                  children: [
+                                    Icon(Icons.admin_panel_settings),
+                                    SizedBox(width: 8),
+                                    Text('Change Role'),
+                                  ],
+                                ),
+                              ),
+                            if (!isCurrentUser && _canRemoveMember(family, memberProfile.id))
+                              const PopupMenuItem(
+                                value: 'remove',
+                                child: Row(
+                                  children: [
+                                    Icon(Icons.remove_circle, color: Colors.red),
+                                    SizedBox(width: 8),
+                                    Text('Remove', style: TextStyle(color: Colors.red)),
+                                  ],
+                                ),
+                              ),
+                          ],
+                        )
+                      : null,
+                ),
+              );
+            },
+          ),
+        );
+      },
     );
   }
 
-  Widget _buildInvitationsTab(Family family) { // Now takes Family
-    return StreamBuilder<List<FamilyInvitation>>(
+  Widget _buildInvitationsTab(family_models.Family family) {
+    return StreamBuilder<List<invitation_models.FamilyInvitation>>(
       stream: _familyService.getInvitationsStream(family.id),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
@@ -285,574 +273,550 @@ class _FamilyManagementScreenState extends State<FamilyManagementScreen>
         }
         final invitations = snapshot.data ?? [];
         if (invitations.isEmpty) {
-          return const Center(
-            child: Padding(
-              padding: EdgeInsets.all(AppTheme.paddingLarge),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    Icons.mail_outline,
-                    size: 64,
-                    color: AppTheme.textSecondaryColor,
-                  ),
-                  SizedBox(height: AppTheme.paddingRegular),
-                  Text(
-                    'No pending invitations',
-                    style: TextStyle(
-                      fontSize: AppTheme.fontSizeMedium,
-                      color: AppTheme.textSecondaryColor,
-                    ),
-                  ),
-                ],
-              ),
+          return Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Text('No pending invitations.'),
+                const SizedBox(height: AppTheme.paddingLarge),
+                ElevatedButton.icon(
+                  icon: const Icon(Icons.add_circle_outline),
+                  label: const Text('Invite Member'),
+                  onPressed: () => _showInviteDialog(family),
+                ),
+              ],
             ),
           );
         }
 
         return RefreshIndicator(
-          onRefresh: _handleRefresh, // Manual refresh
+          onRefresh: _handleRefresh,
           child: ListView.builder(
             padding: const EdgeInsets.all(AppTheme.paddingRegular),
             itemCount: invitations.length,
             itemBuilder: (context, index) {
               final invitation = invitations[index];
-              final isExpired = invitation.expiresAt.isBefore(DateTime.now());
+              final canManage = _canManageInvitations(family);
 
               return Card(
-            margin: const EdgeInsets.only(bottom: AppTheme.paddingRegular),
-            child: ListTile(
-              leading: CircleAvatar(
-                backgroundColor: isExpired
-                    ? Colors.red.withOpacity(0.1)
-                    : AppTheme.primaryColor.withOpacity(0.1),
-                child: Icon(
-                  isExpired ? Icons.error : Icons.mail,
-                  color: isExpired ? Colors.red : AppTheme.primaryColor,
-                ),
-              ),
-              title: Text(invitation.invitedEmail),
-              subtitle: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
+                margin: const EdgeInsets.only(bottom: AppTheme.paddingRegular),
+                child: ListTile(
+                  leading: const CircleAvatar(child: Icon(Icons.mail_outline)),
+                  title: Text(invitation.invitedEmail),
+                  subtitle: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 2,
-                        ),
-                        decoration: BoxDecoration(
-                          color: _getRoleColor(invitation.roleToAssign),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Text(
-                          _getRoleText(invitation.roleToAssign),
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 12,
-                            fontWeight: FontWeight.bold,
+                      Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 2,
+                            ),
+                            decoration: BoxDecoration(
+                              color: _getRoleColor(_convertUserRole(invitation.roleToAssign)),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Text(
+                              _getRoleText(_convertUserRole(invitation.roleToAssign)),
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 12,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
                           ),
-                        ),
+                          const SizedBox(width: 8),
+                          if (invitation.status == invitation_models.InvitationStatus.pending)
+                            const Chip(label: Text('Pending'), backgroundColor: Colors.orangeAccent),
+                          if (invitation.status == invitation_models.InvitationStatus.accepted)
+                            const Chip(label: Text('Accepted'), backgroundColor: Colors.greenAccent),
+                          if (invitation.status == invitation_models.InvitationStatus.declined)
+                            const Chip(label: Text('Declined'), backgroundColor: Colors.redAccent),
+                        ],
                       ),
-                      const SizedBox(width: 8),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 2,
-                        ),
-                        decoration: BoxDecoration(
-                          color: isExpired ? Colors.red : Colors.orange,
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Text(
-                          isExpired ? 'Expired' : 'Pending',
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 12,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
+                      Text('Invited ${_formatDate(invitation.createdAt)}'),
+                      if (invitation.expiresAt.isAfter(DateTime.now()))
+                        Text('Expires ${_formatDate(invitation.expiresAt)}', style: const TextStyle(color: Colors.redAccent))
+                      else
+                        const Text('Expired', style: TextStyle(color: Colors.grey)),
                     ],
                   ),
-                  const SizedBox(height: 4),
-                  Text(
-                    'Invited ${_formatDate(invitation.createdAt)}',
-                    style: const TextStyle(
-                      fontSize: 12,
-                      color: AppTheme.textSecondaryColor,
-                    ),
-                  ),
-                  Text(
-                    'Expires ${_formatDate(invitation.expiresAt)}',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: isExpired ? Colors.red : AppTheme.textSecondaryColor,
-                    ),
-                  ),
-                ],
-              ),
-              trailing: _canManageInvitations()
-                  ? PopupMenuButton<String>(
-                      onSelected: (value) => _handleInvitationAction(value, invitation),
-                      itemBuilder: (context) => [
-                        if (!isExpired && invitation.status == InvitationStatus.pending)
-                        if (!isExpired && invitation.status == InvitationStatus.pending && _canManageInvitations(family))
-                          const PopupMenuItem(
-                            value: 'resend',
-                            child: Row(
-                              children: [
-                                Icon(Icons.send),
-                                SizedBox(width: 8),
-                                Text('Resend'),
-                              ],
+                  trailing: canManage && invitation.status == invitation_models.InvitationStatus.pending
+                      ? PopupMenuButton<String>(
+                          onSelected: (value) => _handleInvitationAction(value, invitation, family),
+                          itemBuilder: (context) => [
+                            const PopupMenuItem(
+                              value: 'resend',
+                              child: Row(
+                                children: [
+                                  Icon(Icons.send),
+                                  SizedBox(width: 8),
+                                  Text('Resend Invitation'),
+                                ],
+                              ),
                             ),
+                            const PopupMenuItem(
+                              value: 'cancel',
+                              child: Row(
+                                children: [
+                                  Icon(Icons.cancel_outlined),
+                                  SizedBox(width: 8),
+                                  Text('Cancel Invitation'),
+                                ],
+                              ),
                             ),
-                        if (_canManageInvitations(family)) // Cancel can always be shown if manager
-                          const PopupMenuItem(
-                            value: 'cancel',
-                            child: Row(
-                              children: [
-                                Icon(Icons.cancel, color: Colors.red),
-                                SizedBox(width: 8),
-                                Text('Cancel', style: TextStyle(color: Colors.red)),
-                              ],
-                            ),
-                          ),
-                      ],
-                    )
-                  : null, // No actions if not manager
+                          ],
+                        )
+                      : null,
+                ),
+              );
+            },
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildSettingsTab(family_models.Family family) {
+    final currentFamilyData = family;
+    bool canModify = _canModifySettings(currentFamilyData);
+
+    return RefreshIndicator(
+      onRefresh: _handleRefresh,
+      child: ListView(
+        padding: const EdgeInsets.all(AppTheme.paddingRegular),
+        children: [
+          Card(
+            child: ListTile(
+              leading: const Icon(Icons.edit),
+              title: const Text('Family Name'),
+              subtitle: Text(currentFamilyData.name),
+              trailing: canModify ? const Icon(Icons.chevron_right) : null,
+              onTap: canModify ? () => _editFamilyName(currentFamilyData) : null,
             ),
-          );
-        },
+          ),
+          Card(
+            child: ListTile(
+              leading: const Icon(Icons.copy_all_outlined),
+              title: const Text('Family ID'),
+              subtitle: Text(currentFamilyData.id),
+              trailing: const Icon(Icons.copy),
+              onTap: () => _copyFamilyId(currentFamilyData),
+            ),
+          ),
+          Card(
+            child: ListTile(
+              leading: const Icon(Icons.description_outlined),
+              title: const Text('Family Description'),
+              subtitle: Text(currentFamilyData.description ?? 'No description'),
+              trailing: canModify ? const Icon(Icons.chevron_right) : null,
+              onTap: canModify ? () => _editFamilyDescription(currentFamilyData) : null,
+            ),
+          ),
+          SwitchListTile(
+            secondary: const Icon(Icons.public),
+            title: const Text('Public Family'),
+            subtitle: const Text('Allow non-members to view family stats (anonymized)'),
+            value: currentFamilyData.isPublic,
+            onChanged: canModify ? (value) => _togglePublicFamily(currentFamilyData, value) : null,
+          ),
+          SwitchListTile(
+            secondary: const Icon(Icons.share_outlined),
+            title: const Text('Share Classifications Publicly'),
+            subtitle: const Text('Allow family classifications to appear in global anonymous feed'),
+            value: currentFamilyData.settings.shareClassificationsPublicly,
+            onChanged: canModify ? (value) => _toggleShareClassifications(currentFamilyData, value) : null,
+          ),
+          SwitchListTile(
+            secondary: const Icon(Icons.visibility_outlined),
+            title: const Text('Show Member Activity in Feed'),
+            subtitle: const Text('Display individual member classifications in the family feed'),
+            value: currentFamilyData.settings.showMemberActivityInFeed,
+            onChanged: canModify ? (value) => _toggleShowMemberActivity(currentFamilyData, value) : null,
+          ),
+          ListTile(
+            leading: const Icon(Icons.leaderboard_outlined),
+            title: const Text('Family Leaderboard Visibility'),
+            subtitle: Text(currentFamilyData.settings.leaderboardVisibility.toString().split('.').last),
+            trailing: canModify ? const Icon(Icons.chevron_right) : null,
+            onTap: canModify ? () => _showLeaderboardVisibilityDialog(currentFamilyData) : null,
+          ),
+          if (_isAdmin(currentFamilyData))
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: AppTheme.paddingLarge),
+              child: TextButton.icon(
+                icon: const Icon(Icons.delete_forever, color: Colors.red),
+                label: const Text('Delete Family', style: TextStyle(color: Colors.red)),
+                onPressed: () => _deleteFamily(currentFamilyData),
+              ),
+            ),
+        ],
       ),
     );
   }
 
-  Widget _buildSettingsTab() {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(AppTheme.paddingRegular),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Family Information
-          Card(
-            child: Padding(
-              padding: const EdgeInsets.all(AppTheme.paddingRegular),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+  void _handleMemberAction(String action, user_models.UserProfile member, family_models.Family family) {
+    if (action == 'change_role') {
+      _showChangeRoleDialog(family, member);
+    } else if (action == 'remove') {
+      _showRemoveMemberDialog(family, member);
+    }
+  }
+
+  void _handleInvitationAction(String action, invitation_models.FamilyInvitation invitation, family_models.Family family) {
+    if (action == 'resend') {
+      _resendInvitation(invitation, family);
+    } else if (action == 'cancel') {
+      _cancelInvitation(invitation, family);
+    }
+  }
+
+  bool _canModifyMember(family_models.Family family, String memberId) {
+    final currentUserMemberData = family.getMember(_currentUser?.id ?? '');
+    return currentUserMemberData?.role == family_models.UserRole.admin || currentUserMemberData?.role == family_models.UserRole.moderator;
+  }
+
+  bool _canChangeRole(family_models.Family family, String memberId) {
+    final currentUserMemberData = family.getMember(_currentUser?.id ?? '');
+    return currentUserMemberData?.role == family_models.UserRole.admin;
+  }
+
+  bool _canRemoveMember(family_models.Family family, String memberId) {
+    final currentUserMemberData = family.getMember(_currentUser?.id ?? '');
+    if (currentUserMemberData?.userId == memberId) return false;
+    return currentUserMemberData?.role == family_models.UserRole.admin || 
+           (currentUserMemberData?.role == family_models.UserRole.moderator && family.getMember(memberId)?.role == family_models.UserRole.member);
+  }
+
+  bool _canManageInvitations(family_models.Family family) {
+    final currentUserMemberData = family.getMember(_currentUser?.id ?? '');
+    return currentUserMemberData?.role == family_models.UserRole.admin || currentUserMemberData?.role == family_models.UserRole.moderator;
+  }
+
+  bool _canModifySettings(family_models.Family family) {
+    final currentUserMemberData = family.getMember(_currentUser?.id ?? '');
+    return currentUserMemberData?.role == family_models.UserRole.admin;
+  }
+
+  bool _isAdmin(family_models.Family family) {
+    final currentUserMemberData = family.getMember(_currentUser?.id ?? '');
+    return currentUserMemberData?.role == family_models.UserRole.admin;
+  }
+
+  Future<void> _showInviteDialog(family_models.Family family) async {
+    final emailController = TextEditingController();
+    family_models.UserRole roleToAssign = family_models.UserRole.member;
+
+    await showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Invite New Member'),
+          content: StatefulBuilder(
+            builder: (BuildContext context, StateSetter setState) {
+              return Column(
+                mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Text(
-                    'Family Information',
-                    style: TextStyle(
-                      fontSize: AppTheme.fontSizeMedium,
-                      fontWeight: FontWeight.bold,
-                    ),
+                  TextField(
+                    controller: emailController,
+                    decoration: const InputDecoration(labelText: 'Email Address'),
+                    keyboardType: TextInputType.emailAddress,
                   ),
                   const SizedBox(height: AppTheme.paddingRegular),
-                  ListTile(
-                    leading: const Icon(Icons.edit),
-                    title: const Text('Family Name'),
-                    subtitle: Text(family.name), // Use family from StreamBuilder
-                    trailing: const Icon(Icons.chevron_right),
-                    onTap: () => _editFamilyName(family), // Pass family
-                  ),
-                  ListTile(
-                    leading: const Icon(Icons.info),
-                    title: const Text('Family ID'),
-                    subtitle: Text(family.id), // Use family from StreamBuilder
-                    trailing: IconButton(
-                      icon: const Icon(Icons.copy),
-                      onPressed: () => _copyFamilyId(family), // Pass family
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-
-          const SizedBox(height: AppTheme.paddingLarge),
-
-          // Privacy Settings
-          Card(
-            child: Padding(
-              padding: const EdgeInsets.all(AppTheme.paddingRegular),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'Privacy Settings',
-                    style: TextStyle(
-                      fontSize: AppTheme.fontSizeMedium,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: AppTheme.paddingRegular),
-                  SwitchListTile(
-                    title: const Text('Public Family'),
-                    subtitle: const Text('Allow others to find and join your family'),
-                    value: family.settings.isPublic, // Use family from StreamBuilder
-                    onChanged: _canModifySettings(family) ? (value) => _togglePublicFamily(family, value) : null,
-                  ),
-                  SwitchListTile(
-                    title: const Text('Share Classifications'),
-                    subtitle: const Text('Share waste classifications with family members'),
-                    value: family.settings.shareClassifications, // Use family from StreamBuilder
-                    onChanged: _canModifySettings(family) ? (value) => _toggleShareClassifications(family, value) : null,
-                  ),
-                  SwitchListTile(
-                    title: const Text('Show Member Activity'),
-                    subtitle: const Text('Show individual member activity to all'),
-                    value: family.settings.showMemberActivity, // Use family from StreamBuilder
-                    onChanged: _canModifySettings(family) ? (value) => _toggleShowMemberActivity(family, value) : null,
+                  DropdownButtonFormField<family_models.UserRole>(
+                    decoration: const InputDecoration(labelText: 'Assign Role'),
+                    value: roleToAssign,
+                    items: family_models.UserRole.values.map((family_models.UserRole role) {
+                      return DropdownMenuItem<family_models.UserRole>(
+                        value: role,
+                        child: Text(_getRoleText(role)),
+                      );
+                    }).toList(),
+                    onChanged: (family_models.UserRole? newValue) {
+                      if (newValue != null) {
+                        setState(() {
+                          roleToAssign = newValue;
+                        });
+                      }
+                    },
                   ),
                 ],
-              ),
-            ),
+              );
+            }
           ),
+          actions: [
+            TextButton(
+              child: const Text('Cancel'),
+              onPressed: () => Navigator.of(context).pop(),
+            ),
+            ElevatedButton(
+              child: const Text('Send Invite'),
+              onPressed: () async {
+                if (emailController.text.isNotEmpty) {
+                  Navigator.of(context).pop();
+                  await _sendInvitation(family, emailController.text, roleToAssign);
+                }
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
 
-          const SizedBox(height: AppTheme.paddingLarge),
+  Future<void> _sendInvitation(family_models.Family family, String email, family_models.UserRole role) async {
+    try {
+      final inviteRole = _convertToUserRole(role);
+      await _familyService.createInvitation(family.id, _currentUser?.id ?? '', email, inviteRole);
+      if(mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Invitation sent!')));
+    } catch (e) {
+      if(mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to send invitation: ${e.toString()}')));
+    }
+  }
 
-          // Danger Zone
-          if (_isAdmin(family)) // Pass family
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.all(AppTheme.paddingRegular),
+  Future<void> _showChangeRoleDialog(family_models.Family family, user_models.UserProfile member) async {
+    family_models.UserRole? selectedRole = family.getMember(member.id)?.role;
+    await showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text('Change Role for ${member.displayName}'),
+          content: DropdownButton<family_models.UserRole>(
+            value: selectedRole,
+            items: family_models.UserRole.values.map((family_models.UserRole role) {
+              return DropdownMenuItem<family_models.UserRole>(
+                value: role,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
-                      'Danger Zone',
-                      style: TextStyle(
-                        fontSize: AppTheme.fontSizeMedium,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.red,
-                      ),
-                    ),
-                    const SizedBox(height: AppTheme.paddingRegular),
-                    ListTile(
-                      leading: const Icon(Icons.delete_forever, color: Colors.red),
-                      title: const Text(
-                        'Delete Family',
-                        style: TextStyle(color: Colors.red),
-                      ),
-                      subtitle: const Text(
-                        'Permanently delete this family and all associated data',
-                      ),
-                      onTap: () => _deleteFamily(),
-                    ),
+                    Text(_getRoleText(role)),
+                    Text(_getRoleDescription(role), style: Theme.of(context).textTheme.bodySmall),
                   ],
-                ),
-              ),
+                )
+              );
+            }).toList(),
+            onChanged: (family_models.UserRole? newValue) {
+              selectedRole = newValue;
+            },
+          ),
+          actions: [
+            TextButton(
+              child: const Text('Cancel'),
+              onPressed: () => Navigator.of(context).pop(),
             ),
-        ],
-      ),
+            ElevatedButton(
+              child: const Text('Confirm Change'),
+              onPressed: () async {
+                if (selectedRole != null) {
+                  Navigator.of(context).pop();
+                  await _changeRole(family, member.id, selectedRole!);
+                }
+              },
+            ),
+          ],
+        );
+      },
     );
   }
 
-  // Member management methods
-  bool _canModifyMember(Family family, String memberId) { // Pass family
-    return _isAdmin(family) && _currentUser?.id != memberId;
-  }
-
-  bool _canChangeRole(Family family, String memberId) { // Pass family
-    return _isAdmin(family) && _currentUser?.id != memberId;
-  }
-
-  bool _canRemoveMember(Family family, String memberId) { // Pass family
-    return _isAdmin(family) && _currentUser?.id != memberId;
-  }
-
-  bool _canManageInvitations(Family family) { // Pass family
-    return _isAdmin(family);
-  }
-
-  bool _canModifySettings(Family family) { // Pass family
-    return _isAdmin(family);
-  }
-
-  bool _isAdmin(Family family) { // Pass family
-    final currentMember = family.getMember(_currentUser?.id ?? '');
-    return currentMember?.role == UserRole.admin;
-  }
-
-  void _handleMemberAction(Family family, String action, UserProfile member) { // Pass family
-    switch (action) {
-      case 'change_role':
-        _showChangeRoleDialog(family, member); // Pass family
-        break;
-      case 'remove':
-        _showRemoveMemberDialog(family, member); // Pass family
-        break;
-    }
-  }
-
-  void _handleInvitationAction(String action, FamilyInvitation invitation) {
-    switch (action) {
-      case 'resend':
-        _resendInvitation(invitation);
-        break;
-      case 'cancel':
-        _cancelInvitation(invitation);
-        break;
-    }
-  }
-
-  Future<void> _showChangeRoleDialog(Family family, UserProfile member) async { // Pass family
-    final currentFamilyMember = family.getMember(member.id); // Use passed family
-    if (currentFamilyMember == null) return;
-
-    UserRole? newRole = await showDialog<UserRole>(
+  Future<void> _showRemoveMemberDialog(family_models.Family family, user_models.UserProfile member) async {
+    await showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Text('Change Role for ${member.displayName ?? 'Unknown'}'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: UserRole.values.map((role) {
-            return RadioListTile<UserRole>(
-              title: Text(_getRoleText(role)),
-              subtitle: Text(_getRoleDescription(role)),
-              value: role,
-              groupValue: currentFamilyMember.role, // Use currentFamilyMember
-              onChanged: (value) => Navigator.of(context).pop(value),
-            );
-          }).toList(),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Cancel'),
-          ),
-        ],
-      ),
+      builder: (context) {
+        return AlertDialog(
+          title: Text('Remove ${member.displayName}?'),
+          content: Text('Are you sure you want to remove ${member.displayName} from the family? This action cannot be undone.'),
+          actions: [
+            TextButton(
+              child: const Text('Cancel'),
+              onPressed: () => Navigator.of(context).pop(),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+              child: const Text('Remove Member', style: TextStyle(color: Colors.white)),
+              onPressed: () async {
+                Navigator.of(context).pop();
+                await _removeMember(family, member.id);
+              },
+            ),
+          ],
+        );
+      },
     );
-
-    if (newRole != null && newRole != currentFamilyMember.role) {
-      await _changeRole(family, member.id, newRole); // Pass family
-    }
   }
 
-  Future<void> _showRemoveMemberDialog(Family family, UserProfile member) async { // Pass family
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Remove Member'),
-        content: Text('Are you sure you want to remove ${member.displayName ?? 'this member'} from the family?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(true),
-            style: TextButton.styleFrom(foregroundColor: Colors.red),
-            child: const Text('Remove'),
-          ),
-        ],
-      ),
-    );
-
-    if (confirmed == true) {
-      await _removeMember(family, member.id); // Pass family
-    }
-  }
-
-  Future<void> _changeRole(Family family, String userId, UserRole newRole) async {
+  Future<void> _changeRole(family_models.Family family, String userId, family_models.UserRole newRole) async {
     try {
       await _familyService.updateMemberRole(family.id, userId, newRole);
-      // Stream for Family object will trigger rebuild of members list if roles are part of FamilyMember in Family.members
-      // Stream for UserProfile list in _buildMembersTab will also update.
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Member role updated successfully')),
-        );
-      }
+      if(mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Member role updated.')));
     } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to update role: ${e.toString()}')),
-        );
-      }
+      if(mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to update role: ${e.toString()}')));
     }
   }
 
-  Future<void> _removeMember(Family family, String userId) async {
+  Future<void> _removeMember(family_models.Family family, String userId) async {
     try {
       await _familyService.removeMember(family.id, userId);
-      // Family stream will update the family object, which should rebuild members list.
-      // UserProfile stream will update based on the change in family.members.
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Member removed successfully')),
-        );
-      }
+      if(mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Member removed.')));
     } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to remove member: ${e.toString()}')),
-        );
-      }
+      if(mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to remove member: ${e.toString()}')));
     }
   }
 
-  Future<void> _resendInvitation(FamilyInvitation invitation) async {
+  Future<void> _resendInvitation(invitation_models.FamilyInvitation invitation, family_models.Family family) async {
     try {
       await _familyService.resendInvitation(invitation.id);
-      // Invitations stream will update the list
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Invitation resent successfully')),
-        );
-      }
+      if(mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Invitation resent.')));
     } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to resend invitation: ${e.toString()}')),
-        );
-      }
+      if(mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to resend invitation: ${e.toString()}')));
     }
   }
 
-  Future<void> _cancelInvitation(FamilyInvitation invitation) async {
+  Future<void> _cancelInvitation(invitation_models.FamilyInvitation invitation, family_models.Family family) async {
     try {
       await _familyService.cancelInvitation(invitation.id);
-      // Invitations stream will update the list
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Invitation cancelled successfully')),
-        );
-      }
+      if(mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Invitation cancelled.')));
     } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to cancel invitation: ${e.toString()}')),
-        );
-      }
+      if(mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to cancel invitation: ${e.toString()}')));
     }
   }
 
-  Future<void> _editFamilyName(Family family) async { // Pass family
-    final newNameController = TextEditingController(text: family.name);
-    final confirmed = await showDialog<String>(
+  Future<void> _editFamilyName(family_models.Family family) async {
+    final nameController = TextEditingController(text: family.name);
+    await showDialog(
+        context: context,
+        builder: (context) {
+          return AlertDialog(
+            title: const Text('Edit Family Name'),
+            content: TextField(controller: nameController, decoration: const InputDecoration(labelText: 'New Family Name')),
+            actions: [
+              TextButton(child: const Text('Cancel'), onPressed: () => Navigator.of(context).pop()),
+              ElevatedButton(
+                  child: const Text('Save'),
+                  onPressed: () async {
+                    if (nameController.text.isNotEmpty) {
+                      Navigator.of(context).pop();
+                      final updatedFamily = family.copyWith(name: nameController.text);
+                      await _familyService.updateFamily(updatedFamily);
+                      if(mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Family name updated.')));
+                    }
+                  }),
+            ],
+          );
+        });
+  }
+  
+  Future<void> _editFamilyDescription(family_models.Family family) async {
+    final descriptionController = TextEditingController(text: family.description);
+    await showDialog(
+        context: context,
+        builder: (context) {
+          return AlertDialog(
+            title: const Text('Edit Family Description'),
+            content: TextField(controller: descriptionController, decoration: const InputDecoration(labelText: 'New Family Description'), maxLines: 3,),
+            actions: [
+              TextButton(child: const Text('Cancel'), onPressed: () => Navigator.of(context).pop()),
+              ElevatedButton(
+                  child: const Text('Save'),
+                  onPressed: () async {
+                    Navigator.of(context).pop();
+                    final updatedFamily = family.copyWith(description: descriptionController.text);
+                    await _familyService.updateFamily(updatedFamily);
+                    if(mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Family description updated.')));
+                  }),
+            ],
+          );
+        });
+  }
+
+  void _copyFamilyId(family_models.Family family) {
+    if(mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Family ID copied: ${family.id}')));
+  }
+
+  Future<void> _togglePublicFamily(family_models.Family family, bool value) async {
+    try {
+      final updatedFamily = family.copyWith(isPublic: value);
+      await _familyService.updateFamily(updatedFamily);
+      if(mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Public setting updated to $value.')));
+    } catch (e) {
+      if(mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to update public setting: ${e.toString()}')));
+    }
+  }
+
+  Future<void> _toggleShareClassifications(family_models.Family family, bool value) async {
+    try {
+      final updatedSettings = family.settings.copyWith(shareClassificationsPublicly: value);
+      final updatedFamily = family.copyWith(settings: updatedSettings);
+      await _familyService.updateFamily(updatedFamily);
+      if(mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Share classifications setting updated to $value.')));
+    } catch (e) {
+      if(mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to update share setting: ${e.toString()}')));
+    }
+  }
+
+  Future<void> _toggleShowMemberActivity(family_models.Family family, bool value) async {
+    try {
+      final updatedSettings = family.settings.copyWith(showMemberActivityInFeed: value);
+      final updatedFamily = family.copyWith(settings: updatedSettings);
+      await _familyService.updateFamily(updatedFamily);
+      if(mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Show member activity setting updated to $value.')));
+    } catch (e) {
+      if(mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to update member activity setting: ${e.toString()}')));
+    }
+  }
+  
+  Future<void> _showLeaderboardVisibilityDialog(family_models.Family family) async {
+    family_models.FamilyLeaderboardVisibility? selectedVisibility = family.settings.leaderboardVisibility;
+    await showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Set Leaderboard Visibility'),
+          content: DropdownButton<family_models.FamilyLeaderboardVisibility>(
+            value: selectedVisibility,
+            items: family_models.FamilyLeaderboardVisibility.values.map((family_models.FamilyLeaderboardVisibility visibility) {
+              return DropdownMenuItem<family_models.FamilyLeaderboardVisibility>(
+                value: visibility,
+                child: Text(visibility.toString().split('.').last),
+              );
+            }).toList(),
+            onChanged: (family_models.FamilyLeaderboardVisibility? newValue) {
+              selectedVisibility = newValue;
+            },
+          ),
+          actions: [
+            TextButton(child: const Text('Cancel'), onPressed: () => Navigator.of(context).pop()),
+            ElevatedButton(
+              child: const Text('Save'),
+              onPressed: () async {
+                if (selectedVisibility != null) {
+                  Navigator.of(context).pop();
+                  final updatedSettings = family.settings.copyWith(leaderboardVisibility: selectedVisibility);
+                  final updatedFamily = family.copyWith(settings: updatedSettings);
+                  await _familyService.updateFamily(updatedFamily);
+                  if(mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Leaderboard visibility updated.')));
+                }
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _deleteFamily(family_models.Family family) async {
+    bool? confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Edit Family Name'),
-        content: TextField(
-          controller: newNameController,
-          decoration: const InputDecoration(hintText: 'Enter new family name'),
-          autofocus: true,
-        ),
+        title: const Text('Delete Family?'),
+        content: Text('Are you sure you want to delete the family "${family.name}"? This action is permanent and cannot be undone. All associated data will be lost.'),
         actions: [
-          TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Cancel')),
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(newNameController.text.trim()),
-            child: const Text('Save'),
-          ),
-        ],
-      ),
-    );
-
-    if (confirmed != null && confirmed.isNotEmpty && confirmed != family.name) {
-      try {
-        final updatedFamily = family.copyWith(name: confirmed);
-        await _familyService.updateFamily(updatedFamily);
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Family name updated!')),
-          );
-        }
-      } catch (e) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Failed to update family name: $e')),
-          );
-        }
-      }
-    }
-  }
-
-  void _copyFamilyId(Family family) { // Pass family
-    Clipboard.setData(ClipboardData(text: family.id));
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Family ID copied to clipboard!')),
-    );
-  }
-
-  Future<void> _togglePublicFamily(Family family, bool value) async { // Pass family
-    final newSettings = family.settings.copyWith(isPublic: value);
-    final updatedFamily = family.copyWith(settings: newSettings);
-    try {
-      await _familyService.updateFamily(updatedFamily);
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Public family setting updated to $value')),
-        );
-      }
-    } catch (e) {
-       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to update setting: $e')),
-        );
-      }
-    }
-  }
-
-  Future<void> _toggleShareClassifications(Family family, bool value) async { // Pass family
-    final newSettings = family.settings.copyWith(shareClassifications: value);
-    final updatedFamily = family.copyWith(settings: newSettings);
-     try {
-      await _familyService.updateFamily(updatedFamily);
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Share classifications setting updated to $value')),
-        );
-      }
-    } catch (e) {
-       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to update setting: $e')),
-        );
-      }
-    }
-  }
-
-  Future<void> _toggleShowMemberActivity(Family family, bool value) async { // Pass family
-    final newSettings = family.settings.copyWith(showMemberActivity: value);
-    final updatedFamily = family.copyWith(settings: newSettings);
-    try {
-      await _familyService.updateFamily(updatedFamily);
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Show member activity setting updated to $value')),
-        );
-      }
-    } catch (e) {
-       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to update setting: $e')),
-        );
-      }
-    }
-  }
-
-  void _deleteFamily(Family family) async { // Pass family
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Delete Family'),
-        content: const Text(
-          'Are you sure you want to delete this family? This action cannot be undone and all family data will be lost.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(true),
-            style: TextButton.styleFrom(foregroundColor: Colors.red),
-            child: const Text('Delete'),
+          TextButton(child: const Text('Cancel'), onPressed: () => Navigator.of(context).pop(false)),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+            child: const Text('DELETE FAMILY', style: TextStyle(color: Colors.white)), 
+            onPressed: () => Navigator.of(context).pop(true)
           ),
         ],
       ),
@@ -860,64 +824,73 @@ class _FamilyManagementScreenState extends State<FamilyManagementScreen>
 
     if (confirmed == true) {
       try {
-        await _familyService.deleteFamily(widget.family.id);
-        if (mounted) {
-          Navigator.of(context).pop();
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Family deleted successfully')),
-          );
+        await _familyService.deleteFamily(family.id);
+        if(mounted) {
+           ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Family deleted successfully.')));
+           Navigator.of(context).pop();
         }
       } catch (e) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Failed to delete family: ${e.toString()}')),
-          );
-        }
+        if(mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to delete family: ${e.toString()}')));
       }
     }
   }
 
-  // Helper methods
-  Color _getRoleColor(UserRole role) {
+  Color _getRoleColor(family_models.UserRole role) {
     switch (role) {
-      case UserRole.admin:
-        return Colors.red;
-      case UserRole.member:
-        return AppTheme.primaryColor;
-      case UserRole.child:
-        return Colors.orange;
-      case UserRole.guest:
-        return Colors.grey;
+      case family_models.UserRole.admin: return Colors.redAccent;
+      case family_models.UserRole.moderator: return Colors.blueAccent;
+      case family_models.UserRole.member: return Colors.green;
+      default: return Colors.grey;
     }
   }
 
-  String _getRoleText(UserRole role) {
+  String _getRoleText(family_models.UserRole role) {
     switch (role) {
-      case UserRole.admin:
-        return 'Admin';
-      case UserRole.member:
-        return 'Member';
-      case UserRole.child:
-        return 'Child';
-      case UserRole.guest:
-        return 'Guest';
+      case family_models.UserRole.admin: return 'Admin';
+      case family_models.UserRole.moderator: return 'Moderator';
+      case family_models.UserRole.member: return 'Member';
+      default: return 'Unknown';
     }
   }
 
-  String _getRoleDescription(UserRole role) {
+  String _getRoleDescription(family_models.UserRole role) {
     switch (role) {
-      case UserRole.admin:
-        return 'Can manage family settings and members';
-      case UserRole.member:
-        return 'Can participate in family activities';
-      case UserRole.child:
-        return 'Limited access with parental controls';
-      case UserRole.guest:
-        return 'Limited temporary access';
+      case family_models.UserRole.admin: return 'Manages family, members, and settings.';
+      case family_models.UserRole.moderator: return 'Manages members and invitations.';
+      case family_models.UserRole.member: return 'Participates in family activities.';
+      default: return 'No role description.';
     }
   }
 
   String _formatDate(DateTime date) {
-    return '${date.day}/${date.month}/${date.year}';
+    return '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
+  }
+
+  /// Convert user_models.UserRole to family_models.UserRole
+  family_models.UserRole _convertUserRole(user_models.UserRole role) {
+    switch (role) {
+      case user_models.UserRole.admin:
+        return family_models.UserRole.admin;
+      case user_models.UserRole.member:
+        return family_models.UserRole.member;
+      case user_models.UserRole.child:
+      case user_models.UserRole.guest:
+        return family_models.UserRole.member; // Default to member for child/guest
+      default:
+        return family_models.UserRole.member;
+    }
+  }
+
+  /// Convert family_models.UserRole to user_models.UserRole
+  user_models.UserRole _convertToUserRole(family_models.UserRole role) {
+    switch (role) {
+      case family_models.UserRole.admin:
+        return user_models.UserRole.admin;
+      case family_models.UserRole.moderator:
+      case family_models.UserRole.member:
+        return user_models.UserRole.member;
+      default:
+        return user_models.UserRole.member;
+    }
   }
 } 

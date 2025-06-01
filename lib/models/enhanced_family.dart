@@ -5,22 +5,26 @@ import 'user_profile.dart';
 class Family {
   final String id;
   final String name;
+  final String? description;
   final String createdBy;
   final DateTime createdAt;
-  final DateTime lastUpdated;
+  final DateTime? updatedAt;
   final List<FamilyMember> members;
   final FamilySettings settings;
-  final FamilyStats stats;
+  final String? imageUrl;
+  final bool isPublic;
 
   const Family({
     required this.id,
     required this.name,
+    this.description,
     required this.createdBy,
     required this.createdAt,
-    required this.lastUpdated,
-    required this.members,
-    required this.settings,
-    required this.stats,
+    this.updatedAt,
+    this.members = const [],
+    this.settings = const FamilySettings(),
+    this.imageUrl,
+    this.isPublic = false,
   });
 
   /// Creates a new family with default values.
@@ -35,10 +39,10 @@ class Family {
       name: name,
       createdBy: createdBy,
       createdAt: now,
-      lastUpdated: now,
+      updatedAt: now,
       members: [admin],
       settings: FamilySettings.defaultSettings(),
-      stats: FamilyStats.empty(),
+      imageUrl: null,
     );
   }
 
@@ -63,21 +67,28 @@ class Family {
 
   /// Creates a copy of this family with updated fields.
   Family copyWith({
+    String? id,
     String? name,
-    DateTime? lastUpdated,
+    String? description,
+    String? createdBy,
+    DateTime? createdAt,
+    DateTime? updatedAt,
     List<FamilyMember>? members,
     FamilySettings? settings,
-    FamilyStats? stats,
+    String? imageUrl,
+    bool? isPublic,
   }) {
     return Family(
-      id: id,
+      id: id ?? this.id,
       name: name ?? this.name,
-      createdBy: createdBy,
-      createdAt: createdAt,
-      lastUpdated: lastUpdated ?? DateTime.now(),
+      description: description ?? this.description,
+      createdBy: createdBy ?? this.createdBy,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
       members: members ?? this.members,
       settings: settings ?? this.settings,
-      stats: stats ?? this.stats,
+      imageUrl: imageUrl ?? this.imageUrl,
+      isPublic: isPublic ?? this.isPublic,
     );
   }
 
@@ -86,28 +97,33 @@ class Family {
     return {
       'id': id,
       'name': name,
+      'description': description,
       'createdBy': createdBy,
       'createdAt': createdAt.toIso8601String(),
-      'lastUpdated': lastUpdated.toIso8601String(),
+      'updatedAt': updatedAt?.toIso8601String(),
       'members': members.map((m) => m.toJson()).toList(),
       'settings': settings.toJson(),
-      'stats': stats.toJson(),
+      'imageUrl': imageUrl,
+      'isPublic': isPublic,
     };
   }
 
   /// Creates a family from a JSON map.
   factory Family.fromJson(Map<String, dynamic> json) {
+    final settingsJson = json['settings'] as Map<String, dynamic>?;
     return Family(
       id: json['id'] as String,
       name: json['name'] as String,
+      description: json['description'] as String?,
       createdBy: json['createdBy'] as String,
       createdAt: DateTime.parse(json['createdAt'] as String),
-      lastUpdated: DateTime.parse(json['lastUpdated'] as String),
-      members: (json['members'] as List<dynamic>)
-          .map((m) => FamilyMember.fromJson(m as Map<String, dynamic>))
+      updatedAt: json['updatedAt'] != null ? DateTime.parse(json['updatedAt'] as String) : null,
+      members: (json['members'] as List<dynamic>? ?? [])
+          .map((e) => FamilyMember.fromJson(e as Map<String, dynamic>))
           .toList(),
-      settings: FamilySettings.fromJson(json['settings'] as Map<String, dynamic>),
-      stats: FamilyStats.fromJson(json['stats'] as Map<String, dynamic>),
+      settings: settingsJson != null ? FamilySettings.fromJson(settingsJson) : const FamilySettings(),
+      imageUrl: json['imageUrl'] as String?,
+      isPublic: json['isPublic'] as bool? ?? settingsJson?['isPublic'] as bool? ?? false,
     );
   }
 }
@@ -178,33 +194,40 @@ class FamilyMember {
 /// Settings and preferences for a family.
 class FamilySettings {
   final bool isPublic;
-  final bool allowChildInvites;
-  final bool shareClassifications;
-  final bool showMemberActivity;
-  final NotificationSettings notifications;
-  final PrivacySettings privacy;
+  final bool? allowChildInvites;
+  final bool? shareClassifications;
+  final bool? showMemberActivity;
+  final NotificationSettings? notifications;
+  final PrivacySettings? privacy;
   final Map<String, dynamic> customSettings;
+  final bool shareClassificationsPublicly;
+  final bool showMemberActivityInFeed;
+  final FamilyLeaderboardVisibility leaderboardVisibility;
 
   const FamilySettings({
-    required this.isPublic,
-    required this.allowChildInvites,
-    required this.shareClassifications,
-    required this.showMemberActivity,
-    required this.notifications,
-    required this.privacy,
+    this.isPublic = false,
+    this.allowChildInvites = false,
+    this.shareClassifications = true,
+    this.showMemberActivity = true,
+    this.notifications,
+    this.privacy,
     this.customSettings = const {},
+    this.shareClassificationsPublicly = true,
+    this.showMemberActivityInFeed = true,
+    this.leaderboardVisibility = FamilyLeaderboardVisibility.membersOnly,
   });
 
   /// Creates default family settings.
-  factory FamilySettings.defaultSettings() {
-    return FamilySettings(
+  static FamilySettings defaultSettings() {
+    return const FamilySettings(
       isPublic: false,
       allowChildInvites: false,
       shareClassifications: true,
       showMemberActivity: true,
-      notifications: NotificationSettings.defaultSettings(),
-      privacy: PrivacySettings.defaultSettings(),
       customSettings: {},
+      shareClassificationsPublicly: true,
+      showMemberActivityInFeed: true,
+      leaderboardVisibility: FamilyLeaderboardVisibility.membersOnly,
     );
   }
 
@@ -217,6 +240,9 @@ class FamilySettings {
     NotificationSettings? notifications,
     PrivacySettings? privacy,
     Map<String, dynamic>? customSettings,
+    bool? shareClassificationsPublicly,
+    bool? showMemberActivityInFeed,
+    FamilyLeaderboardVisibility? leaderboardVisibility,
   }) {
     return FamilySettings(
       isPublic: isPublic ?? this.isPublic,
@@ -226,6 +252,9 @@ class FamilySettings {
       notifications: notifications ?? this.notifications,
       privacy: privacy ?? this.privacy,
       customSettings: customSettings ?? this.customSettings,
+      shareClassificationsPublicly: shareClassificationsPublicly ?? this.shareClassificationsPublicly,
+      showMemberActivityInFeed: showMemberActivityInFeed ?? this.showMemberActivityInFeed,
+      leaderboardVisibility: leaderboardVisibility ?? this.leaderboardVisibility,
     );
   }
 
@@ -236,9 +265,12 @@ class FamilySettings {
       'allowChildInvites': allowChildInvites,
       'shareClassifications': shareClassifications,
       'showMemberActivity': showMemberActivity,
-      'notifications': notifications.toJson(),
-      'privacy': privacy.toJson(),
+      'notifications': notifications?.toJson(),
+      'privacy': privacy?.toJson(),
       'customSettings': customSettings,
+      'shareClassificationsPublicly': shareClassificationsPublicly,
+      'showMemberActivityInFeed': showMemberActivityInFeed,
+      'leaderboardVisibility': leaderboardVisibility.toString(),
     };
   }
 
@@ -249,13 +281,19 @@ class FamilySettings {
       allowChildInvites: json['allowChildInvites'] as bool? ?? false,
       shareClassifications: json['shareClassifications'] as bool? ?? true,
       showMemberActivity: json['showMemberActivity'] as bool? ?? true,
-      notifications: NotificationSettings.fromJson(
-        json['notifications'] as Map<String, dynamic>? ?? {},
-      ),
-      privacy: PrivacySettings.fromJson(
-        json['privacy'] as Map<String, dynamic>? ?? {},
-      ),
+      notifications: json['notifications'] != null
+          ? NotificationSettings.fromJson(json['notifications'] as Map<String, dynamic>)
+          : null,
+      privacy: json['privacy'] != null
+          ? PrivacySettings.fromJson(json['privacy'] as Map<String, dynamic>)
+          : null,
       customSettings: json['customSettings'] as Map<String, dynamic>? ?? {},
+      shareClassificationsPublicly: json['shareClassificationsPublicly'] as bool? ?? true,
+      showMemberActivityInFeed: json['showMemberActivityInFeed'] as bool? ?? true,
+      leaderboardVisibility: FamilyLeaderboardVisibility.values.firstWhere(
+        (e) => e.toString() == json['leaderboardVisibility'],
+        orElse: () => FamilyLeaderboardVisibility.membersOnly,
+      ),
     );
   }
 }
@@ -624,4 +662,10 @@ class WeeklyProgress {
       categoryBreakdown: Map<String, int>.from(json['categoryBreakdown'] as Map? ?? {}),
     );
   }
-} 
+}
+
+enum UserRole { admin, moderator, member }
+
+enum InvitationStatus { pending, accepted, declined, expired }
+
+enum FamilyLeaderboardVisibility { public, membersOnly, adminsOnly } 
