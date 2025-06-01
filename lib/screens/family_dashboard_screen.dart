@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../models/enhanced_family.dart';
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../models/enhanced_family.dart';
 import '../models/user_profile.dart';
 import '../models/shared_waste_classification.dart';
 import '../services/firebase_family_service.dart';
@@ -9,6 +12,7 @@ import '../utils/constants.dart';
 import 'family_management_screen.dart';
 import 'family_invite_screen.dart';
 import 'family_creation_screen.dart';
+import 'classification_details_screen.dart'; // Import the new screen
 
 class FamilyDashboardScreen extends StatefulWidget {
   const FamilyDashboardScreen({super.key});
@@ -18,135 +22,195 @@ class FamilyDashboardScreen extends StatefulWidget {
 }
 
 class _FamilyDashboardScreenState extends State<FamilyDashboardScreen> {
-  bool _isLoading = true;
-  Family? _family;
-  FamilyStats? _stats;
+  late FirebaseFamilyService _familyService;
+  String? _familyId;
+  // Family? _family; // Will be provided by StreamBuilder
+  // FamilyStats? _stats; // Will be part of Family object from StreamBuilder
   List<UserProfile> _members = [];
-  List<SharedWasteClassification> _recentClassifications = [];
-  String? _error;
+  // List<SharedWasteClassification> _recentClassifications = []; // Will be provided by StreamBuilder
+  String? _error; // For initial familyId loading error or global errors
+
+  // To track if initial family ID loading is done
+  bool _isInitialLoading = true;
 
   @override
   void initState() {
     super.initState();
-    _loadFamilyData();
+    _familyService = FirebaseFamilyService();
+    _initializeFamilyId();
   }
 
-  Future<void> _loadFamilyData() async {
+  Future<void> _initializeFamilyId() async {
     setState(() {
-      _isLoading = true;
+      _isInitialLoading = true;
       _error = null;
     });
-
     try {
       final storageService = Provider.of<StorageService>(context, listen: false);
-      final familyService = FirebaseFamilyService();
-
-      // Get current user to find their family
       final currentUser = await storageService.getCurrentUserProfile();
       if (currentUser?.familyId == null) {
         setState(() {
           _error = 'You are not part of any family yet.';
-          _isLoading = false;
+          _familyId = null; // Explicitly null if not part of family
+          _isInitialLoading = false;
         });
-        return;
-      }
-
-      // Load family data
-      final family = await familyService.getFamily(currentUser!.familyId!);
-      if (family == null) {
+      } else {
         setState(() {
-          _error = 'Family not found.';
-          _isLoading = false;
+          _familyId = currentUser!.familyId!;
+          _isInitialLoading = false;
         });
-        return;
+        // After familyId is available, load members (non-streamed part)
+        _loadMembers();
       }
-
-      // Load family statistics
-      final stats = await familyService.getFamilyStats(family.id);
-
-      // Load family members
-      final members = await familyService.getFamilyMembers(family.id);
-
-      // Load recent classifications
-      final classifications = await familyService.getFamilyClassifications(family.id);
-
-      setState(() {
-        _family = family;
-        _stats = stats;
-        _members = members;
-        _recentClassifications = classifications.take(5).toList();
-        _isLoading = false;
-      });
     } catch (e) {
       setState(() {
-        _error = 'Failed to load family data: ${e.toString()}';
-        _isLoading = false;
+        _error = 'Failed to get your family information: ${e.toString()}';
+        _familyId = null;
+        _isInitialLoading = false;
       });
     }
   }
+
+  Future<void> _loadMembers() async {
+    if (_familyId == null) return;
+    // This can remain a one-time fetch if members don't need strict real-time update for the dashboard's purpose
+    try {
+      final members = await _familyService.getFamilyMembers(_familyId!);
+      if (mounted) {
+        setState(() {
+          _members = members;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        // Optionally set an error specific to members loading, or log
+        print('Error loading family members: $e');
+      }
+    }
+  }
+
+  // _loadFamilyData is largely replaced by StreamBuilders.
+  // RefreshIndicator can call _initializeFamilyId and _loadMembers if needed,
+  // or specific stream refresh logic if StreamProviders were used.
+  Future<void> _handleRefresh() async {
+    await _initializeFamilyId(); // Re-check family ID and load members
+    // StreamBuilders will automatically listen to new data if familyId changes or on their own.
+  }
+
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(_family?.name ?? 'Family Dashboard'),
-        actions: [
-          if (_family != null) ...[
-            IconButton(
-              icon: const Icon(Icons.person_add),
-              tooltip: 'Invite Member',
-              onPressed: () => _navigateToInvite(),
-            ),
-            IconButton(
-              icon: const Icon(Icons.manage_accounts),
-              tooltip: 'Manage Family',
-              onPressed: () => _navigateToManagement(),
-            ),
-          ],
-        ],
-      ),
-      body: _buildBody(),
-    );
-  }
+    // The AppBar title might need to access family data from the StreamBuilder
+    // This can be done by wrapping Scaffold with the Family StreamBuilder or passing data down.
+    // For simplicity, we might initially show a generic title or update it via the stream.
 
-  Widget _buildBody() {
-    if (_isLoading) {
-      return const Center(
-        child: CircularProgressIndicator(),
+    if (_isInitialLoading) {
+      return Scaffold(
+        appBar: AppBar(title: const Text('Family Dashboard')),
+        body: const Center(child: CircularProgressIndicator()),
       );
     }
 
-    if (_error != null) {
-      return _buildErrorState();
+    if (_familyId == null) {
+      // If after initial load, familyId is still null (e.g., user not in family or error)
+      return Scaffold(
+        appBar: AppBar(title: const Text('Family Dashboard')),
+        body: _error != null ? _buildErrorState(_error!) : _buildNoFamilyState(),
+      );
     }
 
-    if (_family == null) {
-      return _buildNoFamilyState();
+    // Main content with StreamBuilder for Family data
+    return StreamBuilder<Family?>(
+      stream: _familyService.getFamilyStream(_familyId!),
+      builder: (context, familySnapshot) {
+        final family = familySnapshot.data;
+        final familyStats = family?.stats;
+
+        // Determine AppBar title based on family data
+        final appBarTitle = familySnapshot.connectionState == ConnectionState.active && family != null
+            ? family.name
+            : 'Family Dashboard';
+
+        return Scaffold(
+          appBar: AppBar(
+            title: Text(appBarTitle),
+            actions: [
+              if (family != null) ...[
+                IconButton(
+                  icon: const Icon(Icons.person_add),
+                  tooltip: 'Invite Member',
+                  onPressed: () => _navigateToInvite(family),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.manage_accounts),
+                  tooltip: 'Manage Family',
+                  onPressed: () => _navigateToManagement(family),
+                ),
+              ],
+            ],
+          ),
+          body: _buildBodyContent(familySnapshot, family, familyStats),
+        );
+      },
+    );
+  }
+
+  Widget _buildBodyContent(AsyncSnapshot<Family?> familySnapshot, Family? family, FamilyStats? stats) {
+    if (familySnapshot.connectionState == ConnectionState.waiting && family == null) { // Show loading only if no data yet
+      return const Center(child: CircularProgressIndicator());
     }
 
+    if (familySnapshot.hasError) {
+      return _buildErrorState('Error loading family details: ${familySnapshot.error}');
+    }
+
+    if (family == null) { // This could be after stream starts but returns null (e.g. family deleted)
+      return _buildNoFamilyState(); // Or a specific "Family not found" state
+    }
+
+    // Now that we have family, we can build the rest of the UI, including the classifications stream
     return RefreshIndicator(
-      onRefresh: _loadFamilyData,
+      onRefresh: _handleRefresh,
       child: SingleChildScrollView(
         padding: const EdgeInsets.all(AppTheme.paddingRegular),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildFamilyHeader(),
+            _buildFamilyHeader(family), // Pass family
             const SizedBox(height: AppTheme.paddingLarge),
-            _buildStatsOverview(),
+            _buildStatsOverview(stats), // Pass stats
             const SizedBox(height: AppTheme.paddingLarge),
-            _buildMembersSection(),
+            _buildMembersSection(family), // Pass family to get member roles if needed
             const SizedBox(height: AppTheme.paddingLarge),
-            _buildRecentActivity(),
+            _buildRecentActivityStream(), // This will have its own StreamBuilder
             const SizedBox(height: AppTheme.paddingLarge),
-            _buildEnvironmentalImpact(),
+            _buildEnvironmentalImpact(stats), // Pass stats
           ],
         ),
       ),
     );
   }
 
-  Widget _buildErrorState() {
+  Widget _buildRecentActivityStream() {
+    if (_familyId == null) return const SizedBox.shrink(); // Should not happen if we reach here
+
+    return StreamBuilder<List<SharedWasteClassification>>(
+      stream: _familyService.getFamilyClassificationsStream(_familyId!),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting && !snapshot.hasData) {
+          return const Center(child: CircularProgressIndicator());
+        }
+        if (snapshot.hasError) {
+          return Text('Error loading recent activity: ${snapshot.error}', style: const TextStyle(color: Colors.red));
+        }
+        final recentClassifications = snapshot.data ?? [];
+        return _buildRecentActivity(recentClassifications); // Pass the list to the existing method
+      },
+    );
+  }
+
+
+  Widget _buildErrorState(String errorMessage) {
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(AppTheme.paddingLarge),
@@ -160,7 +224,7 @@ class _FamilyDashboardScreenState extends State<FamilyDashboardScreen> {
             ),
             const SizedBox(height: AppTheme.paddingRegular),
             Text(
-              _error!,
+              errorMessage, // Use passed error message
               style: const TextStyle(
                 fontSize: AppTheme.fontSizeMedium,
                 color: AppTheme.textSecondaryColor,
@@ -169,7 +233,7 @@ class _FamilyDashboardScreenState extends State<FamilyDashboardScreen> {
             ),
             const SizedBox(height: AppTheme.paddingLarge),
             ElevatedButton(
-              onPressed: _loadFamilyData,
+              onPressed: _initializeFamilyId, // Retry initialization
               child: const Text('Retry'),
             ),
           ],
@@ -229,7 +293,7 @@ class _FamilyDashboardScreenState extends State<FamilyDashboardScreen> {
     );
   }
 
-  Widget _buildFamilyHeader() {
+  Widget _buildFamilyHeader(Family family) { // Now takes Family object
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(AppTheme.paddingRegular),
@@ -254,20 +318,20 @@ class _FamilyDashboardScreenState extends State<FamilyDashboardScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    _family!.name,
+                    family.name, // Use family.name
                     style: const TextStyle(
                       fontSize: AppTheme.fontSizeLarge,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
                   Text(
-                    '${_members.length} members',
+                    '${_members.length} members', // _members is still loaded separately
                     style: const TextStyle(
                       color: AppTheme.textSecondaryColor,
                     ),
                   ),
                   Text(
-                    'Created ${_formatDate(_family!.createdAt)}',
+                    'Created ${_formatDate(family.createdAt)}', // Use family.createdAt
                     style: const TextStyle(
                       fontSize: AppTheme.fontSizeSmall,
                       color: AppTheme.textSecondaryColor,
@@ -282,8 +346,8 @@ class _FamilyDashboardScreenState extends State<FamilyDashboardScreen> {
     );
   }
 
-  Widget _buildStatsOverview() {
-    if (_stats == null) return const SizedBox.shrink();
+  Widget _buildStatsOverview(FamilyStats? stats) { // Now takes FamilyStats object
+    if (stats == null) return const Center(child: Text("Loading stats...")); // Or some placeholder
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -301,7 +365,7 @@ class _FamilyDashboardScreenState extends State<FamilyDashboardScreen> {
             Expanded(
               child: _buildStatCard(
                 'Classifications',
-                _stats!.totalClassifications.toString(),
+                stats.totalClassifications.toString(), // Use stats.
                 Icons.category,
                 AppTheme.primaryColor,
               ),
@@ -310,7 +374,7 @@ class _FamilyDashboardScreenState extends State<FamilyDashboardScreen> {
             Expanded(
               child: _buildStatCard(
                 'Total Points',
-                _stats!.totalPoints.toString(),
+                stats.totalPoints.toString(), // Use stats.
                 Icons.stars,
                 Colors.amber,
               ),
@@ -323,7 +387,7 @@ class _FamilyDashboardScreenState extends State<FamilyDashboardScreen> {
             Expanded(
               child: _buildStatCard(
                 'Current Streak',
-                '${_stats!.currentStreak} days',
+                '${stats.currentStreak} days', // Use stats.
                 Icons.local_fire_department,
                 Colors.orange,
               ),
@@ -332,7 +396,7 @@ class _FamilyDashboardScreenState extends State<FamilyDashboardScreen> {
             Expanded(
               child: _buildStatCard(
                 'Best Streak',
-                '${_stats!.bestStreak} days',
+                '${stats.bestStreak} days', // Use stats.
                 Icons.emoji_events,
                 Colors.green,
               ),
@@ -373,7 +437,7 @@ class _FamilyDashboardScreenState extends State<FamilyDashboardScreen> {
     );
   }
 
-  Widget _buildMembersSection() {
+  Widget _buildMembersSection(Family family) { // Pass family for member roles
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -388,7 +452,7 @@ class _FamilyDashboardScreenState extends State<FamilyDashboardScreen> {
               ),
             ),
             TextButton(
-              onPressed: () => _navigateToManagement(),
+              onPressed: () => _navigateToManagement(family),
               child: const Text('Manage'),
             ),
           ],
@@ -397,34 +461,34 @@ class _FamilyDashboardScreenState extends State<FamilyDashboardScreen> {
         ListView.builder(
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
-          itemCount: _members.length,
+          itemCount: _members.length, // _members still loaded via _loadMembers
           itemBuilder: (context, index) {
-            final member = _members[index];
-            final familyMember = _family!.getMember(member.id);
+            final memberProfile = _members[index]; // This is UserProfile
+            final familyMemberData = family.getMember(memberProfile.id); // This is FamilyMember
             
             return Card(
               child: ListTile(
                 leading: CircleAvatar(
                   backgroundColor: AppTheme.primaryColor.withOpacity(0.1),
-                  child: member.photoUrl != null
+                  child: memberProfile.photoUrl != null
                       ? ClipOval(
                           child: Image.network(
-                            member.photoUrl!,
+                            memberProfile.photoUrl!,
                             width: 40,
                             height: 40,
                             fit: BoxFit.cover,
                             errorBuilder: (context, error, stackTrace) =>
-                                Text(member.displayName?.substring(0, 1) ?? 'U'),
+                                Text(memberProfile.displayName?.substring(0, 1) ?? 'U'),
                           ),
                         )
-                      : Text(member.displayName?.substring(0, 1) ?? 'U'),
+                      : Text(memberProfile.displayName?.substring(0, 1) ?? 'U'),
                 ),
-                title: Text(member.displayName ?? 'Unknown User'),
+                title: Text(memberProfile.displayName ?? 'Unknown User'),
                 subtitle: Text(
-                  '${familyMember?.role.toString().split('.').last ?? 'Member'} • '
-                  '${familyMember?.individualStats.totalPoints ?? 0} points',
+                  '${familyMemberData?.role.toString().split('.').last ?? 'Member'} • '
+                  '${familyMemberData?.individualStats.totalPoints ?? 0} points',
                 ),
-                trailing: familyMember?.role == UserRole.admin
+                trailing: familyMemberData?.role == UserRole.admin
                     ? Container(
                         padding: const EdgeInsets.symmetric(
                           horizontal: 8,
@@ -452,7 +516,7 @@ class _FamilyDashboardScreenState extends State<FamilyDashboardScreen> {
     );
   }
 
-  Widget _buildRecentActivity() {
+  Widget _buildRecentActivity(List<SharedWasteClassification> recentClassifications) { // Takes list from StreamBuilder
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -464,7 +528,7 @@ class _FamilyDashboardScreenState extends State<FamilyDashboardScreen> {
           ),
         ),
         const SizedBox(height: AppTheme.paddingRegular),
-        if (_recentClassifications.isEmpty)
+        if (recentClassifications.isEmpty)
           const Card(
             child: Padding(
               padding: EdgeInsets.all(AppTheme.paddingLarge),
@@ -480,15 +544,17 @@ class _FamilyDashboardScreenState extends State<FamilyDashboardScreen> {
           ListView.builder(
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
-            itemCount: _recentClassifications.length,
+            itemCount: recentClassifications.length,
             itemBuilder: (context, index) {
-              final classification = _recentClassifications[index];
+              final classificationItem = recentClassifications[index];
+              // Find member who shared this. _members should be loaded.
               final member = _members.firstWhere(
-                (m) => m.id == classification.sharedBy,
-                orElse: () => UserProfile(
-                  id: classification.sharedBy,
+                (m) => m.id == classificationItem.sharedBy,
+                orElse: () => UserProfile( // Fallback, should ideally not happen if _members is synced
+                  id: classificationItem.sharedBy,
                   email: 'unknown@example.com',
-                  displayName: 'Unknown User',
+                  displayName: classificationItem.sharedByDisplayName, // Use display name from classification
+                  photoUrl: classificationItem.sharedByPhotoUrl,
                 ),
               );
               
@@ -496,20 +562,43 @@ class _FamilyDashboardScreenState extends State<FamilyDashboardScreen> {
                 child: ListTile(
                   leading: CircleAvatar(
                     radius: 20,
-                    backgroundColor: _getCategoryColor(classification.classification.category),
+                    backgroundColor: _getCategoryColor(classificationItem.classification.category),
                     child: const Icon(Icons.delete, color: Colors.white, size: 16),
                   ),
-                  title: Text(classification.classification.itemName),
-                  subtitle: Text(
-                    '${member.displayName} • ${classification.classification.category}',
+                  title: Text(classificationItem.classification.itemName),
+                  subtitle: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('${member.displayName ?? classificationItem.sharedByDisplayName} • ${classificationItem.classification.category}'),
+                      const SizedBox(height: 4),
+                      Row(
+                        children: [
+                          Icon(Icons.thumb_up_alt_outlined, size: 14, color: AppTheme.textSecondaryColor),
+                          const SizedBox(width: 2),
+                          Text('${classificationItem.reactions.length}', style: const TextStyle(fontSize: 12, color: AppTheme.textSecondaryColor)),
+                          const SizedBox(width: 8),
+                          Icon(Icons.comment_outlined, size: 14, color: AppTheme.textSecondaryColor),
+                          const SizedBox(width: 2),
+                          Text('${classificationItem.comments.length}', style: const TextStyle(fontSize: 12, color: AppTheme.textSecondaryColor)),
+                        ],
+                      ),
+                    ],
                   ),
                   trailing: Text(
-                    _formatDate(classification.sharedAt),
+                    _formatDate(classificationItem.sharedAt),
                     style: const TextStyle(
                       fontSize: AppTheme.fontSizeSmall,
                       color: AppTheme.textSecondaryColor,
                     ),
                   ),
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => ClassificationDetailsScreen(classification: classificationItem),
+                      ),
+                    );
+                  },
                 ),
               );
             },
@@ -518,10 +607,10 @@ class _FamilyDashboardScreenState extends State<FamilyDashboardScreen> {
     );
   }
 
-  Widget _buildEnvironmentalImpact() {
-    if (_stats?.environmentalImpact == null) return const SizedBox.shrink();
+  Widget _buildEnvironmentalImpact(FamilyStats? stats) { // Now takes FamilyStats
+    if (stats?.environmentalImpact == null) return const Center(child: Text("Loading impact..."));
 
-    final impact = _stats!.environmentalImpact;
+    final impact = stats!.environmentalImpact;
     
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -570,51 +659,57 @@ class _FamilyDashboardScreenState extends State<FamilyDashboardScreen> {
     );
   }
 
-  Widget _buildImpactItem(String value, String label, IconData icon, Color color) {
-    return Column(
-      children: [
-        Icon(icon, color: color, size: 32),
-        const SizedBox(height: AppTheme.paddingSmall),
-        Text(
-          value,
-          style: TextStyle(
-            fontSize: AppTheme.fontSizeMedium,
-            fontWeight: FontWeight.bold,
-            color: color,
+  Widget _buildImpactItem(String value, String label, IconData icon, Color color, String tooltipMessage) {
+    return Tooltip(
+      message: tooltipMessage,
+      padding: const EdgeInsets.all(AppTheme.paddingSmall),
+      margin: const EdgeInsets.all(AppTheme.paddingSmall),
+      preferBelow: false,
+      child: Column(
+        mainAxisSize: MainAxisSize.min, // To make tooltip target the column itself
+        children: [
+          Icon(icon, color: color, size: 32),
+          const SizedBox(height: AppTheme.paddingSmall),
+          Text(
+            value,
+            style: TextStyle(
+              fontSize: AppTheme.fontSizeMedium,
+              fontWeight: FontWeight.bold,
+              color: color,
+            ),
           ),
-        ),
-        Text(
-          label,
-          style: const TextStyle(
-            fontSize: AppTheme.fontSizeSmall,
-            color: AppTheme.textSecondaryColor,
+          Text(
+            label,
+            style: const TextStyle(
+              fontSize: AppTheme.fontSizeSmall,
+              color: AppTheme.textSecondaryColor,
+            ),
+            textAlign: TextAlign.center,
           ),
-          textAlign: TextAlign.center,
-        ),
-      ],
+        ],
+      ),
     );
   }
 
-  void _navigateToManagement() {
-    if (_family != null) {
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => FamilyManagementScreen(family: _family!),
-        ),
-      ).then((_) => _loadFamilyData());
-    }
+  void _navigateToManagement(Family family) { // Takes family
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => FamilyManagementScreen(family: family), // Pass family
+      ),
+    ).then((_) {
+      // Refresh might be needed if family settings changed, streams should handle most data
+      _loadMembers(); // Explicitly reload members as they are not streamed here
+    });
   }
 
-  void _navigateToInvite() {
-    if (_family != null) {
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => FamilyInviteScreen(family: _family!),
-        ),
-      );
-    }
+  void _navigateToInvite(Family family) { // Takes family
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => FamilyInviteScreen(family: family), // Pass family
+      ),
+    );
   }
 
   void _createFamily() {
@@ -623,7 +718,7 @@ class _FamilyDashboardScreenState extends State<FamilyDashboardScreen> {
       MaterialPageRoute(
         builder: (context) => const FamilyCreationScreen(),
       ),
-    ).then((_) => _loadFamilyData());
+    ).then((_) => _initializeFamilyId()); // Re-initialize to get new family ID
   }
 
   void _joinFamily() {
@@ -694,4 +789,4 @@ class _FamilyDashboardScreenState extends State<FamilyDashboardScreen> {
         return AppTheme.secondaryColor;
     }
   }
-} 
+}

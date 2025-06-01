@@ -125,6 +125,24 @@ class FirebaseFamilyService {
     }
   }
 
+  /// Returns a stream of the family document.
+  Stream<Family?> getFamilyStream(String familyId) {
+    return _firestore
+        .collection(_familiesCollection)
+        .doc(familyId)
+        .snapshots()
+        .map((doc) {
+      if (!doc.exists || doc.data() == null) {
+        return null;
+      }
+      return Family.fromJson(doc.data()!);
+    }).handleError((error) {
+      // Log error or handle appropriately
+      print('Error in getFamilyStream: $error');
+      throw Exception('Failed to stream family data: $error');
+    });
+  }
+
   // ================ MEMBER MANAGEMENT ================
 
   /// Adds a new member to a family.
@@ -256,6 +274,31 @@ class FirebaseFamilyService {
     }
   }
 
+  /// Returns a stream of family members' UserProfile objects.
+  Stream<List<UserProfile>> getFamilyMembersStream(String familyId) {
+    return _firestore
+        .collection(_familiesCollection)
+        .doc(familyId)
+        .snapshots()
+        .asyncMap((familyDoc) async {
+      if (!familyDoc.exists || familyDoc.data() == null) {
+        return [];
+      }
+      final family = Family.fromJson(familyDoc.data()!);
+      final List<UserProfile> memberProfiles = [];
+      for (final member in family.members) {
+        final profile = await _getUserProfile(member.userId);
+        if (profile != null) {
+          memberProfiles.add(profile);
+        }
+      }
+      return memberProfiles;
+    }).handleError((error) {
+      print('Error in getFamilyMembersStream: $error');
+      throw Exception('Failed to stream family members: $error');
+    });
+  }
+
   // ================ FAMILY STATISTICS ================
 
   /// Gets comprehensive statistics for a family.
@@ -339,6 +382,26 @@ class FirebaseFamilyService {
     } catch (e) {
       throw Exception('Failed to get family dashboard data: $e');
     }
+  }
+
+  /// Returns a stream of recent shared classifications for a family.
+  Stream<List<SharedWasteClassification>> getFamilyClassificationsStream(
+      String familyId, {int limit = 5}) {
+    return _firestore
+        .collection(_classificationsCollection)
+        .where('familyId', isEqualTo: familyId)
+        .orderBy('sharedAt', descending: true) // Assuming 'sharedAt' for ordering recent items
+        .limit(limit)
+        .snapshots()
+        .map((querySnapshot) {
+      return querySnapshot.docs
+          .map((doc) => SharedWasteClassification.fromJson(doc.data()))
+          .toList();
+    }).handleError((error) {
+      // Log error or handle appropriately
+      print('Error in getFamilyClassificationsStream: $error');
+      throw Exception('Failed to stream family classifications: $error');
+    });
   }
 
   // ================ SHARED CLASSIFICATIONS ================
@@ -608,6 +671,23 @@ class FirebaseFamilyService {
     } catch (e) {
       throw Exception('Failed to get invitations: $e');
     }
+  }
+
+  /// Returns a stream of invitations for a family.
+  Stream<List<FamilyInvitation>> getInvitationsStream(String familyId) {
+    return _firestore
+        .collection(_invitationsCollection)
+        .where('familyId', isEqualTo: familyId)
+        .orderBy('createdAt', descending: true)
+        .snapshots()
+        .map((snapshot) {
+      return snapshot.docs
+          .map((doc) => FamilyInvitation.fromJson(doc.data()))
+          .toList();
+    }).handleError((error) {
+      print('Error in getInvitationsStream: $error');
+      throw Exception('Failed to stream invitations: $error');
+    });
   }
 
   // ================ HELPER METHODS ================

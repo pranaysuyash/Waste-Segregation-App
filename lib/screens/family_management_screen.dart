@@ -22,17 +22,22 @@ class FamilyManagementScreen extends StatefulWidget {
 class _FamilyManagementScreenState extends State<FamilyManagementScreen>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
-  bool _isLoading = false;
-  List<UserProfile> _members = [];
-  List<FamilyInvitation> _invitations = [];
+  // bool _isLoading = false; // Replaced by StreamBuilder states
+  List<UserProfile> _members = []; // Will be populated by a StreamBuilder
+  List<FamilyInvitation> _invitations = []; // Will be populated by a StreamBuilder
   UserProfile? _currentUser;
   final _familyService = FirebaseFamilyService();
+
+  // To hold the current family data, updated by stream
+  late Family _currentFamily;
 
   @override
   void initState() {
     super.initState();
+    _currentFamily = widget.family; // Initialize with passed data
     _tabController = TabController(length: 3, vsync: this);
-    _loadData();
+    _loadInitialUserData(); // For _currentUser
+    // _loadData(); // Will be replaced by StreamBuilders
   }
 
   @override
@@ -41,86 +46,111 @@ class _FamilyManagementScreenState extends State<FamilyManagementScreen>
     super.dispose();
   }
 
-  Future<void> _loadData() async {
-    setState(() {
-      _isLoading = true;
-    });
-
+  Future<void> _loadInitialUserData() async {
+    // Only load current user profile initially, other data will be streamed
     try {
       final storageService = Provider.of<StorageService>(context, listen: false);
-      
-      // Load current user
       _currentUser = await storageService.getCurrentUserProfile();
-      
-      // Load family members
-      final members = await _familyService.getFamilyMembers(widget.family.id);
-      
-      // Load invitations
-      final invitations = await _familyService.getInvitations(widget.family.id);
-      
-      setState(() {
-        _members = members;
-        _invitations = invitations;
-        _isLoading = false;
-      });
+      if (mounted) {
+        setState(() {}); // Update UI if needed after getting current user
+      }
     } catch (e) {
-      setState(() {
-        _isLoading = false;
-      });
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to load data: ${e.toString()}')),
+          SnackBar(content: Text('Failed to load user data: ${e.toString()}')),
         );
       }
     }
   }
 
+  // Placeholder for refreshing data, might be used by RefreshIndicator
+  Future<void> _handleRefresh() async {
+    await _loadInitialUserData();
+    // Streams will auto-refresh, but if members/invitations also need manual refresh trigger:
+    // This might involve re-subscribing or using a StreamController if not directly using Firestore streams.
+    // For now, Firestore streams handle their own updates.
+    setState(() {}); // Cause a rebuild to pick up any changes from _loadInitialUserData
+  }
+
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Manage ${widget.family.name}'),
-        bottom: TabBar(
-          controller: _tabController,
-          tabs: const [
-            Tab(icon: Icon(Icons.people), text: 'Members'),
-            Tab(icon: Icon(Icons.mail), text: 'Invitations'),
-            Tab(icon: Icon(Icons.settings), text: 'Settings'),
-          ],
-        ),
-      ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : TabBarView(
+    return StreamBuilder<Family?>(
+      stream: _familyService.getFamilyStream(widget.family.id),
+      initialData: _currentFamily, // Use initial family data
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting && !snapshot.hasData) {
+          return Scaffold(
+            appBar: AppBar(title: Text('Manage ${widget.family.name}')),
+            body: const Center(child: CircularProgressIndicator()),
+          );
+        }
+
+        if (snapshot.hasError) {
+          return Scaffold(
+            appBar: AppBar(title: Text('Manage ${widget.family.name}')),
+            body: Center(child: Text('Error loading family data: ${snapshot.error}')),
+          );
+        }
+
+        if (snapshot.hasData && snapshot.data != null) {
+          _currentFamily = snapshot.data!; // Update _currentFamily with the latest from stream
+        }
+        // If snapshot.data is null (e.g., family deleted), _currentFamily retains last known good state or initial.
+        // Consider how to handle if family is deleted while on this screen. For now, assumes it exists.
+
+        return Scaffold(
+          appBar: AppBar(
+            title: Text('Manage ${_currentFamily.name}'), // Use _currentFamily
+            bottom: TabBar(
               controller: _tabController,
-              children: [
-                _buildMembersTab(),
-                _buildInvitationsTab(),
-                _buildSettingsTab(),
+              tabs: const [
+                Tab(icon: Icon(Icons.people), text: 'Members'),
+                Tab(icon: Icon(Icons.mail), text: 'Invitations'),
+                Tab(icon: Icon(Icons.settings), text: 'Settings'),
               ],
             ),
+          ),
+          body: TabBarView(
+            controller: _tabController,
+            children: [
+              _buildMembersTab(_currentFamily), // Pass _currentFamily
+              _buildInvitationsTab(_currentFamily), // Pass _currentFamily
+              _buildSettingsTab(_currentFamily), // Pass _currentFamily
+            ],
+          ),
+        );
+      },
     );
   }
 
-  Widget _buildMembersTab() {
-    if (_members.isEmpty) {
-      return const Center(
-        child: Text('No members found'),
-      );
-    }
+  Widget _buildMembersTab(Family family) { // Now takes Family
+    return StreamBuilder<List<UserProfile>>(
+      stream: _familyService.getFamilyMembersStream(family.id),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        }
+        if (snapshot.hasError) {
+          return Center(child: Text('Error loading members: ${snapshot.error}'));
+        }
+        final members = snapshot.data ?? [];
+        if (members.isEmpty) {
+          return const Center(child: Text('No members found.'));
+        }
 
-    return RefreshIndicator(
-      onRefresh: _loadData,
-      child: ListView.builder(
-        padding: const EdgeInsets.all(AppTheme.paddingRegular),
-        itemCount: _members.length,
-        itemBuilder: (context, index) {
-          final member = _members[index];
-          final familyMember = widget.family.getMember(member.id);
-          final isCurrentUser = _currentUser?.id == member.id;
-          final canModify = _canModifyMember(member.id);
+        return RefreshIndicator(
+          onRefresh: _handleRefresh, // Manual refresh can still be useful
+          child: ListView.builder(
+            padding: const EdgeInsets.all(AppTheme.paddingRegular),
+            itemCount: members.length,
+            itemBuilder: (context, index) {
+              final memberProfile = members[index];
+              final familyMemberData = family.getMember(memberProfile.id);
+              final isCurrentUser = _currentUser?.id == memberProfile.id;
+              final canModify = _canModifyMember(family, memberProfile.id);
 
-          return Card(
+              return Card(
             margin: const EdgeInsets.only(bottom: AppTheme.paddingRegular),
             child: ListTile(
               leading: CircleAvatar(
@@ -243,43 +273,53 @@ class _FamilyManagementScreenState extends State<FamilyManagementScreen>
     );
   }
 
-  Widget _buildInvitationsTab() {
-    if (_invitations.isEmpty) {
-      return const Center(
-        child: Padding(
-          padding: EdgeInsets.all(AppTheme.paddingLarge),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(
-                Icons.mail_outline,
-                size: 64,
-                color: AppTheme.textSecondaryColor,
+  Widget _buildInvitationsTab(Family family) { // Now takes Family
+    return StreamBuilder<List<FamilyInvitation>>(
+      stream: _familyService.getInvitationsStream(family.id),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        }
+        if (snapshot.hasError) {
+          return Center(child: Text('Error loading invitations: ${snapshot.error}'));
+        }
+        final invitations = snapshot.data ?? [];
+        if (invitations.isEmpty) {
+          return const Center(
+            child: Padding(
+              padding: EdgeInsets.all(AppTheme.paddingLarge),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.mail_outline,
+                    size: 64,
+                    color: AppTheme.textSecondaryColor,
+                  ),
+                  SizedBox(height: AppTheme.paddingRegular),
+                  Text(
+                    'No pending invitations',
+                    style: TextStyle(
+                      fontSize: AppTheme.fontSizeMedium,
+                      color: AppTheme.textSecondaryColor,
+                    ),
+                  ),
+                ],
               ),
-              SizedBox(height: AppTheme.paddingRegular),
-              Text(
-                'No pending invitations',
-                style: TextStyle(
-                  fontSize: AppTheme.fontSizeMedium,
-                  color: AppTheme.textSecondaryColor,
-                ),
-              ),
-            ],
-          ),
-        ),
-      );
-    }
+            ),
+          );
+        }
 
-    return RefreshIndicator(
-      onRefresh: _loadData,
-      child: ListView.builder(
-        padding: const EdgeInsets.all(AppTheme.paddingRegular),
-        itemCount: _invitations.length,
-        itemBuilder: (context, index) {
-          final invitation = _invitations[index];
-          final isExpired = invitation.expiresAt.isBefore(DateTime.now());
+        return RefreshIndicator(
+          onRefresh: _handleRefresh, // Manual refresh
+          child: ListView.builder(
+            padding: const EdgeInsets.all(AppTheme.paddingRegular),
+            itemCount: invitations.length,
+            itemBuilder: (context, index) {
+              final invitation = invitations[index];
+              final isExpired = invitation.expiresAt.isBefore(DateTime.now());
 
-          return Card(
+              return Card(
             margin: const EdgeInsets.only(bottom: AppTheme.paddingRegular),
             child: ListTile(
               leading: CircleAvatar(
@@ -358,6 +398,7 @@ class _FamilyManagementScreenState extends State<FamilyManagementScreen>
                       onSelected: (value) => _handleInvitationAction(value, invitation),
                       itemBuilder: (context) => [
                         if (!isExpired && invitation.status == InvitationStatus.pending)
+                        if (!isExpired && invitation.status == InvitationStatus.pending && _canManageInvitations(family))
                           const PopupMenuItem(
                             value: 'resend',
                             child: Row(
@@ -367,20 +408,21 @@ class _FamilyManagementScreenState extends State<FamilyManagementScreen>
                                 Text('Resend'),
                               ],
                             ),
+                            ),
+                        if (_canManageInvitations(family)) // Cancel can always be shown if manager
+                          const PopupMenuItem(
+                            value: 'cancel',
+                            child: Row(
+                              children: [
+                                Icon(Icons.cancel, color: Colors.red),
+                                SizedBox(width: 8),
+                                Text('Cancel', style: TextStyle(color: Colors.red)),
+                              ],
+                            ),
                           ),
-                        const PopupMenuItem(
-                          value: 'cancel',
-                          child: Row(
-                            children: [
-                              Icon(Icons.cancel, color: Colors.red),
-                              SizedBox(width: 8),
-                              Text('Cancel', style: TextStyle(color: Colors.red)),
-                            ],
-                          ),
-                        ),
                       ],
                     )
-                  : null,
+                  : null, // No actions if not manager
             ),
           );
         },
@@ -412,17 +454,17 @@ class _FamilyManagementScreenState extends State<FamilyManagementScreen>
                   ListTile(
                     leading: const Icon(Icons.edit),
                     title: const Text('Family Name'),
-                    subtitle: Text(widget.family.name),
+                    subtitle: Text(family.name), // Use family from StreamBuilder
                     trailing: const Icon(Icons.chevron_right),
-                    onTap: () => _editFamilyName(),
+                    onTap: () => _editFamilyName(family), // Pass family
                   ),
                   ListTile(
                     leading: const Icon(Icons.info),
                     title: const Text('Family ID'),
-                    subtitle: Text(widget.family.id),
+                    subtitle: Text(family.id), // Use family from StreamBuilder
                     trailing: IconButton(
                       icon: const Icon(Icons.copy),
-                      onPressed: () => _copyFamilyId(),
+                      onPressed: () => _copyFamilyId(family), // Pass family
                     ),
                   ),
                 ],
@@ -450,20 +492,20 @@ class _FamilyManagementScreenState extends State<FamilyManagementScreen>
                   SwitchListTile(
                     title: const Text('Public Family'),
                     subtitle: const Text('Allow others to find and join your family'),
-                    value: widget.family.settings.isPublic,
-                    onChanged: _canModifySettings() ? _togglePublicFamily : null,
+                    value: family.settings.isPublic, // Use family from StreamBuilder
+                    onChanged: _canModifySettings(family) ? (value) => _togglePublicFamily(family, value) : null,
                   ),
                   SwitchListTile(
                     title: const Text('Share Classifications'),
                     subtitle: const Text('Share waste classifications with family members'),
-                    value: widget.family.settings.shareClassifications,
-                    onChanged: _canModifySettings() ? _toggleShareClassifications : null,
+                    value: family.settings.shareClassifications, // Use family from StreamBuilder
+                    onChanged: _canModifySettings(family) ? (value) => _toggleShareClassifications(family, value) : null,
                   ),
                   SwitchListTile(
                     title: const Text('Show Member Activity'),
                     subtitle: const Text('Show individual member activity to all'),
-                    value: widget.family.settings.showMemberActivity,
-                    onChanged: _canModifySettings() ? _toggleShowMemberActivity : null,
+                    value: family.settings.showMemberActivity, // Use family from StreamBuilder
+                    onChanged: _canModifySettings(family) ? (value) => _toggleShowMemberActivity(family, value) : null,
                   ),
                 ],
               ),
@@ -473,7 +515,7 @@ class _FamilyManagementScreenState extends State<FamilyManagementScreen>
           const SizedBox(height: AppTheme.paddingLarge),
 
           // Danger Zone
-          if (_isAdmin())
+          if (_isAdmin(family)) // Pass family
             Card(
               child: Padding(
                 padding: const EdgeInsets.all(AppTheme.paddingRegular),
@@ -510,38 +552,38 @@ class _FamilyManagementScreenState extends State<FamilyManagementScreen>
   }
 
   // Member management methods
-  bool _canModifyMember(String memberId) {
-    return _isAdmin() && _currentUser?.id != memberId;
+  bool _canModifyMember(Family family, String memberId) { // Pass family
+    return _isAdmin(family) && _currentUser?.id != memberId;
   }
 
-  bool _canChangeRole(String memberId) {
-    return _isAdmin() && _currentUser?.id != memberId;
+  bool _canChangeRole(Family family, String memberId) { // Pass family
+    return _isAdmin(family) && _currentUser?.id != memberId;
   }
 
-  bool _canRemoveMember(String memberId) {
-    return _isAdmin() && _currentUser?.id != memberId;
+  bool _canRemoveMember(Family family, String memberId) { // Pass family
+    return _isAdmin(family) && _currentUser?.id != memberId;
   }
 
-  bool _canManageInvitations() {
-    return _isAdmin();
+  bool _canManageInvitations(Family family) { // Pass family
+    return _isAdmin(family);
   }
 
-  bool _canModifySettings() {
-    return _isAdmin();
+  bool _canModifySettings(Family family) { // Pass family
+    return _isAdmin(family);
   }
 
-  bool _isAdmin() {
-    final currentMember = widget.family.getMember(_currentUser?.id ?? '');
+  bool _isAdmin(Family family) { // Pass family
+    final currentMember = family.getMember(_currentUser?.id ?? '');
     return currentMember?.role == UserRole.admin;
   }
 
-  void _handleMemberAction(String action, UserProfile member) {
+  void _handleMemberAction(Family family, String action, UserProfile member) { // Pass family
     switch (action) {
       case 'change_role':
-        _showChangeRoleDialog(member);
+        _showChangeRoleDialog(family, member); // Pass family
         break;
       case 'remove':
-        _showRemoveMemberDialog(member);
+        _showRemoveMemberDialog(family, member); // Pass family
         break;
     }
   }
@@ -557,14 +599,14 @@ class _FamilyManagementScreenState extends State<FamilyManagementScreen>
     }
   }
 
-  Future<void> _showChangeRoleDialog(UserProfile member) async {
-    final currentMember = widget.family.getMember(member.id);
-    if (currentMember == null) return;
+  Future<void> _showChangeRoleDialog(Family family, UserProfile member) async { // Pass family
+    final currentFamilyMember = family.getMember(member.id); // Use passed family
+    if (currentFamilyMember == null) return;
 
     UserRole? newRole = await showDialog<UserRole>(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text('Change Role for ${member.displayName}'),
+        title: Text('Change Role for ${member.displayName ?? 'Unknown'}'),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: UserRole.values.map((role) {
@@ -572,7 +614,7 @@ class _FamilyManagementScreenState extends State<FamilyManagementScreen>
               title: Text(_getRoleText(role)),
               subtitle: Text(_getRoleDescription(role)),
               value: role,
-              groupValue: currentMember.role,
+              groupValue: currentFamilyMember.role, // Use currentFamilyMember
               onChanged: (value) => Navigator.of(context).pop(value),
             );
           }).toList(),
@@ -586,17 +628,17 @@ class _FamilyManagementScreenState extends State<FamilyManagementScreen>
       ),
     );
 
-    if (newRole != null && newRole != currentMember.role) {
-      await _changeRole(member.id, newRole);
+    if (newRole != null && newRole != currentFamilyMember.role) {
+      await _changeRole(family, member.id, newRole); // Pass family
     }
   }
 
-  Future<void> _showRemoveMemberDialog(UserProfile member) async {
+  Future<void> _showRemoveMemberDialog(Family family, UserProfile member) async { // Pass family
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Remove Member'),
-        content: Text('Are you sure you want to remove ${member.displayName} from the family?'),
+        content: Text('Are you sure you want to remove ${member.displayName ?? 'this member'} from the family?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
@@ -612,14 +654,15 @@ class _FamilyManagementScreenState extends State<FamilyManagementScreen>
     );
 
     if (confirmed == true) {
-      await _removeMember(member.id);
+      await _removeMember(family, member.id); // Pass family
     }
   }
 
-  Future<void> _changeRole(String userId, UserRole newRole) async {
+  Future<void> _changeRole(Family family, String userId, UserRole newRole) async {
     try {
-      await _familyService.updateMemberRole(widget.family.id, userId, newRole);
-      await _loadData();
+      await _familyService.updateMemberRole(family.id, userId, newRole);
+      // Stream for Family object will trigger rebuild of members list if roles are part of FamilyMember in Family.members
+      // Stream for UserProfile list in _buildMembersTab will also update.
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Member role updated successfully')),
@@ -634,10 +677,11 @@ class _FamilyManagementScreenState extends State<FamilyManagementScreen>
     }
   }
 
-  Future<void> _removeMember(String userId) async {
+  Future<void> _removeMember(Family family, String userId) async {
     try {
-      await _familyService.removeMember(widget.family.id, userId);
-      await _loadData();
+      await _familyService.removeMember(family.id, userId);
+      // Family stream will update the family object, which should rebuild members list.
+      // UserProfile stream will update based on the change in family.members.
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Member removed successfully')),
@@ -655,6 +699,7 @@ class _FamilyManagementScreenState extends State<FamilyManagementScreen>
   Future<void> _resendInvitation(FamilyInvitation invitation) async {
     try {
       await _familyService.resendInvitation(invitation.id);
+      // Invitations stream will update the list
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Invitation resent successfully')),
@@ -672,7 +717,7 @@ class _FamilyManagementScreenState extends State<FamilyManagementScreen>
   Future<void> _cancelInvitation(FamilyInvitation invitation) async {
     try {
       await _familyService.cancelInvitation(invitation.id);
-      await _loadData();
+      // Invitations stream will update the list
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Invitation cancelled successfully')),
@@ -687,33 +732,111 @@ class _FamilyManagementScreenState extends State<FamilyManagementScreen>
     }
   }
 
-  void _editFamilyName() {
-    // TODO: Implement family name editing
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Family name editing coming soon!')),
+  Future<void> _editFamilyName(Family family) async { // Pass family
+    final newNameController = TextEditingController(text: family.name);
+    final confirmed = await showDialog<String>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Edit Family Name'),
+        content: TextField(
+          controller: newNameController,
+          decoration: const InputDecoration(hintText: 'Enter new family name'),
+          autofocus: true,
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Cancel')),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(newNameController.text.trim()),
+            child: const Text('Save'),
+          ),
+        ],
+      ),
     );
+
+    if (confirmed != null && confirmed.isNotEmpty && confirmed != family.name) {
+      try {
+        final updatedFamily = family.copyWith(name: confirmed);
+        await _familyService.updateFamily(updatedFamily);
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Family name updated!')),
+          );
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Failed to update family name: $e')),
+          );
+        }
+      }
+    }
   }
 
-  void _copyFamilyId() {
-    // TODO: Copy family ID to clipboard
+  void _copyFamilyId(Family family) { // Pass family
+    Clipboard.setData(ClipboardData(text: family.id));
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('Family ID copied to clipboard!')),
     );
   }
 
-  void _togglePublicFamily(bool value) {
-    // TODO: Implement toggle public family
+  Future<void> _togglePublicFamily(Family family, bool value) async { // Pass family
+    final newSettings = family.settings.copyWith(isPublic: value);
+    final updatedFamily = family.copyWith(settings: newSettings);
+    try {
+      await _familyService.updateFamily(updatedFamily);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Public family setting updated to $value')),
+        );
+      }
+    } catch (e) {
+       if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to update setting: $e')),
+        );
+      }
+    }
   }
 
-  void _toggleShareClassifications(bool value) {
-    // TODO: Implement toggle share classifications
+  Future<void> _toggleShareClassifications(Family family, bool value) async { // Pass family
+    final newSettings = family.settings.copyWith(shareClassifications: value);
+    final updatedFamily = family.copyWith(settings: newSettings);
+     try {
+      await _familyService.updateFamily(updatedFamily);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Share classifications setting updated to $value')),
+        );
+      }
+    } catch (e) {
+       if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to update setting: $e')),
+        );
+      }
+    }
   }
 
-  void _toggleShowMemberActivity(bool value) {
-    // TODO: Implement toggle show member activity
+  Future<void> _toggleShowMemberActivity(Family family, bool value) async { // Pass family
+    final newSettings = family.settings.copyWith(showMemberActivity: value);
+    final updatedFamily = family.copyWith(settings: newSettings);
+    try {
+      await _familyService.updateFamily(updatedFamily);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Show member activity setting updated to $value')),
+        );
+      }
+    } catch (e) {
+       if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to update setting: $e')),
+        );
+      }
+    }
   }
 
-  void _deleteFamily() async {
+  void _deleteFamily(Family family) async { // Pass family
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
