@@ -70,6 +70,8 @@ class _DisposalInstructionsWidgetState extends State<DisposalInstructionsWidget>
                       ),
                       Text(
                         widget.instructions.primaryMethod,
+                        maxLines: 2, // Added maxLines
+                        overflow: TextOverflow.ellipsis, // Added ellipsis
                         style: TextStyle(
                           fontSize: AppTheme.fontSizeRegular,
                           color: Colors.white70,
@@ -213,6 +215,8 @@ class _DisposalInstructionsWidgetState extends State<DisposalInstructionsWidget>
                   Expanded(
                     child: Text(
                       warning,
+                      maxLines: 3, // Added maxLines
+                      overflow: TextOverflow.ellipsis, // Added ellipsis
                       style: TextStyle(
                         fontSize: AppTheme.fontSizeRegular,
                         color: Colors.red.shade700,
@@ -278,6 +282,8 @@ class _DisposalInstructionsWidgetState extends State<DisposalInstructionsWidget>
           Expanded(
             child: Text(
               step,
+              maxLines: 3, // Added maxLines
+              overflow: TextOverflow.ellipsis, // Added ellipsis
               style: TextStyle(
                 fontSize: AppTheme.fontSizeRegular,
                 color: isCompleted ? Colors.grey.shade600 : AppTheme.textPrimaryColor,
@@ -336,6 +342,8 @@ class _DisposalInstructionsWidgetState extends State<DisposalInstructionsWidget>
                   Expanded(
                     child: Text(
                       tip,
+                      maxLines: 3, // Added maxLines
+                      overflow: TextOverflow.ellipsis, // Added ellipsis
                       style: TextStyle(
                         fontSize: AppTheme.fontSizeRegular,
                         color: Colors.blue.shade700,
@@ -384,6 +392,8 @@ class _DisposalInstructionsWidgetState extends State<DisposalInstructionsWidget>
           const SizedBox(height: AppTheme.paddingSmall),
           Text(
             widget.instructions.recyclingInfo!,
+            maxLines: 3, // Added maxLines
+            overflow: TextOverflow.ellipsis, // Added ellipsis
             style: TextStyle(
               fontSize: AppTheme.fontSizeRegular,
               color: Colors.green.shade700,
@@ -427,6 +437,8 @@ class _DisposalInstructionsWidgetState extends State<DisposalInstructionsWidget>
           const SizedBox(height: AppTheme.paddingSmall),
           Text(
             widget.instructions.location!,
+            maxLines: 3, // Added maxLines
+            overflow: TextOverflow.ellipsis, // Added ellipsis
             style: TextStyle(
               fontSize: AppTheme.fontSizeRegular,
               color: Colors.orange.shade700,
