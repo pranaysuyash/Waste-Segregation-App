@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../models/enhanced_family.dart' as family_models;
 import '../models/user_profile.dart' as user_models;
 import '../models/family_invitation.dart' as invitation_models;
+import '../models/user_profile.dart' as user_profile_models;
 import '../services/firebase_family_service.dart';
 import '../services/storage_service.dart';
 import '../utils/constants.dart';
@@ -646,9 +647,29 @@ class _FamilyManagementScreenState extends State<FamilyManagementScreen>
     );
   }
 
-  Future<void> _changeRole(family_models.Family family, String userId, family_models.UserRole newRole) async {
+  Future<void> _changeRole(family_models.Family family, String userId, family_models.UserRole newFamilyRole) async {
     try {
-      await _familyService.updateMemberRole(family.id, userId, newRole);
+      user_profile_models.UserRole newProfileRole;
+      switch (newFamilyRole) {
+        case family_models.UserRole.admin:
+          newProfileRole = user_profile_models.UserRole.admin;
+          break;
+        case family_models.UserRole.member:
+          newProfileRole = user_profile_models.UserRole.member;
+          break;
+        default:
+          final newFamilyRoleName = newFamilyRole.toString().split('.').last;
+          try {
+            newProfileRole = user_profile_models.UserRole.values.firstWhere(
+              (profileRole) => profileRole.toString().split('.').last == newFamilyRoleName
+            );
+          } catch (e) {
+            debugPrint('Warning: Role "$newFamilyRoleName" from family_models.UserRole not found in user_profile_models.UserRole. Defaulting to member.');
+            newProfileRole = user_profile_models.UserRole.member;
+          }
+      }
+
+      await _familyService.updateMemberRole(family.id, userId, newProfileRole);
       if(mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Member role updated.')));
     } catch (e) {
       if(mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to update role: ${e.toString()}')));

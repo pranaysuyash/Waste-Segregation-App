@@ -1,6 +1,5 @@
 import 'dart:io';
 import 'dart:async';
-import 'dart:math';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
@@ -43,11 +42,9 @@ class _HistoryScreenState extends State<HistoryScreen> {
   
   // Loading state
   bool _isLoading = true;
-  bool _isExporting = false;
   
   // List of classifications
   List<WasteClassification> _classifications = [];
-  Map<String, List<WasteClassification>> _groupedClassifications = {};
   
   // Scroll controller for pagination
   final ScrollController _scrollController = ScrollController();
@@ -172,20 +169,6 @@ class _HistoryScreenState extends State<HistoryScreen> {
       setState(() {
         _isLoadingMore = false;
       });
-    }
-  }
-  
-  // Apply search filter
-  void _applySearchFilter(String searchText) {
-    final newFilterOptions = _filterOptions.copyWith(
-      searchText: searchText.trim().isEmpty ? null : searchText.trim(),
-    );
-    
-    if (newFilterOptions.toString() != _filterOptions.toString()) {
-      setState(() {
-        _filterOptions = newFilterOptions;
-      });
-      _loadClassifications();
     }
   }
   
@@ -321,7 +304,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                               }
                             });
                           },
-                          selectedColor: categoryColor.withOpacity(0.2),
+                          selectedColor: categoryColor.withValues(alpha: 0.2),
                           checkmarkColor: categoryColor,
                           backgroundColor: Colors.grey.shade200,
                         );
@@ -456,7 +439,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
   Future<void> _exportToCSV() async {
     try {
       setState(() {
-        _isExporting = true;
+        _isLoading = true;
       });
       
       final storageService = Provider.of<StorageService>(context, listen: false);
@@ -488,7 +471,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
       _showErrorSnackBar('Failed to export classifications: $e');
     } finally {
       setState(() {
-        _isExporting = false;
+        _isLoading = false;
       });
     }
   }
@@ -611,7 +594,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
       floatingActionButton: _isLoadingMore
           ? FloatingActionButton(
               onPressed: null,
-              backgroundColor: AppTheme.primaryColor.withOpacity(0.5),
+              backgroundColor: AppTheme.primaryColor.withValues(alpha: 0.5),
               child: const SizedBox(
                 width: 24,
                 height: 24,
@@ -661,10 +644,6 @@ class _HistoryScreenState extends State<HistoryScreen> {
   
   bool _isFilterActive() {
     return _filterOptions.isNotEmpty;
-  }
-  
-  Future<void> _exportHistory() async {
-    await _exportToCSV();
   }
 }
 

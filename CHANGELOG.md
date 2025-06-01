@@ -5,6 +5,27 @@ All notable changes to the Waste Segregation App will be documented in this file
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.5+98] - 2025-01-27
+
+### Fixed - Code Quality
+- **🔧 Linter Issues**: Resolved all linter warnings and errors in family_management_screen.dart and history_screen.dart
+- **📦 Missing Widgets**: Created missing ModernButton, ModernTextField, and ResponsiveDialog widgets
+- **🚫 Deprecated APIs**: Replaced deprecated `withOpacity()` calls with `withValues(alpha:)` for Flutter compatibility
+- **🧹 Code Cleanup**: Removed unused imports, fields, and methods to improve code maintainability
+- **📝 Logging**: Replaced `print()` statements with `debugPrint()` for better development practices
+
+### Added - UI Components
+- **🎨 ModernButton**: Export file for modern button components with enhanced styling
+- **📝 ModernTextField**: Animated text field widget with focus animations and modern styling
+- **📱 ResponsiveDialog**: Adaptive dialog component that adjusts to different screen sizes
+
+### Enhanced - Code Quality
+- **✅ Zero Linter Issues**: All analyzed files now pass linter checks without warnings
+- **🔄 Better State Management**: Improved loading state handling in export functionality
+- **📚 Code Documentation**: Enhanced inline documentation for better maintainability
+
+---
+
 ## [0.1.5+97] - 2025-05-29
 
 ### 🏆 **MAJOR MILESTONE: World's Most Comprehensive Recycling Research Completed**
