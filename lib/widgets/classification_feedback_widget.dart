@@ -9,12 +9,16 @@ class ClassificationFeedbackWidget extends StatefulWidget {
   final WasteClassification classification;
   final Function(WasteClassification updatedClassification) onFeedbackSubmitted;
   final bool showCompactVersion;
+  final VoidCallback? onReanalyzeRequested; // Added callback
+  final bool isProcessing; // Added to disable buttons during re-analysis
 
   const ClassificationFeedbackWidget({
     super.key,
     required this.classification,
     required this.onFeedbackSubmitted,
     this.showCompactVersion = false,
+    this.onReanalyzeRequested,
+    this.isProcessing = false, // Default to false
   });
 
   @override
@@ -528,22 +532,43 @@ class _ClassificationFeedbackWidgetState extends State<ClassificationFeedbackWid
             
             const SizedBox(height: AppTheme.paddingLarge),
             
-            // Submit button
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton.icon(
-                onPressed: _submitFeedback,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppTheme.primaryColor,
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(AppTheme.borderRadiusRegular),
+            // Submit button and Re-analyze button
+            Row(
+              children: [
+                Expanded(
+                  child: ElevatedButton.icon(
+                    onPressed: (_userConfirmed != null && !widget.isProcessing) ? _submitFeedback : null, // Disable if processing
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppTheme.primaryColor,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(AppTheme.borderRadiusRegular),
+                      ),
+                    ),
+                    icon: const Icon(Icons.send),
+                    label: const Text('Submit Feedback'),
                   ),
                 ),
-                icon: const Icon(Icons.send),
-                label: const Text('Submit Feedback'),
-              ),
+                if (widget.onReanalyzeRequested != null && _userConfirmed == false) ...[
+                  const SizedBox(width: AppTheme.paddingSmall),
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      onPressed: widget.isProcessing ? null : widget.onReanalyzeRequested, // Disable if processing
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: AppTheme.secondaryColor,
+                        side: BorderSide(color: AppTheme.secondaryColor, width: 1.5),
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(AppTheme.borderRadiusRegular),
+                        ),
+                      ),
+                      icon: const Icon(Icons.travel_explore), // Or Icons.refresh
+                      label: const Text('Re-analyze'),
+                    ),
+                  ),
+                ],
+              ],
             ),
             
             const SizedBox(height: AppTheme.paddingSmall),

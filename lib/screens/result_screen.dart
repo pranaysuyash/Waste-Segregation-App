@@ -1,10 +1,13 @@
+import 'dart:io'; // For File
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:uuid/uuid.dart'; // For generating keys if needed
 import '../utils/share_service.dart';
 import '../models/waste_classification.dart';
 import '../models/gamification.dart';
 import '../services/storage_service.dart';
 import '../services/gamification_service.dart';
+import '../services/ai_service.dart'; // For AiService
 import '../utils/constants.dart';
 import '../utils/error_handler.dart';
 import '../utils/animation_helpers.dart';
@@ -34,12 +37,15 @@ class ResultScreen extends StatefulWidget {
 }
 
 class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderStateMixin {
+  late WasteClassification _currentClassification; // Use this for displaying data
+  bool _isReanalyzing = false; // For loading state during re-analysis
+
   bool _isSaved = false;
   bool _isAutoSaving = false;
   bool _showingClassificationFeedback = true;
   bool _showingPointsPopup = false;
-  bool _isExplanationExpanded = false; // Added for expandable explanation
-  bool _isEducationalFactExpanded = false; // Added for expandable educational fact
+  bool _isExplanationExpanded = false;
+  bool _isEducationalFactExpanded = false;
   
   List<Achievement> _newlyEarnedAchievements = [];
   int _pointsEarned = 0;
@@ -50,29 +56,48 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
   @override
   void initState() {
     super.initState();
+    _currentClassification = widget.classification; // Initialize _currentClassification
+
     _animationController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 1500),
     );
     
-    // Process the classification for gamification only if it's a new classification
     if (widget.showActions) {
-      _autoSaveClassification();
-      _processClassification();
+      _autoSaveClassification(); // Uses _currentClassification via other methods
+      _processClassification();  // Uses _currentClassification via other methods
     } else {
       _showingClassificationFeedback = false;
     }
   }
   
+  Future<File?> _getImageFile() async {
+    if (_currentClassification.imageUrl == null || _currentClassification.imageUrl!.isEmpty) {
+      return null;
+    }
+    // Assuming imageUrl is a local file path.
+    // If it can be a network URL, download logic would be needed here.
+    try {
+      final file = File(_currentClassification.imageUrl!);
+      if (await file.exists()) {
+        return file;
+      }
+      return null;
+    } catch (e) {
+      print("Error creating File object: $e");
+      return null;
+    }
+  }
+
   // Enhance classification with disposal instructions if not already present
   Future<WasteClassification> _enhanceClassificationWithDisposalInstructions() async {
     // This method is now called from within _autoSaveClassification to prevent duplicate saves
-    if (widget.classification.disposalInstructions == null) {
+    if (_currentClassification.disposalInstructions == null) {
       // Generate disposal instructions for this classification
-      final enhancedClassification = widget.classification; // Already has disposal instructions
+      final enhancedClassification = _currentClassification; // Already has disposal instructions
       return enhancedClassification;
     }
-    return widget.classification;
+    return _currentClassification;
   }
   
   @override
@@ -133,7 +158,7 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
       final oldProfile = await gamificationService.getProfile();
       
       // Process the classification
-      await gamificationService.processClassification(widget.classification);
+      await gamificationService.processClassification(_currentClassification);
       
       // Get updated profile
       final newProfile = await gamificationService.getProfile();
@@ -198,7 +223,7 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
 
     try {
       final storageService = Provider.of<StorageService>(context, listen: false);
-      final savedClassification = widget.classification.copyWith(isSaved: true);
+      final savedClassification = _currentClassification.copyWith(isSaved: true);
       await storageService.saveClassification(savedClassification);
 
       if (mounted) {
@@ -226,7 +251,7 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
   Future<void> _shareResult() async {
     try {
       await ShareService.share(
-        text: 'I identified ${widget.classification.itemName} as ${widget.classification.category} waste using the Waste Segregation app!',
+        text: 'I identified ${_currentClassification.itemName} as ${_currentClassification.category} waste using the Waste Segregation app!',
         context: context,
       );
     } catch (e, stackTrace) {
@@ -257,36 +282,36 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
     final tags = <TagData>[];
     
     // Category tag
-    tags.add(TagFactory.category(widget.classification.category));
+    tags.add(TagFactory.category(_currentClassification.category));
     
     // Subcategory tag if available
-    if (widget.classification.subcategory != null) {
+    if (_currentClassification.subcategory != null) {
       tags.add(TagFactory.subcategory(
-        widget.classification.subcategory!,
-        widget.classification.category,
+        _currentClassification.subcategory!,
+        _currentClassification.category,
       ));
     }
     
     // Material type tag if available
-    if (widget.classification.materialType != null) {
-      tags.add(TagFactory.material(widget.classification.materialType!));
+    if (_currentClassification.materialType != null) {
+      tags.add(TagFactory.material(_currentClassification.materialType!));
     }
     
     // Property tags
-    if (widget.classification.isRecyclable == true) {
+    if (_currentClassification.isRecyclable == true) {
       tags.add(TagFactory.property('Recyclable', true));
       
       // Add recycling difficulty based on category/material
-      final difficulty = _getRecyclingDifficulty();
+      final difficulty = _getRecyclingDifficulty(); // Uses _currentClassification
       tags.add(TagFactory.recyclingDifficulty('to recycle', difficulty));
     }
     
-    if (widget.classification.isCompostable == true) {
+    if (_currentClassification.isCompostable == true) {
       tags.add(TagFactory.property('Compostable', true));
       tags.add(TagFactory.didYouKnow('Composting reduces methane emissions by 70%', Colors.green));
     }
     
-    if (widget.classification.requiresSpecialDisposal == true) {
+    if (_currentClassification.requiresSpecialDisposal == true) {
       tags.add(TagData(
         text: 'Special Disposal',
         color: Colors.orange,
@@ -320,16 +345,16 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
     // Add filter tags for finding similar items
     tags.add(TagFactory.filter(
       'Similar Items',
-      widget.classification.category,
-      subcategory: widget.classification.subcategory,
+      _currentClassification.category,
+      subcategory: _currentClassification.subcategory,
     ));
     
     return tags;
   }
   
   DifficultyLevel _getRecyclingDifficulty() {
-    final category = widget.classification.category.toLowerCase();
-    final material = widget.classification.materialType?.toLowerCase();
+    final category = _currentClassification.category.toLowerCase();
+    final material = _currentClassification.materialType?.toLowerCase();
     
     if (category == 'hazardous waste' || category == 'medical waste') {
       return DifficultyLevel.expert;
@@ -337,7 +362,7 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
     
     if (material == 'plastic') {
       // Check recycling code for difficulty
-      final code = widget.classification.recyclingCode;
+      final code = _currentClassification.recyclingCode;
       if (code == '1' || code == '2') return DifficultyLevel.easy;
       if (code == '5') return DifficultyLevel.medium;
       return DifficultyLevel.hard;
@@ -351,7 +376,7 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
   }
   
   double _calculateCO2Savings() {
-    final category = widget.classification.category.toLowerCase();
+    final category = _currentClassification.category.toLowerCase();
     switch (category) {
       case 'paper':
       case 'dry waste':
@@ -366,7 +391,7 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
   }
   
   double _calculateWaterSavings() {
-    final category = widget.classification.category.toLowerCase();
+    final category = _currentClassification.category.toLowerCase();
     switch (category) {
       case 'paper':
       case 'dry waste':
@@ -379,7 +404,7 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
   }
   
   void _addLocalInformationTags(List<TagData> tags) {
-    final category = widget.classification.category.toLowerCase();
+    final category = _currentClassification.category.toLowerCase();
     
     switch (category) {
       case 'wet waste':
@@ -396,7 +421,7 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
   }
   
   void _addUrgencyTags(List<TagData> tags) {
-    final category = widget.classification.category.toLowerCase();
+    final category = _currentClassification.category.toLowerCase();
     
     if (category == 'medical waste') {
       tags.add(TagFactory.timeUrgent('Medical waste', UrgencyLevel.critical));
@@ -408,8 +433,8 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
   }
   
   void _addEducationalTips(List<TagData> tags) {
-    final category = widget.classification.category.toLowerCase();
-    final subcategory = widget.classification.subcategory?.toLowerCase();
+    final category = _currentClassification.category.toLowerCase();
+    final subcategory = _currentClassification.subcategory?.toLowerCase();
     
     if (subcategory == 'plastic') {
       tags.add(TagFactory.didYouKnow('Remove caps before recycling', Colors.blue));
@@ -498,18 +523,18 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
                               Container(
                                 padding: const EdgeInsets.all(12),
                                 decoration: BoxDecoration(
-                                  color: _getCategoryColor(widget.classification.category),
+                                  color: _getCategoryColor(_currentClassification.category),
                                   borderRadius: BorderRadius.circular(AppTheme.borderRadiusRegular),
                                   boxShadow: [
                                     BoxShadow(
-                                      color: _getCategoryColor(widget.classification.category).withOpacity(0.3),
+                                      color: _getCategoryColor(_currentClassification.category).withOpacity(0.3),
                                       offset: const Offset(0, 2),
                                       blurRadius: 8,
                                     ),
                                   ],
                                 ),
                                 child: Icon(
-                                  _getCategoryIcon(widget.classification.category),
+                                  _getCategoryIcon(_currentClassification.category),
                                   color: Colors.white,
                                   size: 32,
                                 ),
@@ -529,15 +554,16 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
                                     ),
                                     const SizedBox(height: 4),
                                     Text(
-                                      widget.classification.itemName,
-                                      maxLines: 2, // Added maxLines
-                                      overflow: TextOverflow.ellipsis, // Added ellipsis
+                                      _currentClassification.itemName,
+                                      maxLines: 2,
+                                      overflow: TextOverflow.ellipsis,
                                       style: const TextStyle(
                                         fontSize: AppTheme.fontSizeExtraLarge,
                                         fontWeight: FontWeight.bold,
                                         color: Colors.black87,
                                       ),
                                     ),
+                                    _buildConfidenceWarning(), // Added confidence warning
                                   ],
                                 ),
                               ),
@@ -594,7 +620,7 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
                                 ),
                                 const SizedBox(height: AppTheme.paddingSmall),
                                 Text(
-                                  widget.classification.explanation,
+                                  _currentClassification.explanation,
                                   maxLines: _isExplanationExpanded ? null : 3,
                                   overflow: _isExplanationExpanded ? TextOverflow.visible : TextOverflow.ellipsis,
                                   style: TextStyle(
@@ -735,18 +761,21 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
                   // User Feedback Section (for training AI model)
                   if (widget.showActions) ...[
                     ClassificationFeedbackWidget(
-                      classification: widget.classification,
+                      key: Key(_currentClassification.id ?? const Uuid().v4()), // Force rebuild on re-analysis
+                      classification: _currentClassification,
                       onFeedbackSubmitted: _handleFeedbackSubmission,
-                      showCompactVersion: false, // Changed to false
+                      showCompactVersion: false,
+                      onReanalyzeRequested: _handleReanalyzeRequest, // Pass the handler
+                      isProcessing: _isReanalyzing, // Pass the processing state
                     ),
                     const SizedBox(height: AppTheme.paddingLarge),
                   ],
 
                   // Disposal Instructions Section
-                  if (widget.classification.disposalInstructions != null ||
-                      widget.classification.hasUrgentTimeframe == true) ...[
+                  if (_currentClassification.disposalInstructions != null ||
+                      _currentClassification.hasUrgentTimeframe == true) ...[
                     DisposalInstructionsWidget(
-                      instructions: widget.classification.disposalInstructions,
+                      instructions: _currentClassification.disposalInstructions,
                       onStepCompleted: (step) {
                         // Award points for completing disposal steps
                         _awardPointsForDisposalStep();
@@ -786,12 +815,12 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
                           ),
                           const SizedBox(height: AppTheme.paddingRegular),
                           Text(
-                            _getEducationalFact(
-                              widget.classification.category,
-                              widget.classification.subcategory,
+                            _getEducationalFact( // Uses _currentClassification
+                              _currentClassification.category,
+                              _currentClassification.subcategory,
                             ),
-                            maxLines: _isEducationalFactExpanded ? null : 3, // Added maxLines
-                            overflow: _isEducationalFactExpanded ? TextOverflow.visible : TextOverflow.ellipsis, // Added ellipsis
+                            maxLines: _isEducationalFactExpanded ? null : 3,
+                            overflow: _isEducationalFactExpanded ? TextOverflow.visible : TextOverflow.ellipsis,
                             style: TextStyle(
                               fontSize: AppTheme.fontSizeRegular,
                               height: 1.6,
@@ -823,7 +852,7 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
                                       context,
                                       MaterialPageRoute(
                                         builder: (context) => EducationalContentScreen(
-                                          initialCategory: widget.classification.category,
+                                          initialCategory: _currentClassification.category,
                                         ),
                                       ),
                                     );
@@ -840,7 +869,7 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
                                       context,
                                       MaterialPageRoute(
                                         builder: (context) => HistoryScreen(
-                                          filterCategory: widget.classification.category,
+                                          filterCategory: _currentClassification.category,
                                         ),
                                       ),
                                     );
@@ -855,6 +884,15 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
                       ),
                     ),
                   ),
+
+                  // Loading indicator for re-analysis
+                  if (_isReanalyzing)
+                    Positioned.fill(
+                      child: Container(
+                        color: Colors.black.withOpacity(0.3),
+                        child: const Center(child: CircularProgressIndicator()),
+                      ),
+                    ),
 
                   const SizedBox(height: AppTheme.paddingLarge),
 
@@ -919,8 +957,8 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
               child: Container(
                 color: Colors.white,
                 child: Center(
-                  child: ClassificationFeedback(
-                    category: widget.classification.category,
+                  child: ClassificationFeedback( // This is the initial full screen feedback, not the widget
+                    category: _currentClassification.category,
                     onComplete: () {
                       setState(() {
                         _showingClassificationFeedback = false;
@@ -1034,16 +1072,115 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
     
     return categoryFacts[category.toLowerCase()] ?? 'Proper waste management is essential for environmental protection and resource conservation.';
   }
+
+  Widget _buildConfidenceWarning() {
+    final confidence = _currentClassification.confidence; // Use _currentClassification
+    final clarificationNeeded = _currentClassification.clarificationNeeded ?? false; // Use _currentClassification
+    final bool isLowConfidence = confidence != null && confidence < 0.7;
+
+    String? warningMessage;
+    if (isLowConfidence && clarificationNeeded) {
+      warningMessage = 'Low confidence. Clarification may be needed. Please verify.';
+    } else if (isLowConfidence) {
+      warningMessage = 'Low confidence in this result. Please verify.';
+    } else if (clarificationNeeded) {
+      warningMessage = 'AI suggests clarification may be needed for this item.';
+    }
+
+    if (warningMessage != null) {
+      return Padding(
+        padding: const EdgeInsets.only(top: AppTheme.paddingSmall),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: AppTheme.paddingSmall, vertical: AppTheme.paddingExtraSmall),
+          decoration: BoxDecoration(
+            color: Colors.orange.shade50,
+            borderRadius: BorderRadius.circular(AppTheme.borderRadiusSmall),
+            border: Border.all(color: Colors.orange.shade200, width: 1),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(Icons.warning_amber_rounded, color: Colors.orange.shade700, size: 18),
+              const SizedBox(width: AppTheme.paddingSmall),
+              Expanded(
+                child: Text(
+                  warningMessage,
+                  style: TextStyle(
+                    color: Colors.orange.shade900,
+                    fontSize: AppTheme.fontSizeSmall,
+                  ),
+                  softWrap: true,
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+    return const SizedBox.shrink(); // No warning
+  }
+
+  Future<void> _handleReanalyzeRequest() async {
+    if (_isReanalyzing) return;
+
+    setState(() {
+      _isReanalyzing = true;
+    });
+
+    final imageFile = await _getImageFile();
+    if (imageFile == null) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Original image not available for re-analysis.'), backgroundColor: Colors.red),
+        );
+      }
+      setState(() {
+        _isReanalyzing = false;
+      });
+      return;
+    }
+
+    try {
+      final aiService = Provider.of<AiService>(context, listen: false);
+      final newClassification = await aiService.handleUserCorrection(
+        originalClassification: _currentClassification,
+        userCorrection: "User requested re-analysis of this item.", // Predefined correction
+        userReason: "Re-analysis triggered from UI.", // Predefined reason
+        imageFile: imageFile,
+      );
+
+      if (mounted) {
+        setState(() {
+          _currentClassification = newClassification;
+          _isReanalyzing = false;
+          // Reset any feedback-specific states if needed, though keying feedback widget is better
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Re-analysis complete! Classification updated.'), backgroundColor: Colors.green),
+        );
+      }
+    } catch (e, stackTrace) {
+      ErrorHandler.handleError(e, stackTrace, context: context, messagePrefix: "Re-analysis failed");
+      if (mounted) {
+        setState(() {
+          _isReanalyzing = false;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Re-analysis failed: ${ErrorHandler.getUserFriendlyMessage(e)}'), backgroundColor: Colors.red),
+        );
+      }
+    }
+  }
   
   // Generate fallback disposal instructions if none are available
   // DisposalInstructions _generateFallbackDisposalInstructions() {
   //   return DisposalInstructionsGenerator.generateForItem(
-  //     category: widget.classification.category,
-  //     subcategory: widget.classification.subcategory,
-  //     materialType: widget.classification.materialType,
-  //     isRecyclable: widget.classification.isRecyclable,
-  //     isCompostable: widget.classification.isCompostable,
-  //     requiresSpecialDisposal: widget.classification.requiresSpecialDisposal,
+  //     category: _currentClassification.category,
+  //     subcategory: _currentClassification.subcategory,
+  //     materialType: _currentClassification.materialType,
+  //     isRecyclable: _currentClassification.isRecyclable,
+  //     isCompostable: _currentClassification.isCompostable,
+  //     requiresSpecialDisposal: _currentClassification.requiresSpecialDisposal,
   //   );
   // }
   
