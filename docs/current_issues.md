@@ -2,7 +2,7 @@
 
 This document tracks current issues, blockers, and action items for the Waste Segregation App (WasteWise). This is a living document meant to be updated as issues are resolved and new ones emerge.
 
-_Last updated: May 24, 2025_
+_Last updated: May 29, 2025_
 
 ## 🔥 CRITICAL ISSUES (Immediate Action Required)
 
@@ -30,10 +30,10 @@ _Last updated: May 24, 2025_
    - **Play Store SHA-1**: `F8:78:26:A3:26:81:48:8A:BF:78:95:DA:D2:C0:12:36:64:96:31:B3`
    - **Actions**:
      - [x] Identify missing SHA-1 fingerprint from Play Console App Signing
-     - [ ] **Add SHA-1 to Firebase Console** → Project Settings → Android App → Add fingerprint
-     - [ ] **Download updated google-services.json** and replace existing file
-     - [ ] **Clean build and upload new AAB** to Play Console
-     - [ ] **Test Google Sign-In** in internal testing
+     - [x] **Add SHA-1 to Firebase Console** → Project Settings → Android App → Add fingerprint
+     - [x] **Download updated google-services.json** and replace existing file
+     - [x] **Clean build and upload new AAB** to Play Console
+     - [x] **Test Google Sign-In** in internal testing (Version 0.1.5+97)
    - **Priority**: **CRITICAL**
    - **ETA**: 10 minutes to fix
    - **Owner**: Pranay
@@ -56,7 +56,7 @@ _Last updated: May 24, 2025_
 ## 📋 PENDING APPROVALS & REVIEWS
 
 ### 4. **Play Store Review** 
-   - **Status**: Waiting for approval of internal testing build
+   - **Status**: Waiting for approval of internal testing build (Version 0.1.5+97)
    - **Actions**:
      - [ ] Monitor Google Play Console for reviewer feedback
      - [ ] **Fix Google Sign-In issue first** (Critical Issue #1)

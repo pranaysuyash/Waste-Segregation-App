@@ -2,7 +2,7 @@ name: waste_segregation_app
 description: An app to help users properly segregate waste using AI classification.
 publish_to: 'none'
 
-version: 0.1.5+99
+version: 0.1.5+97
 
 environment:
   sdk: '>=3.0.0 <4.0.0'

@@ -5,7 +5,7 @@ All notable changes to the Waste Segregation App will be documented in this file
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.1.5+99] - 2025-05-29
+## [0.1.5+97] - 2025-05-29
 
 ### 🏆 **MAJOR MILESTONE: World's Most Comprehensive Recycling Research Completed**
 
@@ -140,7 +140,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 **Version Strategy:**
 - **Stable Release**: 0.1.4+96 (Current deployed version)
-- **Research Milestone**: 0.1.5+99 (World's most comprehensive recycling research completed)
-- **Play Store Release**: 0.1.5+97 (Reserved for official store deployment)
+- **Research Milestone & Play Store Release**: 0.1.5+97 (World's most comprehensive recycling research completed, reserved for Play Store)
 
 *Research represents a major breakthrough in environmental technology, combining academic excellence, global standards compliance, technical innovation, and educational impact for sustainable material management.*

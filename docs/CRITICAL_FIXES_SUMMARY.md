@@ -23,7 +23,7 @@
 - **Testing**: Added comprehensive test suite to verify fix
 
 ### 2. **Play Store Google Sign-In Certificate Crisis** 🚨 **CRITICAL**
-**Status**: **IDENTIFIED - REQUIRES IMMEDIATE ACTION**
+**Status**: **IDENTIFIED - REQUIRES IMMEDIATE ACTION** (Targeting fix for version 0.1.5+97)
 - **Issue**: `PlatformException(sign_in_failed, error code: 10)` in Play Store internal testing
 - **Root Cause**: Play Store App Signing SHA-1 fingerprint missing from Firebase Console
 - **Missing SHA-1**: `F8:78:26:A3:26:81:48:8A:BF:78:95:DA:D2:C0:12:36:64:96:31:B3`
@@ -130,7 +130,7 @@
 ## 🚀 **IMMEDIATE NEXT ACTIONS**
 
 ### Week 1 (Current Week) - CRITICAL
-1. **🔥 Fix Play Store Google Sign-In** (URGENT)
+1. **🔥 Fix Play Store Google Sign-In** (URGENT - For version 0.1.5+97)
    - Add missing SHA-1 to Firebase Console
    - Download updated google-services.json
    - Clean build and upload new AAB

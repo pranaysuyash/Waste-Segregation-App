@@ -2,7 +2,7 @@
 
 A comprehensive Flutter application for proper waste identification, segregation guidance, and environmental education, enhanced with world-class recycling research and AI-powered material recognition.
 
-## 🌟 **Latest Achievement: World's Most Comprehensive Recycling Research**
+## 🌟 **Latest Achievement: World's Most Comprehensive Recycling Research (Version 0.1.5+97)**
 
 **🔬 Research Milestone**: Completed the world's most comprehensive recycling codes and material identification research, synthesizing knowledge from 9 leading AI systems across 175+ authoritative sources covering 70+ countries and regions.
 
@@ -195,10 +195,10 @@ For comprehensive documentation including setup guides, technical details, and p
 
 ## Current Project Status
 
-**Version:** 0.1.4+96 (Current Deployed Release)  
-**Play Store Version:** 0.1.5+97 (Reserved for Google Play Store)  
+**Version:** 0.1.5+97 (Research Milestone & Play Store Release)  
+**Previous Stable Version:** 0.1.4+96   
 **Status:** ✅ Ready for Production  
-**Latest Changes:** Critical UI fixes applied - AdWidget errors resolved, overflow warnings fixed, modal dialogs improved
+**Latest Changes:** Comprehensive recycling research integrated. Critical UI fixes applied - AdWidget errors resolved, overflow warnings fixed, modal dialogs improved
 
 ### Recent Critical Fixes ✅
 - **History Duplication Fix:** Fixed issue where scanning one item created two history entries due to duplicate save operations in result screen
@@ -243,7 +243,7 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 - All contributors to the open-source packages used in this project
 
 ## Versioning and Play Store Issue (May 2025)
-- The app now uses 0.1.x versioning for public/internal releases. Latest: 0.1.2+94.
+- The app now uses 0.1.x versioning for public/internal releases. Latest: 0.1.5+97.
 - Google Play App Signing SHA-1 is now added to Firebase for internal testing compatibility.
 - See CHANGELOG.md and docs/current_issues.md for details.
 
