@@ -140,7 +140,7 @@ class _FamilyManagementScreenState extends State<FamilyManagementScreen>
                 margin: const EdgeInsets.only(bottom: AppTheme.paddingRegular),
                 child: ListTile(
                   leading: CircleAvatar(
-                    backgroundColor: AppTheme.primaryColor.withOpacity(0.1),
+                    backgroundColor: AppTheme.primaryColor.withValues(alpha: 0.1),
                     backgroundImage: memberProfile.photoUrl != null
                         ? NetworkImage(memberProfile.photoUrl!)
                         : null,
@@ -163,7 +163,7 @@ class _FamilyManagementScreenState extends State<FamilyManagementScreen>
                             vertical: 2,
                           ),
                           decoration: BoxDecoration(
-                            color: Colors.blue.withOpacity(0.1),
+                            color: Colors.blue.withValues(alpha: 0.1),
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: const Text(
@@ -696,10 +696,12 @@ class _FamilyManagementScreenState extends State<FamilyManagementScreen>
                   child: const Text('Save'),
                   onPressed: () async {
                     if (nameController.text.isNotEmpty) {
-                      Navigator.of(context).pop();
+                      final navigator = Navigator.of(context);
+                      final messenger = ScaffoldMessenger.of(context);
+                      navigator.pop();
                       final updatedFamily = family.copyWith(name: nameController.text);
                       await _familyService.updateFamily(updatedFamily);
-                      if(mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Family name updated.')));
+                      if(mounted) messenger.showSnackBar(const SnackBar(content: Text('Family name updated.')));
                     }
                   }),
             ],
@@ -720,10 +722,12 @@ class _FamilyManagementScreenState extends State<FamilyManagementScreen>
               ElevatedButton(
                   child: const Text('Save'),
                   onPressed: () async {
-                    Navigator.of(context).pop();
+                    final navigator = Navigator.of(context);
+                    final messenger = ScaffoldMessenger.of(context);
+                    navigator.pop();
                     final updatedFamily = family.copyWith(description: descriptionController.text);
                     await _familyService.updateFamily(updatedFamily);
-                    if(mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Family description updated.')));
+                    if(mounted) messenger.showSnackBar(const SnackBar(content: Text('Family description updated.')));
                   }),
             ],
           );
@@ -791,11 +795,13 @@ class _FamilyManagementScreenState extends State<FamilyManagementScreen>
               child: const Text('Save'),
               onPressed: () async {
                 if (selectedVisibility != null) {
-                  Navigator.of(context).pop();
+                  final navigator = Navigator.of(context);
+                  final messenger = ScaffoldMessenger.of(context);
+                  navigator.pop();
                   final updatedSettings = family.settings.copyWith(leaderboardVisibility: selectedVisibility);
                   final updatedFamily = family.copyWith(settings: updatedSettings);
                   await _familyService.updateFamily(updatedFamily);
-                  if(mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Leaderboard visibility updated.')));
+                  if(mounted) messenger.showSnackBar(const SnackBar(content: Text('Leaderboard visibility updated.')));
                 }
               },
             ),
@@ -837,28 +843,34 @@ class _FamilyManagementScreenState extends State<FamilyManagementScreen>
 
   Color _getRoleColor(family_models.UserRole role) {
     switch (role) {
-      case family_models.UserRole.admin: return Colors.redAccent;
-      case family_models.UserRole.moderator: return Colors.blueAccent;
-      case family_models.UserRole.member: return Colors.green;
-      default: return Colors.grey;
+      case family_models.UserRole.admin: 
+        return Colors.redAccent;
+      case family_models.UserRole.moderator: 
+        return Colors.blueAccent;
+      case family_models.UserRole.member: 
+        return Colors.green;
     }
   }
 
   String _getRoleText(family_models.UserRole role) {
     switch (role) {
-      case family_models.UserRole.admin: return 'Admin';
-      case family_models.UserRole.moderator: return 'Moderator';
-      case family_models.UserRole.member: return 'Member';
-      default: return 'Unknown';
+      case family_models.UserRole.admin: 
+        return 'Admin';
+      case family_models.UserRole.moderator: 
+        return 'Moderator';
+      case family_models.UserRole.member: 
+        return 'Member';
     }
   }
 
   String _getRoleDescription(family_models.UserRole role) {
     switch (role) {
-      case family_models.UserRole.admin: return 'Manages family, members, and settings.';
-      case family_models.UserRole.moderator: return 'Manages members and invitations.';
-      case family_models.UserRole.member: return 'Participates in family activities.';
-      default: return 'No role description.';
+      case family_models.UserRole.admin: 
+        return 'Manages family, members, and settings.';
+      case family_models.UserRole.moderator: 
+        return 'Manages members and invitations.';
+      case family_models.UserRole.member: 
+        return 'Participates in family activities.';
     }
   }
 
@@ -876,8 +888,6 @@ class _FamilyManagementScreenState extends State<FamilyManagementScreen>
       case user_models.UserRole.child:
       case user_models.UserRole.guest:
         return family_models.UserRole.member; // Default to member for child/guest
-      default:
-        return family_models.UserRole.member;
     }
   }
 
@@ -888,8 +898,6 @@ class _FamilyManagementScreenState extends State<FamilyManagementScreen>
         return user_models.UserRole.admin;
       case family_models.UserRole.moderator:
       case family_models.UserRole.member:
-        return user_models.UserRole.member;
-      default:
         return user_models.UserRole.member;
     }
   }

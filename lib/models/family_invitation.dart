@@ -176,6 +176,23 @@ class FamilyInvitation {
     if (isExpired) return 0;
     return expiresAt.difference(DateTime.now()).inHours;
   }
+
+  String get displayStatus {
+    switch (status) {
+      case InvitationStatus.pending:
+        return 'Pending';
+      case InvitationStatus.accepted:
+        return 'Accepted';
+      case InvitationStatus.declined:
+        return 'Declined';
+      case InvitationStatus.expired:
+        return 'Expired';
+      case InvitationStatus.revoked:
+        return 'Revoked';
+      case InvitationStatus.cancelled:
+        return 'Cancelled';
+    }
+  }
 }
 
 /// Represents a batch invitation for multiple email addresses.

@@ -1,5 +1,5 @@
 import 'package:uuid/uuid.dart';
-import 'user_profile.dart';
+import 'family_invitation.dart';
 
 /// Enhanced Family model for Firebase Firestore with social features.
 class Family {
