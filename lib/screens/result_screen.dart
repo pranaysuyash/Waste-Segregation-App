@@ -38,6 +38,8 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
   bool _isAutoSaving = false;
   bool _showingClassificationFeedback = true;
   bool _showingPointsPopup = false;
+  bool _isExplanationExpanded = false; // Added for expandable explanation
+  bool _isEducationalFactExpanded = false; // Added for expandable educational fact
   
   List<Achievement> _newlyEarnedAchievements = [];
   int _pointsEarned = 0;
@@ -528,6 +530,8 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
                                     const SizedBox(height: 4),
                                     Text(
                                       widget.classification.itemName,
+                                      maxLines: 2, // Added maxLines
+                                      overflow: TextOverflow.ellipsis, // Added ellipsis
                                       style: const TextStyle(
                                         fontSize: AppTheme.fontSizeExtraLarge,
                                         fontWeight: FontWeight.bold,
@@ -591,10 +595,27 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
                                 const SizedBox(height: AppTheme.paddingSmall),
                                 Text(
                                   widget.classification.explanation,
+                                  maxLines: _isExplanationExpanded ? null : 3,
+                                  overflow: _isExplanationExpanded ? TextOverflow.visible : TextOverflow.ellipsis,
                                   style: TextStyle(
                                     fontSize: AppTheme.fontSizeRegular,
                                     color: const Color(0xFF212121), // Almost black for readability
                                     height: 1.5,
+                                  ),
+                                ),
+                                const SizedBox(height: AppTheme.paddingSmall),
+                                GestureDetector(
+                                  onTap: () {
+                                    setState(() {
+                                      _isExplanationExpanded = !_isExplanationExpanded;
+                                    });
+                                  },
+                                  child: Text(
+                                    _isExplanationExpanded ? 'Show Less' : 'Read More',
+                                    style: TextStyle(
+                                      color: AppTheme.primaryColor,
+                                      fontWeight: FontWeight.bold,
+                                    ),
                                   ),
                                 ),
                               ],
@@ -609,11 +630,11 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
                               children: [
                                 Expanded(
                                   child: ElevatedButton.icon(
-                                    onPressed: _isAutoSaving 
+                                    onPressed: _isAutoSaving
                                         ? null // Disabled while auto-saving
                                         : (_isSaved ? _shareResult : _saveResult),
                                     style: ElevatedButton.styleFrom(
-                                      backgroundColor: _isAutoSaving 
+                                      backgroundColor: _isAutoSaving
                                           ? Colors.grey // Neutral color when saving
                                           : (_isSaved ? AppTheme.primaryColor : Colors.green), // Green for Save, Primary for Share
                                       foregroundColor: Colors.white,
@@ -623,13 +644,13 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
                                       ),
                                     ),
                                     icon: Icon(
-                                      _isAutoSaving 
+                                      _isAutoSaving
                                           ? Icons.hourglass_empty // Saving icon
                                           : (_isSaved ? Icons.share : Icons.save)
                                     ),
                                     label: Text(
-                                      _isAutoSaving 
-                                          ? 'Saving...' 
+                                      _isAutoSaving
+                                          ? 'Saving...'
                                           : (_isSaved ? 'Share' : 'Save')
                                     ),
                                   ),
@@ -716,7 +737,7 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
                     ClassificationFeedbackWidget(
                       classification: widget.classification,
                       onFeedbackSubmitted: _handleFeedbackSubmission,
-                      showCompactVersion: true,
+                      showCompactVersion: false, // Changed to false
                     ),
                     const SizedBox(height: AppTheme.paddingLarge),
                   ],
@@ -769,10 +790,27 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
                               widget.classification.category,
                               widget.classification.subcategory,
                             ),
+                            maxLines: _isEducationalFactExpanded ? null : 3, // Added maxLines
+                            overflow: _isEducationalFactExpanded ? TextOverflow.visible : TextOverflow.ellipsis, // Added ellipsis
                             style: TextStyle(
                               fontSize: AppTheme.fontSizeRegular,
                               height: 1.6,
                               color: AppTheme.textPrimaryColor,
+                            ),
+                          ),
+                          const SizedBox(height: AppTheme.paddingSmall), // Adjusted padding
+                          GestureDetector(
+                            onTap: () {
+                              setState(() {
+                                _isEducationalFactExpanded = !_isEducationalFactExpanded;
+                              });
+                            },
+                            child: Text(
+                              _isEducationalFactExpanded ? 'Show Less' : 'Read More',
+                              style: TextStyle(
+                                color: AppTheme.primaryColor,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
                           ),
                           const SizedBox(height: AppTheme.paddingRegular),
