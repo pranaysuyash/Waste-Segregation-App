@@ -11,6 +11,7 @@ import '../screens/history_screen.dart';
 import '../screens/educational_content_screen.dart';
 import '../screens/community_screen.dart';
 import '../screens/achievements_screen.dart';
+import '../screens/family_dashboard_screen.dart';
 import '../screens/settings_screen.dart';
 import '../screens/image_capture_screen.dart';
 import '../widgets/bottom_navigation/modern_bottom_nav.dart';
@@ -81,6 +82,7 @@ class _MainNavigationWrapperState extends State<MainNavigationWrapper> {
       const EducationalContentScreen(),
       const CommunityScreen(),
       const AchievementsScreen(),
+      const FamilyDashboardScreen(),
     ];
   }
 
@@ -108,6 +110,11 @@ class _MainNavigationWrapperState extends State<MainNavigationWrapper> {
         label: 'Community',
       ),
       const BottomNavItem(
+        icon: Icons.family_restroom_outlined,
+        selectedIcon: Icons.family_restroom,
+        label: 'Family',
+      ),
+      const BottomNavItem(
         icon: Icons.emoji_events_outlined,
         selectedIcon: Icons.emoji_events,
         label: 'Rewards',
@@ -129,7 +136,7 @@ class _MainNavigationWrapperState extends State<MainNavigationWrapper> {
           ),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.2),
+              color: Colors.black.withValues(alpha: 0.2),
               blurRadius: 10,
               offset: const Offset(0, -5),
             ),
@@ -280,27 +287,31 @@ class _MainNavigationWrapperState extends State<MainNavigationWrapper> {
       if (kIsWeb) {
         // Handle web
         final bytes = await image.readAsBytes();
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => ImageCaptureScreen(
-              xFile: image,
-              webImage: bytes,
-            ),
-          ),
-        ).then(_handleClassificationResult);
-      } else {
-        // Handle mobile
-        final file = File(image.path);
-        if (await file.exists()) {
+        if (mounted) {
           Navigator.push(
             context,
             MaterialPageRoute(
               builder: (context) => ImageCaptureScreen(
-                imageFile: file,
+                xFile: image,
+                webImage: bytes,
               ),
             ),
           ).then(_handleClassificationResult);
+        }
+      } else {
+        // Handle mobile
+        final file = File(image.path);
+        if (await file.exists()) {
+          if (mounted) {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => ImageCaptureScreen(
+                  imageFile: file,
+                ),
+              ),
+            ).then(_handleClassificationResult);
+          }
         } else {
           throw Exception('Image file not found');
         }
