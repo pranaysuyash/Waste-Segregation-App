@@ -80,8 +80,8 @@ This directory contains comprehensive documentation for the Waste Segregation Ap
     - Responsive active challenge previews with progress indicators.
     - Dynamically adjusting "View All" buttons.
 - **Enhanced Analysis Loader**: Multi-step progress indicator with educational tips, particle animations, and proper cancellation handling.
-- **User-Configurable Navigation**: Customize bottom navigation bar and Floating Action Button (FAB) visibility and style via Settings (See [Navigation Settings Service](services/navigation_settings_service.md)).
-- **Modern UI Components**: A new suite of modern, responsive widgets for badges, buttons, and cards. (See [Modern UI Components Overview](widgets/modern_ui_components.md)).
+- **User-Configurable Navigation**: Customize bottom navigation bar and Floating Action Button (FAB) visibility and style via Settings (functionality provided by `lib/services/navigation_settings_service.dart`).
+- **Modern UI Components**: A new suite of modern, responsive widgets for badges, buttons, and cards (implemented in `lib/widgets/modern_ui/` and `lib/widgets/advanced_ui/`).
 - **Secure API Key Handling**: API keys are now managed via a `.env` file and accessed through environment variables, enhancing security. (See [Environment Setup](config/environment_variables.md)).
 - **Comprehensive Model Fallback**: AI service now includes a 4-tier model fallback (GPT-4.1-Nano, GPT-4o-Mini, GPT-4.1-Mini, Gemini-2.0-Flash).
 - **Factory Reset Option**: Developer setting to reset all app data for testing purposes.
@@ -100,4 +100,4 @@ This directory contains comprehensive documentation for the Waste Segregation Ap
 - ✅ Documentation reorganized under docs/ folder structure
 - ✅ Resolution plan moved to docs/planning/
 - ✅ Advanced UI implementation docs organized
-- ✅ Firebase storage migration planned for Phase 2
+- ✅ Planning for migration of image/file storage to Firebase Storage (or similar cloud file storage) in a future phase (Note: Core app data like classifications and user profiles are already synced with Firebase Firestore).

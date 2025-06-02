@@ -12,14 +12,14 @@ A comprehensive Flutter application for proper waste identification, segregation
 
 ## Overview
 
-This cross-platform app allows users to capture or upload images, then uses Google's Gemini API (via OpenAI-compatible endpoint with the gemini-2.0-flash model) to identify items and classify them into waste categories:
+This cross-platform app allows users to capture or upload images, then uses an AI model (primarily `gpt-4.1-nano` via OpenAI, with a 4-tier fallback system including other OpenAI models and ultimately Google's `gemini-2.0-flash`) to identify items and classify them into waste categories:
 - Wet Waste (organic, compostable)
 - Dry Waste (recyclable)
 - Hazardous Waste (requires special handling)
 - Medical Waste (potentially contaminated)
 - Non-Waste (reusable items, edible food)
 
-The app provides educational content about each category, stores classification data locally using Hive, and optionally synchronizes user data to Google Drive.
+The app provides educational content about each category, stores classification data locally using Hive, synchronizes core data (like classifications, user profiles, and community activity) in real-time with Firebase Firestore for signed-in users, and offers an optional full data backup/restore feature using Google Drive.
 
 ## Features
 
@@ -49,9 +49,10 @@ The app provides educational content about each category, stores classification 
   - Challenge completion celebrations
 
 - **Data Management**:
-  - Local storage of classifications and user preferences
-  - Optional sync to Google Drive for cross-device access
-  - History of previously identified items
+  - Local storage of classifications and user preferences using Hive.
+  - Real-time cloud synchronization of key user data (classifications, profile, community feed) to Firebase Firestore for signed-in users, enabling cross-device access and features like the community feed.
+  - Optional manual full backup and restore of local data via Google Drive.
+  - History of previously identified items.
   - Personal waste analytics dashboard
   - Waste composition trends and insights
 
@@ -64,9 +65,9 @@ The app provides educational content about each category, stores classification 
 - **Framework**: Flutter
 - **State Management**: Provider
 - **Local Storage**: Hive
-- **Backend Services**: Firebase for authentication
+- **Backend Services**: Firebase for authentication and Firebase Firestore for real-time cloud data storage and synchronization.
 - **Image Handling**: image_picker package
-- **AI Integration**: Gemini API via OpenAI-compatible endpoint using the gemini-2.0-flash model
+- **AI Integration**: Utilizes multiple AI models for image classification. Primarily uses OpenAI models (e.g., `gpt-4.1-nano`) called via direct HTTP requests to the OpenAI API. A 4-tier fallback system is in place, which includes other OpenAI models and ultimately Google's `gemini-2.0-flash` model, accessed via its specific Google AI API endpoint. (The `openai_api` package is listed in dependencies but current `AIService` implementation uses direct HTTP calls).
 - **Google Integration**: google_sign_in package with Firebase authentication
 - **Data Visualization**: fl_chart package for waste analytics
 
@@ -97,55 +98,50 @@ The app provides educational content about each category, stores classification 
    ```
 
 4. Configure API keys:
-   - Open `lib/utils/constants.dart`
-   - Update the `ApiConfig` class with your own Gemini API key
-   - The app uses Gemini API via OpenAI-compatible endpoint and the gemini-2.0-flash model
-   - The API authentication uses the standard Bearer token format
+   - Create a file named `.env` in the project root.
+   - Add your API keys and other environment-specific configurations to this file. Example:
+     ```env
+     OPENAI_API_KEY=your_openai_api_key_here
+     GEMINI_API_KEY=your_gemini_api_key_here
+     # For AI model selection (see lib/utils/constants.dart for defaults if not set)
+     OPENAI_API_MODEL_PRIMARY=gpt-4.1-nano
+     OPENAI_API_MODEL_SECONDARY=gpt-4o-mini
+     OPENAI_API_MODEL_TERTIARY=gpt-4.1-mini
+     GEMINI_API_MODEL=gemini-2.0-flash
+     # Firebase (if specific env vars are needed beyond google-services.json)
+     # FIREBASE_PROJECT_ID=your_firebase_project_id
+     # FIREBASE_API_KEY=your_firebase_api_key 
+     ```
+   - The application loads these variables at runtime. API authentication uses the standard Bearer token format, handled by the `AIService`.
 
 5. Run the app:
    ```bash
    flutter run --dart-define-from-file=.env
    ```
 
+### Utility Scripts
+
+The project root contains several utility shell scripts for development and maintenance tasks, including:
+- `build_production.sh`: Helps create production builds for different platforms (APK, App Bundle, iOS).
+- `run_with_env.sh`: Validates the `.env` file and runs the app with error checking.
+- `fix_kotlin_build_issue.sh`: (Purpose to be documented if known, likely for specific Kotlin-related build problems).
+- `fix_play_store_signin.sh`: (Purpose to be documented if known, likely for Google Play Sign-In configuration issues).
+- `test_low_hanging_fruits.sh`: (Purpose to be documented if known, likely for running a subset of quick tests).
+
+Refer to the scripts themselves for their specific functionalities.
+
 ## Project Structure
 
-```
-lib/
-├── models/
-│   ├── waste_classification.dart
-│   ├── educational_content.dart
-│   └── gamification.dart
-├── screens/
-│   ├── auth_screen.dart
-│   ├── home_screen.dart
-│   ├── camera_screen.dart
-│   ├── image_capture_screen.dart
-│   ├── result_screen.dart
-│   ├── educational_content_screen.dart
-│   ├── content_detail_screen.dart
-│   ├── quiz_screen.dart
-│   ├── achievements_screen.dart
-│   ├── waste_dashboard_screen.dart
-│   └── leaderboard_screen.dart
-├── services/
-│   ├── ai_service.dart
-│   ├── storage_service.dart
-│   ├── google_drive_service.dart
-│   ├── educational_content_service.dart
-│   └── gamification_service.dart
-├── widgets/
-│   ├── capture_button.dart
-│   ├── classification_card.dart
-│   ├── platform_camera.dart
-│   ├── enhanced_camera.dart
-│   ├── gamification_widgets.dart
-│   ├── enhanced_gamification_widgets.dart
-│   └── waste_chart_widgets.dart
-├── utils/
-│   ├── constants.dart
-│   └── animation_helpers.dart
-└── main.dart
-```
+The `lib/` directory contains the core Dart code for the application, organized into subdirectories for:
+- `models/`: Data structures and classes.
+- `providers/`: State management using the Provider package.
+- `screens/`: UI for different application screens.
+- `services/`: Business logic, API interactions, and other services (e.g., AI, storage, gamification).
+- `utils/`: Utility functions, constants, and helpers.
+- `widgets/`: Reusable UI components, including common, modern, and advanced UI elements.
+- `main.dart`: The main entry point of the application.
+
+For a detailed view of the current file structure, please explore the `lib/` directory directly within the project.
 
 ## Current Status
 
@@ -171,12 +167,13 @@ lib/
 - Thumbnail generation and storage for classifications (local image caching)
 - Device-local SHA-256 based image classification caching system
 - Cache statistics monitoring and visualization
+- Quiz functionality (displays questions from EducationalContent, handles answers, tracks progress, scoring, and results screen)
+- Basic social sharing (e.g., sharing classification results from history)
 
 ### In Progress / Pending
 - Leaderboard implementation
 - Enhanced camera features
-- Quiz functionality completion
-- Social sharing capabilities
+- Social sharing capabilities (further enhancements and broader integration)
 - Enhanced web camera support
 - Cross-user classification caching with Firestore (planned)
 - UI Refactoring & Modularization (breaking screens into reusable widgets)
@@ -217,6 +214,8 @@ For comprehensive documentation including setup guides, technical details, and p
 
 ## Dependencies
 
+This list provides an overview of key dependencies. For the most accurate and complete list, please refer to the `pubspec.yaml` file.
+
 - provider: ^6.1.1
 - hive: ^2.2.3
 - hive_flutter: ^1.1.0
@@ -238,7 +237,7 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 ## Acknowledgments
 
-- Google Gemini API for AI vision capabilities through the OpenAI-compatible endpoint
+- OpenAI and Google for their respective AI models (GPT series and Gemini) used for vision capabilities.
 - Flutter team for the amazing framework
 - All contributors to the open-source packages used in this project
 
