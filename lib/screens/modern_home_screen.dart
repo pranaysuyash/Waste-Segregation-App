@@ -35,6 +35,7 @@ import '../models/educational_content.dart';
 import '../services/educational_content_service.dart';
 import '../services/analytics_service.dart';
 import '../widgets/data_migration_dialog.dart';
+import '../services/cloud_storage_service.dart';
 
 class ModernHomeScreen extends StatefulWidget {
   final bool isGuestMode;
@@ -207,14 +208,26 @@ class _ModernHomeScreenState extends State<ModernHomeScreen> with TickerProvider
     });
 
     try {
-      final storageService =
-          Provider.of<StorageService>(context, listen: false);
-      final classifications = await storageService.getAllClassifications();
+      final storageService = Provider.of<StorageService>(context, listen: false);
+      final cloudStorageService = Provider.of<CloudStorageService>(context, listen: false);
+      
+      // Get Google sync setting
+      final settings = await storageService.getSettings();
+      final isGoogleSyncEnabled = settings['isGoogleSyncEnabled'] ?? false;
+      
+      // Load classifications with cloud sync if enabled
+      final classifications = isGoogleSyncEnabled
+          ? await cloudStorageService.getAllClassificationsWithCloudSync(isGoogleSyncEnabled)
+          : await storageService.getAllClassifications();
 
       setState(() {
         _allClassifications = classifications;
-        _recentClassifications = classifications.take(3).toList();
+        _recentClassifications = (classifications.length <= 3) 
+            ? classifications 
+            : classifications.sublist(0, 3);
       });
+      
+      debugPrint('📊 Loaded ${classifications.length} total classifications (Google sync: $isGoogleSyncEnabled)');
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(

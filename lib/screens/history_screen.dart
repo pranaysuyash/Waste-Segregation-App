@@ -9,6 +9,7 @@ import '../models/filter_options.dart';
 import '../models/waste_classification.dart';
 import '../screens/result_screen.dart';
 import '../services/storage_service.dart';
+import '../services/cloud_storage_service.dart';
 import '../utils/constants.dart';
 import '../widgets/history_list_item.dart';
 
@@ -107,23 +108,38 @@ class _HistoryScreenState extends State<HistoryScreen> {
     
     try {
       final storageService = Provider.of<StorageService>(context, listen: false);
+      final cloudStorageService = Provider.of<CloudStorageService>(context, listen: false);
       
-      // Get total count for pagination
-      // _totalItems = await storageService.getClassificationsCount(
-      //   filterOptions: _filterOptions,
-      // );
+      // Get Google sync setting
+      final settings = await storageService.getSettings();
+      final isGoogleSyncEnabled = settings['isGoogleSyncEnabled'] ?? false;
       
-      // Get first page of classifications
-      final classifications = await storageService.getClassificationsWithPagination(
-        filterOptions: _filterOptions,
-        pageSize: _itemsPerPage,
-        page: _currentPage,
-      );
+      // Load from cloud or local based on sync setting
+      final allClassifications = isGoogleSyncEnabled
+          ? await cloudStorageService.getAllClassificationsWithCloudSync(isGoogleSyncEnabled)
+          : await storageService.getAllClassifications(filterOptions: _filterOptions);
+      
+      // Apply filters if not already applied
+      final filteredClassifications = isGoogleSyncEnabled
+          ? storageService.applyFiltersToClassifications(allClassifications, _filterOptions)
+          : allClassifications;
+      
+      // Get first page
+      final startIndex = _currentPage * _itemsPerPage;
+      final endIndex = startIndex + _itemsPerPage;
+      final pageClassifications = filteredClassifications.length > startIndex
+          ? filteredClassifications.sublist(
+              startIndex, 
+              endIndex > filteredClassifications.length ? filteredClassifications.length : endIndex
+            )
+          : <WasteClassification>[];
       
       setState(() {
-        _classifications = classifications;
-        _hasMorePages = classifications.length >= _itemsPerPage;
+        _classifications = pageClassifications;
+        _hasMorePages = endIndex < filteredClassifications.length;
       });
+      
+      debugPrint('📊 History: Loaded ${pageClassifications.length} classifications (Google sync: $isGoogleSyncEnabled)');
     } catch (e) {
       _showErrorSnackBar('Failed to load classifications: $e');
     } finally {

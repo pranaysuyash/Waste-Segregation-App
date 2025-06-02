@@ -18,6 +18,7 @@ import '../screens/waste_dashboard_screen.dart';
 import '../screens/educational_content_screen.dart';
 import '../screens/history_screen.dart';
 import '../screens/modern_home_screen.dart';
+import '../services/cloud_storage_service.dart';
 
 class ResultScreen extends StatefulWidget {
   final WasteClassification classification;
@@ -91,13 +92,23 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
 
     try {
       final storageService = Provider.of<StorageService>(context, listen: false);
+      final cloudStorageService = Provider.of<CloudStorageService>(context, listen: false);
+      
+      // Get Google sync setting
+      final settings = await storageService.getSettings();
+      final isGoogleSyncEnabled = settings['isGoogleSyncEnabled'] ?? false;
       
       // Enhance classification with disposal instructions if needed
       final enhancedClassification = await _enhanceClassificationWithDisposalInstructions();
       
       // Save the enhanced classification with isSaved flag
       final savedClassification = enhancedClassification.copyWith(isSaved: true);
-      await storageService.saveClassification(savedClassification);
+      
+      // Use cloud storage service which handles both local and cloud saving
+      await cloudStorageService.saveClassificationWithSync(
+        savedClassification,
+        isGoogleSyncEnabled,
+      );
 
       if (mounted) {
         setState(() {
@@ -108,8 +119,24 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
         // Trigger refresh of home screen data
         ModernHomeScreen.triggerRefresh();
         
+        final syncMessage = isGoogleSyncEnabled 
+            ? 'Saved locally and synced to cloud!'
+            : 'Saved locally!';
+        
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text(AppStrings.successSaved)),
+          SnackBar(
+            content: Row(
+              children: [
+                Icon(
+                  isGoogleSyncEnabled ? Icons.cloud_done : Icons.save,
+                  color: Colors.white,
+                ),
+                const SizedBox(width: 8),
+                Text(syncMessage),
+              ],
+            ),
+            backgroundColor: Colors.green,
+          ),
         );
       }
     } catch (e, stackTrace) {

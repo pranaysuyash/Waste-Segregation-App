@@ -33,6 +33,7 @@ import 'widgets/navigation_wrapper.dart';
 import 'utils/constants.dart'; // For app constants, themes, and strings
 import 'utils/error_handler.dart'; // Correct import for ErrorHandler
 import 'providers/theme_provider.dart';
+import 'services/cloud_storage_service.dart';
 
 // Global Navigator Key for Error Handling
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
@@ -263,6 +264,7 @@ class WasteSegregationApp extends StatelessWidget {
         ChangeNotifierProvider<AdService>.value(value: adService),
         ChangeNotifierProvider<NavigationSettingsService>.value(value: navigationSettingsService),
         ChangeNotifierProvider(create: (_) => ThemeProvider()),
+        Provider(create: (context) => CloudStorageService(context.read<StorageService>())),
       ],
       child: Consumer<ThemeProvider>(
         builder: (context, themeProvider, child) {

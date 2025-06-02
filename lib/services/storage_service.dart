@@ -695,4 +695,18 @@ class StorageService {
     debugPrint('✅ Successfully migrated $migratedCount classifications');
     return migratedCount;
   }
+
+  /// Public method to apply filters to a list of classifications
+  List<WasteClassification> applyFiltersToClassifications(
+    List<WasteClassification> classifications,
+    FilterOptions filterOptions,
+  ) {
+    if (filterOptions.isEmpty) {
+      // Default sorting by timestamp in descending order (newest first)
+      classifications.sort((a, b) => b.timestamp.compareTo(a.timestamp));
+      return classifications;
+    }
+    
+    return _applyFilters(classifications, filterOptions);
+  }
 }

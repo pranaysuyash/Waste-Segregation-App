@@ -20,6 +20,7 @@ import 'navigation_demo_screen.dart';
 import 'modern_ui_showcase_screen.dart';
 import 'auth_screen.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
+import '../services/cloud_storage_service.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -30,6 +31,13 @@ class SettingsScreen extends StatefulWidget {
 
 class _SettingsScreenState extends State<SettingsScreen> {
   bool _showDeveloperOptions = false;
+  bool _isGoogleSyncEnabled = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadGoogleSyncSetting();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -452,6 +460,53 @@ class _SettingsScreenState extends State<SettingsScreen> {
             },
           ),
           const Divider(),
+
+          // Google Sync toggle
+          Card(
+            margin: const EdgeInsets.only(bottom: 16),
+            child: SwitchListTile(
+              title: const Text('Google Cloud Sync'),
+              subtitle: Text(
+                _isGoogleSyncEnabled 
+                    ? 'Classifications sync to cloud automatically'
+                    : 'Classifications saved locally only',
+              ),
+              value: _isGoogleSyncEnabled,
+              onChanged: (value) async {
+                await _toggleGoogleSync(value);
+              },
+              secondary: Icon(
+                _isGoogleSyncEnabled ? Icons.cloud_done : Icons.cloud_off,
+                color: _isGoogleSyncEnabled ? Colors.green : Colors.grey,
+              ),
+            ),
+          ),
+          
+          // Sync actions when Google sync is enabled
+          if (_isGoogleSyncEnabled) ...[
+            Card(
+              margin: const EdgeInsets.only(bottom: 16),
+              child: Column(
+                children: [
+                  ListTile(
+                    leading: const Icon(Icons.cloud_upload),
+                    title: const Text('Sync Local Data to Cloud'),
+                    subtitle: const Text('Upload existing local classifications to cloud'),
+                    trailing: const Icon(Icons.arrow_forward_ios),
+                    onTap: _syncLocalDataToCloud,
+                  ),
+                  const Divider(height: 1),
+                  ListTile(
+                    leading: const Icon(Icons.cloud_download),
+                    title: const Text('Force Download from Cloud'),
+                    subtitle: const Text('Download latest data from cloud'),
+                    trailing: const Icon(Icons.arrow_forward_ios),
+                    onTap: _forceDownloadFromCloud,
+                  ),
+                ],
+              ),
+            ),
+          ],
 
           // Sign Out / Switch Account
           FutureBuilder<bool>(
@@ -986,5 +1041,177 @@ class _SettingsScreenState extends State<SettingsScreen> {
         ],
       ),
     );
+  }
+
+  Future<void> _loadGoogleSyncSetting() async {
+    try {
+      final storageService = Provider.of<StorageService>(context, listen: false);
+      final settings = await storageService.getSettings();
+      setState(() {
+        _isGoogleSyncEnabled = settings['isGoogleSyncEnabled'] ?? false;
+      });
+    } catch (e) {
+      debugPrint('Error loading Google sync setting: $e');
+    }
+  }
+
+  Future<void> _toggleGoogleSync(bool value) async {
+    try {
+      final storageService = Provider.of<StorageService>(context, listen: false);
+      final cloudStorageService = Provider.of<CloudStorageService>(context, listen: false);
+      
+      // Update the setting
+      final currentSettings = await storageService.getSettings();
+      await storageService.saveSettings(
+        isDarkMode: currentSettings['isDarkMode'] ?? false,
+        isGoogleSyncEnabled: value,
+      );
+      
+      setState(() {
+        _isGoogleSyncEnabled = value;
+      });
+      
+      if (value) {
+        // When enabling sync, offer to upload existing data
+        _showSyncEnableDialog(cloudStorageService);
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Google sync disabled. Future classifications will be saved locally only.'),
+          ),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to toggle Google sync: $e')),
+      );
+    }
+  }
+
+  void _showSyncEnableDialog(CloudStorageService cloudStorageService) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Google Sync Enabled'),
+        content: const Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Google sync is now enabled!'),
+            SizedBox(height: 16),
+            Text('Would you like to upload your existing local classifications to the cloud?'),
+            SizedBox(height: 8),
+            Text('This will make them available across all your devices.'),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Skip'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(context);
+              _syncLocalDataToCloud();
+            },
+            child: const Text('Upload Now'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _syncLocalDataToCloud() async {
+    try {
+      // Show loading dialog
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => const AlertDialog(
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              CircularProgressIndicator(),
+              SizedBox(height: 16),
+              Text('Syncing data to cloud...'),
+            ],
+          ),
+        ),
+      );
+
+      final cloudStorageService = Provider.of<CloudStorageService>(context, listen: false);
+      final syncedCount = await cloudStorageService.syncAllLocalClassificationsToCloud();
+      
+      if (mounted) {
+        Navigator.pop(context); // Close loading dialog
+        
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Row(
+              children: [
+                const Icon(Icons.cloud_done, color: Colors.white),
+                const SizedBox(width: 8),
+                Text('Successfully synced $syncedCount classifications to cloud!'),
+              ],
+            ),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        Navigator.pop(context); // Close loading dialog
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Sync failed: $e')),
+        );
+      }
+    }
+  }
+
+  Future<void> _forceDownloadFromCloud() async {
+    try {
+      // Show loading dialog
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => const AlertDialog(
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              CircularProgressIndicator(),
+              SizedBox(height: 16),
+              Text('Downloading from cloud...'),
+            ],
+          ),
+        ),
+      );
+
+      final cloudStorageService = Provider.of<CloudStorageService>(context, listen: false);
+      final classifications = await cloudStorageService.getAllClassificationsWithCloudSync(true);
+      
+      if (mounted) {
+        Navigator.pop(context); // Close loading dialog
+        
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Row(
+              children: [
+                const Icon(Icons.cloud_download, color: Colors.white),
+                const SizedBox(width: 8),
+                Text('Downloaded ${classifications.length} classifications from cloud!'),
+              ],
+            ),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        Navigator.pop(context); // Close loading dialog
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Download failed: $e')),
+        );
+      }
+    }
   }
 }
