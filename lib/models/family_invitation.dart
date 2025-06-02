@@ -68,9 +68,9 @@ class FamilyInvitation {
     DateTime? createdAt,
     DateTime? expiresAt,
     this.respondedAt,
-  })  : this.id = id ?? Uuid().v4(),
-        this.createdAt = createdAt ?? DateTime.now(),
-        this.expiresAt = expiresAt ?? (createdAt ?? DateTime.now()).add(const Duration(days: 7));
+  })  : id = id ?? Uuid().v4(),
+        createdAt = createdAt ?? DateTime.now(),
+        expiresAt = expiresAt ?? (createdAt ?? DateTime.now()).add(const Duration(days: 7));
 
   /// Creates a copy of this FamilyInvitation with the given fields replaced.
   FamilyInvitation copyWith({
