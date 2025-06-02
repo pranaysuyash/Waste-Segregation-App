@@ -574,7 +574,8 @@ class _HistoryScreenState extends State<HistoryScreen> {
                     icon: const Icon(Icons.camera_alt),
                     label: const Text('Start Classifying'),
                     onPressed: () {
-                      if (Navigator.canPop(context)) Navigator.pop(context);
+                      // Navigate back to home screen where camera can be accessed
+                      Navigator.pop(context);
                     },
                   ),
                 )

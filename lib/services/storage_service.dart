@@ -114,33 +114,52 @@ class StorageService {
       currentUserId = 'guest_user';
     }
 
-    // Debug logging
-    debugPrint('📖 Loading classifications for user: $currentUserId');
+    // Debug logging - ENHANCED
+    debugPrint('=== CLASSIFICATION LOADING DEBUG ===');
+    debugPrint('📖 Current user ID: $currentUserId');
+    debugPrint('📖 User profile: ${userProfile?.toJson()}');
+    debugPrint('📖 Total classifications in storage: ${classificationsBox.keys.length}');
+    debugPrint('📖 All keys in storage: ${classificationsBox.keys.toList()}');
+    
+    // Debug all classifications in storage
+    for (var key in classificationsBox.keys) {
+      final String jsonString = classificationsBox.get(key);
+      final Map<String, dynamic> json = jsonDecode(jsonString);
+      final classification = WasteClassification.fromJson(json);
+      debugPrint('📖 Classification: ${classification.itemName} | userId: ${classification.userId} | timestamp: ${classification.timestamp}');
+    }
     
     for (var key in classificationsBox.keys) {
       final String jsonString = classificationsBox.get(key);
       final Map<String, dynamic> json = jsonDecode(jsonString);
       final classification = WasteClassification.fromJson(json);
       
-      // Debug logging for each classification
-      debugPrint('📖 Found classification: ${classification.itemName} (userId: ${classification.userId})');
+      // Include classifications based on user context
+      bool shouldInclude = false;
       
-      // Only include classifications for the current user
-      // For backward compatibility, include classifications without userId if user is guest
-      // Also include old guest classifications with timestamp-based IDs if current user is guest
-      if (classification.userId == currentUserId || 
-          (classification.userId == null && currentUserId == 'guest_user') ||
-          (classification.userId != null && 
-           classification.userId!.startsWith('guest_') && 
-           currentUserId == 'guest_user')) {
-        classifications.add(classification);
-        debugPrint('📖 ✅ Including classification for current user');
+      if (currentUserId == 'guest_user') {
+        // For guest users, include guest classifications and legacy null userId
+        shouldInclude = classification.userId == 'guest_user' || 
+                       classification.userId == null ||
+                       (classification.userId != null && 
+                        classification.userId!.startsWith('guest_'));
+        debugPrint('📖 Guest mode check: $shouldInclude (userId: ${classification.userId})');
       } else {
-        debugPrint('📖 ❌ Excluding classification (different user)');
+        // For signed-in users, only include their own classifications
+        shouldInclude = classification.userId == currentUserId;
+        debugPrint('📖 Signed-in mode check: $shouldInclude (looking for: $currentUserId, found: ${classification.userId})');
+      }
+      
+      if (shouldInclude) {
+        classifications.add(classification);
+        debugPrint('📖 ✅ Including classification: ${classification.itemName}');
+      } else {
+        debugPrint('📖 ❌ Excluding classification: ${classification.itemName} (different user)');
       }
     }
     
-    debugPrint('📖 Total classifications loaded: ${classifications.length}');
+    debugPrint('📖 Total classifications loaded for user $currentUserId: ${classifications.length}');
+    debugPrint('=====================================');
 
     // Apply filters if provided
     if (filterOptions != null && filterOptions.isNotEmpty) {
@@ -600,5 +619,80 @@ class StorageService {
       debugPrint('❌ Failed to load analytics events: $e');
       return [];
     }
+  }
+
+  /// Check if there's guest data that can be migrated for a new user
+  Future<int> getGuestDataMigrationCount() async {
+    final classificationsBox = Hive.box(StorageKeys.classificationsBox);
+    final userProfile = await getCurrentUserProfile();
+    
+    // Only check for migration if user is signed in
+    if (userProfile == null || userProfile.id.isEmpty || userProfile.id == 'guest_user') {
+      return 0;
+    }
+    
+    // Check if user has any existing classifications
+    final existingUserClassifications = classificationsBox.keys
+        .where((key) {
+          final String jsonString = classificationsBox.get(key);
+          final Map<String, dynamic> json = jsonDecode(jsonString);
+          final classification = WasteClassification.fromJson(json);
+          return classification.userId == userProfile.id;
+        })
+        .toList();
+    
+    // If user has existing data, don't offer migration
+    if (existingUserClassifications.isNotEmpty) {
+      return 0;
+    }
+    
+    // Count guest classifications available for migration
+    final guestClassifications = classificationsBox.keys
+        .where((key) {
+          final String jsonString = classificationsBox.get(key);
+          final Map<String, dynamic> json = jsonDecode(jsonString);
+          final classification = WasteClassification.fromJson(json);
+          return classification.userId == 'guest_user' || 
+                 classification.userId == null ||
+                 (classification.userId != null && classification.userId!.startsWith('guest_'));
+        })
+        .toList();
+    
+    return guestClassifications.length;
+  }
+  
+  /// Migrate guest data to the current signed-in user
+  Future<int> migrateGuestDataToCurrentUser() async {
+    final classificationsBox = Hive.box(StorageKeys.classificationsBox);
+    final userProfile = await getCurrentUserProfile();
+    
+    if (userProfile == null || userProfile.id.isEmpty || userProfile.id == 'guest_user') {
+      return 0;
+    }
+    
+    int migratedCount = 0;
+    
+    // Find all guest classifications
+    for (var key in classificationsBox.keys) {
+      final String jsonString = classificationsBox.get(key);
+      final Map<String, dynamic> json = jsonDecode(jsonString);
+      final classification = WasteClassification.fromJson(json);
+      
+      // Check if this is guest data
+      if (classification.userId == 'guest_user' || 
+          classification.userId == null ||
+          (classification.userId != null && classification.userId!.startsWith('guest_'))) {
+        
+        // Migrate to current user
+        final migratedClassification = classification.copyWith(userId: userProfile.id);
+        await classificationsBox.put(key, jsonEncode(migratedClassification.toJson()));
+        migratedCount++;
+        
+        debugPrint('🔄 Migrated classification: ${classification.itemName} to user ${userProfile.id}');
+      }
+    }
+    
+    debugPrint('✅ Successfully migrated $migratedCount classifications');
+    return migratedCount;
   }
 }

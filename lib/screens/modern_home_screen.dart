@@ -30,6 +30,11 @@ import '../widgets/modern_ui/modern_buttons.dart';
 import '../widgets/modern_ui/modern_badges.dart';
 import '../widgets/responsive_text.dart';
 import '../widgets/dashboard_widgets.dart';
+import '../models/user_profile.dart';
+import '../models/educational_content.dart';
+import '../services/educational_content_service.dart';
+import '../services/analytics_service.dart';
+import '../widgets/data_migration_dialog.dart';
 
 class ModernHomeScreen extends StatefulWidget {
   final bool isGuestMode;
@@ -86,6 +91,11 @@ class _ModernHomeScreenState extends State<ModernHomeScreen> with TickerProvider
     _loadRecentClassifications();
     _loadGamificationData();
     _ensureCameraAccess();
+    
+    // Check for data migration after a short delay to let the UI settle
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _checkDataMigration();
+    });
   }
 
   @override
@@ -203,7 +213,7 @@ class _ModernHomeScreenState extends State<ModernHomeScreen> with TickerProvider
 
       setState(() {
         _allClassifications = classifications;
-        _recentClassifications = classifications.safeTake(3);
+        _recentClassifications = classifications.take(3).toList();
       });
     } catch (e) {
       if (mounted) {
@@ -1207,5 +1217,17 @@ class _ModernHomeScreenState extends State<ModernHomeScreen> with TickerProvider
   // Public method to refresh data - can be called from other screens
   Future<void> refreshData() async {
     await _refreshDataWithTimestamp();
+  }
+
+  void _checkDataMigration() async {
+    if (!widget.isGuestMode) {
+      try {
+        await DataMigrationDialog.showIfNeeded(context);
+        // Refresh data after potential migration
+        await _loadRecentClassifications();
+      } catch (e) {
+        debugPrint('Error checking data migration: $e');
+      }
+    }
   }
 }
