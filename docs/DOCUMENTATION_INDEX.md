@@ -179,6 +179,20 @@ This index provides a comprehensive guide to all documentation in the Waste Segr
 
 ---
 
+## 📋 Critical Updates & Corrections
+
+### ⚠️ Documentation Corrections
+- [**Cloud Storage Correction & Admin Data Strategy**](CLOUD_STORAGE_CORRECTION_AND_ADMIN_DATA_STRATEGY.md) - ⚡ **NEW** - Critical correction of previous cloud storage documentation and comprehensive admin data collection strategy
+
+## 📊 Admin & Data Management
+
+### Admin Services
+- [**Admin Data Recovery Service**](admin/ADMIN_DATA_RECOVERY_SERVICE.md) - ⚡ **NEW** - Comprehensive data recovery and ML training data collection service
+- [**Admin Dashboard Implementation Guide**](ADMIN_DASHBOARD_IMPLEMENTATION_GUIDE.md) - Admin interface development
+- [**Admin Analytics Dashboard Specification**](ADMIN_ANALYTICS_DASHBOARD_SPECIFICATION.md) - Analytics dashboard requirements
+
+---
+
 **Last Updated**: 2025-01-27  
 **Maintained By**: Development Team  
 **Status**: ✅ Fully Organized and Current 

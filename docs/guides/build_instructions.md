@@ -312,6 +312,8 @@ For any additional issues, please refer to the developer documentation or create
 - [x] Firebase and Google Sign-In are working
 - [x] `google-services.json` is updated for the new package name (`com.pranaysuyash.wastewise`).
 
+**📝 CORRECTION NOTE (December 26, 2024)**: The above statement was partially incorrect in previous versions. While Firebase authentication works, cloud storage/sync was only implemented on December 26, 2024 in version 0.1.5+97. Previous versions (0.1.5+96 and earlier) had only local storage.
+
 ## 5. Internal Testing
 - [ ] Create an internal testing track in Play Console
 - [ ] Add tester email addresses

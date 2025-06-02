@@ -2,8 +2,11 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
 import '../models/waste_classification.dart';
 import 'storage_service.dart';
+import 'dart:convert';
+import 'package:crypto/crypto.dart';
 
 /// Service for syncing classifications to Firestore cloud storage
+/// Also handles admin data collection for ML training and data recovery
 class CloudStorageService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final StorageService _localStorageService;
@@ -44,6 +47,7 @@ class CloudStorageService {
         // Add cloud sync timestamp
       );
 
+      // 1. Save to user's personal collection
       await _firestore
           .collection('users')
           .doc(userProfile.id)
@@ -56,10 +60,86 @@ class CloudStorageService {
       });
 
       debugPrint('☁️ ✅ Successfully synced classification: ${classification.itemName}');
+
+      // 2. Save anonymized version to admin collection for ML training and data recovery
+      await _saveToAdminCollection(cloudClassification);
+
     } catch (e) {
       debugPrint('☁️ ❌ Failed to sync classification to cloud: $e');
       // Don't throw error - local save was successful
     }
+  }
+
+  /// Save anonymized classification to admin collection for ML training and data recovery
+  Future<void> _saveToAdminCollection(WasteClassification classification) async {
+    try {
+      if (classification.userId == null || classification.userId!.isEmpty) {
+        debugPrint('🚫 Cannot save to admin collection: No user ID');
+        return;
+      }
+
+      // Create anonymized version for ML training
+      final adminData = {
+        'itemName': classification.itemName,
+        'category': classification.category,
+        'subcategory': classification.subcategory,
+        'materialType': classification.materialType,
+        'isRecyclable': classification.isRecyclable,
+        'isCompostable': classification.isCompostable,
+        'requiresSpecialDisposal': classification.requiresSpecialDisposal,
+        'explanation': classification.explanation,
+        'disposalMethod': classification.disposalMethod,
+        'recyclingCode': classification.recyclingCode,
+        'timestamp': FieldValue.serverTimestamp(),
+        'appVersion': '0.1.5+97', // Current app version
+        'hashedUserId': _hashUserId(classification.userId!), // One-way hash for privacy
+        'region': 'India', // General location for regional insights
+        'language': 'en', // App language used
+        'mlTrainingData': true, // Flag for ML pipeline
+        // NO personal information, email, or identifiable data
+      };
+
+      await _firestore
+          .collection('admin_classifications')
+          .add(adminData);
+
+      debugPrint('🔬 ✅ Admin data collection: Classification saved for ML training');
+
+      // Also update recovery metadata
+      await _updateRecoveryMetadata(classification.userId!);
+
+    } catch (e) {
+      debugPrint('🔬 ❌ Admin data collection failed: $e');
+      // Don't throw error - user experience not affected
+    }
+  }
+
+  /// Update recovery metadata for data recovery service
+  Future<void> _updateRecoveryMetadata(String userId) async {
+    try {
+      final hashedUserId = _hashUserId(userId);
+      
+      await _firestore
+          .collection('admin_user_recovery')
+          .doc(hashedUserId)
+          .set({
+        'lastBackup': FieldValue.serverTimestamp(),
+        'classificationCount': FieldValue.increment(1),
+        'appVersion': '0.1.5+97',
+      }, SetOptions(merge: true));
+
+      debugPrint('🔄 ✅ Recovery metadata updated for user');
+    } catch (e) {
+      debugPrint('🔄 ❌ Recovery metadata update failed: $e');
+    }
+  }
+
+  /// One-way hash for privacy-preserving user identification
+  String _hashUserId(String userId) {
+    const salt = 'waste_segregation_app_salt_2024'; // App-specific salt
+    final bytes = utf8.encode(userId + salt);
+    final digest = sha256.convert(bytes);
+    return digest.toString();
   }
 
   /// Load classifications from cloud and merge with local
