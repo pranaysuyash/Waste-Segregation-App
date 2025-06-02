@@ -482,6 +482,79 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ),
           ),
           
+          // Feedback Settings
+          Card(
+            margin: const EdgeInsets.only(bottom: 16),
+            child: ExpansionTile(
+              leading: const Icon(Icons.feedback_outlined),
+              title: const Text('Feedback Settings'),
+              subtitle: const Text('Control when you can provide feedback'),
+              children: [
+                FutureBuilder<Map<String, dynamic>>(
+                  future: Provider.of<StorageService>(context, listen: false).getSettings(),
+                  builder: (context, snapshot) {
+                    final settings = snapshot.data ?? {};
+                    final allowHistoryFeedback = settings['allowHistoryFeedback'] ?? true;
+                    final feedbackTimeframeDays = settings['feedbackTimeframeDays'] ?? 7;
+                    
+                    return Column(
+                      children: [
+                        SwitchListTile(
+                          title: const Text('Allow Feedback on Recent History'),
+                          subtitle: Text(
+                            allowHistoryFeedback 
+                                ? 'Can provide feedback on recent classifications from history'
+                                : 'Can only provide feedback on new classifications',
+                          ),
+                          value: allowHistoryFeedback,
+                          onChanged: (value) async {
+                            await _toggleHistoryFeedback(value);
+                            setState(() {}); // Trigger rebuild
+                          },
+                        ),
+                        if (allowHistoryFeedback) ...[
+                          ListTile(
+                            title: const Text('Feedback Timeframe'),
+                            subtitle: Text('Can provide feedback on items from last $feedbackTimeframeDays days'),
+                            trailing: DropdownButton<int>(
+                              value: feedbackTimeframeDays,
+                              items: const [
+                                DropdownMenuItem(value: 1, child: Text('1 day')),
+                                DropdownMenuItem(value: 3, child: Text('3 days')),
+                                DropdownMenuItem(value: 7, child: Text('7 days')),
+                                DropdownMenuItem(value: 14, child: Text('14 days')),
+                                DropdownMenuItem(value: 30, child: Text('30 days')),
+                              ],
+                              onChanged: (value) async {
+                                if (value != null) {
+                                  await _updateFeedbackTimeframe(value);
+                                  setState(() {}); // Trigger rebuild
+                                }
+                              },
+                            ),
+                          ),
+                        ],
+                        Padding(
+                          padding: const EdgeInsets.all(16.0),
+                          child: Text(
+                            allowHistoryFeedback 
+                                ? 'Perfect for scanning multiple items quickly and providing feedback later when you have more time!'
+                                : 'Feedback is only available immediately after classification.',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Colors.grey.shade600,
+                              fontStyle: FontStyle.italic,
+                            ),
+                          ),
+                        ),
+                      ],
+                    );
+                  },
+                ),
+              ],
+            ),
+          ),
+          
           // Sync actions when Google sync is enabled
           if (_isGoogleSyncEnabled) ...[
             Card(
@@ -1212,6 +1285,41 @@ class _SettingsScreenState extends State<SettingsScreen> {
           SnackBar(content: Text('Download failed: $e')),
         );
       }
+    }
+  }
+
+  Future<void> _toggleHistoryFeedback(bool value) async {
+    try {
+      final storageService = Provider.of<StorageService>(context, listen: false);
+      final settings = await storageService.getSettings();
+      await storageService.saveSettings(
+        isDarkMode: settings['isDarkMode'] ?? false,
+        isGoogleSyncEnabled: settings['isGoogleSyncEnabled'] ?? false,
+        allowHistoryFeedback: value,
+      );
+      setState(() {});
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to toggle history feedback: $e')),
+      );
+    }
+  }
+
+  Future<void> _updateFeedbackTimeframe(int value) async {
+    try {
+      final storageService = Provider.of<StorageService>(context, listen: false);
+      final settings = await storageService.getSettings();
+      await storageService.saveSettings(
+        isDarkMode: settings['isDarkMode'] ?? false,
+        isGoogleSyncEnabled: settings['isGoogleSyncEnabled'] ?? false,
+        allowHistoryFeedback: settings['allowHistoryFeedback'] ?? true,
+        feedbackTimeframeDays: value,
+      );
+      setState(() {});
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to update feedback timeframe: $e')),
+      );
     }
   }
 }

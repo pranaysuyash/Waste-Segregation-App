@@ -758,14 +758,63 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
                   ],
 
                   // User Feedback Section (for training AI model)
-                  if (widget.showActions) ...[
-                    ClassificationFeedbackWidget(
-                      classification: widget.classification,
-                      onFeedbackSubmitted: _handleFeedbackSubmission,
-                      showCompactVersion: false, // Changed to false
-                    ),
-                    const SizedBox(height: AppTheme.paddingLarge),
-                  ],
+                  // Allow feedback on new classifications OR recent ones based on user settings
+                  FutureBuilder<bool>(
+                    future: widget.showActions ? Future.value(true) : _isRecentClassification(),
+                    builder: (context, snapshot) {
+                      final shouldShowFeedback = snapshot.data ?? false;
+                      
+                      if (!shouldShowFeedback) {
+                        return const SizedBox.shrink();
+                      }
+                      
+                      return Container(
+                        margin: const EdgeInsets.only(top: AppTheme.paddingRegular),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            // Add context header for history items
+                            if (!widget.showActions) ...[
+                              Container(
+                                padding: const EdgeInsets.all(AppTheme.paddingSmall),
+                                decoration: BoxDecoration(
+                                  color: Colors.blue.shade50,
+                                  borderRadius: BorderRadius.circular(AppTheme.borderRadiusSmall),
+                                  border: Border.all(color: Colors.blue.shade200),
+                                ),
+                                child: Row(
+                                  children: [
+                                    Icon(
+                                      Icons.history,
+                                      size: 16,
+                                      color: Colors.blue.shade700,
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Expanded(
+                                      child: Text(
+                                        'You can still provide feedback on recent classifications to help improve our AI',
+                                        style: TextStyle(
+                                          fontSize: AppTheme.fontSizeSmall,
+                                          color: Colors.blue.shade700,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              const SizedBox(height: AppTheme.paddingSmall),
+                            ],
+                            ClassificationFeedbackWidget(
+                              classification: widget.classification,
+                              onFeedbackSubmitted: _handleFeedbackSubmission,
+                              showCompactVersion: !widget.showActions, // Use compact version for history items
+                            ),
+                          ],
+                        ),
+                      );
+                    },
+                  ),
+                  const SizedBox(height: AppTheme.paddingLarge),
 
                   // Disposal Instructions Section
                   if (widget.classification.disposalInstructions != null ||
@@ -1120,6 +1169,32 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
           ),
         );
       }
+    }
+  }
+
+  Future<bool> _isRecentClassification() async {
+    try {
+      // Get user settings
+      final storageService = Provider.of<StorageService>(context, listen: false);
+      final settings = await storageService.getSettings();
+      
+      // Check if history feedback is enabled
+      final allowHistoryFeedback = settings['allowHistoryFeedback'] ?? true;
+      if (!allowHistoryFeedback) {
+        return false;
+      }
+      
+      // Check timeframe
+      final feedbackTimeframeDays = settings['feedbackTimeframeDays'] ?? 7;
+      final now = DateTime.now();
+      final classificationDate = widget.classification.timestamp;
+      final daysDifference = now.difference(classificationDate).inDays;
+      
+      // Allow feedback on classifications within the specified timeframe
+      return daysDifference <= feedbackTimeframeDays;
+    } catch (e) {
+      debugPrint('Error checking recent classification: $e');
+      return false; // Default to not showing feedback on error
     }
   }
 }

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-// import 'package:provider/provider.dart'; // Removed if only for AnalyticsService
+import 'package:provider/provider.dart';
 import '../models/waste_classification.dart';
-// import '../services/analytics_service.dart'; // Removed
+import '../services/ai_service.dart';
 import '../utils/constants.dart';
 
 /// Widget for collecting user feedback on classification accuracy
@@ -28,6 +28,8 @@ class _ClassificationFeedbackWidgetState extends State<ClassificationFeedbackWid
   final TextEditingController _customCorrectionController = TextEditingController();
   bool _showCorrectionOptions = false;
   bool _showCustomCorrection = false;
+  bool _isReanalyzing = false; // Track reanalysis state
+  int feedbackTimeframeDays = 7; // Default feedback timeframe
 
   // Common correction options based on analysis of frequent mistakes
   final List<String> _commonCorrections = [
@@ -366,6 +368,60 @@ class _ClassificationFeedbackWidgetState extends State<ClassificationFeedbackWid
                 );
               },
             ),
+            
+            // Add Re-analyze button when correction is selected
+            if (_userConfirmed == false && _selectedCorrection != null && !_isReanalyzing) ...[
+              const SizedBox(height: AppTheme.paddingSmall),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton.icon(
+                  onPressed: _triggerReanalysis,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.orange,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                  ),
+                  icon: const Icon(Icons.refresh, size: 18),
+                  label: const Text('Re-analyze with correction', style: TextStyle(fontSize: 12)),
+                ),
+              ),
+            ],
+            
+            // Show reanalyzing indicator
+            if (_isReanalyzing) ...[
+              const SizedBox(height: AppTheme.paddingSmall),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.orange.shade50,
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: Colors.orange.shade200),
+                ),
+                child: Row(
+                  children: [
+                    SizedBox(
+                      width: 16,
+                      height: 16,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        valueColor: AlwaysStoppedAnimation<Color>(Colors.orange.shade700),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        'Re-analyzing with your correction...',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Colors.orange.shade700,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+            
             TextButton(
               onPressed: () => _showFullFeedbackDialog(),
               child: const Text('More options...'),
@@ -538,26 +594,65 @@ class _ClassificationFeedbackWidgetState extends State<ClassificationFeedbackWid
                   backgroundColor: AppTheme.primaryColor,
                   foregroundColor: Colors.white,
                   padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(AppTheme.borderRadiusRegular),
-                  ),
                 ),
                 icon: const Icon(Icons.send),
                 label: const Text('Submit Feedback'),
               ),
             ),
             
-            const SizedBox(height: AppTheme.paddingSmall),
-            
-            // Privacy note
-            Text(
-              'Your feedback is anonymous and helps improve the app for everyone.',
-              style: TextStyle(
-                fontSize: AppTheme.fontSizeSmall,
-                color: Colors.grey.shade600,
+            // Add Re-analyze button for full feedback version too
+            if (_userConfirmed == false && _selectedCorrection != null && !_isReanalyzing) ...[
+              const SizedBox(height: AppTheme.paddingSmall),
+              SizedBox(
+                width: double.infinity,
+                child: OutlinedButton.icon(
+                  onPressed: _triggerReanalysis,
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: Colors.orange,
+                    side: const BorderSide(color: Colors.orange),
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                  ),
+                  icon: const Icon(Icons.refresh),
+                  label: const Text('Re-analyze with correction'),
+                ),
               ),
-              textAlign: TextAlign.center,
-            ),
+            ],
+            
+            // Show reanalyzing indicator for full version
+            if (_isReanalyzing) ...[
+              const SizedBox(height: AppTheme.paddingSmall),
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.orange.shade50,
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: Colors.orange.shade200),
+                ),
+                child: Row(
+                  children: [
+                    SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        valueColor: AlwaysStoppedAnimation<Color>(Colors.orange.shade700),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        'Re-analyzing with your correction...',
+                        style: TextStyle(
+                          fontSize: AppTheme.fontSizeRegular,
+                          color: Colors.orange.shade700,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ],
     );
   }
@@ -708,6 +803,103 @@ class _ClassificationFeedbackWidgetState extends State<ClassificationFeedbackWid
         ),
       ),
     );
+  }
+
+  Future<void> _updateFeedbackTimeframe(int newTimeframe) async {
+    // This would normally update user settings, but since this widget
+    // is focused on feedback, we'll just update the local state
+    setState(() {
+      feedbackTimeframeDays = newTimeframe;
+    });
+  }
+
+  Future<void> _triggerReanalysis() async {
+    if (_selectedCorrection == null) return;
+    
+    setState(() {
+      _isReanalyzing = true;
+    });
+
+    try {
+      final aiService = Provider.of<AiService>(context, listen: false);
+      
+      // Get the final correction text
+      String correctionText = _selectedCorrection!;
+      if (_selectedCorrection == 'Custom correction...' && 
+          _customCorrectionController.text.trim().isNotEmpty) {
+        correctionText = _customCorrectionController.text.trim();
+      }
+      
+      // Get user reason/notes
+      String? userReason = _notesController.text.trim().isNotEmpty 
+          ? _notesController.text.trim() 
+          : null;
+      
+      // Call AI service to reanalyze with correction
+      final reanalyzedClassification = await aiService.handleUserCorrection(
+        widget.classification,
+        correctionText,
+        userReason,
+        // Note: imageBytes not available in WasteClassification model
+        // This will do text-only reanalysis with the user's correction
+      );
+      
+      // Update the classification with reanalysis results and user feedback
+      final updatedClassification = reanalyzedClassification.copyWith(
+        userConfirmed: false, // Keep as false since user marked it incorrect
+        userCorrection: correctionText,
+        userNotes: userReason,
+        viewCount: (widget.classification.viewCount ?? 0) + 1,
+      );
+      
+      if (mounted) {
+        // Submit the updated classification
+        widget.onFeedbackSubmitted(updatedClassification);
+        
+        // Show success message
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Row(
+              children: [
+                const Icon(Icons.check_circle, color: Colors.white, size: 20),
+                const SizedBox(width: 8),
+                const Expanded(
+                  child: Text('Re-analysis complete! Updated classification with your correction.'),
+                ),
+              ],
+            ),
+            backgroundColor: Colors.green.shade600,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+      
+    } catch (e) {
+      if (mounted) {
+        // Show error message
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Row(
+              children: [
+                const Icon(Icons.error, color: Colors.white, size: 20),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text('Re-analysis failed: ${e.toString()}'),
+                ),
+              ],
+            ),
+            backgroundColor: Colors.red.shade600,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isReanalyzing = false;
+        });
+      }
+    }
   }
 }
 

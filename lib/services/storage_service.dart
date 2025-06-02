@@ -436,11 +436,30 @@ class StorageService {
   Future<void> saveSettings({
     required bool isDarkMode,
     required bool isGoogleSyncEnabled,
+    bool? allowHistoryFeedback,
+    int? feedbackTimeframeDays,
   }) async {
+    final settings = await getSettings();
+    
+    // Update the settings with new values
+    settings['isDarkMode'] = isDarkMode;
+    settings['isGoogleSyncEnabled'] = isGoogleSyncEnabled;
+    
+    // Update feedback settings if provided
+    if (allowHistoryFeedback != null) {
+      settings['allowHistoryFeedback'] = allowHistoryFeedback;
+    }
+    if (feedbackTimeframeDays != null) {
+      settings['feedbackTimeframeDays'] = feedbackTimeframeDays;
+    }
+    
+    // Save the updated settings
     final settingsBox = Hive.box(StorageKeys.settingsBox);
+    await settingsBox.put('settings', settings);
+    
+    // Also save to the old format for backward compatibility
     await settingsBox.put(StorageKeys.isDarkModeKey, isDarkMode);
-    await settingsBox.put(
-        StorageKeys.isGoogleSyncEnabledKey, isGoogleSyncEnabled);
+    await settingsBox.put(StorageKeys.isGoogleSyncEnabledKey, isGoogleSyncEnabled);
   }
 
   /// Get user settings with default values
@@ -450,13 +469,13 @@ class StorageService {
       if (settings == null) {
         // Default settings for new users - Cloud sync ENABLED by default
         final defaultSettings = {
-          'isGoogleSyncEnabled': true,  // ← ENABLED BY DEFAULT
           'notifications': true,
           'darkMode': false,
-          'language': 'en',
-          'autoBackup': true,
-          'dataSharingConsent': true,
-          'privacyOptIn': true,
+          'soundEffects': true,
+          'autoSave': true,
+          'isGoogleSyncEnabled': true, // Default to enabled for better user experience
+          'allowHistoryFeedback': true, // Allow feedback on recent classifications from history
+          'feedbackTimeframeDays': 7, // How many days back to allow feedback
         };
         await Hive.box(StorageKeys.settingsBox).put('settings', defaultSettings);
         return defaultSettings;
@@ -466,13 +485,13 @@ class StorageService {
       debugPrint('Error getting settings: $e');
       // Return default settings with cloud sync enabled
       return {
-        'isGoogleSyncEnabled': true,  // ← ENABLED BY DEFAULT
         'notifications': true,
         'darkMode': false,
-        'language': 'en',
-        'autoBackup': true,
-        'dataSharingConsent': true,
-        'privacyOptIn': true,
+        'soundEffects': true,
+        'autoSave': true,
+        'isGoogleSyncEnabled': true, // Default to enabled for better user experience
+        'allowHistoryFeedback': true, // Allow feedback on recent classifications from history
+        'feedbackTimeframeDays': 7, // How many days back to allow feedback
       };
     }
   }
