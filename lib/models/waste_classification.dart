@@ -1,5 +1,3 @@
-
-
 /// Represents a waste classification result with comprehensive disposal information
 class WasteClassification {
   final String itemName;
@@ -154,7 +152,7 @@ class WasteClassification {
     if (instructionsData is String) {
       return DisposalInstructions(
         primaryMethod: instructionsData.length > 100 
-            ? instructionsData.substring(0, 100) + '...'
+            ? '${instructionsData.substring(0, 100)}...'
             : instructionsData,
         steps: DisposalInstructions._parseStepsFromString(instructionsData),
         hasUrgentTimeframe: false,
