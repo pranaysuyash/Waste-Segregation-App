@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:waste_segregation_app/models/shared_waste_classification.dart';
-import 'package:waste_segregation_app/models/gamification.dart' show FamilyReaction, FamilyComment; // Assuming these are here
+import 'package:waste_segregation_app/models/gamification.dart' show FamilyReactionType;
 import 'package:waste_segregation_app/utils/constants.dart'; // For AppTheme
 
 class ClassificationDetailsScreen extends StatelessWidget {
@@ -129,7 +129,7 @@ class ClassificationDetailsScreen extends StatelessWidget {
                         : null,
                   ),
                   title: Text(reaction.displayName),
-                  trailing: Text(_getReactionEmoji(reaction.type) + ' ${reaction.type.toString().split('.').last}'), // Helper needed for emoji
+                  trailing: Text('${_getReactionEmoji(reaction.type)} ${reaction.type.toString().split('.').last}'),
                 );
               },
               separatorBuilder: (context, index) => const Divider(),
@@ -216,16 +216,14 @@ class ClassificationDetailsScreen extends StatelessWidget {
         return '👍';
       case FamilyReactionType.love:
         return '❤️';
-      case FamilyReactionType.haha:
-        return '😂';
-      case FamilyReactionType.wow:
-        return '😮';
-      case FamilyReactionType.sad:
-        return '😢';
-      case FamilyReactionType.angry:
-        return '😠';
-      default:
-        return '✔️';
+      case FamilyReactionType.helpful:
+        return '🤝';
+      case FamilyReactionType.amazing:
+        return '🤩';
+      case FamilyReactionType.wellDone:
+        return '👏';
+      case FamilyReactionType.educational:
+        return '📚';
     }
   }
 }

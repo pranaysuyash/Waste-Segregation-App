@@ -7,6 +7,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.1.5+97] - 2024-01-27
 
+### Added
+- **New Combined Social Screen**: Unified Community and Family features into a single tabbed interface
+  - Replaced separate Family navigation with combined "Social" tab
+  - Users can now access both Community and Family features in one place
+  - Improved navigation UX with cleaner 5-tab layout (Home, History, Learn, Social, Rewards)
+
+### Fixed  
+- **Navigation Consistency**: Fixed community feed preview on home screen to properly navigate to Social screen
+- **Removed "Coming Soon" Message**: Community features are now fully accessible and working
+- **Linter Warnings**: Cleaned up unused imports and variables in social screen implementation
+- **Code Quality Issues**: Fixed all linter warnings across multiple files
+  - Replaced deprecated `withOpacity()` calls with `withValues(alpha:)` in quiz and image capture screens
+  - Fixed unnecessary braces in string interpolations in AI service
+  - Replaced string concatenation with adjacent string literals in AI service
+  - Fixed HTML in documentation comments by using backticks
+  - Replaced deprecated `Color.value` with `Color.toARGB32()` in gamification models
+  - Fixed BuildContext async gap issues in image capture screen
+
+### Changed
+- Navigation icon changed from family_restroom to people for better representation of combined social features
+- Updated import statements to reference new SocialScreen
+
+## [0.1.5+97] - 2024-01-27
+
 ### 🏆 **MAJOR MILESTONE: World's Most Comprehensive Recycling Research Completed**
 
 #### Added - Research & Documentation

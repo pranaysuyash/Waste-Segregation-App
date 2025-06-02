@@ -9,9 +9,8 @@ import '../services/navigation_settings_service.dart';
 import '../screens/modern_home_screen.dart';
 import '../screens/history_screen.dart';
 import '../screens/educational_content_screen.dart';
-import '../screens/community_screen.dart';
 import '../screens/achievements_screen.dart';
-import '../screens/family_dashboard_screen.dart';
+import '../screens/social_screen.dart';
 import '../screens/settings_screen.dart';
 import '../screens/image_capture_screen.dart';
 import '../widgets/bottom_navigation/modern_bottom_nav.dart';
@@ -80,9 +79,8 @@ class _MainNavigationWrapperState extends State<MainNavigationWrapper> {
       ModernHomeScreen(isGuestMode: widget.isGuestMode),
       const HistoryScreen(),
       const EducationalContentScreen(),
-      const CommunityScreen(),
+      const SocialScreen(),
       const AchievementsScreen(),
-      const FamilyDashboardScreen(),
     ];
   }
 
@@ -107,12 +105,7 @@ class _MainNavigationWrapperState extends State<MainNavigationWrapper> {
       const BottomNavItem(
         icon: Icons.people_outlined,
         selectedIcon: Icons.people,
-        label: 'Community',
-      ),
-      const BottomNavItem(
-        icon: Icons.family_restroom_outlined,
-        selectedIcon: Icons.family_restroom,
-        label: 'Family',
+        label: 'Social',
       ),
       const BottomNavItem(
         icon: Icons.emoji_events_outlined,
@@ -461,7 +454,7 @@ class _AlternativeNavigationWrapperState extends State<AlternativeNavigationWrap
       ModernHomeScreen(isGuestMode: widget.isGuestMode),
       const HistoryScreen(),
       const EducationalContentScreen(),
-      const CommunityScreen(),
+      const SocialScreen(),
       const AchievementsScreen(),
       const SettingsScreen(),
     ];
@@ -487,7 +480,7 @@ class _AlternativeNavigationWrapperState extends State<AlternativeNavigationWrap
       const BottomNavItem(
         icon: Icons.people_outlined,
         selectedIcon: Icons.people,
-        label: 'Community',
+        label: 'Social',
       ),
       const BottomNavItem(
         icon: Icons.emoji_events_outlined,

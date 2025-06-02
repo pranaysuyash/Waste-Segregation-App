@@ -292,7 +292,7 @@ class _AchievementsScreenState extends State<AchievementsScreen>
                   padding: const EdgeInsets.all(AppTheme.paddingSmall),
                   decoration: BoxDecoration(
                     color: isEarned
-                        ? achievement.color.withOpacity(0.2)
+                        ? achievement.color.withValues(alpha: 0.2)
                         : Colors.grey.shade200,
                     shape: BoxShape.circle,
                     border: isEarned && achievement.tier != AchievementTier.bronze
@@ -330,7 +330,7 @@ class _AchievementsScreenState extends State<AchievementsScreen>
                         minHeight: 4,
                         backgroundColor: Colors.grey.shade200,
                         valueColor: AlwaysStoppedAnimation<Color>(
-                            achievement.color.withOpacity(0.7)),
+                            achievement.color.withValues(alpha: 0.7)),
                       ),
                     ),
                   )
@@ -379,9 +379,9 @@ class _AchievementsScreenState extends State<AchievementsScreen>
   // Helper method to determine contrasting text color for tier badges
   Color _getContrastColor(Color backgroundColor) {
     // Calculate perceived brightness using the formula: (R * 0.299 + G * 0.587 + B * 0.114)
-    final double brightness = (backgroundColor.red * 0.299 + 
-                           backgroundColor.green * 0.587 + 
-                           backgroundColor.blue * 0.114) / 255;
+    final double brightness = (backgroundColor.r * 0.299 + 
+                           backgroundColor.g * 0.587 + 
+                           backgroundColor.b * 0.114) / 255;
     return brightness > 0.5 ? Colors.black : Colors.white;
   }
 
@@ -416,28 +416,36 @@ class _AchievementsScreenState extends State<AchievementsScreen>
         );
         
         // Refresh the profile data
-        setState(() {
-          _loadProfile();
-        });
+        if (mounted) {
+          setState(() {
+            _loadProfile();
+          });
+        }
         
         // Close the dialog
-        Navigator.of(context).pop();
+        if (mounted) {
+          Navigator.of(context).pop();
+        }
         
         // Show success message
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('${achievement.pointsReward} points added to your account!'),
-            backgroundColor: Colors.green,
-          ),
-        );
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('${achievement.pointsReward} points added to your account!'),
+              backgroundColor: Colors.green,
+            ),
+          );
+        }
       } catch (e) {
         // Show error message
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Failed to claim reward: $e'),
-            backgroundColor: Colors.red,
-          ),
-        );
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Failed to claim reward: $e'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
       }
     }
 
@@ -472,7 +480,7 @@ class _AchievementsScreenState extends State<AchievementsScreen>
               padding: const EdgeInsets.all(AppTheme.paddingRegular),
               decoration: BoxDecoration(
                 color: achievement.isEarned
-                    ? achievement.color.withOpacity(0.2)
+                    ? achievement.color.withValues(alpha: 0.2)
                     : Colors.grey.shade200,
                 shape: BoxShape.circle,
                 border: achievement.isEarned && achievement.tier != AchievementTier.bronze
@@ -510,7 +518,7 @@ class _AchievementsScreenState extends State<AchievementsScreen>
               margin: const EdgeInsets.symmetric(vertical: AppTheme.paddingSmall),
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
               decoration: BoxDecoration(
-                color: Colors.amber.withOpacity(0.2),
+                color: Colors.amber.withValues(alpha: 0.2),
                 borderRadius: BorderRadius.circular(AppTheme.borderRadiusSmall),
               ),
               child: Row(
@@ -706,11 +714,67 @@ class _AchievementsScreenState extends State<AchievementsScreen>
                       ),
                       const SizedBox(height: AppTheme.paddingSmall),
                       ElevatedButton(
-                        onPressed: () {
-                          // TODO: Implement challenge generation
-                          setState(() {
-                            _loadProfile();
-                          });
+                        onPressed: () async {
+                          // Generate new random challenges for the user
+                          try {
+                            final gamificationService = Provider.of<GamificationService>(context, listen: false);
+                            final profile = await gamificationService.getProfile();
+                            
+                            // Create sample new challenges
+                            final newChallenges = [
+                              Challenge(
+                                id: 'challenge_${DateTime.now().millisecondsSinceEpoch}',
+                                title: 'Weekly Recycling Goal',
+                                description: 'Recycle 20 items this week',
+                                iconName: 'recycle',
+                                startDate: DateTime.now(),
+                                endDate: DateTime.now().add(const Duration(days: 7)),
+                                pointsReward: 100,
+                                color: Colors.green,
+                                requirements: {'category': 'Dry Waste', 'count': 20},
+                              ),
+                              Challenge(
+                                id: 'challenge_${DateTime.now().millisecondsSinceEpoch + 1}',
+                                title: 'Photo Challenge',
+                                description: 'Take 10 waste segregation photos',
+                                iconName: 'camera_alt',
+                                startDate: DateTime.now(),
+                                endDate: DateTime.now().add(const Duration(days: 5)),
+                                pointsReward: 75,
+                                color: Colors.blue,
+                                requirements: {'any_item': true, 'count': 10},
+                              ),
+                            ];
+                            
+                            // Add the new challenges to the profile
+                            final updatedProfile = profile.copyWith(
+                              activeChallenges: [...profile.activeChallenges, ...newChallenges],
+                            );
+                            
+                            await gamificationService.saveProfile(updatedProfile);
+                            
+                            if (mounted) {
+                              setState(() {
+                                _loadProfile();
+                              });
+                              
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text('New challenges generated!'),
+                                  backgroundColor: Colors.green,
+                                ),
+                              );
+                            }
+                          } catch (e) {
+                            if (mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text('Failed to generate challenges: $e'),
+                                  backgroundColor: Colors.red,
+                                ),
+                              );
+                            }
+                          }
                         },
                         child: const Text('Get New Challenges'),
                       ),
@@ -754,7 +818,52 @@ class _AchievementsScreenState extends State<AchievementsScreen>
                 Center(
                   child: TextButton.icon(
                     onPressed: () {
-                      // TODO: Navigate to all completed challenges
+                      // Navigate to a screen showing all completed challenges
+                      showDialog(
+                        context: context,
+                        builder: (context) => AlertDialog(
+                          title: const Text('All Completed Challenges'),
+                          content: SizedBox(
+                            width: double.maxFinite,
+                            height: 400,
+                            child: ListView.builder(
+                              itemCount: profile.completedChallenges.length,
+                              itemBuilder: (context, index) {
+                                final challenge = profile.completedChallenges[index];
+                                return ListTile(
+                                  leading: Container(
+                                    padding: const EdgeInsets.all(8),
+                                    decoration: BoxDecoration(
+                                      color: challenge.color.withValues(alpha: 0.2),
+                                      shape: BoxShape.circle,
+                                    ),
+                                    child: getAchievementIcon(
+                                      challenge.iconName,
+                                      color: challenge.color,
+                                      size: 20,
+                                    ),
+                                  ),
+                                  title: Text(challenge.title),
+                                  subtitle: Text(challenge.description),
+                                  trailing: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Icon(Icons.stars, color: Colors.amber, size: 16),
+                                      Text('${challenge.pointsReward}'),
+                                    ],
+                                  ),
+                                );
+                              },
+                            ),
+                          ),
+                          actions: [
+                            TextButton(
+                              onPressed: () => Navigator.of(context).pop(),
+                              child: const Text('Close'),
+                            ),
+                          ],
+                        ),
+                      );
                     },
                     icon: const Icon(Icons.history),
                     label: const Text('View All Completed'),
@@ -784,7 +893,7 @@ class _AchievementsScreenState extends State<AchievementsScreen>
                 Container(
                   padding: const EdgeInsets.all(AppTheme.paddingSmall),
                   decoration: BoxDecoration(
-                    color: challenge.color.withOpacity(0.2),
+                    color: challenge.color.withValues(alpha: 0.2),
                     shape: BoxShape.circle,
                   ),
                   child: getAchievementIcon(challenge.iconName, color: challenge.color, size: 28),
@@ -1161,7 +1270,7 @@ class _AchievementsScreenState extends State<AchievementsScreen>
         child: Container(
           padding: const EdgeInsets.all(AppTheme.paddingSmall),
           decoration: BoxDecoration(
-            color: color.withOpacity(0.1),
+            color: color.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(AppTheme.borderRadiusSmall),
           ),
           child: Row(
@@ -1169,7 +1278,7 @@ class _AchievementsScreenState extends State<AchievementsScreen>
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: color.withOpacity(0.2),
+                  color: color.withValues(alpha: 0.2),
                   shape: BoxShape.circle,
                 ),
                 child: Icon(
@@ -1286,42 +1395,6 @@ class _AchievementsScreenState extends State<AchievementsScreen>
     }
   }
 
-  int _getIconCodePoint(String iconName) {
-    // Map of icon names to code points
-    const Map<String, int> iconMap = {
-      'emoji_objects': 0xe23e,
-      'recycling': 0xe7c0,
-      'workspace_premium': 0xef56,
-      'category': 0xe574,
-      'local_fire_department': 0xe78d,
-      'event_available': 0xe614,
-      'emoji_events': 0xea65,
-      'school': 0xe80c,
-      'quiz': 0xf04c,
-      'eco': 0xe63f,
-      'task_alt': 0xe8fe,
-      'shopping_bag': 0xf1cc,
-      'restaurant': 0xe56c,
-      'compost': 0xe761,
-      'warning': 0xe002,
-      'medical_services': 0xe95a,
-      'autorenew': 0xe5d5,
-      'description': 0xe873,
-      'water_drop': 0xef71,
-      'hardware': 0xe890,
-      'devices': 0xe1b4,
-      'auto_awesome': 0xe65f,
-      'military_tech': 0xe3d0,
-      'stars': 0xe8d0,
-      'search': 0xe8b6,
-      'verified': 0xef76,
-      'timer_outlined': 0xef71,
-      'bar_chart': 0xe26b,
-    };
-
-    return iconMap[iconName] ?? 0xe5d5; // Default to refresh icon
-  }
-
   String _formatDate(DateTime date) {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
@@ -1362,35 +1435,18 @@ class _AchievementsScreenState extends State<AchievementsScreen>
   }
 
   Color _getCategoryColor(String category) {
-    // Standard category colors from app theme
-    if (category.toLowerCase().contains('wet')) {
-      return AppTheme.wetWasteColor;
-    } else if (category.toLowerCase().contains('dry')) {
-      return AppTheme.dryWasteColor;
-    } else if (category.toLowerCase().contains('hazardous')) {
-      return AppTheme.hazardousWasteColor;
-    } else if (category.toLowerCase().contains('medical')) {
-      return AppTheme.medicalWasteColor;
-    } else if (category.toLowerCase().contains('non')) {
-      return AppTheme.nonWasteColor;
+    switch (category.toLowerCase()) {
+      case 'paper':
+        return const Color(0xFF2196F3); // Use direct color instead of deprecated Colors.blue
+      case 'plastic':
+        return const Color(0xFFE91E63); // Pink
+      case 'organic':
+        return const Color(0xFF4CAF50); // Use direct color instead of deprecated Colors.green
+      case 'hazardous':
+        return const Color(0xFFF44336); // Use direct color instead of deprecated Colors.red
+      default:
+        return Colors.grey;
     }
-
-    // Additional colors for subcategories
-    if (category.toLowerCase().contains('paper')) {
-      return Colors.blue.shade300;
-    } else if (category.toLowerCase().contains('plastic')) {
-      return Colors.blue.shade700;
-    } else if (category.toLowerCase().contains('glass')) {
-      return Colors.lightBlue;
-    } else if (category.toLowerCase().contains('metal')) {
-      return Colors.blueGrey;
-    } else if (category.toLowerCase().contains('electronic')) {
-      return Colors.orange;
-    } else if (category.toLowerCase().contains('food')) {
-      return Colors.green.shade300;
-    }
-
-    return Colors.grey; // Default color
   }
 
   // Helper to get a safe icon for achievements (constant for release)

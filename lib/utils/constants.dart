@@ -192,6 +192,7 @@ class AppTheme {
   
   // Padding and Margin (kept for backward compatibility)
   static const double paddingSmall = 8.0;
+  static const double paddingMedium = 16.0;
   static const double paddingRegular = 16.0;
   static const double paddingLarge = 24.0;
   static const double paddingExtraLarge = 32.0;
@@ -240,6 +241,7 @@ class AppTheme {
   static const Color accentColor = Color(0xFF8BC34A);
   static const Color textPrimaryColor = Color(0xFF212121);
   static const Color textSecondaryColor = Color(0xFF757575);
+  static const Color textDisabledColor = Color(0xFF9E9E9E);
   static const Color backgroundColor = Color(0xFFFFFFFF);
   static const Color surfaceColor = Color(0xFFFFFFFF);
   static const Color errorColor = Color(0xFFF44336);

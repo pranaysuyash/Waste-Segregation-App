@@ -218,7 +218,7 @@ class _QuizScreenState extends State<QuizScreen> {
                           border: Border.all(color: borderColor),
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.grey.withOpacity(0.1),
+                              color: Colors.grey.withValues(alpha: 0.1),
                               blurRadius: 4,
                               offset: const Offset(0, 2),
                             ),
@@ -342,7 +342,7 @@ class _QuizScreenState extends State<QuizScreen> {
               color: Colors.white,
               boxShadow: [
                 BoxShadow(
-                  color: Colors.grey.withOpacity(0.1),
+                  color: Colors.grey.withValues(alpha: 0.1),
                   blurRadius: 4,
                   offset: const Offset(0, -2),
                 ),
@@ -432,9 +432,9 @@ class _QuizScreenState extends State<QuizScreen> {
               width: double.infinity,
               padding: const EdgeInsets.all(AppTheme.paddingLarge),
               decoration: BoxDecoration(
-                color: resultColor.withOpacity(0.1),
+                color: resultColor.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(AppTheme.borderRadiusLarge),
-                border: Border.all(color: resultColor.withOpacity(0.3)),
+                border: Border.all(color: resultColor.withValues(alpha: 0.3)),
               ),
               child: Column(
                 children: [
@@ -517,7 +517,7 @@ class _QuizScreenState extends State<QuizScreen> {
                   margin:
                       const EdgeInsets.only(bottom: AppTheme.paddingRegular),
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: Colors.white.withValues(alpha: 0.9),
                     borderRadius:
                         BorderRadius.circular(AppTheme.borderRadiusRegular),
                     border: Border.all(
@@ -529,8 +529,8 @@ class _QuizScreenState extends State<QuizScreen> {
                     ),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.grey.withOpacity(0.1),
-                        blurRadius: 4,
+                        color: Colors.black.withValues(alpha: 0.1),
+                        blurRadius: 8,
                         offset: const Offset(0, 2),
                       ),
                     ],

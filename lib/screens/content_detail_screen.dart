@@ -5,6 +5,7 @@ import '../services/educational_content_service.dart';
 import '../utils/constants.dart';
 import 'quiz_screen.dart';
 import 'package:video_player/video_player.dart';
+import 'package:share_plus/share_plus.dart';
 
 class ContentDetailScreen extends StatelessWidget {
   final String contentId;
@@ -131,10 +132,10 @@ class ContentDetailScreen extends StatelessWidget {
                   vertical: 4,
                 ),
                 decoration: BoxDecoration(
-                  color: categoryColor.withOpacity(0.1),
+                  color: categoryColor.withValues(alpha: 0.1),
                   borderRadius:
                       BorderRadius.circular(AppTheme.borderRadiusSmall),
-                  border: Border.all(color: categoryColor.withOpacity(0.5)),
+                  border: Border.all(color: categoryColor.withValues(alpha: 0.5)),
                 ),
                 child: Text(
                   category,
@@ -275,10 +276,10 @@ class ContentDetailScreen extends StatelessWidget {
                   vertical: 4,
                 ),
                 decoration: BoxDecoration(
-                  color: categoryColor.withOpacity(0.1),
+                  color: categoryColor.withValues(alpha: 0.1),
                   borderRadius:
                       BorderRadius.circular(AppTheme.borderRadiusSmall),
-                  border: Border.all(color: categoryColor.withOpacity(0.5)),
+                  border: Border.all(color: categoryColor.withValues(alpha: 0.5)),
                 ),
                 child: Text(
                   category,
@@ -425,10 +426,10 @@ class ContentDetailScreen extends StatelessWidget {
                   vertical: 4,
                 ),
                 decoration: BoxDecoration(
-                  color: categoryColor.withOpacity(0.1),
+                  color: categoryColor.withValues(alpha: 0.1),
                   borderRadius:
                       BorderRadius.circular(AppTheme.borderRadiusSmall),
-                  border: Border.all(color: categoryColor.withOpacity(0.5)),
+                  border: Border.all(color: categoryColor.withValues(alpha: 0.5)),
                 ),
                 child: Text(
                   category,
@@ -541,10 +542,10 @@ class ContentDetailScreen extends StatelessWidget {
                   vertical: 4,
                 ),
                 decoration: BoxDecoration(
-                  color: categoryColor.withOpacity(0.1),
+                  color: categoryColor.withValues(alpha: 0.1),
                   borderRadius:
                       BorderRadius.circular(AppTheme.borderRadiusSmall),
-                  border: Border.all(color: categoryColor.withOpacity(0.5)),
+                  border: Border.all(color: categoryColor.withValues(alpha: 0.5)),
                 ),
                 child: Text(
                   category,

@@ -22,6 +22,7 @@ import 'educational_content_screen.dart';
 import 'achievements_screen.dart';
 import 'waste_dashboard_screen.dart';
 import 'settings_screen.dart';
+import 'social_screen.dart';
 
 // Import modern UI components
 import '../widgets/modern_ui/modern_cards.dart';
@@ -1169,10 +1170,11 @@ class _ModernHomeScreenState extends State<ModernHomeScreen> with TickerProvider
     return CommunityFeedPreview(
       activities: DashboardSampleData.getSampleActivities(),
       onViewAll: () {
-        // Navigate to community screen when implemented
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Community features coming soon!'),
+        // Navigate to the Social screen (which contains Community and Family tabs)
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => const SocialScreen(),
           ),
         );
       },

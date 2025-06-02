@@ -4,10 +4,10 @@ import '../../utils/design_system.dart';
 
 /// Example widget showing how to use ImpactVisualizationRing for waste segregation
 class WasteImpactDashboard extends StatefulWidget {
-  const WasteImpactDashboard({Key? key}) : super(key: key);
+  const WasteImpactDashboard({super.key});
 
   @override
-  _WasteImpactDashboardState createState() => _WasteImpactDashboardState();
+  State<WasteImpactDashboard> createState() => _WasteImpactDashboardState();
 }
 
 class _WasteImpactDashboardState extends State<WasteImpactDashboard> {
@@ -204,7 +204,7 @@ class _WasteImpactDashboardState extends State<WasteImpactDashboard> {
               targetValue: targetValue,
               unit: unit,
               primaryColor: color,
-              secondaryColor: color.withOpacity(0.7),
+              secondaryColor: color.withValues(alpha: 0.7),
               title: '',
               subtitle: '',
             ),
@@ -288,10 +288,10 @@ class _WasteImpactDashboardState extends State<WasteImpactDashboard> {
             width: double.infinity,
             padding: const EdgeInsets.all(WasteAppDesignSystem.spacingM),
             decoration: BoxDecoration(
-              color: WasteAppDesignSystem.primaryGreen.withOpacity(0.1),
+              color: WasteAppDesignSystem.primaryGreen.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(WasteAppDesignSystem.radiusM),
               border: Border.all(
-                color: WasteAppDesignSystem.primaryGreen.withOpacity(0.3),
+                color: WasteAppDesignSystem.primaryGreen.withValues(alpha: 0.3),
               ),
             ),
             child: Row(
@@ -331,7 +331,7 @@ class _WasteImpactDashboardState extends State<WasteImpactDashboard> {
         Container(
           padding: const EdgeInsets.all(WasteAppDesignSystem.spacingS),
           decoration: BoxDecoration(
-            color: color.withOpacity(0.1),
+            color: color.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(WasteAppDesignSystem.radiusS),
           ),
           child: Icon(
@@ -550,7 +550,7 @@ class WasteImpactConfigurations {
               targetValue: targetValue,
               unit: unit,
               primaryColor: color,
-              secondaryColor: color.withOpacity(0.7),
+              secondaryColor: color.withValues(alpha: 0.7),
               title: '',
               subtitle: '',
             ),

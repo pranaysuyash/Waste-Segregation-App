@@ -6,9 +6,9 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
 import 'package:provider/provider.dart';
-import 'package:waste_segregation_app/models/enhanced_family.dart';
-import 'package:waste_segregation_app/models/family_invitation.dart';
-import 'package:waste_segregation_app/models/user_profile.dart';
+import 'package:waste_segregation_app/models/enhanced_family.dart' as family_models;
+import 'package:waste_segregation_app/models/family_invitation.dart' as invitation_models;
+import 'package:waste_segregation_app/models/user_profile.dart' as user_profile_models;
 import 'package:waste_segregation_app/screens/family_management_screen.dart';
 import 'package:waste_segregation_app/services/firebase_family_service.dart';
 import 'package:waste_segregation_app/services/storage_service.dart';
@@ -16,71 +16,70 @@ import 'package:waste_segregation_app/utils/constants.dart'; // For AppTheme if 
 
 import 'family_management_screen_test.mocks.dart';
 
-// Helper functions (can be moved to a shared file later)
-UserProfile createMockUserProfile({
+// Helper functions
+user_profile_models.UserProfile createMockUserProfile({
   String id = 'user1',
   String displayName = 'Test User',
   String? photoUrl,
-  String? familyId = 'fam1', // familyId can be nullable for a user not in a family
-  UserRole role = UserRole.member,
+  String? familyId = 'fam1',
+  // UserRole from user_profile_models is implicitly used by UserProfile constructor if it had a role
 }) {
-  return UserProfile(
+  return user_profile_models.UserProfile(
     id: id,
     email: '$id@test.com',
     displayName: displayName,
     photoUrl: photoUrl,
     familyId: familyId,
-    // role: role, // UserProfile itself doesn't have role, FamilyMember does
   );
 }
 
-FamilyMember createMockFamilyMember({
+family_models.FamilyMember createMockFamilyMember({
   String userId = 'user1',
   String displayName = 'Test User',
-  UserRole role = UserRole.member,
+  family_models.UserRole role = family_models.UserRole.member,
 }) {
-  return FamilyMember(
+  return family_models.FamilyMember(
     userId: userId,
     role: role,
     joinedAt: DateTime.now().subtract(const Duration(days: 10)),
-    individualStats: UserStats.empty(),
+    individualStats: family_models.UserStats.empty(),
     displayName: displayName,
   );
 }
 
-Family createMockFamily({
+family_models.Family createMockFamily({
   String id = 'fam1',
   String name = 'Awesome Family',
-  List<FamilyMember>? members,
-  FamilySettings? settings,
+  List<family_models.FamilyMember>? members,
+  family_models.FamilySettings? settings,
 }) {
-  return Family(
+  return family_models.Family(
     id: id,
     name: name,
     createdBy: 'creatorUser',
     createdAt: DateTime.now().subtract(const Duration(days: 30)),
-    lastUpdated: DateTime.now(),
-    members: members ?? [createMockFamilyMember(userId: 'user1', role: UserRole.admin)],
-    settings: settings ?? FamilySettings.defaultSettings(),
-    stats: FamilyStats.empty(), // Stats not primary focus here but part of model
+    updatedAt: DateTime.now(), // Fixed: lastUpdated to updatedAt
+    members: members ?? [createMockFamilyMember(userId: 'user1', role: family_models.UserRole.admin)],
+    settings: settings ?? family_models.FamilySettings.defaultSettings(),
+    // Removed: stats: family_models.FamilyStats.empty(), // Family model does not have stats directly
   );
 }
 
-FamilyInvitation createMockInvitation({
+invitation_models.FamilyInvitation createMockInvitation({
   String id = 'inv1',
   String familyId = 'fam1',
   String invitedEmail = 'invitee@test.com',
-  UserRole roleToAssign = UserRole.member,
-  InvitationStatus status = InvitationStatus.pending,
+  user_profile_models.UserRole roleToAssign = user_profile_models.UserRole.member, // Role from user_profile for invitation
+  invitation_models.InvitationStatus status = invitation_models.InvitationStatus.pending,
 }) {
-  return FamilyInvitation(
+  return invitation_models.FamilyInvitation(
     id: id,
     familyId: familyId,
     familyName: 'Inviting Family',
     inviterUserId: 'user1',
     inviterName: 'Admin User',
     invitedEmail: invitedEmail,
-    roleToAssign: roleToAssign,
+    roleToAssign: roleToAssign, // This is user_profile_models.UserRole
     status: status,
     createdAt: DateTime.now().subtract(const Duration(days: 1)),
     expiresAt: DateTime.now().add(const Duration(days: 6)),
@@ -93,25 +92,22 @@ void main() {
   late MockFirebaseFamilyService mockFamilyService;
   late MockStorageService mockStorageService;
 
-  //Clipboard mock
   final List<MethodCall> clipboardLog = <MethodCall>[];
 
-  // Stream controllers
-  late StreamController<Family?> familyStreamController;
-  late StreamController<List<UserProfile>> membersStreamController;
-  late StreamController<List<FamilyInvitation>> invitationsStreamController;
+  late StreamController<family_models.Family?> familyStreamController;
+  late StreamController<List<user_profile_models.UserProfile>> membersStreamController;
+  late StreamController<List<invitation_models.FamilyInvitation>> invitationsStreamController;
 
   setUp(() {
     mockFamilyService = MockFirebaseFamilyService();
     mockStorageService = MockStorageService();
 
-    familyStreamController = StreamController<Family?>.broadcast();
-    membersStreamController = StreamController<List<UserProfile>>.broadcast();
-    invitationsStreamController = StreamController<List<FamilyInvitation>>.broadcast();
+    familyStreamController = StreamController<family_models.Family?>.broadcast();
+    membersStreamController = StreamController<List<user_profile_models.UserProfile>>.broadcast();
+    invitationsStreamController = StreamController<List<invitation_models.FamilyInvitation>>.broadcast();
 
-    // Default stubs
     when(mockStorageService.getCurrentUserProfile())
-        .thenAnswer((_) async => createMockUserProfile(id: 'currentUserAdmin', role: UserRole.admin));
+        .thenAnswer((_) async => createMockUserProfile(id: 'currentUserAdmin')); // Removed role from UserProfile mock creation
 
     when(mockFamilyService.getFamilyStream(any))
         .thenAnswer((_) => familyStreamController.stream);
@@ -120,7 +116,6 @@ void main() {
     when(mockFamilyService.getInvitationsStream(any))
         .thenAnswer((_) => invitationsStreamController.stream);
 
-    // Mock Clipboard
     TestWidgetsFlutterBinding.instance.defaultBinaryMessenger.setMockMethodCallHandler(
       SystemChannels.platform,
       (MethodCall methodCall) async {
@@ -140,7 +135,19 @@ void main() {
     invitationsStreamController.close();
   });
 
-  Widget createTestableWidget(Family initialFamily, Widget child) {
+  Widget createTestableWidget(family_models.Family initialFamily, Widget child) {
+    final ThemeData testTheme = ThemeData.light().copyWith(
+      primaryColor: AppTheme.primaryColor, // Assuming this is a static color on AppTheme
+      colorScheme: ColorScheme.fromSeed(seedColor: AppTheme.primaryColor), // Assuming this is a static color on AppTheme
+      // textTheme, cardTheme, elevatedButtonTheme will use defaults from ThemeData.light()
+      // or specific overrides if AppTheme provided them as ThemeData components (e.g. AppTheme.customCardTheme)
+      tabBarTheme: TabBarTheme(
+        labelColor: AppTheme.primaryColor, // Assuming this is a static color on AppTheme
+        unselectedLabelColor: Colors.grey.shade700,
+        indicatorSize: TabBarIndicatorSize.label,
+      ),
+    );
+
     return MultiProvider(
       providers: [
         Provider<FirebaseFamilyService>.value(value: mockFamilyService),
@@ -148,18 +155,7 @@ void main() {
       ],
       child: MaterialApp(
         home: child,
-         theme: ThemeData( // Apply a theme similar to the app's for consistency
-          primaryColor: AppTheme.primaryColor,
-          colorScheme: ColorScheme.fromSeed(seedColor: AppTheme.primaryColor),
-          textTheme: AppTheme.textTheme,
-          cardTheme: AppTheme.cardTheme,
-          elevatedButtonTheme: AppTheme.elevatedButtonTheme,
-          tabBarTheme: TabBarTheme(
-            labelColor: AppTheme.primaryColor,
-            unselectedLabelColor: Colors.grey.shade700,
-            indicatorSize: TabBarIndicatorSize.label,
-          ),
-        ),
+        theme: testTheme,
       ),
     );
   }
@@ -274,7 +270,7 @@ void main() {
         await tester.pumpAndSettle();
 
         final updatedFamily = familyForSettings.copyWith(name: 'New Family Name');
-        verify(mockFamilyService.updateFamily(argThat(predicate<Family>((f) => f.name == updatedFamily.name && f.id == updatedFamily.id)))).called(1);
+        verify(mockFamilyService.updateFamily(argThat(predicate<family_models.Family>((f) => f.name == updatedFamily.name && f.id == updatedFamily.id)))).called(1);
         expect(find.text('Family name updated!'), findsOneWidget); // SnackBar
       });
 
@@ -299,7 +295,7 @@ void main() {
       });
 
       testWidgets('Toggle "Public Family" calls updateFamily and shows SnackBar', (WidgetTester tester) async {
-        final initialSettings = FamilySettings.defaultSettings().copyWith(isPublic: false);
+        final initialSettings = family_models.FamilySettings.defaultSettings().copyWith(isPublic: false);
         final familyWithSettings = createMockFamily(settings: initialSettings);
 
         await tester.pumpWidget(createTestableWidget(familyWithSettings, FamilyManagementScreen(family: familyWithSettings)));
@@ -317,12 +313,12 @@ void main() {
         await tester.pumpAndSettle();
 
         final expectedSettings = initialSettings.copyWith(isPublic: true);
-        verify(mockFamilyService.updateFamily(argThat(predicate<Family>((f) => f.settings.isPublic == expectedSettings.isPublic)))).called(1);
+        verify(mockFamilyService.updateFamily(argThat(predicate<family_models.Family>((f) => f.settings.isPublic == expectedSettings.isPublic)))).called(1);
         expect(find.text('Public family setting updated to true'), findsOneWidget);
       });
 
       testWidgets('Toggle "Share Classifications" calls updateFamily and shows SnackBar', (WidgetTester tester) async {
-        final initialSettings = FamilySettings.defaultSettings().copyWith(shareClassifications: true);
+        final initialSettings = family_models.FamilySettings.defaultSettings().copyWith(shareClassifications: true);
         final familyWithSettings = createMockFamily(settings: initialSettings);
 
         await tester.pumpWidget(createTestableWidget(familyWithSettings, FamilyManagementScreen(family: familyWithSettings)));
@@ -339,12 +335,12 @@ void main() {
         await tester.pumpAndSettle();
 
         final expectedSettings = initialSettings.copyWith(shareClassifications: false);
-        verify(mockFamilyService.updateFamily(argThat(predicate<Family>((f) => f.settings.shareClassifications == expectedSettings.shareClassifications)))).called(1);
+        verify(mockFamilyService.updateFamily(argThat(predicate<family_models.Family>((f) => f.settings.shareClassifications == expectedSettings.shareClassifications)))).called(1);
         expect(find.text('Share classifications setting updated to false'), findsOneWidget);
       });
 
       testWidgets('Toggle "Show Member Activity" calls updateFamily and shows SnackBar', (WidgetTester tester) async {
-        final initialSettings = FamilySettings.defaultSettings().copyWith(showMemberActivity: true);
+        final initialSettings = family_models.FamilySettings.defaultSettings().copyWith(showMemberActivity: true);
         final familyWithSettings = createMockFamily(settings: initialSettings);
 
         await tester.pumpWidget(createTestableWidget(familyWithSettings, FamilyManagementScreen(family: familyWithSettings)));
@@ -361,7 +357,7 @@ void main() {
         await tester.pumpAndSettle();
 
         final expectedSettings = initialSettings.copyWith(showMemberActivity: false);
-        verify(mockFamilyService.updateFamily(argThat(predicate<Family>((f) => f.settings.showMemberActivity == expectedSettings.showMemberActivity)))).called(1);
+        verify(mockFamilyService.updateFamily(argThat(predicate<family_models.Family>((f) => f.settings.showMemberActivity == expectedSettings.showMemberActivity)))).called(1);
         expect(find.text('Show member activity setting updated to false'), findsOneWidget);
       });
     });
@@ -373,8 +369,8 @@ void main() {
       final familyForAdmin = createMockFamily(
         id: 'adminFam',
         members: [
-          createMockFamilyMember(userId: adminUser.id, role: UserRole.admin),
-          createMockFamilyMember(userId: regularMember.id, role: UserRole.member, displayName: 'Regular Member'),
+          createMockFamilyMember(userId: adminUser.id, role: family_models.UserRole.admin),
+          createMockFamilyMember(userId: regularMember.id, role: family_models.UserRole.member, displayName: 'Regular Member'),
         ]
       );
       final pendingInvite = createMockInvitation(familyId: 'adminFam', id: 'inviteToCancel');

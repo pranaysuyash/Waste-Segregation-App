@@ -279,14 +279,14 @@ Output:
         targetWidth = (image.width * scaleFactor).round();
         targetHeight = (image.height * scaleFactor).round();
         quality = 70;
-        debugPrint('🔄 Applying aggressive compression: ${targetWidth}x${targetHeight}, quality: $quality');
+        debugPrint('🔄 Applying aggressive compression: ${targetWidth}x$targetHeight, quality: $quality');
       } else {
         // Moderate compression for large but acceptable images
         final double scaleFactor = 0.8; // Reduce dimensions by 20%
         targetWidth = (image.width * scaleFactor).round();
         targetHeight = (image.height * scaleFactor).round();
         quality = 80;
-        debugPrint('🔄 Applying moderate compression: ${targetWidth}x${targetHeight}, quality: $quality');
+        debugPrint('🔄 Applying moderate compression: ${targetWidth}x$targetHeight, quality: $quality');
       }
       
       // Resize image if needed
@@ -585,7 +585,7 @@ Output:
     };
 
     final response = await http.post(
-      Uri.parse('${geminiBaseUrl}/models/${ApiConfig.tertiaryModel}:generateContent'),
+      Uri.parse('$geminiBaseUrl/models/${ApiConfig.tertiaryModel}:generateContent'),
       headers: {
         'Content-Type': 'application/json',
         'x-goog-api-key': geminiApiKey,
@@ -1169,7 +1169,7 @@ Output:
     for (final line in lines) {
       final lowerLine = line.toLowerCase();
       if (lowerLine.contains('itemname') || lowerLine.contains('item_name')) {
-        final RegExp itemPattern = RegExp(r'"([^"]+)"|' + r"'([^']+)'");
+        final RegExp itemPattern = RegExp(r'"([^"]+)"|' r"'([^']+)'");
         final RegExpMatch? itemMatch = itemPattern.firstMatch(line);
         if (itemMatch != null) {
           itemName = (itemMatch.group(1) ?? itemMatch.group(2)) ?? itemName;
@@ -1185,7 +1185,7 @@ Output:
           category = 'Medical Waste';
         }
       } else if (lowerLine.contains('explanation')) {
-        final RegExp explanationPattern = RegExp(r'"([^"]+)"|' + r"'([^']+)'");
+        final RegExp explanationPattern = RegExp(r'"([^"]+)"|' r"'([^']+)'");
         final RegExpMatch? explanationMatch = explanationPattern.firstMatch(line);
         if (explanationMatch != null) {
           explanation = (explanationMatch.group(1) ?? explanationMatch.group(2)) ?? explanation;
@@ -1381,9 +1381,9 @@ Output:
     return null;
   }
   
-  /// Safely parses image metrics (Map<String, double>) from a dynamic input.
+  /// Safely parses image metrics (`Map<String, double>`) from a dynamic input.
   ///
-  /// Expects a Map. Converts keys to strings and values to doubles using [_parseDouble].
+  /// Expects a Map. Converts keys to strings and values to doubles using `_parseDouble`.
   /// Returns null if input is not a map or parsing fails.
   Map<String, double>? _parseImageMetrics(dynamic value) {
     if (value == null) return null;

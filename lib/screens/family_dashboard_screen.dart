@@ -1,10 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../models/enhanced_family.dart';
-import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import '../models/enhanced_family.dart';
-import '../models/user_profile.dart';
+import '../models/enhanced_family.dart' as family_models;
+import '../models/user_profile.dart' as user_profile_models;
 import '../models/shared_waste_classification.dart';
 import '../services/firebase_family_service.dart';
 import '../services/storage_service.dart';
@@ -24,25 +21,23 @@ class FamilyDashboardScreen extends StatefulWidget {
 class _FamilyDashboardScreenState extends State<FamilyDashboardScreen> {
   late FirebaseFamilyService _familyService;
   String? _familyId;
-  // Family? _family; // Will be provided by StreamBuilder
-  // FamilyStats? _stats; // Will be part of Family object from StreamBuilder
-  List<UserProfile> _members = [];
-  // List<SharedWasteClassification> _recentClassifications = []; // Will be provided by StreamBuilder
-  String? _error; // For initial familyId loading error or global errors
-
-  // To track if initial family ID loading is done
+  family_models.FamilyStats? _familyStats;
+  List<user_profile_models.UserProfile> _members = [];
+  String? _error;
   bool _isInitialLoading = true;
+  bool _isStatsLoading = false;
 
   @override
   void initState() {
     super.initState();
     _familyService = FirebaseFamilyService();
-    _initializeFamilyId();
+    _initializeFamilyData();
   }
 
-  Future<void> _initializeFamilyId() async {
+  Future<void> _initializeFamilyData() async {
     setState(() {
       _isInitialLoading = true;
+      _isStatsLoading = true;
       _error = null;
     });
     try {
@@ -51,29 +46,53 @@ class _FamilyDashboardScreenState extends State<FamilyDashboardScreen> {
       if (currentUser?.familyId == null) {
         setState(() {
           _error = 'You are not part of any family yet.';
-          _familyId = null; // Explicitly null if not part of family
+          _familyId = null;
           _isInitialLoading = false;
+          _isStatsLoading = false;
         });
       } else {
+        _familyId = currentUser!.familyId!;
+        await Future.wait([
+          _loadMembers(),
+          _loadFamilyStats(),
+        ]);
         setState(() {
-          _familyId = currentUser!.familyId!;
           _isInitialLoading = false;
         });
-        // After familyId is available, load members (non-streamed part)
-        _loadMembers();
       }
     } catch (e) {
       setState(() {
         _error = 'Failed to get your family information: ${e.toString()}';
         _familyId = null;
         _isInitialLoading = false;
+        _isStatsLoading = false;
       });
+    }
+  }
+
+  Future<void> _loadFamilyStats() async {
+    if (_familyId == null) return;
+    try {
+      final stats = await _familyService.getFamilyStats(_familyId!);
+      if (mounted) {
+        setState(() {
+          _familyStats = stats;
+          _isStatsLoading = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        debugPrint('Error loading family stats: $e');
+        setState(() {
+           _error = '${_error ?? ''}\nFailed to load family statistics.';
+          _isStatsLoading = false;
+        });
+      }
     }
   }
 
   Future<void> _loadMembers() async {
     if (_familyId == null) return;
-    // This can remain a one-time fetch if members don't need strict real-time update for the dashboard's purpose
     try {
       final members = await _familyService.getFamilyMembers(_familyId!);
       if (mounted) {
@@ -83,27 +102,17 @@ class _FamilyDashboardScreenState extends State<FamilyDashboardScreen> {
       }
     } catch (e) {
       if (mounted) {
-        // Optionally set an error specific to members loading, or log
-        print('Error loading family members: $e');
+        debugPrint('Error loading family members: $e');
       }
     }
   }
 
-  // _loadFamilyData is largely replaced by StreamBuilders.
-  // RefreshIndicator can call _initializeFamilyId and _loadMembers if needed,
-  // or specific stream refresh logic if StreamProviders were used.
   Future<void> _handleRefresh() async {
-    await _initializeFamilyId(); // Re-check family ID and load members
-    // StreamBuilders will automatically listen to new data if familyId changes or on their own.
+    await _initializeFamilyData();
   }
-
 
   @override
   Widget build(BuildContext context) {
-    // The AppBar title might need to access family data from the StreamBuilder
-    // This can be done by wrapping Scaffold with the Family StreamBuilder or passing data down.
-    // For simplicity, we might initially show a generic title or update it via the stream.
-
     if (_isInitialLoading) {
       return Scaffold(
         appBar: AppBar(title: const Text('Family Dashboard')),
@@ -111,22 +120,24 @@ class _FamilyDashboardScreenState extends State<FamilyDashboardScreen> {
       );
     }
 
-    if (_familyId == null) {
-      // If after initial load, familyId is still null (e.g., user not in family or error)
+    if (_familyId == null && _error != null) {
       return Scaffold(
         appBar: AppBar(title: const Text('Family Dashboard')),
-        body: _error != null ? _buildErrorState(_error!) : _buildNoFamilyState(),
+        body: _buildErrorState(_error!), 
+      );
+    }
+    
+    if (_familyId == null && _error == null) {
+      return Scaffold(
+        appBar: AppBar(title: const Text('Family Dashboard')),
+        body: _buildNoFamilyState(), 
       );
     }
 
-    // Main content with StreamBuilder for Family data
-    return StreamBuilder<Family?>(
+    return StreamBuilder<family_models.Family?>(
       stream: _familyService.getFamilyStream(_familyId!),
       builder: (context, familySnapshot) {
         final family = familySnapshot.data;
-        final familyStats = family?.stats;
-
-        // Determine AppBar title based on family data
         final appBarTitle = familySnapshot.connectionState == ConnectionState.active && family != null
             ? family.name
             : 'Family Dashboard';
@@ -149,26 +160,32 @@ class _FamilyDashboardScreenState extends State<FamilyDashboardScreen> {
               ],
             ],
           ),
-          body: _buildBodyContent(familySnapshot, family, familyStats),
+          body: _buildBodyContent(familySnapshot, family, _familyStats), 
         );
       },
     );
   }
 
-  Widget _buildBodyContent(AsyncSnapshot<Family?> familySnapshot, Family? family, FamilyStats? stats) {
-    if (familySnapshot.connectionState == ConnectionState.waiting && family == null) { // Show loading only if no data yet
+  Widget _buildBodyContent(AsyncSnapshot<family_models.Family?> familySnapshot, family_models.Family? family, family_models.FamilyStats? statsFromState) {
+    if (familySnapshot.connectionState == ConnectionState.waiting && family == null && !_isStatsLoading) {
       return const Center(child: CircularProgressIndicator());
     }
 
-    if (familySnapshot.hasError) {
+    if (familySnapshot.hasError && _error == null) {
       return _buildErrorState('Error loading family details: ${familySnapshot.error}');
     }
 
-    if (family == null) { // This could be after stream starts but returns null (e.g. family deleted)
-      return _buildNoFamilyState(); // Or a specific "Family not found" state
+    if (_error != null && family == null) { 
+      return _buildErrorState(_error!);
     }
 
-    // Now that we have family, we can build the rest of the UI, including the classifications stream
+    if (family == null ){
+        if(familySnapshot.connectionState == ConnectionState.waiting || _isInitialLoading || _isStatsLoading) {
+             return const Center(child: CircularProgressIndicator());
+        }
+        return _buildNoFamilyState();
+    }
+
     return RefreshIndicator(
       onRefresh: _handleRefresh,
       child: SingleChildScrollView(
@@ -176,23 +193,216 @@ class _FamilyDashboardScreenState extends State<FamilyDashboardScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildFamilyHeader(family), // Pass family
+            _buildFamilyHeader(family),
             const SizedBox(height: AppTheme.paddingLarge),
-            _buildStatsOverview(stats), // Pass stats
+            _isStatsLoading 
+                ? const Center(child: CircularProgressIndicator()) 
+                : _buildStatsOverview(statsFromState), 
             const SizedBox(height: AppTheme.paddingLarge),
-            _buildMembersSection(family), // Pass family to get member roles if needed
+            _buildMembersSection(family),
             const SizedBox(height: AppTheme.paddingLarge),
-            _buildRecentActivityStream(), // This will have its own StreamBuilder
+            _buildRecentActivityStream(),
             const SizedBox(height: AppTheme.paddingLarge),
-            _buildEnvironmentalImpact(stats), // Pass stats
+            _isStatsLoading 
+                ? const Center(child: CircularProgressIndicator()) 
+                : _buildEnvironmentalImpact(statsFromState),
           ],
         ),
       ),
     );
   }
 
+  Widget _buildFamilyHeader(family_models.Family family) {
+    return Card(
+      elevation: AppTheme.elevationSm,
+      child: Padding(
+        padding: const EdgeInsets.all(AppTheme.paddingRegular),
+        child: Row(
+          children: [
+            Hero(
+              tag: 'family_icon_${family.id}',
+              child: CircleAvatar(
+                radius: 30,
+                backgroundColor: AppTheme.primaryColor.withValues(alpha: 0.1),
+                child: family.imageUrl != null && family.imageUrl!.isNotEmpty
+                    ? ClipOval(child: Image.network(family.imageUrl!, fit: BoxFit.cover, width: 60, height: 60))
+                    : Icon(Icons.family_restroom, size: 30, color: AppTheme.primaryColor),
+              ),
+            ),
+            const SizedBox(width: AppTheme.paddingRegular),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    family.name,
+                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
+                  ),
+                  if (family.description != null && family.description!.isNotEmpty)
+                    Padding(
+                      padding: const EdgeInsets.only(top: AppTheme.paddingMicro),
+                      child: Text(
+                        family.description!,
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(color: AppTheme.textSecondaryColor),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildStatsOverview(family_models.FamilyStats? stats) {
+    if (stats == null) {
+      return const Center(child: Text('Statistics are currently unavailable.'));
+    }
+    return Card(
+      elevation: AppTheme.elevationSm,
+      child: Padding(
+        padding: const EdgeInsets.all(AppTheme.paddingRegular),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Family Achievements',
+              style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: AppTheme.paddingRegular),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                _buildStatItem(Icons.recycling, '${stats.totalClassifications}', 'Items Classified', AppTheme.primaryColor),
+                _buildStatItem(Icons.star, '${stats.totalPoints}', 'Total Points', AppTheme.accentColor),
+                _buildStatItem(Icons.leaderboard, '${stats.currentStreak} days', 'Current Streak', AppTheme.secondaryColor),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildStatItem(IconData icon, String value, String label, Color color) {
+    return Expanded(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 30, color: color),
+          const SizedBox(height: AppTheme.paddingSmall),
+          Text(value, style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold, color: color)),
+          const SizedBox(height: AppTheme.paddingMicro),
+          Text(label, textAlign: TextAlign.center, style: Theme.of(context).textTheme.bodySmall?.copyWith(color: AppTheme.textSecondaryColor)),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMembersSection(family_models.Family family) {
+    if (_members.isEmpty && !_isInitialLoading) {
+      return const Center(child: Text('No members yet, or still loading members...'));
+    }
+    if(_members.isEmpty && _isInitialLoading){
+        return const Center(child: CircularProgressIndicator());
+    }
+
+    return FutureBuilder<user_profile_models.UserProfile?>(
+      future: Provider.of<StorageService>(context, listen: false).getCurrentUserProfile(),
+      builder: (context, snapshot) {
+        final currentUserProfile = snapshot.data;
+        final currentUserId = currentUserProfile?.id;
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Family Members (${_members.length})',
+              style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: AppTheme.paddingRegular),
+            SizedBox(
+              height: 120, 
+              child: ListView.builder(
+                scrollDirection: Axis.horizontal,
+                itemCount: _members.length,
+                itemBuilder: (context, index) {
+                  final memberProfile = _members[index];
+                  final familyMember = family.members.firstWhere((fm) => fm.userId == memberProfile.id, orElse: () => family_models.FamilyMember(userId: memberProfile.id, role: family_models.UserRole.member, joinedAt: DateTime.now(), individualStats: family_models.UserStats.empty()));
+                  final userRole = familyMember.role;
+
+                  return Container(
+                    width: 100,
+                    margin: const EdgeInsets.only(right: AppTheme.paddingRegular),
+                    child: Card(
+                      elevation: AppTheme.elevationSm,
+                      child: Padding(
+                        padding: const EdgeInsets.all(AppTheme.paddingSmall),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Stack(
+                              children: [
+                                CircleAvatar(
+                                  radius: 25,
+                                  backgroundImage: memberProfile.photoUrl != null && memberProfile.photoUrl!.isNotEmpty
+                                      ? NetworkImage(memberProfile.photoUrl!)
+                                      : null,
+                                  child: memberProfile.photoUrl == null || memberProfile.photoUrl!.isEmpty
+                                      ? Text(memberProfile.displayName?.substring(0, 1) ?? 'U', style: const TextStyle(fontSize: 20))
+                                      : null,
+                                ),
+                                if (memberProfile.id == currentUserId)
+                                  Positioned(
+                                    top: -2,
+                                    right: -2,
+                                    child: Container(
+                                      padding: const EdgeInsets.all(2),
+                                      decoration: const BoxDecoration(
+                                        color: Colors.white,
+                                        shape: BoxShape.circle,
+                                      ),
+                                      child: Icon(Icons.check_circle, color: AppTheme.primaryColor, size: 16),
+                                    ),
+                                  ),
+                              ],
+                            ),
+                            const SizedBox(height: AppTheme.paddingSmall),
+                            Text(
+                              memberProfile.displayName ?? 'User',
+                              textAlign: TextAlign.center,
+                              overflow: TextOverflow.ellipsis,
+                              maxLines: 1,
+                              style: Theme.of(context).textTheme.bodySmall?.copyWith(fontWeight: FontWeight.bold),
+                            ),
+                            Text(
+                               _getRoleName(userRole), 
+                              style: Theme.of(context).textTheme.bodySmall?.copyWith(color: AppTheme.textSecondaryColor, fontSize: 10),
+                            ),
+                            if (userRole == family_models.UserRole.admin)
+                              Padding(
+                                padding: const EdgeInsets.only(top: AppTheme.paddingMicro),
+                                child: Icon(Icons.admin_panel_settings, size: 12, color: AppTheme.accentColor),
+                              )
+                          ],
+                        ),
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   Widget _buildRecentActivityStream() {
-    if (_familyId == null) return const SizedBox.shrink(); // Should not happen if we reach here
+    if (_familyId == null) return const SizedBox.shrink();
 
     return StreamBuilder<List<SharedWasteClassification>>(
       stream: _familyService.getFamilyClassificationsStream(_familyId!),
@@ -204,11 +414,171 @@ class _FamilyDashboardScreenState extends State<FamilyDashboardScreen> {
           return Text('Error loading recent activity: ${snapshot.error}', style: const TextStyle(color: Colors.red));
         }
         final recentClassifications = snapshot.data ?? [];
-        return _buildRecentActivity(recentClassifications); // Pass the list to the existing method
+        return _buildRecentActivity(recentClassifications);
       },
     );
   }
 
+  Widget _buildRecentActivity(List<SharedWasteClassification> recentClassifications) {
+    if (recentClassifications.isEmpty) {
+      return Card(
+          elevation: AppTheme.elevationSm,
+          child: const Padding(
+            padding: EdgeInsets.all(AppTheme.paddingLarge),
+            child: Center(child: Text('No recent family activity yet.')),
+          ));
+    }
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Recent Family Activity',
+          style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+        ),
+        const SizedBox(height: AppTheme.paddingRegular),
+        ListView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          itemCount: recentClassifications.length > 5 ? 5 : recentClassifications.length,
+          itemBuilder: (context, index) {
+            final item = recentClassifications[index];
+            return Card(
+              elevation: AppTheme.elevationSm,
+              margin: const EdgeInsets.only(bottom: AppTheme.paddingRegular),
+              child: ListTile(
+                leading: CircleAvatar(
+                  backgroundColor: AppTheme.secondaryColor.withValues(alpha: 0.1),
+                  child: Icon(_getCategoryIcon(item.classification.category), color: AppTheme.secondaryColor),
+                ),
+                title: Text('${item.classification.itemName} (${item.classification.category})'),
+                subtitle: Text('Shared by ${item.sharedByDisplayName} • ${TimeAgo.format(item.sharedAt)}'),
+                trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => ClassificationDetailsScreen(classification: item),
+                    ),
+                  );
+                },
+              ),
+            );
+          },
+        ),
+      ],
+    );
+  }
+
+  Widget _buildEnvironmentalImpact(family_models.FamilyStats? stats) {
+    if (stats == null) {
+      return const SizedBox.shrink();
+    }
+    final impact = stats.environmentalImpact;
+    return Card(
+      elevation: AppTheme.elevationSm,
+      child: Padding(
+        padding: const EdgeInsets.all(AppTheme.paddingRegular),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Environmental Impact',
+              style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: AppTheme.paddingRegular),
+            GridView.count(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              crossAxisCount: 2,
+              childAspectRatio: 2.5,
+              crossAxisSpacing: AppTheme.paddingRegular,
+              mainAxisSpacing: AppTheme.paddingRegular,
+              children: [
+                _buildImpactItem(Icons.eco, 'CO₂ Saved', '${impact.co2Saved.toStringAsFixed(1)} kg', AppTheme.wetWasteColor, impact.co2Saved > 0),
+                _buildImpactItem(Icons.park, 'Trees Equivalent', impact.treesEquivalent.toStringAsFixed(1), AppTheme.dryWasteColor, impact.treesEquivalent > 0),
+                _buildImpactItem(Icons.water_drop, 'Water Saved', '${impact.waterSaved.toStringAsFixed(1)} L', AppTheme.hazardousWasteColor, impact.waterSaved > 0),
+                 _buildImpactItem(Icons.timeline, 'Activity Streak', '${stats.currentStreak} days', AppTheme.medicalWasteColor, stats.currentStreak > 0 ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildImpactItem(IconData icon, String label, String value, Color color, bool hasImpact) {
+    return Container(
+      padding: const EdgeInsets.all(AppTheme.paddingSmall),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(AppTheme.borderRadiusMd),
+        border: Border.all(color: color.withValues(alpha: 0.3)),
+      ),
+      child: Row(
+        children: [
+          Icon(icon, color: color, size: 24),
+          const SizedBox(width: AppTheme.paddingRegular),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(label, style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold)),
+                Text(
+                  value,
+                  style: Theme.of(context).textTheme.titleSmall?.copyWith(color: color, fontWeight: FontWeight.bold),
+                ),
+                if (!hasImpact) Text("No impact yet", style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Colors.grey))
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  IconData _getCategoryIcon(String category) {
+    switch (category.toLowerCase()) {
+      case 'paper': return Icons.description;
+      case 'plastic': return Icons.opacity;
+      case 'glass': return Icons.wine_bar;
+      case 'metal': return Icons.build_circle;
+      case 'organic': return Icons.eco;
+      case 'e-waste': return Icons.electrical_services;
+      default: return Icons.category;
+    }
+  }
+
+  String _getRoleName(family_models.UserRole role) {
+    switch (role) {
+      case family_models.UserRole.admin:
+        return 'Admin';
+      case family_models.UserRole.member:
+        return 'Member';
+      default:
+        return role.toString().split('.').last;
+    }
+  }
+
+  void _navigateToInvite(family_models.Family family) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => FamilyInviteScreen(family: family),
+      ),
+    );
+  }
+
+  void _navigateToManagement(family_models.Family family) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => FamilyManagementScreen(family: family),
+      ),
+    ).then((_) {
+      _handleRefresh();
+    });
+  }
 
   Widget _buildErrorState(String errorMessage) {
     return Center(
@@ -224,7 +594,7 @@ class _FamilyDashboardScreenState extends State<FamilyDashboardScreen> {
             ),
             const SizedBox(height: AppTheme.paddingRegular),
             Text(
-              errorMessage, // Use passed error message
+              errorMessage,
               style: const TextStyle(
                 fontSize: AppTheme.fontSizeMedium,
                 color: AppTheme.textSecondaryColor,
@@ -233,7 +603,7 @@ class _FamilyDashboardScreenState extends State<FamilyDashboardScreen> {
             ),
             const SizedBox(height: AppTheme.paddingLarge),
             ElevatedButton(
-              onPressed: _initializeFamilyId, // Retry initialization
+              onPressed: _initializeFamilyData,
               child: const Text('Retry'),
             ),
           ],
@@ -293,438 +663,19 @@ class _FamilyDashboardScreenState extends State<FamilyDashboardScreen> {
     );
   }
 
-  Widget _buildFamilyHeader(Family family) { // Now takes Family object
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(AppTheme.paddingRegular),
-        child: Row(
-          children: [
-            Container(
-              width: 60,
-              height: 60,
-              decoration: BoxDecoration(
-                color: AppTheme.primaryColor.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(AppTheme.borderRadiusRegular),
-              ),
-              child: const Icon(
-                Icons.family_restroom,
-                size: 32,
-                color: AppTheme.primaryColor,
-              ),
-            ),
-            const SizedBox(width: AppTheme.paddingRegular),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    family.name, // Use family.name
-                    style: const TextStyle(
-                      fontSize: AppTheme.fontSizeLarge,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  Text(
-                    '${_members.length} members', // _members is still loaded separately
-                    style: const TextStyle(
-                      color: AppTheme.textSecondaryColor,
-                    ),
-                  ),
-                  Text(
-                    'Created ${_formatDate(family.createdAt)}', // Use family.createdAt
-                    style: const TextStyle(
-                      fontSize: AppTheme.fontSizeSmall,
-                      color: AppTheme.textSecondaryColor,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildStatsOverview(FamilyStats? stats) { // Now takes FamilyStats object
-    if (stats == null) return const Center(child: Text("Loading stats...")); // Or some placeholder
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text(
-          'Family Statistics',
-          style: TextStyle(
-            fontSize: AppTheme.fontSizeLarge,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        const SizedBox(height: AppTheme.paddingRegular),
-        Row(
-          children: [
-            Expanded(
-              child: _buildStatCard(
-                'Classifications',
-                stats.totalClassifications.toString(), // Use stats.
-                Icons.category,
-                AppTheme.primaryColor,
-              ),
-            ),
-            const SizedBox(width: AppTheme.paddingRegular),
-            Expanded(
-              child: _buildStatCard(
-                'Total Points',
-                stats.totalPoints.toString(), // Use stats.
-                Icons.stars,
-                Colors.amber,
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: AppTheme.paddingRegular),
-        Row(
-          children: [
-            Expanded(
-              child: _buildStatCard(
-                'Current Streak',
-                '${stats.currentStreak} days', // Use stats.
-                Icons.local_fire_department,
-                Colors.orange,
-              ),
-            ),
-            const SizedBox(width: AppTheme.paddingRegular),
-            Expanded(
-              child: _buildStatCard(
-                'Best Streak',
-                '${stats.bestStreak} days', // Use stats.
-                Icons.emoji_events,
-                Colors.green,
-              ),
-            ),
-          ],
-        ),
-      ],
-    );
-  }
-
-  Widget _buildStatCard(String title, String value, IconData icon, Color color) {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(AppTheme.paddingRegular),
-        child: Column(
-          children: [
-            Icon(icon, color: color, size: 32),
-            const SizedBox(height: AppTheme.paddingSmall),
-            Text(
-              value,
-              style: TextStyle(
-                fontSize: AppTheme.fontSizeLarge,
-                fontWeight: FontWeight.bold,
-                color: color,
-              ),
-            ),
-            Text(
-              title,
-              style: const TextStyle(
-                fontSize: AppTheme.fontSizeSmall,
-                color: AppTheme.textSecondaryColor,
-              ),
-              textAlign: TextAlign.center,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildMembersSection(Family family) { // Pass family for member roles
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            const Text(
-              'Family Members',
-              style: TextStyle(
-                fontSize: AppTheme.fontSizeLarge,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            TextButton(
-              onPressed: () => _navigateToManagement(family),
-              child: const Text('Manage'),
-            ),
-          ],
-        ),
-        const SizedBox(height: AppTheme.paddingRegular),
-        ListView.builder(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          itemCount: _members.length, // _members still loaded via _loadMembers
-          itemBuilder: (context, index) {
-            final memberProfile = _members[index]; // This is UserProfile
-            final familyMemberData = family.getMember(memberProfile.id); // This is FamilyMember
-            
-            return Card(
-              child: ListTile(
-                leading: CircleAvatar(
-                  backgroundColor: AppTheme.primaryColor.withOpacity(0.1),
-                  child: memberProfile.photoUrl != null
-                      ? ClipOval(
-                          child: Image.network(
-                            memberProfile.photoUrl!,
-                            width: 40,
-                            height: 40,
-                            fit: BoxFit.cover,
-                            errorBuilder: (context, error, stackTrace) =>
-                                Text(memberProfile.displayName?.substring(0, 1) ?? 'U'),
-                          ),
-                        )
-                      : Text(memberProfile.displayName?.substring(0, 1) ?? 'U'),
-                ),
-                title: Text(memberProfile.displayName ?? 'Unknown User'),
-                subtitle: Text(
-                  '${familyMemberData?.role.toString().split('.').last ?? 'Member'} • '
-                  '${familyMemberData?.individualStats.totalPoints ?? 0} points',
-                ),
-                trailing: familyMemberData?.role == UserRole.admin
-                    ? Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 4,
-                        ),
-                        decoration: BoxDecoration(
-                          color: AppTheme.primaryColor,
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: const Text(
-                          'Admin',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 10,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      )
-                    : null,
-              ),
-            );
-          },
-        ),
-      ],
-    );
-  }
-
-  Widget _buildRecentActivity(List<SharedWasteClassification> recentClassifications) { // Takes list from StreamBuilder
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text(
-          'Recent Activity',
-          style: TextStyle(
-            fontSize: AppTheme.fontSizeLarge,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        const SizedBox(height: AppTheme.paddingRegular),
-        if (recentClassifications.isEmpty)
-          const Card(
-            child: Padding(
-              padding: EdgeInsets.all(AppTheme.paddingLarge),
-              child: Center(
-                child: Text(
-                  'No recent activity',
-                  style: TextStyle(color: AppTheme.textSecondaryColor),
-                ),
-              ),
-            ),
-          )
-        else
-          ListView.builder(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            itemCount: recentClassifications.length,
-            itemBuilder: (context, index) {
-              final classificationItem = recentClassifications[index];
-              // Find member who shared this. _members should be loaded.
-              final member = _members.firstWhere(
-                (m) => m.id == classificationItem.sharedBy,
-                orElse: () => UserProfile( // Fallback, should ideally not happen if _members is synced
-                  id: classificationItem.sharedBy,
-                  email: 'unknown@example.com',
-                  displayName: classificationItem.sharedByDisplayName, // Use display name from classification
-                  photoUrl: classificationItem.sharedByPhotoUrl,
-                ),
-              );
-              
-              return Card(
-                child: ListTile(
-                  leading: CircleAvatar(
-                    radius: 20,
-                    backgroundColor: _getCategoryColor(classificationItem.classification.category),
-                    child: const Icon(Icons.delete, color: Colors.white, size: 16),
-                  ),
-                  title: Text(classificationItem.classification.itemName),
-                  subtitle: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text('${member.displayName ?? classificationItem.sharedByDisplayName} • ${classificationItem.classification.category}'),
-                      const SizedBox(height: 4),
-                      Row(
-                        children: [
-                          Icon(Icons.thumb_up_alt_outlined, size: 14, color: AppTheme.textSecondaryColor),
-                          const SizedBox(width: 2),
-                          Text('${classificationItem.reactions.length}', style: const TextStyle(fontSize: 12, color: AppTheme.textSecondaryColor)),
-                          const SizedBox(width: 8),
-                          Icon(Icons.comment_outlined, size: 14, color: AppTheme.textSecondaryColor),
-                          const SizedBox(width: 2),
-                          Text('${classificationItem.comments.length}', style: const TextStyle(fontSize: 12, color: AppTheme.textSecondaryColor)),
-                        ],
-                      ),
-                    ],
-                  ),
-                  trailing: Text(
-                    _formatDate(classificationItem.sharedAt),
-                    style: const TextStyle(
-                      fontSize: AppTheme.fontSizeSmall,
-                      color: AppTheme.textSecondaryColor,
-                    ),
-                  ),
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => ClassificationDetailsScreen(classification: classificationItem),
-                      ),
-                    );
-                  },
-                ),
-              );
-            },
-          ),
-      ],
-    );
-  }
-
-  Widget _buildEnvironmentalImpact(FamilyStats? stats) { // Now takes FamilyStats
-    if (stats?.environmentalImpact == null) return const Center(child: Text("Loading impact..."));
-
-    final impact = stats!.environmentalImpact;
-    
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text(
-          'Environmental Impact',
-          style: TextStyle(
-            fontSize: AppTheme.fontSizeLarge,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        const SizedBox(height: AppTheme.paddingRegular),
-        Card(
-          child: Padding(
-            padding: const EdgeInsets.all(AppTheme.paddingRegular),
-            child: Column(
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
-                  children: [
-                    _buildImpactItem(
-                      '${impact.co2Saved.toStringAsFixed(1)} kg',
-                      'CO₂ Saved',
-                      Icons.cloud,
-                      Colors.green,
-                    ),
-                    _buildImpactItem(
-                      '${impact.treesEquivalent.toStringAsFixed(1)}',
-                      'Trees Saved',
-                      Icons.forest,
-                      Colors.green.shade700,
-                    ),
-                    _buildImpactItem(
-                      '${impact.waterSaved.toStringAsFixed(0)} L',
-                      'Water Saved',
-                      Icons.water_drop,
-                      Colors.blue,
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildImpactItem(String value, String label, IconData icon, Color color, String tooltipMessage) {
-    return Tooltip(
-      message: tooltipMessage,
-      padding: const EdgeInsets.all(AppTheme.paddingSmall),
-      margin: const EdgeInsets.all(AppTheme.paddingSmall),
-      preferBelow: false,
-      child: Column(
-        mainAxisSize: MainAxisSize.min, // To make tooltip target the column itself
-        children: [
-          Icon(icon, color: color, size: 32),
-          const SizedBox(height: AppTheme.paddingSmall),
-          Text(
-            value,
-            style: TextStyle(
-              fontSize: AppTheme.fontSizeMedium,
-              fontWeight: FontWeight.bold,
-              color: color,
-            ),
-          ),
-          Text(
-            label,
-            style: const TextStyle(
-              fontSize: AppTheme.fontSizeSmall,
-              color: AppTheme.textSecondaryColor,
-            ),
-            textAlign: TextAlign.center,
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _navigateToManagement(Family family) { // Takes family
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => FamilyManagementScreen(family: family), // Pass family
-      ),
-    ).then((_) {
-      // Refresh might be needed if family settings changed, streams should handle most data
-      _loadMembers(); // Explicitly reload members as they are not streamed here
-    });
-  }
-
-  void _navigateToInvite(Family family) { // Takes family
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => FamilyInviteScreen(family: family), // Pass family
-      ),
-    );
-  }
-
   void _createFamily() {
     Navigator.push(
       context,
       MaterialPageRoute(
         builder: (context) => const FamilyCreationScreen(),
       ),
-    ).then((_) => _initializeFamilyId()); // Re-initialize to get new family ID
+    ).then((_) => _initializeFamilyData());
   }
 
   void _joinFamily() {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (BuildContext dialogContext) => AlertDialog(
         title: const Text('Join Family'),
         content: Column(
           mainAxisSize: MainAxisSize.min,
@@ -741,12 +692,12 @@ class _FamilyDashboardScreenState extends State<FamilyDashboardScreen> {
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.of(context).pop(),
+            onPressed: () => Navigator.of(dialogContext).pop(),
             child: const Text('Cancel'),
           ),
           TextButton(
             onPressed: () {
-              Navigator.of(context).pop();
+              Navigator.of(dialogContext).pop();
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(content: Text('Join family feature coming soon!')),
               );
@@ -757,36 +708,23 @@ class _FamilyDashboardScreenState extends State<FamilyDashboardScreen> {
       ),
     );
   }
+}
 
-  String _formatDate(DateTime date) {
-    final now = DateTime.now();
-    final difference = now.difference(date);
-    
-    if (difference.inDays == 0) {
-      return 'Today';
-    } else if (difference.inDays == 1) {
-      return 'Yesterday';
-    } else if (difference.inDays < 7) {
-      return '${difference.inDays} days ago';
-    } else {
+class TimeAgo {
+  static String format(DateTime date) {
+    final duration = DateTime.now().difference(date);
+    if (duration.inDays > 7) {
       return '${date.day}/${date.month}/${date.year}';
     }
-  }
-
-  Color _getCategoryColor(String category) {
-    switch (category.toLowerCase()) {
-      case 'wet waste':
-        return AppTheme.wetWasteColor;
-      case 'dry waste':
-        return AppTheme.dryWasteColor;
-      case 'hazardous waste':
-        return AppTheme.hazardousWasteColor;
-      case 'medical waste':
-        return AppTheme.medicalWasteColor;
-      case 'non-waste':
-        return AppTheme.nonWasteColor;
-      default:
-        return AppTheme.secondaryColor;
+    if (duration.inDays >= 1) {
+      return '${duration.inDays}d ago';
     }
+    if (duration.inHours >= 1) {
+      return '${duration.inHours}h ago';
+    }
+    if (duration.inMinutes >= 1) {
+      return '${duration.inMinutes}m ago';
+    }
+    return 'Just now';
   }
 }

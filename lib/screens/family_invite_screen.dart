@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:qr_flutter/qr_flutter.dart';
-import '../models/enhanced_family.dart';
+import '../models/enhanced_family.dart' hide UserRole;
 // import '../models/family_invitation.dart'; // Unused import
-import '../models/user_profile.dart';
+import '../models/user_profile.dart' show UserRole;
 import '../services/firebase_family_service.dart';
 import '../services/storage_service.dart';
 import '../utils/constants.dart';
@@ -92,7 +92,7 @@ class _FamilyInviteScreenState extends State<FamilyInviteScreen>
                       width: 50,
                       height: 50,
                       decoration: BoxDecoration(
-                        color: AppTheme.primaryColor.withOpacity(0.1),
+                        color: AppTheme.primaryColor.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(AppTheme.borderRadiusRegular),
                       ),
                       child: const Icon(
@@ -235,7 +235,7 @@ class _FamilyInviteScreenState extends State<FamilyInviteScreen>
             Container(
               padding: const EdgeInsets.all(AppTheme.paddingRegular),
               decoration: BoxDecoration(
-                color: Colors.blue.withOpacity(0.1),
+                color: Colors.blue.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(AppTheme.borderRadiusRegular),
               ),
               child: Row(
@@ -283,7 +283,7 @@ class _FamilyInviteScreenState extends State<FamilyInviteScreen>
                   Container(
                     padding: const EdgeInsets.all(AppTheme.paddingRegular),
                     decoration: BoxDecoration(
-                      color: Colors.white,
+                      color: Colors.white.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(AppTheme.borderRadiusRegular),
                     ),
                     child: QrImageView(
@@ -326,7 +326,7 @@ class _FamilyInviteScreenState extends State<FamilyInviteScreen>
                   Container(
                     padding: const EdgeInsets.all(AppTheme.paddingRegular),
                     decoration: BoxDecoration(
-                      color: Colors.grey.shade100,
+                      color: Colors.grey.shade100.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(AppTheme.borderRadiusRegular),
                     ),
                     child: Row(
@@ -401,7 +401,7 @@ class _FamilyInviteScreenState extends State<FamilyInviteScreen>
           Container(
             padding: const EdgeInsets.all(AppTheme.paddingRegular),
             decoration: BoxDecoration(
-              color: AppTheme.primaryColor.withOpacity(0.1),
+              color: AppTheme.primaryColor.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(AppTheme.borderRadiusRegular),
             ),
             child: Column(
@@ -416,7 +416,7 @@ class _FamilyInviteScreenState extends State<FamilyInviteScreen>
                 ),
                 const SizedBox(height: AppTheme.paddingSmall),
                 Text(
-                  '${widget.family.members.length} members • ${widget.family.stats.totalClassifications} classifications',
+                  '${widget.family.members.length} members • Total family',
                   style: const TextStyle(
                     color: AppTheme.textSecondaryColor,
                   ),
@@ -445,7 +445,7 @@ class _FamilyInviteScreenState extends State<FamilyInviteScreen>
               width: 50,
               height: 50,
               decoration: BoxDecoration(
-                color: AppTheme.primaryColor.withOpacity(0.1),
+                color: AppTheme.primaryColor.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(AppTheme.borderRadiusRegular),
               ),
               child: Icon(
@@ -486,7 +486,7 @@ class _FamilyInviteScreenState extends State<FamilyInviteScreen>
         throw Exception('User not found. Please sign in again.');
       }
 
-      final invitation = await _familyService.createInvitation(
+      await _familyService.createInvitation(
         widget.family.id,
         currentUser.id,
         _emailController.text.trim(),
@@ -534,9 +534,6 @@ class _FamilyInviteScreenState extends State<FamilyInviteScreen>
   }
 
   void _shareViaMessages() {
-    final message = 'Join my family "${widget.family.name}" on WasteApp! '
-        'Use this link: $_inviteLink';
-    
     // TODO: Implement share via messages
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('Share via messages coming soon!')),
@@ -544,13 +541,6 @@ class _FamilyInviteScreenState extends State<FamilyInviteScreen>
   }
 
   void _shareViaEmail() {
-    final subject = 'Join my family on WasteApp';
-    final body = 'Hi!\n\n'
-        'I\'d like to invite you to join my family "${widget.family.name}" on WasteApp. '
-        'We can track our waste reduction efforts together and compete in challenges!\n\n'
-        'Click this link to join: $_inviteLink\n\n'
-        'Thanks!';
-    
     // TODO: Implement share via email
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('Share via email coming soon!')),
@@ -558,9 +548,6 @@ class _FamilyInviteScreenState extends State<FamilyInviteScreen>
   }
 
   void _shareViaOther() {
-    final message = 'Join my family "${widget.family.name}" on WasteApp! '
-        'Use this link: $_inviteLink';
-    
     // TODO: Implement generic share
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('Generic share coming soon!')),
