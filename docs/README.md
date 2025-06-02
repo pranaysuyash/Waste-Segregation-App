@@ -8,7 +8,7 @@ This directory contains comprehensive documentation for the Waste Segregation Ap
 - **[CHANGELOG.md](../CHANGELOG.md)** - Latest changes and version history
 - **[Current Issues](current_issues.md)** - Known issues and their status
 - **[Critical Fixes Summary](CRITICAL_FIXES_SUMMARY.md)** - Major bug fixes implemented
-- **[Analysis Cancellation Fix](../ANALYSIS_CANCELLATION_FIX.md)** - Recent critical bug fix for analysis flow
+- **[Analysis Cancellation Fix](fixes/ANALYSIS_CANCELLATION_FIX.md)** - Recent critical bug fix for analysis flow
 
 ### 📋 **Planning & Management**
 - **[Resolution Plan](planning/RESOLUTION_PLAN.md)** - Priority issues and current fixes
