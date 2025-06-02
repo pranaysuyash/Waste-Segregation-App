@@ -357,7 +357,8 @@ class _ClassificationFeedbackWidgetState extends State<ClassificationFeedbackWid
                   children: _commonCorrections.take(4).map((correction) {
                     return ConstrainedBox(
                       constraints: BoxConstraints(
-                        maxWidth: constraints.maxWidth * 0.45,
+                        maxWidth: (constraints.maxWidth * 0.45).clamp(80.0, 200.0), // Added clamp to prevent too narrow chips
+                        minWidth: 80.0, // Minimum width to prevent overflow
                       ),
                       child: _buildCorrectionChip(correction),
                     );
@@ -585,51 +586,54 @@ class _ClassificationFeedbackWidgetState extends State<ClassificationFeedbackWid
           });
         },
         child: Container(
-        padding: const EdgeInsets.symmetric(
-          horizontal: 12,
-          vertical: 6,
-        ),
-        decoration: BoxDecoration(
-          color: isSelected 
-              ? AppTheme.primaryColor 
-              : Colors.grey.shade100,
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(
+          padding: const EdgeInsets.symmetric(
+            horizontal: 12,
+            vertical: 6,
+          ),
+          decoration: BoxDecoration(
             color: isSelected 
                 ? AppTheme.primaryColor 
-                : Colors.grey.shade300,
+                : Colors.grey.shade100,
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(
+              color: isSelected 
+                  ? AppTheme.primaryColor 
+                  : Colors.grey.shade300,
+            ),
+          ),
+          child: IntrinsicWidth(
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (isSelected) ...[
+                  const Icon(
+                    Icons.check_circle,
+                    size: 16,
+                    color: Colors.white,
+                  ),
+                  const SizedBox(width: 4),
+                ],
+                Flexible(
+                  child: Text(
+                    correction,
+                    style: TextStyle(
+                      fontSize: AppTheme.fontSizeSmall,
+                      color: isSelected 
+                          ? Colors.white 
+                          : Colors.grey.shade800,
+                      fontWeight: isSelected 
+                          ? FontWeight.w500 
+                          : FontWeight.normal,
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                    maxLines: 1,
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            if (isSelected)
-              const Icon(
-                Icons.check_circle,
-                size: 16,
-                color: Colors.white,
-              ),
-            if (isSelected) const SizedBox(width: 4),
-            Flexible(
-              child: Text(
-                correction,
-                style: TextStyle(
-                  fontSize: AppTheme.fontSizeSmall,
-                  color: isSelected 
-                      ? Colors.white 
-                      : Colors.grey.shade800,
-                  fontWeight: isSelected 
-                      ? FontWeight.w500 
-                      : FontWeight.normal,
-                ),
-                overflow: TextOverflow.ellipsis,
-                maxLines: 1,
-              ),
-            ),
-          ],
-        ),
       ),
-    ),
     );
   }
 
