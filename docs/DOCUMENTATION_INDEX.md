@@ -123,8 +123,11 @@ This index provides a comprehensive guide to all documentation in the Waste Segr
 
 ## 🏗️ **Technical Documentation (`docs/technical/`)**
 
+### **Data Storage & Architecture**
+- [**Dual Storage Architecture**](technical/data_storage/DUAL_STORAGE_ARCHITECTURE.md) - ⚡ **NEW** - Comprehensive user & admin data collection system with ML training pipeline
+
 ### **AI & Machine Learning**
-- **[advanced_ai_image_features.md](technical/ai/advanced_ai_image_features.md)** - Advanced AI image processing features
+- [**advanced_ai_image_features.md**](technical/ai/advanced_ai_image_features.md) - Advanced AI image processing features
 
 ---
 

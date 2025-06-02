@@ -443,14 +443,38 @@ class StorageService {
         StorageKeys.isGoogleSyncEnabledKey, isGoogleSyncEnabled);
   }
 
+  /// Get user settings with default values
   Future<Map<String, dynamic>> getSettings() async {
-    final settingsBox = Hive.box(StorageKeys.settingsBox);
-    return {
-      'isDarkMode':
-          settingsBox.get(StorageKeys.isDarkModeKey, defaultValue: false),
-      'isGoogleSyncEnabled': settingsBox.get(StorageKeys.isGoogleSyncEnabledKey,
-          defaultValue: false),
-    };
+    try {
+      final settings = await Hive.box(StorageKeys.settingsBox).get('settings');
+      if (settings == null) {
+        // Default settings for new users - Cloud sync ENABLED by default
+        final defaultSettings = {
+          'isGoogleSyncEnabled': true,  // ← ENABLED BY DEFAULT
+          'notifications': true,
+          'darkMode': false,
+          'language': 'en',
+          'autoBackup': true,
+          'dataSharingConsent': true,
+          'privacyOptIn': true,
+        };
+        await Hive.box(StorageKeys.settingsBox).put('settings', defaultSettings);
+        return defaultSettings;
+      }
+      return Map<String, dynamic>.from(settings);
+    } catch (e) {
+      debugPrint('Error getting settings: $e');
+      // Return default settings with cloud sync enabled
+      return {
+        'isGoogleSyncEnabled': true,  // ← ENABLED BY DEFAULT
+        'notifications': true,
+        'darkMode': false,
+        'language': 'en',
+        'autoBackup': true,
+        'dataSharingConsent': true,
+        'privacyOptIn': true,
+      };
+    }
   }
 
   // --------------------------------------------------------------------------

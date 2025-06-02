@@ -37,7 +37,7 @@ class ResultScreen extends StatefulWidget {
 class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderStateMixin {
   bool _isSaved = false;
   bool _isAutoSaving = false;
-  bool _showingClassificationFeedback = true;
+  bool _showingClassificationFeedback = false;
   bool _showingPointsPopup = false;
   bool _isExplanationExpanded = false; // Added for expandable explanation
   bool _isEducationalFactExpanded = false; // Added for expandable educational fact
@@ -60,8 +60,6 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
     if (widget.showActions) {
       _autoSaveClassification();
       _processClassification();
-    } else {
-      _showingClassificationFeedback = false;
     }
   }
   
