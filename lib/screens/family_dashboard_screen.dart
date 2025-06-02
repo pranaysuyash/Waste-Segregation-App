@@ -45,7 +45,7 @@ class _FamilyDashboardScreenState extends State<FamilyDashboardScreen> {
       final currentUser = await storageService.getCurrentUserProfile();
       if (currentUser?.familyId == null) {
         setState(() {
-          _error = 'You are not part of any family yet.';
+          // Don't set error - this is a normal state when user has no family
           _familyId = null;
           _isInitialLoading = false;
           _isStatsLoading = false;
@@ -673,38 +673,98 @@ class _FamilyDashboardScreenState extends State<FamilyDashboardScreen> {
   }
 
   void _joinFamily() {
+    final TextEditingController inviteController = TextEditingController();
+    bool isLoading = false;
+
     showDialog(
       context: context,
-      builder: (BuildContext dialogContext) => AlertDialog(
-        title: const Text('Join Family'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Text('Enter family ID or invitation link:'),
-            const SizedBox(height: AppTheme.paddingRegular),
-            TextField(
-              decoration: const InputDecoration(
-                hintText: 'Family ID or invitation link',
-                border: OutlineInputBorder(),
+      builder: (BuildContext dialogContext) => StatefulBuilder(
+        builder: (context, setDialogState) => AlertDialog(
+          title: const Text('Join Family'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text('Enter family invitation ID or family ID:'),
+              const SizedBox(height: AppTheme.paddingRegular),
+              TextField(
+                controller: inviteController,
+                decoration: const InputDecoration(
+                  hintText: 'e.g. abc123...',
+                  border: OutlineInputBorder(),
+                  prefixIcon: Icon(Icons.family_restroom),
+                ),
+                enabled: !isLoading,
               ),
+              if (isLoading) ...[
+                const SizedBox(height: AppTheme.paddingRegular),
+                const CircularProgressIndicator(),
+              ],
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: isLoading ? null : () => Navigator.of(dialogContext).pop(),
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: isLoading ? null : () async {
+                final inviteId = inviteController.text.trim();
+                if (inviteId.isEmpty) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Please enter a valid invitation ID')),
+                  );
+                  return;
+                }
+
+                setDialogState(() {
+                  isLoading = true;
+                });
+
+                // Capture context dependencies before async operations
+                final scaffoldMessenger = ScaffoldMessenger.of(context);
+                final navigator = Navigator.of(dialogContext);
+
+                try {
+                  final storageService = Provider.of<StorageService>(context, listen: false);
+                  final currentUser = await storageService.getCurrentUserProfile();
+                  
+                  if (currentUser == null) {
+                    throw Exception('User not found. Please sign in again.');
+                  }
+
+                  // Try to accept the invitation
+                  await _familyService.acceptInvitation(inviteId, currentUser.id);
+                  
+                  navigator.pop();
+                  await _initializeFamilyData(); // Refresh the family data
+                  
+                  if (mounted) {
+                    scaffoldMessenger.showSnackBar(
+                      const SnackBar(
+                        content: Text('Successfully joined the family!'),
+                        backgroundColor: Colors.green,
+                      ),
+                    );
+                  }
+                } catch (e) {
+                  setDialogState(() {
+                    isLoading = false;
+                  });
+                  
+                  if (mounted) {
+                    scaffoldMessenger.showSnackBar(
+                      SnackBar(
+                        content: Text('Failed to join family: ${e.toString()}'),
+                        backgroundColor: Colors.red,
+                      ),
+                    );
+                  }
+                }
+              },
+              child: const Text('Join'),
             ),
           ],
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(),
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () {
-              Navigator.of(dialogContext).pop();
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Join family feature coming soon!')),
-              );
-            },
-            child: const Text('Join'),
-          ),
-        ],
       ),
     );
   }
