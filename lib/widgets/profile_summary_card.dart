@@ -26,6 +26,8 @@ class ProfileSummaryCard extends StatelessWidget {
                         color: AppTheme.textSecondaryColor,
                         fontSize: AppTheme.fontSizeSmall,
                       ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
                     const SizedBox(height: 4),
                     Row(
@@ -42,6 +44,8 @@ class ProfileSummaryCard extends StatelessWidget {
                             fontSize: 24,
                             fontWeight: FontWeight.bold,
                           ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ],
                     ),

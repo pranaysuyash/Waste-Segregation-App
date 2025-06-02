@@ -36,6 +36,8 @@ import '../services/educational_content_service.dart';
 import '../services/analytics_service.dart';
 import '../widgets/data_migration_dialog.dart';
 import '../services/cloud_storage_service.dart';
+import '../services/community_service.dart';
+import '../models/community_feed.dart';
 
 class ModernHomeScreen extends StatefulWidget {
   final bool isGuestMode;
@@ -1190,15 +1192,50 @@ class _ModernHomeScreenState extends State<ModernHomeScreen> with TickerProvider
   }
 
   Widget _buildCommunityFeedPreview() {
-    return CommunityFeedPreview(
-      activities: DashboardSampleData.getSampleActivities(),
-      onViewAll: () {
-        // Navigate to the Social screen (which contains Community and Family tabs)
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => const SocialScreen(),
-          ),
+    return FutureBuilder<List<CommunityFeedItem>>(
+      future: CommunityService().getFeedItems(limit: 3),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        }
+        final feedItems = snapshot.data ?? [];
+        if (feedItems.isEmpty) {
+          return Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.people_outline, size: 48, color: Colors.grey.shade400),
+                const SizedBox(height: 8),
+                Text(
+                  'No community activity yet',
+                  style: TextStyle(color: Colors.grey.shade600, fontSize: 16, fontWeight: FontWeight.w500),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'Be the first to share your progress!',
+                  style: TextStyle(color: Colors.grey.shade500, fontSize: 13),
+                ),
+              ],
+            ),
+          );
+        }
+        final activities = feedItems.map((item) => CommunityActivity(
+          userName: item.displayName,
+          action: item.title.isNotEmpty ? item.title : item.description,
+          timeAgo: item.relativeTime,
+          achievement: item.activityType == CommunityActivityType.achievement ? '🏆' : null,
+        )).toList();
+        return CommunityFeedPreview(
+          activities: activities,
+          onViewAll: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const SocialScreen(),
+              ),
+            );
+          },
         );
       },
     );

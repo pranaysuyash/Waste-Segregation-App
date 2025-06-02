@@ -169,80 +169,62 @@ class FeatureCard extends StatelessWidget {
           onTap: onTap,
           backgroundColor: backgroundColor,
           padding: effectivePadding,
-      child: Row(
-        children: [
-          // Icon container with modern styling
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: effectiveIconColor.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(AppTheme.borderRadiusMd),
-            ),
-            child: Icon(
-              icon,
-              color: effectiveIconColor,
-              size: effectiveIconSize,
-            ),
-          ),
-          
-          const SizedBox(width: AppTheme.spacingMd),
-          
-          // Content with overflow protection
-          Expanded(
-            child: LayoutBuilder(
-              builder: (context, constraints) {
-                return Column(
+          child: Row(
+            children: [
+              // Icon container with modern styling
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: effectiveIconColor.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(AppTheme.borderRadiusMd),
+                ),
+                child: Icon(
+                  icon,
+                  color: effectiveIconColor,
+                  size: effectiveIconSize,
+                ),
+              ),
+              
+              const SizedBox(width: AppTheme.spacingMd),
+              
+              // Content with overflow protection
+              Expanded(
+                child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Title with responsive sizing and overflow protection
-                    LayoutBuilder(
-                      builder: (context, titleConstraints) {
-                        // For very narrow cards, use smaller text
-                        final titleStyle = titleConstraints.maxWidth < 150
-                            ? theme.textTheme.titleSmall?.copyWith(
-                                fontWeight: FontWeight.w600,
-                              )
-                            : theme.textTheme.titleMedium?.copyWith(
-                                fontWeight: FontWeight.w600,
-                              );
-                        
-                        return Text(
-                          title,
-                          style: titleStyle,
-                          overflow: TextOverflow.ellipsis,
-                          maxLines: 2, // Allow wrapping to 2 lines for long titles
-                        );
-                      },
+                    Text(
+                      title,
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
                     if (subtitle != null) ...[
-                      const SizedBox(height: 4),
+                      const SizedBox(height: 2),
                       Text(
                         subtitle!,
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          color: theme.colorScheme.onSurfaceVariant,
-                        ),
+                        style: theme.textTheme.bodySmall,
+                        maxLines: 2,
                         overflow: TextOverflow.ellipsis,
-                        maxLines: 2, // Allow wrapping to 2 lines for long subtitles
                       ),
                     ],
                   ],
-                );
-              },
-            ),
+                ),
+              ),
+              if (trailing != null) ...[
+                const SizedBox(width: 8),
+                trailing!,
+              ],
+              if (showChevron && onTap != null)
+                Icon(
+                  Icons.chevron_right,
+                  color: theme.colorScheme.onSurfaceVariant,
+                  size: 20,
+                ),
+            ],
           ),
-          
-          // Trailing content
-          if (trailing != null)
-            trailing!
-          else if (showChevron && onTap != null)
-            Icon(
-              Icons.chevron_right,
-              color: theme.colorScheme.onSurfaceVariant,
-              size: 20,
-            ),
-        ],
-      ),
-    );
+        );
       },
     );
   }
@@ -310,164 +292,43 @@ class StatsCard extends StatelessWidget {
           const SizedBox(height: AppTheme.spacingSm),
           
           // Main value with responsive sizing
-          LayoutBuilder(
-            builder: (context, constraints) {
-              // Determine appropriate text style based on available width and value length
-              TextStyle? valueStyle;
-              if (constraints.maxWidth < 100 || value.length > 6) {
-                // Use smaller text for narrow cards or long values
-                valueStyle = theme.textTheme.headlineMedium?.copyWith(
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Text(
+                value,
+                style: theme.textTheme.displaySmall?.copyWith(
                   color: effectiveColor,
                   fontWeight: FontWeight.bold,
-                );
-              } else if (constraints.maxWidth < 150 || value.length > 4) {
-                // Use medium text for medium cards or medium values
-                valueStyle = theme.textTheme.headlineLarge?.copyWith(
-                  color: effectiveColor,
-                  fontWeight: FontWeight.bold,
-                );
-              } else {
-                // Use large text for wide cards with short values
-                valueStyle = theme.textTheme.displaySmall?.copyWith(
-                  color: effectiveColor,
-                  fontWeight: FontWeight.bold,
-                );
-              }
-              
-              return FittedBox(
-                fit: BoxFit.scaleDown,
-                alignment: Alignment.centerLeft,
-                child: Text(
-                  value,
-                  style: valueStyle,
-                  maxLines: 1,
                 ),
-              );
-            },
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+              if (trend != null) ...[
+                const SizedBox(width: 4),
+                Text(
+                  trend!,
+                  style: TextStyle(
+                    color: isPositiveTrend ? Colors.green : Colors.red,
+                    fontWeight: FontWeight.bold,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            ],
           ),
-          
-          // Subtitle and trend with improved layout
-          if (subtitle != null || trend != null) ...[
-            const SizedBox(height: AppTheme.spacingXs),
-            LayoutBuilder(
-              builder: (context, constraints) {
-                // For very narrow cards, stack subtitle and trend vertically
-                if (constraints.maxWidth < 80) {
-                  return Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      if (subtitle != null)
-                        Text(
-                          subtitle!,
-                          style: theme.textTheme.bodySmall?.copyWith(
-                            color: theme.colorScheme.onSurfaceVariant,
-                          ),
-                          overflow: TextOverflow.ellipsis,
-                          maxLines: 1,
-                        ),
-                      if (subtitle != null && trend != null)
-                        const SizedBox(height: 2),
-                      if (trend != null)
-                        _buildTrendChip(theme),
-                    ],
-                  );
-                }
-                
-                // For normal width cards, use horizontal layout
-                return Row(
-                  children: [
-                    if (subtitle != null)
-                      Flexible(
-                        child: Text(
-                          subtitle!,
-                          style: theme.textTheme.bodySmall?.copyWith(
-                            color: theme.colorScheme.onSurfaceVariant,
-                          ),
-                          overflow: TextOverflow.ellipsis,
-                          maxLines: 1,
-                        ),
-                      ),
-                    if (subtitle != null && trend != null)
-                      const SizedBox(width: 4),
-                    if (trend != null)
-                      Flexible(child: _buildTrendChip(theme)),
-                  ],
-                );
-              },
+          if (subtitle != null) ...[
+            const SizedBox(height: 2),
+            Text(
+              subtitle!,
+              style: theme.textTheme.bodySmall,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
             ),
           ],
         ],
       ),
-    );
-  }
-  
-  Widget _buildTrendChip(ThemeData theme) {
-    // Standardized colors for trend chips
-    final trendColor = isPositiveTrend 
-        ? AppTheme.successColor 
-        : AppTheme.errorColor;
-    
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        // For very narrow spaces, show only the trend text
-        if (constraints.maxWidth < 50) {
-          return Container(
-            padding: const EdgeInsets.symmetric(
-              horizontal: 4,
-              vertical: 1,
-            ),
-            decoration: BoxDecoration(
-              color: trendColor.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(AppTheme.borderRadiusXs),
-            ),
-            child: Text(
-              trend!,
-              style: TextStyle(
-                fontSize: 8,
-                fontWeight: FontWeight.w600,
-                color: trendColor,
-              ),
-            ),
-          );
-        }
-        
-        // For normal spaces, show icon and text
-        return Container(
-          padding: const EdgeInsets.symmetric(
-            horizontal: 6,
-            vertical: 2,
-          ),
-          decoration: BoxDecoration(
-            color: trendColor.withOpacity(0.1),
-            borderRadius: BorderRadius.circular(AppTheme.borderRadiusXs),
-            border: Border.all(
-              color: trendColor.withOpacity(0.3),
-              width: 0.5,
-            ),
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(
-                isPositiveTrend 
-                    ? Icons.trending_up 
-                    : Icons.trending_down,
-                size: 10,
-                color: trendColor,
-              ),
-              const SizedBox(width: 2),
-              Text(
-                trend!,
-                style: TextStyle(
-                  fontSize: 9,
-                  fontWeight: FontWeight.w600,
-                  color: trendColor,
-                ),
-              ),
-            ],
-          ),
-        );
-      },
     );
   }
 }

@@ -657,6 +657,7 @@ Output:
   /// - [userReason]: The user's explanation for the correction.
   /// - [imageBytes]: Optional image data for re-analysis.
   /// - [imageFile]: Optional image file for re-analysis.
+  /// - [model]: Optional model to use for the API request.
   ///
   /// Returns an updated [WasteClassification].
   Future<WasteClassification> handleUserCorrection(
@@ -665,6 +666,7 @@ Output:
     String? userReason, {
     Uint8List? imageBytes,
     File? imageFile,
+    String? model,
   }) async {
     try {
       debugPrint('Processing user correction: $userCorrection');
@@ -677,6 +679,9 @@ Output:
       );
 
       Map<String, dynamic> requestBody;
+      final String modelToUse = model ?? ((imageBytes != null || imageFile != null)
+        ? ApiConfig.primaryModel
+        : ApiConfig.secondaryModel1);
 
       // If we have image data, include it in the request
       if (imageBytes != null || imageFile != null) {
@@ -688,7 +693,7 @@ Output:
         }
 
         requestBody = {
-          "model": ApiConfig.primaryModel,
+          "model": modelToUse,
           "messages": [
             {
               "role": "system",
@@ -714,7 +719,7 @@ Output:
       } else {
         // Text-only correction
         requestBody = {
-          "model": ApiConfig.secondaryModel1,
+          "model": modelToUse,
           "messages": [
             {
               "role": "system",

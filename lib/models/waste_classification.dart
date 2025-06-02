@@ -64,6 +64,12 @@ class WasteClassification {
   final String? source;
   final DateTime timestamp;
 
+  // List of model names that have been used for reanalysis on this classification
+  final List<String>? reanalysisModelsTried;
+
+  // The model that produced a user-confirmed correct result
+  final String? confirmedByModel;
+
   WasteClassification({
     required this.itemName,
     required this.category,
@@ -108,6 +114,8 @@ class WasteClassification {
     this.translatedInstructions,
     this.source,
     DateTime? timestamp,
+    this.reanalysisModelsTried,
+    this.confirmedByModel,
   }) : timestamp = timestamp ?? DateTime.now();
 
   /// Creates a fallback classification when AI analysis fails
@@ -233,6 +241,10 @@ class WasteClassification {
       timestamp: json['timestamp'] != null
           ? DateTime.parse(json['timestamp'])
           : DateTime.now(),
+      reanalysisModelsTried: json['reanalysisModelsTried'] != null
+          ? List<String>.from(json['reanalysisModelsTried'])
+          : null,
+      confirmedByModel: json['confirmedByModel'],
     );
   }
 
@@ -282,6 +294,8 @@ class WasteClassification {
       'translatedInstructions': translatedInstructions,
       'source': source,
       'timestamp': timestamp.toIso8601String(),
+      'reanalysisModelsTried': reanalysisModelsTried,
+      'confirmedByModel': confirmedByModel,
     };
   }
 
@@ -330,6 +344,8 @@ class WasteClassification {
     Map<String, String>? translatedInstructions,
     String? source,
     DateTime? timestamp,
+    List<String>? reanalysisModelsTried,
+    String? confirmedByModel,
   }) {
     return WasteClassification(
       itemName: itemName ?? this.itemName,
@@ -375,6 +391,8 @@ class WasteClassification {
       translatedInstructions: translatedInstructions ?? this.translatedInstructions,
       source: source ?? this.source,
       timestamp: timestamp ?? this.timestamp,
+      reanalysisModelsTried: reanalysisModelsTried ?? this.reanalysisModelsTried,
+      confirmedByModel: confirmedByModel ?? this.confirmedByModel,
     );
   }
 }

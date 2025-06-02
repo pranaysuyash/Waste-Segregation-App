@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../models/waste_classification.dart';
 import '../services/ai_service.dart';
 import '../utils/constants.dart';
+import '../screens/result_screen.dart';
 
 /// Widget for collecting user feedback on classification accuracy
 class ClassificationFeedbackWidget extends StatefulWidget {
@@ -30,6 +31,7 @@ class _ClassificationFeedbackWidgetState extends State<ClassificationFeedbackWid
   bool _showCustomCorrection = false;
   bool _isReanalyzing = false; // Track reanalysis state
   int feedbackTimeframeDays = 7; // Default feedback timeframe
+  bool _showExpandedFeedback = false; // Track inline expansion instead of modal
 
   // Common correction options based on analysis of frequent mistakes
   final List<String> _commonCorrections = [
@@ -42,6 +44,23 @@ class _ClassificationFeedbackWidgetState extends State<ClassificationFeedbackWid
     'Wrong material type',
     'Custom correction...'
   ];
+
+  // List of all models to try, in order
+  static const List<String> _modelSequence = [
+    ApiConfig.primaryModel,
+    ApiConfig.secondaryModel1,
+    ApiConfig.secondaryModel2,
+    ApiConfig.tertiaryModel,
+  ];
+
+  List<String> get _modelsTried => widget.classification.reanalysisModelsTried ?? [];
+  String? get _nextModelToTry {
+    for (final model in _modelSequence) {
+      if (!_modelsTried.contains(model)) return model;
+    }
+    return null;
+  }
+  bool get _allModelsExhausted => _nextModelToTry == null;
 
   @override
   void initState() {
@@ -99,6 +118,7 @@ class _ClassificationFeedbackWidgetState extends State<ClassificationFeedbackWid
           ? _notesController.text.trim() 
           : null,
       viewCount: (widget.classification.viewCount ?? 0) + 1, // This seems like existing logic
+      confirmedByModel: _nextModelToTry, // Track which model was confirmed correct
     );
 
     widget.onFeedbackSubmitted(updatedClassification);
@@ -375,16 +395,43 @@ class _ClassificationFeedbackWidgetState extends State<ClassificationFeedbackWid
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton.icon(
-                  onPressed: _triggerReanalysis,
+                  onPressed: _allModelsExhausted ? null : _triggerReanalysis,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.orange,
-                    foregroundColor: Colors.white,
+                    backgroundColor: _allModelsExhausted ? Colors.grey.shade300 : Colors.orange,
+                    foregroundColor: _allModelsExhausted ? Colors.grey.shade600 : Colors.white,
                     padding: const EdgeInsets.symmetric(vertical: 12),
                   ),
                   icon: const Icon(Icons.refresh, size: 18),
-                  label: const Text('Re-analyze with correction', style: TextStyle(fontSize: 12)),
+                  label: Text(
+                    _allModelsExhausted ? 'No more reanalysis possible' : 'Re-analyze with correction',
+                    style: const TextStyle(fontSize: 12),
+                  ),
                 ),
               ),
+              if (_allModelsExhausted)
+                Padding(
+                  padding: const EdgeInsets.only(top: 8.0),
+                  child: Row(
+                    children: [
+                      Icon(Icons.warning_amber_rounded, color: Colors.orange.shade700, size: 18),
+                      const SizedBox(width: 6),
+                      Expanded(
+                        child: Text(
+                          'All available AI models have been tried. Your feedback will help us improve future results.',
+                          style: TextStyle(color: Colors.orange.shade700, fontSize: 13),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              if (!_allModelsExhausted && _nextModelToTry != null)
+                Padding(
+                  padding: const EdgeInsets.only(top: 4.0),
+                  child: Text(
+                    'Next model: $_nextModelToTry',
+                    style: TextStyle(color: Colors.blueGrey, fontSize: 12),
+                  ),
+                ),
             ],
             
             // Show reanalyzing indicator
@@ -422,10 +469,81 @@ class _ClassificationFeedbackWidgetState extends State<ClassificationFeedbackWid
               ),
             ],
             
-            TextButton(
-              onPressed: () => _showFullFeedbackDialog(),
-              child: const Text('More options...'),
+            // Inline expansion instead of modal
+            TextButton.icon(
+              onPressed: () {
+                setState(() {
+                  _showExpandedFeedback = !_showExpandedFeedback;
+                });
+              },
+              icon: Icon(
+                _showExpandedFeedback ? Icons.expand_less : Icons.expand_more,
+                size: 16,
+              ),
+              label: Text(
+                _showExpandedFeedback ? 'Less options' : 'More options',
+                style: const TextStyle(fontSize: 12),
+              ),
             ),
+            
+            // Expanded feedback options (inline, not modal)
+            if (_showExpandedFeedback) ...[
+              const SizedBox(height: AppTheme.paddingSmall),
+              Divider(color: Colors.grey.shade300),
+              const SizedBox(height: AppTheme.paddingSmall),
+              
+              // Custom correction field if custom option selected
+              if (_showCustomCorrection) ...[
+                TextField(
+                  controller: _customCorrectionController,
+                  decoration: InputDecoration(
+                    labelText: 'Custom correction',
+                    hintText: 'Enter correct classification...',
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    prefixIcon: const Icon(Icons.edit, size: 18),
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  ),
+                  style: const TextStyle(fontSize: 14),
+                  maxLines: 2,
+                ),
+                const SizedBox(height: AppTheme.paddingSmall),
+              ],
+              
+              // Notes field
+              TextField(
+                controller: _notesController,
+                decoration: InputDecoration(
+                  labelText: 'Additional notes (optional)',
+                  hintText: 'Any context or details...',
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  prefixIcon: const Icon(Icons.note_add, size: 18),
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                ),
+                style: const TextStyle(fontSize: 14),
+                maxLines: 2,
+              ),
+              
+              const SizedBox(height: AppTheme.paddingSmall),
+              
+              // Submit feedback button for expanded view
+              SizedBox(
+                width: double.infinity,
+                child: OutlinedButton.icon(
+                  onPressed: _submitFeedback,
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: AppTheme.primaryColor,
+                    side: BorderSide(color: AppTheme.primaryColor),
+                    padding: const EdgeInsets.symmetric(vertical: 10),
+                  ),
+                  icon: const Icon(Icons.send, size: 16),
+                  label: const Text('Submit Feedback', style: TextStyle(fontSize: 12)),
+                ),
+              ),
+            ],
           ],
         ],
       ),
@@ -606,16 +724,40 @@ class _ClassificationFeedbackWidgetState extends State<ClassificationFeedbackWid
               SizedBox(
                 width: double.infinity,
                 child: OutlinedButton.icon(
-                  onPressed: _triggerReanalysis,
+                  onPressed: _allModelsExhausted ? null : _triggerReanalysis,
                   style: OutlinedButton.styleFrom(
-                    foregroundColor: Colors.orange,
-                    side: const BorderSide(color: Colors.orange),
+                    foregroundColor: _allModelsExhausted ? Colors.grey.shade600 : Colors.orange,
+                    side: BorderSide(color: _allModelsExhausted ? Colors.grey.shade400 : Colors.orange),
                     padding: const EdgeInsets.symmetric(vertical: 12),
                   ),
                   icon: const Icon(Icons.refresh),
-                  label: const Text('Re-analyze with correction'),
+                  label: Text(_allModelsExhausted ? 'No more reanalysis possible' : 'Re-analyze with correction'),
                 ),
               ),
+              if (_allModelsExhausted)
+                Padding(
+                  padding: const EdgeInsets.only(top: 8.0),
+                  child: Row(
+                    children: [
+                      Icon(Icons.warning_amber_rounded, color: Colors.orange.shade700, size: 18),
+                      const SizedBox(width: 6),
+                      Expanded(
+                        child: Text(
+                          'All available AI models have been tried. Your feedback will help us improve future results.',
+                          style: TextStyle(color: Colors.orange.shade700, fontSize: 13),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              if (!_allModelsExhausted && _nextModelToTry != null)
+                Padding(
+                  padding: const EdgeInsets.only(top: 4.0),
+                  child: Text(
+                    'Next model: $_nextModelToTry',
+                    style: TextStyle(color: Colors.blueGrey, fontSize: 12),
+                  ),
+                ),
             ],
             
             // Show reanalyzing indicator for full version
@@ -681,51 +823,51 @@ class _ClassificationFeedbackWidgetState extends State<ClassificationFeedbackWid
           });
         },
         child: Container(
+          width: double.infinity, // Take full available width
           padding: const EdgeInsets.symmetric(
-            horizontal: 12,
-            vertical: 6,
+            horizontal: 8, // Reduced padding for tight spaces
+            vertical: 8,
           ),
           decoration: BoxDecoration(
             color: isSelected 
                 ? AppTheme.primaryColor 
                 : Colors.grey.shade100,
-            borderRadius: BorderRadius.circular(20),
+            borderRadius: BorderRadius.circular(8), // Slightly less rounded for compactness
             border: Border.all(
               color: isSelected 
                   ? AppTheme.primaryColor 
                   : Colors.grey.shade300,
             ),
           ),
-          child: IntrinsicWidth(
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                if (isSelected) ...[
-                  const Icon(
-                    Icons.check_circle,
-                    size: 16,
-                    color: Colors.white,
-                  ),
-                  const SizedBox(width: 4),
-                ],
-                Flexible(
-                  child: Text(
-                    correction,
-                    style: TextStyle(
-                      fontSize: AppTheme.fontSizeSmall,
-                      color: isSelected 
-                          ? Colors.white 
-                          : Colors.grey.shade800,
-                      fontWeight: isSelected 
-                          ? FontWeight.w500 
-                          : FontWeight.normal,
-                    ),
-                    overflow: TextOverflow.ellipsis,
-                    maxLines: 1,
-                  ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (isSelected) ...[
+                const Icon(
+                  Icons.check_circle,
+                  size: 14, // Smaller icon
+                  color: Colors.white,
                 ),
+                const SizedBox(width: 4),
               ],
-            ),
+              Expanded( // Allow text to take remaining space
+                child: Text(
+                  correction,
+                  style: TextStyle(
+                    fontSize: 11, // Smaller font for tight spaces
+                    color: isSelected 
+                        ? Colors.white 
+                        : Colors.grey.shade800,
+                    fontWeight: isSelected 
+                        ? FontWeight.w500 
+                        : FontWeight.normal,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                  maxLines: 1,
+                  textAlign: TextAlign.center,
+                ),
+              ),
+            ],
           ),
         ),
       ),
@@ -820,76 +962,180 @@ class _ClassificationFeedbackWidgetState extends State<ClassificationFeedbackWid
       _isReanalyzing = true;
     });
 
+    // Get the final correction text and user reason outside try block
+    String correctionText = _selectedCorrection!;
+    if (_selectedCorrection == 'Custom correction...' && 
+        _customCorrectionController.text.trim().isNotEmpty) {
+      correctionText = _customCorrectionController.text.trim();
+    }
+    
+    String? userReason = _notesController.text.trim().isNotEmpty 
+        ? _notesController.text.trim() 
+        : null;
+
     try {
       final aiService = Provider.of<AiService>(context, listen: false);
       
-      // Get the final correction text
-      String correctionText = _selectedCorrection!;
-      if (_selectedCorrection == 'Custom correction...' && 
-          _customCorrectionController.text.trim().isNotEmpty) {
-        correctionText = _customCorrectionController.text.trim();
+      // If all models are exhausted, just save feedback and show message
+      if (_allModelsExhausted) {
+        if (mounted) {
+          final originalWithFeedback = widget.classification.copyWith(
+            userConfirmed: false,
+            userCorrection: correctionText,
+            userNotes: userReason,
+            disagreementReason: 'All models exhausted. Feedback will be used for future improvements.',
+            reanalysisModelsTried: _modelsTried,
+          );
+          widget.onFeedbackSubmitted(originalWithFeedback);
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('All available AI models have been tried. Your feedback will help us improve future results.'),
+              backgroundColor: Colors.orange.shade600,
+              behavior: SnackBarBehavior.floating,
+              duration: const Duration(seconds: 4),
+            ),
+          );
+        }
+        return;
       }
-      
-      // Get user reason/notes
-      String? userReason = _notesController.text.trim().isNotEmpty 
-          ? _notesController.text.trim() 
-          : null;
-      
-      // Call AI service to reanalyze with correction
+
+      // Call AI service to reanalyze with the next unused model
       final reanalyzedClassification = await aiService.handleUserCorrection(
         widget.classification,
         correctionText,
         userReason,
-        // Note: imageBytes not available in WasteClassification model
-        // This will do text-only reanalysis with the user's correction
+        model: _nextModelToTry,
       );
       
-      // Update the classification with reanalysis results and user feedback
-      final updatedClassification = reanalyzedClassification.copyWith(
-        userConfirmed: false, // Keep as false since user marked it incorrect
+      // Update the list of tried models
+      final updatedModelsTried = List<String>.from(_modelsTried)..add(_nextModelToTry!);
+
+      // Create NEW classification entry (don't update existing)
+      final newClassification = reanalyzedClassification.copyWith(
+        userNotes: 'Reanalyzed from: ${widget.classification.itemName} (${widget.classification.category})\n${userReason ?? ''}',
+        userCorrection: correctionText,
+        userConfirmed: null, // Reset confirmation for new classification
+        source: 'reanalysis', // Mark as reanalyzed
+        viewCount: 1, // New classification starts at 1
+        reanalysisModelsTried: updatedModelsTried,
+      );
+
+      // Also update original classification with user feedback (preserve for history)
+      final originalWithFeedback = widget.classification.copyWith(
+        userConfirmed: false,
         userCorrection: correctionText,
         userNotes: userReason,
-        viewCount: (widget.classification.viewCount ?? 0) + 1,
+        disagreementReason: 'User requested reanalysis - see newer entry',
+        reanalysisModelsTried: updatedModelsTried,
       );
       
       if (mounted) {
-        // Submit the updated classification
-        widget.onFeedbackSubmitted(updatedClassification);
+        // Save the original with user feedback first
+        widget.onFeedbackSubmitted(originalWithFeedback);
         
-        // Show success message
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Row(
-              children: [
-                const Icon(Icons.check_circle, color: Colors.white, size: 20),
-                const SizedBox(width: 8),
-                const Expanded(
-                  child: Text('Re-analysis complete! Updated classification with your correction.'),
-                ),
-              ],
+        // Brief delay then navigate to new classification
+        await Future.delayed(const Duration(milliseconds: 500));
+        
+        if (mounted) {
+          // Show navigation snackbar with action to view new results
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      const Icon(Icons.auto_awesome, color: Colors.white, size: 20),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          'Reanalysis complete! (${_nextModelToTry})',
+                          style: const TextStyle(fontWeight: FontWeight.w600),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    '${widget.classification.category} → ${newClassification.category}',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Colors.white.withOpacity(0.9),
+                    ),
+                  ),
+                ],
+              ),
+              backgroundColor: Colors.blue.shade600,
+              behavior: SnackBarBehavior.floating,
+              duration: const Duration(seconds: 5),
+              action: SnackBarAction(
+                label: 'View Results',
+                textColor: Colors.white,
+                onPressed: () {
+                  // Navigate to new classification result
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => ResultScreen(
+                        classification: newClassification,
+                        showActions: true,
+                      ),
+                    ),
+                  );
+                },
+              ),
             ),
-            backgroundColor: Colors.green.shade600,
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
+          );
+        }
       }
       
     } catch (e) {
       if (mounted) {
-        // Show error message
+        // Even if reanalysis fails, save user's feedback on original classification
+        final originalWithFeedback = widget.classification.copyWith(
+          userConfirmed: false,
+          userCorrection: correctionText,
+          userNotes: userReason,
+          disagreementReason: 'Reanalysis failed, but user feedback preserved: ${e.toString()}',
+          reanalysisModelsTried: _modelsTried,
+        );
+        
+        // Save the user feedback regardless of reanalysis failure
+        widget.onFeedbackSubmitted(originalWithFeedback);
+        
+        // Show error message with explanation
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Row(
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Icon(Icons.error, color: Colors.white, size: 20),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text('Re-analysis failed: ${e.toString()}'),
+                Row(
+                  children: [
+                    const Icon(Icons.error, color: Colors.white, size: 20),
+                    const SizedBox(width: 8),
+                    const Expanded(
+                      child: Text(
+                        'Reanalysis failed',
+                        style: TextStyle(fontWeight: FontWeight.w500),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'Your corrections have been saved for future improvement',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Colors.white.withOpacity(0.9),
+                  ),
                 ),
               ],
             ),
-            backgroundColor: Colors.red.shade600,
+            backgroundColor: Colors.orange.shade600,
             behavior: SnackBarBehavior.floating,
+            duration: const Duration(seconds: 4),
           ),
         );
       }

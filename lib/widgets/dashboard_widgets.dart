@@ -379,6 +379,7 @@ class CommunityFeedPreview extends StatelessWidget {
               style: TextStyle(
                 color: AppTheme.primaryColor,
                 fontWeight: FontWeight.bold,
+                fontSize: 18,
               ),
             ),
           ),
@@ -404,6 +405,8 @@ class CommunityFeedPreview extends StatelessWidget {
                       TextSpan(text: ' ${activity.action}'),
                     ],
                   ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
                 const SizedBox(height: 2),
                 Text(
@@ -412,6 +415,8 @@ class CommunityFeedPreview extends StatelessWidget {
                     color: AppTheme.textSecondaryColor,
                     fontSize: 10,
                   ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
               ],
             ),
@@ -419,19 +424,13 @@ class CommunityFeedPreview extends StatelessWidget {
 
           // Achievement badge
           if (activity.achievement != null)
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-              decoration: BoxDecoration(
-                color: AppTheme.primaryColor.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(8),
-              ),
+            Padding(
+              padding: const EdgeInsets.only(left: 8.0),
               child: Text(
                 activity.achievement!,
-                style: TextStyle(
-                  color: AppTheme.primaryColor,
-                  fontSize: 10,
-                  fontWeight: FontWeight.bold,
-                ),
+                style: const TextStyle(fontSize: 18),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
               ),
             ),
         ],

@@ -179,6 +179,38 @@ class ClassificationCard extends StatelessWidget {
     }
   }
 
+  IconData _getCategoryIcon() {
+    switch (classification.category.toLowerCase()) {
+      case 'wet waste':
+        return Icons.eco;
+      case 'dry waste':
+        return Icons.recycling;
+      case 'hazardous waste':
+        return Icons.warning;
+      case 'medical waste':
+        return Icons.medical_services;
+      case 'non-waste':
+        return Icons.check_circle;
+      default:
+        return Icons.category;
+    }
+  }
+
+  String _formatDate(DateTime date) {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final yesterday = DateTime(now.year, now.month, now.day - 1);
+    final dateToCheck = DateTime(date.year, date.month, date.day);
+
+    if (dateToCheck == today) {
+      return 'Today';
+    } else if (dateToCheck == yesterday) {
+      return 'Yesterday';
+    } else {
+      return '${date.day}/${date.month}/${date.year}';
+    }
+  }
+
   // This is now replaced by the improved version defined above
 
   String _getExamples() {
@@ -244,303 +276,89 @@ class ClassificationCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(AppTheme.borderRadiusLarge),
         side: BorderSide(color: categoryColor, width: 2),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Image section
-          if (classification.imageUrl != null)
-            ClipRRect(
-              borderRadius: const BorderRadius.only(
-                topLeft: Radius.circular(AppTheme.borderRadiusLarge - 2),
-                topRight: Radius.circular(AppTheme.borderRadiusLarge - 2),
+      child: Padding(
+        padding: const EdgeInsets.all(AppTheme.paddingRegular),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Image section
+            if (classification.imageUrl != null)
+              ClipRRect(
+                borderRadius: const BorderRadius.only(
+                  topLeft: Radius.circular(AppTheme.borderRadiusLarge - 2),
+                  topRight: Radius.circular(AppTheme.borderRadiusLarge - 2),
+                ),
+                child: _buildImage(classification.imageUrl!),
               ),
-              child: _buildImage(classification.imageUrl!),
-            ),
 
-          // Item details
-          Padding(
-            padding: const EdgeInsets.all(AppTheme.paddingRegular),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Item name
-                Row(
-                  children: [
-                    const Icon(Icons.category),
-                    const SizedBox(width: 8),
-                    const Text(
-                      AppStrings.identifiedAs,
-                      style: TextStyle(
-                        fontSize: AppTheme.fontSizeRegular,
+            // Item details
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 8.0),
+              child: Row(
+                children: [
+                  Icon(_getCategoryIcon(), color: categoryColor, size: 24),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      classification.itemName,
+                      style: const TextStyle(
                         fontWeight: FontWeight.bold,
+                        fontSize: 16,
                       ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
-                    const SizedBox(width: 8),
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    _formatDate(classification.timestamp),
+                    style: const TextStyle(
+                      color: AppTheme.textSecondaryColor,
+                      fontSize: 12,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.only(bottom: 4.0),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      'Category: ${classification.category}',
+                      style: const TextStyle(fontSize: 13),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  if (classification.subcategory != null && classification.subcategory!.isNotEmpty)
                     Expanded(
                       child: Text(
-                        classification.itemName,
-                        style: const TextStyle(
-                          fontSize: AppTheme.fontSizeMedium,
-                          fontWeight: FontWeight.bold,
-                        ),
+                        'Sub: ${classification.subcategory}',
+                        style: const TextStyle(fontSize: 13, color: AppTheme.textSecondaryColor),
+                        maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
                     ),
-                  ],
-                ),
-
-                const SizedBox(height: AppTheme.paddingRegular),
-
-                // Category and subcategory badges
-                Row(
-                  children: [
-                    // Main category badge
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: AppTheme.paddingRegular,
-                        vertical: AppTheme.paddingSmall,
-                      ),
-                      decoration: BoxDecoration(
-                        color: categoryColor,
-                        borderRadius:
-                            BorderRadius.circular(AppTheme.borderRadiusSmall),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          const Icon(Icons.recycling,
-                              color: Colors.white, size: 18),
-                          const SizedBox(width: 4),
-                          Text(
-                            classification.category,
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
-                              fontSize: AppTheme.fontSizeRegular,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-
-                    // Subcategory badge if available
-                    if (classification.subcategory != null) ...[
-                      const SizedBox(width: 8),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: AppTheme.paddingRegular,
-                          vertical: AppTheme.paddingSmall,
-                        ),
-                        decoration: BoxDecoration(
-                          color: Colors.black.withOpacity(0.1),
-                          borderRadius:
-                              BorderRadius.circular(AppTheme.borderRadiusSmall),
-                          border:
-                              Border.all(color: categoryColor.withOpacity(0.5)),
-                        ),
-                        child: Text(
-                          classification.subcategory!,
-                          style: TextStyle(
-                            color: categoryColor,
-                            fontWeight: FontWeight.bold,
-                            fontSize: AppTheme.fontSizeSmall,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ],
-                ),
-
-                // Material type and recycling code if available
-                if (classification.materialType != null ||
-                    classification.recyclingCode != null) ...[
-                  const SizedBox(height: AppTheme.paddingRegular),
-                  Row(
-                    children: [
-                      // Material type
-                      if (classification.materialType != null)
-                        Expanded(
-                          child: Row(
-                            children: [
-                              Icon(Icons.science,
-                                  size: 16, color: categoryColor),
-                              const SizedBox(width: 4),
-                              Expanded(
-                                child: Text(
-                                  'Material: ${classification.materialType}',
-                                  style: const TextStyle(
-                                    fontSize: AppTheme.fontSizeSmall,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-
-                      // Recycling code
-                      if (classification.recyclingCode != null) ...[
-                        const SizedBox(width: 8),
-                        Container(
-                          padding: const EdgeInsets.all(6),
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            border: Border.all(color: categoryColor),
-                          ),
-                          child: Text(
-                            classification.recyclingCode!.toString(),
-                            style: TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.bold,
-                              color: categoryColor,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ],
-                  ),
                 ],
-
-                // Properties indicators (recyclable, compostable, special disposal)
-                if ((classification.isRecyclable ?? false) ||
-                    (classification.isCompostable ?? false) ||
-                    (classification.requiresSpecialDisposal ?? false)) ...[
-                  const SizedBox(height: AppTheme.paddingRegular),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    children: [
-                      if (classification.isRecyclable ?? false)
-                        _buildPropertyBadge(
-                            Icons.recycling, 'Recyclable', Colors.blue),
-                      if (classification.isCompostable ?? false)
-                        _buildPropertyBadge(
-                            Icons.eco, 'Compostable', Colors.green),
-                      if (classification.requiresSpecialDisposal ?? false)
-                        _buildPropertyBadge(Icons.warning_amber,
-                            'Special Disposal', Colors.orange),
-                    ],
-                  ),
-                ],
-
-                const SizedBox(height: AppTheme.paddingRegular),
-
-                // Explanation
-                const Text(
-                  AppStrings.explanation,
-                  style: TextStyle(
-                    fontSize: AppTheme.fontSizeRegular,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  classification.explanation,
-                  style: const TextStyle(fontSize: AppTheme.fontSizeRegular),
-                ),
-
-                // Disposal method if available
-                if (classification.disposalMethod != null) ...[
-                  const SizedBox(height: AppTheme.paddingRegular),
-                  const Text(
-                    'Disposal Instructions',
-                    style: TextStyle(
-                      fontSize: AppTheme.fontSizeRegular,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    classification.disposalMethod!,
-                    style: const TextStyle(fontSize: AppTheme.fontSizeRegular),
-                  ),
-                ],
-
-                const SizedBox(height: AppTheme.paddingRegular),
-
-                // Disposal instructions
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(AppTheme.paddingRegular),
-                  decoration: BoxDecoration(
-                    color: categoryColor.withOpacity(0.1),
-                    borderRadius:
-                        BorderRadius.circular(AppTheme.borderRadiusSmall),
-                    border: Border.all(color: categoryColor.withOpacity(0.5)),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Icon(Icons.info_outline, color: categoryColor),
-                          const SizedBox(width: 8),
-                          Text(
-                            'How to dispose',
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              color: categoryColor,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 4),
-                      Text(_getDisposalInstructions()),
-                      const SizedBox(height: 8),
-                      Text(
-                        'Examples: ${_getExamples()}',
-                        style: const TextStyle(
-                          fontSize: AppTheme.fontSizeSmall,
-                          fontStyle: FontStyle.italic,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-
-                const SizedBox(height: AppTheme.paddingRegular),
-
-                // Action buttons
-                if (onShare != null || onSave != null)
-                  SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: [
-                        if (onSave != null)
-                          OutlinedButton.icon(
-                            onPressed: onSave,
-                            icon: Icon(
-                              (classification.isSaved ?? false) ? Icons.check : Icons.save,
-                              color: (classification.isSaved ?? false) ? Colors.green : categoryColor,
-                            ),
-                            label: Text(
-                              (classification.isSaved ?? false) ? 'Saved' : AppStrings.saveResult,
-                            ),
-                            style: OutlinedButton.styleFrom(
-                              foregroundColor: (classification.isSaved ?? false) ? Colors.green : categoryColor,
-                              side: BorderSide(
-                                color: (classification.isSaved ?? false) ? Colors.green : categoryColor,
-                              ),
-                            ),
-                          ),
-                        if (onSave != null && onShare != null)
-                          const SizedBox(width: AppTheme.paddingRegular),
-                        if (onShare != null)
-                          ElevatedButton.icon(
-                            onPressed: onShare,
-                            icon: const Icon(Icons.share),
-                            label: const Text(AppStrings.shareResult),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: categoryColor,
-                              foregroundColor: Colors.white,
-                            ),
-                          ),
-                      ],
-                    ),
-                  ),
-              ],
+              ),
             ),
-          ),
-        ],
+            if (classification.explanation.isNotEmpty)
+              Padding(
+                padding: const EdgeInsets.only(top: 4.0, bottom: 4.0),
+                child: Text(
+                  classification.explanation,
+                  style: const TextStyle(fontSize: 12, color: AppTheme.textSecondaryColor),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            // Add more details as needed, always with overflow protection
+          ],
+        ),
       ),
     );
   }

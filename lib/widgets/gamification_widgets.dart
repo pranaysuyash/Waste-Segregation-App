@@ -138,155 +138,53 @@ class ChallengeCard extends StatelessWidget {
       ),
       child: InkWell(
         onTap: onTap,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Header
-            Container(
-              padding: const EdgeInsets.all(AppTheme.paddingSmall),
-              color: challenge.color.withOpacity(0.1),
-              child: Row(
-                children: [
-                  Icon(
-                    AppIcons.fromString(challenge.iconName),
-                    color: challenge.color,
-                    size: 18,
-                  ),
-                  const SizedBox(width: 4),
-                  Expanded(
-                    child: Text(
-                      'Daily Challenge',
-                      style: TextStyle(
-                        color: challenge.color,
-                        fontWeight: FontWeight.bold,
-                        fontSize: AppTheme.fontSizeSmall,
-                      ),
-                    ),
-                  ),
-                  if (!challenge.isCompleted) ...[
+        child: Padding(
+          padding: const EdgeInsets.all(AppTheme.paddingRegular),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Header
+              Container(
+                padding: const EdgeInsets.all(AppTheme.paddingSmall),
+                color: challenge.color.withOpacity(0.1),
+                child: Row(
+                  children: [
                     Icon(
-                      Icons.timer_outlined,
-                      size: 12,
-                      color: daysLeft < 2 ? Colors.orange : challenge.color,
+                      AppIcons.fromString(challenge.iconName),
+                      color: challenge.color,
+                      size: 24,
                     ),
-                    const SizedBox(width: 2),
-                    Text(
-                      daysLeft > 0
-                          ? '$daysLeft ${daysLeft == 1 ? 'day' : 'days'} left'
-                          : 'Today',
-                      style: TextStyle(
-                        fontSize: 10,
-                        color: daysLeft < 2 ? Colors.orange : challenge.color,
-                      ),
-                    ),
-                  ] else
-                    Text(
-                      'COMPLETED',
-                      style: TextStyle(
-                        fontSize: 10,
-                        fontWeight: FontWeight.bold,
-                        color: challenge.color,
-                      ),
-                    ),
-                ],
-              ),
-            ),
-
-            // Challenge content
-            Padding(
-              padding: const EdgeInsets.all(AppTheme.paddingSmall),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Title
-                  Text(
-                    challenge.title,
-                    style: const TextStyle(
-                      fontSize: AppTheme.fontSizeRegular,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 2),
-                  // Description
-                  Text(
-                    challenge.description,
-                    style: const TextStyle(
-                      fontSize: AppTheme.fontSizeSmall,
-                      color: AppTheme.textSecondaryColor,
-                    ),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  const SizedBox(height: 8),
-                  // Progress and reward
-                  Row(
-                    children: [
-                      // Progress bar
-                      Expanded(
-                        flex: 3,
-                        child: ClipRRect(
-                          borderRadius:
-                              BorderRadius.circular(AppTheme.borderRadiusSmall),
-                          child: LinearProgressIndicator(
-                            value: challenge.progress,
-                            minHeight: 8,
-                            backgroundColor: Colors.grey.shade200,
-                            valueColor:
-                                AlwaysStoppedAnimation<Color>(challenge.color),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      // Percentage
-                      Text(
-                        '${(challenge.progress * 100).toInt()}%',
-                        style: TextStyle(
-                          fontSize: AppTheme.fontSizeSmall,
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        challenge.title,
+                        style: const TextStyle(
                           fontWeight: FontWeight.bold,
-                          color: challenge.isCompleted
-                              ? challenge.color
-                              : AppTheme.textSecondaryColor,
+                          fontSize: 16,
                         ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
-                      const Spacer(),
-                      // Reward
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 2,
-                        ),
-                        decoration: BoxDecoration(
-                          color: Colors.amber.withOpacity(0.1),
-                          borderRadius:
-                              BorderRadius.circular(AppTheme.borderRadiusSmall),
-                          border: Border.all(
-                            color: Colors.amber.withOpacity(0.3),
-                          ),
-                        ),
-                        child: Row(
-                          children: [
-                            Icon(
-                              Icons.stars,
-                              color: Colors.amber,
-                              size: 12,
-                            ),
-                            const SizedBox(width: 2),
-                            Text(
-                              '+${challenge.pointsReward}',
-                              style: const TextStyle(
-                                fontSize: 10,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
+                    ),
+                  ],
+                ),
               ),
-            ),
-          ],
+              const SizedBox(height: 8),
+              Text(
+                challenge.description,
+                style: const TextStyle(fontSize: 13),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Ends in $daysLeft days',
+                style: const TextStyle(fontSize: 12, color: AppTheme.textSecondaryColor),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ],
+          ),
         ),
       ),
     );
