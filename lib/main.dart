@@ -266,17 +266,17 @@ class WasteSegregationApp extends StatelessWidget {
         // Provide existing service instances
         Provider<StorageService>.value(value: storageService),
         Provider<AiService>.value(value: aiService),
-        Provider<AnalyticsService>.value(value: analyticsService),
+        ChangeNotifierProvider<AnalyticsService>.value(value: analyticsService),
         Provider<GoogleDriveService>.value(value: googleDriveService),
         Provider<EducationalContentService>.value(value: educationalContentService),
-        ChangeNotifierProvider<GamificationService>.value(value: gamificationService),
+        Provider<GamificationService>.value(value: gamificationService),
         ChangeNotifierProvider<PremiumService>.value(value: premiumService),
-        Provider<AdService>.value(value: adService),
-        Provider<NavigationSettingsService>.value(value: navigationSettingsService),
+        ChangeNotifierProvider<AdService>.value(value: adService),
+        ChangeNotifierProvider<NavigationSettingsService>.value(value: navigationSettingsService),
         Provider<CommunityService>.value(value: communityService),
 
         // Other providers
-        ChangeNotifierProvider(create: (_) => UserConsentService()),
+        Provider(create: (_) => UserConsentService()),
         Provider(create: (context) => CloudStorageService(context.read<StorageService>())),
       ],
       child: Consumer<ThemeProvider>(

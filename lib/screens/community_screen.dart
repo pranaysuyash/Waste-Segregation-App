@@ -15,7 +15,6 @@ class CommunityScreen extends StatefulWidget {
 
 class _CommunityScreenState extends State<CommunityScreen> with TickerProviderStateMixin {
   late TabController _tabController;
-  final CommunityService _communityService = CommunityService();
   List<CommunityFeedItem> _feedItems = [];
   CommunityStats? _stats;
   bool _isLoading = true;
@@ -37,19 +36,20 @@ class _CommunityScreenState extends State<CommunityScreen> with TickerProviderSt
   Future<void> _loadCommunityData() async {
     try {
       final storageService = Provider.of<StorageService>(context, listen: false);
+      final communityService = Provider.of<CommunityService>(context, listen: false);
       final userProfile = await storageService.getCurrentUserProfile();
       _currentUserId = userProfile?.id ?? 'guest_user';
       
-      await _communityService.initCommunity();
+      await communityService.initCommunity();
       
       // Generate sample data if feed is empty
-      final existingItems = await _communityService.getFeedItems();
+      final existingItems = await communityService.getFeedItems();
       if (existingItems.isEmpty) {
-        await _communityService.generateSampleCommunityData();
+        await communityService.generateSampleCommunityData();
       }
       
-      final feedItems = await _communityService.getFeedItems();
-      final stats = await _communityService.getStats();
+      final feedItems = await communityService.getFeedItems();
+      final stats = await communityService.getStats();
       
       if (mounted) {
         setState(() {
