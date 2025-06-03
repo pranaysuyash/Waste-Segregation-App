@@ -198,6 +198,7 @@ For comprehensive documentation including setup guides, technical details, and p
 - **[🚀 Quick Start Guide](docs/guides/developer_guide.md)** - Development setup instructions
 - **[📊 Project Status](docs/project/status.md)** - Current development status
 - **[🔧 Technical Documentation](docs/technical/README.md)** - Recent fixes and technical details
+- **[🧪 Testing Guide](docs/testing/TESTING_GUIDE.md)** - Comprehensive testing documentation and best practices
 - **[📋 Resolution Plan](docs/planning/RESOLUTION_PLAN.md)** - Priority issues and fixes
 - **[🗺️ Project Roadmap](docs/planning/roadmap/unified_project_roadmap.md)** - Development roadmap and timeline
 - **[❓ Troubleshooting](docs/reference/troubleshooting.md)** - Common issues and solutions
