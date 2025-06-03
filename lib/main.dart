@@ -4,7 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter/foundation.dart' show kIsWeb, kDebugMode;
+import 'package:flutter/foundation.dart' show kIsWeb, kDebugMode, debugPrint;
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 
 import 'firebase_options.dart';
@@ -80,31 +80,31 @@ Future<void> originalMain() async {
 
   // Environment variables are now loaded via --dart-define-from-file=.env
   if (kDebugMode) {
-    print('Environment variables loaded via --dart-define-from-file');
+    debugPrint('Environment variables loaded via --dart-define-from-file');
   }
 
   if (!kIsWeb) {
     if (kDebugMode) {
-      print('Before setPreferredOrientations');
+      debugPrint('Before setPreferredOrientations');
     }
     await SystemChrome.setPreferredOrientations([
       DeviceOrientation.portraitUp,
       DeviceOrientation.portraitDown,
     ]);
     if (kDebugMode) {
-      print('After setPreferredOrientations');
+      debugPrint('After setPreferredOrientations');
     }
   }
 
   if (kDebugMode) {
-    print('Before Firebase.initializeApp');
+    debugPrint('Before Firebase.initializeApp');
   }
   try {
     await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,
     );
     if (kDebugMode) {
-      print('Firebase initialized successfully');
+      debugPrint('Firebase initialized successfully');
     }
     
     // Test Firestore connection and enable API if needed
@@ -112,18 +112,18 @@ Future<void> originalMain() async {
       final firestore = FirebaseFirestore.instance;
       await firestore.enableNetwork();
       if (kDebugMode) {
-        print('Firestore network enabled successfully');
+        debugPrint('Firestore network enabled successfully');
       }
       
       // Test basic Firestore operation
       await firestore.collection('test').limit(1).get();
       if (kDebugMode) {
-        print('Firestore API is accessible');
+        debugPrint('Firestore API is accessible');
       }
     } catch (firestoreError) {
       if (kDebugMode) {
-        print('Firestore API error: $firestoreError');
-        print('Please enable Firestore API at: https://console.developers.google.com/apis/api/firestore.googleapis.com/overview?project=waste-segregation-app-df523');
+        debugPrint('Firestore API error: $firestoreError');
+        debugPrint('Please enable Firestore API at: https://console.developers.google.com/apis/api/firestore.googleapis.com/overview?project=waste-segregation-app-df523');
       }
       // Continue without Firestore - app can still function
     }
@@ -138,17 +138,17 @@ Future<void> originalMain() async {
     // --- End test ---
   } catch (e) {
     if (kDebugMode) {
-      print('Failed to initialize Firebase: $e');
+      debugPrint('Failed to initialize Firebase: $e');
     }
     // Continue with app initialization even if Firebase fails
   }
 
   if (kDebugMode) {
-    print('Before StorageService.initializeHive');
+    debugPrint('Before StorageService.initializeHive');
   }
   await StorageService.initializeHive();
   if (kDebugMode) {
-    print('After StorageService.initializeHive');
+    debugPrint('After StorageService.initializeHive');
   }
 
   // Initialize Error Handler
@@ -166,7 +166,7 @@ Future<void> originalMain() async {
   final navigationSettingsService = NavigationSettingsService();
 
   if (kDebugMode) {
-    print('Before service initializations');
+    debugPrint('Before service initializations');
   }
   await Future.wait([
     gamificationService.initGamification(),
@@ -174,11 +174,11 @@ Future<void> originalMain() async {
     adService.initialize(),
   ]);
   if (kDebugMode) {
-    print('After service initializations');
+    debugPrint('After service initializations');
   }
 
   if (kDebugMode) {
-    print('Before runApp');
+    debugPrint('Before runApp');
   }
   runApp(WasteSegregationApp(
     storageService: storageService,
@@ -192,7 +192,7 @@ Future<void> originalMain() async {
     navigationSettingsService: navigationSettingsService,
   ));
   if (kDebugMode) {
-    print('After runApp');
+    debugPrint('After runApp');
   }
 }
 
@@ -202,8 +202,8 @@ void _setupErrorHandling() {
     // Log to console in debug mode
     if (kDebugMode) {
       FlutterError.presentError(details);
-      print('🚨 Flutter Error Captured: ${details.exception}');
-      print('📍 Stack: ${details.stack}');
+      debugPrint('🚨 Flutter Error Captured: ${details.exception}');
+      debugPrint('📍 Stack: ${details.stack}');
     }
     
     // Send to Crashlytics in release mode
@@ -215,8 +215,8 @@ void _setupErrorHandling() {
   // Capture errors outside of Flutter framework
   PlatformDispatcher.instance.onError = (error, stack) {
     if (kDebugMode) {
-      print('🚨 Platform Error Captured: $error');
-      print('📍 Stack: $stack');
+      debugPrint('🚨 Platform Error Captured: $error');
+      debugPrint('📍 Stack: $stack');
     }
     
     if (!kDebugMode) {

@@ -91,8 +91,8 @@ class StorageService {
     final classificationWithUserId = classification.copyWith(userId: currentUserId);
     
     // Debug logging
-    debugPrint('💾 Saving classification for user: $currentUserId');
-    debugPrint('💾 Classification: ${classification.itemName}');
+    debugPrint('💾 Saving classification for user: $currentUserId'); // TODO: Remove or guard for production
+    debugPrint('💾 Classification: ${classification.itemName}'); // TODO: Remove or guard for production
     
     final String key = 'classification_${currentUserId}_${DateTime.now().millisecondsSinceEpoch}';
     await classificationsBox.put(key, jsonEncode(classificationWithUserId.toJson()));
@@ -115,18 +115,18 @@ class StorageService {
     }
 
     // Debug logging - ENHANCED
-    debugPrint('=== CLASSIFICATION LOADING DEBUG ===');
-    debugPrint('📖 Current user ID: $currentUserId');
-    debugPrint('📖 User profile: ${userProfile?.toJson()}');
-    debugPrint('📖 Total classifications in storage: ${classificationsBox.keys.length}');
-    debugPrint('📖 All keys in storage: ${classificationsBox.keys.toList()}');
+    debugPrint('=== CLASSIFICATION LOADING DEBUG ==='); // TODO: Remove or guard for production
+    debugPrint('📖 Current user ID: $currentUserId'); // TODO: Remove or guard for production
+    debugPrint('📖 User profile: ${userProfile?.toJson()}'); // TODO: Remove or guard for production
+    debugPrint('📖 Total classifications in storage: ${classificationsBox.keys.length}'); // TODO: Remove or guard for production
+    debugPrint('📖 All keys in storage: ${classificationsBox.keys.toList()}'); // TODO: Remove or guard for production
     
     // Debug all classifications in storage
     for (var key in classificationsBox.keys) {
       final String jsonString = classificationsBox.get(key);
       final Map<String, dynamic> json = jsonDecode(jsonString);
       final classification = WasteClassification.fromJson(json);
-      debugPrint('📖 Classification: ${classification.itemName} | userId: ${classification.userId} | timestamp: ${classification.timestamp}');
+      debugPrint('📖 Classification: ${classification.itemName} | userId: ${classification.userId} | timestamp: ${classification.timestamp}'); // TODO: Remove or guard for production
     }
     
     for (var key in classificationsBox.keys) {
@@ -143,23 +143,23 @@ class StorageService {
                        classification.userId == null ||
                        (classification.userId != null && 
                         classification.userId!.startsWith('guest_'));
-        debugPrint('📖 Guest mode check: $shouldInclude (userId: ${classification.userId})');
+        debugPrint('📖 Guest mode check: $shouldInclude (userId: ${classification.userId})'); // TODO: Remove or guard for production
       } else {
         // For signed-in users, only include their own classifications
         shouldInclude = classification.userId == currentUserId;
-        debugPrint('📖 Signed-in mode check: $shouldInclude (looking for: $currentUserId, found: ${classification.userId})');
+        debugPrint('📖 Signed-in mode check: $shouldInclude (looking for: $currentUserId, found: ${classification.userId})'); // TODO: Remove or guard for production
       }
       
       if (shouldInclude) {
         classifications.add(classification);
-        debugPrint('📖 ✅ Including classification: ${classification.itemName}');
+        debugPrint('📖 ✅ Including classification: ${classification.itemName}'); // TODO: Remove or guard for production
       } else {
-        debugPrint('📖 ❌ Excluding classification: ${classification.itemName} (different user)');
+        debugPrint('📖 ❌ Excluding classification: ${classification.itemName} (different user)'); // TODO: Remove or guard for production
       }
     }
     
-    debugPrint('📖 Total classifications loaded for user $currentUserId: ${classifications.length}');
-    debugPrint('=====================================');
+    debugPrint('📖 Total classifications loaded for user $currentUserId: ${classifications.length}'); // TODO: Remove or guard for production
+    debugPrint('====================================='); // TODO: Remove or guard for production
 
     // Apply filters if provided
     if (filterOptions != null && filterOptions.isNotEmpty) {
@@ -731,11 +731,11 @@ class StorageService {
         await classificationsBox.put(key, jsonEncode(migratedClassification.toJson()));
         migratedCount++;
         
-        debugPrint('🔄 Migrated classification: ${classification.itemName} to user ${userProfile.id}');
+        debugPrint('🔄 Migrated classification: ${classification.itemName} to user ${userProfile.id}'); // TODO: Remove or guard for production
       }
     }
     
-    debugPrint('✅ Successfully migrated $migratedCount classifications');
+    debugPrint('✅ Successfully migrated $migratedCount classifications'); // TODO: Remove or guard for production
     return migratedCount;
   }
 

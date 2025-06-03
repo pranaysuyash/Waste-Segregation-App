@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../utils/share_service.dart';
+import 'package:flutter/foundation.dart';
 
 /// A reusable share button widget that can be added to any screen
 class ShareButton extends StatelessWidget {
@@ -56,7 +57,7 @@ class ShareButton extends StatelessWidget {
         } else {
           // Use callback for custom notification
           ShareService.onShareComplete = (message) {
-            print('Share complete: $message');
+            debugPrint('Share complete: $message'); // TODO: Remove or guard for production
             // No visual notification
           };
           
@@ -124,7 +125,7 @@ class ShareFloatingActionButton extends StatelessWidget {
         } else {
           // Use callback for custom notification
           ShareService.onShareComplete = (message) {
-            print('Share complete: $message');
+            debugPrint('Share complete: $message'); // TODO: Remove or guard for production
             // No visual notification
           };
           

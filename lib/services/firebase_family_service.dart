@@ -1,4 +1,4 @@
-THIS SHOULD BE A LINTER ERRORimport 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:uuid/uuid.dart';
 import '../models/enhanced_family.dart' as family_models;
 import '../models/family_invitation.dart' as invitation_models;
@@ -6,6 +6,7 @@ import '../models/user_profile.dart' as user_profile_models;
 import '../models/waste_classification.dart';
 import '../models/gamification.dart' show FamilyReaction, FamilyComment, FamilyReactionType, ClassificationLocation;
 import '../models/shared_waste_classification.dart' show SharedWasteClassification;
+import 'package:flutter/foundation.dart';
 
 /// Service for managing family-related data in Firebase Firestore.
 class FirebaseFamilyService {
@@ -136,8 +137,7 @@ class FirebaseFamilyService {
       }
       return family_models.Family.fromJson(doc.data()!);
     }).handleError((error) {
-      // Log error or handle appropriately
-      print('Error in getFamilyStream: $error');
+      debugPrint('Error in getFamilyStream: $error'); // TODO: Remove or guard for production
       throw Exception('Failed to stream family data: $error');
     });
   }
@@ -313,7 +313,7 @@ class FirebaseFamilyService {
       }
       return memberProfiles;
     }).handleError((error) {
-      print('Error in getFamilyMembersStream: $error');
+      debugPrint('Error in getFamilyMembersStream: $error'); // TODO: Remove or guard for production
       throw Exception('Failed to stream family members: $error');
     });
   }
@@ -417,8 +417,7 @@ class FirebaseFamilyService {
           .map((doc) => SharedWasteClassification.fromJson(doc.data()))
           .toList();
     }).handleError((error) {
-      // Log error or handle appropriately
-      print('Error in getFamilyClassificationsStream: $error');
+      debugPrint('Error in getFamilyClassificationsStream: $error'); // TODO: Remove or guard for production
       throw Exception('Failed to stream family classifications: $error');
     });
   }
@@ -704,7 +703,7 @@ class FirebaseFamilyService {
           .map((doc) => invitation_models.FamilyInvitation.fromJson(doc.data()))
           .toList();
     }).handleError((error) {
-      print('Error in getInvitationsStream: $error');
+      debugPrint('Error in getInvitationsStream: $error'); // TODO: Remove or guard for production
       throw Exception('Failed to stream invitations: $error');
     });
   }
@@ -720,8 +719,7 @@ class FirebaseFamilyService {
 
       await _firestore.collection(_usersCollection).doc(userId).update(data);
     } catch (e) {
-      // Log the error but don't re-throw, as this is a helper function and the main operation might still succeed
-      print('Error updating user familyId: $e');
+      debugPrint('Error updating user familyId: $e'); // TODO: Remove or guard for production
     }
   }
 
@@ -785,7 +783,7 @@ class FirebaseFamilyService {
     // This method needs to be re-evaluated as Family model does not have a stats property directly.
     // It might involve updating a separate 'family_stats' collection or denormalizing stats into the family document.
     // For now, this will be a no-op to prevent errors.
-    print('Skipping _updateFamilyStatsAfterClassification as Family.stats is not directly available.');
+    debugPrint('Skipping _updateFamilyStatsAfterClassification as Family.stats is not directly available.'); // TODO: Remove or guard for production
     return;
     /* try {
       final family = await getFamily(familyId);
@@ -802,7 +800,7 @@ class FirebaseFamilyService {
       // await updateFamily(updatedFamily);
     } catch (e) {
       // Log error but don't throw to avoid breaking classification flow
-      print('Failed to update family stats: $e');
+      debugPrint('Failed to update family stats: $e'); // TODO: Remove or guard for production
     }*/
   }
 

@@ -23,7 +23,7 @@ class PlatformCamera {
         final cameraStatus = await Permission.camera.status;
         
         if (cameraStatus.isGranted) {
-          debugPrint('Camera permission already granted');
+          debugPrint('Camera permission already granted'); // TODO: Remove or guard for production
           return true;
         } else if (cameraStatus.isDenied) {
           debugPrint('Camera permission denied, requesting...');
