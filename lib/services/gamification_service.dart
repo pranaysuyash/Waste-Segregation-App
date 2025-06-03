@@ -111,6 +111,7 @@ class GamificationService {
     }
 
     if (currentUserProfile.gamificationProfile != null) {
+      debugPrint('✅ GamificationService: Found existing gamification profile for user ${currentUserProfile.id}');
       return currentUserProfile.gamificationProfile!;
     } else {
       // Logged-in user, but no gamification profile exists yet. Create one.
@@ -139,6 +140,7 @@ class GamificationService {
       try {
         await saveProfile(newGamificationProfile); // This will save UserProfile locally and to Firestore
         debugPrint('💾 New gamification profile saved successfully');
+        debugPrint('📊 Profile initialized with ${newGamificationProfile.achievements.length} achievements and ${newGamificationProfile.activeChallenges.length} challenges');
       } catch (e) {
         debugPrint('🔥 Failed to save new gamification profile: $e');
         // Return the profile anyway, even if saving failed
@@ -202,12 +204,11 @@ class GamificationService {
     var currentUserProfile = await _storageService.getCurrentUserProfile();
 
     if (currentUserProfile == null || currentUserProfile.id.isEmpty) {
-      debugPrint('🚫 GamificationService: Cannot save gamification profile. No authenticated user profile found.');
-      // Optionally, save to legacy Hive for guest state if that's a desired feature.
-      // For now, we assume saves are for authenticated users.
-      // final box = Hive.box(_gamificationBoxName);
-      // await box.put(_legacyProfileKey, jsonEncode(gamificationProfileToSave.toJson()));
-      // debugPrint("⚠️ Saved gamification profile to legacy local storage for unauthenticated session.");
+      debugPrint('🚫 GamificationService: No authenticated user profile found. Saving to legacy Hive for guest session.');
+      // Save to legacy Hive for guest state
+      final box = Hive.box(_gamificationBoxName);
+      await box.put(_legacyProfileKey, jsonEncode(gamificationProfileToSave.toJson()));
+      debugPrint("✅ Saved gamification profile to legacy local storage for guest session.");
       return;
     }
 
@@ -225,11 +226,13 @@ class GamificationService {
     try {
       await _storageService.saveUserProfile(updatedUserProfile);
       debugPrint('💾 GamificationService: UserProfile with updated gamification data saved locally.');
+      debugPrint('📊 Updated profile - Points: ${gamificationProfileToSave.points.total}, Level: ${gamificationProfileToSave.points.level}, Achievements: ${gamificationProfileToSave.achievements.where((a) => a.isEarned).length}/${gamificationProfileToSave.achievements.length}');
 
       await _cloudStorageService.saveUserProfileToFirestore(updatedUserProfile);
       debugPrint('☁️ GamificationService: UserProfile with updated gamification data synced to Firestore (triggers leaderboard update).');
     } catch (e) {
       debugPrint('🔥 GamificationService: Error saving user profile (local or cloud): $e');
+      debugPrint('🔧 Stack trace: ${StackTrace.current}');
       // Decide on error handling strategy. For now, just logging.
       rethrow;
     }
@@ -343,7 +346,7 @@ if (pointsToAdd == 0 && customPoints == null) {
     final newTotal = points.total + pointsToAdd;
     final newWeekly = points.weeklyTotal + pointsToAdd;
     final newMonthly = points.monthlyTotal + pointsToAdd;
-    final newLevel = (newTotal / 100).floor(); // Level is 0-indexed, 100 pts = level 1
+    final newLevel = (newTotal / 100).floor() + 1; // Level is 1-indexed: 0-99 pts = level 1, 100-199 pts = level 2
     
     final newCategoryPoints = Map<String, int>.from(points.categoryPoints);
     if (category != null && category.isNotEmpty) {
@@ -1424,6 +1427,75 @@ if (pointsToAdd == 0 && customPoints == null) {
       debugPrint('🔄 Streak reset to yesterday for testing');
     } catch (e) {
       debugPrint('❌ Error resetting streak: $e');
+    }
+  }
+
+  /// Force refresh gamification profile from storage
+  Future<GamificationProfile> forceRefreshProfile() async {
+    try {
+      debugPrint('🔄 Force refreshing gamification profile...');
+      
+      // Clear any cached data and reload from storage
+      var currentUserProfile = await _storageService.getCurrentUserProfile();
+      
+      if (currentUserProfile == null || currentUserProfile.id.isEmpty) {
+        debugPrint('⚠️ No user profile found during force refresh');
+        return await getProfile(); // Fallback to regular getProfile
+      }
+      
+      // Reload user profile from storage to get latest data
+      try {
+        final refreshedProfile = await _storageService.getCurrentUserProfile();
+        if (refreshedProfile != null && refreshedProfile.gamificationProfile != null) {
+          debugPrint('💾 Loaded refreshed gamification profile from local storage');
+          return refreshedProfile.gamificationProfile!;
+        }
+      } catch (e) {
+        debugPrint('⚠️ Failed to refresh from local storage: $e');
+      }
+      
+      // Fallback to creating new profile if none exists
+      debugPrint('🆕 Creating new gamification profile during force refresh');
+      return await getProfile();
+      
+    } catch (e) {
+      debugPrint('🔥 Error during force refresh: $e');
+      return await getProfile(); // Fallback to regular getProfile
+    }
+  }
+
+  /// Sync gamification data across all app components
+  Future<void> syncGamificationData() async {
+    try {
+      debugPrint('🔄 Syncing gamification data across app components...');
+      
+      // Force refresh profile
+      final profile = await forceRefreshProfile();
+      
+      // Update streak for today if needed
+      await updateStreak();
+      
+      // Ensure achievements are properly initialized
+      if (profile.achievements.isEmpty) {
+        debugPrint('🏆 Initializing default achievements');
+        final updatedProfile = profile.copyWith(achievements: getDefaultAchievements());
+        await saveProfile(updatedProfile);
+      }
+      
+      // Ensure challenges are loaded
+      if (profile.activeChallenges.isEmpty) {
+        debugPrint('🎯 Loading default challenges');
+        final challenges = await _loadDefaultChallengesFromHive();
+        if (challenges.isNotEmpty) {
+          final updatedProfile = profile.copyWith(activeChallenges: challenges);
+          await saveProfile(updatedProfile);
+        }
+      }
+      
+      debugPrint('✅ Gamification data sync completed');
+      
+    } catch (e) {
+      debugPrint('🔥 Error syncing gamification data: $e');
     }
   }
 }

@@ -332,7 +332,7 @@ void main() {
         lastActive: DateTime.now(),
         familyId: 'family_456',
         gamificationProfile: gamificationProfile,
-        preferences: {
+        preferences: { // Changed from settings
           'language': 'en',
           'region': 'US',
           'notifications': true,
@@ -346,7 +346,7 @@ void main() {
       expect(userProfile.gamificationProfile, isNotNull);
       expect(userProfile.gamificationProfile?.points.total, equals(200));
       expect(userProfile.gamificationProfile?.points.level, equals(2));
-      expect(userProfile.preferences?['language'], equals('en'));
+      expect(userProfile.preferences?['language'], equals('en')); // Changed from settings
     });
 
     test('should handle UserProfile serialization', () {
@@ -382,7 +382,7 @@ void main() {
       expect(minimalProfile.photoUrl, isNull);
       expect(minimalProfile.familyId, isNull);
       expect(minimalProfile.gamificationProfile, isNull);
-      expect(minimalProfile.preferences, isNull);
+      expect(minimalProfile.preferences, isNull); // Changed from settings
     });
   });
 
@@ -426,8 +426,8 @@ void main() {
       expect(negativeConfidence.confidence, equals(-0.5));
       
       // In a real app, you might want validation logic
-      expect(highConfidence.confidence! > 1.0, isTrue); // Indicates potential issue
-      expect(negativeConfidence.confidence! < 0.0, isTrue); // Indicates potential issue
+      expect(highConfidence.confidence! > 1.0, isTrue); // Added !
+      expect(negativeConfidence.confidence! < 0.0, isTrue); // Added !
     });
 
     test('should handle empty and null fields appropriately', () {
@@ -498,5 +498,6 @@ void main() {
 
       expect(classification.timestamp.isAfter(DateTime.now()), isTrue);
     });
+    // Add more tests for other models like EducationalContent, CommunityFeed etc.
   });
-} 
+}

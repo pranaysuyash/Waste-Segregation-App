@@ -1,7 +1,10 @@
+import 'package:uuid/uuid.dart';
+
 /// Represents a waste classification result with comprehensive disposal information
 class WasteClassification {
 
   WasteClassification({
+    String? id,
     required this.itemName,
     required this.category,
     this.subcategory,
@@ -47,11 +50,13 @@ class WasteClassification {
     DateTime? timestamp,
     this.reanalysisModelsTried,
     this.confirmedByModel,
-  }) : timestamp = timestamp ?? DateTime.now();
+  }) : id = id ?? const Uuid().v4(),
+       timestamp = timestamp ?? DateTime.now();
 
   /// Creates a fallback classification when AI analysis fails
-  factory WasteClassification.fallback(String imagePath, {String? userId}) {
+  factory WasteClassification.fallback(String imagePath, {String? userId, String? id}) {
     return WasteClassification(
+      id: id ?? const Uuid().v4(),
       itemName: 'Unknown Item',
       category: 'Dry Waste',
       subcategory: 'Other Dry Waste',
@@ -75,6 +80,7 @@ class WasteClassification {
   /// Creates a WasteClassification from JSON data
   factory WasteClassification.fromJson(Map<String, dynamic> json) {
     return WasteClassification(
+      id: json['id'],
       itemName: json['itemName'] ?? 'Unknown Item',
       category: json['category'] ?? 'Dry Waste',
       subcategory: json['subcategory'],
@@ -144,6 +150,7 @@ class WasteClassification {
       confirmedByModel: json['confirmedByModel'],
     );
   }
+  final String id;
   final String itemName;
   final String category;
   final String? subcategory;
@@ -251,6 +258,7 @@ class WasteClassification {
   /// Converts the classification to JSON
   Map<String, dynamic> toJson() {
     return {
+      'id': id,
       'itemName': itemName,
       'category': category,
       'subcategory': subcategory,
@@ -301,6 +309,7 @@ class WasteClassification {
 
   /// Creates a copy with updated fields
   WasteClassification copyWith({
+    String? id,
     String? itemName,
     String? category,
     String? subcategory,
@@ -348,6 +357,7 @@ class WasteClassification {
     String? confirmedByModel,
   }) {
     return WasteClassification(
+      id: id ?? this.id,
       itemName: itemName ?? this.itemName,
       category: category ?? this.category,
       subcategory: subcategory ?? this.subcategory,

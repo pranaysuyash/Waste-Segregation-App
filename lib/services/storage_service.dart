@@ -9,6 +9,7 @@ import '../models/user_profile.dart';
 import '../utils/constants.dart';
 import 'gamification_service.dart';
 import 'cloud_storage_service.dart';
+import 'package:uuid/uuid.dart';
 
 class StorageService {
   // Initialize Hive database
@@ -86,9 +87,43 @@ class StorageService {
     // Debug logging
     debugPrint('💾 Saving classification for user: $currentUserId');
     debugPrint('💾 Classification: ${classification.itemName}');
+    debugPrint('💾 Classification ID: ${classification.id}');
     
-    final key = 'classification_${currentUserId}_${DateTime.now().millisecondsSinceEpoch}';
-    await classificationsBox.put(key, jsonEncode(classificationWithUserId.toJson()));
+    // ENHANCED DEDUPLICATION CHECK: Look for recent identical classifications
+    final now = DateTime.now();
+    final recentTimeWindow = now.subtract(const Duration(minutes: 5)); // 5-minute window
+    
+    // Get all existing classifications for this user
+    final existingClassifications = await getAllClassifications();
+    
+    // Check for duplicates based on multiple criteria
+    final isDuplicate = existingClassifications.any((existing) {
+      final isSameId = existing.id == classification.id;
+      final isSameContent = existing.itemName == classification.itemName &&
+                           existing.category == classification.category &&
+                           existing.subcategory == classification.subcategory;
+      final isRecent = existing.timestamp.isAfter(recentTimeWindow);
+      
+      // Also check for exact timestamp duplicates (critical for preventing same-session duplicates)
+      final isSameTimestamp = existing.timestamp.millisecondsSinceEpoch == classification.timestamp.millisecondsSinceEpoch;
+      
+      return (isSameId || (isSameContent && isRecent) || (isSameContent && isSameTimestamp));
+    });
+    
+    if (isDuplicate) {
+      debugPrint('🚫 DUPLICATE DETECTED: Skipping save for ${classification.itemName}');
+      debugPrint('🚫 Classification ID: ${classification.id}');
+      debugPrint('🚫 Timestamp: ${classification.timestamp}');
+      return; // Skip saving duplicate
+    }
+    
+    // Save using classification ID as key for consistent upserting
+    await classificationsBox.put(classification.id, classificationWithUserId.toJson());
+    
+    debugPrint('✅ Classification saved successfully');
+    debugPrint('✅ Total classifications in storage: ${classificationsBox.length}');
+    
+    // Note: UI refresh will happen through provider pattern in calling code
   }
 
   Future<List<WasteClassification>> getAllClassifications({FilterOptions? filterOptions}) async {
@@ -106,43 +141,153 @@ class StorageService {
     debugPrint('📖 Total classifications in storage: ${classificationsBox.keys.length}');
     debugPrint('📖 All keys in storage: ${classificationsBox.keys.toList()}');
     
+    // Counter for different types of classifications
+    var totalProcessed = 0;
+    var successfullyParsed = 0;
+    var includedForUser = 0;
+    var excludedDifferentUser = 0;
+    var corruptedEntries = 0;
+    var guestEntries = 0;
+    var signedInUserEntries = 0;
+    var nullUserIdEntries = 0;
+    
     // Debug all classifications in storage
     for (final key in classificationsBox.keys) {
-      final jsonString = classificationsBox.get(key);
-      final json = jsonDecode(jsonString);
-      final classification = WasteClassification.fromJson(json);
-      debugPrint('📖 Classification: ${classification.itemName} | userId: ${classification.userId} | timestamp: ${classification.timestamp}');
+      totalProcessed++;
+      try {
+        final data = classificationsBox.get(key);
+        if (data == null) {
+          debugPrint('📖 DEBUG: Skipping null entry for key: $key');
+          corruptedEntries++;
+          continue;
+        }
+        
+        Map<String, dynamic> json;
+        
+        // Handle both JSON string and Map formats
+        if (data is String) {
+          if (data.isEmpty) {
+            debugPrint('📖 DEBUG: Skipping empty string entry for key: $key');
+            corruptedEntries++;
+            continue;
+          }
+          json = jsonDecode(data);
+        } else if (data is Map<String, dynamic>) {
+          json = data;
+        } else if (data is Map) {
+          json = Map<String, dynamic>.from(data);
+        } else {
+          debugPrint('📖 DEBUG: Invalid data format for key: $key (${data.runtimeType})');
+          corruptedEntries++;
+          continue;
+        }
+        
+        final classification = WasteClassification.fromJson(json);
+        successfullyParsed++;
+        
+        // Count user ID types
+        if (classification.userId == null) {
+          nullUserIdEntries++;
+        } else if (classification.userId == 'guest_user' || classification.userId!.startsWith('guest_')) {
+          guestEntries++;
+        } else {
+          signedInUserEntries++;
+        }
+        
+        debugPrint('📖 Classification: ${classification.itemName} | userId: "${classification.userId}" | timestamp: ${classification.timestamp}');
+      } catch (e) {
+        debugPrint('📖 DEBUG: Error reading classification with key $key: $e');
+        corruptedEntries++;
+      }
     }
     
+    // Print debug summary for the first loop
+    debugPrint('📊 DEBUG SUMMARY - PARSING:');
+    debugPrint('📊 Total entries processed: $totalProcessed');
+    debugPrint('📊 Successfully parsed: $successfullyParsed');
+    debugPrint('📊 Corrupted entries: $corruptedEntries');
+    debugPrint('📊 Null userId entries: $nullUserIdEntries');
+    debugPrint('📊 Guest entries: $guestEntries');
+    debugPrint('📊 Signed-in user entries: $signedInUserEntries');
+    
+    // Now process classifications for the current user (main filtering loop)
     for (final key in classificationsBox.keys) {
-      final jsonString = classificationsBox.get(key);
-      final json = jsonDecode(jsonString);
-      final classification = WasteClassification.fromJson(json);
-      
-      // Include classifications based on user context
-      var shouldInclude = false;
-      
-      if (currentUserId == 'guest_user') {
-        // For guest users, include guest classifications and legacy null userId
-        shouldInclude = classification.userId == 'guest_user' || 
-                       classification.userId == null ||
-                       (classification.userId != null && 
-                        classification.userId!.startsWith('guest_'));
-        debugPrint('📖 Guest mode check: $shouldInclude (userId: ${classification.userId})');
-      } else {
-        // For signed-in users, only include their own classifications
-        shouldInclude = classification.userId == currentUserId;
-        debugPrint('📖 Signed-in mode check: $shouldInclude (looking for: $currentUserId, found: ${classification.userId})');
-      }
-      
-      if (shouldInclude) {
-        classifications.add(classification);
-        debugPrint('📖 ✅ Including classification: ${classification.itemName}');
-      } else {
-        debugPrint('📖 ❌ Excluding classification: ${classification.itemName} (different user)');
+      try {
+        final data = classificationsBox.get(key);
+        if (data == null) {
+          continue;
+        }
+        
+        Map<String, dynamic> json;
+        
+        // Handle both JSON string and Map formats
+        if (data is String) {
+          if (data.isEmpty) continue;
+          json = jsonDecode(data);
+        } else if (data is Map<String, dynamic>) {
+          json = data;
+        } else if (data is Map) {
+          json = Map<String, dynamic>.from(data);
+        } else {
+          debugPrint('📖 ⚠️ Invalid data format for key: $key (${data.runtimeType}), deleting corrupted entry');
+          await classificationsBox.delete(key);
+          continue;
+        }
+        
+        WasteClassification classification = WasteClassification.fromJson(json);
+        
+        // Assign a new ID if it's missing (for older entries) and save back
+        if (classification.id == null || classification.id.isEmpty) {
+          classification = classification.copyWith(id: const Uuid().v4());
+          // Always store as JSON string for consistency
+          await classificationsBox.put(key, jsonEncode(classification.toJson()));
+          debugPrint('📖 Generated and saved new ID for classification: ${classification.itemName}');
+        }
+        
+        // Include classifications based on user context
+        var shouldInclude = false;
+        
+        if (currentUserId == 'guest_user') {
+          // For guest users, include guest classifications and legacy null userId
+          shouldInclude = classification.userId == 'guest_user' || 
+                         classification.userId == null ||
+                         (classification.userId != null && 
+                          classification.userId!.startsWith('guest_'));
+          debugPrint('📖 Guest mode check for "${classification.itemName}": $shouldInclude (userId: "${classification.userId}")');
+        } else {
+          // For signed-in users, only include their own classifications
+          shouldInclude = classification.userId == currentUserId;
+          debugPrint('📖 Signed-in mode check for "${classification.itemName}": $shouldInclude (looking for: "$currentUserId", found: "${classification.userId}")');
+        }
+        
+        if (shouldInclude) {
+          classifications.add(classification);
+          includedForUser++;
+          debugPrint('📖 ✅ Including classification: ${classification.itemName}');
+        } else {
+          excludedDifferentUser++;
+          debugPrint('📖 ❌ Excluding classification: ${classification.itemName} (different user)');
+        }
+      } catch (e, stackTrace) {
+        debugPrint('📖 ❌ Error processing classification with key $key: $e');
+        debugPrint('📖 ❌ Stack trace: $stackTrace');
+        
+        // Delete corrupted entry to prevent future errors
+        try {
+          await classificationsBox.delete(key);
+          debugPrint('📖 🗑️ Deleted corrupted classification entry: $key');
+        } catch (deleteError) {
+          debugPrint('📖 ❌ Failed to delete corrupted entry: $deleteError');
+        }
       }
     }
     
+    // Final debug summary
+    debugPrint('📊 FINAL SUMMARY - FILTERING:');
+    debugPrint('📊 Current user ID: "$currentUserId"');
+    debugPrint('📊 Classifications included for user: $includedForUser');
+    debugPrint('📊 Classifications excluded (different user): $excludedDifferentUser');
+    debugPrint('📊 Total classifications returned: ${classifications.length}');
     debugPrint('📖 Total classifications loaded for user $currentUserId: ${classifications.length}');
     debugPrint('=====================================');
 
@@ -731,5 +876,69 @@ class StorageService {
     }
     
     return _applyFilters(classifications, filterOptions);
+  }
+
+  /// One-time cleanup to remove duplicate classifications
+  Future<int> cleanupDuplicateClassifications() async {
+    final classificationsBox = Hive.box(StorageKeys.classificationsBox);
+    final userProfile = await getCurrentUserProfile();
+    final currentUserId = userProfile?.id ?? 'guest_user';
+    
+    debugPrint('🧹 Starting duplicate cleanup for user: $currentUserId');
+    
+    // Load all classifications
+    final allKeys = classificationsBox.keys.toList();
+    final seenClassifications = <String, String>{}; // content hash -> key
+    final keysToDelete = <String>[];
+    var duplicatesFound = 0;
+    
+    for (final key in allKeys) {
+      try {
+        final data = classificationsBox.get(key);
+        if (data == null) continue;
+        
+        Map<String, dynamic> json;
+        if (data is String) {
+          if (data.isEmpty) continue;
+          json = jsonDecode(data);
+        } else if (data is Map<String, dynamic>) {
+          json = data;
+        } else if (data is Map) {
+          json = Map<String, dynamic>.from(data);
+        } else {
+          continue;
+        }
+        
+        final classification = WasteClassification.fromJson(json);
+        
+        // Only process classifications for current user
+        if (classification.userId != currentUserId) continue;
+        
+        // Create a unique identifier for this classification
+        final contentHash = '${classification.itemName}|${classification.category}|${classification.subcategory}|${classification.timestamp.millisecondsSinceEpoch}';
+        
+        if (seenClassifications.containsKey(contentHash)) {
+          // This is a duplicate, mark for deletion
+          keysToDelete.add(key);
+          duplicatesFound++;
+          debugPrint('🧹 Found duplicate: ${classification.itemName} at ${classification.timestamp}');
+        } else {
+          // First occurrence, keep it
+          seenClassifications[contentHash] = key;
+        }
+      } catch (e) {
+        debugPrint('🧹 Error processing key $key during cleanup: $e');
+        // Corrupted entry, mark for deletion
+        keysToDelete.add(key);
+      }
+    }
+    
+    // Delete all duplicates
+    for (final key in keysToDelete) {
+      await classificationsBox.delete(key);
+    }
+    
+    debugPrint('🧹 Cleanup complete: Removed $duplicatesFound duplicates');
+    return duplicatesFound;
   }
 }

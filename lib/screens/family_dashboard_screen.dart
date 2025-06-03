@@ -255,7 +255,66 @@ class _FamilyDashboardScreenState extends State<FamilyDashboardScreen> {
 
   Widget _buildStatsOverview(family_models.FamilyStats? stats) {
     if (stats == null) {
-      return const Center(child: Text('Statistics are currently unavailable.'));
+      // Enhanced empty state for new families
+      return Card(
+        elevation: AppTheme.elevationSm,
+        child: Padding(
+          padding: const EdgeInsets.all(AppTheme.paddingRegular),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Family Achievements',
+                style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: AppTheme.paddingRegular),
+              Container(
+                padding: const EdgeInsets.all(AppTheme.paddingLarge),
+                decoration: BoxDecoration(
+                  color: AppTheme.primaryColor.withValues(alpha: 0.05),
+                  borderRadius: BorderRadius.circular(AppTheme.borderRadiusRegular),
+                  border: Border.all(color: AppTheme.primaryColor.withValues(alpha: 0.1)),
+                ),
+                child: Column(
+                  children: [
+                    Icon(
+                      Icons.family_restroom,
+                      size: 48,
+                      color: AppTheme.primaryColor.withValues(alpha: 0.7),
+                    ),
+                    const SizedBox(height: AppTheme.paddingRegular),
+                    Text(
+                      'Welcome to your family!',
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: AppTheme.primaryColor,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: AppTheme.paddingSmall),
+                    Text(
+                      'Start classifying waste items together to build your family\'s environmental impact statistics.',
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: AppTheme.textSecondaryColor,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: AppTheme.paddingRegular),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: [
+                  _buildStatItem(Icons.recycling, '0', 'Items Classified', AppTheme.primaryColor),
+                  _buildStatItem(Icons.star, '0', 'Total Points', AppTheme.accentColor),
+                  _buildStatItem(Icons.leaderboard, '0 days', 'Current Streak', AppTheme.secondaryColor),
+                ],
+              ),
+            ],
+          ),
+        ),
+      );
     }
     return Card(
       elevation: AppTheme.elevationSm,

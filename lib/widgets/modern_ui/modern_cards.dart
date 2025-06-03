@@ -293,14 +293,16 @@ class StatsCard extends StatelessWidget {
           Row(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
-              Text(
-                value,
-                style: theme.textTheme.displaySmall?.copyWith(
-                  color: effectiveColor,
-                  fontWeight: FontWeight.bold,
+              Expanded(
+                child: Text(
+                  value,
+                  style: theme.textTheme.displaySmall?.copyWith(
+                    color: effectiveColor,
+                    fontWeight: FontWeight.bold,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
               ),
               if (trend != null) ...[
                 const SizedBox(width: 4),

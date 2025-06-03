@@ -264,14 +264,14 @@ class CloudStorageService {
     
     // Add local classifications first
     for (final classification in local) {
-      final key = '${classification.itemName}_${classification.timestamp.millisecondsSinceEpoch}';
-      mergedMap[key] = classification;
+      // Use the unique ID as the key for deduplication
+      mergedMap[classification.id] = classification;
     }
     
-    // Add cloud classifications (will overwrite local if same key)
+    // Add cloud classifications (will overwrite local if same ID)
     for (final classification in cloud) {
-      final key = '${classification.itemName}_${classification.timestamp.millisecondsSinceEpoch}';
-      mergedMap[key] = classification;
+      // Use the unique ID as the key for deduplication
+      mergedMap[classification.id] = classification;
     }
     
     // Convert back to list and sort by timestamp
@@ -288,11 +288,11 @@ class CloudStorageService {
     List<WasteClassification> cloud,
   ) async {
     try {
-      // Find cloud classifications that don't exist locally
-      final localTimestamps = local.map((c) => c.timestamp.millisecondsSinceEpoch).toSet();
+      // Find cloud classifications that don't exist locally using their unique IDs
+      final localIds = local.map((c) => c.id).toSet();
       
       final newCloudClassifications = cloud.where((cloudClassification) {
-        return !localTimestamps.contains(cloudClassification.timestamp.millisecondsSinceEpoch);
+        return !localIds.contains(cloudClassification.id);
       }).toList();
 
       if (newCloudClassifications.isNotEmpty) {

@@ -1,6 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
-import 'dart:math' show pow;
+import 'dart:math' show pow, sqrt;
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:image/image.dart' as img;
@@ -8,6 +8,7 @@ import '../models/waste_classification.dart';
 import '../utils/constants.dart';
 import '../utils/image_utils.dart';
 import '../services/cache_service.dart';
+import 'package:uuid/uuid.dart';
 
 /// Service for analyzing waste items using AI models (OpenAI and Gemini).
 ///
@@ -249,182 +250,373 @@ Output:
       debugPrint('✅ Image size acceptable for OpenAI');
       return imageBytes;
     }
-    
-    // If image exceeds OpenAI limit, we must compress or switch to Gemini
+
+    // Try to compress aggressively if over max size, moderately if over preferred
+    int quality = 90; // Starting quality
+    double scale = 1.0;
+    img.Image? image = img.decodeImage(imageBytes);
+
+    if (image == null) {
+      throw Exception('Could not decode image for compression.');
+    }
+
+    // Aggressive compression for very large images
     if (imageBytes.length > maxSizeBytes) {
-      debugPrint('⚠️ Image exceeds OpenAI 20MB limit, will compress aggressively or use Gemini');
-    } else {
-      debugPrint('⚠️ Image larger than preferred 5MB, compressing for better performance');
+      debugPrint('⚠️ Image size exceeds OpenAI max, attempting aggressive compression.');
+      quality = 60; // Lower quality
+      scale = 0.5; // Scale down
+    } else if (imageBytes.length > preferredSizeBytes) {
+      debugPrint('⚠️ Image size exceeds OpenAI preferred, attempting moderate compression.');
+      quality = 75; // Moderate quality
+      scale = 0.75; // Moderate scale down
+    }
+
+    if (scale < 1.0) {
+      image = img.copyResize(
+        image,
+        width: (image.width * scale).round(),
+        height: (image.height * scale).round(),
+      );
+    }
+
+    // Encode to JPEG
+    List<int> compressedBytes = img.encodeJpg(image, quality: quality);
+    debugPrint('Compressed image size: ${compressedBytes.length} bytes (${(compressedBytes.length / 1024 / 1024).toStringAsFixed(2)} MB)');
+
+    if (compressedBytes.length > maxSizeBytes) {
+      throw Exception('Image still too large after compression (${(compressedBytes.length / 1024 / 1024).toStringAsFixed(2)} MB). Max allowed is ${maxSizeBytes / 1024 / 1024} MB.');
     }
     
-    try {
-      // Decode the image
-      var image = img.decodeImage(imageBytes);
-      if (image == null) {
-        debugPrint('❌ Failed to decode image for compression');
-        throw Exception('Unable to decode image for compression');
-      }
-      
-      debugPrint('Original image dimensions: ${image.width}x${image.height}');
-      
-      // Calculate compression strategy
-      var targetWidth = image.width;
-      var targetHeight = image.height;
-      var quality = 85;
-      
-      // If image is too large, we need aggressive compression
-      if (imageBytes.length > maxSizeBytes) {
-        // Very aggressive compression for oversized images
-        const scaleFactor = 0.5; // Reduce dimensions by 50%
-        targetWidth = (image.width * scaleFactor).round();
-        targetHeight = (image.height * scaleFactor).round();
-        quality = 70;
-        debugPrint('🔄 Applying aggressive compression: ${targetWidth}x$targetHeight, quality: $quality');
-      } else {
-        // Moderate compression for large but acceptable images
-        const scaleFactor = 0.8; // Reduce dimensions by 20%
-        targetWidth = (image.width * scaleFactor).round();
-        targetHeight = (image.height * scaleFactor).round();
-        quality = 80;
-        debugPrint('🔄 Applying moderate compression: ${targetWidth}x$targetHeight, quality: $quality');
-      }
-      
-      // Resize image if needed
-      if (targetWidth != image.width || targetHeight != image.height) {
-        image = img.copyResize(image, width: targetWidth, height: targetHeight);
-        debugPrint('✅ Image resized to: ${image.width}x${image.height}');
-      }
-      
-      // Encode as JPEG with specified quality
-      final compressedBytes = Uint8List.fromList(img.encodeJpg(image, quality: quality));
-      
-      debugPrint('Compressed image size: ${compressedBytes.length} bytes (${(compressedBytes.length / 1024 / 1024).toStringAsFixed(2)} MB)');
-      debugPrint('Compression ratio: ${((1 - compressedBytes.length / imageBytes.length) * 100).toStringAsFixed(1)}%');
-      
-      // If still too large after aggressive compression, throw error to trigger Gemini fallback
-      if (compressedBytes.length > maxSizeBytes) {
-        debugPrint('❌ Image still too large after compression, will use Gemini fallback');
-        throw Exception('Image too large even after compression (${compressedBytes.length} bytes). Using Gemini fallback.');
-      }
-      
-      return compressedBytes;
-      
-    } catch (e) {
-      debugPrint('❌ Image compression failed: $e');
-      // If compression fails and image is too large, trigger Gemini fallback
-      if (imageBytes.length > maxSizeBytes) {
-        throw Exception('Image compression failed and image exceeds OpenAI limits. Using Gemini fallback.');
-      }
-      // If compression fails but image is within limits, return original
-      return imageBytes;
-    }
+    return Uint8List.fromList(compressedBytes);
   }
 
-  /// Applies light compression to image [Uint8List] data for the Gemini API.
-  ///
-  /// Reduces image dimensions slightly and applies a moderate JPEG quality setting.
-  /// Returns original bytes if compression fails.
+  /// Compresses image [Uint8List] data for Gemini API if it's excessively large.
+  /// Gemini has a more generous limit than OpenAI, so compression is lighter.
   Future<Uint8List> _compressImageForGemini(Uint8List imageBytes) async {
-    debugPrint('🔄 Applying light compression for Gemini');
-    
-    try {
-      var image = img.decodeImage(imageBytes);
-      if (image == null) {
-        debugPrint('❌ Failed to decode image for Gemini compression');
-        return imageBytes; // Return original if compression fails
-      }
-      
-      // Light compression - just reduce quality, keep dimensions mostly the same
-      const scaleFactor = 0.9; // Reduce dimensions by 10%
-      final targetWidth = (image.width * scaleFactor).round();
-      final targetHeight = (image.height * scaleFactor).round();
-      
-      image = img.copyResize(image, width: targetWidth, height: targetHeight);
-      final compressedBytes = Uint8List.fromList(img.encodeJpg(image, quality: 85));
-      
-      debugPrint('✅ Gemini compression: ${imageBytes.length} -> ${compressedBytes.length} bytes');
-      return compressedBytes;
-      
-    } catch (e) {
-      debugPrint('❌ Gemini compression failed: $e');
-      return imageBytes; // Return original if compression fails
+    const maxSizeBytes = 50 * 1024 * 1024; // 50MB for Gemini
+
+    if (imageBytes.length <= maxSizeBytes) {
+      return imageBytes; // No compression needed
     }
+
+    debugPrint('⚠️ Image size exceeds Gemini max, attempting light compression.');
+    img.Image? image = img.decodeImage(imageBytes);
+
+    if (image == null) {
+      throw Exception('Could not decode image for Gemini compression.');
+    }
+
+    // Scale down to fit within max size, maintaining aspect ratio
+    final double scale = sqrt(maxSizeBytes / imageBytes.length); // Approximate scaling factor
+    image = img.copyResize(
+      image,
+      width: (image.width * scale).round(),
+      height: (image.height * scale).round(),
+    );
+
+    List<int> compressedBytes = img.encodeJpg(image, quality: 80); // Maintain good quality
+    debugPrint('Compressed image size for Gemini: ${compressedBytes.length} bytes (${(compressedBytes.length / 1024 / 1024).toStringAsFixed(2)} MB)');
+
+    if (compressedBytes.length > maxSizeBytes) {
+      throw Exception('Image still too large after Gemini compression (${(compressedBytes.length / 1024 / 1024).toStringAsFixed(2)} MB). Max allowed is ${maxSizeBytes / 1024 / 1024} MB.');
+    }
+
+    return Uint8List.fromList(compressedBytes);
   }
 
-  /// Analyzes a waste item image provided as [Uint8List] (typically for web).
+  /// Analyzes an image from a [File] path for waste classification.
   ///
-  /// Handles caching, image compression, API calls to OpenAI (with retries),
-  /// and fallback to Gemini if OpenAI fails or the image is too large.
-  ///
-  /// - [imageBytes]: The raw byte data of the image.
-  /// - [imageName]: A descriptive name or path for the image (used in fallback).
-  /// - [retryCount]: Current retry attempt number for API calls.
-  /// - [maxRetries]: Maximum number of retries for API calls.
-  /// - [region]: The geographical region for context-specific classification.
-  /// - [instructionsLang]: The desired language for disposal instructions.
-  ///
-  /// Returns a [WasteClassification] object.
-  Future<WasteClassification> analyzeWebImage(
-      Uint8List imageBytes, String imageName, {
-      int retryCount = 0, 
-      int maxRetries = 3,
-      String? region,
-      String? instructionsLang,
-    }) async {
+  /// This is the primary entry point for mobile platforms.
+  /// It generates a perceptual hash, checks the cache, and then
+  /// calls the appropriate AI model (OpenAI or Gemini) for analysis.
+  Future<WasteClassification> analyzeImage(
+    File imageFile, {
+    int retryCount = 0,
+    int maxRetries = 3,
+    String? region,
+    String? instructionsLang,
+    String? classificationId,
+  }) async {
     String? imageHash;
     final analysisRegion = region ?? defaultRegion;
     final analysisLang = instructionsLang ?? defaultLanguage;
-    
+
+    // Generate a new classification ID if not provided (for initial call)
+    final String currentClassificationId = classificationId ?? const Uuid().v4();
+
+    try {
+      // Check cache if enabled
+      if (cachingEnabled) {
+        imageHash = await ImageUtils.generateImageHash(imageFile.readAsBytesSync()); // Use sync to prevent async issues here
+        debugPrint('Generated perceptual hash for mobile image: $imageHash');
+
+        final cachedResult = await cacheService.getCachedClassification(
+          imageHash
+        );
+        if (cachedResult != null) {
+          debugPrint('Cache hit for mobile image hash: $imageHash - returning cached classification');
+          // Ensure the cached classification uses the current session's ID
+          return cachedResult.classification.copyWith(id: currentClassificationId);
+        }
+
+        debugPrint('Cache miss for mobile image hash: $imageHash - will call API and save result');
+      }
+
+      // Try OpenAI first with compression
+      try {
+        final result = await _analyzeWithOpenAI(
+          await imageFile.readAsBytes(), // Read bytes here
+          imageFile.path.split('/').last, // Use file name
+          analysisRegion,
+          analysisLang,
+          imageHash,
+          currentClassificationId, // Pass the new ID
+        );
+        return result;
+      } on Exception catch (openAiError) {
+        debugPrint('OpenAI analysis failed: $openAiError');
+
+        // If it's an image size issue or OpenAI fails, try Gemini
+        if (openAiError.toString().contains('too large') ||
+            openAiError.toString().contains('compression failed') ||
+            retryCount >= maxRetries) {
+          debugPrint('🔄 Switching to Gemini due to image size or OpenAI failure');
+          final result = await _analyzeWithGemini(
+            await imageFile.readAsBytes(), // Read bytes here
+            imageFile.path.split('/').last, // Use file name
+            analysisRegion,
+            analysisLang,
+            imageHash,
+            currentClassificationId, // Pass the new ID
+          );
+          return result;
+        }
+
+        // For other errors, retry with OpenAI
+        if (retryCount < maxRetries) {
+          final waitTime = Duration(milliseconds: 500 * pow(2, retryCount).toInt());
+          await Future.delayed(waitTime);
+          return analyzeImage(
+            imageFile,
+            retryCount: retryCount + 1,
+            maxRetries: maxRetries,
+            region: region,
+            instructionsLang: instructionsLang,
+            classificationId: currentClassificationId, // Pass the same ID on retry
+          );
+        }
+
+        rethrow;
+      }
+    } catch (e) {
+      debugPrint('❌ All analysis methods failed: $e');
+      // Ensure fallback also uses the consistent ID
+      return WasteClassification.fallback(
+        imageFile.path.split('/').last,
+        id: currentClassificationId,
+      );
+    }
+  }
+
+  /// Analyzes a web image (Uint8List) for waste classification.
+  ///
+  /// This is the primary entry point for web platforms.
+  /// It generates a perceptual hash, checks the cache, and then
+  /// calls the appropriate AI model (OpenAI or Gemini) for analysis.
+  Future<WasteClassification> analyzeWebImage(
+    Uint8List imageBytes, String imageName, {
+    int retryCount = 0,
+    int maxRetries = 3,
+    String? region,
+    String? instructionsLang,
+    String? classificationId,
+  }) async {
+    String? imageHash;
+    final analysisRegion = region ?? defaultRegion;
+    final analysisLang = instructionsLang ?? defaultLanguage;
+
+    // Generate a new classification ID if not provided (for initial call)
+    final String currentClassificationId = classificationId ?? const Uuid().v4();
+
     try {
       // Check cache if enabled
       if (cachingEnabled) {
         imageHash = await ImageUtils.generateImageHash(imageBytes);
         debugPrint('Generated perceptual hash for web image: $imageHash');
-        
+
         final cachedResult = await cacheService.getCachedClassification(
           imageHash
         );
         if (cachedResult != null) {
           debugPrint('Cache hit for web image hash: $imageHash - returning cached classification');
-          return cachedResult.classification;
+          // Ensure the cached classification uses the current session's ID
+          return cachedResult.classification.copyWith(id: currentClassificationId);
         }
-        
+
         debugPrint('Cache miss for web image hash: $imageHash - will call API and save result');
       }
 
       // Try OpenAI first with compression
       try {
-        return await _analyzeWithOpenAI(imageBytes, imageName, analysisRegion, analysisLang, imageHash);
-      } catch (openAiError) {
+        final result = await _analyzeWithOpenAI(
+          imageBytes,
+          imageName,
+          analysisRegion,
+          analysisLang,
+          imageHash,
+          currentClassificationId,
+        );
+        return result;
+      } on Exception catch (openAiError) {
         debugPrint('OpenAI analysis failed: $openAiError');
-        
+
         // If it's an image size issue or OpenAI fails, try Gemini
-        if (openAiError.toString().contains('too large') || 
+        if (openAiError.toString().contains('too large') ||
             openAiError.toString().contains('compression failed') ||
             retryCount >= maxRetries) {
           debugPrint('🔄 Switching to Gemini due to image size or OpenAI failure');
-          return await _analyzeWithGemini(imageBytes, imageName, analysisRegion, analysisLang, imageHash);
+          final result = await _analyzeWithGemini(
+            imageBytes,
+            imageName,
+            analysisRegion,
+            analysisLang,
+            imageHash,
+            currentClassificationId,
+          );
+          return result;
         }
-        
+
         // For other errors, retry with OpenAI
         if (retryCount < maxRetries) {
           final waitTime = Duration(milliseconds: 500 * pow(2, retryCount).toInt());
           await Future.delayed(waitTime);
           return analyzeWebImage(
-            imageBytes, 
+            imageBytes,
             imageName,
             retryCount: retryCount + 1,
             maxRetries: maxRetries,
             region: region,
             instructionsLang: instructionsLang,
+            classificationId: currentClassificationId,
           );
         }
-        
+
         rethrow;
       }
     } catch (e) {
       debugPrint('❌ All analysis methods failed: $e');
-      return WasteClassification.fallback(imageName);
+      // Ensure fallback also uses the consistent ID
+      return WasteClassification.fallback(
+        imageName,
+        id: currentClassificationId,
+      );
+    }
+  }
+
+  /// Analyzes an image by segments using the OpenAI API.
+  ///
+  /// This method is for mobile platforms and uses image segmentation
+  /// to analyze specific parts of an image.
+  Future<WasteClassification> analyzeImageSegments(
+    File imageFile,
+    List<Map<String, dynamic>> segments, {
+    String? region,
+    String? instructionsLang,
+    String? classificationId,
+  }) async {
+    final imageBytes = await imageFile.readAsBytes();
+    return _analyzeImageSegmentsInternal(
+      imageBytes,
+      imageFile.path.split('/').last,
+      segments,
+      region: region,
+      instructionsLang: instructionsLang,
+      classificationId: classificationId,
+    );
+  }
+
+  /// Analyzes a web image by segments using the OpenAI API.
+  ///
+  /// This method is for web platforms and uses image segmentation
+  /// to analyze specific parts of an image.
+  Future<WasteClassification> analyzeImageSegmentsWeb(
+    Uint8List imageBytes,
+    String imageName,
+    List<Map<String, dynamic>> segments, {
+    String? region,
+    String? instructionsLang,
+    String? classificationId,
+  }) async {
+    return _analyzeImageSegmentsInternal(
+      imageBytes,
+      imageName,
+      segments,
+      region: region,
+      instructionsLang: instructionsLang,
+      classificationId: classificationId,
+    );
+  }
+
+  /// Internal method for analyzing image segments (used by both mobile and web).
+  Future<WasteClassification> _analyzeImageSegmentsInternal(
+    Uint8List imageBytes,
+    String imageName,
+    List<Map<String, dynamic>> segments, {
+    int retryCount = 0,
+    int maxRetries = 3,
+    String? region,
+    String? instructionsLang,
+    String? classificationId,
+  }) async {
+    final analysisRegion = region ?? defaultRegion;
+    final analysisLang = instructionsLang ?? defaultLanguage;
+
+    // Generate a new classification ID if not provided (for initial call)
+    final String currentClassificationId = classificationId ?? const Uuid().v4();
+
+    // Check cache if enabled (segmentation results might not be cached by hash directly)
+    // For simplicity, we skip cache for segmented analysis for now as hashes
+    // would be on the full image, not segments.
+
+    // Try OpenAI first with compression
+    try {
+      final classification = await _analyzeWithOpenAISegments(
+        imageBytes,
+        imageName,
+        segments,
+        analysisRegion,
+        analysisLang,
+        currentClassificationId,
+      );
+      return classification;
+    } on Exception catch (e) {
+      debugPrint('OpenAI segment analysis failed: $e');
+
+      // Fallback for segment analysis failures
+      if (retryCount < maxRetries) {
+        final waitTime = Duration(milliseconds: 500 * pow(2, retryCount).toInt());
+        await Future.delayed(waitTime);
+        return _analyzeImageSegmentsInternal(
+          imageBytes,
+          imageName,
+          segments,
+          retryCount: retryCount + 1,
+          maxRetries: maxRetries,
+          region: region,
+          instructionsLang: instructionsLang,
+          classificationId: currentClassificationId,
+        );
+      }
+
+      // If all segment analysis retries fail, fall back to non-segmented analysis
+      debugPrint('❌ Segment analysis failed after retries, falling back to full image analysis.');
+      return analyzeWebImage(
+        imageBytes,
+        imageName,
+        region: analysisRegion,
+        instructionsLang: analysisLang,
+        classificationId: currentClassificationId,
+      );
     }
   }
 
@@ -434,11 +626,12 @@ Output:
   /// and processes the response. Caches the result if successful.
   /// Throws specific exceptions for different API error codes.
   Future<WasteClassification> _analyzeWithOpenAI(
-    Uint8List imageBytes, 
-    String imageName, 
-    String region, 
+    Uint8List imageBytes,
+    String imageName,
+    String region,
     String language,
     String? imageHash,
+    String classificationId,
   ) async {
     // Compress image if needed
     final compressedBytes = await _compressImageForOpenAI(imageBytes);
@@ -489,7 +682,14 @@ Output:
     if (response.statusCode == 200) {
       debugPrint('✅ OpenAI API Success');
       final Map<String, dynamic> responseData = jsonDecode(response.body);
-      final classification = _processAiResponseData(responseData, imageName, region);
+      final classification = _processAiResponseData(
+        responseData,
+        imageName,
+        region,
+        language,
+        null,
+        classificationId,
+      );
       
       // Cache the result if we have a valid hash
       if (cachingEnabled && imageHash != null) {
@@ -532,6 +732,61 @@ Output:
     }
   }
 
+  /// Analyzes an image by segments using the OpenAI API.
+  Future<WasteClassification> _analyzeWithOpenAISegments(
+    Uint8List imageBytes,
+    String imageName,
+    List<Map<String, dynamic>> segments,
+    String region,
+    String language,
+    String classificationId,
+  ) async {
+    // This is a simplified example. Real segmentation would involve
+    // sending multiple requests or a more complex prompt.
+    // For now, we will simulate by analyzing a cropped image of the first segment.
+    if (segments.isEmpty) {
+      // Fallback to full image analysis if no segments
+      return _analyzeWithOpenAI(imageBytes, imageName, region, language, null, classificationId);
+    }
+
+    final img.Image? originalImage = img.decodeImage(imageBytes);
+    if (originalImage == null) {
+      throw Exception('Failed to decode image for segmentation.');
+    }
+
+    final Map<String, dynamic> firstSegment = segments.first;
+    final bounds = firstSegment['bounds'] as Map<String, dynamic>;
+    
+    // Convert percentage coordinates to pixel coordinates
+    final imageWidth = originalImage.width;
+    final imageHeight = originalImage.height;
+    
+    final x = ((bounds['x'] as num).toDouble() * imageWidth / 100).round();
+    final y = ((bounds['y'] as num).toDouble() * imageHeight / 100).round();
+    final width = ((bounds['width'] as num).toDouble() * imageWidth / 100).round();
+    final height = ((bounds['height'] as num).toDouble() * imageHeight / 100).round();
+    
+    // Ensure coordinates are within image bounds
+    final clampedX = x.clamp(0, imageWidth - 1);
+    final clampedY = y.clamp(0, imageHeight - 1);
+    final clampedWidth = (width).clamp(1, imageWidth - clampedX);
+    final clampedHeight = (height).clamp(1, imageHeight - clampedY);
+    
+    final croppedImage = img.copyCrop(
+      originalImage,
+      x: clampedX,
+      y: clampedY,
+      width: clampedWidth,
+      height: clampedHeight,
+    );
+
+    final croppedImageBytes = Uint8List.fromList(img.encodeJpg(croppedImage));
+
+    debugPrint('🔄 Analyzing first segment with OpenAI...');
+    debugPrint('🔄 Segment bounds: x=$clampedX, y=$clampedY, w=$clampedWidth, h=$clampedHeight');
+    return _analyzeWithOpenAI(croppedImageBytes, imageName, region, language, null, classificationId);
+  }
+
   /// Analyzes an image using the Gemini API.
   ///
   /// Used as a fallback if OpenAI fails or the image is too large.
@@ -539,11 +794,12 @@ Output:
   /// Converts Gemini's response format to the standard [WasteClassification] model.
   /// Caches the result if successful.
   Future<WasteClassification> _analyzeWithGemini(
-    Uint8List imageBytes, 
-    String imageName, 
-    String region, 
+    Uint8List imageBytes,
+    String imageName,
+    String region,
     String language,
     String? imageHash,
+    String classificationId,
   ) async {
     debugPrint('🔄 Using Gemini for analysis...');
     
@@ -566,7 +822,7 @@ Output:
         {
           'parts': [
             {
-              'text': '$_systemPrompt\n\n$_mainClassificationPrompt\n\nAdditional context:\n- Region: $region\n- Instructions language: $language\n- Image source: Gemini analysis (OpenAI fallback)'
+              'text': _systemPrompt + '\n\n' + _mainClassificationPrompt + '\n\nAdditional context:\n- Region: $region\n- Instructions language: $language\n- Image source: Gemini analysis (OpenAI fallback)'
             },
             {
               'inline_data': {
@@ -616,7 +872,14 @@ Output:
           ]
         };
         
-        final classification = _processAiResponseData(openAiFormat, imageName, region);
+        final classification = _processAiResponseData(
+          openAiFormat,
+          imageName,
+          region,
+          language,
+          null,
+          classificationId,
+        );
         
         // Cache the result if we have a valid hash
         if (cachingEnabled && imageHash != null) {
@@ -628,70 +891,64 @@ Output:
         throw Exception('Invalid Gemini response format');
       }
     } else {
-      // Enhanced Gemini error logging
       debugPrint('❌ Gemini API Error - Status: ${response.statusCode}');
-      debugPrint('❌ Gemini Response: ${response.body}');
-      
-      try {
-        final errorData = jsonDecode(response.body);
-        if (errorData['error'] != null) {
-          debugPrint('❌ Gemini Error Message: ${errorData['error']['message']}');
-        }
-      } catch (e) {
-        debugPrint('❌ Could not parse Gemini error response: $e');
-      }
-      
+      debugPrint('❌ Response Headers: ${response.headers}');
+      debugPrint('❌ Response Body: ${response.body}');
       throw Exception('Gemini API Error ${response.statusCode}: ${response.body}');
     }
   }
 
-  /// Handles user-provided corrections to a previous classification.
+  /// Handles user corrections/disagreements by re-analyzing the item.
   ///
-  /// Re-analyzes the item using the AI model, incorporating the user's feedback
-  /// and reason. Can accept image data ([imageBytes] or [imageFile]) if available
-  /// for re-analysis, otherwise performs a text-only correction.
-  ///
-  /// - [originalClassification]: The initial AI classification.
-  /// - [userCorrection]: The user's corrected category or information.
-  /// - [userReason]: The user's explanation for the correction.
-  /// - [imageBytes]: Optional image data for re-analysis.
-  /// - [imageFile]: Optional image file for re-analysis.
-  /// - [model]: Optional model to use for the API request.
-  ///
-  /// Returns an updated [WasteClassification].
+  /// This method is designed to take a user's feedback (correction or reason
+  /// for disagreement) and use it to prompt the AI for a refined classification.
+  /// It preserves the original classification details and updates only what's
+  /// necessary based on the AI's re-analysis.
   Future<WasteClassification> handleUserCorrection(
     WasteClassification originalClassification,
     String userCorrection,
     String? userReason, {
-    Uint8List? imageBytes,
-    File? imageFile,
     String? model,
+    List<String>? reanalysisModelsTried,
   }) async {
+    debugPrint('🔄 Processing user correction...');
+
+    // Determine which model to use for re-analysis
+    final String modelToUse = model ?? 
+        (originalClassification.source == 'ai_analysis_gemini' 
+            ? ApiConfig.tertiaryModel // Use Gemini for re-analysis if it was the original source
+            : ApiConfig.primaryModel); // Default to OpenAI
+
     try {
-      debugPrint('Processing user correction: $userCorrection');
-      
-      // Prepare the correction prompt
-      final correctionPrompt = _getCorrectionPrompt(
-        originalClassification.toJson(),
-        userCorrection,
-        userReason,
-      );
+      final String? imageUrl = originalClassification.imageUrl;
+      Uint8List? imageBytes;
 
-      Map<String, dynamic> requestBody;
-      final modelToUse = model ?? ((imageBytes != null || imageFile != null)
-        ? ApiConfig.primaryModel
-        : ApiConfig.secondaryModel1);
-
-      // If we have image data, include it in the request
-      if (imageBytes != null || imageFile != null) {
-        String base64Image;
-        if (imageBytes != null) {
-          base64Image = _bytesToBase64(imageBytes);
+      // If imageUrl is a file path (mobile), read bytes
+      if (imageUrl != null && !kIsWeb && File(imageUrl).existsSync()) {
+        imageBytes = await File(imageUrl).readAsBytes();
+      }
+      // If imageUrl is a data URL (web), parse bytes
+      else if (imageUrl != null && kIsWeb && imageUrl.startsWith('data:image')) {
+        imageBytes = ImageUtils.dataUrlToBytes(imageUrl);
+      }
+      // If no image bytes, try to fetch from web if it's a standard URL
+      else if (imageUrl != null && (imageUrl.startsWith('http'))) {
+        final response = await http.get(Uri.parse(imageUrl));
+        if (response.statusCode == 200) {
+          imageBytes = response.bodyBytes;
         } else {
-          base64Image = await _imageToBase64(imageFile!);
+          debugPrint('Failed to fetch image from URL for re-analysis: ${response.statusCode}');
         }
+      }
 
-        requestBody = {
+      if (imageBytes == null) {
+        debugPrint('Could not retrieve image bytes for correction. Proceeding without image.');
+      }
+      
+      final String base64Image = imageBytes != null ? _bytesToBase64(imageBytes) : '';
+      final String mimeType = imageBytes != null ? _detectImageMimeType(imageBytes) : '';
+
+      final requestBody = <String, dynamic>{
           'model': modelToUse,
           'messages': [
             {
@@ -703,11 +960,12 @@ Output:
               'content': [
                 {
                   'type': 'text',
-                  'text': correctionPrompt
+                'text': _getCorrectionPrompt(originalClassification.toJson(), userCorrection, userReason)
                 },
+              if (imageBytes != null)
                 {
                   'type': 'image_url',
-                  'image_url': {'url': 'data:image/jpeg;base64,$base64Image'}
+                  'image_url': {'url': 'data:$mimeType;base64,$base64Image'}
                 }
               ]
             }
@@ -715,26 +973,7 @@ Output:
           'max_tokens': 1500,
           'temperature': 0.1
         };
-      } else {
-        // Text-only correction
-        requestBody = {
-          'model': modelToUse,
-          'messages': [
-            {
-              'role': 'system',
-              'content': _systemPrompt
-            },
-            {
-              'role': 'user',
-              'content': correctionPrompt
-            }
-          ],
-          'max_tokens': 1500,
-          'temperature': 0.1
-        };
-      }
 
-      // Make HTTP request to the OpenAI API
       final response = await http.post(
         Uri.parse('${ApiConfig.openAiBaseUrl}/chat/completions'),
         headers: {
@@ -750,6 +989,9 @@ Output:
           responseData, 
           originalClassification.imageUrl ?? 'correction_update',
           originalClassification.region,
+          originalClassification.instructionsLang,
+          reanalysisModelsTried,
+          originalClassification.id,
         );
         
         // Preserve some original metadata
@@ -780,61 +1022,147 @@ Output:
   /// Includes logic to remove markdown formatting and extract the JSON object
   /// if it's embedded in other text. Uses [_cleanJsonString] for preprocessing.
   /// If direct parsing fails, it attempts a fallback partial extraction via [_createFallbackClassification].
-  WasteClassification _processAiResponseData(Map<String, dynamic> responseData, String imagePath, String region) {
+  WasteClassification _processAiResponseData(
+    Map<String, dynamic> responseData,
+    String imagePath,
+    String region,
+    String? instructionsLang,
+    List<String>? reanalysisModelsTried,
+    String? classificationId,
+  ) {
     try {
-      final choices = responseData['choices'];
-      if (choices != null && choices.isNotEmpty) {
-        final message = choices[0]['message'];
-        if (message != null) {
-          final content = message['content'];
-          if (content != null) {
-            try {
-              String jsonString = content;
-              debugPrint('Raw AI response content: ${content.substring(0, content.length.clamp(0, 200))}...');
-              
-              // Remove markdown code block formatting if present
-              if (jsonString.contains('```json')) {
-                jsonString = jsonString.replaceAll('```json', '').replaceAll('```', '').trim();
-              } else if (jsonString.contains('```')) {
-                jsonString = jsonString.replaceAll('```', '').trim();
-              }
-              
-              // Try to find JSON object boundaries if the response has extra text
-              final startIndex = jsonString.indexOf('{');
-              final endIndex = jsonString.lastIndexOf('}');
-              
-              if (startIndex != -1 && endIndex != -1 && endIndex > startIndex) {
-                jsonString = jsonString.substring(startIndex, endIndex + 1);
-                debugPrint('Extracted JSON: ${jsonString.substring(0, jsonString.length.clamp(0, 200))}...');
-              }
-              
-              // Try to fix common JSON formatting issues
-              jsonString = _cleanJsonString(jsonString);
-                
-              debugPrint('Final JSON string to parse: ${jsonString.substring(0, jsonString.length.clamp(0, 200))}...');
-              
-              final jsonContent = jsonDecode(jsonString);
-              
-              // ENHANCED: Better error handling and field parsing
-              return _createClassificationFromJson(jsonContent, imagePath, region);
-              
-            } catch (jsonError) {
-              debugPrint('Failed to parse JSON from AI response: $jsonError');
-              debugPrint('Problematic JSON content: $content');
-              
-              // Try to extract basic info even if full parsing fails
-              return _createFallbackClassification(content, imagePath, region);
-            }
+      if (responseData['choices'] != null && responseData['choices'].isNotEmpty) {
+        final choice = responseData['choices'][0];
+        if (choice['message'] != null && choice['message']['content'] != null) {
+          final String content = choice['message']['content'];
+          final String jsonString = _cleanJsonString(content);
+
+          Map<String, dynamic> jsonContent;
+          try {
+            jsonContent = jsonDecode(jsonString);
+            return _createClassificationFromJsonContent(
+              jsonContent,
+              imagePath,
+              region,
+              instructionsLang,
+              reanalysisModelsTried,
+              classificationId,
+            );
+          } catch (jsonError) {
+            debugPrint('Failed to parse JSON from AI response: $jsonError');
+            debugPrint('Problematic JSON content: $content');
+
+            // Try to extract basic info even if full parsing fails
+            return _createFallbackClassification(
+              content,
+              imagePath,
+              region,
+              classificationId: classificationId,
+            );
           }
         }
       }
     } catch (e) {
       debugPrint('Error processing AI response data: $e');
-      return WasteClassification.fallback(imagePath);
+      // Ensure fallback also uses the consistent ID
+      return WasteClassification.fallback(imagePath, id: classificationId);
     }
-    
+
     // Fallback for unexpected response structure
-    return WasteClassification.fallback(imagePath);
+    return WasteClassification.fallback(imagePath, id: classificationId);
+  }
+
+  /// Extracts potential JSON content from a raw AI response string.
+  ///
+  /// This handles cases where the AI might embed the JSON within markdown code blocks
+  /// (e.g., ```json ... ```) or include extraneous text before or after the JSON.
+  String _cleanJsonString(String rawContent) {
+    // Attempt to find content within a JSON markdown block
+    final RegExp jsonCodeBlockRegExp = RegExp(r'```json\s*([\s\S]*?)\s*```', multiLine: true);
+    final Match? match = jsonCodeBlockRegExp.firstMatch(rawContent);
+
+    if (match != null && match.group(1) != null) {
+      return match.group(1)!.trim();
+    }
+
+    // Fallback: Try to find the first and last curly braces to extract a JSON object
+    final int firstCurly = rawContent.indexOf('{');
+    final int lastCurly = rawContent.lastIndexOf('}');
+
+    if (firstCurly != -1 && lastCurly != -1 && lastCurly > firstCurly) {
+      return rawContent.substring(firstCurly, lastCurly + 1).trim();
+    }
+
+    // If no JSON-like structure is found, return the original content (may lead to parsing error)
+    return rawContent;
+  }
+
+  /// Parses disposal instructions safely from dynamic input.
+  /// Handles various formats including maps, strings, and lists.
+  DisposalInstructions _parseDisposalInstructions(dynamic jsonDisposalInstructions) {
+    if (jsonDisposalInstructions == null) {
+      return DisposalInstructions(
+        primaryMethod: 'Review required',
+        steps: ['Please review manually'],
+        hasUrgentTimeframe: false,
+      );
+    }
+
+    if (jsonDisposalInstructions is Map) {
+      try {
+        return DisposalInstructions.fromJson(Map<String, dynamic>.from(jsonDisposalInstructions));
+      } catch (e) {
+        debugPrint('Error parsing DisposalInstructions from Map: $e');
+        // Fallback to basic instructions if map parsing fails
+        return DisposalInstructions(
+          primaryMethod: jsonDisposalInstructions['primaryMethod']?.toString() ?? 'Review required',
+          steps: _parseStepsFromString(jsonDisposalInstructions['steps']?.toString() ?? ''),
+          hasUrgentTimeframe: false,
+        );
+      }
+    } else if (jsonDisposalInstructions is String) {
+      // If it's a string, try to parse it as simple instructions
+      return DisposalInstructions(
+        primaryMethod: jsonDisposalInstructions.isNotEmpty ? jsonDisposalInstructions : 'Review required',
+        steps: _parseStepsFromString(jsonDisposalInstructions),
+        hasUrgentTimeframe: false,
+      );
+    } else if (jsonDisposalInstructions is List) {
+      // If it's a list, treat the first element as primary method and others as steps
+      final primaryMethod = jsonDisposalInstructions.isNotEmpty ? jsonDisposalInstructions[0].toString() : 'Review required';
+      final steps = jsonDisposalInstructions.map((e) => e.toString()).toList();
+      return DisposalInstructions(
+        primaryMethod: primaryMethod,
+        steps: steps,
+        hasUrgentTimeframe: false,
+      );
+    }
+
+    // Default fallback
+    return DisposalInstructions(
+      primaryMethod: 'Review required',
+      steps: ['Please review manually'],
+      hasUrgentTimeframe: false,
+    );
+  }
+
+  /// Parses alternative classifications safely from dynamic input.
+  List<AlternativeClassification> _parseAlternatives(dynamic alternativesJson) {
+    if (alternativesJson == null) return [];
+    if (alternativesJson is List) {
+      return (alternativesJson as List)
+          .map((alt) {
+            try {
+              return AlternativeClassification.fromJson(alt as Map<String, dynamic>);
+            } catch (e) {
+              debugPrint('Error parsing individual AlternativeClassification: $e');
+              return null; // Return null for invalid entries
+            }
+          })
+          .whereType<AlternativeClassification>() // Filter out nulls
+          .toList();
+    }
+    return [];
   }
 
   /// Creates a [WasteClassification] object from a parsed JSON map.
@@ -843,54 +1171,20 @@ Output:
   /// [_parseRecyclingCode], [_parseBool]) to robustly handle potentially
   /// malformed or missing fields in the AI's JSON response.
   /// It defaults to sensible values if parsing fails for specific fields.
-  WasteClassification _createClassificationFromJson(Map<String, dynamic> jsonContent, String imagePath, String region) {
+  WasteClassification _createClassificationFromJsonContent(
+    Map<String, dynamic> jsonContent,
+    String imagePath,
+    String region,
+    String? instructionsLang,
+    List<String>? reanalysisModelsTried,
+    String? classificationId,
+  ) {
     try {
-      // Handle disposal instructions safely
-      DisposalInstructions disposalInstructions;
-      
-      if (jsonContent['disposalInstructions'] != null) {
-        try {
-          if (jsonContent['disposalInstructions'] is Map) {
-            disposalInstructions = DisposalInstructions.fromJson(
-              Map<String, dynamic>.from(jsonContent['disposalInstructions'])
-            );
-          } else {
-            // If it's a string or other format, create basic instructions
-            disposalInstructions = DisposalInstructions(
-              primaryMethod: jsonContent['disposalMethod']?.toString() ?? 'Review required',
-              steps: _parseStepsFromString(jsonContent['disposalInstructions'].toString()),
-              hasUrgentTimeframe: false,
-            );
-          }
-        } catch (e) {
-          debugPrint('Error parsing disposal instructions: $e');
-          disposalInstructions = DisposalInstructions(
-            primaryMethod: jsonContent['disposalMethod']?.toString() ?? 'Review required',
-            steps: ['Please review disposal method'],
-            hasUrgentTimeframe: false,
-          );
-        }
-      } else {
-        disposalInstructions = DisposalInstructions(
-          primaryMethod: jsonContent['disposalMethod']?.toString() ?? 'Review required',
-          steps: ['Please review disposal method'],
-          hasUrgentTimeframe: false,
-        );
-      }
+      final DisposalInstructions disposalInstructions = _parseDisposalInstructions(jsonContent['disposalInstructions']);
+      final List<AlternativeClassification> alternatives = _parseAlternatives(jsonContent['alternatives']);
 
-      // Parse alternatives with better error handling
-      var alternatives = <AlternativeClassification>[];
-      try {
-        if (jsonContent['alternatives'] != null) {
-          alternatives = _parseAlternativesSafely(jsonContent['alternatives']);
-        }
-      } catch (e) {
-        debugPrint('Error parsing alternatives: $e');
-        alternatives = [];
-      }
-
-      // Create comprehensive classification from AI response
       return WasteClassification(
+        id: classificationId,
         itemName: _safeStringParse(jsonContent['itemName']) ?? 'Unknown Item',
         category: _safeStringParse(jsonContent['category']) ?? 'Dry Waste',
         subcategory: _safeStringParse(jsonContent['subcategory']),
@@ -927,11 +1221,12 @@ Output:
         analysisSessionId: _safeStringParse(jsonContent['analysisSessionId']),
         disagreementReason: _safeStringParse(jsonContent['disagreementReason']),
         source: 'ai_analysis',
+        reanalysisModelsTried: reanalysisModelsTried,
       );
       
     } catch (e) {
       debugPrint('Error creating classification from JSON: $e');
-      return _createFallbackClassification(jsonContent.toString(), imagePath, region);
+      return _createFallbackClassification(jsonContent.toString(), imagePath, region, classificationId: classificationId);
     }
   }
 
@@ -951,208 +1246,134 @@ Output:
   /// JSON array strings, and actual lists. Returns an empty list on failure.
   List<String> _parseStringListSafely(dynamic value) {
     if (value == null) return [];
-    
-    try {
-      // Handle single string case
-      if (value is String) {
-        // Handle empty or null-like strings
-        if (value.trim().isEmpty || 
-            value.toLowerCase().contains('none') ||
-            value.toLowerCase().contains('null')) {
-          return [];
-        }
-        // Handle comma-separated strings
-        if (value.contains(',')) {
-          return value.split(',')
-              .map((s) => s.trim())
-              .where((s) => s.isNotEmpty)
-              .toList();
-        }
-        // Handle JSON array as string
-        if (value.trim().startsWith('[') && value.trim().endsWith(']')) {
-          try {
-            final parsed = jsonDecode(value);
-            if (parsed is List) {
-              return parsed
-                  .where((item) => item != null)
-                  .map((item) => item.toString().trim())
-                  .where((s) => s.isNotEmpty)
-                  .toList();
-            }
-          } catch (e) {
-            debugPrint('Failed to parse JSON array string: $e');
-          }
-        }
-        // Single string value
-        return [value.trim()];
-      }
-      
-      // Handle list type
-      if (value is List) {
-        return value
-            .where((item) => item != null)
-            .map((item) => item.toString().trim())
-            .where((s) => s.isNotEmpty)
-            .toList();
-      }
-      
-      // Handle other types by converting to string
-      final stringValue = value.toString().trim();
-      return stringValue.isEmpty ? [] : [stringValue];
-      
-    } catch (e) {
-      debugPrint('Error parsing string list safely: $e');
-      return [];
+    if (value is List) {
+      return value.map((e) => e.toString()).toList();
     }
-  }
-
-  /// Safely parses a map of strings from a dynamic input.
-  ///
-  /// Handles nulls, actual maps, and JSON map strings.
-  /// Returns null if the input is null or parsing fails.
-  Map<String, String>? _parseStringMapSafely(dynamic value) {
-    if (value == null) return null;
-    
-    try {
-      if (value is Map) {
-        final result = <String, String>{};
-        value.forEach((k, v) {
-          if (k != null && v != null) {
-            result[k.toString()] = v.toString();
-          }
-        });
-        return result.isEmpty ? null : result;
-      }
-      
-      // Handle JSON string
-      if (value is String && value.trim().startsWith('{')) {
+    if (value is String) {
+      if (value.startsWith('[') && value.endsWith(']')) {
         try {
-          final parsed = jsonDecode(value);
-          if (parsed is Map) {
-            return _parseStringMapSafely(parsed);
+          final decoded = jsonDecode(value);
+          if (decoded is List) {
+            return decoded.map((e) => e.toString()).toList();
           }
-        } catch (e) {
-          debugPrint('Failed to parse JSON map string: $e');
+        } catch (_) {
+          // Fallback to comma/semicolon split if JSON parsing fails
         }
       }
-      
-    } catch (e) {
-      debugPrint('Error parsing string map safely: $e');
+      return value.split(RegExp(r'[;,]')).map((s) => s.trim()).where((s) => s.isNotEmpty).toList();
     }
-    
-    return null;
-  }
-
-  /// Safely parses a list of [AlternativeClassification] objects from a dynamic input.
-  ///
-  /// Handles nulls, empty/none strings, JSON array strings, and actual lists of maps.
-  /// Uses safe parsing for individual alternative fields. Returns an empty list on failure.
-  List<AlternativeClassification> _parseAlternativesSafely(dynamic value) {
-    if (value == null) return [];
-    
-    try {
-      // Handle string input (sometimes AI returns a string instead of array)
-      if (value is String) {
-        if (value.trim().isEmpty || 
-            value.toLowerCase().contains('none') ||
-            value.toLowerCase().contains('null')) {
-          return [];
-        }
-        
-        // Try to parse as JSON array
-        if (value.trim().startsWith('[')) {
-          try {
-            final parsed = jsonDecode(value);
-            if (parsed is List) {
-              return _parseAlternativesSafely(parsed);
-            }
-          } catch (e) {
-            debugPrint('Failed to parse alternatives JSON string: $e');
-          }
-        }
-        
-        return [];
-      }
-      
-      if (value is List) {
-        final alternatives = <AlternativeClassification>[];
-        
-        for (final alt in value) {
-          try {
-            if (alt is Map) {
-              // Convert Map to Map<String, dynamic> safely
-              final altMap = <String, dynamic>{};
-              alt.forEach((key, val) {
-                if (key != null) {
-                  altMap[key.toString()] = val;
-                }
-              });
-              
-              // Create alternative with safe parsing
-              final alternative = AlternativeClassification(
-                category: _safeStringParse(altMap['category']) ?? 'Unknown',
-                subcategory: _safeStringParse(altMap['subcategory']),
-                confidence: _parseDouble(altMap['confidence']) ?? 0.5,
-                reason: _safeStringParse(altMap['reason']) ?? 'Alternative classification',
-              );
-              alternatives.add(alternative);
-            }
-          } catch (e) {
-            debugPrint('Error parsing individual alternative: $e');
-            // Continue processing other alternatives
-          }
-        }
-        
-        return alternatives;
-      }
-      
-    } catch (e) {
-      debugPrint('Error parsing alternatives safely: $e');
-    }
-    
     return [];
   }
 
-  /// Parses a string containing disposal steps into a list of strings.
+  /// Safely parses a map of strings from a dynamic input.
+  Map<String, String>? _parseStringMapSafely(dynamic value) {
+    if (value == null) return null;
+    if (value is Map) {
+      return Map<String, String>.fromEntries(value.entries.map((e) => MapEntry(e.key.toString(), e.value.toString())));
+    }
+    return null;
+  }
+
+  /// Safely parses a boolean value from dynamic input.
   ///
-  /// Attempts to parse as a JSON array first. If that fails, splits the string
-  /// by common delimiters (newline, semicolon, comma).
-  /// Returns a default message if the input is empty.
-  List<String> _parseStepsFromString(String stepsString) {
-    if (stepsString.trim().isEmpty) return ['Please review disposal method'];
-    
-    // Try to parse as JSON array first
-    if (stepsString.trim().startsWith('[')) {
-      try {
-        final parsed = jsonDecode(stepsString);
-        if (parsed is List) {
-          return parsed.map((s) => s.toString()).toList();
-        }
-      } catch (e) {
-        debugPrint('Failed to parse steps as JSON: $e');
+  /// Handles various representations of true/false (e.g., 1, 0, "true", "false").
+  bool? _parseBool(dynamic value) {
+    if (value == null) return null;
+    if (value is bool) return value;
+    if (value is int) return value == 1;
+    if (value is String) return value.toLowerCase() == 'true' || value == '1';
+    return null;
+  }
+
+  /// Safely parses an integer value from dynamic input.
+  int? _parseInt(dynamic value) {
+    if (value == null) return null;
+    if (value is int) return value;
+    if (value is String) return int.tryParse(value);
+    return null;
+  }
+
+  /// Safely parses a double value from dynamic input.
+  double? _parseDouble(dynamic value) {
+    if (value == null) return null;
+    if (value is double) return value;
+    if (value is int) return value.toDouble();
+    if (value is String) return double.tryParse(value);
+    return null;
+  }
+
+  /// Safely parses a recycling code from dynamic input.
+  int? _parseRecyclingCode(dynamic value) {
+    if (value == null) return null;
+    if (value is int) return value;
+    if (value is String) {
+      // Extract digits from string (e.g., "PET (1)" -> 1)
+      final RegExp numRegExp = RegExp(r'\d+');
+      final Match? match = numRegExp.firstMatch(value);
+      if (match != null) {
+        return int.tryParse(match.group(0)!);
       }
     }
-    
-    // Split by common delimiters
-    if (stepsString.contains('\n')) {
-      return stepsString.split('\n')
-          .map((s) => s.trim())
-          .where((s) => s.isNotEmpty)
-          .toList();
-    } else if (stepsString.contains(';')) {
-      return stepsString.split(';')
-          .map((s) => s.trim())
-          .where((s) => s.isNotEmpty)
-          .toList();
-    } else if (stepsString.contains(',')) {
-      return stepsString.split(',')
-          .map((s) => s.trim())
-          .where((s) => s.isNotEmpty)
-          .toList();
+    return null;
+  }
+
+  /// Safely parses image metrics from a dynamic input.
+  Map<String, double>? _parseImageMetrics(dynamic value) {
+    if (value == null) return null;
+    if (value is Map) {
+      return Map<String, double>.fromEntries(
+        value.entries.map((e) => MapEntry(e.key.toString(), _parseDouble(e.value) ?? 0.0))
+      );
+    }
+    return null;
+  }
+
+  /// Helper to parse steps from a string, handling various delimiters.
+  static List<String> _parseStepsFromString(String stepsString) {
+    if (stepsString.trim().isEmpty) {
+      return ['Please review manually'];
     }
     
-    // Return as single step
-    return [stepsString.trim()];
+    var steps = <String>[];
+    
+    // Try newline separation first
+    if (stepsString.contains('\n')) {
+      steps = stepsString
+          .split('\n')
+          .map((step) => step.trim())
+          .where((step) => step.isNotEmpty)
+          .toList();
+    }
+    // Try comma separation
+    else if (stepsString.contains(',')) {
+      steps = stepsString
+          .split(',')
+          .map((step) => step.trim())
+          .where((step) => step.isNotEmpty)
+          .toList();
+    }
+    // Try semicolon separation
+    else if (stepsString.contains(';')) {
+      steps = stepsString
+          .split(';')
+          .map((step) => step.trim())
+          .where((step) => step.isNotEmpty)
+          .toList();
+    }
+    // Try numbered list pattern (1. 2. 3.)
+    else if (RegExp(r'\d+\.').hasMatch(stepsString)) {
+      steps = stepsString
+          .split(RegExp(r'\d+\.'))
+          .map((step) => step.trim())
+          .where((step) => step.isNotEmpty)
+          .toList();
+    }
+    // Single step
+    else {
+      steps = [stepsString.trim()];
+    }
+    
+    return steps.isNotEmpty ? steps : ['Please review manually'];
   }
 
   /// Creates a fallback [WasteClassification] when full JSON parsing fails.
@@ -1160,7 +1381,7 @@ Output:
   /// Attempts to extract basic information (itemName, category, explanation)
   /// from the raw content string using simple keyword matching and regex.
   /// Assigns moderate confidence and marks clarification as needed.
-  WasteClassification _createFallbackClassification(String content, String imagePath, String region) {
+  WasteClassification _createFallbackClassification(String content, String imagePath, String region, {String? classificationId}) {
     debugPrint('Creating fallback classification from partial content');
     
     // Try to extract basic information from the text
@@ -1197,215 +1418,74 @@ Output:
       }
     }
     
-    return WasteClassification(
-      itemName: itemName,
-      category: category,
-      explanation: explanation,
-      disposalInstructions: DisposalInstructions(
-        primaryMethod: 'Please review classification',
-        steps: ['AI response partially parsed', 'Manual review recommended'],
-        hasUrgentTimeframe: false,
-      ),
-      region: region,
-      imageUrl: imagePath,
-      confidence: 0.7, // Moderate confidence for partial parsing
-      clarificationNeeded: true,
-      source: 'ai_analysis_partial',
-      alternatives: [], // Required parameter
-      visualFeatures: [], // Required parameter
+    return WasteClassification.fallback(
+      imagePath,
+      id: classificationId,
     );
   }
 
-  /// Cleans and prepares a JSON string for parsing.
+  /// Segment an image into regions for object detection
   ///
-  /// Removes markdown code block formatting (```json ... ``` or ``` ... ```).
-  /// Extracts the JSON object if it's wrapped in extraneous text.
-  /// Fixes common JSON issues like single quotes, 'None' instead of 'null',
-  /// unescaped quotes in strings, and trailing commas in objects/arrays.
-  String _cleanJsonString(String jsonString) {
-    // Remove markdown formatting
-    if (jsonString.contains('```json')) {
-      jsonString = jsonString.replaceAll('```json', '').replaceAll('```', '').trim();
-    } else if (jsonString.contains('```')) {
-      jsonString = jsonString.replaceAll('```', '').trim();
-    }
-    
-    // Extract JSON object if wrapped in text
-    final startIndex = jsonString.indexOf('{');
-    final endIndex = jsonString.lastIndexOf('}');
-    
-    if (startIndex != -1 && endIndex != -1 && endIndex > startIndex) {
-      jsonString = jsonString.substring(startIndex, endIndex + 1);
-    }
-    
-    // Fix unescaped quotes in string values (common AI response issue)
-    // This regex finds string values and escapes internal quotes
-    jsonString = jsonString.replaceAllMapped(
-      RegExp(r'"([^"]*)"(\s*:\s*)"([^"]*(?:[^"\\]|\\.)*)(?<!\\)"'),
-      (match) {
-        final key = match.group(1);
-        final separator = match.group(2);
-        final value = match.group(3);
-        if (value != null) {
-          // Escape unescaped quotes in the value
-          final escapedValue = value.replaceAll(RegExp(r'(?<!\\)"'), '\\"');
-          return '"$key"$separator"$escapedValue"';
+  /// This is a placeholder implementation that creates a simple grid-based segmentation.
+  /// In a real implementation, this would use computer vision algorithms like:
+  /// - Watershed segmentation
+  /// - GrabCut algorithm
+  /// - Deep learning models for semantic segmentation
+  ///
+  /// For now, it creates a 3x3 grid of segments to demonstrate the functionality.
+  Future<List<Map<String, dynamic>>> segmentImage(dynamic imageSource) async {
+    try {
+      Uint8List imageBytes;
+      
+      // Handle different input types
+      if (imageSource is File) {
+        imageBytes = await imageSource.readAsBytes();
+      } else if (imageSource is Uint8List) {
+        imageBytes = imageSource;
+      } else {
+        throw Exception('Unsupported image source type');
+      }
+
+      // Decode the image to get dimensions
+      final img.Image? image = img.decodeImage(imageBytes);
+      if (image == null) {
+        throw Exception('Failed to decode image for segmentation');
+      }
+
+      debugPrint('🔍 Segmenting image of size ${image.width}x${image.height}');
+
+      // Create a simple grid-based segmentation (3x3 grid)
+      final segments = <Map<String, dynamic>>[];
+      final segmentWidth = 100.0 / segmentGridSize; // Percentage width per segment
+      final segmentHeight = 100.0 / segmentGridSize; // Percentage height per segment
+
+      for (int row = 0; row < segmentGridSize; row++) {
+        for (int col = 0; col < segmentGridSize; col++) {
+          final x = col * segmentWidth;
+          final y = row * segmentHeight;
+          
+          // Create segment data as Map<String, dynamic>
+          final segment = <String, dynamic>{
+            'id': row * segmentGridSize + col,
+            'bounds': <String, dynamic>{
+              'x': x,
+              'y': y,
+              'width': segmentWidth,
+              'height': segmentHeight,
+            },
+            'confidence': 0.8 + (0.2 * (row * segmentGridSize + col) / (segmentGridSize * segmentGridSize)), // Simulated confidence
+            'label': 'Object ${row * segmentGridSize + col + 1}',
+          };
+          
+          segments.add(segment);
         }
-        return match.group(0)!;
-      },
-    );
-    
-    // Fix common JSON issues
-    jsonString = jsonString
-        .replaceAll("''", '""')
-        .replaceAll('None', 'null')
-        .replaceAll('True', 'true')
-        .replaceAll('False', 'false')
-        // Fix trailing commas
-        .replaceAll(RegExp(r',\s*}'), '}')
-        .replaceAll(RegExp(r',\s*]'), ']');
-        
-    return jsonString;
-  }
-
-  /// Analyzes a waste item image provided as a [File] (typically for mobile platforms).
-  ///
-  /// Reads the file into [Uint8List] and then calls [analyzeWebImage].
-  Future<WasteClassification> analyzeImage(File imageFile) async {
-    final imageBytes = await imageFile.readAsBytes();
-    return analyzeWebImage(imageBytes, imageFile.path);
-  }
-
-  /// Placeholder for image segmentation.
-  ///
-  /// Currently returns the full image as a single segment.
-  /// Intended for future implementation of more sophisticated object detection/segmentation.
-  Future<List<Map<String, dynamic>>> segmentImage(dynamic input) async {
-    // Basic segmentation - returns the full image as a single segment
-    return [
-      {
-        'bounds': {'x': 0, 'y': 0, 'width': 100, 'height': 100},
-        'confidence': 1.0,
-        'area': 1.0,
       }
-    ];
-  }
 
-  /// Placeholder for analyzing specific image segments (web version).
-  ///
-  /// Currently defers to analyzing the full image via [analyzeWebImage].
-  Future<WasteClassification> analyzeImageSegmentsWeb(
-    Uint8List imageBytes,
-    String imageName,
-    List<Map<String, dynamic>> segments, {
-    String? region,
-    String? instructionsLang,
-  }) async {
-    // For now, just analyze the full image
-    return analyzeWebImage(imageBytes, imageName, region: region, instructionsLang: instructionsLang);
-  }
-
-  /// Placeholder for analyzing specific image segments (mobile version).
-  ///
-  /// Currently defers to analyzing the full image via [analyzeImage].
-  Future<WasteClassification> analyzeImageSegments(
-    File imageFile,
-    List<Map<String, dynamic>> segments, {
-    String? region,
-    String? instructionsLang,
-  }) async {
-    // For now, just analyze the full image
-    return analyzeImage(imageFile);
-  }
-
-  // ================ DEFENSIVE PARSING HELPERS ================
-  
-  /// Safely parses a recycling code (integer) from a dynamic input.
-  ///
-  /// Handles null, int, and string types. For strings, it attempts to parse
-  /// an integer and handles common textual responses like "None visible".
-  int? _parseRecyclingCode(dynamic value) {
-    if (value == null) return null;
-    if (value is int) return value;
-    if (value is String) {
-      // Handle common AI responses like "None visible", "Not visible", etc.
-      if (value.toLowerCase().contains('none') || 
-          value.toLowerCase().contains('not') ||
-          value.toLowerCase().contains('visible') ||
-          value.trim().isEmpty) {
-        return null;
-      }
-      // Try to parse numeric string
-      return int.tryParse(value.trim());
+      debugPrint('🔍 Generated ${segments.length} segments');
+      return segments;
+    } catch (e) {
+      debugPrint('❌ Error in image segmentation: $e');
+      rethrow;
     }
-    return null;
-  }
-  
-  /// Safely parses a boolean value from a dynamic input.
-  ///
-  /// Handles null, bool, string ("true", "yes", "1", "false", "no", "0"),
-  /// and int (0 is false, non-zero is true).
-  bool? _parseBool(dynamic value) {
-    if (value == null) return null;
-    if (value is bool) return value;
-    if (value is String) {
-      final lower = value.toLowerCase().trim();
-      if (lower == 'true' || lower == 'yes' || lower == '1') return true;
-      if (lower == 'false' || lower == 'no' || lower == '0') return false;
-    }
-    if (value is int) {
-      return value != 0;
-    }
-    return null;
-  }
-  
-  /// Safely parses a double value from a dynamic input.
-  ///
-  /// Handles null, double, int (converted to double), and string.
-  double? _parseDouble(dynamic value) {
-    if (value == null) return null;
-    if (value is double) return value;
-    if (value is int) return value.toDouble();
-    if (value is String) {
-      return double.tryParse(value.trim());
-    }
-    return null;
-  }
-  
-  /// Safely parses an integer value from a dynamic input.
-  ///
-  /// Handles null, int, double (rounded), and string.
-  int? _parseInt(dynamic value) {
-    if (value == null) return null;
-    if (value is int) return value;
-    if (value is double) return value.round();
-    if (value is String) {
-      return int.tryParse(value.trim());
-    }
-    return null;
-  }
-  
-  /// Safely parses image metrics (`Map<String, double>`) from a dynamic input.
-  ///
-  /// Expects a Map. Converts keys to strings and values to doubles using `_parseDouble`.
-  /// Returns null if input is not a map or parsing fails.
-  Map<String, double>? _parseImageMetrics(dynamic value) {
-    if (value == null) return null;
-    if (value is Map) {
-      try {
-        final result = <String, double>{};
-        value.forEach((k, v) {
-          final doubleValue = _parseDouble(v);
-          if (doubleValue != null) {
-            result[k.toString()] = doubleValue;
-          }
-        });
-        return result.isEmpty ? null : result;
-      } catch (e) {
-        debugPrint('Error parsing image metrics: $e');
-        return null;
-      }
-    }
-    return null;
   }
 }

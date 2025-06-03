@@ -37,6 +37,12 @@ class _AchievementsScreenState extends State<AchievementsScreen>
     _profileFuture = gamificationService.getProfile();
   }
 
+  Future<void> _refreshProfile() async {
+    setState(() {
+      _loadProfile();
+    });
+  }
+
   @override
   void dispose() {
     _tabController.dispose();
@@ -67,14 +73,55 @@ class _AchievementsScreenState extends State<AchievementsScreen>
             }
 
             if (snapshot.hasError) {
-              return Center(
-                child: Text('Error loading profile: ${snapshot.error}'),
+              return RefreshIndicator(
+                onRefresh: _refreshProfile,
+                child: SingleChildScrollView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  child: SizedBox(
+                    height: MediaQuery.of(context).size.height * 0.8,
+                    child: Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.error_outline,
+                            size: 64,
+                            color: Theme.of(context).colorScheme.error,
+                          ),
+                          const SizedBox(height: AppTheme.paddingRegular),
+                          Text(
+                            'Error loading profile',
+                            style: Theme.of(context).textTheme.titleLarge,
+                          ),
+                          const SizedBox(height: AppTheme.paddingSmall),
+                          Text(
+                            '${snapshot.error}',
+                            style: Theme.of(context).textTheme.bodyMedium,
+                            textAlign: TextAlign.center,
+                          ),
+                          const SizedBox(height: AppTheme.paddingLarge),
+                          ElevatedButton.icon(
+                            onPressed: _refreshProfile,
+                            icon: const Icon(Icons.refresh),
+                            label: const Text('Retry'),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
               );
             }
 
             if (!snapshot.hasData) {
-              return const Center(
-                child: Text('No profile data available'),
+              return RefreshIndicator(
+                onRefresh: _refreshProfile,
+                child: const SingleChildScrollView(
+                  physics: AlwaysScrollableScrollPhysics(),
+                  child: Center(
+                    child: Text('No profile data available'),
+                  ),
+                ),
               );
             }
 
@@ -83,9 +130,18 @@ class _AchievementsScreenState extends State<AchievementsScreen>
             return TabBarView(
               controller: _tabController,
               children: [
-                _buildAchievementsTab(profile),
-                _buildChallengesTab(profile),
-                _buildStatsTab(profile),
+                RefreshIndicator(
+                  onRefresh: _refreshProfile,
+                  child: _buildAchievementsTab(profile),
+                ),
+                RefreshIndicator(
+                  onRefresh: _refreshProfile,
+                  child: _buildChallengesTab(profile),
+                ),
+                RefreshIndicator(
+                  onRefresh: _refreshProfile,
+                  child: _buildStatsTab(profile),
+                ),
               ],
             );
           },

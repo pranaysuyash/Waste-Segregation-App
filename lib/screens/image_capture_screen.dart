@@ -187,6 +187,9 @@ class _ImageCaptureScreenState extends State<ImageCaptureScreen> {
           // Check if cancelled before starting analysis
           if (_isCancelled) {
             debugPrint('Analysis cancelled before starting mobile analysis');
+            setState(() {
+              _isAnalyzing = false;
+            });
             return;
           }
 
@@ -216,6 +219,9 @@ class _ImageCaptureScreenState extends State<ImageCaptureScreen> {
       // Check if cancelled after analysis completes but before navigation
       if (_isCancelled) {
         debugPrint('Analysis cancelled after completion, not navigating to results');
+        setState(() {
+          _isAnalyzing = false;
+        });
         return;
       }
 
@@ -228,7 +234,14 @@ class _ImageCaptureScreenState extends State<ImageCaptureScreen> {
               classification: classification,
             ),
           ),
-        );
+        ).then((_) {
+          // Reset _isAnalyzing after navigation is complete
+          if (mounted) {
+            setState(() {
+              _isAnalyzing = false;
+            });
+          }
+        });
       }
     } catch (e) {
       debugPrint('Analysis error: $e');
@@ -269,11 +282,13 @@ class _ImageCaptureScreenState extends State<ImageCaptureScreen> {
                 if (mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
-                      content: Text('Analysis cancelled'),
+                      content: Text('Analysis cancelled.'),
                       duration: Duration(seconds: 2),
                     ),
                   );
                 }
+                // Navigate back if cancelled
+                Navigator.pop(context); // Go back to the previous screen (e.g., camera)
               },
             )
           : Column(

@@ -210,6 +210,12 @@ class _ModernHomeScreenState extends State<ModernHomeScreen> with TickerProvider
       final storageService = Provider.of<StorageService>(context, listen: false);
       final cloudStorageService = Provider.of<CloudStorageService>(context, listen: false);
       
+      // One-time cleanup of duplicates (will only run if needed)
+      final duplicatesRemoved = await storageService.cleanupDuplicateClassifications();
+      if (duplicatesRemoved > 0) {
+        debugPrint('🧹 Removed $duplicatesRemoved duplicate classifications');
+      }
+      
       // Get Google sync setting
       final settings = await storageService.getSettings();
       final isGoogleSyncEnabled = settings['isGoogleSyncEnabled'] ?? false;

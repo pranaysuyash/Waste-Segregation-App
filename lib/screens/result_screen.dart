@@ -46,7 +46,12 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
   int _pointsEarned = 0;
   Challenge? _completedChallenge;
   
+  // Static set to track classifications being saved to prevent duplicates
+  static final Set<String> _savingClassifications = <String>{};
+
   late AnimationController _animationController;
+  late Animation<double> _fadeAnimation;
+  late Animation<Offset> _slideAnimation;
 
   @override
   void initState() {
@@ -78,6 +83,16 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
   // Automatically save the classification when the screen loads
   Future<void> _autoSaveClassification() async {
     if (!widget.showActions || _isSaved) return;
+
+    // Check if this classification is already being saved
+    final classificationId = widget.classification.id;
+    if (_savingClassifications.contains(classificationId)) {
+      debugPrint('🚫 Classification ${classificationId} is already being saved, skipping');
+      return;
+    }
+
+    // Add to saving set
+    _savingClassifications.add(classificationId);
 
     setState(() {
       _isAutoSaving = true;
@@ -142,24 +157,35 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
           SnackBar(content: Text('Auto-save failed: ${ErrorHandler.getUserFriendlyMessage(e)}')), 
         );
       }
+    } finally {
+      // Always remove from saving set
+      _savingClassifications.remove(classificationId);
     }
   }
   
   Future<void> _processClassification() async {
     try {
+      debugPrint('🎮 RESULT_SCREEN: Starting _processClassification');
+      debugPrint('🎮 RESULT_SCREEN: showActions = ${widget.showActions}');
+      debugPrint('🎮 RESULT_SCREEN: classification = ${widget.classification.itemName} (${widget.classification.category})');
+      
       final gamificationService = Provider.of<GamificationService>(context, listen: false);
       
       // Record the old profile to compare for new achievements
       final oldProfile = await gamificationService.getProfile();
+      debugPrint('🎮 RESULT_SCREEN: Old profile points = ${oldProfile.points.total}');
       
       // Process the classification
       await gamificationService.processClassification(widget.classification);
+      debugPrint('🎮 RESULT_SCREEN: processClassification completed');
       
       // Get updated profile
       final newProfile = await gamificationService.getProfile();
+      debugPrint('🎮 RESULT_SCREEN: New profile points = ${newProfile.points.total}');
       
       // Calculate points earned
       final earnedPoints = newProfile.points.total - oldProfile.points.total;
+      debugPrint('🎮 RESULT_SCREEN: Points earned = $earnedPoints');
       
       // Check for new achievements using safe collection access
       final oldAchievementIds = oldProfile.achievements
@@ -178,6 +204,9 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
       final completedChallenges = newProfile.completedChallenges
           .safeWhere((c) => !oldChallengeIds.contains(c.id));
       
+      debugPrint('🎮 RESULT_SCREEN: New achievements count = ${newAchievements.length}');
+      debugPrint('🎮 RESULT_SCREEN: Completed challenges count = ${completedChallenges.length}');
+      
       // Update the state after classification feedback is done
       Future.delayed(const Duration(milliseconds: 2000), () {
         if (mounted) {
@@ -189,6 +218,7 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
             
             // Show points popup
             if (earnedPoints > 0) {
+              debugPrint('🎮 RESULT_SCREEN: Showing points popup for $earnedPoints points');
               _showingPointsPopup = true;
               
               Future.delayed(const Duration(milliseconds: 3000), () {
@@ -198,12 +228,15 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
                   });
                 }
               });
+            } else {
+              debugPrint('🎮 RESULT_SCREEN: No points to show popup for');
             }
           });
         }
       });
       
     } catch (e, stackTrace) {
+      debugPrint('🎮 RESULT_SCREEN: Error in _processClassification: $e');
       ErrorHandler.handleError(e, stackTrace);
       if (mounted) {
         setState(() {

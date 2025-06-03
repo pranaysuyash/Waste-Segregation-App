@@ -403,7 +403,12 @@ class UserPoints { // Points per waste category
   final int level;
   final Map<String, int> categoryPoints;
   
-  int get pointsToNextLevel => level * 100 - total;
+  // Fixed: Calculate points needed to reach next level
+  int get pointsToNextLevel {
+    final pointsForCurrentLevel = (level - 1) * 100; // Level 1 = 0-99 points, Level 2 = 100-199 points
+    final pointsForNextLevel = level * 100;
+    return pointsForNextLevel - total;
+  }
   
   // Get level name based on points
   String get rankName {

@@ -997,13 +997,16 @@ class EnhancedChallengeCard extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          challenge.title,
-                          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                                fontWeight: FontWeight.bold,
-                                color: AppTheme.textPrimaryColor, // Use theme color
-                              ),
-                        ),
+                        LayoutBuilder(builder: (context, constraints) { // Added LayoutBuilder
+                          debugPrint('EnhancedChallengeCard Title: "${challenge.title}", Constraints: $constraints');
+                          return Text(
+                            challenge.title,
+                            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                  color: AppTheme.textPrimaryColor, // Use theme color
+                                ),
+                          );
+                        }),
                         if (challenge.description.isNotEmpty) ...[
                            const SizedBox(height: AppTheme.paddingMicro),
                            Text(

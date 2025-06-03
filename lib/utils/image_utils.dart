@@ -242,6 +242,22 @@ class ImageUtils {
       return null;
     }
   }
+
+  /// Converts a data URL string to a Uint8List of image bytes.
+  /// Handles common data URL formats like "data:image/jpeg;base64,..."
+  static Uint8List? dataUrlToBytes(String dataUrl) {
+    try {
+      if (dataUrl.startsWith('data:image/')) {
+        final uri = Uri.parse(dataUrl);
+        if (uri.scheme == 'data' && uri.data != null) {
+          return uri.data!.contentAsBytes();
+        }
+      }
+    } catch (e) {
+      debugPrint('Error converting data URL to bytes: $e');
+    }
+    return null;
+  }
 }
 
 /// Arguments for preprocessing image in isolate

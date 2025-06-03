@@ -77,6 +77,9 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       final gamificationService =
           Provider.of<GamificationService>(context, listen: false);
 
+      // Sync gamification data to ensure everything is up to date
+      await gamificationService.syncGamificationData();
+
       // Update streak for today's app usage
       await gamificationService.updateStreak();
 
@@ -615,6 +618,14 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // Log the length of the daily tip title and content
+          FutureBuilder(
+            future: Future.microtask(() { // Ensure it runs after build
+              debugPrint('Daily Tip Title Length: ${dailyTip.title.length}');
+              debugPrint('Daily Tip Content Length: ${dailyTip.content.length}');
+            }),
+            builder: (_, __) => const SizedBox.shrink(), // No UI impact
+          ),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -662,6 +673,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
           Text(
             dailyTip.content,
             style: const TextStyle(fontSize: AppTheme.fontSizeRegular),
+            maxLines: 3, // Add maxLines
+            overflow: TextOverflow.ellipsis, // Add overflow handling
           ),
           const SizedBox(height: 8),
           Align(
@@ -715,7 +728,10 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                   ),
                 );
               },
-              child: const Text('View All'),
+              style: TextButton.styleFrom(
+                foregroundColor: Theme.of(context).colorScheme.primary,
+              ),
+              child: const Text(AppStrings.viewAll), // Using AppStrings constant
             ),
           ],
         ),
@@ -1049,7 +1065,10 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                     ),
                   );
                 },
-                child: const Text('View All'),
+                style: TextButton.styleFrom(
+                  foregroundColor: Theme.of(context).colorScheme.primary,
+                ),
+                child: const Text(AppStrings.viewAll), // Using AppStrings constant
               ),
             ],
           ),
@@ -1206,69 +1225,69 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
 
                 const SizedBox(height: AppTheme.paddingLarge),
 
-                // Gamification section
+                // Gamification section - Re-enabled for proper points/achievements display
                 _buildGamificationSection(),
 
                 const SizedBox(height: AppTheme.paddingLarge),
 
-                // Analytics Card
-                Card(
-                  elevation: 3,
-                  child: InkWell(
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const WasteDashboardScreen(),
-                        ),
-                      );
-                    },
-                    child: Padding(
-                      padding: const EdgeInsets.all(AppTheme.paddingRegular),
-                      child: Row(
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.all(8),
-                            decoration: BoxDecoration(
-                              color: AppTheme.primaryColor.withValues(alpha: 0.1),
-                              borderRadius: BorderRadius.circular(AppTheme.borderRadiusRegular),
-                            ),
-                            child: const Icon(
-                              Icons.analytics,
-                              color: AppTheme.primaryColor,
-                              size: 36,
-                            ),
-                          ),
-                          const SizedBox(width: AppTheme.paddingRegular),
-                          const Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  'Waste Analytics Dashboard',
-                                  style: TextStyle(
-                                    fontSize: AppTheme.fontSizeMedium,
-                                    fontWeight: FontWeight.bold,
-                                    color: AppTheme.textPrimaryColor,
-                                  ),
-                                ),
-                                SizedBox(height: 4),
-                                Text(
-                                  'View insights and statistics about your waste classifications',
-                                  style: TextStyle(
-                                    fontSize: AppTheme.fontSizeSmall,
-                                    color: AppTheme.textPrimaryColor,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          const Icon(Icons.chevron_right),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
+                // Analytics Card (Commented out for debugging)
+                // Card(
+                //   elevation: 3,
+                //   child: InkWell(
+                //     onTap: () {
+                //       Navigator.push(
+                //         context,
+                //         MaterialPageRoute(
+                //           builder: (context) => const WasteDashboardScreen(),
+                //         ),
+                //       );
+                //     },
+                //     child: Padding(
+                //       padding: const EdgeInsets.all(AppTheme.paddingRegular),
+                //       child: Row(
+                //         children: [
+                //           Container(
+                //             padding: const EdgeInsets.all(8),
+                //             decoration: BoxDecoration(
+                //               color: AppTheme.primaryColor.withValues(alpha: 0.1),
+                //               borderRadius: BorderRadius.circular(AppTheme.borderRadiusRegular),
+                //             ),
+                //             child: const Icon(
+                //               Icons.analytics,
+                //               color: AppTheme.primaryColor,
+                //               size: 36,
+                //             ),
+                //           ),
+                //           const SizedBox(width: AppTheme.paddingRegular),
+                //           const Expanded(
+                //             child: Column(
+                //               crossAxisAlignment: CrossAxisAlignment.start,
+                //               children: [
+                //                 Text(
+                //                   'Waste Analytics Dashboard',
+                //                   style: TextStyle(
+                //                     fontSize: AppTheme.fontSizeMedium,
+                //                     fontWeight: FontWeight.bold,
+                //                     color: AppTheme.textPrimaryColor,
+                //                   ),
+                //                 ),
+                //                 SizedBox(height: 4),
+                //                 Text(
+                //                   'View insights and statistics about your waste classifications',
+                //                   style: TextStyle(
+                //                     fontSize: AppTheme.fontSizeSmall,
+                //                     color: AppTheme.textPrimaryColor,
+                //                   ),
+                //                 ),
+                //               ],
+                //             ),
+                //           ),
+                //           const Icon(Icons.chevron_right),
+                //         ],
+                //       ),
+                //     ),
+                //   ),
+                // ),
 
                 const SizedBox(height: AppTheme.paddingLarge),
 
@@ -1303,7 +1322,10 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                             ),
                           );
                         },
-                        child: const Text('View All'),
+                        style: TextButton.styleFrom(
+                          foregroundColor: Theme.of(context).colorScheme.primary,
+                        ),
+                        child: const Text(AppStrings.viewAll), // Using AppStrings constant
                       ),
                     ],
                   ),
@@ -1322,6 +1344,12 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                         itemCount: _recentClassifications.length,
                         itemBuilder: (context, index) {
                           final classification = _recentClassifications[index];
+                          // Log lengths for recent identification fields
+                          debugPrint('Recent Item: ${classification.itemName}, Length: ${classification.itemName.length}');
+                          debugPrint('Recent Category: ${classification.category}, Length: ${classification.category.length}');
+                          if (classification.subcategory != null) {
+                            debugPrint('Recent Subcategory: ${classification.subcategory}, Length: ${classification.subcategory!.length}');
+                          }
                           return Padding(
                             padding: const EdgeInsets.only(
                                 bottom: AppTheme.paddingRegular),
@@ -1395,50 +1423,56 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                                                               .withValues(alpha: 0.1),
                                                           borderRadius: BorderRadius.circular(
                                                               AppTheme.borderRadiusSmall),
-                                                        ),
-                                                        child: Text(
-                                                          classification.category,
-                                                          style: const TextStyle(
-                                                            color: Colors.white,
-                                                            fontSize: AppTheme.fontSizeSmall,
-                                                            fontWeight: FontWeight.bold,
                                                           ),
-                                                          overflow: TextOverflow.ellipsis,
-                                                          // maxLines: 1, // Removed based on avoid_redundant_argument_values lint
-                                                        ),
-                                                      ),
-                                                      
-                                                      // Subcategory badge if available
-                                                      if (classification.subcategory != null)
-                                                        Container(
-                                                          constraints: BoxConstraints(
-                                                            maxWidth: MediaQuery.of(context).size.width * 0.25, // Limit subcategory width
-                                                          ),
-                                                          padding: const EdgeInsets.symmetric(
-                                                            horizontal: 6,
-                                                            vertical: 2,
-                                                          ),
-                                                          decoration: BoxDecoration(
-                                                            color: Colors.black.withValues(alpha: 0.05),
-                                                            borderRadius: BorderRadius.circular(
-                                                                AppTheme.borderRadiusSmall),
-                                                            border: Border.all(
-                                                              color: _getCategoryColorCase(
-                                                                  classification.category)
-                                                              .withValues(alpha: 0.5),
+                                                          child: FittedBox( // Added FittedBox
+                                                            fit: BoxFit.scaleDown,
+                                                            child: Text(
+                                                              classification.category,
+                                                              style: const TextStyle(
+                                                                color: Colors.white,
+                                                                fontSize: AppTheme.fontSizeSmall,
+                                                                fontWeight: FontWeight.bold,
+                                                              ),
+                                                              overflow: TextOverflow.ellipsis,
+                                                              // maxLines: 1, // Removed based on avoid_redundant_argument_values lint
                                                             ),
                                                           ),
-                                                          child: Text(
-                                                            classification.subcategory!,
-                                                            style: TextStyle(
-                                                              color: _getCategoryColorCase(
-                                                                  classification.category),
-                                                              fontSize: 10,
-                                                              fontWeight: FontWeight.bold,
+                                                        ),
+                                                        
+                                                        // Subcategory badge if available
+                                                        if (classification.subcategory != null)
+                                                          Container(
+                                                            constraints: BoxConstraints(
+                                                              maxWidth: MediaQuery.of(context).size.width * 0.25, // Limit subcategory width
                                                             ),
-                                                            overflow: TextOverflow.ellipsis,
-                                                            maxLines: 1,
-                                                          ),
+                                                            padding: const EdgeInsets.symmetric(
+                                                              horizontal: 6,
+                                                              vertical: 2,
+                                                            ),
+                                                            decoration: BoxDecoration(
+                                                              color: Colors.black.withValues(alpha: 0.05),
+                                                              borderRadius: BorderRadius.circular(
+                                                                  AppTheme.borderRadiusSmall),
+                                                              border: Border.all(
+                                                                color: _getCategoryColorCase(
+                                                                    classification.category)
+                                                                .withValues(alpha: 0.5),
+                                                              ),
+                                                            ),
+                                                            child: FittedBox( // Added FittedBox
+                                                              fit: BoxFit.scaleDown,
+                                                              child: Text(
+                                                                classification.subcategory!,
+                                                                style: TextStyle(
+                                                                  color: _getCategoryColorCase(
+                                                                      classification.category),
+                                                                  fontSize: 10,
+                                                                  fontWeight: FontWeight.bold,
+                                                                ),
+                                                                overflow: TextOverflow.ellipsis,
+                                                                maxLines: 1,
+                                                              ),
+                                                            ),
                                                         ),
                                                     ],
                                                   ),
