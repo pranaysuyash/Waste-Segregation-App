@@ -1,6 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
 import '../models/waste_classification.dart';
+import '../models/user_profile.dart';
+import '../models/gamification.dart';
 import 'storage_service.dart';
 import 'dart:convert';
 import 'package:crypto/crypto.dart';
@@ -12,6 +14,59 @@ class CloudStorageService {
   final StorageService _localStorageService;
 
   CloudStorageService(this._localStorageService);
+
+  /// Saves or updates the user's profile in Firestore and updates the all-time leaderboard.
+  Future<void> saveUserProfileToFirestore(UserProfile userProfile) async {
+    if (userProfile.id.isEmpty) {
+      debugPrint('🚫 Cannot save user profile to Firestore: User ID is empty');
+      return;
+    }
+
+    try {
+      debugPrint('☁️ Saving user profile to Firestore for user: ${userProfile.id}');
+      await _firestore
+          .collection('users')
+          .doc(userProfile.id)
+          .set(userProfile.toJson(), SetOptions(merge: true));
+      debugPrint('☁️ ✅ Successfully saved user profile to Firestore: ${userProfile.id}');
+
+      // After successfully saving the profile, update the leaderboard
+      if (userProfile.gamificationProfile != null) {
+        await _updateLeaderboardEntry(userProfile);
+      }
+    } catch (e) {
+      debugPrint('☁️ ❌ Failed to save user profile to Firestore: $e');
+      rethrow; // Rethrow to allow calling code to handle
+    }
+  }
+
+  /// Updates the user's entry in the all-time leaderboard.
+  Future<void> _updateLeaderboardEntry(UserProfile userProfile) async {
+    if (userProfile.gamificationProfile == null) return; // Should not happen if called correctly
+
+    final userId = userProfile.id;
+    final points = userProfile.gamificationProfile!.points.total;
+    final displayName = userProfile.displayName ?? 'Anonymous User';
+    final photoUrl = userProfile.photoUrl;
+    // Category breakdown can be added if needed, from userProfile.gamificationProfile.points.categoryPoints
+
+    try {
+      debugPrint('🏆 Updating leaderboard for user: $userId with $points points');
+      await _firestore.collection('leaderboard_allTime').doc(userId).set({
+        'userId': userId,
+        'displayName': displayName,
+        'photoUrl': photoUrl,
+        'points': points,
+        // 'categoryBreakdown': userProfile.gamificationProfile!.points.categoryPoints,
+        'lastUpdated': FieldValue.serverTimestamp(),
+      }, SetOptions(merge: true));
+      debugPrint('🏆 ✅ Successfully updated leaderboard for user: $userId');
+    } catch (e) {
+      debugPrint('🏆 ❌ Failed to update leaderboard for user $userId: $e');
+      // Not rethrowing, as primary operation (profile save) succeeded.
+      // Consider a more robust error handling/retry mechanism for leaderboard updates if critical.
+    }
+  }
 
   /// Save classification to both local and cloud storage
   Future<void> saveClassificationWithSync(

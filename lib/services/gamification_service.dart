@@ -4,13 +4,21 @@ import 'package:hive/hive.dart';
 import '../models/gamification.dart';
 import '../models/waste_classification.dart';
 import '../models/educational_content.dart';
+import '../models/user_profile.dart';
 import '../utils/constants.dart';
 import 'community_service.dart';
+import 'storage_service.dart';
+import 'cloud_storage_service.dart';
 
 /// Service for managing gamification features
 class GamificationService {
-  static const String _gamificationBox = 'gamificationBox';
-  static const String _profileKey = 'userGamificationProfile';
+  // Dependencies
+  final StorageService _storageService;
+  final CloudStorageService _cloudStorageService;
+
+  // Hive constants (may be partially deprecated for authenticated users)
+  static const String _gamificationBoxName = 'gamificationBox'; // Renamed for clarity
+  static const String _legacyProfileKey = 'userGamificationProfile'; // Renamed for clarity
   static const String _defaultChallengesKey = 'defaultChallenges';
   static const String _weeklyStatsKey = 'weeklyStats';
   
@@ -27,57 +35,115 @@ class GamificationService {
     'community_challenge': 30, // Points for participating in community challenge
   };
   
-  // Initialize Hive box
+  GamificationService(this._storageService, this._cloudStorageService); // Updated constructor
+  
+  // Initialize Hive box (primarily for challenges, weekly stats if still used this way)
   Future<void> initGamification() async {
-    await Hive.openBox(_gamificationBox);
+    await Hive.openBox(_gamificationBoxName);
+    final box = Hive.box(_gamificationBoxName);
     
-    // Create default profile if it doesn't exist
-    final box = Hive.box(_gamificationBox);
-    final profileJson = box.get(_profileKey);
-    
-    if (profileJson == null) {
-      final defaultProfile = GamificationProfile(
-        userId: 'default',
-        streak: Streak(current: 1, lastUsageDate: DateTime.now()), // Start with streak of 1
-        points: const UserPoints(),
-        achievements: getDefaultAchievements(),
-      );
-      
-      await box.put(_profileKey, jsonEncode(defaultProfile.toJson()));
-    }
-    
-    // Create default challenges if they don't exist
+    // Initialize default challenges if they don't exist
     final challengesJson = box.get(_defaultChallengesKey);
     if (challengesJson == null) {
       await box.put(_defaultChallengesKey, jsonEncode(_getDefaultChallenges()));
     }
+    // Note: Legacy default profile creation is removed from here.
+    // GamificationProfile will be created on-demand via getProfile() if needed.
   }
   
-  // Get the user's gamification profile
   Future<GamificationProfile> getProfile() async {
-    final box = Hive.box(_gamificationBox);
-    final profileJson = box.get(_profileKey);
-    
-    if (profileJson == null) {
-      // Create a new profile if none exists
-      final newProfile = GamificationProfile(
-        userId: 'default',
-        streak: Streak(current: 1, lastUsageDate: DateTime.now()), // Start with streak of 1
+    UserProfile? currentUserProfile = await _storageService.getCurrentUserProfile();
+
+    if (currentUserProfile == null || currentUserProfile.id.isEmpty) {
+      debugPrint("⚠️ GamificationService: No authenticated user profile found. Falling back to legacy local profile (if any).");
+      // Fallback for guest or unauthenticated state (reads from old Hive key)
+      // This part might need further refinement based on how guests are handled.
+      final box = Hive.box(_gamificationBoxName);
+      final legacyProfileJson = box.get(_legacyProfileKey);
+      if (legacyProfileJson != null) {
+        try {
+          return GamificationProfile.fromJson(jsonDecode(legacyProfileJson));
+        } catch (e) {
+          debugPrint("🔥 Error decoding legacy gamification profile: $e. Creating a temporary guest profile.");
+        }
+      }
+      // Return a very basic, non-savable guest profile if no legacy one
+      return GamificationProfile(
+        userId: 'guest_user_${DateTime.now().millisecondsSinceEpoch}',
+        streak: Streak(lastUsageDate: DateTime.now()),
         points: const UserPoints(),
-        achievements: getDefaultAchievements(),
+        achievements: getDefaultAchievements(), // Provide default achievements
       );
-      
-      await box.put(_profileKey, jsonEncode(newProfile.toJson()));
-      return newProfile;
+    }
+
+    if (currentUserProfile.gamificationProfile != null) {
+      return currentUserProfile.gamificationProfile!;
+    } else {
+      // Logged-in user, but no gamification profile exists yet. Create one.
+      debugPrint("✨ GamificationService: No gamification profile found for user ${currentUserProfile.id}. Creating a new one.");
+      final newGamificationProfile = GamificationProfile(
+        userId: currentUserProfile.id, // Crucial: Use the actual user ID
+        streak: Streak(current: 0, lastUsageDate: DateTime.now().subtract(const Duration(days: 1))), // Start with 0 streak, last used yesterday
+        points: const UserPoints(),
+        achievements: getDefaultAchievements(), // Provide default achievements
+        activeChallenges: await _loadDefaultChallengesFromHive(), // Load default challenges
+      );
+
+      // Save this new gamification profile as part of the UserProfile
+      await saveProfile(newGamificationProfile); // This will save UserProfile locally and to Firestore
+      return newGamificationProfile;
+    }
+  }
+  
+  Future<List<Challenge>> _loadDefaultChallengesFromHive() async {
+    try {
+      final box = Hive.box(_gamificationBoxName);
+      final challengesJson = box.get(_defaultChallengesKey);
+      if (challengesJson != null) {
+        final List<dynamic> decoded = jsonDecode(challengesJson);
+        return decoded.map((data) => Challenge.fromJson(Map<String, dynamic>.from(data))).toList();
+      }
+    } catch (e) {
+      debugPrint("🔥 Error loading default challenges from Hive: $e");
+    }
+    return _getDefaultChallenges().map((c) => Challenge.fromJson(c)).toList(); // Fallback
+  }
+
+  Future<void> saveProfile(GamificationProfile gamificationProfileToSave) async {
+    UserProfile? currentUserProfile = await _storageService.getCurrentUserProfile();
+
+    if (currentUserProfile == null || currentUserProfile.id.isEmpty) {
+      debugPrint("🚫 GamificationService: Cannot save gamification profile. No authenticated user profile found.");
+      // Optionally, save to legacy Hive for guest state if that's a desired feature.
+      // For now, we assume saves are for authenticated users.
+      // final box = Hive.box(_gamificationBoxName);
+      // await box.put(_legacyProfileKey, jsonEncode(gamificationProfileToSave.toJson()));
+      // debugPrint("⚠️ Saved gamification profile to legacy local storage for unauthenticated session.");
+      return;
+    }
+
+    // Ensure the gamification profile's user ID matches the current user's ID
+    if (gamificationProfileToSave.userId != currentUserProfile.id) {
+      debugPrint("⚠️ GamificationService: Mismatched user IDs. GP UserID: ${gamificationProfileToSave.userId} vs UserProfile ID: ${currentUserProfile.id}. Correcting GP userId.");
+      gamificationProfileToSave = gamificationProfileToSave.copyWith(userId: currentUserProfile.id);
     }
     
-    return GamificationProfile.fromJson(jsonDecode(profileJson));
-  }
-  
-  // Save the user's gamification profile
-  Future<void> saveProfile(GamificationProfile profile) async {
-    final box = Hive.box(_gamificationBox);
-    await box.put(_profileKey, jsonEncode(profile.toJson()));
+    final updatedUserProfile = currentUserProfile.copyWith(
+      gamificationProfile: gamificationProfileToSave,
+      lastActive: DateTime.now(), // Also update lastActive timestamp on the main profile
+    );
+
+    try {
+      await _storageService.saveUserProfile(updatedUserProfile);
+      debugPrint("💾 GamificationService: UserProfile with updated gamification data saved locally.");
+
+      await _cloudStorageService.saveUserProfileToFirestore(updatedUserProfile);
+      debugPrint("☁️ GamificationService: UserProfile with updated gamification data synced to Firestore (triggers leaderboard update).");
+    } catch (e) {
+      debugPrint("🔥 GamificationService: Error saving user profile (local or cloud): $e");
+      // Decide on error handling strategy. For now, just logging.
+      rethrow;
+    }
   }
   
   // Update streak when the app is used
@@ -179,20 +245,19 @@ class GamificationService {
     final profile = await getProfile();
     final points = profile.points;
     
-    // Get point value for the action, or use custom points if provided
     final pointsToAdd = customPoints ?? _pointValues[action] ?? 0;
+if (pointsToAdd == 0 && customPoints == null) {
+       debugPrint("⚠️ GamificationService: Attempted to add 0 points for action '$action' and no custom points provided.");
+      return points; // Return early if no points to add
+     }
     
-    // Calculate new totals
     final newTotal = points.total + pointsToAdd;
     final newWeekly = points.weeklyTotal + pointsToAdd;
     final newMonthly = points.monthlyTotal + pointsToAdd;
+    final newLevel = (newTotal / 100).floor(); // Level is 0-indexed, 100 pts = level 1
     
-    // Calculate new level (every 100 points = 1 level)
-    final newLevel = (newTotal / 100).floor() + 1;
-    
-    // Update category points if category is provided
     final newCategoryPoints = Map<String, int>.from(points.categoryPoints);
-    if (category != null) {
+    if (category != null && category.isNotEmpty) {
       newCategoryPoints[category] = (newCategoryPoints[category] ?? 0) + pointsToAdd;
     }
     
@@ -204,12 +269,13 @@ class GamificationService {
       categoryPoints: newCategoryPoints,
     );
     
-    // Update the profile with the new points
-    await saveProfile(profile.copyWith(points: newPoints));
+    // This will call the new saveProfile, which updates UserProfile and syncs
+    await saveProfile(profile.copyWith(points: newPoints)); 
     
-    // Update weekly stats
+    // Update weekly stats (if this logic is still separate)
     await _updateWeeklyStats(action, category, pointsToAdd);
     
+    debugPrint("✨ Points added: $pointsToAdd for $action. New total: $newTotal. Level: $newLevel");
     return newPoints;
   }
   
@@ -528,7 +594,7 @@ class GamificationService {
   
   // Get weekly stats for leaderboards
   Future<List<WeeklyStats>> getWeeklyStats() async {
-    final box = Hive.box(_gamificationBox);
+    final box = Hive.box(_gamificationBoxName);
     final statsJson = box.get(_weeklyStatsKey);
     
     if (statsJson == null) {
@@ -543,7 +609,7 @@ class GamificationService {
   
   // Update weekly stats
   Future<void> _updateWeeklyStats(String action, String? category, int pointsEarned) async {
-    final box = Hive.box(_gamificationBox);
+    final box = Hive.box(_gamificationBoxName);
     final now = DateTime.now();
     
     // Get the start of the current week (Sunday)
@@ -615,7 +681,7 @@ class GamificationService {
   
   // Generate new challenges
   Future<List<Challenge>> _generateNewChallenges(int count) async {
-    final box = Hive.box(_gamificationBox);
+    final box = Hive.box(_gamificationBoxName);
     final defaultChallengesJson = box.get(_defaultChallengesKey);
     
     if (defaultChallengesJson == null) {
@@ -1150,10 +1216,10 @@ class GamificationService {
   /// Clear all gamification data and reset to default state
   Future<void> clearGamificationData() async {
     try {
-      final box = Hive.box(_gamificationBox);
+      final box = Hive.box(_gamificationBoxName);
       
       // Get existing profile to archive points
-      final existingProfileJson = box.get(_profileKey);
+      final existingProfileJson = box.get(_legacyProfileKey);
       if (existingProfileJson != null) {
         final existingProfile = GamificationProfile.fromJson(jsonDecode(existingProfileJson));
         
@@ -1174,7 +1240,7 @@ class GamificationService {
         achievements: getDefaultAchievements(),
       );
       
-      await box.put(_profileKey, jsonEncode(freshProfile.toJson()));
+      await box.put(_legacyProfileKey, jsonEncode(freshProfile.toJson()));
       
       // Reset default challenges
       await box.put(_defaultChallengesKey, jsonEncode(_getDefaultChallenges()));
@@ -1189,7 +1255,7 @@ class GamificationService {
   /// Archive points when data is cleared
   Future<void> _archivePoints(UserPoints points) async {
     try {
-      final box = Hive.box(_gamificationBox);
+      final box = Hive.box(_gamificationBoxName);
       final archivedPointsKey = 'archived_points_${DateTime.now().millisecondsSinceEpoch}';
       
       final archiveEntry = {
@@ -1216,7 +1282,7 @@ class GamificationService {
   /// Get total lifetime points including archived points
   Future<int> getTotalLifetimePoints() async {
     try {
-      final box = Hive.box(_gamificationBox);
+      final box = Hive.box(_gamificationBoxName);
       final profile = await getProfile();
       int totalLifetime = profile.points.total;
       
@@ -1242,7 +1308,7 @@ class GamificationService {
   /// Get archived points history
   Future<List<Map<String, dynamic>>> getArchivedPointsHistory() async {
     try {
-      final box = Hive.box(_gamificationBox);
+      final box = Hive.box(_gamificationBoxName);
       final archivedList = box.get('archived_points_list', defaultValue: <String>[]);
       
       final List<Map<String, dynamic>> history = [];

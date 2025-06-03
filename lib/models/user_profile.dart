@@ -1,3 +1,5 @@
+import './gamification.dart';
+
 /// Defines the roles a user can have within a family or team.
 enum UserRole {
   /// Can manage family settings and members.
@@ -42,6 +44,9 @@ class UserProfile {
   /// User-specific preferences.
   final Map<String, dynamic>? preferences;
 
+  /// User's gamification data.
+  final GamificationProfile? gamificationProfile;
+
 
   UserProfile({
     required this.id,
@@ -53,6 +58,7 @@ class UserProfile {
     this.createdAt,
     this.lastActive,
     this.preferences,
+    this.gamificationProfile,
   });
 
   /// Creates a copy of this UserProfile but with the given fields replaced.
@@ -66,6 +72,7 @@ class UserProfile {
     DateTime? createdAt,
     DateTime? lastActive,
     Map<String, dynamic>? preferences,
+    GamificationProfile? gamificationProfile,
   }) {
     return UserProfile(
       id: id ?? this.id,
@@ -77,6 +84,7 @@ class UserProfile {
       createdAt: createdAt ?? this.createdAt,
       lastActive: lastActive ?? this.lastActive,
       preferences: preferences ?? this.preferences,
+      gamificationProfile: gamificationProfile ?? this.gamificationProfile,
     );
   }
 
@@ -92,6 +100,7 @@ class UserProfile {
       'createdAt': createdAt?.toIso8601String(),
       'lastActive': lastActive?.toIso8601String(),
       'preferences': preferences,
+      'gamificationProfile': gamificationProfile?.toJson(),
     };
   }
 
@@ -116,6 +125,9 @@ class UserProfile {
           ? DateTime.parse(json['lastActive'] as String)
           : null,
       preferences: json['preferences'] as Map<String, dynamic>?,
+      gamificationProfile: json['gamificationProfile'] != null
+          ? GamificationProfile.fromJson(json['gamificationProfile'] as Map<String, dynamic>)
+          : null,
     );
   }
 } 

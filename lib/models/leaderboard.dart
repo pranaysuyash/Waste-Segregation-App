@@ -62,7 +62,7 @@ class LeaderboardEntry {
   final int points;
 
   /// Current rank/position in the leaderboard.
-  final int rank;
+  final int? rank;
 
   /// Previous rank (for showing rank changes).
   final int? previousRank;
@@ -74,7 +74,7 @@ class LeaderboardEntry {
   final List<Achievement> recentAchievements;
 
   /// Additional statistics for this user.
-  final UserLeaderboardStats stats;
+  final UserLeaderboardStats? stats;
 
   /// Whether this entry represents the current user.
   final bool isCurrentUser;
@@ -90,11 +90,11 @@ class LeaderboardEntry {
     required this.displayName,
     this.photoUrl,
     required this.points,
-    required this.rank,
+    this.rank,
     this.previousRank,
     this.categoryBreakdown = const {},
     this.recentAchievements = const [],
-    required this.stats,
+    this.stats,
     this.isCurrentUser = false,
     this.familyId,
     this.familyName,
@@ -142,7 +142,7 @@ class LeaderboardEntry {
       'previousRank': previousRank,
       'categoryBreakdown': categoryBreakdown,
       'recentAchievements': recentAchievements.map((a) => a.toJson()).toList(),
-      'stats': stats.toJson(),
+      'stats': stats?.toJson(),
       'isCurrentUser': isCurrentUser,
       'familyId': familyId,
       'familyName': familyName,
@@ -155,15 +155,17 @@ class LeaderboardEntry {
       userId: json['userId'] as String,
       displayName: json['displayName'] as String,
       photoUrl: json['photoUrl'] as String?,
-      points: json['points'] as int,
-      rank: json['rank'] as int,
+      points: json['points'] as int? ?? 0,
+      rank: json['rank'] as int?,
       previousRank: json['previousRank'] as int?,
       categoryBreakdown: Map<String, int>.from(json['categoryBreakdown'] as Map? ?? {}),
       recentAchievements: (json['recentAchievements'] as List<dynamic>?)
               ?.map((a) => Achievement.fromJson(a as Map<String, dynamic>))
               .toList() ??
           [],
-      stats: UserLeaderboardStats.fromJson(json['stats'] as Map<String, dynamic>),
+      stats: json['stats'] != null 
+          ? UserLeaderboardStats.fromJson(json['stats'] as Map<String, dynamic>) 
+          : null,
       isCurrentUser: json['isCurrentUser'] as bool? ?? false,
       familyId: json['familyId'] as String?,
       familyName: json['familyName'] as String?,
@@ -173,7 +175,7 @@ class LeaderboardEntry {
   /// Gets the rank change compared to previous ranking.
   int? get rankChange {
     if (previousRank == null) return null;
-    return previousRank! - rank; // Positive means improved rank
+    return previousRank! - (rank ?? 0); // Positive means improved rank
   }
 
   /// Gets the percentage of points in the top category.
@@ -299,7 +301,7 @@ class Leaderboard {
   /// Gets entries within a specific rank range.
   List<LeaderboardEntry> getEntriesInRange(int startRank, int endRank) {
     return entries
-        .where((entry) => entry.rank >= startRank && entry.rank <= endRank)
+        .where((entry) => entry.rank != null && entry.rank! >= startRank && entry.rank! <= endRank)
         .toList();
   }
 
