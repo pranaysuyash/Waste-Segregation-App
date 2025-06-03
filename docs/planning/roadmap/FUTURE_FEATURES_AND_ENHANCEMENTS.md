@@ -510,6 +510,141 @@ This document outlines innovative features, enhancements, and possibilities that
 - Behavioral change sustainability
 - Global reach and impact
 
+## Future Leaderboard Types and Strategies
+
+The leaderboard system can be expanded to support a variety of competitive and motivational experiences for users. Below are proposed leaderboard types and design considerations for future implementation:
+
+### 1. Leaderboard Types
+
+#### a. By Time Period
+- **Daily Leaderboard**: Resets every day. Motivates daily engagement.
+- **Weekly Leaderboard**: Resets every week. Rewards consistent participation.
+- **Monthly Leaderboard**: Resets every month. Recognizes sustained effort.
+- **All-Time Leaderboard**: Tracks lifetime achievements and points.
+
+#### b. By Metric
+- **Points Leaderboard**: Ranks users by total points earned (default).
+- **Number of Analyses Leaderboard**: Ranks users by the number of waste items analyzed/classified, regardless of points.
+- **Streak Leaderboard**: Ranks users by their current or best streak.
+- **Achievements Leaderboard**: Ranks users by number of achievements or badges earned.
+
+#### c. By Waste Type
+- **Category-Specific Leaderboards**: Ranks users by points or analyses in a specific waste category (e.g., Plastic, Food Waste, E-Waste, etc.).
+- **Recycling Leaderboard**: Focuses on recyclable items only.
+- **Compost Leaderboard**: Focuses on compostable items only.
+
+#### d. By Group
+- **Family/Team Leaderboard**: Ranks users within a family or team.
+- **Regional Leaderboard**: Ranks users within a city, state, or country.
+- **Friends Leaderboard**: Ranks users among their friends (requires social features).
+
+### 2. Data Model Considerations
+- Each leaderboard type may require a separate Firestore collection or a composite key (e.g., `leaderboard_{period}_{metric}`).
+- Category-specific leaderboards may use subcollections or indexed fields for efficient querying.
+- Periodic leaderboards require scheduled resets (Cloud Functions or client logic).
+- Group leaderboards require user-group mapping and privacy controls.
+
+### 3. UI/UX Considerations
+- Allow users to switch between leaderboard types via tabs or dropdowns.
+- Clearly indicate the active leaderboard type and period.
+- Show user's current rank even if not in the top N.
+- Use badges or highlights for top performers in each category.
+- Provide tooltips or info icons explaining each leaderboard type.
+
+### 4. Gamification Implications
+- Offer unique badges or rewards for top ranks in each leaderboard type.
+- Encourage participation in underrepresented categories (e.g., composting).
+- Use time-limited leaderboards for special events or campaigns.
+- Enable users to set personal or group goals tied to leaderboard metrics.
+
+### 5. Privacy and Fairness
+- Allow users to opt out of public leaderboards or use anonymized display names.
+- Implement anti-cheat measures for streaks and analysis counts.
+- Consider regional balancing to avoid population bias in regional leaderboards.
+
+### 6. Technical Implementation Notes
+- Use Firestore triggers or scheduled Cloud Functions to reset and archive period-based leaderboards.
+- Use aggregation queries or batch jobs for efficient ranking calculations.
+- Consider caching leaderboard data for performance.
+
+### 7. Example Leaderboard Schema
+```json
+{
+  "userId": "abc123",
+  "displayName": "Jane Doe",
+  "photoUrl": "...",
+  "points": 1234,
+  "analyses": 567,
+  "categoryBreakdown": {
+    "Plastic": 200,
+    "Food Waste": 150
+  },
+  "streak": 12,
+  "achievements": 8,
+  "period": "2024-06", // For monthly
+  "leaderboardType": "monthly_points"
+}
+```
+
+### 8. Next Steps
+- Prioritize leaderboard types based on user feedback and engagement data.
+- Prototype UI for switching between leaderboard types.
+- Design Firestore schema for scalable, multi-type leaderboards.
+- Plan for migration and backward compatibility with current leaderboard data.
+
+## Implementation Roadmap: Multi-Type Leaderboards
+
+### Phase 1: Foundation (MVP)
+- Implement All-Time Points Leaderboard (current system)
+- Refactor Firestore schema to support extensibility (add `leaderboardType`, `period` fields)
+- UI: Add tab/dropdown for switching between All-Time and (placeholder) other types
+- Document API/service/provider structure for extensibility
+
+### Phase 2: Period-Based Leaderboards
+- Add Weekly, Monthly, and Daily leaderboards (by points)
+- Implement scheduled resets and archiving (Cloud Functions or client logic)
+- UI: Enable switching between time periods
+- Gamification: Add badges for top ranks in each period
+
+### Phase 3: Metric-Based Leaderboards
+- Add Number of Analyses, Streak, and Achievements leaderboards
+- Update Firestore schema and aggregation logic
+- UI: Allow users to select metric (points, analyses, streak, achievements)
+- Gamification: Unique rewards for each metric
+
+### Phase 4: Category/Waste-Type Leaderboards
+- Add category-specific leaderboards (e.g., Plastic, Food Waste)
+- Update data model to efficiently store/query category breakdowns
+- UI: Filter/switch by waste type
+- Gamification: Badges for top category performers
+
+### Phase 5: Group and Regional Leaderboards
+- Implement Family/Team, Regional, and Friends leaderboards
+- Add user-group mapping and privacy controls
+- UI: Allow users to join/view group leaderboards
+- Gamification: Group challenges and rewards
+
+### Phase 6: Special/Event Leaderboards
+- Add support for time-limited or event-based leaderboards (e.g., Earth Day Challenge)
+- UI: Highlight active events and special leaderboards
+- Gamification: Event-specific badges and rewards
+
+### Technical Milestones
+- Schema migration plan for backward compatibility
+- Cloud Functions for resets, archiving, and aggregation
+- Efficient querying and caching strategies
+- Anti-cheat and privacy features
+
+### Documentation Milestones
+- Update developer and user docs for each phase
+- Provide API/service/provider usage examples
+- Add UI/UX guidelines for leaderboard navigation
+- Document gamification and reward logic for each leaderboard type
+
+---
+
+This phased roadmap ensures incremental delivery, user feedback integration, and technical scalability for a robust, engaging leaderboard system.
+
 ---
 
 *This document represents a comprehensive analysis of undocumented possibilities for the Waste Segregation App. These features should be evaluated against current project priorities, resource availability, and strategic objectives before implementation planning.* 

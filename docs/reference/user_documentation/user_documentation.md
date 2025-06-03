@@ -201,4 +201,41 @@ If you encounter problems:
 - Google Sign-In users can optionally sync data to their personal Google Drive
 - The app doesn't share your data with third parties
 
+## Leaderboard
+
+The Leaderboard lets you see how your performance compares to other users!
+
+### How to Access
+- Tap the "Leaderboard" option from the main menu or navigation bar.
+
+### What You'll See
+- **Your Rank:** See your current position among all users.
+- **Your Points:** Track your total points earned from classifying waste, completing challenges, and more.
+- **Top Performers:** View a list of the top users and their scores.
+- **Profile Info:** See your display name and profile photo (if set).
+
+### How to Improve Your Rank
+- Classify more waste items correctly.
+- Complete daily and weekly challenges.
+- Maintain streaks and earn achievements.
+- Stay active—your points are updated automatically!
+
+### Refreshing the Leaderboard
+- Pull down on the leaderboard screen to refresh and see the latest rankings.
+
+### Privacy
+- Only your display name and profile photo are shown to others. No sensitive information is shared.
+
+### Coming Soon
+- Compete in family, weekly, or regional leaderboards!
+- Earn special badges for top ranks.
+
+### Upcoming Leaderboard Types
+- **Daily, Weekly, Monthly Leaderboards:** Compete for top spots in shorter timeframes.
+- **Category Leaderboards:** See who leads in recycling, composting, or specific waste types.
+- **Group & Regional Leaderboards:** Join family, team, or city competitions.
+- **Special Events:** Participate in limited-time challenges (e.g., Earth Day).
+
+You'll be able to switch between leaderboard types using tabs or dropdowns. Each leaderboard will have its own set of badges and rewards for top performers. Stay tuned for these exciting updates!
+
 Thank you for using the Waste Segregation App and contributing to better waste management!

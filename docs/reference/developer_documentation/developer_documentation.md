@@ -12,6 +12,7 @@
 9. [Troubleshooting](#troubleshooting)
 10. [Recent Code Improvements](#recent-code-improvements)
 11. [Crash Reporting & Error Handling](#crash-reporting-error-handling)
+12. [Leaderboard Feature](#leaderboard-feature)
 
 ## Introduction
 
@@ -396,3 +397,65 @@ flutter build web --release
 - **How to Test:**
   - Use the force crash button in Settings > Developer Options to trigger a fatal crash and verify Crashlytics reporting in the Firebase Console.
   - Check terminal logs for Crashlytics submission messages.
+
+## Leaderboard Feature
+
+### Overview
+The Leaderboard feature allows users to see how their performance (points, achievements) compares to others. It is implemented using Firestore for cloud data storage, with a service and provider layer for fetching and displaying leaderboard data in the app UI.
+
+### Firestore Schema
+- **Collection:** `leaderboard_allTime`
+- **Document ID:** `userId` (string)
+- **Fields:**
+  - `userId`: String (user's unique ID)
+  - `displayName`: String (denormalized from user profile)
+  - `photoUrl`: String? (optional, denormalized)
+  - `points`: int (from `UserPoints.total`)
+  - `lastUpdated`: Timestamp
+  - (Optional) `categoryBreakdown`, `stats`, etc.
+
+### Update Triggers
+- When a user's `UserPoints.total` is updated (e.g., after classifying an item, completing a challenge, etc.), the `GamificationService` saves the updated `UserProfile` to Firestore via `CloudStorageService`.
+- `CloudStorageService.saveUserProfileToFirestore()` updates both the user's profile and their leaderboard entry in `leaderboard_allTime`.
+
+### Service Layer
+- **File:** `lib/services/leaderboard_service.dart`
+- **Key Methods:**
+  - `getTopNEntries(int limit)`: Fetches the top N users by points.
+  - `getUserEntry(String userId)`: Fetches a specific user's leaderboard entry.
+  - `getCurrentUserRank(String userId)`: Calculates the user's rank by counting users with more points.
+
+### Provider Layer
+- **File:** `lib/providers/leaderboard_provider.dart`
+- Uses Riverpod to provide:
+  - The top N leaderboard entries
+  - The current user's leaderboard entry
+  - The current user's rank
+  - A combined provider for the leaderboard screen
+
+### UI Integration
+- **File:** `lib/screens/leaderboard/leaderboard_screen.dart`
+- Uses Riverpod providers to display:
+  - The current user's rank and points
+  - The top N users in a scrollable list
+  - Pull-to-refresh to reload leaderboard data
+  - Loading and error states using `LoadingStateHandler` and `EmptyStateHandler`
+
+### Extensibility
+- The system is designed to support additional leaderboard types (weekly, monthly, family, etc.) by extending the Firestore schema and service methods.
+- The UI and provider logic can be adapted for new leaderboard periods or scopes.
+
+### References
+- See also: `lib/services/gamification_service.dart`, `lib/services/cloud_storage_service.dart`, `lib/models/leaderboard.dart`, and Firestore schema documentation in `docs/technical/data_storage/firestore_schema.md`.
+
+## Roadmap for Multi-Type Leaderboards
+
+The leaderboard system is planned to expand beyond the current all-time points leaderboard. The roadmap includes:
+
+- Period-based leaderboards (daily, weekly, monthly)
+- Metric-based leaderboards (number of analyses, streaks, achievements)
+- Category/waste-type leaderboards (e.g., Plastic, Food Waste)
+- Group and regional leaderboards (family, team, region, friends)
+- Special/event leaderboards (e.g., Earth Day Challenge)
+
+Each phase will include schema updates, UI enhancements, and new gamification rewards. See `docs/planning/roadmap/FUTURE_FEATURES_AND_ENHANCEMENTS.md` for the full phased implementation plan and technical details.
