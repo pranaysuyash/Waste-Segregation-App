@@ -39,13 +39,47 @@ class GamificationService {
   
   // Initialize Hive box (primarily for challenges, weekly stats if still used this way)
   Future<void> initGamification() async {
-    await Hive.openBox(_gamificationBoxName);
-    final box = Hive.box(_gamificationBoxName);
-    
-    // Initialize default challenges if they don't exist
-    final challengesJson = box.get(_defaultChallengesKey);
-    if (challengesJson == null) {
-      await box.put(_defaultChallengesKey, jsonEncode(_getDefaultChallenges()));
+    try {
+      debugPrint('🚀 Initializing GamificationService...');
+      
+      // Ensure Hive box is opened
+      if (!Hive.isBoxOpen(_gamificationBoxName)) {
+        debugPrint('📦 Opening Hive box: $_gamificationBoxName');
+        await Hive.openBox(_gamificationBoxName);
+      } else {
+        debugPrint('📦 Hive box already open: $_gamificationBoxName');
+      }
+      
+      final box = Hive.box(_gamificationBoxName);
+      debugPrint('📦 Hive box obtained successfully');
+      
+      // Initialize default challenges if they don't exist
+      final challengesJson = box.get(_defaultChallengesKey);
+      debugPrint('🔧 Existing challenges in box: $challengesJson (type: ${challengesJson.runtimeType})');
+      
+      if (challengesJson == null || challengesJson is! String || challengesJson.isEmpty) {
+        debugPrint('🔧 Initializing default challenges...');
+        try {
+          final defaultChallenges = _getDefaultChallenges();
+          final encodedChallenges = jsonEncode(defaultChallenges);
+          await box.put(_defaultChallengesKey, encodedChallenges);
+          debugPrint('✅ Default challenges initialized successfully');
+          
+          // Verify the data was stored correctly
+          final verifyData = box.get(_defaultChallengesKey);
+          debugPrint('🔍 Verification - stored data type: ${verifyData.runtimeType}');
+        } catch (e) {
+          debugPrint('🔥 Error initializing default challenges: $e');
+        }
+      } else {
+        debugPrint('✅ Default challenges already exist in Hive');
+      }
+      
+      debugPrint('✅ GamificationService initialization complete');
+    } catch (e) {
+      debugPrint('🔥 Error during GamificationService initialization: $e');
+      debugPrint('🔧 Stack trace: ${StackTrace.current}');
+      // Don't rethrow - we want the app to continue even if gamification fails
     }
     // Note: Legacy default profile creation is removed from here.
     // GamificationProfile will be created on-demand via getProfile() if needed.
@@ -81,45 +115,87 @@ class GamificationService {
     } else {
       // Logged-in user, but no gamification profile exists yet. Create one.
       debugPrint('✨ GamificationService: No gamification profile found for user ${currentUserProfile.id}. Creating a new one.');
+      
+      // Load default challenges safely
+      List<Challenge> activeChallenges = [];
+      try {
+        activeChallenges = await _loadDefaultChallengesFromHive();
+        debugPrint('🎯 Loaded ${activeChallenges.length} active challenges for new profile');
+      } catch (e) {
+        debugPrint('🔥 Failed to load challenges for new profile: $e');
+        debugPrint('🔧 Creating profile without active challenges');
+        // Continue with empty challenges list
+      }
+      
       final newGamificationProfile = GamificationProfile(
         userId: currentUserProfile.id, // Crucial: Use the actual user ID
         streak: Streak(lastUsageDate: DateTime.now().subtract(const Duration(days: 1))), // Start with 0 streak, last used yesterday
         points: const UserPoints(),
         achievements: getDefaultAchievements(), // Provide default achievements
-        activeChallenges: await _loadDefaultChallengesFromHive(), // Load default challenges
+        activeChallenges: activeChallenges, // Use safely loaded challenges
       );
 
       // Save this new gamification profile as part of the UserProfile
-      await saveProfile(newGamificationProfile); // This will save UserProfile locally and to Firestore
+      try {
+        await saveProfile(newGamificationProfile); // This will save UserProfile locally and to Firestore
+        debugPrint('💾 New gamification profile saved successfully');
+      } catch (e) {
+        debugPrint('🔥 Failed to save new gamification profile: $e');
+        // Return the profile anyway, even if saving failed
+      }
+      
       return newGamificationProfile;
     }
   }
   
   Future<List<Challenge>> _loadDefaultChallengesFromHive() async {
     try {
+      debugPrint('🔧 Loading default challenges from Hive...');
       final box = Hive.box(_gamificationBoxName);
       final challengesJson = box.get(_defaultChallengesKey);
       
+      debugPrint('🔧 Retrieved challenges data: $challengesJson (type: ${challengesJson.runtimeType})');
+      
       if (challengesJson != null && challengesJson is String && challengesJson.isNotEmpty) {
         try {
+          debugPrint('🔧 Attempting to decode JSON...');
           final List<dynamic> decoded = jsonDecode(challengesJson);
-          return decoded.map((data) => Challenge.fromJson(Map<String, dynamic>.from(data))).toList();
+          debugPrint('🔧 JSON decoded successfully, creating Challenge objects...');
+          final challenges = decoded.map((data) => Challenge.fromJson(Map<String, dynamic>.from(data))).toList();
+          debugPrint('✅ Successfully loaded ${challenges.length} challenges from Hive');
+          return challenges;
         } catch (decodeError) {
           debugPrint('🔥 Error decoding challenges JSON: $decodeError');
-          // Re-initialize with fresh data
+          debugPrint('🔧 Reinitializing challenges with fresh data...');
           await box.put(_defaultChallengesKey, jsonEncode(_getDefaultChallenges()));
+          debugPrint('✅ Challenges reinitialized');
         }
       } else {
-        debugPrint('🔧 Challenges not found or invalid in Hive, initializing...');
+        debugPrint('🔧 Challenges not found or invalid in Hive (${challengesJson?.runtimeType}), initializing...');
         // Initialize challenges if they don't exist or are invalid
-        await box.put(_defaultChallengesKey, jsonEncode(_getDefaultChallenges()));
+        try {
+          await box.put(_defaultChallengesKey, jsonEncode(_getDefaultChallenges()));
+          debugPrint('✅ Challenges initialized successfully');
+        } catch (putError) {
+          debugPrint('🔥 Error putting challenges to Hive: $putError');
+        }
       }
     } catch (e) {
-      debugPrint('🔥 Error loading default challenges from Hive: $e');
+      debugPrint('🔥 Error in _loadDefaultChallengesFromHive: $e');
+      debugPrint('🔧 Stack trace: ${StackTrace.current}');
     }
     
     // Always return a fallback list using the fresh challenge templates
-    return _getDefaultChallenges().map((c) => Challenge.fromJson(c)).toList();
+    debugPrint('🔧 Returning fallback challenge list...');
+    try {
+      final fallbackChallenges = _getDefaultChallenges().map((c) => Challenge.fromJson(c)).toList();
+      debugPrint('✅ Created ${fallbackChallenges.length} fallback challenges');
+      return fallbackChallenges;
+    } catch (fallbackError) {
+      debugPrint('🔥 Error creating fallback challenges: $fallbackError');
+      // Return empty list as absolute last resort
+      return [];
+    }
   }
 
   Future<void> saveProfile(GamificationProfile gamificationProfileToSave) async {
