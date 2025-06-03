@@ -8,6 +8,7 @@ import '../models/filter_options.dart';
 import '../models/user_profile.dart';
 import '../utils/constants.dart';
 import 'gamification_service.dart';
+import 'cloud_storage_service.dart';
 
 class StorageService {
   // Initialize Hive database
@@ -77,15 +78,7 @@ class StorageService {
     
     // Get current user ID
     final userProfile = await getCurrentUserProfile();
-    String currentUserId;
-    
-    if (userProfile != null && userProfile.id.isNotEmpty) {
-      // Signed-in user
-      currentUserId = userProfile.id;
-    } else {
-      // Guest user - use a consistent guest identifier
-      currentUserId = 'guest_user';
-    }
+    final currentUserId = userProfile?.id ?? 'guest_user';
     
     // Ensure the classification has the correct user ID
     final classificationWithUserId = classification.copyWith(userId: currentUserId);
@@ -94,25 +87,17 @@ class StorageService {
     debugPrint('💾 Saving classification for user: $currentUserId');
     debugPrint('💾 Classification: ${classification.itemName}');
     
-    final String key = 'classification_${currentUserId}_${DateTime.now().millisecondsSinceEpoch}';
+    final key = 'classification_${currentUserId}_${DateTime.now().millisecondsSinceEpoch}';
     await classificationsBox.put(key, jsonEncode(classificationWithUserId.toJson()));
   }
 
   Future<List<WasteClassification>> getAllClassifications({FilterOptions? filterOptions}) async {
     final classificationsBox = Hive.box(StorageKeys.classificationsBox);
-    final List<WasteClassification> classifications = [];
+    final classifications = <WasteClassification>[];
 
     // Get current user ID
     final userProfile = await getCurrentUserProfile();
-    String currentUserId;
-    
-    if (userProfile != null && userProfile.id.isNotEmpty) {
-      // Signed-in user
-      currentUserId = userProfile.id;
-    } else {
-      // Guest user - use a consistent guest identifier
-      currentUserId = 'guest_user';
-    }
+    final currentUserId = userProfile?.id ?? 'guest_user';
 
     // Debug logging - ENHANCED
     debugPrint('=== CLASSIFICATION LOADING DEBUG ===');
@@ -122,20 +107,20 @@ class StorageService {
     debugPrint('📖 All keys in storage: ${classificationsBox.keys.toList()}');
     
     // Debug all classifications in storage
-    for (var key in classificationsBox.keys) {
-      final String jsonString = classificationsBox.get(key);
-      final Map<String, dynamic> json = jsonDecode(jsonString);
+    for (final key in classificationsBox.keys) {
+      final jsonString = classificationsBox.get(key);
+      final json = jsonDecode(jsonString);
       final classification = WasteClassification.fromJson(json);
       debugPrint('📖 Classification: ${classification.itemName} | userId: ${classification.userId} | timestamp: ${classification.timestamp}');
     }
     
-    for (var key in classificationsBox.keys) {
-      final String jsonString = classificationsBox.get(key);
-      final Map<String, dynamic> json = jsonDecode(jsonString);
+    for (final key in classificationsBox.keys) {
+      final jsonString = classificationsBox.get(key);
+      final json = jsonDecode(jsonString);
       final classification = WasteClassification.fromJson(json);
       
       // Include classifications based on user context
-      bool shouldInclude = false;
+      var shouldInclude = false;
       
       if (currentUserId == 'guest_user') {
         // For guest users, include guest classifications and legacy null userId
@@ -178,7 +163,7 @@ class StorageService {
     FilterOptions filterOptions
   ) {
     // Create a filtered list
-    List<WasteClassification> filteredClassifications = List.from(classifications);
+    var filteredClassifications = List<WasteClassification>.from(classifications);
     
     // Filter by search text (case-insensitive)
     if (filterOptions.searchText != null && filterOptions.searchText!.isNotEmpty) {
@@ -338,7 +323,7 @@ class StorageService {
     final classifications = await getAllClassifications(filterOptions: filterOptions);
     
     // Create CSV header
-    List<String> headers = [
+    final headers = [
       'Item Name',
       'Category',
       'Subcategory',
@@ -352,18 +337,18 @@ class StorageService {
     ];
     
     // Create CSV content with header row
-    String csvContent = '${headers.join(',')}\n';
+    var csvContent = '${headers.join(',')}\n';
     
     // Add each classification as a row
-    for (var classification in classifications) {
-      List<String> row = [
+    for (final classification in classifications) {
+      final row = [
         _escapeCsvField(classification.itemName),
         _escapeCsvField(classification.category),
         _escapeCsvField(classification.subcategory ?? ''),
         _escapeCsvField(classification.materialType ?? ''),
-        classification.isRecyclable == true ? 'Yes' : classification.isRecyclable == false ? 'No' : '',
-        classification.isCompostable == true ? 'Yes' : classification.isCompostable == false ? 'No' : '',
-        classification.requiresSpecialDisposal == true ? 'Yes' : classification.requiresSpecialDisposal == false ? 'No' : '',
+        if (classification.isRecyclable == true) 'Yes' else if (classification.isRecyclable == false) 'No' else '',
+        if (classification.isCompostable == true) 'Yes' else if (classification.isCompostable == false) 'No' else '',
+        if (classification.requiresSpecialDisposal == true) 'Yes' else if (classification.requiresSpecialDisposal == false) 'No' else '',
         _escapeCsvField(classification.disposalMethod ?? ''),
         _escapeCsvField(classification.recyclingCode?.toString() ?? ''),
         _formatDateForCsv(classification.timestamp)
@@ -402,21 +387,13 @@ class StorageService {
     
     // Get current user ID
     final userProfile = await getCurrentUserProfile();
-    String currentUserId;
-    
-    if (userProfile != null && userProfile.id.isNotEmpty) {
-      // Signed-in user
-      currentUserId = userProfile.id;
-    } else {
-      // Guest user - use a consistent guest identifier
-      currentUserId = 'guest_user';
-    }
+    final currentUserId = userProfile?.id ?? 'guest_user';
     
     // Only clear classifications for the current user
     final keysToDelete = <String>[];
-    for (var key in classificationsBox.keys) {
-      final String jsonString = classificationsBox.get(key);
-      final Map<String, dynamic> json = jsonDecode(jsonString);
+    for (final key in classificationsBox.keys) {
+      final jsonString = classificationsBox.get(key);
+      final json = jsonDecode(jsonString);
       final classification = WasteClassification.fromJson(json);
       
       // Delete if it belongs to current user or if both are null (backward compatibility)
@@ -502,10 +479,10 @@ class StorageService {
   /// Retrieve a cached classification by image hash, or null if none exists.
   Future<WasteClassification?> getCachedClassification(String hash) async {
     final cacheBox = Hive.box(StorageKeys.cacheBox);
-    final String? jsonString = cacheBox.get(hash);
+    final jsonString = cacheBox.get(hash);
     if (jsonString == null) return null;
     try {
-      final Map<String, dynamic> jsonMap = jsonDecode(jsonString);
+      final jsonMap = jsonDecode(jsonString);
       return WasteClassification.fromJson(jsonMap);
     } catch (_) {
       return null;
@@ -518,14 +495,14 @@ class StorageService {
     WasteClassification classification,
   ) async {
     final cacheBox = Hive.box(StorageKeys.cacheBox);
-    final String jsonString = jsonEncode(classification.toJson());
+    final jsonString = jsonEncode(classification.toJson());
     await cacheBox.put(hash, jsonString);
   }
 
   // Export all user data for backup
   Future<String> exportUserData() async {
-    final UserProfile? userProfile = await getCurrentUserProfile();
-    final Map<String, dynamic> exportData = {
+    final userProfile = await getCurrentUserProfile();
+    final exportData = {
       // Store UserProfile if available, otherwise store old user info for backward compatibility
       'userProfileData': userProfile?.toJson(), 
       'settings': await getSettings(),
@@ -541,7 +518,7 @@ class StorageService {
   // Import user data from backup
   Future<void> importUserData(String jsonData) async {
     try {
-      final Map<String, dynamic> importData = jsonDecode(jsonData);
+      final importData = jsonDecode(jsonData);
 
       // Clear existing data first (clearUserInfo now handles UserProfile and old keys)
       await clearUserInfo();
@@ -581,13 +558,13 @@ class StorageService {
 
       // Import classifications
       if (importData.containsKey('classifications')) {
-        final List<dynamic> classifications = importData['classifications'];
+        final classifications = importData['classifications'];
         final classificationsBox = Hive.box(StorageKeys.classificationsBox);
 
         for (var i = 0; i < classifications.length; i++) {
           final classification =
               WasteClassification.fromJson(classifications[i]);
-          final String key =
+          final key =
               'classification_${classification.timestamp.millisecondsSinceEpoch}';
           await classificationsBox.put(
               key, jsonEncode(classification.toJson()));
@@ -619,7 +596,10 @@ class StorageService {
       await settingsBox.clear();
       
       // Import GamificationService to ensure proper clearing
-      final gamificationService = GamificationService();
+      // Create a temporary instance with minimal dependencies for clearing
+      final storageService = this;
+      final cloudStorageService = CloudStorageService(storageService);
+      final gamificationService = GamificationService(storageService, cloudStorageService);
       await gamificationService.clearGamificationData(); // Use the proper clear method
       
       final cacheBox = Hive.box<String>(StorageKeys.cacheBox);
@@ -654,7 +634,7 @@ class StorageService {
       final box = await Hive.openBox<String>('analytics_events');
       final eventsJsonString = box.get('pending_events');
       if (eventsJsonString != null) {
-        final List<dynamic> eventsJson = jsonDecode(eventsJsonString);
+        final eventsJson = jsonDecode(eventsJsonString);
         return eventsJson.map((eventJson) => jsonDecode(eventJson) as Map<String, dynamic>).toList();
       }
       return [];
@@ -677,8 +657,8 @@ class StorageService {
     // Check if user has any existing classifications
     final existingUserClassifications = classificationsBox.keys
         .where((key) {
-          final String jsonString = classificationsBox.get(key);
-          final Map<String, dynamic> json = jsonDecode(jsonString);
+          final jsonString = classificationsBox.get(key);
+          final json = jsonDecode(jsonString);
           final classification = WasteClassification.fromJson(json);
           return classification.userId == userProfile.id;
         })
@@ -692,8 +672,8 @@ class StorageService {
     // Count guest classifications available for migration
     final guestClassifications = classificationsBox.keys
         .where((key) {
-          final String jsonString = classificationsBox.get(key);
-          final Map<String, dynamic> json = jsonDecode(jsonString);
+          final jsonString = classificationsBox.get(key);
+          final json = jsonDecode(jsonString);
           final classification = WasteClassification.fromJson(json);
           return classification.userId == 'guest_user' || 
                  classification.userId == null ||
@@ -713,12 +693,12 @@ class StorageService {
       return 0;
     }
     
-    int migratedCount = 0;
+    var migratedCount = 0;
     
     // Find all guest classifications
-    for (var key in classificationsBox.keys) {
-      final String jsonString = classificationsBox.get(key);
-      final Map<String, dynamic> json = jsonDecode(jsonString);
+    for (final key in classificationsBox.keys) {
+      final jsonString = classificationsBox.get(key);
+      final json = jsonDecode(jsonString);
       final classification = WasteClassification.fromJson(json);
       
       // Check if this is guest data

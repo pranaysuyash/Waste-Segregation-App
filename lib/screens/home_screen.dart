@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 // import 'dart:typed_data';
@@ -13,7 +14,6 @@ import 'package:provider/provider.dart';
 import '../models/waste_classification.dart';
 import '../models/educational_content.dart';
 import '../models/gamification.dart';
-import '../services/google_drive_service.dart';
 import '../services/storage_service.dart';
 import '../services/educational_content_service.dart';
 import '../services/gamification_service.dart';
@@ -24,7 +24,6 @@ import '../widgets/capture_button.dart';
 import '../widgets/enhanced_gamification_widgets.dart';
 import '../widgets/gamification_widgets.dart';
 import '../widgets/responsive_text.dart';
-import 'auth_screen.dart';
 import 'history_screen.dart';
 import 'image_capture_screen.dart';
 import 'result_screen.dart';
@@ -34,18 +33,14 @@ import 'achievements_screen.dart';
 // import 'settings_screen.dart';
 import 'waste_dashboard_screen.dart';
 // import '../services/premium_service.dart';
-import '../services/analytics_service.dart';
-import '../widgets/modern_ui/modern_cards.dart';
-import '../widgets/modern_ui/modern_badges.dart';
-import '../widgets/banner_ad_widget.dart';
 
 class HomeScreen extends StatefulWidget {
-  final bool isGuestMode;
-
   const HomeScreen({
     super.key,
     this.isGuestMode = false,
   });
+
+  final bool isGuestMode;
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -174,7 +169,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         debugPrint('Web platform detected, using image_picker directly');
 
         // For web, we'll use the standard image_picker
-        final XFile? image = await _imagePicker.pickImage(
+        final image = await _imagePicker.pickImage(
           source: ImageSource.camera,
           maxWidth: 1200,
           maxHeight: 1200,
@@ -190,7 +185,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
           // For web, we need to handle XFile differently
           try {
             // Convert XFile to bytes
-            final Uint8List? imageBytes =
+            final imageBytes =
                 await WebImageHandler.xFileToBytes(image);
 
             if (imageBytes != null && imageBytes.isNotEmpty) {
@@ -237,12 +232,12 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       }
 
       // Setup camera if needed
-      final bool cameraSetupSuccess = await PlatformCamera.setup();
+      final cameraSetupSuccess = await PlatformCamera.setup();
       debugPrint('Camera setup result: $cameraSetupSuccess');
 
       // Try using our enhanced platform camera implementation
       debugPrint('Opening camera picker...');
-      final XFile? image = await PlatformCamera.takePicture();
+      final image = await PlatformCamera.takePicture();
 
       debugPrint(
           'Camera picker result: ${image != null ? 'Image captured' : 'No image'}');
@@ -251,12 +246,13 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         debugPrint(
             'Navigating to image capture screen with image: ${image.path}');
         // For iOS/Android, make sure we're using File properly
-        final File imageFile = File(image.path);
+        final imageFile = File(image.path);
         // Check if file exists before proceeding
-        if (await imageFile.exists()) {
+        if (imageFile.existsSync()) {
           _navigateToImageCapture(imageFile);
         } else {
           debugPrint('Image file does not exist: ${image.path}');
+          if (!mounted) return;
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
                 content:
@@ -270,7 +266,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
 
         // Ask if user wants to try gallery instead
         if (mounted) {
-          showDialog(
+          unawaited(showDialog(
             context: context,
             builder: (BuildContext context) {
               return AlertDialog(
@@ -294,7 +290,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                 ],
               );
             },
-          );
+          ));
         }
       }
     } catch (e) {
@@ -321,7 +317,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       }
 
       debugPrint('Opening gallery picker...');
-      final XFile? image = await _imagePicker.pickImage(
+      final image = await _imagePicker.pickImage(
         source: ImageSource.gallery,
         maxWidth: 1200,
         maxHeight: 1200,
@@ -340,7 +336,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
 
           try {
             // For web, convert XFile to bytes
-            final Uint8List? imageBytes =
+            final imageBytes =
                 await WebImageHandler.xFileToBytes(image);
 
             if (imageBytes != null && imageBytes.isNotEmpty) {
@@ -366,10 +362,10 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
 
           try {
             // For iOS/Android, create file handle and verify
-            final File imageFile = File(image.path);
+            final imageFile = File(image.path);
 
             // Verify file exists and is readable
-            if (await imageFile.exists()) {
+            if (imageFile.existsSync()) {
               // Check file can be read
               try {
                 final fileLength = await imageFile.length();
@@ -436,30 +432,35 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       ),
     ).then((result) async {
       // Ensure all classifications are loaded in the recents list
-      _loadRecentClassifications();
+      await _loadRecentClassifications();
 
       // Process classification for gamification if available
       if (result != null && result is WasteClassification) {
       // Track classification completion for ad frequency
+      if (!mounted) return;
       final adService = Provider.of<AdService>(context, listen: false);
       adService.trackClassificationCompleted();
       
       // Check if we should show an interstitial ad
       if (adService.shouldShowInterstitial()) {
-      adService.showInterstitialAd();
+      unawaited(adService.showInterstitialAd());
       }
       
       // Process classification with improved feedback
+      if (!mounted) return;
       final gamificationService = Provider.of<GamificationService>(context, listen: false);
       
       // Get previous profile for comparison
       final oldProfile = await gamificationService.getProfile();
+      if (!mounted) return;
       
         // Process the classification
         final completedChallenges = await gamificationService.processClassification(result);
+        if (!mounted) return;
         
         // Get updated profile
         final newProfile = await gamificationService.getProfile();
+        if (!mounted) return;
         
         // Calculate points difference
         final pointsEarned = newProfile.points.total - oldProfile.points.total;
@@ -490,7 +491,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         }
         
         // Refresh gamification data
-        _loadGamificationData();
+        await _loadGamificationData();
       }
     });
   }
@@ -510,32 +511,34 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       ),
     ).then((result) async {
       // Ensure all classifications are loaded in the recents list
-      _loadRecentClassifications();
+      await _loadRecentClassifications();
 
       // Process classification for gamification if available
       if (result != null && result is WasteClassification) {
         // Track classification completion for ad frequency
+        if (!mounted) return;
         final adService = Provider.of<AdService>(context, listen: false);
         adService.trackClassificationCompleted();
         
         // Check if we should show an interstitial ad
         if (adService.shouldShowInterstitial()) {
-          adService.showInterstitialAd();
+          unawaited(adService.showInterstitialAd());
         }
         
-        _processClassificationForGamification(result).then((newAchievements) {
+        unawaited(_processClassificationForGamification(result).then((newAchievements) {
+          if (!mounted) return;
           // Show achievement notifications
           for (final achievement in newAchievements) {
             _showAchievementNotification(achievement);
           }
-        });
+        }));
       }
     });
   }
 
   // Show an achievement notification
   void _showAchievementNotification(Achievement achievement) {
-    showDialog(
+    unawaited(showDialog(
       context: context,
       builder: (BuildContext context) {
         return Dialog(
@@ -549,38 +552,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
           ),
         );
       },
-    );
-  }
-
-  Future<void> _signOut() async {
-    try {
-      final storageService = Provider.of<StorageService>(context, listen: false);
-      
-      // Clear analytics data first to prevent data leakage
-      final analyticsService = Provider.of<AnalyticsService>(context, listen: false);
-      analyticsService.clearAnalyticsData();
-      
-      // Clear all local data (includes proper gamification reset)
-      await storageService.clearAllUserData();
-      
-      if (!widget.isGuestMode) {
-        final googleDriveService = Provider.of<GoogleDriveService>(context, listen: false);
-        await googleDriveService.signOut();
-      }
-      
-      if (mounted) {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => const AuthScreen()),
-        );
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Sign out failed: ${e.toString()}')),
-        );
-      }
-    }
+    ));
   }
 
   void _showClassificationDetails(WasteClassification classification) {
@@ -636,9 +608,9 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     return Container(
       padding: const EdgeInsets.all(AppTheme.paddingRegular),
       decoration: BoxDecoration(
-        color: AppTheme.primaryColor.withOpacity(0.1),
+        color: AppTheme.primaryColor.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(AppTheme.borderRadiusLarge),
-        border: Border.all(color: AppTheme.primaryColor.withOpacity(0.3)),
+        border: Border.all(color: AppTheme.primaryColor.withValues(alpha: 0.3)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -841,9 +813,9 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         width: 100,
         margin: const EdgeInsets.only(right: AppTheme.paddingRegular),
         decoration: BoxDecoration(
-          color: color.withOpacity(0.1),
+          color: color.withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(AppTheme.borderRadiusRegular),
-          border: Border.all(color: color.withOpacity(0.3)),
+          border: Border.all(color: color.withValues(alpha: 0.3)),
         ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -971,7 +943,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                           decoration: BoxDecoration(
                             color:
                                 _getCategoryColorCase(content.categories.first)
-                                    .withOpacity(0.1),
+                                    .withValues(alpha: 0.1),
                             borderRadius: BorderRadius.circular(
                                 AppTheme.borderRadiusSmall),
                           ),
@@ -1172,7 +1144,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
             LayoutBuilder(
               builder: (context, constraints) {
                 final fullText = 'Hello, ${_userName ?? 'User'}!';
-                final textStyle = const TextStyle(
+                const textStyle = TextStyle(
                   fontSize: AppTheme.fontSizeExtraLarge,
                   fontWeight: FontWeight.bold,
                   color: AppTheme.textPrimaryColor,
@@ -1187,7 +1159,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                 
                 textPainter.layout(maxWidth: constraints.maxWidth);
                 
-                String displayText = fullText;
+                var displayText = fullText;
                 if (textPainter.didExceedMaxLines || textPainter.width > constraints.maxWidth) {
                   // Try shorter greeting
                   displayText = 'Hi, ${_userName ?? 'User'}!';
@@ -1258,7 +1230,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                           Container(
                             padding: const EdgeInsets.all(8),
                             decoration: BoxDecoration(
-                              color: AppTheme.primaryColor.withOpacity(0.1),
+                              color: AppTheme.primaryColor.withValues(alpha: 0.1),
                               borderRadius: BorderRadius.circular(AppTheme.borderRadiusRegular),
                             ),
                             child: const Icon(
@@ -1268,10 +1240,10 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                             ),
                           ),
                           const SizedBox(width: AppTheme.paddingRegular),
-                          Expanded(
+                          const Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
-                              children: const [
+                              children: [
                                 Text(
                                   'Waste Analytics Dashboard',
                                   style: TextStyle(
@@ -1336,171 +1308,171 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                     ],
                   ),
                   const SizedBox(height: AppTheme.paddingSmall),
-                  _isLoading
-                      ? const Center(
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            valueColor: AlwaysStoppedAnimation<Color>(Colors.grey),
-                          ),
-                        )
-                      : ListView.builder(
-                          shrinkWrap: true,
-                          physics: const NeverScrollableScrollPhysics(),
-                          itemCount: _recentClassifications.length,
-                          itemBuilder: (context, index) {
-                            final classification = _recentClassifications[index];
-                            return Padding(
-                              padding: const EdgeInsets.only(
-                                  bottom: AppTheme.paddingRegular),
-                              child: InkWell(
-                                onTap: () =>
-                                    _showClassificationDetails(classification),
-                                child: Card(
-                                  elevation: 2,
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(
-                                        AppTheme.borderRadiusRegular),
-                                  ),
-                                  child: Padding(
-                                    padding: const EdgeInsets.all(
-                                        AppTheme.paddingRegular),
-                                    child: Row(
-                                      children: [
-                                        // Thumbnail - with improved cross-platform handling
-                                        if (classification.imageUrl != null)
-                                          ClipRRect(
-                                            borderRadius: BorderRadius.circular(
-                                                AppTheme.borderRadiusSmall),
-                                            child: SizedBox(
-                                              width: 60,
-                                              height: 60,
-                                              child: _buildClassificationImage(classification),
-                                            ),
+                  if (_isLoading)
+                    const Center(
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          valueColor: AlwaysStoppedAnimation<Color>(Colors.grey),
+                        ),
+                      )
+                  else
+                    ListView.builder(
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        itemCount: _recentClassifications.length,
+                        itemBuilder: (context, index) {
+                          final classification = _recentClassifications[index];
+                          return Padding(
+                            padding: const EdgeInsets.only(
+                                bottom: AppTheme.paddingRegular),
+                            child: InkWell(
+                              onTap: () =>
+                                  _showClassificationDetails(classification),
+                              child: Card(
+                                elevation: 2,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(
+                                      AppTheme.borderRadiusRegular),
+                                ),
+                                child: Padding(
+                                  padding: const EdgeInsets.all(
+                                      AppTheme.paddingRegular),
+                                  child: Row(
+                                    children: [
+                                      // Thumbnail - with improved cross-platform handling
+                                      if (classification.imageUrl != null)
+                                        ClipRRect(
+                                          borderRadius: BorderRadius.circular(
+                                              AppTheme.borderRadiusSmall),
+                                          child: SizedBox(
+                                            width: 60,
+                                            height: 60,
+                                            child: _buildClassificationImage(classification),
                                           ),
+                                        ),
 
-                                        const SizedBox(
-                                            width: AppTheme.paddingRegular),
+                                      const SizedBox(
+                                          width: AppTheme.paddingRegular),
 
-                                        // Item details
-                                        Expanded(
-                                          child: Column(
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.start,
-                                            children: [
-                                              Text(
-                                                classification.itemName,
-                                                style: const TextStyle(
-                                                  fontWeight: FontWeight.bold,
-                                                  fontSize: AppTheme.fontSizeMedium,
-                                                ),
-                                                maxLines: 1,
-                                                overflow: TextOverflow.ellipsis,
+                                      // Item details
+                                      Expanded(
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              classification.itemName,
+                                              style: const TextStyle(
+                                                fontWeight: FontWeight.bold,
+                                                fontSize: AppTheme.fontSizeMedium,
                                               ),
-                                              const SizedBox(height: 4),
-                                              // Replace nested Row with Column and Flexible Wrap
-                                              Column(
-                                                crossAxisAlignment: CrossAxisAlignment.start,
-                                                children: [
-                                                  // First row with category badges - Fixed with Flexible and constraints
-                                                  ConstrainedBox(
-                                                    constraints: BoxConstraints(
-                                                      maxWidth: MediaQuery.of(context).size.width * 0.6, // Limit to 60% of screen width
-                                                    ),
-                                                    child: Wrap(
-                                                      spacing: 4,
-                                                      runSpacing: 4,
-                                                      alignment: WrapAlignment.start,
-                                                      children: [
-                                                        // Main category badge
+                                              maxLines: 1,
+                                              overflow: TextOverflow.ellipsis,
+                                            ),
+                                            const SizedBox(height: 4),
+                                            // Replace nested Row with Column and Flexible Wrap
+                                            Column(
+                                              crossAxisAlignment: CrossAxisAlignment.start,
+                                              children: [
+                                                // First row with category badges - Fixed with Flexible and constraints
+                                                ConstrainedBox(
+                                                  constraints: BoxConstraints(
+                                                    maxWidth: MediaQuery.of(context).size.width * 0.6, // Limit to 60% of screen width
+                                                  ),
+                                                  child: Wrap(
+                                                    spacing: 4,
+                                                    runSpacing: 4,
+                                                    children: [
+                                                      // Main category badge
+                                                      Container(
+                                                        padding: const EdgeInsets.symmetric(
+                                                          horizontal: 8,
+                                                          vertical: 2,
+                                                        ),
+                                                        decoration: BoxDecoration(
+                                                          color: _getCategoryColorCase(
+                                                              classification.category)
+                                                              .withValues(alpha: 0.1),
+                                                          borderRadius: BorderRadius.circular(
+                                                              AppTheme.borderRadiusSmall),
+                                                        ),
+                                                        child: Text(
+                                                          classification.category,
+                                                          style: const TextStyle(
+                                                            color: Colors.white,
+                                                            fontSize: AppTheme.fontSizeSmall,
+                                                            fontWeight: FontWeight.bold,
+                                                          ),
+                                                          overflow: TextOverflow.ellipsis,
+                                                          // maxLines: 1, // Removed based on avoid_redundant_argument_values lint
+                                                        ),
+                                                      ),
+                                                      
+                                                      // Subcategory badge if available
+                                                      if (classification.subcategory != null)
                                                         Container(
+                                                          constraints: BoxConstraints(
+                                                            maxWidth: MediaQuery.of(context).size.width * 0.25, // Limit subcategory width
+                                                          ),
                                                           padding: const EdgeInsets.symmetric(
-                                                            horizontal: 8,
+                                                            horizontal: 6,
                                                             vertical: 2,
                                                           ),
                                                           decoration: BoxDecoration(
-                                                            color: _getCategoryColorCase(
-                                                                classification.category),
+                                                            color: Colors.black.withValues(alpha: 0.05),
                                                             borderRadius: BorderRadius.circular(
                                                                 AppTheme.borderRadiusSmall),
+                                                            border: Border.all(
+                                                              color: _getCategoryColorCase(
+                                                                  classification.category)
+                                                              .withValues(alpha: 0.5),
+                                                            ),
                                                           ),
                                                           child: Text(
-                                                            classification.category,
-                                                            style: const TextStyle(
-                                                              color: Colors.white,
-                                                              fontSize: AppTheme.fontSizeSmall,
+                                                            classification.subcategory!,
+                                                            style: TextStyle(
+                                                              color: _getCategoryColorCase(
+                                                                  classification.category),
+                                                              fontSize: 10,
                                                               fontWeight: FontWeight.bold,
                                                             ),
                                                             overflow: TextOverflow.ellipsis,
                                                             maxLines: 1,
                                                           ),
                                                         ),
-                                                        
-                                                        // Subcategory badge if available
-                                                        if (classification.subcategory != null)
-                                                          Container(
-                                                            constraints: BoxConstraints(
-                                                              maxWidth: MediaQuery.of(context).size.width * 0.25, // Limit subcategory width
-                                                            ),
-                                                            padding: const EdgeInsets.symmetric(
-                                                              horizontal: 6,
-                                                              vertical: 2,
-                                                            ),
-                                                            decoration: BoxDecoration(
-                                                              color: Colors.black.withOpacity(0.05),
-                                                              borderRadius: BorderRadius.circular(
-                                                                  AppTheme.borderRadiusSmall),
-                                                              border: Border.all(
-                                                                color: _getCategoryColorCase(
-                                                                    classification.category)
-                                                                .withOpacity(0.5),
-                                                                width: 1,
-                                                              ),
-                                                            ),
-                                                            child: Text(
-                                                              classification.subcategory!,
-                                                              style: TextStyle(
-                                                                color: _getCategoryColorCase(
-                                                                    classification.category),
-                                                                fontSize: 10,
-                                                                fontWeight: FontWeight.bold,
-                                                              ),
-                                                              overflow: TextOverflow.ellipsis,
-                                                              maxLines: 1,
-                                                            ),
-                                                          ),
-                                                      ],
-                                                    ),
+                                                    ],
                                                   ),
-                                                  
-                                                  // Second row with date
-                                                  const SizedBox(height: 4),
-                                                  Text(
-                                                    _formatDate(classification.timestamp),
-                                                    style: const TextStyle(
-                                                      fontSize: AppTheme.fontSizeSmall,
-                                                      color: AppTheme.textSecondaryColor,
-                                                    ),
+                                                ),
+                                                
+                                                // Second row with date
+                                                const SizedBox(height: 4),
+                                                Text(
+                                                  _formatDate(classification.timestamp),
+                                                  style: const TextStyle(
+                                                    fontSize: AppTheme.fontSizeSmall,
+                                                    color: AppTheme.textSecondaryColor,
                                                   ),
-                                                ],
-                                              ),
-                                            ],
-                                          ),
+                                                ),
+                                              ],
+                                            ),
+                                          ],
                                         ),
+                                      ),
 
-                                        // Arrow icon
-                                        const Icon(
-                                          Icons.arrow_forward_ios,
-                                          size: 16,
-                                          color: AppTheme.textSecondaryColor,
-                                        ),
-                                      ],
-                                    ),
+                                      // Arrow icon
+                                      const Icon(
+                                        Icons.arrow_forward_ios,
+                                        size: 16,
+                                        color: AppTheme.textSecondaryColor,
+                                      ),
+                                    ],
                                   ),
                                 ),
                               ),
-                            );
-                          },
-                        ),
+                            ),
+                          );
+                        },
+                      ),
                 ] else if (!_isLoading) ...[
                   const Center(
                     child: Padding(
@@ -1580,11 +1552,11 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   Future<void> _ensureCameraAccess() async {
     try {
       // Use our enhanced platform camera implementation
-      final bool setupSuccess = await PlatformCamera.setup();
-      debugPrint('Camera setup completed. Success: $setupSuccess');
+      final cameraSetupSuccess = await PlatformCamera.setup();
+      debugPrint('Camera setup completed. Success: $cameraSetupSuccess');
 
       // If setup failed on a real device (not emulator), show error message
-              if (!setupSuccess && mounted) {
+              if (!cameraSetupSuccess && mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text(
@@ -1717,8 +1689,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   /// Builds a loading placeholder while checking file existence
   Widget _buildLoadingPlaceholder() {
     return Container(
-      color: Colors.grey.shade100,
-      child: Center(
+      color: const Color(0xFFF5F5F5),
+      child: const Center(
         child: SizedBox(
           width: 20,
           height: 20,
@@ -1842,14 +1814,14 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                     vertical: AppTheme.paddingSmall,
                   ),
                   decoration: BoxDecoration(
-                    color: Colors.amber.withOpacity(0.1),
+                    color: Colors.amber.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(AppTheme.borderRadiusRegular),
-                    border: Border.all(color: Colors.amber.withOpacity(0.5)),
+                    border: Border.all(color: Colors.amber.withValues(alpha: 0.5)),
                   ),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(
+                      const Icon(
                         Icons.stars,
                         color: Colors.amber,
                         size: 20,

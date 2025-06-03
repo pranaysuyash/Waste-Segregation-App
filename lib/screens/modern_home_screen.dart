@@ -23,6 +23,7 @@ import 'achievements_screen.dart';
 import 'waste_dashboard_screen.dart';
 import 'settings_screen.dart';
 import 'social_screen.dart';
+import 'disposal_facilities_screen.dart';
 
 // Import modern UI components
 import '../widgets/modern_ui/modern_cards.dart';
@@ -30,10 +31,6 @@ import '../widgets/modern_ui/modern_buttons.dart';
 import '../widgets/modern_ui/modern_badges.dart';
 import '../widgets/responsive_text.dart';
 import '../widgets/dashboard_widgets.dart';
-import '../models/user_profile.dart';
-import '../models/educational_content.dart';
-import '../services/educational_content_service.dart';
-import '../services/analytics_service.dart';
 import '../widgets/data_migration_dialog.dart';
 import '../services/cloud_storage_service.dart';
 import '../services/community_service.dart';
@@ -920,6 +917,23 @@ class _ModernHomeScreenState extends State<ModernHomeScreen> with TickerProvider
               context,
               MaterialPageRoute(
                 builder: (context) => const EducationalContentScreen(),
+              ),
+            );
+          },
+        ),
+        
+        const SizedBox(height: AppTheme.spacingSm),
+        
+        FeatureCard(
+          icon: Icons.location_on,
+          title: 'Disposal Facilities',
+          subtitle: 'Find nearby waste disposal locations',
+          iconColor: Colors.green,
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const DisposalFacilitiesScreen(),
               ),
             );
           },

@@ -33,71 +33,36 @@ class ProductionErrorHandler extends StatelessWidget {
 
   Widget _buildProductionErrorWidget(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(24),
+      width: double.infinity,
+      height: double.infinity,
+      padding: const EdgeInsets.all(20),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          // Animated error icon
-          GenZMicrointeractions.buildSuccessAnimation(
-            isVisible: true,
-            child: Container(
-              width: 80,
-              height: 80,
-              decoration: BoxDecoration(
-                color: Colors.orange.shade100,
-                shape: BoxShape.circle,
-              ),
-              child: Icon(
-                Icons.refresh,
-                size: 40,
-                color: Colors.orange.shade600,
-              ),
+          const Icon(
+            Icons.error_outline,
+            size: 64,
+            color: Colors.red,
+          ),
+          const SizedBox(height: 16),
+          const Text(
+            'Something went wrong',
+            style: TextStyle(
+              fontSize: 24,
+              fontWeight: FontWeight.bold,
             ),
           ),
-          
+          const SizedBox(height: 8),
+          const Text(
+            'We\'re sorry, but something unexpected happened. Please try again.',
+            textAlign: TextAlign.center,
+            style: TextStyle(fontSize: 16),
+          ),
           const SizedBox(height: 24),
-          
-          Text(
-            fallbackTitle ?? 'Something needs a refresh',
-            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-              fontWeight: FontWeight.w600,
-              color: Colors.grey.shade800,
-            ),
-            textAlign: TextAlign.center,
+          ElevatedButton(
+            onPressed: onRetry,
+            child: const Text('Try Again'),
           ),
-          
-          const SizedBox(height: 12),
-          
-          Text(
-            fallbackMessage ?? 'Don\'t worry, this happens sometimes. Let\'s try again!',
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              color: Colors.grey.shade600,
-              height: 1.4,
-            ),
-            textAlign: TextAlign.center,
-          ),
-          
-          const SizedBox(height: 32),
-          
-          if (showRetryButton && onRetry != null)
-            PerformanceOptimizer.buildSnappyButton(
-              onPressed: onRetry!,
-              backgroundColor: Theme.of(context).primaryColor,
-              child: const Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(Icons.refresh, color: Colors.white, size: 20),
-                  SizedBox(width: 8),
-                  Text(
-                    'Try Again',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ],
-              ),
-            ),
         ],
       ),
     );

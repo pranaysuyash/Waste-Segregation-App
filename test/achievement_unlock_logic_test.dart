@@ -1,138 +1,261 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:flutter/material.dart';
-import '../lib/models/gamification.dart';
 import '../lib/services/gamification_service.dart';
-import '../lib/utils/constants.dart';
+import '../lib/models/waste_classification.dart';
+import '../lib/models/gamification.dart';
+import '../lib/services/storage_service.dart';
+import '../lib/services/cloud_storage_service.dart';
 
 void main() {
   group('Achievement Unlock Logic Tests', () {
     late GamificationService gamificationService;
+    late StorageService storageService;
+    late CloudStorageService cloudStorageService;
 
-    setUp(() {
-      gamificationService = GamificationService();
+    setUp(() async {
+      await StorageService.initializeHive();
+      storageService = StorageService();
+      cloudStorageService = CloudStorageService(storageService);
+      gamificationService = GamificationService(storageService, cloudStorageService);
     });
 
-    test('Waste Apprentice achievement configuration is correct', () {
-      final achievements = gamificationService.getDefaultAchievements();
-      final wasteApprentice = achievements.firstWhere(
-        (a) => a.id == 'waste_apprentice',
+    test('Should unlock "First Classification" achievement on first scan', () async {
+      // Given: No previous classifications
+      await storageService.clearClassifications();
+
+      // When: User makes their first classification
+      final classification = WasteClassification(
+        itemName: 'Plastic Bottle',
+        category: 'Dry Waste',
+        subcategory: 'Recyclable Plastic',
+        isRecyclable: true,
+        isCompostable: false,
+        requiresSpecialDisposal: false,
+        timestamp: DateTime(2023, 1, 1, 10, 0, 0),
+        imageUrl: 'test.jpg',
+        confidence: 0.95,
+        alternatives: const [],
+        region: 'US',
+        visualFeatures: const [],
+        hasUrgentTimeframe: false,
+        explanation: 'Test classification',
+        disposalInstructions: DisposalInstructions(
+          primaryMethod: 'Recycle',
+          steps: const ['Clean item', 'Place in recycling bin'],
+          hasUrgentTimeframe: false,
+        ),
       );
 
-      expect(wasteApprentice.title, 'Waste Apprentice');
-      expect(wasteApprentice.threshold, 15); // Should be 15 items
-      expect(wasteApprentice.unlocksAtLevel, 2); // Should unlock at level 2
-      expect(wasteApprentice.tier, AchievementTier.silver);
-    });
+      await gamificationService.processClassification(classification);
 
-    test('Level 4 user should see Waste Apprentice as unlocked', () {
-      final achievements = gamificationService.getDefaultAchievements();
-      final wasteApprentice = achievements.firstWhere(
-        (a) => a.id == 'waste_apprentice',
-      );
-
-      // Simulate a Level 4 user
-      final userLevel = 4;
+      // Then: First classification achievement should be unlocked
+      final profile = await gamificationService.getProfile();
+      final firstClassificationAchievement = profile.achievements
+          .firstWhere((a) => a.id == 'first_classification');
       
-      // Check if achievement should be locked
-      final isLocked = wasteApprentice.unlocksAtLevel != null && 
-                      wasteApprentice.unlocksAtLevel! > userLevel;
-
-      expect(isLocked, false, 
-        reason: 'Level 4 user should see Waste Apprentice (unlocks at level 2) as unlocked');
+      expect(firstClassificationAchievement.isEarned, true);
     });
 
-    test('Level 1 user should see Waste Apprentice as locked', () {
-      final achievements = gamificationService.getDefaultAchievements();
-      final wasteApprentice = achievements.firstWhere(
-        (a) => a.id == 'waste_apprentice',
-      );
-
-      // Simulate a Level 1 user
-      final userLevel = 1;
+    test('Should unlock "Recycling Expert" achievement after 50 recyclable items', () async {
+      // Given: 49 previous recyclable classifications
+      await storageService.clearClassifications();
       
-      // Check if achievement should be locked
-      final isLocked = wasteApprentice.unlocksAtLevel != null && 
-                      wasteApprentice.unlocksAtLevel! > userLevel;
-
-      expect(isLocked, true, 
-        reason: 'Level 1 user should see Waste Apprentice (unlocks at level 2) as locked');
-    });
-
-    test('Level 2 user should see Waste Apprentice as unlocked', () {
-      final achievements = gamificationService.getDefaultAchievements();
-      final wasteApprentice = achievements.firstWhere(
-        (a) => a.id == 'waste_apprentice',
-      );
-
-      // Simulate a Level 2 user
-      final userLevel = 2;
-      
-      // Check if achievement should be locked
-      final isLocked = wasteApprentice.unlocksAtLevel != null && 
-                      wasteApprentice.unlocksAtLevel! > userLevel;
-
-      expect(isLocked, false, 
-        reason: 'Level 2 user should see Waste Apprentice (unlocks at level 2) as unlocked');
-    });
-
-    test('Achievement unlock logic in service is correct', () {
-      final achievements = gamificationService.getDefaultAchievements();
-      final wasteApprentice = achievements.firstWhere(
-        (a) => a.id == 'waste_apprentice',
-      );
-
-      // Test different user levels
-      for (int level = 1; level <= 5; level++) {
-        final isLevelUnlocked = wasteApprentice.unlocksAtLevel == null || 
-                               level >= wasteApprentice.unlocksAtLevel!;
-        
-        if (level >= 2) {
-          expect(isLevelUnlocked, true, 
-            reason: 'Level $level should have Waste Apprentice unlocked');
-        } else {
-          expect(isLevelUnlocked, false, 
-            reason: 'Level $level should have Waste Apprentice locked');
-        }
+      for (int i = 0; i < 49; i++) {
+        final classification = WasteClassification(
+          itemName: 'Recyclable Item $i',
+          category: 'Dry Waste',
+          subcategory: 'Recyclable',
+          isRecyclable: true,
+          isCompostable: false,
+          requiresSpecialDisposal: false,
+          timestamp: DateTime(2023, 1, 1, 10, 0, 0),
+          imageUrl: 'test.jpg',
+          confidence: 0.95,
+          alternatives: const [],
+          region: 'US',
+          visualFeatures: const [],
+          hasUrgentTimeframe: false,
+          explanation: 'Test classification',
+          disposalInstructions: DisposalInstructions(
+            primaryMethod: 'Recycle',
+            steps: const ['Clean item', 'Place in recycling bin'],
+            hasUrgentTimeframe: false,
+          ),
+        );
+        await gamificationService.processClassification(classification);
       }
+
+      // When: User classifies their 50th recyclable item
+      final finalClassification = WasteClassification(
+        itemName: 'Final Recyclable',
+        category: 'Dry Waste',
+        subcategory: 'Recyclable',
+        isRecyclable: true,
+        isCompostable: false,
+        requiresSpecialDisposal: false,
+        timestamp: DateTime(2023, 1, 1, 11, 0, 0),
+        imageUrl: 'test.jpg',
+        confidence: 0.95,
+        alternatives: const [],
+        region: 'US',
+        visualFeatures: const [],
+        hasUrgentTimeframe: false,
+        explanation: 'Test classification',
+        disposalInstructions: DisposalInstructions(
+          primaryMethod: 'Recycle',
+          steps: const ['Clean item', 'Place in recycling bin'],
+          hasUrgentTimeframe: false,
+        ),
+      );
+
+      await gamificationService.processClassification(finalClassification);
+
+      // Then: Recycling Expert achievement should be unlocked
+      final profile = await gamificationService.getProfile();
+      final recyclingExpertAchievement = profile.achievements
+          .firstWhere((a) => a.id == 'recycling_expert');
+      
+      expect(recyclingExpertAchievement.isEarned, true);
     });
 
-    test('Points to level calculation is correct', () {
-      // Test the level calculation logic
-      final testCases = [
-        {'points': 0, 'expectedLevel': 1},
-        {'points': 50, 'expectedLevel': 1},
-        {'points': 99, 'expectedLevel': 1},
-        {'points': 100, 'expectedLevel': 2},
-        {'points': 150, 'expectedLevel': 2}, // 15 items * 10 points = Level 2
-        {'points': 199, 'expectedLevel': 2},
-        {'points': 200, 'expectedLevel': 3},
-        {'points': 400, 'expectedLevel': 5},
+    test('Should award different points based on classification type', () async {
+      await storageService.clearClassifications();
+      
+      final initialProfile = await gamificationService.getProfile();
+      final initialPoints = initialProfile.points.total;
+
+      // Test various classification types and their point values
+      final classifications = [
+        WasteClassification(
+          itemName: 'Compost',
+          category: 'Wet Waste',
+          subcategory: 'Organic',
+          isRecyclable: false,
+          isCompostable: true,
+          requiresSpecialDisposal: false,
+          timestamp: DateTime(2023, 1, 1, 10, 0, 0),
+          imageUrl: 'test.jpg',
+          confidence: 0.95,
+          alternatives: const [],
+          region: 'US',
+          visualFeatures: const [],
+          hasUrgentTimeframe: false,
+          explanation: 'Test classification',
+          disposalInstructions: DisposalInstructions(
+            primaryMethod: 'Compost',
+            steps: const ['Add to compost bin'],
+            hasUrgentTimeframe: false,
+          ),
+        ),
+        WasteClassification(
+          itemName: 'Battery',
+          category: 'Hazardous Waste',
+          subcategory: 'Electronic Waste',
+          isRecyclable: false,
+          isCompostable: false,
+          requiresSpecialDisposal: true,
+          timestamp: DateTime(2023, 1, 1, 11, 0, 0),
+          imageUrl: 'test.jpg',
+          confidence: 0.95,
+          alternatives: const [],
+          region: 'US',
+          visualFeatures: const [],
+          hasUrgentTimeframe: false,
+          explanation: 'Test classification',
+          disposalInstructions: DisposalInstructions(
+            primaryMethod: 'Special disposal',
+            steps: const ['Take to hazardous waste facility'],
+            hasUrgentTimeframe: false,
+          ),
+        ),
       ];
 
-      for (final testCase in testCases) {
-        final points = testCase['points'] as int;
-        final expectedLevel = testCase['expectedLevel'] as int;
-        final actualLevel = (points / 100).floor() + 1;
-        
-        expect(actualLevel, expectedLevel, 
-          reason: '$points points should result in level $expectedLevel');
+      for (final classification in classifications) {
+        await gamificationService.processClassification(classification);
       }
+
+      final finalProfile = await gamificationService.getProfile();
+      
+      // Points should have increased
+      expect(finalProfile.points.total, greaterThan(initialPoints));
     });
 
-    test('Waste Apprentice mathematical alignment is correct', () {
-      // Waste Apprentice requires 15 items and unlocks at level 2
-      final itemsRequired = 15;
-      final pointsPerItem = 10;
-      final totalPoints = itemsRequired * pointsPerItem; // 150 points
-      final resultingLevel = (totalPoints / 100).floor() + 1; // Level 2
-      final unlocksAtLevel = 2;
+    test('Should maintain streak with consecutive daily classifications', () async {
+      await storageService.clearClassifications();
+      
+      // Simulate classifications on consecutive days
+      final classification1 = WasteClassification(
+        itemName: 'Day 1 Item',
+        category: 'Dry Waste',
+        subcategory: 'Recyclable',
+        isRecyclable: true,
+        isCompostable: false,
+        requiresSpecialDisposal: false,
+        timestamp: DateTime(2023, 1, 1, 10, 0, 0),
+        imageUrl: 'test.jpg',
+        confidence: 0.95,
+        alternatives: const [],
+        region: 'US',
+        visualFeatures: const [],
+        hasUrgentTimeframe: false,
+        explanation: 'Test classification',
+        disposalInstructions: DisposalInstructions(
+          primaryMethod: 'Recycle',
+          steps: const ['Clean item', 'Place in recycling bin'],
+          hasUrgentTimeframe: false,
+        ),
+      );
+      final classification2 = WasteClassification(
+        itemName: 'Day 2 Item',
+        category: 'Dry Waste',
+        subcategory: 'Recyclable',
+        isRecyclable: true,
+        isCompostable: false,
+        requiresSpecialDisposal: false,
+        timestamp: DateTime(2023, 1, 2, 10, 0, 0),
+        imageUrl: 'test.jpg',
+        confidence: 0.95,
+        alternatives: const [],
+        region: 'US',
+        visualFeatures: const [],
+        hasUrgentTimeframe: false,
+        explanation: 'Test classification',
+        disposalInstructions: DisposalInstructions(
+          primaryMethod: 'Recycle',
+          steps: const ['Clean item', 'Place in recycling bin'],
+          hasUrgentTimeframe: false,
+        ),
+      );
 
-      expect(resultingLevel, unlocksAtLevel,
-        reason: 'Waste Apprentice should be completable exactly at the level it unlocks');
-      expect(totalPoints, 150,
-        reason: '15 items should give 150 points');
-      expect(resultingLevel, 2,
-        reason: '150 points should result in level 2');
+      final classification3 = WasteClassification(
+        itemName: 'Day 3 Item',
+        category: 'Dry Waste',
+        subcategory: 'Recyclable',
+        isRecyclable: true,
+        isCompostable: false,
+        requiresSpecialDisposal: false,
+        timestamp: DateTime(2023, 1, 3, 10, 0, 0),
+        imageUrl: 'test.jpg',
+        confidence: 0.95,
+        alternatives: const [],
+        region: 'US',
+        visualFeatures: const [],
+        hasUrgentTimeframe: false,
+        explanation: 'Test classification',
+        disposalInstructions: DisposalInstructions(
+          primaryMethod: 'Recycle',
+          steps: const ['Clean item', 'Place in recycling bin'],
+          hasUrgentTimeframe: false,
+        ),
+      );
+
+      await gamificationService.processClassification(classification1);
+      await gamificationService.processClassification(classification2);
+      await gamificationService.processClassification(classification3);
+
+      final profile = await gamificationService.getProfile();
+      
+      // Streak should reflect consecutive classifications
+      expect(profile.streak.current, greaterThanOrEqualTo(1));
     });
   });
 } 

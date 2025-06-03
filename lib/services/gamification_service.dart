@@ -488,7 +488,6 @@ if (pointsToAdd == 0 && customPoints == null) {
     final profile = await getProfile();
     
     // Filter out expired challenges and add new ones if needed
-    final now = DateTime.now();
     List<Challenge> active = profile.activeChallenges
         .where((challenge) => !challenge.isExpired)
         .toList();
@@ -1256,7 +1255,6 @@ if (pointsToAdd == 0 && customPoints == null) {
   Future<void> _archivePoints(UserPoints points) async {
     try {
       final box = Hive.box(_gamificationBoxName);
-      final archivedPointsKey = 'archived_points_${DateTime.now().millisecondsSinceEpoch}';
       
       final archiveEntry = {
         'points': points.toJson(),

@@ -171,12 +171,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   // --- TEMPORARY: Force Crash button for Crashlytics testing ---
                   const SizedBox(height: 16),
                   ElevatedButton.icon(
-                    icon: Icon(Icons.warning, color: Colors.red),
-                    label: Text('Force Crash (Crashlytics Test)', style: TextStyle(color: Colors.red)),
+                    icon: const Icon(Icons.warning, color: Colors.red),
+                    label: const Text('Force Crash (Crashlytics Test)', style: TextStyle(color: Colors.red)),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.white,
                       foregroundColor: Colors.red,
-                      side: BorderSide(color: Colors.red),
+                      side: const BorderSide(color: Colors.red),
                     ),
                     onPressed: () {
                       FirebaseCrashlytics.instance.crash();
@@ -185,12 +185,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   const SizedBox(height: 8),
                   // Reset Full Data button for testing
                   ElevatedButton.icon(
-                    icon: Icon(Icons.restore, color: Colors.orange),
-                    label: Text('Reset Full Data (Factory Reset)', style: TextStyle(color: Colors.orange)),
+                    icon: const Icon(Icons.restore, color: Colors.orange),
+                    label: const Text('Reset Full Data (Factory Reset)', style: TextStyle(color: Colors.orange)),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.white,
                       foregroundColor: Colors.orange,
-                      side: BorderSide(color: Colors.orange),
+                      side: const BorderSide(color: Colors.orange),
                     ),
                     onPressed: () {
                       _showFactoryResetDialog(context, storageService, analyticsService, premiumService);
@@ -306,9 +306,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
             trailing: Container(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
               decoration: BoxDecoration(
-                color: Colors.blue.withOpacity(0.1),
+                color: Colors.blue.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.blue.withOpacity(0.3)),
+                border: Border.all(color: Colors.blue.withValues(alpha: 0.3)),
               ),
               child: const Text(
                 'NEW',
@@ -338,9 +338,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
             trailing: Container(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
               decoration: BoxDecoration(
-                color: Colors.purple.withOpacity(0.1),
+                color: Colors.purple.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.purple.withOpacity(0.3)),
+                border: Border.all(color: Colors.purple.withValues(alpha: 0.3)),
               ),
               child: const Text(
                 'UPDATED',
@@ -371,7 +371,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
               context, 
               premiumService.isPremiumFeature('offline_mode')
             ),
-            isThreeLine: false,
             onTap: () {
               if (premiumService.isPremiumFeature('offline_mode')) {
                 Navigator.push(
@@ -396,7 +395,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
               context, 
               premiumService.isPremiumFeature('advanced_analytics')
             ),
-            isThreeLine: false,
             onTap: () {
               if (premiumService.isPremiumFeature('advanced_analytics')) {
                 Navigator.push(
@@ -423,7 +421,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
               context, 
               premiumService.isPremiumFeature('remove_ads')
             ),
-            isThreeLine: false,
             onTap: () {
               if (premiumService.isPremiumFeature('remove_ads')) {
                 ScaffoldMessenger.of(context).showSnackBar(
@@ -445,7 +442,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
               context, 
               premiumService.isPremiumFeature('export_data')
             ),
-            isThreeLine: false,
             onTap: () {
               if (premiumService.isPremiumFeature('export_data')) {
                 Navigator.push(
@@ -629,6 +625,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         
                         // Clear all user data (includes proper gamification reset)
                         await storageService.clearAllUserData();
+                        
+                        // Clear enhanced storage cache if available
+                        if (storageService is EnhancedStorageService) {
+                          storageService.clearCache();
+                        }
                         
                         if (context.mounted) {
                           Navigator.pop(context);
@@ -1040,7 +1041,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
               String? snackBarMessage;
               Color? snackBarBackgroundColor;
-              bool success = false;
+              var success = false;
 
               try {
                 // Clear all analytics data
@@ -1054,7 +1055,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 
                 // Clear enhanced storage cache if available
                 if (storageService is EnhancedStorageService) {
-                  (storageService as EnhancedStorageService).clearCache();
+                  storageService.clearCache();
                 }
                 
                 success = true;
@@ -1075,7 +1076,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   // If the original context is unmounted, a root navigator pop might be needed
                   // For now, we assume the auth state change might have already rebuilt the tree.
                   // If the dialog is still stuck, a GlobalKey for the Navigator would be the next step.
-                  debugPrint("SettingsScreen context was unmounted before trying to pop loading dialog.");
+                  debugPrint('SettingsScreen context was unmounted before trying to pop loading dialog.');
                 }
 
                 if (snackBarMessage != null) {
@@ -1089,7 +1090,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       ),
                     );
                   } else {
-                     debugPrint("SettingsScreen context unmounted, cannot show SnackBar: $snackBarMessage");
+                     debugPrint('SettingsScreen context unmounted, cannot show SnackBar: $snackBarMessage');
                   }
                 }
                 
@@ -1102,10 +1103,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   );
                 } else if (!success && currentCapturedContext.mounted) {
                   // Stay on settings or current screen if reset failed and screen is still mounted
-                  debugPrint("Factory reset failed, staying on current screen.");
+                  debugPrint('Factory reset failed, staying on current screen.');
                 } else if (!currentCapturedContext.mounted) {
                   // If not mounted, assume an auth state listener has already handled navigation
-                  debugPrint("SettingsScreen context unmounted, assuming navigation handled by auth listener.");
+                  debugPrint('SettingsScreen context unmounted, assuming navigation handled by auth listener.');
                 }
               }
             },

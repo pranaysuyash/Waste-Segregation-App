@@ -6,7 +6,6 @@ import 'package:provider/provider.dart';
 import '../services/storage_service.dart';
 import '../utils/constants.dart';
 import '../models/waste_classification.dart';
-import '../widgets/gamification_widgets.dart';
 import '../services/gamification_service.dart';
 import '../models/gamification.dart';
 // import '../widgets/enhanced_loading_widget.dart'; // Removed
@@ -341,11 +340,11 @@ class _WasteDashboardScreenState extends State<WasteDashboardScreen> {
     }
     
     // Prepare data for the chart
-    final List<Map<String, dynamic>> pieData = [];
+    final pieData = <Map<String, dynamic>>[];
     
     for (final entry in _wasteCategoryCounts.entries) {
       final color = _getCategoryColor(entry.key);
-      final colorHex = '#${color.value.toRadixString(16).substring(2)}';
+      final colorHex = '#${color.toARGB32().toRadixString(16).substring(2)}';
       final percentage = entry.value / total;
       
       pieData.add({
@@ -598,7 +597,7 @@ class _WasteDashboardScreenState extends State<WasteDashboardScreen> {
     return Container(
       padding: const EdgeInsets.all(AppTheme.paddingSmall),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
+        color: color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(8),
       ),
       child: Row(
@@ -694,7 +693,7 @@ class _WasteDashboardScreenState extends State<WasteDashboardScreen> {
     }
     
     return CircleAvatar(
-      backgroundColor: color.withOpacity(0.2),
+      backgroundColor: color.withValues(alpha: 0.2),
       radius: 16,
       child: Icon(iconData, color: color, size: 18),
     );
@@ -709,7 +708,7 @@ class _WasteDashboardScreenState extends State<WasteDashboardScreen> {
 
   Widget _buildGamificationSection() {
     return FutureBuilder<GamificationProfile>(
-      future: GamificationService().getProfile(),
+      future: Provider.of<GamificationService>(context, listen: false).getProfile(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
@@ -935,7 +934,7 @@ class _WebChartWidgetState extends State<WebChartWidget> {
     }).toList();
     
     final jsonData = jsonEncode(chartData);
-    final primaryColorHex = '#${AppTheme.primaryColor.value.toRadixString(16).substring(2)}';
+    final primaryColorHex = '#${AppTheme.primaryColor.toARGB32().toRadixString(16).substring(2)}';
     
     return '''
       <!DOCTYPE html>
@@ -1310,7 +1309,7 @@ class GamificationSummaryCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(AppTheme.borderRadiusRegular),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.1),
+              color: Colors.black.withValues(alpha: 0.1),
               blurRadius: 4,
               offset: const Offset(0, 2),
             ),
@@ -1327,7 +1326,7 @@ class GamificationSummaryCard extends StatelessWidget {
                   style: TextStyle(
                     fontSize: AppTheme.fontSizeSmall,
                     fontWeight: FontWeight.w500,
-                    color: AppTheme.textSecondaryColor.withOpacity(0.8),
+                    color: AppTheme.textSecondaryColor.withValues(alpha: 0.8),
                   ),
                 ),
                 Icon(icon, color: color, size: 18),
@@ -1350,7 +1349,7 @@ class GamificationSummaryCard extends StatelessWidget {
                   unit,
                   style: TextStyle(
                     fontSize: AppTheme.fontSizeSmall,
-                    color: AppTheme.textSecondaryColor.withOpacity(0.7),
+                    color: AppTheme.textSecondaryColor.withValues(alpha: 0.7),
                   ),
                 ),
                 if (trend != null)
@@ -1358,7 +1357,7 @@ class GamificationSummaryCard extends StatelessWidget {
                     padding: const EdgeInsets.symmetric(
                         horizontal: AppTheme.paddingMicro, vertical: 2),
                     decoration: BoxDecoration(
-                      color: color.withOpacity(0.15),
+                      color: color.withValues(alpha: 0.15),
                       borderRadius:
                           BorderRadius.circular(AppTheme.borderRadiusSmall),
                     ),

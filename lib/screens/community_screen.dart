@@ -140,8 +140,6 @@ class _CommunityScreenState extends State<CommunityScreen> with TickerProviderSt
   }
 
   Widget _buildFeedItem(CommunityFeedItem item) {
-    final isCurrentUser = item.userId == _currentUserId;
-    
     return ModernCard(
       padding: const EdgeInsets.all(16),
       child: Column(
@@ -198,12 +196,12 @@ class _CommunityScreenState extends State<CommunityScreen> with TickerProviderSt
                         vertical: 2,
                       ),
                       decoration: BoxDecoration(
-                        color: AppTheme.primaryColor.withOpacity(0.1),
+                        color: AppTheme.primaryColor.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Text(
                         '+${item.points} pts',
-                        style: TextStyle(
+                        style: const TextStyle(
                           color: AppTheme.primaryColor,
                           fontSize: 10,
                           fontWeight: FontWeight.bold,
@@ -273,7 +271,7 @@ class _CommunityScreenState extends State<CommunityScreen> with TickerProviderSt
                   
                   ..._stats!.topCategories.entries.map((entry) {
                     return _buildStatRow(entry.key, '${entry.value} items');
-                  }).toList(),
+                  }),
                 ],
               ),
             ),

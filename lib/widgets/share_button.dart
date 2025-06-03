@@ -47,16 +47,20 @@ class ShareButton extends StatelessWidget {
       onPressed: () {
         if (showSnackBar) {
           // Use context for SnackBar notification
-          ShareService.share(
-            text: text,
-            subject: subject,
-            files: files,
-            context: context,
-          );
+          try {
+            ShareService.share(
+              text: text,
+              subject: subject,
+              files: files,
+              context: context,
+            );
+          } catch (e) {
+            debugPrint('Share error: $e');
+          }
         } else {
           // Use callback for custom notification
           ShareService.onShareComplete = (message) {
-            print('Share complete: $message');
+            debugPrint('Share complete: $message');
             // No visual notification
           };
           
@@ -115,16 +119,20 @@ class ShareFloatingActionButton extends StatelessWidget {
       onPressed: () {
         if (showSnackBar) {
           // Use context for SnackBar notification
-          ShareService.share(
-            text: text,
-            subject: subject,
-            files: files,
-            context: context,
-          );
+          try {
+            ShareService.share(
+              text: text,
+              subject: subject,
+              files: files,
+              context: context,
+            );
+          } catch (e) {
+            debugPrint('Share error: $e');
+          }
         } else {
           // Use callback for custom notification
           ShareService.onShareComplete = (message) {
-            print('Share complete: $message');
+            debugPrint('Share complete: $message');
             // No visual notification
           };
           

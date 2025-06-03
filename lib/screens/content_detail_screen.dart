@@ -5,7 +5,6 @@ import '../services/educational_content_service.dart';
 import '../utils/constants.dart';
 import 'quiz_screen.dart';
 import 'package:video_player/video_player.dart';
-import 'package:share_plus/share_plus.dart';
 
 class ContentDetailScreen extends StatelessWidget {
   final String contentId;
@@ -562,12 +561,12 @@ class ContentDetailScreen extends StatelessWidget {
           if (content.steps != null && content.steps!.isNotEmpty)
             Column(
               children: content.steps!.asMap().entries.map((entry) {
-                int idx = entry.key;
-                TutorialStep step = entry.value;
+                final idx = entry.key;
+                final step = entry.value;
                 return ListTile(
                   leading: CircleAvatar(child: Text('${idx + 1}')),
                   title: Text(step.title),
-                  subtitle: step.description != null ? Text(step.description!) : null,
+                  subtitle: Text(step.description),
                   contentPadding: EdgeInsets.zero,
                 );
               }).toList(),

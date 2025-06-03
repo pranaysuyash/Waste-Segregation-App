@@ -38,6 +38,15 @@ The app provides educational content about each category, stores classification 
   - Bookmarkable content for quick access
   - Waste category-specific information
 
+- **Disposal Facilities & Community Contributions**:
+  - Browse and search disposal facilities by location and material type
+  - View detailed facility information (hours, contact, accepted materials)
+  - Community-driven facility database with user contributions
+  - Submit new facilities or suggest edits to existing ones
+  - Photo uploads for facility identification
+  - Contribution history and review status tracking
+  - Admin-moderated quality control system
+
 - **Gamification & User Engagement**:
   - Points and levels system
   - Achievement badges for waste identification
@@ -158,6 +167,9 @@ For a detailed view of the current file structure, please explore the `lib/` dir
 - Basic image capture and upload functionality
 - Core UI screens (home, auth, image capture, results)
 - Educational content framework
+- Disposal facilities browsing and search system
+- Community-driven facility contributions and editing
+- User contribution history and status tracking
 - Comprehensive gamification system (points, achievements, challenges)
 - Enhanced gamification with immediate visual feedback
 - Animated rewards and achievement notifications
