@@ -19,6 +19,7 @@ import 'services/premium_service.dart';
 import 'services/ad_service.dart';
 import 'services/user_consent_service.dart';
 import 'services/navigation_settings_service.dart';
+import 'services/community_service.dart';
 import 'screens/auth_screen.dart';
 import 'screens/consent_dialog_screen.dart';
 import 'screens/settings_screen.dart';
@@ -134,7 +135,6 @@ Future<void> originalMain() async {
       Exception('Test non-fatal error from Flutter!'),
       StackTrace.current,
       reason: 'Crashlytics integration test',
-      fatal: false,
     );
     // --- End test ---
   } catch (e) {
@@ -165,6 +165,7 @@ Future<void> originalMain() async {
   final adService = AdService();
   final googleDriveService = GoogleDriveService(storageService);
   final navigationSettingsService = NavigationSettingsService();
+  final communityService = CommunityService();
 
   if (kDebugMode) {
     debugPrint('Before service initializations');
@@ -173,6 +174,7 @@ Future<void> originalMain() async {
     gamificationService.initGamification(),
     premiumService.initialize(),
     adService.initialize(),
+    communityService.initCommunity(),
   ]);
   if (kDebugMode) {
     debugPrint('After service initializations');
@@ -191,6 +193,7 @@ Future<void> originalMain() async {
     adService: adService,
     googleDriveService: googleDriveService,
     navigationSettingsService: navigationSettingsService,
+    communityService: communityService,
   ));
   if (kDebugMode) {
     debugPrint('After runApp');
@@ -228,15 +231,6 @@ void _setupErrorHandling() {
 }
 
 class WasteSegregationApp extends StatelessWidget {
-  final StorageService storageService;
-  final AiService aiService;
-  final AnalyticsService analyticsService;
-  final GoogleDriveService googleDriveService;
-  final GamificationService gamificationService;
-  final EducationalContentService educationalContentService;
-  final PremiumService premiumService;
-  final AdService adService;
-  final NavigationSettingsService navigationSettingsService;
 
   const WasteSegregationApp({
     super.key,
@@ -249,22 +243,40 @@ class WasteSegregationApp extends StatelessWidget {
     required this.premiumService,
     required this.adService,
     required this.navigationSettingsService,
+    required this.communityService,
   });
+  final StorageService storageService;
+  final AiService aiService;
+  final AnalyticsService analyticsService;
+  final GoogleDriveService googleDriveService;
+  final GamificationService gamificationService;
+  final EducationalContentService educationalContentService;
+  final PremiumService premiumService;
+  final AdService adService;
+  final NavigationSettingsService navigationSettingsService;
+  final CommunityService communityService;
 
   @override
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
+        // ThemeProvider for dynamic theming
+        ChangeNotifierProvider(create: (_) => ThemeProvider()),
+        
+        // Provide existing service instances
         Provider<StorageService>.value(value: storageService),
         Provider<AiService>.value(value: aiService),
-        ChangeNotifierProvider<AnalyticsService>.value(value: analyticsService),
+        Provider<AnalyticsService>.value(value: analyticsService),
         Provider<GoogleDriveService>.value(value: googleDriveService),
-        Provider<GamificationService>.value(value: gamificationService),
         Provider<EducationalContentService>.value(value: educationalContentService),
+        ChangeNotifierProvider<GamificationService>.value(value: gamificationService),
         ChangeNotifierProvider<PremiumService>.value(value: premiumService),
-        ChangeNotifierProvider<AdService>.value(value: adService),
-        ChangeNotifierProvider<NavigationSettingsService>.value(value: navigationSettingsService),
-        ChangeNotifierProvider(create: (_) => ThemeProvider()),
+        Provider<AdService>.value(value: adService),
+        Provider<NavigationSettingsService>.value(value: navigationSettingsService),
+        Provider<CommunityService>.value(value: communityService),
+
+        // Other providers
+        ChangeNotifierProvider(create: (_) => UserConsentService()),
         Provider(create: (context) => CloudStorageService(context.read<StorageService>())),
       ],
       child: Consumer<ThemeProvider>(
@@ -296,11 +308,11 @@ class WasteSegregationApp extends StatelessWidget {
                   return const _SplashScreen();
                 }
 
-                final Map<String, bool> conditions = snapshot.data ?? {
+                final conditions = snapshot.data ?? {
                   'hasConsent': false,
                 };
                 
-                final bool hasConsent = conditions['hasConsent'] ?? false;
+                final hasConsent = conditions['hasConsent'] ?? false;
                 
                 // First, check if user has accepted privacy policy and terms
                 if (!hasConsent) {
@@ -335,7 +347,7 @@ class WasteSegregationApp extends StatelessWidget {
 
     // Check user consent status
     final userConsentService = UserConsentService();
-    final bool hasConsent = await userConsentService.hasAllRequiredConsents();
+    final hasConsent = await userConsentService.hasAllRequiredConsents();
     
     return {
       'hasConsent': hasConsent,
@@ -480,7 +492,7 @@ class _SplashScreenState extends State<_SplashScreen> with TickerProviderStateMi
                               width: 80,
                               height: 80,
                               decoration: BoxDecoration(
-                                gradient: LinearGradient(
+                                gradient: const LinearGradient(
                                   colors: [
                                     AppTheme.primaryColor,
                                     AppTheme.secondaryColor,
@@ -562,7 +574,7 @@ class _SplashScreenState extends State<_SplashScreen> with TickerProviderStateMi
                       
                       // Enhanced tagline with gradient text effect
                       ShaderMask(
-                        shaderCallback: (bounds) => LinearGradient(
+                        shaderCallback: (bounds) => const LinearGradient(
                           colors: [
                             Colors.white,
                             Colors.white70,
