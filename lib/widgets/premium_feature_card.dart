@@ -3,9 +3,6 @@ import '../models/premium_feature.dart';
 import '../utils/constants.dart';
 
 class PremiumFeatureCard extends StatelessWidget {
-  final PremiumFeature feature;
-  final bool isEnabled;
-  final VoidCallback? onTap;
 
   const PremiumFeatureCard({
     super.key,
@@ -13,11 +10,14 @@ class PremiumFeatureCard extends StatelessWidget {
     required this.isEnabled,
     this.onTap,
   });
+  final PremiumFeature feature;
+  final bool isEnabled;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
     // Get icon using the AppIcons utility to prevent errors from invalid icon data
-    IconData iconData = AppIcons.fromString(feature.icon);
+    var iconData = AppIcons.fromString(feature.icon);
     
     return Card(
       margin: const EdgeInsets.only(bottom: 16),

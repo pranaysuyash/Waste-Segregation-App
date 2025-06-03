@@ -37,7 +37,7 @@ void main() {
 
   group('DisposalInstructionsWidget Text Overflow Tests', () {
     testWidgets('Long primary disposal method uses ellipsis', (WidgetTester tester) async {
-      final longText = 'This is an extremely long primary disposal method that should definitely overflow the available space and demonstrate the ellipsis truncation at the end of the text block.';
+      const longText = 'This is an extremely long primary disposal method that should definitely overflow the available space and demonstrate the ellipsis truncation at the end of the text block.';
       final instructions = createMockDisposalInstructions(primaryMethod: longText);
 
       await tester.pumpWidget(createTestableWidget(DisposalInstructionsWidget(instructions: instructions)));
@@ -49,7 +49,7 @@ void main() {
     });
 
     testWidgets('Long warning text uses ellipsis', (WidgetTester tester) async {
-      final longWarning = 'This is a very very long safety warning that must be displayed to the user, and it is crucial that it truncates properly with an ellipsis if it cannot fit in the allocated space for a single warning item.';
+      const longWarning = 'This is a very very long safety warning that must be displayed to the user, and it is crucial that it truncates properly with an ellipsis if it cannot fit in the allocated space for a single warning item.';
       final instructions = createMockDisposalInstructions(warnings: [longWarning, 'Short warning.']);
 
       await tester.pumpWidget(createTestableWidget(DisposalInstructionsWidget(instructions: instructions)));
@@ -61,7 +61,7 @@ void main() {
     });
 
     testWidgets('Long step text uses ellipsis', (WidgetTester tester) async {
-      final longStep = 'This describes a very detailed and extremely long step-by-step instruction for waste disposal that will certainly exceed the typical line limits and thus should be truncated using an ellipsis to maintain UI consistency.';
+      const longStep = 'This describes a very detailed and extremely long step-by-step instruction for waste disposal that will certainly exceed the typical line limits and thus should be truncated using an ellipsis to maintain UI consistency.';
       final instructions = createMockDisposalInstructions(steps: [longStep, 'Short step.']);
 
       await tester.pumpWidget(createTestableWidget(DisposalInstructionsWidget(instructions: instructions)));
@@ -73,7 +73,7 @@ void main() {
     });
 
     testWidgets('Long tip text uses ellipsis', (WidgetTester tester) async {
-      final longTip = 'Here is an exceptionally long and helpful tip regarding waste management and recycling practices that might not fit into the designated area, therefore it should gracefully truncate with an ellipsis.';
+      const longTip = 'Here is an exceptionally long and helpful tip regarding waste management and recycling practices that might not fit into the designated area, therefore it should gracefully truncate with an ellipsis.';
       final instructions = createMockDisposalInstructions(tips: [longTip, 'Short tip.']);
 
       await tester.pumpWidget(createTestableWidget(DisposalInstructionsWidget(instructions: instructions)));
@@ -85,7 +85,7 @@ void main() {
     });
 
     testWidgets('Long recycling info text uses ellipsis', (WidgetTester tester) async {
-      final longRecyclingInfo = 'This section contains extraordinarily detailed recycling information, including material specifics, preparation guidelines, and facility locations, which is so extensive that it will require truncation with an ellipsis.';
+      const longRecyclingInfo = 'This section contains extraordinarily detailed recycling information, including material specifics, preparation guidelines, and facility locations, which is so extensive that it will require truncation with an ellipsis.';
       final instructions = createMockDisposalInstructions(recyclingInfo: longRecyclingInfo);
 
       await tester.pumpWidget(createTestableWidget(DisposalInstructionsWidget(instructions: instructions)));
@@ -97,7 +97,7 @@ void main() {
     });
 
     testWidgets('Long location info text uses ellipsis', (WidgetTester tester) async {
-      final longLocationInfo = 'The specific location for disposing of this type of waste is at the following address: Plot 123, Industrial Area, Phase 4, Near the very big landmark that everyone knows, Anytown, State, Country, Postal Code XXXXXX, and this text is designed to overflow.';
+      const longLocationInfo = 'The specific location for disposing of this type of waste is at the following address: Plot 123, Industrial Area, Phase 4, Near the very big landmark that everyone knows, Anytown, State, Country, Postal Code XXXXXX, and this text is designed to overflow.';
       final instructions = createMockDisposalInstructions(location: longLocationInfo);
 
       await tester.pumpWidget(createTestableWidget(DisposalInstructionsWidget(instructions: instructions)));

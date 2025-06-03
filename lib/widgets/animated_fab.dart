@@ -4,11 +4,6 @@ import '../utils/constants.dart';
 
 /// Animated FAB with pulsing effects and celebratory animations
 class AnimatedFAB extends StatefulWidget {
-  final VoidCallback onPressed;
-  final IconData icon;
-  final String tooltip;
-  final bool isPulsing;
-  final bool showCelebration;
 
   const AnimatedFAB({
     super.key,
@@ -18,6 +13,11 @@ class AnimatedFAB extends StatefulWidget {
     this.isPulsing = true,
     this.showCelebration = false,
   });
+  final VoidCallback onPressed;
+  final IconData icon;
+  final String tooltip;
+  final bool isPulsing;
+  final bool showCelebration;
 
   @override
   State<AnimatedFAB> createState() => _AnimatedFABState();
@@ -244,14 +244,14 @@ class _AnimatedFABState extends State<AnimatedFAB>
 
 /// Flame streak animation widget for streaks
 class FlameStreakWidget extends StatefulWidget {
-  final int streakCount;
-  final bool isActive;
 
   const FlameStreakWidget({
     super.key,
     required this.streakCount,
     this.isActive = true,
   });
+  final int streakCount;
+  final bool isActive;
 
   @override
   State<FlameStreakWidget> createState() => _FlameStreakWidgetState();
@@ -347,9 +347,6 @@ class _FlameStreakWidgetState extends State<FlameStreakWidget>
 
 /// Celebratory effects overlay
 class CelebrationOverlay extends StatefulWidget {
-  final bool isVisible;
-  final String message;
-  final VoidCallback? onComplete;
 
   const CelebrationOverlay({
     super.key,
@@ -357,6 +354,9 @@ class CelebrationOverlay extends StatefulWidget {
     this.message = 'Great job!',
     this.onComplete,
   });
+  final bool isVisible;
+  final String message;
+  final VoidCallback? onComplete;
 
   @override
   State<CelebrationOverlay> createState() => _CelebrationOverlayState();

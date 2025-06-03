@@ -35,7 +35,7 @@ class WasteAppDesignSystem {
     onError: Colors.white,
     surface: surfaceWhite,
     onSurface: textBlack,
-    surfaceVariant: lightGray,
+    surfaceContainerHighest: lightGray,
     onSurfaceVariant: darkGray,
     outline: mediumGray,
     shadow: Colors.black26,
@@ -56,7 +56,7 @@ class WasteAppDesignSystem {
     onError: Color(0xFF4A0000),
     surface: Color(0xFF121212),
     onSurface: Color(0xFFE0E0E0),
-    surfaceVariant: Color(0xFF1E1E1E),
+    surfaceContainerHighest: Color(0xFF1E1E1E),
     onSurfaceVariant: Color(0xFFB0B0B0),
     outline: Color(0xFF404040),
     shadow: Colors.black54,
@@ -258,7 +258,7 @@ class WasteAppDesignSystem {
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(radiusM),
         ),
-        side: BorderSide(color: primaryGreen, width: 1.5),
+        side: const BorderSide(color: primaryGreen, width: 1.5),
         textStyle: GoogleFonts.inter(
           fontSize: 16,
           fontWeight: FontWeight.w600,
@@ -295,23 +295,23 @@ class WasteAppDesignSystem {
       ),
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(radiusM),
-        borderSide: BorderSide(color: mediumGray),
+        borderSide: const BorderSide(color: mediumGray),
       ),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(radiusM),
-        borderSide: BorderSide(color: mediumGray),
+        borderSide: const BorderSide(color: mediumGray),
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(radiusM),
-        borderSide: BorderSide(color: primaryGreen, width: 2),
+        borderSide: const BorderSide(color: primaryGreen, width: 2),
       ),
       errorBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(radiusM),
-        borderSide: BorderSide(color: errorRed),
+        borderSide: const BorderSide(color: errorRed),
       ),
       focusedErrorBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(radiusM),
-        borderSide: BorderSide(color: errorRed, width: 2),
+        borderSide: const BorderSide(color: errorRed, width: 2),
       ),
       labelStyle: GoogleFonts.inter(
         fontSize: 14,
@@ -407,19 +407,19 @@ class WasteAppDesignSystem {
     textTheme: darkTextTheme,
     
     appBarTheme: lightTheme.appBarTheme.copyWith(
-      backgroundColor: Color(0xFF1E1E1E),
+      backgroundColor: const Color(0xFF1E1E1E),
     ),
     
     cardTheme: lightTheme.cardTheme.copyWith(
-      color: Color(0xFF2C2C2C),
+      color: const Color(0xFF2C2C2C),
     ),
     
     inputDecorationTheme: lightTheme.inputDecorationTheme.copyWith(
-      fillColor: Color(0xFF2C2C2C),
+      fillColor: const Color(0xFF2C2C2C),
     ),
     
     bottomNavigationBarTheme: lightTheme.bottomNavigationBarTheme.copyWith(
-      backgroundColor: Color(0xFF1E1E1E),
+      backgroundColor: const Color(0xFF1E1E1E),
     ),
   );
 
@@ -472,7 +472,6 @@ class WasteAppDesignSystem {
       borderRadius: BorderRadius.circular(radiusM),
       border: Border.all(
         color: categoryColor.withOpacity(0.3),
-        width: 1,
       ),
     );
   }

@@ -8,10 +8,6 @@ import 'gen_z_microinteractions.dart';
 /// Enhanced analysis loader that makes 14-20 second waits engaging
 /// Provides multi-step progress, educational content, and smooth animations
 class EnhancedAnalysisLoader extends StatefulWidget {
-  final String? imageName;
-  final VoidCallback? onCancel;
-  final Duration estimatedDuration;
-  final bool showEducationalTips;
   
   const EnhancedAnalysisLoader({
     super.key,
@@ -20,6 +16,10 @@ class EnhancedAnalysisLoader extends StatefulWidget {
     this.estimatedDuration = const Duration(seconds: 17), // Average of 14-20s
     this.showEducationalTips = true,
   });
+  final String? imageName;
+  final VoidCallback? onCancel;
+  final Duration estimatedDuration;
+  final bool showEducationalTips;
 
   @override
   State<EnhancedAnalysisLoader> createState() => _EnhancedAnalysisLoaderState();
@@ -43,30 +43,30 @@ class _EnhancedAnalysisLoaderState extends State<EnhancedAnalysisLoader>
   double _estimatedProgress = 0.0;
   
   final List<AnalysisStep> _analysisSteps = [
-    AnalysisStep(
-      title: "Uploading Image",
-      description: "Securely transferring your image...",
+    const AnalysisStep(
+      title: 'Uploading Image',
+      description: 'Securely transferring your image...',
       icon: Icons.cloud_upload_outlined,
       duration: Duration(seconds: 3),
       color: Colors.blue,
     ),
-    AnalysisStep(
-      title: "AI Processing",
-      description: "Our AI is analyzing your waste item...",
+    const AnalysisStep(
+      title: 'AI Processing',
+      description: 'Our AI is analyzing your waste item...',
       icon: Icons.psychology_outlined,
       duration: Duration(seconds: 8),
       color: AppTheme.primaryColor,
     ),
-    AnalysisStep(
-      title: "Classification",
-      description: "Determining the best disposal method...",
+    const AnalysisStep(
+      title: 'Classification',
+      description: 'Determining the best disposal method...',
       icon: Icons.category_outlined,
       duration: Duration(seconds: 4),
       color: Colors.orange,
     ),
-    AnalysisStep(
-      title: "Finalizing Results",
-      description: "Preparing your personalized recommendations...",
+    const AnalysisStep(
+      title: 'Finalizing Results',
+      description: 'Preparing your personalized recommendations...',
       icon: Icons.check_circle_outline,
       duration: Duration(seconds: 2),
       color: Colors.green,
@@ -74,14 +74,14 @@ class _EnhancedAnalysisLoaderState extends State<EnhancedAnalysisLoader>
   ];
   
   final List<String> _educationalTips = [
-    "💡 Did you know? Recycling one aluminum can saves enough energy to power a TV for 3 hours!",
-    "🌱 Composting food waste can reduce methane emissions by up to 50%",
-    "♻️ Glass can be recycled infinitely without losing quality or purity",
-    "🌍 Proper waste sorting can increase recycling rates by up to 40%",
-    "🔋 E-waste contains valuable metals like gold, silver, and copper",
-    "🌿 Organic waste makes up about 30% of household garbage",
-    "📱 One recycled smartphone can recover enough gold to make a ring",
-    "🌊 Plastic bottles can take up to 450 years to decompose naturally",
+    '💡 Did you know? Recycling one aluminum can saves enough energy to power a TV for 3 hours!',
+    '🌱 Composting food waste can reduce methane emissions by up to 50%',
+    '♻️ Glass can be recycled infinitely without losing quality or purity',
+    '🌍 Proper waste sorting can increase recycling rates by up to 40%',
+    '🔋 E-waste contains valuable metals like gold, silver, and copper',
+    '🌿 Organic waste makes up about 30% of household garbage',
+    '📱 One recycled smartphone can recover enough gold to make a ring',
+    '🌊 Plastic bottles can take up to 450 years to decompose naturally',
   ];
 
   @override
@@ -131,8 +131,8 @@ class _EnhancedAnalysisLoaderState extends State<EnhancedAnalysisLoader>
 
   void _startAnalysisSimulation() {
     // Simulate step progression
-    int totalDuration = 0;
-    for (int i = 0; i < _analysisSteps.length; i++) {
+    var totalDuration = 0;
+    for (var i = 0; i < _analysisSteps.length; i++) {
       Timer(Duration(seconds: totalDuration), () {
         if (mounted) {
           setState(() {
@@ -388,12 +388,11 @@ class _EnhancedAnalysisLoaderState extends State<EnhancedAnalysisLoader>
           borderRadius: BorderRadius.circular(AppTheme.borderRadiusRegular),
           border: Border.all(
             color: AppTheme.primaryColor.withOpacity(0.3),
-            width: 1,
           ),
         ),
         child: Row(
           children: [
-            Icon(
+            const Icon(
               Icons.lightbulb_outline,
               color: AppTheme.primaryColor,
               size: 20,
@@ -455,19 +454,14 @@ class _EnhancedAnalysisLoaderState extends State<EnhancedAnalysisLoader>
 
   String _getRemainingTime() {
     final remainingSeconds = ((1.0 - _estimatedProgress) * widget.estimatedDuration.inSeconds).round();
-    if (remainingSeconds <= 0) return "Almost done...";
-    if (remainingSeconds < 60) return "${remainingSeconds}s remaining";
-    return "${(remainingSeconds / 60).ceil()}m remaining";
+    if (remainingSeconds <= 0) return 'Almost done...';
+    if (remainingSeconds < 60) return '${remainingSeconds}s remaining';
+    return '${(remainingSeconds / 60).ceil()}m remaining';
   }
 }
 
 /// Data class for analysis steps
 class AnalysisStep {
-  final String title;
-  final String description;
-  final IconData icon;
-  final Duration duration;
-  final Color color;
 
   const AnalysisStep({
     required this.title,
@@ -476,17 +470,22 @@ class AnalysisStep {
     required this.duration,
     required this.color,
   });
+  final String title;
+  final String description;
+  final IconData icon;
+  final Duration duration;
+  final Color color;
 }
 
 /// Custom painter for floating particles around the analysis animation
 class AnalysisParticlePainter extends CustomPainter {
-  final double animationValue;
-  final Color color;
   
   AnalysisParticlePainter({
     required this.animationValue,
     required this.color,
   });
+  final double animationValue;
+  final Color color;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -498,7 +497,7 @@ class AnalysisParticlePainter extends CustomPainter {
     final radius = size.width / 2;
 
     // Draw floating particles
-    for (int i = 0; i < 8; i++) {
+    for (var i = 0; i < 8; i++) {
       final angle = (i * math.pi * 2 / 8) + (animationValue * math.pi * 2);
       final particleRadius = radius * 0.7;
       final particleSize = 3.0 + (math.sin(animationValue * math.pi * 4 + i) * 2);

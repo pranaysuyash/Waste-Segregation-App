@@ -1,9 +1,9 @@
 import 'package:flutter_test/flutter_test.dart';
-import '../lib/services/gamification_service.dart';
-import '../lib/models/waste_classification.dart';
-import '../lib/models/gamification.dart';
-import '../lib/services/storage_service.dart';
-import '../lib/services/cloud_storage_service.dart';
+import 'package:waste_segregation_app/services/gamification_service.dart';
+import 'package:waste_segregation_app/models/waste_classification.dart';
+import 'package:waste_segregation_app/models/gamification.dart';
+import 'package:waste_segregation_app/services/storage_service.dart';
+import 'package:waste_segregation_app/services/cloud_storage_service.dart';
 
 void main() {
   group('Achievement Unlock Logic Tests', () {
@@ -30,7 +30,7 @@ void main() {
         isRecyclable: true,
         isCompostable: false,
         requiresSpecialDisposal: false,
-        timestamp: DateTime(2023, 1, 1, 10, 0, 0),
+        timestamp: DateTime(2023, 1, 1, 10, 0),
         imageUrl: 'test.jpg',
         confidence: 0.95,
         alternatives: const [],
@@ -59,7 +59,7 @@ void main() {
       // Given: 49 previous recyclable classifications
       await storageService.clearClassifications();
       
-      for (int i = 0; i < 49; i++) {
+      for (var i = 0; i < 49; i++) {
         final classification = WasteClassification(
           itemName: 'Recyclable Item $i',
           category: 'Dry Waste',
@@ -67,7 +67,7 @@ void main() {
           isRecyclable: true,
           isCompostable: false,
           requiresSpecialDisposal: false,
-          timestamp: DateTime(2023, 1, 1, 10, 0, 0),
+          timestamp: DateTime(2023, 1, 1, 10, 0),
           imageUrl: 'test.jpg',
           confidence: 0.95,
           alternatives: const [],
@@ -92,7 +92,7 @@ void main() {
         isRecyclable: true,
         isCompostable: false,
         requiresSpecialDisposal: false,
-        timestamp: DateTime(2023, 1, 1, 11, 0, 0),
+        timestamp: DateTime(2023, 1, 1, 11, 0),
         imageUrl: 'test.jpg',
         confidence: 0.95,
         alternatives: const [],
@@ -132,7 +132,7 @@ void main() {
           isRecyclable: false,
           isCompostable: true,
           requiresSpecialDisposal: false,
-          timestamp: DateTime(2023, 1, 1, 10, 0, 0),
+          timestamp: DateTime(2023, 1, 1, 10, 0),
           imageUrl: 'test.jpg',
           confidence: 0.95,
           alternatives: const [],
@@ -153,7 +153,7 @@ void main() {
           isRecyclable: false,
           isCompostable: false,
           requiresSpecialDisposal: true,
-          timestamp: DateTime(2023, 1, 1, 11, 0, 0),
+          timestamp: DateTime(2023, 1, 1, 11, 0),
           imageUrl: 'test.jpg',
           confidence: 0.95,
           alternatives: const [],
@@ -190,7 +190,7 @@ void main() {
         isRecyclable: true,
         isCompostable: false,
         requiresSpecialDisposal: false,
-        timestamp: DateTime(2023, 1, 1, 10, 0, 0),
+        timestamp: DateTime(2023, 1, 1, 10, 0),
         imageUrl: 'test.jpg',
         confidence: 0.95,
         alternatives: const [],
@@ -211,7 +211,7 @@ void main() {
         isRecyclable: true,
         isCompostable: false,
         requiresSpecialDisposal: false,
-        timestamp: DateTime(2023, 1, 2, 10, 0, 0),
+        timestamp: DateTime(2023, 1, 2, 10, 0),
         imageUrl: 'test.jpg',
         confidence: 0.95,
         alternatives: const [],
@@ -233,7 +233,7 @@ void main() {
         isRecyclable: true,
         isCompostable: false,
         requiresSpecialDisposal: false,
-        timestamp: DateTime(2023, 1, 3, 10, 0, 0),
+        timestamp: DateTime(2023, 1, 3, 10, 0),
         imageUrl: 'test.jpg',
         confidence: 0.95,
         alternatives: const [],

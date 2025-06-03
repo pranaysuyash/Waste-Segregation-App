@@ -49,6 +49,44 @@ enum RewardType {
 
 /// Represents a single entry in a leaderboard.
 class LeaderboardEntry {
+
+  LeaderboardEntry({
+    required this.userId,
+    required this.displayName,
+    this.photoUrl,
+    required this.points,
+    this.rank,
+    this.previousRank,
+    this.categoryBreakdown = const {},
+    this.recentAchievements = const [],
+    this.stats,
+    this.isCurrentUser = false,
+    this.familyId,
+    this.familyName,
+  });
+
+  /// Creates a LeaderboardEntry instance from a JSON map.
+  factory LeaderboardEntry.fromJson(Map<String, dynamic> json) {
+    return LeaderboardEntry(
+      userId: json['userId'] as String,
+      displayName: json['displayName'] as String,
+      photoUrl: json['photoUrl'] as String?,
+      points: json['points'] as int? ?? 0,
+      rank: json['rank'] as int?,
+      previousRank: json['previousRank'] as int?,
+      categoryBreakdown: Map<String, int>.from(json['categoryBreakdown'] as Map? ?? {}),
+      recentAchievements: (json['recentAchievements'] as List<dynamic>?)
+              ?.map((a) => Achievement.fromJson(a as Map<String, dynamic>))
+              .toList() ??
+          [],
+      stats: json['stats'] != null 
+          ? UserLeaderboardStats.fromJson(json['stats'] as Map<String, dynamic>) 
+          : null,
+      isCurrentUser: json['isCurrentUser'] as bool? ?? false,
+      familyId: json['familyId'] as String?,
+      familyName: json['familyName'] as String?,
+    );
+  }
   /// The user ID for this entry.
   final String userId;
 
@@ -84,21 +122,6 @@ class LeaderboardEntry {
 
   /// Family name if this is a family leaderboard entry.
   final String? familyName;
-
-  LeaderboardEntry({
-    required this.userId,
-    required this.displayName,
-    this.photoUrl,
-    required this.points,
-    this.rank,
-    this.previousRank,
-    this.categoryBreakdown = const {},
-    this.recentAchievements = const [],
-    this.stats,
-    this.isCurrentUser = false,
-    this.familyId,
-    this.familyName,
-  });
 
   /// Creates a copy of this LeaderboardEntry with the given fields replaced.
   LeaderboardEntry copyWith({
@@ -149,29 +172,6 @@ class LeaderboardEntry {
     };
   }
 
-  /// Creates a LeaderboardEntry instance from a JSON map.
-  factory LeaderboardEntry.fromJson(Map<String, dynamic> json) {
-    return LeaderboardEntry(
-      userId: json['userId'] as String,
-      displayName: json['displayName'] as String,
-      photoUrl: json['photoUrl'] as String?,
-      points: json['points'] as int? ?? 0,
-      rank: json['rank'] as int?,
-      previousRank: json['previousRank'] as int?,
-      categoryBreakdown: Map<String, int>.from(json['categoryBreakdown'] as Map? ?? {}),
-      recentAchievements: (json['recentAchievements'] as List<dynamic>?)
-              ?.map((a) => Achievement.fromJson(a as Map<String, dynamic>))
-              .toList() ??
-          [],
-      stats: json['stats'] != null 
-          ? UserLeaderboardStats.fromJson(json['stats'] as Map<String, dynamic>) 
-          : null,
-      isCurrentUser: json['isCurrentUser'] as bool? ?? false,
-      familyId: json['familyId'] as String?,
-      familyName: json['familyName'] as String?,
-    );
-  }
-
   /// Gets the rank change compared to previous ranking.
   int? get rankChange {
     if (previousRank == null) return null;
@@ -188,6 +188,41 @@ class LeaderboardEntry {
 
 /// Represents a complete leaderboard with multiple entries.
 class Leaderboard {
+
+  Leaderboard({
+    required this.type,
+    required this.period,
+    required this.entries,
+    required this.lastUpdated,
+    required this.metadata,
+    this.currentUserEntry,
+    required this.totalParticipants,
+    this.familyId,
+  });
+
+  /// Creates a Leaderboard instance from a JSON map.
+  factory Leaderboard.fromJson(Map<String, dynamic> json) {
+    return Leaderboard(
+      type: LeaderboardType.values.firstWhere(
+        (e) => e.toString().split('.').last == json['type'],
+        orElse: () => LeaderboardType.global,
+      ),
+      period: LeaderboardPeriod.values.firstWhere(
+        (e) => e.toString().split('.').last == json['period'],
+        orElse: () => LeaderboardPeriod.allTime,
+      ),
+      entries: (json['entries'] as List<dynamic>)
+          .map((e) => LeaderboardEntry.fromJson(e as Map<String, dynamic>))
+          .toList(),
+      lastUpdated: DateTime.parse(json['lastUpdated'] as String),
+      metadata: LeaderboardMetadata.fromJson(json['metadata'] as Map<String, dynamic>),
+      currentUserEntry: json['currentUserEntry'] != null
+          ? LeaderboardEntry.fromJson(json['currentUserEntry'] as Map<String, dynamic>)
+          : null,
+      totalParticipants: json['totalParticipants'] as int,
+      familyId: json['familyId'] as String?,
+    );
+  }
   /// The type of this leaderboard.
   final LeaderboardType type;
 
@@ -211,17 +246,6 @@ class Leaderboard {
 
   /// Family ID if this is a family-specific leaderboard.
   final String? familyId;
-
-  Leaderboard({
-    required this.type,
-    required this.period,
-    required this.entries,
-    required this.lastUpdated,
-    required this.metadata,
-    this.currentUserEntry,
-    required this.totalParticipants,
-    this.familyId,
-  });
 
   /// Creates a copy of this Leaderboard with the given fields replaced.
   Leaderboard copyWith({
@@ -260,30 +284,6 @@ class Leaderboard {
     };
   }
 
-  /// Creates a Leaderboard instance from a JSON map.
-  factory Leaderboard.fromJson(Map<String, dynamic> json) {
-    return Leaderboard(
-      type: LeaderboardType.values.firstWhere(
-        (e) => e.toString().split('.').last == json['type'],
-        orElse: () => LeaderboardType.global,
-      ),
-      period: LeaderboardPeriod.values.firstWhere(
-        (e) => e.toString().split('.').last == json['period'],
-        orElse: () => LeaderboardPeriod.allTime,
-      ),
-      entries: (json['entries'] as List<dynamic>)
-          .map((e) => LeaderboardEntry.fromJson(e as Map<String, dynamic>))
-          .toList(),
-      lastUpdated: DateTime.parse(json['lastUpdated'] as String),
-      metadata: LeaderboardMetadata.fromJson(json['metadata'] as Map<String, dynamic>),
-      currentUserEntry: json['currentUserEntry'] != null
-          ? LeaderboardEntry.fromJson(json['currentUserEntry'] as Map<String, dynamic>)
-          : null,
-      totalParticipants: json['totalParticipants'] as int,
-      familyId: json['familyId'] as String?,
-    );
-  }
-
   /// Gets the top N entries from the leaderboard.
   List<LeaderboardEntry> getTopEntries(int count) {
     return entries.take(count).toList();
@@ -314,6 +314,36 @@ class Leaderboard {
 
 /// Metadata about a leaderboard.
 class LeaderboardMetadata {
+
+  LeaderboardMetadata({
+    required this.title,
+    required this.description,
+    required this.periodStart,
+    required this.periodEnd,
+    this.isActive = true,
+    this.rewards = const [],
+    this.minimumPoints = 0,
+    this.maxEntries = 100,
+    this.showDetailedStats = true,
+  });
+
+  /// Creates a LeaderboardMetadata instance from a JSON map.
+  factory LeaderboardMetadata.fromJson(Map<String, dynamic> json) {
+    return LeaderboardMetadata(
+      title: json['title'] as String,
+      description: json['description'] as String,
+      periodStart: DateTime.parse(json['periodStart'] as String),
+      periodEnd: DateTime.parse(json['periodEnd'] as String),
+      isActive: json['isActive'] as bool? ?? true,
+      rewards: (json['rewards'] as List<dynamic>?)
+              ?.map((r) => LeaderboardReward.fromJson(r as Map<String, dynamic>))
+              .toList() ??
+          [],
+      minimumPoints: json['minimumPoints'] as int? ?? 0,
+      maxEntries: json['maxEntries'] as int? ?? 100,
+      showDetailedStats: json['showDetailedStats'] as bool? ?? true,
+    );
+  }
   /// The title/name of this leaderboard.
   final String title;
 
@@ -341,18 +371,6 @@ class LeaderboardMetadata {
   /// Whether to show detailed statistics.
   final bool showDetailedStats;
 
-  LeaderboardMetadata({
-    required this.title,
-    required this.description,
-    required this.periodStart,
-    required this.periodEnd,
-    this.isActive = true,
-    this.rewards = const [],
-    this.minimumPoints = 0,
-    this.maxEntries = 100,
-    this.showDetailedStats = true,
-  });
-
   /// Converts this LeaderboardMetadata instance to a JSON map.
   Map<String, dynamic> toJson() {
     return {
@@ -366,24 +384,6 @@ class LeaderboardMetadata {
       'maxEntries': maxEntries,
       'showDetailedStats': showDetailedStats,
     };
-  }
-
-  /// Creates a LeaderboardMetadata instance from a JSON map.
-  factory LeaderboardMetadata.fromJson(Map<String, dynamic> json) {
-    return LeaderboardMetadata(
-      title: json['title'] as String,
-      description: json['description'] as String,
-      periodStart: DateTime.parse(json['periodStart'] as String),
-      periodEnd: DateTime.parse(json['periodEnd'] as String),
-      isActive: json['isActive'] as bool? ?? true,
-      rewards: (json['rewards'] as List<dynamic>?)
-              ?.map((r) => LeaderboardReward.fromJson(r as Map<String, dynamic>))
-              .toList() ??
-          [],
-      minimumPoints: json['minimumPoints'] as int? ?? 0,
-      maxEntries: json['maxEntries'] as int? ?? 100,
-      showDetailedStats: json['showDetailedStats'] as bool? ?? true,
-    );
   }
 
   /// Checks if the leaderboard period is currently active.
@@ -404,6 +404,31 @@ class LeaderboardMetadata {
 
 /// Statistics for a user on the leaderboard.
 class UserLeaderboardStats {
+
+  UserLeaderboardStats({
+    required this.totalClassifications,
+    required this.currentStreak,
+    required this.bestStreak,
+    required this.averagePointsPerClassification,
+    required this.mostActiveDay,
+    required this.topCategory,
+    required this.accuracyPercentage,
+    required this.totalTimeSpent,
+  });
+
+  /// Creates a UserLeaderboardStats instance from a JSON map.
+  factory UserLeaderboardStats.fromJson(Map<String, dynamic> json) {
+    return UserLeaderboardStats(
+      totalClassifications: json['totalClassifications'] as int,
+      currentStreak: json['currentStreak'] as int,
+      bestStreak: json['bestStreak'] as int,
+      averagePointsPerClassification: (json['averagePointsPerClassification'] as num).toDouble(),
+      mostActiveDay: json['mostActiveDay'] as String,
+      topCategory: json['topCategory'] as String,
+      accuracyPercentage: (json['accuracyPercentage'] as num).toDouble(),
+      totalTimeSpent: json['totalTimeSpent'] as int,
+    );
+  }
   /// Total classifications made.
   final int totalClassifications;
 
@@ -428,17 +453,6 @@ class UserLeaderboardStats {
   /// Total time spent in the app (in minutes).
   final int totalTimeSpent;
 
-  UserLeaderboardStats({
-    required this.totalClassifications,
-    required this.currentStreak,
-    required this.bestStreak,
-    required this.averagePointsPerClassification,
-    required this.mostActiveDay,
-    required this.topCategory,
-    required this.accuracyPercentage,
-    required this.totalTimeSpent,
-  });
-
   /// Converts this UserLeaderboardStats instance to a JSON map.
   Map<String, dynamic> toJson() {
     return {
@@ -452,24 +466,34 @@ class UserLeaderboardStats {
       'totalTimeSpent': totalTimeSpent,
     };
   }
-
-  /// Creates a UserLeaderboardStats instance from a JSON map.
-  factory UserLeaderboardStats.fromJson(Map<String, dynamic> json) {
-    return UserLeaderboardStats(
-      totalClassifications: json['totalClassifications'] as int,
-      currentStreak: json['currentStreak'] as int,
-      bestStreak: json['bestStreak'] as int,
-      averagePointsPerClassification: (json['averagePointsPerClassification'] as num).toDouble(),
-      mostActiveDay: json['mostActiveDay'] as String,
-      topCategory: json['topCategory'] as String,
-      accuracyPercentage: (json['accuracyPercentage'] as num).toDouble(),
-      totalTimeSpent: json['totalTimeSpent'] as int,
-    );
-  }
 }
 
 /// Represents a reward for leaderboard performance.
 class LeaderboardReward {
+
+  LeaderboardReward({
+    required this.rankRange,
+    required this.name,
+    required this.description,
+    this.iconUrl,
+    required this.type,
+    this.value,
+  });
+
+  /// Creates a LeaderboardReward instance from a JSON map.
+  factory LeaderboardReward.fromJson(Map<String, dynamic> json) {
+    return LeaderboardReward(
+      rankRange: json['rankRange'] as String,
+      name: json['name'] as String,
+      description: json['description'] as String,
+      iconUrl: json['iconUrl'] as String?,
+      type: RewardType.values.firstWhere(
+        (e) => e.toString().split('.').last == json['type'],
+        orElse: () => RewardType.badge,
+      ),
+      value: json['value'] as int?,
+    );
+  }
   /// The rank range this reward applies to (e.g., "1-3" for top 3).
   final String rankRange;
 
@@ -488,15 +512,6 @@ class LeaderboardReward {
   /// Value of the reward (if applicable).
   final int? value;
 
-  LeaderboardReward({
-    required this.rankRange,
-    required this.name,
-    required this.description,
-    this.iconUrl,
-    required this.type,
-    this.value,
-  });
-
   /// Converts this LeaderboardReward instance to a JSON map.
   Map<String, dynamic> toJson() {
     return {
@@ -507,20 +522,5 @@ class LeaderboardReward {
       'type': type.toString().split('.').last,
       'value': value,
     };
-  }
-
-  /// Creates a LeaderboardReward instance from a JSON map.
-  factory LeaderboardReward.fromJson(Map<String, dynamic> json) {
-    return LeaderboardReward(
-      rankRange: json['rankRange'] as String,
-      name: json['name'] as String,
-      description: json['description'] as String,
-      iconUrl: json['iconUrl'] as String?,
-      type: RewardType.values.firstWhere(
-        (e) => e.toString().split('.').last == json['type'],
-        orElse: () => RewardType.badge,
-      ),
-      value: json['value'] as int?,
-    );
   }
 }

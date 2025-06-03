@@ -5,13 +5,6 @@ import '../../utils/constants.dart';
 /// A modern Android-style bottom navigation bar with smooth animations,
 /// customizable appearance, and haptic feedback
 class ModernBottomNavigation extends StatefulWidget {
-  final int currentIndex;
-  final Function(int) onTap;
-  final List<BottomNavItem> items;
-  final ModernBottomNavStyle style;
-  final Duration animationDuration;
-  final bool enableHapticFeedback;
-  final bool hasNotch;
 
   const ModernBottomNavigation({
     super.key,
@@ -23,6 +16,13 @@ class ModernBottomNavigation extends StatefulWidget {
     this.enableHapticFeedback = true,
     this.hasNotch = false,
   });
+  final int currentIndex;
+  final Function(int) onTap;
+  final List<BottomNavItem> items;
+  final ModernBottomNavStyle style;
+  final Duration animationDuration;
+  final bool enableHapticFeedback;
+  final bool hasNotch;
 
   @override
   State<ModernBottomNavigation> createState() => _ModernBottomNavigationState();
@@ -260,17 +260,6 @@ class _ModernBottomNavigationState extends State<ModernBottomNavigation>
 
 /// Configuration class for the modern bottom navigation styling
 class ModernBottomNavStyle {
-  final Color? backgroundColor;
-  final Color? selectedColor;
-  final Color? unselectedColor;
-  final List<BoxShadow>? shadow;
-  final BorderRadius? borderRadius;
-  final Border? border;
-  final EdgeInsets padding;
-  final double height;
-  final double iconSize;
-  final double labelFontSize;
-  final bool showIndicator;
 
   const ModernBottomNavStyle({
     this.backgroundColor,
@@ -285,6 +274,17 @@ class ModernBottomNavStyle {
     this.labelFontSize = 11,
     this.showIndicator = true,
   });
+  final Color? backgroundColor;
+  final Color? selectedColor;
+  final Color? unselectedColor;
+  final List<BoxShadow>? shadow;
+  final BorderRadius? borderRadius;
+  final Border? border;
+  final EdgeInsets padding;
+  final double height;
+  final double iconSize;
+  final double labelFontSize;
+  final bool showIndicator;
 
   /// Glassmorphism style (like iOS/modern Android)
   static ModernBottomNavStyle glassmorphism({
@@ -308,7 +308,6 @@ class ModernBottomNavStyle {
       ],
       height: 68,
       iconSize: 24,
-      labelFontSize: 11,
       showIndicator: false,
     );
   }
@@ -331,9 +330,6 @@ class ModernBottomNavStyle {
         ),
       ],
       height: 66,
-      iconSize: 22,
-      labelFontSize: 11,
-      showIndicator: true,
     );
   }
 
@@ -365,10 +361,6 @@ class ModernBottomNavStyle {
 
 /// Data class for bottom navigation items
 class BottomNavItem {
-  final IconData icon;
-  final IconData? selectedIcon;
-  final String? label;
-  final Widget? badge;
 
   const BottomNavItem({
     required this.icon,
@@ -376,4 +368,8 @@ class BottomNavItem {
     this.label,
     this.badge,
   });
+  final IconData icon;
+  final IconData? selectedIcon;
+  final String? label;
+  final Widget? badge;
 }

@@ -7,9 +7,6 @@ import '../services/gamification_service.dart';
 
 /// Enhanced version of the points indicator with animations and level-up effects
 class EnhancedPointsIndicator extends StatefulWidget {
-  final UserPoints points;
-  final UserPoints? previousPoints;
-  final VoidCallback? onTap;
   
   const EnhancedPointsIndicator({
     super.key,
@@ -17,6 +14,9 @@ class EnhancedPointsIndicator extends StatefulWidget {
     this.previousPoints,
     this.onTap,
   });
+  final UserPoints points;
+  final UserPoints? previousPoints;
+  final VoidCallback? onTap;
   
   @override
   State<EnhancedPointsIndicator> createState() => _EnhancedPointsIndicatorState();
@@ -98,7 +98,7 @@ class _EnhancedPointsIndicatorState extends State<EnhancedPointsIndicator>
   
   @override
   Widget build(BuildContext context) {
-    final bool isLevelUp = widget.previousPoints != null && 
+    final isLevelUp = widget.previousPoints != null && 
         widget.points.level > widget.previousPoints!.level;
     
     return InkWell(
@@ -155,7 +155,7 @@ class _EnhancedPointsIndicatorState extends State<EnhancedPointsIndicator>
                 Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(
+                    const Icon(
                       Icons.stars,
                       color: Colors.amber,
                       size: 12,
@@ -205,7 +205,7 @@ class _EnhancedPointsIndicatorState extends State<EnhancedPointsIndicator>
                                 value: _progressAnimation.value,
                                 minHeight: 4,
                                 backgroundColor: Colors.grey.withOpacity(0.3),
-                                valueColor: AlwaysStoppedAnimation<Color>(AppTheme.primaryColor),
+                                valueColor: const AlwaysStoppedAnimation<Color>(AppTheme.primaryColor),
                               ),
                             );
                           },
@@ -228,7 +228,7 @@ class _EnhancedPointsIndicatorState extends State<EnhancedPointsIndicator>
                         
                       // Level up indicator
                       if (isLevelUp)
-                        Positioned(
+                        const Positioned(
                           top: 5, // Adjusted position
                           right: 0,
                           child: Row(
@@ -239,7 +239,7 @@ class _EnhancedPointsIndicatorState extends State<EnhancedPointsIndicator>
                                 size: 8,
                                 color: Colors.green,
                               ),
-                              const SizedBox(width: 2),
+                              SizedBox(width: 2),
                               Text(
                                 'LEVEL UP!',
                                 style: TextStyle(
@@ -265,14 +265,14 @@ class _EnhancedPointsIndicatorState extends State<EnhancedPointsIndicator>
 
 /// A classification feedback effect for immediate user gratification
 class ClassificationFeedback extends StatefulWidget {
-  final String category;
-  final VoidCallback? onComplete;
   
   const ClassificationFeedback({
     super.key,
     required this.category,
     this.onComplete,
   });
+  final String category;
+  final VoidCallback? onComplete;
   
   @override
   State<ClassificationFeedback> createState() => _ClassificationFeedbackState();
@@ -395,9 +395,6 @@ class _ClassificationFeedbackState extends State<ClassificationFeedback>
 
 /// A widget that displays a popup when points are earned
 class PointsEarnedPopup extends StatefulWidget {
-  final int points;
-  final String action;
-  final VoidCallback? onDismiss;
   
   const PointsEarnedPopup({
     super.key,
@@ -405,6 +402,9 @@ class PointsEarnedPopup extends StatefulWidget {
     required this.action,
     this.onDismiss,
   });
+  final int points;
+  final String action;
+  final VoidCallback? onDismiss;
   
   @override
   State<PointsEarnedPopup> createState() => _PointsEarnedPopupState();
@@ -512,7 +512,7 @@ class _PointsEarnedPopupState extends State<PointsEarnedPopup>
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(
+                  const Icon(
                     Icons.stars,
                     color: Colors.white,
                     size: 24,
@@ -574,14 +574,14 @@ class _PointsEarnedPopupState extends State<PointsEarnedPopup>
 
 /// Show a floating achievement badge during gameplay
 class FloatingAchievementBadge extends StatefulWidget {
-  final Achievement achievement;
-  final VoidCallback? onTap;
   
   const FloatingAchievementBadge({
     super.key,
     required this.achievement,
     this.onTap,
   });
+  final Achievement achievement;
+  final VoidCallback? onTap;
   
   @override
   State<FloatingAchievementBadge> createState() => _FloatingAchievementBadgeState();
@@ -723,7 +723,7 @@ class _FloatingAchievementBadgeState extends State<FloatingAchievementBadge>
                         
                         if(widget.onTap != null) ...[ // Show chevron only if tappable
                           const SizedBox(width: AppTheme.paddingSmall),
-                          Icon(
+                          const Icon(
                             Icons.chevron_right,
                             size: 16,
                             color: Colors.grey,
@@ -744,14 +744,14 @@ class _FloatingAchievementBadgeState extends State<FloatingAchievementBadge>
 
 /// Enhanced achievement notification dialog
 class EnhancedAchievementNotification extends StatefulWidget {
-  final Achievement achievement;
-  final VoidCallback? onDismiss;
   
   const EnhancedAchievementNotification({
     super.key,
     required this.achievement,
     this.onDismiss,
   });
+  final Achievement achievement;
+  final VoidCallback? onDismiss;
   
   @override
   State<EnhancedAchievementNotification> createState() => 
@@ -837,7 +837,7 @@ class _EnhancedAchievementNotificationState
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       // Confetti animation (ensure it has a defined size)
-                      SizedBox(
+                      const SizedBox(
                         height: 80,
                         width: double.infinity, // Take available width
                         // child: AnimationHelpers.createConfettiEffect( // Commented out this line
@@ -914,7 +914,7 @@ class _EnhancedAchievementNotificationState
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            Icon(
+                            const Icon(
                               Icons.stars,
                               color: Colors.amber,
                               size: 20,
@@ -957,14 +957,14 @@ class _EnhancedAchievementNotificationState
 
 /// Enhanced challenge card component with visual improvement
 class EnhancedChallengeCard extends StatelessWidget {
-  final Challenge challenge;
-  final VoidCallback? onTap;
   
   const EnhancedChallengeCard({
     super.key,
     required this.challenge,
     this.onTap,
   });
+  final Challenge challenge;
+  final VoidCallback? onTap;
   
   @override
   Widget build(BuildContext context) {
@@ -1020,7 +1020,7 @@ class EnhancedChallengeCard extends StatelessWidget {
                   ),
                   if (challenge.isCompleted) ...[
                     const SizedBox(width: AppTheme.paddingSmall),
-                    Icon(Icons.check_circle, color: Colors.green, size: 24),
+                    const Icon(Icons.check_circle, color: Colors.green, size: 24),
                   ] else if (challenge.pointsReward > 0) ...[
                      const SizedBox(width: AppTheme.paddingSmall),
                      Column(
@@ -1029,7 +1029,7 @@ class EnhancedChallengeCard extends StatelessWidget {
                          Row(
                            mainAxisSize: MainAxisSize.min,
                            children: [
-                             Icon(Icons.stars, color: Colors.amber, size: 16),
+                             const Icon(Icons.stars, color: Colors.amber, size: 16),
                              const SizedBox(width: AppTheme.paddingMicro),
                              Text(
                                '${challenge.pointsReward}',
@@ -1090,9 +1090,6 @@ class EnhancedChallengeCard extends StatelessWidget {
 
 /// Enhanced points indicator that shows lifetime points including archived data
 class LifetimePointsIndicator extends StatelessWidget {
-  final UserPoints points;
-  final VoidCallback? onTap;
-  final bool showLifetimePoints;
 
   const LifetimePointsIndicator({
     super.key,
@@ -1100,6 +1097,9 @@ class LifetimePointsIndicator extends StatelessWidget {
     this.onTap,
     this.showLifetimePoints = false,
   });
+  final UserPoints points;
+  final VoidCallback? onTap;
+  final bool showLifetimePoints;
 
   @override
   Widget build(BuildContext context) {

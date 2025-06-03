@@ -4,14 +4,14 @@ import 'package:flutter_markdown/flutter_markdown.dart';
 import '../utils/constants.dart';
 
 class LegalDocumentScreen extends StatefulWidget {
-  final String title;
-  final String assetPath;
 
   const LegalDocumentScreen({
     super.key,
     required this.title,
     required this.assetPath,
   });
+  final String title;
+  final String assetPath;
 
   @override
   State<LegalDocumentScreen> createState() => _LegalDocumentScreenState();
@@ -29,7 +29,7 @@ class _LegalDocumentScreenState extends State<LegalDocumentScreen> {
 
   Future<void> _loadDocument() async {
     try {
-      final String content = await rootBundle.loadString(widget.assetPath);
+      final content = await rootBundle.loadString(widget.assetPath);
       setState(() {
         _documentContent = content;
         _isLoading = false;
@@ -63,7 +63,6 @@ class _LegalDocumentScreenState extends State<LegalDocumentScreen> {
           : Markdown(
               data: _documentContent,
               selectable: true,
-              padding: const EdgeInsets.all(AppTheme.paddingRegular),
               styleSheet: MarkdownStyleSheet(
                 h1: Theme.of(context).textTheme.headlineMedium?.copyWith(
                       color: AppTheme.primaryColor,

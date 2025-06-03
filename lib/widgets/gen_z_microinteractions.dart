@@ -236,7 +236,7 @@ class GenZMicrointeractions {
         if (isActive)
           ...List.generate(particleCount, (index) {
             final angle = (index * 360 / particleCount) * (3.14159 / 180);
-            final distance = 50.0;
+            const distance = 50.0;
             
             return AnimatedPositioned(
               duration: duration,
@@ -283,8 +283,6 @@ class GenZMicrointeractions {
           borderRadius: borderRadius ?? BorderRadius.circular(height / 2),
           gradient: LinearGradient(
             colors: gradientColors,
-            begin: Alignment.centerLeft,
-            end: Alignment.centerRight,
           ),
         ),
         child: FractionallySizedBox(
@@ -295,8 +293,6 @@ class GenZMicrointeractions {
               borderRadius: borderRadius ?? BorderRadius.circular(height / 2),
               gradient: LinearGradient(
                 colors: gradientColors,
-                begin: Alignment.centerLeft,
-                end: Alignment.centerRight,
               ),
             ),
           ),

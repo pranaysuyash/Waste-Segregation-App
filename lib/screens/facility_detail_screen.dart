@@ -7,12 +7,12 @@ import '../utils/constants.dart';
 import 'contribution_submission_screen.dart';
 
 class FacilityDetailScreen extends StatefulWidget {
-  final DisposalLocation facility;
 
   const FacilityDetailScreen({
     super.key,
     required this.facility,
   });
+  final DisposalLocation facility;
 
   @override
   State<FacilityDetailScreen> createState() => _FacilityDetailScreenState();
@@ -74,7 +74,7 @@ class _FacilityDetailScreenState extends State<FacilityDetailScreen> {
           children: [
             Row(
               children: [
-                Icon(
+                const Icon(
                   Icons.location_on,
                   color: AppTheme.primaryColor,
                   size: 24,
@@ -172,7 +172,7 @@ class _FacilityDetailScreenState extends State<FacilityDetailScreen> {
           children: [
             Row(
               children: [
-                Icon(
+                const Icon(
                   Icons.contact_phone,
                   color: AppTheme.primaryColor,
                   size: 20,
@@ -246,7 +246,7 @@ class _FacilityDetailScreenState extends State<FacilityDetailScreen> {
           children: [
             Row(
               children: [
-                Icon(
+                const Icon(
                   Icons.access_time,
                   color: AppTheme.primaryColor,
                   size: 20,
@@ -314,7 +314,7 @@ class _FacilityDetailScreenState extends State<FacilityDetailScreen> {
           children: [
             Row(
               children: [
-                Icon(
+                const Icon(
                   Icons.recycling,
                   color: AppTheme.primaryColor,
                   size: 20,
@@ -348,7 +348,7 @@ class _FacilityDetailScreenState extends State<FacilityDetailScreen> {
                   ),
                   child: Text(
                     material,
-                    style: TextStyle(
+                    style: const TextStyle(
                       color: AppTheme.primaryColor,
                       fontWeight: FontWeight.w500,
                       fontSize: AppTheme.fontSizeSmall,
@@ -384,7 +384,7 @@ class _FacilityDetailScreenState extends State<FacilityDetailScreen> {
           children: [
             Row(
               children: [
-                Icon(
+                const Icon(
                   Icons.photo_library,
                   color: AppTheme.primaryColor,
                   size: 20,
@@ -449,7 +449,7 @@ class _FacilityDetailScreenState extends State<FacilityDetailScreen> {
           children: [
             Row(
               children: [
-                Icon(
+                const Icon(
                   Icons.info,
                   color: AppTheme.primaryColor,
                   size: 20,

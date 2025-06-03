@@ -3,12 +3,12 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../utils/constants.dart';
 
 class ThemeProvider extends ChangeNotifier {
-  SharedPreferences? _prefs;
-  ThemeMode _themeMode = ThemeMode.light;
 
   ThemeProvider() {
     _loadThemeMode();
   }
+  SharedPreferences? _prefs;
+  ThemeMode _themeMode = ThemeMode.light;
 
   ThemeMode get themeMode => _themeMode;
 

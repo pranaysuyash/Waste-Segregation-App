@@ -123,7 +123,7 @@ class _PremiumFeaturesScreenState extends State<PremiumFeaturesScreen> {
           Expanded(
             child: Text(
               feature.title,
-              style: TextStyle(fontWeight: FontWeight.w500, color: AppTheme.textPrimaryColor),
+              style: const TextStyle(fontWeight: FontWeight.w500, color: AppTheme.textPrimaryColor),
             ),
           ),
           Switch(

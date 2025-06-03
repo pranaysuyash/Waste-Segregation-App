@@ -5,9 +5,6 @@ import '../models/waste_classification.dart';
 import '../utils/constants.dart';
 
 class ClassificationCard extends StatelessWidget {
-  final WasteClassification classification;
-  final VoidCallback? onShare;
-  final VoidCallback? onSave;
 
   const ClassificationCard({
     super.key,
@@ -15,6 +12,9 @@ class ClassificationCard extends StatelessWidget {
     this.onShare,
     this.onSave,
   });
+  final WasteClassification classification;
+  final VoidCallback? onShare;
+  final VoidCallback? onSave;
 
   /// Helper method to build the image widget based on platform with improved error handling
   Widget _buildImage(String imageUrl) {
@@ -268,7 +268,7 @@ class ClassificationCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final Color categoryColor = _getCategoryColor();
+    final categoryColor = _getCategoryColor();
 
     return Card(
       elevation: 4,

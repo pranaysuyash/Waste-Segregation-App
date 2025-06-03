@@ -3,16 +3,6 @@ import '../../utils/constants.dart';
 
 /// A responsive dialog that adapts to different screen sizes
 class ResponsiveDialog extends StatelessWidget {
-  final String? title;
-  final Widget? titleWidget;
-  final Widget content;
-  final List<Widget>? actions;
-  final EdgeInsetsGeometry? contentPadding;
-  final EdgeInsetsGeometry? actionsPadding;
-  final MainAxisAlignment? actionsAlignment;
-  final bool scrollable;
-  final double? maxWidth;
-  final double? maxHeight;
 
   const ResponsiveDialog({
     super.key,
@@ -27,6 +17,16 @@ class ResponsiveDialog extends StatelessWidget {
     this.maxWidth,
     this.maxHeight,
   });
+  final String? title;
+  final Widget? titleWidget;
+  final Widget content;
+  final List<Widget>? actions;
+  final EdgeInsetsGeometry? contentPadding;
+  final EdgeInsetsGeometry? actionsPadding;
+  final MainAxisAlignment? actionsAlignment;
+  final bool scrollable;
+  final double? maxWidth;
+  final double? maxHeight;
 
   @override
   Widget build(BuildContext context) {
@@ -79,7 +79,6 @@ class ResponsiveDialog extends StatelessWidget {
                   border: Border(
                     bottom: BorderSide(
                       color: Theme.of(context).dividerColor,
-                      width: 1,
                     ),
                   ),
                 ),
@@ -111,7 +110,6 @@ class ResponsiveDialog extends StatelessWidget {
                   border: Border(
                     top: BorderSide(
                       color: Theme.of(context).dividerColor,
-                      width: 1,
                     ),
                   ),
                 ),

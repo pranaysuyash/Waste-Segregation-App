@@ -2,6 +2,10 @@ import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class NavigationSettingsService extends ChangeNotifier {
+  
+  NavigationSettingsService() {
+    _loadSettings();
+  }
   static const String _bottomNavEnabledKey = 'bottom_nav_enabled';
   static const String _fabEnabledKey = 'fab_enabled';
   static const String _navigationStyleKey = 'navigation_style';
@@ -13,10 +17,6 @@ class NavigationSettingsService extends ChangeNotifier {
   bool get bottomNavEnabled => _bottomNavEnabled;
   bool get fabEnabled => _fabEnabled;
   String get navigationStyle => _navigationStyle;
-  
-  NavigationSettingsService() {
-    _loadSettings();
-  }
   
   Future<void> _loadSettings() async {
     try {

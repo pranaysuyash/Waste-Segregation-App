@@ -3,10 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 
 class ErrorBoundary extends StatefulWidget {
-  final Widget child;
-  final String? errorTitle;
-  final String? errorMessage;
-  final VoidCallback? onRetry;
 
   const ErrorBoundary({
     Key? key,
@@ -15,6 +11,10 @@ class ErrorBoundary extends StatefulWidget {
     this.errorMessage,
     this.onRetry,
   }) : super(key: key);
+  final Widget child;
+  final String? errorTitle;
+  final String? errorMessage;
+  final VoidCallback? onRetry;
 
   @override
   State<ErrorBoundary> createState() => _ErrorBoundaryState();

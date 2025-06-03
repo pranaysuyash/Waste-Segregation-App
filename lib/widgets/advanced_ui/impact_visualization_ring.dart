@@ -4,12 +4,6 @@ import '../../utils/design_system.dart';
 
 /// Represents a milestone in the impact journey
 class ImpactMilestone {
-  final double threshold;
-  final String title;
-  final String description;
-  final IconData icon;
-  final Color color;
-  final bool isReached;
 
   const ImpactMilestone({
     required this.threshold,
@@ -19,20 +13,16 @@ class ImpactMilestone {
     required this.color,
     this.isReached = false,
   });
+  final double threshold;
+  final String title;
+  final String description;
+  final IconData icon;
+  final Color color;
+  final bool isReached;
 }
 
 /// Advanced impact ring with animated progress and environmental storytelling
 class ImpactVisualizationRing extends StatefulWidget {
-  final double progress;
-  final double targetValue;
-  final double currentValue;
-  final String unit;
-  final Color primaryColor;
-  final Color secondaryColor;
-  final String centerText;
-  final List<ImpactMilestone> milestones;
-  final String title;
-  final String subtitle;
   
   const ImpactVisualizationRing({
     Key? key,
@@ -47,6 +37,16 @@ class ImpactVisualizationRing extends StatefulWidget {
     this.title = 'Environmental Impact',
     this.subtitle = 'Keep up the great work!',
   }) : super(key: key);
+  final double progress;
+  final double targetValue;
+  final double currentValue;
+  final String unit;
+  final Color primaryColor;
+  final Color secondaryColor;
+  final String centerText;
+  final List<ImpactMilestone> milestones;
+  final String title;
+  final String subtitle;
   
   @override
   _ImpactVisualizationRingState createState() => _ImpactVisualizationRingState();
@@ -259,7 +259,6 @@ class _ImpactVisualizationRingState extends State<ImpactVisualizationRing>
     return Container(
       padding: const EdgeInsets.all(WasteAppDesignSystem.spacingM),
       decoration: WasteAppDesignSystem.getCardDecoration(
-        elevation: WasteAppDesignSystem.elevationS,
         borderRadius: WasteAppDesignSystem.radiusM,
       ),
       child: Column(
@@ -357,12 +356,6 @@ class _ImpactVisualizationRingState extends State<ImpactVisualizationRing>
 
 /// Custom painter for the impact ring
 class ImpactRingPainter extends CustomPainter {
-  final double progress;
-  final Color primaryColor;
-  final Color secondaryColor;
-  final double glowIntensity;
-  final List<ImpactMilestone> milestones;
-  final double milestoneAnimation;
   
   ImpactRingPainter({
     required this.progress,
@@ -372,12 +365,18 @@ class ImpactRingPainter extends CustomPainter {
     required this.milestones,
     required this.milestoneAnimation,
   });
+  final double progress;
+  final Color primaryColor;
+  final Color secondaryColor;
+  final double glowIntensity;
+  final List<ImpactMilestone> milestones;
+  final double milestoneAnimation;
   
   @override
   void paint(Canvas canvas, Size size) {
     final center = Offset(size.width / 2, size.height / 2);
     final radius = (size.width - 40) / 2;
-    final strokeWidth = 12.0;
+    const strokeWidth = 12.0;
     
     // Draw background circle
     final backgroundPaint = Paint()

@@ -104,7 +104,7 @@ void main() {
     });
 
     testWidgets('FeatureCard handles tap events correctly', (WidgetTester tester) async {
-      bool tapped = false;
+      var tapped = false;
       
       await tester.pumpWidget(
         MaterialApp(
@@ -330,7 +330,7 @@ void main() {
 
       // All instances should render
       expect(find.byType(FeatureCard), findsNWidgets(5));
-      for (int i = 0; i < 5; i++) {
+      for (var i = 0; i < 5; i++) {
         expect(find.text('Feature Card $i'), findsOneWidget);
         expect(find.text('Subtitle for card $i'), findsOneWidget);
       }
@@ -339,7 +339,7 @@ void main() {
 
   group('Quick-action Cards Navigation Tests', () {
     testWidgets('Analytics card navigation test', (WidgetTester tester) async {
-      bool navigatedToAnalytics = false;
+      var navigatedToAnalytics = false;
       
       await tester.pumpWidget(
         MaterialApp(
@@ -359,7 +359,7 @@ void main() {
     });
 
     testWidgets('Learn About Waste card navigation test', (WidgetTester tester) async {
-      bool navigatedToEducation = false;
+      var navigatedToEducation = false;
       
       await tester.pumpWidget(
         MaterialApp(
@@ -379,7 +379,7 @@ void main() {
     });
 
     testWidgets('Quick-action cards tap area coverage test', (WidgetTester tester) async {
-      bool tapped = false;
+      var tapped = false;
       
       await tester.pumpWidget(
         MaterialApp(

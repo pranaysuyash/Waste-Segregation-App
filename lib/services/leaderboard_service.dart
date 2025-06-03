@@ -32,7 +32,7 @@ class LeaderboardService {
       }).where((entry) => entry != null).cast<LeaderboardEntry>().toList();
       
       // Assign ranks based on sorted order
-      for (int i = 0; i < entries.length; i++) {
+      for (var i = 0; i < entries.length; i++) {
         entries[i] = entries[i].copyWith(rank: i + 1);
       }
       
@@ -79,7 +79,7 @@ class LeaderboardService {
       // Get the user's points first
       final userDoc = await _firestore.collection(_leaderboardCollection).doc(userId).get();
       if (!userDoc.exists || userDoc.data() == null) {
-        debugPrint("User $userId not found in leaderboard_allTime.");
+        debugPrint('User $userId not found in leaderboard_allTime.');
         return null; // User not on the leaderboard
       }
       final userPoints = userDoc.data()!['points'] as int? ?? 0;

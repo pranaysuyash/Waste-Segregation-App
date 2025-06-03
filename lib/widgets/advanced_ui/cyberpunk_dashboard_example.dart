@@ -10,7 +10,7 @@ import '../../utils/constants.dart';
 /// Features: Dark theme, neon glows, holographic effects, particle systems!
 
 class CyberpunkWasteImpactDashboard extends StatefulWidget {
-  const CyberpunkWasteImpactDashboard({Key? key}) : super(key: key);
+  const CyberpunkWasteImpactDashboard({super.key});
 
   @override
   _CyberpunkWasteImpactDashboardState createState() => _CyberpunkWasteImpactDashboardState();
@@ -206,7 +206,6 @@ class _CyberpunkWasteImpactDashboardState extends State<CyberpunkWasteImpactDash
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
           color: colors.first.withOpacity(0.3),
-          width: 1,
         ),
         boxShadow: [
           BoxShadow(
@@ -601,7 +600,7 @@ class _CyberpunkWasteImpactDashboardState extends State<CyberpunkWasteImpactDash
     VoidCallback onPressed, {
     bool fullWidth = false,
   }) {
-    return Container(
+    return SizedBox(
       width: fullWidth ? double.infinity : null,
       child: ElevatedButton(
         onPressed: onPressed,
@@ -614,7 +613,7 @@ class _CyberpunkWasteImpactDashboardState extends State<CyberpunkWasteImpactDash
           ),
           elevation: 0,
         ).copyWith(
-          backgroundColor: MaterialStateProperty.all(Colors.transparent),
+          backgroundColor: WidgetStateProperty.all(Colors.transparent),
         ),
         child: Container(
           decoration: BoxDecoration(

@@ -40,19 +40,19 @@ final currentUserRankProvider = FutureProvider.autoDispose<int?>((ref) async {
 
 // A combined state provider if needed for a screen that shows both top entries and user rank
 class LeaderboardScreenData {
-  final List<LeaderboardEntry> topEntries;
-  final LeaderboardEntry? currentUserEntry;
-  final int? currentUserRank;
 
   LeaderboardScreenData({
     required this.topEntries,
     this.currentUserEntry,
     this.currentUserRank,
   });
+  final List<LeaderboardEntry> topEntries;
+  final LeaderboardEntry? currentUserEntry;
+  final int? currentUserRank;
 }
 
 final leaderboardScreenDataProvider = FutureProvider.autoDispose<LeaderboardScreenData>((ref) async {
-  final topN = 20; // Default number of top entries to show
+  const topN = 20; // Default number of top entries to show
   // Fetch in parallel
   final topEntriesFuture = ref.watch(topLeaderboardEntriesProvider(topN).future);
   final currentUserEntryFuture = ref.watch(currentUserLeaderboardEntryProvider.future);

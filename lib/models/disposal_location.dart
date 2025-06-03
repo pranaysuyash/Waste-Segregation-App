@@ -33,10 +33,6 @@ FacilitySource facilitySourceFromString(String? sourceString) {
 }
 
 class DisposalLocationPhoto {
-  final String url;
-  final String? uploadedByUserId; // UID of the user who uploaded, if applicable
-  final String? caption;
-  final Timestamp? uploadTimestamp;
 
   DisposalLocationPhoto({
     required this.url,
@@ -53,6 +49,10 @@ class DisposalLocationPhoto {
       uploadTimestamp: json['uploadTimestamp'] as Timestamp?,
     );
   }
+  final String url;
+  final String? uploadedByUserId; // UID of the user who uploaded, if applicable
+  final String? caption;
+  final Timestamp? uploadTimestamp;
 
   Map<String, dynamic> toJson() {
     return {
@@ -79,18 +79,6 @@ class DisposalLocationPhoto {
 }
 
 class DisposalLocation {
-  final String? id; // Firestore document ID
-  final String name;
-  final String address;
-  final GeoPoint coordinates;
-  final Map<String, String> operatingHours; // e.g., {"monday": "9am-5pm", ...}
-  final Map<String, String> contactInfo; // e.g., {"phone": "...", "email": "...", "website": "..."}
-  final List<String> acceptedMaterials;
-  final List<DisposalLocationPhoto>? photos;
-  final Timestamp? lastAdminUpdate;
-  final Timestamp? lastVerifiedByAdmin;
-  final FacilitySource source;
-  final bool isActive;
 
   DisposalLocation({
     this.id,
@@ -125,6 +113,18 @@ class DisposalLocation {
       isActive: json['isActive'] as bool? ?? true,
     );
   }
+  final String? id; // Firestore document ID
+  final String name;
+  final String address;
+  final GeoPoint coordinates;
+  final Map<String, String> operatingHours; // e.g., {"monday": "9am-5pm", ...}
+  final Map<String, String> contactInfo; // e.g., {"phone": "...", "email": "...", "website": "..."}
+  final List<String> acceptedMaterials;
+  final List<DisposalLocationPhoto>? photos;
+  final Timestamp? lastAdminUpdate;
+  final Timestamp? lastVerifiedByAdmin;
+  final FacilitySource source;
+  final bool isActive;
 
   Map<String, dynamic> toJson() {
     return {

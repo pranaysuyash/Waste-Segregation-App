@@ -4,14 +4,14 @@ import '../services/ad_service.dart';
 import '../services/premium_service.dart';
 
 class BannerAdWidget extends StatelessWidget {
-  final double height;
-  final bool showAtBottom;
 
   const BannerAdWidget({
     super.key,
     this.height = 50,
     this.showAtBottom = false,
   });
+  final double height;
+  final bool showAtBottom;
 
   @override
   Widget build(BuildContext context) {

@@ -581,7 +581,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           FutureBuilder<bool>(
             future: googleDriveService.isSignedIn(),
             builder: (context, snapshot) {
-              final bool isSignedIn = snapshot.data ?? false;
+              final isSignedIn = snapshot.data ?? false;
               
               return ListTile(
                 leading: Icon(
@@ -907,34 +907,34 @@ class _SettingsScreenState extends State<SettingsScreen> {
   // Build a feature indicator based on premium status
   Widget _buildFeatureIndicator(BuildContext context, bool isPremium) {
     if (isPremium) {
-      return Row(
+      return const Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Icon(Icons.check_circle, color: Colors.green, size: 16),
-          const SizedBox(width: 4),
-          const Text(
+          Icon(Icons.check_circle, color: Colors.green, size: 16),
+          SizedBox(width: 4),
+          Text(
             'Enabled',
             style: TextStyle(color: Colors.green),
           ),
-          const SizedBox(width: 4),
-          const Icon(Icons.chevron_right),
+          SizedBox(width: 4),
+          Icon(Icons.chevron_right),
         ],
       );
     } else {
-      return Row(
+      return const Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Icon(Icons.workspace_premium, color: Colors.amber, size: 16),
-          const SizedBox(width: 4),
-          const Flexible(
+          Icon(Icons.workspace_premium, color: Colors.amber, size: 16),
+          SizedBox(width: 4),
+          Flexible(
             child: Text(
               'Premium',
               style: TextStyle(color: Colors.amber),
               overflow: TextOverflow.ellipsis,
             ),
           ),
-          const SizedBox(width: 4),
-          const Icon(Icons.chevron_right),
+          SizedBox(width: 4),
+          Icon(Icons.chevron_right),
         ],
       );
     }
@@ -1018,7 +1018,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               foregroundColor: Colors.white,
             ),
             onPressed: () async {
-              final BuildContext currentCapturedContext = context; // Capture context before async gap
+              final currentCapturedContext = context; // Capture context before async gap
 
               Navigator.pop(currentCapturedContext); // Close confirmation dialog
 

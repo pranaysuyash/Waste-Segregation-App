@@ -92,7 +92,6 @@ class _AuthScreenState extends State<AuthScreen> {
               padding: const EdgeInsets.all(AppTheme.paddingLarge),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   // App logo
                   Container(
@@ -227,7 +226,7 @@ class _AuthScreenState extends State<AuthScreen> {
                               ),
                             ),
                           )
-                        : Icon(
+                        : const Icon(
                             Icons.g_mobiledata,
                             size: 24,
                             color: Colors.blue,
@@ -303,7 +302,6 @@ class _AuthScreenState extends State<AuthScreen> {
         borderRadius: BorderRadius.circular(AppTheme.borderRadiusRegular),
         border: Border.all(
           color: Colors.white.withValues(alpha: 0.3),
-          width: 1,
         ),
       ),
       child: Column(

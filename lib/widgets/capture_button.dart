@@ -10,9 +10,6 @@ enum CaptureButtonType {
 }
 
 class CaptureButton extends StatefulWidget {
-  final CaptureButtonType type;
-  final VoidCallback onPressed;
-  final bool isLoading;
 
   const CaptureButton({
     super.key,
@@ -20,6 +17,9 @@ class CaptureButton extends StatefulWidget {
     required this.onPressed,
     this.isLoading = false,
   });
+  final CaptureButtonType type;
+  final VoidCallback onPressed;
+  final bool isLoading;
 
   @override
   State<CaptureButton> createState() => _CaptureButtonState();

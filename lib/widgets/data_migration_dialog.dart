@@ -4,14 +4,14 @@ import '../services/storage_service.dart';
 import '../utils/constants.dart';
 
 class DataMigrationDialog extends StatefulWidget {
-  final int guestDataCount;
-  final VoidCallback? onMigrationComplete;
 
   const DataMigrationDialog({
     super.key,
     required this.guestDataCount,
     this.onMigrationComplete,
   });
+  final int guestDataCount;
+  final VoidCallback? onMigrationComplete;
 
   @override
   State<DataMigrationDialog> createState() => _DataMigrationDialogState();
@@ -77,15 +77,15 @@ class _DataMigrationDialogState extends State<DataMigrationDialog> {
                 borderRadius: BorderRadius.circular(AppTheme.borderRadiusRegular),
                 border: Border.all(color: AppTheme.primaryColor.withOpacity(0.3)),
               ),
-              child: Row(
+              child: const Row(
                 children: [
                   Icon(
                     Icons.info_outline,
                     color: AppTheme.primaryColor,
                     size: 20,
                   ),
-                  const SizedBox(width: AppTheme.paddingSmall),
-                  const Expanded(
+                  SizedBox(width: AppTheme.paddingSmall),
+                  Expanded(
                     child: Text(
                       'Would you like to keep this data in your signed-in account?',
                       style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
@@ -111,7 +111,7 @@ class _DataMigrationDialogState extends State<DataMigrationDialog> {
           ] else ...[
             Row(
               children: [
-                Icon(
+                const Icon(
                   Icons.check_circle,
                   color: Colors.green,
                   size: 20,

@@ -2,16 +2,6 @@ import 'package:uuid/uuid.dart';
 
 /// Enhanced Family model for Firebase Firestore with social features.
 class Family {
-  final String id;
-  final String name;
-  final String? description;
-  final String createdBy;
-  final DateTime createdAt;
-  final DateTime? updatedAt;
-  final List<FamilyMember> members;
-  final FamilySettings settings;
-  final String? imageUrl;
-  final bool isPublic;
 
   const Family({
     required this.id,
@@ -44,6 +34,35 @@ class Family {
       imageUrl: null,
     );
   }
+
+  /// Creates a family from a JSON map.
+  factory Family.fromJson(Map<String, dynamic> json) {
+    final settingsJson = json['settings'] as Map<String, dynamic>?;
+    return Family(
+      id: json['id'] as String,
+      name: json['name'] as String,
+      description: json['description'] as String?,
+      createdBy: json['createdBy'] as String,
+      createdAt: DateTime.parse(json['createdAt'] as String),
+      updatedAt: json['updatedAt'] != null ? DateTime.parse(json['updatedAt'] as String) : null,
+      members: (json['members'] as List<dynamic>? ?? [])
+          .map((e) => FamilyMember.fromJson(e as Map<String, dynamic>))
+          .toList(),
+      settings: settingsJson != null ? FamilySettings.fromJson(settingsJson) : const FamilySettings(),
+      imageUrl: json['imageUrl'] as String?,
+      isPublic: json['isPublic'] as bool? ?? settingsJson?['isPublic'] as bool? ?? false,
+    );
+  }
+  final String id;
+  final String name;
+  final String? description;
+  final String createdBy;
+  final DateTime createdAt;
+  final DateTime? updatedAt;
+  final List<FamilyMember> members;
+  final FamilySettings settings;
+  final String? imageUrl;
+  final bool isPublic;
 
   /// Checks if a user is a member of this family.
   bool hasMember(String userId) {
@@ -106,35 +125,10 @@ class Family {
       'isPublic': isPublic,
     };
   }
-
-  /// Creates a family from a JSON map.
-  factory Family.fromJson(Map<String, dynamic> json) {
-    final settingsJson = json['settings'] as Map<String, dynamic>?;
-    return Family(
-      id: json['id'] as String,
-      name: json['name'] as String,
-      description: json['description'] as String?,
-      createdBy: json['createdBy'] as String,
-      createdAt: DateTime.parse(json['createdAt'] as String),
-      updatedAt: json['updatedAt'] != null ? DateTime.parse(json['updatedAt'] as String) : null,
-      members: (json['members'] as List<dynamic>? ?? [])
-          .map((e) => FamilyMember.fromJson(e as Map<String, dynamic>))
-          .toList(),
-      settings: settingsJson != null ? FamilySettings.fromJson(settingsJson) : const FamilySettings(),
-      imageUrl: json['imageUrl'] as String?,
-      isPublic: json['isPublic'] as bool? ?? settingsJson?['isPublic'] as bool? ?? false,
-    );
-  }
 }
 
 /// Represents a member of a family with their role and stats.
 class FamilyMember {
-  final String userId;
-  final UserRole role;
-  final DateTime joinedAt;
-  final UserStats individualStats;
-  final String? displayName;
-  final String? photoUrl;
 
   const FamilyMember({
     required this.userId,
@@ -144,6 +138,27 @@ class FamilyMember {
     this.displayName,
     this.photoUrl,
   });
+
+  /// Creates a member from a JSON map.
+  factory FamilyMember.fromJson(Map<String, dynamic> json) {
+    return FamilyMember(
+      userId: json['userId'] as String,
+      role: UserRole.values.firstWhere(
+        (e) => e.toString().split('.').last == json['role'],
+        orElse: () => UserRole.member,
+      ),
+      joinedAt: DateTime.parse(json['joinedAt'] as String),
+      individualStats: UserStats.fromJson(json['individualStats'] as Map<String, dynamic>),
+      displayName: json['displayName'] as String?,
+      photoUrl: json['photoUrl'] as String?,
+    );
+  }
+  final String userId;
+  final UserRole role;
+  final DateTime joinedAt;
+  final UserStats individualStats;
+  final String? displayName;
+  final String? photoUrl;
 
   /// Creates a copy of this member with updated fields.
   FamilyMember copyWith({
@@ -173,35 +188,10 @@ class FamilyMember {
       'photoUrl': photoUrl,
     };
   }
-
-  /// Creates a member from a JSON map.
-  factory FamilyMember.fromJson(Map<String, dynamic> json) {
-    return FamilyMember(
-      userId: json['userId'] as String,
-      role: UserRole.values.firstWhere(
-        (e) => e.toString().split('.').last == json['role'],
-        orElse: () => UserRole.member,
-      ),
-      joinedAt: DateTime.parse(json['joinedAt'] as String),
-      individualStats: UserStats.fromJson(json['individualStats'] as Map<String, dynamic>),
-      displayName: json['displayName'] as String?,
-      photoUrl: json['photoUrl'] as String?,
-    );
-  }
 }
 
 /// Settings and preferences for a family.
 class FamilySettings {
-  final bool isPublic;
-  final bool? allowChildInvites;
-  final bool? shareClassifications;
-  final bool? showMemberActivity;
-  final NotificationSettings? notifications;
-  final PrivacySettings? privacy;
-  final Map<String, dynamic> customSettings;
-  final bool shareClassificationsPublicly;
-  final bool showMemberActivityInFeed;
-  final FamilyLeaderboardVisibility leaderboardVisibility;
 
   const FamilySettings({
     this.isPublic = false,
@@ -216,17 +206,43 @@ class FamilySettings {
     this.leaderboardVisibility = FamilyLeaderboardVisibility.membersOnly,
   });
 
+  /// Creates settings from a JSON map.
+  factory FamilySettings.fromJson(Map<String, dynamic> json) {
+    return FamilySettings(
+      isPublic: json['isPublic'] as bool? ?? false,
+      allowChildInvites: json['allowChildInvites'] as bool? ?? false,
+      shareClassifications: json['shareClassifications'] as bool? ?? true,
+      showMemberActivity: json['showMemberActivity'] as bool? ?? true,
+      notifications: json['notifications'] != null
+          ? NotificationSettings.fromJson(json['notifications'] as Map<String, dynamic>)
+          : null,
+      privacy: json['privacy'] != null
+          ? PrivacySettings.fromJson(json['privacy'] as Map<String, dynamic>)
+          : null,
+      customSettings: json['customSettings'] as Map<String, dynamic>? ?? {},
+      shareClassificationsPublicly: json['shareClassificationsPublicly'] as bool? ?? true,
+      showMemberActivityInFeed: json['showMemberActivityInFeed'] as bool? ?? true,
+      leaderboardVisibility: FamilyLeaderboardVisibility.values.firstWhere(
+        (e) => e.toString() == json['leaderboardVisibility'],
+        orElse: () => FamilyLeaderboardVisibility.membersOnly,
+      ),
+    );
+  }
+  final bool isPublic;
+  final bool? allowChildInvites;
+  final bool? shareClassifications;
+  final bool? showMemberActivity;
+  final NotificationSettings? notifications;
+  final PrivacySettings? privacy;
+  final Map<String, dynamic> customSettings;
+  final bool shareClassificationsPublicly;
+  final bool showMemberActivityInFeed;
+  final FamilyLeaderboardVisibility leaderboardVisibility;
+
   /// Creates default family settings.
   static FamilySettings defaultSettings() {
     return const FamilySettings(
-      isPublic: false,
       allowChildInvites: false,
-      shareClassifications: true,
-      showMemberActivity: true,
-      customSettings: {},
-      shareClassificationsPublicly: true,
-      showMemberActivityInFeed: true,
-      leaderboardVisibility: FamilyLeaderboardVisibility.membersOnly,
     );
   }
 
@@ -272,38 +288,10 @@ class FamilySettings {
       'leaderboardVisibility': leaderboardVisibility.toString(),
     };
   }
-
-  /// Creates settings from a JSON map.
-  factory FamilySettings.fromJson(Map<String, dynamic> json) {
-    return FamilySettings(
-      isPublic: json['isPublic'] as bool? ?? false,
-      allowChildInvites: json['allowChildInvites'] as bool? ?? false,
-      shareClassifications: json['shareClassifications'] as bool? ?? true,
-      showMemberActivity: json['showMemberActivity'] as bool? ?? true,
-      notifications: json['notifications'] != null
-          ? NotificationSettings.fromJson(json['notifications'] as Map<String, dynamic>)
-          : null,
-      privacy: json['privacy'] != null
-          ? PrivacySettings.fromJson(json['privacy'] as Map<String, dynamic>)
-          : null,
-      customSettings: json['customSettings'] as Map<String, dynamic>? ?? {},
-      shareClassificationsPublicly: json['shareClassificationsPublicly'] as bool? ?? true,
-      showMemberActivityInFeed: json['showMemberActivityInFeed'] as bool? ?? true,
-      leaderboardVisibility: FamilyLeaderboardVisibility.values.firstWhere(
-        (e) => e.toString() == json['leaderboardVisibility'],
-        orElse: () => FamilyLeaderboardVisibility.membersOnly,
-      ),
-    );
-  }
 }
 
 /// Notification settings for a family.
 class NotificationSettings {
-  final bool newMemberJoined;
-  final bool classificationShared;
-  final bool achievementUnlocked;
-  final bool weeklyReport;
-  final bool invitationReceived;
 
   const NotificationSettings({
     required this.newMemberJoined,
@@ -324,17 +312,6 @@ class NotificationSettings {
     );
   }
 
-  /// Converts these settings to a JSON map.
-  Map<String, dynamic> toJson() {
-    return {
-      'newMemberJoined': newMemberJoined,
-      'classificationShared': classificationShared,
-      'achievementUnlocked': achievementUnlocked,
-      'weeklyReport': weeklyReport,
-      'invitationReceived': invitationReceived,
-    };
-  }
-
   /// Creates settings from a JSON map.
   factory NotificationSettings.fromJson(Map<String, dynamic> json) {
     return NotificationSettings(
@@ -345,14 +322,26 @@ class NotificationSettings {
       invitationReceived: json['invitationReceived'] as bool? ?? true,
     );
   }
+  final bool newMemberJoined;
+  final bool classificationShared;
+  final bool achievementUnlocked;
+  final bool weeklyReport;
+  final bool invitationReceived;
+
+  /// Converts these settings to a JSON map.
+  Map<String, dynamic> toJson() {
+    return {
+      'newMemberJoined': newMemberJoined,
+      'classificationShared': classificationShared,
+      'achievementUnlocked': achievementUnlocked,
+      'weeklyReport': weeklyReport,
+      'invitationReceived': invitationReceived,
+    };
+  }
 }
 
 /// Privacy settings for a family.
 class PrivacySettings {
-  final bool showLastSeen;
-  final bool showActivityStatus;
-  final bool allowSearchByName;
-  final List<String> blockedUsers;
 
   const PrivacySettings({
     required this.showLastSeen,
@@ -371,16 +360,6 @@ class PrivacySettings {
     );
   }
 
-  /// Converts these settings to a JSON map.
-  Map<String, dynamic> toJson() {
-    return {
-      'showLastSeen': showLastSeen,
-      'showActivityStatus': showActivityStatus,
-      'allowSearchByName': allowSearchByName,
-      'blockedUsers': blockedUsers,
-    };
-  }
-
   /// Creates settings from a JSON map.
   factory PrivacySettings.fromJson(Map<String, dynamic> json) {
     return PrivacySettings(
@@ -393,19 +372,24 @@ class PrivacySettings {
           [],
     );
   }
+  final bool showLastSeen;
+  final bool showActivityStatus;
+  final bool allowSearchByName;
+  final List<String> blockedUsers;
+
+  /// Converts these settings to a JSON map.
+  Map<String, dynamic> toJson() {
+    return {
+      'showLastSeen': showLastSeen,
+      'showActivityStatus': showActivityStatus,
+      'allowSearchByName': allowSearchByName,
+      'blockedUsers': blockedUsers,
+    };
+  }
 }
 
 /// Comprehensive statistics for a family.
 class FamilyStats {
-  final int totalClassifications;
-  final int totalPoints;
-  final int currentStreak;
-  final int bestStreak;
-  final Map<String, int> categoryBreakdown;
-  final EnvironmentalImpact environmentalImpact;
-  final List<WeeklyProgress> weeklyProgress;
-  final int achievementCount;
-  final DateTime lastUpdated;
 
   const FamilyStats({
     required this.totalClassifications,
@@ -433,6 +417,35 @@ class FamilyStats {
       lastUpdated: DateTime.now(),
     );
   }
+
+  /// Creates stats from a JSON map.
+  factory FamilyStats.fromJson(Map<String, dynamic> json) {
+    return FamilyStats(
+      totalClassifications: json['totalClassifications'] as int? ?? 0,
+      totalPoints: json['totalPoints'] as int? ?? 0,
+      currentStreak: json['currentStreak'] as int? ?? 0,
+      bestStreak: json['bestStreak'] as int? ?? 0,
+      categoryBreakdown: Map<String, int>.from(json['categoryBreakdown'] as Map? ?? {}),
+      environmentalImpact: EnvironmentalImpact.fromJson(
+        json['environmentalImpact'] as Map<String, dynamic>? ?? {},
+      ),
+      weeklyProgress: (json['weeklyProgress'] as List<dynamic>?)
+              ?.map((w) => WeeklyProgress.fromJson(w as Map<String, dynamic>))
+              .toList() ??
+          [],
+      achievementCount: json['achievementCount'] as int? ?? 0,
+      lastUpdated: DateTime.parse(json['lastUpdated'] as String),
+    );
+  }
+  final int totalClassifications;
+  final int totalPoints;
+  final int currentStreak;
+  final int bestStreak;
+  final Map<String, int> categoryBreakdown;
+  final EnvironmentalImpact environmentalImpact;
+  final List<WeeklyProgress> weeklyProgress;
+  final int achievementCount;
+  final DateTime lastUpdated;
 
   /// Creates a copy of these stats with updated fields.
   FamilyStats copyWith({
@@ -473,37 +486,10 @@ class FamilyStats {
       'lastUpdated': lastUpdated.toIso8601String(),
     };
   }
-
-  /// Creates stats from a JSON map.
-  factory FamilyStats.fromJson(Map<String, dynamic> json) {
-    return FamilyStats(
-      totalClassifications: json['totalClassifications'] as int? ?? 0,
-      totalPoints: json['totalPoints'] as int? ?? 0,
-      currentStreak: json['currentStreak'] as int? ?? 0,
-      bestStreak: json['bestStreak'] as int? ?? 0,
-      categoryBreakdown: Map<String, int>.from(json['categoryBreakdown'] as Map? ?? {}),
-      environmentalImpact: EnvironmentalImpact.fromJson(
-        json['environmentalImpact'] as Map<String, dynamic>? ?? {},
-      ),
-      weeklyProgress: (json['weeklyProgress'] as List<dynamic>?)
-              ?.map((w) => WeeklyProgress.fromJson(w as Map<String, dynamic>))
-              .toList() ??
-          [],
-      achievementCount: json['achievementCount'] as int? ?? 0,
-      lastUpdated: DateTime.parse(json['lastUpdated'] as String),
-    );
-  }
 }
 
 /// Individual user statistics within a family.
 class UserStats {
-  final int totalPoints;
-  final int totalClassifications;
-  final int currentStreak;
-  final int bestStreak;
-  final Map<String, int> categoryBreakdown;
-  final List<String> achievements;
-  final DateTime lastActive;
 
   const UserStats({
     required this.totalPoints,
@@ -527,6 +513,29 @@ class UserStats {
       lastActive: DateTime.now(),
     );
   }
+
+  /// Creates stats from a JSON map.
+  factory UserStats.fromJson(Map<String, dynamic> json) {
+    return UserStats(
+      totalPoints: json['totalPoints'] as int? ?? 0,
+      totalClassifications: json['totalClassifications'] as int? ?? 0,
+      currentStreak: json['currentStreak'] as int? ?? 0,
+      bestStreak: json['bestStreak'] as int? ?? 0,
+      categoryBreakdown: Map<String, int>.from(json['categoryBreakdown'] as Map? ?? {}),
+      achievements: (json['achievements'] as List<dynamic>?)
+              ?.map((a) => a as String)
+              .toList() ??
+          [],
+      lastActive: DateTime.parse(json['lastActive'] as String),
+    );
+  }
+  final int totalPoints;
+  final int totalClassifications;
+  final int currentStreak;
+  final int bestStreak;
+  final Map<String, int> categoryBreakdown;
+  final List<String> achievements;
+  final DateTime lastActive;
 
   /// Creates a copy of these stats with updated fields.
   UserStats copyWith({
@@ -561,30 +570,10 @@ class UserStats {
       'lastActive': lastActive.toIso8601String(),
     };
   }
-
-  /// Creates stats from a JSON map.
-  factory UserStats.fromJson(Map<String, dynamic> json) {
-    return UserStats(
-      totalPoints: json['totalPoints'] as int? ?? 0,
-      totalClassifications: json['totalClassifications'] as int? ?? 0,
-      currentStreak: json['currentStreak'] as int? ?? 0,
-      bestStreak: json['bestStreak'] as int? ?? 0,
-      categoryBreakdown: Map<String, int>.from(json['categoryBreakdown'] as Map? ?? {}),
-      achievements: (json['achievements'] as List<dynamic>?)
-              ?.map((a) => a as String)
-              .toList() ??
-          [],
-      lastActive: DateTime.parse(json['lastActive'] as String),
-    );
-  }
 }
 
 /// Environmental impact metrics for tracking eco-friendly achievements.
 class EnvironmentalImpact {
-  final double co2Saved; // kg of CO2 saved
-  final double treesEquivalent; // trees saved equivalent
-  final double waterSaved; // liters of water saved
-  final DateTime lastUpdated;
 
   const EnvironmentalImpact({
     required this.co2Saved,
@@ -603,16 +592,6 @@ class EnvironmentalImpact {
     );
   }
 
-  /// Converts this impact to a JSON map.
-  Map<String, dynamic> toJson() {
-    return {
-      'co2Saved': co2Saved,
-      'treesEquivalent': treesEquivalent,
-      'waterSaved': waterSaved,
-      'lastUpdated': lastUpdated.toIso8601String(),
-    };
-  }
-
   /// Creates impact from a JSON map.
   factory EnvironmentalImpact.fromJson(Map<String, dynamic> json) {
     return EnvironmentalImpact(
@@ -622,15 +601,24 @@ class EnvironmentalImpact {
       lastUpdated: DateTime.parse(json['lastUpdated'] as String),
     );
   }
+  final double co2Saved; // kg of CO2 saved
+  final double treesEquivalent; // trees saved equivalent
+  final double waterSaved; // liters of water saved
+  final DateTime lastUpdated;
+
+  /// Converts this impact to a JSON map.
+  Map<String, dynamic> toJson() {
+    return {
+      'co2Saved': co2Saved,
+      'treesEquivalent': treesEquivalent,
+      'waterSaved': waterSaved,
+      'lastUpdated': lastUpdated.toIso8601String(),
+    };
+  }
 }
 
 /// Weekly progress tracking for family activities.
 class WeeklyProgress {
-  final DateTime weekStart;
-  final DateTime weekEnd;
-  final int classificationsCount;
-  final int pointsEarned;
-  final Map<String, int> categoryBreakdown;
 
   const WeeklyProgress({
     required this.weekStart,
@@ -639,17 +627,6 @@ class WeeklyProgress {
     required this.pointsEarned,
     required this.categoryBreakdown,
   });
-
-  /// Converts this progress to a JSON map.
-  Map<String, dynamic> toJson() {
-    return {
-      'weekStart': weekStart.toIso8601String(),
-      'weekEnd': weekEnd.toIso8601String(),
-      'classificationsCount': classificationsCount,
-      'pointsEarned': pointsEarned,
-      'categoryBreakdown': categoryBreakdown,
-    };
-  }
 
   /// Creates progress from a JSON map.
   factory WeeklyProgress.fromJson(Map<String, dynamic> json) {
@@ -660,6 +637,22 @@ class WeeklyProgress {
       pointsEarned: json['pointsEarned'] as int? ?? 0,
       categoryBreakdown: Map<String, int>.from(json['categoryBreakdown'] as Map? ?? {}),
     );
+  }
+  final DateTime weekStart;
+  final DateTime weekEnd;
+  final int classificationsCount;
+  final int pointsEarned;
+  final Map<String, int> categoryBreakdown;
+
+  /// Converts this progress to a JSON map.
+  Map<String, dynamic> toJson() {
+    return {
+      'weekStart': weekStart.toIso8601String(),
+      'weekEnd': weekEnd.toIso8601String(),
+      'classificationsCount': classificationsCount,
+      'pointsEarned': pointsEarned,
+      'categoryBreakdown': categoryBreakdown,
+    };
   }
 }
 

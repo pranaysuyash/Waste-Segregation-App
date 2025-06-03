@@ -7,12 +7,12 @@ void main() {
   group('Horizontal Stat Cards Golden Tests', () {
     testWidgets('StatsCard golden test - zero values', (WidgetTester tester) async {
       await tester.pumpWidget(
-        MaterialApp(
+        const MaterialApp(
           home: Scaffold(
             body: Padding(
-              padding: const EdgeInsets.all(16.0),
+              padding: EdgeInsets.all(16.0),
               child: Row(
-                children: const [
+                children: [
                   Expanded(
                     child: StatsCard(
                       title: 'Classifications',
@@ -55,12 +55,12 @@ void main() {
 
     testWidgets('StatsCard golden test - small values', (WidgetTester tester) async {
       await tester.pumpWidget(
-        MaterialApp(
+        const MaterialApp(
           home: Scaffold(
             body: Padding(
-              padding: const EdgeInsets.all(16.0),
+              padding: EdgeInsets.all(16.0),
               child: Row(
-                children: const [
+                children: [
                   Expanded(
                     child: StatsCard(
                       title: 'Classifications',
@@ -68,7 +68,6 @@ void main() {
                       icon: Icons.analytics,
                       color: AppTheme.infoColor,
                       trend: '+2',
-                      isPositiveTrend: true,
                     ),
                   ),
                   SizedBox(width: 16),
@@ -89,7 +88,6 @@ void main() {
                       icon: Icons.stars,
                       color: Colors.amber,
                       trend: '+10',
-                      isPositiveTrend: true,
                     ),
                   ),
                 ],
@@ -107,12 +105,12 @@ void main() {
 
     testWidgets('StatsCard golden test - large values', (WidgetTester tester) async {
       await tester.pumpWidget(
-        MaterialApp(
+        const MaterialApp(
           home: Scaffold(
             body: Padding(
-              padding: const EdgeInsets.all(16.0),
+              padding: EdgeInsets.all(16.0),
               child: Row(
-                children: const [
+                children: [
                   Expanded(
                     child: StatsCard(
                       title: 'Classifications',
@@ -120,7 +118,6 @@ void main() {
                       icon: Icons.analytics,
                       color: AppTheme.infoColor,
                       trend: '+150%',
-                      isPositiveTrend: true,
                     ),
                   ),
                   SizedBox(width: 16),
@@ -141,7 +138,6 @@ void main() {
                       icon: Icons.stars,
                       color: Colors.amber,
                       trend: '+500',
-                      isPositiveTrend: true,
                     ),
                   ),
                 ],
@@ -159,12 +155,12 @@ void main() {
 
     testWidgets('StatsCard golden test - negative trends', (WidgetTester tester) async {
       await tester.pumpWidget(
-        MaterialApp(
+        const MaterialApp(
           home: Scaffold(
             body: Padding(
-              padding: const EdgeInsets.all(16.0),
+              padding: EdgeInsets.all(16.0),
               child: Row(
-                children: const [
+                children: [
                   Expanded(
                     child: StatsCard(
                       title: 'Classifications',
@@ -214,12 +210,12 @@ void main() {
       await tester.binding.setSurfaceSize(const Size(320, 568));
       
       await tester.pumpWidget(
-        MaterialApp(
+        const MaterialApp(
           home: Scaffold(
             body: Padding(
-              padding: const EdgeInsets.all(8.0),
+              padding: EdgeInsets.all(8.0),
               child: Row(
-                children: const [
+                children: [
                   Expanded(
                     child: StatsCard(
                       title: 'Classifications',
@@ -227,7 +223,6 @@ void main() {
                       icon: Icons.analytics,
                       color: AppTheme.infoColor,
                       trend: '+12%',
-                      isPositiveTrend: true,
                     ),
                   ),
                   SizedBox(width: 8),
@@ -248,7 +243,6 @@ void main() {
                       icon: Icons.stars,
                       color: Colors.amber,
                       trend: '+999%',
-                      isPositiveTrend: true,
                     ),
                   ),
                 ],
@@ -271,11 +265,11 @@ void main() {
       await tester.pumpWidget(
         MaterialApp(
           theme: ThemeData.dark(),
-          home: Scaffold(
+          home: const Scaffold(
             body: Padding(
-              padding: const EdgeInsets.all(16.0),
+              padding: EdgeInsets.all(16.0),
               child: Row(
-                children: const [
+                children: [
                   Expanded(
                     child: StatsCard(
                       title: 'Classifications',
@@ -283,7 +277,6 @@ void main() {
                       icon: Icons.analytics,
                       color: AppTheme.infoColor,
                       trend: '+12%',
-                      isPositiveTrend: true,
                     ),
                   ),
                   SizedBox(width: 16),
@@ -304,7 +297,6 @@ void main() {
                       icon: Icons.stars,
                       color: Colors.amber,
                       trend: '+24',
-                      isPositiveTrend: true,
                     ),
                   ),
                 ],
@@ -322,15 +314,15 @@ void main() {
 
     testWidgets('StatsCard golden test - color standardization', (WidgetTester tester) async {
       await tester.pumpWidget(
-        MaterialApp(
+        const MaterialApp(
           home: Scaffold(
             body: Padding(
-              padding: const EdgeInsets.all(16.0),
+              padding: EdgeInsets.all(16.0),
               child: Column(
                 children: [
                   // Test standardized accent colors
                   Row(
-                    children: const [
+                    children: [
                       Expanded(
                         child: StatsCard(
                           title: 'Wet Waste',
@@ -338,7 +330,6 @@ void main() {
                           icon: Icons.eco,
                           color: AppTheme.wetWasteColor,
                           trend: '+5%',
-                          isPositiveTrend: true,
                         ),
                       ),
                       SizedBox(width: 16),
@@ -349,14 +340,13 @@ void main() {
                           icon: Icons.recycling,
                           color: AppTheme.dryWasteColor, // Should be amber now
                           trend: '+3%',
-                          isPositiveTrend: true,
                         ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 16),
+                  SizedBox(height: 16),
                   Row(
-                    children: const [
+                    children: [
                       Expanded(
                         child: StatsCard(
                           title: 'Hazardous',
@@ -375,7 +365,6 @@ void main() {
                           icon: Icons.medical_services,
                           color: AppTheme.medicalWasteColor,
                           trend: '0%',
-                          isPositiveTrend: true,
                         ),
                       ),
                     ],

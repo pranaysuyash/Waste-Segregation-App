@@ -4,16 +4,6 @@ import 'package:auto_size_text/auto_size_text.dart';
 /// A responsive text widget that automatically handles text overflow
 /// by adjusting font size or wrapping text based on available space
 class ResponsiveText extends StatelessWidget {
-  final String text;
-  final TextStyle? style;
-  final int? maxLines;
-  final TextAlign? textAlign;
-  final TextOverflow? overflow;
-  final double? minFontSize;
-  final double? maxFontSize;
-  final bool enableAutoSizing;
-  final bool enableWrapping;
-  final String? semanticsLabel;
 
   const ResponsiveText(
     this.text, {
@@ -70,6 +60,16 @@ class ResponsiveText extends StatelessWidget {
         maxFontSize = 18.0,
         enableAutoSizing = true,
         enableWrapping = true;
+  final String text;
+  final TextStyle? style;
+  final int? maxLines;
+  final TextAlign? textAlign;
+  final TextOverflow? overflow;
+  final double? minFontSize;
+  final double? maxFontSize;
+  final bool enableAutoSizing;
+  final bool enableWrapping;
+  final String? semanticsLabel;
 
   @override
   Widget build(BuildContext context) {
@@ -101,11 +101,6 @@ class ResponsiveText extends StatelessWidget {
 /// A responsive text widget specifically designed for dynamic greetings
 /// that adapts to different screen sizes and user name lengths
 class GreetingText extends StatelessWidget {
-  final String greeting;
-  final String userName;
-  final TextStyle? style;
-  final Color? color;
-  final int maxLines;
 
   const GreetingText({
     super.key,
@@ -115,6 +110,11 @@ class GreetingText extends StatelessWidget {
     this.color,
     this.maxLines = 2,
   });
+  final String greeting;
+  final String userName;
+  final TextStyle? style;
+  final Color? color;
+  final int maxLines;
 
   @override
   Widget build(BuildContext context) {
@@ -146,7 +146,6 @@ class GreetingText extends StatelessWidget {
             minFontSize: 16.0,
             maxFontSize: effectiveStyle?.fontSize ?? 28.0,
             overflow: TextOverflow.ellipsis,
-            wrapWords: true,
           );
         }
 
@@ -164,14 +163,14 @@ class GreetingText extends StatelessWidget {
 
 /// A responsive app bar title that handles long app names gracefully
 class ResponsiveAppBarTitle extends StatelessWidget {
-  final String title;
-  final TextStyle? style;
 
   const ResponsiveAppBarTitle({
     super.key,
     required this.title,
     this.style,
   });
+  final String title;
+  final TextStyle? style;
 
   @override
   Widget build(BuildContext context) {
@@ -206,7 +205,7 @@ class ResponsiveAppBarTitle extends StatelessWidget {
     // Create abbreviation for long titles
     final words = fullTitle.split(' ');
     if (words.length > 1) {
-      return words.map((word) => word.isNotEmpty ? word[0].toUpperCase() : '').join('');
+      return words.map((word) => word.isNotEmpty ? word[0].toUpperCase() : '').join();
     }
     return fullTitle.length > 10 ? '${fullTitle.substring(0, 10)}...' : fullTitle;
   }

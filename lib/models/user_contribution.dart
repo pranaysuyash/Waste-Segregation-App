@@ -91,20 +91,6 @@ ContributionStatus contributionStatusFromString(String? statusString) {
 }
 
 class UserContribution {
-  final String? id; // Firestore document ID
-  final String userId;
-  final String? facilityId;
-  final ContributionType contributionType;
-  final Map<String, dynamic> suggestedData;
-  final String? userNotes;
-  final List<String>? photoUrls;
-  final Timestamp timestamp;
-  final ContributionStatus status;
-  final String? reviewNotes;
-  final String? reviewerId;
-  final Timestamp? reviewTimestamp;
-  final int upvotes;
-  final int downvotes;
 
   UserContribution({
     this.id,
@@ -141,6 +127,20 @@ class UserContribution {
       downvotes: json['downvotes'] as int? ?? 0,
     );
   }
+  final String? id; // Firestore document ID
+  final String userId;
+  final String? facilityId;
+  final ContributionType contributionType;
+  final Map<String, dynamic> suggestedData;
+  final String? userNotes;
+  final List<String>? photoUrls;
+  final Timestamp timestamp;
+  final ContributionStatus status;
+  final String? reviewNotes;
+  final String? reviewerId;
+  final Timestamp? reviewTimestamp;
+  final int upvotes;
+  final int downvotes;
 
   Map<String, dynamic> toJson() {
     return {

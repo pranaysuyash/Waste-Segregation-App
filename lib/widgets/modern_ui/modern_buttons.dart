@@ -4,19 +4,6 @@ import '../../utils/constants.dart';
 
 /// Modern button with multiple styles and animations
 class ModernButton extends StatefulWidget {
-  final String text;
-  final VoidCallback? onPressed;
-  final IconData? icon;
-  final ModernButtonStyle style;
-  final ModernButtonSize size;
-  final bool isLoading;
-  final bool isExpanded;
-  final Color? color;
-  final Color? textColor;
-  final Widget? child;
-  final String? tooltip;
-  final Color? backgroundColor;
-  final Color? foregroundColor;
 
   const ModernButton({
     super.key,
@@ -34,6 +21,19 @@ class ModernButton extends StatefulWidget {
     this.backgroundColor,
     this.foregroundColor,
   });
+  final String text;
+  final VoidCallback? onPressed;
+  final IconData? icon;
+  final ModernButtonStyle style;
+  final ModernButtonSize size;
+  final bool isLoading;
+  final bool isExpanded;
+  final Color? color;
+  final Color? textColor;
+  final Widget? child;
+  final String? tooltip;
+  final Color? backgroundColor;
+  final Color? foregroundColor;
 
   @override
   State<ModernButton> createState() => _ModernButtonState();
@@ -148,7 +148,7 @@ class _ModernButtonState extends State<ModernButton>
       content = Text(widget.text);
     }
     
-    Widget button = AnimatedBuilder(
+    final Widget button = AnimatedBuilder(
       animation: _scaleAnimation,
       builder: (context, child) {
         return Transform.scale(
@@ -230,7 +230,7 @@ class _ModernButtonState extends State<ModernButton>
       shadowColor: Colors.transparent,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(_getBorderRadius()),
-        side: BorderSide(color: color.withOpacity(0.3), width: 1),
+        side: BorderSide(color: color.withOpacity(0.3)),
       ),
       padding: _getPadding(),
       textStyle: _getTextStyle(theme),
@@ -308,11 +308,6 @@ class _ModernButtonState extends State<ModernButton>
 
 /// Modern search bar with animations
 class ModernSearchBar extends StatefulWidget {
-  final String hint;
-  final Function(String)? onChanged;
-  final Function(String)? onSubmitted;
-  final VoidCallback? onClear;
-  final bool autofocus;
 
   const ModernSearchBar({
     super.key,
@@ -322,6 +317,11 @@ class ModernSearchBar extends StatefulWidget {
     this.onClear,
     this.autofocus = false,
   });
+  final String hint;
+  final Function(String)? onChanged;
+  final Function(String)? onSubmitted;
+  final VoidCallback? onClear;
+  final bool autofocus;
 
   @override
   State<ModernSearchBar> createState() => _ModernSearchBarState();
@@ -385,7 +385,7 @@ class _ModernSearchBarState extends State<ModernSearchBar>
     
     return Container(
       decoration: BoxDecoration(
-        color: theme.colorScheme.surfaceVariant.withOpacity(0.5),
+        color: theme.colorScheme.surfaceContainerHighest.withOpacity(0.5),
         borderRadius: BorderRadius.circular(AppTheme.borderRadiusXl),
         border: Border.all(
           color: theme.colorScheme.outline.withOpacity(0.2),
@@ -428,14 +428,6 @@ class _ModernSearchBarState extends State<ModernSearchBar>
 
 /// Floating Action Button with modern styling
 class ModernFAB extends StatefulWidget {
-  final VoidCallback onPressed;
-  final IconData icon;
-  final String? label;
-  final Color? backgroundColor;
-  final Color? foregroundColor;
-  final bool isExtended;
-  final bool showBadge;
-  final String? badgeText;
 
   const ModernFAB({
     super.key,
@@ -448,6 +440,14 @@ class ModernFAB extends StatefulWidget {
     this.showBadge = false,
     this.badgeText,
   });
+  final VoidCallback onPressed;
+  final IconData icon;
+  final String? label;
+  final Color? backgroundColor;
+  final Color? foregroundColor;
+  final bool isExtended;
+  final bool showBadge;
+  final String? badgeText;
 
   @override
   State<ModernFAB> createState() => _ModernFABState();
@@ -601,12 +601,6 @@ enum ModernTextFieldStyle {
 
 /// Enhanced View All Button with overflow protection and responsive layout
 class ViewAllButton extends StatelessWidget {
-  final String text;
-  final VoidCallback onPressed;
-  final IconData? icon;
-  final Color? color;
-  final ModernButtonStyle style;
-  final ModernButtonSize size;
 
   const ViewAllButton({
     super.key,
@@ -617,6 +611,12 @@ class ViewAllButton extends StatelessWidget {
     this.style = ModernButtonStyle.text,
     this.size = ModernButtonSize.small,
   });
+  final String text;
+  final VoidCallback onPressed;
+  final IconData? icon;
+  final Color? color;
+  final ModernButtonStyle style;
+  final ModernButtonSize size;
 
   @override
   Widget build(BuildContext context) {
@@ -641,7 +641,7 @@ class ViewAllButton extends StatelessWidget {
           );
         } else if (isNarrow) {
           // Show abbreviated text for narrow spaces
-          String abbreviatedText = text;
+          var abbreviatedText = text;
           if (text.contains(' ')) {
             // Extract last word for abbreviation
             final words = text.split(' ');

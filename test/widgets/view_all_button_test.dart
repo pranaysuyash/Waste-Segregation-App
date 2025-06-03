@@ -60,7 +60,7 @@ void main() {
     });
 
     testWidgets('ViewAllButton handles tap events correctly', (WidgetTester tester) async {
-      bool tapped = false;
+      var tapped = false;
       
       await tester.pumpWidget(
         MaterialApp(
@@ -129,7 +129,6 @@ void main() {
                   onPressed: () {},
                 ),
                 ViewAllButton(
-                  style: ModernButtonStyle.text,
                   onPressed: () {},
                 ),
               ],
@@ -148,7 +147,6 @@ void main() {
             body: Column(
               children: [
                 ViewAllButton(
-                  size: ModernButtonSize.small,
                   onPressed: () {},
                 ),
                 ViewAllButton(
@@ -260,7 +258,7 @@ void main() {
       );
 
       // Test rapid width changes
-      for (int i = 0; i < 5; i++) {
+      for (var i = 0; i < 5; i++) {
         await tester.tap(find.text('Toggle Width'));
         await tester.pumpAndSettle();
       }

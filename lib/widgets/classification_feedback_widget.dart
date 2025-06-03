@@ -7,9 +7,6 @@ import '../screens/result_screen.dart';
 
 /// Widget for collecting user feedback on classification accuracy
 class ClassificationFeedbackWidget extends StatefulWidget {
-  final WasteClassification classification;
-  final Function(WasteClassification updatedClassification) onFeedbackSubmitted;
-  final bool showCompactVersion;
 
   const ClassificationFeedbackWidget({
     super.key,
@@ -17,6 +14,9 @@ class ClassificationFeedbackWidget extends StatefulWidget {
     required this.onFeedbackSubmitted,
     this.showCompactVersion = false,
   });
+  final WasteClassification classification;
+  final Function(WasteClassification updatedClassification) onFeedbackSubmitted;
+  final bool showCompactVersion;
 
   @override
   State<ClassificationFeedbackWidget> createState() => _ClassificationFeedbackWidgetState();
@@ -232,21 +232,21 @@ class _ClassificationFeedbackWidgetState extends State<ClassificationFeedbackWid
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
+          const Row(
             children: [
               Icon(
                 Icons.feedback_outlined,
-                color: const Color(0xFF0D47A1), // Dark blue for contrast
+                color: Color(0xFF0D47A1), // Dark blue for contrast
                 size: 18,
               ),
-              const SizedBox(width: 8),
+              SizedBox(width: 8),
               Expanded(
                 child: Text(
                   'Was this classification correct?',
                   style: TextStyle(
                     fontSize: AppTheme.fontSizeRegular,
                     fontWeight: FontWeight.w500,
-                    color: const Color(0xFF0D47A1), // Dark blue text
+                    color: Color(0xFF0D47A1), // Dark blue text
                   ),
                   overflow: TextOverflow.ellipsis,
                   maxLines: 2, // Allow wrapping to 2 lines
@@ -362,12 +362,12 @@ class _ClassificationFeedbackWidgetState extends State<ClassificationFeedbackWid
           ),
           if (_showCorrectionOptions) ...[
             const SizedBox(height: AppTheme.paddingRegular),
-            Text(
+            const Text(
               'What should it be?',
               style: TextStyle(
                 fontSize: AppTheme.fontSizeSmall,
                 fontWeight: FontWeight.w500,
-                color: const Color(0xFFE65100), // Dark orange for contrast
+                color: Color(0xFFE65100), // Dark orange for contrast
               ),
             ),
             const SizedBox(height: AppTheme.paddingSmall),
@@ -429,7 +429,7 @@ class _ClassificationFeedbackWidgetState extends State<ClassificationFeedbackWid
                   padding: const EdgeInsets.only(top: 4.0),
                   child: Text(
                     'Next model: $_nextModelToTry',
-                    style: TextStyle(color: Colors.blueGrey, fontSize: 12),
+                    style: const TextStyle(color: Colors.blueGrey, fontSize: 12),
                   ),
                 ),
             ],
@@ -536,7 +536,7 @@ class _ClassificationFeedbackWidgetState extends State<ClassificationFeedbackWid
                   onPressed: _submitFeedback,
                   style: OutlinedButton.styleFrom(
                     foregroundColor: AppTheme.primaryColor,
-                    side: BorderSide(color: AppTheme.primaryColor),
+                    side: const BorderSide(color: AppTheme.primaryColor),
                     padding: const EdgeInsets.symmetric(vertical: 10),
                   ),
                   icon: const Icon(Icons.send, size: 16),
@@ -576,7 +576,7 @@ class _ClassificationFeedbackWidgetState extends State<ClassificationFeedbackWid
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
+                  const Text(
                     'Is this classification correct?',
                     style: TextStyle(
                       fontSize: AppTheme.fontSizeMedium,
@@ -635,7 +635,7 @@ class _ClassificationFeedbackWidgetState extends State<ClassificationFeedbackWid
             // Correction options
             if (_showCorrectionOptions) ...[
               const SizedBox(height: AppTheme.paddingLarge),
-              Text(
+              const Text(
                 'What should the correct classification be?',
                 style: TextStyle(
                   fontSize: AppTheme.fontSizeMedium,
@@ -680,7 +680,7 @@ class _ClassificationFeedbackWidgetState extends State<ClassificationFeedbackWid
             
             // Notes section
             const SizedBox(height: AppTheme.paddingLarge),
-            Text(
+            const Text(
               'Additional notes (optional)',
               style: TextStyle(
                 fontSize: AppTheme.fontSizeMedium,
@@ -755,7 +755,7 @@ class _ClassificationFeedbackWidgetState extends State<ClassificationFeedbackWid
                   padding: const EdgeInsets.only(top: 4.0),
                   child: Text(
                     'Next model: $_nextModelToTry',
-                    style: TextStyle(color: Colors.blueGrey, fontSize: 12),
+                    style: const TextStyle(color: Colors.blueGrey, fontSize: 12),
                   ),
                 ),
             ],
@@ -901,13 +901,13 @@ class _ClassificationFeedbackWidgetState extends State<ClassificationFeedbackWid
                 ),
                 child: Row(
                   children: [
-                    Icon(
+                    const Icon(
                       Icons.feedback,
                       color: AppTheme.primaryColor,
                       size: 24,
                     ),
                     const SizedBox(width: 8),
-                    Expanded(
+                    const Expanded(
                       child: Text(
                         'Help us improve classification',
                         style: TextStyle(
@@ -936,7 +936,6 @@ class _ClassificationFeedbackWidgetState extends State<ClassificationFeedbackWid
                       Navigator.of(context).pop();
                       widget.onFeedbackSubmitted(updatedClassification);
                     },
-                    showCompactVersion: false,
                   ),
                 ),
               ),
@@ -963,13 +962,13 @@ class _ClassificationFeedbackWidgetState extends State<ClassificationFeedbackWid
     });
 
     // Get the final correction text and user reason outside try block
-    String correctionText = _selectedCorrection!;
+    var correctionText = _selectedCorrection!;
     if (_selectedCorrection == 'Custom correction...' && 
         _customCorrectionController.text.trim().isNotEmpty) {
       correctionText = _customCorrectionController.text.trim();
     }
     
-    String? userReason = _notesController.text.trim().isNotEmpty 
+    var userReason = _notesController.text.trim().isNotEmpty 
         ? _notesController.text.trim() 
         : null;
 
@@ -989,10 +988,9 @@ class _ClassificationFeedbackWidgetState extends State<ClassificationFeedbackWid
           widget.onFeedbackSubmitted(originalWithFeedback);
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('All available AI models have been tried. Your feedback will help us improve future results.'),
+              content: const Text('All available AI models have been tried. Your feedback will help us improve future results.'),
               backgroundColor: Colors.orange.shade600,
               behavior: SnackBarBehavior.floating,
-              duration: const Duration(seconds: 4),
             ),
           );
         }
@@ -1014,7 +1012,6 @@ class _ClassificationFeedbackWidgetState extends State<ClassificationFeedbackWid
       final newClassification = reanalyzedClassification.copyWith(
         userNotes: 'Reanalyzed from: ${widget.classification.itemName} (${widget.classification.category})\n${userReason ?? ''}',
         userCorrection: correctionText,
-        userConfirmed: null, // Reset confirmation for new classification
         source: 'reanalysis', // Mark as reanalyzed
         viewCount: 1, // New classification starts at 1
         reanalysisModelsTried: updatedModelsTried,
@@ -1050,7 +1047,7 @@ class _ClassificationFeedbackWidgetState extends State<ClassificationFeedbackWid
                       const SizedBox(width: 8),
                       Expanded(
                         child: Text(
-                          'Reanalysis complete! (${_nextModelToTry})',
+                          'Reanalysis complete! ($_nextModelToTry)',
                           style: const TextStyle(fontWeight: FontWeight.w600),
                         ),
                       ),
@@ -1079,7 +1076,6 @@ class _ClassificationFeedbackWidgetState extends State<ClassificationFeedbackWid
                     MaterialPageRoute(
                       builder: (context) => ResultScreen(
                         classification: newClassification,
-                        showActions: true,
                       ),
                     ),
                   );
@@ -1111,11 +1107,11 @@ class _ClassificationFeedbackWidgetState extends State<ClassificationFeedbackWid
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(
+                const Row(
                   children: [
-                    const Icon(Icons.error, color: Colors.white, size: 20),
-                    const SizedBox(width: 8),
-                    const Expanded(
+                    Icon(Icons.error, color: Colors.white, size: 20),
+                    SizedBox(width: 8),
+                    Expanded(
                       child: Text(
                         'Reanalysis failed',
                         style: TextStyle(fontWeight: FontWeight.w500),
@@ -1135,7 +1131,6 @@ class _ClassificationFeedbackWidgetState extends State<ClassificationFeedbackWid
             ),
             backgroundColor: Colors.orange.shade600,
             behavior: SnackBarBehavior.floating,
-            duration: const Duration(seconds: 4),
           ),
         );
       }
@@ -1151,14 +1146,14 @@ class _ClassificationFeedbackWidgetState extends State<ClassificationFeedbackWid
 
 /// Compact feedback button for quick access
 class FeedbackButton extends StatelessWidget {
-  final WasteClassification classification;
-  final Function(WasteClassification) onFeedbackSubmitted;
 
   const FeedbackButton({
     super.key,
     required this.classification,
     required this.onFeedbackSubmitted,
   });
+  final WasteClassification classification;
+  final Function(WasteClassification) onFeedbackSubmitted;
 
   @override
   Widget build(BuildContext context) {
@@ -1208,13 +1203,13 @@ class FeedbackButton extends StatelessWidget {
                 ),
                 child: Row(
                   children: [
-                    Icon(
+                    const Icon(
                       Icons.feedback,
                       color: AppTheme.primaryColor,
                       size: 24,
                     ),
                     const SizedBox(width: 8),
-                    Expanded(
+                    const Expanded(
                       child: Text(
                         'Help us improve classification',
                         style: TextStyle(
@@ -1240,7 +1235,6 @@ class FeedbackButton extends StatelessWidget {
                   child: ClassificationFeedbackWidget(
                     classification: classification,
                     onFeedbackSubmitted: onFeedbackSubmitted,
-                    showCompactVersion: false,
                   ),
                 ),
               ),

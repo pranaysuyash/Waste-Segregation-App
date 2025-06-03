@@ -279,7 +279,7 @@ class FirebaseFamilyService {
         return [];
       }
 
-      final List<user_profile_models.UserProfile> members = [];
+      final members = <user_profile_models.UserProfile>[];
       for (final member in family.members) {
         final profile = await _getUserProfile(member.userId);
         if (profile != null) {
@@ -304,7 +304,7 @@ class FirebaseFamilyService {
         return <user_profile_models.UserProfile>[];
       }
       final family = family_models.Family.fromJson(familyDoc.data()!);
-      final List<user_profile_models.UserProfile> memberProfiles = [];
+      final memberProfiles = <user_profile_models.UserProfile>[];
       for (final member in family.members) {
         final profile = await _getUserProfile(member.userId);
         if (profile != null) {
@@ -334,7 +334,7 @@ class FirebaseFamilyService {
       );
 
       // Calculate category breakdown
-      final Map<String, int> categoryBreakdown = {};
+      final categoryBreakdown = <String, int>{};
       for (final classification in classifications) {
         final category = classification.classification.category;
         categoryBreakdown[category] = (categoryBreakdown[category] ?? 0) + 1;

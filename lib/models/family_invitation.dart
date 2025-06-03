@@ -19,6 +19,49 @@ enum InvitationStatus {
 
 /// Represents an invitation to join a family.
 class FamilyInvitation {
+
+  FamilyInvitation({
+    String? id,
+    required this.familyId,
+    required this.familyName,
+    required this.inviterUserId,
+    this.inviterName,
+    required this.invitedEmail,
+    this.invitedUserId,
+    this.status = InvitationStatus.pending,
+    this.roleToAssign = UserRole.member,
+    DateTime? createdAt,
+    DateTime? expiresAt,
+    this.respondedAt,
+  })  : id = id ?? Uuid().v4(),
+        createdAt = createdAt ?? DateTime.now(),
+        expiresAt = expiresAt ?? (createdAt ?? DateTime.now()).add(const Duration(days: 7));
+
+  /// Creates a FamilyInvitation instance from a JSON map.
+  factory FamilyInvitation.fromJson(Map<String, dynamic> json) {
+    return FamilyInvitation(
+      id: json['id'] as String,
+      familyId: json['familyId'] as String,
+      familyName: json['familyName'] as String? ?? 'Unknown Family',
+      inviterUserId: json['inviterUserId'] as String,
+      inviterName: json['inviterName'] as String?,
+      invitedEmail: json['invitedEmail'] as String,
+      invitedUserId: json['invitedUserId'] as String?,
+      status: InvitationStatus.values.firstWhere(
+        (e) => e.toString().split('.').last == json['status'],
+        orElse: () => InvitationStatus.pending,
+      ),
+      roleToAssign: UserRole.values.firstWhere(
+        (e) => e.toString().split('.').last == json['roleToAssign'],
+        orElse: () => UserRole.member,
+      ),
+      createdAt: DateTime.parse(json['createdAt'] as String),
+      expiresAt: DateTime.parse(json['expiresAt'] as String),
+      respondedAt: json['respondedAt'] != null
+          ? DateTime.parse(json['respondedAt'] as String)
+          : null,
+    );
+  }
   /// The unique identifier for the invitation.
   final String id;
 
@@ -54,23 +97,6 @@ class FamilyInvitation {
 
   /// When the invitation was accepted/declined (if applicable).
   DateTime? respondedAt;
-
-  FamilyInvitation({
-    String? id,
-    required this.familyId,
-    required this.familyName,
-    required this.inviterUserId,
-    this.inviterName,
-    required this.invitedEmail,
-    this.invitedUserId,
-    this.status = InvitationStatus.pending,
-    this.roleToAssign = UserRole.member,
-    DateTime? createdAt,
-    DateTime? expiresAt,
-    this.respondedAt,
-  })  : id = id ?? Uuid().v4(),
-        createdAt = createdAt ?? DateTime.now(),
-        expiresAt = expiresAt ?? (createdAt ?? DateTime.now()).add(const Duration(days: 7));
 
   /// Creates a copy of this FamilyInvitation with the given fields replaced.
   FamilyInvitation copyWith({
@@ -122,32 +148,6 @@ class FamilyInvitation {
     };
   }
 
-  /// Creates a FamilyInvitation instance from a JSON map.
-  factory FamilyInvitation.fromJson(Map<String, dynamic> json) {
-    return FamilyInvitation(
-      id: json['id'] as String,
-      familyId: json['familyId'] as String,
-      familyName: json['familyName'] as String? ?? 'Unknown Family',
-      inviterUserId: json['inviterUserId'] as String,
-      inviterName: json['inviterName'] as String?,
-      invitedEmail: json['invitedEmail'] as String,
-      invitedUserId: json['invitedUserId'] as String?,
-      status: InvitationStatus.values.firstWhere(
-        (e) => e.toString().split('.').last == json['status'],
-        orElse: () => InvitationStatus.pending,
-      ),
-      roleToAssign: UserRole.values.firstWhere(
-        (e) => e.toString().split('.').last == json['roleToAssign'],
-        orElse: () => UserRole.member,
-      ),
-      createdAt: DateTime.parse(json['createdAt'] as String),
-      expiresAt: DateTime.parse(json['expiresAt'] as String),
-      respondedAt: json['respondedAt'] != null
-          ? DateTime.parse(json['respondedAt'] as String)
-          : null,
-    );
-  }
-
   /// Checks if the invitation is still valid.
   bool get isValid {
     return status == InvitationStatus.pending && 
@@ -197,6 +197,41 @@ class FamilyInvitation {
 
 /// Represents a batch invitation for multiple email addresses.
 class BatchInvitation {
+
+  BatchInvitation({
+    required this.id,
+    required this.familyId,
+    required this.createdBy,
+    required this.emails,
+    required this.role,
+    required this.createdAt,
+    required this.expiresAt,
+    this.message,
+    this.invitations = const [],
+    required this.status,
+  });
+
+  /// Creates a BatchInvitation instance from a JSON map.
+  factory BatchInvitation.fromJson(Map<String, dynamic> json) {
+    return BatchInvitation(
+      id: json['id'] as String,
+      familyId: json['familyId'] as String,
+      createdBy: json['createdBy'] as String,
+      emails: List<String>.from(json['emails'] as List),
+      role: UserRole.values.firstWhere(
+        (e) => e.toString().split('.').last == json['role'],
+        orElse: () => UserRole.member,
+      ),
+      createdAt: DateTime.parse(json['createdAt'] as String),
+      expiresAt: DateTime.parse(json['expiresAt'] as String),
+      message: json['message'] as String?,
+      invitations: (json['invitations'] as List<dynamic>?)
+              ?.map((inv) => FamilyInvitation.fromJson(inv as Map<String, dynamic>))
+              .toList() ??
+          [],
+      status: BatchInvitationStatus.fromJson(json['status'] as Map<String, dynamic>),
+    );
+  }
   /// The unique identifier for the batch.
   final String id;
 
@@ -227,19 +262,6 @@ class BatchInvitation {
   /// Status summary of the batch.
   final BatchInvitationStatus status;
 
-  BatchInvitation({
-    required this.id,
-    required this.familyId,
-    required this.createdBy,
-    required this.emails,
-    required this.role,
-    required this.createdAt,
-    required this.expiresAt,
-    this.message,
-    this.invitations = const [],
-    required this.status,
-  });
-
   /// Converts this BatchInvitation instance to a JSON map.
   Map<String, dynamic> toJson() {
     return {
@@ -255,32 +277,29 @@ class BatchInvitation {
       'status': status.toJson(),
     };
   }
-
-  /// Creates a BatchInvitation instance from a JSON map.
-  factory BatchInvitation.fromJson(Map<String, dynamic> json) {
-    return BatchInvitation(
-      id: json['id'] as String,
-      familyId: json['familyId'] as String,
-      createdBy: json['createdBy'] as String,
-      emails: List<String>.from(json['emails'] as List),
-      role: UserRole.values.firstWhere(
-        (e) => e.toString().split('.').last == json['role'],
-        orElse: () => UserRole.member,
-      ),
-      createdAt: DateTime.parse(json['createdAt'] as String),
-      expiresAt: DateTime.parse(json['expiresAt'] as String),
-      message: json['message'] as String?,
-      invitations: (json['invitations'] as List<dynamic>?)
-              ?.map((inv) => FamilyInvitation.fromJson(inv as Map<String, dynamic>))
-              .toList() ??
-          [],
-      status: BatchInvitationStatus.fromJson(json['status'] as Map<String, dynamic>),
-    );
-  }
 }
 
 /// Status summary for a batch invitation.
 class BatchInvitationStatus {
+
+  BatchInvitationStatus({
+    required this.totalSent,
+    this.accepted = 0,
+    this.declined = 0,
+    this.pending = 0,
+    this.expired = 0,
+  });
+
+  /// Creates a BatchInvitationStatus instance from a JSON map.
+  factory BatchInvitationStatus.fromJson(Map<String, dynamic> json) {
+    return BatchInvitationStatus(
+      totalSent: json['totalSent'] as int,
+      accepted: json['accepted'] as int? ?? 0,
+      declined: json['declined'] as int? ?? 0,
+      pending: json['pending'] as int? ?? 0,
+      expired: json['expired'] as int? ?? 0,
+    );
+  }
   /// Total number of invitations sent.
   final int totalSent;
 
@@ -296,14 +315,6 @@ class BatchInvitationStatus {
   /// Number of invitations expired.
   final int expired;
 
-  BatchInvitationStatus({
-    required this.totalSent,
-    this.accepted = 0,
-    this.declined = 0,
-    this.pending = 0,
-    this.expired = 0,
-  });
-
   /// Converts this BatchInvitationStatus instance to a JSON map.
   Map<String, dynamic> toJson() {
     return {
@@ -313,17 +324,6 @@ class BatchInvitationStatus {
       'pending': pending,
       'expired': expired,
     };
-  }
-
-  /// Creates a BatchInvitationStatus instance from a JSON map.
-  factory BatchInvitationStatus.fromJson(Map<String, dynamic> json) {
-    return BatchInvitationStatus(
-      totalSent: json['totalSent'] as int,
-      accepted: json['accepted'] as int? ?? 0,
-      declined: json['declined'] as int? ?? 0,
-      pending: json['pending'] as int? ?? 0,
-      expired: json['expired'] as int? ?? 0,
-    );
   }
 
   /// Gets the completion percentage (accepted + declined / total).

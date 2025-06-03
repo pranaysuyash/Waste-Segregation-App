@@ -4,14 +4,6 @@ import 'dart:math' as math;
 
 /// Glass morphism card with backdrop blur effect
 class GlassMorphismCard extends StatelessWidget {
-  final Widget child;
-  final double blur;
-  final double opacity;
-  final Color? color;
-  final BorderRadius? borderRadius;
-  final EdgeInsets? padding;
-  final EdgeInsets? margin;
-  final List<BoxShadow>? boxShadow;
   
   const GlassMorphismCard({
     Key? key,
@@ -24,6 +16,14 @@ class GlassMorphismCard extends StatelessWidget {
     this.margin,
     this.boxShadow,
   }) : super(key: key);
+  final Widget child;
+  final double blur;
+  final double opacity;
+  final Color? color;
+  final BorderRadius? borderRadius;
+  final EdgeInsets? padding;
+  final EdgeInsets? margin;
+  final List<BoxShadow>? boxShadow;
   
   @override
   Widget build(BuildContext context) {
@@ -41,8 +41,7 @@ class GlassMorphismCard extends StatelessWidget {
           BoxShadow(
             color: Colors.black.withOpacity(0.1),
             blurRadius: 10,
-            spreadRadius: 0,
-            offset: Offset(0, 4),
+            offset: const Offset(0, 4),
           ),
         ],
       ),
@@ -56,10 +55,9 @@ class GlassMorphismCard extends StatelessWidget {
               borderRadius: borderRadius ?? BorderRadius.circular(16),
               border: Border.all(
                 color: Colors.white.withOpacity(0.2),
-                width: 1,
               ),
             ),
-            padding: padding ?? EdgeInsets.all(16),
+            padding: padding ?? const EdgeInsets.all(16),
             child: child,
           ),
         ),
@@ -70,10 +68,6 @@ class GlassMorphismCard extends StatelessWidget {
 
 /// Shimmer loading effect for cards
 class ShimmerCard extends StatefulWidget {
-  final Widget child;
-  final List<Color> shimmerColors;
-  final Duration duration;
-  final BorderRadius? borderRadius;
   
   const ShimmerCard({
     Key? key,
@@ -85,6 +79,10 @@ class ShimmerCard extends StatefulWidget {
     this.duration = const Duration(milliseconds: 2000),
     this.borderRadius,
   }) : super(key: key);
+  final Widget child;
+  final List<Color> shimmerColors;
+  final Duration duration;
+  final BorderRadius? borderRadius;
   
   @override
   _ShimmerCardState createState() => _ShimmerCardState();
@@ -151,13 +149,6 @@ class _ShimmerCardState extends State<ShimmerCard>
 
 /// Morphing progress indicator with smooth transitions
 class MorphingProgressIndicator extends StatefulWidget {
-  final double progress;
-  final Color primaryColor;
-  final Color secondaryColor;
-  final Color backgroundColor;
-  final double height;
-  final double borderRadius;
-  final Widget? child;
   
   const MorphingProgressIndicator({
     Key? key,
@@ -169,6 +160,13 @@ class MorphingProgressIndicator extends StatefulWidget {
     this.borderRadius = 8.0,
     this.child,
   }) : super(key: key);
+  final double progress;
+  final Color primaryColor;
+  final Color secondaryColor;
+  final Color backgroundColor;
+  final double height;
+  final double borderRadius;
+  final Widget? child;
   
   @override
   _MorphingProgressIndicatorState createState() => _MorphingProgressIndicatorState();
@@ -187,12 +185,12 @@ class _MorphingProgressIndicatorState extends State<MorphingProgressIndicator>
     super.initState();
     
     _progressController = AnimationController(
-      duration: Duration(milliseconds: 800),
+      duration: const Duration(milliseconds: 800),
       vsync: this,
     );
     
     _pulseController = AnimationController(
-      duration: Duration(milliseconds: 1000),
+      duration: const Duration(milliseconds: 1000),
       vsync: this,
     )..repeat(reverse: true);
     
@@ -255,8 +253,6 @@ class _MorphingProgressIndicatorState extends State<MorphingProgressIndicator>
                           widget.primaryColor,
                           widget.secondaryColor,
                         ],
-                        begin: Alignment.centerLeft,
-                        end: Alignment.centerRight,
                       ),
                       borderRadius: BorderRadius.circular(widget.borderRadius),
                       boxShadow: [

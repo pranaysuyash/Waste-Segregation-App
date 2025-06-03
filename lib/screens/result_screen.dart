@@ -21,14 +21,14 @@ import '../screens/modern_home_screen.dart';
 import '../services/cloud_storage_service.dart';
 
 class ResultScreen extends StatefulWidget {
-  final WasteClassification classification;
-  final bool showActions;
 
   const ResultScreen({
     super.key,
     required this.classification,
     this.showActions = true,
   });
+  final WasteClassification classification;
+  final bool showActions;
 
   @override
   State<ResultScreen> createState() => _ResultScreenState();
@@ -66,11 +66,6 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
   // Enhance classification with disposal instructions if not already present
   Future<WasteClassification> _enhanceClassificationWithDisposalInstructions() async {
     // This method is now called from within _autoSaveClassification to prevent duplicate saves
-    if (widget.classification.disposalInstructions == null) {
-      // Generate disposal instructions for this classification
-      final enhancedClassification = widget.classification; // Already has disposal instructions
-      return enhancedClassification;
-    }
     return widget.classification;
   }
   
@@ -312,7 +307,7 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
     }
     
     if (widget.classification.requiresSpecialDisposal == true) {
-      tags.add(TagData(
+      tags.add(const TagData(
         text: 'Special Disposal',
         color: Colors.orange,
         action: TagAction.warning,
@@ -599,20 +594,20 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Row(
+                                const Row(
                                   children: [
                                     Icon(
                                       Icons.info_outline,
-                                      color: const Color(0xFF0D47A1), // Dark blue for contrast
+                                      color: Color(0xFF0D47A1), // Dark blue for contrast
                                       size: 20,
                                     ),
-                                    const SizedBox(width: 8),
+                                    SizedBox(width: 8),
                                     Text(
                                       'Explanation',
                                       style: TextStyle(
                                         fontSize: AppTheme.fontSizeMedium,
                                         fontWeight: FontWeight.bold,
-                                        color: const Color(0xFF0D47A1), // Dark blue text
+                                        color: Color(0xFF0D47A1), // Dark blue text
                                       ),
                                     ),
                                   ],
@@ -622,9 +617,9 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
                                   widget.classification.explanation,
                                   maxLines: _isExplanationExpanded ? null : 3,
                                   overflow: _isExplanationExpanded ? TextOverflow.visible : TextOverflow.ellipsis,
-                                  style: TextStyle(
+                                  style: const TextStyle(
                                     fontSize: AppTheme.fontSizeRegular,
-                                    color: const Color(0xFF212121), // Almost black for readability
+                                    color: Color(0xFF212121), // Almost black for readability
                                     height: 1.5,
                                   ),
                                 ),
@@ -637,7 +632,7 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
                                   },
                                   child: Text(
                                     _isExplanationExpanded ? 'Show Less' : 'Read More',
-                                    style: TextStyle(
+                                    style: const TextStyle(
                                       color: AppTheme.primaryColor,
                                       fontWeight: FontWeight.bold,
                                     ),
@@ -686,7 +681,7 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
                                     onPressed: _shareResult, // Share is always possible if item is shareable
                                     style: OutlinedButton.styleFrom(
                                       foregroundColor: AppTheme.primaryColor,
-                                      side: BorderSide(color: AppTheme.primaryColor, width: 2),
+                                      side: const BorderSide(color: AppTheme.primaryColor, width: 2),
                                       padding: const EdgeInsets.symmetric(vertical: 12),
                                       shape: RoundedRectangleBorder(
                                         borderRadius: BorderRadius.circular(AppTheme.borderRadiusRegular),
@@ -840,14 +835,14 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Row(
+                          const Row(
                             children: [
                               Icon(
                                 Icons.school,
                                 color: AppTheme.secondaryColor,
                                 size: 24,
                               ),
-                              const SizedBox(width: 8),
+                              SizedBox(width: 8),
                               Text(
                                 'Did You Know?',
                                 style: TextStyle(
@@ -866,7 +861,7 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
                             ),
                             maxLines: _isEducationalFactExpanded ? null : 3, // Added maxLines
                             overflow: _isEducationalFactExpanded ? TextOverflow.visible : TextOverflow.ellipsis, // Added ellipsis
-                            style: TextStyle(
+                            style: const TextStyle(
                               fontSize: AppTheme.fontSizeRegular,
                               height: 1.6,
                               color: AppTheme.textPrimaryColor,
@@ -881,7 +876,7 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
                             },
                             child: Text(
                               _isEducationalFactExpanded ? 'Show Less' : 'Read More',
-                              style: TextStyle(
+                              style: const TextStyle(
                                 color: AppTheme.primaryColor,
                                 fontWeight: FontWeight.bold,
                               ),
@@ -957,7 +952,7 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
                               label: const Text('View Analytics Dashboard'),
                               style: OutlinedButton.styleFrom(
                                 padding: const EdgeInsets.symmetric(vertical: 16),
-                                side: BorderSide(color: AppTheme.secondaryColor),
+                                side: const BorderSide(color: AppTheme.secondaryColor),
                                 foregroundColor: AppTheme.secondaryColor,
                               ),
                             ),
@@ -1141,11 +1136,11 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Row(
+            content: const Row(
               children: [
                 Icon(Icons.check_circle, color: Colors.white, size: 20),
-                const SizedBox(width: 8),
-                const Expanded(
+                SizedBox(width: 8),
+                Expanded(
                   child: Text('Thank you for your feedback!'),
                 ),
               ],

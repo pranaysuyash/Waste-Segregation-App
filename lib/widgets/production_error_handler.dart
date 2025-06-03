@@ -5,11 +5,6 @@ import '../utils/performance_optimizer.dart';
 
 /// Production-ready error handler that prevents users from seeing internal errors
 class ProductionErrorHandler extends StatelessWidget {
-  final Widget child;
-  final String? fallbackTitle;
-  final String? fallbackMessage;
-  final VoidCallback? onRetry;
-  final bool showRetryButton;
 
   const ProductionErrorHandler({
     Key? key,
@@ -19,6 +14,11 @@ class ProductionErrorHandler extends StatelessWidget {
     this.onRetry,
     this.showRetryButton = true,
   }) : super(key: key);
+  final Widget child;
+  final String? fallbackTitle;
+  final String? fallbackMessage;
+  final VoidCallback? onRetry;
+  final bool showRetryButton;
 
   @override
   Widget build(BuildContext context) {
@@ -131,14 +131,14 @@ class ProductionErrorHandler extends StatelessWidget {
 
 /// Network error handler for API failures
 class NetworkErrorHandler extends StatelessWidget {
-  final VoidCallback? onRetry;
-  final String? customMessage;
 
   const NetworkErrorHandler({
     Key? key,
     this.onRetry,
     this.customMessage,
   }) : super(key: key);
+  final VoidCallback? onRetry;
+  final String? customMessage;
 
   @override
   Widget build(BuildContext context) {
@@ -214,11 +214,6 @@ class NetworkErrorHandler extends StatelessWidget {
 
 /// Empty state handler for when content is loading or unavailable
 class EmptyStateHandler extends StatelessWidget {
-  final String title;
-  final String message;
-  final IconData icon;
-  final VoidCallback? onAction;
-  final String? actionText;
 
   const EmptyStateHandler({
     Key? key,
@@ -228,6 +223,11 @@ class EmptyStateHandler extends StatelessWidget {
     this.onAction,
     this.actionText,
   }) : super(key: key);
+  final String title;
+  final String message;
+  final IconData icon;
+  final VoidCallback? onAction;
+  final String? actionText;
 
   @override
   Widget build(BuildContext context) {
@@ -297,14 +297,14 @@ class EmptyStateHandler extends StatelessWidget {
 
 /// Loading state with shimmer effect
 class LoadingStateHandler extends StatelessWidget {
-  final String? message;
-  final bool showShimmer;
 
   const LoadingStateHandler({
     Key? key,
     this.message,
     this.showShimmer = true,
   }) : super(key: key);
+  final String? message;
+  final bool showShimmer;
 
   @override
   Widget build(BuildContext context) {

@@ -2,19 +2,6 @@ import 'package:flutter/material.dart';
 
 /// Represents a community feed item showing user activities
 class CommunityFeedItem {
-  final String id;
-  final String userId;
-  final String userName;
-  final String? userAvatar;
-  final CommunityActivityType activityType;
-  final String title;
-  final String description;
-  final DateTime timestamp;
-  final Map<String, dynamic> metadata;
-  final int likes;
-  final List<String> likedBy;
-  final bool isAnonymous;
-  final int points;
 
   const CommunityFeedItem({
     required this.id,
@@ -52,6 +39,19 @@ class CommunityFeedItem {
       points: json['points'] ?? 0,
     );
   }
+  final String id;
+  final String userId;
+  final String userName;
+  final String? userAvatar;
+  final CommunityActivityType activityType;
+  final String title;
+  final String description;
+  final DateTime timestamp;
+  final Map<String, dynamic> metadata;
+  final int likes;
+  final List<String> likedBy;
+  final bool isAnonymous;
+  final int points;
 
   Map<String, dynamic> toJson() {
     return {
@@ -178,15 +178,6 @@ enum CommunityActivityType {
 
 /// Community feed statistics
 class CommunityStats {
-  final int totalUsers;
-  final int totalClassifications;
-  final int totalAchievements;
-  final int totalPoints;
-  final int activeToday;
-  final int activeUsers;
-  final int weeklyClassifications;
-  final Map<String, int> categoryBreakdown;
-  final DateTime lastUpdated;
 
   const CommunityStats({
     required this.totalUsers,
@@ -213,6 +204,15 @@ class CommunityStats {
       lastUpdated: DateTime.tryParse(json['lastUpdated'] ?? '') ?? DateTime.now(),
     );
   }
+  final int totalUsers;
+  final int totalClassifications;
+  final int totalAchievements;
+  final int totalPoints;
+  final int activeToday;
+  final int activeUsers;
+  final int weeklyClassifications;
+  final Map<String, int> categoryBreakdown;
+  final DateTime lastUpdated;
 
   Map<String, dynamic> toJson() {
     return {

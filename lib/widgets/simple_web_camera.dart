@@ -6,9 +6,6 @@ import '../utils/constants.dart';
 /// This widget displays a dialog with a button to capture a photo
 /// using the device's camera on web platforms
 class SimpleWebCamera extends StatefulWidget {
-  final Function(XFile?) onCapture;
-  final String title;
-  final String buttonText;
 
   const SimpleWebCamera({
     super.key,
@@ -16,6 +13,9 @@ class SimpleWebCamera extends StatefulWidget {
     this.title = 'Camera Access',
     this.buttonText = 'Take Photo',
   });
+  final Function(XFile?) onCapture;
+  final String title;
+  final String buttonText;
 
   @override
   State<SimpleWebCamera> createState() => _SimpleWebCameraState();
@@ -36,12 +36,11 @@ class _SimpleWebCameraState extends State<SimpleWebCamera> {
       // Use standard image_picker with camera source
       // On web, this will prompt the browser's file picker,
       // but most browsers will allow direct camera access
-      final XFile? image = await _picker.pickImage(
+      final image = await _picker.pickImage(
         source: ImageSource.camera,
         maxWidth: 1280,
         maxHeight: 720,
         imageQuality: 90,
-        preferredCameraDevice: CameraDevice.rear,
       );
 
       if (mounted) {
@@ -118,7 +117,6 @@ Future<void> showCameraDialog(
 }) async {
   return showDialog<void>(
     context: context,
-    barrierDismissible: true,
     builder: (BuildContext context) {
       return SimpleWebCamera(
         onCapture: onCapture,

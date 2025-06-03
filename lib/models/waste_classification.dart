@@ -1,74 +1,5 @@
 /// Represents a waste classification result with comprehensive disposal information
 class WasteClassification {
-  final String itemName;
-  final String category;
-  final String? subcategory;
-  final String? materialType;
-  final int? recyclingCode;
-  final String explanation;
-  final String? disposalMethod;
-  final DisposalInstructions disposalInstructions;
-
-  // User identification
-  final String? userId;
-
-  // Location and guidelines
-  final String region;
-  final String? localGuidelinesReference;
-
-  // Image and visual data
-  final String? imageUrl;
-  final String? imageHash;
-  final Map<String, double>? imageMetrics;
-  final List<String> visualFeatures;
-
-  // Waste properties
-  final bool? isRecyclable;
-  final bool? isCompostable;
-  final bool? requiresSpecialDisposal;
-  final String? colorCode;
-  final String? riskLevel;
-  final List<String>? requiredPPE;
-
-  // Product identification
-  final String? brand;
-  final String? product;
-  final String? barcode;
-
-  // User interaction data
-  final bool? isSaved;
-  final bool? userConfirmed;
-  final String? userCorrection;
-  final String? disagreementReason;
-  final String? userNotes;
-  final int? viewCount;
-  final bool? clarificationNeeded;
-
-  // AI model performance data
-  final double? confidence;
-  final String? modelVersion;
-  final int? processingTimeMs;
-  final String? modelSource;
-  final String? analysisSessionId;
-
-  // Alternative classifications and actions
-  final List<AlternativeClassification> alternatives;
-  final String? suggestedAction;
-  final bool? hasUrgentTimeframe;
-
-  // Multilingual support
-  final String? instructionsLang;
-  final Map<String, String>? translatedInstructions;
-
-  // Processing context
-  final String? source;
-  final DateTime timestamp;
-
-  // List of model names that have been used for reanalysis on this classification
-  final List<String>? reanalysisModelsTried;
-
-  // The model that produced a user-confirmed correct result
-  final String? confirmedByModel;
 
   WasteClassification({
     required this.itemName,
@@ -138,40 +69,6 @@ class WasteClassification {
       confidence: 0.0,
       clarificationNeeded: true,
       riskLevel: 'safe',
-    );
-  }
-
-  /// Parse disposal instructions from various input formats
-  static DisposalInstructions _parseDisposalInstructions(dynamic instructionsData) {
-    if (instructionsData == null) {
-      return DisposalInstructions(
-        primaryMethod: 'Review required',
-        steps: ['Please review manually'],
-        hasUrgentTimeframe: false,
-      );
-    }
-    
-    // If it's already a Map, use the standard fromJson
-    if (instructionsData is Map<String, dynamic>) {
-      return DisposalInstructions.fromJson(instructionsData);
-    }
-    
-    // If it's a string, create basic instructions from it
-    if (instructionsData is String) {
-      return DisposalInstructions(
-        primaryMethod: instructionsData.length > 100 
-            ? '${instructionsData.substring(0, 100)}...'
-            : instructionsData,
-        steps: DisposalInstructions._parseStepsFromString(instructionsData),
-        hasUrgentTimeframe: false,
-      );
-    }
-    
-    // Fallback
-    return DisposalInstructions(
-      primaryMethod: 'Review required',
-      steps: ['Please review manually'],
-      hasUrgentTimeframe: false,
     );
   }
 
@@ -245,6 +142,109 @@ class WasteClassification {
           ? List<String>.from(json['reanalysisModelsTried'])
           : null,
       confirmedByModel: json['confirmedByModel'],
+    );
+  }
+  final String itemName;
+  final String category;
+  final String? subcategory;
+  final String? materialType;
+  final int? recyclingCode;
+  final String explanation;
+  final String? disposalMethod;
+  final DisposalInstructions disposalInstructions;
+
+  // User identification
+  final String? userId;
+
+  // Location and guidelines
+  final String region;
+  final String? localGuidelinesReference;
+
+  // Image and visual data
+  final String? imageUrl;
+  final String? imageHash;
+  final Map<String, double>? imageMetrics;
+  final List<String> visualFeatures;
+
+  // Waste properties
+  final bool? isRecyclable;
+  final bool? isCompostable;
+  final bool? requiresSpecialDisposal;
+  final String? colorCode;
+  final String? riskLevel;
+  final List<String>? requiredPPE;
+
+  // Product identification
+  final String? brand;
+  final String? product;
+  final String? barcode;
+
+  // User interaction data
+  final bool? isSaved;
+  final bool? userConfirmed;
+  final String? userCorrection;
+  final String? disagreementReason;
+  final String? userNotes;
+  final int? viewCount;
+  final bool? clarificationNeeded;
+
+  // AI model performance data
+  final double? confidence;
+  final String? modelVersion;
+  final int? processingTimeMs;
+  final String? modelSource;
+  final String? analysisSessionId;
+
+  // Alternative classifications and actions
+  final List<AlternativeClassification> alternatives;
+  final String? suggestedAction;
+  final bool? hasUrgentTimeframe;
+
+  // Multilingual support
+  final String? instructionsLang;
+  final Map<String, String>? translatedInstructions;
+
+  // Processing context
+  final String? source;
+  final DateTime timestamp;
+
+  // List of model names that have been used for reanalysis on this classification
+  final List<String>? reanalysisModelsTried;
+
+  // The model that produced a user-confirmed correct result
+  final String? confirmedByModel;
+
+  /// Parse disposal instructions from various input formats
+  static DisposalInstructions _parseDisposalInstructions(dynamic instructionsData) {
+    if (instructionsData == null) {
+      return DisposalInstructions(
+        primaryMethod: 'Review required',
+        steps: ['Please review manually'],
+        hasUrgentTimeframe: false,
+      );
+    }
+    
+    // If it's already a Map, use the standard fromJson
+    if (instructionsData is Map<String, dynamic>) {
+      return DisposalInstructions.fromJson(instructionsData);
+    }
+    
+    // If it's a string, create basic instructions from it
+    if (instructionsData is String) {
+      return DisposalInstructions(
+        primaryMethod: instructionsData.length > 100 
+            ? '${instructionsData.substring(0, 100)}...'
+            : instructionsData,
+        steps: DisposalInstructions._parseStepsFromString(instructionsData),
+        hasUrgentTimeframe: false,
+      );
+    }
+    
+    // Fallback
+    return DisposalInstructions(
+      primaryMethod: 'Review required',
+      steps: ['Please review manually'],
+      hasUrgentTimeframe: false,
     );
   }
 
@@ -399,10 +399,6 @@ class WasteClassification {
 
 /// Alternative classification suggestion
 class AlternativeClassification {
-  final String category;
-  final String? subcategory;
-  final double confidence;
-  final String reason;
 
   AlternativeClassification({
     required this.category,
@@ -419,6 +415,10 @@ class AlternativeClassification {
       reason: json['reason'] ?? '',
     );
   }
+  final String category;
+  final String? subcategory;
+  final double confidence;
+  final String reason;
 
   Map<String, dynamic> toJson() {
     return {
@@ -432,15 +432,6 @@ class AlternativeClassification {
 
 /// Detailed disposal instructions
 class DisposalInstructions {
-  final String primaryMethod;
-  final List<String> steps;
-  final String? timeframe;
-  final String? location;
-  final List<String>? warnings;
-  final List<String>? tips;
-  final String? recyclingInfo;
-  final String? estimatedTime;
-  final bool hasUrgentTimeframe;
 
   DisposalInstructions({
     required this.primaryMethod,
@@ -467,6 +458,15 @@ class DisposalInstructions {
       hasUrgentTimeframe: json['hasUrgentTimeframe'] ?? false,
     );
   }
+  final String primaryMethod;
+  final List<String> steps;
+  final String? timeframe;
+  final String? location;
+  final List<String>? warnings;
+  final List<String>? tips;
+  final String? recyclingInfo;
+  final String? estimatedTime;
+  final bool hasUrgentTimeframe;
 
   /// Parse steps from various input formats (List, String with separators)
   static List<String> _parseStepsFromJson(dynamic stepsData) {
@@ -508,7 +508,7 @@ class DisposalInstructions {
       return ['Please review manually'];
     }
     
-    List<String> steps = [];
+    var steps = <String>[];
     
     // Try newline separation first
     if (stepsString.contains('\n')) {

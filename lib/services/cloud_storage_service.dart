@@ -10,10 +10,10 @@ import 'package:crypto/crypto.dart';
 /// Service for syncing classifications to Firestore cloud storage
 /// Also handles admin data collection for ML training and data recovery
 class CloudStorageService {
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  final StorageService _localStorageService;
 
   CloudStorageService(this._localStorageService);
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final StorageService _localStorageService;
 
   /// Saves or updates the user's profile in Firestore and updates the all-time leaderboard.
   Future<void> saveUserProfileToFirestore(UserProfile userProfile) async {
@@ -260,7 +260,7 @@ class CloudStorageService {
     List<WasteClassification> local,
     List<WasteClassification> cloud,
   ) {
-    final Map<String, WasteClassification> mergedMap = {};
+    final mergedMap = <String, WasteClassification>{};
     
     // Add local classifications first
     for (final classification in local) {
@@ -322,7 +322,7 @@ class CloudStorageService {
       
       debugPrint('🔄 Starting full sync of ${localClassifications.length} local classifications to cloud');
       
-      int syncedCount = 0;
+      var syncedCount = 0;
       for (final classification in localClassifications) {
         try {
           await _syncClassificationToCloud(classification);

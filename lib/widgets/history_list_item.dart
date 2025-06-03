@@ -6,18 +6,18 @@ import '../utils/constants.dart';
 
 /// A simplified version of ClassificationCard for list views in the history screen
 class HistoryListItem extends StatelessWidget {
-  final WasteClassification classification;
-  final VoidCallback onTap;
   
   const HistoryListItem({
     super.key,
     required this.classification,
     required this.onTap,
   });
+  final WasteClassification classification;
+  final VoidCallback onTap;
   
   @override
   Widget build(BuildContext context) {
-    final Color categoryColor = _getCategoryColor();
+    final categoryColor = _getCategoryColor();
     
     return Semantics(
       button: true,
@@ -31,7 +31,7 @@ class HistoryListItem extends StatelessWidget {
         ),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(AppTheme.borderRadiusRegular),
-          side: BorderSide(color: categoryColor.withOpacity(0.3), width: 1),
+          side: BorderSide(color: categoryColor.withOpacity(0.3)),
         ),
         child: InkWell(
           onTap: onTap,
@@ -70,7 +70,7 @@ class HistoryListItem extends StatelessWidget {
                           // Date and confidence row
                           Row(
                             children: [
-                              Icon(
+                              const Icon(
                                 Icons.access_time,
                                 size: 14,
                                 color: AppTheme.textSecondaryColor,
@@ -99,7 +99,6 @@ class HistoryListItem extends StatelessWidget {
                                   borderRadius: BorderRadius.circular(AppTheme.borderRadiusSmall),
                                   border: Border.all(
                                     color: _getConfidenceColor(),
-                                    width: 1,
                                   ),
                                 ),
                                 child: Text(
@@ -155,7 +154,7 @@ class HistoryListItem extends StatelessWidget {
   
   /// Builds the tags section with proper wrapping to prevent overflow
   Widget _buildTagsSection(Color categoryColor) {
-    final List<Widget> tags = [];
+    final tags = <Widget>[];
     
     // Main category tag
     tags.add(
@@ -186,7 +185,6 @@ class HistoryListItem extends StatelessWidget {
             borderRadius: BorderRadius.circular(AppTheme.borderRadiusSmall),
             border: Border.all(
               color: categoryColor.withOpacity(0.5),
-              width: 1,
             ),
           ),
           child: Text(
@@ -211,7 +209,6 @@ class HistoryListItem extends StatelessWidget {
             borderRadius: BorderRadius.circular(AppTheme.borderRadiusSmall),
             border: Border.all(
               color: Colors.grey.shade300,
-              width: 1,
             ),
           ),
           child: Text(
@@ -235,11 +232,11 @@ class HistoryListItem extends StatelessWidget {
   
   /// Builds the properties indicators row
   Widget _buildPropertiesRow() {
-    final List<Widget> indicators = [];
+    final indicators = <Widget>[];
     
     if (classification.isRecyclable == true) {
       indicators.add(
-        Tooltip(
+        const Tooltip(
           message: 'Recyclable',
           child: Icon(
             Icons.recycling,
@@ -253,7 +250,7 @@ class HistoryListItem extends StatelessWidget {
     
     if (classification.isCompostable == true) {
       indicators.add(
-        Tooltip(
+        const Tooltip(
           message: 'Compostable',
           child: Icon(
             Icons.eco,
@@ -267,7 +264,7 @@ class HistoryListItem extends StatelessWidget {
     
     if (classification.requiresSpecialDisposal == true) {
       indicators.add(
-        Tooltip(
+        const Tooltip(
           message: 'Special Disposal Required',
           child: Icon(
             Icons.warning_amber,
@@ -286,7 +283,7 @@ class HistoryListItem extends StatelessWidget {
           child: indicator,
         )),
         const Spacer(),
-        Icon(
+        const Icon(
           Icons.chevron_right,
           size: 18,
           color: AppTheme.textSecondaryColor,

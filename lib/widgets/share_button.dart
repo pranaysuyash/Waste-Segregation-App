@@ -3,6 +3,18 @@ import '../utils/share_service.dart';
 
 /// A reusable share button widget that can be added to any screen
 class ShareButton extends StatelessWidget {
+
+  const ShareButton({
+    super.key,
+    required this.text,
+    this.subject,
+    this.files,
+    this.tooltip = 'Share',
+    this.icon = Icons.share,
+    this.color,
+    this.size = 24.0,
+    this.showSnackBar = true,
+  });
   /// The text content to share
   final String text;
   
@@ -26,18 +38,6 @@ class ShareButton extends StatelessWidget {
   
   /// Whether to show a SnackBar notification
   final bool showSnackBar;
-
-  const ShareButton({
-    super.key,
-    required this.text,
-    this.subject,
-    this.files,
-    this.tooltip = 'Share',
-    this.icon = Icons.share,
-    this.color,
-    this.size = 24.0,
-    this.showSnackBar = true,
-  });
 
   @override
   Widget build(BuildContext context) {
@@ -77,6 +77,17 @@ class ShareButton extends StatelessWidget {
 
 /// A floating action button for sharing
 class ShareFloatingActionButton extends StatelessWidget {
+
+  const ShareFloatingActionButton({
+    super.key,
+    required this.text,
+    this.subject,
+    this.files,
+    this.tooltip = 'Share',
+    this.backgroundColor,
+    this.foregroundColor,
+    this.showSnackBar = true,
+  });
   /// The text content to share
   final String text;
   
@@ -97,17 +108,6 @@ class ShareFloatingActionButton extends StatelessWidget {
   
   /// Whether to show a SnackBar notification
   final bool showSnackBar;
-
-  const ShareFloatingActionButton({
-    super.key,
-    required this.text,
-    this.subject,
-    this.files,
-    this.tooltip = 'Share',
-    this.backgroundColor,
-    this.foregroundColor,
-    this.showSnackBar = true,
-  });
 
   @override
   Widget build(BuildContext context) {

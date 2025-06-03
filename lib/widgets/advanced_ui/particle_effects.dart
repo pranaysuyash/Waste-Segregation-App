@@ -5,12 +5,6 @@ import 'dart:ui';
 /// Advanced floating particle system for background animations
 /// Designed for Gen Z appeal with smooth, mesmerizing motion
 class FloatingParticleSystem extends StatefulWidget {
-  final int particleCount;
-  final Color primaryColor;
-  final Color secondaryColor;
-  final double particleSize;
-  final double animationSpeed;
-  final bool isDarkMode;
   
   const FloatingParticleSystem({
     Key? key,
@@ -21,6 +15,12 @@ class FloatingParticleSystem extends StatefulWidget {
     this.animationSpeed = 1.0,
     this.isDarkMode = false,
   }) : super(key: key);
+  final int particleCount;
+  final Color primaryColor;
+  final Color secondaryColor;
+  final double particleSize;
+  final double animationSpeed;
+  final bool isDarkMode;
   
   @override
   _FloatingParticleSystemState createState() => _FloatingParticleSystemState();
@@ -88,14 +88,6 @@ class _FloatingParticleSystemState extends State<FloatingParticleSystem>
 }
 
 class Particle {
-  double x;
-  double y;
-  final double size;
-  final double speed;
-  final double direction;
-  final double opacity;
-  final Color color;
-  final double phase;
   
   Particle({
     required this.x,
@@ -107,18 +99,26 @@ class Particle {
     required this.color,
     required this.phase,
   });
+  double x;
+  double y;
+  final double size;
+  final double speed;
+  final double direction;
+  final double opacity;
+  final Color color;
+  final double phase;
 }
 
 class ParticleSystemPainter extends CustomPainter {
-  final List<Particle> particles;
-  final double animationValue;
-  final bool isDarkMode;
   
   ParticleSystemPainter({
     required this.particles,
     required this.animationValue,
     required this.isDarkMode,
   });
+  final List<Particle> particles;
+  final double animationValue;
+  final bool isDarkMode;
   
   @override
   void paint(Canvas canvas, Size size) {
@@ -177,12 +177,6 @@ class ParticleSystemPainter extends CustomPainter {
 
 /// Pulsing scan button with particle trail effect
 class PulsingScanButton extends StatefulWidget {
-  final VoidCallback onPressed;
-  final String label;
-  final IconData icon;
-  final Color primaryColor;
-  final Color secondaryColor;
-  final double size;
   
   const PulsingScanButton({
     Key? key,
@@ -193,6 +187,12 @@ class PulsingScanButton extends StatefulWidget {
     this.secondaryColor = const Color(0xFF00B4D8),
     this.size = 120.0,
   }) : super(key: key);
+  final VoidCallback onPressed;
+  final String label;
+  final IconData icon;
+  final Color primaryColor;
+  final Color secondaryColor;
+  final double size;
   
   @override
   _PulsingScanButtonState createState() => _PulsingScanButtonState();
@@ -213,12 +213,12 @@ class _PulsingScanButtonState extends State<PulsingScanButton>
     super.initState();
     
     _pulseController = AnimationController(
-      duration: Duration(milliseconds: 1500),
+      duration: const Duration(milliseconds: 1500),
       vsync: this,
     )..repeat(reverse: true);
     
     _particleController = AnimationController(
-      duration: Duration(seconds: 3),
+      duration: const Duration(seconds: 3),
       vsync: this,
     )..repeat();
     
@@ -295,7 +295,7 @@ class _PulsingScanButtonState extends State<PulsingScanButton>
                         size: widget.size * 0.25,
                         color: Colors.white,
                       ),
-                      SizedBox(height: 4),
+                      const SizedBox(height: 4),
                       Text(
                         widget.label,
                         style: TextStyle(
@@ -325,13 +325,13 @@ class _PulsingScanButtonState extends State<PulsingScanButton>
 }
 
 class ButtonParticleTrailPainter extends CustomPainter {
-  final double animationValue;
-  final Color color;
   
   ButtonParticleTrailPainter({
     required this.animationValue,
     required this.color,
   });
+  final double animationValue;
+  final Color color;
   
   @override
   void paint(Canvas canvas, Size size) {
@@ -343,7 +343,7 @@ class ButtonParticleTrailPainter extends CustomPainter {
     final radius = size.width / 2;
     
     // Draw orbiting particles
-    for (int i = 0; i < 6; i++) {
+    for (var i = 0; i < 6; i++) {
       final angle = (i * 2 * math.pi / 6) + (animationValue * 2 * math.pi);
       final particleRadius = radius * 0.7;
       final particlePosition = Offset(

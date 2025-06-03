@@ -4,14 +4,14 @@ import '../utils/constants.dart'; // This imports AppIcons, AppTheme, and AppStr
 
 /// A widget that displays the user's current streak
 class StreakIndicator extends StatelessWidget {
-  final Streak streak;
-  final VoidCallback? onTap;
 
   const StreakIndicator({
     super.key,
     required this.streak,
     this.onTap,
   });
+  final Streak streak;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
@@ -74,7 +74,7 @@ class StreakIndicator extends StatelessWidget {
                   ),
                   child: Row(
                     children: [
-                      Icon(
+                      const Icon(
                         Icons.emoji_events,
                         color: Colors.amber,
                         size: 12,
@@ -117,14 +117,14 @@ class StreakIndicator extends StatelessWidget {
 
 /// A widget that displays a challenge card
 class ChallengeCard extends StatelessWidget {
-  final Challenge challenge;
-  final VoidCallback? onTap;
 
   const ChallengeCard({
     super.key,
     required this.challenge,
     this.onTap,
   });
+  final Challenge challenge;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
@@ -195,14 +195,14 @@ class ChallengeCard extends StatelessWidget {
 
 /// A widget that displays the user's level and points
 class PointsIndicator extends StatelessWidget {
-  final UserPoints points;
-  final VoidCallback? onTap;
 
   const PointsIndicator({
     super.key,
     required this.points,
     this.onTap,
   });
+  final UserPoints points;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
@@ -223,7 +223,7 @@ class PointsIndicator extends StatelessWidget {
           children: [
             Container(
               padding: const EdgeInsets.all(4),
-              decoration: BoxDecoration(
+              decoration: const BoxDecoration(
                 color: AppTheme.primaryColor,
                 shape: BoxShape.circle,
               ),
@@ -242,7 +242,7 @@ class PointsIndicator extends StatelessWidget {
               children: [
                 Row(
                   children: [
-                    Icon(
+                    const Icon(
                       Icons.stars,
                       color: Colors.amber,
                       size: 12,
@@ -268,7 +268,7 @@ class PointsIndicator extends StatelessWidget {
                       minHeight: 4,
                       backgroundColor: Colors.grey.withOpacity(0.3),
                       valueColor:
-                          AlwaysStoppedAnimation<Color>(AppTheme.primaryColor),
+                          const AlwaysStoppedAnimation<Color>(AppTheme.primaryColor),
                     ),
                   ),
                 ),
@@ -283,14 +283,14 @@ class PointsIndicator extends StatelessWidget {
 
 /// A widget that displays achievement badges
 class AchievementGrid extends StatelessWidget {
-  final List<Achievement> achievements;
-  final VoidCallback? onViewAll;
 
   const AchievementGrid({
     super.key,
     required this.achievements,
     this.onViewAll,
   });
+  final List<Achievement> achievements;
+  final VoidCallback? onViewAll;
 
   @override
   Widget build(BuildContext context) {
@@ -353,7 +353,6 @@ class AchievementGrid extends StatelessWidget {
             physics: const NeverScrollableScrollPhysics(),
             gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
               crossAxisCount: 4,
-              childAspectRatio: 1,
               crossAxisSpacing: AppTheme.paddingSmall,
               mainAxisSpacing: AppTheme.paddingSmall,
             ),
@@ -393,14 +392,14 @@ class AchievementGrid extends StatelessWidget {
 
 /// A widget that displays a notification when a user earns an achievement
 class AchievementNotification extends StatelessWidget {
-  final Achievement achievement;
-  final VoidCallback? onDismiss;
 
   const AchievementNotification({
     super.key,
     required this.achievement,
     this.onDismiss,
   });
+  final Achievement achievement;
+  final VoidCallback? onDismiss;
 
   @override
   Widget build(BuildContext context) {
@@ -474,7 +473,7 @@ class AchievementNotification extends StatelessWidget {
             ),
             const SizedBox(height: AppTheme.paddingSmall),
             // Points earned
-            Row(
+            const Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Icon(
@@ -482,8 +481,8 @@ class AchievementNotification extends StatelessWidget {
                   color: Colors.amber,
                   size: 16,
                 ),
-                const SizedBox(width: 2),
-                const Text(
+                SizedBox(width: 2),
+                Text(
                   '+20 Points',
                   style: TextStyle(
                     fontSize: AppTheme.fontSizeSmall,

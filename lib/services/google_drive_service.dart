@@ -9,6 +9,8 @@ import 'storage_service.dart';
 import '../models/user_profile.dart';
 
 class GoogleDriveService {
+
+  GoogleDriveService(this._storageService);
   final GoogleSignIn _googleSignIn = GoogleSignIn(
     scopes: [
       'email',
@@ -18,12 +20,10 @@ class GoogleDriveService {
 
   final StorageService _storageService;
 
-  GoogleDriveService(this._storageService);
-
   // Sign in with Google
   Future<GoogleSignInAccount?> signIn() async {
     try {
-      final GoogleSignInAccount? account = await _googleSignIn.signIn();
+      final account = await _googleSignIn.signIn();
       if (account != null) {
         // Create UserProfile object
         final userProfile = UserProfile(
@@ -57,18 +57,18 @@ class GoogleDriveService {
 
   // Check if user is signed in
   Future<bool> isSignedIn() async {
-    return await _googleSignIn.isSignedIn();
+    return _googleSignIn.isSignedIn();
   }
 
   // Get authenticated HTTP client
   Future<http.Client> _getAuthenticatedHttpClient() async {
-    final GoogleSignInAccount? account = await _googleSignIn.signInSilently();
+    final account = await _googleSignIn.signInSilently();
     if (account == null) {
       throw Exception('User not signed in');
     }
 
-    final GoogleSignInAuthentication auth = await account.authentication;
-    final Map<String, String> authHeaders = {
+    final auth = await account.authentication;
+    final authHeaders = <String, String>{
       'Authorization': 'Bearer ${auth.accessToken}',
       'Content-Type': 'application/json',
     };
@@ -124,13 +124,13 @@ class GoogleDriveService {
       final driveApi = drive.DriveApi(client);
 
       // Get file
-      final drive.Media media = await driveApi.files.get(
+      final media = await driveApi.files.get(
         fileId,
         downloadOptions: drive.DownloadOptions.fullMedia,
       ) as drive.Media;
 
       // Read the media content
-      final List<int> dataStore = [];
+      final dataStore = <int>[];
       await media.stream.forEach((data) {
         dataStore.insertAll(dataStore.length, data);
       });
@@ -166,7 +166,7 @@ class GoogleDriveService {
       final client = await _getAuthenticatedHttpClient();
       final driveApi = drive.DriveApi(client);
 
-      final String query = isFolder
+      final query = isFolder
           ? "name = '$name' and mimeType = 'application/vnd.google-apps.folder' and trashed = false"
           : "name = '$name' and trashed = false";
 
@@ -185,16 +185,16 @@ class GoogleDriveService {
   Future<String> backupUserData() async {
     try {
       // Export all user data
-      final String userData = await _storageService.exportUserData();
+      final userData = await _storageService.exportUserData();
 
       // Find app folder or create it
-      final String appFolderName = 'WasteSegregationApp';
-      String? folderId = await findFileOrFolder(appFolderName, isFolder: true);
+      const appFolderName = 'WasteSegregationApp';
+      var folderId = await findFileOrFolder(appFolderName, isFolder: true);
 
       folderId ??= await createFolder(appFolderName);
 
       // Backup file name with timestamp
-      final String fileName =
+      final fileName =
           'waste_seg_backup_${DateTime.now().millisecondsSinceEpoch}.json';
 
       // Upload backup to drive
@@ -213,7 +213,7 @@ class GoogleDriveService {
   // Restore user data from Google Drive
   Future<void> restoreUserData(String fileId) async {
     try {
-      final String userData = await downloadFromDrive(fileId);
+      final userData = await downloadFromDrive(fileId);
       await _storageService.importUserData(userData);
     } catch (e) {
       debugPrint('Error restoring user data: $e');
@@ -228,8 +228,8 @@ class GoogleDriveService {
       final driveApi = drive.DriveApi(client);
 
       // Find app folder
-      final String appFolderName = 'WasteSegregationApp';
-      final String? folderId =
+      const appFolderName = 'WasteSegregationApp';
+      final folderId =
           await findFileOrFolder(appFolderName, isFolder: true);
 
       if (folderId == null) {
@@ -237,7 +237,7 @@ class GoogleDriveService {
       }
 
       // List files in the folder
-      final String query =
+      final query =
           "'$folderId' in parents and name contains 'waste_seg_backup_' and trashed = false";
       final fileList = await driveApi.files.list(q: query);
 
@@ -261,10 +261,10 @@ class GoogleDriveService {
 
 // Custom HTTP Client for authentication
 class _AuthenticatedClient extends http.BaseClient {
-  final http.Client _client;
-  final Map<String, String> _headers;
 
   _AuthenticatedClient(this._client, this._headers);
+  final http.Client _client;
+  final Map<String, String> _headers;
 
   @override
   Future<http.StreamedResponse> send(http.BaseRequest request) {

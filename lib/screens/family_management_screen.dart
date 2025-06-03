@@ -9,12 +9,12 @@ import '../services/storage_service.dart';
 import '../utils/constants.dart';
 
 class FamilyManagementScreen extends StatefulWidget {
-  final family_models.Family family;
 
   const FamilyManagementScreen({
     super.key,
     required this.family,
   });
+  final family_models.Family family;
 
   @override
   State<FamilyManagementScreen> createState() => _FamilyManagementScreenState();
@@ -381,7 +381,7 @@ class _FamilyManagementScreenState extends State<FamilyManagementScreen>
 
   Widget _buildSettingsTab(family_models.Family family) {
     final currentFamilyData = family;
-    bool canModify = _canModifySettings(currentFamilyData);
+    var canModify = _canModifySettings(currentFamilyData);
 
     return RefreshIndicator(
       onRefresh: _handleRefresh,
@@ -507,7 +507,7 @@ class _FamilyManagementScreenState extends State<FamilyManagementScreen>
 
   Future<void> _showInviteDialog(family_models.Family family) async {
     final emailController = TextEditingController();
-    family_models.UserRole roleToAssign = family_models.UserRole.member;
+    var roleToAssign = family_models.UserRole.member;
 
     await showDialog(
       context: context,
@@ -577,7 +577,7 @@ class _FamilyManagementScreenState extends State<FamilyManagementScreen>
   }
 
   Future<void> _showChangeRoleDialog(family_models.Family family, user_models.UserProfile member) async {
-    family_models.UserRole? selectedRole = family.getMember(member.id)?.role;
+    var selectedRole = family.getMember(member.id)?.role;
     await showDialog(
       context: context,
       builder: (context) {
@@ -833,7 +833,7 @@ class _FamilyManagementScreenState extends State<FamilyManagementScreen>
   }
 
   void _deleteFamily(family_models.Family family) async {
-    bool? confirmed = await showDialog<bool>(
+    var confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Delete Family?'),

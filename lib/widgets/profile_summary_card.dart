@@ -4,8 +4,8 @@ import '../utils/constants.dart';
 
 /// Displays user's level, rank, and points progress in a card.
 class ProfileSummaryCard extends StatelessWidget {
-  final UserPoints points;
   const ProfileSummaryCard({super.key, required this.points});
+  final UserPoints points;
 
   @override
   Widget build(BuildContext context) {
@@ -32,7 +32,7 @@ class ProfileSummaryCard extends StatelessWidget {
                     const SizedBox(height: 4),
                     Row(
                       children: [
-                        Icon(
+                        const Icon(
                           Icons.military_tech,
                           color: AppTheme.primaryColor,
                           size: 28,

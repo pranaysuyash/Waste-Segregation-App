@@ -122,15 +122,15 @@ class _OfflineModeSettingsScreenState extends State<OfflineModeSettingsScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Row(
+                    const Row(
                       children: [
                         Icon(
                           Icons.offline_bolt,
                           color: WasteAppDesignSystem.primaryGreen,
                           size: 24,
                         ),
-                        const SizedBox(width: WasteAppDesignSystem.spacingS),
-                        const Text(
+                        SizedBox(width: WasteAppDesignSystem.spacingS),
+                        Text(
                           'Enable Offline Mode',
                           style: TextStyle(
                             fontSize: 18,
@@ -186,7 +186,7 @@ class _OfflineModeSettingsScreenState extends State<OfflineModeSettingsScreen> {
                   margin: const EdgeInsets.only(bottom: WasteAppDesignSystem.spacingM),
                   child: _buildModelCard(model),
                 );
-              }).toList(),
+              }),
               
               const SizedBox(height: WasteAppDesignSystem.spacingL),
               
@@ -197,11 +197,11 @@ class _OfflineModeSettingsScreenState extends State<OfflineModeSettingsScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Row(
+                      const Row(
                         children: [
-                          const Icon(Icons.settings, color: Colors.grey),
-                          const SizedBox(width: WasteAppDesignSystem.spacingS),
-                          const Text(
+                          Icon(Icons.settings, color: Colors.grey),
+                          SizedBox(width: WasteAppDesignSystem.spacingS),
+                          Text(
                             'Advanced Settings',
                             style: TextStyle(
                               fontSize: 18,
@@ -263,11 +263,11 @@ class _OfflineModeSettingsScreenState extends State<OfflineModeSettingsScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Row(
+                      const Row(
                         children: [
-                          const Icon(Icons.storage, color: Colors.blue),
-                          const SizedBox(width: WasteAppDesignSystem.spacingS),
-                          const Text(
+                          Icon(Icons.storage, color: Colors.blue),
+                          SizedBox(width: WasteAppDesignSystem.spacingS),
+                          Text(
                             'Storage Usage',
                             style: TextStyle(
                               fontSize: 16,
@@ -464,12 +464,6 @@ class _OfflineModeSettingsScreenState extends State<OfflineModeSettingsScreen> {
 }
 
 class OfflineModel {
-  final String name;
-  final String description;
-  final String size;
-  final double accuracy;
-  bool isDownloaded;
-  final bool isRequired;
 
   OfflineModel({
     required this.name,
@@ -479,4 +473,10 @@ class OfflineModel {
     required this.isDownloaded,
     required this.isRequired,
   });
+  final String name;
+  final String description;
+  final String size;
+  final double accuracy;
+  bool isDownloaded;
+  final bool isRequired;
 }

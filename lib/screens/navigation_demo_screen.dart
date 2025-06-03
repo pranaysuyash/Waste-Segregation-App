@@ -107,7 +107,7 @@ class NavigationDemoScreen extends StatelessWidget {
                     label: const Text('Back to App'),
                     style: OutlinedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(vertical: 16),
-                      side: BorderSide(color: AppTheme.primaryColor),
+                      side: const BorderSide(color: AppTheme.primaryColor),
                       foregroundColor: AppTheme.primaryColor,
                     ),
                   ),

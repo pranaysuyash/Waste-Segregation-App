@@ -3,26 +3,6 @@ import '../../utils/constants.dart';
 
 /// Modern text field with enhanced styling and animations
 class ModernTextField extends StatefulWidget {
-  final TextEditingController? controller;
-  final String? labelText;
-  final String? hintText;
-  final String? helperText;
-  final String? errorText;
-  final IconData? prefixIcon;
-  final IconData? suffixIcon;
-  final VoidCallback? onSuffixIconPressed;
-  final bool obscureText;
-  final TextInputType? keyboardType;
-  final int? maxLines;
-  final int? minLines;
-  final bool enabled;
-  final bool readOnly;
-  final Function(String)? onChanged;
-  final Function(String)? onSubmitted;
-  final Function()? onTap;
-  final String? Function(String?)? validator;
-  final TextCapitalization textCapitalization;
-  final InputDecoration? decoration;
 
   const ModernTextField({
     super.key,
@@ -47,6 +27,26 @@ class ModernTextField extends StatefulWidget {
     this.textCapitalization = TextCapitalization.none,
     this.decoration,
   });
+  final TextEditingController? controller;
+  final String? labelText;
+  final String? hintText;
+  final String? helperText;
+  final String? errorText;
+  final IconData? prefixIcon;
+  final IconData? suffixIcon;
+  final VoidCallback? onSuffixIconPressed;
+  final bool obscureText;
+  final TextInputType? keyboardType;
+  final int? maxLines;
+  final int? minLines;
+  final bool enabled;
+  final bool readOnly;
+  final Function(String)? onChanged;
+  final Function(String)? onSubmitted;
+  final Function()? onTap;
+  final String? Function(String?)? validator;
+  final TextCapitalization textCapitalization;
+  final InputDecoration? decoration;
 
   @override
   State<ModernTextField> createState() => _ModernTextFieldState();
@@ -135,14 +135,12 @@ class _ModernTextFieldState extends State<ModernTextField>
               borderRadius: BorderRadius.circular(AppTheme.borderRadiusRegular),
               borderSide: BorderSide(
                 color: theme.colorScheme.outline,
-                width: 1.0,
               ),
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(AppTheme.borderRadiusRegular),
               borderSide: BorderSide(
                 color: theme.colorScheme.outline.withValues(alpha: 0.5),
-                width: 1.0,
               ),
             ),
             focusedBorder: OutlineInputBorder(
@@ -156,7 +154,6 @@ class _ModernTextFieldState extends State<ModernTextField>
               borderRadius: BorderRadius.circular(AppTheme.borderRadiusRegular),
               borderSide: BorderSide(
                 color: theme.colorScheme.error,
-                width: 1.0,
               ),
             ),
             focusedErrorBorder: OutlineInputBorder(

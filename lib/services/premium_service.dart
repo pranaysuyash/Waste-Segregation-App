@@ -3,16 +3,16 @@ import 'package:hive/hive.dart';
 import '../models/premium_feature.dart';
 
 class PremiumService extends ChangeNotifier {
-  static const String _premiumBoxName = 'premium_features';
-  Box<bool>? _premiumBox;
-  bool _isInitialized = false;
-  bool _isInitializing = false;
 
   // Constructor now initializes immediately
   PremiumService() {
     // Ensure initialization happens early
     initialize();
   }
+  static const String _premiumBoxName = 'premium_features';
+  Box<bool>? _premiumBox;
+  bool _isInitialized = false;
+  bool _isInitializing = false;
 
   bool get isInitialized => _isInitialized;
 

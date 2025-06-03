@@ -51,7 +51,6 @@ void main() {
               value: '999,999',
               icon: Icons.stars,
               trend: '+150%',
-              isPositiveTrend: true,
             ),
           ),
         ),
@@ -84,11 +83,11 @@ void main() {
 
     testWidgets('StatsCard adapts to narrow width', (WidgetTester tester) async {
       await tester.pumpWidget(
-        MaterialApp(
+        const MaterialApp(
           home: Scaffold(
             body: SizedBox(
               width: 80, // Very narrow
-              child: const StatsCard(
+              child: StatsCard(
                 title: 'Very Long Title That Should Truncate',
                 value: '1,234,567',
                 icon: Icons.analytics,
@@ -112,7 +111,6 @@ void main() {
               title: 'Test',
               value: '100',
               trend: '+10%',
-              isPositiveTrend: true,
             ),
           ),
         ),
@@ -138,7 +136,7 @@ void main() {
     });
 
     testWidgets('StatsCard handles tap events', (WidgetTester tester) async {
-      bool tapped = false;
+      var tapped = false;
       
       await tester.pumpWidget(
         MaterialApp(
@@ -158,17 +156,16 @@ void main() {
 
     testWidgets('StatsCard row layout handles multiple cards', (WidgetTester tester) async {
       await tester.pumpWidget(
-        MaterialApp(
+        const MaterialApp(
           home: Scaffold(
             body: Row(
-              children: const [
+              children: [
                 Expanded(
                   child: StatsCard(
                     title: 'Classifications',
                     value: '42',
                     icon: Icons.analytics,
                     trend: '+12%',
-                    isPositiveTrend: true,
                   ),
                 ),
                 SizedBox(width: 16),
@@ -187,7 +184,6 @@ void main() {
                     value: '1,250',
                     icon: Icons.stars,
                     trend: '+24',
-                    isPositiveTrend: true,
                   ),
                 ),
               ],
@@ -256,7 +252,7 @@ void main() {
 
       // All instances should render
       expect(find.byType(StatsCard), findsNWidgets(5));
-      for (int i = 0; i < 5; i++) {
+      for (var i = 0; i < 5; i++) {
         expect(find.text('Card $i'), findsOneWidget);
         expect(find.text('$i'), findsOneWidget);
       }
@@ -264,10 +260,10 @@ void main() {
 
     testWidgets('StatsCard color standardization test', (WidgetTester tester) async {
       await tester.pumpWidget(
-        MaterialApp(
+        const MaterialApp(
           home: Scaffold(
             body: Column(
-              children: const [
+              children: [
                 StatsCard(
                   title: 'Dry Waste',
                   value: '18',
@@ -278,7 +274,6 @@ void main() {
                   title: 'Success Trend',
                   value: '100',
                   trend: '+10%',
-                  isPositiveTrend: true, // Should use AppTheme.successColor
                 ),
                 StatsCard(
                   title: 'Error Trend',

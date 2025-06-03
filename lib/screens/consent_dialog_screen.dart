@@ -4,14 +4,14 @@ import '../utils/constants.dart';
 import 'legal_document_screen.dart';
 
 class ConsentDialogScreen extends StatelessWidget {
-  final VoidCallback onConsent;
-  final VoidCallback onDecline;
   
   const ConsentDialogScreen({
     super.key,
     required this.onConsent,
     required this.onDecline,
   });
+  final VoidCallback onConsent;
+  final VoidCallback onDecline;
 
   @override
   Widget build(BuildContext context) {
@@ -21,7 +21,6 @@ class ConsentDialogScreen extends StatelessWidget {
         child: Padding(
           padding: const EdgeInsets.all(AppTheme.paddingLarge),
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               const SizedBox(height: AppTheme.paddingLarge),
               
@@ -33,7 +32,7 @@ class ConsentDialogScreen extends StatelessWidget {
                   color: AppTheme.primaryColor.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(20),
                 ),
-                child: Icon(
+                child: const Icon(
                   Icons.restore_from_trash,
                   size: 60,
                   color: AppTheme.primaryColor,

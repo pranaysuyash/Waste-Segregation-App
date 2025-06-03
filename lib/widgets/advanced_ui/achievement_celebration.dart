@@ -5,9 +5,6 @@ import '../../models/gamification.dart';
 
 /// Epic achievement celebration with confetti and 3D badge effect
 class AchievementCelebration extends StatefulWidget {
-  final Achievement achievement;
-  final VoidCallback onDismiss;
-  final Duration duration;
   
   const AchievementCelebration({
     Key? key,
@@ -15,6 +12,9 @@ class AchievementCelebration extends StatefulWidget {
     required this.onDismiss,
     this.duration = const Duration(seconds: 4),
   }) : super(key: key);
+  final Achievement achievement;
+  final VoidCallback onDismiss;
+  final Duration duration;
   
   @override
   _AchievementCelebrationState createState() => _AchievementCelebrationState();
@@ -43,12 +43,12 @@ class _AchievementCelebrationState extends State<AchievementCelebration>
     );
     
     _confettiController = AnimationController(
-      duration: Duration(seconds: 3),
+      duration: const Duration(seconds: 3),
       vsync: this,
     );
     
     _badgeController = AnimationController(
-      duration: Duration(milliseconds: 1200),
+      duration: const Duration(milliseconds: 1200),
       vsync: this,
     );
     
@@ -57,7 +57,7 @@ class _AchievementCelebrationState extends State<AchievementCelebration>
       end: 0.0,
     ).animate(CurvedAnimation(
       parent: _mainController,
-      curve: Interval(0.0, 0.6, curve: Curves.elasticOut),
+      curve: const Interval(0.0, 0.6, curve: Curves.elasticOut),
     ));
     
     _scaleAnimation = Tween<double>(
@@ -65,7 +65,7 @@ class _AchievementCelebrationState extends State<AchievementCelebration>
       end: 1.0,
     ).animate(CurvedAnimation(
       parent: _mainController,
-      curve: Interval(0.1, 0.7, curve: Curves.elasticOut),
+      curve: const Interval(0.1, 0.7, curve: Curves.elasticOut),
     ));
     
     _opacityAnimation = Tween<double>(
@@ -73,7 +73,7 @@ class _AchievementCelebrationState extends State<AchievementCelebration>
       end: 0.0,
     ).animate(CurvedAnimation(
       parent: _mainController,
-      curve: Interval(0.8, 1.0, curve: Curves.easeOut),
+      curve: const Interval(0.8, 1.0, curve: Curves.easeOut),
     ));
     
     _initializeConfetti();
@@ -102,9 +102,9 @@ class _AchievementCelebrationState extends State<AchievementCelebration>
       Colors.orange,
       widget.achievement.color,
       Colors.white,
-      Color(0xFF06FFA5),
-      Color(0xFF00B4D8),
-      Color(0xFFFF6B6B),
+      const Color(0xFF06FFA5),
+      const Color(0xFF00B4D8),
+      const Color(0xFFFF6B6B),
     ];
   }
   
@@ -112,7 +112,7 @@ class _AchievementCelebrationState extends State<AchievementCelebration>
     HapticFeedback.heavyImpact();
     _mainController.forward();
     _confettiController.forward();
-    await Future.delayed(Duration(milliseconds: 300));
+    await Future.delayed(const Duration(milliseconds: 300));
     _badgeController.forward();
     
     Future.delayed(widget.duration, () {
@@ -131,7 +131,7 @@ class _AchievementCelebrationState extends State<AchievementCelebration>
         builder: (context, child) {
           return Opacity(
             opacity: 1.0 - _opacityAnimation.value,
-            child: Container(
+            child: SizedBox(
               width: double.infinity,
               height: double.infinity,
               child: Stack(
@@ -164,8 +164,8 @@ class _AchievementCelebrationState extends State<AchievementCelebration>
   
   Widget _buildCelebrationCard() {
     return Container(
-      margin: EdgeInsets.all(32),
-      padding: EdgeInsets.all(24),
+      margin: const EdgeInsets.all(32),
+      padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
@@ -197,42 +197,42 @@ class _AchievementCelebrationState extends State<AchievementCelebration>
             ),
             textAlign: TextAlign.center,
           ),
-          SizedBox(height: 24),
+          const SizedBox(height: 24),
           _buildBadge(),
-          SizedBox(height: 24),
+          const SizedBox(height: 24),
           Text(
             widget.achievement.title,
-            style: TextStyle(
+            style: const TextStyle(
               fontSize: 24,
               fontWeight: FontWeight.bold,
               color: Colors.black87,
             ),
             textAlign: TextAlign.center,
           ),
-          SizedBox(height: 8),
+          const SizedBox(height: 8),
           Text(
             widget.achievement.description,
-            style: TextStyle(
+            style: const TextStyle(
               fontSize: 16,
               color: Colors.black54,
             ),
             textAlign: TextAlign.center,
           ),
-          SizedBox(height: 16),
+          const SizedBox(height: 16),
           Container(
-            padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             decoration: BoxDecoration(
-              gradient: LinearGradient(colors: [Colors.amber, Colors.orange]),
+              gradient: const LinearGradient(colors: [Colors.amber, Colors.orange]),
               borderRadius: BorderRadius.circular(20),
             ),
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(Icons.star, color: Colors.white, size: 20),
-                SizedBox(width: 8),
+                const Icon(Icons.star, color: Colors.white, size: 20),
+                const SizedBox(width: 8),
                 Text(
                   '+${widget.achievement.pointsReward} Points',
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
                     color: Colors.white,
@@ -266,7 +266,7 @@ class _AchievementCelebrationState extends State<AchievementCelebration>
             color: widget.achievement.color.withOpacity(0.4),
             blurRadius: 20,
             spreadRadius: 5,
-            offset: Offset(0, 10),
+            offset: const Offset(0, 10),
           ),
         ],
       ),
@@ -308,14 +308,6 @@ class _AchievementCelebrationState extends State<AchievementCelebration>
 }
 
 class ConfettiParticle {
-  double x;
-  double y;
-  final double velocityX;
-  final double velocityY;
-  final double size;
-  final Color color;
-  double rotation;
-  final double rotationSpeed;
   
   ConfettiParticle({
     required this.x,
@@ -327,16 +319,24 @@ class ConfettiParticle {
     required this.rotation,
     required this.rotationSpeed,
   });
+  double x;
+  double y;
+  final double velocityX;
+  final double velocityY;
+  final double size;
+  final Color color;
+  double rotation;
+  final double rotationSpeed;
 }
 
 class ConfettiPainter extends CustomPainter {
-  final List<ConfettiParticle> particles;
-  final double animationValue;
   
   ConfettiPainter({
     required this.particles,
     required this.animationValue,
   });
+  final List<ConfettiParticle> particles;
+  final double animationValue;
   
   @override
   void paint(Canvas canvas, Size size) {
@@ -395,9 +395,6 @@ class ConfettiPainter extends CustomPainter {
 
 /// Points earned popup with bounce animation
 class PointsEarnedPopup extends StatefulWidget {
-  final int points;
-  final String action;
-  final VoidCallback onDismiss;
   
   const PointsEarnedPopup({
     Key? key,
@@ -405,6 +402,9 @@ class PointsEarnedPopup extends StatefulWidget {
     required this.action,
     required this.onDismiss,
   }) : super(key: key);
+  final int points;
+  final String action;
+  final VoidCallback onDismiss;
   
   @override
   _PointsEarnedPopupState createState() => _PointsEarnedPopupState();
@@ -423,7 +423,7 @@ class _PointsEarnedPopupState extends State<PointsEarnedPopup>
     super.initState();
     
     _controller = AnimationController(
-      duration: Duration(seconds: 3),
+      duration: const Duration(seconds: 3),
       vsync: this,
     );
     
@@ -432,7 +432,7 @@ class _PointsEarnedPopupState extends State<PointsEarnedPopup>
       end: 1.0,
     ).animate(CurvedAnimation(
       parent: _controller,
-      curve: Interval(0.0, 0.3, curve: Curves.elasticOut),
+      curve: const Interval(0.0, 0.3, curve: Curves.elasticOut),
     ));
     
     _slideAnimation = Tween<double>(
@@ -440,7 +440,7 @@ class _PointsEarnedPopupState extends State<PointsEarnedPopup>
       end: -50.0,
     ).animate(CurvedAnimation(
       parent: _controller,
-      curve: Interval(0.3, 0.8, curve: Curves.easeOut),
+      curve: const Interval(0.3, 0.8, curve: Curves.easeOut),
     ));
     
     _opacityAnimation = Tween<double>(
@@ -448,7 +448,7 @@ class _PointsEarnedPopupState extends State<PointsEarnedPopup>
       end: 0.0,
     ).animate(CurvedAnimation(
       parent: _controller,
-      curve: Interval(0.7, 1.0, curve: Curves.easeOut),
+      curve: const Interval(0.7, 1.0, curve: Curves.easeOut),
     ));
     
     _controller.forward().then((_) {
@@ -468,9 +468,9 @@ class _PointsEarnedPopupState extends State<PointsEarnedPopup>
             child: Opacity(
               opacity: _opacityAnimation.value,
               child: Container(
-                padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                 decoration: BoxDecoration(
-                  gradient: LinearGradient(
+                  gradient: const LinearGradient(
                     colors: [Colors.amber, Colors.orange],
                   ),
                   borderRadius: BorderRadius.circular(25),
@@ -485,11 +485,11 @@ class _PointsEarnedPopupState extends State<PointsEarnedPopup>
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(Icons.star, color: Colors.white, size: 20),
-                    SizedBox(width: 8),
+                    const Icon(Icons.star, color: Colors.white, size: 20),
+                    const SizedBox(width: 8),
                     Text(
                       '+${widget.points}',
-                      style: TextStyle(
+                      style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
                         color: Colors.white,

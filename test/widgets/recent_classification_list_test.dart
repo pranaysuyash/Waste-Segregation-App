@@ -118,7 +118,7 @@ void main() {
     });
 
     testWidgets('RecentClassificationCard handles tap events correctly', (WidgetTester tester) async {
-      bool tapped = false;
+      var tapped = false;
       
       await tester.pumpWidget(
         MaterialApp(
@@ -364,7 +364,7 @@ void main() {
 
       // All instances should render
       expect(find.byType(RecentClassificationCard), findsNWidgets(5));
-      for (int i = 0; i < 5; i++) {
+      for (var i = 0; i < 5; i++) {
         expect(find.text('Item $i'), findsOneWidget);
         expect(find.text('Category $i'), findsOneWidget);
         expect(find.text('Subcategory $i'), findsOneWidget);
@@ -381,7 +381,6 @@ void main() {
               category: 'Dry Waste',
               timestamp: DateTime.now(),
               imageUrl: 'test_image.jpg',
-              showImage: true,
               onTap: () {},
             ),
           ),
@@ -420,7 +419,6 @@ void main() {
               timestamp: DateTime.now(),
               isRecyclable: true,
               isCompostable: true,
-              showPropertyIndicators: true,
               onTap: () {},
             ),
           ),

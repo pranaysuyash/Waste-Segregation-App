@@ -70,9 +70,9 @@ class PerformanceMonitor {
     final maxDuration = durations.last;
     
     // Count operations by performance level
-    int fastOperations = 0;
-    int slowOperations = 0;
-    int criticalOperations = 0;
+    var fastOperations = 0;
+    var slowOperations = 0;
+    var criticalOperations = 0;
     
     for (final duration in durations) {
       if (duration < _warningThreshold) {
@@ -99,7 +99,7 @@ class PerformanceMonitor {
   
   /// Get detailed performance breakdown by operation type
   static Map<String, Map<String, dynamic>> getDetailedStats() {
-    final Map<String, List<Duration>> operationGroups = {};
+    final operationGroups = <String, List<Duration>>{};
     
     // Group operations by name
     _performanceLog.forEach((operation, duration) {
@@ -109,7 +109,7 @@ class PerformanceMonitor {
     });
     
     // Calculate stats for each operation group
-    final Map<String, Map<String, dynamic>> detailedStats = {};
+    final detailedStats = <String, Map<String, dynamic>>{};
     
     operationGroups.forEach((operationName, durations) {
       final milliseconds = durations.map((d) => d.inMilliseconds).toList();

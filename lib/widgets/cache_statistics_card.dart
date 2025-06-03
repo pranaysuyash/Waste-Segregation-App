@@ -10,9 +10,6 @@ import 'package:waste_segregation_app/services/cache_service.dart';
 /// - Estimated data savings
 /// - Cache age
 class CacheStatisticsCard extends StatefulWidget {
-  final ClassificationCacheService cacheService;
-  final bool autoRefresh;
-  final Duration refreshInterval;
 
   const CacheStatisticsCard({
     super.key, 
@@ -20,6 +17,9 @@ class CacheStatisticsCard extends StatefulWidget {
     this.autoRefresh = true,
     this.refreshInterval = const Duration(seconds: 30),
   });
+  final ClassificationCacheService cacheService;
+  final bool autoRefresh;
+  final Duration refreshInterval;
 
   @override
   State<CacheStatisticsCard> createState() => _CacheStatisticsCardState();

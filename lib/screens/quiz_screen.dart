@@ -4,12 +4,12 @@ import '../utils/constants.dart';
 import '../utils/accessibility_contrast_fixes.dart';
 
 class QuizScreen extends StatefulWidget {
-  final EducationalContent quizContent;
 
   const QuizScreen({
     super.key,
     required this.quizContent,
   });
+  final EducationalContent quizContent;
 
   @override
   State<QuizScreen> createState() => _QuizScreenState();
@@ -63,8 +63,8 @@ class _QuizScreenState extends State<QuizScreen> {
   }
 
   int _calculateScore() {
-    int correctAnswers = 0;
-    for (int i = 0; i < _questions.length; i++) {
+    var correctAnswers = 0;
+    for (var i = 0; i < _questions.length; i++) {
       if (_userAnswers[i] == _questions[i].correctOptionIndex) {
         correctAnswers++;
       }
@@ -182,13 +182,13 @@ class _QuizScreenState extends State<QuizScreen> {
                   ...List.generate(
                       _questions[_currentQuestionIndex].options.length,
                       (index) {
-                    bool isCorrect = index ==
+                    var isCorrect = index ==
                         _questions[_currentQuestionIndex].correctOptionIndex;
-                    bool isSelected = index == _selectedOptionIndex;
+                    var isSelected = index == _selectedOptionIndex;
 
                     // Determine option card style based on selection and correctness
-                    Color backgroundColor = Colors.white;
-                    Color borderColor = Colors.grey.shade300;
+                    var backgroundColor = Colors.white;
+                    var borderColor = Colors.grey.shade300;
 
                     if (_hasAnswered) {
                       if (isCorrect) {
@@ -425,7 +425,6 @@ class _QuizScreenState extends State<QuizScreen> {
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(AppTheme.paddingRegular),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             // Score card
             Container(

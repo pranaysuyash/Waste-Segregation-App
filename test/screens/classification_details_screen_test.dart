@@ -120,7 +120,7 @@ void main() {
 
     testWidgets('Displays reactions list correctly', (WidgetTester tester) async {
       final reactions = [
-        createMockReaction(displayName: 'Bob', type: FamilyReactionType.like),
+        createMockReaction(displayName: 'Bob'),
         createMockReaction(displayName: 'Charlie', type: FamilyReactionType.love, photoUrl: 'https://example.com/charlie.jpg'),
       ];
       final mockClassification = createMockSharedClassification(reactions: reactions);
@@ -161,7 +161,7 @@ void main() {
     });
 
     testWidgets('Displays correct date format for sharedAt and comment timestamps', (WidgetTester tester) async {
-      final fixedTime = DateTime(2023, 1, 1, 10, 0, 0); // Known past time
+      final fixedTime = DateTime(2023, 1, 1, 10, 0); // Known past time
       final mockClassification = createMockSharedClassification(
         sharedAt: fixedTime,
         comments: [createMockComment(displayName: 'TestCommenter', text: 'Test', timestamp: fixedTime.add(const Duration(hours:1)))]

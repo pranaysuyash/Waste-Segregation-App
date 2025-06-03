@@ -4,19 +4,6 @@ import 'modern_badges.dart';
 
 /// Modern card widget with glassmorphism effect and customizable appearance
 class ModernCard extends StatelessWidget {
-  final Widget child;
-  final EdgeInsets? margin;
-  final EdgeInsets? padding;
-  final double? borderRadius;
-  final Color? backgroundColor;
-  final List<BoxShadow>? shadows;
-  final Border? border;
-  final VoidCallback? onTap;
-  final bool enableGlassmorphism;
-  final double? elevation;
-  final Gradient? gradient;
-  final double blur;
-  final double opacity;
 
   const ModernCard({
     super.key,
@@ -34,15 +21,28 @@ class ModernCard extends StatelessWidget {
     this.blur = 10.0,
     this.opacity = 0.1,
   });
+  final Widget child;
+  final EdgeInsets? margin;
+  final EdgeInsets? padding;
+  final double? borderRadius;
+  final Color? backgroundColor;
+  final List<BoxShadow>? shadows;
+  final Border? border;
+  final VoidCallback? onTap;
+  final bool enableGlassmorphism;
+  final double? elevation;
+  final Gradient? gradient;
+  final double blur;
+  final double opacity;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
     
-    final double effectiveRadius = borderRadius ?? AppTheme.borderRadiusLg;
+    final effectiveRadius = borderRadius ?? AppTheme.borderRadiusLg;
     
-    Widget cardContent = Container(
+    final Widget cardContent = Container(
       margin: margin ?? const EdgeInsets.all(AppTheme.spacingSm),
       padding: padding ?? const EdgeInsets.all(AppTheme.spacingMd),
       decoration: BoxDecoration(
@@ -52,8 +52,7 @@ class ModernCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(effectiveRadius),
         border: border ?? (enableGlassmorphism 
             ? Border.all(
-                color: Colors.white.withOpacity(0.2), 
-                width: 1,
+                color: Colors.white.withOpacity(0.2),
               ) 
             : null),
         boxShadow: shadows ?? [
@@ -61,7 +60,6 @@ class ModernCard extends StatelessWidget {
             color: Colors.black.withOpacity(isDark ? 0.3 : 0.1),
             blurRadius: blur,
             offset: const Offset(0, 4),
-            spreadRadius: 0,
           ),
         ],
         gradient: gradient,
@@ -86,14 +84,6 @@ class ModernCard extends StatelessWidget {
 
 /// Glassmorphism card with blur effect
 class GlassmorphismCard extends StatelessWidget {
-  final Widget child;
-  final EdgeInsets? margin;
-  final EdgeInsets? padding;
-  final double borderRadius;
-  final VoidCallback? onTap;
-  final Color? backgroundColor;
-  final double blur;
-  final double opacity;
 
   const GlassmorphismCard({
     super.key,
@@ -106,6 +96,14 @@ class GlassmorphismCard extends StatelessWidget {
     this.blur = 10.0,
     this.opacity = 0.1,
   });
+  final Widget child;
+  final EdgeInsets? margin;
+  final EdgeInsets? padding;
+  final double borderRadius;
+  final VoidCallback? onTap;
+  final Color? backgroundColor;
+  final double blur;
+  final double opacity;
 
   @override
   Widget build(BuildContext context) {
@@ -125,16 +123,6 @@ class GlassmorphismCard extends StatelessWidget {
 
 /// Feature card with icon and content - inspired by modern app designs
 class FeatureCard extends StatelessWidget {
-  final IconData icon;
-  final String title;
-  final String? subtitle;
-  final Widget? trailing;
-  final VoidCallback? onTap;
-  final Color? iconColor;
-  final Color? backgroundColor;
-  final bool showChevron;
-  final EdgeInsets? padding;
-  final double? iconSize;
 
   const FeatureCard({
     super.key,
@@ -149,6 +137,16 @@ class FeatureCard extends StatelessWidget {
     this.padding,
     this.iconSize,
   });
+  final IconData icon;
+  final String title;
+  final String? subtitle;
+  final Widget? trailing;
+  final VoidCallback? onTap;
+  final Color? iconColor;
+  final Color? backgroundColor;
+  final bool showChevron;
+  final EdgeInsets? padding;
+  final double? iconSize;
 
   @override
   Widget build(BuildContext context) {
@@ -159,7 +157,7 @@ class FeatureCard extends StatelessWidget {
     return LayoutBuilder(
       builder: (context, constraints) {
         // Responsive padding based on available width
-        EdgeInsets effectivePadding = padding ?? EdgeInsets.all(
+        var effectivePadding = padding ?? EdgeInsets.all(
           constraints.maxWidth < 300 
               ? AppTheme.spacingSm  // Smaller padding for narrow screens
               : AppTheme.spacingMd, // Standard padding for normal screens
@@ -232,14 +230,6 @@ class FeatureCard extends StatelessWidget {
 
 /// Stats card with modern number display and overflow protection
 class StatsCard extends StatelessWidget {
-  final String title;
-  final String value;
-  final String? subtitle;
-  final IconData? icon;
-  final Color? color;
-  final String? trend;
-  final bool isPositiveTrend;
-  final VoidCallback? onTap;
 
   const StatsCard({
     super.key,
@@ -252,6 +242,14 @@ class StatsCard extends StatelessWidget {
     this.isPositiveTrend = true,
     this.onTap,
   });
+  final String title;
+  final String value;
+  final String? subtitle;
+  final IconData? icon;
+  final Color? color;
+  final String? trend;
+  final bool isPositiveTrend;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
@@ -335,13 +333,6 @@ class StatsCard extends StatelessWidget {
 
 /// Action card with gradient background and modern styling
 class ActionCard extends StatelessWidget {
-  final String title;
-  final String? subtitle;
-  final IconData icon;
-  final VoidCallback onTap;
-  final Gradient? gradient;
-  final Color? color;
-  final Widget? badge;
 
   const ActionCard({
     super.key,
@@ -353,6 +344,13 @@ class ActionCard extends StatelessWidget {
     this.color,
     this.badge,
   });
+  final String title;
+  final String? subtitle;
+  final IconData icon;
+  final VoidCallback onTap;
+  final Gradient? gradient;
+  final Color? color;
+  final Widget? badge;
 
   @override
   Widget build(BuildContext context) {
@@ -418,15 +416,6 @@ class ActionCard extends StatelessWidget {
 
 /// Enhanced Active Challenge Card with overflow protection and responsive layout
 class ActiveChallengeCard extends StatelessWidget {
-  final String title;
-  final String description;
-  final double progress; // 0.0 to 1.0
-  final Color? challengeColor;
-  final IconData? icon;
-  final String? timeRemaining;
-  final String? reward;
-  final VoidCallback? onTap;
-  final bool showProgressText;
 
   const ActiveChallengeCard({
     super.key,
@@ -440,6 +429,15 @@ class ActiveChallengeCard extends StatelessWidget {
     this.onTap,
     this.showProgressText = true,
   });
+  final String title;
+  final String description;
+  final double progress; // 0.0 to 1.0
+  final Color? challengeColor;
+  final IconData? icon;
+  final String? timeRemaining;
+  final String? reward;
+  final VoidCallback? onTap;
+  final bool showProgressText;
 
   @override
   Widget build(BuildContext context) {
@@ -590,18 +588,6 @@ class ActiveChallengeCard extends StatelessWidget {
 
 /// Enhanced Recent Classification Card with overflow protection and responsive layout
 class RecentClassificationCard extends StatelessWidget {
-  final String itemName;
-  final String category;
-  final String? subcategory;
-  final DateTime timestamp;
-  final String? imageUrl;
-  final bool? isRecyclable;
-  final bool? isCompostable;
-  final bool? requiresSpecialDisposal;
-  final Color? categoryColor;
-  final VoidCallback? onTap;
-  final bool showImage;
-  final bool showPropertyIndicators;
 
   const RecentClassificationCard({
     super.key,
@@ -618,6 +604,18 @@ class RecentClassificationCard extends StatelessWidget {
     this.showImage = true,
     this.showPropertyIndicators = true,
   });
+  final String itemName;
+  final String category;
+  final String? subcategory;
+  final DateTime timestamp;
+  final String? imageUrl;
+  final bool? isRecyclable;
+  final bool? isCompostable;
+  final bool? requiresSpecialDisposal;
+  final Color? categoryColor;
+  final VoidCallback? onTap;
+  final bool showImage;
+  final bool showPropertyIndicators;
 
   @override
   Widget build(BuildContext context) {
@@ -628,12 +626,10 @@ class RecentClassificationCard extends StatelessWidget {
       onTap: onTap,
       margin: const EdgeInsets.symmetric(
         vertical: AppTheme.spacingXs,
-        horizontal: 0,
       ),
       padding: const EdgeInsets.all(AppTheme.spacingMd),
       border: Border.all(
         color: effectiveCategoryColor.withOpacity(0.3),
-        width: 1,
       ),
       child: LayoutBuilder(
         builder: (context, constraints) {
@@ -737,7 +733,7 @@ class RecentClassificationCard extends StatelessWidget {
     final theme = Theme.of(context);
     
     // Calculate space needed for property indicators
-    int indicatorCount = 0;
+    var indicatorCount = 0;
     if (showPropertyIndicators) {
       if (isRecyclable == true) indicatorCount++;
       if (isCompostable == true) indicatorCount++;
@@ -858,7 +854,7 @@ class RecentClassificationCard extends StatelessWidget {
   }
   
   List<Widget> _buildPropertyIndicators(bool isNarrow) {
-    final List<Widget> indicators = [];
+    final indicators = <Widget>[];
     final iconSize = isNarrow ? 14.0 : 16.0;
     
     if (isRecyclable == true) {
@@ -902,7 +898,7 @@ class RecentClassificationCard extends StatelessWidget {
     
     // Add spacing between indicators
     final spacedIndicators = <Widget>[];
-    for (int i = 0; i < indicators.length; i++) {
+    for (var i = 0; i < indicators.length; i++) {
       spacedIndicators.add(indicators[i]);
       if (i < indicators.length - 1) {
         spacedIndicators.add(const SizedBox(width: 2));

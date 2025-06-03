@@ -4,9 +4,9 @@ import 'package:waste_segregation_app/models/gamification.dart' show FamilyReact
 import 'package:waste_segregation_app/utils/constants.dart'; // For AppTheme
 
 class ClassificationDetailsScreen extends StatelessWidget {
-  final SharedWasteClassification classification;
 
   const ClassificationDetailsScreen({super.key, required this.classification});
+  final SharedWasteClassification classification;
 
   @override
   Widget build(BuildContext context) {

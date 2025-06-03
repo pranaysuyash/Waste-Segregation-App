@@ -17,6 +17,47 @@ enum UserRole {
 /// This model stores core user details and information related to their
 /// family/team membership and role.
 class UserProfile {
+
+
+  UserProfile({
+    required this.id,
+    this.displayName,
+    this.email,
+    this.photoUrl,
+    this.familyId,
+    this.role,
+    this.createdAt,
+    this.lastActive,
+    this.preferences,
+    this.gamificationProfile,
+  });
+
+  /// Creates a UserProfile instance from a JSON map.
+  factory UserProfile.fromJson(Map<String, dynamic> json) {
+    return UserProfile(
+      id: json['id'] as String,
+      displayName: json['displayName'] as String?,
+      email: json['email'] as String?,
+      photoUrl: json['photoUrl'] as String?,
+      familyId: json['familyId'] as String?,
+      role: json['role'] != null
+          ? UserRole.values.firstWhere(
+              (e) => e.toString().split('.').last == json['role'],
+              orElse: () => UserRole.guest, // Default if string doesn't match
+            )
+          : null,
+      createdAt: json['createdAt'] != null
+          ? DateTime.parse(json['createdAt'] as String)
+          : null,
+      lastActive: json['lastActive'] != null
+          ? DateTime.parse(json['lastActive'] as String)
+          : null,
+      preferences: json['preferences'] as Map<String, dynamic>?,
+      gamificationProfile: json['gamificationProfile'] != null
+          ? GamificationProfile.fromJson(json['gamificationProfile'] as Map<String, dynamic>)
+          : null,
+    );
+  }
   /// The unique identifier for the user, typically from the authentication provider.
   final String id;
 
@@ -46,20 +87,6 @@ class UserProfile {
 
   /// User's gamification data.
   final GamificationProfile? gamificationProfile;
-
-
-  UserProfile({
-    required this.id,
-    this.displayName,
-    this.email,
-    this.photoUrl,
-    this.familyId,
-    this.role,
-    this.createdAt,
-    this.lastActive,
-    this.preferences,
-    this.gamificationProfile,
-  });
 
   /// Creates a copy of this UserProfile but with the given fields replaced.
   UserProfile copyWith({
@@ -102,32 +129,5 @@ class UserProfile {
       'preferences': preferences,
       'gamificationProfile': gamificationProfile?.toJson(),
     };
-  }
-
-  /// Creates a UserProfile instance from a JSON map.
-  factory UserProfile.fromJson(Map<String, dynamic> json) {
-    return UserProfile(
-      id: json['id'] as String,
-      displayName: json['displayName'] as String?,
-      email: json['email'] as String?,
-      photoUrl: json['photoUrl'] as String?,
-      familyId: json['familyId'] as String?,
-      role: json['role'] != null
-          ? UserRole.values.firstWhere(
-              (e) => e.toString().split('.').last == json['role'],
-              orElse: () => UserRole.guest, // Default if string doesn't match
-            )
-          : null,
-      createdAt: json['createdAt'] != null
-          ? DateTime.parse(json['createdAt'] as String)
-          : null,
-      lastActive: json['lastActive'] != null
-          ? DateTime.parse(json['lastActive'] as String)
-          : null,
-      preferences: json['preferences'] as Map<String, dynamic>?,
-      gamificationProfile: json['gamificationProfile'] != null
-          ? GamificationProfile.fromJson(json['gamificationProfile'] as Map<String, dynamic>)
-          : null,
-    );
   }
 } 

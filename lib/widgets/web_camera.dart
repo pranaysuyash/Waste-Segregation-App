@@ -3,10 +3,10 @@ import 'package:image_picker/image_picker.dart';
 
 // Simple stub class for cross-platform compatibility
 class WebCameraHelper {
-  // Singleton
-  static final WebCameraHelper _instance = WebCameraHelper._internal();
   factory WebCameraHelper() => _instance;
   WebCameraHelper._internal();
+  // Singleton
+  static final WebCameraHelper _instance = WebCameraHelper._internal();
 
   // Platform-agnostic stubs
   Future<void> initialize() async {

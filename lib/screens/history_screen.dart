@@ -15,14 +15,14 @@ import '../widgets/history_list_item.dart';
 
 /// A screen that displays the complete history of waste classifications with filtering and searching
 class HistoryScreen extends StatefulWidget {
-  final String? filterCategory;
-  final String? filterSubcategory;
   
   const HistoryScreen({
     super.key,
     this.filterCategory,
     this.filterSubcategory,
   });
+  final String? filterCategory;
+  final String? filterSubcategory;
 
   @override
   State<HistoryScreen> createState() => _HistoryScreenState();
@@ -257,10 +257,8 @@ class _HistoryScreenState extends State<HistoryScreen> {
       builder: (context, child) {
         return Theme(
           data: Theme.of(context).copyWith(
-            colorScheme: ColorScheme.light(
+            colorScheme: const ColorScheme.light(
               primary: AppTheme.primaryColor,
-              onPrimary: Colors.white,
-              surface: Colors.white,
               onSurface: AppTheme.textPrimaryColor,
             ),
           ),
@@ -279,7 +277,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
   
   // Show filter dialog
   Future<void> _showFilterDialog() async {
-    List<String> tempSelectedCategories = List.from(_selectedCategories);
+    var tempSelectedCategories = List<String>.from(_selectedCategories);
     
     await showDialog(
       context: context,
@@ -498,7 +496,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
       throw Exception('Export is not supported on web platform yet');
     }
     
-    return await getTemporaryDirectory();
+    return getTemporaryDirectory();
   }
   
   // Show error snackbar
@@ -665,10 +663,6 @@ class _HistoryScreenState extends State<HistoryScreen> {
 }
 
 class EmptyStateWidget extends StatelessWidget {
-  final String title;
-  final String message;
-  final Widget? actionButton;
-  final IconData? icon;
 
   const EmptyStateWidget({
     super.key,
@@ -677,6 +671,10 @@ class EmptyStateWidget extends StatelessWidget {
     this.actionButton,
     this.icon, 
   });
+  final String title;
+  final String message;
+  final Widget? actionButton;
+  final IconData? icon;
 
   @override
   Widget build(BuildContext context) {
@@ -706,7 +704,7 @@ class EmptyStateWidget extends StatelessWidget {
             Text(
               message,
               textAlign: TextAlign.center,
-              style: TextStyle(
+              style: const TextStyle(
                 color: AppTheme.textSecondaryColor,
                 fontSize: AppTheme.fontSizeRegular,
                 height: 1.4,

@@ -5,15 +5,6 @@ import '../screens/history_screen.dart';
 
 /// Interactive tag widget that can navigate to educational content or filter results
 class InteractiveTag extends StatelessWidget {
-  final String text;
-  final Color color;
-  final Color textColor;
-  final VoidCallback? onTap;
-  final String? category;
-  final String? subcategory;
-  final TagAction action;
-  final IconData? icon;
-  final bool isOutlined;
 
   const InteractiveTag({
     super.key,
@@ -27,6 +18,15 @@ class InteractiveTag extends StatelessWidget {
     this.icon,
     this.isOutlined = false,
   });
+  final String text;
+  final Color color;
+  final Color textColor;
+  final VoidCallback? onTap;
+  final String? category;
+  final String? subcategory;
+  final TagAction action;
+  final IconData? icon;
+  final bool isOutlined;
 
   @override
   Widget build(BuildContext context) {
@@ -386,15 +386,12 @@ class InteractiveTag extends StatelessWidget {
   }
 
   String _getTipText() {
-    return text.replaceFirst('Tip: ', '') + '\n\nThis tip can help you dispose of waste more effectively and contribute to better environmental outcomes.';
+    return '${text.replaceFirst('Tip: ', '')}\n\nThis tip can help you dispose of waste more effectively and contribute to better environmental outcomes.';
   }
 }
 
 /// Enhanced tag collection widget for displaying multiple interactive tags
 class InteractiveTagCollection extends StatelessWidget {
-  final List<TagData> tags;
-  final int? maxTags;
-  final bool showViewMore;
 
   const InteractiveTagCollection({
     super.key,
@@ -402,6 +399,9 @@ class InteractiveTagCollection extends StatelessWidget {
     this.maxTags,
     this.showViewMore = true,
   });
+  final List<TagData> tags;
+  final int? maxTags;
+  final bool showViewMore;
 
   @override
   Widget build(BuildContext context) {
@@ -410,7 +410,7 @@ class InteractiveTagCollection extends StatelessWidget {
       builder: (context, constraints) {
         // Calculate how many tags can fit in the available space
         final availableWidth = constraints.maxWidth;
-        final estimatedTagWidth = 80.0; // Estimated average tag width
+        const estimatedTagWidth = 80.0; // Estimated average tag width
         final maxTagsPerRow = (availableWidth / estimatedTagWidth).floor().clamp(2, 6);
         
         // Determine which tags to show
@@ -506,15 +506,6 @@ class InteractiveTagCollection extends StatelessWidget {
 
 /// Data class for tag configuration
 class TagData {
-  final String text;
-  final Color color;
-  final Color textColor;
-  final String? category;
-  final String? subcategory;
-  final TagAction action;
-  final IconData? icon;
-  final bool isOutlined;
-  final VoidCallback? onTap;
 
   const TagData({
     required this.text,
@@ -527,6 +518,15 @@ class TagData {
     this.isOutlined = false,
     this.onTap,
   });
+  final String text;
+  final Color color;
+  final Color textColor;
+  final String? category;
+  final String? subcategory;
+  final TagAction action;
+  final IconData? icon;
+  final bool isOutlined;
+  final VoidCallback? onTap;
 }
 
 /// Actions that tags can perform - Enhanced version
@@ -616,7 +616,6 @@ class TagFactory {
       text: category,
       color: _getCategoryColor(category),
       category: category,
-      action: TagAction.educate,
       icon: _getCategoryIcon(category),
     );
   }
@@ -628,7 +627,6 @@ class TagFactory {
       color: _getCategoryColor(parentCategory),
       category: parentCategory,
       subcategory: subcategory,
-      action: TagAction.educate,
       isOutlined: true,
     );
   }

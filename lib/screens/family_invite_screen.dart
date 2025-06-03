@@ -10,12 +10,12 @@ import '../services/storage_service.dart';
 import '../utils/constants.dart';
 
 class FamilyInviteScreen extends StatefulWidget {
-  final Family family;
 
   const FamilyInviteScreen({
     super.key,
     required this.family,
   });
+  final Family family;
 
   @override
   State<FamilyInviteScreen> createState() => _FamilyInviteScreenState();
@@ -264,7 +264,6 @@ class _FamilyInviteScreenState extends State<FamilyInviteScreen>
     return SingleChildScrollView(
       padding: const EdgeInsets.all(AppTheme.paddingRegular),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           // QR Code
           Card(
@@ -288,7 +287,6 @@ class _FamilyInviteScreenState extends State<FamilyInviteScreen>
                     ),
                     child: QrImageView(
                       data: _inviteLink!,
-                      version: QrVersions.auto,
                       size: 200.0,
                       gapless: false,
                     ),

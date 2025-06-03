@@ -6,9 +6,6 @@ import 'modern_ui/modern_badges.dart';
 
 /// Today's Impact Goal Progress Ring Widget
 class TodaysImpactGoal extends StatefulWidget {
-  final int currentClassifications;
-  final int dailyGoal;
-  final VoidCallback? onTap;
 
   const TodaysImpactGoal({
     super.key,
@@ -16,6 +13,9 @@ class TodaysImpactGoal extends StatefulWidget {
     this.dailyGoal = 10,
     this.onTap,
   });
+  final int currentClassifications;
+  final int dailyGoal;
+  final VoidCallback? onTap;
 
   @override
   State<TodaysImpactGoal> createState() => _TodaysImpactGoalState();
@@ -90,7 +90,7 @@ class _TodaysImpactGoalState extends State<TodaysImpactGoal>
             // Title
             Row(
               children: [
-                Icon(
+                const Icon(
                   Icons.emoji_events,
                   color: AppTheme.primaryColor,
                   size: 24,
@@ -208,10 +208,6 @@ class _TodaysImpactGoalState extends State<TodaysImpactGoal>
 
 /// Custom painter for the impact ring
 class ImpactRingPainter extends CustomPainter {
-  final double progress;
-  final Color primaryColor;
-  final Color secondaryColor;
-  final bool isGoalReached;
 
   ImpactRingPainter({
     required this.progress,
@@ -219,12 +215,16 @@ class ImpactRingPainter extends CustomPainter {
     required this.secondaryColor,
     required this.isGoalReached,
   });
+  final double progress;
+  final Color primaryColor;
+  final Color secondaryColor;
+  final bool isGoalReached;
 
   @override
   void paint(Canvas canvas, Size size) {
     final center = Offset(size.width / 2, size.height / 2);
     final radius = (size.width - 20) / 2;
-    final strokeWidth = 12.0;
+    const strokeWidth = 12.0;
 
     // Background circle
     final backgroundPaint = Paint()
@@ -277,14 +277,14 @@ class ImpactRingPainter extends CustomPainter {
 
 /// Community Feed Preview Widget
 class CommunityFeedPreview extends StatelessWidget {
-  final List<CommunityActivity> activities;
-  final VoidCallback? onViewAll;
 
   const CommunityFeedPreview({
     super.key,
     required this.activities,
     this.onViewAll,
   });
+  final List<CommunityActivity> activities;
+  final VoidCallback? onViewAll;
 
   @override
   Widget build(BuildContext context) {
@@ -299,7 +299,7 @@ class CommunityFeedPreview extends StatelessWidget {
             // Header
             Row(
               children: [
-                Icon(
+                const Icon(
                   Icons.people,
                   color: AppTheme.primaryColor,
                   size: 24,
@@ -376,7 +376,7 @@ class CommunityFeedPreview extends StatelessWidget {
             backgroundColor: AppTheme.primaryColor.withOpacity(0.1),
             child: Text(
               activity.userName.isNotEmpty ? activity.userName[0].toUpperCase() : '?',
-              style: TextStyle(
+              style: const TextStyle(
                 color: AppTheme.primaryColor,
                 fontWeight: FontWeight.bold,
                 fontSize: 18,
@@ -441,9 +441,6 @@ class CommunityFeedPreview extends StatelessWidget {
 
 /// Global Impact Meter Widget
 class GlobalImpactMeter extends StatefulWidget {
-  final double globalCO2Saved;
-  final int globalItemsClassified;
-  final int activeUsers;
 
   const GlobalImpactMeter({
     super.key,
@@ -451,6 +448,9 @@ class GlobalImpactMeter extends StatefulWidget {
     required this.globalItemsClassified,
     required this.activeUsers,
   });
+  final double globalCO2Saved;
+  final int globalItemsClassified;
+  final int activeUsers;
 
   @override
   State<GlobalImpactMeter> createState() => _GlobalImpactMeterState();
@@ -498,7 +498,7 @@ class _GlobalImpactMeterState extends State<GlobalImpactMeter>
             // Header
             Row(
               children: [
-                Icon(
+                const Icon(
                   Icons.public,
                   color: AppTheme.primaryColor,
                   size: 24,
@@ -589,7 +589,6 @@ class _GlobalImpactMeterState extends State<GlobalImpactMeter>
         borderRadius: BorderRadius.circular(AppTheme.borderRadiusRegular),
         border: Border.all(
           color: color.withOpacity(0.3),
-          width: 1,
         ),
       ),
       child: Column(
@@ -631,10 +630,6 @@ class _GlobalImpactMeterState extends State<GlobalImpactMeter>
 
 /// Data model for community activities
 class CommunityActivity {
-  final String userName;
-  final String action;
-  final String timeAgo;
-  final String? achievement;
 
   const CommunityActivity({
     required this.userName,
@@ -642,6 +637,10 @@ class CommunityActivity {
     required this.timeAgo,
     this.achievement,
   });
+  final String userName;
+  final String action;
+  final String timeAgo;
+  final String? achievement;
 }
 
 /// Sample data for testing

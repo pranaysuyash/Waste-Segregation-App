@@ -101,7 +101,7 @@ class _ModernUIShowcaseScreenState extends State<ModernUIShowcaseScreen> {
         const SizedBox(height: AppTheme.spacingMd),
         
         // Stats Card Row
-        Row(
+        const Row(
           children: [
             Expanded(
               child: StatsCard(
@@ -110,11 +110,10 @@ class _ModernUIShowcaseScreenState extends State<ModernUIShowcaseScreen> {
                 icon: Icons.inventory,
                 color: AppTheme.primaryColor,
                 trend: '+15%',
-                isPositiveTrend: true,
                 subtitle: 'This month',
               ),
             ),
-            const SizedBox(width: AppTheme.spacingMd),
+            SizedBox(width: AppTheme.spacingMd),
             Expanded(
               child: StatsCard(
                 title: 'Recycled',
@@ -122,7 +121,6 @@ class _ModernUIShowcaseScreenState extends State<ModernUIShowcaseScreen> {
                 icon: Icons.recycling,
                 color: AppTheme.successColor,
                 trend: '+8%',
-                isPositiveTrend: true,
                 subtitle: 'This month',
               ),
             ),
@@ -135,7 +133,7 @@ class _ModernUIShowcaseScreenState extends State<ModernUIShowcaseScreen> {
         GlassmorphismCard(
           child: Column(
             children: [
-              Icon(
+              const Icon(
                 Icons.eco,
                 size: AppTheme.iconSizeXl,
                 color: AppTheme.successColor,
@@ -212,8 +210,6 @@ class _ModernUIShowcaseScreenState extends State<ModernUIShowcaseScreen> {
                     const SnackBar(content: Text('Primary action pressed!')),
                   );
                 },
-                style: ModernButtonStyle.filled,
-                size: ModernButtonSize.medium,
               ),
             ),
             const SizedBox(width: AppTheme.spacingMd),
@@ -223,7 +219,6 @@ class _ModernUIShowcaseScreenState extends State<ModernUIShowcaseScreen> {
                 icon: Icons.info,
                 onPressed: () {},
                 style: ModernButtonStyle.outlined,
-                size: ModernButtonSize.medium,
                 color: AppTheme.secondaryColor,
               ),
             ),
@@ -252,7 +247,6 @@ class _ModernUIShowcaseScreenState extends State<ModernUIShowcaseScreen> {
                     }
                   });
                 },
-          style: ModernButtonStyle.filled,
         ),
         
         const SizedBox(height: AppTheme.spacingMd),
@@ -268,7 +262,6 @@ class _ModernUIShowcaseScreenState extends State<ModernUIShowcaseScreen> {
             ),
             ModernButton(
               text: 'Medium',
-              size: ModernButtonSize.medium,
               onPressed: () {},
             ),
             ModernButton(
@@ -307,22 +300,21 @@ class _ModernUIShowcaseScreenState extends State<ModernUIShowcaseScreen> {
           children: [
             WasteCategoryBadge(
               category: 'Wet Waste',
-              style: ModernBadgeStyle.filled,
               onTap: () {
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(content: Text('Wet Waste category tapped!')),
                 );
               },
             ),
-            WasteCategoryBadge(
+            const WasteCategoryBadge(
               category: 'Dry Waste',
               style: ModernBadgeStyle.soft,
             ),
-            WasteCategoryBadge(
+            const WasteCategoryBadge(
               category: 'Hazardous Waste',
               style: ModernBadgeStyle.outlined,
             ),
-            WasteCategoryBadge(
+            const WasteCategoryBadge(
               category: 'Medical Waste',
               style: ModernBadgeStyle.glassmorphism,
             ),
@@ -332,10 +324,10 @@ class _ModernUIShowcaseScreenState extends State<ModernUIShowcaseScreen> {
         const SizedBox(height: AppTheme.spacingLg),
         
         // Status badges
-        Wrap(
+        const Wrap(
           spacing: AppTheme.spacingSm,
           runSpacing: AppTheme.spacingSm,
-          children: const [
+          children: [
             StatusBadge(status: 'Completed'),
             StatusBadge(status: 'Pending'),
             StatusBadge(status: 'Failed'),
@@ -346,14 +338,13 @@ class _ModernUIShowcaseScreenState extends State<ModernUIShowcaseScreen> {
         const SizedBox(height: AppTheme.spacingLg),
         
         // Modern badges with different styles
-        Row(
+        const Row(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
             ModernBadge(
               text: 'Premium',
               icon: Icons.star,
               backgroundColor: Colors.amber,
-              style: ModernBadgeStyle.filled,
             ),
             ModernBadge(
               text: 'Live',
@@ -373,9 +364,9 @@ class _ModernUIShowcaseScreenState extends State<ModernUIShowcaseScreen> {
         const SizedBox(height: AppTheme.spacingLg),
         
         // Progress badge
-        Row(
+        const Row(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          children: const [
+          children: [
             ProgressBadge(
               progress: 0.25,
               text: '25%',
@@ -418,7 +409,6 @@ class _ModernUIShowcaseScreenState extends State<ModernUIShowcaseScreen> {
               );
             }
           },
-          style: ModernChipStyle.soft,
         ),
         
         const SizedBox(height: AppTheme.spacingLg),

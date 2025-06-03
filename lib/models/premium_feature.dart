@@ -1,10 +1,4 @@
 class PremiumFeature {
-  final String id;
-  final String title;
-  final String description;
-  final String icon;
-  final String route;
-  final bool isEnabled;
 
   const PremiumFeature({
     required this.id,
@@ -25,6 +19,12 @@ class PremiumFeature {
       isEnabled: json['isEnabled'] as bool? ?? false,
     );
   }
+  final String id;
+  final String title;
+  final String description;
+  final String icon;
+  final String route;
+  final bool isEnabled;
 
   Map<String, dynamic> toJson() {
     return {

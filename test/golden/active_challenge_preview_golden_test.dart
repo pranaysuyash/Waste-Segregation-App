@@ -151,10 +151,10 @@ void main() {
 
     testWidgets('ProgressBadge variations golden test', (WidgetTester tester) async {
       await tester.pumpWidget(
-        MaterialApp(
+        const MaterialApp(
           home: Scaffold(
             body: Padding(
-              padding: const EdgeInsets.all(16),
+              padding: EdgeInsets.all(16),
               child: Column(
                 children: [
                   Row(
@@ -162,7 +162,6 @@ void main() {
                     children: [
                       ProgressBadge(
                         progress: 0.25,
-                        size: 32,
                         progressColor: Colors.red,
                       ),
                       ProgressBadge(
@@ -177,7 +176,7 @@ void main() {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 20),
+                  SizedBox(height: 20),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
@@ -201,7 +200,7 @@ void main() {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 20),
+                  SizedBox(height: 20),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
@@ -216,7 +215,6 @@ void main() {
                       ProgressBadge(
                         progress: 0.9,
                         text: 'Very Long Text',
-                        size: 32,
                         progressColor: Colors.indigo,
                       ),
                       ProgressBadge(

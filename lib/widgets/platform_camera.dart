@@ -51,12 +51,11 @@ class PlatformCamera {
       debugPrint('Attempting to take picture...');
       
       // Use image_picker for consistent camera interface
-      final XFile? image = await _picker.pickImage(
+      final image = await _picker.pickImage(
         source: ImageSource.camera,
         maxWidth: 1200,
         maxHeight: 1200,
         imageQuality: 85,
-        preferredCameraDevice: CameraDevice.rear,
       );
 
       if (image != null) {
@@ -64,7 +63,7 @@ class PlatformCamera {
 
         // For mobile platforms, verify file exists
         if (!kIsWeb && (Platform.isAndroid || Platform.isIOS)) {
-          final File file = File(image.path);
+          final file = File(image.path);
           if (await file.exists()) {
             final fileSize = await file.length();
             debugPrint('Image file verified, size: $fileSize bytes');

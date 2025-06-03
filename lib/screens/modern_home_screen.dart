@@ -37,13 +37,13 @@ import '../services/community_service.dart';
 import '../models/community_feed.dart';
 
 class ModernHomeScreen extends StatefulWidget {
-  final bool isGuestMode;
-  static VoidCallback? _refreshCallback;
 
   const ModernHomeScreen({
     super.key,
     this.isGuestMode = false,
   });
+  final bool isGuestMode;
+  static VoidCallback? _refreshCallback;
 
   // Static method to trigger refresh from anywhere in the app
   static void triggerRefresh() {
@@ -274,7 +274,7 @@ class _ModernHomeScreenState extends State<ModernHomeScreen> with TickerProvider
       }
 
       if (kIsWeb) {
-        final XFile? image = await _imagePicker.pickImage(
+        final image = await _imagePicker.pickImage(
           source: ImageSource.camera,
           maxWidth: 1200,
           maxHeight: 1200,
@@ -283,7 +283,7 @@ class _ModernHomeScreenState extends State<ModernHomeScreen> with TickerProvider
 
         if (image != null && mounted) {
           try {
-            final Uint8List? imageBytes =
+            final imageBytes =
                 await WebImageHandler.xFileToBytes(image);
 
             if (imageBytes != null && imageBytes.isNotEmpty) {
@@ -305,7 +305,7 @@ class _ModernHomeScreenState extends State<ModernHomeScreen> with TickerProvider
       }
 
       // For mobile, capture directly
-      final XFile? capturedXFile = await PlatformCamera.takePicture(); 
+      final capturedXFile = await PlatformCamera.takePicture(); 
       if (capturedXFile != null && mounted) {
         _navigateToImageCapture(File(capturedXFile.path)); 
       } else if (mounted) {
@@ -358,7 +358,7 @@ class _ModernHomeScreenState extends State<ModernHomeScreen> with TickerProvider
         }
       }
       
-      final XFile? image = await _imagePicker.pickImage(
+      final image = await _imagePicker.pickImage(
         source: ImageSource.gallery,
         maxWidth: 1200,
         maxHeight: 1200,
@@ -368,7 +368,7 @@ class _ModernHomeScreenState extends State<ModernHomeScreen> with TickerProvider
       if (image != null && mounted) {
         if (kIsWeb) {
           try {
-            final Uint8List? imageBytes =
+            final imageBytes =
                 await WebImageHandler.xFileToBytes(image);
 
             if (imageBytes != null && imageBytes.isNotEmpty) {
@@ -386,7 +386,7 @@ class _ModernHomeScreenState extends State<ModernHomeScreen> with TickerProvider
             }
           }
         } else {
-          final File imageFile = File(image.path);
+          final imageFile = File(image.path);
           if (await imageFile.exists()) {
             final fileLength = await imageFile.length();
             if (fileLength > 0) {
@@ -454,7 +454,7 @@ class _ModernHomeScreenState extends State<ModernHomeScreen> with TickerProvider
 
   Future<void> _ensureCameraAccess() async {
     try {
-      final bool setupSuccess = await PlatformCamera.setup();
+      final setupSuccess = await PlatformCamera.setup();
       debugPrint('Camera setup completed. Success: $setupSuccess');
     } catch (e) {
       debugPrint('Error ensuring camera access: $e');
@@ -470,7 +470,7 @@ class _ModernHomeScreenState extends State<ModernHomeScreen> with TickerProvider
     adService.setInSettings(false);
     
     return Scaffold(
-      backgroundColor: theme.colorScheme.background,
+      backgroundColor: theme.colorScheme.surface,
       appBar: AppBar(
         elevation: 0,
         backgroundColor: Colors.transparent,
@@ -699,7 +699,6 @@ class _ModernHomeScreenState extends State<ModernHomeScreen> with TickerProvider
                 child: ModernButton(
                   text: 'Take Photo',
                   icon: Icons.camera_alt,
-                  style: ModernButtonStyle.filled,
                   backgroundColor: Colors.white,
                   foregroundColor: theme.colorScheme.primary,
                   onPressed: takePicture,
@@ -759,7 +758,6 @@ class _ModernHomeScreenState extends State<ModernHomeScreen> with TickerProvider
             icon: Icons.analytics,
             color: AppTheme.infoColor,
             trend: '+12%',
-            isPositiveTrend: true,
             onTap: () {
               Navigator.push(
                 context,
@@ -796,7 +794,6 @@ class _ModernHomeScreenState extends State<ModernHomeScreen> with TickerProvider
             icon: Icons.stars,
             color: Colors.amber,
             trend: '+24',
-            isPositiveTrend: true,
             onTap: () {
               Navigator.push(
                 context,
@@ -858,9 +855,8 @@ class _ModernHomeScreenState extends State<ModernHomeScreen> with TickerProvider
                 .where((a) => a.isEarned)
                 .last
                 .title,
-            trailing: ModernBadge(
+            trailing: const ModernBadge(
               text: 'NEW',
-              style: ModernBadgeStyle.filled,
               backgroundColor: Colors.green,
               size: ModernBadgeSize.small,
               showPulse: true,
@@ -1038,7 +1034,7 @@ class _ModernHomeScreenState extends State<ModernHomeScreen> with TickerProvider
               },
             ),
           );
-        }).toList(),
+        }),
       ],
     );
   }
@@ -1168,14 +1164,13 @@ class _ModernHomeScreenState extends State<ModernHomeScreen> with TickerProvider
     debugPrint('Current date: ${now.year}-${now.month}-${now.day}');
     debugPrint('Total classifications: ${_allClassifications.length}');
     debugPrint('Today\'s classifications: ${todayClassifications.length}');
-    for (var classification in todayClassifications) {
+    for (final classification in todayClassifications) {
       debugPrint('  - ${classification.itemName} at ${classification.timestamp}');
     }
     debugPrint('========================');
 
     return TodaysImpactGoal(
       currentClassifications: todayClassifications.length,
-      dailyGoal: 10, // This could be user-configurable
       onTap: () {
         Navigator.push(
           context,
@@ -1192,13 +1187,13 @@ class _ModernHomeScreenState extends State<ModernHomeScreen> with TickerProvider
     final today = DateTime(now.year, now.month, now.day);
     final checkDate = DateTime(date.year, date.month, date.day);
     
-    debugPrint('Checking if ${date} is today (${today}): ${today == checkDate}');
+    debugPrint('Checking if $date is today ($today): ${today == checkDate}');
     
     return today == checkDate;
   }
 
   Widget _buildGlobalImpactMeter() {
-    return GlobalImpactMeter(
+    return const GlobalImpactMeter(
       globalCO2Saved: 2.5, // Sample data - would come from backend
       globalItemsClassified: 50000, // Sample data
       activeUsers: 10500, // Sample data

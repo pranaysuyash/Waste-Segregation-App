@@ -5,7 +5,7 @@ import '../widgets/responsive_text.dart';
 
 /// A simple web-specific fallback page that can be used if Firebase initialization fails
 class WebFallbackScreen extends StatelessWidget {
-  const WebFallbackScreen({Key? key}) : super(key: key);
+  const WebFallbackScreen({super.key});
 
   @override
   Widget build(BuildContext context) {

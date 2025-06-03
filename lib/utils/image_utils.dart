@@ -29,7 +29,6 @@ class ImageUtils {
         imageBytes,
         targetWidth: 32, // Much smaller size for perceptual hashing
         targetHeight: 32, // Small square image
-        convertToGrayscale: true,
         applyStrongerBlur: true, // Apply stronger blur to reduce noise
       );
 
@@ -45,11 +44,11 @@ class ImageUtils {
       try {
         // Generate a simple average hash as fallback
         final bytesToHash = await preprocessImage(imageBytes,
-            targetWidth: 16, targetHeight: 16, convertToGrayscale: true);
+            targetWidth: 16, targetHeight: 16);
 
         // Use SHA-256 on the preprocessed image
         final digest = sha256.convert(bytesToHash);
-        return "fallback_${digest.toString()}";
+        return 'fallback_${digest.toString()}';
       } catch (e2) {
         // Last resort fallback
         debugPrint('Error in fallback hash generation: $e2');
@@ -57,7 +56,7 @@ class ImageUtils {
             imageBytes[0].toString() +
             imageBytes[imageBytes.length ~/ 2].toString() +
             imageBytes[imageBytes.length - 1].toString();
-        return "simple_$simpleHash";
+        return 'simple_$simpleHash';
       }
     }
   }
@@ -79,11 +78,11 @@ class ImageUtils {
       final smallImage = img.copyResize(grayImage, width: 8, height: 8);
 
       // Calculate the average pixel value
-      int totalValue = 0;
-      final List<int> pixelValues = [];
+      var totalValue = 0;
+      final pixelValues = <int>[];
 
-      for (int y = 0; y < smallImage.height; y++) {
-        for (int x = 0; x < smallImage.width; x++) {
+      for (var y = 0; y < smallImage.height; y++) {
+        for (var x = 0; x < smallImage.width; x++) {
           final pixel = smallImage.getPixel(x, y);
           // Get grayscale value (all channels should be the same in grayscale)
           final value = img.getLuminance(pixel);
@@ -97,15 +96,15 @@ class ImageUtils {
 
       // Generate the hash by comparing each pixel to the average
       // Result is a 64-bit hash (8x8 grid)
-      String hashBits = '';
-      for (int value in pixelValues) {
+      var hashBits = '';
+      for (var value in pixelValues) {
         hashBits += (value >= avgValue) ? '1' : '0';
       }
 
       // Convert binary string to hexadecimal for easier storage and comparison
       // (16 hex characters to represent 64 bits)
-      String hexHash = '';
-      for (int i = 0; i < 64; i += 4) {
+      var hexHash = '';
+      for (var i = 0; i < 64; i += 4) {
         if (i + 4 <= hashBits.length) {
           final chunk = hashBits.substring(i, i + 4);
           final hexDigit = int.parse(chunk, radix: 2).toRadixString(16);
@@ -179,7 +178,7 @@ class ImageUtils {
       // Apply blur to reduce noise sensitivity
       // Use stronger blur for perceptual hashing to be more robust to small changes
       // Increased from 2 to 3 for perceptual hashing to handle angle variations better
-      final int blurRadius = args.applyStrongerBlur ? 3 : 1;
+      final blurRadius = args.applyStrongerBlur ? 3 : 1;
       final finalImage = img.gaussianBlur(processedImage, radius: blurRadius);
 
       // Encode back to PNG format for consistent results
@@ -247,11 +246,6 @@ class ImageUtils {
 
 /// Arguments for preprocessing image in isolate
 class _PreprocessImageArgs {
-  final Uint8List imageBytes;
-  final int targetWidth;
-  final int targetHeight;
-  final bool convertToGrayscale;
-  final bool applyStrongerBlur;
 
   _PreprocessImageArgs({
     required this.imageBytes,
@@ -260,14 +254,15 @@ class _PreprocessImageArgs {
     required this.convertToGrayscale,
     this.applyStrongerBlur = false,
   });
+  final Uint8List imageBytes;
+  final int targetWidth;
+  final int targetHeight;
+  final bool convertToGrayscale;
+  final bool applyStrongerBlur;
 }
 
 /// Rectangle class for defining crop regions
 class Rect {
-  final double left;
-  final double top;
-  final double width;
-  final double height;
 
   const Rect({
     required this.left,
@@ -295,6 +290,10 @@ class Rect {
       height: height,
     );
   }
+  final double left;
+  final double top;
+  final double width;
+  final double height;
 
   // Method to convert to Flutter's Rect
   ui.Rect toFlutterRect() {

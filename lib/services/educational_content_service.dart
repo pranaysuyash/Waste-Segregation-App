@@ -2,16 +2,16 @@ import '../models/educational_content.dart';
 
 /// Service for managing educational content in the app
 class EducationalContentService {
-  /// List of all available educational content
-  final List<EducationalContent> _allContent = [];
-
-  /// List of daily tips for the home screen
-  final List<DailyTip> _dailyTips = [];
 
   EducationalContentService() {
     _initializeDailyTips();
     _initializeContent();
   }
+  /// List of all available educational content
+  final List<EducationalContent> _allContent = [];
+
+  /// List of daily tips for the home screen
+  final List<DailyTip> _dailyTips = [];
 
   /// Initialize sample daily tips
   void _initializeDailyTips() {
@@ -191,7 +191,7 @@ Remember to always check your local recycling guidelines, as they can vary signi
             'Challenge yourself to see how much you know about proper recycling practices.',
         thumbnailUrl: 'assets/images/education/recycling_quiz.jpg',
         questions: [
-          QuizQuestion(
+          const QuizQuestion(
             question:
                 'Which of these items cannot be recycled in most curbside programs?',
             options: [
@@ -204,7 +204,7 @@ Remember to always check your local recycling guidelines, as they can vary signi
             explanation:
                 'Styrofoam (polystyrene) is not accepted in most curbside recycling programs and usually goes to landfill.',
           ),
-          QuizQuestion(
+          const QuizQuestion(
             question: 'What should you do with plastic bags?',
             options: [
               'Put them in your curbside recycling bin',
@@ -216,14 +216,14 @@ Remember to always check your local recycling guidelines, as they can vary signi
             explanation:
                 'Most curbside programs don\'t accept plastic bags because they jam sorting equipment. Many grocery stores have collection points for plastic bag recycling.',
           ),
-          QuizQuestion(
+          const QuizQuestion(
             question: 'Which of these is considered hazardous waste?',
             options: ['Newspaper', 'Glass bottles', 'Batteries', 'Cardboard'],
             correctOptionIndex: 2,
             explanation:
                 'Batteries contain heavy metals and toxic chemicals that can harm the environment. They should be taken to hazardous waste collection points.',
           ),
-          QuizQuestion(
+          const QuizQuestion(
             question: 'Food-soiled paper products like pizza boxes should be:',
             options: [
               'Recycled with paper',
@@ -235,7 +235,7 @@ Remember to always check your local recycling guidelines, as they can vary signi
             explanation:
                 'Food residue contaminates paper recycling, but food-soiled paper can be composted if you have access to composting.',
           ),
-          QuizQuestion(
+          const QuizQuestion(
             question:
                 'What does the "chasing arrows" recycling symbol actually mean?',
             options: [
@@ -264,7 +264,7 @@ Remember to always check your local recycling guidelines, as they can vary signi
         description: 'Test your knowledge about wet waste management and composting.',
         thumbnailUrl: 'assets/images/education/wet_waste_quiz.jpg',
         questions: [
-          QuizQuestion(
+          const QuizQuestion(
             question: 'Which of these items can be composted?',
             options: [
               'Meat and dairy products',
@@ -275,13 +275,13 @@ Remember to always check your local recycling guidelines, as they can vary signi
             correctOptionIndex: 1,
             explanation: 'Fruit and vegetable scraps are ideal for composting. Meat, dairy, and oily foods can attract pests and create odors.',
           ),
-          QuizQuestion(
+          const QuizQuestion(
             question: 'What is the ideal carbon to nitrogen ratio for composting?',
             options: ['1:1', '2:1', '3:1', '4:1'],
             correctOptionIndex: 2,
             explanation: 'A 3:1 ratio of carbon-rich materials (browns) to nitrogen-rich materials (greens) creates optimal composting conditions.',
           ),
-          QuizQuestion(
+          const QuizQuestion(
             question: 'How often should you turn your compost pile?',
             options: [
               'Daily',
@@ -292,7 +292,7 @@ Remember to always check your local recycling guidelines, as they can vary signi
             correctOptionIndex: 1,
             explanation: 'Turning every few weeks provides adequate aeration while not being too labor-intensive.',
           ),
-          QuizQuestion(
+          const QuizQuestion(
             question: 'Which materials are considered "browns" in composting?',
             options: [
               'Fresh grass clippings',
@@ -319,13 +319,13 @@ Remember to always check your local recycling guidelines, as they can vary signi
         description: 'Test your knowledge about dry waste recycling and management.',
         thumbnailUrl: 'assets/images/education/dry_waste_quiz.jpg',
         questions: [
-          QuizQuestion(
+          const QuizQuestion(
             question: 'Which plastic recycling code indicates the most recyclable plastic?',
             options: ['Code 1 (PET)', 'Code 3 (PVC)', 'Code 6 (PS)', 'Code 7 (OTHER)'],
             correctOptionIndex: 0,
             explanation: 'Code 1 (PET) plastics like water bottles are the most widely recycled plastic type.',
           ),
-          QuizQuestion(
+          const QuizQuestion(
             question: 'Should you remove labels from glass bottles before recycling?',
             options: [
               'Yes, always remove all labels',
@@ -336,7 +336,7 @@ Remember to always check your local recycling guidelines, as they can vary signi
             correctOptionIndex: 1,
             explanation: 'Most recycling facilities can handle labels on glass bottles - they\'re removed during the recycling process.',
           ),
-          QuizQuestion(
+          const QuizQuestion(
             question: 'What should you do with cardboard boxes before recycling?',
             options: [
               'Leave them assembled',
@@ -347,7 +347,7 @@ Remember to always check your local recycling guidelines, as they can vary signi
             correctOptionIndex: 1,
             explanation: 'Flattening boxes saves space and makes them easier to process at recycling facilities.',
           ),
-          QuizQuestion(
+          const QuizQuestion(
             question: 'Which type of paper cannot be recycled?',
             options: [
               'Newspaper',
@@ -374,7 +374,7 @@ Remember to always check your local recycling guidelines, as they can vary signi
         description: 'Test your knowledge about safe handling and disposal of hazardous waste.',
         thumbnailUrl: 'assets/images/education/hazardous_quiz.jpg',
         questions: [
-          QuizQuestion(
+          const QuizQuestion(
             question: 'What should you do with old car batteries?',
             options: [
               'Put them in regular trash',
@@ -385,7 +385,7 @@ Remember to always check your local recycling guidelines, as they can vary signi
             correctOptionIndex: 1,
             explanation: 'Auto parts stores typically accept old car batteries for recycling and may offer credit toward new battery purchases.',
           ),
-          QuizQuestion(
+          const QuizQuestion(
             question: 'Which of these items contains hazardous materials?',
             options: [
               'Old smartphones',
@@ -396,7 +396,7 @@ Remember to always check your local recycling guidelines, as they can vary signi
             correctOptionIndex: 0,
             explanation: 'Smartphones contain heavy metals and other hazardous materials and should be recycled through e-waste programs.',
           ),
-          QuizQuestion(
+          const QuizQuestion(
             question: 'How should you dispose of household paint?',
             options: [
               'Pour it down the drain',
@@ -407,7 +407,7 @@ Remember to always check your local recycling guidelines, as they can vary signi
             correctOptionIndex: 2,
             explanation: 'Paint contains chemicals that can harm the environment and must be disposed of at hazardous waste collection centers.',
           ),
-          QuizQuestion(
+          const QuizQuestion(
             question: 'What should you do before disposing of electronic devices?',
             options: [
               'Remove the battery only',
@@ -435,37 +435,37 @@ Remember to always check your local recycling guidelines, as they can vary signi
             'Learn how to create an efficient recycling system in your home.',
         thumbnailUrl: 'assets/images/education/home_recycling.jpg',
         steps: [
-          TutorialStep(
+          const TutorialStep(
             title: '1. Understand Local Requirements',
             description:
                 'Research your local recycling guidelines. Different areas accept different materials.',
             imageUrl: 'assets/images/education/recycling_guidelines.jpg',
           ),
-          TutorialStep(
+          const TutorialStep(
             title: '2. Choose Container System',
             description:
                 'Select containers for different recyclables. You need separate bins for paper, plastic, glass, and metal at minimum.',
             imageUrl: 'assets/images/education/recycling_bins.jpg',
           ),
-          TutorialStep(
+          const TutorialStep(
             title: '3. Set Up Collection Area',
             description:
                 'Designate a convenient location in your home for recycling bins. Consider kitchen, garage, or utility room.',
             imageUrl: 'assets/images/education/collection_area.jpg',
           ),
-          TutorialStep(
+          const TutorialStep(
             title: '4. Create Clear Labels',
             description:
                 'Make clear labels with pictures and text to show what goes in each bin.',
             imageUrl: 'assets/images/education/bin_labels.jpg',
           ),
-          TutorialStep(
+          const TutorialStep(
             title: '5. Establish Preparation Routine',
             description:
                 'Create a routine for preparing recyclables: rinse containers, remove caps, flatten boxes.',
             imageUrl: 'assets/images/education/preparation_routine.jpg',
           ),
-          TutorialStep(
+          const TutorialStep(
             title: '6. Set Up a Schedule',
             description:
                 'Create a regular schedule for transferring recyclables from home bins to curbside collection or drop-off centers.',
@@ -563,37 +563,37 @@ Remember that proper e-waste disposal isn't just good for the environment—it's
             'Step-by-step guide to building an affordable compost bin for your home.',
         thumbnailUrl: 'assets/images/education/compost_bin.jpg',
         steps: [
-          TutorialStep(
+          const TutorialStep(
             title: '1. Choose Your Compost Bin Style',
             description:
                 'Decide between a tumbler, multi-bin system, or simple pile based on your space and needs.',
             imageUrl: 'assets/images/education/compost_styles.jpg',
           ),
-          TutorialStep(
+          const TutorialStep(
             title: '2. Gather Materials',
             description:
                 'For a simple bin, you\'ll need: wooden pallets or wire fencing, screws or wire ties, hammer or wire cutters, and a drill.',
             imageUrl: 'assets/images/education/compost_materials.jpg',
           ),
-          TutorialStep(
+          const TutorialStep(
             title: '3. Select Location',
             description:
                 'Choose a level spot with partial shade and good drainage, ideally near your garden but not too close to your home.',
             imageUrl: 'assets/images/education/compost_location.jpg',
           ),
-          TutorialStep(
+          const TutorialStep(
             title: '4. Assemble the Bin',
             description:
                 'For a pallet bin: Stand four pallets upright to form a square, secure corners with screws or wire. For wire bin: Form a circle with fencing and secure ends together.',
             imageUrl: 'assets/images/education/compost_assembly.jpg',
           ),
-          TutorialStep(
+          const TutorialStep(
             title: '5. Start Layering',
             description:
                 'Begin with a 4-inch layer of brown materials (leaves, twigs) for drainage, then alternate green materials (food scraps) and brown materials.',
             imageUrl: 'assets/images/education/compost_layering.jpg',
           ),
-          TutorialStep(
+          const TutorialStep(
             title: '6. Maintain Your Compost',
             description:
                 'Turn the pile every few weeks, keep it as moist as a wrung-out sponge, and continue adding green and brown materials in roughly equal amounts.',
@@ -699,7 +699,7 @@ Safety should always be your top priority when handling and disposing of medical
         description: 'Test your knowledge of which waste goes into which bin.',
         thumbnailUrl: 'assets/images/education/sorting_quiz.jpg',
         questions: [
-          QuizQuestion(
+          const QuizQuestion(
             question:
                 'Where should you dispose of a used pizza box with food stains?',
             options: [
@@ -712,7 +712,7 @@ Safety should always be your top priority when handling and disposing of medical
             explanation:
                 'Pizza boxes with food stains can\'t be recycled because the oils contaminate the recycling process, but they can be composted.',
           ),
-          QuizQuestion(
+          const QuizQuestion(
             question: 'Used cooking oil should be disposed of by:',
             options: [
               'Pouring it down the drain',
@@ -724,7 +724,7 @@ Safety should always be your top priority when handling and disposing of medical
             explanation:
                 'Cooking oil should never be poured down drains as it can cause blockages. Many cities have collection points for used cooking oil recycling.',
           ),
-          QuizQuestion(
+          const QuizQuestion(
             question: 'Which of these belongs in the hazardous waste category?',
             options: [
               'Cereal box',
@@ -736,7 +736,7 @@ Safety should always be your top priority when handling and disposing of medical
             explanation:
                 'Paint contains chemicals that can harm the environment if disposed of improperly. Most communities have special collection for paint and other hazardous materials.',
           ),
-          QuizQuestion(
+          const QuizQuestion(
             question: 'Where should you dispose of broken drinking glasses?',
             options: [
               'Glass recycling bin',
@@ -748,7 +748,7 @@ Safety should always be your top priority when handling and disposing of medical
             explanation:
                 'Drinking glasses are made from a different type of glass than bottles and jars, and can\'t be recycled with them. Wrap broken glass in paper before placing in general waste for safety.',
           ),
-          QuizQuestion(
+          const QuizQuestion(
             question:
                 'Disposable coffee cups with plastic lining should go in:',
             options: [
@@ -1073,7 +1073,7 @@ Each category requires special handling and disposal methods to protect human he
       return List.from(_allContent);
     }
 
-    final List<EducationalContent> contentCopy = List.from(_allContent);
+    final contentCopy = List<EducationalContent>.from(_allContent);
     contentCopy.shuffle();
     return contentCopy.take(4).toList();
   }

@@ -23,14 +23,14 @@ import '../models/waste_classification.dart';
 
 /// Main navigation wrapper that manages the bottom navigation and screen switching
 class MainNavigationWrapper extends StatefulWidget {
-  final bool isGuestMode;
-  final UserProfile? userProfile;
 
   const MainNavigationWrapper({
     super.key,
     this.isGuestMode = false,
     this.userProfile,
   });
+  final bool isGuestMode;
+  final UserProfile? userProfile;
 
   @override
   State<MainNavigationWrapper> createState() => _MainNavigationWrapperState();
@@ -206,7 +206,7 @@ class _MainNavigationWrapperState extends State<MainNavigationWrapper> {
         );
       } else {
         // Use platform camera for mobile
-        final bool setupSuccess = await PlatformCamera.setup();
+        final setupSuccess = await PlatformCamera.setup();
         if (setupSuccess) {
           image = await PlatformCamera.takePicture();
         } else {
@@ -254,7 +254,7 @@ class _MainNavigationWrapperState extends State<MainNavigationWrapper> {
         }
       }
       
-      final XFile? image = await _imagePicker.pickImage(
+      final image = await _imagePicker.pickImage(
         source: ImageSource.gallery,
         maxWidth: 1200,
         maxHeight: 1200,
@@ -411,10 +411,6 @@ class _MainNavigationWrapperState extends State<MainNavigationWrapper> {
           // Add the animated floating action button (only if enabled)
           floatingActionButton: navSettings.fabEnabled ? AnimatedFAB(
             onPressed: () => _showCaptureOptions(context),
-            icon: Icons.camera_alt,
-            tooltip: 'Scan Waste',
-            isPulsing: true,
-            showCelebration: false,
           ) : null,
           floatingActionButtonLocation: navSettings.fabEnabled && navSettings.bottomNavEnabled 
               ? FloatingActionButtonLocation.centerDocked 
@@ -427,14 +423,14 @@ class _MainNavigationWrapperState extends State<MainNavigationWrapper> {
 
 /// Alternative navigation wrapper with different styles
 class AlternativeNavigationWrapper extends StatefulWidget {
-  final bool isGuestMode;
-  final NavigationStyle style;
 
   const AlternativeNavigationWrapper({
     super.key,
     this.isGuestMode = false,
     this.style = NavigationStyle.material3,
   });
+  final bool isGuestMode;
+  final NavigationStyle style;
 
   @override
   State<AlternativeNavigationWrapper> createState() => _AlternativeNavigationWrapperState();

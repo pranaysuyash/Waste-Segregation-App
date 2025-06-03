@@ -59,7 +59,7 @@ family_models.Family createMockFamily({
     createdBy: 'creatorUser',
     createdAt: DateTime.now().subtract(const Duration(days: 30)),
     updatedAt: DateTime.now(), // Fixed: lastUpdated to updatedAt
-    members: members ?? [createMockFamilyMember(userId: 'user1', role: family_models.UserRole.admin)],
+    members: members ?? [createMockFamilyMember(role: family_models.UserRole.admin)],
     settings: settings ?? family_models.FamilySettings.defaultSettings(),
     // Removed: stats: family_models.FamilyStats.empty(), // Family model does not have stats directly
   );
@@ -92,7 +92,7 @@ void main() {
   late MockFirebaseFamilyService mockFamilyService;
   late MockStorageService mockStorageService;
 
-  final List<MethodCall> clipboardLog = <MethodCall>[];
+  final clipboardLog = <MethodCall>[];
 
   late StreamController<family_models.Family?> familyStreamController;
   late StreamController<List<user_profile_models.UserProfile>> membersStreamController;
@@ -136,7 +136,7 @@ void main() {
   });
 
   Widget createTestableWidget(family_models.Family initialFamily, Widget child) {
-    final ThemeData testTheme = ThemeData.light().copyWith(
+    final testTheme = ThemeData.light().copyWith(
       primaryColor: AppTheme.primaryColor, // Assuming this is a static color on AppTheme
       colorScheme: ColorScheme.fromSeed(seedColor: AppTheme.primaryColor), // Assuming this is a static color on AppTheme
       // textTheme, cardTheme, elevatedButtonTheme will use defaults from ThemeData.light()
@@ -370,7 +370,7 @@ void main() {
         id: 'adminFam',
         members: [
           createMockFamilyMember(userId: adminUser.id, role: family_models.UserRole.admin),
-          createMockFamilyMember(userId: regularMember.id, role: family_models.UserRole.member, displayName: 'Regular Member'),
+          createMockFamilyMember(userId: regularMember.id, displayName: 'Regular Member'),
         ]
       );
       final pendingInvite = createMockInvitation(familyId: 'adminFam', id: 'inviteToCancel');

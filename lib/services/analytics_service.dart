@@ -7,6 +7,11 @@ import '../services/storage_service.dart';
 
 /// Service for tracking and analyzing user behavior and app usage.
 class AnalyticsService extends ChangeNotifier {
+  
+  AnalyticsService(this._storageService) {
+    _initializeSession();
+    _initializeFirestore();
+  }
   static const String _analyticsCollection = 'analytics_events';
   
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -16,16 +21,11 @@ class AnalyticsService extends ChangeNotifier {
   String? _currentSessionId;
   DateTime? _sessionStartTime;
   Map<String, dynamic> _sessionParameters = {};
-  List<AnalyticsEvent> _pendingEvents = [];
-  List<AnalyticsEvent> _sessionEvents = [];
+  final List<AnalyticsEvent> _pendingEvents = [];
+  final List<AnalyticsEvent> _sessionEvents = [];
   
   // Connection state tracking
   bool _isFirestoreAvailable = false;
-  
-  AnalyticsService(this._storageService) {
-    _initializeSession();
-    _initializeFirestore();
-  }
 
   // ================ SESSION MANAGEMENT ================
 
@@ -310,9 +310,9 @@ class AnalyticsService extends ChangeNotifier {
   
   /// Aggregate user analytics from events
   Map<String, dynamic> _aggregateUserAnalytics(List<AnalyticsEvent> events) {
-    final Map<String, int> eventCounts = {};
-    final Map<String, int> dailyActivity = {};
-    int totalEvents = events.length;
+    final eventCounts = <String, int>{};
+    final dailyActivity = <String, int>{};
+    var totalEvents = events.length;
     
     for (final event in events) {
       // Count event types
@@ -334,20 +334,18 @@ class AnalyticsService extends ChangeNotifier {
   
   /// Aggregate system-wide analytics from events
   Map<String, dynamic> _aggregateSystemAnalytics(List<AnalyticsEvent> events) {
-    final Map<String, int> eventTypeCounts = {};
-    final Map<String, int> userCounts = {};
-    final Map<String, int> dailyTotals = {};
-    final Set<String> uniqueUsers = {};
+    final eventTypeCounts = <String, int>{};
+    final userCounts = <String, int>{};
+    final dailyTotals = <String, int>{};
+    final uniqueUsers = <String>{};
     
     for (final event in events) {
       // Count event types
       eventTypeCounts[event.eventType] = (eventTypeCounts[event.eventType] ?? 0) + 1;
       
       // Track unique users
-      if (event.userId != null) {
-        uniqueUsers.add(event.userId!);
-      }
-      
+      uniqueUsers.add(event.userId!);
+          
       // Count daily totals
       final dateKey = '${event.timestamp.year}-${event.timestamp.month}-${event.timestamp.day}';
       dailyTotals[dateKey] = (dailyTotals[dateKey] ?? 0) + 1;
@@ -364,8 +362,8 @@ class AnalyticsService extends ChangeNotifier {
   
   /// Aggregate content analytics from events
   List<Map<String, dynamic>> _aggregateContentAnalytics(List<AnalyticsEvent> events, int limit) {
-    final Map<String, int> contentCounts = {};
-    final Map<String, Map<String, dynamic>> contentDetails = {};
+    final contentCounts = <String, int>{};
+    final contentDetails = <String, Map<String, dynamic>>{};
     
     for (final event in events) {
       final contentId = event.parameters['content_id'] as String?;
@@ -467,20 +465,20 @@ class AnalyticsService extends ChangeNotifier {
     final uniqueSessions = events.map((e) => e.sessionId).toSet().length;
     
     // Calculate event type breakdown
-    final Map<String, int> eventTypeBreakdown = {};
+    final eventTypeBreakdown = <String, int>{};
     for (final event in events) {
       eventTypeBreakdown[event.eventType] = (eventTypeBreakdown[event.eventType] ?? 0) + 1;
     }
 
     // Calculate daily activity
-    final Map<String, int> dailyActivity = {};
+    final dailyActivity = <String, int>{};
     for (final event in events) {
       final dateKey = event.timestamp.toIso8601String().split('T')[0];
       dailyActivity[dateKey] = (dailyActivity[dateKey] ?? 0) + 1;
     }
 
     // Calculate most used features
-    final Map<String, int> featureUsage = {};
+    final featureUsage = <String, int>{};
     for (final event in events.where((e) => e.eventType == AnalyticsEventTypes.userAction)) {
       featureUsage[event.eventName] = (featureUsage[event.eventName] ?? 0) + 1;
     }
@@ -504,7 +502,7 @@ class AnalyticsService extends ChangeNotifier {
     final uniqueUsers = events.map((e) => e.userId).toSet().length;
     
     // Calculate member activity
-    final Map<String, int> memberActivity = {};
+    final memberActivity = <String, int>{};
     for (final event in events) {
       memberActivity[event.userId] = (memberActivity[event.userId] ?? 0) + 1;
     }
@@ -527,7 +525,7 @@ class AnalyticsService extends ChangeNotifier {
 
   /// Calculates popular features based on usage frequency.
   List<Map<String, dynamic>> _calculatePopularFeatures(List<AnalyticsEvent> events, int limit) {
-    final Map<String, int> featureUsage = {};
+    final featureUsage = <String, int>{};
     
     for (final event in events) {
       featureUsage[event.eventName] = (featureUsage[event.eventName] ?? 0) + 1;
@@ -621,6 +619,7 @@ class AnalyticsService extends ChangeNotifier {
   }
 
   /// Flushes any pending events and ends the current session.
+  @override
   Future<void> dispose() async {
     trackSessionEnd();
     super.dispose();

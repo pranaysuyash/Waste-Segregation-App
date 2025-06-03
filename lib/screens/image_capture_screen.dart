@@ -12,9 +12,6 @@ import '../widgets/enhanced_analysis_loader.dart';
 import 'result_screen.dart';
 
 class ImageCaptureScreen extends StatefulWidget {
-  final File? imageFile;
-  final XFile? xFile;
-  final Uint8List? webImage;
 
   const ImageCaptureScreen({
     super.key,
@@ -26,6 +23,9 @@ class ImageCaptureScreen extends StatefulWidget {
   // Factory constructor for creating from XFile (useful for web)
   factory ImageCaptureScreen.fromXFile(XFile xFile) =>
       ImageCaptureScreen(xFile: xFile);
+  final File? imageFile;
+  final XFile? xFile;
+  final Uint8List? webImage;
 
   @override
   State<ImageCaptureScreen> createState() => _ImageCaptureScreenState();
@@ -61,7 +61,7 @@ class _ImageCaptureScreenState extends State<ImageCaptureScreen> {
     final aiService = Provider.of<AiService>(context, listen: false);
     List<Map<String, dynamic>> segments;
     if (kIsWeb) {
-      Uint8List? imageBytes = _webImageBytes ?? widget.webImage;
+      var imageBytes = _webImageBytes ?? widget.webImage;
       if (imageBytes == null || imageBytes.isEmpty) {
         throw Exception('No image data available for segmentation');
       }
@@ -94,7 +94,7 @@ class _ImageCaptureScreenState extends State<ImageCaptureScreen> {
         // For web, we need to handle the image differently
         if (widget.xFile != null) {
           // First check if we already have the web image bytes loaded
-          Uint8List? imageBytes = _webImageBytes;
+          var imageBytes = _webImageBytes;
 
           // If not, read them now
           if (imageBytes == null) {
@@ -226,7 +226,6 @@ class _ImageCaptureScreenState extends State<ImageCaptureScreen> {
           MaterialPageRoute(
             builder: (context) => ResultScreen(
               classification: classification,
-              showActions: true,
             ),
           ),
         );
@@ -276,8 +275,6 @@ class _ImageCaptureScreenState extends State<ImageCaptureScreen> {
                   );
                 }
               },
-              estimatedDuration: const Duration(seconds: 17), // 14-20s average
-              showEducationalTips: true,
             )
           : Column(
               children: [
@@ -375,7 +372,6 @@ class _ImageCaptureScreenState extends State<ImageCaptureScreen> {
                       borderRadius: BorderRadius.circular(AppTheme.borderRadiusRegular),
                       border: Border.all(
                         color: Colors.blue.shade200,
-                        width: 1,
                       ),
                     ),
                     child: Column(
@@ -486,7 +482,6 @@ class _ImageCaptureScreenState extends State<ImageCaptureScreen> {
                       CaptureButton(
                         type: CaptureButtonType.analyze,
                         onPressed: _analyzeImage,
-                        isLoading: false, // Always false since we show custom loader
                       ),
                       const SizedBox(height: AppTheme.paddingRegular),
                       CaptureButton(
@@ -527,11 +522,9 @@ class _ImageCaptureScreenState extends State<ImageCaptureScreen> {
     
     // Wrap with InteractiveViewer for zoom functionality
     return InteractiveViewer(
-      panEnabled: true, // Allow panning
       scaleEnabled: true, // Allow zooming
       minScale: 0.5, // Minimum zoom out
       maxScale: 4.0, // Maximum zoom in
-      constrained: true, // FIXED: Use constrained layout to prevent infinite constraints
       child: Stack(
         fit: StackFit.expand, // FIXED: Use StackFit.expand instead of infinite container
         children: [

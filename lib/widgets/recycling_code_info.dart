@@ -3,8 +3,8 @@ import '../utils/constants.dart';
 
 /// Displays information about a recycling code (1-7) with description.
 class RecyclingCodeInfoCard extends StatefulWidget {
-  final String code;
   const RecyclingCodeInfoCard({super.key, required this.code});
+  final String code;
 
   @override
   State<RecyclingCodeInfoCard> createState() => _RecyclingCodeInfoCardState();
@@ -90,7 +90,7 @@ class _RecyclingCodeInfoCardState extends State<RecyclingCodeInfoCard> {
             children: [
               Container(
                 padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
+                decoration: const BoxDecoration(
                   shape: BoxShape.circle,
                   color: AppTheme.secondaryColor,
                 ),

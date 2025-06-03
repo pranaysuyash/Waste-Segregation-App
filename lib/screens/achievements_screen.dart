@@ -7,12 +7,12 @@ import '../utils/constants.dart';
 import '../widgets/profile_summary_card.dart';
 
 class AchievementsScreen extends StatefulWidget {
-  final int initialTabIndex;
 
   const AchievementsScreen({
     super.key,
     this.initialTabIndex = 0,
   });
+  final int initialTabIndex;
 
   @override
   State<AchievementsScreen> createState() => _AchievementsScreenState();
@@ -96,7 +96,7 @@ class _AchievementsScreenState extends State<AchievementsScreen>
 
   Widget _buildAchievementsTab(GamificationProfile profile) {
     // Group achievements by type
-    final Map<AchievementType, List<Achievement>> achievementsByType = {};
+    final achievementsByType = <AchievementType, List<Achievement>>{};
 
     for (final achievement in profile.achievements) {
       if (!achievement.isSecret || achievement.isEarned) {
@@ -122,7 +122,7 @@ class _AchievementsScreenState extends State<AchievementsScreen>
               padding: const EdgeInsets.all(AppTheme.paddingRegular),
               child: Row(
                 children: [
-                  Icon(
+                  const Icon(
                     Icons.local_fire_department,
                     color: Colors.orange,
                     size: 40,
@@ -215,10 +215,10 @@ class _AchievementsScreenState extends State<AchievementsScreen>
   }
 
   Widget _buildAchievementCard(Achievement achievement, GamificationProfile profile) {
-    final bool isEarned = achievement.isEarned;
-    final bool isClaimable = achievement.isClaimable;
+    final isEarned = achievement.isEarned;
+    final isClaimable = achievement.isClaimable;
     // FIXED: Check if achievement is locked based on user's current level
-    final bool isLocked = achievement.unlocksAtLevel != null && 
+    final isLocked = achievement.unlocksAtLevel != null && 
                          achievement.unlocksAtLevel! > profile.points.level;
     
     // DEBUGGING: Log achievement state for "Waste Apprentice"
@@ -238,7 +238,7 @@ class _AchievementsScreenState extends State<AchievementsScreen>
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(AppTheme.borderRadiusSmall),
         side: isClaimable 
-            ? BorderSide(color: Colors.amber, width: 2)
+            ? const BorderSide(color: Colors.amber, width: 2)
             : BorderSide.none,
       ),
       child: InkWell(
@@ -273,7 +273,7 @@ class _AchievementsScreenState extends State<AchievementsScreen>
               Positioned.fill(
                 child: Container(
                   color: Colors.black45,
-                  child: Center(
+                  child: const Center(
                     child: Icon(
                       Icons.lock,
                       color: Colors.white,
@@ -335,8 +335,8 @@ class _AchievementsScreenState extends State<AchievementsScreen>
                     ),
                   )
                 else if (isEarned && isClaimable)
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                  const Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 12),
                     child: Text(
                       'Claim Reward!',
                       style: TextStyle(
@@ -362,7 +362,7 @@ class _AchievementsScreenState extends State<AchievementsScreen>
                     padding: const EdgeInsets.symmetric(horizontal: 12),
                     child: Text(
                       'Unlocks at level ${achievement.unlocksAtLevel}',
-                      style: TextStyle(
+                      style: const TextStyle(
                         fontSize: 9,
                         color: Colors.grey,
                       ),
@@ -379,7 +379,7 @@ class _AchievementsScreenState extends State<AchievementsScreen>
   // Helper method to determine contrasting text color for tier badges
   Color _getContrastColor(Color backgroundColor) {
     // Calculate perceived brightness using the formula: (R * 0.299 + G * 0.587 + B * 0.114)
-    final double brightness = (backgroundColor.r * 0.299 + 
+    final brightness = (backgroundColor.r * 0.299 + 
                            backgroundColor.g * 0.587 + 
                            backgroundColor.b * 0.114) / 255;
     return brightness > 0.5 ? Colors.black : Colors.white;
@@ -395,7 +395,7 @@ class _AchievementsScreenState extends State<AchievementsScreen>
         final updatedAchievements = List<Achievement>.from(profile.achievements);
         
         // Find the achievement by ID and update its claim status
-        for (int i = 0; i < updatedAchievements.length; i++) {
+        for (var i = 0; i < updatedAchievements.length; i++) {
           if (updatedAchievements[i].id == achievement.id) {
             updatedAchievements[i] = updatedAchievements[i].copyWith(
               claimStatus: ClaimStatus.claimed,
@@ -524,14 +524,14 @@ class _AchievementsScreenState extends State<AchievementsScreen>
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(
+                  const Icon(
                     Icons.stars,
                     color: Colors.amber,
                     size: 18,
                   ),
                   const SizedBox(width: 4),
                   Text(
-                    "${achievement.pointsReward} ${AppStrings.points}",
+                    '${achievement.pointsReward} ${AppStrings.points}',
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
                       color: Colors.amber.shade900,
@@ -559,8 +559,8 @@ class _AchievementsScreenState extends State<AchievementsScreen>
                       padding: const EdgeInsets.only(top: AppTheme.paddingRegular),
                       child: ElevatedButton.icon(
                         onPressed: claimReward,
-                        icon: Icon(Icons.redeem),
-                        label: Text('Claim Reward'),
+                        icon: const Icon(Icons.redeem),
+                        label: const Text('Claim Reward'),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.amber,
                           foregroundColor: Colors.black,
@@ -632,7 +632,7 @@ class _AchievementsScreenState extends State<AchievementsScreen>
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
+                    const Text(
                       'Details:',
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
@@ -643,7 +643,7 @@ class _AchievementsScreenState extends State<AchievementsScreen>
                     ...achievement.metadata.entries.map((entry) => 
                       Text(
                         '${entry.key}: ${entry.value}',
-                        style: TextStyle(
+                        style: const TextStyle(
                           fontSize: AppTheme.fontSizeSmall,
                         ),
                       ),
@@ -683,9 +683,9 @@ class _AchievementsScreenState extends State<AchievementsScreen>
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Active challenges
-            Text(
+            const Text(
               'Active Challenges',
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: AppTheme.fontSizeLarge,
                 fontWeight: FontWeight.bold,
               ),
@@ -797,9 +797,9 @@ class _AchievementsScreenState extends State<AchievementsScreen>
 
             // Completed challenges
             if (completedChallenges.isNotEmpty) ...[
-              Text(
+              const Text(
                 'Completed Challenges',
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: AppTheme.fontSizeLarge,
                   fontWeight: FontWeight.bold,
                 ),
@@ -848,7 +848,7 @@ class _AchievementsScreenState extends State<AchievementsScreen>
                                   trailing: Row(
                                     mainAxisSize: MainAxisSize.min,
                                     children: [
-                                      Icon(Icons.stars, color: Colors.amber, size: 16),
+                                      const Icon(Icons.stars, color: Colors.amber, size: 16),
                                       Text('${challenge.pointsReward}'),
                                     ],
                                   ),
@@ -976,7 +976,7 @@ class _AchievementsScreenState extends State<AchievementsScreen>
                     ),
                     Row(
                       children: [
-                        Icon(
+                        const Icon(
                           Icons.stars,
                           color: Colors.amber,
                           size: 20,
@@ -1427,7 +1427,7 @@ class _AchievementsScreenState extends State<AchievementsScreen>
   int _getTotalItemsIdentified(GamificationProfile profile) {
     // Fix: Count items, not points! Each classification adds 10 points,
     // so we need to divide by 10 to get the actual item count
-    int total = 0;
+    var total = 0;
     for (final entry in profile.points.categoryPoints.entries) {
       total += (entry.value / 10).round(); // Convert points back to item count
     }

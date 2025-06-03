@@ -195,17 +195,13 @@ class _FamilyDashboardScreenState extends State<FamilyDashboardScreen> {
           children: [
             _buildFamilyHeader(family),
             const SizedBox(height: AppTheme.paddingLarge),
-            _isStatsLoading 
-                ? const Center(child: CircularProgressIndicator()) 
-                : _buildStatsOverview(statsFromState), 
+            if (_isStatsLoading) const Center(child: CircularProgressIndicator()) else _buildStatsOverview(statsFromState), 
             const SizedBox(height: AppTheme.paddingLarge),
             _buildMembersSection(family),
             const SizedBox(height: AppTheme.paddingLarge),
             _buildRecentActivityStream(),
             const SizedBox(height: AppTheme.paddingLarge),
-            _isStatsLoading 
-                ? const Center(child: CircularProgressIndicator()) 
-                : _buildEnvironmentalImpact(statsFromState),
+            if (_isStatsLoading) const Center(child: CircularProgressIndicator()) else _buildEnvironmentalImpact(statsFromState),
           ],
         ),
       ),
@@ -226,7 +222,7 @@ class _FamilyDashboardScreenState extends State<FamilyDashboardScreen> {
                 backgroundColor: AppTheme.primaryColor.withValues(alpha: 0.1),
                 child: family.imageUrl != null && family.imageUrl!.isNotEmpty
                     ? ClipOval(child: Image.network(family.imageUrl!, fit: BoxFit.cover, width: 60, height: 60))
-                    : Icon(Icons.family_restroom, size: 30, color: AppTheme.primaryColor),
+                    : const Icon(Icons.family_restroom, size: 30, color: AppTheme.primaryColor),
               ),
             ),
             const SizedBox(width: AppTheme.paddingRegular),
@@ -365,7 +361,7 @@ class _FamilyDashboardScreenState extends State<FamilyDashboardScreen> {
                                         color: Colors.white,
                                         shape: BoxShape.circle,
                                       ),
-                                      child: Icon(Icons.check_circle, color: AppTheme.primaryColor, size: 16),
+                                      child: const Icon(Icons.check_circle, color: AppTheme.primaryColor, size: 16),
                                     ),
                                   ),
                               ],
@@ -383,8 +379,8 @@ class _FamilyDashboardScreenState extends State<FamilyDashboardScreen> {
                               style: Theme.of(context).textTheme.bodySmall?.copyWith(color: AppTheme.textSecondaryColor, fontSize: 10),
                             ),
                             if (userRole == family_models.UserRole.admin)
-                              Padding(
-                                padding: const EdgeInsets.only(top: AppTheme.paddingMicro),
+                              const Padding(
+                                padding: EdgeInsets.only(top: AppTheme.paddingMicro),
                                 child: Icon(Icons.admin_panel_settings, size: 12, color: AppTheme.accentColor),
                               )
                           ],
@@ -421,9 +417,9 @@ class _FamilyDashboardScreenState extends State<FamilyDashboardScreen> {
 
   Widget _buildRecentActivity(List<SharedWasteClassification> recentClassifications) {
     if (recentClassifications.isEmpty) {
-      return Card(
+      return const Card(
           elevation: AppTheme.elevationSm,
-          child: const Padding(
+          child: Padding(
             padding: EdgeInsets.all(AppTheme.paddingLarge),
             child: Center(child: Text('No recent family activity yet.')),
           ));
@@ -528,7 +524,7 @@ class _FamilyDashboardScreenState extends State<FamilyDashboardScreen> {
                   value,
                   style: Theme.of(context).textTheme.titleSmall?.copyWith(color: color, fontWeight: FontWeight.bold),
                 ),
-                if (!hasImpact) Text("No impact yet", style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Colors.grey))
+                if (!hasImpact) Text('No impact yet', style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Colors.grey))
               ],
             ),
           ),
@@ -673,8 +669,8 @@ class _FamilyDashboardScreenState extends State<FamilyDashboardScreen> {
   }
 
   void _joinFamily() {
-    final TextEditingController inviteController = TextEditingController();
-    bool isLoading = false;
+    final inviteController = TextEditingController();
+    var isLoading = false;
 
     showDialog(
       context: context,

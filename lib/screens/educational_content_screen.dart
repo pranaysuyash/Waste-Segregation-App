@@ -8,14 +8,14 @@ import '../widgets/banner_ad_widget.dart';
 import 'content_detail_screen.dart';
 
 class EducationalContentScreen extends StatefulWidget {
-  final String? initialCategory;
-  final String? initialSubcategory;
 
   const EducationalContentScreen({
     super.key,
     this.initialCategory,
     this.initialSubcategory,
   });
+  final String? initialCategory;
+  final String? initialSubcategory;
 
   @override
   State<EducationalContentScreen> createState() =>
@@ -39,7 +39,7 @@ class _EducationalContentScreenState extends State<EducationalContentScreen>
     final educationalService =
         Provider.of<EducationalContentService>(context, listen: false);
     final allContent = educationalService.getAllContent();
-    final Set<String> categorySet = {};
+    final categorySet = <String>{};
     for (final content in allContent) {
       categorySet.addAll(content.categories);
     }
@@ -49,12 +49,12 @@ class _EducationalContentScreenState extends State<EducationalContentScreen>
       final categoryContent =
           educationalService.getContentByCategory(widget.initialCategory!);
       if (categoryContent.isNotEmpty) {
-        Map<ContentType, int> typeCount = {};
+        var typeCount = <ContentType, int>{};
         for (final content in categoryContent) {
           typeCount[content.type] = (typeCount[content.type] ?? 0) + 1;
         }
         ContentType? mostCommonType;
-        int highestCount = 0;
+        var highestCount = 0;
         typeCount.forEach((type, count) {
           if (count > highestCount) {
             highestCount = count;
@@ -80,7 +80,7 @@ class _EducationalContentScreenState extends State<EducationalContentScreen>
 
   List<EducationalContent> _getFilteredContent(BuildContext context) {
     final educationalService = Provider.of<EducationalContentService>(context);
-    List<EducationalContent> filteredContent = [];
+    var filteredContent = <EducationalContent>[];
     final contentType = ContentType.values[_tabController.index];
     filteredContent = educationalService.getContentByType(contentType);
     if (_selectedCategory != null && _selectedCategory != 'All') {
@@ -115,7 +115,7 @@ class _EducationalContentScreenState extends State<EducationalContentScreen>
         bottom: TabBar(
           controller: _tabController,
           isScrollable: true,
-          tabs: [
+          tabs: const [
             Tab(text: 'Articles', icon: Icon(Icons.article)),
             Tab(text: 'Videos', icon: Icon(Icons.video_library)),
             Tab(text: 'Infographics', icon: Icon(Icons.image)),
@@ -146,7 +146,7 @@ class _EducationalContentScreenState extends State<EducationalContentScreen>
                             borderRadius:
                                 BorderRadius.circular(AppTheme.borderRadiusRegular),
                           ),
-                          contentPadding: const EdgeInsets.symmetric(vertical: 0),
+                          contentPadding: const EdgeInsets.symmetric(),
                         ),
                         onChanged: (value) {
                           setState(() {

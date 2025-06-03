@@ -30,23 +30,6 @@ import '../services/cache_service.dart';
 ///   concatenation (`RegExp(r'"([^"]+)"|' + r"'([^']+)'")`) to correctly
 ///   handle both double and single-quoted values.
 class AiService {
-  final String openAiBaseUrl;
-  final String openAiApiKey;
-  final String geminiBaseUrl;
-  final String geminiApiKey;
-  final ClassificationCacheService cacheService;
-  
-  // Simple segmentation parameters - can be adjusted based on needs
-  static const int segmentGridSize = 3; // 3x3 grid for basic segmentation
-  static const double minSegmentArea = 0.05; // Minimum 5% of image area
-  static const int objectDetectionSegments = 9; // Maximum number of segments to return
-  
-  // Enable/disable caching (for testing or fallback)
-  final bool cachingEnabled;
-
-  // Default region for classifications
-  final String defaultRegion;
-  final String defaultLanguage;
 
   /// Constructs an [AiService].
   ///
@@ -69,6 +52,23 @@ class AiService {
         geminiBaseUrl = geminiBaseUrl ?? ApiConfig.geminiBaseUrl,
         geminiApiKey = geminiApiKey ?? ApiConfig.apiKey,
         cacheService = cacheService ?? ClassificationCacheService();
+  final String openAiBaseUrl;
+  final String openAiApiKey;
+  final String geminiBaseUrl;
+  final String geminiApiKey;
+  final ClassificationCacheService cacheService;
+  
+  // Simple segmentation parameters - can be adjusted based on needs
+  static const int segmentGridSize = 3; // 3x3 grid for basic segmentation
+  static const double minSegmentArea = 0.05; // Minimum 5% of image area
+  static const int objectDetectionSegments = 9; // Maximum number of segments to return
+  
+  // Enable/disable caching (for testing or fallback)
+  final bool cachingEnabled;
+
+  // Default region for classifications
+  final String defaultRegion;
+  final String defaultLanguage;
         
   /// Initialize the service and its dependencies
   Future<void> initialize() async {
@@ -184,7 +184,7 @@ Output:
 
   // Convert image to base64 for API request
   Future<String> _imageToBase64(File imageFile) async {
-    List<int> imageBytes = await imageFile.readAsBytes();
+    final List<int> imageBytes = await imageFile.readAsBytes();
     return base64Encode(imageBytes);
   }
 
@@ -239,8 +239,8 @@ Output:
   /// Throws an exception if the image remains too large after compression,
   /// which can trigger a fallback to the Gemini API.
   Future<Uint8List> _compressImageForOpenAI(Uint8List imageBytes) async {
-    const int maxSizeBytes = 20 * 1024 * 1024; // 20MB OpenAI limit
-    const int preferredSizeBytes = 5 * 1024 * 1024; // 5MB preferred
+    const maxSizeBytes = 20 * 1024 * 1024; // 20MB OpenAI limit
+    const preferredSizeBytes = 5 * 1024 * 1024; // 5MB preferred
     
     debugPrint('Original image size: ${imageBytes.length} bytes (${(imageBytes.length / 1024 / 1024).toStringAsFixed(2)} MB)');
     
@@ -259,7 +259,7 @@ Output:
     
     try {
       // Decode the image
-      img.Image? image = img.decodeImage(imageBytes);
+      var image = img.decodeImage(imageBytes);
       if (image == null) {
         debugPrint('❌ Failed to decode image for compression');
         throw Exception('Unable to decode image for compression');
@@ -268,21 +268,21 @@ Output:
       debugPrint('Original image dimensions: ${image.width}x${image.height}');
       
       // Calculate compression strategy
-      int targetWidth = image.width;
-      int targetHeight = image.height;
-      int quality = 85;
+      var targetWidth = image.width;
+      var targetHeight = image.height;
+      var quality = 85;
       
       // If image is too large, we need aggressive compression
       if (imageBytes.length > maxSizeBytes) {
         // Very aggressive compression for oversized images
-        final double scaleFactor = 0.5; // Reduce dimensions by 50%
+        const scaleFactor = 0.5; // Reduce dimensions by 50%
         targetWidth = (image.width * scaleFactor).round();
         targetHeight = (image.height * scaleFactor).round();
         quality = 70;
         debugPrint('🔄 Applying aggressive compression: ${targetWidth}x$targetHeight, quality: $quality');
       } else {
         // Moderate compression for large but acceptable images
-        final double scaleFactor = 0.8; // Reduce dimensions by 20%
+        const scaleFactor = 0.8; // Reduce dimensions by 20%
         targetWidth = (image.width * scaleFactor).round();
         targetHeight = (image.height * scaleFactor).round();
         quality = 80;
@@ -328,16 +328,16 @@ Output:
     debugPrint('🔄 Applying light compression for Gemini');
     
     try {
-      img.Image? image = img.decodeImage(imageBytes);
+      var image = img.decodeImage(imageBytes);
       if (image == null) {
         debugPrint('❌ Failed to decode image for Gemini compression');
         return imageBytes; // Return original if compression fails
       }
       
       // Light compression - just reduce quality, keep dimensions mostly the same
-      final double scaleFactor = 0.9; // Reduce dimensions by 10%
-      final int targetWidth = (image.width * scaleFactor).round();
-      final int targetHeight = (image.height * scaleFactor).round();
+      const scaleFactor = 0.9; // Reduce dimensions by 10%
+      final targetWidth = (image.width * scaleFactor).round();
+      final targetHeight = (image.height * scaleFactor).round();
       
       image = img.copyResize(image, width: targetWidth, height: targetHeight);
       final compressedBytes = Uint8List.fromList(img.encodeJpg(image, quality: 85));
@@ -382,8 +382,7 @@ Output:
         debugPrint('Generated perceptual hash for web image: $imageHash');
         
         final cachedResult = await cacheService.getCachedClassification(
-          imageHash,
-          similarityThreshold: 10
+          imageHash
         );
         if (cachedResult != null) {
           debugPrint('Cache hit for web image hash: $imageHash - returning cached classification');
@@ -443,8 +442,8 @@ Output:
   ) async {
     // Compress image if needed
     final compressedBytes = await _compressImageForOpenAI(imageBytes);
-    final String base64Image = _bytesToBase64(compressedBytes);
-    final String mimeType = _detectImageMimeType(compressedBytes);
+    final base64Image = _bytesToBase64(compressedBytes);
+    final mimeType = _detectImageMimeType(compressedBytes);
     
     debugPrint('🔄 Making OpenAI API request...');
     debugPrint('🔄 Model: ${ApiConfig.primaryModel}');
@@ -452,29 +451,29 @@ Output:
     debugPrint('🔄 MIME type: $mimeType');
     debugPrint('🔄 Base64 size: ${base64Image.length} characters');
 
-    final Map<String, dynamic> requestBody = {
-      "model": ApiConfig.primaryModel,
-      "messages": [
+    final requestBody = <String, dynamic>{
+      'model': ApiConfig.primaryModel,
+      'messages': [
         {
-          "role": "system",
-          "content": _systemPrompt
+          'role': 'system',
+          'content': _systemPrompt
         },
         {
-          "role": "user",
-          "content": [
+          'role': 'user',
+          'content': [
             {
-              "type": "text",
-              "text": "$_mainClassificationPrompt\n\nAdditional context:\n- Region: $region\n- Instructions language: $language\n- Image source: web upload"
+              'type': 'text',
+              'text': '$_mainClassificationPrompt\n\nAdditional context:\n- Region: $region\n- Instructions language: $language\n- Image source: web upload'
             },
             {
-              "type": "image_url",
-              "image_url": {"url": "data:$mimeType;base64,$base64Image"}
+              'type': 'image_url',
+              'image_url': {'url': 'data:$mimeType;base64,$base64Image'}
             }
           ]
         }
       ],
-      "max_tokens": 1500,
-      "temperature": 0.1
+      'max_tokens': 1500,
+      'temperature': 0.1
     };
 
     final response = await http.post(
@@ -549,38 +548,38 @@ Output:
     debugPrint('🔄 Using Gemini for analysis...');
     
     // Gemini can handle larger images, but still compress if extremely large
-    Uint8List processedBytes = imageBytes;
-    const int geminiMaxSize = 50 * 1024 * 1024; // 50MB for Gemini (more generous)
+    var processedBytes = imageBytes;
+    const geminiMaxSize = 50 * 1024 * 1024; // 50MB for Gemini (more generous)
     
     if (imageBytes.length > geminiMaxSize) {
       debugPrint('⚠️ Image too large even for Gemini, applying light compression');
       processedBytes = await _compressImageForGemini(imageBytes);
     }
     
-    final String base64Image = _bytesToBase64(processedBytes);
-    final String mimeType = _detectImageMimeType(processedBytes);
+    final base64Image = _bytesToBase64(processedBytes);
+    final mimeType = _detectImageMimeType(processedBytes);
     
     debugPrint('🔄 Gemini request - Image size: ${processedBytes.length} bytes, MIME: $mimeType');
     
-    final Map<String, dynamic> requestBody = {
-      "contents": [
+    final requestBody = <String, dynamic>{
+      'contents': [
         {
-          "parts": [
+          'parts': [
             {
-              "text": "$_systemPrompt\n\n$_mainClassificationPrompt\n\nAdditional context:\n- Region: $region\n- Instructions language: $language\n- Image source: Gemini analysis (OpenAI fallback)"
+              'text': '$_systemPrompt\n\n$_mainClassificationPrompt\n\nAdditional context:\n- Region: $region\n- Instructions language: $language\n- Image source: Gemini analysis (OpenAI fallback)'
             },
             {
-              "inline_data": {
-                "mime_type": mimeType,
-                "data": base64Image
+              'inline_data': {
+                'mime_type': mimeType,
+                'data': base64Image
               }
             }
           ]
         }
       ],
-      "generationConfig": {
-        "temperature": 0.1,
-        "maxOutputTokens": 1500
+      'generationConfig': {
+        'temperature': 0.1,
+        'maxOutputTokens': 1500
       }
     };
 
@@ -607,7 +606,7 @@ Output:
         final String content = responseData['candidates'][0]['content']['parts'][0]['text'];
         
         // Convert Gemini response to OpenAI format for processing
-        final Map<String, dynamic> openAiFormat = {
+        final openAiFormat = <String, dynamic>{
           'choices': [
             {
               'message': {
@@ -679,7 +678,7 @@ Output:
       );
 
       Map<String, dynamic> requestBody;
-      final String modelToUse = model ?? ((imageBytes != null || imageFile != null)
+      final modelToUse = model ?? ((imageBytes != null || imageFile != null)
         ? ApiConfig.primaryModel
         : ApiConfig.secondaryModel1);
 
@@ -693,45 +692,45 @@ Output:
         }
 
         requestBody = {
-          "model": modelToUse,
-          "messages": [
+          'model': modelToUse,
+          'messages': [
             {
-              "role": "system",
-              "content": _systemPrompt
+              'role': 'system',
+              'content': _systemPrompt
             },
             {
-              "role": "user",
-              "content": [
+              'role': 'user',
+              'content': [
                 {
-                  "type": "text",
-                  "text": correctionPrompt
+                  'type': 'text',
+                  'text': correctionPrompt
                 },
                 {
-                  "type": "image_url",
-                  "image_url": {"url": "data:image/jpeg;base64,$base64Image"}
+                  'type': 'image_url',
+                  'image_url': {'url': 'data:image/jpeg;base64,$base64Image'}
                 }
               ]
             }
           ],
-          "max_tokens": 1500,
-          "temperature": 0.1
+          'max_tokens': 1500,
+          'temperature': 0.1
         };
       } else {
         // Text-only correction
         requestBody = {
-          "model": modelToUse,
-          "messages": [
+          'model': modelToUse,
+          'messages': [
             {
-              "role": "system",
-              "content": _systemPrompt
+              'role': 'system',
+              'content': _systemPrompt
             },
             {
-              "role": "user",
-              "content": correctionPrompt
+              'role': 'user',
+              'content': correctionPrompt
             }
           ],
-          "max_tokens": 1500,
-          "temperature": 0.1
+          'max_tokens': 1500,
+          'temperature': 0.1
         };
       }
 
@@ -801,8 +800,8 @@ Output:
               }
               
               // Try to find JSON object boundaries if the response has extra text
-              final int startIndex = jsonString.indexOf('{');
-              final int endIndex = jsonString.lastIndexOf('}');
+              final startIndex = jsonString.indexOf('{');
+              final endIndex = jsonString.lastIndexOf('}');
               
               if (startIndex != -1 && endIndex != -1 && endIndex > startIndex) {
                 jsonString = jsonString.substring(startIndex, endIndex + 1);
@@ -880,7 +879,7 @@ Output:
       }
 
       // Parse alternatives with better error handling
-      List<AlternativeClassification> alternatives = [];
+      var alternatives = <AlternativeClassification>[];
       try {
         if (jsonContent['alternatives'] != null) {
           alternatives = _parseAlternativesSafely(jsonContent['alternatives']);
@@ -1016,7 +1015,7 @@ Output:
     
     try {
       if (value is Map) {
-        final Map<String, String> result = {};
+        final result = <String, String>{};
         value.forEach((k, v) {
           if (k != null && v != null) {
             result[k.toString()] = v.toString();
@@ -1076,13 +1075,13 @@ Output:
       }
       
       if (value is List) {
-        final List<AlternativeClassification> alternatives = [];
+        final alternatives = <AlternativeClassification>[];
         
         for (final alt in value) {
           try {
             if (alt is Map) {
               // Convert Map to Map<String, dynamic> safely
-              final Map<String, dynamic> altMap = {};
+              final altMap = <String, dynamic>{};
               alt.forEach((key, val) {
                 if (key != null) {
                   altMap[key.toString()] = val;
@@ -1165,17 +1164,17 @@ Output:
     debugPrint('Creating fallback classification from partial content');
     
     // Try to extract basic information from the text
-    String itemName = 'Unknown Item';
-    String category = 'Dry Waste';
-    String explanation = 'Classification extracted from partial AI response.';
+    var itemName = 'Unknown Item';
+    var category = 'Dry Waste';
+    var explanation = 'Classification extracted from partial AI response.';
     
     // Basic text extraction
     final lines = content.split('\n');
     for (final line in lines) {
       final lowerLine = line.toLowerCase();
       if (lowerLine.contains('itemname') || lowerLine.contains('item_name')) {
-        final RegExp itemPattern = RegExp(r'"([^"]+)"|' r"'([^']+)'");
-        final RegExpMatch? itemMatch = itemPattern.firstMatch(line);
+        final itemPattern = RegExp(r'"([^"]+)"|' r"'([^']+)'");
+        final itemMatch = itemPattern.firstMatch(line);
         if (itemMatch != null) {
           itemName = (itemMatch.group(1) ?? itemMatch.group(2)) ?? itemName;
         }
@@ -1190,8 +1189,8 @@ Output:
           category = 'Medical Waste';
         }
       } else if (lowerLine.contains('explanation')) {
-        final RegExp explanationPattern = RegExp(r'"([^"]+)"|' r"'([^']+)'");
-        final RegExpMatch? explanationMatch = explanationPattern.firstMatch(line);
+        final explanationPattern = RegExp(r'"([^"]+)"|' r"'([^']+)'");
+        final explanationMatch = explanationPattern.firstMatch(line);
         if (explanationMatch != null) {
           explanation = (explanationMatch.group(1) ?? explanationMatch.group(2)) ?? explanation;
         }
@@ -1394,7 +1393,7 @@ Output:
     if (value == null) return null;
     if (value is Map) {
       try {
-        final Map<String, double> result = {};
+        final result = <String, double>{};
         value.forEach((k, v) {
           final doubleValue = _parseDouble(v);
           if (doubleValue != null) {

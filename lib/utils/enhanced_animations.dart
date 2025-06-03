@@ -182,7 +182,7 @@ class WasteAppAnimations {
   }) {
     return StatefulBuilder(
       builder: (context, setState) {
-        bool isPressed = false;
+        var isPressed = false;
         
         return GestureDetector(
           onTapDown: (_) => setState(() => isPressed = true),
@@ -442,9 +442,6 @@ class WasteAppAnimations {
 
 /// Points Earned Popup Widget
 class PointsEarnedPopup extends StatelessWidget {
-  final int points;
-  final String action;
-  final VoidCallback onDismiss;
 
   const PointsEarnedPopup({
     super.key,
@@ -452,6 +449,9 @@ class PointsEarnedPopup extends StatelessWidget {
     required this.action,
     required this.onDismiss,
   });
+  final int points;
+  final String action;
+  final VoidCallback onDismiss;
 
   @override
   Widget build(BuildContext context) {
@@ -515,14 +515,14 @@ class PointsEarnedPopup extends StatelessWidget {
 
 /// Loading Screen with Enhanced Animations
 class AnimatedLoadingScreen extends StatelessWidget {
-  final String message;
-  final Color? color;
 
   const AnimatedLoadingScreen({
     super.key,
     this.message = 'Loading...',
     this.color,
   });
+  final String message;
+  final Color? color;
 
   @override
   Widget build(BuildContext context) {
@@ -555,12 +555,6 @@ class AnimatedLoadingScreen extends StatelessWidget {
 
 /// Enhanced Card Widget with Animations
 class AnimatedCard extends StatelessWidget {
-  final Widget child;
-  final bool isVisible;
-  final int index;
-  final VoidCallback? onTap;
-  final EdgeInsets? margin;
-  final double elevation;
 
   const AnimatedCard({
     super.key,
@@ -571,6 +565,12 @@ class AnimatedCard extends StatelessWidget {
     this.margin,
     this.elevation = 2,
   });
+  final Widget child;
+  final bool isVisible;
+  final int index;
+  final VoidCallback? onTap;
+  final EdgeInsets? margin;
+  final double elevation;
 
   @override
   Widget build(BuildContext context) {

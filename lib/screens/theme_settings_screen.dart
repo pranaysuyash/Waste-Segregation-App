@@ -41,7 +41,6 @@ class _ThemeSettingsScreenState extends State<ThemeSettingsScreen> {
             leading: const Icon(Icons.brightness_auto),
             title: const Text('System Default'),
             subtitle: const Text('Follow system theme settings'),
-            isThreeLine: false,
             trailing: Radio<ThemeMode>(
               value: ThemeMode.system,
               groupValue: _currentThemeMode,
@@ -59,7 +58,6 @@ class _ThemeSettingsScreenState extends State<ThemeSettingsScreen> {
             leading: const Icon(Icons.light_mode),
             title: const Text('Light Theme'),
             subtitle: const Text('Always use light theme'),
-            isThreeLine: false,
             trailing: Radio<ThemeMode>(
               value: ThemeMode.light,
               groupValue: _currentThemeMode,
@@ -77,7 +75,6 @@ class _ThemeSettingsScreenState extends State<ThemeSettingsScreen> {
             leading: const Icon(Icons.dark_mode),
             title: const Text('Dark Theme'),
             subtitle: const Text('Always use dark theme'),
-            isThreeLine: false,
             trailing: Radio<ThemeMode>(
               value: ThemeMode.dark,
               groupValue: _currentThemeMode,

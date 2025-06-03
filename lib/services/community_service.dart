@@ -27,10 +27,8 @@ class CommunityService {
         totalUsers: 1, // Start with current user
         totalClassifications: 0,
         totalAchievements: 0,
-        totalPoints: 0,
         activeToday: 1,
         activeUsers: 1,
-        weeklyClassifications: 0,
         categoryBreakdown: {},
         lastUpdated: DateTime.now(),
       );
@@ -95,10 +93,8 @@ class CommunityService {
           totalUsers: 1,
           totalClassifications: 0,
           totalAchievements: 0,
-          totalPoints: 0,
           activeToday: 1,
           activeUsers: 1,
-          weeklyClassifications: 0,
           categoryBreakdown: {},
           lastUpdated: DateTime.now(),
         );
@@ -111,10 +107,8 @@ class CommunityService {
         totalUsers: 1,
         totalClassifications: 0,
         totalAchievements: 0,
-        totalPoints: 0,
         activeToday: 1,
         activeUsers: 1,
-        weeklyClassifications: 0,
         categoryBreakdown: {},
         lastUpdated: DateTime.now(),
       );
@@ -123,7 +117,7 @@ class CommunityService {
   
   /// Get community statistics (alias for getCommunityStats)
   Future<CommunityStats> getStats() async {
-    return await getCommunityStats();
+    return getCommunityStats();
   }
   
   /// Record classification activity (simplified version)
@@ -142,7 +136,6 @@ class CommunityService {
         'subcategory': subcategory,
         'points': points,
       },
-      isAnonymous: false,
     );
     
     await addFeedItem(feedItem);
@@ -163,7 +156,6 @@ class CommunityService {
         'streakDays': streakDays,
         'points': points,
       },
-      isAnonymous: false,
     );
     
     await addFeedItem(feedItem);
@@ -184,7 +176,6 @@ class CommunityService {
         'achievementTitle': title,
         'points': points,
       },
-      isAnonymous: false,
     );
     
     await addFeedItem(feedItem);
@@ -242,7 +233,7 @@ class CommunityService {
     final now = DateTime.now();
     
     // Generate 10-15 sample activities from the past week
-    for (int i = 0; i < 12; i++) {
+    for (var i = 0; i < 12; i++) {
       final activityGroup = sampleActivities[random.nextInt(sampleActivities.length)];
       final titles = activityGroup['titles'] as List<String>;
       final descriptions = activityGroup['descriptions'] as List<String>;

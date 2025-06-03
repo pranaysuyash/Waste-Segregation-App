@@ -54,7 +54,7 @@ class _DataExportScreenState extends State<DataExportScreen> {
   }
 
   List<WasteClassification> _getFilteredClassifications() {
-    List<WasteClassification> filtered = List.from(_classifications);
+    var filtered = List<WasteClassification>.from(_classifications);
     
     final now = DateTime.now();
     DateTime? cutoffDate;
@@ -133,7 +133,7 @@ class _DataExportScreenState extends State<DataExportScreen> {
                             _selectedFormat = value!;
                           });
                         },
-                      )).toList(),
+                      )),
                     ],
                   ),
                 ),
@@ -390,7 +390,7 @@ class _DataExportScreenState extends State<DataExportScreen> {
     buffer.writeln('=' * 50);
     buffer.writeln();
     
-    for (int i = 0; i < data.length; i++) {
+    for (var i = 0; i < data.length; i++) {
       final item = data[i];
       buffer.writeln('Classification ${i + 1}:');
       buffer.writeln('  Item: ${item.itemName}');

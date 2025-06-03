@@ -11,8 +11,8 @@ class ShareExample extends StatelessWidget {
       onPressed: () {
         // Use the ShareService instead of Share.share directly
         ShareService.share(
-          text: "Check out this waste segregation app!",
-          subject: "Great App for Waste Management",
+          text: 'Check out this waste segregation app!',
+          subject: 'Great App for Waste Management',
           // Optional file paths
           // files: ['/path/to/image.jpg'],
         );

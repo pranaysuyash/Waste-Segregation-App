@@ -7,12 +7,12 @@ import 'quiz_screen.dart';
 import 'package:video_player/video_player.dart';
 
 class ContentDetailScreen extends StatelessWidget {
-  final String contentId;
 
   const ContentDetailScreen({
     super.key,
     required this.contentId,
   });
+  final String contentId;
 
   @override
   Widget build(BuildContext context) {
@@ -79,7 +79,7 @@ class ContentDetailScreen extends StatelessWidget {
           const SizedBox(height: AppTheme.paddingRegular),
           Text(
             content.title,
-            style: TextStyle(
+            style: const TextStyle(
               fontSize: AppTheme.fontSizeExtraLarge,
               fontWeight: FontWeight.bold,
               color: AppTheme.textPrimaryColor,
@@ -223,7 +223,7 @@ class ContentDetailScreen extends StatelessWidget {
           const SizedBox(height: AppTheme.paddingRegular),
           Text(
             content.title,
-            style: TextStyle(
+            style: const TextStyle(
               fontSize: AppTheme.fontSizeExtraLarge,
               fontWeight: FontWeight.bold,
               color: AppTheme.textPrimaryColor,
@@ -302,7 +302,7 @@ class ContentDetailScreen extends StatelessWidget {
           const SizedBox(height: AppTheme.paddingSmall),
           Text(
             content.description,
-            style: TextStyle(
+            style: const TextStyle(
               fontSize: AppTheme.fontSizeRegular,
               color: AppTheme.textPrimaryColor,
             ),
@@ -373,7 +373,7 @@ class ContentDetailScreen extends StatelessWidget {
           const SizedBox(height: AppTheme.paddingRegular),
           Text(
             content.title,
-            style: TextStyle(
+            style: const TextStyle(
               fontSize: AppTheme.fontSizeExtraLarge,
               fontWeight: FontWeight.bold,
               color: AppTheme.textPrimaryColor,
@@ -444,7 +444,7 @@ class ContentDetailScreen extends StatelessWidget {
           const SizedBox(height: AppTheme.paddingLarge),
           Text(
             content.description,
-            style: TextStyle(
+            style: const TextStyle(
               fontSize: AppTheme.fontSizeRegular,
               color: AppTheme.textPrimaryColor,
               height: 1.5,
@@ -489,7 +489,7 @@ class ContentDetailScreen extends StatelessWidget {
         children: [
           Text(
             content.title,
-            style: TextStyle(
+            style: const TextStyle(
               fontSize: AppTheme.fontSizeExtraLarge,
               fontWeight: FontWeight.bold,
               color: AppTheme.textPrimaryColor,
@@ -591,7 +591,7 @@ class ContentDetailScreen extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
+            const Icon(
               Icons.lightbulb_outline,
               size: 64,
               color: AppTheme.primaryColor,
@@ -599,7 +599,7 @@ class ContentDetailScreen extends StatelessWidget {
             const SizedBox(height: AppTheme.paddingRegular),
             Text(
               content.title,
-              style: TextStyle(
+              style: const TextStyle(
                 fontSize: AppTheme.fontSizeLarge,
                 fontWeight: FontWeight.bold,
                 color: AppTheme.textPrimaryColor,
@@ -609,7 +609,7 @@ class ContentDetailScreen extends StatelessWidget {
             const SizedBox(height: AppTheme.paddingSmall),
             Text(
               content.contentText ?? 'Detailed tip content coming soon.',
-              style: TextStyle(
+              style: const TextStyle(
                 fontSize: AppTheme.fontSizeRegular,
                 color: AppTheme.textSecondaryColor,
                 height: 1.5,
@@ -635,8 +635,8 @@ class ContentDetailScreen extends StatelessWidget {
 }
 
 class _VideoPlayerWidget extends StatefulWidget {
-  final String url;
   const _VideoPlayerWidget({required this.url});
+  final String url;
 
   @override
   State<_VideoPlayerWidget> createState() => _VideoPlayerWidgetState();
@@ -673,14 +673,14 @@ class _VideoPlayerWidgetState extends State<_VideoPlayerWidget> {
         }).catchError((e) {
           if (!mounted) return;
           setState(() {
-            _error = "Failed to load video: ${e.toString()}";
+            _error = 'Failed to load video: ${e.toString()}';
             _isInitialized = true; 
           });
         });
     } catch (e) {
       if (!mounted) return;
       setState(() {
-        _error = "Invalid video URL or format.";
+        _error = 'Invalid video URL or format.';
          _isInitialized = true; 
       });
     }

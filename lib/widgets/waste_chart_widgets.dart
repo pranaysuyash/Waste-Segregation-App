@@ -4,23 +4,23 @@ import '../utils/constants.dart';
 
 /// Data model for chart data points
 class ChartData {
+  
+  ChartData(this.label, this.value, this.color);
   final String label;
   final double value;
   final Color color;
-  
-  ChartData(this.label, this.value, this.color);
 }
 
 /// A pie chart widget for displaying waste category distribution
 class WasteCategoryPieChart extends StatelessWidget {
-  final List<ChartData> data;
-  final AnimationController animationController;
   
   const WasteCategoryPieChart({
     super.key,
     required this.data,
     required this.animationController,
   });
+  final List<ChartData> data;
+  final AnimationController animationController;
   
   @override
   Widget build(BuildContext context) {
@@ -39,7 +39,7 @@ class WasteCategoryPieChart extends StatelessWidget {
         return PieChart(
           PieChartData(
             sections: data.map((item) {
-              final double percentage = (item.value / total) * 100;
+              final percentage = (item.value / total) * 100;
               return PieChartSectionData(
                 color: item.color,
                 value: item.value,
@@ -72,14 +72,14 @@ class WasteCategoryPieChart extends StatelessWidget {
 
 /// A bar chart widget for displaying subcategories
 class TopSubcategoriesBarChart extends StatelessWidget {
-  final List<ChartData> data;
-  final AnimationController animationController;
   
   const TopSubcategoriesBarChart({
     super.key,
     required this.data,
     required this.animationController,
   });
+  final List<ChartData> data;
+  final AnimationController animationController;
   
   @override
   Widget build(BuildContext context) {
@@ -129,7 +129,6 @@ class TopSubcategoriesBarChart extends StatelessWidget {
               ),
             ),
             titlesData: FlTitlesData(
-              show: true,
               bottomTitles: AxisTitles(
                 sideTitles: SideTitles(
                   showTitles: true,
@@ -180,11 +179,10 @@ class TopSubcategoriesBarChart extends StatelessWidget {
                   reservedSize: 30,
                 ),
               ),
-              topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
-              rightTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+              topTitles: const AxisTitles(sideTitles: SideTitles()),
+              rightTitles: const AxisTitles(sideTitles: SideTitles()),
             ),
             gridData: FlGridData(
-              show: true,
               horizontalInterval: maxValue / 5,
               getDrawingHorizontalLine: (value) {
                 return FlLine(
@@ -223,14 +221,14 @@ class TopSubcategoriesBarChart extends StatelessWidget {
 
 /// A line chart widget for displaying waste generation over time
 class WasteTimeSeriesChart extends StatelessWidget {
-  final List<Map<String, dynamic>> data;
-  final AnimationController animationController;
   
   const WasteTimeSeriesChart({
     super.key,
     required this.data,
     required this.animationController,
   });
+  final List<Map<String, dynamic>> data;
+  final AnimationController animationController;
   
   @override
   Widget build(BuildContext context) {
@@ -275,18 +273,16 @@ class WasteTimeSeriesChart extends StatelessWidget {
                         ],
                       );
                     } else {
-                      return LineTooltipItem(
+                      return const LineTooltipItem(
                         '',
-                        const TextStyle(),
+                        TextStyle(),
                       );
                     }
                   }).toList();
                 },
               ),
-              handleBuiltInTouches: true,
             ),
             titlesData: FlTitlesData(
-              show: true,
               bottomTitles: AxisTitles(
                 sideTitles: SideTitles(
                   showTitles: true,
@@ -328,11 +324,10 @@ class WasteTimeSeriesChart extends StatelessWidget {
                   reservedSize: 30,
                 ),
               ),
-              topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
-              rightTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+              topTitles: const AxisTitles(sideTitles: SideTitles()),
+              rightTitles: const AxisTitles(sideTitles: SideTitles()),
             ),
             gridData: FlGridData(
-              show: true,
               horizontalInterval: maxValue > 5 ? maxValue / 5 : 1,
               getDrawingHorizontalLine: (value) {
                 return FlLine(
@@ -359,7 +354,6 @@ class WasteTimeSeriesChart extends StatelessWidget {
                 barWidth: 3,
                 isStrokeCapRound: true,
                 dotData: FlDotData(
-                  show: true,
                   getDotPainter: (spot, percent, barData, index) {
                     return FlDotCirclePainter(
                       radius: 4,
@@ -384,14 +378,14 @@ class WasteTimeSeriesChart extends StatelessWidget {
 
 /// A stacked area chart for displaying category distribution over time
 class CategoryDistributionChart extends StatelessWidget {
-  final List<Map<String, dynamic>> data;
-  final AnimationController animationController;
   
   const CategoryDistributionChart({
     super.key,
     required this.data,
     required this.animationController,
   });
+  final List<Map<String, dynamic>> data;
+  final AnimationController animationController;
   
   @override
   Widget build(BuildContext context) {
@@ -441,14 +435,13 @@ class CategoryDistributionChart extends StatelessWidget {
                         ],
                       );
                     } else {
-                      return LineTooltipItem('', const TextStyle());
+                      return const LineTooltipItem('', TextStyle());
                     }
                   }).toList();
                 },
               ),
             ),
             titlesData: FlTitlesData(
-              show: true,
               bottomTitles: AxisTitles(
                 sideTitles: SideTitles(
                   showTitles: true,
@@ -491,11 +484,10 @@ class CategoryDistributionChart extends StatelessWidget {
                   reservedSize: 30,
                 ),
               ),
-              topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
-              rightTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+              topTitles: const AxisTitles(sideTitles: SideTitles()),
+              rightTitles: const AxisTitles(sideTitles: SideTitles()),
             ),
             gridData: FlGridData(
-              show: true,
               horizontalInterval: 0.2,
               getDrawingHorizontalLine: (value) {
                 return FlLine(
@@ -520,10 +512,10 @@ class CategoryDistributionChart extends StatelessWidget {
     final result = <LineChartBarData>[];
     
     // Track cumulative values for stacking
-    final Map<int, double> cumulativeValues = {};
+    final cumulativeValues = <int, double>{};
     
     // Get colors for categories
-    final Map<String, Color> categoryColors = {
+    final categoryColors = <String, Color>{
       'Wet Waste': AppTheme.wetWasteColor,
       'Dry Waste': AppTheme.dryWasteColor,
       'Hazardous Waste': AppTheme.hazardousWasteColor,
@@ -532,13 +524,13 @@ class CategoryDistributionChart extends StatelessWidget {
     };
     
     // Create a line for each category
-    for (int i = 0; i < categories.length; i++) {
+    for (var i = 0; i < categories.length; i++) {
       final category = categories[i];
       final color = categoryColors[category] ?? Colors.grey;
       
       final spots = <FlSpot>[];
       
-      for (int j = 0; j < data.length; j++) {
+      for (var j = 0; j < data.length; j++) {
         final value = data[j][category] as double;
         // Get previous cumulative value or 0
         final prevCumulative = cumulativeValues[j] ?? 0.0;
@@ -559,8 +551,7 @@ class CategoryDistributionChart extends StatelessWidget {
           isCurved: true,
           color: color,
           barWidth: 0,
-          isStrokeCapRound: false,
-          dotData: FlDotData(show: false),
+          dotData: const FlDotData(show: false),
           belowBarData: BarAreaData(
             show: true,
             color: color.withOpacity(0.7),
@@ -580,14 +571,14 @@ class CategoryDistributionChart extends StatelessWidget {
 
 /// A bar chart widget for displaying weekly items
 class WeeklyItemsChart extends StatelessWidget {
-  final List<ChartData> data;
-  final AnimationController animationController;
   
   const WeeklyItemsChart({
     super.key,
     required this.data,
     required this.animationController,
   });
+  final List<ChartData> data;
+  final AnimationController animationController;
   
   @override
   Widget build(BuildContext context) {
@@ -633,7 +624,6 @@ class WeeklyItemsChart extends StatelessWidget {
               ),
             ),
             titlesData: FlTitlesData(
-              show: true,
               bottomTitles: AxisTitles(
                 sideTitles: SideTitles(
                   showTitles: true,
@@ -680,11 +670,10 @@ class WeeklyItemsChart extends StatelessWidget {
                   reservedSize: 30,
                 ),
               ),
-              topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
-              rightTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+              topTitles: const AxisTitles(sideTitles: SideTitles()),
+              rightTitles: const AxisTitles(sideTitles: SideTitles()),
             ),
             gridData: FlGridData(
-              show: true,
               horizontalInterval: maxValue / 5,
               getDrawingHorizontalLine: (value) {
                 return FlLine(

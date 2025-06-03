@@ -17,41 +17,6 @@ enum ClassificationVisibility {
 
 /// Represents a waste classification that has been shared with family members.
 class SharedWasteClassification {
-  /// Unique identifier for this shared classification.
-  final String id;
-
-  /// The original waste classification.
-  final WasteClassification classification;
-
-  /// The user ID who shared this classification.
-  final String sharedBy;
-
-  /// Display name of the user who shared this.
-  final String sharedByDisplayName;
-
-  /// Profile photo URL of the user who shared this.
-  final String? sharedByPhotoUrl;
-
-  /// When this was shared.
-  final DateTime sharedAt;
-
-  /// Family ID this classification was shared with.
-  final String familyId;
-
-  /// Reactions from family members.
-  final List<FamilyReaction> reactions;
-
-  /// Comments from family members.
-  final List<FamilyComment> comments;
-
-  /// Location where this classification was made (optional).
-  final ClassificationLocation? location;
-
-  /// Whether this classification is visible to all family members.
-  final bool isVisible;
-
-  /// Custom tags added by family members.
-  final List<String> familyTags;
 
   SharedWasteClassification({
     required this.id,
@@ -90,6 +55,67 @@ class SharedWasteClassification {
       familyTags: familyTags,
     );
   }
+
+  /// Creates a SharedWasteClassification instance from a JSON map.
+  factory SharedWasteClassification.fromJson(Map<String, dynamic> json) {
+    return SharedWasteClassification(
+      id: json['id'] as String,
+      classification: WasteClassification.fromJson(json['classification'] as Map<String, dynamic>),
+      sharedBy: json['sharedBy'] as String,
+      sharedByDisplayName: json['sharedByDisplayName'] as String,
+      sharedByPhotoUrl: json['sharedByPhotoUrl'] as String?,
+      sharedAt: DateTime.parse(json['sharedAt'] as String),
+      familyId: json['familyId'] as String,
+      reactions: (json['reactions'] as List<dynamic>?)
+              ?.map((r) => FamilyReaction.fromJson(r as Map<String, dynamic>))
+              .toList() ??
+          [],
+      comments: (json['comments'] as List<dynamic>?)
+              ?.map((c) => FamilyComment.fromJson(c as Map<String, dynamic>))
+              .toList() ??
+          [],
+      location: json['location'] != null
+          ? ClassificationLocation.fromJson(json['location'] as Map<String, dynamic>)
+          : null,
+      isVisible: json['isVisible'] as bool? ?? true,
+      familyTags: List<String>.from(json['familyTags'] as List? ?? []),
+    );
+  }
+  /// Unique identifier for this shared classification.
+  final String id;
+
+  /// The original waste classification.
+  final WasteClassification classification;
+
+  /// The user ID who shared this classification.
+  final String sharedBy;
+
+  /// Display name of the user who shared this.
+  final String sharedByDisplayName;
+
+  /// Profile photo URL of the user who shared this.
+  final String? sharedByPhotoUrl;
+
+  /// When this was shared.
+  final DateTime sharedAt;
+
+  /// Family ID this classification was shared with.
+  final String familyId;
+
+  /// Reactions from family members.
+  final List<FamilyReaction> reactions;
+
+  /// Comments from family members.
+  final List<FamilyComment> comments;
+
+  /// Location where this classification was made (optional).
+  final ClassificationLocation? location;
+
+  /// Whether this classification is visible to all family members.
+  final bool isVisible;
+
+  /// Custom tags added by family members.
+  final List<String> familyTags;
 
   /// Creates a copy of this SharedWasteClassification with the given fields replaced.
   SharedWasteClassification copyWith({
@@ -140,35 +166,9 @@ class SharedWasteClassification {
     };
   }
 
-  /// Creates a SharedWasteClassification instance from a JSON map.
-  factory SharedWasteClassification.fromJson(Map<String, dynamic> json) {
-    return SharedWasteClassification(
-      id: json['id'] as String,
-      classification: WasteClassification.fromJson(json['classification'] as Map<String, dynamic>),
-      sharedBy: json['sharedBy'] as String,
-      sharedByDisplayName: json['sharedByDisplayName'] as String,
-      sharedByPhotoUrl: json['sharedByPhotoUrl'] as String?,
-      sharedAt: DateTime.parse(json['sharedAt'] as String),
-      familyId: json['familyId'] as String,
-      reactions: (json['reactions'] as List<dynamic>?)
-              ?.map((r) => FamilyReaction.fromJson(r as Map<String, dynamic>))
-              .toList() ??
-          [],
-      comments: (json['comments'] as List<dynamic>?)
-              ?.map((c) => FamilyComment.fromJson(c as Map<String, dynamic>))
-              .toList() ??
-          [],
-      location: json['location'] != null
-          ? ClassificationLocation.fromJson(json['location'] as Map<String, dynamic>)
-          : null,
-      isVisible: json['isVisible'] as bool? ?? true,
-      familyTags: List<String>.from(json['familyTags'] as List? ?? []),
-    );
-  }
-
   /// Gets the most recent activity timestamp.
   DateTime get lastActivityTimestamp {
-    DateTime latest = sharedAt;
+    var latest = sharedAt;
     
     for (final reaction in reactions) {
       if (reaction.timestamp.isAfter(latest)) {
@@ -209,7 +209,7 @@ class SharedWasteClassification {
 
   /// Gets the total number of comments including replies.
   int get totalCommentCount {
-    int count = comments.length;
+    var count = comments.length;
     for (final comment in comments) {
       count += comment.totalReplies;
     }

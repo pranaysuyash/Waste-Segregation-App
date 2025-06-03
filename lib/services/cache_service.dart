@@ -13,6 +13,11 @@ import 'package:waste_segregation_app/utils/constants.dart';
 /// to reduce redundant API calls, improve response times, and ensure
 /// consistent classification results for identical images.
 class ClassificationCacheService {
+
+  /// Constructor
+  ClassificationCacheService({
+    int? maxCacheSize,
+  }) : _maxCacheSize = maxCacheSize ?? 1000;
   /// Hive box for storing cached classifications
   late Box<String> _cacheBox;
 
@@ -34,11 +39,6 @@ class ClassificationCacheService {
   /// In-memory LRU tracking for faster cache operations
   /// Maps imageHash to lastAccessed timestamp
   final LinkedHashMap<String, DateTime> _lruMap = LinkedHashMap<String, DateTime>();
-
-  /// Constructor
-  ClassificationCacheService({
-    int? maxCacheSize,
-  }) : _maxCacheSize = maxCacheSize ?? 1000;
 
   /// Initialize the cache service
   Future<void> initialize() async {
@@ -64,7 +64,7 @@ class ClassificationCacheService {
 
   /// Load the LRU map from the cache box for faster access
   void _loadLruMapFromCache() {
-    for (String hash in _cacheBox.keys) {
+    for (final String hash in _cacheBox.keys) {
       try {
         final cacheEntry = _deserializeEntry(hash);
         if (cacheEntry != null) {
@@ -81,7 +81,7 @@ class ClassificationCacheService {
       ..sort((a, b) => b.value.compareTo(a.value));
     
     _lruMap.clear();
-    for (var entry in sortedEntries) {
+    for (final entry in sortedEntries) {
       _lruMap[entry.key] = entry.value;
     }
   }
@@ -201,11 +201,11 @@ class ClassificationCacheService {
       
       // Track best match
       String? bestMatch;
-      int bestDistance = threshold + 1; // Initialize with a value greater than threshold
-      List<int> allDistances = []; // Track all distances for debugging
+      var bestDistance = threshold + 1; // Initialize with a value greater than threshold
+      var allDistances = <int>[]; // Track all distances for debugging
       
       // Compare with all perceptual hashes in cache
-      for (String cachedHash in pHashKeys) {
+      for (final String cachedHash in pHashKeys) {
         final cachedHexHash = cachedHash.substring(6);
         if (cachedHexHash.length != 16) continue;
         
@@ -238,17 +238,17 @@ class ClassificationCacheService {
         // More detailed logging for debug purposes
         if (allDistances.isNotEmpty) {
           allDistances.sort(); // Sort distances for better analysis
-          int minDistance = allDistances.first;
+          var minDistance = allDistances.first;
           debugPrint('No similar hashes found within threshold $threshold. Closest match had distance $minDistance');
           
           // Log distribution of distances
-          Map<int, int> distCounts = {};
-          for (int d in allDistances) {
+          var distCounts = <int, int>{};
+          for (var d in allDistances) {
             distCounts[d] = (distCounts[d] ?? 0) + 1;
           }
-          List<int> keys = distCounts.keys.toList()..sort();
-          StringBuffer distLog = StringBuffer('Distance distribution: ');
-          for (int k in keys) {
+          var keys = distCounts.keys.toList()..sort();
+          var distLog = StringBuffer('Distance distribution: ');
+          for (var k in keys) {
             distLog.write('$k: ${distCounts[k]} hashes, ');
           }
           debugPrint(distLog.toString());
@@ -271,8 +271,8 @@ class ClassificationCacheService {
       throw ArgumentError('Strings must be of equal length');
     }
     
-    int distance = 0;
-    for (int i = 0; i < a.length; i++) {
+    var distance = 0;
+    for (var i = 0; i < a.length; i++) {
       if (a[i] != b[i]) distance++;
     }
     
@@ -281,12 +281,12 @@ class ClassificationCacheService {
   
   /// Converts a hexadecimal string to a binary string
   String _hexToBinary(String hex) {
-    String binary = '';
+    var binary = '';
     
-    for (int i = 0; i < hex.length; i++) {
+    for (var i = 0; i < hex.length; i++) {
       // Convert each hex digit to 4 binary digits
-      final int value = int.parse(hex[i], radix: 16);
-      String binDigit = value.toRadixString(2).padLeft(4, '0');
+      final value = int.parse(hex[i], radix: 16);
+      var binDigit = value.toRadixString(2).padLeft(4, '0');
       binary += binDigit;
     }
     
@@ -355,15 +355,15 @@ class ClassificationCacheService {
     final keysToRemove = <String>[];
     
     // We'll use the LRU map which is already sorted by access time
-    int count = 0;
-    for (String key in _lruMap.keys.toList().reversed) {
+    var count = 0;
+    for (var key in _lruMap.keys.toList().reversed) {
       keysToRemove.add(key);
       count++;
       if (count >= entriesToRemove) break;
     }
     
     // Remove entries
-    for (String key in keysToRemove) {
+    for (var key in keysToRemove) {
       await _cacheBox.delete(key);
       _lruMap.remove(key);
     }
@@ -427,11 +427,11 @@ class ClassificationCacheService {
     }
     
     // Count hash types
-    int pHashCount = 0;
-    int standardHashCount = 0;
-    int fallbackHashCount = 0;
+    var pHashCount = 0;
+    var standardHashCount = 0;
+    var fallbackHashCount = 0;
     
-    for (String key in _cacheBox.keys) {
+    for (final String key in _cacheBox.keys) {
       if (key.startsWith('phash_')) {
         pHashCount++;
       } else if (key.startsWith('fallback_')) {
@@ -451,7 +451,7 @@ class ClassificationCacheService {
   /// Helper method to deserialize a cache entry
   CachedClassification? _deserializeEntry(String hash) {
     try {
-      final String? jsonString = _cacheBox.get(hash);
+      final jsonString = _cacheBox.get(hash);
       if (jsonString == null) return null;
       
       return CachedClassification.deserialize(jsonString);

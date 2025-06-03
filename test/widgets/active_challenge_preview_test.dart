@@ -113,7 +113,7 @@ void main() {
     });
 
     testWidgets('ActiveChallengeCard handles tap events correctly', (WidgetTester tester) async {
-      bool tapped = false;
+      var tapped = false;
       
       await tester.pumpWidget(
         MaterialApp(
@@ -310,7 +310,7 @@ void main() {
 
       // All instances should render
       expect(find.byType(ActiveChallengeCard), findsNWidgets(3));
-      for (int i = 0; i < 3; i++) {
+      for (var i = 0; i < 3; i++) {
         expect(find.text('Challenge $i'), findsOneWidget);
         expect(find.text('Description for challenge $i'), findsOneWidget);
         expect(find.text('${i + 1} hours left'), findsOneWidget);
@@ -322,7 +322,7 @@ void main() {
   group('ProgressBadge Enhanced Tests', () {
     testWidgets('ProgressBadge displays progress correctly', (WidgetTester tester) async {
       await tester.pumpWidget(
-        MaterialApp(
+        const MaterialApp(
           home: Scaffold(
             body: ProgressBadge(
               progress: 0.75,
@@ -338,7 +338,7 @@ void main() {
 
     testWidgets('ProgressBadge handles custom text', (WidgetTester tester) async {
       await tester.pumpWidget(
-        MaterialApp(
+        const MaterialApp(
           home: Scaffold(
             body: ProgressBadge(
               progress: 0.5,
@@ -355,12 +355,11 @@ void main() {
 
     testWidgets('ProgressBadge handles very long text without overflow', (WidgetTester tester) async {
       await tester.pumpWidget(
-        MaterialApp(
+        const MaterialApp(
           home: Scaffold(
             body: ProgressBadge(
               progress: 0.9,
               text: 'Very Long Text',
-              size: 32,
             ),
           ),
         ),
@@ -420,7 +419,7 @@ void main() {
     testWidgets('ProgressBadge respects showPercentage flag', (WidgetTester tester) async {
       // Test with showPercentage = false
       await tester.pumpWidget(
-        MaterialApp(
+        const MaterialApp(
           home: Scaffold(
             body: ProgressBadge(
               progress: 0.8,
@@ -436,11 +435,10 @@ void main() {
 
       // Test with showPercentage = true (default)
       await tester.pumpWidget(
-        MaterialApp(
+        const MaterialApp(
           home: Scaffold(
             body: ProgressBadge(
               progress: 0.8,
-              showPercentage: true,
               size: 40,
             ),
           ),
@@ -453,7 +451,7 @@ void main() {
 
     testWidgets('ProgressBadge uses custom colors correctly', (WidgetTester tester) async {
       await tester.pumpWidget(
-        MaterialApp(
+        const MaterialApp(
           home: Scaffold(
             body: ProgressBadge(
               progress: 0.7,
@@ -472,7 +470,7 @@ void main() {
     testWidgets('ProgressBadge responsive sizing works correctly', (WidgetTester tester) async {
       // Test in constrained space
       await tester.pumpWidget(
-        MaterialApp(
+        const MaterialApp(
           home: Scaffold(
             body: SizedBox(
               width: 30,
@@ -535,7 +533,7 @@ void main() {
       await tester.pumpWidget(
         MaterialApp(
           theme: ThemeData.light(),
-          home: Scaffold(
+          home: const Scaffold(
             body: ProgressBadge(
               progress: 0.6,
               size: 40,
@@ -551,7 +549,7 @@ void main() {
       await tester.pumpWidget(
         MaterialApp(
           theme: ThemeData.dark(),
-          home: Scaffold(
+          home: const Scaffold(
             body: ProgressBadge(
               progress: 0.6,
               size: 40,

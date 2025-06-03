@@ -117,28 +117,28 @@ class AnimationHelpers {
 
 /// A custom painter that draws a checkmark animation
 class CheckmarkPainter extends CustomPainter {
-  final double animation;
-  final Color color;
-  final double strokeWidth;
 
   CheckmarkPainter({
     required this.animation,
     required this.color,
     this.strokeWidth = 3.0,
   });
+  final double animation;
+  final Color color;
+  final double strokeWidth;
 
   @override
   void paint(Canvas canvas, Size size) {
-    final Paint paint = Paint()
+    final paint = Paint()
       ..color = color
       ..strokeWidth = strokeWidth
       ..style = PaintingStyle.stroke
       ..strokeCap = StrokeCap.round;
 
-    final double width = size.width;
-    final double height = size.height;
+    final width = size.width;
+    final height = size.height;
 
-    final Path path = Path();
+    final path = Path();
     
     // Define the checkmark path
     path.moveTo(width * 0.2, height * 0.5);
@@ -146,7 +146,7 @@ class CheckmarkPainter extends CustomPainter {
     path.lineTo(width * 0.8, height * 0.25);
 
     // Use path metrics to animate the drawing of the path
-    final PathMetrics pathMetrics = path.computeMetrics();
+    final pathMetrics = path.computeMetrics();
     
     // Guard against empty path metrics
     if (pathMetrics.isEmpty) {
@@ -154,12 +154,12 @@ class CheckmarkPainter extends CustomPainter {
       return;
     }
     
-    final PathMetric pathMetric = pathMetrics.first;
+    final pathMetric = pathMetrics.first;
     
-    final double length = pathMetric.length;
-    final double animatedLength = length * animation;
+    final length = pathMetric.length;
+    final animatedLength = length * animation;
     
-    final Path animatedPath = pathMetric.extractPath(0, animatedLength);
+    final animatedPath = pathMetric.extractPath(0, animatedLength);
     
     canvas.drawPath(animatedPath, paint);
   }
@@ -174,34 +174,34 @@ class CheckmarkPainter extends CustomPainter {
 
 /// A custom painter that draws a burst of particles
 class ParticlePainter extends CustomPainter {
-  final Animation<double> animation;
-  final Color color;
-  final int particleCount;
 
   ParticlePainter({
     required this.animation,
     required this.color,
     this.particleCount = 20,
   });
+  final Animation<double> animation;
+  final Color color;
+  final int particleCount;
 
   @override
   void paint(Canvas canvas, Size size) {
-    final double animationValue = animation.value;
-    final Paint paint = Paint()
+    final animationValue = animation.value;
+    final paint = Paint()
       ..color = color.withOpacity(1.0 - animationValue)
       ..style = PaintingStyle.fill;
     
-    final double center = size.width / 2;
+    final center = size.width / 2;
     
-    for (int i = 0; i < particleCount; i++) {
-      final double angle = i * (2 * 3.14159 / particleCount);
-      final double distance = animationValue * size.width / 2;
+    for (var i = 0; i < particleCount; i++) {
+      final angle = i * (2 * 3.14159 / particleCount);
+      final distance = animationValue * size.width / 2;
       
-      final double x = center + distance * cos(angle);
-      final double y = center + distance * sin(angle);
+      final x = center + distance * cos(angle);
+      final y = center + distance * sin(angle);
       
       // Reduce particle size as they move outward
-      final double particleSize = (1.0 - animationValue) * 8.0;
+      final particleSize = (1.0 - animationValue) * 8.0;
       
       canvas.drawCircle(
         Offset(x, y),
@@ -220,12 +220,6 @@ class ParticlePainter extends CustomPainter {
 
 /// Helper method to animate the size of a widget
 class ScaleAnimation extends StatefulWidget {
-  final Widget child;
-  final Duration duration;
-  final Curve curve;
-  final bool autoPlay;
-  final bool repeat;
-  final VoidCallback? onComplete;
 
   const ScaleAnimation({
     super.key,
@@ -236,6 +230,12 @@ class ScaleAnimation extends StatefulWidget {
     this.repeat = false,
     this.onComplete,
   });
+  final Widget child;
+  final Duration duration;
+  final Curve curve;
+  final bool autoPlay;
+  final bool repeat;
+  final VoidCallback? onComplete;
 
   @override
   State<ScaleAnimation> createState() => _ScaleAnimationState();
@@ -307,12 +307,6 @@ class _ScaleAnimationState extends State<ScaleAnimation>
 
 /// Helper method to animate the opacity and position of a widget
 class FadeSlideAnimation extends StatefulWidget {
-  final Widget child;
-  final Duration duration;
-  final Curve curve;
-  final Offset startOffset;
-  final bool autoPlay;
-  final VoidCallback? onComplete;
 
   const FadeSlideAnimation({
     super.key,
@@ -323,6 +317,12 @@ class FadeSlideAnimation extends StatefulWidget {
     this.autoPlay = true,
     this.onComplete,
   });
+  final Widget child;
+  final Duration duration;
+  final Curve curve;
+  final Offset startOffset;
+  final bool autoPlay;
+  final VoidCallback? onComplete;
 
   @override
   State<FadeSlideAnimation> createState() => _FadeSlideAnimationState();

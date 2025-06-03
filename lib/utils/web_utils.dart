@@ -9,7 +9,7 @@ class WebUtils {
   static void showWebFallbackIfNeeded(BuildContext context) {
     if (kIsWeb) {
       // Check if a specific web initialization error occurred
-      bool hasWebError = false;
+      var hasWebError = false;
       
       try {
         // Try to access _flutter.buildConfig

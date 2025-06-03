@@ -12,7 +12,7 @@ void main() {
     group('Achievement Unlock Logic', () {
       testWidgets('Achievement unlock logic works correctly', (WidgetTester tester) async {
         // Create Level 2 achievement (Waste Apprentice)
-        final achievement = Achievement(
+        const achievement = Achievement(
           id: 'waste_apprentice',
           title: 'Waste Apprentice',
           description: 'Reach Level 2',
@@ -24,8 +24,8 @@ void main() {
         );
 
         // Test the unlock logic directly
-        final userLevel4 = 4;
-        final userLevel1 = 1;
+        const userLevel4 = 4;
+        const userLevel1 = 1;
         
         // Level 4 user should have achievement unlocked
         final isUnlockedForLevel4 = userLevel4 >= (achievement.unlocksAtLevel ?? 0);
@@ -37,7 +37,7 @@ void main() {
       });
 
       testWidgets('Achievement widget displays correctly', (WidgetTester tester) async {
-        final achievement = Achievement(
+        const achievement = Achievement(
           id: 'test_achievement',
           title: 'Test Achievement',
           description: 'Test Description',
@@ -232,7 +232,7 @@ void main() {
       });
 
       testWidgets('Achievement model works correctly', (WidgetTester tester) async {
-        final achievement = Achievement(
+        const achievement = Achievement(
           id: 'test_id',
           title: 'Test Achievement',
           description: 'Test Description',
@@ -241,7 +241,6 @@ void main() {
           iconName: 'test_icon',
           color: Colors.blue,
           unlocksAtLevel: 2,
-          pointsReward: 50,
         );
 
         // Verify model properties
@@ -263,11 +262,11 @@ void main() {
             body: Container(
               child: Column(
                 children: [
-                  Text('Test App'),
-                  Icon(Icons.check),
+                  const Text('Test App'),
+                  const Icon(Icons.check),
                   ElevatedButton(
                     onPressed: () {},
-                    child: Text('Test Button'),
+                    child: const Text('Test Button'),
                   ),
                 ],
               ),

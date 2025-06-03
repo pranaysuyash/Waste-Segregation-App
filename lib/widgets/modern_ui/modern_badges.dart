@@ -3,14 +3,6 @@ import '../../utils/constants.dart';
 
 /// Modern badge with various styles and animations
 class ModernBadge extends StatelessWidget {
-  final String text;
-  final Color? backgroundColor;
-  final Color? textColor;
-  final ModernBadgeStyle style;
-  final ModernBadgeSize size;
-  final IconData? icon;
-  final VoidCallback? onTap;
-  final bool showPulse;
 
   const ModernBadge({
     super.key,
@@ -23,6 +15,14 @@ class ModernBadge extends StatelessWidget {
     this.onTap,
     this.showPulse = false,
   });
+  final String text;
+  final Color? backgroundColor;
+  final Color? textColor;
+  final ModernBadgeStyle style;
+  final ModernBadgeSize size;
+  final IconData? icon;
+  final VoidCallback? onTap;
+  final bool showPulse;
 
   @override
   Widget build(BuildContext context) {
@@ -128,7 +128,7 @@ class ModernBadge extends StatelessWidget {
       case ModernBadgeStyle.glassmorphism:
         return BoxDecoration(
           color: backgroundColor.withOpacity(0.1),
-          border: Border.all(color: backgroundColor.withOpacity(0.3), width: 1),
+          border: Border.all(color: backgroundColor.withOpacity(0.3)),
           borderRadius: BorderRadius.circular(AppTheme.borderRadiusXl),
         );
     }
@@ -148,9 +148,9 @@ class ModernBadge extends StatelessWidget {
 
 /// Pulsing animation wrapper for badges
 class PulseBadge extends StatefulWidget {
-  final Widget child;
   
   const PulseBadge({super.key, required this.child});
+  final Widget child;
 
   @override
   State<PulseBadge> createState() => _PulseBadgeState();
@@ -201,14 +201,6 @@ class _PulseBadgeState extends State<PulseBadge>
 
 /// Modern chip with selection and filtering capabilities
 class ModernChip extends StatelessWidget {
-  final String label;
-  final bool isSelected;
-  final VoidCallback? onTap;
-  final VoidCallback? onDelete;
-  final IconData? icon;
-  final Color? selectedColor;
-  final Color? unselectedColor;
-  final ModernChipStyle style;
 
   const ModernChip({
     super.key,
@@ -221,12 +213,20 @@ class ModernChip extends StatelessWidget {
     this.unselectedColor,
     this.style = ModernChipStyle.filled,
   });
+  final String label;
+  final bool isSelected;
+  final VoidCallback? onTap;
+  final VoidCallback? onDelete;
+  final IconData? icon;
+  final Color? selectedColor;
+  final Color? unselectedColor;
+  final ModernChipStyle style;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final effectiveSelectedColor = selectedColor ?? theme.colorScheme.primary;
-    final effectiveUnselectedColor = unselectedColor ?? theme.colorScheme.surfaceVariant;
+    final effectiveUnselectedColor = unselectedColor ?? theme.colorScheme.surfaceContainerHighest;
     
     return AnimatedContainer(
       duration: AppTheme.animationFast,
@@ -309,10 +309,6 @@ class ModernChip extends StatelessWidget {
 
 /// Category badge for waste types with predefined colors
 class WasteCategoryBadge extends StatelessWidget {
-  final String category;
-  final ModernBadgeStyle style;
-  final ModernBadgeSize size;
-  final VoidCallback? onTap;
 
   const WasteCategoryBadge({
     super.key,
@@ -321,6 +317,10 @@ class WasteCategoryBadge extends StatelessWidget {
     this.size = ModernBadgeSize.medium,
     this.onTap,
   });
+  final String category;
+  final ModernBadgeStyle style;
+  final ModernBadgeSize size;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
@@ -374,9 +374,6 @@ class WasteCategoryBadge extends StatelessWidget {
 
 /// Status badge with predefined colors and states
 class StatusBadge extends StatelessWidget {
-  final String status;
-  final ModernBadgeStyle style;
-  final ModernBadgeSize size;
 
   const StatusBadge({
     super.key,
@@ -384,6 +381,9 @@ class StatusBadge extends StatelessWidget {
     this.style = ModernBadgeStyle.soft,
     this.size = ModernBadgeSize.small,
   });
+  final String status;
+  final ModernBadgeStyle style;
+  final ModernBadgeSize size;
 
   @override
   Widget build(BuildContext context) {
@@ -422,23 +422,14 @@ class StatusBadge extends StatelessWidget {
 
 /// Helper class for status information
 class StatusInfo {
-  final Color color;
-  final IconData icon;
   
   StatusInfo(this.color, this.icon);
+  final Color color;
+  final IconData icon;
 }
 
 /// Chip group with multiple selection support
 class ModernChipGroup extends StatefulWidget {
-  final List<String> options;
-  final List<String> selectedOptions;
-  final Function(List<String>)? onSelectionChanged;
-  final bool multiSelect;
-  final ModernChipStyle style;
-  final Color? selectedColor;
-  final EdgeInsets? padding;
-  final double spacing;
-  final double runSpacing;
 
   const ModernChipGroup({
     super.key,
@@ -452,6 +443,15 @@ class ModernChipGroup extends StatefulWidget {
     this.spacing = 8.0,
     this.runSpacing = 8.0,
   });
+  final List<String> options;
+  final List<String> selectedOptions;
+  final Function(List<String>)? onSelectionChanged;
+  final bool multiSelect;
+  final ModernChipStyle style;
+  final Color? selectedColor;
+  final EdgeInsets? padding;
+  final double spacing;
+  final double runSpacing;
 
   @override
   State<ModernChipGroup> createState() => _ModernChipGroupState();
@@ -518,13 +518,6 @@ class _ModernChipGroupState extends State<ModernChipGroup> {
 
 /// Progress indicator badge with enhanced overflow protection and responsive sizing
 class ProgressBadge extends StatelessWidget {
-  final double progress; // 0.0 to 1.0
-  final String? text;
-  final Color? progressColor;
-  final Color? backgroundColor;
-  final double size;
-  final bool showPercentage;
-  final double? strokeWidth;
 
   const ProgressBadge({
     super.key,
@@ -536,12 +529,19 @@ class ProgressBadge extends StatelessWidget {
     this.showPercentage = true,
     this.strokeWidth,
   });
+  final double progress; // 0.0 to 1.0
+  final String? text;
+  final Color? progressColor;
+  final Color? backgroundColor;
+  final double size;
+  final bool showPercentage;
+  final double? strokeWidth;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final effectiveProgressColor = progressColor ?? theme.colorScheme.primary;
-    final effectiveBackgroundColor = backgroundColor ?? theme.colorScheme.surfaceVariant;
+    final effectiveBackgroundColor = backgroundColor ?? theme.colorScheme.surfaceContainerHighest;
     final effectiveStrokeWidth = strokeWidth ?? (size * 0.1).clamp(2.0, 4.0);
     
     // Clamp progress to valid range
@@ -551,7 +551,7 @@ class ProgressBadge extends StatelessWidget {
       builder: (context, constraints) {
         // Responsive sizing based on available space
         final responsiveSize = constraints.maxWidth > 0 
-            ? (size).clamp(24.0, constraints.maxWidth.clamp(24.0, 48.0))
+            ? size.clamp(24.0, constraints.maxWidth.clamp(24.0, 48.0))
             : size;
         
         return SizedBox(
@@ -581,7 +581,7 @@ class ProgressBadge extends StatelessWidget {
     return LayoutBuilder(
       builder: (context, constraints) {
         // Calculate appropriate font size based on badge size and text length
-        double fontSize = size * 0.25;
+        var fontSize = size * 0.25;
         
         // Adjust font size based on text length to prevent overflow
         if (displayText.length > 3) {

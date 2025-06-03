@@ -6,7 +6,7 @@ import 'package:waste_segregation_app/widgets/modern_ui/modern_buttons.dart';
 void main() {
   group('Bottom Navigation Tests', () {
     testWidgets('ModernBottomNavigation displays all items correctly', (WidgetTester tester) async {
-      int selectedIndex = 0;
+      var selectedIndex = 0;
       
       await tester.pumpWidget(
         MaterialApp(
@@ -45,7 +45,7 @@ void main() {
     });
 
     testWidgets('ModernBottomNavigation handles tap events correctly', (WidgetTester tester) async {
-      int selectedIndex = 0;
+      var selectedIndex = 0;
       
       await tester.pumpWidget(
         StatefulBuilder(
@@ -172,7 +172,6 @@ void main() {
               onTap: (index) {},
               style: ModernBottomNavStyle.glassmorphism(
                 primaryColor: Colors.blue,
-                isDark: false,
               ),
               items: const [
                 BottomNavItem(
@@ -204,7 +203,6 @@ void main() {
               onTap: (index) {},
               style: ModernBottomNavStyle.material3(
                 primaryColor: Colors.green,
-                isDark: false,
               ),
               items: const [
                 BottomNavItem(
@@ -236,7 +234,6 @@ void main() {
               onTap: (index) {},
               style: ModernBottomNavStyle.floating(
                 primaryColor: Colors.purple,
-                isDark: false,
               ),
               items: const [
                 BottomNavItem(
@@ -292,7 +289,7 @@ void main() {
     });
 
     testWidgets('ModernBottomNavigation animation test', (WidgetTester tester) async {
-      int selectedIndex = 0;
+      var selectedIndex = 0;
       
       await tester.pumpWidget(
         StatefulBuilder(
@@ -372,7 +369,7 @@ void main() {
     });
 
     testWidgets('ModernFAB handles tap events correctly', (WidgetTester tester) async {
-      bool tapped = false;
+      var tapped = false;
       
       await tester.pumpWidget(
         MaterialApp(
@@ -560,7 +557,7 @@ void main() {
 
       // Should handle multiple tabs efficiently
       expect(find.byType(ModernBottomNavigation), findsOneWidget);
-      for (int i = 0; i < 5; i++) {
+      for (var i = 0; i < 5; i++) {
         expect(find.text('Tab $i'), findsOneWidget);
       }
     });

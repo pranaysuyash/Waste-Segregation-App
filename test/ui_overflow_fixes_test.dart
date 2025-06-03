@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import '../lib/widgets/classification_feedback_widget.dart';
-import '../lib/widgets/history_list_item.dart';
-import '../lib/widgets/interactive_tag.dart';
-import '../lib/models/waste_classification.dart';
+import 'package:waste_segregation_app/widgets/classification_feedback_widget.dart';
+import 'package:waste_segregation_app/widgets/history_list_item.dart';
+import 'package:waste_segregation_app/widgets/interactive_tag.dart';
+import 'package:waste_segregation_app/models/waste_classification.dart';
 
 void main() {
   group('UI Overflow Fixes Tests', () {
@@ -29,7 +29,7 @@ void main() {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
-            body: Container(
+            body: SizedBox(
               width: 300, // Narrow width to test overflow
               child: ClassificationFeedbackWidget(
                 classification: classification,
@@ -78,7 +78,7 @@ void main() {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
-            body: Container(
+            body: SizedBox(
               width: 300, // Narrow width to test overflow
               child: HistoryListItem(
                 classification: classification,
@@ -102,18 +102,16 @@ void main() {
         TagData(
           text: 'Very Long Tag Name $index That Could Overflow',
           color: Colors.blue,
-          action: TagAction.educate,
         ),
       );
 
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
-            body: Container(
+            body: SizedBox(
               width: 300, // Narrow width to test overflow
               child: InteractiveTagCollection(
                 tags: tags,
-                showViewMore: true,
               ),
             ),
           ),
@@ -163,7 +161,6 @@ void main() {
                           child: ClassificationFeedbackWidget(
                             classification: classification,
                             onFeedbackSubmitted: (updatedClassification) {},
-                            showCompactVersion: false,
                           ),
                         ),
                       ),

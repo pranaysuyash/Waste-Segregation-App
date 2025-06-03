@@ -123,7 +123,7 @@ class WebHomePage extends StatelessWidget {
 
 // Home tab with app introduction
 class HomeTab extends StatelessWidget {
-  const HomeTab({Key? key}) : super(key: key);
+  const HomeTab({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -274,7 +274,7 @@ class HomeTab extends StatelessWidget {
 
 // Learn tab with waste categories
 class LearnTab extends StatelessWidget {
-  const LearnTab({Key? key}) : super(key: key);
+  const LearnTab({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -356,7 +356,7 @@ class LearnTab extends StatelessWidget {
 
 // About tab with app information
 class AboutTab extends StatelessWidget {
-  const AboutTab({Key? key}) : super(key: key);
+  const AboutTab({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -513,7 +513,7 @@ class AboutTab extends StatelessWidget {
   void _copyToClipboard(BuildContext context) {
     // This would normally use our ShareService, but we're keeping it simple
     // for this standalone web version
-    TextEditingController controller = TextEditingController();
+    var controller = TextEditingController();
     controller.text = 'Check out the Waste Segregation App! It helps you properly sort your waste using AI: https://waste-segregation-app.web.app';
     
     // Copy to clipboard (normally you'd use Clipboard.setData)
@@ -535,10 +535,6 @@ class AboutTab extends StatelessWidget {
 // Reusable widgets
 
 class FeatureCard extends StatelessWidget {
-  final IconData icon;
-  final String title;
-  final String description;
-  final Color color;
 
   const FeatureCard({
     Key? key,
@@ -547,6 +543,10 @@ class FeatureCard extends StatelessWidget {
     required this.description,
     required this.color,
   }) : super(key: key);
+  final IconData icon;
+  final String title;
+  final String description;
+  final Color color;
 
   @override
   Widget build(BuildContext context) {
@@ -583,11 +583,6 @@ class FeatureCard extends StatelessWidget {
 }
 
 class WasteCategoryCard extends StatelessWidget {
-  final String title;
-  final String description;
-  final String examples;
-  final Color color;
-  final IconData iconData;
 
   const WasteCategoryCard({
     Key? key,
@@ -597,6 +592,11 @@ class WasteCategoryCard extends StatelessWidget {
     required this.color,
     required this.iconData,
   }) : super(key: key);
+  final String title;
+  final String description;
+  final String examples;
+  final Color color;
+  final IconData iconData;
 
   @override
   Widget build(BuildContext context) {
@@ -645,9 +645,6 @@ class WasteCategoryCard extends StatelessWidget {
 }
 
 class ImpactCard extends StatelessWidget {
-  final String title;
-  final String description;
-  final Color color;
 
   const ImpactCard({
     Key? key,
@@ -655,6 +652,9 @@ class ImpactCard extends StatelessWidget {
     required this.description,
     required this.color,
   }) : super(key: key);
+  final String title;
+  final String description;
+  final Color color;
 
   @override
   Widget build(BuildContext context) {

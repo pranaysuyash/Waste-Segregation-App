@@ -68,7 +68,7 @@ void main() {
   group('ResultScreen Tests', () {
     group('Item Name Overflow', () {
       testWidgets('Item name uses ellipsis for long names', (WidgetTester tester) async {
-        final longItemName = 'This is a very very very extremely long item name that should definitely overflow and show an ellipsis';
+        const longItemName = 'This is a very very very extremely long item name that should definitely overflow and show an ellipsis';
         final classification = createMockClassification(itemName: longItemName);
 
         await tester.pumpWidget(createTestableWidget(ResultScreen(classification: classification)));
@@ -84,7 +84,7 @@ void main() {
     group('ClassificationFeedbackWidget Integration', () {
       testWidgets('Feedback widget is present and configured when showActions is true', (WidgetTester tester) async {
         final classification = createMockClassification();
-        await tester.pumpWidget(createTestableWidget(ResultScreen(classification: classification, showActions: true)));
+        await tester.pumpWidget(createTestableWidget(ResultScreen(classification: classification)));
         await tester.pumpAndSettle();
 
         expect(find.byType(ClassificationFeedbackWidget), findsOneWidget);
@@ -102,7 +102,7 @@ void main() {
     });
 
     group('Explanation Read More/Show Less', () {
-      final longExplanation = 'This is a very long explanation that spans multiple lines and should definitely be truncated initially. It needs to be long enough to ensure that the ellipsis is applied and the Read More button is shown. We will then tap the button to expand it and see the full content, and then tap Show Less to collapse it again.';
+      const longExplanation = 'This is a very long explanation that spans multiple lines and should definitely be truncated initially. It needs to be long enough to ensure that the ellipsis is applied and the Read More button is shown. We will then tap the button to expand it and see the full content, and then tap Show Less to collapse it again.';
       final classificationWithLongExplanation = createMockClassification(explanation: longExplanation);
 
       testWidgets('Explanation is initially truncated and shows "Read More"', (WidgetTester tester) async {
@@ -152,7 +152,7 @@ void main() {
     });
 
     group('Educational Fact Read More/Show Less', () {
-      final longEducationalFact = 'This is a very long educational fact that also spans multiple lines and is designed to be truncated. It must be sufficiently lengthy to trigger the ellipsis and display the Read More button. Users can then expand it to read the full fact and subsequently collapse it using the Show Less button.';
+      const longEducationalFact = 'This is a very long educational fact that also spans multiple lines and is designed to be truncated. It must be sufficiently lengthy to trigger the ellipsis and display the Read More button. Users can then expand it to read the full fact and subsequently collapse it using the Show Less button.';
       // We use sustainabilityFacts in the mock, which maps to educationalFact in the UI logic
       final classificationWithLongFact = createMockClassification(educationalFact: longEducationalFact);
 

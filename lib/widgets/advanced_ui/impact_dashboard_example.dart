@@ -168,7 +168,6 @@ class _WasteImpactDashboardState extends State<WasteImpactDashboard> {
     return Container(
       padding: const EdgeInsets.all(WasteAppDesignSystem.spacingM),
       decoration: WasteAppDesignSystem.getCardDecoration(
-        elevation: WasteAppDesignSystem.elevationS,
         borderRadius: WasteAppDesignSystem.radiusM,
       ),
       child: Column(
@@ -236,7 +235,7 @@ class _WasteImpactDashboardState extends State<WasteImpactDashboard> {
         children: [
           Row(
             children: [
-              Icon(
+              const Icon(
                 Icons.insights,
                 color: WasteAppDesignSystem.primaryGreen,
                 size: 24,
@@ -296,7 +295,7 @@ class _WasteImpactDashboardState extends State<WasteImpactDashboard> {
             ),
             child: Row(
               children: [
-                Icon(
+                const Icon(
                   Icons.lightbulb_outline,
                   color: WasteAppDesignSystem.primaryGreen,
                   size: 20,
@@ -391,7 +390,6 @@ class WasteImpactConfigurations {
       progress: itemsClassified / dailyTarget,
       currentValue: itemsClassified,
       targetValue: dailyTarget,
-      unit: 'items',
       primaryColor: WasteAppDesignSystem.primaryGreen,
       secondaryColor: WasteAppDesignSystem.secondaryGreen,
       title: 'Daily Goal',
@@ -399,7 +397,7 @@ class WasteImpactConfigurations {
       centerText: itemsClassified >= dailyTarget 
           ? 'Goal achieved!' 
           : 'Keep going!',
-      milestones: [
+      milestones: const [
         ImpactMilestone(
           threshold: 0.5,
           title: 'Halfway There',
@@ -437,10 +435,9 @@ class WasteImpactConfigurations {
       unit: 'kg CO₂ saved',
       primaryColor: WasteAppDesignSystem.wetWasteColor,
       secondaryColor: const Color(0xFF2E7D32),
-      title: 'Environmental Impact',
       subtitle: 'CO₂ emissions prevented this week',
       centerText: 'Saving the planet!',
-      milestones: [
+      milestones: const [
         ImpactMilestone(
           threshold: 0.25,
           title: 'Eco Beginner',
@@ -474,7 +471,7 @@ class WasteImpactConfigurations {
       title: 'Consistency Streak',
       subtitle: 'Days of continuous classification',
       centerText: currentStreak > 0 ? 'On fire! 🔥' : 'Start your streak!',
-      milestones: [
+      milestones: const [
         ImpactMilestone(
           threshold: 0.2,
           title: 'Getting Started',
@@ -514,7 +511,6 @@ class WasteImpactConfigurations {
       width: size + 40,
       padding: const EdgeInsets.all(WasteAppDesignSystem.spacingM),
       decoration: WasteAppDesignSystem.getCardDecoration(
-        elevation: WasteAppDesignSystem.elevationS,
         borderRadius: WasteAppDesignSystem.radiusM,
       ),
       child: Column(
@@ -528,7 +524,7 @@ class WasteImpactConfigurations {
               Flexible(
                 child: Text(
                   title,
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.bold,
                     color: WasteAppDesignSystem.textBlack,

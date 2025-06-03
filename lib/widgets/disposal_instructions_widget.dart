@@ -5,14 +5,14 @@ import '../utils/constants.dart';
 
 /// Widget to display disposal instructions
 class DisposalInstructionsWidget extends StatefulWidget {
-  final DisposalInstructions instructions;
-  final Function(String)? onStepCompleted;
 
   const DisposalInstructionsWidget({
     super.key,
     required this.instructions,
     this.onStepCompleted,
   });
+  final DisposalInstructions instructions;
+  final Function(String)? onStepCompleted;
 
   @override
   State<DisposalInstructionsWidget> createState() => _DisposalInstructionsWidgetState();
@@ -60,7 +60,7 @@ class _DisposalInstructionsWidgetState extends State<DisposalInstructionsWidget>
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
+                      const Text(
                         'Disposal Instructions',
                         style: TextStyle(
                           fontSize: AppTheme.fontSizeLarge,
@@ -72,7 +72,7 @@ class _DisposalInstructionsWidgetState extends State<DisposalInstructionsWidget>
                         widget.instructions.primaryMethod,
                         maxLines: 2, // Added maxLines
                         overflow: TextOverflow.ellipsis, // Added ellipsis
-                        style: TextStyle(
+                        style: const TextStyle(
                           fontSize: AppTheme.fontSizeRegular,
                           color: Colors.white70,
                         ),
@@ -81,7 +81,7 @@ class _DisposalInstructionsWidgetState extends State<DisposalInstructionsWidget>
                         const SizedBox(height: 4),
                         Row(
                           children: [
-                            Icon(
+                            const Icon(
                               Icons.schedule,
                               color: Colors.white70,
                               size: 16,
@@ -89,7 +89,7 @@ class _DisposalInstructionsWidgetState extends State<DisposalInstructionsWidget>
                             const SizedBox(width: 4),
                             Text(
                               widget.instructions.timeframe!,
-                              style: TextStyle(
+                              style: const TextStyle(
                                 fontSize: AppTheme.fontSizeSmall,
                                 color: Colors.white70,
                               ),
@@ -133,7 +133,7 @@ class _DisposalInstructionsWidgetState extends State<DisposalInstructionsWidget>
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
+                const Text(
                   'Steps to Follow',
                   style: TextStyle(
                     fontSize: AppTheme.fontSizeMedium,
@@ -148,7 +148,7 @@ class _DisposalInstructionsWidgetState extends State<DisposalInstructionsWidget>
                   final isCompleted = _completedSteps.contains(index);
                   
                   return _buildStepItem(index, step, isCompleted);
-                }).toList(),
+                }),
               ],
             ),
           ),
@@ -226,7 +226,7 @@ class _DisposalInstructionsWidgetState extends State<DisposalInstructionsWidget>
                 ],
               ),
             ),
-          ).toList(),
+          ),
         ],
       ),
     );
@@ -353,7 +353,7 @@ class _DisposalInstructionsWidgetState extends State<DisposalInstructionsWidget>
                 ],
               ),
             ),
-          ).toList(),
+          ),
         ],
       ),
     );

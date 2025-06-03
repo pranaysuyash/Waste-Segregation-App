@@ -1,5 +1,25 @@
 /// A class to represent filter options for classification history
 class FilterOptions {
+  
+  /// Constructor
+  FilterOptions({
+    this.searchText,
+    this.categories,
+    this.subcategories,
+    this.materialTypes,
+    this.isRecyclable,
+    this.isCompostable,
+    this.requiresSpecialDisposal,
+    this.startDate,
+    this.endDate,
+    this.sortNewestFirst = true,
+    this.sortBy = SortField.date,
+  });
+  
+  /// Creates a new empty FilterOptions
+  factory FilterOptions.empty() {
+    return FilterOptions();
+  }
   /// Search text to filter classifications by item name, subcategory, or material type
   final String? searchText;
   
@@ -33,21 +53,6 @@ class FilterOptions {
   /// Sort by field (timestamp, category, etc.)
   final SortField sortBy;
   
-  /// Constructor
-  FilterOptions({
-    this.searchText,
-    this.categories,
-    this.subcategories,
-    this.materialTypes,
-    this.isRecyclable,
-    this.isCompostable,
-    this.requiresSpecialDisposal,
-    this.startDate,
-    this.endDate,
-    this.sortNewestFirst = true,
-    this.sortBy = SortField.date,
-  });
-  
   /// Creates a copy of this FilterOptions but with the given fields replaced
   FilterOptions copyWith({
     String? searchText,
@@ -77,11 +82,6 @@ class FilterOptions {
     );
   }
   
-  /// Creates a new empty FilterOptions
-  factory FilterOptions.empty() {
-    return FilterOptions();
-  }
-  
   /// Returns true if no filters are applied
   bool get isEmpty {
     return searchText == null &&
@@ -101,7 +101,7 @@ class FilterOptions {
   /// Converts this FilterOptions to a human-readable string
   @override
   String toString() {
-    final List<String> appliedFilters = [];
+    final appliedFilters = <String>[];
     
     if (searchText != null && searchText!.isNotEmpty) {
       appliedFilters.add('Search: "$searchText"');

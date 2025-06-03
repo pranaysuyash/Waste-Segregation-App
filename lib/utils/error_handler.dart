@@ -6,13 +6,13 @@ import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 
 /// Base class for all application-specific exceptions
 abstract class WasteAppException implements Exception {
+  
+  WasteAppException._(this.message, this.code, this.metadata) 
+    : timestamp = DateTime.now();
   final String message;
   final String code;
   final Map<String, dynamic>? metadata;
   final DateTime timestamp;
-  
-  WasteAppException._(this.message, this.code, this.metadata) 
-    : timestamp = DateTime.now();
 
   @override
   String toString() => 'WasteAppException($code): $message';
@@ -85,8 +85,8 @@ class ErrorHandler {
     final context = navigatorKey?.currentContext;
     if (context == null) return;
     
-    String message = 'An error occurred. Please try again.';
-    IconData icon = Icons.error_outline;
+    var message = 'An error occurred. Please try again.';
+    var icon = Icons.error_outline;
     Color color = Colors.red;
     
     if (error is ClassificationException) {

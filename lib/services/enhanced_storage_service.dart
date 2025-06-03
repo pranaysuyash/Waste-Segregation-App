@@ -219,15 +219,15 @@ class EnhancedStorageService extends StorageService {
 }
 
 class CacheEntry {
-  final dynamic value;
-  final DateTime timestamp;
-  final Duration ttl;
   
   CacheEntry({
     required this.value,
     required this.timestamp,
     required this.ttl,
   });
+  final dynamic value;
+  final DateTime timestamp;
+  final Duration ttl;
   
   bool get isExpired => DateTime.now().difference(timestamp) > ttl;
 }

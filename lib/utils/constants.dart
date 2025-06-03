@@ -64,17 +64,15 @@ class AppTheme {
   static final ThemeData lightTheme = ThemeData(
     brightness: Brightness.light,
     primaryColor: const Color(0xFF4CAF50),
-    colorScheme: ColorScheme.light(
-      primary: const Color(0xFF4CAF50),
-      secondary: const Color(0xFF2196F3),
-      background: const Color(0xFFFFFFFF),
-      surface: const Color(0xFFFFFFFF),
-      error: const Color(0xFFF44336),
-      onPrimary: Colors.white,
+    colorScheme: const ColorScheme.light(
+      primary: Color(0xFF4CAF50),
+      secondary: Color(0xFF2196F3),
+      background: Color(0xFFFFFFFF),
+      surface: Color(0xFFFFFFFF),
+      error: Color(0xFFF44336),
       onSecondary: Colors.white,
-      onBackground: const Color(0xFF212121),
-      onSurface: const Color(0xFF212121),
-      onError: Colors.white,
+      onBackground: Color(0xFF212121),
+      onSurface: Color(0xFF212121),
     ),
     scaffoldBackgroundColor: const Color(0xFFFFFFFF),
     cardColor: Colors.white,
@@ -103,7 +101,7 @@ class AppTheme {
       ),
     ),
     radioTheme: RadioThemeData(
-      fillColor: MaterialStateProperty.all(const Color(0xFF4CAF50)),
+      fillColor: WidgetStateProperty.all(const Color(0xFF4CAF50)),
     ),
     tabBarTheme: const TabBarTheme(
       labelColor: Colors.white, // Selected tab text color
@@ -117,16 +115,14 @@ class AppTheme {
   static final ThemeData darkTheme = ThemeData(
     brightness: Brightness.dark,
     primaryColor: const Color(0xFF388E3C),
-    colorScheme: ColorScheme.dark(
-      primary: const Color(0xFF388E3C),
-      secondary: const Color(0xFF1976D2),
-      background: const Color(0xFF121212),
-      surface: const Color(0xFF1E1E1E),
-      error: const Color(0xFFF44336),
+    colorScheme: const ColorScheme.dark(
+      primary: Color(0xFF388E3C),
+      secondary: Color(0xFF1976D2),
+      background: Color(0xFF121212),
+      surface: Color(0xFF1E1E1E),
+      error: Color(0xFFF44336),
       onPrimary: Colors.white,
       onSecondary: Colors.white,
-      onBackground: Colors.white,
-      onSurface: Colors.white,
       onError: Colors.white,
     ),
     scaffoldBackgroundColor: const Color(0xFF121212),
@@ -156,7 +152,7 @@ class AppTheme {
       ),
     ),
     radioTheme: RadioThemeData(
-      fillColor: MaterialStateProperty.all(const Color(0xFF388E3C)),
+      fillColor: WidgetStateProperty.all(const Color(0xFF388E3C)),
     ),
     tabBarTheme: const TabBarTheme(
       labelColor: Colors.white, // Selected tab text color
@@ -265,7 +261,7 @@ class AppTheme {
   // Dialog button styles for consistency
   static ButtonStyle dialogCancelButtonStyle(BuildContext context) {
     final theme = Theme.of(context);
-    final bool isDarkMode = theme.brightness == Brightness.dark;
+    final isDarkMode = theme.brightness == Brightness.dark;
     return TextButton.styleFrom(
       foregroundColor: isDarkMode ? Colors.grey.shade300 : Colors.grey.shade700, // Explicit neutral colors
       textStyle: const TextStyle(

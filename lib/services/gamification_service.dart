@@ -12,6 +12,8 @@ import 'cloud_storage_service.dart';
 
 /// Service for managing gamification features
 class GamificationService {
+  
+  GamificationService(this._storageService, this._cloudStorageService);
   // Dependencies
   final StorageService _storageService;
   final CloudStorageService _cloudStorageService;
@@ -33,9 +35,7 @@ class GamificationService {
     'educational_content': 5,  // Points for viewing educational content
     'perfect_week': 50,        // Points for using app every day in a week
     'community_challenge': 30, // Points for participating in community challenge
-  };
-  
-  GamificationService(this._storageService, this._cloudStorageService); // Updated constructor
+  }; // Updated constructor
   
   // Initialize Hive box (primarily for challenges, weekly stats if still used this way)
   Future<void> initGamification() async {
@@ -52,10 +52,10 @@ class GamificationService {
   }
   
   Future<GamificationProfile> getProfile() async {
-    UserProfile? currentUserProfile = await _storageService.getCurrentUserProfile();
+    var currentUserProfile = await _storageService.getCurrentUserProfile();
 
     if (currentUserProfile == null || currentUserProfile.id.isEmpty) {
-      debugPrint("⚠️ GamificationService: No authenticated user profile found. Falling back to legacy local profile (if any).");
+      debugPrint('⚠️ GamificationService: No authenticated user profile found. Falling back to legacy local profile (if any).');
       // Fallback for guest or unauthenticated state (reads from old Hive key)
       // This part might need further refinement based on how guests are handled.
       final box = Hive.box(_gamificationBoxName);
@@ -64,7 +64,7 @@ class GamificationService {
         try {
           return GamificationProfile.fromJson(jsonDecode(legacyProfileJson));
         } catch (e) {
-          debugPrint("🔥 Error decoding legacy gamification profile: $e. Creating a temporary guest profile.");
+          debugPrint('🔥 Error decoding legacy gamification profile: $e. Creating a temporary guest profile.');
         }
       }
       // Return a very basic, non-savable guest profile if no legacy one
@@ -80,10 +80,10 @@ class GamificationService {
       return currentUserProfile.gamificationProfile!;
     } else {
       // Logged-in user, but no gamification profile exists yet. Create one.
-      debugPrint("✨ GamificationService: No gamification profile found for user ${currentUserProfile.id}. Creating a new one.");
+      debugPrint('✨ GamificationService: No gamification profile found for user ${currentUserProfile.id}. Creating a new one.');
       final newGamificationProfile = GamificationProfile(
         userId: currentUserProfile.id, // Crucial: Use the actual user ID
-        streak: Streak(current: 0, lastUsageDate: DateTime.now().subtract(const Duration(days: 1))), // Start with 0 streak, last used yesterday
+        streak: Streak(lastUsageDate: DateTime.now().subtract(const Duration(days: 1))), // Start with 0 streak, last used yesterday
         points: const UserPoints(),
         achievements: getDefaultAchievements(), // Provide default achievements
         activeChallenges: await _loadDefaultChallengesFromHive(), // Load default challenges
@@ -99,21 +99,34 @@ class GamificationService {
     try {
       final box = Hive.box(_gamificationBoxName);
       final challengesJson = box.get(_defaultChallengesKey);
-      if (challengesJson != null) {
-        final List<dynamic> decoded = jsonDecode(challengesJson);
-        return decoded.map((data) => Challenge.fromJson(Map<String, dynamic>.from(data))).toList();
+      
+      if (challengesJson != null && challengesJson is String && challengesJson.isNotEmpty) {
+        try {
+          final List<dynamic> decoded = jsonDecode(challengesJson);
+          return decoded.map((data) => Challenge.fromJson(Map<String, dynamic>.from(data))).toList();
+        } catch (decodeError) {
+          debugPrint('🔥 Error decoding challenges JSON: $decodeError');
+          // Re-initialize with fresh data
+          await box.put(_defaultChallengesKey, jsonEncode(_getDefaultChallenges()));
+        }
+      } else {
+        debugPrint('🔧 Challenges not found or invalid in Hive, initializing...');
+        // Initialize challenges if they don't exist or are invalid
+        await box.put(_defaultChallengesKey, jsonEncode(_getDefaultChallenges()));
       }
     } catch (e) {
-      debugPrint("🔥 Error loading default challenges from Hive: $e");
+      debugPrint('🔥 Error loading default challenges from Hive: $e');
     }
-    return _getDefaultChallenges().map((c) => Challenge.fromJson(c)).toList(); // Fallback
+    
+    // Always return a fallback list using the fresh challenge templates
+    return _getDefaultChallenges().map((c) => Challenge.fromJson(c)).toList();
   }
 
   Future<void> saveProfile(GamificationProfile gamificationProfileToSave) async {
-    UserProfile? currentUserProfile = await _storageService.getCurrentUserProfile();
+    var currentUserProfile = await _storageService.getCurrentUserProfile();
 
     if (currentUserProfile == null || currentUserProfile.id.isEmpty) {
-      debugPrint("🚫 GamificationService: Cannot save gamification profile. No authenticated user profile found.");
+      debugPrint('🚫 GamificationService: Cannot save gamification profile. No authenticated user profile found.');
       // Optionally, save to legacy Hive for guest state if that's a desired feature.
       // For now, we assume saves are for authenticated users.
       // final box = Hive.box(_gamificationBoxName);
@@ -124,7 +137,7 @@ class GamificationService {
 
     // Ensure the gamification profile's user ID matches the current user's ID
     if (gamificationProfileToSave.userId != currentUserProfile.id) {
-      debugPrint("⚠️ GamificationService: Mismatched user IDs. GP UserID: ${gamificationProfileToSave.userId} vs UserProfile ID: ${currentUserProfile.id}. Correcting GP userId.");
+      debugPrint('⚠️ GamificationService: Mismatched user IDs. GP UserID: ${gamificationProfileToSave.userId} vs UserProfile ID: ${currentUserProfile.id}. Correcting GP userId.');
       gamificationProfileToSave = gamificationProfileToSave.copyWith(userId: currentUserProfile.id);
     }
     
@@ -135,12 +148,12 @@ class GamificationService {
 
     try {
       await _storageService.saveUserProfile(updatedUserProfile);
-      debugPrint("💾 GamificationService: UserProfile with updated gamification data saved locally.");
+      debugPrint('💾 GamificationService: UserProfile with updated gamification data saved locally.');
 
       await _cloudStorageService.saveUserProfileToFirestore(updatedUserProfile);
-      debugPrint("☁️ GamificationService: UserProfile with updated gamification data synced to Firestore (triggers leaderboard update).");
+      debugPrint('☁️ GamificationService: UserProfile with updated gamification data synced to Firestore (triggers leaderboard update).');
     } catch (e) {
-      debugPrint("🔥 GamificationService: Error saving user profile (local or cloud): $e");
+      debugPrint('🔥 GamificationService: Error saving user profile (local or cloud): $e');
       // Decide on error handling strategy. For now, just logging.
       rethrow;
     }
@@ -163,8 +176,8 @@ class GamificationService {
     debugPrint('  - Last usage day: $lastUsageDay');
     debugPrint('  - Current streak: ${profile.streak.current}');
     
-    int newCurrent = profile.streak.current;
-    bool shouldSave = false;
+    var newCurrent = profile.streak.current;
+    var shouldSave = false;
     
     if (lastUsageDay.isAtSameMomentAs(today)) {
       // Already used today, keep current streak (but ensure it's at least 1)
@@ -275,7 +288,7 @@ if (pointsToAdd == 0 && customPoints == null) {
     // Update weekly stats (if this logic is still separate)
     await _updateWeeklyStats(action, category, pointsToAdd);
     
-    debugPrint("✨ Points added: $pointsToAdd for $action. New total: $newTotal. Level: $newLevel");
+    debugPrint('✨ Points added: $pointsToAdd for $action. New total: $newTotal. Level: $newLevel');
     return newPoints;
   }
   
@@ -358,7 +371,7 @@ if (pointsToAdd == 0 && customPoints == null) {
     final newlyEarned = <Achievement>[];
     
     // Find all achievements of this type
-    for (int i = 0; i < achievements.length; i++) {
+    for (var i = 0; i < achievements.length; i++) {
       final achievement = achievements[i];
       
       // Process achievements of the correct type that haven't been earned yet
@@ -370,13 +383,13 @@ if (pointsToAdd == 0 && customPoints == null) {
         if (achievement.type == AchievementType.categoriesIdentified) {
           // For categories, use the actual count as progress
           newProgress = increment / achievement.threshold;
-          debugPrint('🏆 CATEGORY ACHIEVEMENT: ${achievement.id} - progress: ${increment}/${achievement.threshold} = ${(newProgress * 100).round()}%');
+          debugPrint('🏆 CATEGORY ACHIEVEMENT: ${achievement.id} - progress: $increment/${achievement.threshold} = ${(newProgress * 100).round()}%');
         } else {
           // For other achievements, use incremental progress
           final currentProgress = achievement.progress * achievement.threshold;
           final newRawProgress = currentProgress + increment;
           newProgress = newRawProgress / achievement.threshold;
-          debugPrint('🏆 ACHIEVEMENT: ${achievement.id} - progress: ${newRawProgress}/${achievement.threshold} = ${(newProgress * 100).round()}%');
+          debugPrint('🏆 ACHIEVEMENT: ${achievement.id} - progress: $newRawProgress/${achievement.threshold} = ${(newProgress * 100).round()}%');
         }
         
         // Check if achievement is now earned (requires both progress AND level unlock)
@@ -461,7 +474,7 @@ if (pointsToAdd == 0 && customPoints == null) {
     final earnedCount = achievements.where((a) => a.isEarned).length;
     
     // Update meta-achievements based on total achievements earned
-    for (int i = 0; i < achievements.length; i++) {
+    for (var i = 0; i < achievements.length; i++) {
       final achievement = achievements[i];
       
       if (achievement.type == AchievementType.metaAchievement && !achievement.isEarned) {
@@ -488,7 +501,7 @@ if (pointsToAdd == 0 && customPoints == null) {
     final profile = await getProfile();
     
     // Filter out expired challenges and add new ones if needed
-    List<Challenge> active = profile.activeChallenges
+    var active = profile.activeChallenges
         .where((challenge) => !challenge.isExpired)
         .toList();
     
@@ -511,22 +524,22 @@ if (pointsToAdd == 0 && customPoints == null) {
     final completedChallenges = List<Challenge>.from(profile.completedChallenges);
     final newlyCompleted = <Challenge>[];
     
-    for (int i = 0; i < activeChallenges.length; i++) {
+    for (var i = 0; i < activeChallenges.length; i++) {
       final challenge = activeChallenges[i];
       
       if (!challenge.isExpired && !challenge.isCompleted) {
         // Check if this classification helps with the challenge
         final reqs = challenge.requirements;
         
-        bool updated = false;
-        double newProgress = challenge.progress;
+        var updated = false;
+        var newProgress = challenge.progress;
         
         // Handle different challenge types
         if (reqs.containsKey('category') && 
             reqs['category'] == classification.category) {
           // Category-specific challenge
           final int count = reqs['count'] ?? 1;
-          final int current = (challenge.progress * count).round();
+          final current = (challenge.progress * count).round();
           final newValue = current + 1;
           newProgress = newValue / count;
           updated = true;
@@ -534,14 +547,14 @@ if (pointsToAdd == 0 && customPoints == null) {
                   classification.subcategory == reqs['subcategory']) {
           // Subcategory-specific challenge
           final int count = reqs['count'] ?? 1;
-          final int current = (challenge.progress * count).round();
+          final current = (challenge.progress * count).round();
           final newValue = current + 1;
           newProgress = newValue / count;
           updated = true;
         } else if (reqs.containsKey('any_item') && reqs['any_item'] == true) {
           // Any item identified challenge
           final int count = reqs['count'] ?? 1;
-          final int current = (challenge.progress * count).round();
+          final current = (challenge.progress * count).round();
           final newValue = current + 1;
           newProgress = newValue / count;
           updated = true;
@@ -616,11 +629,11 @@ if (pointsToAdd == 0 && customPoints == null) {
     final weekStartDate = DateTime(weekStart.year, weekStart.month, weekStart.day);
     
     // Get existing stats
-    final List<WeeklyStats> allStats = await getWeeklyStats();
+    final allStats = await getWeeklyStats();
     
     // Find or create current week's stats
     WeeklyStats currentWeekStats;
-    int currentWeekIndex = allStats.indexWhere(
+    var currentWeekIndex = allStats.indexWhere(
       (stats) => stats.weekStartDate.isAtSameMomentAs(weekStartDate)
     );
     
@@ -632,10 +645,10 @@ if (pointsToAdd == 0 && customPoints == null) {
     }
     
     // Update stats based on action
-    int newItemsIdentified = currentWeekStats.itemsIdentified;
-    int newChallengesCompleted = currentWeekStats.challengesCompleted;
-    int newPointsEarned = currentWeekStats.pointsEarned + pointsEarned;
-    Map<String, int> newCategoryCounts = Map<String, int>.from(currentWeekStats.categoryCounts);
+    var newItemsIdentified = currentWeekStats.itemsIdentified;
+    var newChallengesCompleted = currentWeekStats.challengesCompleted;
+    var newPointsEarned = currentWeekStats.pointsEarned + pointsEarned;
+    var newCategoryCounts = Map<String, int>.from(currentWeekStats.categoryCounts);
     
     // Update specific stats based on action
     if (action == 'classification') {
@@ -699,7 +712,7 @@ if (pointsToAdd == 0 && customPoints == null) {
       final Map<String, dynamic> templateData = template;
       
       // Create a challenge with a one-week duration
-      final Challenge challenge = Challenge(
+      final challenge = Challenge(
         id: 'challenge_${now.millisecondsSinceEpoch}_${challenges.length}',
         title: templateData['title'],
         description: templateData['description'],
@@ -709,8 +722,6 @@ if (pointsToAdd == 0 && customPoints == null) {
         iconName: templateData['iconName'] ?? 'task_alt',
         color: Color(templateData['color'] ?? AppTheme.secondaryColor.value),
         requirements: templateData['requirements'] ?? {'any_item': true, 'count': 5},
-        isCompleted: false,
-        progress: 0.0,
       );
       
       challenges.add(challenge);
@@ -723,7 +734,7 @@ if (pointsToAdd == 0 && customPoints == null) {
   List<Achievement> getDefaultAchievements() {
     return [
       // Waste identification achievements - TIERED FAMILY
-      Achievement(
+      const Achievement(
         id: 'waste_novice',
         title: 'Waste Novice',
         description: 'Identify your first 5 waste items',
@@ -731,11 +742,9 @@ if (pointsToAdd == 0 && customPoints == null) {
         threshold: 5,
         iconName: 'emoji_objects',
         color: AppTheme.primaryColor,
-        tier: AchievementTier.bronze,
         achievementFamilyId: 'Waste Identifier',
-        pointsReward: 50,
       ),
-      Achievement(
+      const Achievement(
         id: 'waste_apprentice',
         title: 'Waste Apprentice',
         description: 'Identify 15 waste items',
@@ -748,7 +757,7 @@ if (pointsToAdd == 0 && customPoints == null) {
         pointsReward: 100,
         unlocksAtLevel: 2,
       ),
-      Achievement(
+      const Achievement(
         id: 'waste_expert',
         title: 'Waste Expert',
         description: 'Identify 100 waste items',
@@ -761,7 +770,7 @@ if (pointsToAdd == 0 && customPoints == null) {
         pointsReward: 200,
         unlocksAtLevel: 5,
       ),
-      Achievement(
+      const Achievement(
         id: 'waste_master',
         title: 'Waste Master',
         description: 'Identify 500 waste items',
@@ -776,7 +785,7 @@ if (pointsToAdd == 0 && customPoints == null) {
       ),
       
       // Categories achievements - TIERED FAMILY
-      Achievement(
+      const Achievement(
         id: 'category_explorer',
         title: 'Category Explorer',
         description: 'Identify items from 3 different waste categories',
@@ -784,11 +793,10 @@ if (pointsToAdd == 0 && customPoints == null) {
         threshold: 3,
         iconName: 'category',
         color: AppTheme.secondaryColor,
-        tier: AchievementTier.bronze,
         achievementFamilyId: 'Category Expert',
         pointsReward: 75,
       ),
-      Achievement(
+      const Achievement(
         id: 'category_master',
         title: 'Category Master',
         description: 'Identify items from all 5 waste categories',
@@ -800,7 +808,7 @@ if (pointsToAdd == 0 && customPoints == null) {
         achievementFamilyId: 'Category Expert',
         pointsReward: 150,
       ),
-      Achievement(
+      const Achievement(
         id: 'category_collector',
         title: 'Category Collector',
         description: 'Identify 10 items from each waste category',
@@ -815,7 +823,7 @@ if (pointsToAdd == 0 && customPoints == null) {
       ),
       
       // Streak achievements - TIERED FAMILY
-      Achievement(
+      const Achievement(
         id: 'streak_starter',
         title: 'Streak Starter',
         description: 'Use the app for 3 days in a row',
@@ -823,11 +831,9 @@ if (pointsToAdd == 0 && customPoints == null) {
         threshold: 3,
         iconName: 'local_fire_department',
         color: Colors.orange,
-        tier: AchievementTier.bronze,
         achievementFamilyId: 'Streak Maintainer',
-        pointsReward: 50,
       ),
-      Achievement(
+      const Achievement(
         id: 'streak_warrior',
         title: 'Streak Warrior',
         description: 'Use the app for 7 days in a row',
@@ -839,7 +845,7 @@ if (pointsToAdd == 0 && customPoints == null) {
         achievementFamilyId: 'Streak Maintainer',
         pointsReward: 100,
       ),
-      Achievement(
+      const Achievement(
         id: 'streak_master',
         title: 'Streak Master',
         description: 'Use the app for 30 days in a row',
@@ -852,7 +858,7 @@ if (pointsToAdd == 0 && customPoints == null) {
         pointsReward: 300,
         unlocksAtLevel: 4,
       ),
-      Achievement(
+      const Achievement(
         id: 'streak_legend',
         title: 'Streak Legend',
         description: 'Use the app for 100 days in a row',
@@ -867,7 +873,7 @@ if (pointsToAdd == 0 && customPoints == null) {
       ),
       
       // Perfect week achievements - TIERED FAMILY
-      Achievement(
+      const Achievement(
         id: 'perfect_week',
         title: 'Perfect Week',
         description: 'Use the app every day for a full week',
@@ -875,11 +881,10 @@ if (pointsToAdd == 0 && customPoints == null) {
         threshold: 1,
         iconName: 'event_available',
         color: Colors.teal,
-        tier: AchievementTier.bronze,
         achievementFamilyId: 'Perfect Record',
         pointsReward: 75,
       ),
-      Achievement(
+      const Achievement(
         id: 'perfect_month',
         title: 'Perfect Month',
         description: 'Complete 4 perfect weeks',
@@ -892,7 +897,7 @@ if (pointsToAdd == 0 && customPoints == null) {
         pointsReward: 150,
         unlocksAtLevel: 3,
       ),
-      Achievement(
+      const Achievement(
         id: 'perfect_quarter',
         title: 'Perfect Quarter',
         description: 'Complete 12 perfect weeks',
@@ -907,7 +912,7 @@ if (pointsToAdd == 0 && customPoints == null) {
       ),
       
       // Challenge achievements - TIERED FAMILY
-      Achievement(
+      const Achievement(
         id: 'challenge_taker',
         title: 'Challenge Taker',
         description: 'Complete your first challenge',
@@ -915,11 +920,9 @@ if (pointsToAdd == 0 && customPoints == null) {
         threshold: 1,
         iconName: 'emoji_events',
         color: Colors.amber,
-        tier: AchievementTier.bronze,
         achievementFamilyId: 'Challenge Conqueror',
-        pointsReward: 50,
       ),
-      Achievement(
+      const Achievement(
         id: 'challenge_champion',
         title: 'Challenge Champion',
         description: 'Complete 5 challenges',
@@ -931,7 +934,7 @@ if (pointsToAdd == 0 && customPoints == null) {
         achievementFamilyId: 'Challenge Conqueror',
         pointsReward: 100,
       ),
-      Achievement(
+      const Achievement(
         id: 'challenge_master',
         title: 'Challenge Master',
         description: 'Complete 20 challenges',
@@ -944,7 +947,7 @@ if (pointsToAdd == 0 && customPoints == null) {
         pointsReward: 200,
         unlocksAtLevel: 5,
       ),
-      Achievement(
+      const Achievement(
         id: 'challenge_legend',
         title: 'Challenge Legend',
         description: 'Complete 50 challenges',
@@ -959,7 +962,7 @@ if (pointsToAdd == 0 && customPoints == null) {
       ),
       
       // Knowledge achievements - TIERED FAMILY
-      Achievement(
+      const Achievement(
         id: 'knowledge_seeker',
         title: 'Knowledge Seeker',
         description: 'View 5 educational content items',
@@ -967,11 +970,9 @@ if (pointsToAdd == 0 && customPoints == null) {
         threshold: 5,
         iconName: 'school',
         color: Colors.purple,
-        tier: AchievementTier.bronze,
         achievementFamilyId: 'Knowledge Explorer',
-        pointsReward: 50,
       ),
-      Achievement(
+      const Achievement(
         id: 'knowledge_adept',
         title: 'Knowledge Adept',
         description: 'View 20 educational content items',
@@ -983,7 +984,7 @@ if (pointsToAdd == 0 && customPoints == null) {
         achievementFamilyId: 'Knowledge Explorer',
         pointsReward: 100,
       ),
-      Achievement(
+      const Achievement(
         id: 'knowledge_expert',
         title: 'Knowledge Expert',
         description: 'View 50 educational content items',
@@ -998,7 +999,7 @@ if (pointsToAdd == 0 && customPoints == null) {
       ),
       
       // Quiz achievements - TIERED FAMILY
-      Achievement(
+      const Achievement(
         id: 'quiz_taker',
         title: 'Quiz Taker',
         description: 'Complete your first quiz',
@@ -1006,11 +1007,9 @@ if (pointsToAdd == 0 && customPoints == null) {
         threshold: 1,
         iconName: 'quiz',
         color: Colors.indigo,
-        tier: AchievementTier.bronze,
         achievementFamilyId: 'Quiz Champion',
-        pointsReward: 50,
       ),
-      Achievement(
+      const Achievement(
         id: 'quiz_enthusiast',
         title: 'Quiz Enthusiast',
         description: 'Complete 5 quizzes',
@@ -1022,7 +1021,7 @@ if (pointsToAdd == 0 && customPoints == null) {
         achievementFamilyId: 'Quiz Champion',
         pointsReward: 100,
       ),
-      Achievement(
+      const Achievement(
         id: 'quiz_master',
         title: 'Quiz Master',
         description: 'Complete 10 quizzes',
@@ -1037,7 +1036,7 @@ if (pointsToAdd == 0 && customPoints == null) {
       ),
       
       // Special achievements
-      Achievement(
+      const Achievement(
         id: 'eco_warrior',
         title: 'Eco Warrior',
         description: 'Special achievement for dedicated users',
@@ -1055,7 +1054,7 @@ if (pointsToAdd == 0 && customPoints == null) {
       ),
       
       // Meta-achievement
-      Achievement(
+      const Achievement(
         id: 'achievement_hunter',
         title: 'Achievement Hunter',
         description: 'Earn 10 other achievements',
@@ -1265,7 +1264,7 @@ if (pointsToAdd == 0 && customPoints == null) {
       
       // Store in a list of archived entries
       final existingArchives = box.get('archived_points_list', defaultValue: <String>[]);
-      final List<String> archivesList = List<String>.from(existingArchives);
+      final archivesList = List<String>.from(existingArchives);
       archivesList.add(jsonEncode(archiveEntry));
       
       await box.put('archived_points_list', archivesList);
@@ -1282,14 +1281,14 @@ if (pointsToAdd == 0 && customPoints == null) {
     try {
       final box = Hive.box(_gamificationBoxName);
       final profile = await getProfile();
-      int totalLifetime = profile.points.total;
+      var totalLifetime = profile.points.total;
       
       // Add archived points
       final archivedList = box.get('archived_points_list', defaultValue: <String>[]);
       for (final archivedJson in archivedList) {
         try {
           final archived = jsonDecode(archivedJson);
-          totalLifetime += (archived['totalLifetimePoints'] as int? ?? 0);
+          totalLifetime += archived['totalLifetimePoints'] as int? ?? 0;
         } catch (e) {
           debugPrint('Error parsing archived points: $e');
         }
@@ -1309,7 +1308,7 @@ if (pointsToAdd == 0 && customPoints == null) {
       final box = Hive.box(_gamificationBoxName);
       final archivedList = box.get('archived_points_list', defaultValue: <String>[]);
       
-      final List<Map<String, dynamic>> history = [];
+      final history = <Map<String, dynamic>>[];
       for (final archivedJson in archivedList) {
         try {
           final archived = jsonDecode(archivedJson);

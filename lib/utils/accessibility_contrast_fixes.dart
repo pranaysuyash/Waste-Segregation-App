@@ -103,8 +103,8 @@ class AccessibilityContrastFixes {
 
   /// Power function implementation
   static double _pow(double base, double exponent) {
-    double result = 1.0;
-    for (int i = 0; i < exponent.round(); i++) {
+    var result = 1.0;
+    for (var i = 0; i < exponent.round(); i++) {
       result *= base;
     }
     return result;
@@ -169,15 +169,15 @@ class AccessibilityContrastFixes {
 
 /// Data class for contrast color combinations
 class ContrastColorPair {
-  final Color backgroundColor;
-  final Color textColor;
-  final Color borderColor;
 
   const ContrastColorPair({
     required this.backgroundColor,
     required this.textColor,
     required this.borderColor,
   });
+  final Color backgroundColor;
+  final Color textColor;
+  final Color borderColor;
 }
 
 /// Extension to easily apply accessible colors to widgets

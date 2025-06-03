@@ -19,29 +19,6 @@ enum ContentLevel {
 
 /// Represents an educational content item in the app
 class EducationalContent {
-  final String id;
-  final String title;
-  final String description;
-  final ContentType type;
-  final String thumbnailUrl;
-  final String? videoUrl;
-  final String? contentText;
-  final List<String> categories;
-  final List<String> tags;
-  final ContentLevel level;
-  final DateTime dateAdded;
-  final bool isPremium;
-  final int durationMinutes;
-  final IconData icon;
-  
-  /// For infographics: the image URL
-  final String? imageUrl;
-  
-  /// For quizzes: list of questions and answers
-  final List<QuizQuestion>? questions;
-  
-  /// For tutorials: list of steps
-  final List<TutorialStep>? steps;
   
   /// Constructor for educational content
   const EducationalContent({
@@ -244,6 +221,29 @@ class EducationalContent {
       icon: Icons.lightbulb_outline,
     );
   }
+  final String id;
+  final String title;
+  final String description;
+  final ContentType type;
+  final String thumbnailUrl;
+  final String? videoUrl;
+  final String? contentText;
+  final List<String> categories;
+  final List<String> tags;
+  final ContentLevel level;
+  final DateTime dateAdded;
+  final bool isPremium;
+  final int durationMinutes;
+  final IconData icon;
+  
+  /// For infographics: the image URL
+  final String? imageUrl;
+  
+  /// For quizzes: list of questions and answers
+  final List<QuizQuestion>? questions;
+  
+  /// For tutorials: list of steps
+  final List<TutorialStep>? steps;
   
   /// Get color based on content type
   Color getTypeColor() {
@@ -297,10 +297,6 @@ class EducationalContent {
 
 /// Represents a quiz question in the educational content
 class QuizQuestion {
-  final String question;
-  final List<String> options;
-  final int correctOptionIndex;
-  final String? explanation;
   
   const QuizQuestion({
     required this.question,
@@ -308,30 +304,27 @@ class QuizQuestion {
     required this.correctOptionIndex,
     this.explanation,
   });
+  final String question;
+  final List<String> options;
+  final int correctOptionIndex;
+  final String? explanation;
 }
 
 /// Represents a tutorial step in the educational content
 class TutorialStep {
-  final String title;
-  final String description;
-  final String? imageUrl;
   
   const TutorialStep({
     required this.title,
     required this.description,
     this.imageUrl,
   });
+  final String title;
+  final String description;
+  final String? imageUrl;
 }
 
 /// Represents a daily tip for the home screen
 class DailyTip {
-  final String id;
-  final String title;
-  final String content;
-  final String category;
-  final DateTime date;
-  final String? actionText;
-  final String? actionLink;
   
   const DailyTip({
     required this.id,
@@ -342,4 +335,11 @@ class DailyTip {
     this.actionText,
     this.actionLink,
   });
+  final String id;
+  final String title;
+  final String content;
+  final String category;
+  final DateTime date;
+  final String? actionText;
+  final String? actionLink;
 }

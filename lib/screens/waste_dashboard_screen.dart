@@ -240,7 +240,7 @@ class _WasteDashboardScreenState extends State<WasteDashboardScreen> {
                   Flexible(
                     child: Text(
                       label,
-                      style: TextStyle(
+                      style: const TextStyle(
                         fontSize: 12,
                         color: AppTheme.textSecondaryColor,
                       ),
@@ -459,7 +459,7 @@ class _WasteDashboardScreenState extends State<WasteDashboardScreen> {
                         value: entry.value / maxValue,
                         minHeight: 12,
                         backgroundColor: Colors.grey.shade200,
-                        valueColor: AlwaysStoppedAnimation<Color>(AppTheme.primaryColor),
+                        valueColor: const AlwaysStoppedAnimation<Color>(AppTheme.primaryColor),
                       ),
                     ),
                     SizedBox(
@@ -741,7 +741,7 @@ class _WasteDashboardScreenState extends State<WasteDashboardScreen> {
               children: [
                   Row(
                     children: [
-                      Icon(
+                      const Icon(
                         Icons.emoji_events,
                         color: AppTheme.primaryColor,
                         size: 24,
@@ -817,11 +817,7 @@ class _WasteDashboardScreenState extends State<WasteDashboardScreen> {
 }
 
 // Revert EmptyStateWidget to its simpler, original form (StatelessWidget)
-class EmptyStateWidget extends StatelessWidget {
-  final String title;
-  final String message;
-  final Widget? actionButton; // Kept for basic functionality
-  final IconData? icon; // Optional icon if it had one originally
+class EmptyStateWidget extends StatelessWidget { // Optional icon if it had one originally
 
   const EmptyStateWidget({
     super.key,
@@ -830,6 +826,10 @@ class EmptyStateWidget extends StatelessWidget {
     this.actionButton,
     this.icon,
   });
+  final String title;
+  final String message;
+  final Widget? actionButton; // Kept for basic functionality
+  final IconData? icon;
 
   @override
   Widget build(BuildContext context) {
@@ -859,7 +859,7 @@ class EmptyStateWidget extends StatelessWidget {
             Text(
               message,
               textAlign: TextAlign.center,
-              style: TextStyle(
+              style: const TextStyle(
                 color: AppTheme.textSecondaryColor,
                 fontSize: AppTheme.fontSizeRegular,
                 height: 1.4,
@@ -877,14 +877,14 @@ class EmptyStateWidget extends StatelessWidget {
 }
 
 class WebChartWidget extends StatefulWidget {
-  final List<Map<String, dynamic>> data;
-  final String title;
   
   const WebChartWidget({
     super.key,
     required this.data,
     required this.title,
   });
+  final List<Map<String, dynamic>> data;
+  final String title;
 
   @override
   State<WebChartWidget> createState() => _WebChartWidgetState();
@@ -1102,12 +1102,12 @@ class _WebChartWidgetState extends State<WebChartWidget> {
 }
 
 class WebPieChartWidget extends StatefulWidget {
-  final List<Map<String, dynamic>> data;
   
   const WebPieChartWidget({
     super.key,
     required this.data,
   });
+  final List<Map<String, dynamic>> data;
 
   @override
   State<WebPieChartWidget> createState() => _WebPieChartWidgetState();
@@ -1281,13 +1281,7 @@ class _WebPieChartWidgetState extends State<WebPieChartWidget> {
 }
 
 // Gamification summary card for individual stats
-class GamificationSummaryCard extends StatelessWidget {
-  final String title;
-  final String value;
-  final String unit;
-  final IconData icon;
-  final Color color;
-  final String? trend; // e.g., "+12%"
+class GamificationSummaryCard extends StatelessWidget { // e.g., "+12%"
 
   const GamificationSummaryCard({
     super.key,
@@ -1298,6 +1292,12 @@ class GamificationSummaryCard extends StatelessWidget {
     required this.color,
     this.trend,
   });
+  final String title;
+  final String value;
+  final String unit;
+  final IconData icon;
+  final Color color;
+  final String? trend;
 
   @override
   Widget build(BuildContext context) {
@@ -1335,7 +1335,7 @@ class GamificationSummaryCard extends StatelessWidget {
             const SizedBox(height: AppTheme.paddingMicro), 
             Text(
               value,
-              style: TextStyle(
+              style: const TextStyle(
                 fontSize: AppTheme.fontSizeExtraLarge,
                 fontWeight: FontWeight.bold,
                 color: AppTheme.textPrimaryColor,
@@ -1345,14 +1345,19 @@ class GamificationSummaryCard extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
-                  unit,
-                  style: TextStyle(
-                    fontSize: AppTheme.fontSizeSmall,
-                    color: AppTheme.textSecondaryColor.withValues(alpha: 0.7),
+                Flexible(
+                  child: Text(
+                    unit,
+                    style: TextStyle(
+                      fontSize: AppTheme.fontSizeSmall,
+                      color: AppTheme.textSecondaryColor.withValues(alpha: 0.7),
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                    maxLines: 1,
                   ),
                 ),
-                if (trend != null)
+                if (trend != null) ...[
+                  const SizedBox(width: 4),
                   Container(
                     padding: const EdgeInsets.symmetric(
                         horizontal: AppTheme.paddingMicro, vertical: 2),
@@ -1370,6 +1375,7 @@ class GamificationSummaryCard extends StatelessWidget {
                       ),
                     ),
                   ),
+                ],
               ],
             ),
           ],

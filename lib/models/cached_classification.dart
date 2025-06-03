@@ -11,29 +11,6 @@ part 'cached_classification.g.dart';
 /// and usage statistics.
 @HiveType(typeId: 2)
 class CachedClassification extends HiveObject {
-  /// Unique identifier (image hash) for this cache entry
-  @HiveField(0)
-  final String imageHash;
-
-  /// The actual waste classification result
-  @HiveField(1)
-  final WasteClassification classification;
-
-  /// When this classification was first cached
-  @HiveField(2)
-  final DateTime timestamp;
-
-  /// Last time this cache entry was accessed (for LRU eviction)
-  @HiveField(3)
-  DateTime lastAccessed;
-
-  /// Number of times this cache entry was used
-  @HiveField(4)
-  int useCount;
-
-  /// Size of the original image in bytes (for cache size management)
-  @HiveField(5)
-  final int? imageSize;
 
   CachedClassification({
     required this.imageHash,
@@ -44,24 +21,6 @@ class CachedClassification extends HiveObject {
     this.imageSize,
   })  : timestamp = timestamp ?? DateTime.now(),
         lastAccessed = lastAccessed ?? DateTime.now();
-
-  /// Increments the use count and updates last accessed timestamp
-  void markUsed() {
-    useCount++;
-    lastAccessed = DateTime.now();
-  }
-
-  /// Converts to JSON for storage
-  Map<String, dynamic> toJson() {
-    return {
-      'imageHash': imageHash,
-      'classification': classification.toJson(),
-      'timestamp': timestamp.toIso8601String(),
-      'lastAccessed': lastAccessed.toIso8601String(),
-      'useCount': useCount,
-      'imageSize': imageSize,
-    };
-  }
 
   /// Constructor from JSON
   factory CachedClassification.fromJson(Map<String, dynamic> json) {
@@ -86,6 +45,47 @@ class CachedClassification extends HiveObject {
       classification: classification,
       imageSize: imageSize,
     );
+  }
+  /// Unique identifier (image hash) for this cache entry
+  @HiveField(0)
+  final String imageHash;
+
+  /// The actual waste classification result
+  @HiveField(1)
+  final WasteClassification classification;
+
+  /// When this classification was first cached
+  @HiveField(2)
+  final DateTime timestamp;
+
+  /// Last time this cache entry was accessed (for LRU eviction)
+  @HiveField(3)
+  DateTime lastAccessed;
+
+  /// Number of times this cache entry was used
+  @HiveField(4)
+  int useCount;
+
+  /// Size of the original image in bytes (for cache size management)
+  @HiveField(5)
+  final int? imageSize;
+
+  /// Increments the use count and updates last accessed timestamp
+  void markUsed() {
+    useCount++;
+    lastAccessed = DateTime.now();
+  }
+
+  /// Converts to JSON for storage
+  Map<String, dynamic> toJson() {
+    return {
+      'imageHash': imageHash,
+      'classification': classification.toJson(),
+      'timestamp': timestamp.toIso8601String(),
+      'lastAccessed': lastAccessed.toIso8601String(),
+      'useCount': useCount,
+      'imageSize': imageSize,
+    };
   }
 
   /// Serialize cache entry for storage in Hive
