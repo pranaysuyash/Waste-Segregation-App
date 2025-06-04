@@ -63,7 +63,7 @@ This section defines how users earn engagement points in Phase 1.
 | Bonus: Score 90%+ on a quiz                  | +15            | Additional bonus for high performance.                                                               |
 | **Badge Unlocks**                            | Variable       | Points awarded when a badge is earned (defined in `badges/{badgeId}.points_bonus`). See Section 4.1. |
 | **Daily Challenge Completion**               | Variable       | Points awarded upon completing a daily challenge (defined in `daily_challenges/{challengeId}.rewards.points`). See Section 6. |
-| **Streak Milestones (Implicit)**             |                | While streaks themselves are tracked, explicit point bonuses for *hitting* streak milestones (e.g. 7-day, 30-day) will be part of Badge criteria for Phase 1, not direct point awards. For example, a "7-Day Streak" badge will have its own `points_bonus`. |
+| **Streak Milestones (Implicit via Badges for Phase 1)**             | N/A (via Badges) | While streaks themselves are tracked (e.g., `daily_classification_streak`), for Phase 1, explicit point bonuses for *hitting* defined streak milestones (e.g., 3-day, 7-day, 30-day) are primarily delivered through Consistency Badges, each carrying its own `points_bonus`. The main `gamification_engagement_strategy.md` outlines a more direct and dynamic point reward system for streaks (daily maintenance points plus escalating milestone bonuses) which is a target for later phases. Phase 1 simplifies this by tying milestone rewards to badges. |
 
 ### 3.2. Cloud Function Design for Awarding Points
 
@@ -78,7 +78,7 @@ This section defines how users earn engagement points in Phase 1.
 *   **Supporting Functions/Triggers:**
     *   **On Classification:** A Cloud Function triggered when a new successful classification is logged. This function will call `awardPoints` with `actionType: "CLASSIFICATION_SUCCESS"`.
     *   **On Educational Content Completion:** Cloud Functions triggered when an article/video is marked complete, or a quiz attempt is successfully saved. These will call `awardPoints` with appropriate `actionType` (e.g., "ARTICLE_COMPLETE", "QUIZ_COMPLETE", "QUIZ_COMPLETE_HIGH_SCORE").
-*   **Configuration for Point Values:** Point values for basic actions (like classification, article read) can be stored in a configuration document in Firestore (e.g., `app_config/gamification_settings`) that the `awardPoints` function can read. This allows for easier tuning via the Admin Panel later without re-deploying functions.
+*   **Configuration for Point Values:** Point values for basic actions (like classification, article read) can be stored in a configuration document in Firestore (e.g., `app_config/gamification_settings`) that the `awardPoints` function can read. This allows for easier tuning via the Admin Panel later without re-deploying functions. (Note: The `gamification_engagement_strategy.md` provides a more comprehensive list of point-earning actions and dynamic considerations for future enhancements beyond Phase 1).
 
 ## 4. Badge Implementation (Phase 1)
 
