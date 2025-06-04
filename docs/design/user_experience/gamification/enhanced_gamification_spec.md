@@ -31,10 +31,14 @@ The following enhancements will directly address the disconnected action-reward 
 ### 1. Immediate Feedback System
 
 **Real-time Reward Animations**
-- Add animated +XP indicator that appears immediately after classification
-- Display challenge progress updates directly on the results screen
+- Add animated +XP indicator that appears immediately after classification (popup)
+- **NEW:** Add a persistent card/banner on the ResultScreen showing the exact points awarded for the current classification. This card remains visible as long as the result is shown, making it easy for users and testers to validate points awarded for each action.
 - Show streak maintenance confirmation ("Streak Day 1 maintained!")
 - Create visual and audio feedback for achievement progress
+- Display challenge progress updates directly on the results screen
+
+**Rationale:**
+- The popup provides instant feedback, but can be missed if the user looks away or is distracted. The persistent card ensures that the awarded points are always visible for the current analysis, improving transparency and QA validation.
 
 +> Note: Points/XP popups and reward animations only trigger for new classifications, not when viewing history. The `ResultScreen` uses a `showActions` flag to ensure this logic.
 
