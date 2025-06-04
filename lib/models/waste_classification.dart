@@ -57,23 +57,58 @@ class WasteClassification {
   factory WasteClassification.fallback(String imagePath, {String? userId, String? id}) {
     return WasteClassification(
       id: id ?? const Uuid().v4(),
-      itemName: 'Unknown Item',
-      category: 'Dry Waste',
-      subcategory: 'Other Dry Waste',
-      explanation: 'Unable to classify this item automatically. Please review and correct if needed.',
+      itemName: 'Unidentified Item',
+      category: 'Requires Manual Review',
+      subcategory: 'Classification Needed',
+      explanation: 'Our AI was unable to automatically identify this item. This could be due to unclear image quality, unusual lighting, or an uncommon item type. Please help us improve by providing feedback on what this item actually is.',
       disposalInstructions: DisposalInstructions(
-        primaryMethod: 'Manual review required',
-        steps: ['Please review the item manually', 'Consult local waste guidelines'],
+        primaryMethod: 'Manual identification required',
+        steps: [
+          'Look at the item carefully and identify its material type',
+          'Check if it\'s primarily made of paper, plastic, glass, metal, or organic matter',
+          'Refer to local waste sorting guidelines for your area',
+          'Use the feedback button to help improve our AI recognition',
+          'When in doubt, contact your local waste management authority'
+        ],
         hasUrgentTimeframe: false,
+        warnings: [
+          'Do not dispose until properly identified',
+          'Some items may require special handling'
+        ],
+        tips: [
+          'Take a clearer photo with better lighting if possible',
+          'Ensure the item fills most of the image frame',
+          'Remove any packaging or labels that might confuse the AI'
+        ],
       ),
       userId: userId,
       region: 'Unknown',
       visualFeatures: [],
-      alternatives: [],
+      alternatives: [
+        AlternativeClassification(
+          category: 'Wet Waste',
+          subcategory: 'Food Waste',
+          confidence: 0.0,
+          reason: 'If this is food scraps or organic matter, it belongs in wet waste',
+        ),
+        AlternativeClassification(
+          category: 'Dry Waste',
+          subcategory: 'Recyclable Material',
+          confidence: 0.0,
+          reason: 'If this is paper, plastic, glass, or metal, it likely belongs in dry waste',
+        ),
+        AlternativeClassification(
+          category: 'Hazardous Waste',
+          subcategory: 'Special Disposal',
+          confidence: 0.0,
+          reason: 'If this contains batteries, electronics, or chemicals, it needs special handling',
+        ),
+      ],
       imageUrl: imagePath,
       confidence: 0.0,
       clarificationNeeded: true,
-      riskLevel: 'safe',
+      riskLevel: 'unknown',
+      suggestedAction: 'Please identify the item manually and provide feedback to help improve our AI',
     );
   }
 

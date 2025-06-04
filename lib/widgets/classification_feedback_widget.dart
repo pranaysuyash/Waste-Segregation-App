@@ -968,7 +968,7 @@ class _ClassificationFeedbackWidgetState extends State<ClassificationFeedbackWid
       correctionText = _customCorrectionController.text.trim();
     }
     
-    var userReason = _notesController.text.trim().isNotEmpty 
+    final userReason = _notesController.text.trim().isNotEmpty 
         ? _notesController.text.trim() 
         : null;
 

@@ -157,7 +157,7 @@ class FeatureCard extends StatelessWidget {
     return LayoutBuilder(
       builder: (context, constraints) {
         // Responsive padding based on available width
-        var effectivePadding = padding ?? EdgeInsets.all(
+        final effectivePadding = padding ?? EdgeInsets.all(
           constraints.maxWidth < 300 
               ? AppTheme.spacingSm  // Smaller padding for narrow screens
               : AppTheme.spacingMd, // Standard padding for normal screens

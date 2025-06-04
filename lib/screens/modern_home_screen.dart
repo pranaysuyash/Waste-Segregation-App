@@ -1057,6 +1057,8 @@ class _ModernHomeScreenState extends State<ModernHomeScreen> with TickerProvider
         return Icons.medical_services;
       case 'non-waste':
         return Icons.check_circle;
+      case 'requires manual review':
+        return Icons.help_outline;
       default:
         return Icons.category;
     }
@@ -1074,6 +1076,8 @@ class _ModernHomeScreenState extends State<ModernHomeScreen> with TickerProvider
         return AppTheme.medicalWasteColor;
       case 'non-waste':
         return AppTheme.nonWasteColor;
+      case 'requires manual review':
+        return AppTheme.manualReviewColor;
       default:
         return AppTheme.neutralColor;
     }

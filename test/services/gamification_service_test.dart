@@ -46,7 +46,7 @@ void main() {
 
   group('GamificationService Initialization', () {
     test('should initialize successfully', () async {
-      expect(() async => await gamificationService.initGamification(), 
+      expect(() async => gamificationService.initGamification(), 
              returnsNormally);
     });
 
@@ -66,7 +66,7 @@ void main() {
       }
       
       // Should not throw on initialization
-      expect(() async => await gamificationService.initGamification(), 
+      expect(() async => gamificationService.initGamification(), 
              returnsNormally);
     });
   });
@@ -102,7 +102,7 @@ void main() {
     test('should return existing profile if already exists', () async {
       final existingProfile = GamificationProfile(
         userId: 'test_user_123',
-        points: const UserPoints(total: 100, level: 1),
+        points: const UserPoints(total: 100),
         streak: Streak(current: 5, longest: 10, lastUsageDate: DateTime.now()),
         achievements: [],
       );
@@ -313,7 +313,7 @@ void main() {
 
     test('should unlock achievement when threshold is reached', () async {
       // Process 5 classifications to unlock "Waste Novice" achievement
-      for (int i = 0; i < 5; i++) {
+      for (var i = 0; i < 5; i++) {
         await gamificationService.updateAchievementProgress(AchievementType.wasteIdentified, 1);
       }
       
@@ -328,7 +328,7 @@ void main() {
 
     test('should not unlock achievement if level requirement not met', () async {
       // Try to unlock "Waste Apprentice" (requires level 2) with level 0 user
-      for (int i = 0; i < 15; i++) {
+      for (var i = 0; i < 15; i++) {
         await gamificationService.updateAchievementProgress(AchievementType.wasteIdentified, 1);
       }
       
@@ -346,7 +346,7 @@ void main() {
       await gamificationService.addPoints('classification', customPoints: 200);
       
       // Then make progress on the achievement
-      for (int i = 0; i < 15; i++) {
+      for (var i = 0; i < 15; i++) {
         await gamificationService.updateAchievementProgress(AchievementType.wasteIdentified, 1);
       }
       
@@ -523,7 +523,7 @@ void main() {
       //     .thenThrow(Exception('Cloud storage error'));
 
       // Should still save locally even if cloud save fails
-      expect(() async => await gamificationService.addPoints('classification'), 
+      expect(() async => gamificationService.addPoints('classification'), 
              returnsNormally);
     });
   });

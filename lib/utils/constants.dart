@@ -67,11 +67,8 @@ class AppTheme {
     colorScheme: const ColorScheme.light(
       primary: Color(0xFF4CAF50),
       secondary: Color(0xFF2196F3),
-      background: Color(0xFFFFFFFF),
-      surface: Color(0xFFFFFFFF),
       error: Color(0xFFF44336),
       onSecondary: Colors.white,
-      onBackground: Color(0xFF212121),
       onSurface: Color(0xFF212121),
     ),
     scaffoldBackgroundColor: const Color(0xFFFFFFFF),
@@ -118,7 +115,6 @@ class AppTheme {
     colorScheme: const ColorScheme.dark(
       primary: Color(0xFF388E3C),
       secondary: Color(0xFF1976D2),
-      background: Color(0xFF121212),
       surface: Color(0xFF1E1E1E),
       error: Color(0xFFF44336),
       onPrimary: Colors.white,
@@ -168,6 +164,7 @@ class AppTheme {
   static const Color hazardousWasteColor = Color(0xFFD84315); // Dark red-orange
   static const Color medicalWasteColor = Color(0xFFC62828); // Dark red
   static const Color nonWasteColor = Color(0xFF6A1B9A); // Dark purple
+  static const Color manualReviewColor = Color(0xFF795548); // Brown for manual review
   static const Color lightGreyColor = Color(0xFFD3D3D3); // For chips, etc.
 
   // Font Sizes
@@ -446,6 +443,7 @@ class WasteInfo {
     'Hazardous Waste': 'Batteries, electronic items, lightbulbs, paint cans, aerosol cans, chemicals',
     'Medical Waste': 'Medicine, bandages, syringes, expired medicines, blood-soaked items',
     'Non-Waste': 'Reusable items, items for donation, functional electronics, books, toys',
+    'Requires Manual Review': 'Items that could not be automatically identified by AI - please identify manually',
   };
   
   static const Map<String, String> disposalInstructions = {
@@ -454,6 +452,7 @@ class WasteInfo {
     'Hazardous Waste': 'Do not mix with regular waste. Take to designated collection centers.',
     'Medical Waste': 'Seal in special bags and dispose according to local medical waste guidelines.',
     'Non-Waste': 'Consider donating, reusing, or repurposing instead of disposing.',
+    'Requires Manual Review': 'Do not dispose until properly identified. Refer to local guidelines or use the feedback feature.',
   };
   
   // Maps subcategories to examples

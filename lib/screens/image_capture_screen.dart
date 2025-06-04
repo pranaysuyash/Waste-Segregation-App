@@ -61,7 +61,7 @@ class _ImageCaptureScreenState extends State<ImageCaptureScreen> {
     final aiService = Provider.of<AiService>(context, listen: false);
     List<Map<String, dynamic>> segments;
     if (kIsWeb) {
-      var imageBytes = _webImageBytes ?? widget.webImage;
+      final imageBytes = _webImageBytes ?? widget.webImage;
       if (imageBytes == null || imageBytes.isEmpty) {
         throw Exception('No image data available for segmentation');
       }
@@ -537,7 +537,6 @@ class _ImageCaptureScreenState extends State<ImageCaptureScreen> {
     
     // Wrap with InteractiveViewer for zoom functionality
     return InteractiveViewer(
-      scaleEnabled: true, // Allow zooming
       minScale: 0.5, // Minimum zoom out
       maxScale: 4.0, // Maximum zoom in
       child: Stack(

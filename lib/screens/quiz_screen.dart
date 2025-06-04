@@ -182,9 +182,9 @@ class _QuizScreenState extends State<QuizScreen> {
                   ...List.generate(
                       _questions[_currentQuestionIndex].options.length,
                       (index) {
-                    var isCorrect = index ==
+                    final isCorrect = index ==
                         _questions[_currentQuestionIndex].correctOptionIndex;
-                    var isSelected = index == _selectedOptionIndex;
+                    final isSelected = index == _selectedOptionIndex;
 
                     // Determine option card style based on selection and correctness
                     var backgroundColor = Colors.white;

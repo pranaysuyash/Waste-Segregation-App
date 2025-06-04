@@ -1,4 +1,4 @@
-import 'dart:ui'; // Added for PathMetrics and PathMetric
+// Added for PathMetrics and PathMetric
 import 'dart:math'; // Added for cos and sin
 import 'package:flutter/material.dart';
 

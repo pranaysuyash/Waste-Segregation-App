@@ -3,9 +3,6 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 import '../models/community_feed.dart';
-import '../models/waste_classification.dart';
-import '../models/gamification.dart';
-import '../utils/constants.dart';
 
 /// Service for managing community feed and social features
 class CommunityService {

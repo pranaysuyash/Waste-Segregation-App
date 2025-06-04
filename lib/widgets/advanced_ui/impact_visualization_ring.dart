@@ -25,7 +25,7 @@ class ImpactMilestone {
 class ImpactVisualizationRing extends StatefulWidget {
   
   const ImpactVisualizationRing({
-    Key? key,
+    super.key,
     required this.progress,
     required this.targetValue,
     required this.currentValue,
@@ -36,7 +36,7 @@ class ImpactVisualizationRing extends StatefulWidget {
     this.milestones = const [],
     this.title = 'Environmental Impact',
     this.subtitle = 'Keep up the great work!',
-  }) : super(key: key);
+  });
   final double progress;
   final double targetValue;
   final double currentValue;
@@ -259,7 +259,7 @@ class _ImpactVisualizationRingState extends State<ImpactVisualizationRing>
     return Container(
       padding: const EdgeInsets.all(WasteAppDesignSystem.spacingM),
       decoration: WasteAppDesignSystem.getCardDecoration(
-        borderRadius: WasteAppDesignSystem.radiusM,
+        
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
-import 'dart:math' as math;
 // import '../../utils/design_system.dart'; // Removed unused import
-import '../../utils/constants.dart';
 // import 'futuristic_impact_ring.dart'; // File was corrupted and removed
 
 /// 🚀 EPIC FUTURISTIC DASHBOARD THAT WILL BLOW USERS' MINDS! 🚀

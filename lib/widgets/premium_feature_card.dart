@@ -17,7 +17,7 @@ class PremiumFeatureCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // Get icon using the AppIcons utility to prevent errors from invalid icon data
-    var iconData = AppIcons.fromString(feature.icon);
+    final iconData = AppIcons.fromString(feature.icon);
     
     return Card(
       margin: const EdgeInsets.only(bottom: 16),

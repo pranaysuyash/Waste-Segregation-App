@@ -20,12 +20,12 @@ void main() {
         // This test would need actual image file for full integration testing
         // For now, test that the method handles invalid paths gracefully
         
-        expect(() async => await aiService.analyzeWebImage(Uint8List(0), 'invalid_path.jpg'),
+        expect(() async => aiService.analyzeWebImage(Uint8List(0), 'invalid_path.jpg'),
                throwsA(isA<Exception>()));
       });
 
       test('should handle null or empty image path', () async {
-        expect(() async => await aiService.analyzeWebImage(Uint8List(0), ''),
+        expect(() async => aiService.analyzeWebImage(Uint8List(0), ''),
                throwsA(isA<Exception>()));
       });
     });
@@ -129,13 +129,13 @@ void main() {
     group('Error Handling', () {
       test('should handle network errors gracefully', () async {
         // Test network error scenarios
-        expect(() async => await aiService.analyzeWebImage(Uint8List(0), 'non_existent_file.jpg'),
+        expect(() async => aiService.analyzeWebImage(Uint8List(0), 'non_existent_file.jpg'),
                throwsA(isA<Exception>()));
       });
 
       test('should handle invalid file formats', () async {
         // Test invalid file format
-        expect(() async => await aiService.analyzeWebImage(Uint8List(0), 'invalid_file.txt'),
+        expect(() async => aiService.analyzeWebImage(Uint8List(0), 'invalid_file.txt'),
                throwsA(isA<Exception>()));
       });
     });

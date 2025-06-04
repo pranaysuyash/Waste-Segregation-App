@@ -381,7 +381,7 @@ class _FamilyManagementScreenState extends State<FamilyManagementScreen>
 
   Widget _buildSettingsTab(family_models.Family family) {
     final currentFamilyData = family;
-    var canModify = _canModifySettings(currentFamilyData);
+    final canModify = _canModifySettings(currentFamilyData);
 
     return RefreshIndicator(
       onRefresh: _handleRefresh,
@@ -833,7 +833,7 @@ class _FamilyManagementScreenState extends State<FamilyManagementScreen>
   }
 
   void _deleteFamily(family_models.Family family) async {
-    var confirmed = await showDialog<bool>(
+    final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Delete Family?'),

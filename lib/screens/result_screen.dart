@@ -87,7 +87,7 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
     // Check if this classification is already being saved
     final classificationId = widget.classification.id;
     if (_savingClassifications.contains(classificationId)) {
-      debugPrint('🚫 Classification ${classificationId} is already being saved, skipping');
+      debugPrint('🚫 Classification $classificationId is already being saved, skipping');
       return;
     }
 
@@ -1087,6 +1087,8 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
         return AppTheme.medicalWasteColor;
       case 'non-waste':
         return AppTheme.nonWasteColor;
+      case 'requires manual review':
+        return AppTheme.manualReviewColor;
       default:
         return AppTheme.secondaryColor;
     }
@@ -1104,6 +1106,8 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
         return Icons.medical_services;
       case 'non-waste':
         return Icons.refresh;
+      case 'requires manual review':
+        return Icons.help_outline;
       default:
         return Icons.category;
     }
@@ -1132,6 +1136,7 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
       'hazardous waste': 'Hazardous waste can contaminate soil and water for decades. Proper disposal protects both human health and the environment.',
       'medical waste': 'Medical waste requires specialized treatment to prevent disease transmission. Autoclaving sterilizes waste before safe disposal.',
       'non-waste': 'Reusing and repurposing items reduces manufacturing demand and keeps valuable materials in circulation longer.',
+      'requires manual review': 'AI classification can be challenging for unusual items, poor lighting, or complex materials. Your feedback helps improve recognition accuracy.',
     };
     
     return categoryFacts[category.toLowerCase()] ?? 'Proper waste management is essential for environmental protection and resource conservation.';

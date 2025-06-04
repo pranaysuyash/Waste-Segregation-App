@@ -49,7 +49,7 @@ class _EducationalContentScreenState extends State<EducationalContentScreen>
       final categoryContent =
           educationalService.getContentByCategory(widget.initialCategory!);
       if (categoryContent.isNotEmpty) {
-        var typeCount = <ContentType, int>{};
+        final typeCount = <ContentType, int>{};
         for (final content in categoryContent) {
           typeCount[content.type] = (typeCount[content.type] ?? 0) + 1;
         }
@@ -403,6 +403,8 @@ class _EducationalContentScreenState extends State<EducationalContentScreen>
         return AppTheme.medicalWasteColor;
       case 'Non-Waste':
         return AppTheme.nonWasteColor;
+      case 'Requires Manual Review':
+        return AppTheme.manualReviewColor;
       case 'General':
         return AppTheme.secondaryColor;
       case 'Sorting':

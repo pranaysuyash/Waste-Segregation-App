@@ -10,6 +10,7 @@ import '../services/google_drive_service.dart';
 import '../services/navigation_settings_service.dart';
 import '../utils/constants.dart';
 import '../utils/app_version.dart';
+import '../utils/developer_config.dart';
 import 'premium_features_screen.dart';
 import 'theme_settings_screen.dart';
 import 'waste_dashboard_screen.dart';
@@ -56,8 +57,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
       appBar: AppBar(
         title: const Text('Settings'),
         actions: [
-          // Only show developer mode toggle in debug mode
-          if (kDebugMode)
+          // Only show developer mode toggle when developer features are enabled
+          if (DeveloperConfig.canShowDeveloperOptions)
             IconButton(
               icon: Icon(
                 _showDeveloperOptions ? Icons.developer_mode : Icons.developer_mode_outlined,
@@ -91,8 +92,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
           const Divider(),
 
-          // Developer Options Section (Debug Only)
-          if (kDebugMode && _showDeveloperOptions) ...[
+          // Developer Options Section (Secure Debug Only)
+          if (DeveloperConfig.canShowDeveloperOptions && _showDeveloperOptions) ...[
             Container(
               color: Colors.yellow.shade50,
               padding: const EdgeInsets.all(8),
@@ -168,35 +169,37 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     'export_data',
                     premiumService,
                   ),
-                  // --- TEMPORARY: Force Crash button for Crashlytics testing ---
-                  const SizedBox(height: 16),
-                  ElevatedButton.icon(
-                    icon: const Icon(Icons.warning, color: Colors.red),
-                    label: const Text('Force Crash (Crashlytics Test)', style: TextStyle(color: Colors.red)),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.white,
-                      foregroundColor: Colors.red,
-                      side: const BorderSide(color: Colors.red),
+                  // Crash test button (secure debug only)
+                  if (DeveloperConfig.canShowCrashTest) ...[
+                    const SizedBox(height: 16),
+                    ElevatedButton.icon(
+                      icon: const Icon(Icons.warning, color: Colors.red),
+                      label: const Text('Force Crash (Crashlytics Test)', style: TextStyle(color: Colors.red)),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.white,
+                        foregroundColor: Colors.red,
+                        side: const BorderSide(color: Colors.red),
+                      ),
+                      onPressed: () {
+                        FirebaseCrashlytics.instance.crash();
+                      },
                     ),
-                    onPressed: () {
-                      FirebaseCrashlytics.instance.crash();
-                    },
-                  ),
-                  const SizedBox(height: 8),
-                  // Reset Full Data button for testing
-                  ElevatedButton.icon(
-                    icon: const Icon(Icons.restore, color: Colors.orange),
-                    label: const Text('Reset Full Data (Factory Reset)', style: TextStyle(color: Colors.orange)),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.white,
-                      foregroundColor: Colors.orange,
-                      side: const BorderSide(color: Colors.orange),
+                    const SizedBox(height: 8),
+                  ],
+                  // Factory reset button (secure debug only)
+                  if (DeveloperConfig.canShowFactoryReset)
+                    ElevatedButton.icon(
+                      icon: const Icon(Icons.restore, color: Colors.orange),
+                      label: const Text('Reset Full Data (Factory Reset)', style: TextStyle(color: Colors.orange)),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.white,
+                        foregroundColor: Colors.orange,
+                        side: const BorderSide(color: Colors.orange),
+                      ),
+                      onPressed: () {
+                        _showFactoryResetDialog(context, storageService, analyticsService, premiumService);
+                      },
                     ),
-                    onPressed: () {
-                      _showFactoryResetDialog(context, storageService, analyticsService, premiumService);
-                    },
-                  ),
-                  // --- END TEMPORARY ---
                 ],
               ),
             ),

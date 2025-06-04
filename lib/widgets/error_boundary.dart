@@ -5,12 +5,12 @@ import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 class ErrorBoundary extends StatefulWidget {
 
   const ErrorBoundary({
-    Key? key,
+    super.key,
     required this.child,
     this.errorTitle,
     this.errorMessage,
     this.onRetry,
-  }) : super(key: key);
+  });
   final Widget child;
   final String? errorTitle;
   final String? errorMessage;

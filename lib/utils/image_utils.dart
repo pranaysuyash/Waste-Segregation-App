@@ -97,7 +97,7 @@ class ImageUtils {
       // Generate the hash by comparing each pixel to the average
       // Result is a 64-bit hash (8x8 grid)
       var hashBits = '';
-      for (var value in pixelValues) {
+      for (final value in pixelValues) {
         hashBits += (value >= avgValue) ? '1' : '0';
       }
 

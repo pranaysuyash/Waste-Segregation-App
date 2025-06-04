@@ -306,6 +306,8 @@ class HistoryListItem extends StatelessWidget {
         return AppTheme.medicalWasteColor;
       case 'non-waste':
         return AppTheme.nonWasteColor;
+      case 'requires manual review':
+        return AppTheme.manualReviewColor;
       default:
         return AppTheme.secondaryColor;
     }

@@ -775,6 +775,8 @@ class TagFactory {
         return AppTheme.medicalWasteColor;
       case 'non-waste':
         return AppTheme.nonWasteColor;
+      case 'requires manual review':
+        return AppTheme.manualReviewColor;
       default:
         return AppTheme.secondaryColor;
     }
@@ -792,6 +794,8 @@ class TagFactory {
         return Icons.medical_services;
       case 'non-waste':
         return Icons.refresh;
+      case 'requires manual review':
+        return Icons.help_outline;
       default:
         return Icons.category;
     }

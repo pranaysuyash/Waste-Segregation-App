@@ -86,7 +86,7 @@ class GamificationService {
   }
   
   Future<GamificationProfile> getProfile() async {
-    var currentUserProfile = await _storageService.getCurrentUserProfile();
+    final currentUserProfile = await _storageService.getCurrentUserProfile();
 
     if (currentUserProfile == null || currentUserProfile.id.isEmpty) {
       debugPrint('⚠️ GamificationService: No authenticated user profile found. Falling back to legacy local profile (if any).');
@@ -118,7 +118,7 @@ class GamificationService {
       debugPrint('✨ GamificationService: No gamification profile found for user ${currentUserProfile.id}. Creating a new one.');
       
       // Load default challenges safely
-      List<Challenge> activeChallenges = [];
+      var activeChallenges = <Challenge>[];
       try {
         activeChallenges = await _loadDefaultChallengesFromHive();
         debugPrint('🎯 Loaded ${activeChallenges.length} active challenges for new profile');
@@ -201,14 +201,14 @@ class GamificationService {
   }
 
   Future<void> saveProfile(GamificationProfile gamificationProfileToSave) async {
-    var currentUserProfile = await _storageService.getCurrentUserProfile();
+    final currentUserProfile = await _storageService.getCurrentUserProfile();
 
     if (currentUserProfile == null || currentUserProfile.id.isEmpty) {
       debugPrint('🚫 GamificationService: No authenticated user profile found. Saving to legacy Hive for guest session.');
       // Save to legacy Hive for guest state
       final box = Hive.box(_gamificationBoxName);
       await box.put(_legacyProfileKey, jsonEncode(gamificationProfileToSave.toJson()));
-      debugPrint("✅ Saved gamification profile to legacy local storage for guest session.");
+      debugPrint('✅ Saved gamification profile to legacy local storage for guest session.');
       return;
     }
 
@@ -580,7 +580,7 @@ if (pointsToAdd == 0 && customPoints == null) {
     final profile = await getProfile();
     
     // Filter out expired challenges and add new ones if needed
-    var active = profile.activeChallenges
+    final active = profile.activeChallenges
         .where((challenge) => !challenge.isExpired)
         .toList();
     
@@ -726,8 +726,8 @@ if (pointsToAdd == 0 && customPoints == null) {
     // Update stats based on action
     var newItemsIdentified = currentWeekStats.itemsIdentified;
     var newChallengesCompleted = currentWeekStats.challengesCompleted;
-    var newPointsEarned = currentWeekStats.pointsEarned + pointsEarned;
-    var newCategoryCounts = Map<String, int>.from(currentWeekStats.categoryCounts);
+    final newPointsEarned = currentWeekStats.pointsEarned + pointsEarned;
+    final newCategoryCounts = Map<String, int>.from(currentWeekStats.categoryCounts);
     
     // Update specific stats based on action
     if (action == 'classification') {
@@ -1436,7 +1436,7 @@ if (pointsToAdd == 0 && customPoints == null) {
       debugPrint('🔄 Force refreshing gamification profile...');
       
       // Clear any cached data and reload from storage
-      var currentUserProfile = await _storageService.getCurrentUserProfile();
+      final currentUserProfile = await _storageService.getCurrentUserProfile();
       
       if (currentUserProfile == null || currentUserProfile.id.isEmpty) {
         debugPrint('⚠️ No user profile found during force refresh');
@@ -1460,7 +1460,7 @@ if (pointsToAdd == 0 && customPoints == null) {
       
     } catch (e) {
       debugPrint('🔥 Error during force refresh: $e');
-      return await getProfile(); // Fallback to regular getProfile
+      return getProfile(); // Fallback to regular getProfile
     }
   }
 

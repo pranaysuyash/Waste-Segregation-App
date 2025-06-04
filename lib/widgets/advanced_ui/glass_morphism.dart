@@ -6,7 +6,7 @@ import 'dart:math' as math;
 class GlassMorphismCard extends StatelessWidget {
   
   const GlassMorphismCard({
-    Key? key,
+    super.key,
     required this.child,
     this.blur = 10.0,
     this.opacity = 0.1,
@@ -15,7 +15,7 @@ class GlassMorphismCard extends StatelessWidget {
     this.padding,
     this.margin,
     this.boxShadow,
-  }) : super(key: key);
+  });
   final Widget child;
   final double blur;
   final double opacity;
@@ -70,7 +70,7 @@ class GlassMorphismCard extends StatelessWidget {
 class ShimmerCard extends StatefulWidget {
   
   const ShimmerCard({
-    Key? key,
+    super.key,
     required this.child,
     this.shimmerColors = const [
       Color(0xFF845EC2),
@@ -78,7 +78,7 @@ class ShimmerCard extends StatefulWidget {
     ],
     this.duration = const Duration(milliseconds: 2000),
     this.borderRadius,
-  }) : super(key: key);
+  });
   final Widget child;
   final List<Color> shimmerColors;
   final Duration duration;
@@ -151,7 +151,7 @@ class _ShimmerCardState extends State<ShimmerCard>
 class MorphingProgressIndicator extends StatefulWidget {
   
   const MorphingProgressIndicator({
-    Key? key,
+    super.key,
     required this.progress,
     this.primaryColor = const Color(0xFF06FFA5),
     this.secondaryColor = const Color(0xFF00B4D8),
@@ -159,7 +159,7 @@ class MorphingProgressIndicator extends StatefulWidget {
     this.height = 8.0,
     this.borderRadius = 8.0,
     this.child,
-  }) : super(key: key);
+  });
   final double progress;
   final Color primaryColor;
   final Color secondaryColor;

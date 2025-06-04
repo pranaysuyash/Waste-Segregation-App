@@ -312,7 +312,7 @@ class AnalyticsService extends ChangeNotifier {
   Map<String, dynamic> _aggregateUserAnalytics(List<AnalyticsEvent> events) {
     final eventCounts = <String, int>{};
     final dailyActivity = <String, int>{};
-    var totalEvents = events.length;
+    final totalEvents = events.length;
     
     for (final event in events) {
       // Count event types
@@ -344,7 +344,7 @@ class AnalyticsService extends ChangeNotifier {
       eventTypeCounts[event.eventType] = (eventTypeCounts[event.eventType] ?? 0) + 1;
       
       // Track unique users
-      uniqueUsers.add(event.userId!);
+      uniqueUsers.add(event.userId);
           
       // Count daily totals
       final dateKey = '${event.timestamp.year}-${event.timestamp.month}-${event.timestamp.day}';

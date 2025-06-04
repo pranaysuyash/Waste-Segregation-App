@@ -4,6 +4,7 @@ import '../models/premium_feature.dart';
 import '../services/premium_service.dart';
 import '../widgets/premium_feature_card.dart';
 import '../utils/constants.dart';
+import '../utils/developer_config.dart';
 import 'package:provider/provider.dart';
 
 class PremiumFeaturesScreen extends StatefulWidget {
@@ -24,8 +25,8 @@ class _PremiumFeaturesScreenState extends State<PremiumFeaturesScreen> {
       appBar: AppBar(
         title: const Text('Premium Features'),
         actions: [
-          // Only show test mode toggle in debug mode
-          if (kDebugMode)
+          // Only show test mode toggle when developer features are enabled
+          if (DeveloperConfig.canShowPremiumToggles)
             IconButton(
               icon: Icon(
                 _showTestOptions ? Icons.developer_mode : Icons.developer_mode_outlined,
@@ -43,8 +44,8 @@ class _PremiumFeaturesScreenState extends State<PremiumFeaturesScreen> {
       body: ListView(
         padding: const EdgeInsets.all(16.0),
         children: [
-          // Developer test options
-          if (kDebugMode && _showTestOptions)
+          // Developer test options (secure debug only)
+          if (DeveloperConfig.canShowPremiumToggles && _showTestOptions)
             _buildDeveloperTestOptions(context),
             
           _buildHeader(context),

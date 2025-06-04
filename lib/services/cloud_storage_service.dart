@@ -2,7 +2,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
 import '../models/waste_classification.dart';
 import '../models/user_profile.dart';
-import '../models/gamification.dart';
 import 'storage_service.dart';
 import 'dart:convert';
 import 'package:crypto/crypto.dart';

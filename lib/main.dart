@@ -34,6 +34,7 @@ import 'screens/disposal_facilities_screen.dart';
 import 'widgets/navigation_wrapper.dart';
 import 'utils/constants.dart'; // For app constants, themes, and strings
 import 'utils/error_handler.dart'; // Correct import for ErrorHandler
+import 'utils/developer_config.dart'; // For developer-only features security
 import 'providers/theme_provider.dart';
 import 'services/cloud_storage_service.dart';
 
@@ -154,6 +155,9 @@ Future<void> originalMain() async {
 
   // Initialize Error Handler
   ErrorHandler.initialize(navigatorKey);
+
+  // Validate developer config security (must be called early)
+  DeveloperConfig.validateSecurity();
 
   // Create enhanced storage service instance
   final storageService = EnhancedStorageService();

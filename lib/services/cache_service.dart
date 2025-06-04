@@ -202,7 +202,7 @@ class ClassificationCacheService {
       // Track best match
       String? bestMatch;
       var bestDistance = threshold + 1; // Initialize with a value greater than threshold
-      var allDistances = <int>[]; // Track all distances for debugging
+      final allDistances = <int>[]; // Track all distances for debugging
       
       // Compare with all perceptual hashes in cache
       for (final String cachedHash in pHashKeys) {
@@ -238,17 +238,17 @@ class ClassificationCacheService {
         // More detailed logging for debug purposes
         if (allDistances.isNotEmpty) {
           allDistances.sort(); // Sort distances for better analysis
-          var minDistance = allDistances.first;
+          final minDistance = allDistances.first;
           debugPrint('No similar hashes found within threshold $threshold. Closest match had distance $minDistance');
           
           // Log distribution of distances
-          var distCounts = <int, int>{};
-          for (var d in allDistances) {
+          final distCounts = <int, int>{};
+          for (final d in allDistances) {
             distCounts[d] = (distCounts[d] ?? 0) + 1;
           }
-          var keys = distCounts.keys.toList()..sort();
-          var distLog = StringBuffer('Distance distribution: ');
-          for (var k in keys) {
+          final keys = distCounts.keys.toList()..sort();
+          final distLog = StringBuffer('Distance distribution: ');
+          for (final k in keys) {
             distLog.write('$k: ${distCounts[k]} hashes, ');
           }
           debugPrint(distLog.toString());
@@ -286,7 +286,7 @@ class ClassificationCacheService {
     for (var i = 0; i < hex.length; i++) {
       // Convert each hex digit to 4 binary digits
       final value = int.parse(hex[i], radix: 16);
-      var binDigit = value.toRadixString(2).padLeft(4, '0');
+      final binDigit = value.toRadixString(2).padLeft(4, '0');
       binary += binDigit;
     }
     
@@ -356,14 +356,14 @@ class ClassificationCacheService {
     
     // We'll use the LRU map which is already sorted by access time
     var count = 0;
-    for (var key in _lruMap.keys.toList().reversed) {
+    for (final key in _lruMap.keys.toList().reversed) {
       keysToRemove.add(key);
       count++;
       if (count >= entriesToRemove) break;
     }
     
     // Remove entries
-    for (var key in keysToRemove) {
+    for (final key in keysToRemove) {
       await _cacheBox.delete(key);
       _lruMap.remove(key);
     }

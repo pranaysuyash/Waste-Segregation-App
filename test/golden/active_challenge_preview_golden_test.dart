@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:waste_segregation_app/widgets/modern_ui/modern_cards.dart';
 import 'package:waste_segregation_app/widgets/modern_ui/modern_badges.dart';
-import 'package:waste_segregation_app/utils/constants.dart';
 
 void main() {
   group('Active Challenge Preview Golden Tests', () {

@@ -252,9 +252,9 @@ Output:
     }
 
     // Try to compress aggressively if over max size, moderately if over preferred
-    int quality = 90; // Starting quality
-    double scale = 1.0;
-    img.Image? image = img.decodeImage(imageBytes);
+    var quality = 90; // Starting quality
+    var scale = 1.0;
+    var image = img.decodeImage(imageBytes);
 
     if (image == null) {
       throw Exception('Could not decode image for compression.');
@@ -280,7 +280,7 @@ Output:
     }
 
     // Encode to JPEG
-    List<int> compressedBytes = img.encodeJpg(image, quality: quality);
+    final List<int> compressedBytes = img.encodeJpg(image, quality: quality);
     debugPrint('Compressed image size: ${compressedBytes.length} bytes (${(compressedBytes.length / 1024 / 1024).toStringAsFixed(2)} MB)');
 
     if (compressedBytes.length > maxSizeBytes) {
@@ -300,21 +300,21 @@ Output:
     }
 
     debugPrint('⚠️ Image size exceeds Gemini max, attempting light compression.');
-    img.Image? image = img.decodeImage(imageBytes);
+    var image = img.decodeImage(imageBytes);
 
     if (image == null) {
       throw Exception('Could not decode image for Gemini compression.');
     }
 
     // Scale down to fit within max size, maintaining aspect ratio
-    final double scale = sqrt(maxSizeBytes / imageBytes.length); // Approximate scaling factor
+    final scale = sqrt(maxSizeBytes / imageBytes.length); // Approximate scaling factor
     image = img.copyResize(
       image,
       width: (image.width * scale).round(),
       height: (image.height * scale).round(),
     );
 
-    List<int> compressedBytes = img.encodeJpg(image, quality: 80); // Maintain good quality
+    final List<int> compressedBytes = img.encodeJpg(image, quality: 80); // Maintain good quality
     debugPrint('Compressed image size for Gemini: ${compressedBytes.length} bytes (${(compressedBytes.length / 1024 / 1024).toStringAsFixed(2)} MB)');
 
     if (compressedBytes.length > maxSizeBytes) {
@@ -342,7 +342,7 @@ Output:
     final analysisLang = instructionsLang ?? defaultLanguage;
 
     // Generate a new classification ID if not provided (for initial call)
-    final String currentClassificationId = classificationId ?? const Uuid().v4();
+    final currentClassificationId = classificationId ?? const Uuid().v4();
 
     try {
       // Check cache if enabled
@@ -436,7 +436,7 @@ Output:
     final analysisLang = instructionsLang ?? defaultLanguage;
 
     // Generate a new classification ID if not provided (for initial call)
-    final String currentClassificationId = classificationId ?? const Uuid().v4();
+    final currentClassificationId = classificationId ?? const Uuid().v4();
 
     try {
       // Check cache if enabled
@@ -572,7 +572,7 @@ Output:
     final analysisLang = instructionsLang ?? defaultLanguage;
 
     // Generate a new classification ID if not provided (for initial call)
-    final String currentClassificationId = classificationId ?? const Uuid().v4();
+    final currentClassificationId = classificationId ?? const Uuid().v4();
 
     // Check cache if enabled (segmentation results might not be cached by hash directly)
     // For simplicity, we skip cache for segmented analysis for now as hashes
@@ -749,12 +749,12 @@ Output:
       return _analyzeWithOpenAI(imageBytes, imageName, region, language, null, classificationId);
     }
 
-    final img.Image? originalImage = img.decodeImage(imageBytes);
+    final originalImage = img.decodeImage(imageBytes);
     if (originalImage == null) {
       throw Exception('Failed to decode image for segmentation.');
     }
 
-    final Map<String, dynamic> firstSegment = segments.first;
+    final firstSegment = segments.first;
     final bounds = firstSegment['bounds'] as Map<String, dynamic>;
     
     // Convert percentage coordinates to pixel coordinates
@@ -769,8 +769,8 @@ Output:
     // Ensure coordinates are within image bounds
     final clampedX = x.clamp(0, imageWidth - 1);
     final clampedY = y.clamp(0, imageHeight - 1);
-    final clampedWidth = (width).clamp(1, imageWidth - clampedX);
-    final clampedHeight = (height).clamp(1, imageHeight - clampedY);
+    final clampedWidth = width.clamp(1, imageWidth - clampedX);
+    final clampedHeight = height.clamp(1, imageHeight - clampedY);
     
     final croppedImage = img.copyCrop(
       originalImage,
@@ -822,7 +822,7 @@ Output:
         {
           'parts': [
             {
-              'text': _systemPrompt + '\n\n' + _mainClassificationPrompt + '\n\nAdditional context:\n- Region: $region\n- Instructions language: $language\n- Image source: Gemini analysis (OpenAI fallback)'
+              'text': '$_systemPrompt\n\n$_mainClassificationPrompt\n\nAdditional context:\n- Region: $region\n- Instructions language: $language\n- Image source: Gemini analysis (OpenAI fallback)'
             },
             {
               'inline_data': {
@@ -914,13 +914,13 @@ Output:
     debugPrint('🔄 Processing user correction...');
 
     // Determine which model to use for re-analysis
-    final String modelToUse = model ?? 
+    final modelToUse = model ?? 
         (originalClassification.source == 'ai_analysis_gemini' 
             ? ApiConfig.tertiaryModel // Use Gemini for re-analysis if it was the original source
             : ApiConfig.primaryModel); // Default to OpenAI
 
     try {
-      final String? imageUrl = originalClassification.imageUrl;
+      final imageUrl = originalClassification.imageUrl;
       Uint8List? imageBytes;
 
       // If imageUrl is a file path (mobile), read bytes
@@ -945,8 +945,8 @@ Output:
         debugPrint('Could not retrieve image bytes for correction. Proceeding without image.');
       }
       
-      final String base64Image = imageBytes != null ? _bytesToBase64(imageBytes) : '';
-      final String mimeType = imageBytes != null ? _detectImageMimeType(imageBytes) : '';
+      final base64Image = imageBytes != null ? _bytesToBase64(imageBytes) : '';
+      final mimeType = imageBytes != null ? _detectImageMimeType(imageBytes) : '';
 
       final requestBody = <String, dynamic>{
           'model': modelToUse,
@@ -1035,7 +1035,7 @@ Output:
         final choice = responseData['choices'][0];
         if (choice['message'] != null && choice['message']['content'] != null) {
           final String content = choice['message']['content'];
-          final String jsonString = _cleanJsonString(content);
+          final jsonString = _cleanJsonString(content);
 
           Map<String, dynamic> jsonContent;
           try {
@@ -1078,7 +1078,7 @@ Output:
   /// (e.g., ```json ... ```) or include extraneous text before or after the JSON.
   String _cleanJsonString(String rawContent) {
     // Attempt to find content within a JSON markdown block
-    final RegExp jsonCodeBlockRegExp = RegExp(r'```json\s*([\s\S]*?)\s*```', multiLine: true);
+    final jsonCodeBlockRegExp = RegExp(r'```json\s*([\s\S]*?)\s*```', multiLine: true);
     final Match? match = jsonCodeBlockRegExp.firstMatch(rawContent);
 
     if (match != null && match.group(1) != null) {
@@ -1086,8 +1086,8 @@ Output:
     }
 
     // Fallback: Try to find the first and last curly braces to extract a JSON object
-    final int firstCurly = rawContent.indexOf('{');
-    final int lastCurly = rawContent.lastIndexOf('}');
+    final firstCurly = rawContent.indexOf('{');
+    final lastCurly = rawContent.lastIndexOf('}');
 
     if (firstCurly != -1 && lastCurly != -1 && lastCurly > firstCurly) {
       return rawContent.substring(firstCurly, lastCurly + 1).trim();
@@ -1150,7 +1150,7 @@ Output:
   List<AlternativeClassification> _parseAlternatives(dynamic alternativesJson) {
     if (alternativesJson == null) return [];
     if (alternativesJson is List) {
-      return (alternativesJson as List)
+      return (alternativesJson)
           .map((alt) {
             try {
               return AlternativeClassification.fromJson(alt as Map<String, dynamic>);
@@ -1180,8 +1180,8 @@ Output:
     String? classificationId,
   ) {
     try {
-      final DisposalInstructions disposalInstructions = _parseDisposalInstructions(jsonContent['disposalInstructions']);
-      final List<AlternativeClassification> alternatives = _parseAlternatives(jsonContent['alternatives']);
+      final disposalInstructions = _parseDisposalInstructions(jsonContent['disposalInstructions']);
+      final alternatives = _parseAlternatives(jsonContent['alternatives']);
 
       return WasteClassification(
         id: classificationId,
@@ -1308,7 +1308,7 @@ Output:
     if (value is int) return value;
     if (value is String) {
       // Extract digits from string (e.g., "PET (1)" -> 1)
-      final RegExp numRegExp = RegExp(r'\d+');
+      final numRegExp = RegExp(r'\d+');
       final Match? match = numRegExp.firstMatch(value);
       if (match != null) {
         return int.tryParse(match.group(0)!);
@@ -1447,7 +1447,7 @@ Output:
       }
 
       // Decode the image to get dimensions
-      final img.Image? image = img.decodeImage(imageBytes);
+      final image = img.decodeImage(imageBytes);
       if (image == null) {
         throw Exception('Failed to decode image for segmentation');
       }
@@ -1456,11 +1456,11 @@ Output:
 
       // Create a simple grid-based segmentation (3x3 grid)
       final segments = <Map<String, dynamic>>[];
-      final segmentWidth = 100.0 / segmentGridSize; // Percentage width per segment
-      final segmentHeight = 100.0 / segmentGridSize; // Percentage height per segment
+      const segmentWidth = 100.0 / segmentGridSize; // Percentage width per segment
+      const segmentHeight = 100.0 / segmentGridSize; // Percentage height per segment
 
-      for (int row = 0; row < segmentGridSize; row++) {
-        for (int col = 0; col < segmentGridSize; col++) {
+      for (var row = 0; row < segmentGridSize; row++) {
+        for (var col = 0; col < segmentGridSize; col++) {
           final x = col * segmentWidth;
           final y = row * segmentHeight;
           

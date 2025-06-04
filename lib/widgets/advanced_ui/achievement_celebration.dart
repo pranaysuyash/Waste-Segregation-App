@@ -7,11 +7,11 @@ import '../../models/gamification.dart';
 class AchievementCelebration extends StatefulWidget {
   
   const AchievementCelebration({
-    Key? key,
+    super.key,
     required this.achievement,
     required this.onDismiss,
     this.duration = const Duration(seconds: 4),
-  }) : super(key: key);
+  });
   final Achievement achievement;
   final VoidCallback onDismiss;
   final Duration duration;
@@ -397,11 +397,11 @@ class ConfettiPainter extends CustomPainter {
 class PointsEarnedPopup extends StatefulWidget {
   
   const PointsEarnedPopup({
-    Key? key,
+    super.key,
     required this.points,
     required this.action,
     required this.onDismiss,
-  }) : super(key: key);
+  });
   final int points;
   final String action;
   final VoidCallback onDismiss;

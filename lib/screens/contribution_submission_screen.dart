@@ -2,12 +2,10 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:permission_handler/permission_handler.dart';
 import '../models/disposal_location.dart';
 import '../models/user_contribution.dart';
 import '../utils/constants.dart';
 import '../utils/error_handler.dart';
-import '../widgets/modern_ui/modern_button.dart';
 
 class ContributionSubmissionScreen extends StatefulWidget {
 

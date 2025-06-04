@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import '../utils/constants.dart';
-import '../models/waste_classification.dart';
 import 'modern_ui/modern_cards.dart';
-import 'modern_ui/modern_badges.dart';
 
 /// Today's Impact Goal Progress Ring Widget
 class TodaysImpactGoal extends StatefulWidget {

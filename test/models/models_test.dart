@@ -141,7 +141,6 @@ void main() {
           total: 150,
           weeklyTotal: 50,
           monthlyTotal: 120,
-          level: 1,
           categoryPoints: {
             'Dry Waste': 80,
             'Wet Waste': 40,
@@ -163,7 +162,6 @@ void main() {
             iconName: 'emoji_objects',
             color: Colors.blue,
             progress: 1.0,
-            earnedOn: null,
           ),
         ],
         activeChallenges: [
@@ -260,7 +258,6 @@ void main() {
         iconName: 'emoji_objects',
         color: Colors.purple,
         progress: 1.0,
-        earnedOn: null, // This should be set to earnedDate for earned achievement
       );
 
       // Create an earned achievement with earnedOn date

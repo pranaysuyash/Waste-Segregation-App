@@ -513,7 +513,7 @@ class AboutTab extends StatelessWidget {
   void _copyToClipboard(BuildContext context) {
     // This would normally use our ShareService, but we're keeping it simple
     // for this standalone web version
-    var controller = TextEditingController();
+    final controller = TextEditingController();
     controller.text = 'Check out the Waste Segregation App! It helps you properly sort your waste using AI: https://waste-segregation-app.web.app';
     
     // Copy to clipboard (normally you'd use Clipboard.setData)
@@ -537,12 +537,12 @@ class AboutTab extends StatelessWidget {
 class FeatureCard extends StatelessWidget {
 
   const FeatureCard({
-    Key? key,
+    super.key,
     required this.icon,
     required this.title,
     required this.description,
     required this.color,
-  }) : super(key: key);
+  });
   final IconData icon;
   final String title;
   final String description;
@@ -585,13 +585,13 @@ class FeatureCard extends StatelessWidget {
 class WasteCategoryCard extends StatelessWidget {
 
   const WasteCategoryCard({
-    Key? key,
+    super.key,
     required this.title,
     required this.description,
     required this.examples,
     required this.color,
     required this.iconData,
-  }) : super(key: key);
+  });
   final String title;
   final String description;
   final String examples;
@@ -647,11 +647,11 @@ class WasteCategoryCard extends StatelessWidget {
 class ImpactCard extends StatelessWidget {
 
   const ImpactCard({
-    Key? key,
+    super.key,
     required this.title,
     required this.description,
     required this.color,
-  }) : super(key: key);
+  });
   final String title;
   final String description;
   final Color color;

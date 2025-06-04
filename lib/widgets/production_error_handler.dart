@@ -7,13 +7,13 @@ import '../utils/performance_optimizer.dart';
 class ProductionErrorHandler extends StatelessWidget {
 
   const ProductionErrorHandler({
-    Key? key,
+    super.key,
     required this.child,
     this.fallbackTitle,
     this.fallbackMessage,
     this.onRetry,
     this.showRetryButton = true,
-  }) : super(key: key);
+  });
   final Widget child;
   final String? fallbackTitle;
   final String? fallbackMessage;
@@ -133,10 +133,10 @@ class ProductionErrorHandler extends StatelessWidget {
 class NetworkErrorHandler extends StatelessWidget {
 
   const NetworkErrorHandler({
-    Key? key,
+    super.key,
     this.onRetry,
     this.customMessage,
-  }) : super(key: key);
+  });
   final VoidCallback? onRetry;
   final String? customMessage;
 
@@ -216,13 +216,13 @@ class NetworkErrorHandler extends StatelessWidget {
 class EmptyStateHandler extends StatelessWidget {
 
   const EmptyStateHandler({
-    Key? key,
+    super.key,
     required this.title,
     required this.message,
     this.icon = Icons.inbox_outlined,
     this.onAction,
     this.actionText,
-  }) : super(key: key);
+  });
   final String title;
   final String message;
   final IconData icon;
@@ -299,10 +299,10 @@ class EmptyStateHandler extends StatelessWidget {
 class LoadingStateHandler extends StatelessWidget {
 
   const LoadingStateHandler({
-    Key? key,
+    super.key,
     this.message,
     this.showShimmer = true,
-  }) : super(key: key);
+  });
   final String? message;
   final bool showShimmer;
 

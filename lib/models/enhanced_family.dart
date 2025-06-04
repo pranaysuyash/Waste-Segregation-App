@@ -31,7 +31,6 @@ class Family {
       updatedAt: now,
       members: [admin],
       settings: FamilySettings.defaultSettings(),
-      imageUrl: null,
     );
   }
 
@@ -242,7 +241,7 @@ class FamilySettings {
   /// Creates default family settings.
   static FamilySettings defaultSettings() {
     return const FamilySettings(
-      allowChildInvites: false,
+      
     );
   }
 
@@ -356,7 +355,6 @@ class PrivacySettings {
       showLastSeen: true,
       showActivityStatus: true,
       allowSearchByName: true,
-      blockedUsers: [],
     );
   }
 

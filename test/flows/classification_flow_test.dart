@@ -184,7 +184,7 @@ void main() {
         );
 
         final newlyEarnedAchievements = [
-          Achievement( // Removed const
+          const Achievement( // Removed const
             id: 'category_explorer',
             title: 'Category Explorer',
             description: 'Identify items from 3 different categories',
@@ -193,7 +193,6 @@ void main() {
             iconName: 'category',
             color: Colors.blue, // Added color
             progress: 1.0,
-            earnedOn: null,
           )
         ];
 

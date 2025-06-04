@@ -107,7 +107,7 @@ class StorageService {
       // Also check for exact timestamp duplicates (critical for preventing same-session duplicates)
       final isSameTimestamp = existing.timestamp.millisecondsSinceEpoch == classification.timestamp.millisecondsSinceEpoch;
       
-      return (isSameId || (isSameContent && isRecent) || (isSameContent && isSameTimestamp));
+      return isSameId || (isSameContent && isRecent) || (isSameContent && isSameTimestamp);
     });
     
     if (isDuplicate) {
@@ -234,10 +234,10 @@ class StorageService {
           continue;
         }
         
-        WasteClassification classification = WasteClassification.fromJson(json);
+        var classification = WasteClassification.fromJson(json);
         
         // Assign a new ID if it's missing (for older entries) and save back
-        if (classification.id == null || classification.id.isEmpty) {
+        if (classification.id.isEmpty) {
           classification = classification.copyWith(id: const Uuid().v4());
           // Always store as JSON string for consistency
           await classificationsBox.put(key, jsonEncode(classification.toJson()));
@@ -750,9 +750,24 @@ class StorageService {
       final cacheBox = Hive.box<String>(StorageKeys.cacheBox);
       await cacheBox.clear();
       
-      // Clear SharedPreferences (theme, user consent, etc.)
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.clear();
+      // Clear SharedPreferences (theme, user consent, etc.) with proper error handling
+      try {
+        final prefs = await SharedPreferences.getInstance();
+        // Get all keys first to avoid type casting issues
+        final keys = prefs.getKeys();
+        for (final key in keys) {
+          try {
+            await prefs.remove(key);
+          } catch (keyError) {
+            debugPrint('⚠️ Warning: Could not remove SharedPreferences key "$key": $keyError');
+            // Continue with other keys instead of failing completely
+          }
+        }
+        debugPrint('✅ SharedPreferences cleared (${keys.length} keys processed)');
+      } catch (prefsError) {
+        debugPrint('⚠️ Warning: Error clearing SharedPreferences: $prefsError');
+        // Don't rethrow - this shouldn't block the entire factory reset
+      }
       
       debugPrint('✅ All user data cleared successfully');
     } catch (e) {

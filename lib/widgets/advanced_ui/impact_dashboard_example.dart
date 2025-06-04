@@ -168,7 +168,7 @@ class _WasteImpactDashboardState extends State<WasteImpactDashboard> {
     return Container(
       padding: const EdgeInsets.all(WasteAppDesignSystem.spacingM),
       decoration: WasteAppDesignSystem.getCardDecoration(
-        borderRadius: WasteAppDesignSystem.radiusM,
+        
       ),
       child: Column(
         children: [
@@ -511,7 +511,7 @@ class WasteImpactConfigurations {
       width: size + 40,
       padding: const EdgeInsets.all(WasteAppDesignSystem.spacingM),
       decoration: WasteAppDesignSystem.getCardDecoration(
-        borderRadius: WasteAppDesignSystem.radiusM,
+        
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,

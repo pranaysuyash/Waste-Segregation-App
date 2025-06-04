@@ -7,14 +7,14 @@ import 'dart:ui';
 class FloatingParticleSystem extends StatefulWidget {
   
   const FloatingParticleSystem({
-    Key? key,
+    super.key,
     this.particleCount = 20,
     this.primaryColor = const Color(0xFF06FFA5),
     this.secondaryColor = const Color(0xFF00B4D8),
     this.particleSize = 4.0,
     this.animationSpeed = 1.0,
     this.isDarkMode = false,
-  }) : super(key: key);
+  });
   final int particleCount;
   final Color primaryColor;
   final Color secondaryColor;
@@ -179,14 +179,14 @@ class ParticleSystemPainter extends CustomPainter {
 class PulsingScanButton extends StatefulWidget {
   
   const PulsingScanButton({
-    Key? key,
+    super.key,
     required this.onPressed,
     this.label = 'SCAN',
     this.icon = Icons.camera_alt_rounded,
     this.primaryColor = const Color(0xFF06FFA5),
     this.secondaryColor = const Color(0xFF00B4D8),
     this.size = 120.0,
-  }) : super(key: key);
+  });
   final VoidCallback onPressed;
   final String label;
   final IconData icon;

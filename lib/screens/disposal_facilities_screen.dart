@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/disposal_location.dart';
@@ -220,23 +219,31 @@ class _DisposalFacilitiesScreenState extends State<DisposalFacilitiesScreen> {
         }
 
         if (snapshot.hasError) {
+          // Check if it's a Firestore indexing error
+          final errorMessage = snapshot.error.toString();
+          final bool isIndexingError = errorMessage.contains('failed-precondition') || 
+                                     errorMessage.contains('index') ||
+                                     errorMessage.contains('composite');
+          
           return Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Icon(
-                  Icons.error_outline,
+                  isIndexingError ? Icons.sync_problem : Icons.error_outline,
                   size: 64,
-                  color: Colors.red[400],
+                  color: Colors.orange[400],
                 ),
                 const SizedBox(height: 16),
                 Text(
-                  'Error loading facilities',
+                  isIndexingError ? 'Database Indexing Required' : 'Error loading facilities',
                   style: Theme.of(context).textTheme.headlineSmall,
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  snapshot.error.toString(),
+                  isIndexingError 
+                    ? 'The database needs indexing for advanced filters. Using simplified view...'
+                    : errorMessage,
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                     color: Colors.grey[600],
                   ),
@@ -244,8 +251,18 @@ class _DisposalFacilitiesScreenState extends State<DisposalFacilitiesScreen> {
                 ),
                 const SizedBox(height: 16),
                 ElevatedButton(
-                  onPressed: () => setState(() {}),
-                  child: const Text('Retry'),
+                  onPressed: () {
+                    if (isIndexingError) {
+                      // Reset filters to use simpler query
+                      setState(() {
+                        _selectedSourceFilter = 'All';
+                        _activeOnlyFilter = false;
+                      });
+                    } else {
+                      setState(() {});
+                    }
+                  },
+                  child: Text(isIndexingError ? 'Use Simple View' : 'Retry'),
                 ),
               ],
             ),
@@ -276,18 +293,37 @@ class _DisposalFacilitiesScreenState extends State<DisposalFacilitiesScreen> {
   }
 
   Query _buildQuery() {
-    Query query = FirebaseFirestore.instance.collection('disposal_locations');
-    
-    if (_activeOnlyFilter) {
-      query = query.where('isActive', isEqualTo: true);
+    try {
+      Query query = FirebaseFirestore.instance.collection('disposal_locations');
+      
+      // First apply the most selective filters
+      if (_selectedSourceFilter != 'All') {
+        final sourceValue = _getSourceValue(_selectedSourceFilter);
+        query = query.where('source', isEqualTo: sourceValue);
+        
+        // If we have a source filter, we can add isActive filter and orderBy
+        if (_activeOnlyFilter) {
+          query = query.where('isActive', isEqualTo: true);
+        }
+        
+        // Only add orderBy if we have a simple enough query
+        query = query.orderBy('name');
+      } else if (_activeOnlyFilter) {
+        // If only active filter is applied
+        query = query.where('isActive', isEqualTo: true).orderBy('name');
+      } else {
+        // No filters, just order by name
+        query = query.orderBy('name');
+      }
+      
+      return query;
+    } catch (e) {
+      // Fallback to simpler query if indexing fails
+      debugPrint('Complex query failed, using fallback: $e');
+      return FirebaseFirestore.instance
+          .collection('disposal_locations')
+          .orderBy('name');
     }
-    
-    if (_selectedSourceFilter != 'All') {
-      final sourceValue = _getSourceValue(_selectedSourceFilter);
-      query = query.where('source', isEqualTo: sourceValue);
-    }
-    
-    return query.orderBy('name');
   }
 
   List<QueryDocumentSnapshot> _filterFacilities(List<QueryDocumentSnapshot> facilities) {

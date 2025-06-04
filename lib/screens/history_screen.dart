@@ -277,7 +277,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
   
   // Show filter dialog
   Future<void> _showFilterDialog() async {
-    var tempSelectedCategories = List<String>.from(_selectedCategories);
+    final tempSelectedCategories = List<String>.from(_selectedCategories);
     
     await showDialog(
       context: context,
@@ -541,6 +541,8 @@ class _HistoryScreenState extends State<HistoryScreen> {
         return AppTheme.medicalWasteColor;
       case 'non-waste':
         return AppTheme.nonWasteColor;
+      case 'requires manual review':
+        return AppTheme.manualReviewColor;
       default:
         return AppTheme.secondaryColor;
     }

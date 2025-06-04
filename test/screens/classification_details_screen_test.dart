@@ -161,7 +161,7 @@ void main() {
     });
 
     testWidgets('Displays correct date format for sharedAt and comment timestamps', (WidgetTester tester) async {
-      final fixedTime = DateTime(2023, 1, 1, 10, 0); // Known past time
+      final fixedTime = DateTime(2023, 1, 1, 10); // Known past time
       final mockClassification = createMockSharedClassification(
         sharedAt: fixedTime,
         comments: [createMockComment(displayName: 'TestCommenter', text: 'Test', timestamp: fixedTime.add(const Duration(hours:1)))]
