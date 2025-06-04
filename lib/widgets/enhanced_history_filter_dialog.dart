@@ -1,45 +1,40 @@
 import 'package:flutter/material.dart';
-import '../utils/constants.dart';
-import '../utils/ui_consistency_utils.dart';
 import '../models/filter_options.dart';
-import '../models/waste_classification.dart';
+import '../utils/ui_consistency_utils.dart';
 
-/// Enhanced history filter dialog with improved visual hierarchy and UX
+/// Enhanced History Filter Dialog with improved visual hierarchy and spacing
 class EnhancedHistoryFilterDialog extends StatefulWidget {
-  final FilterOptions currentFilters;
-  final Function(FilterOptions) onFiltersApplied;
-  final Function() onFiltersCleared;
+  final FilterOptions initialFilters;
+  final Function(FilterOptions) onFiltersChanged;
 
   const EnhancedHistoryFilterDialog({
     super.key,
-    required this.currentFilters,
-    required this.onFiltersApplied,
-    required this.onFiltersCleared,
+    required this.initialFilters,
+    required this.onFiltersChanged,
   });
 
   @override
   State<EnhancedHistoryFilterDialog> createState() => _EnhancedHistoryFilterDialogState();
 }
 
-class _EnhancedHistoryFilterDialogState extends State<EnhancedHistoryFilterDialog> 
+class _EnhancedHistoryFilterDialogState extends State<EnhancedHistoryFilterDialog>
     with TickerProviderStateMixin {
   late FilterOptions _tempFilters;
-  late List<String> _selectedCategories;
   late TabController _tabController;
   
-  final List<String> _allCategories = [
-    'Wet Waste',
-    'Dry Waste',
+  // Predefined filter options
+  final List<String> _availableCategories = [
+    'Recyclable',
+    'Organic/Compostable', 
     'Hazardous Waste',
-    'Medical Waste',
-    'Non-Waste',
+    'Electronic Waste',
+    'General Waste',
   ];
 
   @override
   void initState() {
     super.initState();
-    _tempFilters = widget.currentFilters;
-    _selectedCategories = List<String>.from(widget.currentFilters.categories ?? []);
+    _tempFilters = widget.initialFilters;
     _tabController = TabController(length: 3, vsync: this);
   }
 
@@ -51,93 +46,98 @@ class _EnhancedHistoryFilterDialogState extends State<EnhancedHistoryFilterDialo
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    
     return Dialog(
-      insetPadding: const EdgeInsets.all(16),
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(AppTheme.borderRadiusLg),
+        borderRadius: BorderRadius.circular(16.0),
       ),
       child: Container(
-        width: double.maxFinite,
+        width: MediaQuery.of(context).size.width * 0.9,
         height: MediaQuery.of(context).size.height * 0.8,
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(AppTheme.borderRadiusLg),
-          color: theme.colorScheme.surface,
+          color: Theme.of(context).colorScheme.surface,
+          borderRadius: BorderRadius.circular(16.0),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.1),
+              blurRadius: 20,
+              offset: const Offset(0, 8),
+            ),
+          ],
         ),
         child: Column(
           children: [
-            // Header with improved styling
-            _buildHeader(theme),
+            // Header
+            _buildHeader(),
             
-            // Tab bar for filter categories
-            _buildTabBar(theme),
+            // Tab bar
+            _buildTabBar(),
             
             // Tab content
             Expanded(
               child: TabBarView(
                 controller: _tabController,
                 children: [
-                  _buildCategoryFilters(),
-                  _buildDateRangeFilters(),
+                  _buildBasicFilters(),
+                  _buildDateFilters(),
                   _buildSortingFilters(),
                 ],
               ),
             ),
             
             // Action buttons
-            _buildActionButtons(theme),
+            _buildActionButtons(),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildHeader(ThemeData theme) {
+  Widget _buildHeader() {
     return Container(
-      padding: const EdgeInsets.all(AppTheme.paddingLarge),
+      padding: const EdgeInsets.all(20.0),
       decoration: BoxDecoration(
-        color: theme.colorScheme.primaryContainer,
+        color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.05),
         borderRadius: const BorderRadius.only(
-          topLeft: Radius.circular(AppTheme.borderRadiusLg),
-          topRight: Radius.circular(AppTheme.borderRadiusLg),
+          topLeft: Radius.circular(16.0),
+          topRight: Radius.circular(16.0),
         ),
       ),
       child: Row(
         children: [
-          Icon(
-            Icons.filter_list,
-            color: theme.colorScheme.onPrimaryContainer,
-            size: 28,
+          Container(
+            padding: const EdgeInsets.all(8.0),
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(8.0),
+            ),
+            child: Icon(
+              Icons.filter_alt_outlined,
+              color: Theme.of(context).colorScheme.primary,
+              size: 24,
+            ),
           ),
-          const SizedBox(width: AppTheme.spacingMd),
+          const SizedBox(width: 16),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   'Filter History',
-                  style: UIConsistency.headingMedium(context).copyWith(
-                    color: theme.colorScheme.onPrimaryContainer,
-                  ),
+                  style: UIConsistency.headingSmall(context),
                 ),
+                const SizedBox(height: 4),
                 Text(
                   'Customize your classification history view',
-                  style: UIConsistency.caption(context).copyWith(
-                    color: theme.colorScheme.onPrimaryContainer.withOpacity(0.8),
-                  ),
+                  style: UIConsistency.caption(context),
                 ),
               ],
             ),
           ),
           IconButton(
-            onPressed: () => Navigator.pop(context),
+            onPressed: () => Navigator.of(context).pop(),
             icon: Icon(
               Icons.close,
-              color: theme.colorScheme.onPrimaryContainer,
-            ),
-            style: IconButton.styleFrom(
-              backgroundColor: theme.colorScheme.onPrimaryContainer.withOpacity(0.1),
+              color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
             ),
           ),
         ],
@@ -145,154 +145,92 @@ class _EnhancedHistoryFilterDialogState extends State<EnhancedHistoryFilterDialo
     );
   }
 
-  Widget _buildTabBar(ThemeData theme) {
+  Widget _buildTabBar() {
     return Container(
-      color: theme.colorScheme.surface,
+      decoration: BoxDecoration(
+        border: Border(
+          bottom: BorderSide(
+            color: Theme.of(context).dividerColor,
+            width: 1,
+          ),
+        ),
+      ),
       child: TabBar(
         controller: _tabController,
-        labelColor: theme.colorScheme.primary,
-        unselectedLabelColor: theme.colorScheme.onSurfaceVariant,
-        indicatorColor: theme.colorScheme.primary,
-        indicatorWeight: 3,
-        labelStyle: const TextStyle(
-          fontWeight: FontWeight.w600,
-          fontSize: AppTheme.fontSizeRegular,
-        ),
-        unselectedLabelStyle: const TextStyle(
-          fontWeight: FontWeight.w500,
-          fontSize: AppTheme.fontSizeRegular,
-        ),
+        labelColor: Theme.of(context).colorScheme.primary,
+        unselectedLabelColor: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
+        indicatorColor: Theme.of(context).colorScheme.primary,
         tabs: const [
           Tab(
-            icon: Icon(Icons.category),
+            icon: Icon(Icons.category_outlined),
             text: 'Categories',
           ),
           Tab(
-            icon: Icon(Icons.date_range),
+            icon: Icon(Icons.date_range_outlined),
             text: 'Date Range',
           ),
           Tab(
-            icon: Icon(Icons.sort),
-            text: 'Sorting',
+            icon: Icon(Icons.sort_outlined),
+            text: 'Sort Options',
           ),
         ],
       ),
     );
   }
 
-  Widget _buildCategoryFilters() {
+  Widget _buildBasicFilters() {
     return Padding(
-      padding: const EdgeInsets.all(AppTheme.paddingLarge),
+      padding: const EdgeInsets.all(20.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Section header
           _buildSectionHeader(
-            'Waste Categories',
-            'Select categories to filter your history',
+            'Filter by Category',
+            'Choose which types of waste to include',
             Icons.category_outlined,
           ),
           
-          const SizedBox(height: AppTheme.spacingLg),
+          const SizedBox(height: 20),
           
-          // Select all/none buttons
-          Row(
-            children: [
-              UIConsistency.secondaryButton(
-                text: 'Select All',
-                onPressed: () {
-                  setState(() {
-                    _selectedCategories.clear();
-                    _selectedCategories.addAll(_allCategories);
-                  });
-                },
-                isExpanded: false,
-              ),
-              const SizedBox(width: AppTheme.spacingSm),
-              UIConsistency.secondaryButton(
-                text: 'Clear All',
-                onPressed: () {
-                  setState(() {
-                    _selectedCategories.clear();
-                  });
-                },
-                isExpanded: false,
-              ),
-            ],
-          ),
-          
-          const SizedBox(height: AppTheme.spacingLg),
-          
-          // Category chips
+          // Category filters
           Expanded(
-            child: GridView.builder(
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2,
-                childAspectRatio: 3,
-                crossAxisSpacing: AppTheme.spacingMd,
-                mainAxisSpacing: AppTheme.spacingMd,
-              ),
-              itemCount: _allCategories.length,
+            child: ListView.builder(
+              itemCount: _availableCategories.length,
               itemBuilder: (context, index) {
-                final category = _allCategories[index];
-                final isSelected = _selectedCategories.contains(category);
-                final categoryColor = UIConsistency.getCategoryColor(category);
+                final category = _availableCategories[index];
+                final isSelected = _tempFilters.categories?.contains(category) ?? false;
                 
-                return GestureDetector(
-                  onTap: () {
-                    setState(() {
-                      if (isSelected) {
-                        _selectedCategories.remove(category);
-                      } else {
-                        _selectedCategories.add(category);
-                      }
-                    });
-                  },
-                  child: AnimatedContainer(
-                    duration: AppTheme.animationFast,
-                    decoration: BoxDecoration(
+                return Container(
+                  margin: const EdgeInsets.only(bottom: 8.0),
+                  decoration: BoxDecoration(
+                    border: Border.all(
                       color: isSelected 
-                          ? categoryColor.withOpacity(0.15)
-                          : Colors.grey.shade100,
-                      border: Border.all(
-                        color: isSelected 
-                            ? categoryColor 
-                            : Colors.grey.shade300,
-                        width: isSelected ? 2 : 1,
-                      ),
-                      borderRadius: BorderRadius.circular(AppTheme.borderRadiusMd),
+                          ? Theme.of(context).colorScheme.primary
+                          : Colors.grey.shade300,
+                      width: isSelected ? 2 : 1,
                     ),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          _getCategoryIcon(category),
-                          color: isSelected ? categoryColor : Colors.grey.shade600,
-                          size: 24,
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          category,
-                          style: TextStyle(
-                            color: isSelected ? categoryColor : Colors.grey.shade700,
-                            fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
-                            fontSize: AppTheme.fontSizeSmall,
-                          ),
-                          textAlign: TextAlign.center,
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        if (isSelected)
-                          Container(
-                            margin: const EdgeInsets.only(top: 4),
-                            child: Icon(
-                              Icons.check_circle,
-                              color: categoryColor,
-                              size: 16,
-                            ),
-                          ),
-                      ],
-                    ),
+                    borderRadius: BorderRadius.circular(12.0),
+                  ),
+                  child: CheckboxListTile(
+                    title: Text(category),
+                    value: isSelected,
+                    onChanged: (value) {
+                      setState(() {
+                        List<String> currentCategories = List.from(_tempFilters.categories ?? []);
+                        if (value == true) {
+                          if (!currentCategories.contains(category)) {
+                            currentCategories.add(category);
+                          }
+                        } else {
+                          currentCategories.remove(category);
+                        }
+                        _tempFilters = _tempFilters.copyWith(
+                          categories: currentCategories.isEmpty ? null : currentCategories,
+                        );
+                      });
+                    },
+                    activeColor: Theme.of(context).colorScheme.primary,
                   ),
                 );
               },
@@ -303,33 +241,30 @@ class _EnhancedHistoryFilterDialogState extends State<EnhancedHistoryFilterDialo
     );
   }
 
-  Widget _buildDateRangeFilters() {
+  Widget _buildDateFilters() {
     return Padding(
-      padding: const EdgeInsets.all(AppTheme.paddingLarge),
+      padding: const EdgeInsets.all(20.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Section header
           _buildSectionHeader(
             'Date Range',
-            'Filter by when items were classified',
-            Icons.calendar_today_outlined,
+            'Filter classifications by when they were made',
+            Icons.date_range_outlined,
           ),
           
-          const SizedBox(height: AppTheme.spacingLg),
+          const SizedBox(height: 20),
           
           // Quick date range options
           _buildQuickDateRanges(),
           
-          const SizedBox(height: AppTheme.spacingLg),
+          const SizedBox(height: 24),
           
           // Custom date range
           _buildCustomDateRange(),
           
           const Spacer(),
-          
-          // Current selection display
-          _buildCurrentDateSelection(),
         ],
       ),
     );
@@ -337,7 +272,7 @@ class _EnhancedHistoryFilterDialogState extends State<EnhancedHistoryFilterDialo
 
   Widget _buildSortingFilters() {
     return Padding(
-      padding: const EdgeInsets.all(AppTheme.paddingLarge),
+      padding: const EdgeInsets.all(20.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -348,12 +283,12 @@ class _EnhancedHistoryFilterDialogState extends State<EnhancedHistoryFilterDialo
             Icons.sort_outlined,
           ),
           
-          const SizedBox(height: AppTheme.spacingLg),
+          const SizedBox(height: 20),
           
           // Sort field selection
           _buildSortFieldSelection(),
           
-          const SizedBox(height: AppTheme.spacingLg),
+          const SizedBox(height: 20),
           
           // Sort order selection
           _buildSortOrderSelection(),
@@ -368,10 +303,10 @@ class _EnhancedHistoryFilterDialogState extends State<EnhancedHistoryFilterDialo
     return Row(
       children: [
         Container(
-          padding: const EdgeInsets.all(AppTheme.paddingSmall),
+          padding: const EdgeInsets.all(8.0),
           decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
-            borderRadius: BorderRadius.circular(AppTheme.borderRadiusSm),
+            color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
+            borderRadius: BorderRadius.circular(8.0),
           ),
           child: Icon(
             icon,
@@ -379,7 +314,7 @@ class _EnhancedHistoryFilterDialogState extends State<EnhancedHistoryFilterDialo
             size: 20,
           ),
         ),
-        const SizedBox(width: AppTheme.spacingMd),
+        const SizedBox(width: 12),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -401,7 +336,7 @@ class _EnhancedHistoryFilterDialogState extends State<EnhancedHistoryFilterDialo
 
   Widget _buildQuickDateRanges() {
     final quickRanges = [
-      {'label': 'Today', 'days': 1},
+      {'label': 'Today', 'days': 0},
       {'label': 'Last 7 days', 'days': 7},
       {'label': 'Last 30 days', 'days': 30},
       {'label': 'Last 90 days', 'days': 90},
@@ -416,50 +351,24 @@ class _EnhancedHistoryFilterDialogState extends State<EnhancedHistoryFilterDialo
             fontWeight: FontWeight.w600,
           ),
         ),
-        const SizedBox(height: AppTheme.spacingSm),
+        const SizedBox(height: 12),
         Wrap(
-          spacing: AppTheme.spacingSm,
-          runSpacing: AppTheme.spacingSm,
+          spacing: 8,
+          runSpacing: 8,
           children: quickRanges.map((range) {
-            final endDate = DateTime.now();
-            final startDate = endDate.subtract(Duration(days: range['days'] as int));
-            final isSelected = _isDateRangeSelected(startDate, endDate);
-            
-            return GestureDetector(
-              onTap: () {
-                setState(() {
-                  _tempFilters = _tempFilters.copyWith(
-                    startDate: startDate,
-                    endDate: endDate,
-                  );
-                });
+            final isSelected = _isQuickRangeSelected(range['days'] as int);
+            return FilterChip(
+              label: Text(range['label'] as String),
+              selected: isSelected,
+              onSelected: (selected) {
+                if (selected) {
+                  _applyQuickDateRange(range['days'] as int);
+                } else {
+                  _clearDateFilters();
+                }
               },
-              child: Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: AppTheme.paddingMd,
-                  vertical: AppTheme.paddingSmall,
-                ),
-                decoration: BoxDecoration(
-                  color: isSelected 
-                      ? Theme.of(context).colorScheme.primary
-                      : Colors.grey.shade100,
-                  borderRadius: BorderRadius.circular(AppTheme.borderRadiusSm),
-                  border: Border.all(
-                    color: isSelected 
-                        ? Theme.of(context).colorScheme.primary
-                        : Colors.grey.shade300,
-                  ),
-                ),
-                child: Text(
-                  range['label'] as String,
-                  style: TextStyle(
-                    color: isSelected 
-                        ? Colors.white
-                        : Colors.grey.shade700,
-                    fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
-                  ),
-                ),
-              ),
+              selectedColor: Theme.of(context).colorScheme.primary.withValues(alpha: 0.2),
+              checkmarkColor: Theme.of(context).colorScheme.primary,
             );
           }).toList(),
         ),
@@ -477,78 +386,72 @@ class _EnhancedHistoryFilterDialogState extends State<EnhancedHistoryFilterDialo
             fontWeight: FontWeight.w600,
           ),
         ),
-        const SizedBox(height: AppTheme.spacingSm),
-        UIConsistency.secondaryButton(
-          text: 'Select Custom Dates',
-          icon: Icons.date_range,
-          onPressed: _showDateRangePicker,
-          isExpanded: true,
+        const SizedBox(height: 12),
+        Container(
+          padding: const EdgeInsets.all(16.0),
+          decoration: BoxDecoration(
+            border: Border.all(color: Colors.grey.shade300),
+            borderRadius: BorderRadius.circular(8.0),
+          ),
+          child: Column(
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'From',
+                          style: UIConsistency.caption(context),
+                        ),
+                        Text(
+                          _tempFilters.startDate != null
+                              ? _formatDate(_tempFilters.startDate!)
+                              : 'Select start date',
+                          style: UIConsistency.bodyMedium(context),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Text(
+                    'to',
+                    style: UIConsistency.caption(context),
+                  ),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        Text(
+                          'To',
+                          style: UIConsistency.caption(context),
+                        ),
+                        Text(
+                          _tempFilters.endDate != null
+                              ? _formatDate(_tempFilters.endDate!)
+                              : 'Select end date',
+                          style: UIConsistency.bodyMedium(context),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              ElevatedButton.icon(
+                onPressed: _showDateRangePicker,
+                icon: const Icon(Icons.date_range),
+                label: const Text('Select Dates'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Theme.of(context).colorScheme.primary,
+                  foregroundColor: Colors.white,
+                ),
+              ),
+            ],
+          ),
         ),
       ],
-    );
-  }
-
-  Widget _buildCurrentDateSelection() {
-    String selectionText = 'All time';
-    if (_tempFilters.startDate != null || _tempFilters.endDate != null) {
-      final start = _tempFilters.startDate != null 
-          ? _formatDate(_tempFilters.startDate!) 
-          : 'Beginning';
-      final end = _tempFilters.endDate != null 
-          ? _formatDate(_tempFilters.endDate!) 
-          : 'Now';
-      selectionText = '$start to $end';
-    }
-
-    return Container(
-      padding: const EdgeInsets.all(AppTheme.paddingMd),
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.primaryContainer.withOpacity(0.3),
-        borderRadius: BorderRadius.circular(AppTheme.borderRadiusSm),
-        border: Border.all(
-          color: Theme.of(context).colorScheme.primary.withOpacity(0.3),
-        ),
-      ),
-      child: Row(
-        children: [
-          Icon(
-            Icons.date_range,
-            color: Theme.of(context).colorScheme.primary,
-            size: 20,
-          ),
-          const SizedBox(width: AppTheme.spacingSm),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Current Selection',
-                  style: UIConsistency.caption(context),
-                ),
-                Text(
-                  selectionText,
-                  style: UIConsistency.bodyMedium(context).copyWith(
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          if (_tempFilters.startDate != null || _tempFilters.endDate != null)
-            IconButton(
-              onPressed: () {
-                setState(() {
-                  _tempFilters = _tempFilters.copyWith(
-                    startDate: null,
-                    endDate: null,
-                  );
-                });
-              },
-              icon: const Icon(Icons.clear),
-              iconSize: 20,
-            ),
-        ],
-      ),
     );
   }
 
@@ -562,7 +465,7 @@ class _EnhancedHistoryFilterDialogState extends State<EnhancedHistoryFilterDialo
             fontWeight: FontWeight.w600,
           ),
         ),
-        const SizedBox(height: AppTheme.spacingSm),
+        const SizedBox(height: 8),
         ...SortField.values.map((field) {
           return RadioListTile<SortField>(
             title: Text(field.displayName),
@@ -593,11 +496,11 @@ class _EnhancedHistoryFilterDialogState extends State<EnhancedHistoryFilterDialo
             fontWeight: FontWeight.w600,
           ),
         ),
-        const SizedBox(height: AppTheme.spacingSm),
+        const SizedBox(height: 8),
         Container(
           decoration: BoxDecoration(
             border: Border.all(color: Colors.grey.shade300),
-            borderRadius: BorderRadius.circular(AppTheme.borderRadiusSm),
+            borderRadius: BorderRadius.circular(8.0),
           ),
           child: SwitchListTile(
             title: Text(
@@ -623,45 +526,49 @@ class _EnhancedHistoryFilterDialogState extends State<EnhancedHistoryFilterDialo
     );
   }
 
-  Widget _buildActionButtons(ThemeData theme) {
-    final hasChanges = widget.currentFilters.toString() != _tempFilters.toString() ||
-                      !_listEquals(widget.currentFilters.categories ?? [], _selectedCategories);
-
+  Widget _buildActionButtons() {
     return Container(
-      padding: const EdgeInsets.all(AppTheme.paddingLarge),
+      padding: const EdgeInsets.all(20.0),
       decoration: BoxDecoration(
-        color: theme.colorScheme.surface,
         border: Border(
-          top: BorderSide(color: Colors.grey.shade300),
+          top: BorderSide(
+            color: Theme.of(context).dividerColor,
+            width: 1,
+          ),
         ),
       ),
       child: Row(
         children: [
           Expanded(
-            child: UIConsistency.secondaryButton(
-              text: 'Clear All',
+            child: OutlinedButton(
               onPressed: () {
-                widget.onFiltersCleared();
-                Navigator.pop(context);
+                setState(() {
+                  _tempFilters = FilterOptions.empty();
+                });
               },
-              isExpanded: true,
+              child: const Text('Reset All'),
             ),
           ),
-          const SizedBox(width: AppTheme.spacingMd),
+          const SizedBox(width: 12),
+          Expanded(
+            child: OutlinedButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Cancel'),
+            ),
+          ),
+          const SizedBox(width: 12),
           Expanded(
             flex: 2,
-            child: UIConsistency.primaryButton(
-              text: 'Apply Filters',
-              onPressed: hasChanges
-                  ? () {
-                      final finalFilters = _tempFilters.copyWith(
-                        categories: _selectedCategories.isEmpty ? null : _selectedCategories,
-                      );
-                      widget.onFiltersApplied(finalFilters);
-                      Navigator.pop(context);
-                    }
-                  : null,
-              isExpanded: true,
+            child: ElevatedButton(
+              onPressed: () {
+                widget.onFiltersChanged(_tempFilters);
+                Navigator.of(context).pop();
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Theme.of(context).colorScheme.primary,
+                foregroundColor: Colors.white,
+              ),
+              child: const Text('Apply Filters'),
             ),
           ),
         ],
@@ -670,22 +577,43 @@ class _EnhancedHistoryFilterDialogState extends State<EnhancedHistoryFilterDialo
   }
 
   // Helper methods
-  IconData _getCategoryIcon(String category) {
-    switch (category) {
-      case 'Wet Waste': return Icons.eco;
-      case 'Dry Waste': return Icons.recycling;
-      case 'Hazardous Waste': return Icons.warning;
-      case 'Medical Waste': return Icons.medical_services;
-      case 'Non-Waste': return Icons.block;
-      default: return Icons.category;
+  bool _isQuickRangeSelected(int days) {
+    if (_tempFilters.startDate == null || _tempFilters.endDate == null) {
+      return false;
     }
+    
+    final now = DateTime.now();
+    final expectedStart = days == 0 
+        ? DateTime(now.year, now.month, now.day)
+        : DateTime(now.year, now.month, now.day).subtract(Duration(days: days));
+    final expectedEnd = DateTime(now.year, now.month, now.day, 23, 59, 59);
+    
+    return _isSameDay(_tempFilters.startDate!, expectedStart) &&
+           _isSameDay(_tempFilters.endDate!, expectedEnd);
   }
 
-  bool _isDateRangeSelected(DateTime start, DateTime end) {
-    return _tempFilters.startDate != null &&
-           _tempFilters.endDate != null &&
-           _isSameDay(_tempFilters.startDate!, start) &&
-           _isSameDay(_tempFilters.endDate!, end);
+  void _applyQuickDateRange(int days) {
+    final now = DateTime.now();
+    final start = days == 0 
+        ? DateTime(now.year, now.month, now.day)
+        : DateTime(now.year, now.month, now.day).subtract(Duration(days: days));
+    final end = DateTime(now.year, now.month, now.day, 23, 59, 59);
+    
+    setState(() {
+      _tempFilters = _tempFilters.copyWith(
+        startDate: start,
+        endDate: end,
+      );
+    });
+  }
+
+  void _clearDateFilters() {
+    setState(() {
+      _tempFilters = _tempFilters.copyWith(
+        startDate: null,
+        endDate: null,
+      );
+    });
   }
 
   bool _isSameDay(DateTime a, DateTime b) {
@@ -700,12 +628,10 @@ class _EnhancedHistoryFilterDialogState extends State<EnhancedHistoryFilterDialo
     switch (field) {
       case SortField.date:
         return 'Sort by classification date and time';
-      case SortField.itemName:
+      case SortField.name:
         return 'Sort alphabetically by item name';
       case SortField.category:
         return 'Sort by waste category';
-      case SortField.confidence:
-        return 'Sort by AI confidence level';
     }
   }
 
@@ -724,7 +650,7 @@ class _EnhancedHistoryFilterDialogState extends State<EnhancedHistoryFilterDialo
         return Theme(
           data: Theme.of(context).copyWith(
             colorScheme: Theme.of(context).colorScheme.copyWith(
-              primary: AppTheme.primaryColor,
+              primary: Theme.of(context).colorScheme.primary,
             ),
           ),
           child: child!,
@@ -740,13 +666,5 @@ class _EnhancedHistoryFilterDialogState extends State<EnhancedHistoryFilterDialo
         );
       });
     }
-  }
-
-  bool _listEquals<T>(List<T> a, List<T> b) {
-    if (a.length != b.length) return false;
-    for (int i = 0; i < a.length; i++) {
-      if (a[i] != b[i]) return false;
-    }
-    return true;
   }
 } 

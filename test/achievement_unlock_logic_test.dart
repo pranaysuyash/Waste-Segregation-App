@@ -3,19 +3,30 @@ import 'package:waste_segregation_app/services/gamification_service.dart';
 import 'package:waste_segregation_app/models/waste_classification.dart';
 import 'package:waste_segregation_app/models/gamification.dart';
 import 'package:waste_segregation_app/services/storage_service.dart';
-import 'package:waste_segregation_app/services/cloud_storage_service.dart';
+import 'test_config/plugin_mock_setup.dart';
+import 'mocks/mock_cloud_storage_service.dart';
 
 void main() {
   group('Achievement Unlock Logic Tests', () {
     late GamificationService gamificationService;
     late StorageService storageService;
-    late CloudStorageService cloudStorageService;
+    late MockCloudStorageService cloudStorageService;
+
+    setUpAll(() {
+      TestHelpers.setUpAll();
+      PluginMockSetup.setupAll();
+      PluginMockSetup.setupFirebase();
+    });
 
     setUp(() async {
       await StorageService.initializeHive();
       storageService = StorageService();
-      cloudStorageService = CloudStorageService(storageService);
-      gamificationService = GamificationService(storageService, cloudStorageService);
+      cloudStorageService = MockCloudStorageService(storageService);
+      gamificationService = GamificationService(storageService, cloudStorageService as dynamic);
+    });
+
+    tearDownAll(() {
+      TestHelpers.tearDownAll();
     });
 
     test('Should unlock "First Classification" achievement on first scan', () async {

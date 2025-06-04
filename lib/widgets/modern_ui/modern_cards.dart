@@ -306,14 +306,25 @@ class StatsCard extends StatelessWidget {
               ),
               if (trend != null) ...[
                 const SizedBox(width: 4),
-                Text(
-                  trend!,
-                  style: TextStyle(
-                    color: isPositiveTrend ? Colors.green : Colors.red,
-                    fontWeight: FontWeight.bold,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      isPositiveTrend ? Icons.trending_up : Icons.trending_down,
+                      color: isPositiveTrend ? Colors.green : Colors.red,
+                      size: 16,
+                    ),
+                    const SizedBox(width: 2),
+                    Text(
+                      trend!,
+                      style: TextStyle(
+                        color: isPositiveTrend ? Colors.green : Colors.red,
+                        fontWeight: FontWeight.bold,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
                 ),
               ],
             ],

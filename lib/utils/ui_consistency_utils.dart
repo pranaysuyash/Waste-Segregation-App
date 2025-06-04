@@ -8,12 +8,11 @@ class UIConsistency {
   
   /// Primary action button style (for main CTAs)
   static ButtonStyle primaryButtonStyle(BuildContext context) {
-    final theme = Theme.of(context);
     return ElevatedButton.styleFrom(
       backgroundColor: AppTheme.primaryColor,
       foregroundColor: Colors.white,
       elevation: AppTheme.elevationSm,
-      shadowColor: AppTheme.primaryColor.withOpacity(0.3),
+      shadowColor: AppTheme.primaryColor.withValues(alpha: 0.3),
       textStyle: const TextStyle(
         fontSize: AppTheme.fontSizeMedium,
         fontWeight: FontWeight.w600,
@@ -80,7 +79,7 @@ class UIConsistency {
       backgroundColor: AppTheme.errorColor,
       foregroundColor: Colors.white,
       elevation: AppTheme.elevationSm,
-      shadowColor: AppTheme.errorColor.withOpacity(0.3),
+      shadowColor: AppTheme.errorColor.withValues(alpha: 0.3),
       textStyle: const TextStyle(
         fontSize: AppTheme.fontSizeMedium,
         fontWeight: FontWeight.w600,
@@ -103,7 +102,7 @@ class UIConsistency {
       backgroundColor: AppTheme.successColor,
       foregroundColor: Colors.white,
       elevation: AppTheme.elevationSm,
-      shadowColor: AppTheme.successColor.withOpacity(0.3),
+      shadowColor: AppTheme.successColor.withValues(alpha: 0.3),
       textStyle: const TextStyle(
         fontSize: AppTheme.fontSizeMedium,
         fontWeight: FontWeight.w600,
@@ -222,7 +221,7 @@ class UIConsistency {
        borderRadius: BorderRadius.circular(AppTheme.borderRadiusMd),
        boxShadow: [
         BoxShadow(
-          color: Colors.black.withOpacity(isDark ? 0.3 : 0.1),
+          color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.1),
           blurRadius: AppTheme.elevationMd,
           offset: const Offset(0, 2),
         ),

@@ -1,6 +1,5 @@
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../models/educational_content.dart';
 
 /// Service to track educational content engagement and analytics
 class EducationalContentAnalyticsService extends ChangeNotifier {
