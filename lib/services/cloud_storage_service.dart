@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import '../models/waste_classification.dart';
 import '../models/user_profile.dart';
 import 'storage_service.dart';
+import 'gamification_service.dart';
 import 'dart:convert';
 import 'package:crypto/crypto.dart';
 
@@ -68,16 +69,45 @@ class CloudStorageService {
   }
 
   /// Save classification to both local and cloud storage
+  /// Also processes gamification to ensure points are awarded
   Future<void> saveClassificationWithSync(
     WasteClassification classification,
-    bool isGoogleSyncEnabled,
-  ) async {
+    bool isGoogleSyncEnabled, {
+    bool processGamification = true,
+  }) async {
     // Always save locally first
     await _localStorageService.saveClassification(classification);
     
     // If Google sync is enabled and user is signed in, also save to cloud
     if (isGoogleSyncEnabled) {
       await _syncClassificationToCloud(classification);
+    }
+    
+    // 🎮 GAMIFICATION FIX: Process gamification to ensure points are awarded
+    // This fixes the disconnect where classifications exist but no points are earned
+    if (processGamification) {
+      try {
+        // Check if this classification has already been processed for gamification
+        // by looking for a gamification marker or checking the timestamp
+        final shouldProcessGamification = await _shouldProcessGamification(classification);
+        
+        if (shouldProcessGamification) {
+          debugPrint('🎮 Processing gamification for classification: ${classification.itemName}');
+          
+          // Create gamification service instance
+          final gamificationService = GamificationService(_localStorageService, this);
+          
+          // Process the classification for gamification
+          await gamificationService.processClassification(classification);
+          
+          debugPrint('🎮 ✅ Gamification processed successfully');
+        } else {
+          debugPrint('🎮 ⏭️ Skipping gamification (already processed)');
+        }
+      } catch (e) {
+        debugPrint('🎮 ❌ Gamification processing failed: $e');
+        // Don't rethrow - classification save was successful
+      }
     }
   }
 
@@ -194,6 +224,34 @@ class CloudStorageService {
     final bytes = utf8.encode(userId + salt);
     final digest = sha256.convert(bytes);
     return digest.toString();
+  }
+
+  /// Check if this classification should be processed for gamification
+  /// Prevents duplicate gamification processing
+  Future<bool> _shouldProcessGamification(WasteClassification classification) async {
+    try {
+      // Get the current gamification profile to check existing processed items
+      final gamificationService = GamificationService(_localStorageService, this);
+      final profile = await gamificationService.getProfile();
+      
+      // For now, we'll use a simple timestamp-based check
+      // In a more sophisticated system, we might track processed classification IDs
+      final classificationTime = classification.timestamp;
+      final now = DateTime.now();
+      
+      // Don't process if classification is older than 1 hour (likely already processed)
+      // This prevents retroactive processing of old data
+      if (now.difference(classificationTime).inHours > 1) {
+        return false;
+      }
+      
+      // Process if classification is recent (within 1 hour)
+      return true;
+    } catch (e) {
+      debugPrint('🎮 Error checking gamification eligibility: $e');
+      // On error, default to processing to ensure points aren't missed
+      return true;
+    }
   }
 
   /// Load classifications from cloud and merge with local

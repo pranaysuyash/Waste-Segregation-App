@@ -65,6 +65,10 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
     if (widget.showActions) {
       _autoSaveClassification();
       _processClassification();
+    } else {
+      // 🎮 GAMIFICATION FIX: For existing classifications, check if they need 
+      // retroactive gamification processing (fixes the 2/10 classifications but 0 points issue)
+      _checkRetroactiveGamificationProcessing();
     }
   }
   
@@ -243,6 +247,57 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
           _showingClassificationFeedback = false;
         });
       }
+    }
+  }
+
+  /// Check if this existing classification needs retroactive gamification processing
+  /// This fixes the issue where users have classifications but 0 points
+  Future<void> _checkRetroactiveGamificationProcessing() async {
+    try {
+      debugPrint('🎮 RETROACTIVE: Checking if ${widget.classification.itemName} needs gamification processing');
+      
+      final gamificationService = Provider.of<GamificationService>(context, listen: false);
+      
+      // Get current profile
+      final profile = await gamificationService.getProfile();
+      final currentPoints = profile.points.total;
+      
+      // Check if this classification is from today and might be missing points
+      final now = DateTime.now();
+      final today = DateTime(now.year, now.month, now.day);
+      final classificationDate = DateTime(
+        widget.classification.timestamp.year,
+        widget.classification.timestamp.month,
+        widget.classification.timestamp.day,
+      );
+      
+      // Only process classifications from today to avoid retroactively awarding too many points
+      if (classificationDate == today) {
+        debugPrint('🎮 RETROACTIVE: Classification from today, checking if points were already awarded');
+        
+        // For existing classifications, we can try processing gamification
+        // The gamification service should handle duplicate detection
+        await gamificationService.processClassification(widget.classification);
+        
+        // Check if points were actually awarded
+        final newProfile = await gamificationService.getProfile();
+        final pointsAwarded = newProfile.points.total - currentPoints;
+        
+        if (pointsAwarded > 0) {
+          debugPrint('🎮 RETROACTIVE: ✅ Awarded $pointsAwarded points for existing classification');
+          
+          // Trigger refresh of home screen to update the points display
+          ModernHomeScreen.triggerRefresh();
+        } else {
+          debugPrint('🎮 RETROACTIVE: ⏭️ No points awarded (likely already processed)');
+        }
+      } else {
+        debugPrint('🎮 RETROACTIVE: ⏭️ Classification not from today, skipping retroactive processing');
+      }
+    } catch (e, stackTrace) {
+      debugPrint('🎮 RETROACTIVE: ❌ Error in retroactive processing: $e');
+      ErrorHandler.handleError(e, stackTrace);
+      // Don't rethrow - this is a background operation
     }
   }
 

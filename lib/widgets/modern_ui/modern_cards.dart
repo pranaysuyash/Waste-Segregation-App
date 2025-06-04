@@ -289,11 +289,12 @@ class StatsCard extends StatelessWidget {
           
           const SizedBox(height: AppTheme.spacingSm),
           
-          // Main value with responsive sizing
+          // Main value with responsive sizing and overflow protection
           Row(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               Expanded(
+                flex: 2, // Give more space to the main value
                 child: Text(
                   value,
                   style: theme.textTheme.displaySmall?.copyWith(
@@ -305,26 +306,51 @@ class StatsCard extends StatelessWidget {
                 ),
               ),
               if (trend != null) ...[
-                const SizedBox(width: 4),
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(
-                      isPositiveTrend ? Icons.trending_up : Icons.trending_down,
-                      color: isPositiveTrend ? Colors.green : Colors.red,
-                      size: 16,
-                    ),
-                    const SizedBox(width: 2),
-                    Text(
-                      trend!,
-                      style: TextStyle(
-                        color: isPositiveTrend ? Colors.green : Colors.red,
-                        fontWeight: FontWeight.bold,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ],
+                const SizedBox(width: 2), // Reduced spacing
+                Flexible(
+                  flex: 1, // Allow trend to shrink if needed
+                  child: LayoutBuilder(
+                    builder: (context, constraints) {
+                      // Hide trend if space is too constrained
+                      if (constraints.maxWidth < 30) {
+                        return const SizedBox.shrink();
+                      }
+                      
+                      // Show icon only if very tight on space
+                      if (constraints.maxWidth < 50) {
+                        return Icon(
+                          isPositiveTrend ? Icons.trending_up : Icons.trending_down,
+                          color: isPositiveTrend ? Colors.green : Colors.red,
+                          size: 12,
+                        );
+                      }
+                      
+                      // Full trend display
+                      return Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            isPositiveTrend ? Icons.trending_up : Icons.trending_down,
+                            color: isPositiveTrend ? Colors.green : Colors.red,
+                            size: 14,
+                          ),
+                          const SizedBox(width: 1),
+                          Flexible(
+                            child: Text(
+                              trend!,
+                              style: TextStyle(
+                                color: isPositiveTrend ? Colors.green : Colors.red,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 10, // Even smaller font for tight spaces
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
+                      );
+                    },
+                  ),
                 ),
               ],
             ],
