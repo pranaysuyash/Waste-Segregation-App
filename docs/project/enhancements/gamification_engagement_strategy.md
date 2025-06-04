@@ -39,15 +39,32 @@ This system is not just about adding points and badges arbitrarily; it's about t
 ### 2.1. Points System
 
 *   **Purpose:** To provide immediate, quantifiable feedback for user actions and serve as a primary measure of progress and engagement.
-*   **Earning Points:**
-    *   **Successful Classification:** Award points for each item correctly classified (e.g., +10 points). Consider bonus points for classifying "difficult" or less common items correctly after an initial learning phase.
-    *   **Educational Content Engagement:**
-        *   Completing an educational article/video: +5-15 points (depending on length/depth).
-        *   Successfully completing a quiz: +20-50 points (bonus for high scores).
-    *   **Challenge Completion:** Points awarded will vary based on challenge difficulty and duration (e.g., +50-500 points).
-    *   **Streak Milestones:** Award bonus points for achieving certain streak lengths (e.g., 7-day streak: +50 points, 30-day streak: +200 points).
-    *   **Badge Unlocks:** Award a one-time point bonus when a new badge is earned (e.g., +25-100 points).
-    *   **Daily Login (Optional, use with caution):** A small number of points for daily app open (e.g., +5 points). Can encourage daily use but might feel less meaningful if not tied to other actions.
+*   **Earning Points (Examples - values should be configurable and tuned):**
+    *   **Daily Engagement Bonus:** Awarded for the first key app interaction each day (e.g., first classification, opening dashboard, engaging with a challenge). Helps encourage daily return.
+        *   Example: +5-10 points.
+    *   **Successful Classification (Core Analysis Action):** Award points for each item correctly classified. This is a primary way users perform "analysis" of waste.
+        *   Base points: e.g., +10 points.
+        *   *Dynamic Bonuses (Make it engaging!):*
+            *   **Item Rarity/Difficulty:** +5-15 bonus points for correctly classifying less common or typically difficult-to-identify items (after an initial learning phase for the user).
+            *   **Classification Confidence:** +1-5 bonus points if the AI's confidence in the user's aided classification is very high, or if the user corrects an AI suggestion accurately.
+            *   **Waste Type Specifics:** Potentially slightly varied points based on the environmental impact or complexity of handling different waste types (e.g., hazardous might yield marginally more than common recyclables, if desired).
+    *   **Educational Content Engagement (Learning & Analysis):**
+        *   Completing an educational article/video: +5-15 points (depending on length/depth). This covers "analysis" through learning.
+        *   Successfully completing a quiz: +15-30 points (bonus for high scores).
+    *   **Reviewing Personal Impact/Stats (Reflective Analysis):** Encourage users to reflect on their progress and impact.
+        *   Viewing personal statistics dashboard or environmental impact report: +5-10 points (e.g., once per day).
+    *   **Challenge Completion:** Points awarded will vary based on challenge difficulty, duration, and type.
+        *   Example: +25-500 points.
+    *   **Streak Bonuses (Highly Dynamic!):**
+        *   **Daily Maintenance:** +5 points per day for *each* active streak maintained (e.g., Daily Classification Streak, Daily Learning Streak).
+        *   **Milestone Achievements:** Significantly larger, escalating bonuses for hitting defined milestones for each streak type. These make streaks feel increasingly rewarding:
+            *   3-Day Streak: +15 points
+            *   7-Day Streak: +35 points
+            *   14-Day Streak: +75 points
+            *   30-Day Streak: +150 points
+            *   (Consider further milestones like 60-day, 90-day, etc.)
+    *   **Badge Unlocks:** Award a one-time point bonus when a new badge is earned.
+        *   Example: +20-100 points, depending on badge difficulty/prestige.
     *   **Referring Friends (Future):** Points for successful referrals.
     *   **Reporting New Items/Data Correction (Future, Moderated):** Points for contributing valuable data to the app.
 *   **Point Value Balancing:**
