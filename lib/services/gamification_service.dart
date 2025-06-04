@@ -334,11 +334,18 @@ class GamificationService {
   
   // Add points for an action
   Future<UserPoints> addPoints(String action, {String? category, int? customPoints}) async {
+    debugPrint('🎮 [DEBUG] addPoints called: action=$action, category=$category, customPoints=$customPoints');
+    final points = await _addPointsInternal(action, category: category, customPoints: customPoints);
+    debugPrint('🎮 [DEBUG] Points after add: total=${points.total}, categoryPoints=${points.categoryPoints}');
+    return points;
+  }
+  
+  Future<UserPoints> _addPointsInternal(String action, {String? category, int? customPoints}) async {
     final profile = await getProfile();
     final points = profile.points;
     
     final pointsToAdd = customPoints ?? _pointValues[action] ?? 0;
-if (pointsToAdd == 0 && customPoints == null) {
+    if (pointsToAdd == 0 && customPoints == null) {
        debugPrint("⚠️ GamificationService: Attempted to add 0 points for action '$action' and no custom points provided.");
       return points; // Return early if no points to add
      }
@@ -374,14 +381,13 @@ if (pointsToAdd == 0 && customPoints == null) {
   // Process a waste classification for gamification
   // Returns a list of completed challenges
   Future<List<Challenge>> processClassification(WasteClassification classification) async {
-    debugPrint('🎮 GAMIFICATION: Processing classification for ${classification.category}');
+    debugPrint('🎮 [DEBUG] processClassification called for: \\${classification.itemName}');
+    await addPoints('classification', category: classification.category);
+    debugPrint('🎮 [DEBUG] processClassification complete');
     
     // Get profile before making changes
     final profileBefore = await getProfile();
     final categoriesBeforeCount = profileBefore.points.categoryPoints.keys.length;
-    
-    // Add points for classifying an item
-    await addPoints('classification', category: classification.category);
     
     // Update waste identification achievements
     await updateAchievementProgress(AchievementType.wasteIdentified, 1);
