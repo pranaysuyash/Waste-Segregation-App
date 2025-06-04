@@ -258,7 +258,7 @@ void main() {
         await mockCache.initialize();
         
         // Test cache operations
-        final testHash = 'test_hash';
+        const testHash = 'test_hash';
         final testClassification = WasteClassification(
           itemName: 'Test Item',
           category: 'Dry Waste',

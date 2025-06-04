@@ -48,6 +48,11 @@ _Last updated: May 24, 2025_
      ```
    - **Learning**: **Always assume collections might be empty**
 
+### 4. **Persistent Points Feedback for Gamification**
+   - **Issue**: Popup-only feedback for points can be missed by users or testers, making validation difficult
+   - **Solution**: Add a persistent card/banner on the result screen showing points awarded for each classification, in addition to the popup
+   - **Learning**: Always provide both immediate (popup) and persistent (card) feedback for gamification points to maximize transparency, user trust, and ease of QA
+
 ## 📱 FLUTTER & DART INSIGHTS
 
 ### Build Configuration Learnings

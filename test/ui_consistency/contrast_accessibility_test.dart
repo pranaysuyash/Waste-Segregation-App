@@ -230,10 +230,10 @@ void main() {
         for (final scaleFactor in scaleFactors) {
           await tester.pumpWidget(
             MediaQuery(
-              data: MediaQueryData(textScaleFactor: scaleFactor),
+              data: MediaQueryData(textScaler: TextScaler.linear(scaleFactor)),
               child: MaterialApp(
                 theme: AppTheme.lightTheme,
-                home: Scaffold(
+                home: const Scaffold(
                   body: Column(
                     children: [
                       Text('Heading Text', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600)),
@@ -264,7 +264,7 @@ void main() {
         const longText = 'This is a very long text that should test how the application handles text overflow when the content is too long to fit in the available space and should wrap or truncate appropriately.';
         
         await tester.pumpWidget(
-          MaterialApp(
+          const MaterialApp(
             home: Scaffold(
               body: SizedBox(
                 width: 200,
@@ -294,26 +294,26 @@ void main() {
       testWidgets('Important information is not conveyed by color alone', (WidgetTester tester) async {
         // Test common UI patterns that should not rely solely on color
         await tester.pumpWidget(
-          MaterialApp(
+          const MaterialApp(
             home: Scaffold(
               body: Column(
                 children: [
                   // Error state with icon and text
-                  const Row(
+                  Row(
                     children: [
                       Icon(Icons.error, color: Colors.red),
                       Text('Error: Invalid input'),
                     ],
                   ),
                   // Success state with icon and text
-                  const Row(
+                  Row(
                     children: [
                       Icon(Icons.check_circle, color: Colors.green),
                       Text('Success: Operation completed'),
                     ],
                   ),
                   // Warning state with icon and text
-                  const Row(
+                  Row(
                     children: [
                       Icon(Icons.warning, color: Colors.orange),
                       Text('Warning: Please review'),
@@ -400,7 +400,7 @@ void main() {
                 children: [
                   ElevatedButton(onPressed: () {}, child: const Text('Button 1')),
                   ElevatedButton(onPressed: () {}, child: const Text('Button 2')),
-                  TextField(decoration: const InputDecoration(labelText: 'Input')),
+                  const TextField(decoration: InputDecoration(labelText: 'Input')),
                 ],
               ),
             ),

@@ -246,7 +246,7 @@ void main() {
         // Test with larger text scale
         await tester.pumpWidget(
           MediaQuery(
-            data: MediaQueryData(textScaleFactor: 1.5),
+            data: const MediaQueryData(textScaler: TextScaler.linear(1.5)),
             child: testApp,
           ),
         );
@@ -281,9 +281,9 @@ void main() {
         final primaryStyle = UIConsistency.primaryButtonStyle(context);
 
         // Test different material states
-        final pressedColor = primaryStyle.backgroundColor?.resolve({MaterialState.pressed});
+        final pressedColor = primaryStyle.backgroundColor?.resolve({WidgetState.pressed});
         final normalColor = primaryStyle.backgroundColor?.resolve({});
-        final disabledColor = primaryStyle.backgroundColor?.resolve({MaterialState.disabled});
+        final disabledColor = primaryStyle.backgroundColor?.resolve({WidgetState.disabled});
 
         expect(pressedColor, isNotNull);
         expect(normalColor, isNotNull);

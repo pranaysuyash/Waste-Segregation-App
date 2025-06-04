@@ -184,7 +184,7 @@ class TestHelpers {
       email: email ?? 'testuser@example.com',
       displayName: displayName ?? 'Test User',
       photoUrl: 'https://example.com/avatar.jpg',
-      createdAt: createdAt ?? DateTime.now().subtract(Duration(days: 30)),
+      createdAt: createdAt ?? DateTime.now().subtract(const Duration(days: 30)),
       lastActive: DateTime.now(),
       preferences: {
         'notifications': true,
@@ -229,7 +229,7 @@ class TestHelpers {
           iconName: 'star',
           color: Colors.blue,
           progress: 1.0,
-          earnedOn: DateTime.now().subtract(Duration(days: 5)),
+          earnedOn: DateTime.now().subtract(const Duration(days: 5)),
         ),
       ],
       activeChallenges: [
@@ -237,8 +237,8 @@ class TestHelpers {
           id: 'weekly_classifier',
           title: 'Weekly Classifier',
           description: 'Classify 10 items this week',
-          startDate: DateTime.now().subtract(Duration(days: 2)),
-          endDate: DateTime.now().add(Duration(days: 5)),
+          startDate: DateTime.now().subtract(const Duration(days: 2)),
+          endDate: DateTime.now().add(const Duration(days: 5)),
           pointsReward: 25,
           iconName: 'timeline',
           color: Colors.green,
@@ -262,14 +262,14 @@ class TestHelpers {
       id: id ?? 'test_family_123',
       name: name ?? 'Test Family',
       createdBy: createdBy ?? 'admin_user',
-      createdAt: DateTime.now().subtract(Duration(days: 10)),
+      createdAt: DateTime.now().subtract(const Duration(days: 10)),
       members: members ?? [
         FamilyMember(
           userId: 'admin_user',
           email: 'admin@example.com',
           displayName: 'Admin User',
           role: FamilyRole.admin,
-          joinedAt: DateTime.now().subtract(Duration(days: 10)),
+          joinedAt: DateTime.now().subtract(const Duration(days: 10)),
           statistics: MemberStatistics(
             totalClassifications: 25,
             totalPoints: 500,
@@ -281,7 +281,7 @@ class TestHelpers {
           email: 'member@example.com',
           displayName: 'Member User',
           role: FamilyRole.member,
-          joinedAt: DateTime.now().subtract(Duration(days: 5)),
+          joinedAt: DateTime.now().subtract(const Duration(days: 5)),
           statistics: MemberStatistics(
             totalClassifications: 10,
             totalPoints: 200,
@@ -291,8 +291,6 @@ class TestHelpers {
       ],
       settings: FamilySettings(
         isPublic: isPublic ?? false,
-        shareClassifications: true,
-        showMemberActivity: true,
         allowInvites: true,
       ),
       statistics: FamilyStatistics(
@@ -304,7 +302,7 @@ class TestHelpers {
           'Hazardous Waste': 5,
         },
         weeklyActivity: [],
-        environmentalImpact: EnvironmentalImpact(
+        environmentalImpact: const EnvironmentalImpact(
           totalWasteClassified: 35,
           recyclableItems: 25,
           compostableItems: 8,
@@ -359,7 +357,6 @@ class TestHelpers {
     await tester.pumpWidget(createTestApp(
       child: widget,
       theme: theme,
-      includeMockProviders: true,
     ));
     await tester.pumpAndSettle();
   }
@@ -601,9 +598,9 @@ class MockCacheService extends Mock implements CacheService {}
 // =============================================================================
 
 class _HasAccessibilityLabel extends Matcher {
-  final String expectedLabel;
   
   _HasAccessibilityLabel(this.expectedLabel);
+  final String expectedLabel;
   
   @override
   bool matches(item, Map matchState) {
@@ -622,10 +619,10 @@ class _HasAccessibilityLabel extends Matcher {
 }
 
 class _HasMinimumSize extends Matcher {
-  final double minWidth;
-  final double minHeight;
   
   _HasMinimumSize(this.minWidth, this.minHeight);
+  final double minWidth;
+  final double minHeight;
   
   @override
   bool matches(item, Map matchState) {

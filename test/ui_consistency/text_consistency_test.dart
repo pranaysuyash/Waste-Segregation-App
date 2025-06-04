@@ -292,7 +292,7 @@ void main() {
         for (final scaleFactor in [0.8, 1.0, 1.2, 1.5]) {
           await tester.pumpWidget(
             MediaQuery(
-              data: MediaQueryData(textScaleFactor: scaleFactor),
+              data: MediaQueryData(textScaler: TextScaler.linear(scaleFactor)),
               child: testApp,
             ),
           );

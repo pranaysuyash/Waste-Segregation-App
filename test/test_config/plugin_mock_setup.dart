@@ -19,7 +19,7 @@ class PluginMockSetup {
 
   /// Mock path_provider plugin
   static void setupPathProvider() {
-    const MethodChannel channel = MethodChannel('plugins.flutter.io/path_provider');
+    const channel = MethodChannel('plugins.flutter.io/path_provider');
     
     // Create a temporary directory that actually exists and is writable
     final tempDir = Directory.systemTemp.createTempSync('flutter_test_');
@@ -61,7 +61,7 @@ class PluginMockSetup {
 
   /// Mock device_info plugin
   static void setupDeviceInfo() {
-    const MethodChannel channel = MethodChannel('plugins.flutter.io/device_info');
+    const channel = MethodChannel('plugins.flutter.io/device_info');
     
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger.setMockMethodCallHandler(
       channel,
@@ -92,7 +92,7 @@ class PluginMockSetup {
 
   /// Mock package_info plugin
   static void setupPackageInfo() {
-    const MethodChannel channel = MethodChannel('plugins.flutter.io/package_info');
+    const channel = MethodChannel('plugins.flutter.io/package_info');
     
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger.setMockMethodCallHandler(
       channel,
@@ -109,7 +109,7 @@ class PluginMockSetup {
 
   /// Mock image_picker plugin
   static void setupImagePicker() {
-    const MethodChannel channel = MethodChannel('plugins.flutter.io/image_picker');
+    const channel = MethodChannel('plugins.flutter.io/image_picker');
     
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger.setMockMethodCallHandler(
       channel,
@@ -129,7 +129,7 @@ class PluginMockSetup {
 
   /// Mock camera plugin
   static void setupCamera() {
-    const MethodChannel channel = MethodChannel('plugins.flutter.io/camera');
+    const channel = MethodChannel('plugins.flutter.io/camera');
     
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger.setMockMethodCallHandler(
       channel,
@@ -159,7 +159,7 @@ class PluginMockSetup {
   /// Mock Firebase plugins
   static void setupFirebase() {
     // Mock Firebase Core
-    const MethodChannel coreChannel = MethodChannel('plugins.flutter.io/firebase_core');
+    const coreChannel = MethodChannel('plugins.flutter.io/firebase_core');
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger.setMockMethodCallHandler(
       coreChannel,
       (MethodCall methodCall) async {
@@ -183,7 +183,7 @@ class PluginMockSetup {
     );
 
     // Mock Firestore
-    const MethodChannel firestoreChannel = MethodChannel('plugins.flutter.io/cloud_firestore');
+    const firestoreChannel = MethodChannel('plugins.flutter.io/cloud_firestore');
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger.setMockMethodCallHandler(
       firestoreChannel,
       (MethodCall methodCall) async {
@@ -220,7 +220,7 @@ class PluginMockSetup {
 
   /// Mock network connectivity
   static void setupConnectivity() {
-    const MethodChannel channel = MethodChannel('dev.fluttercommunity/connectivity');
+    const channel = MethodChannel('dev.fluttercommunity/connectivity');
     
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger.setMockMethodCallHandler(
       channel,
@@ -243,7 +243,7 @@ class PluginMockSetup {
 
   /// Mock permission handler
   static void setupPermissions() {
-    const MethodChannel channel = MethodChannel('flutter.baseflow.com/permissions/methods');
+    const channel = MethodChannel('flutter.baseflow.com/permissions/methods');
     
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger.setMockMethodCallHandler(
       channel,

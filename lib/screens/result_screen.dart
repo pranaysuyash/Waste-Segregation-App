@@ -1015,6 +1015,44 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
 
                   const SizedBox(height: AppTheme.paddingLarge),
 
+                  // Points awarded card (always visible)
+                  if (widget.showActions)
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: AppTheme.paddingLarge),
+                      child: Card(
+                        elevation: 2,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(AppTheme.borderRadiusLarge),
+                        ),
+                        color: _pointsEarned > 0 ? Colors.green.shade50 : Colors.grey.shade100,
+                        child: Padding(
+                          padding: const EdgeInsets.all(AppTheme.paddingLarge),
+                          child: Row(
+                            children: [
+                              Icon(
+                                Icons.stars,
+                                color: _pointsEarned > 0 ? Colors.green : Colors.grey,
+                                size: 28,
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Text(
+                                  _pointsEarned > 0
+                                      ? '+$_pointsEarned Points awarded for this classification'
+                                      : 'No points awarded (duplicate or already processed)',
+                                  style: TextStyle(
+                                    fontSize: AppTheme.fontSizeLarge,
+                                    fontWeight: FontWeight.bold,
+                                    color: _pointsEarned > 0 ? Colors.green.shade900 : Colors.grey.shade700,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+
                   // Navigation buttons
                   Card(
                     elevation: 2,

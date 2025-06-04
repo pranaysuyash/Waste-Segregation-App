@@ -359,6 +359,13 @@ List<WasteClassification> _filterByTimeRange(List<WasteClassification> classific
 }
 ```
 
+## Gamification Points Feedback Pattern
+
+- After each classification, both a popup and a persistent card/banner are shown on the ResultScreen to display the points awarded for that analysis.
+- The popup provides immediate feedback, while the card remains visible for as long as the result is shown.
+- This pattern improves transparency and makes it easy for users and testers to validate points awarded.
+- **Recommendation:** All future gamification/points-based features should use both immediate and persistent feedback for maximum clarity and QA.
+
 ## Data Flow Architecture
 
 The data flow for the enhanced gamification and dashboard features follows this pattern:

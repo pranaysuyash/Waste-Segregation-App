@@ -46,7 +46,6 @@ void main() {
           classification: mockClassification,
           timestamp: testTimestamp,
           lastAccessed: testTimestamp,
-          useCount: 1,
           imageSize: imageSize,
         );
 
@@ -101,7 +100,6 @@ void main() {
           imageHash: imageHash,
           classification: mockClassification,
           lastAccessed: originalLastAccessed,
-          useCount: 1,
         );
 
         expect(cached.useCount, equals(1));
@@ -198,7 +196,6 @@ void main() {
           imageHash: imageHash,
           classification: mockClassification,
           timestamp: testTimestamp,
-          imageSize: null,
         );
 
         final json = cached.toJson();
@@ -319,7 +316,7 @@ void main() {
       test('should handle extreme timestamps', () {
         const imageHash = 'test_hash_extreme_time';
         final futureDate = DateTime(2030, 12, 31);
-        final pastDate = DateTime(1990, 1, 1);
+        final pastDate = DateTime(1990, 1);
         
         final futureCached = CachedClassification(
           imageHash: '${imageHash}_future',
@@ -391,7 +388,6 @@ void main() {
           isRecyclable: false,
           isCompostable: false,
           requiresSpecialDisposal: true,
-          recyclingCode: null,
           materialType: 'Chemical compound',
           colorCode: '#RED',
           brand: 'ChemCorp',

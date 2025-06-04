@@ -40,7 +40,7 @@ void main() {
             Provider<GamificationService>.value(value: mockGamificationService),
             Provider<AnalyticsService>.value(value: mockAnalyticsService),
           ],
-          child: HomeScreen(),
+          child: const HomeScreen(),
         ),
       );
     }
@@ -57,11 +57,11 @@ void main() {
         await tester.pumpAndSettle();
 
         // Find scan button
-        final scanButton = find.byKey(Key('scan_button'));
+        final scanButton = find.byKey(const Key('scan_button'));
         expect(scanButton, findsOneWidget);
 
         // Verify button is prominent (check for specific styling)
-        final FloatingActionButton fab = tester.widget(scanButton);
+        final fab = tester.widget(scanButton);
         expect(fab.backgroundColor, isNotNull);
         expect(fab.child, isA<Icon>());
       });
@@ -107,7 +107,7 @@ void main() {
               steps: ['Clean', 'Recycle'],
               hasUrgentTimeframe: false,
             ),
-            timestamp: DateTime.now().subtract(Duration(hours: 1)),
+            timestamp: DateTime.now().subtract(const Duration(hours: 1)),
             region: 'Test Region',
             visualFeatures: ['plastic', 'bottle'],
             alternatives: [],
@@ -123,7 +123,7 @@ void main() {
               steps: ['Compost bin'],
               hasUrgentTimeframe: false,
             ),
-            timestamp: DateTime.now().subtract(Duration(hours: 2)),
+            timestamp: DateTime.now().subtract(const Duration(hours: 2)),
             region: 'Test Region',
             visualFeatures: ['organic', 'fruit'],
             alternatives: [],
@@ -172,7 +172,7 @@ void main() {
         await tester.pumpWidget(createHomeScreen());
         await tester.pumpAndSettle();
 
-        final viewAllButton = find.byKey(Key('view_all_button'));
+        final viewAllButton = find.byKey(const Key('view_all_button'));
         expect(viewAllButton, findsOneWidget);
 
         await tester.tap(viewAllButton);
@@ -186,7 +186,7 @@ void main() {
       testWidgets('should display user points and level', (WidgetTester tester) async {
         final userProfile = GamificationProfile(
           userId: 'test_user',
-          points: UserPoints(total: 250, level: 2),
+          points: const UserPoints(total: 250, level: 2),
           streak: Streak(current: 5, longest: 10, lastUsageDate: DateTime.now()),
           achievements: [],
         );
@@ -208,10 +208,10 @@ void main() {
       testWidgets('should show achievement progress', (WidgetTester tester) async {
         final userProfile = GamificationProfile(
           userId: 'test_user',
-          points: UserPoints(total: 150),
+          points: const UserPoints(total: 150),
           streak: Streak(current: 3, longest: 8, lastUsageDate: DateTime.now()),
           achievements: [
-            Achievement(
+            const Achievement(
               id: 'waste_novice',
               title: 'Waste Novice',
               description: 'Classify 5 items',
@@ -239,7 +239,7 @@ void main() {
       testWidgets('should display daily streak information', (WidgetTester tester) async {
         final userProfile = GamificationProfile(
           userId: 'test_user',
-          points: UserPoints(total: 100),
+          points: const UserPoints(total: 100),
           streak: Streak(
             current: 7,
             longest: 15,
@@ -271,10 +271,10 @@ void main() {
         await tester.pumpWidget(createHomeScreen());
         await tester.pumpAndSettle();
 
-        expect(find.byKey(Key('camera_button')), findsOneWidget);
-        expect(find.byKey(Key('gallery_button')), findsOneWidget);
-        expect(find.byKey(Key('history_button')), findsOneWidget);
-        expect(find.byKey(Key('educational_content_button')), findsOneWidget);
+        expect(find.byKey(const Key('camera_button')), findsOneWidget);
+        expect(find.byKey(const Key('gallery_button')), findsOneWidget);
+        expect(find.byKey(const Key('history_button')), findsOneWidget);
+        expect(find.byKey(const Key('educational_content_button')), findsOneWidget);
       });
 
       testWidgets('should navigate to camera on camera button tap', (WidgetTester tester) async {
@@ -286,7 +286,7 @@ void main() {
         await tester.pumpWidget(createHomeScreen());
         await tester.pumpAndSettle();
 
-        final cameraButton = find.byKey(Key('camera_button'));
+        final cameraButton = find.byKey(const Key('camera_button'));
         expect(cameraButton, findsOneWidget);
 
         await tester.tap(cameraButton);
@@ -305,7 +305,7 @@ void main() {
         await tester.pumpWidget(createHomeScreen());
         await tester.pumpAndSettle();
 
-        final educationButton = find.byKey(Key('educational_content_button'));
+        final educationButton = find.byKey(const Key('educational_content_button'));
         expect(educationButton, findsOneWidget);
         expect(find.textContaining('Learn'), findsOneWidget);
       });
@@ -322,7 +322,7 @@ void main() {
         await tester.pumpAndSettle();
 
         // Should still show basic UI elements
-        expect(find.byKey(Key('scan_button')), findsOneWidget);
+        expect(find.byKey(const Key('scan_button')), findsOneWidget);
         expect(find.textContaining('offline'), findsOneWidget);
       });
 
@@ -348,7 +348,7 @@ void main() {
         await tester.pumpWidget(createHomeScreen());
         await tester.pumpAndSettle();
 
-        final retryButton = find.byKey(Key('retry_button'));
+        final retryButton = find.byKey(const Key('retry_button'));
         expect(retryButton, findsOneWidget);
 
         // Setup successful retry
@@ -371,22 +371,22 @@ void main() {
             .thenAnswer((_) async => null);
 
         // Test on small screen
-        tester.binding.window.physicalSizeTestValue = Size(320, 568);
+        tester.binding.window.physicalSizeTestValue = const Size(320, 568);
         tester.binding.window.devicePixelRatioTestValue = 1.0;
 
         await tester.pumpWidget(createHomeScreen());
         await tester.pumpAndSettle();
 
-        expect(find.byKey(Key('scan_button')), findsOneWidget);
+        expect(find.byKey(const Key('scan_button')), findsOneWidget);
 
         // Test on large screen
-        tester.binding.window.physicalSizeTestValue = Size(414, 896);
+        tester.binding.window.physicalSizeTestValue = const Size(414, 896);
         tester.binding.window.devicePixelRatioTestValue = 1.0;
 
         await tester.pumpWidget(createHomeScreen());
         await tester.pumpAndSettle();
 
-        expect(find.byKey(Key('scan_button')), findsOneWidget);
+        expect(find.byKey(const Key('scan_button')), findsOneWidget);
 
         addTearDown(tester.binding.window.clearPhysicalSizeTestValue);
         addTearDown(tester.binding.window.clearDevicePixelRatioTestValue);
@@ -402,15 +402,15 @@ void main() {
         await tester.pumpAndSettle();
 
         // Verify portrait layout
-        expect(find.byKey(Key('scan_button')), findsOneWidget);
+        expect(find.byKey(const Key('scan_button')), findsOneWidget);
 
         // Simulate landscape orientation
-        tester.binding.window.physicalSizeTestValue = Size(896, 414);
+        tester.binding.window.physicalSizeTestValue = const Size(896, 414);
         await tester.pumpWidget(createHomeScreen());
         await tester.pumpAndSettle();
 
         // Should still show essential elements
-        expect(find.byKey(Key('scan_button')), findsOneWidget);
+        expect(find.byKey(const Key('scan_button')), findsOneWidget);
 
         addTearDown(tester.binding.window.clearPhysicalSizeTestValue);
       });
@@ -440,7 +440,7 @@ void main() {
         await tester.pumpAndSettle();
 
         // Tap on scan button
-        await tester.tap(find.byKey(Key('scan_button')));
+        await tester.tap(find.byKey(const Key('scan_button')));
         await tester.pumpAndSettle();
 
         // Verify interaction tracking

@@ -308,7 +308,6 @@ class StatsCard extends StatelessWidget {
               if (trend != null) ...[
                 const SizedBox(width: 2), // Reduced spacing
                 Flexible(
-                  flex: 1, // Allow trend to shrink if needed
                   child: LayoutBuilder(
                     builder: (context, constraints) {
                       // Hide trend if space is too constrained

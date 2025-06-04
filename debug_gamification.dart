@@ -75,7 +75,6 @@ void main() async {
     await cloudStorageService.saveClassificationWithSync(
       testClassification.copyWith(itemName: 'Test Cloud Classification'),
       false, // No Google sync for test
-      processGamification: true,
     );
     
     final profileAfterCloud = await gamificationService.getProfile();

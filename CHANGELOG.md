@@ -61,6 +61,9 @@ All notable changes to the Waste Segregation App will be documented in this file
 - **Overall Test Health**: 264/327 passing (80.7%)
 - **Zero critical UI issues remaining**
 
+### Added
+- **Persistent Points Feedback**: Added a persistent card/banner on the ResultScreen that always shows the points awarded for the current classification, in addition to the existing popup. This improves transparency and makes it easy for users and testers to validate points awarded for each analysis.
+
 ## [0.1.5+100] - 2025-01-04
 
 ### Fixed

@@ -1,13 +1,10 @@
-import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:mockito/mockito.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:waste_segregation_app/services/storage_service.dart';
 import 'package:waste_segregation_app/services/cache_service.dart';
 import 'package:waste_segregation_app/models/cached_classification.dart';
 import 'package:waste_segregation_app/models/waste_classification.dart';
-import 'package:waste_segregation_app/utils/constants.dart';
 
 /// Test helper utilities for setting up and tearing down test environment
 class TestHelper {

@@ -3,6 +3,10 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 /// Service to track educational content engagement and analytics
 class EducationalContentAnalyticsService extends ChangeNotifier {
+
+  EducationalContentAnalyticsService() {
+    _loadAnalytics();
+  }
   static const String _viewsKey = 'educational_views';
   static const String _timeSpentKey = 'educational_time_spent';
   static const String _completionsKey = 'educational_completions';
@@ -12,10 +16,10 @@ class EducationalContentAnalyticsService extends ChangeNotifier {
   static const String _categoryPreferencesKey = 'category_preferences';
 
   // In-memory analytics data
-  Map<String, ContentAnalytics> _contentAnalytics = {};
-  Map<String, int> _categoryViews = {};
-  Map<String, int> _searchQueries = {};
-  Map<String, DateTime> _lastViewed = {};
+  final Map<String, ContentAnalytics> _contentAnalytics = {};
+  final Map<String, int> _categoryViews = {};
+  final Map<String, int> _searchQueries = {};
+  final Map<String, DateTime> _lastViewed = {};
   List<String> _recentlyViewed = [];
   List<String> _favoriteContent = [];
   
@@ -23,10 +27,6 @@ class EducationalContentAnalyticsService extends ChangeNotifier {
   String? _currentContentId;
   DateTime? _sessionStartTime;
   final Map<String, Duration> _sessionTimes = {};
-
-  EducationalContentAnalyticsService() {
-    _loadAnalytics();
-  }
 
   // ==================== PUBLIC GETTERS ====================
 
@@ -37,8 +37,6 @@ class EducationalContentAnalyticsService extends ChangeNotifier {
       views: 0,
       totalTimeSpent: Duration.zero,
       completions: 0,
-      lastViewed: null,
-      isFavorite: false,
     );
   }
 
@@ -73,10 +71,10 @@ class EducationalContentAnalyticsService extends ChangeNotifier {
 
   /// Get total engagement metrics
   EngagementMetrics getTotalEngagementMetrics() {
-    int totalViews = 0;
-    Duration totalTimeSpent = Duration.zero;
-    int totalCompletions = 0;
-    int totalInteractions = 0;
+    var totalViews = 0;
+    var totalTimeSpent = Duration.zero;
+    var totalCompletions = 0;
+    var totalInteractions = 0;
 
     for (final analytics in _contentAnalytics.values) {
       totalViews += analytics.views;
@@ -103,8 +101,8 @@ class EducationalContentAnalyticsService extends ChangeNotifier {
     final sortedDates = _lastViewed.values.toList()
       ..sort((a, b) => b.compareTo(a));
 
-    int streak = 0;
-    DateTime currentDate = DateTime(now.year, now.month, now.day);
+    var streak = 0;
+    var currentDate = DateTime(now.year, now.month, now.day);
 
     for (final viewDate in sortedDates) {
       final viewDay = DateTime(viewDate.year, viewDate.month, viewDate.day);
@@ -401,7 +399,7 @@ class EducationalContentAnalyticsService extends ChangeNotifier {
       }).toList(),
       'recentContent': _recentlyViewed.take(10).toList(),
       'favoriteContent': _favoriteContent,
-      'searchHistory': getPopularSearchQueries(limit: 10).map((entry) => {
+      'searchHistory': getPopularSearchQueries().map((entry) => {
         'query': entry.key,
         'count': entry.value,
       }).toList(),
@@ -413,13 +411,6 @@ class EducationalContentAnalyticsService extends ChangeNotifier {
 
 /// Analytics data for individual content
 class ContentAnalytics {
-  final String contentId;
-  final int views;
-  final Duration totalTimeSpent;
-  final int completions;
-  final int interactions;
-  final DateTime? lastViewed;
-  final bool isFavorite;
 
   const ContentAnalytics({
     required this.contentId,
@@ -430,6 +421,13 @@ class ContentAnalytics {
     this.lastViewed,
     this.isFavorite = false,
   });
+  final String contentId;
+  final int views;
+  final Duration totalTimeSpent;
+  final int completions;
+  final int interactions;
+  final DateTime? lastViewed;
+  final bool isFavorite;
 
   ContentAnalytics copyWith({
     int? views,
@@ -473,12 +471,6 @@ class ContentAnalytics {
 
 /// Overall engagement metrics
 class EngagementMetrics {
-  final int totalViews;
-  final Duration totalTimeSpent;
-  final int totalCompletions;
-  final int totalInteractions;
-  final int uniqueContentViewed;
-  final int favoriteCount;
 
   const EngagementMetrics({
     required this.totalViews,
@@ -488,6 +480,12 @@ class EngagementMetrics {
     required this.uniqueContentViewed,
     required this.favoriteCount,
   });
+  final int totalViews;
+  final Duration totalTimeSpent;
+  final int totalCompletions;
+  final int totalInteractions;
+  final int uniqueContentViewed;
+  final int favoriteCount;
 
   /// Get average time per content viewed
   Duration get averageTimePerContent {
@@ -515,10 +513,6 @@ enum ContentInteractionType {
 
 /// Simple educational content model for analytics
 class EducationalContent {
-  final String id;
-  final String title;
-  final String category;
-  final String type;
 
   const EducationalContent({
     required this.id,
@@ -526,4 +520,8 @@ class EducationalContent {
     required this.category,
     required this.type,
   });
+  final String id;
+  final String title;
+  final String category;
+  final String type;
 } 

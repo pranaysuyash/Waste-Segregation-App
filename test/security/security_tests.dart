@@ -50,7 +50,7 @@ void main() {
         final maliciousFeedback = {
           'feedback': '<script>document.location="http://evil.com"</script>',
           'category': 'javascript:alert(1)',
-          'suggestion': '${}`DROP TABLE feedback;`${}`',
+          'suggestion': '$`DROP TABLE feedback;`$`',
         };
 
         final sanitized = _sanitizeFeedbackInput(maliciousFeedback);
@@ -126,10 +126,8 @@ void main() {
           createdBy: 'SELECT * FROM users',
           createdAt: DateTime.now(),
           members: [],
-          settings: FamilySettings(
-            isPublic: false,
+          settings: const FamilySettings(
             shareClassifications: true,
-            showMemberActivity: true,
             allowInvites: true,
           ),
           statistics: FamilyStatistics(
@@ -137,7 +135,7 @@ void main() {
             totalPoints: 0,
             categoryCounts: {},
             weeklyActivity: [],
-            environmentalImpact: EnvironmentalImpact(
+            environmentalImpact: const EnvironmentalImpact(
               totalWasteClassified: 0,
               recyclableItems: 0,
               compostableItems: 0,
@@ -222,10 +220,8 @@ void main() {
           createdBy: admin.userId,
           createdAt: DateTime.now(),
           members: [admin, regularMember],
-          settings: FamilySettings(
-            isPublic: false,
+          settings: const FamilySettings(
             shareClassifications: true,
-            showMemberActivity: true,
             allowInvites: true,
           ),
           statistics: FamilyStatistics(
@@ -233,7 +229,7 @@ void main() {
             totalPoints: 0,
             categoryCounts: {},
             weeklyActivity: [],
-            environmentalImpact: EnvironmentalImpact(
+            environmentalImpact: const EnvironmentalImpact(
               totalWasteClassified: 0,
               recyclableItems: 0,
               compostableItems: 0,
@@ -264,7 +260,7 @@ void main() {
         final validToken = _generateSecureToken();
         final expiredToken = _generateExpiredToken();
         final tamperedToken = _generateTamperedToken();
-        final maliciousToken = '<script>alert("token")</script>';
+        const maliciousToken = '<script>alert("token")</script>';
 
         expect(_validateSessionToken(validToken), isTrue);
         expect(_validateSessionToken(expiredToken), isFalse);
@@ -315,8 +311,8 @@ void main() {
       });
 
       test('should hash passwords securely', () {
-        final password = 'userPassword123!';
-        final weakPassword = '123';
+        const password = 'userPassword123!';
+        const weakPassword = '123';
         
         final hashedPassword = _hashPassword(password);
         final hashedWeakPassword = _hashPassword(weakPassword);
@@ -418,10 +414,10 @@ void main() {
 
       test('should enforce rate limiting', () async {
         final rateLimiter = RateLimiter(maxRequests: 10, windowSeconds: 60);
-        final userId = 'test_user';
+        const userId = 'test_user';
 
         // Make requests within limit
-        for (int i = 0; i < 10; i++) {
+        for (var i = 0; i < 10; i++) {
           expect(rateLimiter.isAllowed(userId), isTrue);
         }
 
@@ -433,9 +429,9 @@ void main() {
       });
 
       test('should validate content length limits', () {
-        final normalContent = 'This is normal content';
+        const normalContent = 'This is normal content';
         final oversizedContent = 'x' * (10 * 1024 * 1024); // 10MB
-        final emptyContent = '';
+        const emptyContent = '';
 
         expect(_validateContentLength(normalContent, maxLength: 1000), isTrue);
         expect(_validateContentLength(oversizedContent, maxLength: 1000), isFalse);
@@ -614,7 +610,7 @@ void main() {
         final activityDetector = SuspiciousActivityDetector();
         
         // Simulate suspicious login attempts
-        for (int i = 0; i < 10; i++) {
+        for (var i = 0; i < 10; i++) {
           activityDetector.recordEvent('login_failure', 'suspicious_user', {
             'timestamp': DateTime.now().millisecondsSinceEpoch,
             'ipAddress': '192.168.1.100',
@@ -642,7 +638,7 @@ void main() {
         }
         
         // Normal content should not trigger detection
-        final normalContent = 'This is normal user content';
+        const normalContent = 'This is normal user content';
         final normalResult = threatDetector.detectThreat(normalContent);
         expect(normalResult.isDetected, isFalse);
       });
@@ -652,16 +648,16 @@ void main() {
 
 // Security exception classes
 class SecurityException implements Exception {
-  final String message;
   SecurityException(this.message);
+  final String message;
   
   @override
   String toString() => 'SecurityException: $message';
 }
 
 class UnauthorizedAccessException implements Exception {
-  final String message;
   UnauthorizedAccessException(this.message);
+  final String message;
   
   @override
   String toString() => 'UnauthorizedAccessException: $message';
@@ -699,7 +695,7 @@ Map<String, dynamic> _sanitizeFeedbackInput(Map<String, dynamic> input) {
   
   for (final entry in input.entries) {
     if (entry.value is String) {
-      String value = entry.value as String;
+      var value = entry.value as String;
       
       // Remove script tags
       value = value.replaceAll(RegExp(r'<script[^>]*>.*?</script>', caseSensitive: false), '');
@@ -854,7 +850,7 @@ String _generateSecureToken() {
 
 String _generateExpiredToken() {
   // Return a token that appears expired
-  return 'expired_token_${DateTime.now().subtract(Duration(hours: 24)).millisecondsSinceEpoch}';
+  return 'expired_token_${DateTime.now().subtract(const Duration(hours: 24)).millisecondsSinceEpoch}';
 }
 
 String _generateTamperedToken() {
@@ -919,7 +915,7 @@ Map<String, dynamic> _decryptSensitiveData(Map<String, dynamic> encryptedData) {
 }
 
 String _hashPassword(String password) {
-  final bytes = utf8.encode(password + 'salt'); // In real app, use proper salt
+  final bytes = utf8.encode('${password}salt'); // In real app, use proper salt
   final digest = sha256.convert(bytes);
   return digest.toString();
 }
@@ -938,7 +934,6 @@ UserProfile _anonymizeUserData(UserProfile profile) {
     id: 'anon_$hashedId',
     email: anonymizedEmail,
     displayName: anonymizedName,
-    photoUrl: null, // Remove photo for privacy
     createdAt: profile.createdAt,
     lastActive: profile.lastActive,
   );
@@ -949,7 +944,7 @@ Map<String, dynamic> _sanitizeLogData(Map<String, dynamic> data) {
   
   for (final entry in data.entries) {
     if (entry.value is String) {
-      String value = entry.value as String;
+      var value = entry.value as String;
       
       // Remove credit card numbers
       value = value.replaceAll(RegExp(r'\d{4}-\d{4}-\d{4}-\d{4}'), '[CARD-REDACTED]');
@@ -1012,7 +1007,7 @@ void _validateApiPayload(Map<String, dynamic> payload) {
 
 int _getMaxDepth(dynamic obj, [int currentDepth = 0]) {
   if (obj is Map) {
-    int maxChildDepth = currentDepth;
+    var maxChildDepth = currentDepth;
     for (final value in obj.values) {
       final childDepth = _getMaxDepth(value, currentDepth + 1);
       if (childDepth > maxChildDepth) {
@@ -1021,7 +1016,7 @@ int _getMaxDepth(dynamic obj, [int currentDepth = 0]) {
     }
     return maxChildDepth;
   } else if (obj is List) {
-    int maxChildDepth = currentDepth;
+    var maxChildDepth = currentDepth;
     for (final item in obj) {
       final childDepth = _getMaxDepth(item, currentDepth + 1);
       if (childDepth > maxChildDepth) {
@@ -1114,14 +1109,14 @@ bool _isSecureSessionId(String sessionId) {
 Session _createExpiredSession() {
   return Session(
     id: _generateSecureSessionId(),
-    expiresAt: DateTime.now().subtract(Duration(hours: 1)),
+    expiresAt: DateTime.now().subtract(const Duration(hours: 1)),
   );
 }
 
 Session _createActiveSession() {
   return Session(
     id: _generateSecureSessionId(),
-    expiresAt: DateTime.now().add(Duration(hours: 24)),
+    expiresAt: DateTime.now().add(const Duration(hours: 24)),
   );
 }
 
@@ -1135,9 +1130,9 @@ void _invalidateSession(Session session) {
 
 // Supporting classes for security testing
 class DataRetentionPolicy {
-  final int maxAgeDays;
   
   DataRetentionPolicy({required this.maxAgeDays});
+  final int maxAgeDays;
   
   Future<void> applyRetentionPolicy(MockStorageService storageService) async {
     final cutoffDate = DateTime.now().subtract(Duration(days: maxAgeDays));
@@ -1151,11 +1146,11 @@ class DataRetentionPolicy {
 }
 
 class RateLimiter {
+  
+  RateLimiter({required this.maxRequests, required this.windowSeconds});
   final int maxRequests;
   final int windowSeconds;
   final Map<String, List<DateTime>> _requests = {};
-  
-  RateLimiter({required this.maxRequests, required this.windowSeconds});
   
   bool isAllowed(String userId) {
     final now = DateTime.now();
@@ -1176,11 +1171,11 @@ class RateLimiter {
 }
 
 class Session {
+  
+  Session({required this.id, required this.expiresAt});
   final String id;
   final DateTime expiresAt;
   bool isInvalidated = false;
-  
-  Session({required this.id, required this.expiresAt});
 }
 
 enum SecurityEventType {
@@ -1191,15 +1186,15 @@ enum SecurityEventType {
 }
 
 class SecurityEvent {
-  final SecurityEventType type;
-  final Map<String, dynamic> data;
-  final DateTime timestamp;
   
   SecurityEvent({
     required this.type,
     required this.data,
     required this.timestamp,
   });
+  final SecurityEventType type;
+  final Map<String, dynamic> data;
+  final DateTime timestamp;
 }
 
 class SecurityLogger {
@@ -1243,15 +1238,15 @@ class SuspiciousActivityDetector {
 }
 
 class ThreatDetectionResult {
-  final bool isDetected;
-  final String? threatType;
-  final double confidence;
   
   ThreatDetectionResult({
     required this.isDetected,
     this.threatType,
     this.confidence = 0.0,
   });
+  final bool isDetected;
+  final String? threatType;
+  final double confidence;
 }
 
 class ThreatDetector {

@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import '../../lib/models/waste_classification.dart';
+import 'package:waste_segregation_app/models/waste_classification.dart';
 
 void main() {
   group('Fallback Classification Tests', () {

@@ -4,7 +4,6 @@ import 'package:hive/hive.dart';
 import '../models/gamification.dart';
 import '../models/waste_classification.dart';
 import '../models/educational_content.dart';
-import '../models/user_profile.dart';
 import '../utils/constants.dart';
 import 'community_service.dart';
 import 'storage_service.dart';

@@ -439,7 +439,7 @@ class TopSubcategoriesBarChart extends StatelessWidget {
                   ],
                 ),
               ),
-            )).toList(),
+            )),
           ],
         ),
       ),
@@ -656,9 +656,9 @@ class WeeklyItemsChart extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
+            const Text(
               'Weekly Summary',
-              style: const TextStyle(fontWeight: FontWeight.bold),
+              style: TextStyle(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
             Text('Total items: ${totalItems.toInt()}'),

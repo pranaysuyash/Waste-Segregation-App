@@ -1154,397 +1154,397 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
-          : SingleChildScrollView(
-        padding: const EdgeInsets.all(AppTheme.paddingRegular),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Welcome message - Fixed with responsive text
-            LayoutBuilder(
-              builder: (context, constraints) {
-                final fullText = 'Hello, ${_userName ?? 'User'}!';
-                const textStyle = TextStyle(
-                  fontSize: AppTheme.fontSizeExtraLarge,
-                  fontWeight: FontWeight.bold,
-                  color: AppTheme.textPrimaryColor,
-                );
-                
-                // Check if text will overflow
-                final textPainter = TextPainter(
-                  text: TextSpan(text: fullText, style: textStyle),
-                  textDirection: TextDirection.ltr,
-                  maxLines: 1,
-                );
-                
-                textPainter.layout(maxWidth: constraints.maxWidth);
-                
-                var displayText = fullText;
-                if (textPainter.didExceedMaxLines || textPainter.width > constraints.maxWidth) {
-                  // Try shorter greeting
-                  displayText = 'Hi, ${_userName ?? 'User'}!';
-                  textPainter.text = TextSpan(text: displayText, style: textStyle);
-                  textPainter.layout(maxWidth: constraints.maxWidth);
-                  
-                  if (textPainter.didExceedMaxLines || textPainter.width > constraints.maxWidth) {
-                    displayText = 'Hi!';
-                  }
-                }
-                
-                return Text(
-                  displayText,
-                  style: textStyle,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                );
-              },
-            ),
-                const SizedBox(height: 4),
-                const Text(
-                  'What waste would you like to identify today?',
-                  style: TextStyle(
-                    fontSize: AppTheme.fontSizeRegular,
-                    color: AppTheme.textSecondaryColor,
-                  ),
-                ),
-
-                const SizedBox(height: AppTheme.paddingLarge),
-
-                // Capture image button
-                CaptureButton(
-                  type: CaptureButtonType.camera,
-                  onPressed: _takePicture,
-                ),
-
-                const SizedBox(height: AppTheme.paddingRegular),
-
-                // Upload image button
-                CaptureButton(
-                  type: CaptureButtonType.gallery,
-                  onPressed: _pickImage,
-                ),
-
-                const SizedBox(height: AppTheme.paddingLarge),
-
-                // Gamification section - Re-enabled for proper points/achievements display
-                _buildGamificationSection(),
-
-                const SizedBox(height: AppTheme.paddingLarge),
-
-                // Analytics Card (Commented out for debugging)
-                // Card(
-                //   elevation: 3,
-                //   child: InkWell(
-                //     onTap: () {
-                //       Navigator.push(
-                //         context,
-                //         MaterialPageRoute(
-                //           builder: (context) => const WasteDashboardScreen(),
-                //         ),
-                //       );
-                //     },
-                //     child: Padding(
-                //       padding: const EdgeInsets.all(AppTheme.paddingRegular),
-                //       child: Row(
-                //         children: [
-                //           Container(
-                //             padding: const EdgeInsets.all(8),
-                //             decoration: BoxDecoration(
-                //               color: AppTheme.primaryColor.withValues(alpha: 0.1),
-                //               borderRadius: BorderRadius.circular(AppTheme.borderRadiusRegular),
-                //             ),
-                //             child: const Icon(
-                //               Icons.analytics,
-                //               color: AppTheme.primaryColor,
-                //               size: 36,
-                //             ),
-                //           ),
-                //           const SizedBox(width: AppTheme.paddingRegular),
-                //           const Expanded(
-                //             child: Column(
-                //               crossAxisAlignment: CrossAxisAlignment.start,
-                //               children: [
-                //                 Text(
-                //                   'Waste Analytics Dashboard',
-                //                   style: TextStyle(
-                //                     fontSize: AppTheme.fontSizeMedium,
-                //                     fontWeight: FontWeight.bold,
-                //                     color: AppTheme.textPrimaryColor,
-                //                   ),
-                //                 ),
-                //                 SizedBox(height: 4),
-                //                 Text(
-                //                   'View insights and statistics about your waste classifications',
-                //                   style: TextStyle(
-                //                     fontSize: AppTheme.fontSizeSmall,
-                //                     color: AppTheme.textPrimaryColor,
-                //                   ),
-                //                 ),
-                //               ],
-                //             ),
-                //           ),
-                //           const Icon(Icons.chevron_right),
-                //         ],
-                //       ),
-                //     ),
-                //   ),
-                // ),
-
-                const SizedBox(height: AppTheme.paddingLarge),
-
-                // Daily tip
-                _buildDailyTip(),
-
-                const SizedBox(height: AppTheme.paddingLarge),
-
-                // Educational content section
-                _buildEducationalSection(),
-
-                const SizedBox(height: AppTheme.paddingLarge),
-
-                // Recent classifications
-                if (_recentClassifications.isNotNullOrEmpty) ...[
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      const Text(
-                        'Recent Identifications',
-                        style: TextStyle(
-                          fontSize: AppTheme.fontSizeLarge,
+          : SafeArea(
+              bottom: true,
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.all(AppTheme.paddingRegular),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Welcome message - Fixed with responsive text
+                    LayoutBuilder(
+                      builder: (context, constraints) {
+                        final fullText = 'Hello, ${_userName ?? 'User'}!';
+                        const textStyle = TextStyle(
+                          fontSize: AppTheme.fontSizeExtraLarge,
                           fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      TextButton(
-                        onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => const HistoryScreen(),
-                            ),
-                          );
-                        },
-                        style: TextButton.styleFrom(
-                          foregroundColor: Theme.of(context).colorScheme.primary,
-                        ),
-                        child: const Text(AppStrings.viewAll), // Using AppStrings constant
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: AppTheme.paddingSmall),
-                  if (_isLoading)
-                    const Center(
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          valueColor: AlwaysStoppedAnimation<Color>(Colors.grey),
-                        ),
-                      )
-                  else
-                    ListView.builder(
-                        shrinkWrap: true,
-                        physics: const NeverScrollableScrollPhysics(),
-                        itemCount: _recentClassifications.length,
-                        itemBuilder: (context, index) {
-                          final classification = _recentClassifications[index];
-                          // Log lengths for recent identification fields
-                          debugPrint('Recent Item: ${classification.itemName}, Length: ${classification.itemName.length}');
-                          debugPrint('Recent Category: ${classification.category}, Length: ${classification.category.length}');
-                          if (classification.subcategory != null) {
-                            debugPrint('Recent Subcategory: ${classification.subcategory}, Length: ${classification.subcategory!.length}');
+                          color: AppTheme.textPrimaryColor,
+                        );
+                        
+                        // Check if text will overflow
+                        final textPainter = TextPainter(
+                          text: TextSpan(text: fullText, style: textStyle),
+                          textDirection: TextDirection.ltr,
+                          maxLines: 1,
+                        );
+                        
+                        textPainter.layout(maxWidth: constraints.maxWidth);
+                        
+                        var displayText = fullText;
+                        if (textPainter.didExceedMaxLines || textPainter.width > constraints.maxWidth) {
+                          // Try shorter greeting
+                          displayText = 'Hi, ${_userName ?? 'User'}!';
+                          textPainter.text = TextSpan(text: displayText, style: textStyle);
+                          textPainter.layout(maxWidth: constraints.maxWidth);
+                          
+                          if (textPainter.didExceedMaxLines || textPainter.width > constraints.maxWidth) {
+                            displayText = 'Hi!';
                           }
-                          return Padding(
-                            padding: const EdgeInsets.only(
-                                bottom: AppTheme.paddingRegular),
-                            child: InkWell(
-                              onTap: () =>
-                                  _showClassificationDetails(classification),
-                              child: Card(
-                                elevation: 2,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(
-                                      AppTheme.borderRadiusRegular),
+                        }
+                        
+                        return Text(
+                          displayText,
+                          style: textStyle,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        );
+                      },
+                    ),
+                        const SizedBox(height: 4),
+                        const Text(
+                          'What waste would you like to identify today?',
+                          style: TextStyle(
+                            fontSize: AppTheme.fontSizeRegular,
+                            color: AppTheme.textSecondaryColor,
+                          ),
+                        ),
+
+                        const SizedBox(height: AppTheme.paddingLarge),
+
+                        // Capture image button
+                        CaptureButton(
+                          type: CaptureButtonType.camera,
+                          onPressed: _takePicture,
+                        ),
+
+                        const SizedBox(height: AppTheme.paddingRegular),
+
+                        // Upload image button
+                        CaptureButton(
+                          type: CaptureButtonType.gallery,
+                          onPressed: _pickImage,
+                        ),
+
+                        const SizedBox(height: AppTheme.paddingLarge),
+
+                        // Gamification section - Re-enabled for proper points/achievements display
+                        _buildGamificationSection(),
+
+                        const SizedBox(height: AppTheme.paddingLarge),
+
+                        // Analytics Card (Commented out for debugging)
+                        // Card(
+                        //   elevation: 3,
+                        //   child: InkWell(
+                        //     onTap: () {
+                        //       Navigator.push(
+                        //         context,
+                        //         MaterialPageRoute(
+                        //           builder: (context) => const WasteDashboardScreen(),
+                        //         ),
+                        //       );
+                        //     },
+                        //     child: Padding(
+                        //       padding: const EdgeInsets.all(AppTheme.paddingRegular),
+                        //       child: Row(
+                        //         children: [
+                        //           Container(
+                        //             padding: const EdgeInsets.all(8),
+                        //             decoration: BoxDecoration(
+                        //               color: AppTheme.primaryColor.withValues(alpha: 0.1),
+                        //               borderRadius: BorderRadius.circular(AppTheme.borderRadiusRegular),
+                        //             ),
+                        //             child: const Icon(
+                        //               Icons.analytics,
+                        //               color: AppTheme.primaryColor,
+                        //               size: 36,
+                        //             ),
+                        //           ),
+                        //           const SizedBox(width: AppTheme.paddingRegular),
+                        //           const Expanded(
+                        //             child: Column(
+                        //               crossAxisAlignment: CrossAxisAlignment.start,
+                        //               children: [
+                        //                 Text(
+                        //                   'Waste Analytics Dashboard',
+                        //                   style: TextStyle(
+                        //                     fontSize: AppTheme.fontSizeMedium,
+                        //                     fontWeight: FontWeight.bold,
+                        //                     color: AppTheme.textPrimaryColor,
+                        //                   ),
+                        //                 ),
+                        //                 SizedBox(height: 4),
+                        //                 Text(
+                        //                   'View insights and statistics about your waste classifications',
+                        //                   style: TextStyle(
+                        //                     fontSize: AppTheme.fontSizeSmall,
+                        //                     color: AppTheme.textPrimaryColor,
+                        //                   ),
+                        //                 ),
+                        //               ],
+                        //             ),
+                        //           ),
+                        //           const Icon(Icons.chevron_right),
+                        //         ],
+                        //       ),
+                        //     ),
+                        //   ),
+                        // ),
+
+                        const SizedBox(height: AppTheme.paddingLarge),
+
+                        // Daily tip
+                        _buildDailyTip(),
+
+                        const SizedBox(height: AppTheme.paddingLarge),
+
+                        // Educational content section
+                        _buildEducationalSection(),
+
+                        const SizedBox(height: AppTheme.paddingLarge),
+
+                        // Recent classifications
+                        if (_recentClassifications.isNotNullOrEmpty) ...[
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              const Text(
+                                'Recent Identifications',
+                                style: TextStyle(
+                                  fontSize: AppTheme.fontSizeLarge,
+                                  fontWeight: FontWeight.bold,
                                 ),
-                                child: Padding(
-                                  padding: const EdgeInsets.all(
-                                      AppTheme.paddingRegular),
-                                  child: Row(
-                                    children: [
-                                      // Thumbnail - with improved cross-platform handling
-                                      if (classification.imageUrl != null)
-                                        ClipRRect(
+                              ),
+                              TextButton(
+                                onPressed: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => const HistoryScreen(),
+                                    ),
+                                  );
+                                },
+                                style: TextButton.styleFrom(
+                                  foregroundColor: Theme.of(context).colorScheme.primary,
+                                ),
+                                child: const Text(AppStrings.viewAll), // Using AppStrings constant
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: AppTheme.paddingSmall),
+                          if (_isLoading)
+                            const Center(
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  valueColor: AlwaysStoppedAnimation<Color>(Colors.grey),
+                                ),
+                              )
+                          else
+                            ListView.builder(
+                                shrinkWrap: true,
+                                physics: const NeverScrollableScrollPhysics(),
+                                itemCount: _recentClassifications.length,
+                                itemBuilder: (context, index) {
+                                  final classification = _recentClassifications[index];
+                                  // Log lengths for recent identification fields
+                                  debugPrint('Recent Item: ${classification.itemName}, Length: ${classification.itemName.length}');
+                                  debugPrint('Recent Category: ${classification.category}, Length: ${classification.category.length}');
+                                  if (classification.subcategory != null) {
+                                    debugPrint('Recent Subcategory: ${classification.subcategory}, Length: ${classification.subcategory!.length}');
+                                  }
+                                  return Padding(
+                                    padding: const EdgeInsets.only(
+                                        bottom: AppTheme.paddingRegular),
+                                    child: InkWell(
+                                      onTap: () =>
+                                          _showClassificationDetails(classification),
+                                      child: Card(
+                                        elevation: 2,
+                                        shape: RoundedRectangleBorder(
                                           borderRadius: BorderRadius.circular(
-                                              AppTheme.borderRadiusSmall),
-                                          child: SizedBox(
-                                            width: 60,
-                                            height: 60,
-                                            child: _buildClassificationImage(classification),
-                                          ),
+                                              AppTheme.borderRadiusRegular),
                                         ),
-
-                                      const SizedBox(
-                                          width: AppTheme.paddingRegular),
-
-                                      // Item details
-                                      Expanded(
-                                        child: Column(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
-                                          children: [
-                                            Text(
-                                              classification.itemName,
-                                              style: const TextStyle(
-                                                fontWeight: FontWeight.bold,
-                                                fontSize: AppTheme.fontSizeMedium,
-                                              ),
-                                              maxLines: 1,
-                                              overflow: TextOverflow.ellipsis,
-                                            ),
-                                            const SizedBox(height: 4),
-                                            // Replace nested Row with Column and Flexible Wrap
-                                            Column(
-                                              crossAxisAlignment: CrossAxisAlignment.start,
-                                              children: [
-                                                // First row with category badges - Fixed with Flexible and constraints
-                                                ConstrainedBox(
-                                                  constraints: BoxConstraints(
-                                                    maxWidth: MediaQuery.of(context).size.width * 0.6, // Limit to 60% of screen width
+                                        child: Padding(
+                                          padding: const EdgeInsets.all(
+                                              AppTheme.paddingRegular),
+                                          child: Row(
+                                            children: [
+                                              // Thumbnail - with improved cross-platform handling
+                                              if (classification.imageUrl != null)
+                                                ClipRRect(
+                                                  borderRadius: BorderRadius.circular(
+                                                      AppTheme.borderRadiusSmall),
+                                                  child: SizedBox(
+                                                    width: 60,
+                                                    height: 60,
+                                                    child: _buildClassificationImage(classification),
                                                   ),
-                                                  child: Wrap(
-                                                    spacing: 4,
-                                                    runSpacing: 4,
-                                                    children: [
-                                                      // Main category badge
-                                                      Container(
-                                                        padding: const EdgeInsets.symmetric(
-                                                          horizontal: 8,
-                                                          vertical: 2,
-                                                        ),
-                                                        decoration: BoxDecoration(
-                                                          color: _getCategoryColorCase(
-                                                              classification.category)
-                                                              .withValues(alpha: 0.1),
-                                                          borderRadius: BorderRadius.circular(
-                                                              AppTheme.borderRadiusSmall),
+                                                ),
+
+                                              const SizedBox(
+                                                  width: AppTheme.paddingRegular),
+
+                                              // Item details
+                                              Expanded(
+                                                child: Column(
+                                                  crossAxisAlignment:
+                                                      CrossAxisAlignment.start,
+                                                  children: [
+                                                    Text(
+                                                      classification.itemName,
+                                                      style: const TextStyle(
+                                                        fontWeight: FontWeight.bold,
+                                                        fontSize: AppTheme.fontSizeMedium,
+                                                      ),
+                                                      maxLines: 1,
+                                                      overflow: TextOverflow.ellipsis,
+                                                    ),
+                                                    const SizedBox(height: 4),
+                                                    // Replace nested Row with Column and Flexible Wrap
+                                                    Column(
+                                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                                      children: [
+                                                        // First row with category badges - Fixed with Flexible and constraints
+                                                        ConstrainedBox(
+                                                          constraints: BoxConstraints(
+                                                            maxWidth: MediaQuery.of(context).size.width * 0.6, // Limit to 60% of screen width
                                                           ),
-                                                          child: FittedBox( // Added FittedBox
-                                                            fit: BoxFit.scaleDown,
-                                                            child: Text(
-                                                              classification.category,
-                                                              style: const TextStyle(
-                                                                color: Colors.white,
-                                                                fontSize: AppTheme.fontSizeSmall,
-                                                                fontWeight: FontWeight.bold,
-                                                              ),
-                                                              overflow: TextOverflow.ellipsis,
-                                                              // maxLines: 1, // Removed based on avoid_redundant_argument_values lint
-                                                            ),
+                                                          child: Wrap(
+                                                            spacing: 4,
+                                                            runSpacing: 4,
+                                                            children: [
+                                                              // Main category badge
+                                                              Container(
+                                                                padding: const EdgeInsets.symmetric(
+                                                                  horizontal: 8,
+                                                                  vertical: 2,
+                                                                ),
+                                                                decoration: BoxDecoration(
+                                                                  color: _getCategoryColorCase(
+                                                                      classification.category)
+                                                                  .withValues(alpha: 0.1),
+                                                                  borderRadius: BorderRadius.circular(
+                                                                      AppTheme.borderRadiusSmall),
+                                                                  ),
+                                                                  child: FittedBox( // Added FittedBox
+                                                                    fit: BoxFit.scaleDown,
+                                                                    child: Text(
+                                                                      classification.category,
+                                                                      style: const TextStyle(
+                                                                        color: Colors.white,
+                                                                        fontSize: AppTheme.fontSizeSmall,
+                                                                        fontWeight: FontWeight.bold,
+                                                                      ),
+                                                                      overflow: TextOverflow.ellipsis,
+                                                                      // maxLines: 1, // Removed based on avoid_redundant_argument_values lint
+                                                                    ),
+                                                                  ),
+                                                                ),
+                                                                
+                                                                // Subcategory badge if available
+                                                                if (classification.subcategory != null)
+                                                                  Container(
+                                                                    constraints: BoxConstraints(
+                                                                      maxWidth: MediaQuery.of(context).size.width * 0.25, // Limit subcategory width
+                                                                    ),
+                                                                    padding: const EdgeInsets.symmetric(
+                                                                      horizontal: 6,
+                                                                      vertical: 2,
+                                                                    ),
+                                                                    decoration: BoxDecoration(
+                                                                      color: Colors.black.withValues(alpha: 0.05),
+                                                                      borderRadius: BorderRadius.circular(
+                                                                          AppTheme.borderRadiusSmall),
+                                                                      border: Border.all(
+                                                                        color: _getCategoryColorCase(
+                                                                            classification.category)
+                                                                        .withValues(alpha: 0.5),
+                                                                      ),
+                                                                    ),
+                                                                    child: FittedBox( // Added FittedBox
+                                                                      fit: BoxFit.scaleDown,
+                                                                      child: Text(
+                                                                        classification.subcategory!,
+                                                                        style: TextStyle(
+                                                                          color: _getCategoryColorCase(
+                                                                              classification.category),
+                                                                          fontSize: 10,
+                                                                          fontWeight: FontWeight.bold,
+                                                                        ),
+                                                                        overflow: TextOverflow.ellipsis,
+                                                                        maxLines: 1,
+                                                                      ),
+                                                                    ),
+                                                                ),
+                                                            ],
                                                           ),
                                                         ),
                                                         
-                                                        // Subcategory badge if available
-                                                        if (classification.subcategory != null)
-                                                          Container(
-                                                            constraints: BoxConstraints(
-                                                              maxWidth: MediaQuery.of(context).size.width * 0.25, // Limit subcategory width
-                                                            ),
-                                                            padding: const EdgeInsets.symmetric(
-                                                              horizontal: 6,
-                                                              vertical: 2,
-                                                            ),
-                                                            decoration: BoxDecoration(
-                                                              color: Colors.black.withValues(alpha: 0.05),
-                                                              borderRadius: BorderRadius.circular(
-                                                                  AppTheme.borderRadiusSmall),
-                                                              border: Border.all(
-                                                                color: _getCategoryColorCase(
-                                                                    classification.category)
-                                                                .withValues(alpha: 0.5),
-                                                              ),
-                                                            ),
-                                                            child: FittedBox( // Added FittedBox
-                                                              fit: BoxFit.scaleDown,
-                                                              child: Text(
-                                                                classification.subcategory!,
-                                                                style: TextStyle(
-                                                                  color: _getCategoryColorCase(
-                                                                      classification.category),
-                                                                  fontSize: 10,
-                                                                  fontWeight: FontWeight.bold,
-                                                                ),
-                                                                overflow: TextOverflow.ellipsis,
-                                                                maxLines: 1,
-                                                              ),
-                                                            ),
+                                                        // Second row with date
+                                                        const SizedBox(height: 4),
+                                                        Text(
+                                                          _formatDate(classification.timestamp),
+                                                          style: const TextStyle(
+                                                            fontSize: AppTheme.fontSizeSmall,
+                                                            color: AppTheme.textSecondaryColor,
+                                                          ),
                                                         ),
-                                                    ],
-                                                  ),
+                                                      ],
+                                                    ),
+                                                  ],
                                                 ),
-                                                
-                                                // Second row with date
-                                                const SizedBox(height: 4),
-                                                Text(
-                                                  _formatDate(classification.timestamp),
-                                                  style: const TextStyle(
-                                                    fontSize: AppTheme.fontSizeSmall,
-                                                    color: AppTheme.textSecondaryColor,
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
-                                          ],
+                                              ),
+
+                                              // Arrow icon
+                                              const Icon(
+                                                Icons.arrow_forward_ios,
+                                                size: 16,
+                                                color: AppTheme.textSecondaryColor,
+                                              ),
+                                            ],
+                                          ),
                                         ),
                                       ),
-
-                                      // Arrow icon
-                                      const Icon(
-                                        Icons.arrow_forward_ios,
-                                        size: 16,
-                                        color: AppTheme.textSecondaryColor,
-                                      ),
-                                    ],
+                                    ),
+                                  );
+                                },
+                              ),
+                        ] else if (!_isLoading) ...[
+                          const Center(
+                            child: Padding(
+                              padding: EdgeInsets.all(AppTheme.paddingLarge),
+                              child: Column(
+                                children: [
+                                  Icon(
+                                    Icons.history,
+                                    size: 48,
+                                    color: AppTheme.textSecondaryColor,
                                   ),
-                                ),
+                                  SizedBox(height: AppTheme.paddingRegular),
+                                  Text(
+                                    'No identifications yet',
+                                    style: TextStyle(
+                                      fontSize: AppTheme.fontSizeMedium,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  SizedBox(height: 4),
+                                  Text(
+                                    'Take a photo or upload an image to get started',
+                                    style: TextStyle(
+                                      color: AppTheme.textSecondaryColor,
+                                    ),
+                                    textAlign: TextAlign.center,
+                                  ),
+                                ],
                               ),
                             ),
-                          );
-                        },
-                      ),
-                ] else if (!_isLoading) ...[
-                  const Center(
-                    child: Padding(
-                      padding: EdgeInsets.all(AppTheme.paddingLarge),
-                      child: Column(
-                        children: [
-                          Icon(
-                            Icons.history,
-                            size: 48,
-                            color: AppTheme.textSecondaryColor,
-                          ),
-                          SizedBox(height: AppTheme.paddingRegular),
-                          Text(
-                            'No identifications yet',
-                            style: TextStyle(
-                              fontSize: AppTheme.fontSizeMedium,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          SizedBox(height: 4),
-                          Text(
-                            'Take a photo or upload an image to get started',
-                            style: TextStyle(
-                              color: AppTheme.textSecondaryColor,
-                            ),
-                            textAlign: TextAlign.center,
                           ),
                         ],
-                      ),
-                    ),
-                  ),
-                ],
-
-            // Add padding at the bottom for navigation
-            const SizedBox(height: 100),
-          ],
-        ),
-      ),
+                  ],
+                ),
+              ),
+            ),
     );
   }
 

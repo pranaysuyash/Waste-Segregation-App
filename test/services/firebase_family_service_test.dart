@@ -47,10 +47,8 @@ void main() {
               joinedAt: DateTime.now(),
             ),
           ],
-          settings: FamilySettings(
-            isPublic: false,
+          settings: const FamilySettings(
             shareClassifications: true,
-            showMemberActivity: true,
             allowInvites: true,
           ),
           statistics: FamilyStatistics(
@@ -58,7 +56,7 @@ void main() {
             totalPoints: 0,
             categoryCounts: {},
             weeklyActivity: [],
-            environmentalImpact: EnvironmentalImpact(
+            environmentalImpact: const EnvironmentalImpact(
               totalWasteClassified: 0,
               recyclableItems: 0,
               compostableItems: 0,
@@ -97,10 +95,8 @@ void main() {
           createdBy: '',
           createdAt: DateTime.now(),
           members: [], // No members
-          settings: FamilySettings(
-            isPublic: false,
+          settings: const FamilySettings(
             shareClassifications: true,
-            showMemberActivity: true,
             allowInvites: true,
           ),
           statistics: FamilyStatistics(
@@ -108,7 +104,7 @@ void main() {
             totalPoints: 0,
             categoryCounts: {},
             weeklyActivity: [],
-            environmentalImpact: EnvironmentalImpact(
+            environmentalImpact: const EnvironmentalImpact(
               totalWasteClassified: 0,
               recyclableItems: 0,
               compostableItems: 0,
@@ -293,10 +289,8 @@ void main() {
               ),
             ),
           ],
-          settings: FamilySettings(
-            isPublic: false,
+          settings: const FamilySettings(
             shareClassifications: true,
-            showMemberActivity: true,
             allowInvites: true,
           ),
           statistics: FamilyStatistics(
@@ -307,7 +301,7 @@ void main() {
               'Wet Waste': 5,
             },
             weeklyActivity: [],
-            environmentalImpact: EnvironmentalImpact(
+            environmentalImpact: const EnvironmentalImpact(
               totalWasteClassified: 15,
               recyclableItems: 10,
               compostableItems: 5,
@@ -371,8 +365,7 @@ void main() {
           createdBy: 'user_123',
           createdAt: DateTime.now(),
           members: [],
-          settings: FamilySettings(
-            isPublic: false,
+          settings: const FamilySettings(
             shareClassifications: false,
             showMemberActivity: false,
             allowInvites: false,
@@ -382,7 +375,7 @@ void main() {
             totalPoints: 0,
             categoryCounts: {},
             weeklyActivity: [],
-            environmentalImpact: EnvironmentalImpact(
+            environmentalImpact: const EnvironmentalImpact(
               totalWasteClassified: 0,
               recyclableItems: 0,
               compostableItems: 0,
@@ -418,10 +411,8 @@ void main() {
               joinedAt: DateTime.now(),
             ),
           ],
-          settings: FamilySettings(
-            isPublic: false,
+          settings: const FamilySettings(
             shareClassifications: true,
-            showMemberActivity: true,
             allowInvites: true,
           ),
           statistics: FamilyStatistics(
@@ -429,7 +420,7 @@ void main() {
             totalPoints: 0,
             categoryCounts: {},
             weeklyActivity: [],
-            environmentalImpact: EnvironmentalImpact(
+            environmentalImpact: const EnvironmentalImpact(
               totalWasteClassified: 0,
               recyclableItems: 0,
               compostableItems: 0,
@@ -464,10 +455,8 @@ void main() {
           createdBy: 'user_123',
           createdAt: DateTime.now(),
           members: [],
-          settings: FamilySettings(
-            isPublic: false,
+          settings: const FamilySettings(
             shareClassifications: true,
-            showMemberActivity: true,
             allowInvites: true,
           ),
           statistics: FamilyStatistics(
@@ -475,7 +464,7 @@ void main() {
             totalPoints: 0,
             categoryCounts: {},
             weeklyActivity: [],
-            environmentalImpact: EnvironmentalImpact(
+            environmentalImpact: const EnvironmentalImpact(
               totalWasteClassified: 0,
               recyclableItems: 0,
               compostableItems: 0,
@@ -503,10 +492,8 @@ void main() {
           createdBy: 'user_123',
           createdAt: DateTime.now(),
           members: [], // No members but createdBy exists
-          settings: FamilySettings(
-            isPublic: false,
+          settings: const FamilySettings(
             shareClassifications: true,
-            showMemberActivity: true,
             allowInvites: true,
           ),
           statistics: FamilyStatistics(
@@ -514,7 +501,7 @@ void main() {
             totalPoints: 500,
             categoryCounts: {},
             weeklyActivity: [],
-            environmentalImpact: EnvironmentalImpact(
+            environmentalImpact: const EnvironmentalImpact(
               totalWasteClassified: 0,
               recyclableItems: 0,
               compostableItems: 0,
@@ -560,10 +547,8 @@ void main() {
             role: FamilyRole.member,
             joinedAt: DateTime.now(),
           )),
-          settings: FamilySettings(
-            isPublic: false,
+          settings: const FamilySettings(
             shareClassifications: true,
-            showMemberActivity: true,
             allowInvites: true,
           ),
           statistics: FamilyStatistics(
@@ -571,7 +556,7 @@ void main() {
             totalPoints: 0,
             categoryCounts: {},
             weeklyActivity: [],
-            environmentalImpact: EnvironmentalImpact(
+            environmentalImpact: const EnvironmentalImpact(
               totalWasteClassified: 0,
               recyclableItems: 0,
               compostableItems: 0,

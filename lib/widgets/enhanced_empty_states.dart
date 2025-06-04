@@ -4,11 +4,6 @@ import '../utils/ui_consistency_utils.dart';
 
 /// Enhanced empty state widgets with engaging illustrations and animations
 class EnhancedEmptyState extends StatefulWidget {
-  final EmptyStateType type;
-  final String? customTitle;
-  final String? customMessage;
-  final Widget? customAction;
-  final VoidCallback? onAction;
 
   const EnhancedEmptyState({
     super.key,
@@ -18,6 +13,11 @@ class EnhancedEmptyState extends StatefulWidget {
     this.customAction,
     this.onAction,
   });
+  final EmptyStateType type;
+  final String? customTitle;
+  final String? customMessage;
+  final Widget? customAction;
+  final VoidCallback? onAction;
 
   @override
   State<EnhancedEmptyState> createState() => _EnhancedEmptyStateState();
@@ -156,7 +156,6 @@ class _EnhancedEmptyStateState extends State<EnhancedEmptyState>
       text: config.actionText!,
       icon: config.actionIcon,
       onPressed: widget.onAction,
-      isExpanded: false,
     );
   }
 
@@ -262,14 +261,14 @@ class _EnhancedEmptyStateState extends State<EnhancedEmptyState>
 
 /// Specialized empty state for camera/scanning features
 class ScanningEmptyState extends StatefulWidget {
-  final VoidCallback? onStartScanning;
-  final VoidCallback? onLearnMore;
 
   const ScanningEmptyState({
     super.key,
     this.onStartScanning,
     this.onLearnMore,
   });
+  final VoidCallback? onStartScanning;
+  final VoidCallback? onLearnMore;
 
   @override
   State<ScanningEmptyState> createState() => _ScanningEmptyStateState();
@@ -342,7 +341,6 @@ class _ScanningEmptyStateState extends State<ScanningEmptyState>
               text: 'Start Scanning',
               icon: Icons.camera_alt,
               onPressed: widget.onStartScanning,
-              isExpanded: false,
             ),
             
             const SizedBox(height: AppTheme.spacingMd),
@@ -373,7 +371,7 @@ class _ScanningEmptyStateState extends State<ScanningEmptyState>
                 AppTheme.primaryColor.withOpacity(0.05),
                 Colors.transparent,
               ],
-              stops: [0.3, 0.7, 1.0],
+              stops: const [0.3, 0.7, 1.0],
             ),
           ),
           child: Stack(
@@ -423,10 +421,6 @@ class _ScanningEmptyStateState extends State<ScanningEmptyState>
 
 /// Progress-based empty state for loading content
 class ProgressEmptyState extends StatefulWidget {
-  final String title;
-  final String message;
-  final double? progress;
-  final bool isIndeterminate;
 
   const ProgressEmptyState({
     super.key,
@@ -435,6 +429,10 @@ class ProgressEmptyState extends StatefulWidget {
     this.progress,
     this.isIndeterminate = true,
   });
+  final String title;
+  final String message;
+  final double? progress;
+  final bool isIndeterminate;
 
   @override
   State<ProgressEmptyState> createState() => _ProgressEmptyStateState();
@@ -519,7 +517,7 @@ class _ProgressEmptyStateState extends State<ProgressEmptyState>
     return AnimatedBuilder(
       animation: _animation,
       builder: (context, child) {
-        return Container(
+        return SizedBox(
           width: 100,
           height: 100,
           child: widget.isIndeterminate
@@ -527,13 +525,13 @@ class _ProgressEmptyStateState extends State<ProgressEmptyState>
                   value: _animation.value,
                   strokeWidth: 4,
                   backgroundColor: Colors.grey.shade200,
-                  valueColor: AlwaysStoppedAnimation<Color>(AppTheme.primaryColor),
+                  valueColor: const AlwaysStoppedAnimation<Color>(AppTheme.primaryColor),
                 )
               : CircularProgressIndicator(
                   value: widget.progress ?? 0.0,
                   strokeWidth: 4,
                   backgroundColor: Colors.grey.shade200,
-                  valueColor: AlwaysStoppedAnimation<Color>(AppTheme.primaryColor),
+                  valueColor: const AlwaysStoppedAnimation<Color>(AppTheme.primaryColor),
                 ),
         );
       },
@@ -556,13 +554,6 @@ enum EmptyStateType {
 }
 
 class EmptyStateConfig {
-  final IconData icon;
-  final Color backgroundColor;
-  final Color iconColor;
-  final String title;
-  final String message;
-  final String? actionText;
-  final IconData? actionIcon;
 
   const EmptyStateConfig({
     required this.icon,
@@ -573,4 +564,11 @@ class EmptyStateConfig {
     this.actionText,
     this.actionIcon,
   });
+  final IconData icon;
+  final Color backgroundColor;
+  final Color iconColor;
+  final String title;
+  final String message;
+  final String? actionText;
+  final IconData? actionIcon;
 } 

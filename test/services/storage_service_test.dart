@@ -4,9 +4,9 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:mockito/mockito.dart';
 import 'package:mockito/annotations.dart';
 
-import '../../lib/services/storage_service.dart';
-import '../../lib/models/user_profile.dart';
-import '../../lib/models/waste_classification.dart';
+import 'package:waste_segregation_app/services/storage_service.dart';
+import 'package:waste_segregation_app/models/user_profile.dart';
+import 'package:waste_segregation_app/models/waste_classification.dart';
 
 @GenerateMocks([])
 void main() {
@@ -50,7 +50,7 @@ void main() {
       });
 
       // Act & Assert: Should not throw type cast exceptions
-      expect(() async => await storageService.clearAllUserData(), 
+      expect(() async => storageService.clearAllUserData(), 
              returnsNormally);
     });
 
@@ -96,7 +96,7 @@ void main() {
       // the operation continues with other boxes
       
       // Act & Assert: Should complete even if some operations fail
-      expect(() async => await storageService.clearAllUserData(), 
+      expect(() async => storageService.clearAllUserData(), 
              returnsNormally);
     });
 

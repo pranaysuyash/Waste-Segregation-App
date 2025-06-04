@@ -1150,7 +1150,7 @@ Output:
   List<AlternativeClassification> _parseAlternatives(dynamic alternativesJson) {
     if (alternativesJson == null) return [];
     if (alternativesJson is List) {
-      return (alternativesJson)
+      return alternativesJson
           .map((alt) {
             try {
               return AlternativeClassification.fromJson(alt as Map<String, dynamic>);

@@ -3,7 +3,7 @@ import 'package:flutter/scheduler.dart';
 import 'package:flutter/semantics.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import '../../lib/widgets/waste_chart_widgets.dart';
+import 'package:waste_segregation_app/widgets/waste_chart_widgets.dart';
 
 void main() {
   group('Chart Accessibility Tests', () {
@@ -44,7 +44,7 @@ void main() {
         );
         
         // Enable semantics
-        final SemanticsHandle handle = tester.ensureSemantics();
+        final handle = tester.ensureSemantics();
         
         // Find the main chart semantics
         expect(find.bySemanticsLabel('Test pie chart'), findsOneWidget);
@@ -76,7 +76,7 @@ void main() {
           ),
         );
         
-        final SemanticsHandle handle = tester.ensureSemantics();
+        final handle = tester.ensureSemantics();
         
         // Should provide accessible message for empty state
         expect(find.bySemanticsLabel('No waste category data available'), findsOneWidget);
@@ -104,7 +104,7 @@ void main() {
           ),
         );
         
-        final SemanticsHandle handle = tester.ensureSemantics();
+        final handle = tester.ensureSemantics();
         
         // Verify each legend item has proper semantics
         expect(find.byWidgetPredicate((widget) => 
@@ -145,7 +145,7 @@ void main() {
           ),
         );
         
-        final SemanticsHandle handle = tester.ensureSemantics();
+        final handle = tester.ensureSemantics();
         
         // Find the main chart semantics
         expect(find.bySemanticsLabel('Test bar chart'), findsOneWidget);
@@ -188,7 +188,7 @@ void main() {
           ),
         );
         
-        final SemanticsHandle handle = tester.ensureSemantics();
+        final handle = tester.ensureSemantics();
         
         // Verify description mentions highest values first
         final semanticsNode = tester.getSemantics(find.byType(TopSubcategoriesBarChart));
@@ -225,7 +225,7 @@ void main() {
           ),
         );
         
-        final SemanticsHandle handle = tester.ensureSemantics();
+        final handle = tester.ensureSemantics();
         
         // Find the main chart semantics
         expect(find.bySemanticsLabel('Weekly activity chart'), findsOneWidget);
@@ -264,7 +264,7 @@ void main() {
           ),
         );
         
-        final SemanticsHandle handle = tester.ensureSemantics();
+        final handle = tester.ensureSemantics();
         
         // Verify description works with single data point
         final semanticsNode = tester.getSemantics(find.byType(WeeklyItemsChart));
@@ -295,7 +295,7 @@ void main() {
           ),
         );
         
-        final SemanticsHandle handle = tester.ensureSemantics();
+        final handle = tester.ensureSemantics();
         
         // Find the chart and verify it has tap action
         final semanticsNode = tester.getSemantics(find.byType(WasteCategoryPieChart));
@@ -333,7 +333,7 @@ void main() {
           ),
         );
         
-        final SemanticsHandle handle = tester.ensureSemantics();
+        final handle = tester.ensureSemantics();
         
         // Verify that categories are distinguishable by text labels, not just color
         expect(find.byWidgetPredicate((widget) => 

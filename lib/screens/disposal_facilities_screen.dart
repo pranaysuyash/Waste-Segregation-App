@@ -221,7 +221,7 @@ class _DisposalFacilitiesScreenState extends State<DisposalFacilitiesScreen> {
         if (snapshot.hasError) {
           // Check if it's a Firestore indexing error
           final errorMessage = snapshot.error.toString();
-          final bool isIndexingError = errorMessage.contains('failed-precondition') || 
+          final isIndexingError = errorMessage.contains('failed-precondition') || 
                                      errorMessage.contains('index') ||
                                      errorMessage.contains('composite');
           

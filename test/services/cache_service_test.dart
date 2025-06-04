@@ -52,7 +52,7 @@ void main() {
       });
 
       test('should return null for non-existent cache entries', () async {
-        final nonExistentHash = 'non_existent_hash_123';
+        const nonExistentHash = 'non_existent_hash_123';
         
         final result = await cacheService.getCachedClassification(nonExistentHash);
         
@@ -75,7 +75,7 @@ void main() {
 
       test('should handle large image data efficiently', () async {
         final largeImageData = Uint8List(1024 * 1024); // 1MB image
-        for (int i = 0; i < largeImageData.length; i++) {
+        for (var i = 0; i < largeImageData.length; i++) {
           largeImageData[i] = i % 256;
         }
 
@@ -91,11 +91,11 @@ void main() {
 
     group('Cache Size Management', () {
       test('should respect cache size limits', () async {
-        final maxCacheSize = 10; // Set small limit for testing
+        const maxCacheSize = 10; // Set small limit for testing
         cacheService.setMaxCacheSize(maxCacheSize);
 
         // Add items beyond the limit
-        for (int i = 0; i < maxCacheSize + 5; i++) {
+        for (var i = 0; i < maxCacheSize + 5; i++) {
           final imageHash = 'hash_$i';
           final classification = WasteClassification(
             itemName: 'Item $i',
@@ -150,7 +150,7 @@ void main() {
 
     group('Cache Expiration', () {
       test('should invalidate expired cache entries', () async {
-        final shortExpiryTime = Duration(milliseconds: 100);
+        const shortExpiryTime = Duration(milliseconds: 100);
         cacheService.setDefaultCacheExpiry(shortExpiryTime);
 
         final classification = _createTestClassification('Test Item');
@@ -160,24 +160,24 @@ void main() {
         expect(await cacheService.getCachedClassification('hash_1'), isNotNull);
 
         // Wait for expiry
-        await Future.delayed(Duration(milliseconds: 150));
+        await Future.delayed(const Duration(milliseconds: 150));
 
         // Should be expired now
         expect(await cacheService.getCachedClassification('hash_1'), isNull);
       });
 
       test('should clean up expired entries automatically', () async {
-        cacheService.setDefaultCacheExpiry(Duration(milliseconds: 50));
+        cacheService.setDefaultCacheExpiry(const Duration(milliseconds: 50));
 
         // Add multiple items
-        for (int i = 0; i < 5; i++) {
+        for (var i = 0; i < 5; i++) {
           await cacheService.cacheClassification('hash_$i', _createTestClassification('Item $i'));
         }
 
         expect(await cacheService.getCacheSize(), equals(5));
 
         // Wait for expiry
-        await Future.delayed(Duration(milliseconds: 100));
+        await Future.delayed(const Duration(milliseconds: 100));
 
         // Trigger cleanup
         await cacheService.cleanupExpiredEntries();
@@ -186,8 +186,8 @@ void main() {
       });
 
       test('should allow custom expiry times for specific entries', () async {
-        final shortExpiry = Duration(milliseconds: 50);
-        final longExpiry = Duration(milliseconds: 200);
+        const shortExpiry = Duration(milliseconds: 50);
+        const longExpiry = Duration(milliseconds: 200);
 
         await cacheService.cacheClassificationWithExpiry(
           'short_hash',
@@ -202,7 +202,7 @@ void main() {
         );
 
         // Wait for short expiry
-        await Future.delayed(Duration(milliseconds: 100));
+        await Future.delayed(const Duration(milliseconds: 100));
 
         expect(await cacheService.getCachedClassification('short_hash'), isNull);
         expect(await cacheService.getCachedClassification('long_hash'), isNotNull);
@@ -248,18 +248,18 @@ void main() {
 
       test('should provide cache efficiency metrics', () async {
         // Add multiple items with different access patterns
-        for (int i = 0; i < 10; i++) {
+        for (var i = 0; i < 10; i++) {
           await cacheService.cacheClassification('hash_$i', _createTestClassification('Item $i'));
         }
 
         // Access some items multiple times (simulate popular items)
-        for (int i = 0; i < 5; i++) {
+        for (var i = 0; i < 5; i++) {
           await cacheService.getCachedClassification('hash_0');
           await cacheService.getCachedClassification('hash_1');
         }
 
         // Access other items once
-        for (int i = 2; i < 10; i++) {
+        for (var i = 2; i < 10; i++) {
           await cacheService.getCachedClassification('hash_$i');
         }
 
@@ -297,7 +297,7 @@ void main() {
 
       test('should backup and restore cache data', () async {
         // Add test data
-        for (int i = 0; i < 5; i++) {
+        for (var i = 0; i < 5; i++) {
           await cacheService.cacheClassification('backup_hash_$i', _createTestClassification('Backup Item $i'));
         }
 
@@ -347,11 +347,11 @@ void main() {
         final futures = <Future>[];
 
         // Simulate concurrent access
-        for (int i = 0; i < 10; i++) {
+        for (var i = 0; i < 10; i++) {
           futures.add(cacheService.cacheClassification('concurrent_$i', _createTestClassification('Concurrent Item $i')));
         }
 
-        for (int i = 0; i < 10; i++) {
+        for (var i = 0; i < 10; i++) {
           futures.add(cacheService.getCachedClassification('concurrent_$i'));
         }
 
@@ -397,7 +397,7 @@ void main() {
         cacheService.simulateMemoryPressure(true);
 
         // Should reduce cache size automatically
-        for (int i = 0; i < 100; i++) {
+        for (var i = 0; i < 100; i++) {
           await cacheService.cacheClassification('memory_$i', _createTestClassification('Memory Item $i'));
         }
 
@@ -519,14 +519,6 @@ extension CacheServiceTestExtension on CacheService {
 }
 
 class CacheStatistics {
-  final int hits;
-  final int misses;
-  final int totalEntries;
-  final double hitRate;
-  final int averageCacheTime;
-  final int averageRetrieveTime;
-  final String mostAccessedEntry;
-  final String leastAccessedEntry;
   
   CacheStatistics({
     required this.hits,
@@ -538,4 +530,12 @@ class CacheStatistics {
     required this.mostAccessedEntry,
     required this.leastAccessedEntry,
   });
+  final int hits;
+  final int misses;
+  final int totalEntries;
+  final double hitRate;
+  final int averageCacheTime;
+  final int averageRetrieveTime;
+  final String mostAccessedEntry;
+  final String leastAccessedEntry;
 }

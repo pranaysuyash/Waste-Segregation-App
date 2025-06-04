@@ -1,7 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:waste_segregation_app/services/gamification_service.dart';
 import 'package:waste_segregation_app/models/waste_classification.dart';
-import 'package:waste_segregation_app/models/gamification.dart';
 import 'package:waste_segregation_app/services/storage_service.dart';
 import 'test_config/plugin_mock_setup.dart';
 import 'mocks/mock_cloud_storage_service.dart';

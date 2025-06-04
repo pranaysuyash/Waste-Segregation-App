@@ -95,7 +95,7 @@ class UIConsistency {
       side: WidgetStateProperty.resolveWith<BorderSide?>(
         (Set<WidgetState> states) {
           if (states.contains(WidgetState.disabled)) {
-            return BorderSide(color: AppTheme.neutralColor, width: 1.5);
+            return const BorderSide(color: AppTheme.neutralColor, width: 1.5);
           }
           return const BorderSide(color: AppTheme.primaryColor, width: 1.5);
         },
@@ -161,7 +161,7 @@ class UIConsistency {
   
   /// Destructive action button style (for delete, reset actions)
   static ButtonStyle destructiveButtonStyle(BuildContext context) {
-    const Color destructiveColor = Color(0xFFD32F2F);
+    const destructiveColor = Color(0xFFD32F2F);
     
     final textScaleFactor = MediaQuery.textScaleFactorOf(context);
     final scaledMinHeight = (AppTheme.buttonHeightMd * textScaleFactor).clamp(48.0, double.infinity);
@@ -218,7 +218,7 @@ class UIConsistency {
   
   /// Success action button style (for confirm, save actions)
   static ButtonStyle successButtonStyle(BuildContext context) {
-    const Color successColor = Color(0xFF2E7D32);
+    const successColor = Color(0xFF2E7D32);
     
     final textScaleFactor = MediaQuery.textScaleFactorOf(context);
     final scaledMinHeight = (AppTheme.buttonHeightMd * textScaleFactor).clamp(48.0, double.infinity);
@@ -285,7 +285,7 @@ class UIConsistency {
   }) {
     return Builder(
       builder: (context) {
-        Widget button = ElevatedButton(
+        final Widget button = ElevatedButton(
           onPressed: isLoading ? null : onPressed,
           style: primaryButtonStyle(context),
           child: isLoading
@@ -324,7 +324,7 @@ class UIConsistency {
   }) {
     return Builder(
       builder: (context) {
-        Widget button = OutlinedButton(
+        final Widget button = OutlinedButton(
           onPressed: onPressed,
           style: secondaryButtonStyle(context),
           child: Row(

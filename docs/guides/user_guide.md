@@ -16,13 +16,13 @@ When you classify a waste item, you'll now see:
    
    A satisfying checkmark animation confirms your classification has been processed, with particle effects in the color of the waste category.
 
-2. **Points Popup**
+2. **Points Popup and Persistent Card**
    
-   (Placeholder for Points popup screenshot)
+   (Placeholder for Points popup and card screenshot)
    
-   You'll immediately see how many points you've earned for your classification, with a brief explanation of the action.
+   You'll immediately see how many points you've earned for your classification in a popup at the top of the screen. In addition, a persistent card/banner below the result will always show the points awarded for this analysis. If no points are awarded (e.g., for a duplicate classification), the card will say so.
    
-   > Note: Points are only shown for new classifications. If you view an item from your history, the points popup will not appear again.
+   > Note: The popup is for instant feedback, while the card remains visible as long as you are on the result screen.
 
 3. **Achievement Notifications**
    

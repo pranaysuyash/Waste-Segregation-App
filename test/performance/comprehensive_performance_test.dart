@@ -149,7 +149,7 @@ void main() {
 
     group('UI Responsiveness Tests', () {
       testWidgets('Button tap responds within 16ms', (WidgetTester tester) async {
-        bool tapped = false;
+        var tapped = false;
         final stopwatch = Stopwatch();
         
         await tester.pumpWidget(

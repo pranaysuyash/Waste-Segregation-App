@@ -35,7 +35,7 @@ void main() {
         final initialMemory = _getCurrentMemoryUsage();
         
         // Process 50 images to simulate heavy usage
-        for (int i = 0; i < 50; i++) {
+        for (var i = 0; i < 50; i++) {
           final imageData = _generateTestImageData(1024 * 1024); // 1MB each
           
           when(mockAiService.analyzeWebImage(any, any))
@@ -73,7 +73,7 @@ void main() {
         final initialMemory = _getCurrentMemoryUsage();
         
         // Load large history multiple times
-        for (int i = 0; i < 10; i++) {
+        for (var i = 0; i < 10; i++) {
           final history = await mockStorageService.getClassificationHistory();
           expect(history.length, equals(10000));
         }
@@ -90,14 +90,14 @@ void main() {
       });
 
       test('should manage cache memory usage within limits', () async {
-        final cacheLimit = 50 * 1024 * 1024; // 50MB cache limit
+        const cacheLimit = 50 * 1024 * 1024; // 50MB cache limit
         
         // Setup cache service mock
         when(mockCacheService.getCacheMemoryUsage())
             .thenAnswer((_) async => cacheLimit - (10 * 1024 * 1024)); // Near limit
         
         // Add items until cache limit
-        for (int i = 0; i < 100; i++) {
+        for (var i = 0; i < 100; i++) {
           final classification = _createTestClassification('Cached Item $i');
           await mockCacheService.cacheClassification('hash_$i', classification);
         }
@@ -135,7 +135,7 @@ void main() {
         
         // Create temporary resources
         final tempFiles = <File>[];
-        for (int i = 0; i < 20; i++) {
+        for (var i = 0; i < 20; i++) {
           final tempFile = File('temp_image_$i.jpg');
           tempFiles.add(tempFile);
         }
@@ -199,17 +199,17 @@ void main() {
         
         // Mock service initialization with timing
         when(mockStorageService.initialize()).thenAnswer((_) async {
-          await Future.delayed(Duration(milliseconds: 100));
+          await Future.delayed(const Duration(milliseconds: 100));
           initOrder.add('storage');
         });
         
         when(mockCacheService.initialize()).thenAnswer((_) async {
-          await Future.delayed(Duration(milliseconds: 50));
+          await Future.delayed(const Duration(milliseconds: 50));
           initOrder.add('cache');
         });
         
         when(mockGamificationService.initialize()).thenAnswer((_) async {
-          await Future.delayed(Duration(milliseconds: 75));
+          await Future.delayed(const Duration(milliseconds: 75));
           initOrder.add('gamification');
         });
         
@@ -261,8 +261,8 @@ void main() {
       });
 
       test('should paginate large results efficiently', () async {
-        final pageSize = 50;
-        final totalItems = 1000;
+        const pageSize = 50;
+        const totalItems = 1000;
         
         when(mockStorageService.getClassificationHistory(
           offset: any, 
@@ -281,7 +281,7 @@ void main() {
         
         // Load multiple pages
         final allResults = <WasteClassification>[];
-        for (int page = 0; page < 20; page++) {
+        for (var page = 0; page < 20; page++) {
           final results = await mockStorageService.getClassificationHistory(
             offset: page * pageSize,
             limit: pageSize,
@@ -303,7 +303,7 @@ void main() {
         );
         
         when(mockStorageService.saveClassificationBatch(any))
-            .thenAnswer((_) async => Future.delayed(Duration(milliseconds: 500)));
+            .thenAnswer((_) async => Future.delayed(const Duration(milliseconds: 500)));
         
         final stopwatch = Stopwatch()..start();
         
@@ -326,7 +326,7 @@ void main() {
         final classifications = List.generate(100, (i) => _createTestClassification('Mixed $i'));
         
         when(mockStorageService.saveClassification(any))
-            .thenAnswer((_) async => Future.delayed(Duration(milliseconds: 10)));
+            .thenAnswer((_) async => Future.delayed(const Duration(milliseconds: 10)));
         when(mockStorageService.getClassificationHistory())
             .thenAnswer((_) async => classifications);
         when(mockCacheService.getCachedClassification(any))
@@ -338,17 +338,17 @@ void main() {
         final futures = <Future>[];
         
         // 50 saves
-        for (int i = 0; i < 50; i++) {
+        for (var i = 0; i < 50; i++) {
           futures.add(mockStorageService.saveClassification(classifications[i]));
         }
         
         // 30 reads
-        for (int i = 0; i < 30; i++) {
+        for (var i = 0; i < 30; i++) {
           futures.add(mockStorageService.getClassificationHistory());
         }
         
         // 20 cache lookups
-        for (int i = 0; i < 20; i++) {
+        for (var i = 0; i < 20; i++) {
           futures.add(mockCacheService.getCachedClassification('hash_$i'));
         }
         
@@ -376,11 +376,11 @@ void main() {
       });
 
       test('should handle rapid user interactions', () async {
-        final interactionCount = 100;
+        const interactionCount = 100;
         final stopwatch = Stopwatch()..start();
         
         // Simulate rapid tap interactions
-        for (int i = 0; i < interactionCount; i++) {
+        for (var i = 0; i < interactionCount; i++) {
           await _simulateUserInteraction('tap', i);
         }
         
@@ -399,12 +399,12 @@ void main() {
       });
 
       test('should handle image loading efficiently', () async {
-        final imageCount = 20;
+        const imageCount = 20;
         final imageSizes = [100 * 1024, 500 * 1024, 1024 * 1024]; // 100KB, 500KB, 1MB
         
         final stopwatch = Stopwatch()..start();
         
-        for (int i = 0; i < imageCount; i++) {
+        for (var i = 0; i < imageCount; i++) {
           final size = imageSizes[i % imageSizes.length];
           final imageData = _generateTestImageData(size);
           await _simulateImageLoading(imageData);
@@ -424,7 +424,7 @@ void main() {
         
         when(mockAiService.analyzeWebImage(any, any))
             .thenAnswer((_) async {
-              await Future.delayed(Duration(seconds: 3)); // Simulate API delay
+              await Future.delayed(const Duration(seconds: 3)); // Simulate API delay
               return _createTestClassification('API Result');
             });
         
@@ -439,12 +439,12 @@ void main() {
       });
 
       test('should batch network requests efficiently', () async {
-        final batchSize = 10;
+        const batchSize = 10;
         final requests = List.generate(batchSize, (i) => 'request_$i');
         
         when(mockAiService.batchAnalyzeImages(any))
             .thenAnswer((_) async {
-              await Future.delayed(Duration(milliseconds: 1000)); // Simulate batch processing
+              await Future.delayed(const Duration(milliseconds: 1000)); // Simulate batch processing
               return requests.map((r) => _createTestClassification(r)).toList();
             });
         
@@ -462,7 +462,7 @@ void main() {
       test('should handle network timeouts gracefully', () async {
         when(mockAiService.analyzeWebImage(any, any))
             .thenAnswer((_) async {
-              await Future.delayed(Duration(seconds: 10)); // Simulate slow network
+              await Future.delayed(const Duration(seconds: 10)); // Simulate slow network
               return _createTestClassification('Timeout Test');
             });
         
@@ -470,7 +470,7 @@ void main() {
         expect(() async {
           await Future.timeout(
             mockAiService.analyzeWebImage(Uint8List(100), 'test.jpg'),
-            Duration(seconds: 5),
+            const Duration(seconds: 5),
           );
         }, throwsA(isA<TimeoutException>()));
       });
@@ -481,7 +481,7 @@ void main() {
         final resourceTracker = ResourceTracker();
         
         // Simulate resource-intensive operations
-        for (int i = 0; i < 10; i++) {
+        for (var i = 0; i < 10; i++) {
           await _performResourceIntensiveOperation(resourceTracker);
         }
         
@@ -511,7 +511,7 @@ void main() {
         // Test resource pooling efficiency
         final stopwatch = Stopwatch()..start();
         
-        for (int i = 0; i < 100; i++) {
+        for (var i = 0; i < 100; i++) {
           await _performOptimizedResourceOperation(tracker);
         }
         
@@ -549,7 +549,7 @@ int _getCurrentMemoryUsage() {
 
 Uint8List _generateTestImageData(int sizeBytes) {
   final data = Uint8List(sizeBytes);
-  for (int i = 0; i < sizeBytes; i++) {
+  for (var i = 0; i < sizeBytes; i++) {
     data[i] = i % 256;
   }
   return data;
@@ -557,20 +557,20 @@ Uint8List _generateTestImageData(int sizeBytes) {
 
 Future<void> _forceGarbageCollection() async {
   // In Dart, we can't force GC, but we can encourage it
-  for (int i = 0; i < 10; i++) {
+  for (var i = 0; i < 10; i++) {
     final temp = List.generate(1000, (i) => i);
     temp.clear();
-    await Future.delayed(Duration(milliseconds: 10));
+    await Future.delayed(const Duration(milliseconds: 10));
   }
 }
 
 Future<void> _simulateImageProcessing(Uint8List imageData) async {
   // Simulate image processing operations
-  await Future.delayed(Duration(milliseconds: 10));
+  await Future.delayed(const Duration(milliseconds: 10));
   
   // Simulate some processing
   var sum = 0;
-  for (int i = 0; i < imageData.length; i += 100) {
+  for (var i = 0; i < imageData.length; i += 100) {
     sum += imageData[i];
   }
 }
@@ -582,19 +582,19 @@ void _simulateMemoryPressure(bool enabled) {
 
 Future<void> _processTemporaryFile(File file) async {
   // Mock file processing
-  await Future.delayed(Duration(milliseconds: 50));
+  await Future.delayed(const Duration(milliseconds: 50));
 }
 
 Future<void> _cleanupTemporaryFile(File file) async {
   // Mock file cleanup
-  await Future.delayed(Duration(milliseconds: 10));
+  await Future.delayed(const Duration(milliseconds: 10));
 }
 
 Future<void> _simulateAppInitialization() async {
   // Simulate full app initialization sequence
-  await Future.delayed(Duration(milliseconds: 500)); // Storage init
-  await Future.delayed(Duration(milliseconds: 300)); // Service init
-  await Future.delayed(Duration(milliseconds: 200)); // UI init
+  await Future.delayed(const Duration(milliseconds: 500)); // Storage init
+  await Future.delayed(const Duration(milliseconds: 300)); // Service init
+  await Future.delayed(const Duration(milliseconds: 200)); // UI init
 }
 
 Future<void> _initializeServices(List<dynamic> services) async {
@@ -619,7 +619,7 @@ Future<int> _measureColdStart() async {
 Future<int> _measureWarmStart() async {
   final stopwatch = Stopwatch()..start();
   // Warm start skips heavy initialization
-  await Future.delayed(Duration(milliseconds: 100));
+  await Future.delayed(const Duration(milliseconds: 100));
   stopwatch.stop();
   return stopwatch.elapsedMilliseconds;
 }
@@ -628,25 +628,25 @@ Future<void> _simulateListRendering(List<WasteClassification> items) async {
   // Simulate list rendering with virtual scrolling
   final visibleItems = items.take(50); // Only render visible items
   for (final item in visibleItems) {
-    await Future.delayed(Duration(microseconds: 500)); // Simulate render time
+    await Future.delayed(const Duration(microseconds: 500)); // Simulate render time
   }
 }
 
 Future<void> _simulateUserInteraction(String type, int index) async {
   // Simulate user interaction processing
-  await Future.delayed(Duration(microseconds: 100));
+  await Future.delayed(const Duration(microseconds: 100));
 }
 
 Future<double> _measureAnimationFrameRate() async {
   // Mock frame rate measurement
   // In real app, would measure actual frame rendering times
-  final frameCount = 60;
-  final duration = Duration(seconds: 1);
+  const frameCount = 60;
+  const duration = Duration(seconds: 1);
   
   final stopwatch = Stopwatch()..start();
   
-  for (int i = 0; i < frameCount; i++) {
-    await Future.delayed(Duration(microseconds: 16667)); // 60fps = 16.67ms per frame
+  for (var i = 0; i < frameCount; i++) {
+    await Future.delayed(const Duration(microseconds: 16667)); // 60fps = 16.67ms per frame
   }
   
   stopwatch.stop();
@@ -665,7 +665,7 @@ Future<void> _performResourceIntensiveOperation(ResourceTracker tracker) async {
   tracker.totalResourcesCreated++;
   
   // Simulate operation
-  await Future.delayed(Duration(milliseconds: 50));
+  await Future.delayed(const Duration(milliseconds: 50));
   
   // Cleanup
   tracker.activeResourceCount--;
@@ -683,7 +683,7 @@ Future<void> _performOptimizedResourceOperation(ResourceTracker tracker) async {
     tracker.totalResourcesCreated++;
   }
   
-  await Future.delayed(Duration(milliseconds: 5));
+  await Future.delayed(const Duration(milliseconds: 5));
 }
 
 WasteClassification _createTestClassification(String itemName) {
@@ -708,7 +708,7 @@ WasteClassification _createTestClassification(String itemName) {
 GamificationProfile _createTestUserProfile() {
   return GamificationProfile(
     userId: 'performance_test_user',
-    points: UserPoints(total: 500),
+    points: const UserPoints(total: 500),
     streak: Streak(current: 5, longest: 10, lastUsageDate: DateTime.now()),
     achievements: [],
   );
@@ -724,33 +724,33 @@ extension MockAiServicePerformance on MockAiService {
 
 extension MockStorageServicePerformance on MockStorageService {
   Future<void> initialize() async {
-    await Future.delayed(Duration(milliseconds: 100));
+    await Future.delayed(const Duration(milliseconds: 100));
   }
   
   Future<void> saveClassificationBatch(List<WasteClassification> classifications) async {
-    await Future.delayed(Duration(milliseconds: 200));
+    await Future.delayed(const Duration(milliseconds: 200));
   }
   
   Future<List<WasteClassification>> searchClassifications(String query) async {
-    await Future.delayed(Duration(milliseconds: 100));
+    await Future.delayed(const Duration(milliseconds: 100));
     return List.generate(100, (i) => _createTestClassification('Search Result $i'));
   }
   
   Future<List<WasteClassification>> getClassificationHistory({int? offset, int? limit}) async {
-    await Future.delayed(Duration(milliseconds: 50));
+    await Future.delayed(const Duration(milliseconds: 50));
     return List.generate(limit ?? 10, (i) => _createTestClassification('History Item ${(offset ?? 0) + i}'));
   }
 }
 
 extension MockCacheServicePerformance on MockCacheService {
   Future<void> initialize() async {
-    await Future.delayed(Duration(milliseconds: 50));
+    await Future.delayed(const Duration(milliseconds: 50));
   }
 }
 
 extension MockGamificationServicePerformance on MockGamificationService {
   Future<void> initialize() async {
-    await Future.delayed(Duration(milliseconds: 75));
+    await Future.delayed(const Duration(milliseconds: 75));
   }
 }
 

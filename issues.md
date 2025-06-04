@@ -283,6 +283,9 @@ Our testing infrastructure is working perfectly - **it found 7+ real issues that
 - **Frame Rate**: Consistent 60fps
 - **Test Coverage**: High unit/widget/integration test coverage
 
+### Gamification Feedback Improvements
+- Both popup and persistent card/banner now show points awarded for each classification on the result screen, making it easy to validate and cross-check points. This addresses previous feedback about difficulty validating points awarded.
+
 ---
 
 ## 🎯 **2025 Mobile UX/UI Strategic Alignment** (Key Gaps - Implementation Plan)

@@ -41,7 +41,7 @@ void main() {
       test('should complete full flow: image → AI → gamification → storage → community', () async {
         // Arrange
         final imageData = Uint8List.fromList([1, 2, 3, 4, 5]);
-        final imagePath = 'test_image.jpg';
+        const imagePath = 'test_image.jpg';
         
         final expectedClassification = WasteClassification(
           itemName: 'Plastic Water Bottle',
@@ -131,7 +131,7 @@ void main() {
 
       test('should handle AI service failures gracefully with fallback', () async {
         final imageData = Uint8List.fromList([1, 2, 3, 4, 5]);
-        final imagePath = 'test_image.jpg';
+        const imagePath = 'test_image.jpg';
         
         final user = UserProfile(
           id: 'test_user_123',
@@ -182,7 +182,7 @@ void main() {
 
       test('should use cached results when available', () async {
         final imageData = Uint8List.fromList([1, 2, 3, 4, 5]);
-        final imagePath = 'test_image.jpg';
+        const imagePath = 'test_image.jpg';
         
         final cachedClassification = WasteClassification(
           itemName: 'Cached Plastic Bottle',
@@ -194,7 +194,7 @@ void main() {
             steps: ['Cached instructions'],
             hasUrgentTimeframe: false,
           ),
-          timestamp: DateTime.now().subtract(Duration(minutes: 30)),
+          timestamp: DateTime.now().subtract(const Duration(minutes: 30)),
           region: 'Test Region',
           visualFeatures: ['plastic', 'bottle'],
           alternatives: [],
@@ -342,8 +342,8 @@ void main() {
         when(mockGamificationService.createUserProfile(newUser.id))
             .thenAnswer((_) async => GamificationProfile(
               userId: newUser.id,
-              points: UserPoints(total: 0),
-              streak: Streak(current: 0, longest: 0, lastUsageDate: DateTime.now()),
+              points: const UserPoints(),
+              streak: Streak(longest: 0, lastUsageDate: DateTime.now()),
               achievements: [],
             ));
         
@@ -391,12 +391,12 @@ void main() {
           id: 'power_user_789',
           email: 'poweruser@example.com',
           displayName: 'Power User',
-          createdAt: DateTime.now().subtract(Duration(days: 100)),
+          createdAt: DateTime.now().subtract(const Duration(days: 100)),
         );
 
         final powerUserProfile = GamificationProfile(
           userId: powerUser.id,
-          points: UserPoints(total: 2500, level: 25),
+          points: const UserPoints(total: 2500, level: 25),
           streak: Streak(current: 30, longest: 45, lastUsageDate: DateTime.now()),
           achievements: List.generate(15, (i) => Achievement(
             id: 'achievement_$i',
@@ -621,11 +621,6 @@ void main() {
 
 // Helper classes for integration test results
 class ClassificationWorkflowResult {
-  final WasteClassification classification;
-  final Map<String, dynamic> gamificationResult;
-  final bool fromCache;
-  final bool hasError;
-  final String? errorMessage;
 
   ClassificationWorkflowResult({
     required this.classification,
@@ -634,13 +629,14 @@ class ClassificationWorkflowResult {
     this.hasError = false,
     this.errorMessage,
   });
+  final WasteClassification classification;
+  final Map<String, dynamic> gamificationResult;
+  final bool fromCache;
+  final bool hasError;
+  final String? errorMessage;
 }
 
 class NewUserOnboardingResult {
-  final bool userProfileCreated;
-  final bool firstClassificationSaved;
-  final List<String> achievementsUnlocked;
-  final int pointsEarned;
 
   NewUserOnboardingResult({
     required this.userProfileCreated,
@@ -648,14 +644,13 @@ class NewUserOnboardingResult {
     required this.achievementsUnlocked,
     required this.pointsEarned,
   });
+  final bool userProfileCreated;
+  final bool firstClassificationSaved;
+  final List<String> achievementsUnlocked;
+  final int pointsEarned;
 }
 
 class PowerUserWorkflowResult {
-  final int userLevel;
-  final int totalAchievements;
-  final int currentStreak;
-  final int classificationsProcessed;
-  final int bonusPointsEarned;
 
   PowerUserWorkflowResult({
     required this.userLevel,
@@ -664,6 +659,11 @@ class PowerUserWorkflowResult {
     required this.classificationsProcessed,
     required this.bonusPointsEarned,
   });
+  final int userLevel;
+  final int totalAchievements;
+  final int currentStreak;
+  final int classificationsProcessed;
+  final int bonusPointsEarned;
 }
 
 // Helper functions for integration testing
@@ -743,7 +743,7 @@ Future<NewUserOnboardingResult> executeNewUserOnboarding({
   // Check if user profile exists
   final existingProfile = await gamificationService.getUserProfile();
   
-  bool profileCreated = false;
+  var profileCreated = false;
   if (existingProfile == null) {
     await gamificationService.createUserProfile(user.id);
     profileCreated = true;
@@ -784,7 +784,7 @@ Future<PowerUserWorkflowResult> executePowerUserWorkflow({
   final history = await storageService.getClassificationHistory(userId: user.id);
   
   // Process new classifications
-  int totalBonusPoints = 0;
+  var totalBonusPoints = 0;
   for (final classification in newClassifications) {
     final result = await gamificationService.processClassification(classification);
     totalBonusPoints += result['points_earned'] ?? 0;
@@ -820,7 +820,7 @@ Future<void> executeDataSynchronization({
   }));
   
   // Wait for all operations (some may fail)
-  await Future.wait(futures, eagerError: false);
+  await Future.wait(futures);
 }
 
 Future<void> executeLargeDatasetProcessing({

@@ -224,7 +224,7 @@ void main() {
         await tester.pumpWidget(createResultScreen(classification));
         await tester.pumpAndSettle();
 
-        final saveButton = find.byKey(Key('save_button'));
+        final saveButton = find.byKey(const Key('save_button'));
         expect(saveButton, findsOneWidget);
 
         await tester.tap(saveButton);
@@ -241,7 +241,7 @@ void main() {
         await tester.pumpWidget(createResultScreen(classification));
         await tester.pumpAndSettle();
 
-        final shareButton = find.byKey(Key('share_button'));
+        final shareButton = find.byKey(const Key('share_button'));
         expect(shareButton, findsOneWidget);
 
         await tester.tap(shareButton);
@@ -264,7 +264,7 @@ void main() {
         await tester.pumpAndSettle();
 
         // Tap on "Not sure about this result?" or re-analyze button
-        final reAnalyzeButton = find.byKey(Key('re_analyze_button'));
+        final reAnalyzeButton = find.byKey(const Key('re_analyze_button'));
         expect(reAnalyzeButton, findsOneWidget);
 
         await tester.tap(reAnalyzeButton);
@@ -273,7 +273,7 @@ void main() {
         // Should show loading indicator
         expect(find.byType(CircularProgressIndicator), findsOneWidget);
 
-        await tester.pumpAndSettle(Duration(seconds: 2));
+        await tester.pumpAndSettle(const Duration(seconds: 2));
 
         // Should show updated results
         expect(find.textContaining('Re-analyzed'), findsOneWidget);
@@ -289,7 +289,7 @@ void main() {
         expect(find.byType(ClassificationFeedbackWidget), findsOneWidget);
 
         // Test feedback interactions
-        final thumbsUpButton = find.byKey(Key('feedback_correct'));
+        final thumbsUpButton = find.byKey(const Key('feedback_correct'));
         expect(thumbsUpButton, findsOneWidget);
 
         await tester.tap(thumbsUpButton);
@@ -441,7 +441,7 @@ void main() {
         await tester.pumpAndSettle();
 
         // Tap save to trigger gamification
-        await tester.tap(find.byKey(Key('save_button')));
+        await tester.tap(find.byKey(const Key('save_button')));
         await tester.pumpAndSettle();
 
         expect(find.textContaining('10 points'), findsOneWidget);
@@ -460,14 +460,14 @@ void main() {
         await tester.pumpWidget(createResultScreen(classification));
         await tester.pumpAndSettle();
 
-        await tester.tap(find.byKey(Key('save_button')));
+        await tester.tap(find.byKey(const Key('save_button')));
         await tester.pumpAndSettle();
 
         expect(find.textContaining('Error saving'), findsOneWidget);
         expect(find.byIcon(Icons.error), findsOneWidget);
 
         // Should provide retry option
-        final retryButton = find.byKey(Key('retry_save_button'));
+        final retryButton = find.byKey(const Key('retry_save_button'));
         expect(retryButton, findsOneWidget);
       });
 
@@ -480,10 +480,10 @@ void main() {
         await tester.pumpWidget(createResultScreen(classification));
         await tester.pumpAndSettle();
 
-        await tester.tap(find.byKey(Key('re_analyze_button')));
+        await tester.tap(find.byKey(const Key('re_analyze_button')));
         await tester.pumpAndSettle();
 
-        await tester.pumpAndSettle(Duration(seconds: 2));
+        await tester.pumpAndSettle(const Duration(seconds: 2));
 
         expect(find.textContaining('Analysis failed'), findsOneWidget);
         expect(find.textContaining('Try again'), findsOneWidget);
@@ -500,7 +500,7 @@ void main() {
 
         // Should still function without analytics
         expect(find.text(classification.itemName), findsOneWidget);
-        expect(find.byKey(Key('save_button')), findsOneWidget);
+        expect(find.byKey(const Key('save_button')), findsOneWidget);
       });
     });
 
@@ -552,7 +552,7 @@ void main() {
           },
         );
 
-        await tester.tap(find.byKey(Key('save_button')));
+        await tester.tap(find.byKey(const Key('save_button')));
         await tester.pumpAndSettle();
       });
     });

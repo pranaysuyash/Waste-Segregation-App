@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter/foundation.dart';
 
-import '../../lib/utils/developer_config.dart';
+import 'package:waste_segregation_app/utils/developer_config.dart';
 
 void main() {
   group('DeveloperConfig Security Tests', () {
@@ -97,7 +97,7 @@ void main() {
     group('Security Validation Edge Cases', () {
       test('should handle rapid successive calls', () {
         // Rapid calls should not cause race conditions or state issues
-        for (int i = 0; i < 100; i++) {
+        for (var i = 0; i < 100; i++) {
           expect(() => DeveloperConfig.validateSecurity(), returnsNormally);
           expect(DeveloperConfig.isDeveloperModeEnabled, isA<bool>());
         }

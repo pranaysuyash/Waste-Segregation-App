@@ -55,6 +55,7 @@ lib/
 - UserPoints track total and category-specific points along with user level and rank.
 - WeeklyStats store leaderboard data.
 - GamificationProfile consolidates user gamification data for persistence.
+- **NEW:** After each classification, both a popup and a persistent card/banner on the result screen show the points awarded, making it easy for users to validate and understand their progress.
 
 ## Services Overview
 

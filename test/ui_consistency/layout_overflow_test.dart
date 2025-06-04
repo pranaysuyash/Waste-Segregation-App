@@ -10,10 +10,10 @@ void main() {
         await tester.binding.setSurfaceSize(const Size(300, 600));
         
         await tester.pumpWidget(
-          MaterialApp(
+          const MaterialApp(
             home: Scaffold(
               body: Padding(
-                padding: const EdgeInsets.all(16.0),
+                padding: EdgeInsets.all(16.0),
                 child: StatsCard(
                   title: 'Very Long Classification Title That Could Potentially Overflow',
                   value: '1,234,567,890',
@@ -127,12 +127,12 @@ void main() {
         await tester.binding.setSurfaceSize(const Size(350, 600));
         
         await tester.pumpWidget(
-          MaterialApp(
+          const MaterialApp(
             home: MediaQuery(
-              data: const MediaQueryData(
+              data: MediaQueryData(
                 textScaler: TextScaler.linear(2.0), // Large text scaling for accessibility
               ),
-              child: const Scaffold(
+              child: Scaffold(
                 body: Padding(
                   padding: EdgeInsets.all(16.0),
                   child: StatsCard(
@@ -273,7 +273,7 @@ void main() {
       testWidgets('Dynamic value changes do not cause overflow', (WidgetTester tester) async {
         await tester.binding.setSurfaceSize(const Size(350, 600));
         
-        String testValue = '0';
+        var testValue = '0';
         
         await tester.pumpWidget(
           MaterialApp(

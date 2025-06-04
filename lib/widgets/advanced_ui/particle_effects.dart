@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'dart:math' as math;
-import 'dart:ui';
 
 /// Advanced floating particle system for background animations
 /// Designed for Gen Z appeal with smooth, mesmerizing motion

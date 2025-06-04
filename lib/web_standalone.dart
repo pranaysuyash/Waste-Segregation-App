@@ -1,14 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:hive_flutter/hive_flutter.dart';
-import 'main.dart' as app;
 import 'services/storage_service.dart';
-import 'services/ai_service.dart';
-import 'services/educational_content_service.dart';
-import 'services/gamification_service.dart';
-import 'services/premium_service.dart';
-import 'services/ad_service.dart';
-import 'services/google_drive_service.dart';
 import 'providers/theme_provider.dart';
 import 'utils/constants.dart';
 import 'widgets/responsive_text.dart';

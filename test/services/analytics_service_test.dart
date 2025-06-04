@@ -109,7 +109,7 @@ void main() {
     group('User Behavior Analytics', () {
       test('should track user session duration', () async {
         analyticsService.startSession();
-        await Future.delayed(Duration(milliseconds: 100));
+        await Future.delayed(const Duration(milliseconds: 100));
         analyticsService.endSession();
         
         final sessionDuration = analyticsService.getLastSessionDuration();
@@ -131,7 +131,7 @@ void main() {
           id: 'test_user',
           email: 'test@example.com',
           displayName: 'Test User',
-          createdAt: DateTime.now().subtract(Duration(days: 7)),
+          createdAt: DateTime.now().subtract(const Duration(days: 7)),
         );
 
         await analyticsService.trackUserRetention(user);
@@ -171,7 +171,7 @@ void main() {
         await analyticsService.trackNetworkRequest(
           url: 'https://api.openai.com/classify',
           method: 'POST',
-          duration: Duration(milliseconds: 2500),
+          duration: const Duration(milliseconds: 2500),
           statusCode: 200,
         );
 
@@ -292,7 +292,7 @@ void main() {
           enablePerformanceMonitoring: true,
           enableUserAnalytics: false,
           batchSize: 50,
-          flushInterval: Duration(minutes: 5),
+          flushInterval: const Duration(minutes: 5),
         );
 
         final config = analyticsService.getConfiguration();
@@ -300,7 +300,7 @@ void main() {
         expect(config.enablePerformanceMonitoring, isTrue);
         expect(config.enableUserAnalytics, isFalse);
         expect(config.batchSize, equals(50));
-        expect(config.flushInterval, equals(Duration(minutes: 5)));
+        expect(config.flushInterval, equals(const Duration(minutes: 5)));
       });
 
       test('should update analytics settings at runtime', () {
@@ -333,7 +333,7 @@ extension AnalyticsServiceTestExtension on AnalyticsService {
   
   Duration? getLastSessionDuration() {
     // Mock method to get session duration
-    return Duration(milliseconds: 100);
+    return const Duration(milliseconds: 100);
   }
   
   Map<String, int> getFeatureUsageStats() {
@@ -382,24 +382,19 @@ extension AnalyticsServiceTestExtension on AnalyticsService {
       enablePerformanceMonitoring: true,
       enableUserAnalytics: false,
       batchSize: 50,
-      flushInterval: Duration(minutes: 5),
+      flushInterval: const Duration(minutes: 5),
     );
   }
 }
 
 class AnalyticsErrorEvent {
-  final Exception error;
-  final String context;
   
   AnalyticsErrorEvent({required this.error, required this.context});
+  final Exception error;
+  final String context;
 }
 
 class AnalyticsConfiguration {
-  final bool enableCrashReporting;
-  final bool enablePerformanceMonitoring;
-  final bool enableUserAnalytics;
-  final int batchSize;
-  final Duration flushInterval;
   
   AnalyticsConfiguration({
     required this.enableCrashReporting,
@@ -408,4 +403,9 @@ class AnalyticsConfiguration {
     required this.batchSize,
     required this.flushInterval,
   });
+  final bool enableCrashReporting;
+  final bool enablePerformanceMonitoring;
+  final bool enableUserAnalytics;
+  final int batchSize;
+  final Duration flushInterval;
 }

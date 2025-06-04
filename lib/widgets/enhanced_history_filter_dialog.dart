@@ -4,14 +4,14 @@ import '../utils/ui_consistency_utils.dart';
 
 /// Enhanced History Filter Dialog with improved visual hierarchy and spacing
 class EnhancedHistoryFilterDialog extends StatefulWidget {
-  final FilterOptions initialFilters;
-  final Function(FilterOptions) onFiltersChanged;
 
   const EnhancedHistoryFilterDialog({
     super.key,
     required this.initialFilters,
     required this.onFiltersChanged,
   });
+  final FilterOptions initialFilters;
+  final Function(FilterOptions) onFiltersChanged;
 
   @override
   State<EnhancedHistoryFilterDialog> createState() => _EnhancedHistoryFilterDialogState();
@@ -151,7 +151,6 @@ class _EnhancedHistoryFilterDialogState extends State<EnhancedHistoryFilterDialo
         border: Border(
           bottom: BorderSide(
             color: Theme.of(context).dividerColor,
-            width: 1,
           ),
         ),
       ),
@@ -217,7 +216,7 @@ class _EnhancedHistoryFilterDialogState extends State<EnhancedHistoryFilterDialo
                     value: isSelected,
                     onChanged: (value) {
                       setState(() {
-                        List<String> currentCategories = List.from(_tempFilters.categories ?? []);
+                        var currentCategories = List<String>.from(_tempFilters.categories ?? []);
                         if (value == true) {
                           if (!currentCategories.contains(category)) {
                             currentCategories.add(category);
@@ -481,7 +480,7 @@ class _EnhancedHistoryFilterDialogState extends State<EnhancedHistoryFilterDialo
             },
             activeColor: Theme.of(context).colorScheme.primary,
           );
-        }).toList(),
+        }),
       ],
     );
   }
@@ -533,7 +532,6 @@ class _EnhancedHistoryFilterDialogState extends State<EnhancedHistoryFilterDialo
         border: Border(
           top: BorderSide(
             color: Theme.of(context).dividerColor,
-            width: 1,
           ),
         ),
       ),
@@ -610,7 +608,6 @@ class _EnhancedHistoryFilterDialogState extends State<EnhancedHistoryFilterDialo
   void _clearDateFilters() {
     setState(() {
       _tempFilters = _tempFilters.copyWith(
-        startDate: null,
         endDate: null,
       );
     });

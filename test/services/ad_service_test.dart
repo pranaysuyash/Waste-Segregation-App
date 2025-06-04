@@ -114,7 +114,7 @@ void main() {
       });
 
       test('should notify listeners when premium status changes', () {
-        bool notified = false;
+        var notified = false;
         adService.addListener(() => notified = true);
 
         adService.setPremiumStatus(true);
@@ -220,7 +220,7 @@ void main() {
         expect(adService.shouldShowInterstitial(), isFalse);
         
         // Track multiple classifications
-        for (int i = 0; i < 6; i++) {
+        for (var i = 0; i < 6; i++) {
           adService.trackClassificationCompleted();
         }
         
@@ -229,7 +229,7 @@ void main() {
 
       test('should handle interstitial ad errors gracefully', () async {
         // This test verifies that failed interstitial ads don't crash
-        expect(() async => await adService.showInterstitialAd(), returnsNormally);
+        expect(() async => adService.showInterstitialAd(), returnsNormally);
       });
     });
 
@@ -248,7 +248,7 @@ void main() {
 
       test('should reset classification count after interstitial', () async {
         // Track multiple classifications to trigger interstitial
-        for (int i = 0; i < 6; i++) {
+        for (var i = 0; i < 6; i++) {
           adService.trackClassificationCompleted();
         }
         
@@ -296,7 +296,7 @@ void main() {
         
         // Basic operations should work even without AdMob
         expect(() => adService.getBannerAd(), returnsNormally);
-        expect(() async => await adService.showInterstitialAd(), returnsNormally);
+        expect(() async => adService.showInterstitialAd(), returnsNormally);
       });
 
       test('should handle network errors gracefully', () async {
@@ -305,7 +305,7 @@ void main() {
         
         // Ad operations should handle network errors
         expect(() => adService.getBannerAd(), returnsNormally);
-        expect(() async => await adService.showInterstitialAd(), returnsNormally);
+        expect(() async => adService.showInterstitialAd(), returnsNormally);
       });
 
       test('should handle invalid ad unit IDs gracefully', () async {
@@ -337,7 +337,7 @@ void main() {
 
       test('should handle rapid context changes efficiently', () {
         // Rapid context changes should not cause performance issues
-        for (int i = 0; i < 100; i++) {
+        for (var i = 0; i < 100; i++) {
           adService.setInClassificationFlow(i.isEven);
           adService.setInEducationalContent(i.isOdd);
         }
@@ -378,7 +378,7 @@ void main() {
       }, skip: 'Requires widget tester');
 
       test('should work with ChangeNotifier pattern', () {
-        bool listenerCalled = false;
+        var listenerCalled = false;
         adService.addListener(() => listenerCalled = true);
         
         adService.setPremiumStatus(true);
@@ -404,7 +404,7 @@ void main() {
         adService.trackClassificationCompleted();
         expect(adService.shouldShowInterstitial(), isFalse); // Too early
         
-        for (int i = 0; i < 5; i++) {
+        for (var i = 0; i < 5; i++) {
           adService.trackClassificationCompleted();
         }
         
@@ -423,7 +423,7 @@ void main() {
 
     group('Edge Cases', () {
       test('should handle extremely rapid classification tracking', () {
-        for (int i = 0; i < 1000; i++) {
+        for (var i = 0; i < 1000; i++) {
           adService.trackClassification();
         }
         expect(adService, isNotNull);

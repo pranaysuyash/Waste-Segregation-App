@@ -137,12 +137,12 @@ void main() {
         await tester.binding.setSurfaceSize(const Size(300, 600));
         
         await tester.pumpWidget(
-          MaterialApp(
+          const MaterialApp(
             home: MediaQuery(
-              data: const MediaQueryData(
+              data: MediaQueryData(
                 textScaler: TextScaler.linear(2.0), // Large text scaling
               ),
-              child: const Scaffold(
+              child: Scaffold(
                 body: Padding(
                   padding: EdgeInsets.all(8.0),
                   child: StatsCard(
@@ -399,7 +399,7 @@ void main() {
       testWidgets('Stats cards adapt to changing values without overflow', (WidgetTester tester) async {
         await tester.binding.setSurfaceSize(const Size(350, 600));
         
-        String testValue = '0';
+        var testValue = '0';
         
         await tester.pumpWidget(
           MaterialApp(

@@ -72,7 +72,6 @@ void main() {
           iconName: 'star',
           color: Colors.blue,
           progress: 1.0,
-          pointsReward: 50,
         );
 
         final user = UserProfile(
@@ -145,7 +144,7 @@ void main() {
             'type': 'classification',
             'userId': 'user_1',
             'userName': 'User One',
-            'timestamp': DateTime.now().subtract(Duration(minutes: 30)).toIso8601String(),
+            'timestamp': DateTime.now().subtract(const Duration(minutes: 30)).toIso8601String(),
             'data': {'item': 'Plastic Bottle', 'category': 'Dry Waste'},
             'points': 10,
             'isAnonymous': false,
@@ -155,7 +154,7 @@ void main() {
             'type': 'achievement',
             'userId': 'user_2',
             'userName': 'User Two',
-            'timestamp': DateTime.now().subtract(Duration(hours: 1)).toIso8601String(),
+            'timestamp': DateTime.now().subtract(const Duration(hours: 1)).toIso8601String(),
             'data': {'achievement': 'Eco Warrior'},
             'points': 25,
             'isAnonymous': false,
@@ -165,7 +164,7 @@ void main() {
             'type': 'streak',
             'userId': 'guest',
             'userName': 'Anonymous User',
-            'timestamp': DateTime.now().subtract(Duration(hours: 2)).toIso8601String(),
+            'timestamp': DateTime.now().subtract(const Duration(hours: 2)).toIso8601String(),
             'data': {'streak_days': 3},
             'points': 9,
             'isAnonymous': true,
@@ -186,10 +185,10 @@ void main() {
       test('should filter and sort feed activities correctly', () async {
         final now = DateTime.now();
         final activities = [
-          _createActivityMap('activity_1', 'classification', now.subtract(Duration(minutes: 10))),
-          _createActivityMap('activity_2', 'achievement', now.subtract(Duration(minutes: 30))),
-          _createActivityMap('activity_3', 'streak', now.subtract(Duration(hours: 2))),
-          _createActivityMap('activity_4', 'classification', now.subtract(Duration(days: 1))),
+          _createActivityMap('activity_1', 'classification', now.subtract(const Duration(minutes: 10))),
+          _createActivityMap('activity_2', 'achievement', now.subtract(const Duration(minutes: 30))),
+          _createActivityMap('activity_3', 'streak', now.subtract(const Duration(hours: 2))),
+          _createActivityMap('activity_4', 'classification', now.subtract(const Duration(days: 1))),
         ];
 
         when(mockBox.values).thenReturn(activities);
@@ -197,11 +196,11 @@ void main() {
         // Test with time filter (last 1 hour)
         final recentFeed = await communityService.getCommunityFeed(
           limit: 10,
-          since: now.subtract(Duration(hours: 1)),
+          since: now.subtract(const Duration(hours: 1)),
         );
 
         expect(recentFeed.length, equals(2)); // Only activities within 1 hour
-        expect(recentFeed.first.timestamp.isAfter(now.subtract(Duration(minutes: 15))), isTrue);
+        expect(recentFeed.first.timestamp.isAfter(now.subtract(const Duration(minutes: 15))), isTrue);
 
         // Test sorting (most recent first)
         final allFeed = await communityService.getCommunityFeed(limit: 10);
@@ -258,9 +257,9 @@ void main() {
         final now = DateTime.now();
         final activities = [
           _createActivityMap('1', 'classification', now),
-          _createActivityMap('2', 'classification', now.subtract(Duration(days: 1))),
-          _createActivityMap('3', 'classification', now.subtract(Duration(days: 2))),
-          _createActivityMap('4', 'classification', now.subtract(Duration(days: 8))), // Outside week
+          _createActivityMap('2', 'classification', now.subtract(const Duration(days: 1))),
+          _createActivityMap('3', 'classification', now.subtract(const Duration(days: 2))),
+          _createActivityMap('4', 'classification', now.subtract(const Duration(days: 8))), // Outside week
         ];
 
         when(mockBox.values).thenReturn(activities);

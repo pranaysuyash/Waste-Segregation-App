@@ -115,52 +115,57 @@ class _ModernBottomNavigationState extends State<ModernBottomNavigation>
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    
-    return Container(
-      decoration: BoxDecoration(
-        color: widget.style.backgroundColor ?? 
-               (isDark ? Colors.grey[900] : Colors.white),
-        boxShadow: widget.style.shadow ?? [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: 8,
-            offset: const Offset(0, -2),
-          ),
-        ],
-        borderRadius: widget.style.borderRadius,
-        border: widget.style.border,
-      ),
-      child: ClipRRect(
-        borderRadius: widget.style.borderRadius ?? BorderRadius.zero,
-        child: widget.hasNotch 
-          ? BottomAppBar(
-              shape: const CircularNotchedRectangle(),
-              color: Colors.transparent,
-              elevation: 0,
-              notchMargin: 8,
-              child: Container(
+    return SafeArea(
+      top: false,
+      left: false,
+      right: false,
+      bottom: true,
+      child: Container(
+        decoration: BoxDecoration(
+          color: widget.style.backgroundColor ?? 
+                 (isDark ? Colors.grey[900] : Colors.white),
+          boxShadow: widget.style.shadow ?? [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.1),
+              blurRadius: 8,
+              offset: const Offset(0, -2),
+            ),
+          ],
+          borderRadius: widget.style.borderRadius,
+          border: widget.style.border,
+        ),
+        child: ClipRRect(
+          borderRadius: widget.style.borderRadius ?? BorderRadius.zero,
+          child: widget.hasNotch 
+            ? BottomAppBar(
+                shape: const CircularNotchedRectangle(),
+                color: Colors.transparent,
+                elevation: 0,
+                notchMargin: 8,
+                child: Container(
+                  height: widget.style.height,
+                  padding: widget.style.padding,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: List.generate(
+                      widget.items.length,
+                      (index) => _buildNavItem(index, isDark),
+                    ),
+                  ),
+                ),
+              )
+            : Container(
                 height: widget.style.height,
                 padding: widget.style.padding,
                 child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
                   children: List.generate(
                     widget.items.length,
                     (index) => _buildNavItem(index, isDark),
                   ),
                 ),
               ),
-            )
-          : Container(
-              height: widget.style.height,
-              padding: widget.style.padding,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                children: List.generate(
-                  widget.items.length,
-                  (index) => _buildNavItem(index, isDark),
-                ),
-              ),
-            ),
+        ),
       ),
     );
   }
