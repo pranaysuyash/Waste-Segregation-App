@@ -64,6 +64,7 @@ class Achievement {   // For meta-achievements
     this.metadata = const {},
     this.pointsReward = 50,
     this.relatedAchievementIds = const [],
+    this.clues = const [],
   });
   
   // For deserialization
@@ -81,7 +82,7 @@ class Achievement {   // For meta-achievements
       color: Color(json['color']),
       isSecret: json['isSecret'] ?? false,
       earnedOn: json['earnedOn'] != null ? DateTime.parse(json['earnedOn']) : null,
-      progress: json['progress'] ?? 0.0,
+      progress: (json['progress'] as num?)?.toDouble() ?? 0.0,
       tier: json['tier'] != null 
           ? AchievementTier.values.firstWhere(
               (e) => e.toString() == json['tier'],
@@ -103,6 +104,7 @@ class Achievement {   // For meta-achievements
       relatedAchievementIds: json['relatedAchievementIds'] != null
           ? List<String>.from(json['relatedAchievementIds'])
           : [],
+      clues: json['clues'] != null ? List<String>.from(json['clues']) : const [],
     );
   }
   final String id;
@@ -124,6 +126,7 @@ class Achievement {   // For meta-achievements
   final Map<String, dynamic> metadata;        // Additional achievement-specific data
   final int pointsReward;                     // Points earned when achievement is completed
   final List<String> relatedAchievementIds;
+  final List<String> clues;
   
   bool get isEarned => earnedOn != null;
   
@@ -170,6 +173,7 @@ class Achievement {   // For meta-achievements
       'metadata': metadata,
       'pointsReward': pointsReward,
       'relatedAchievementIds': relatedAchievementIds,
+      'clues': clues,
     };
   }
   
@@ -192,6 +196,7 @@ class Achievement {   // For meta-achievements
     Map<String, dynamic>? metadata,
     int? pointsReward,
     List<String>? relatedAchievementIds,
+    List<String>? clues,
   }) {
     return Achievement(
       id: id ?? this.id,
@@ -211,6 +216,7 @@ class Achievement {   // For meta-achievements
       metadata: metadata ?? this.metadata,
       pointsReward: pointsReward ?? this.pointsReward,
       relatedAchievementIds: relatedAchievementIds ?? this.relatedAchievementIds,
+      clues: clues ?? this.clues,
     );
   }
 }
@@ -519,11 +525,15 @@ class GamificationProfile {
   const GamificationProfile({
     required this.userId,
     this.achievements = const [],
-    required this.streak,
+    required this.streaks,
     required this.points,
     this.activeChallenges = const [],
     this.completedChallenges = const [],
     this.weeklyStats = const [],
+    this.discoveredItemIds = const {},
+    this.lastDailyEngagementBonusAwardedDate,
+    this.lastViewPersonalStatsAwardedDate,
+    this.unlockedHiddenContentIds = const {},
   });
   
   // For deserialization
@@ -535,9 +545,9 @@ class GamificationProfile {
               .map((a) => Achievement.fromJson(a))
               .toList()
           : [],
-      streak: json['streak'] != null 
-          ? Streak.fromJson(json['streak'])
-          : Streak(lastUsageDate: DateTime.now()),
+      streaks: (json['streaks'] as Map<String, dynamic>?)?.map(
+            (key, value) => MapEntry(key, StreakDetails.fromJson(value as Map<String, dynamic>)),
+          ) ?? const {},
       points: json['points'] != null 
           ? UserPoints.fromJson(json['points'])
           : const UserPoints(),
@@ -556,26 +566,44 @@ class GamificationProfile {
               .map((s) => WeeklyStats.fromJson(s))
               .toList()
           : [],
+      discoveredItemIds: Set<String>.from(json['discoveredItemIds'] as List<dynamic>? ?? []),
+      lastDailyEngagementBonusAwardedDate:
+          json['lastDailyEngagementBonusAwardedDate'] != null
+              ? DateTime.parse(json['lastDailyEngagementBonusAwardedDate'])
+              : null,
+      lastViewPersonalStatsAwardedDate:
+          json['lastViewPersonalStatsAwardedDate'] != null
+              ? DateTime.parse(json['lastViewPersonalStatsAwardedDate'])
+              : null,
+      unlockedHiddenContentIds: Set<String>.from(json['unlockedHiddenContentIds'] as List<dynamic>? ?? []),
     );
   }
   final String userId;
   final List<Achievement> achievements;
-  final Streak streak;
+  final Map<String, StreakDetails> streaks;
   final UserPoints points;
   final List<Challenge> activeChallenges;
   final List<Challenge> completedChallenges;
   final List<WeeklyStats> weeklyStats;
+  final Set<String> discoveredItemIds;
+  final DateTime? lastDailyEngagementBonusAwardedDate;
+  final DateTime? lastViewPersonalStatsAwardedDate;
+  final Set<String> unlockedHiddenContentIds;
   
   // For serialization
   Map<String, dynamic> toJson() {
     return {
       'userId': userId,
       'achievements': achievements.map((a) => a.toJson()).toList(),
-      'streak': streak.toJson(),
+      'streaks': streaks.map((key, value) => MapEntry(key, value.toJson())),
       'points': points.toJson(),
       'activeChallenges': activeChallenges.map((c) => c.toJson()).toList(),
       'completedChallenges': completedChallenges.map((c) => c.toJson()).toList(),
       'weeklyStats': weeklyStats.map((s) => s.toJson()).toList(),
+      'discoveredItemIds': discoveredItemIds.toList(),
+      'lastDailyEngagementBonusAwardedDate': lastDailyEngagementBonusAwardedDate?.toIso8601String(),
+      'lastViewPersonalStatsAwardedDate': lastViewPersonalStatsAwardedDate?.toIso8601String(),
+      'unlockedHiddenContentIds': unlockedHiddenContentIds.toList(),
     };
   }
   
@@ -583,20 +611,28 @@ class GamificationProfile {
   GamificationProfile copyWith({
     String? userId,
     List<Achievement>? achievements,
-    Streak? streak,
+    Map<String, StreakDetails>? streaks,
     UserPoints? points,
     List<Challenge>? activeChallenges,
     List<Challenge>? completedChallenges,
     List<WeeklyStats>? weeklyStats,
+    Set<String>? discoveredItemIds,
+    DateTime? lastDailyEngagementBonusAwardedDate,
+    DateTime? lastViewPersonalStatsAwardedDate,
+    Set<String>? unlockedHiddenContentIds,
   }) {
     return GamificationProfile(
       userId: userId ?? this.userId,
       achievements: achievements ?? this.achievements,
-      streak: streak ?? this.streak,
+      streaks: streaks ?? this.streaks,
       points: points ?? this.points,
       activeChallenges: activeChallenges ?? this.activeChallenges,
       completedChallenges: completedChallenges ?? this.completedChallenges,
       weeklyStats: weeklyStats ?? this.weeklyStats,
+      discoveredItemIds: discoveredItemIds ?? this.discoveredItemIds,
+      lastDailyEngagementBonusAwardedDate: lastDailyEngagementBonusAwardedDate ?? this.lastDailyEngagementBonusAwardedDate,
+      lastViewPersonalStatsAwardedDate: lastViewPersonalStatsAwardedDate ?? this.lastViewPersonalStatsAwardedDate,
+      unlockedHiddenContentIds: unlockedHiddenContentIds ?? this.unlockedHiddenContentIds,
     );
   }
 }
@@ -990,4 +1026,72 @@ class AnalyticsEventNames {
   static const String classificationError = 'classification_error';
   static const String networkError = 'network_error';
   static const String authError = 'auth_error';
+}
+
+/// Added StreakType Enum
+enum StreakType {
+  dailyClassification,
+  dailyLearning,
+  dailyEngagement,
+  itemDiscovery,
+  // Add more types as needed
+}
+
+/// New StreakDetails class
+class StreakDetails {
+  final StreakType type;
+  final int currentCount;
+  final int longestCount;
+  final DateTime lastActivityDate;
+  final DateTime? lastMaintenanceAwardedDate;
+  final int lastMilestoneAwardedLevel;
+
+  const StreakDetails({
+    required this.type,
+    this.currentCount = 0,
+    this.longestCount = 0,
+    required this.lastActivityDate,
+    this.lastMaintenanceAwardedDate,
+    this.lastMilestoneAwardedLevel = 0,
+  });
+
+  factory StreakDetails.fromJson(Map<String, dynamic> json) {
+    return StreakDetails(
+      type: StreakType.values.byName(json['type'] ?? StreakType.dailyClassification.name),
+      currentCount: json['currentCount'] ?? 0,
+      longestCount: json['longestCount'] ?? 0,
+      lastActivityDate: DateTime.parse(json['lastActivityDate']),
+      lastMaintenanceAwardedDate: json['lastMaintenanceAwardedDate'] != null
+          ? DateTime.parse(json['lastMaintenanceAwardedDate'])
+          : null,
+      lastMilestoneAwardedLevel: json['lastMilestoneAwardedLevel'] ?? 0,
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+    'type': type.name,
+    'currentCount': currentCount,
+    'longestCount': longestCount,
+    'lastActivityDate': lastActivityDate.toIso8601String(),
+    'lastMaintenanceAwardedDate': lastMaintenanceAwardedDate?.toIso8601String(),
+    'lastMilestoneAwardedLevel': lastMilestoneAwardedLevel,
+  };
+
+  StreakDetails copyWith({
+    StreakType? type,
+    int? currentCount,
+    int? longestCount,
+    DateTime? lastActivityDate,
+    DateTime? lastMaintenanceAwardedDate,
+    int? lastMilestoneAwardedLevel,
+  }) {
+    return StreakDetails(
+      type: type ?? this.type,
+      currentCount: currentCount ?? this.currentCount,
+      longestCount: longestCount ?? this.longestCount,
+      lastActivityDate: lastActivityDate ?? this.lastActivityDate,
+      lastMaintenanceAwardedDate: lastMaintenanceAwardedDate ?? this.lastMaintenanceAwardedDate,
+      lastMilestoneAwardedLevel: lastMilestoneAwardedLevel ?? this.lastMilestoneAwardedLevel,
+    );
+  }
 }
