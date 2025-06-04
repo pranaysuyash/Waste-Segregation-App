@@ -234,10 +234,17 @@ class _ModernHomeScreenState extends State<ModernHomeScreen> with TickerProvider
       
       debugPrint('📊 Loaded ${classifications.length} total classifications (Google sync: $isGoogleSyncEnabled)');
     } catch (e) {
+      debugPrint('Error loading recent classifications: $e');
+      // Don't show SnackBar during initialization - it will be handled by the UI
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to load history: ${e.toString()}')),
-        );
+        // Schedule the SnackBar to show after the widget is fully built
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('Failed to load history: ${e.toString()}')),
+            );
+          }
+        });
       }
     } finally {
       setState(() {

@@ -239,13 +239,15 @@ class CloudStorageService {
       final classificationTime = classification.timestamp;
       final now = DateTime.now();
       
-      // Don't process if classification is older than 1 hour (likely already processed)
-      // This prevents retroactive processing of old data
-      if (now.difference(classificationTime).inHours > 1) {
+      // Don't process if classification is older than 24 hours (likely already processed)
+      // This prevents retroactive processing of old data while allowing recent classifications
+      if (now.difference(classificationTime).inHours > 24) {
+        debugPrint('🎮 Classification is older than 24 hours, skipping gamification');
         return false;
       }
       
-      // Process if classification is recent (within 1 hour)
+      // Process if classification is recent (within 24 hours)
+      debugPrint('🎮 Classification is recent (${now.difference(classificationTime).inHours} hours old), processing gamification');
       return true;
     } catch (e) {
       debugPrint('🎮 Error checking gamification eligibility: $e');
