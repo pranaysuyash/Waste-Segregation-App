@@ -65,6 +65,8 @@ This system is not just about adding points and badges arbitrarily; it's about t
             *   (Consider further milestones like 60-day, 90-day, etc.)
     *   **Badge Unlocks:** Award a one-time point bonus when a new badge is earned.
         *   Example: +20-100 points, depending on badge difficulty/prestige.
+    *   **First Item Discovery (Beyond Basic Material):** While classifying known materials is standard, discovering a *specific new item type* for the first time (especially if rare or part of a hidden collection) can yield special bonuses or unlock content (see Section 2.8).
+        *   Example: +10-50 points for first-time scan of a specific rare item, potentially triggering further events.
     *   **Referring Friends (Future):** Points for successful referrals.
     *   **Reporting New Items/Data Correction (Future, Moderated):** Points for contributing valuable data to the app.
 *   **Point Value Balancing:**
@@ -235,6 +237,33 @@ This system is not just about adding points and badges arbitrarily; it's about t
     *   How to find and participate in challenges.
     *   The benefits of maintaining streaks.
 *   **Keep it Concise:** Onboarding should be brief and engaging, not overwhelming.
+
+### 2.8. Exploration, Discovery & AI-Driven Surprises
+
+*   **Purpose:** To foster curiosity, encourage thorough exploration of the app's item database through scanning, and provide delightful, unexpected rewards. This system heavily leverages AI for dynamism and personalization.
+*   **Core Mechanics:**
+    *   **Hidden Badges & Achievements:**
+        *   A subset of badges/achievements whose criteria are not initially visible.
+        *   Unlocked by discovering specific rare items, unique combinations of items, items with particular attributes (e.g., vintage items, items made from unusual recycled content), or by performing non-obvious sequences of actions.
+        *   AI can assist in: 
+            *   Generating criteria for these hidden badges by analyzing the item database for interesting patterns, rarities, or thematic connections.
+            *   Crafting cryptic clues that might be subtly revealed to users through other game mechanics or by an in-app AI assistant/guide.
+    *   **"Unexplored Map" / World Expansion:**
+        *   If the app uses a visual metaphor for progression (e.g., a journey map, a growing personal "eco-space"), scanning specific new or rare items can unlock new areas, points of interest, or decorative elements.
+        *   These could be themed around the discovered item (e.g., discovering an old vinyl record unlocks a "Retro Corner" in their virtual space, or a "Music History" point on a timeline map).
+        *   AI can suggest thematic links between items and map/space expansions.
+    *   **Lore/Story Unlocks:**
+        *   Discovering certain items or completing hidden achievements could unlock snippets of an unfolding story, interesting facts, or historical context related to waste, recycling, or sustainability.
+        *   AI can help generate or curate this content, ensuring it's relevant to the discovery.
+    *   **AI-Personalized Discovery Quests/Hints:**
+        *   Based on a user's scanning history, common items they encounter, or items they *haven't* found from their region (if location data is used ethically), an AI system can generate personalized "Discovery Quests" or provide tailored hints.
+        *   Example: "Exploration Alert! We've noticed you scan a lot of beverage containers. Have you ever found a [specific type of rare glass bottle]? There might be a story there!"
+        *   Example: "Eco-Detective Challenge: Sources suggest a rare [type of electronic waste] was common in your area in the 90s. Can you find an example?"
+*   **Implementation Considerations:**
+    *   **Item Database Richness:** Requires a well-tagged item database with attributes AI can use (e.g., material, era of manufacture, common use, recyclability challenges, interesting facts).
+    *   **Curation:** AI-generated suggestions for hidden content criteria, clues, or quests will always require human review and curation to ensure quality, fairness, and alignment with app goals.
+    *   **Balance:** The system should feel rewarding, not frustrating. Hidden content should be discoverable with reasonable effort or through clever observation, guided by subtle clues.
+    *   **Privacy:** Personalized quests must be handled with user privacy as a foremost concern.
 
 ## 3. AI-Assisted Design, Generation, and Management
 
