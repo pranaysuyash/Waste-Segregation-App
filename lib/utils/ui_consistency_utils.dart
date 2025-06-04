@@ -8,9 +8,10 @@ class UIConsistency {
   
   /// Primary action button style (for main CTAs)
   static ButtonStyle primaryButtonStyle(BuildContext context) {
+    final textScaleFactor = MediaQuery.textScaleFactorOf(context);
+    final scaledMinHeight = (AppTheme.buttonHeightMd * textScaleFactor).clamp(48.0, double.infinity);
+    
     return ElevatedButton.styleFrom(
-      backgroundColor: AppTheme.primaryColor,
-      foregroundColor: Colors.white,
       elevation: AppTheme.elevationSm,
       shadowColor: AppTheme.primaryColor.withValues(alpha: 0.3),
       textStyle: const TextStyle(
@@ -25,18 +26,47 @@ class UIConsistency {
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(AppTheme.borderRadiusMd),
       ),
-      minimumSize: const Size(0, AppTheme.buttonHeightMd),
+      minimumSize: Size(0, scaledMinHeight),
+    ).copyWith(
+      backgroundColor: WidgetStateProperty.resolveWith<Color?>(
+        (Set<WidgetState> states) {
+          if (states.contains(WidgetState.disabled)) {
+            return AppTheme.neutralColor;
+          }
+          if (states.contains(WidgetState.pressed)) {
+            return AppTheme.primaryColor.withValues(alpha: 0.8);
+          }
+          return AppTheme.primaryColor;
+        },
+      ),
+      foregroundColor: WidgetStateProperty.resolveWith<Color?>(
+        (Set<WidgetState> states) {
+          if (states.contains(WidgetState.disabled)) {
+            return Colors.white70;
+          }
+          return Colors.white;
+        },
+      ),
+      overlayColor: WidgetStateProperty.resolveWith<Color?>(
+        (Set<WidgetState> states) {
+          if (states.contains(WidgetState.pressed)) {
+            return Colors.white.withValues(alpha: 0.1);
+          }
+          if (states.contains(WidgetState.hovered)) {
+            return Colors.white.withValues(alpha: 0.05);
+          }
+          return null;
+        },
+      ),
     );
   }
   
   /// Secondary action button style (for secondary CTAs)
   static ButtonStyle secondaryButtonStyle(BuildContext context) {
+    final textScaleFactor = MediaQuery.textScaleFactorOf(context);
+    final scaledMinHeight = (AppTheme.buttonHeightMd * textScaleFactor).clamp(48.0, double.infinity);
+    
     return OutlinedButton.styleFrom(
-      foregroundColor: AppTheme.primaryColor,
-      side: const BorderSide(
-        color: AppTheme.primaryColor,
-        width: 1.5,
-      ),
       textStyle: const TextStyle(
         fontSize: AppTheme.fontSizeMedium,
         fontWeight: FontWeight.w600,
@@ -49,37 +79,96 @@ class UIConsistency {
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(AppTheme.borderRadiusMd),
       ),
-      minimumSize: const Size(0, AppTheme.buttonHeightMd),
+      minimumSize: Size(0, scaledMinHeight),
+    ).copyWith(
+      foregroundColor: WidgetStateProperty.resolveWith<Color?>(
+        (Set<WidgetState> states) {
+          if (states.contains(WidgetState.disabled)) {
+            return AppTheme.neutralColor;
+          }
+          if (states.contains(WidgetState.pressed)) {
+            return AppTheme.primaryColor.withValues(alpha: 0.8);
+          }
+          return AppTheme.primaryColor;
+        },
+      ),
+      side: WidgetStateProperty.resolveWith<BorderSide?>(
+        (Set<WidgetState> states) {
+          if (states.contains(WidgetState.disabled)) {
+            return BorderSide(color: AppTheme.neutralColor, width: 1.5);
+          }
+          return const BorderSide(color: AppTheme.primaryColor, width: 1.5);
+        },
+      ),
+      overlayColor: WidgetStateProperty.resolveWith<Color?>(
+        (Set<WidgetState> states) {
+          if (states.contains(WidgetState.pressed)) {
+            return AppTheme.primaryColor.withValues(alpha: 0.1);
+          }
+          if (states.contains(WidgetState.hovered)) {
+            return AppTheme.primaryColor.withValues(alpha: 0.05);
+          }
+          return null;
+        },
+      ),
     );
   }
   
   /// Tertiary action button style (for text buttons)
   static ButtonStyle tertiaryButtonStyle(BuildContext context) {
+    final textScaleFactor = MediaQuery.textScaleFactorOf(context);
+    final scaledMinHeight = (AppTheme.buttonHeightMd * textScaleFactor).clamp(48.0, double.infinity);
+    
     return TextButton.styleFrom(
-      foregroundColor: AppTheme.primaryColor,
       textStyle: const TextStyle(
         fontSize: AppTheme.fontSizeRegular,
         fontWeight: FontWeight.w600,
         letterSpacing: 0.3,
       ),
       padding: const EdgeInsets.symmetric(
-        horizontal: AppTheme.paddingMedium,
-        vertical: AppTheme.paddingSmall,
+        horizontal: AppTheme.paddingLarge,
+        vertical: AppTheme.paddingMedium,
       ),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(AppTheme.borderRadiusSm),
       ),
-      minimumSize: const Size(0, AppTheme.buttonHeightSm),
+      minimumSize: Size(0, scaledMinHeight),
+    ).copyWith(
+      foregroundColor: WidgetStateProperty.resolveWith<Color?>(
+        (Set<WidgetState> states) {
+          if (states.contains(WidgetState.disabled)) {
+            return AppTheme.neutralColor;
+          }
+          if (states.contains(WidgetState.pressed)) {
+            return AppTheme.primaryColor.withValues(alpha: 0.8);
+          }
+          return AppTheme.primaryColor;
+        },
+      ),
+      overlayColor: WidgetStateProperty.resolveWith<Color?>(
+        (Set<WidgetState> states) {
+          if (states.contains(WidgetState.pressed)) {
+            return AppTheme.primaryColor.withValues(alpha: 0.1);
+          }
+          if (states.contains(WidgetState.hovered)) {
+            return AppTheme.primaryColor.withValues(alpha: 0.05);
+          }
+          return null;
+        },
+      ),
     );
   }
   
   /// Destructive action button style (for delete, reset actions)
   static ButtonStyle destructiveButtonStyle(BuildContext context) {
+    const Color destructiveColor = Color(0xFFD32F2F);
+    
+    final textScaleFactor = MediaQuery.textScaleFactorOf(context);
+    final scaledMinHeight = (AppTheme.buttonHeightMd * textScaleFactor).clamp(48.0, double.infinity);
+    
     return ElevatedButton.styleFrom(
-      backgroundColor: AppTheme.errorColor,
-      foregroundColor: Colors.white,
       elevation: AppTheme.elevationSm,
-      shadowColor: AppTheme.errorColor.withValues(alpha: 0.3),
+      shadowColor: destructiveColor.withValues(alpha: 0.3),
       textStyle: const TextStyle(
         fontSize: AppTheme.fontSizeMedium,
         fontWeight: FontWeight.w600,
@@ -92,17 +181,51 @@ class UIConsistency {
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(AppTheme.borderRadiusMd),
       ),
-      minimumSize: const Size(0, AppTheme.buttonHeightMd),
+      minimumSize: Size(0, scaledMinHeight),
+    ).copyWith(
+      backgroundColor: WidgetStateProperty.resolveWith<Color?>(
+        (Set<WidgetState> states) {
+          if (states.contains(WidgetState.disabled)) {
+            return AppTheme.neutralColor;
+          }
+          if (states.contains(WidgetState.pressed)) {
+            return destructiveColor.withValues(alpha: 0.8);
+          }
+          return destructiveColor;
+        },
+      ),
+      foregroundColor: WidgetStateProperty.resolveWith<Color?>(
+        (Set<WidgetState> states) {
+          if (states.contains(WidgetState.disabled)) {
+            return Colors.white70;
+          }
+          return Colors.white;
+        },
+      ),
+      overlayColor: WidgetStateProperty.resolveWith<Color?>(
+        (Set<WidgetState> states) {
+          if (states.contains(WidgetState.pressed)) {
+            return Colors.white.withValues(alpha: 0.1);
+          }
+          if (states.contains(WidgetState.hovered)) {
+            return Colors.white.withValues(alpha: 0.05);
+          }
+          return null;
+        },
+      ),
     );
   }
   
   /// Success action button style (for confirm, save actions)
   static ButtonStyle successButtonStyle(BuildContext context) {
+    const Color successColor = Color(0xFF2E7D32);
+    
+    final textScaleFactor = MediaQuery.textScaleFactorOf(context);
+    final scaledMinHeight = (AppTheme.buttonHeightMd * textScaleFactor).clamp(48.0, double.infinity);
+    
     return ElevatedButton.styleFrom(
-      backgroundColor: AppTheme.successColor,
-      foregroundColor: Colors.white,
       elevation: AppTheme.elevationSm,
-      shadowColor: AppTheme.successColor.withValues(alpha: 0.3),
+      shadowColor: successColor.withValues(alpha: 0.3),
       textStyle: const TextStyle(
         fontSize: AppTheme.fontSizeMedium,
         fontWeight: FontWeight.w600,
@@ -115,7 +238,38 @@ class UIConsistency {
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(AppTheme.borderRadiusMd),
       ),
-      minimumSize: const Size(0, AppTheme.buttonHeightMd),
+      minimumSize: Size(0, scaledMinHeight),
+    ).copyWith(
+      backgroundColor: WidgetStateProperty.resolveWith<Color?>(
+        (Set<WidgetState> states) {
+          if (states.contains(WidgetState.disabled)) {
+            return AppTheme.neutralColor;
+          }
+          if (states.contains(WidgetState.pressed)) {
+            return successColor.withValues(alpha: 0.8);
+          }
+          return successColor;
+        },
+      ),
+      foregroundColor: WidgetStateProperty.resolveWith<Color?>(
+        (Set<WidgetState> states) {
+          if (states.contains(WidgetState.disabled)) {
+            return Colors.white70;
+          }
+          return Colors.white;
+        },
+      ),
+      overlayColor: WidgetStateProperty.resolveWith<Color?>(
+        (Set<WidgetState> states) {
+          if (states.contains(WidgetState.pressed)) {
+            return Colors.white.withValues(alpha: 0.1);
+          }
+          if (states.contains(WidgetState.hovered)) {
+            return Colors.white.withValues(alpha: 0.05);
+          }
+          return null;
+        },
+      ),
     );
   }
   
@@ -261,9 +415,10 @@ class UIConsistency {
   static TextStyle headingLarge(BuildContext context) {
     final theme = Theme.of(context);
     return TextStyle(
-      fontSize: AppTheme.fontSizeLarge,
+      fontSize: AppTheme.fontSizeExtraLarge,
       fontWeight: FontWeight.bold,
-      color: theme.textTheme.headlineLarge?.color,
+      fontFamily: theme.textTheme.headlineLarge?.fontFamily ?? 'Roboto',
+      color: theme.textTheme.headlineLarge?.color ?? AppTheme.textPrimaryColor,
       letterSpacing: -0.5,
       height: 1.2,
     );
@@ -272,9 +427,10 @@ class UIConsistency {
   static TextStyle headingMedium(BuildContext context) {
     final theme = Theme.of(context);
     return TextStyle(
-      fontSize: AppTheme.fontSizeLarge,
+      fontSize: 20.0,
       fontWeight: FontWeight.w600,
-      color: theme.textTheme.headlineMedium?.color,
+      fontFamily: theme.textTheme.headlineMedium?.fontFamily ?? 'Roboto',
+      color: theme.textTheme.headlineMedium?.color ?? AppTheme.textPrimaryColor,
       letterSpacing: -0.25,
       height: 1.3,
     );
@@ -283,9 +439,10 @@ class UIConsistency {
   static TextStyle headingSmall(BuildContext context) {
     final theme = Theme.of(context);
     return TextStyle(
-      fontSize: AppTheme.fontSizeMedium,
+      fontSize: AppTheme.fontSizeLarge,
       fontWeight: FontWeight.w600,
-      color: theme.textTheme.headlineSmall?.color,
+      fontFamily: theme.textTheme.headlineSmall?.fontFamily ?? 'Roboto',
+      color: theme.textTheme.headlineSmall?.color ?? AppTheme.textPrimaryColor,
       letterSpacing: 0,
       height: 1.4,
     );
@@ -297,7 +454,8 @@ class UIConsistency {
     return TextStyle(
       fontSize: AppTheme.fontSizeMedium,
       fontWeight: FontWeight.normal,
-      color: theme.textTheme.bodyLarge?.color,
+      fontFamily: theme.textTheme.bodyLarge?.fontFamily ?? 'Roboto',
+      color: theme.textTheme.bodyLarge?.color ?? AppTheme.textPrimaryColor,
       height: 1.5,
     );
   }
@@ -307,7 +465,8 @@ class UIConsistency {
     return TextStyle(
       fontSize: AppTheme.fontSizeRegular,
       fontWeight: FontWeight.normal,
-      color: theme.textTheme.bodyMedium?.color,
+      fontFamily: theme.textTheme.bodyMedium?.fontFamily ?? 'Roboto',
+      color: theme.textTheme.bodyMedium?.color ?? AppTheme.textPrimaryColor,
       height: 1.5,
     );
   }
@@ -317,7 +476,8 @@ class UIConsistency {
     return TextStyle(
       fontSize: AppTheme.fontSizeSmall,
       fontWeight: FontWeight.normal,
-      color: theme.textTheme.bodySmall?.color,
+      fontFamily: theme.textTheme.bodySmall?.fontFamily ?? 'Roboto',
+      color: theme.textTheme.bodySmall?.color ?? AppTheme.textSecondaryColor,
       height: 1.4,
     );
   }

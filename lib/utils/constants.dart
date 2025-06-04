@@ -63,9 +63,9 @@ class AppTheme {
   // Light Theme
   static final ThemeData lightTheme = ThemeData(
     brightness: Brightness.light,
-    primaryColor: const Color(0xFF4CAF50),
+    primaryColor: const Color(0xFF2E7D32),
     colorScheme: const ColorScheme.light(
-      primary: Color(0xFF4CAF50),
+      primary: Color(0xFF2E7D32),
       secondary: Color(0xFF2196F3),
       error: Color(0xFFF44336),
       onSecondary: Colors.white,
@@ -82,23 +82,23 @@ class AppTheme {
       titleSmall: TextStyle(color: Color(0xFF757575)),
     ),
     appBarTheme: const AppBarTheme(
-      backgroundColor: Color(0xFF4CAF50),
+      backgroundColor: Color(0xFF2E7D32),
       foregroundColor: Colors.white,
       elevation: 2,
     ),
     elevatedButtonTheme: ElevatedButtonThemeData(
       style: ElevatedButton.styleFrom(
-        backgroundColor: const Color(0xFF4CAF50),
+        backgroundColor: const Color(0xFF2E7D32),
         foregroundColor: Colors.white,
       ),
     ),
     outlinedButtonTheme: OutlinedButtonThemeData(
       style: OutlinedButton.styleFrom(
-        foregroundColor: const Color(0xFF4CAF50),
+        foregroundColor: const Color(0xFF2E7D32),
       ),
     ),
     radioTheme: RadioThemeData(
-      fillColor: WidgetStateProperty.all(const Color(0xFF4CAF50)),
+      fillColor: WidgetStateProperty.all(const Color(0xFF2E7D32)),
     ),
     tabBarTheme: const TabBarTheme(
       labelColor: Colors.white, // Selected tab text color
@@ -111,9 +111,9 @@ class AppTheme {
   // Dark Theme
   static final ThemeData darkTheme = ThemeData(
     brightness: Brightness.dark,
-    primaryColor: const Color(0xFF388E3C),
+    primaryColor: const Color(0xFF2E7D32),
     colorScheme: const ColorScheme.dark(
-      primary: Color(0xFF388E3C),
+      primary: Color(0xFF2E7D32),
       secondary: Color(0xFF1976D2),
       surface: Color(0xFF1E1E1E),
       error: Color(0xFFF44336),
@@ -132,23 +132,23 @@ class AppTheme {
       titleSmall: TextStyle(color: Color(0xFFBDBDBD)),
     ),
     appBarTheme: const AppBarTheme(
-      backgroundColor: Color(0xFF388E3C),
+      backgroundColor: Color(0xFF2E7D32),
       foregroundColor: Colors.white,
       elevation: 2,
     ),
     elevatedButtonTheme: ElevatedButtonThemeData(
       style: ElevatedButton.styleFrom(
-        backgroundColor: const Color(0xFF388E3C),
+        backgroundColor: const Color(0xFF2E7D32),
         foregroundColor: Colors.white,
       ),
     ),
     outlinedButtonTheme: OutlinedButtonThemeData(
       style: OutlinedButton.styleFrom(
-        foregroundColor: const Color(0xFF388E3C),
+        foregroundColor: const Color(0xFF2E7D32),
       ),
     ),
     radioTheme: RadioThemeData(
-      fillColor: WidgetStateProperty.all(const Color(0xFF388E3C)),
+      fillColor: WidgetStateProperty.all(const Color(0xFF2E7D32)),
     ),
     tabBarTheme: const TabBarTheme(
       labelColor: Colors.white, // Selected tab text color
@@ -219,8 +219,8 @@ class AppTheme {
   static const Duration animationNormal = Duration(milliseconds: 300);
   static const Duration animationSlow = Duration(milliseconds: 500);
   
-  // Modern Component Sizes
-  static const double buttonHeightSm = 36.0;
+  // Modern Component Sizes (WCAG AA Compliant - minimum 48dp touch targets)
+  static const double buttonHeightSm = 48.0;  // FIXED: Was 36.0, now meets 48dp minimum
   static const double buttonHeightMd = 48.0;
   static const double buttonHeightLg = 56.0;
   static const double iconSizeSm = 20.0;
@@ -229,7 +229,7 @@ class AppTheme {
   static const double iconSizeXl = 48.0;
 
   // Backward compatibility - individual color constants
-  static const Color primaryColor = Color(0xFF4CAF50);
+  static const Color primaryColor = Color(0xFF2E7D32);
   static const Color secondaryColor = Color(0xFF2196F3);
   static const Color accentColor = Color(0xFF8BC34A);
   static const Color textPrimaryColor = Color(0xFF212121);
@@ -240,7 +240,7 @@ class AppTheme {
   static const Color errorColor = Color(0xFFF44336);
   
   // Additional semantic colors
-  static const Color successColor = Color(0xFF4CAF50);
+  static const Color successColor = Color(0xFF2E7D32);
   static const Color warningColor = Color(0xFFFF9800);
   static const Color infoColor = Color(0xFF2196F3);
   static const Color neutralColor = Color(0xFF9E9E9E);

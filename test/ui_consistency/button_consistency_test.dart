@@ -21,12 +21,12 @@ void main() {
                       onPressed: () {},
                       child: const Text('Primary Button'),
                     ),
-                    ElevatedButton(
+                    OutlinedButton(
                       style: UIConsistency.secondaryButtonStyle(context),
                       onPressed: () {},
                       child: const Text('Secondary Button'),
                     ),
-                    ElevatedButton(
+                    TextButton(
                       style: UIConsistency.tertiaryButtonStyle(context),
                       onPressed: () {},
                       child: const Text('Tertiary Button'),
@@ -56,7 +56,7 @@ void main() {
         await tester.pumpWidget(testApp);
         await tester.pumpAndSettle();
 
-        final context = tester.element(find.byType(Builder));
+        final context = tester.element(find.byType(Builder).first);
         final primaryStyle = UIConsistency.primaryButtonStyle(context);
 
         // Verify primary button style properties
@@ -71,7 +71,7 @@ void main() {
         await tester.pumpWidget(testApp);
         await tester.pumpAndSettle();
 
-        final context = tester.element(find.byType(Builder));
+        final context = tester.element(find.byType(Builder).first);
         
         final primaryStyle = UIConsistency.primaryButtonStyle(context);
         final secondaryStyle = UIConsistency.secondaryButtonStyle(context);
@@ -92,7 +92,7 @@ void main() {
         await tester.pumpWidget(testApp);
         await tester.pumpAndSettle();
 
-        final context = tester.element(find.byType(Builder));
+        final context = tester.element(find.byType(Builder).first);
         final destructiveStyle = UIConsistency.destructiveButtonStyle(context);
 
         final backgroundColor = destructiveStyle.backgroundColor?.resolve({});
@@ -113,7 +113,7 @@ void main() {
         await tester.pumpWidget(testApp);
         await tester.pumpAndSettle();
 
-        final context = tester.element(find.byType(Builder));
+        final context = tester.element(find.byType(Builder).first);
         final successStyle = UIConsistency.successButtonStyle(context);
 
         final backgroundColor = successStyle.backgroundColor?.resolve({});
@@ -137,7 +137,7 @@ void main() {
         await tester.pumpWidget(testApp);
         await tester.pumpAndSettle();
 
-        final context = tester.element(find.byType(Builder));
+        final context = tester.element(find.byType(Builder).first);
         
         final buttonStyles = [
           UIConsistency.primaryButtonStyle(context),
@@ -161,10 +161,11 @@ void main() {
         await tester.pumpWidget(testApp);
         await tester.pumpAndSettle();
 
+        // Find the actual button widgets, not just text
         final buttonFinders = [
-          find.text('Primary Button'),
-          find.text('Secondary Button'),
-          find.text('Tertiary Button'),
+          find.byType(ElevatedButton).first,  // Primary
+          find.byType(OutlinedButton).first,  // Secondary
+          find.byType(TextButton).first,      // Tertiary
         ];
 
         for (final finder in buttonFinders) {
@@ -200,7 +201,7 @@ void main() {
         await tester.pumpWidget(testApp);
         await tester.pumpAndSettle();
 
-        final context = tester.element(find.byType(Builder));
+        final context = tester.element(find.byType(Builder).first);
         
         final buttonStyles = [
           UIConsistency.primaryButtonStyle(context),
@@ -251,10 +252,11 @@ void main() {
         );
         await tester.pumpAndSettle();
 
+        // FIXED: Test actual button widgets, not text widgets for touch target compliance
         final buttonFinders = [
-          find.text('Primary Button'),
-          find.text('Secondary Button'),
-          find.text('Tertiary Button'),
+          find.byType(ElevatedButton).first,  // Primary Button
+          find.byType(OutlinedButton).first,  // Secondary Button  
+          find.byType(TextButton).first,      // Tertiary Button
         ];
 
         for (final finder in buttonFinders) {
@@ -275,7 +277,7 @@ void main() {
         await tester.pumpWidget(testApp);
         await tester.pumpAndSettle();
 
-        final context = tester.element(find.byType(Builder));
+        final context = tester.element(find.byType(Builder).first);
         final primaryStyle = UIConsistency.primaryButtonStyle(context);
 
         // Test different material states
