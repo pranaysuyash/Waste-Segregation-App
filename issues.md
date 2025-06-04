@@ -38,6 +38,7 @@
 *   ✅ Developer Tool Factory Reset: FIXED - Added proper type safety and error handling for SharedPreferences clearing.
 *   ✅ Developer Options in Release: FIXED - Implemented secure DeveloperConfig with compile-time and runtime safety checks.
 *   ✅ Null Waste Modal: FIXED - Improved fallback classification with clear messaging and comprehensive disposal guidance.
+*   🚨 Path Provider Plugin Error: MissingPluginException for getApplicationDocumentsDirectory - Breaking storage initialization on specific platforms.
 
 🟠 P1 — MAJOR
 *   ✅ Ad Loading Jank: FIXED - Implemented asynchronous ad loading with frame-budget management and widget caching.
@@ -45,15 +46,136 @@
 *   Failed Family Join: Broken social flow.
 *   AI Model Name & Debug Toasts: Remove from user UI.
 *   Vague Error Messaging: All user errors must be actionable/understandable.
+*   🎯 2025 UX/UI Alignment: Implement biometric-first authentication, value-before-registration onboarding, and enhanced gamification patterns.
 
 🟡 P2 — MINOR
 *   UI Inconsistencies: Button colors, icons, grid alignment, typographic scale.
 *   Settings Navigation Complexity: Streamline access.
 *   Sign Out Flow: No abrupt closes.
 *   Community Feed Duplicates: Throttle or batch updates.
+*   📱 Modern UX Patterns: Implement single unified camera button, visual impact feedback, and progressive disclosure.
 
 ✅ P3 — NICE-TO-HAVE
 *   Micro-animations, Onboarding, Habit-forming Notifications, Community Localization, Delightful Empty States, Voice Controls, Claymorphism as on-brand.
+*   🌟 Advanced UX Features: AI-powered personalization, contextual microlearning, neighborhood impact visualization.
+
+---
+
+## 🚨 New Critical Issues Identified
+
+### P0 BLOCKER: Path Provider Plugin Error
+**Error:** `MissingPluginException(No implementation found for method getApplicationDocumentsDirectory on channel plugins.flutter.io/path_provider)`
+
+**Root Cause:** 
+- Plugin not properly registered on specific platforms
+- Flutter project may need clean rebuild
+- Platform-specific implementations missing
+
+**Impact:** 
+- Storage service initialization failing
+- Hive database cannot initialize properly
+- Potential app crashes on launch
+
+**Immediate Fix Required:**
+```bash
+flutter clean
+flutter pub get
+cd ios && pod install --repo-update (for iOS)
+cd android && ./gradlew clean (for Android)
+```
+
+**Long-term Solution:**
+- Add proper error handling in storage service
+- Implement web-safe fallbacks
+- Test on all target platforms
+
+---
+
+## 🎯 2025 Mobile UX/UI Strategic Alignment
+
+### Critical UX/UI Gaps Identified
+Based on 2025 environmental app best practices analysis:
+
+#### 🔴 P1 MAJOR - Authentication & Onboarding
+- **Missing Biometric-First Auth**: No Face ID/fingerprint default login
+- **No Value-Before-Registration**: Users forced to sign up before seeing core features
+- **Missing Goal Setting**: No initial footprint quiz or sustainability priority selection
+- **Onboarding Too Complex**: Needs 3-step max with progress indicators
+
+#### 🟡 P2 MINOR - Core Functionality Enhancements
+- **Camera UX**: Needs single unified button (tap=photo, long press=video)
+- **Processing Feedback**: Missing meaningful animations during classification
+- **Impact Visualization**: No immediate "You prevented X kg waste!" feedback
+- **Local Relevance**: Missing region-specific disposal guidelines
+
+#### 🟢 P3 FEATURES - Gamification & Psychology
+- **Social Recognition Missing**: No neighborhood achievement display
+- **Variable Rewards Absent**: Predictable badge system instead of variable celebrations
+- **Habit Stacking**: No contextual reminders or habit formation features
+- **Loss Aversion**: Missing "Don't miss your chance to reduce X kg" messaging
+
+### Implementation Roadmap
+
+#### Phase 1: Core UX Fixes (Sprint 1-2)
+```
+🎯 Biometric Authentication
+- Implement Face ID/Touch ID as default
+- PIN fallback for accessibility
+- Guest mode with value demonstration
+
+🎯 Simplified Onboarding
+- 3-step maximum process
+- Value demonstration before signup
+- Goal gradient progress indicators
+
+🎯 Enhanced Camera Experience
+- Single unified capture button
+- Thumb-reachable controls
+- All-orientation support
+```
+
+#### Phase 2: Impact & Engagement (Sprint 3-4)
+```
+🎯 Immediate Impact Feedback
+- Real-time "You saved X kg!" notifications
+- Visual before/after stories
+- Personal vs neighborhood comparisons
+
+🎯 Enhanced Gamification
+- Variable reward celebrations
+- Social recognition features
+- Streak visualizations with goal gradients
+
+🎯 Contextual Learning
+- Microlearning triggered by user actions
+- 5-10 minute digestible content
+- Unlock achievements via learning
+```
+
+#### Phase 3: Advanced Features (Sprint 5-6)
+```
+🎯 AI Personalization
+- Tailored disposal tips
+- Context-aware notifications
+- Behavioral pattern recognition
+
+🎯 Community Features
+- Local impact visualization
+- Neighborhood challenges
+- Co-op goal achievements
+
+🎯 Accessibility Excellence
+- Full WCAG 2.2 compliance
+- Voice-guided navigation
+- Alternative data representations
+```
+
+### Success Metrics
+- **7-day retention rate**: Target >70%
+- **Feature adoption**: Camera usage >90% of sessions
+- **Conversion**: Guest to registered >30%
+- **Accessibility**: 100% semantic label coverage
+- **Performance**: <2s app load, <1s critical actions
 
 ---
 
