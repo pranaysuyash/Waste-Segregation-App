@@ -48,17 +48,16 @@ GEMINI_API_MODEL=gemini-2.0-flash
 - **Solution**: Reduced verbose logging to summary-only in `StorageService.getAllClassifications()`
 - **Status**: Fixed in commit `e806bd8`
 
-### **Issue 2: "Unknown Item" Despite Valid API Keys** 🔧 **DEBUGGING**
-- **Problem**: Classifications return "Unknown Item" even with proper environment setup
-- **Current Status**: 
-  - Environment variables are confirmed loaded (`Environment variables loaded via --dart-define-from-file`)
-  - API keys are present: `OPENAI_API_KEY=sk-proj-P1VaTP80YZjuWd...` and `GEMINI_API_KEY=AIzaSyDYXPY95PneMi0m7UTiI6ciY8sQyst2jV8`
-  - Models configured: gpt-4.1-nano, gpt-4o-mini, gpt-4.1-mini, gemini-2.0-flash
-- **Investigation**: Added comprehensive debugging to `AiService` to track:
-  - API key validation
-  - Request/response details
-  - JSON parsing failures
-  - Raw AI responses
+### **Issue 2: "Unknown Item" Despite Valid API Keys** ✅ **RESOLVED**
+- **Problem**: Classifications returned "Unknown Item" even with proper environment setup
+- **Root Cause**: AI was working correctly but returning `"itemName": null` in JSON responses
+- **Solution**: Enhanced itemName parsing to extract meaningful names from explanation text when AI returns null
+- **Fix Details**:
+  - Added regex patterns to extract item names from explanation text
+  - Fallback to subcategory or cleaned category names
+  - Handles cases where AI correctly classifies but doesn't provide explicit itemName
+- **Status**: Fixed in commit `5598377`
+- **Result**: Now shows proper item names like "Plant debris" instead of "Unknown Item"
 
 ### **Debugging Features Added**
 - **API Key Validation**: Logs first 10 characters of API keys to verify loading
@@ -114,14 +113,15 @@ This is typically caused by:
 - **Gamification**: ✅ Working (35 points, streak tracking)
 - **Image Storage**: ✅ Enhanced service implemented
 - **Duplicate Detection**: ✅ Fixed excessive logging
-- **AI Analysis**: 🔧 Under investigation for "Unknown Item" issue
+- **AI Analysis**: ✅ **RESOLVED** - Fixed itemName extraction from AI responses
 
 ## 🚀 Next Steps
 
-1. **Run app with enhanced debugging** to capture detailed AI response logs
-2. **Analyze JSON parsing failures** to identify root cause of "Unknown Item"
-3. **Test with different image types** to isolate the issue
-4. **Verify API model compatibility** with current OpenAI/Gemini endpoints
+1. **✅ COMPLETED**: Enhanced debugging captured detailed AI response logs
+2. **✅ COMPLETED**: Analyzed JSON parsing and identified itemName null issue  
+3. **✅ COMPLETED**: Fixed itemName extraction with regex patterns and fallbacks
+4. **🔄 ONGOING**: Remove temporary debugging code (partially completed)
+5. **📋 TODO**: Test with various image types to ensure fix works consistently
 
 ## 📝 Development Notes
 
