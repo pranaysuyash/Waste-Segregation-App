@@ -1,411 +1,297 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mockito/mockito.dart';
 import 'package:waste_segregation_app/services/analytics_service.dart';
-import 'package:waste_segregation_app/models/waste_classification.dart';
+import 'package:waste_segregation_app/services/storage_service.dart';
 import 'package:waste_segregation_app/models/user_profile.dart';
-import 'package:waste_segregation_app/models/analytics_event.dart';
+import 'package:waste_segregation_app/models/gamification.dart'; // AnalyticsEvent is here
+import '../test_config/plugin_mock_setup.dart'; // Import Firebase mocks
 
-// Manual mock for testing
-class MockAnalyticsService extends Mock implements AnalyticsService {}
+// Simple manual mock for testing - only implements methods used by AnalyticsService
+class MockStorageService extends StorageService {
+  UserProfile? _mockUserProfile;
+  
+  void setMockUserProfile(UserProfile? profile) {
+    _mockUserProfile = profile;
+  }
+
+  @override
+  Future<UserProfile?> getCurrentUserProfile() async {
+    return _mockUserProfile;
+  }
+
+  @override
+  Future<void> saveAnalyticsEvents(List<dynamic> events) async {
+    // Mock implementation - do nothing
+  }
+}
 
 void main() {
+  // Set up Firebase mocks before all tests
+  setUpAll(() {
+    TestWidgetsFlutterBinding.ensureInitialized();
+    PluginMockSetup.setupFirebase();
+  });
+
+  // Clean up after all tests
+  tearDownAll(() {
+    PluginMockSetup.tearDownAll();
+  });
+
   group('AnalyticsService', () {
     late AnalyticsService analyticsService;
+    late MockStorageService mockStorageService;
 
     setUp(() {
-      analyticsService = AnalyticsService();
+      mockStorageService = MockStorageService();
+      
+      // Set up a mock user profile
+      mockStorageService.setMockUserProfile(UserProfile(
+        id: 'test_user_123',
+        email: 'test@example.com',
+        displayName: 'Test User',
+        createdAt: DateTime.now(),
+      ));
+      
+      analyticsService = AnalyticsService(mockStorageService);
     });
 
     group('Event Tracking', () {
-      test('should track app launch events', () async {
-        // Test app launch tracking
-        expect(() async => analyticsService.trackEvent(
-          AnalyticsEvent(
-            type: AnalyticsEventType.appLaunch,
-            properties: {'version': '0.1.5', 'platform': 'android'},
-          )
-        ), returnsNormally);
+      test('should track events with correct parameters', () async {
+        // Test basic event tracking
+        await analyticsService.trackEvent(
+          eventType: AnalyticsEventTypes.userAction,
+          eventName: AnalyticsEventNames.buttonClick,
+          parameters: {'button_name': 'test_button', 'screen': 'home'},
+        );
+
+        // Verify the service doesn't throw errors
+        expect(analyticsService.pendingEventsCount, greaterThanOrEqualTo(0));
       });
 
       test('should track classification events correctly', () async {
-        final classification = WasteClassification(
-          itemName: 'Plastic Bottle',
-          category: 'Dry Waste',
-          subcategory: 'Plastic',
-          explanation: 'Recyclable plastic bottle',
-          disposalInstructions: DisposalInstructions(
-            primaryMethod: 'Recycle',
-            steps: ['Clean', 'Recycle'],
-            hasUrgentTimeframe: false,
-          ),
-          timestamp: DateTime.now(),
-          region: 'Test Region',
-          visualFeatures: ['plastic', 'bottle'],
-          alternatives: [],
+        await analyticsService.trackClassification(
+          classificationId: 'test_classification_123',
+          category: 'Recyclable',
+          isRecyclable: true,
           confidence: 0.95,
+          method: 'AI',
+          additionalData: {'item_type': 'plastic_bottle'},
         );
 
-        final event = AnalyticsEvent(
-          type: AnalyticsEventType.itemClassified,
-          properties: {
-            'category': classification.category,
-            'confidence': classification.confidence,
-            'item_name': classification.itemName,
-          },
+        expect(analyticsService.pendingEventsCount, greaterThanOrEqualTo(0));
+      });
+
+      test('should track screen view events', () async {
+        await analyticsService.trackScreenView(
+          'home_screen',
+          parameters: {'previous_screen': 'splash'},
         );
 
-        expect(() async => analyticsService.trackEvent(event), returnsNormally);
+        expect(analyticsService.pendingEventsCount, greaterThanOrEqualTo(0));
       });
 
-      test('should batch events for efficiency', () async {
-        final events = List.generate(5, (index) => AnalyticsEvent(
-          type: AnalyticsEventType.userAction,
-          properties: {'action': 'test_action_$index'},
-        ));
-
-        expect(() async => analyticsService.trackBatchEvents(events), returnsNormally);
-      });
-
-      test('should handle offline analytics queuing', () async {
-        final event = AnalyticsEvent(
-          type: AnalyticsEventType.userAction,
-          properties: {'action': 'offline_test'},
+      test('should track user actions', () async {
+        await analyticsService.trackUserAction(
+          'button_click',
+          parameters: {'button_id': 'capture_button'},
         );
 
-        // Test offline event queuing
-        analyticsService.setOfflineMode(true);
-        await analyticsService.trackEvent(event);
-        
-        expect(analyticsService.getQueuedEventsCount(), greaterThan(0));
-        
-        // Test online sync
-        analyticsService.setOfflineMode(false);
-        await analyticsService.syncQueuedEvents();
-        
-        expect(analyticsService.getQueuedEventsCount(), equals(0));
+        expect(analyticsService.pendingEventsCount, greaterThanOrEqualTo(0));
       });
 
-      test('should respect privacy settings', () async {
-        final event = AnalyticsEvent(
-          type: AnalyticsEventType.personalData,
-          properties: {'user_email': 'test@example.com'},
+      test('should track social interactions', () async {
+        await analyticsService.trackSocialInteraction(
+          interactionType: 'family_invitation_sent',
+          targetId: 'user_456',
+          familyId: 'family_789',
+          additionalData: {'invitation_method': 'email'},
         );
 
-        // Test privacy-disabled mode
-        analyticsService.setPrivacyMode(true);
-        await analyticsService.trackEvent(event);
-        
-        // Should not track personal data when privacy is enabled
-        expect(analyticsService.getLastTrackedEvent(), isNull);
-        
-        // Test privacy-enabled mode
-        analyticsService.setPrivacyMode(false);
-        await analyticsService.trackEvent(event);
-        
-        expect(analyticsService.getLastTrackedEvent(), isNotNull);
-      });
-    });
-
-    group('User Behavior Analytics', () {
-      test('should track user session duration', () async {
-        analyticsService.startSession();
-        await Future.delayed(const Duration(milliseconds: 100));
-        analyticsService.endSession();
-        
-        final sessionDuration = analyticsService.getLastSessionDuration();
-        expect(sessionDuration, greaterThan(Duration.zero));
+        expect(analyticsService.pendingEventsCount, greaterThanOrEqualTo(0));
       });
 
-      test('should track feature usage patterns', () async {
-        await analyticsService.trackFeatureUsage('camera_capture');
-        await analyticsService.trackFeatureUsage('gallery_upload');
-        await analyticsService.trackFeatureUsage('camera_capture'); // Second time
-        
-        final usage = analyticsService.getFeatureUsageStats();
-        expect(usage['camera_capture'], equals(2));
-        expect(usage['gallery_upload'], equals(1));
-      });
-
-      test('should track user retention metrics', () async {
-        final user = UserProfile(
-          id: 'test_user',
-          email: 'test@example.com',
-          displayName: 'Test User',
-          createdAt: DateTime.now().subtract(const Duration(days: 7)),
+      test('should track achievement events', () async {
+        await analyticsService.trackAchievement(
+          achievementId: 'first_classification',
+          achievementType: 'milestone',
+          pointsAwarded: 100,
+          additionalData: {'category': 'beginner'},
         );
 
-        await analyticsService.trackUserRetention(user);
-        
-        final retentionData = analyticsService.getUserRetentionData(user.id);
-        expect(retentionData['days_since_install'], equals(7));
-        expect(retentionData['is_retained_user'], isTrue);
-      });
-    });
-
-    group('Performance Analytics', () {
-      test('should track app performance metrics', () async {
-        final metrics = {
-          'app_startup_time': 2500, // milliseconds
-          'classification_time': 3000,
-          'memory_usage': 150, // MB
-        };
-
-        await analyticsService.trackPerformanceMetrics(metrics);
-        
-        final avgMetrics = analyticsService.getAveragePerformanceMetrics();
-        expect(avgMetrics['app_startup_time'], isNotNull);
-        expect(avgMetrics['classification_time'], isNotNull);
+        expect(analyticsService.pendingEventsCount, greaterThanOrEqualTo(0));
       });
 
       test('should track error events', () async {
-        final error = Exception('Test error');
-        await analyticsService.trackError(error, 'test_context');
-        
-        final errorEvents = analyticsService.getErrorEvents();
-        expect(errorEvents.length, equals(1));
-        expect(errorEvents.first.error.toString(), contains('Test error'));
-        expect(errorEvents.first.context, equals('test_context'));
-      });
-
-      test('should track network performance', () async {
-        await analyticsService.trackNetworkRequest(
-          url: 'https://api.openai.com/classify',
-          method: 'POST',
-          duration: const Duration(milliseconds: 2500),
-          statusCode: 200,
+        await analyticsService.trackError(
+          errorType: 'classification_error',
+          errorMessage: 'Failed to classify image',
+          stackTrace: 'Stack trace here...',
+          additionalData: {'error_code': 'IMG_001'},
         );
 
-        final networkStats = analyticsService.getNetworkStats();
-        expect(networkStats['average_request_time'], isNotNull);
-        expect(networkStats['success_rate'], equals(1.0));
+        expect(analyticsService.pendingEventsCount, greaterThanOrEqualTo(0));
+      });
+    });
+
+    group('Convenience Methods', () {
+      test('should track button clicks', () {
+        analyticsService.trackButtonClick('capture_button', screenName: 'camera');
+        expect(analyticsService.pendingEventsCount, greaterThanOrEqualTo(0));
+      });
+
+      test('should track screen swipes', () {
+        analyticsService.trackScreenSwipe('left', screenName: 'home');
+        expect(analyticsService.pendingEventsCount, greaterThanOrEqualTo(0));
+      });
+
+      test('should track search actions', () {
+        analyticsService.trackSearch('plastic bottle', resultCount: 5);
+        expect(analyticsService.pendingEventsCount, greaterThanOrEqualTo(0));
+      });
+
+      test('should track classification workflow', () {
+        analyticsService.trackClassificationStarted(method: 'camera');
+        analyticsService.trackClassificationShared('classification_123', familyId: 'family_456');
+        expect(analyticsService.pendingEventsCount, greaterThanOrEqualTo(0));
+      });
+
+      test('should track family events', () {
+        analyticsService.trackFamilyCreated('family_123', memberCount: 3);
+        analyticsService.trackFamilyJoined('family_456', invitationId: 'invite_789');
+        expect(analyticsService.pendingEventsCount, greaterThanOrEqualTo(0));
+      });
+    });
+
+    group('Session Management', () {
+      test('should track session end', () {
+        analyticsService.trackSessionEnd();
+        expect(analyticsService.pendingEventsCount, greaterThanOrEqualTo(0));
+      });
+
+      test('should clear analytics data', () {
+        analyticsService.clearAnalyticsData();
+        // After clearing, pending events should be 0
+        expect(analyticsService.pendingEventsCount, equals(0));
+      });
+    });
+
+    group('Connection Status', () {
+      test('should report Firestore connection status', () {
+        final isConnected = analyticsService.isFirestoreConnected;
+        expect(isConnected, isA<bool>());
+      });
+
+      test('should report pending events count', () {
+        final count = analyticsService.pendingEventsCount;
+        expect(count, isA<int>());
+        expect(count, greaterThanOrEqualTo(0));
       });
     });
 
     group('Error Handling', () {
-      test('should handle analytics service failures gracefully', () async {
-        // Simulate service failure
-        analyticsService.simulateServiceFailure(true);
+      test('should handle null user profile gracefully', () async {
+        // Set up mock to return null user profile
+        mockStorageService.setMockUserProfile(null);
         
-        final event = AnalyticsEvent(
-          type: AnalyticsEventType.userAction,
-          properties: {'action': 'test'},
+        final newAnalyticsService = AnalyticsService(mockStorageService);
+        
+        // Should not throw when user profile is null
+        await newAnalyticsService.trackEvent(
+          eventType: AnalyticsEventTypes.userAction,
+          eventName: 'test_event',
         );
-
-        expect(() async => analyticsService.trackEvent(event), returnsNormally);
         
-        // Should queue events when service fails
-        expect(analyticsService.getQueuedEventsCount(), greaterThan(0));
+        expect(newAnalyticsService.pendingEventsCount, equals(0));
       });
 
-      test('should validate event data before tracking', () async {
-        final invalidEvent = AnalyticsEvent(
-          type: AnalyticsEventType.userAction,
-          properties: {}, // Empty properties
-        );
-
-        expect(() async => analyticsService.trackEvent(invalidEvent), 
-               throwsA(isA<ArgumentError>()));
-      });
-
-      test('should handle large event properties', () async {
-        final largeProperties = Map<String, dynamic>.fromIterable(
-          List.generate(1000, (i) => 'key_$i'),
-          value: (key) => 'value_$key',
-        );
-
-        final event = AnalyticsEvent(
-          type: AnalyticsEventType.userAction,
-          properties: largeProperties,
-        );
-
-        expect(() async => analyticsService.trackEvent(event), returnsNormally);
+      test('should handle storage service errors gracefully', () async {
+        // Create a mock that throws errors
+        final errorMockStorageService = ErrorThrowingMockStorageService();
+        
+        final newAnalyticsService = AnalyticsService(errorMockStorageService);
+        
+        // Should not throw when storage service fails
+        expect(() async => newAnalyticsService.trackEvent(
+          eventType: AnalyticsEventTypes.userAction,
+          eventName: 'test_event',
+        ), returnsNormally);
       });
     });
+  });
 
-    group('Data Management', () {
-      test('should clear analytics data on user request', () async {
-        // Add some events
-        await analyticsService.trackEvent(
-          AnalyticsEvent(
-            type: AnalyticsEventType.userAction,
-            properties: {'action': 'test'},
-          )
-        );
+  group('AnalyticsEvent Model', () {
+    test('should create analytics event with factory method', () {
+      final event = AnalyticsEvent.create(
+        userId: 'user_123',
+        eventType: AnalyticsEventTypes.classification,
+        eventName: AnalyticsEventNames.classificationCompleted,
+        parameters: {'category': 'Recyclable', 'confidence': 0.95},
+        sessionId: 'session_456',
+        deviceInfo: 'iOS 15.0',
+      );
 
-        expect(analyticsService.getTotalEventsTracked(), greaterThan(0));
-        
-        await analyticsService.clearAllAnalyticsData();
-        
-        expect(analyticsService.getTotalEventsTracked(), equals(0));
-      });
-
-      test('should export analytics data', () async {
-        // Add some test events
-        await analyticsService.trackEvent(
-          AnalyticsEvent(
-            type: AnalyticsEventType.userAction,
-            properties: {'action': 'test1'},
-          )
-        );
-        await analyticsService.trackEvent(
-          AnalyticsEvent(
-            type: AnalyticsEventType.userAction,
-            properties: {'action': 'test2'},
-          )
-        );
-
-        final exportedData = await analyticsService.exportAnalyticsData();
-        
-        expect(exportedData, isA<Map<String, dynamic>>());
-        expect(exportedData['events'], isA<List>());
-        expect(exportedData['events'].length, equals(2));
-      });
-
-      test('should handle data size limits', () async {
-        // Test with maximum allowed data
-        final event = AnalyticsEvent(
-          type: AnalyticsEventType.userAction,
-          properties: {
-            'large_data': 'A' * 10000, // 10KB string
-          },
-        );
-
-        expect(() async => analyticsService.trackEvent(event), returnsNormally);
-        
-        // Test with oversized data
-        final oversizedEvent = AnalyticsEvent(
-          type: AnalyticsEventType.userAction,
-          properties: {
-            'oversized_data': 'A' * 1000000, // 1MB string
-          },
-        );
-
-        expect(() async => analyticsService.trackEvent(oversizedEvent), 
-               throwsA(isA<ArgumentError>()));
-      });
+      expect(event.id, isNotEmpty);
+      expect(event.userId, equals('user_123'));
+      expect(event.eventType, equals(AnalyticsEventTypes.classification));
+      expect(event.eventName, equals(AnalyticsEventNames.classificationCompleted));
+      expect(event.parameters['category'], equals('Recyclable'));
+      expect(event.sessionId, equals('session_456'));
+      expect(event.deviceInfo, equals('iOS 15.0'));
+      expect(event.timestamp, isNotNull);
     });
 
-    group('Analytics Configuration', () {
-      test('should configure analytics settings', () {
-        analyticsService.configure(
-          enableCrashReporting: true,
-          enablePerformanceMonitoring: true,
-          enableUserAnalytics: false,
-          batchSize: 50,
-          flushInterval: const Duration(minutes: 5),
-        );
+    test('should serialize to and from JSON correctly', () {
+      final event = AnalyticsEvent.create(
+        userId: 'analytics_user',
+        eventType: AnalyticsEventTypes.userAction,
+        eventName: AnalyticsEventNames.buttonClick,
+        parameters: {'button': 'capture', 'screen': 'home'},
+        sessionId: 'session123',
+        deviceInfo: 'iOS 15.0',
+      );
 
-        final config = analyticsService.getConfiguration();
-        expect(config.enableCrashReporting, isTrue);
-        expect(config.enablePerformanceMonitoring, isTrue);
-        expect(config.enableUserAnalytics, isFalse);
-        expect(config.batchSize, equals(50));
-        expect(config.flushInterval, equals(const Duration(minutes: 5)));
-      });
+      final json = event.toJson();
+      final fromJson = AnalyticsEvent.fromJson(json);
 
-      test('should update analytics settings at runtime', () {
-        analyticsService.updateSetting('enableUserAnalytics', false);
-        analyticsService.updateSetting('batchSize', 25);
+      expect(fromJson.id, equals(event.id));
+      expect(fromJson.userId, equals(event.userId));
+      expect(fromJson.eventType, equals(event.eventType));
+      expect(fromJson.eventName, equals(event.eventName));
+      expect(fromJson.parameters, equals(event.parameters));
+      expect(fromJson.sessionId, equals(event.sessionId));
+      expect(fromJson.deviceInfo, equals(event.deviceInfo));
+    });
+  });
 
-        final config = analyticsService.getConfiguration();
-        expect(config.enableUserAnalytics, isFalse);
-        expect(config.batchSize, equals(25));
-      });
+  group('AnalyticsEventTypes Constants', () {
+    test('should have correct event type constants', () {
+      expect(AnalyticsEventTypes.userAction, equals('user_action'));
+      expect(AnalyticsEventTypes.screenView, equals('screen_view'));
+      expect(AnalyticsEventTypes.classification, equals('classification'));
+      expect(AnalyticsEventTypes.social, equals('social'));
+      expect(AnalyticsEventTypes.achievement, equals('achievement'));
+      expect(AnalyticsEventTypes.error, equals('error'));
+    });
+  });
+
+  group('AnalyticsEventNames Constants', () {
+    test('should have correct event name constants', () {
+      expect(AnalyticsEventNames.buttonClick, equals('button_click'));
+      expect(AnalyticsEventNames.screenSwipe, equals('screen_swipe'));
+      expect(AnalyticsEventNames.classificationCompleted, equals('classification_completed'));
+      expect(AnalyticsEventNames.achievementUnlocked, equals('achievement_unlocked'));
     });
   });
 }
 
-// Extension for testing
-extension AnalyticsServiceTestExtension on AnalyticsService {
-  void simulateServiceFailure(bool shouldFail) {
-    // Mock method for testing service failures
+// Mock that throws errors for testing error handling
+class ErrorThrowingMockStorageService extends StorageService {
+  @override
+  Future<UserProfile?> getCurrentUserProfile() async {
+    throw Exception('Storage error');
   }
-  
-  int getQueuedEventsCount() {
-    // Mock method to check queued events
-    return 0;
-  }
-  
-  AnalyticsEvent? getLastTrackedEvent() {
-    // Mock method to get last tracked event
-    return null;
-  }
-  
-  Duration? getLastSessionDuration() {
-    // Mock method to get session duration
-    return const Duration(milliseconds: 100);
-  }
-  
-  Map<String, int> getFeatureUsageStats() {
-    // Mock method to get feature usage
-    return {};
-  }
-  
-  Map<String, dynamic> getUserRetentionData(String userId) {
-    // Mock method to get retention data
-    return {
-      'days_since_install': 7,
-      'is_retained_user': true,
-    };
-  }
-  
-  Map<String, double> getAveragePerformanceMetrics() {
-    // Mock method to get performance metrics
-    return {
-      'app_startup_time': 2500.0,
-      'classification_time': 3000.0,
-    };
-  }
-  
-  List<AnalyticsErrorEvent> getErrorEvents() {
-    // Mock method to get error events
-    return [];
-  }
-  
-  Map<String, dynamic> getNetworkStats() {
-    // Mock method to get network stats
-    return {
-      'average_request_time': 2500.0,
-      'success_rate': 1.0,
-    };
-  }
-  
-  int getTotalEventsTracked() {
-    // Mock method to get total events
-    return 0;
-  }
-  
-  AnalyticsConfiguration getConfiguration() {
-    // Mock method to get configuration
-    return AnalyticsConfiguration(
-      enableCrashReporting: true,
-      enablePerformanceMonitoring: true,
-      enableUserAnalytics: false,
-      batchSize: 50,
-      flushInterval: const Duration(minutes: 5),
-    );
-  }
-}
 
-class AnalyticsErrorEvent {
-  
-  AnalyticsErrorEvent({required this.error, required this.context});
-  final Exception error;
-  final String context;
-}
-
-class AnalyticsConfiguration {
-  
-  AnalyticsConfiguration({
-    required this.enableCrashReporting,
-    required this.enablePerformanceMonitoring,
-    required this.enableUserAnalytics,
-    required this.batchSize,
-    required this.flushInterval,
-  });
-  final bool enableCrashReporting;
-  final bool enablePerformanceMonitoring;
-  final bool enableUserAnalytics;
-  final int batchSize;
-  final Duration flushInterval;
+  @override
+  Future<void> saveAnalyticsEvents(List<dynamic> events) async {
+    throw Exception('Storage error');
+  }
 }

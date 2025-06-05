@@ -5,7 +5,7 @@ import 'package:waste_segregation_app/models/gamification.dart';
 void main() {
   group('AchievementType', () {
     test('should have all expected enum values', () {
-      expect(AchievementType.values, hasLength(19));
+      expect(AchievementType.values, hasLength(22));
       expect(AchievementType.values, contains(AchievementType.wasteIdentified));
       expect(AchievementType.values, contains(AchievementType.ecoWarrior));
       expect(AchievementType.values, contains(AchievementType.educationalContent));
@@ -64,7 +64,7 @@ void main() {
         type: AchievementType.ecoWarrior,
         threshold: 100,
         iconName: 'trophy',
-        color: Colors.gold,
+        color: const Color(0xFFDAA520), // Gold color
         isSecret: true,
         earnedOn: earnedDate,
         progress: 0.75,

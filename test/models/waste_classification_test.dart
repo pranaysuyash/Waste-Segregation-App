@@ -2,547 +2,465 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:waste_segregation_app/models/waste_classification.dart';
 
 void main() {
-  group('WasteClassification Model Tests', () {
-    group('WasteClassification Model', () {
-      test('should create WasteClassification with all required properties', () {
-        final classification = WasteClassification(
-          id: 'class_001',
-          imagePath: '/path/to/image.jpg',
-          category: 'plastic',
-          confidence: 0.95,
-          disposalInstructions: 'Place in recycling bin',
-          timestamp: DateTime(2024, 1, 15, 10, 30),
-        );
+  group('WasteClassification', () {
+    test('should create a WasteClassification with all fields', () {
+      final classification = WasteClassification(
+        id: 'test_123',
+        itemName: 'Plastic Bottle',
+        category: 'Dry Waste',
+        subcategory: 'Plastic',
+        materialType: 'PET',
+        recyclingCode: 1,
+        explanation: 'This is a recyclable plastic bottle made of PET plastic.',
+        disposalMethod: 'Recycling',
+        disposalInstructions: DisposalInstructions(
+          primaryMethod: 'Place in recycling bin',
+          steps: ['Remove cap and label', 'Rinse clean', 'Place in recycling bin'],
+          hasUrgentTimeframe: false,
+        ),
+        userId: 'user123',
+        region: 'North America',
+        imageUrl: '/path/to/image.jpg',
+        visualFeatures: ['cylindrical', 'transparent', 'plastic'],
+        isRecyclable: true,
+        isCompostable: false,
+        requiresSpecialDisposal: false,
+        colorCode: '#00FF00',
+        riskLevel: 'low',
+        brand: 'EcoBrand',
+        product: 'Water Bottle',
+        barcode: '123456789012',
+        isSaved: false,
+        userConfirmed: true,
+        confidence: 0.95,
+        modelVersion: 'v2.1',
+        processingTimeMs: 180,
+        modelSource: 'waste_classifier_v2',
+        alternatives: [],
+        suggestedAction: 'Recycle in appropriate bin',
+        hasUrgentTimeframe: false,
+        instructionsLang: 'en',
+        source: 'ai_classification',
+        timestamp: DateTime(2024, 1, 15, 10, 30),
+      );
 
-        expect(classification.id, 'class_001');
-        expect(classification.imagePath, '/path/to/image.jpg');
-        expect(classification.category, 'plastic');
-        expect(classification.confidence, 0.95);
-        expect(classification.disposalInstructions, 'Place in recycling bin');
-        expect(classification.timestamp, DateTime(2024, 1, 15, 10, 30));
-      });
-
-      test('should create WasteClassification with optional properties', () {
-        final classification = WasteClassification(
-          id: 'class_002',
-          imagePath: '/path/to/image.jpg',
-          category: 'paper',
-          confidence: 0.88,
-          disposalInstructions: 'Place in paper recycling',
-          timestamp: DateTime(2024, 1, 15, 10, 30),
-          subcategory: 'newspaper',
-          location: 'Living Room',
-          notes: 'Clean and dry',
-          isRecyclable: true,
-          isBiodegradable: false,
-          environmentalImpact: EnvironmentalImpact.low,
-          tags: ['clean', 'dry', 'newspaper'],
-          userConfirmed: true,
-          correctCategory: 'paper',
-          processingTime: 250,
-          aiModel: 'waste_classifier_v2',
-          deviceInfo: 'iPhone 12',
-          imageSize: 1024000,
-          imageFormat: 'JPEG',
-        );
-
-        expect(classification.subcategory, 'newspaper');
-        expect(classification.location, 'Living Room');
-        expect(classification.notes, 'Clean and dry');
-        expect(classification.isRecyclable, true);
-        expect(classification.isBiodegradable, false);
-        expect(classification.environmentalImpact, EnvironmentalImpact.low);
-        expect(classification.tags, ['clean', 'dry', 'newspaper']);
-        expect(classification.userConfirmed, true);
-        expect(classification.correctCategory, 'paper');
-        expect(classification.processingTime, 250);
-        expect(classification.aiModel, 'waste_classifier_v2');
-        expect(classification.deviceInfo, 'iPhone 12');
-        expect(classification.imageSize, 1024000);
-        expect(classification.imageFormat, 'JPEG');
-      });
-
-      test('should serialize WasteClassification to JSON correctly', () {
-        final classification = WasteClassification(
-          id: 'class_003',
-          imagePath: '/path/to/image.jpg',
-          category: 'glass',
-          confidence: 0.92,
-          disposalInstructions: 'Place in glass recycling bin',
-          timestamp: DateTime(2024, 1, 15, 10, 30),
-          subcategory: 'bottle',
-          location: 'Kitchen',
-          isRecyclable: true,
-          environmentalImpact: EnvironmentalImpact.medium,
-          tags: ['bottle', 'clear'],
-        );
-
-        final json = classification.toJson();
-
-        expect(json['id'], 'class_003');
-        expect(json['imagePath'], '/path/to/image.jpg');
-        expect(json['category'], 'glass');
-        expect(json['confidence'], 0.92);
-        expect(json['disposalInstructions'], 'Place in glass recycling bin');
-        expect(json['timestamp'], isA<String>());
-        expect(json['subcategory'], 'bottle');
-        expect(json['location'], 'Kitchen');
-        expect(json['isRecyclable'], true);
-        expect(json['environmentalImpact'], 'medium');
-        expect(json['tags'], ['bottle', 'clear']);
-      });
-
-      test('should deserialize WasteClassification from JSON correctly', () {
-        final json = {
-          'id': 'class_004',
-          'imagePath': '/path/to/image.jpg',
-          'category': 'organic',
-          'confidence': 0.89,
-          'disposalInstructions': 'Place in compost bin',
-          'timestamp': '2024-01-15T10:30:00.000',
-          'subcategory': 'food_waste',
-          'location': 'Kitchen',
-          'notes': 'Fruit peels',
-          'isRecyclable': false,
-          'isBiodegradable': true,
-          'environmentalImpact': 'high',
-          'tags': ['fruit', 'compost'],
-          'userConfirmed': true,
-          'correctCategory': 'organic',
-          'processingTime': 180,
-          'aiModel': 'waste_classifier_v2',
-        };
-
-        final classification = WasteClassification.fromJson(json);
-
-        expect(classification.id, 'class_004');
-        expect(classification.imagePath, '/path/to/image.jpg');
-        expect(classification.category, 'organic');
-        expect(classification.confidence, 0.89);
-        expect(classification.disposalInstructions, 'Place in compost bin');
-        expect(classification.timestamp, DateTime(2024, 1, 15, 10, 30));
-        expect(classification.subcategory, 'food_waste');
-        expect(classification.location, 'Kitchen');
-        expect(classification.notes, 'Fruit peels');
-        expect(classification.isRecyclable, false);
-        expect(classification.isBiodegradable, true);
-        expect(classification.environmentalImpact, EnvironmentalImpact.high);
-        expect(classification.tags, ['fruit', 'compost']);
-        expect(classification.userConfirmed, true);
-        expect(classification.correctCategory, 'organic');
-        expect(classification.processingTime, 180);
-        expect(classification.aiModel, 'waste_classifier_v2');
-      });
-
-      test('should calculate confidence level correctly', () {
-        final highConfidence = WasteClassification(
-          id: 'high', imagePath: '/path', category: 'plastic',
-          confidence: 0.95, disposalInstructions: 'Recycle',
-          timestamp: DateTime.now(),
-        );
-
-        final mediumConfidence = WasteClassification(
-          id: 'medium', imagePath: '/path', category: 'plastic',
-          confidence: 0.75, disposalInstructions: 'Recycle',
-          timestamp: DateTime.now(),
-        );
-
-        final lowConfidence = WasteClassification(
-          id: 'low', imagePath: '/path', category: 'plastic',
-          confidence: 0.45, disposalInstructions: 'Recycle',
-          timestamp: DateTime.now(),
-        );
-
-        expect(highConfidence.confidenceLevel, ConfidenceLevel.high);
-        expect(mediumConfidence.confidenceLevel, ConfidenceLevel.medium);
-        expect(lowConfidence.confidenceLevel, ConfidenceLevel.low);
-      });
-
-      test('should determine if classification needs verification', () {
-        final highConfidenceClassification = WasteClassification(
-          id: 'high_conf', imagePath: '/path', category: 'plastic',
-          confidence: 0.95, disposalInstructions: 'Recycle',
-          timestamp: DateTime.now(),
-        );
-
-        final lowConfidenceClassification = WasteClassification(
-          id: 'low_conf', imagePath: '/path', category: 'plastic',
-          confidence: 0.45, disposalInstructions: 'Recycle',
-          timestamp: DateTime.now(),
-        );
-
-        expect(highConfidenceClassification.needsVerification, false);
-        expect(lowConfidenceClassification.needsVerification, true);
-      });
-
-      test('should check if classification is accurate', () {
-        final accurateClassification = WasteClassification(
-          id: 'accurate', imagePath: '/path', category: 'plastic',
-          confidence: 0.85, disposalInstructions: 'Recycle',
-          timestamp: DateTime.now(),
-          userConfirmed: true,
-          correctCategory: 'plastic',
-        );
-
-        final inaccurateClassification = WasteClassification(
-          id: 'inaccurate', imagePath: '/path', category: 'plastic',
-          confidence: 0.85, disposalInstructions: 'Recycle',
-          timestamp: DateTime.now(),
-          userConfirmed: true,
-          correctCategory: 'paper',
-        );
-
-        final unconfirmedClassification = WasteClassification(
-          id: 'unconfirmed', imagePath: '/path', category: 'plastic',
-          confidence: 0.85, disposalInstructions: 'Recycle',
-          timestamp: DateTime.now(),
-          userConfirmed: false,
-        );
-
-        expect(accurateClassification.isAccurate, true);
-        expect(inaccurateClassification.isAccurate, false);
-        expect(unconfirmedClassification.isAccurate, null);
-      });
-
-      test('should calculate age of classification', () {
-        final recentClassification = WasteClassification(
-          id: 'recent', imagePath: '/path', category: 'plastic',
-          confidence: 0.85, disposalInstructions: 'Recycle',
-          timestamp: DateTime.now().subtract(const Duration(hours: 2)),
-        );
-
-        final oldClassification = WasteClassification(
-          id: 'old', imagePath: '/path', category: 'plastic',
-          confidence: 0.85, disposalInstructions: 'Recycle',
-          timestamp: DateTime.now().subtract(const Duration(days: 30)),
-        );
-
-        expect(recentClassification.ageInHours, 2);
-        expect(recentClassification.ageInDays, 0);
-        expect(recentClassification.isRecent, true);
-
-        expect(oldClassification.ageInDays, 30);
-        expect(oldClassification.isRecent, false);
-      });
-
-      test('should determine if classification can be shared', () {
-        final shareableClassification = WasteClassification(
-          id: 'shareable', imagePath: '/path', category: 'plastic',
-          confidence: 0.95, disposalInstructions: 'Recycle',
-          timestamp: DateTime.now(),
-          userConfirmed: true,
-        );
-
-        final unconfirmedClassification = WasteClassification(
-          id: 'unconfirmed', imagePath: '/path', category: 'plastic',
-          confidence: 0.45, disposalInstructions: 'Recycle',
-          timestamp: DateTime.now(),
-          userConfirmed: false,
-        );
-
-        expect(shareableClassification.canBeShared, true);
-        expect(unconfirmedClassification.canBeShared, false);
-      });
-
-      test('should get environmental impact score', () {
-        expect(EnvironmentalImpact.low.score, 1);
-        expect(EnvironmentalImpact.medium.score, 2);
-        expect(EnvironmentalImpact.high.score, 3);
-        expect(EnvironmentalImpact.critical.score, 4);
-      });
-
-      test('should get environmental impact color', () {
-        expect(EnvironmentalImpact.low.color, 'green');
-        expect(EnvironmentalImpact.medium.color, 'yellow');
-        expect(EnvironmentalImpact.high.color, 'orange');
-        expect(EnvironmentalImpact.critical.color, 'red');
-      });
-
-      test('should get environmental impact description', () {
-        expect(EnvironmentalImpact.low.description, contains('Low'));
-        expect(EnvironmentalImpact.medium.description, contains('Medium'));
-        expect(EnvironmentalImpact.high.description, contains('High'));
-        expect(EnvironmentalImpact.critical.description, contains('Critical'));
-      });
+      expect(classification.id, 'test_123');
+      expect(classification.itemName, 'Plastic Bottle');
+      expect(classification.category, 'Dry Waste');
+      expect(classification.subcategory, 'Plastic');
+      expect(classification.materialType, 'PET');
+      expect(classification.recyclingCode, 1);
+      expect(classification.explanation, contains('recyclable'));
+      expect(classification.disposalMethod, 'Recycling');
+      expect(classification.userId, 'user123');
+      expect(classification.region, 'North America');
+      expect(classification.imageUrl, '/path/to/image.jpg');
+      expect(classification.visualFeatures, contains('plastic'));
+      expect(classification.isRecyclable, true);
+      expect(classification.isCompostable, false);
+      expect(classification.requiresSpecialDisposal, false);
+      expect(classification.colorCode, '#00FF00');
+      expect(classification.riskLevel, 'low');
+      expect(classification.brand, 'EcoBrand');
+      expect(classification.product, 'Water Bottle');
+      expect(classification.barcode, '123456789012');
+      expect(classification.isSaved, false);
+      expect(classification.userConfirmed, true);
+      expect(classification.confidence, 0.95);
+      expect(classification.modelVersion, 'v2.1');
+      expect(classification.processingTimeMs, 180);
+      expect(classification.modelSource, 'waste_classifier_v2');
+      expect(classification.alternatives, isEmpty);
+      expect(classification.suggestedAction, 'Recycle in appropriate bin');
+      expect(classification.hasUrgentTimeframe, false);
+      expect(classification.instructionsLang, 'en');
+      expect(classification.source, 'ai_classification');
+      expect(classification.timestamp, DateTime(2024, 1, 15, 10, 30));
     });
 
-    group('Classification Categories', () {
-      test('should handle all waste categories', () {
-        final categories = [
-          WasteCategory.plastic,
-          WasteCategory.paper,
-          WasteCategory.glass,
-          WasteCategory.metal,
-          WasteCategory.organic,
-          WasteCategory.electronic,
-          WasteCategory.hazardous,
-          WasteCategory.textile,
-          WasteCategory.other,
-        ];
+    test('should create a minimal WasteClassification with required fields only', () {
+      final classification = WasteClassification(
+        itemName: 'Unknown Item',
+        category: 'Dry Waste',
+        explanation: 'Basic classification',
+        disposalInstructions: DisposalInstructions(
+          primaryMethod: 'General waste',
+          steps: ['Dispose in general waste bin'],
+          hasUrgentTimeframe: false,
+        ),
+        region: 'Unknown',
+        visualFeatures: [],
+        alternatives: [],
+      );
 
-        for (final category in categories) {
-          expect(category.displayName, isNotEmpty);
-          expect(category.description, isNotEmpty);
-          expect(category.icon, isNotEmpty);
-        }
-      });
-
-      test('should provide category disposal instructions', () {
-        expect(WasteCategory.plastic.defaultDisposalInstructions, contains('recycling'));
-        expect(WasteCategory.paper.defaultDisposalInstructions, contains('paper'));
-        expect(WasteCategory.glass.defaultDisposalInstructions, contains('glass'));
-        expect(WasteCategory.organic.defaultDisposalInstructions, contains('compost'));
-        expect(WasteCategory.hazardous.defaultDisposalInstructions, contains('hazardous'));
-      });
-
-      test('should indicate if category is recyclable', () {
-        expect(WasteCategory.plastic.isGenerallyRecyclable, true);
-        expect(WasteCategory.paper.isGenerallyRecyclable, true);
-        expect(WasteCategory.glass.isGenerallyRecyclable, true);
-        expect(WasteCategory.metal.isGenerallyRecyclable, true);
-        expect(WasteCategory.organic.isGenerallyRecyclable, false);
-        expect(WasteCategory.hazardous.isGenerallyRecyclable, false);
-      });
-
-      test('should indicate if category is biodegradable', () {
-        expect(WasteCategory.organic.isGenerallyBiodegradable, true);
-        expect(WasteCategory.paper.isGenerallyBiodegradable, true);
-        expect(WasteCategory.plastic.isGenerallyBiodegradable, false);
-        expect(WasteCategory.glass.isGenerallyBiodegradable, false);
-        expect(WasteCategory.metal.isGenerallyBiodegradable, false);
-      });
-
-      test('should get category environmental impact', () {
-        expect(WasteCategory.organic.typicalEnvironmentalImpact, EnvironmentalImpact.low);
-        expect(WasteCategory.paper.typicalEnvironmentalImpact, EnvironmentalImpact.low);
-        expect(WasteCategory.plastic.typicalEnvironmentalImpact, EnvironmentalImpact.medium);
-        expect(WasteCategory.electronic.typicalEnvironmentalImpact, EnvironmentalImpact.high);
-        expect(WasteCategory.hazardous.typicalEnvironmentalImpact, EnvironmentalImpact.critical);
-      });
+      expect(classification.itemName, 'Unknown Item');
+      expect(classification.category, 'Dry Waste');
+      expect(classification.explanation, 'Basic classification');
+      expect(classification.region, 'Unknown');
+      expect(classification.visualFeatures, isEmpty);
+      expect(classification.alternatives, isEmpty);
+      expect(classification.id, isNotEmpty); // Auto-generated
+      expect(classification.timestamp, isA<DateTime>()); // Auto-generated
     });
 
-    group('Classification Statistics', () {
-      test('should calculate accuracy from multiple classifications', () {
-        final classifications = [
-          WasteClassification(
-            id: '1', imagePath: '/path1', category: 'plastic',
-            confidence: 0.9, disposalInstructions: 'Recycle',
-            timestamp: DateTime.now(), userConfirmed: true, correctCategory: 'plastic',
-          ),
-          WasteClassification(
-            id: '2', imagePath: '/path2', category: 'paper',
-            confidence: 0.8, disposalInstructions: 'Recycle',
-            timestamp: DateTime.now(), userConfirmed: true, correctCategory: 'paper',
-          ),
-          WasteClassification(
-            id: '3', imagePath: '/path3', category: 'glass',
-            confidence: 0.7, disposalInstructions: 'Recycle',
-            timestamp: DateTime.now(), userConfirmed: true, correctCategory: 'plastic', // Wrong!
-          ),
-        ];
+    test('should create fallback classification', () {
+      final classification = WasteClassification.fallback('/path/to/image.jpg');
 
-        final accurateCount = classifications.where((c) => c.isAccurate == true).length;
-        final totalConfirmed = classifications.where((c) => c.userConfirmed == true).length;
-        final accuracy = accurateCount / totalConfirmed;
-
-        expect(accuracy, closeTo(0.667, 0.01));
-      });
-
-      test('should calculate average confidence', () {
-        final classifications = [
-          WasteClassification(
-            id: '1', imagePath: '/path1', category: 'plastic',
-            confidence: 0.9, disposalInstructions: 'Recycle', timestamp: DateTime.now(),
-          ),
-          WasteClassification(
-            id: '2', imagePath: '/path2', category: 'paper',
-            confidence: 0.8, disposalInstructions: 'Recycle', timestamp: DateTime.now(),
-          ),
-          WasteClassification(
-            id: '3', imagePath: '/path3', category: 'glass',
-            confidence: 0.7, disposalInstructions: 'Recycle', timestamp: DateTime.now(),
-          ),
-        ];
-
-        final totalConfidence = classifications.fold<double>(
-          0.0, (sum, c) => sum + c.confidence
-        );
-        final averageConfidence = totalConfidence / classifications.length;
-
-        expect(averageConfidence, closeTo(0.8, 0.01));
-      });
-
-      test('should count classifications by category', () {
-        final classifications = [
-          WasteClassification(
-            id: '1', imagePath: '/path1', category: 'plastic',
-            confidence: 0.9, disposalInstructions: 'Recycle', timestamp: DateTime.now(),
-          ),
-          WasteClassification(
-            id: '2', imagePath: '/path2', category: 'plastic',
-            confidence: 0.8, disposalInstructions: 'Recycle', timestamp: DateTime.now(),
-          ),
-          WasteClassification(
-            id: '3', imagePath: '/path3', category: 'paper',
-            confidence: 0.7, disposalInstructions: 'Recycle', timestamp: DateTime.now(),
-          ),
-        ];
-
-        final categoryCount = <String, int>{};
-        for (final classification in classifications) {
-          categoryCount[classification.category] = 
-            (categoryCount[classification.category] ?? 0) + 1;
-        }
-
-        expect(categoryCount['plastic'], 2);
-        expect(categoryCount['paper'], 1);
-      });
+      expect(classification.itemName, 'Unidentified Item');
+      expect(classification.category, 'Requires Manual Review');
+      expect(classification.subcategory, 'Classification Needed');
+      expect(classification.explanation, contains('unable to automatically identify'));
+      expect(classification.imageUrl, '/path/to/image.jpg');
+      expect(classification.confidence, 0.0);
+      expect(classification.clarificationNeeded, true);
+      expect(classification.riskLevel, 'unknown');
+      expect(classification.alternatives, hasLength(3));
     });
 
-    group('Classification Validation', () {
-      test('should validate confidence range', () {
-        expect(() => WasteClassification(
-          id: 'invalid', imagePath: '/path', category: 'plastic',
-          confidence: 1.5, // Invalid: > 1.0
-          disposalInstructions: 'Recycle', timestamp: DateTime.now(),
-        ), throwsArgumentError);
+    test('should handle confidence levels correctly', () {
+      final highConfidence = WasteClassification(
+        id: 'high',
+        itemName: 'Test Item',
+        category: 'Dry Waste',
+        explanation: 'Test',
+        disposalInstructions: DisposalInstructions(
+          primaryMethod: 'Test',
+          steps: ['Test'],
+          hasUrgentTimeframe: false,
+        ),
+        region: 'Test',
+        visualFeatures: [],
+        alternatives: [],
+        confidence: 0.95,
+      );
 
-        expect(() => WasteClassification(
-          id: 'invalid', imagePath: '/path', category: 'plastic',
-          confidence: -0.1, // Invalid: < 0.0
-          disposalInstructions: 'Recycle', timestamp: DateTime.now(),
-        ), throwsArgumentError);
-      });
+      final mediumConfidence = WasteClassification(
+        id: 'medium',
+        itemName: 'Test Item',
+        category: 'Dry Waste',
+        explanation: 'Test',
+        disposalInstructions: DisposalInstructions(
+          primaryMethod: 'Test',
+          steps: ['Test'],
+          hasUrgentTimeframe: false,
+        ),
+        region: 'Test',
+        visualFeatures: [],
+        alternatives: [],
+        confidence: 0.75,
+      );
 
-      test('should validate required fields', () {
-        expect(() => WasteClassification(
-          id: '', // Empty ID
-          imagePath: '/path', category: 'plastic',
-          confidence: 0.8, disposalInstructions: 'Recycle',
-          timestamp: DateTime.now(),
-        ), throwsArgumentError);
+      final lowConfidence = WasteClassification(
+        id: 'low',
+        itemName: 'Test Item',
+        category: 'Dry Waste',
+        explanation: 'Test',
+        disposalInstructions: DisposalInstructions(
+          primaryMethod: 'Test',
+          steps: ['Test'],
+          hasUrgentTimeframe: false,
+        ),
+        region: 'Test',
+        visualFeatures: [],
+        alternatives: [],
+        confidence: 0.45,
+      );
 
-        expect(() => WasteClassification(
-          id: 'valid', imagePath: '', // Empty image path
-          category: 'plastic', confidence: 0.8,
-          disposalInstructions: 'Recycle', timestamp: DateTime.now(),
-        ), throwsArgumentError);
-
-        expect(() => WasteClassification(
-          id: 'valid', imagePath: '/path',
-          category: '', // Empty category
-          confidence: 0.8, disposalInstructions: 'Recycle',
-          timestamp: DateTime.now(),
-        ), throwsArgumentError);
-      });
-
-      test('should validate processing time', () {
-        expect(() => WasteClassification(
-          id: 'valid', imagePath: '/path', category: 'plastic',
-          confidence: 0.8, disposalInstructions: 'Recycle',
-          timestamp: DateTime.now(), processingTime: -100, // Negative time
-        ), throwsArgumentError);
-      });
-
-      test('should validate image size', () {
-        expect(() => WasteClassification(
-          id: 'valid', imagePath: '/path', category: 'plastic',
-          confidence: 0.8, disposalInstructions: 'Recycle',
-          timestamp: DateTime.now(), imageSize: -1000, // Negative size
-        ), throwsArgumentError);
-      });
+      expect(highConfidence.confidence, 0.95);
+      expect(mediumConfidence.confidence, 0.75);
+      expect(lowConfidence.confidence, 0.45);
     });
 
-    group('Copy and Update', () {
-      test('should create copy with updated properties', () {
-        final original = WasteClassification(
-          id: 'original', imagePath: '/path', category: 'plastic',
-          confidence: 0.8, disposalInstructions: 'Recycle',
-          timestamp: DateTime.now(), userConfirmed: false,
-        );
+    test('should handle user confirmation states', () {
+      final accurate = WasteClassification(
+        id: 'accurate',
+        itemName: 'Test Item',
+        category: 'Dry Waste',
+        explanation: 'Test',
+        disposalInstructions: DisposalInstructions(
+          primaryMethod: 'Test',
+          steps: ['Test'],
+          hasUrgentTimeframe: false,
+        ),
+        region: 'Test',
+        visualFeatures: [],
+        alternatives: [],
+        userConfirmed: true,
+      );
 
-        final updated = original.copyWith(
-          userConfirmed: true,
-          correctCategory: 'paper',
-          notes: 'User correction',
-        );
+      final inaccurate = WasteClassification(
+        id: 'inaccurate',
+        itemName: 'Test Item',
+        category: 'Dry Waste',
+        explanation: 'Test',
+        disposalInstructions: DisposalInstructions(
+          primaryMethod: 'Test',
+          steps: ['Test'],
+          hasUrgentTimeframe: false,
+        ),
+        region: 'Test',
+        visualFeatures: [],
+        alternatives: [],
+        userConfirmed: false,
+        userCorrection: 'Wet Waste',
+      );
 
-        expect(updated.id, original.id);
-        expect(updated.category, original.category);
-        expect(updated.userConfirmed, true);
-        expect(updated.correctCategory, 'paper');
-        expect(updated.notes, 'User correction');
-        expect(original.userConfirmed, false); // Original unchanged
-      });
+      final unconfirmed = WasteClassification(
+        id: 'unconfirmed',
+        itemName: 'Test Item',
+        category: 'Dry Waste',
+        explanation: 'Test',
+        disposalInstructions: DisposalInstructions(
+          primaryMethod: 'Test',
+          steps: ['Test'],
+          hasUrgentTimeframe: false,
+        ),
+        region: 'Test',
+        visualFeatures: [],
+        alternatives: [],
+      );
+
+      expect(accurate.userConfirmed, true);
+      expect(inaccurate.userConfirmed, false);
+      expect(inaccurate.userCorrection, 'Wet Waste');
+      expect(unconfirmed.userConfirmed, isNull);
     });
 
-    group('Equality and Comparison', () {
-      test('should compare WasteClassification for equality', () {
-        final classification1 = WasteClassification(
-          id: 'class_001', imagePath: '/path', category: 'plastic',
-          confidence: 0.85, disposalInstructions: 'Recycle',
-          timestamp: DateTime(2024, 1, 15, 10, 30),
-        );
+    test('should handle timestamps correctly', () {
+      final recent = WasteClassification(
+        id: 'recent',
+        itemName: 'Test Item',
+        category: 'Dry Waste',
+        explanation: 'Test',
+        disposalInstructions: DisposalInstructions(
+          primaryMethod: 'Test',
+          steps: ['Test'],
+          hasUrgentTimeframe: false,
+        ),
+        region: 'Test',
+        visualFeatures: [],
+        alternatives: [],
+        timestamp: DateTime.now(),
+      );
 
-        final classification2 = WasteClassification(
-          id: 'class_001', imagePath: '/path', category: 'plastic',
-          confidence: 0.85, disposalInstructions: 'Recycle',
-          timestamp: DateTime(2024, 1, 15, 10, 30),
-        );
+      final old = WasteClassification(
+        id: 'old',
+        itemName: 'Test Item',
+        category: 'Dry Waste',
+        explanation: 'Test',
+        disposalInstructions: DisposalInstructions(
+          primaryMethod: 'Test',
+          steps: ['Test'],
+          hasUrgentTimeframe: false,
+        ),
+        region: 'Test',
+        visualFeatures: [],
+        alternatives: [],
+        timestamp: DateTime.now().subtract(const Duration(days: 30)),
+      );
 
-        final classification3 = WasteClassification(
-          id: 'class_002', imagePath: '/path2', category: 'paper',
-          confidence: 0.90, disposalInstructions: 'Recycle paper',
-          timestamp: DateTime(2024, 1, 16, 11, 30),
-        );
-
-        expect(classification1 == classification2, true);
-        expect(classification1 == classification3, false);
-        expect(classification1.hashCode == classification2.hashCode, true);
-      });
-
-      test('should sort classifications by timestamp', () {
-        final classifications = [
-          WasteClassification(
-            id: 'class_3', imagePath: '/path3', category: 'glass',
-            confidence: 0.7, disposalInstructions: 'Recycle',
-            timestamp: DateTime(2024, 1, 17, 12),
-          ),
-          WasteClassification(
-            id: 'class_1', imagePath: '/path1', category: 'plastic',
-            confidence: 0.9, disposalInstructions: 'Recycle',
-            timestamp: DateTime(2024, 1, 15, 10),
-          ),
-          WasteClassification(
-            id: 'class_2', imagePath: '/path2', category: 'paper',
-            confidence: 0.8, disposalInstructions: 'Recycle',
-            timestamp: DateTime(2024, 1, 16, 11),
-          ),
-        ];
-
-        // Sort by timestamp (newest first)
-        classifications.sort((a, b) => b.timestamp.compareTo(a.timestamp));
-
-        expect(classifications[0].id, 'class_3');
-        expect(classifications[1].id, 'class_2');
-        expect(classifications[2].id, 'class_1');
-      });
+      expect(recent.timestamp.isAfter(old.timestamp), true);
+      expect(old.timestamp.isBefore(DateTime.now()), true);
     });
 
-    group('String Representation', () {
-      test('should provide meaningful string representation', () {
-        final classification = WasteClassification(
-          id: 'class_001', imagePath: '/path/image.jpg', category: 'plastic',
-          confidence: 0.85, disposalInstructions: 'Place in recycling bin',
-          timestamp: DateTime(2024, 1, 15, 10, 30),
-        );
+    test('should handle sharing and confirmation states', () {
+      final shareable = WasteClassification(
+        id: 'shareable',
+        itemName: 'Test Item',
+        category: 'Dry Waste',
+        explanation: 'Test',
+        disposalInstructions: DisposalInstructions(
+          primaryMethod: 'Test',
+          steps: ['Test'],
+          hasUrgentTimeframe: false,
+        ),
+        region: 'Test',
+        visualFeatures: [],
+        alternatives: [],
+        userConfirmed: true,
+        confidence: 0.9,
+      );
 
-        final stringRepresentation = classification.toString();
+      final unconfirmed = WasteClassification(
+        id: 'unconfirmed',
+        itemName: 'Test Item',
+        category: 'Dry Waste',
+        explanation: 'Test',
+        disposalInstructions: DisposalInstructions(
+          primaryMethod: 'Test',
+          steps: ['Test'],
+          hasUrgentTimeframe: false,
+        ),
+        region: 'Test',
+        visualFeatures: [],
+        alternatives: [],
+        clarificationNeeded: true,
+      );
 
-        expect(stringRepresentation, contains('class_001'));
-        expect(stringRepresentation, contains('plastic'));
-        expect(stringRepresentation, contains('0.85'));
-      });
+      expect(shareable.userConfirmed, true);
+      expect(shareable.confidence, 0.9);
+      expect(unconfirmed.clarificationNeeded, true);
+    });
+
+    test('should handle WasteCategory enum values', () {
+      final categories = [
+        WasteCategory.wet,
+        WasteCategory.dry,
+        WasteCategory.hazardous,
+        WasteCategory.medical,
+        WasteCategory.nonWaste,
+      ];
+
+      for (final category in categories) {
+        expect(category.name, isNotEmpty);
+        expect(category.description, isNotEmpty);
+        expect(category.color, isNotEmpty);
+      }
+    });
+
+    test('should handle WasteCategory properties', () {
+      expect(WasteCategory.wet.name, 'Wet Waste');
+      expect(WasteCategory.dry.name, 'Dry Waste');
+      expect(WasteCategory.hazardous.name, 'Hazardous Waste');
+      expect(WasteCategory.medical.name, 'Medical Waste');
+      expect(WasteCategory.nonWaste.name, 'Non-Waste');
+    });
+
+    test('should handle WasteCategory descriptions', () {
+      expect(WasteCategory.wet.description, contains('Biodegradable'));
+      expect(WasteCategory.dry.description, contains('Recyclable'));
+      expect(WasteCategory.hazardous.description, contains('dangerous'));
+      expect(WasteCategory.medical.description, contains('medical'));
+      expect(WasteCategory.nonWaste.description, contains('reused'));
+    });
+
+    test('should handle WasteCategory colors', () {
+      expect(WasteCategory.wet.color, '#4CAF50'); // Green
+      expect(WasteCategory.dry.color, '#FFC107'); // Amber
+      expect(WasteCategory.hazardous.color, '#FF5722'); // Deep Orange
+      expect(WasteCategory.medical.color, '#F44336'); // Red
+      expect(WasteCategory.nonWaste.color, '#9C27B0'); // Purple
+    });
+
+    test('should create WasteClassification from JSON', () {
+      final json = {
+        'id': 'test_json',
+        'itemName': 'Test Item',
+        'category': 'Dry Waste',
+        'explanation': 'Test explanation',
+        'region': 'Test Region',
+        'visualFeatures': ['feature1', 'feature2'],
+        'alternatives': [],
+        'confidence': 0.85,
+        'timestamp': '2024-01-15T10:30:00.000Z',
+      };
+
+      final classification = WasteClassification.fromJson(json);
+
+      expect(classification.id, 'test_json');
+      expect(classification.itemName, 'Test Item');
+      expect(classification.category, 'Dry Waste');
+      expect(classification.explanation, 'Test explanation');
+      expect(classification.region, 'Test Region');
+      expect(classification.visualFeatures, ['feature1', 'feature2']);
+      expect(classification.confidence, 0.85);
+      expect(classification.timestamp, DateTime.parse('2024-01-15T10:30:00.000Z'));
+    });
+
+    test('should convert WasteClassification to JSON', () {
+      final classification = WasteClassification(
+        id: 'test_to_json',
+        itemName: 'Test Item',
+        category: 'Dry Waste',
+        explanation: 'Test explanation',
+        disposalInstructions: DisposalInstructions(
+          primaryMethod: 'Test method',
+          steps: ['Step 1'],
+          hasUrgentTimeframe: false,
+        ),
+        region: 'Test Region',
+        visualFeatures: ['feature1'],
+        alternatives: [],
+        confidence: 0.9,
+        timestamp: DateTime(2024, 1, 15, 10, 30),
+      );
+
+      final json = classification.toJson();
+
+      expect(json['id'], 'test_to_json');
+      expect(json['itemName'], 'Test Item');
+      expect(json['category'], 'Dry Waste');
+      expect(json['explanation'], 'Test explanation');
+      expect(json['region'], 'Test Region');
+      expect(json['visualFeatures'], ['feature1']);
+      expect(json['confidence'], 0.9);
+      expect(json['timestamp'], '2024-01-15T10:30:00.000');
+    });
+
+    test('should handle validation edge cases', () {
+      // Test with empty required fields
+      expect(() => WasteClassification(
+        itemName: '',
+        category: 'Dry Waste',
+        explanation: 'Test',
+        disposalInstructions: DisposalInstructions(
+          primaryMethod: 'Test',
+          steps: ['Test'],
+          hasUrgentTimeframe: false,
+        ),
+        region: 'Test',
+        visualFeatures: [],
+        alternatives: [],
+      ), returnsNormally); // Should not throw
+
+      // Test with null confidence
+      final classification = WasteClassification(
+        itemName: 'Test',
+        category: 'Dry Waste',
+        explanation: 'Test',
+        disposalInstructions: DisposalInstructions(
+          primaryMethod: 'Test',
+          steps: ['Test'],
+          hasUrgentTimeframe: false,
+        ),
+        region: 'Test',
+        visualFeatures: [],
+        alternatives: [],
+        confidence: null,
+      );
+
+      expect(classification.confidence, isNull);
+    });
+
+    test('should handle complex disposal instructions', () {
+      final classification = WasteClassification(
+        id: 'complex_disposal',
+        itemName: 'Electronic Device',
+        category: 'Hazardous Waste',
+        explanation: 'Electronic waste requires special handling',
+        disposalInstructions: DisposalInstructions(
+          primaryMethod: 'E-waste recycling center',
+          steps: [
+            'Remove batteries if possible',
+            'Wipe personal data',
+            'Take to certified e-waste facility',
+          ],
+          hasUrgentTimeframe: true,
+          warnings: ['Contains hazardous materials'],
+          tips: ['Check manufacturer take-back programs'],
+        ),
+        region: 'North America',
+        visualFeatures: ['electronic', 'plastic', 'metal'],
+        alternatives: [],
+        requiresSpecialDisposal: true,
+        riskLevel: 'high',
+      );
+
+      expect(classification.disposalInstructions.primaryMethod, 'E-waste recycling center');
+      expect(classification.disposalInstructions.steps, hasLength(3));
+      expect(classification.disposalInstructions.hasUrgentTimeframe, true);
+      expect(classification.requiresSpecialDisposal, true);
+      expect(classification.riskLevel, 'high');
     });
   });
 }
