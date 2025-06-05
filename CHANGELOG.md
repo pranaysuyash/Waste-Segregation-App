@@ -2,7 +2,17 @@
 
 All notable changes to the Waste Segregation App will be documented in this file.
 
-## [0.1.6+100] - $(date +'%Y-%m-%d')
+## [0.1.6+101] - 2025-01-04
+
+### 🛠️ Performance Optimizations
+- **Service Instantiation Optimization**: Optimized `CloudStorageService` to use singleton pattern for `GamificationService` instances instead of creating new instances repeatedly
+  - Added `_gamificationService` as a class field using `late final` initialization
+  - Replaced repeated `GamificationService(_localStorageService, this)` instantiations with reusable field
+  - Added error handling for gamification processing to prevent failures from affecting classification saves
+  - Improves performance by eliminating redundant service instantiation overhead
+  - Follows dependency injection best practices for better resource management
+
+## [0.1.6+100] - 2025-01-04
 
 ### Fixed
 - **Gamification Points Reset**: Resolved an issue where users' gamification points and profile would reset upon logging in with Google Sign-In. The sign-in process now correctly fetches the existing `UserProfile` (including `GamificationProfile`) from Firestore before creating or updating the local profile. This ensures that the authoritative cloud data is prioritized, preventing data loss.
