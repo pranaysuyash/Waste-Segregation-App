@@ -22,6 +22,7 @@ import 'educational_content_screen.dart';
 import 'achievements_screen.dart';
 import 'waste_dashboard_screen.dart';
 import 'settings_screen.dart';
+import 'profile_screen.dart';
 import 'social_screen.dart';
 import 'disposal_facilities_screen.dart';
 
@@ -561,7 +562,7 @@ class _ModernHomeScreenState extends State<ModernHomeScreen> with TickerProvider
                 case 'profile':
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => const SettingsScreen()),
+                    MaterialPageRoute(builder: (context) => const ProfileScreen()),
                   );
                   break;
                 case 'help':

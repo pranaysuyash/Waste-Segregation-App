@@ -434,6 +434,25 @@ class GamificationService {
     debugPrint('✨ Points added: $pointsToAdd for $action. New total: $newTotal. Level: $newLevel');
     return newPoints;
   }
+
+  /// Ensure points reflect the number of classifications recorded.
+  /// If classifications exceed points earned, award the missing points.
+  Future<void> syncClassificationPoints() async {
+    try {
+      // Get all classifications for the current user
+      final classifications = await _storageService.getAllClassifications();
+      final expected = classifications.length * (_pointValues['classification'] ?? 10);
+
+      final profile = await getProfile();
+      if (profile.points.total < expected) {
+        final diff = expected - profile.points.total;
+        debugPrint('🎮 SYNC: awarding $diff retroactive points');
+        await _addPointsInternal('classification_sync', customPoints: diff);
+      }
+    } catch (e) {
+      debugPrint('🔥 SYNC ERROR: $e');
+    }
+  }
   
   // Process a waste classification for gamification
   // Returns a list of completed challenges
