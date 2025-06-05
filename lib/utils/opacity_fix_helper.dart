@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 
-/// Helper extension to replace deprecated withOpacity calls
+/// Helper extension providing a stable API for adjusting opacity.
 extension ColorOpacityFix on Color {
-  /// Modern replacement for deprecated withOpacity
+  /// Wraps [Color.withOpacity] so calls remain consistent across the codebase.
   Color withOpacityFixed(double opacity) {
     return withOpacity(opacity);
   }
