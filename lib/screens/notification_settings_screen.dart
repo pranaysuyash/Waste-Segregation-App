@@ -40,9 +40,9 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
     final settings = await storage.getSettings();
     await storage.saveSettings(
       isDarkMode: settings['isDarkMode'] ?? false,
-      isGoogleSyncEnabled: settings['isGoogleSyncEnabled'] ?? true,
-      allowHistoryFeedback: settings['allowHistoryFeedback'],
-      feedbackTimeframeDays: settings['feedbackTimeframeDays'],
+      isGoogleSyncEnabled: settings['isGoogleSyncEnabled'] ?? false,
+      allowHistoryFeedback: settings['allowHistoryFeedback'] ?? true,
+      feedbackTimeframeDays: settings['feedbackTimeframeDays'] ?? 7,
       notifications: _notificationsEnabled,
       eduNotifications: _educationalEnabled,
       gamificationNotifications: _gamificationEnabled,
