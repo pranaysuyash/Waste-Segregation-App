@@ -8,6 +8,7 @@ import '../models/waste_classification.dart';
 import '../utils/constants.dart';
 import '../utils/image_utils.dart';
 import '../services/cache_service.dart';
+import 'enhanced_image_service.dart';
 import 'package:uuid/uuid.dart';
 
 /// Service for analyzing waste items using AI models (OpenAI and Gemini).
@@ -341,13 +342,17 @@ Output:
     final analysisRegion = region ?? defaultRegion;
     final analysisLang = instructionsLang ?? defaultLanguage;
 
+    // Ensure image is stored permanently before analysis
+    final permanentPath = await EnhancedImageService().saveFilePermanently(imageFile);
+    final permanentFile = File(permanentPath);
+
     // Generate a new classification ID if not provided (for initial call)
     final currentClassificationId = classificationId ?? const Uuid().v4();
 
     try {
       // Check cache if enabled
       if (cachingEnabled) {
-        imageHash = await ImageUtils.generateImageHash(imageFile.readAsBytesSync()); // Use sync to prevent async issues here
+        imageHash = await ImageUtils.generateImageHash(permanentFile.readAsBytesSync()); // Use sync to prevent async issues here
         debugPrint('Generated perceptual hash for mobile image: $imageHash');
 
         final cachedResult = await cacheService.getCachedClassification(
@@ -365,8 +370,8 @@ Output:
       // Try OpenAI first with compression
       try {
         final result = await _analyzeWithOpenAI(
-          await imageFile.readAsBytes(), // Read bytes here
-          imageFile.path.split('/').last, // Use file name
+          await permanentFile.readAsBytes(), // Read bytes here
+          permanentFile.path, // Use permanent path
           analysisRegion,
           analysisLang,
           imageHash,
@@ -382,8 +387,8 @@ Output:
             retryCount >= maxRetries) {
           debugPrint('🔄 Switching to Gemini due to image size or OpenAI failure');
           final result = await _analyzeWithGemini(
-            await imageFile.readAsBytes(), // Read bytes here
-            imageFile.path.split('/').last, // Use file name
+            await permanentFile.readAsBytes(), // Read bytes here
+            permanentFile.path, // Use permanent path
             analysisRegion,
             analysisLang,
             imageHash,
@@ -397,7 +402,7 @@ Output:
           final waitTime = Duration(milliseconds: 500 * pow(2, retryCount).toInt());
           await Future.delayed(waitTime);
           return analyzeImage(
-            imageFile,
+            permanentFile,
             retryCount: retryCount + 1,
             maxRetries: maxRetries,
             region: region,
@@ -412,7 +417,7 @@ Output:
       debugPrint('❌ All analysis methods failed: $e');
       // Ensure fallback also uses the consistent ID
       return WasteClassification.fallback(
-        imageFile.path.split('/').last,
+        permanentFile.path,
         id: currentClassificationId,
       );
     }
@@ -444,12 +449,19 @@ Output:
       // Ensure WasteClassification.fallback sets clarificationNeeded = true and handles an optional reason.
       // If WasteClassification.fallback doesn't support a 'reason' parameter, it might need adjustment,
       // or this call simplified. For now, assuming it can take it or ignore it.
+      final savedImagePath = await EnhancedImageService()
+          .saveImagePermanently(imageBytes, fileName: imageName);
       return WasteClassification.fallback(
-        imageName,
+        savedImagePath,
         id: currentClassificationId,
         // reason: 'Input image data was empty.', // Add reason if supported by fallback
       );
     }
+
+    // Persist the image first so that the resulting classification can
+    // reference a permanent file path instead of a temporary name.
+    final savedImagePath = await EnhancedImageService()
+        .saveImagePermanently(imageBytes, fileName: imageName);
 
     try {
       // Check cache if enabled
@@ -473,7 +485,7 @@ Output:
       try {
         final result = await _analyzeWithOpenAI(
           imageBytes,
-          imageName,
+          savedImagePath,
           analysisRegion,
           analysisLang,
           imageHash,
@@ -490,7 +502,7 @@ Output:
           debugPrint('🔄 Switching to Gemini due to image size or OpenAI failure');
           final result = await _analyzeWithGemini(
             imageBytes,
-            imageName,
+            savedImagePath,
             analysisRegion,
             analysisLang,
             imageHash,
@@ -505,7 +517,7 @@ Output:
           await Future.delayed(waitTime);
           return analyzeWebImage(
             imageBytes,
-            imageName,
+            savedImagePath,
             retryCount: retryCount + 1,
             maxRetries: maxRetries,
             region: region,
@@ -537,10 +549,12 @@ Output:
     String? instructionsLang,
     String? classificationId,
   }) async {
-    final imageBytes = await imageFile.readAsBytes();
+    final permanentPath = await EnhancedImageService().saveFilePermanently(imageFile);
+    final permanentFile = File(permanentPath);
+    final imageBytes = await permanentFile.readAsBytes();
     return _analyzeImageSegmentsInternal(
       imageBytes,
-      imageFile.path.split('/').last,
+      permanentFile.path,
       segments,
       region: region,
       instructionsLang: instructionsLang,
@@ -560,9 +574,11 @@ Output:
     String? instructionsLang,
     String? classificationId,
   }) async {
+    final savedPath = await EnhancedImageService()
+        .saveImagePermanently(imageBytes, fileName: imageName);
     return _analyzeImageSegmentsInternal(
       imageBytes,
-      imageName,
+      savedPath,
       segments,
       region: region,
       instructionsLang: instructionsLang,

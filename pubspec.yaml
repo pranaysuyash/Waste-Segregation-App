@@ -17,6 +17,7 @@ dependencies:
   image_picker_for_web: ^3.0.1
   camera: ^0.10.5+5
   path_provider: ^2.1.1
+  path: ^1.9.0
   # google_sign_in upgraded in Firebase section to ensure compatibility
   googleapis: ^13.2.0
   googleapis_auth: ^1.6.0 # Added for Google API authentication
