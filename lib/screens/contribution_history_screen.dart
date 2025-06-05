@@ -479,8 +479,6 @@ class _ContributionHistoryScreenState extends State<ContributionHistoryScreen> {
         return Colors.red;
       case ContributionStatus.needsMoreInfo:
         return Colors.blue;
-      default:
-        return Colors.grey;
     }
   }
 
@@ -494,8 +492,7 @@ class _ContributionHistoryScreenState extends State<ContributionHistoryScreen> {
         return 'Rejected';
       case ContributionStatus.needsMoreInfo:
         return 'Needs More Info';
-      default:
-        return 'Unknown';
+
     }
   }
 
@@ -509,8 +506,7 @@ class _ContributionHistoryScreenState extends State<ContributionHistoryScreen> {
         return Icons.cancel;
       case ContributionStatus.needsMoreInfo:
         return Icons.info_outline;
-      default:
-        return Icons.help_outline;
+
     }
   }
 

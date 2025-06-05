@@ -239,8 +239,6 @@ class CommunityService {
         return (metadata['milestonePoints'] as int?) ?? 30;
       case CommunityActivityType.educational:
         return (metadata['contentPoints'] as int?) ?? 5;
-      default:
-        return 0;
     }
   }
 

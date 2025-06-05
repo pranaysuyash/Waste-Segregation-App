@@ -74,8 +74,6 @@ class _ContributionSubmissionScreenState extends State<ContributionSubmissionScr
         case ContributionType.otherCorrection:
           // No additional initialization needed for other correction
           break;
-        default:
-          break;
       }
     }
   }
