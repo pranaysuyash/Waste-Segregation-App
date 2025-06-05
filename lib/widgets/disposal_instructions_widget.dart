@@ -86,11 +86,15 @@ class _DisposalInstructionsWidgetState extends State<DisposalInstructionsWidget>
                               size: 16,
                             ),
                             const SizedBox(width: 4),
-                            Text(
-                              widget.instructions.timeframe!,
-                              style: const TextStyle(
-                                fontSize: AppTheme.fontSizeSmall,
-                                color: Colors.white70,
+                            Expanded(
+                              child: Text(
+                                widget.instructions.timeframe!,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(
+                                  fontSize: AppTheme.fontSizeSmall,
+                                  color: Colors.white70,
+                                ),
                               ),
                             ),
                           ],
@@ -99,25 +103,31 @@ class _DisposalInstructionsWidgetState extends State<DisposalInstructionsWidget>
                     ],
                   ),
                 ),
-                if (widget.instructions.estimatedTime != null)
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 4,
-                    ),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha:0.2),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Text(
-                      widget.instructions.estimatedTime!,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 12,
-                        fontWeight: FontWeight.w500,
+                if (widget.instructions.estimatedTime != null) ...[
+                  const SizedBox(width: 8),
+                  Flexible(
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha:0.2),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Text(
+                        widget.instructions.estimatedTime!,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w500,
+                        ),
                       ),
                     ),
                   ),
+                ],
               ],
             ),
           ),
@@ -188,12 +198,14 @@ class _DisposalInstructionsWidgetState extends State<DisposalInstructionsWidget>
                 size: 20,
               ),
               const SizedBox(width: 8),
-              Text(
-                'Safety Warnings',
-                style: TextStyle(
-                  fontSize: AppTheme.fontSizeMedium,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.red.shade800,
+              Expanded(
+                child: Text(
+                  'Safety Warnings',
+                  style: TextStyle(
+                    fontSize: AppTheme.fontSizeMedium,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.red.shade800,
+                  ),
                 ),
               ),
             ],
@@ -315,12 +327,14 @@ class _DisposalInstructionsWidgetState extends State<DisposalInstructionsWidget>
                 size: 20,
               ),
               const SizedBox(width: 8),
-              Text(
-                'Helpful Tips',
-                style: TextStyle(
-                  fontSize: AppTheme.fontSizeMedium,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.blue.shade800,
+              Expanded(
+                child: Text(
+                  'Helpful Tips',
+                  style: TextStyle(
+                    fontSize: AppTheme.fontSizeMedium,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.blue.shade800,
+                  ),
                 ),
               ),
             ],
@@ -378,12 +392,14 @@ class _DisposalInstructionsWidgetState extends State<DisposalInstructionsWidget>
                 size: 20,
               ),
               const SizedBox(width: 8),
-              Text(
-                'Recycling Information',
-                style: TextStyle(
-                  fontSize: AppTheme.fontSizeMedium,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.green.shade800,
+              Expanded(
+                child: Text(
+                  'Recycling Information',
+                  style: TextStyle(
+                    fontSize: AppTheme.fontSizeMedium,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.green.shade800,
+                  ),
                 ),
               ),
             ],
@@ -423,12 +439,14 @@ class _DisposalInstructionsWidgetState extends State<DisposalInstructionsWidget>
                 size: 20,
               ),
               const SizedBox(width: 8),
-              Text(
-                'Where to Dispose',
-                style: TextStyle(
-                  fontSize: AppTheme.fontSizeMedium,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.orange.shade800,
+              Expanded(
+                child: Text(
+                  'Where to Dispose',
+                  style: TextStyle(
+                    fontSize: AppTheme.fontSizeMedium,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.orange.shade800,
+                  ),
                 ),
               ),
             ],

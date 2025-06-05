@@ -107,5 +107,88 @@ void main() {
       expect(textWidget.overflow, TextOverflow.ellipsis);
       expect(textWidget.maxLines, 3); // As per implementation
     });
+
+    testWidgets('Header row with estimatedTime and long content does not overflow', (WidgetTester tester) async {
+      const longPrimaryMethod = 'This is an extremely long primary disposal method that should definitely overflow the available space and demonstrate the ellipsis truncation at the end of the text block with additional content.';
+      const longTimeframe = 'Within 24-48 hours during business days excluding weekends and holidays';
+      const longEstimatedTime = 'Approximately 2-3 hours including preparation time';
+      
+      final instructions = createMockDisposalInstructions(
+        primaryMethod: longPrimaryMethod,
+        timeframe: longTimeframe,
+        estimatedTime: longEstimatedTime,
+        hasUrgentTimeframe: true,
+      );
+
+      // Test with constrained width to force overflow scenario
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: SizedBox(
+              width: 350, // Narrow width to test overflow
+              child: SingleChildScrollView(
+                child: DisposalInstructionsWidget(instructions: instructions),
+              ),
+            ),
+          ),
+        ),
+      );
+
+      await tester.pumpAndSettle();
+
+      // Verify no overflow errors
+      expect(tester.takeException(), isNull, reason: 'Header row should not overflow with estimatedTime');
+      
+      // Verify the widget is rendered
+      expect(find.byType(DisposalInstructionsWidget), findsOneWidget);
+      
+      // Verify estimated time is displayed
+      expect(find.text(longEstimatedTime), findsOneWidget);
+    });
+
+    testWidgets('Very narrow screen with all content types does not overflow', (WidgetTester tester) async {
+      final instructions = createMockDisposalInstructions(
+        primaryMethod: 'Very long primary disposal method with extensive details',
+        timeframe: 'Immediately within 24 hours',
+        estimatedTime: '2-3 hours',
+        hasUrgentTimeframe: true,
+        warnings: ['Very long warning message that could cause overflow issues'],
+        tips: ['Very long tip that provides extensive guidance'],
+        recyclingInfo: 'Detailed recycling information with extensive guidelines',
+        location: 'Specific location with detailed address information',
+        steps: [
+          'Very detailed first step with comprehensive instructions',
+          'Second step with additional safety considerations',
+          'Final step with environmental impact details',
+        ],
+      );
+
+      // Test with very narrow width
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: SizedBox(
+              width: 280, // Very narrow width
+              child: SingleChildScrollView(
+                child: DisposalInstructionsWidget(instructions: instructions),
+              ),
+            ),
+          ),
+        ),
+      );
+
+      await tester.pumpAndSettle();
+
+      // Verify no overflow errors
+      expect(tester.takeException(), isNull, reason: 'Very narrow screen should not cause overflow');
+      
+      // Verify all sections are rendered
+      expect(find.byType(DisposalInstructionsWidget), findsOneWidget);
+      expect(find.text('Safety Warnings'), findsOneWidget);
+      expect(find.text('Steps to Follow'), findsOneWidget);
+      expect(find.text('Helpful Tips'), findsOneWidget);
+      expect(find.text('Recycling Information'), findsOneWidget);
+      expect(find.text('Where to Dispose'), findsOneWidget);
+    });
   });
 }
