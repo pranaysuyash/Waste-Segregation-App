@@ -750,7 +750,7 @@ class _FamilyDashboardScreenState extends State<FamilyDashboardScreen> {
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Text('Enter family invitation ID or family ID:'),
+              const Text('Enter family invitation ID (recommended) or family ID (direct join):'),
               const SizedBox(height: AppTheme.paddingRegular),
               TextField(
                 controller: inviteController,
