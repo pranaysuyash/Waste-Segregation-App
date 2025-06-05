@@ -177,7 +177,7 @@ class CloudStorageService {
         'disposalMethod': classification.disposalMethod,
         'recyclingCode': classification.recyclingCode,
         'timestamp': FieldValue.serverTimestamp(),
-        'appVersion': '0.1.5+97', // Current app version
+        'appVersion': '0.1.6+98', // Current app version
         'hashedUserId': _hashUserId(classification.userId!), // One-way hash for privacy
         'region': 'India', // General location for regional insights
         'language': 'en', // App language used
@@ -211,7 +211,7 @@ class CloudStorageService {
           .set({
         'lastBackup': FieldValue.serverTimestamp(),
         'classificationCount': FieldValue.increment(1),
-        'appVersion': '0.1.5+97',
+        'appVersion': '0.1.6+98',
       }, SetOptions(merge: true));
 
       debugPrint('🔄 ✅ Recovery metadata updated for user');

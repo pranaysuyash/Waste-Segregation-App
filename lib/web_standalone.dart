@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart' show debugPrint, kDebugMode;
 import 'package:provider/provider.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'services/storage_service.dart';
@@ -11,7 +12,9 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   
   try {
-    debugPrint('🌐 Initializing Web Standalone Mode...'); // TODO: Remove or guard for production
+    if (kDebugMode) {
+      debugPrint('🌐 Initializing Web Standalone Mode...');
+    }
     
     // Initialize Hive for web
     await Hive.initFlutter();
@@ -22,7 +25,9 @@ void main() async {
     await Hive.openBox<String>(StorageKeys.gamificationBox);
     await Hive.openBox<String>(StorageKeys.settingsBox);
     
-    debugPrint('✅ Hive initialized successfully'); // TODO: Remove or guard for production
+    if (kDebugMode) {
+      debugPrint('✅ Hive initialized successfully');
+    }
     
     // Initialize storage service
     final storageService = StorageService();
@@ -38,7 +43,9 @@ void main() async {
       ),
     );
   } catch (e) {
-    debugPrint('❌ Error initializing web app: $e'); // TODO: Remove or guard for production
+    if (kDebugMode) {
+      debugPrint('❌ Error initializing web app: $e');
+    }
     // Use the Flutter runApp function
     runApp(
       MaterialApp(
