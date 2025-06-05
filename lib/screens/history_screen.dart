@@ -100,6 +100,8 @@ class _HistoryScreenState extends State<HistoryScreen> {
   
   // Load classifications with current filters
   Future<void> _loadClassifications() async {
+    if (!mounted) return;
+    
     setState(() {
       _isLoading = true;
       _currentPage = 0;
@@ -134,6 +136,8 @@ class _HistoryScreenState extends State<HistoryScreen> {
             )
           : <WasteClassification>[];
       
+      if (!mounted) return;
+      
       setState(() {
         _classifications = pageClassifications;
         _hasMorePages = endIndex < filteredClassifications.length;
@@ -141,17 +145,21 @@ class _HistoryScreenState extends State<HistoryScreen> {
       
       debugPrint('📊 History: Loaded ${pageClassifications.length} classifications (Google sync: $isGoogleSyncEnabled)');
     } catch (e) {
-      _showErrorSnackBar('Failed to load classifications: $e');
+      if (mounted) {
+        _showErrorSnackBar('Failed to load classifications: $e');
+      }
     } finally {
-      setState(() {
-        _isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
     }
   }
   
   // Load more classifications for pagination
   Future<void> _loadMoreClassifications() async {
-    if (_isLoadingMore || !_hasMorePages) return;
+    if (_isLoadingMore || !_hasMorePages || !mounted) return;
     
     setState(() {
       _isLoadingMore = true;
@@ -168,6 +176,8 @@ class _HistoryScreenState extends State<HistoryScreen> {
         page: nextPage,
       );
       
+      if (!mounted) return;
+      
       if (moreClassifications.isNotEmpty) {
         setState(() {
           _classifications.addAll(moreClassifications);
@@ -180,11 +190,15 @@ class _HistoryScreenState extends State<HistoryScreen> {
         });
       }
     } catch (e) {
-      _showErrorSnackBar('Failed to load more classifications: $e');
+      if (mounted) {
+        _showErrorSnackBar('Failed to load more classifications: $e');
+      }
     } finally {
-      setState(() {
-        _isLoadingMore = false;
-      });
+      if (mounted) {
+        setState(() {
+          _isLoadingMore = false;
+        });
+      }
     }
   }
   
@@ -451,6 +465,8 @@ class _HistoryScreenState extends State<HistoryScreen> {
   
   // Export classifications to CSV
   Future<void> _exportToCSV() async {
+    if (!mounted) return;
+    
     try {
       setState(() {
         _isLoading = true;
@@ -461,6 +477,8 @@ class _HistoryScreenState extends State<HistoryScreen> {
         filterOptions: _filterOptions,
       );
       
+      if (!mounted) return;
+      
       // Share the CSV file
       final directory = await _getTempDirectory();
       final filePath = '${directory.path}/waste_classifications_${DateTime.now().millisecondsSinceEpoch}.csv';
@@ -468,13 +486,15 @@ class _HistoryScreenState extends State<HistoryScreen> {
       final file = File(filePath);
       await file.writeAsString(csvContent);
       
+      if (!mounted) return;
+      
       // Share the file
+      final result = await Share.shareXFiles(
+        [XFile(filePath)],
+        subject: 'Waste Classifications Export',
+      );
+      
       if (mounted) {
-        final result = await Share.shareXFiles(
-          [XFile(filePath)],
-          subject: 'Waste Classifications Export',
-        );
-        
         if (result.status == ShareResultStatus.success) {
           _showSuccessSnackBar('Export successful');
         } else {
@@ -482,11 +502,15 @@ class _HistoryScreenState extends State<HistoryScreen> {
         }
       }
     } catch (e) {
-      _showErrorSnackBar('Failed to export classifications: $e');
+      if (mounted) {
+        _showErrorSnackBar('Failed to export classifications: $e');
+      }
     } finally {
-      setState(() {
-        _isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
     }
   }
   
