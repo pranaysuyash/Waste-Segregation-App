@@ -11,7 +11,7 @@ Before you begin, ensure you have the following installed:
 - **Android Studio** (for Android development) or **Xcode** (for iOS development)
 - **Git**: For version control
 - **Firebase CLI**: For Firebase configuration (optional, only if using Firebase)
-- **Kotlin**: Version 2.0.0 or higher (for Android development)
+- **Kotlin**: Version 1.9.10 (recommended) or higher (for Android development)
 
 ## Setting Up the Development Environment
 
@@ -75,10 +75,10 @@ API keys for Firebase services are managed through the `lib/firebase_options.dar
 
 #### Android Build Notes
 
-* **Kotlin Version**: The app requires Kotlin 2.0.0+ to build properly due to Firebase and Google Play Services dependencies
+* **Kotlin Version**: The app uses Kotlin 1.9.10 for compatibility with Firebase and Google Play Services
 * If you encounter Kotlin version errors, update the following files:
-  * In `android/build.gradle`, set `ext.kotlin_version = '2.0.0'`
-  * In `android/settings.gradle`, set `id "org.jetbrains.kotlin.android" version "2.0.0" apply false`
+  * In `android/build.gradle`, set `ext.kotlin_version = '1.9.10'`
+  * In `android/settings.gradle`, set `id "org.jetbrains.kotlin.android" version "1.9.10" apply false`
 
 ### For iOS
 
@@ -159,10 +159,10 @@ flutter pub get
 **Solution**:
 ```bash
 # Update Kotlin version in android/build.gradle
-# Change ext.kotlin_version to '2.0.0'
+# Change ext.kotlin_version to '1.9.10'
 
 # Update Kotlin version in android/settings.gradle
-# Change org.jetbrains.kotlin.android version to '2.0.0'
+# Change org.jetbrains.kotlin.android version to '1.9.10'
 ```
 
 ### Web Platform Issues
@@ -274,6 +274,8 @@ If you encounter any issues during the build process, please check the following
    ```bash
    flutter run -v
    ```
+
+5. **Kotlin Version**: Verify that your environment is using Kotlin 1.9.10
 
 For any additional issues, please refer to the developer documentation or create an issue in the GitHub repository.
 
