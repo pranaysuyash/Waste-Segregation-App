@@ -25,22 +25,28 @@ void main() {
       };
 
       testClassification = WasteClassification(
-        id: 'test_id',
+        id: 'test-id',
         itemName: 'Test Item',
         category: 'Dry Waste',
-        subcategory: 'Plastic',
-        confidence: 0.85,
-        timestamp: DateTime.now(),
+        subcategory: 'Paper',
+        explanation: 'This is a test item for classification feedback testing.',
         disposalInstructions: DisposalInstructions(
-          primaryMethod: 'Recycle',
-          steps: ['Clean item', 'Place in recycling bin'],
-          timeframe: 'Weekly collection',
-          location: 'Blue bin',
+          primaryMethod: 'Recycle in paper bin',
+          steps: ['Remove any plastic components', 'Place in recycling bin'],
           hasUrgentTimeframe: false,
         ),
-        explanation: 'This appears to be a plastic bottle.',
-        imageUrl: 'test_image_url',
-        source: 'ai',
+        region: 'Test Region',
+        visualFeatures: ['paper', 'white', 'rectangular'],
+        alternatives: [
+          AlternativeClassification(
+            category: 'Wet Waste',
+            subcategory: 'Compostable',
+            confidence: 0.2,
+            reason: 'Could be compostable if organic',
+          ),
+        ],
+        confidence: 0.85,
+        timestamp: DateTime.now(),
       );
     });
 
@@ -76,8 +82,8 @@ void main() {
 
         expect(find.text('Your feedback helps train our AI model to be more accurate.'), findsOneWidget);
         expect(find.text('Is this classification correct?'), findsOneWidget);
-        expect(find.text('Yes, correct'), findsOneWidget);
-        expect(find.text('No, incorrect'), findsOneWidget);
+        expect(find.text('Yes'), findsOneWidget);
+        expect(find.text('No'), findsOneWidget);
       });
 
       testWidgets('should display classification details', (tester) async {
@@ -124,7 +130,7 @@ void main() {
       testWidgets('should handle correct confirmation in full mode', (tester) async {
         await tester.pumpWidget(createTestWidget());
 
-        await tester.tap(find.text('Yes, correct'));
+        await tester.tap(find.text('Yes'));
         await tester.pumpAndSettle();
 
         await tester.tap(find.text('Submit Feedback'));
@@ -137,7 +143,7 @@ void main() {
       testWidgets('should handle incorrect confirmation in full mode', (tester) async {
         await tester.pumpWidget(createTestWidget());
 
-        await tester.tap(find.text('No, incorrect'));
+        await tester.tap(find.text('No'));
         await tester.pumpAndSettle();
 
         expect(find.text('What should the correct classification be?'), findsOneWidget);
@@ -149,13 +155,13 @@ void main() {
         await tester.pumpWidget(createTestWidget());
 
         // Select incorrect first
-        await tester.tap(find.text('No, incorrect'));
+        await tester.tap(find.text('No'));
         await tester.pumpAndSettle();
 
         expect(find.text('What should the correct classification be?'), findsOneWidget);
 
         // Switch back to correct
-        await tester.tap(find.text('Yes, correct'));
+        await tester.tap(find.text('Yes'));
         await tester.pumpAndSettle();
 
         expect(find.text('What should the correct classification be?'), findsNothing);
@@ -203,7 +209,7 @@ void main() {
       testWidgets('should handle custom correction option', (tester) async {
         await tester.pumpWidget(createTestWidget());
 
-        await tester.tap(find.text('No, incorrect'));
+        await tester.tap(find.text('No'));
         await tester.pumpAndSettle();
 
         await tester.tap(find.text('Custom correction...'));
@@ -216,7 +222,7 @@ void main() {
       testWidgets('should handle custom correction input', (tester) async {
         await tester.pumpWidget(createTestWidget());
 
-        await tester.tap(find.text('No, incorrect'));
+        await tester.tap(find.text('No'));
         await tester.pumpAndSettle();
 
         await tester.tap(find.text('Custom correction...'));
@@ -240,7 +246,7 @@ void main() {
       testWidgets('should clear custom correction when selecting predefined option', (tester) async {
         await tester.pumpWidget(createTestWidget());
 
-        await tester.tap(find.text('No, incorrect'));
+        await tester.tap(find.text('No'));
         await tester.pumpAndSettle();
 
         // First select custom correction
@@ -271,7 +277,7 @@ void main() {
           noteText,
         );
 
-        await tester.tap(find.text('Yes, correct'));
+        await tester.tap(find.text('Yes'));
         await tester.pumpAndSettle();
 
         await tester.tap(find.text('Submit Feedback'));
@@ -284,7 +290,7 @@ void main() {
       testWidgets('should handle empty notes gracefully', (tester) async {
         await tester.pumpWidget(createTestWidget());
 
-        await tester.tap(find.text('Yes, correct'));
+        await tester.tap(find.text('Yes'));
         await tester.pumpAndSettle();
 
         await tester.tap(find.text('Submit Feedback'));
@@ -303,7 +309,7 @@ void main() {
           noteText,
         );
 
-        await tester.tap(find.text('Yes, correct'));
+        await tester.tap(find.text('Yes'));
         await tester.pumpAndSettle();
 
         await tester.tap(find.text('Submit Feedback'));
@@ -472,7 +478,7 @@ void main() {
       testWidgets('should submit feedback with all required information', (tester) async {
         await tester.pumpWidget(createTestWidget());
 
-        await tester.tap(find.text('No, incorrect'));
+        await tester.tap(find.text('No'));
         await tester.pumpAndSettle();
 
         await tester.tap(find.text('Hazardous Waste'));
@@ -520,7 +526,7 @@ void main() {
       testWidgets('should handle feedback submission without correction', (tester) async {
         await tester.pumpWidget(createTestWidget());
 
-        await tester.tap(find.text('Yes, correct'));
+        await tester.tap(find.text('Yes'));
         await tester.pumpAndSettle();
 
         await tester.tap(find.text('Submit Feedback'));
@@ -662,7 +668,7 @@ void main() {
         await tester.pumpWidget(createTestWidget());
 
         // Should be able to navigate through form elements
-        await tester.tap(find.text('No, incorrect'));
+        await tester.tap(find.text('No'));
         await tester.pumpAndSettle();
 
         // Focus should work on interactive elements
@@ -677,10 +683,17 @@ void main() {
           id: 'test_id',
           itemName: 'Test Item',
           category: 'Unknown',
+          explanation: 'Test explanation',
+          disposalInstructions: DisposalInstructions(
+            primaryMethod: 'Test disposal',
+            steps: ['Test step'],
+            hasUrgentTimeframe: false,
+          ),
+          region: 'Test Region',
+          visualFeatures: [],
+          alternatives: [],
           confidence: 0.5,
           timestamp: DateTime.now(),
-          imageUrl: 'test_url',
-          source: 'ai',
         );
 
         await tester.pumpWidget(createTestWidget(
@@ -737,7 +750,7 @@ void main() {
       testWidgets('should handle empty custom correction submission', (tester) async {
         await tester.pumpWidget(createTestWidget());
 
-        await tester.tap(find.text('No, incorrect'));
+        await tester.tap(find.text('No'));
         await tester.pumpAndSettle();
 
         await tester.tap(find.text('Custom correction...'));

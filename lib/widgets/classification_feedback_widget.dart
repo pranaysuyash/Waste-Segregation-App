@@ -598,7 +598,7 @@ class _ClassificationFeedbackWidgetState extends State<ClassificationFeedbackWid
                     children: [
                       Expanded(
                         child: RadioListTile<bool>(
-                          title: const Text('Yes, correct'),
+                          title: const Text('Yes'),
                           value: true,
                           groupValue: _userConfirmed,
                           onChanged: (value) {
@@ -613,7 +613,7 @@ class _ClassificationFeedbackWidgetState extends State<ClassificationFeedbackWid
                       ),
                       Expanded(
                         child: RadioListTile<bool>(
-                          title: const Text('No, incorrect'),
+                          title: const Text('No'),
                           value: false,
                           groupValue: _userConfirmed,
                           onChanged: (value) {
