@@ -339,6 +339,8 @@ class _HistoryScreenState extends State<HistoryScreen> {
                       }).toList(),
                     ),
                     const SizedBox(height: 16),
+                    const Divider(),
+                    const SizedBox(height: 12),
                     const Text(
                       'Date Range',
                       style: TextStyle(
@@ -368,6 +370,8 @@ class _HistoryScreenState extends State<HistoryScreen> {
                       ],
                     ),
                     const SizedBox(height: 16),
+                    const Divider(),
+                    const SizedBox(height: 12),
                     const Text(
                       'Sorting',
                       style: TextStyle(

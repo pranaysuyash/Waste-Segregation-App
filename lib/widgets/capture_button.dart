@@ -26,9 +26,28 @@ class CaptureButton extends StatefulWidget {
 }
 
 class _CaptureButtonState extends State<CaptureButton> {
+  bool _isPressed = false;
+
   void _handlePress() {
-    // Simple handler that just calls the provided callback
     widget.onPressed();
+  }
+
+  void _onTapDown(TapDownDetails details) {
+    setState(() {
+      _isPressed = true;
+    });
+  }
+
+  void _onTapUp(TapUpDetails details) {
+    setState(() {
+      _isPressed = false;
+    });
+  }
+
+  void _onTapCancel() {
+    setState(() {
+      _isPressed = false;
+    });
   }
 
   @override
@@ -92,38 +111,47 @@ class _CaptureButtonState extends State<CaptureButton> {
         label: semanticLabel,
         button: true,
         enabled: !widget.isLoading,
-        child: ElevatedButton.icon(
-          onPressed: widget.isLoading ? null : _handlePress,
-          style: ElevatedButton.styleFrom(
-            backgroundColor: color,
-            foregroundColor: Colors.white,
-            padding: const EdgeInsets.symmetric(
-              vertical: AppTheme.paddingRegular,
-            ),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(AppTheme.borderRadiusRegular),
-            ),
-          ),
-          icon: widget.isLoading
-              ? const SizedBox(
-                  width: 20,
-                  height: 20,
-                  child: CircularProgressIndicator(
-                    color: Colors.white,
-                    strokeWidth: 2.0,
-                  ),
-                )
-              : Semantics(
-                  excludeSemantics: true, // Exclude icon from semantics since button has label
-                  child: Icon(icon),
+        child: GestureDetector(
+          onTapDown: _onTapDown,
+          onTapUp: _onTapUp,
+          onTapCancel: _onTapCancel,
+          child: AnimatedScale(
+            duration: const Duration(milliseconds: 100),
+            scale: _isPressed ? 0.95 : 1.0,
+            child: ElevatedButton.icon(
+              onPressed: widget.isLoading ? null : _handlePress,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: color,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(
+                  vertical: AppTheme.paddingRegular,
                 ),
-          label: Text(
-            widget.isLoading && widget.type == CaptureButtonType.analyze
-                ? AppStrings.analyzing
-                : label,
-            style: const TextStyle(
-              fontSize: AppTheme.fontSizeMedium,
-              fontWeight: FontWeight.bold,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(AppTheme.borderRadiusRegular),
+                ),
+              ),
+              icon: widget.isLoading
+                  ? const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(
+                        color: Colors.white,
+                        strokeWidth: 2.0,
+                      ),
+                    )
+                  : Semantics(
+                      excludeSemantics: true,
+                      child: Icon(icon),
+                    ),
+              label: Text(
+                widget.isLoading && widget.type == CaptureButtonType.analyze
+                    ? AppStrings.analyzing
+                    : label,
+                style: const TextStyle(
+                  fontSize: AppTheme.fontSizeMedium,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
             ),
           ),
         ),
