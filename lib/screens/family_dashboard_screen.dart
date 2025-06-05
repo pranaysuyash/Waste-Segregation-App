@@ -755,7 +755,7 @@ class _FamilyDashboardScreenState extends State<FamilyDashboardScreen> {
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Text('Enter family invitation ID or family ID:'),
+              const Text('Enter family invitation ID (recommended) or family ID (direct join):'),
               const SizedBox(height: AppTheme.paddingRegular),
               TextField(
                 controller: inviteController,
@@ -798,17 +798,34 @@ class _FamilyDashboardScreenState extends State<FamilyDashboardScreen> {
                 try {
                   final storageService = Provider.of<StorageService>(context, listen: false);
                   final currentUser = await storageService.getCurrentUserProfile();
-                  
+
                   if (currentUser == null) {
                     throw Exception('User not found. Please sign in again.');
                   }
 
-                  // Try to accept the invitation
-                  await _familyService.acceptInvitation(inviteId, currentUser.id);
-                  
+                  // Determine if the entered ID is a direct family ID
+                  final existingFamily = await _familyService.getFamily(inviteId);
+                  if (existingFamily != null) {
+                    // Check if user is already a member
+                    final isAlreadyMember = existingFamily.members
+                        .any((member) => member.userId == currentUser.id);
+                    if (isAlreadyMember) {
+                      throw Exception('You are already a member of this family.');
+                    }
+                    // Join family directly
+                    await _familyService.addMember(
+                      inviteId,
+                      currentUser.id,
+                      user_profile_models.UserRole.member,
+                    );
+                  } else {
+                    // Otherwise attempt to accept an invitation
+                    await _familyService.acceptInvitation(inviteId, currentUser.id);
+                  }
+
                   navigator.pop();
                   await _initializeFamilyData(); // Refresh the family data
-                  
+
                   if (mounted) {
                     scaffoldMessenger.showSnackBar(
                       const SnackBar(
