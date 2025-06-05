@@ -348,14 +348,6 @@ Output:
     // Generate a new classification ID if not provided (for initial call)
     final currentClassificationId = classificationId ?? const Uuid().v4();
 
-    // 🔍 API KEY VALIDATION: Check if API keys are properly loaded
-    debugPrint('🔑 API KEY VALIDATION:');
-    debugPrint('🔑 OpenAI API Key: ${ApiConfig.openAiApiKey.length > 10 ? "${ApiConfig.openAiApiKey.substring(0, 10)}..." : "MISSING"}');
-    debugPrint('🔑 Gemini API Key: ${ApiConfig.apiKey.length > 10 ? "${ApiConfig.apiKey.substring(0, 10)}..." : "MISSING"}');
-    debugPrint('🔑 Primary Model: ${ApiConfig.primaryModel}');
-    debugPrint('🔑 Secondary Model: ${ApiConfig.secondaryModel1}');
-    debugPrint('🔑 Gemini Model: ${ApiConfig.geminiModel}');
-
     // ✅ OPTIMIZATION: Use singleton instance with error handling
     final File permanentFile;
     try {
@@ -728,14 +720,6 @@ Output:
       body: jsonEncode(requestBody),
     );
 
-    // 🔍 ENHANCED API CALL LOGGING
-    debugPrint('🌐 API CALL DETAILS:');
-    debugPrint('🌐 URL: ${ApiConfig.openAiBaseUrl}/chat/completions');
-    debugPrint('🌐 Request body size: ${jsonEncode(requestBody).length} characters');
-    debugPrint('🌐 Response status: ${response.statusCode}');
-    debugPrint('🌐 Response headers: ${response.headers}');
-    debugPrint('🌐 Response body size: ${response.body.length} characters');
-
     // Enhanced error handling with detailed logging
     if (response.statusCode == 200) {
       debugPrint('✅ OpenAI API Success');
@@ -1094,27 +1078,11 @@ Output:
         if (choice['message'] != null && choice['message']['content'] != null) {
           final String content = choice['message']['content'];
           
-          // 🔍 ENHANCED DEBUGGING: Log the raw AI response
-          debugPrint('🤖 RAW AI RESPONSE:');
-          debugPrint('📝 Content length: ${content.length} characters');
-          debugPrint('📝 First 500 chars: ${content.length > 500 ? content.substring(0, 500) + "..." : content}');
-          
           final jsonString = _cleanJsonString(content);
-          
-          // 🔍 ENHANCED DEBUGGING: Log the cleaned JSON string
-          debugPrint('🧹 CLEANED JSON STRING:');
-          debugPrint('📝 Cleaned length: ${jsonString.length} characters');
-          debugPrint('📝 Cleaned content: ${jsonString.length > 1000 ? jsonString.substring(0, 1000) + "..." : jsonString}');
 
           Map<String, dynamic> jsonContent;
           try {
             jsonContent = jsonDecode(jsonString);
-            
-            // 🔍 ENHANCED DEBUGGING: Log successful parsing
-            debugPrint('✅ JSON PARSING SUCCESS');
-            debugPrint('📊 Parsed keys: ${jsonContent.keys.toList()}');
-            debugPrint('📊 ItemName from JSON: ${jsonContent['itemName']}');
-            debugPrint('📊 Category from JSON: ${jsonContent['category']}');
             
             return _createClassificationFromJsonContent(
               jsonContent,
@@ -1125,12 +1093,8 @@ Output:
               classificationId,
             );
           } catch (jsonError) {
-            // 🔍 ENHANCED DEBUGGING: Log JSON parsing failure details
-            debugPrint('❌ JSON PARSING FAILED');
-            debugPrint('❌ Error: $jsonError');
-            debugPrint('❌ Error type: ${jsonError.runtimeType}');
-            debugPrint('❌ Problematic JSON (first 1000 chars): ${jsonString.length > 1000 ? jsonString.substring(0, 1000) + "..." : jsonString}');
-            debugPrint('❌ Original content (first 1000 chars): ${content.length > 1000 ? content.substring(0, 1000) + "..." : content}');
+            debugPrint('❌ JSON PARSING FAILED: $jsonError');
+            debugPrint('❌ Problematic content (first 500 chars): ${content.length > 500 ? content.substring(0, 500) + "..." : content}');
 
             // Try to extract basic info even if full parsing fails
             return _createFallbackClassification(
@@ -1264,9 +1228,64 @@ Output:
       final disposalInstructions = _parseDisposalInstructions(jsonContent['disposalInstructions']);
       final alternatives = _parseAlternatives(jsonContent['alternatives']);
 
+      // 🔧 ENHANCED ITEM NAME PARSING: Handle null itemName from AI
+      String itemName = _safeStringParse(jsonContent['itemName']) ?? '';
+      
+      if (itemName.isEmpty || itemName == 'null') {
+        // Try to extract item name from explanation or subcategory
+        final explanation = _safeStringParse(jsonContent['explanation']) ?? '';
+        final subcategory = _safeStringParse(jsonContent['subcategory']) ?? '';
+        final category = _safeStringParse(jsonContent['category']) ?? '';
+        
+        debugPrint('🔧 ItemName was null/empty, attempting to extract from context');
+        debugPrint('🔧 Explanation: $explanation');
+        debugPrint('🔧 Subcategory: $subcategory');
+        debugPrint('🔧 Category: $category');
+        
+        // Try to extract from explanation first
+        if (explanation.isNotEmpty) {
+          // Look for patterns like "The image shows [item]" or "This is [item]"
+          final patterns = [
+            RegExp(r'image shows ([^,]+)', caseSensitive: false),
+            RegExp(r'this is ([^,]+)', caseSensitive: false),
+            RegExp(r'appears to be ([^,]+)', caseSensitive: false),
+            RegExp(r'shows ([^,]+)', caseSensitive: false),
+            RegExp(r'contains ([^,]+)', caseSensitive: false),
+          ];
+          
+          for (final pattern in patterns) {
+            final match = pattern.firstMatch(explanation);
+            if (match != null && match.group(1) != null) {
+              itemName = match.group(1)!.trim();
+              debugPrint('🔧 Extracted itemName from explanation: "$itemName"');
+              break;
+            }
+          }
+        }
+        
+        // If still empty, use subcategory or category
+        if (itemName.isEmpty) {
+          if (subcategory.isNotEmpty && !subcategory.toLowerCase().contains('waste')) {
+            itemName = subcategory;
+            debugPrint('🔧 Using subcategory as itemName: "$itemName"');
+          } else if (category.isNotEmpty) {
+            // Clean up category name (remove "waste" suffix)
+            itemName = category.replaceAll(RegExp(r'\s*\(.*?\)'), '').replaceAll(' Waste', '').trim();
+            if (itemName.isEmpty) itemName = category;
+            debugPrint('🔧 Using cleaned category as itemName: "$itemName"');
+          }
+        }
+        
+        // Final fallback
+        if (itemName.isEmpty) {
+          itemName = 'Unidentified Item';
+          debugPrint('🔧 Using final fallback itemName: "$itemName"');
+        }
+      }
+
       return WasteClassification(
         id: classificationId,
-        itemName: _safeStringParse(jsonContent['itemName']) ?? 'Unknown Item',
+        itemName: itemName,
         category: _safeStringParse(jsonContent['category']) ?? 'Dry Waste',
         subcategory: _safeStringParse(jsonContent['subcategory']),
         materialType: _safeStringParse(jsonContent['materialType']),
