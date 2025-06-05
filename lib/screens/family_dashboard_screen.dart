@@ -12,7 +12,9 @@ import 'family_creation_screen.dart';
 import 'classification_details_screen.dart'; // Import the new screen
 
 class FamilyDashboardScreen extends StatefulWidget {
-  const FamilyDashboardScreen({super.key});
+  final bool showAppBar;
+
+  const FamilyDashboardScreen({super.key, this.showAppBar = true});
 
   @override
   State<FamilyDashboardScreen> createState() => _FamilyDashboardScreenState();
@@ -115,21 +117,21 @@ class _FamilyDashboardScreenState extends State<FamilyDashboardScreen> {
   Widget build(BuildContext context) {
     if (_isInitialLoading) {
       return Scaffold(
-        appBar: AppBar(title: const Text('Family Dashboard')),
+        appBar: widget.showAppBar ? AppBar(title: const Text('Family Dashboard')) : null,
         body: const Center(child: CircularProgressIndicator()),
       );
     }
 
     if (_familyId == null && _error != null) {
       return Scaffold(
-        appBar: AppBar(title: const Text('Family Dashboard')),
+        appBar: widget.showAppBar ? AppBar(title: const Text('Family Dashboard')) : null,
         body: _buildErrorState(_error!), 
       );
     }
     
     if (_familyId == null && _error == null) {
       return Scaffold(
-        appBar: AppBar(title: const Text('Family Dashboard')),
+        appBar: widget.showAppBar ? AppBar(title: const Text('Family Dashboard')) : null,
         body: _buildNoFamilyState(), 
       );
     }
@@ -138,12 +140,14 @@ class _FamilyDashboardScreenState extends State<FamilyDashboardScreen> {
       stream: _familyService.getFamilyStream(_familyId!),
       builder: (context, familySnapshot) {
         final family = familySnapshot.data;
-        final appBarTitle = familySnapshot.connectionState == ConnectionState.active && family != null
-            ? family.name
-            : 'Family Dashboard';
+        final appBarTitle = widget.showAppBar 
+            ? (familySnapshot.connectionState == ConnectionState.active && family != null
+                ? family.name
+                : 'Family Dashboard') 
+            : '';
 
         return Scaffold(
-          appBar: AppBar(
+          appBar: widget.showAppBar ? AppBar(
             title: Text(appBarTitle),
             actions: [
               if (family != null) ...[
@@ -159,7 +163,7 @@ class _FamilyDashboardScreenState extends State<FamilyDashboardScreen> {
                 ),
               ],
             ],
-          ),
+          ) : null,
           body: _buildBodyContent(familySnapshot, family, _familyStats), 
         );
       },
@@ -186,10 +190,17 @@ class _FamilyDashboardScreenState extends State<FamilyDashboardScreen> {
         return _buildNoFamilyState();
     }
 
+    final bottomPadding = AppTheme.paddingRegular + 56.0;
+
     return RefreshIndicator(
       onRefresh: _handleRefresh,
       child: SingleChildScrollView(
-        padding: const EdgeInsets.all(AppTheme.paddingRegular),
+        padding: EdgeInsets.fromLTRB(
+          AppTheme.paddingRegular,
+          AppTheme.paddingRegular,
+          AppTheme.paddingRegular,
+          bottomPadding,
+        ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [

@@ -79,6 +79,14 @@ This document provides a high-level overview of these components. More detailed 
     - Custom child widget support
 - **Usage**: Primary actions, navigation, form submissions
 
+#### `ModernPillToggle`
+- **Description**: A modern, animated pill-shaped toggle switch.
+- **Key Features**:
+  - Smooth animation between two states.
+  - Customizable labels, icons, and colors.
+  - Provides clear visual feedback on the selected state.
+- **Usage**: Switching between two views or options, like the "Community" and "Family" tabs on the Social screen.
+
 #### `ModernSearchBar`
 - **Description**: Animated search input with modern styling
 - **Key Features**:

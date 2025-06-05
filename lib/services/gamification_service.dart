@@ -499,6 +499,7 @@ class GamificationService {
       await saveProfile(profile.copyWith(achievements: updatedAchievements));
     } catch (e) {
       debugPrint('🔥 SYNC ACHIEVEMENTS ERROR: $e');
+      rethrow; // Rethrow the error to ensure it's not silently caught
     }
   }
   

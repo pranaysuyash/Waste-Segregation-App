@@ -479,29 +479,7 @@ class StorageService {
 
   Future<void> clearAllClassifications() async {
     final classificationsBox = Hive.box(StorageKeys.classificationsBox);
-    
-    // Get current user ID
-    final userProfile = await getCurrentUserProfile();
-    final currentUserId = userProfile?.id ?? 'guest_user';
-    
-    // Only clear classifications for the current user
-    final keysToDelete = <String>[];
-    for (final key in classificationsBox.keys) {
-      final jsonString = classificationsBox.get(key);
-      final json = jsonDecode(jsonString);
-      final classification = WasteClassification.fromJson(json);
-      
-      // Delete if it belongs to current user or if both are null (backward compatibility)
-      if (classification.userId == currentUserId || 
-          (classification.userId == null && currentUserId == 'guest_user')) {
-        keysToDelete.add(key);
-      }
-    }
-    
-    // Delete the identified keys
-    for (final key in keysToDelete) {
-      await classificationsBox.delete(key);
-    }
+    await classificationsBox.clear();
   }
 
   // Settings methods

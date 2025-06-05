@@ -7,7 +7,9 @@ import '../utils/constants.dart';
 import '../widgets/modern_ui/modern_cards.dart';
 
 class CommunityScreen extends StatefulWidget {
-  const CommunityScreen({super.key});
+  final bool showAppBar;
+
+  const CommunityScreen({super.key, this.showAppBar = true});
 
   @override
   State<CommunityScreen> createState() => _CommunityScreenState();
@@ -71,7 +73,7 @@ class _CommunityScreenState extends State<CommunityScreen> with TickerProviderSt
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
+      appBar: widget.showAppBar ? AppBar(
         title: const Text('Community'),
         bottom: TabBar(
           controller: _tabController,
@@ -81,7 +83,7 @@ class _CommunityScreenState extends State<CommunityScreen> with TickerProviderSt
             Tab(icon: Icon(Icons.people), text: 'Members'),
           ],
         ),
-      ),
+      ) : null,
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : TabBarView(
@@ -126,10 +128,17 @@ class _CommunityScreenState extends State<CommunityScreen> with TickerProviderSt
       );
     }
 
+    final bottomPadding = AppTheme.paddingRegular + 56.0;
+
     return RefreshIndicator(
       onRefresh: _loadCommunityData,
       child: ListView.builder(
-        padding: const EdgeInsets.all(AppTheme.paddingRegular),
+        padding: EdgeInsets.fromLTRB(
+          AppTheme.paddingRegular,
+          AppTheme.paddingRegular,
+          AppTheme.paddingRegular,
+          bottomPadding,
+        ),
         itemCount: _feedItems.length,
         itemBuilder: (context, index) {
           final item = _feedItems[index];
@@ -149,9 +158,9 @@ class _CommunityScreenState extends State<CommunityScreen> with TickerProviderSt
             children: [
               CircleAvatar(
                 radius: 20,
-                backgroundColor: _getActivityColor(item.activityType),
+                backgroundColor: item.activityColor,
                 child: Icon(
-                  _getActivityIcon(item.activityType),
+                  item.activityIcon,
                   color: Colors.white,
                   size: 20,
                 ),
@@ -162,7 +171,7 @@ class _CommunityScreenState extends State<CommunityScreen> with TickerProviderSt
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      item.userName,
+                      item.displayName,
                       style: const TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 14,
@@ -184,7 +193,7 @@ class _CommunityScreenState extends State<CommunityScreen> with TickerProviderSt
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Text(
-                      _formatRelativeTime(item.timestamp),
+                      item.relativeTime,
                       style: TextStyle(
                         color: Colors.grey[500],
                         fontSize: 11,
@@ -199,17 +208,16 @@ class _CommunityScreenState extends State<CommunityScreen> with TickerProviderSt
                           vertical: 2,
                         ),
                         decoration: BoxDecoration(
-                          color: AppTheme.primaryColor.withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(8),
+                          color: AppTheme.accentColor.withOpacity(0.15),
+                          borderRadius: BorderRadius.circular(AppTheme.borderRadiusSm),
                         ),
                         child: Text(
                           '+${item.points} pts',
-                          style: const TextStyle(
-                            color: AppTheme.primaryColor,
-                            fontSize: 12,
+                          style: TextStyle(
+                            color: AppTheme.accentColor,
                             fontWeight: FontWeight.bold,
+                            fontSize: 10,
                           ),
-                          overflow: TextOverflow.ellipsis,
                         ),
                       ),
                     ],
@@ -228,8 +236,15 @@ class _CommunityScreenState extends State<CommunityScreen> with TickerProviderSt
       return const Center(child: Text('No stats available'));
     }
 
+    final bottomPadding = AppTheme.paddingRegular + 56.0;
+
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(AppTheme.paddingRegular),
+      padding: EdgeInsets.fromLTRB(
+        AppTheme.paddingRegular,
+        AppTheme.paddingRegular,
+        AppTheme.paddingRegular,
+        bottomPadding,
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -306,81 +321,38 @@ class _CommunityScreenState extends State<CommunityScreen> with TickerProviderSt
   }
 
   Widget _buildMembersTab() {
-    return const Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            Icons.construction,
-            size: 64,
-            color: Colors.grey,
-          ),
-          SizedBox(height: 16),
-          Text(
-            'Members Directory',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
+    return const SafeArea(
+      bottom: true,
+      top: false,
+      left: false,
+      right: false,
+      child: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.construction,
+              size: 64,
               color: Colors.grey,
             ),
-          ),
-          SizedBox(height: 8),
-          Text(
-            'Coming soon! View and connect with other community members.',
-            style: TextStyle(color: Colors.grey),
-            textAlign: TextAlign.center,
-          ),
-        ],
+            SizedBox(height: 16),
+            Text(
+              'Members Directory',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: Colors.grey,
+              ),
+            ),
+            SizedBox(height: 8),
+            Text(
+              'Coming soon! View and connect with other community members.',
+              style: TextStyle(color: Colors.grey),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
       ),
     );
-  }
-
-  IconData _getActivityIcon(CommunityActivityType type) {
-    switch (type) {
-      case CommunityActivityType.classification:
-        return Icons.camera_alt;
-      case CommunityActivityType.achievement:
-        return Icons.emoji_events;
-      case CommunityActivityType.streak:
-        return Icons.local_fire_department;
-      case CommunityActivityType.challenge:
-        return Icons.flag;
-      case CommunityActivityType.milestone:
-        return Icons.star;
-      case CommunityActivityType.educational:
-        return Icons.school;
-    }
-  }
-
-  Color _getActivityColor(CommunityActivityType type) {
-    switch (type) {
-      case CommunityActivityType.classification:
-        return AppTheme.primaryColor;
-      case CommunityActivityType.achievement:
-        return Colors.amber;
-      case CommunityActivityType.streak:
-        return Colors.orange;
-      case CommunityActivityType.challenge:
-        return Colors.purple;
-      case CommunityActivityType.milestone:
-        return Colors.green;
-      case CommunityActivityType.educational:
-        return Colors.blue;
-    }
-  }
-
-  String _formatRelativeTime(DateTime timestamp) {
-    final now = DateTime.now();
-    final difference = now.difference(timestamp);
-
-    if (difference.inDays > 0) {
-      return '${difference.inDays} day${difference.inDays > 1 ? 's' : ''} ago';
-    } else if (difference.inHours > 0) {
-      return '${difference.inHours} hour${difference.inHours > 1 ? 's' : ''} ago';
-    } else if (difference.inMinutes > 0) {
-      return '${difference.inMinutes} minute${difference.inMinutes > 1 ? 's' : ''} ago';
-    } else {
-      return 'Just now';
-    }
   }
 } 

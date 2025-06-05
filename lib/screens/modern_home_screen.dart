@@ -622,32 +622,35 @@ class _ModernHomeScreenState extends State<ModernHomeScreen> with TickerProvider
           ),
         ],
       ),
-      body: FadeTransition(
-        opacity: _fadeAnimation,
-        child: SlideTransition(
-          position: _slideAnimation,
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(AppTheme.spacingMd),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _buildWelcomeSection(theme),
-                const SizedBox(height: AppTheme.spacingMd),
-                _buildTodaysImpactGoal(),
-                const SizedBox(height: AppTheme.spacingMd),
-                _buildStatsSection(),
-                const SizedBox(height: AppTheme.spacingMd),
-                _buildGlobalImpactMeter(),
-                const SizedBox(height: AppTheme.spacingMd),
-                _buildCommunityFeedPreview(),
-                const SizedBox(height: AppTheme.spacingMd),
-                _buildGamificationSection(),
-                const SizedBox(height: AppTheme.spacingMd),
-                _buildQuickAccessSection(),
-                const SizedBox(height: AppTheme.spacingMd),
-                _buildRecentClassifications(),
-                const SizedBox(height: AppTheme.spacingXl),
-              ],
+      body: SafeArea(
+        bottom: true,
+        child: FadeTransition(
+          opacity: _fadeAnimation,
+          child: SlideTransition(
+            position: _slideAnimation,
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(AppTheme.spacingMd),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildWelcomeSection(theme),
+                  const SizedBox(height: AppTheme.spacingMd),
+                  _buildTodaysImpactGoal(),
+                  const SizedBox(height: AppTheme.spacingMd),
+                  _buildStatsSection(),
+                  const SizedBox(height: AppTheme.spacingMd),
+                  _buildGlobalImpactMeter(),
+                  const SizedBox(height: AppTheme.spacingMd),
+                  _buildCommunityFeedPreview(),
+                  const SizedBox(height: AppTheme.spacingMd),
+                  _buildGamificationSection(),
+                  const SizedBox(height: AppTheme.spacingMd),
+                  _buildQuickAccessSection(),
+                  const SizedBox(height: AppTheme.spacingMd),
+                  _buildRecentClassifications(),
+                  const SizedBox(height: AppTheme.spacingXl),
+                ],
+              ),
             ),
           ),
         ),
@@ -1011,8 +1014,11 @@ class _ModernHomeScreenState extends State<ModernHomeScreen> with TickerProvider
                   ),
                 ),
                 const SizedBox(width: AppTheme.spacingSm),
-                ViewAllButton(
+                ModernButton(
                   text: 'View All (${_allClassifications.length})',
+                  style: ModernButtonStyle.text,
+                  size: ModernButtonSize.small,
+                  foregroundColor: Theme.of(context).colorScheme.onPrimary,
                   onPressed: () {
                     Navigator.push(
                       context,
