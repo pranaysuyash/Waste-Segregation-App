@@ -26,8 +26,6 @@ String contributionTypeToString(ContributionType type) {
       return 'REPORT_CLOSURE';
     case ContributionType.otherCorrection:
       return 'OTHER_CORRECTION';
-    default:
-      return '';
   }
 }
 
@@ -70,8 +68,6 @@ String contributionStatusToString(ContributionStatus status) {
       return 'REJECTED';
     case ContributionStatus.needsMoreInfo:
       return 'NEEDS_MORE_INFO';
-    default:
-      return '';
   }
 }
 

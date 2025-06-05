@@ -14,8 +14,6 @@ String facilitySourceToString(FacilitySource source) {
       return 'USER_SUGGESTED_INTEGRATED';
     case FacilitySource.bulkImported:
       return 'BULK_IMPORTED';
-    default:
-      return '';
   }
 }
 

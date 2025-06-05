@@ -332,9 +332,6 @@ class _ContributionHistoryScreenState extends State<ContributionHistoryScreen> {
           'Other Correction',
           [description.toString()],
         );
-      
-      default:
-        return const SizedBox.shrink();
     }
   }
 
@@ -450,8 +447,6 @@ class _ContributionHistoryScreenState extends State<ContributionHistoryScreen> {
         return Icons.report_problem;
       case ContributionType.otherCorrection:
         return Icons.edit;
-      default:
-        return Icons.edit_location;
     }
   }
 
@@ -471,8 +466,6 @@ class _ContributionHistoryScreenState extends State<ContributionHistoryScreen> {
         return 'Closure Report';
       case ContributionType.otherCorrection:
         return 'Other Correction';
-      default:
-        return 'Contribution';
     }
   }
 
