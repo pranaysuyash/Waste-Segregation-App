@@ -272,7 +272,7 @@ admin_user_recovery/{hashedUserId} - Recovery metadata
   - **Clear Call-to-Actions**: Beautiful UI with "Create Family" and "Join Family" buttons when not in a family
   - **Proper Loading States**: Added loading indicators and error handling for family operations
 - **Code Quality Issues**: Fixed all linter warnings across multiple files
-  - Replaced deprecated `withOpacity()` calls with `withValues(alpha:)` in quiz, image capture, auth, and main screens
+  - Replaced deprecated `withOpacity()` calls with `withOpacityFixed()` in quiz, image capture, auth, and main screens
   - Fixed unnecessary braces in string interpolations in AI service
   - Replaced string concatenation with adjacent string literals in AI service  
   - Fixed HTML in documentation comments by using backticks
@@ -342,7 +342,7 @@ admin_user_recovery/{hashedUserId} - Recovery metadata
 ### Fixed - Code Quality
 - **🔧 Linter Issues**: Resolved all linter warnings and errors in family_management_screen.dart and history_screen.dart
 - **📦 Missing Widgets**: Created missing ModernButton, ModernTextField, and ResponsiveDialog widgets
-- **🚫 Deprecated APIs**: Replaced deprecated `withOpacity()` calls with `withValues(alpha:)` for Flutter compatibility
+  - **🚫 Deprecated APIs**: Replaced deprecated `withOpacity()` calls with `withOpacityFixed()` for Flutter compatibility
 - **🧹 Code Cleanup**: Removed unused imports, fields, and methods to improve code maintainability
 - **📝 Logging**: Replaced `print()` statements with `debugPrint()` for better development practices
 - **🔄 Navigation Issues**: Fixed BuildContext async gap issues and deprecated API usage in navigation wrapper
