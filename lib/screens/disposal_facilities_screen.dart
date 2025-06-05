@@ -158,7 +158,7 @@ class _DisposalFacilitiesScreenState extends State<DisposalFacilitiesScreen> {
                       _activeOnlyFilter = selected;
                     });
                   },
-                  selectedColor: AppTheme.primaryColor.withValues(alpha: 0.2),
+                  selectedColor: AppTheme.primaryColor.withOpacity(0.2),
                   checkmarkColor: AppTheme.primaryColor,
                 ),
                 const SizedBox(width: 8),
@@ -168,7 +168,7 @@ class _DisposalFacilitiesScreenState extends State<DisposalFacilitiesScreen> {
                   ActionChip(
                     label: const Text('Clear'),
                     onPressed: _clearFilters,
-                    backgroundColor: Colors.red.withValues(alpha: 0.1),
+                    backgroundColor: Colors.red.withOpacity(0.1),
                   ),
               ],
             ),
@@ -184,9 +184,9 @@ class _DisposalFacilitiesScreenState extends State<DisposalFacilitiesScreen> {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         decoration: BoxDecoration(
-          color: AppTheme.primaryColor.withValues(alpha: 0.1),
+          color: AppTheme.primaryColor.withOpacity(0.1),
           borderRadius: BorderRadius.circular(AppTheme.borderRadiusSmall),
-          border: Border.all(color: AppTheme.primaryColor.withValues(alpha: 0.3)),
+          border: Border.all(color: AppTheme.primaryColor.withOpacity(0.3)),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
@@ -366,7 +366,7 @@ class _DisposalFacilitiesScreenState extends State<DisposalFacilitiesScreen> {
         leading: Container(
           padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(
-            color: _getFacilitySourceColor(facility.source).withValues(alpha: 0.1),
+            color: _getFacilitySourceColor(facility.source).withOpacity(0.1),
             borderRadius: BorderRadius.circular(8),
           ),
           child: Icon(
@@ -401,7 +401,7 @@ class _DisposalFacilitiesScreenState extends State<DisposalFacilitiesScreen> {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                   decoration: BoxDecoration(
-                    color: AppTheme.primaryColor.withValues(alpha: 0.1),
+                    color: AppTheme.primaryColor.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(AppTheme.borderRadiusSmall),
                   ),
                   child: Text(
@@ -430,7 +430,7 @@ class _DisposalFacilitiesScreenState extends State<DisposalFacilitiesScreen> {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                   decoration: BoxDecoration(
-                    color: facility.isActive ? Colors.green.withValues(alpha: 0.1) : Colors.red.withValues(alpha: 0.1),
+                    color: facility.isActive ? Colors.green.withOpacity(0.1) : Colors.red.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(AppTheme.borderRadiusSmall),
                   ),
                   child: Text(
@@ -446,7 +446,7 @@ class _DisposalFacilitiesScreenState extends State<DisposalFacilitiesScreen> {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                   decoration: BoxDecoration(
-                    color: _getFacilitySourceColor(facility.source).withValues(alpha: 0.1),
+                    color: _getFacilitySourceColor(facility.source).withOpacity(0.1),
                     borderRadius: BorderRadius.circular(AppTheme.borderRadiusSmall),
                   ),
                   child: Text(

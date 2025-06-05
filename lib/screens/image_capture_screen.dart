@@ -337,7 +337,7 @@ class _ImageCaptureScreenState extends State<ImageCaptureScreen> {
                                             child: Container(
                                               decoration: BoxDecoration(
                                                 color: selected
-                                                    ? Colors.blue.withValues(alpha: 0.3)
+                                                    ? Colors.blue.withOpacity(0.3)
                                                     : Colors.transparent,
                                                 border: Border.all(
                                                   color: selected
@@ -362,7 +362,7 @@ class _ImageCaptureScreenState extends State<ImageCaptureScreen> {
                 // Instructions
                 Container(
                   padding: const EdgeInsets.all(AppTheme.paddingRegular),
-                  color: Colors.black.withValues(alpha: 0.05),
+                  color: Colors.black.withOpacity(0.05),
                   child: const Row(
                     children: [
                       Icon(Icons.info_outline, color: AppTheme.primaryColor),
@@ -555,7 +555,7 @@ class _ImageCaptureScreenState extends State<ImageCaptureScreen> {
                 vertical: 8,
               ),
               decoration: BoxDecoration(
-                color: Colors.black.withValues(alpha: 0.7),
+                color: Colors.black.withOpacity(0.7),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: const Row(

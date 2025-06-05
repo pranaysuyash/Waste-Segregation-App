@@ -140,7 +140,7 @@ class _ModernTextFieldState extends State<ModernTextField>
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(AppTheme.borderRadiusRegular),
               borderSide: BorderSide(
-                color: theme.colorScheme.outline.withValues(alpha: 0.5),
+                color: theme.colorScheme.outline.withOpacity(0.5),
               ),
             ),
             focusedBorder: OutlineInputBorder(
@@ -165,7 +165,7 @@ class _ModernTextFieldState extends State<ModernTextField>
             ),
             filled: true,
             fillColor: _isFocused
-                ? theme.colorScheme.primaryContainer.withValues(alpha: 0.1)
+                ? theme.colorScheme.primaryContainer.withOpacity(0.1)
                 : theme.colorScheme.surface,
             contentPadding: const EdgeInsets.symmetric(
               horizontal: AppTheme.paddingRegular,

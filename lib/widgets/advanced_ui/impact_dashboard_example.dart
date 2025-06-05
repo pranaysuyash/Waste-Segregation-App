@@ -203,7 +203,7 @@ class _WasteImpactDashboardState extends State<WasteImpactDashboard> {
               targetValue: targetValue,
               unit: unit,
               primaryColor: color,
-              secondaryColor: color.withValues(alpha: 0.7),
+              secondaryColor: color.withOpacity(0.7),
               title: '',
               subtitle: '',
             ),
@@ -287,10 +287,10 @@ class _WasteImpactDashboardState extends State<WasteImpactDashboard> {
             width: double.infinity,
             padding: const EdgeInsets.all(WasteAppDesignSystem.spacingM),
             decoration: BoxDecoration(
-              color: WasteAppDesignSystem.primaryGreen.withValues(alpha: 0.1),
+              color: WasteAppDesignSystem.primaryGreen.withOpacity(0.1),
               borderRadius: BorderRadius.circular(WasteAppDesignSystem.radiusM),
               border: Border.all(
-                color: WasteAppDesignSystem.primaryGreen.withValues(alpha: 0.3),
+                color: WasteAppDesignSystem.primaryGreen.withOpacity(0.3),
               ),
             ),
             child: Row(
@@ -330,7 +330,7 @@ class _WasteImpactDashboardState extends State<WasteImpactDashboard> {
         Container(
           padding: const EdgeInsets.all(WasteAppDesignSystem.spacingS),
           decoration: BoxDecoration(
-            color: color.withValues(alpha: 0.1),
+            color: color.withOpacity(0.1),
             borderRadius: BorderRadius.circular(WasteAppDesignSystem.radiusS),
           ),
           child: Icon(
@@ -546,7 +546,7 @@ class WasteImpactConfigurations {
               targetValue: targetValue,
               unit: unit,
               primaryColor: color,
-              secondaryColor: color.withValues(alpha: 0.7),
+              secondaryColor: color.withOpacity(0.7),
               title: '',
               subtitle: '',
             ),

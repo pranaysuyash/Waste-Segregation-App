@@ -216,10 +216,10 @@ class _ContributionHistoryScreenState extends State<ContributionHistoryScreen> {
               Container(
                 padding: const EdgeInsets.all(AppTheme.paddingSmall),
                 decoration: BoxDecoration(
-                  color: _getStatusColor(contribution.status).withValues(alpha: 0.1),
+                  color: _getStatusColor(contribution.status).withOpacity(0.1),
                   borderRadius: BorderRadius.circular(AppTheme.borderRadiusSmall),
                   border: Border.all(
-                    color: _getStatusColor(contribution.status).withValues(alpha: 0.3),
+                    color: _getStatusColor(contribution.status).withOpacity(0.3),
                   ),
                 ),
                 child: Column(
@@ -412,9 +412,9 @@ class _ContributionHistoryScreenState extends State<ContributionHistoryScreen> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.1),
+        color: color.withOpacity(0.1),
         borderRadius: BorderRadius.circular(AppTheme.borderRadiusSmall),
-        border: Border.all(color: color.withValues(alpha: 0.3)),
+        border: Border.all(color: color.withOpacity(0.3)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,

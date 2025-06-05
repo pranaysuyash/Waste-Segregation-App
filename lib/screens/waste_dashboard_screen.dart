@@ -597,7 +597,7 @@ class _WasteDashboardScreenState extends State<WasteDashboardScreen> {
     return Container(
       padding: const EdgeInsets.all(AppTheme.paddingSmall),
       decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.1),
+        color: color.withOpacity(0.1),
         borderRadius: BorderRadius.circular(8),
       ),
       child: Row(
@@ -693,7 +693,7 @@ class _WasteDashboardScreenState extends State<WasteDashboardScreen> {
     }
     
     return CircleAvatar(
-      backgroundColor: color.withValues(alpha: 0.2),
+      backgroundColor: color.withOpacity(0.2),
       radius: 16,
       child: Icon(iconData, color: color, size: 18),
     );
@@ -1310,7 +1310,7 @@ class GamificationSummaryCard extends StatelessWidget { // e.g., "+12%"
           borderRadius: BorderRadius.circular(AppTheme.borderRadiusRegular),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.1),
+              color: Colors.black.withOpacity(0.1),
               blurRadius: 4,
               offset: const Offset(0, 2),
             ),
@@ -1327,7 +1327,7 @@ class GamificationSummaryCard extends StatelessWidget { // e.g., "+12%"
                   style: TextStyle(
                     fontSize: AppTheme.fontSizeSmall,
                     fontWeight: FontWeight.w500,
-                    color: AppTheme.textSecondaryColor.withValues(alpha: 0.8),
+                    color: AppTheme.textSecondaryColor.withOpacity(0.8),
                   ),
                 ),
                 Icon(icon, color: color, size: 18),
@@ -1351,7 +1351,7 @@ class GamificationSummaryCard extends StatelessWidget { // e.g., "+12%"
                     unit,
                     style: TextStyle(
                       fontSize: AppTheme.fontSizeSmall,
-                      color: AppTheme.textSecondaryColor.withValues(alpha: 0.7),
+                      color: AppTheme.textSecondaryColor.withOpacity(0.7),
                     ),
                     overflow: TextOverflow.ellipsis,
                     maxLines: 1,
@@ -1363,7 +1363,7 @@ class GamificationSummaryCard extends StatelessWidget { // e.g., "+12%"
                     padding: const EdgeInsets.symmetric(
                         horizontal: AppTheme.paddingMicro, vertical: 2),
                     decoration: BoxDecoration(
-                      color: color.withValues(alpha: 0.15),
+                      color: color.withOpacity(0.15),
                       borderRadius:
                           BorderRadius.circular(AppTheme.borderRadiusSmall),
                     ),

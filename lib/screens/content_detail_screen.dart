@@ -131,10 +131,10 @@ class ContentDetailScreen extends StatelessWidget {
                   vertical: 4,
                 ),
                 decoration: BoxDecoration(
-                  color: categoryColor.withValues(alpha: 0.1),
+                  color: categoryColor.withOpacity(0.1),
                   borderRadius:
                       BorderRadius.circular(AppTheme.borderRadiusSmall),
-                  border: Border.all(color: categoryColor.withValues(alpha: 0.5)),
+                  border: Border.all(color: categoryColor.withOpacity(0.5)),
                 ),
                 child: Text(
                   category,
@@ -275,10 +275,10 @@ class ContentDetailScreen extends StatelessWidget {
                   vertical: 4,
                 ),
                 decoration: BoxDecoration(
-                  color: categoryColor.withValues(alpha: 0.1),
+                  color: categoryColor.withOpacity(0.1),
                   borderRadius:
                       BorderRadius.circular(AppTheme.borderRadiusSmall),
-                  border: Border.all(color: categoryColor.withValues(alpha: 0.5)),
+                  border: Border.all(color: categoryColor.withOpacity(0.5)),
                 ),
                 child: Text(
                   category,
@@ -425,10 +425,10 @@ class ContentDetailScreen extends StatelessWidget {
                   vertical: 4,
                 ),
                 decoration: BoxDecoration(
-                  color: categoryColor.withValues(alpha: 0.1),
+                  color: categoryColor.withOpacity(0.1),
                   borderRadius:
                       BorderRadius.circular(AppTheme.borderRadiusSmall),
-                  border: Border.all(color: categoryColor.withValues(alpha: 0.5)),
+                  border: Border.all(color: categoryColor.withOpacity(0.5)),
                 ),
                 child: Text(
                   category,
@@ -541,10 +541,10 @@ class ContentDetailScreen extends StatelessWidget {
                   vertical: 4,
                 ),
                 decoration: BoxDecoration(
-                  color: categoryColor.withValues(alpha: 0.1),
+                  color: categoryColor.withOpacity(0.1),
                   borderRadius:
                       BorderRadius.circular(AppTheme.borderRadiusSmall),
-                  border: Border.all(color: categoryColor.withValues(alpha: 0.5)),
+                  border: Border.all(color: categoryColor.withOpacity(0.5)),
                 ),
                 child: Text(
                   category,
