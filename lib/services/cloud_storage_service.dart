@@ -14,6 +14,9 @@ class CloudStorageService {
   CloudStorageService(this._localStorageService);
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final StorageService _localStorageService;
+  
+  // ✅ OPTIMIZATION: Add as class field to avoid creating new instances repeatedly
+  late final GamificationService _gamificationService = GamificationService(_localStorageService, this);
 
   StorageService get localStorageService => _localStorageService;
 
@@ -96,13 +99,14 @@ class CloudStorageService {
         if (shouldProcessGamification) {
           debugPrint('🎮 Processing gamification for classification: ${classification.itemName}');
           
-          // Create gamification service instance
-          final gamificationService = GamificationService(_localStorageService, this);
-          
-          // Process the classification for gamification
-          await gamificationService.processClassification(classification);
-          
-          debugPrint('🎮 ✅ Gamification processed successfully');
+          // ✅ OPTIMIZATION: Use the singleton instance with error handling
+          try {
+            await _gamificationService.processClassification(classification);
+            debugPrint('🎮 ✅ Gamification processed successfully');
+          } catch (e) {
+            debugPrint('🎮 ❌ Failed to process gamification: $e');
+            // Don't rethrow - classification save was successful
+          }
         } else {
           debugPrint('🎮 ⏭️ Skipping gamification (already processed)');
         }
@@ -232,9 +236,8 @@ class CloudStorageService {
   /// Prevents duplicate gamification processing
   Future<bool> _shouldProcessGamification(WasteClassification classification) async {
     try {
-      // Get the current gamification profile to check existing processed items
-      final gamificationService = GamificationService(_localStorageService, this);
-      final profile = await gamificationService.getProfile();
+      // ✅ OPTIMIZATION: Use the singleton instance instead of creating new one
+      final profile = await _gamificationService.getProfile();
       
       // For now, we'll use a simple timestamp-based check
       // In a more sophisticated system, we might track processed classification IDs
