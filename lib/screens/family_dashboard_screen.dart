@@ -801,11 +801,17 @@ class _FamilyDashboardScreenState extends State<FamilyDashboardScreen> {
                   // Determine if the entered ID is a direct family ID
                   final existingFamily = await _familyService.getFamily(inviteId);
                   if (existingFamily != null) {
+                    // Check if user is already a member
+                    final isAlreadyMember = existingFamily.members
+                        .any((member) => member.userId == currentUser.id);
+                    if (isAlreadyMember) {
+                      throw Exception('You are already a member of this family.');
+                    }
                     // Join family directly
                     await _familyService.addMember(
                       inviteId,
                       currentUser.id,
-                      currentUser.role ?? user_profile_models.UserRole.member,
+                      user_profile_models.UserRole.member,
                     );
                   } else {
                     // Otherwise attempt to accept an invitation
