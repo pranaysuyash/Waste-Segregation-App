@@ -328,7 +328,7 @@ Output:
     return Uint8List.fromList(compressedBytes);
   }
 
-  /// Analyzes an image from a [File] path for waste classification.
+  /// Analyzes a mobile image (File) for waste classification.
   ///
   /// This is the primary entry point for mobile platforms.
   /// It generates a perceptual hash, checks the cache, and then
@@ -347,6 +347,14 @@ Output:
 
     // Generate a new classification ID if not provided (for initial call)
     final currentClassificationId = classificationId ?? const Uuid().v4();
+
+    // 🔍 API KEY VALIDATION: Check if API keys are properly loaded
+    debugPrint('🔑 API KEY VALIDATION:');
+    debugPrint('🔑 OpenAI API Key: ${ApiConfig.openAiApiKey.length > 10 ? "${ApiConfig.openAiApiKey.substring(0, 10)}..." : "MISSING"}');
+    debugPrint('🔑 Gemini API Key: ${ApiConfig.apiKey.length > 10 ? "${ApiConfig.apiKey.substring(0, 10)}..." : "MISSING"}');
+    debugPrint('🔑 Primary Model: ${ApiConfig.primaryModel}');
+    debugPrint('🔑 Secondary Model: ${ApiConfig.secondaryModel1}');
+    debugPrint('🔑 Gemini Model: ${ApiConfig.geminiModel}');
 
     // ✅ OPTIMIZATION: Use singleton instance with error handling
     final File permanentFile;
@@ -719,6 +727,14 @@ Output:
       },
       body: jsonEncode(requestBody),
     );
+
+    // 🔍 ENHANCED API CALL LOGGING
+    debugPrint('🌐 API CALL DETAILS:');
+    debugPrint('🌐 URL: ${ApiConfig.openAiBaseUrl}/chat/completions');
+    debugPrint('🌐 Request body size: ${jsonEncode(requestBody).length} characters');
+    debugPrint('🌐 Response status: ${response.statusCode}');
+    debugPrint('🌐 Response headers: ${response.headers}');
+    debugPrint('🌐 Response body size: ${response.body.length} characters');
 
     // Enhanced error handling with detailed logging
     if (response.statusCode == 200) {
