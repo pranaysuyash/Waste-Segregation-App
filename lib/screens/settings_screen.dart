@@ -19,6 +19,7 @@ import 'data_export_screen.dart';
 import 'navigation_demo_screen.dart';
 import 'modern_ui_showcase_screen.dart';
 import 'auth_screen.dart';
+import 'notification_settings_screen.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import '../services/cloud_storage_service.dart';
 
@@ -294,6 +295,21 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 context,
                 MaterialPageRoute(
                   builder: (context) => const ThemeSettingsScreen(),
+                ),
+              );
+            },
+          ),
+          const Divider(),
+
+          // Notification Settings
+          ListTile(
+            leading: const Icon(Icons.notifications),
+            title: const Text('Notification Settings'),
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const NotificationSettingsScreen(),
                 ),
               );
             },
