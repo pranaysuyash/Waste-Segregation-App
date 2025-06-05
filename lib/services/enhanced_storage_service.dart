@@ -8,7 +8,7 @@ import '../models/user_profile.dart';
 /// Enhanced Storage Service with Smart Caching
 /// Extends the base storage service with LRU cache and performance optimizations
 class EnhancedStorageService extends StorageService {
-  static const int MAX_CACHE_SIZE = 200;
+  static const int maxCacheSize = 200;
   final LinkedHashMap<String, CacheEntry> _lruCache = LinkedHashMap();
   
   // Cache Statistics
@@ -114,7 +114,7 @@ class EnhancedStorageService extends StorageService {
   
   void addToCache(String key, dynamic value, {Duration? ttl}) {
     // Remove oldest entries if cache is full
-    while (_lruCache.length >= MAX_CACHE_SIZE) {
+    while (_lruCache.length >= maxCacheSize) {
       _lruCache.remove(_lruCache.keys.first);
     }
     

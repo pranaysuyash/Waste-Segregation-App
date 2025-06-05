@@ -455,18 +455,7 @@ class _ModernHomeScreenState extends State<ModernHomeScreen> with TickerProvider
     }
   }
 
-  Future<void> _processClassificationForGamification(
-      WasteClassification classification) async {
-    try {
-      final gamificationService =
-          Provider.of<GamificationService>(context, listen: false);
 
-      await gamificationService.processClassification(classification);
-      _loadGamificationData();
-    } catch (e) {
-      debugPrint('Error processing gamification: $e');
-    }
-  }
 
   Future<void> _ensureCameraAccess() async {
     try {

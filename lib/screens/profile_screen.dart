@@ -65,16 +65,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
           return SingleChildScrollView(
             padding: const EdgeInsets.all(AppTheme.paddingRegular),
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 CircleAvatar(
                   radius: 40,
                   backgroundImage: profile?.photoUrl != null &&
                           profile!.photoUrl!.isNotEmpty
-                      ? NetworkImage(profile.photoUrl!)
+                      ? NetworkImage(profile!.photoUrl!)
                       : null,
                   child: profile?.photoUrl == null ||
-                          profile.photoUrl!.isEmpty
+                          profile?.photoUrl?.isEmpty == true
                       ? const Icon(Icons.person, size: 40)
                       : null,
                 ),
@@ -109,9 +108,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
 }
 
 class _ProfileData {
+  _ProfileData(this.userProfile, this.classificationCount, this.points);
+  
   final UserProfile? userProfile;
   final int classificationCount;
   final UserPoints points;
-  _ProfileData(this.userProfile, this.classificationCount, this.points);
 }
 
