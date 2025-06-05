@@ -1,4 +1,8 @@
 import 'package:flutter/material.dart';
+
+// Export color utilities so widgets importing constants get access to
+// the modern Color.withValues extension without an extra import.
+export 'color_extensions.dart';
 // import 'package:firebase_crashlytics/firebase_crashlytics.dart'; // ErrorHandler should not be in constants
 // import '../utils/error_handler.dart'; // Ensure ErrorHandler is not imported here
 
