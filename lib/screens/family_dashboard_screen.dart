@@ -793,17 +793,28 @@ class _FamilyDashboardScreenState extends State<FamilyDashboardScreen> {
                 try {
                   final storageService = Provider.of<StorageService>(context, listen: false);
                   final currentUser = await storageService.getCurrentUserProfile();
-                  
+
                   if (currentUser == null) {
                     throw Exception('User not found. Please sign in again.');
                   }
 
-                  // Try to accept the invitation
-                  await _familyService.acceptInvitation(inviteId, currentUser.id);
-                  
+                  // Determine if the entered ID is a direct family ID
+                  final existingFamily = await _familyService.getFamily(inviteId);
+                  if (existingFamily != null) {
+                    // Join family directly
+                    await _familyService.addMember(
+                      inviteId,
+                      currentUser.id,
+                      currentUser.role ?? user_profile_models.UserRole.member,
+                    );
+                  } else {
+                    // Otherwise attempt to accept an invitation
+                    await _familyService.acceptInvitation(inviteId, currentUser.id);
+                  }
+
                   navigator.pop();
                   await _initializeFamilyData(); // Refresh the family data
-                  
+
                   if (mounted) {
                     scaffoldMessenger.showSnackBar(
                       const SnackBar(
