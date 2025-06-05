@@ -201,38 +201,75 @@ Future<void> migrateExistingUserData() async {
 
 #### 2.1 Sign-In Process
 
+The sign-in process, particularly for social logins like Google Sign-In, should prioritize fetching the authoritative user profile from cloud storage (Firestore) before creating or updating a local profile. This ensures that all user data, including nested objects like `GamificationProfile`, is correctly loaded, preventing data loss or resets.
+
 ```dart
-// Pseudocode for updated sign-in
-Future<UserProfile?> signIn() async {
+// Pseudocode for updated sign-in (e.g., Google Sign-In)
+Future<UserProfile?> signInWithGoogle() async {
   try {
-    // Existing Google sign-in code
-    final GoogleSignInAccount? account = await _googleSignIn.signIn();
+    // 1. Authenticate with Google
+    final GoogleSignInAccount? googleAccount = await _googleSignIn.signIn();
     
-    if (account != null) {
-      // Check if user profile exists
-      final UserProfile? profile = await getUserProfile(account.id);
+    if (googleAccount != null) {
+      final userId = googleAccount.id;
+      UserProfile? userProfile;
+
+      // 2. Fetch existing UserProfile from Firestore
+      try {
+        final firestoreDoc = await FirebaseFirestore.instance.collection('users').doc(userId).get();
+        if (firestoreDoc.exists && firestoreDoc.data() != null) {
+          userProfile = UserProfile.fromJson(firestoreDoc.data()!);
+          // Update last active time and any changed details from Google account
+          userProfile = userProfile.copyWith(
+            lastActive: DateTime.now(),
+            displayName: googleAccount.displayName ?? userProfile.displayName,
+            email: googleAccount.email, // Ensure email is current
+            photoUrl: googleAccount.photoUrl ?? userProfile.photoUrl,
+          );
+          debugPrint('Existing UserProfile fetched from Firestore for $userId and updated.');
+        }
+      } catch (e) {
+        debugPrint('Error fetching UserProfile $userId from Firestore: $e. Will proceed to create new if necessary.');
+        // Proceed, userProfile will be null, leading to new profile creation locally.
+      }
       
-      if (profile != null) {
-        // Update last active time
-        await updateLastActive(profile.id);
-        return profile;
-      } else {
-        // Create new user profile
-        final newProfile = UserProfile(
-          id: account.id,
-          displayName: account.displayName ?? account.email.split('@').first,
-          email: account.email,
+      // 3. If no profile in Firestore (or fetch failed), create a new one locally
+      if (userProfile == null) {
+        debugPrint('Creating new UserProfile for $userId locally.');
+        userProfile = UserProfile(
+          id: userId,
+          displayName: googleAccount.displayName ?? googleAccount.email.split('@').first,
+          email: googleAccount.email,
+          photoUrl: googleAccount.photoUrl,
           createdAt: DateTime.now(),
           lastActive: DateTime.now(),
+          // gamificationProfile will be null; GamificationService handles its initialization
         );
-        
-        await saveUserProfile(newProfile);
-        return newProfile;
       }
+      
+      // 4. Save the comprehensive (fetched/updated or new) profile to local storage
+      await localDataStorage.saveUserProfile(userProfile);
+      debugPrint('UserProfile for $userId saved to local storage.');
+
+      // 5. Optional: If it was a new user, ensure it's also written to Firestore.
+      //    (This might also be handled by CloudStorageService on first significant data change)
+      if (userProfile.createdAt == userProfile.lastActive) { // Heuristic for newly created profile
+          try {
+            await FirebaseFirestore.instance
+                .collection('users')
+                .doc(userProfile.id)
+                .set(userProfile.toJson(), SetOptions(merge: true));
+            debugPrint('New UserProfile for $userId also synced to Firestore.');
+          } catch (e) {
+            debugPrint('Error syncing new UserProfile $userId to Firestore immediately: $e');
+          }
+      }
+      
+      return userProfile;
     }
     return null;
   } catch (e) {
-    debugPrint('Error signing in: $e');
+    debugPrint('Error during Google Sign-In: $e');
     rethrow;
   }
 }

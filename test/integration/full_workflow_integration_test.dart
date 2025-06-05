@@ -49,7 +49,7 @@ void main() {
       });
 
       test('should create gamification profile successfully', () async {
-        final profile = GamificationProfile(
+        const profile = GamificationProfile(
           userId: 'test_user',
           points: const UserPoints(total: 100, level: 2),
           streaks: <String, StreakDetails>{},
@@ -75,7 +75,6 @@ void main() {
           color: Colors.blue,
           requirements: {'count': 1},
           progress: 0.5,
-          isCompleted: false,
         );
 
         expect(challenge.id, equals('test_challenge'));
@@ -223,7 +222,7 @@ void main() {
         // Step 2: Create gamification profile
         final profile = GamificationProfile(
           userId: user.id,
-          points: const UserPoints(total: 0, level: 1),
+          points: const UserPoints(level: 1),
           streaks: <String, StreakDetails>{},
           achievements: [],
         );
@@ -231,7 +230,7 @@ void main() {
                  // Step 3: Simulate activity
          final updatedProfile = GamificationProfile(
            userId: profile.userId,
-           points: const UserPoints(total: 50, level: 1),
+           points: const UserPoints(total: 50),
            streaks: {
              'daily': StreakDetails(
                type: StreakType.dailyClassification,
@@ -240,7 +239,7 @@ void main() {
                lastActivityDate: DateTime.now(),
              ),
            },
-           achievements: [],
+              achievements: [],
          );
         
         // Step 4: Validate workflow
@@ -299,7 +298,7 @@ void main() {
         // Create memory test data
         final memoryTestData = <WasteClassification>[];
         
-        for (int i = 0; i < 50; i++) {
+        for (var i = 0; i < 50; i++) {
           memoryTestData.add(_createTestClassification('Memory Test $i'));
         }
         
@@ -360,7 +359,7 @@ void main() {
 
       test('should handle extreme date values', () async {
         final futureDate = DateTime(2100, 12, 31);
-        final pastDate = DateTime(1900, 1, 1);
+        final pastDate = DateTime(1900, 1);
         
         final futureDateClassification = WasteClassification(
           itemName: 'Future Item',

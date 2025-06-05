@@ -5,7 +5,7 @@ void main() {
   group('PremiumFeature Model Tests', () {
     group('PremiumFeature Model', () {
       test('should create PremiumFeature with all required properties', () {
-        final feature = PremiumFeature(
+        const feature = PremiumFeature(
           id: 'feature_001',
           title: 'Advanced Analytics', // name to title
           description: 'Detailed analytics and insights about your waste patterns',
@@ -29,7 +29,7 @@ void main() {
       });
 
       test('should create PremiumFeature with optional properties', () {
-        final feature = PremiumFeature(
+        const feature = PremiumFeature(
           id: 'feature_002',
           title: 'Cloud Backup', // name to title
           description: 'Backup your data to the cloud',
@@ -56,7 +56,7 @@ void main() {
       });
 
       test('should serialize PremiumFeature to JSON correctly', () {
-        final feature = PremiumFeature(
+        const feature = PremiumFeature(
           id: 'feature_003',
           title: 'AI Insights', // name to title
           description: 'AI-powered waste reduction recommendations',
@@ -194,7 +194,7 @@ void main() {
     //   });
 
       test('should check if feature is enabled', () { // Renamed from 'is available'
-        final enabledFeature = PremiumFeature(
+        const enabledFeature = PremiumFeature(
           id: 'feature_009',
           title: 'Enabled Feature', // name to title
           description: 'An enabled feature',
@@ -206,7 +206,7 @@ void main() {
           // sortOrder: 1, // Removed
         );
 
-        final disabledFeature = PremiumFeature(
+        const disabledFeature = PremiumFeature(
           id: 'feature_010',
           title: 'Disabled Feature',
           description: 'A disabled feature',
@@ -215,7 +215,7 @@ void main() {
           // isEnabled defaults to false
         );
 
-        final comingSoonFeature = PremiumFeature(
+        const comingSoonFeature = PremiumFeature(
           id: 'feature_011',
           title: 'Coming Soon Feature',
           description: 'A feature coming soon',
@@ -495,7 +495,7 @@ void main() {
 
     group('Equality and Comparison', () {
       test('should compare PremiumFeature for equality', () {
-        final feature1 = PremiumFeature(
+        const feature1 = PremiumFeature(
           id: 'feature_001',
           title: 'Test Feature', // name to title
           description: 'A test feature',
@@ -507,7 +507,7 @@ void main() {
           // sortOrder: 1, // Removed
         );
 
-        final feature2 = PremiumFeature(
+        const feature2 = PremiumFeature(
           id: 'feature_001',
           title: 'Test Feature',
           description: 'A test feature',
@@ -519,7 +519,7 @@ void main() {
           // sortOrder: 1, // Removed
         );
 
-        final feature3 = PremiumFeature(
+        const feature3 = PremiumFeature(
           id: 'feature_002',
           title: 'Different Feature', // name to title
           description: 'A different feature',

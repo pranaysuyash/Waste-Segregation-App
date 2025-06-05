@@ -29,7 +29,7 @@ class ConsentDialogScreen extends StatelessWidget {
                 width: 100,
                 height: 100,
                 decoration: BoxDecoration(
-                  color: AppTheme.primaryColor.withOpacity(0.1),
+                  color: AppTheme.primaryColor.withValues(alpha:0.1),
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: const Icon(

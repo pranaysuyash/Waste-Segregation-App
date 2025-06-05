@@ -372,7 +372,6 @@ void main() {
 
       test('should copyWith correctly', () {
         const original = FamilySettings(
-          allowChildInvites: false,
           customSettings: {'original': 'value'},
         );
 
@@ -907,7 +906,7 @@ void main() {
 
       test('should handle date edge cases', () {
         final futureDate = DateTime(2030, 12, 31);
-        final pastDate = DateTime(1990, 1);
+        final pastDate = DateTime(1990);
         
         final timeTravelFamily = Family(
           id: 'time_travel',

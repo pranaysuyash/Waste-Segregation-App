@@ -144,7 +144,7 @@ class AdService extends ChangeNotifier {
         // Use adaptive banner for better performance and responsive design
         final newBannerAd = BannerAd(
           adUnitId: adUnitId,
-          size: AdSize.smartBanner, // Better responsive design
+          size: AdSize.banner, // Changed from AdSize.smartBanner
           request: const AdRequest(
             keywords: ['waste', 'recycling', 'environment', 'sustainability'],
             contentUrl: 'https://wastewise.app',

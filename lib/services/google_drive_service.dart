@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:googleapis/drive/v3.dart' as drive;
@@ -19,23 +20,73 @@ class GoogleDriveService {
   );
 
   final StorageService _storageService;
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+
+  // Helper method to fetch UserProfile from Firestore
+  Future<UserProfile?> _fetchUserProfileFromFirestore(String userId) async {
+    try {
+      final docSnapshot = await _firestore.collection('users').doc(userId).get();
+      if (docSnapshot.exists && docSnapshot.data() != null) {
+        return UserProfile.fromJson(docSnapshot.data()!);
+      }
+      debugPrint('No user profile found in Firestore for user ID: $userId');
+      return null;
+    } catch (e) {
+      debugPrint('Error fetching user profile $userId from Firestore: $e');
+      return null; 
+    }
+  }
 
   // Sign in with Google
   Future<GoogleSignInAccount?> signIn() async {
     try {
       final account = await _googleSignIn.signIn();
       if (account != null) {
-        // Create UserProfile object
-        final userProfile = UserProfile(
-          id: account.id,
-          email: account.email,
-          displayName: account.displayName ?? account.email.split('@').first,
-          createdAt: DateTime.now(),
-          lastActive: DateTime.now(),
-          // familyId and role will be null by default upon initial sign-in
-        );
-        // Save UserProfile to local storage
+        final userId = account.id;
+        UserProfile? userProfile = await _fetchUserProfileFromFirestore(userId);
+
+        if (userProfile == null) {
+          // Truly new user, or Firestore fetch failed. Create a new UserProfile.
+          debugPrint('Creating new UserProfile for user ID: $userId');
+          userProfile = UserProfile(
+            id: userId,
+            email: account.email,
+            displayName: account.displayName ?? account.email.split('@').first,
+            createdAt: DateTime.now(),
+            lastActive: DateTime.now(),
+            photoUrl: account.photoUrl,
+            // gamificationProfile will be null here, and GamificationService will handle its creation
+          );
+        } else {
+          // Existing user, update relevant fields
+          debugPrint('Found existing UserProfile for user ID: $userId. Updating fields.');
+          userProfile = userProfile.copyWith(
+            lastActive: DateTime.now(),
+            displayName: account.displayName ?? userProfile.displayName,
+            email: account.email, // Keep email updated
+            photoUrl: account.photoUrl ?? userProfile.photoUrl,
+          );
+        }
+        
+        // Save the fetched/updated or newly created UserProfile to local storage
         await _storageService.saveUserProfile(userProfile);
+        debugPrint('UserProfile for $userId saved locally after sign-in.');
+
+        // Optional: If it was a new user, explicitly save to Firestore now.
+        // Otherwise, CloudStorageService.saveUserProfileToFirestore will be called 
+        // by other services (like GamificationService) when they make changes.
+        // For a new user, ensuring their basic profile exists in Firestore early can be beneficial.
+        if (userProfile.createdAt == userProfile.lastActive) { // Heuristic for new profile
+             try {
+               await _firestore
+                   .collection('users')
+                   .doc(userProfile.id)
+                   .set(userProfile.toJson(), SetOptions(merge: true));
+                debugPrint('New UserProfile for $userId also synced to Firestore.');
+             } catch (e) {
+                debugPrint('Error syncing new UserProfile $userId to Firestore immediately: $e');
+             }
+        }
       }
       return account;
     } catch (e) {

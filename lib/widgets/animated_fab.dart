@@ -150,7 +150,7 @@ class _AnimatedFABState extends State<AnimatedFAB>
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   border: Border.all(
-                    color: AppTheme.primaryColor.withOpacity(
+                    color: AppTheme.primaryColor.withValues(alpha:
                       0.5 * (1 - _rippleAnimation.value),
                     ),
                     width: 2,
@@ -167,7 +167,7 @@ class _AnimatedFABState extends State<AnimatedFAB>
                   shape: BoxShape.circle,
                   boxShadow: [
                     BoxShadow(
-                      color: AppTheme.primaryColor.withOpacity(
+                      color: AppTheme.primaryColor.withValues(alpha:
                         0.3 * _pulseAnimation.value,
                       ),
                       blurRadius: 20 * _pulseAnimation.value,
@@ -437,7 +437,7 @@ class _CelebrationOverlayState extends State<CelebrationOverlay>
         return Positioned.fill(
           child: IgnorePointer(
             child: Container(
-              color: Colors.black.withOpacity(0.3 * (1 - _fadeAnimation.value)),
+              color: Colors.black.withValues(alpha:0.3 * (1 - _fadeAnimation.value)),
               child: Center(
                 child: SlideTransition(
                   position: _slideAnimation,
@@ -455,7 +455,7 @@ class _CelebrationOverlayState extends State<CelebrationOverlay>
                           borderRadius: BorderRadius.circular(16),
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.black.withOpacity(0.2),
+                              color: Colors.black.withValues(alpha:0.2),
                               blurRadius: 20,
                               offset: const Offset(0, 10),
                             ),

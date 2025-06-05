@@ -816,7 +816,7 @@ class WasteTimeSeriesChart extends StatelessWidget {
                 ),
                 belowBarData: BarAreaData(
                   show: true,
-                  color: AppTheme.primaryColor.withOpacity(0.2),
+                  color: AppTheme.primaryColor.withValues(alpha:0.2),
                 ),
               ),
             ],
@@ -1005,7 +1005,7 @@ class CategoryDistributionChart extends StatelessWidget {
           dotData: const FlDotData(show: false),
           belowBarData: BarAreaData(
             show: true,
-            color: color.withOpacity(0.7),
+            color: color.withValues(alpha:0.7),
             // For area below, we need the previous category's value
             cutOffY: i > 0 
                 ? (result[i - 1].spots.isNotEmpty ? result[i - 1].spots.last.y : 0.0)

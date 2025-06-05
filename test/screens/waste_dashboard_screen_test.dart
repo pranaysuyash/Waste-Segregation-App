@@ -452,7 +452,7 @@ void main() {
     group('EmptyStateWidget', () {
       testWidgets('should render with title and message', (tester) async {
         await tester.pumpWidget(
-          MaterialApp(
+          const MaterialApp(
             home: Scaffold(
               body: EmptyStateWidget(
                 title: 'Test Title',
@@ -468,7 +468,7 @@ void main() {
 
       testWidgets('should render with icon', (tester) async {
         await tester.pumpWidget(
-          MaterialApp(
+          const MaterialApp(
             home: Scaffold(
               body: EmptyStateWidget(
                 title: 'Test Title',
@@ -506,7 +506,7 @@ void main() {
     group('GamificationSummaryCard', () {
       testWidgets('should render with required properties', (tester) async {
         await tester.pumpWidget(
-          MaterialApp(
+          const MaterialApp(
             home: Scaffold(
               body: GamificationSummaryCard(
                 title: 'Points',
@@ -527,7 +527,7 @@ void main() {
 
       testWidgets('should render with trend', (tester) async {
         await tester.pumpWidget(
-          MaterialApp(
+          const MaterialApp(
             home: Scaffold(
               body: GamificationSummaryCard(
                 title: 'Points',
@@ -546,7 +546,7 @@ void main() {
 
       testWidgets('should handle long text gracefully', (tester) async {
         await tester.pumpWidget(
-          MaterialApp(
+          const MaterialApp(
             home: Scaffold(
               body: Row(
                 children: [
@@ -608,7 +608,7 @@ void main() {
 
       testWidgets('should handle WebChartWidget with empty data', (tester) async {
         await tester.pumpWidget(
-          MaterialApp(
+          const MaterialApp(
             home: Scaffold(
               body: WebChartWidget(
                 data: [],
@@ -623,7 +623,7 @@ void main() {
 
       testWidgets('should handle WebPieChartWidget with empty data', (tester) async {
         await tester.pumpWidget(
-          MaterialApp(
+          const MaterialApp(
             home: Scaffold(
               body: WebPieChartWidget(data: []),
             ),
@@ -650,7 +650,7 @@ void main() {
 
       testWidgets('should handle classifications without subcategories', (tester) async {
         final classificationsWithoutSubcategories = [
-          testClassifications.first.copyWith(subcategory: null),
+          testClassifications.first.copyWith(),
           testClassifications.last.copyWith(subcategory: ''),
         ];
 
@@ -748,7 +748,7 @@ void main() {
         await tester.pumpAndSettle();
 
         // Rapidly tap refresh multiple times
-        for (int i = 0; i < 5; i++) {
+        for (var i = 0; i < 5; i++) {
           await tester.tap(find.byIcon(Icons.refresh));
           await tester.pump();
         }

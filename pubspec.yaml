@@ -19,6 +19,7 @@ dependencies:
   path_provider: ^2.1.1
   # google_sign_in upgraded in Firebase section to ensure compatibility
   googleapis: ^13.2.0
+  googleapis_auth: ^1.6.0 # Added for Google API authentication
   share_plus: ^7.2.1  # Downgraded to a version that works with our setup
   cross_file: ^0.3.3+8  # Required for XFile for share_plus
   hive: ^2.2.3

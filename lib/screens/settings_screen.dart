@@ -75,22 +75,115 @@ class _SettingsScreenState extends State<SettingsScreen> {
       ),
       body: ListView(
         children: [
-          // Premium Features Section
-          ListTile(
-            leading: const Icon(Icons.workspace_premium, color: Colors.amber),
-            title: const Text('Premium Features'),
-            subtitle: const Text('Unlock advanced features'),
-            trailing: const Icon(Icons.chevron_right),
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const PremiumFeaturesScreen(),
-                ),
-              );
-            },
+          // Account Section Header
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+            child: Text(
+              'Account',
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.bold,
+                color: Theme.of(context).colorScheme.primary,
+              ),
+            ),
           ),
-          const Divider(),
+          
+          // Sign Out / Switch Account - Moved to top for better accessibility
+          Card(
+            margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+            child: FutureBuilder<bool>(
+              future: googleDriveService.isSignedIn(),
+              builder: (context, snapshot) {
+                final isSignedIn = snapshot.data ?? false;
+                
+                return ListTile(
+                  leading: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: isSignedIn ? Colors.red.withValues(alpha: 0.1) : Colors.blue.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Icon(
+                      isSignedIn ? Icons.logout : Icons.login,
+                      color: isSignedIn ? Colors.red : Colors.blue,
+                    ),
+                  ),
+                  title: Text(
+                    isSignedIn ? 'Sign Out' : 'Switch to Google Account',
+                    style: TextStyle(
+                      fontWeight: FontWeight.w500,
+                      color: isSignedIn ? Colors.red : Colors.blue,
+                    ),
+                  ),
+                  subtitle: Text(
+                    isSignedIn 
+                        ? 'Sign out and return to login screen'
+                        : 'Currently in guest mode - sign in to sync data',
+                  ),
+                  trailing: Icon(
+                    Icons.chevron_right,
+                    color: isSignedIn ? Colors.red : Colors.blue,
+                  ),
+                  onTap: () => _handleAccountAction(context, isSignedIn, googleDriveService),
+                );
+              },
+            ),
+          ),
+          
+          const SizedBox(height: 16),
+          
+          // Premium Features Section
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+            child: Text(
+              'Premium',
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.bold,
+                color: Theme.of(context).colorScheme.primary,
+              ),
+            ),
+          ),
+          
+          Card(
+            margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+            child: ListTile(
+              leading: Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: Colors.amber.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Icon(Icons.workspace_premium, color: Colors.amber),
+              ),
+              title: const Text(
+                'Premium Features',
+                style: TextStyle(fontWeight: FontWeight.w500),
+              ),
+              subtitle: const Text('Unlock advanced features'),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const PremiumFeaturesScreen(),
+                  ),
+                );
+              },
+            ),
+          ),
+          
+          const SizedBox(height: 16),
+          
+          // App Settings Section Header
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+            child: Text(
+              'App Settings',
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.bold,
+                color: Theme.of(context).colorScheme.primary,
+              ),
+            ),
+          ),
 
           // Developer Options Section (Secure Debug Only)
           if (DeveloperConfig.canShowDeveloperOptions && _showDeveloperOptions) ...[
@@ -207,13 +300,25 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ],
 
           // Navigation Settings
-          Consumer<NavigationSettingsService>(
-            builder: (context, navSettings, child) {
-              return ExpansionTile(
-                leading: const Icon(Icons.navigation),
-                title: const Text('Navigation Settings'),
-                subtitle: const Text('Customize navigation behavior'),
-                children: [
+          Card(
+            margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+            child: Consumer<NavigationSettingsService>(
+              builder: (context, navSettings, child) {
+                return ExpansionTile(
+                  leading: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: Colors.blue.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: const Icon(Icons.navigation, color: Colors.blue),
+                  ),
+                  title: const Text(
+                    'Navigation Settings',
+                    style: TextStyle(fontWeight: FontWeight.w500),
+                  ),
+                  subtitle: const Text('Customize navigation behavior'),
+                  children: [
                   SwitchListTile(
                     title: const Text('Bottom Navigation'),
                     subtitle: const Text('Show bottom navigation bar'),
@@ -284,37 +389,81 @@ class _SettingsScreenState extends State<SettingsScreen> {
               );
             },
           ),
-          const Divider(),
+          ),
+
+          const SizedBox(height: 8),
 
           // Theme Settings
-          ListTile(
-            leading: const Icon(Icons.palette),
-            title: const Text('Theme Settings'),
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const ThemeSettingsScreen(),
+          Card(
+            margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+            child: ListTile(
+              leading: Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: Colors.purple.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(8),
                 ),
-              );
-            },
+                child: const Icon(Icons.palette, color: Colors.purple),
+              ),
+              title: const Text(
+                'Theme Settings',
+                style: TextStyle(fontWeight: FontWeight.w500),
+              ),
+              subtitle: const Text('Customize app appearance'),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const ThemeSettingsScreen(),
+                  ),
+                );
+              },
+            ),
           ),
-          const Divider(),
 
           // Notification Settings
-          ListTile(
-            leading: const Icon(Icons.notifications),
-            title: const Text('Notification Settings'),
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const NotificationSettingsScreen(),
+          Card(
+            margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+            child: ListTile(
+              leading: Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: Colors.orange.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(8),
                 ),
-              );
-            },
+                child: const Icon(Icons.notifications, color: Colors.orange),
+              ),
+              title: const Text(
+                'Notification Settings',
+                style: TextStyle(fontWeight: FontWeight.w500),
+              ),
+              subtitle: const Text('Manage your notifications'),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const NotificationSettingsScreen(),
+                  ),
+                );
+              },
+            ),
           ),
-          const Divider(),
+
+          const SizedBox(height: 16),
+
+          // Features Section Header
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+            child: Text(
+              'Features & Tools',
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.bold,
+                color: Theme.of(context).colorScheme.primary,
+              ),
+            ),
+          ),
 
           // Navigation Styles Demo
           ListTile(
@@ -595,35 +744,42 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ),
           ],
 
-          // Sign Out / Switch Account
-          FutureBuilder<bool>(
-            future: googleDriveService.isSignedIn(),
-            builder: (context, snapshot) {
-              final isSignedIn = snapshot.data ?? false;
-              
-              return ListTile(
-                leading: Icon(
-                  isSignedIn ? Icons.logout : Icons.account_circle_outlined,
-                  color: isSignedIn ? Colors.red : Colors.blue,
-                ),
-                title: Text(isSignedIn ? 'Sign Out' : 'Switch to Google Account'),
-                subtitle: Text(
-                  isSignedIn 
-                      ? 'Sign out and return to login screen'
-                      : 'Currently in guest mode - sign in to sync data',
-                ),
-                onTap: () => _handleAccountAction(context, isSignedIn, googleDriveService),
-              );
-            },
+          const SizedBox(height: 16),
+
+          // Data Management Section Header
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+            child: Text(
+              'Data Management',
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.bold,
+                color: Theme.of(context).colorScheme.primary,
+              ),
+            ),
           ),
-          const Divider(),
 
           // Clear Data
-          ListTile(
-            leading: const Icon(Icons.delete_forever),
-            title: const Text('Clear Data'),
-            subtitle: const Text('Reset all app data (history, settings, preferences)'),
-            onTap: () {
+          Card(
+            margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+            child: ListTile(
+              leading: Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: Colors.red.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Icon(Icons.delete_forever, color: Colors.red),
+              ),
+              title: const Text(
+                'Clear Data',
+                style: TextStyle(
+                  fontWeight: FontWeight.w500,
+                  color: Colors.red,
+                ),
+              ),
+              subtitle: const Text('Reset all app data (history, settings, preferences)'),
+              trailing: const Icon(Icons.chevron_right, color: Colors.red),
+              onTap: () {
               showDialog(
                 context: context,
                 builder: (context) => AlertDialog(
@@ -663,14 +819,41 @@ class _SettingsScreenState extends State<SettingsScreen> {
               );
             },
           ),
-          const Divider(),
+          ),
+
+          const SizedBox(height: 16),
+
+          // Legal & Support Section Header
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+            child: Text(
+              'Legal & Support',
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.bold,
+                color: Theme.of(context).colorScheme.primary,
+              ),
+            ),
+          ),
 
           // Legal Documents
-          ListTile(
-            leading: const Icon(Icons.gavel),
-            title: const Text('Legal'),
-            subtitle: const Text('Privacy Policy and Terms of Service'),
-            onTap: () {
+          Card(
+            margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+            child: ListTile(
+              leading: Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: Colors.brown.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Icon(Icons.gavel, color: Colors.brown),
+              ),
+              title: const Text(
+                'Legal',
+                style: TextStyle(fontWeight: FontWeight.w500),
+              ),
+              subtitle: const Text('Privacy Policy and Terms of Service'),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () {
               showModalBottomSheet(
                 context: context,
                 builder: (context) {
@@ -717,14 +900,27 @@ class _SettingsScreenState extends State<SettingsScreen> {
               );
             },
           ),
-          const Divider(),
+          ),
 
           // About
-          ListTile(
-            leading: const Icon(Icons.info),
-            title: const Text('About'),
-            subtitle: const Text('App information and credits'),
-            onTap: () {
+          Card(
+            margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+            child: ListTile(
+              leading: Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: Colors.blue.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Icon(Icons.info, color: Colors.blue),
+              ),
+              title: const Text(
+                'About',
+                style: TextStyle(fontWeight: FontWeight.w500),
+              ),
+              subtitle: const Text('App information and credits'),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () {
               showAboutDialog(
                 context: context,
                 applicationName: AppStrings.appName,
@@ -783,6 +979,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
               );
             },
           ),
+          ),
+
+          const SizedBox(height: 16),
         ],
       ),
     );

@@ -349,9 +349,9 @@ void main() {
     test('should award points for streak milestones', () async {
       final twoDaysAgo = DateTime.now().subtract(const Duration(days: 2));
       const initialPoints = 0;
-      var initialGamificationProfile = GamificationProfile(
+      final initialGamificationProfile = GamificationProfile(
         userId: 'test_user_123',
-        points: UserPoints(total: initialPoints),
+        points: const UserPoints(),
         streaks: {
           StreakType.dailyClassification.toString(): StreakDetails(
             type: StreakType.dailyClassification,
@@ -663,10 +663,7 @@ void main() {
         id: userId, 
         gamificationProfile: const GamificationProfile(
           userId: userId, 
-          streaks: {}, 
-          achievements: [], 
-          discoveredItemIds: {}, 
-          unlockedHiddenContentIds: {},
+          streaks: {},
           points: UserPoints(),
         )
       );

@@ -1,31 +1,31 @@
 import 'package:waste_segregation_app/models/waste_classification.dart';
 import 'package:waste_segregation_app/models/user_profile.dart';
 import 'package:waste_segregation_app/services/storage_service.dart';
+import 'package:waste_segregation_app/services/cloud_storage_service.dart';
 
 /// Mock CloudStorageService for testing that doesn't require Firebase
-class MockCloudStorageService {
-  MockCloudStorageService(this._localStorageService);
-  final StorageService _localStorageService;
+class MockCloudStorageService extends CloudStorageService {
+  MockCloudStorageService(StorageService localStorageService) : super(localStorageService);
 
-  /// Mock implementation - just saves locally
+  @override
   Future<void> saveUserProfileToFirestore(UserProfile userProfile) async {
     // Mock: Just return success
     return;
   }
 
-  /// Mock implementation - just saves locally
+  @override
   Future<void> saveClassificationWithSync(
     WasteClassification classification,
-    bool isGoogleSyncEnabled,
-  ) async {
+    bool isGoogleSyncEnabled, {
+    bool processGamification = true,
+  }) async {
     // Always save locally (same as real implementation)
-    await _localStorageService.saveClassification(classification);
-    
+    await localStorageService.saveClassification(classification);
     // Mock: Skip cloud sync
     return;
   }
 
-  /// Mock implementation
+  @override
   Future<List<WasteClassification>> getAllClassificationsWithCloudSync(
     bool isGoogleSyncEnabled,
   ) async {
@@ -33,19 +33,19 @@ class MockCloudStorageService {
     return [];
   }
 
-  /// Mock implementation
+  @override
   Future<void> syncAllLocalToCloud() async {
     // Mock: Do nothing
     return;
   }
 
-  /// Mock implementation
+  @override
   Future<bool> isCloudSyncAvailable() async {
     // Mock: Always return false (offline mode)
     return false;
   }
 
-  /// Mock implementation
+  @override
   Future<Map<String, dynamic>> getCloudSyncStatus() async {
     // Mock: Return offline status
     return {
@@ -56,19 +56,19 @@ class MockCloudStorageService {
     };
   }
 
-  /// Mock implementation
+  @override
   Future<void> deleteAllCloudData() async {
     // Mock: Do nothing
     return;
   }
 
-  /// Mock implementation
+  @override
   Future<List<UserProfile>> getLeaderboard({int limit = 100}) async {
     // Mock: Return empty leaderboard
     return [];
   }
 
-  /// Mock implementation
+  @override
   Future<void> deleteClassificationFromCloud(String classificationId) async {
     // Mock: Do nothing
     return;

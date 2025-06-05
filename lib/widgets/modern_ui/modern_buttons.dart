@@ -189,7 +189,7 @@ class _ModernButtonState extends State<ModernButton>
       backgroundColor: color,
       foregroundColor: widget.foregroundColor ?? widget.textColor ?? Colors.white,
       elevation: widget.style == ModernButtonStyle.glassmorphism ? 0 : 2,
-      shadowColor: color.withOpacity(0.3),
+      shadowColor: color.withValues(alpha:0.3),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(_getBorderRadius()),
       ),
@@ -223,13 +223,13 @@ class _ModernButtonState extends State<ModernButton>
   
   ButtonStyle _getGlassmorphismButtonStyle(ThemeData theme, Color color) {
     return ElevatedButton.styleFrom(
-      backgroundColor: color.withOpacity(0.2),
+      backgroundColor: color.withValues(alpha:0.2),
       foregroundColor: widget.textColor ?? color,
       elevation: 0,
       shadowColor: Colors.transparent,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(_getBorderRadius()),
-        side: BorderSide(color: color.withOpacity(0.3)),
+        side: BorderSide(color: color.withValues(alpha:0.3)),
       ),
       padding: _getPadding(),
       textStyle: _getTextStyle(theme),
@@ -384,10 +384,10 @@ class _ModernSearchBarState extends State<ModernSearchBar>
     
     return Container(
       decoration: BoxDecoration(
-        color: theme.colorScheme.surfaceContainerHighest.withOpacity(0.5),
+        color: theme.colorScheme.surfaceContainerHighest.withValues(alpha:0.5),
         borderRadius: BorderRadius.circular(AppTheme.borderRadiusXl),
         border: Border.all(
-          color: theme.colorScheme.outline.withOpacity(0.2),
+          color: theme.colorScheme.outline.withValues(alpha:0.2),
         ),
       ),
       child: TextField(
@@ -510,7 +510,7 @@ class _ModernFABState extends State<ModernFAB>
             end: Alignment.bottomRight,
             colors: [
               widget.backgroundColor ?? theme.colorScheme.primary,
-              (widget.backgroundColor ?? theme.colorScheme.primary).withOpacity(0.8),
+              (widget.backgroundColor ?? theme.colorScheme.primary).withValues(alpha:0.8),
             ],
           ),
           borderRadius: BorderRadius.circular(
@@ -518,7 +518,7 @@ class _ModernFABState extends State<ModernFAB>
           ),
           boxShadow: [
             BoxShadow(
-              color: (widget.backgroundColor ?? theme.colorScheme.primary).withOpacity(0.3),
+              color: (widget.backgroundColor ?? theme.colorScheme.primary).withValues(alpha:0.3),
               blurRadius: 12,
               offset: const Offset(0, 6),
             ),

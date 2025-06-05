@@ -143,12 +143,12 @@ class ParticleSystemPainter extends CustomPainter {
           dynamicOpacity * 0.8 : dynamicOpacity * 0.6;
       
       final paint = Paint()
-        ..color = particle.color.withOpacity(themeAdjustedOpacity)
+        ..color = particle.color.withValues(alpha:themeAdjustedOpacity)
         ..style = PaintingStyle.fill;
       
       // Add subtle glow effect
       final glowPaint = Paint()
-        ..color = particle.color.withOpacity(themeAdjustedOpacity * 0.3)
+        ..color = particle.color.withValues(alpha:themeAdjustedOpacity * 0.3)
         ..style = PaintingStyle.fill
         ..maskFilter = MaskFilter.blur(BlurStyle.normal, particle.size * 0.5);
       
@@ -267,7 +267,7 @@ class _PulsingScanButtonState extends State<PulsingScanButton>
                 ),
                 boxShadow: [
                   BoxShadow(
-                    color: widget.primaryColor.withOpacity(0.4),
+                    color: widget.primaryColor.withValues(alpha:0.4),
                     blurRadius: 20 * _pulseAnimation.value,
                     spreadRadius: 2 * _pulseAnimation.value,
                   ),
@@ -280,7 +280,7 @@ class _PulsingScanButtonState extends State<PulsingScanButton>
                   CustomPaint(
                     painter: ButtonParticleTrailPainter(
                       animationValue: _particleController.value,
-                      color: Colors.white.withOpacity(0.6),
+                      color: Colors.white.withValues(alpha:0.6),
                     ),
                     size: Size(widget.size, widget.size),
                   ),
@@ -351,7 +351,7 @@ class ButtonParticleTrailPainter extends CustomPainter {
       );
       
       final opacity = (math.sin(animationValue * 4 * math.pi + i) + 1) / 2;
-      paint.color = color.withOpacity(opacity * 0.8);
+      paint.color = color.withValues(alpha:opacity * 0.8);
       
       canvas.drawCircle(particlePosition, 2, paint);
     }

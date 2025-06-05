@@ -20,7 +20,7 @@ class NavigationDemoScreen extends StatelessWidget {
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
             colors: [
-              AppTheme.primaryColor.withOpacity(0.1),
+              AppTheme.primaryColor.withValues(alpha:0.1),
               Colors.white,
             ],
           ),
@@ -156,7 +156,7 @@ class NavigationDemoScreen extends StatelessWidget {
                   Container(
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: color.withOpacity(0.1),
+                      color: color.withValues(alpha:0.1),
                       borderRadius: BorderRadius.circular(AppTheme.borderRadiusRegular),
                     ),
                     child: Icon(

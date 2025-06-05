@@ -236,8 +236,8 @@ class _EnhancedAnalysisLoaderState extends State<EnhancedAnalysisLoader>
                   shape: BoxShape.circle,
                   gradient: RadialGradient(
                     colors: [
-                      _getCurrentStepColor().withOpacity(0.3),
-                      _getCurrentStepColor().withOpacity(0.1),
+                      _getCurrentStepColor().withValues(alpha:0.3),
+                      _getCurrentStepColor().withValues(alpha:0.1),
                       Colors.transparent,
                     ],
                   ),
@@ -249,7 +249,7 @@ class _EnhancedAnalysisLoaderState extends State<EnhancedAnalysisLoader>
                     color: _getCurrentStepColor(),
                     boxShadow: [
                       BoxShadow(
-                        color: _getCurrentStepColor().withOpacity(0.4),
+                        color: _getCurrentStepColor().withValues(alpha:0.4),
                         blurRadius: 20,
                         spreadRadius: 5,
                       ),
@@ -354,7 +354,7 @@ class _EnhancedAnalysisLoaderState extends State<EnhancedAnalysisLoader>
                 boxShadow: isCurrent
                     ? [
                         BoxShadow(
-                          color: _analysisSteps[index].color.withOpacity(0.5),
+                          color: _analysisSteps[index].color.withValues(alpha:0.5),
                           blurRadius: 8,
                           spreadRadius: 2,
                         ),
@@ -384,10 +384,10 @@ class _EnhancedAnalysisLoaderState extends State<EnhancedAnalysisLoader>
       child: Container(
         padding: const EdgeInsets.all(AppTheme.paddingRegular),
         decoration: BoxDecoration(
-          color: AppTheme.primaryColor.withOpacity(0.1),
+          color: AppTheme.primaryColor.withValues(alpha:0.1),
           borderRadius: BorderRadius.circular(AppTheme.borderRadiusRegular),
           border: Border.all(
-            color: AppTheme.primaryColor.withOpacity(0.3),
+            color: AppTheme.primaryColor.withValues(alpha:0.3),
           ),
         ),
         child: Row(
@@ -490,7 +490,7 @@ class AnalysisParticlePainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
-      ..color = color.withOpacity(0.3)
+      ..color = color.withValues(alpha:0.3)
       ..style = PaintingStyle.fill;
 
     final center = Offset(size.width / 2, size.height / 2);

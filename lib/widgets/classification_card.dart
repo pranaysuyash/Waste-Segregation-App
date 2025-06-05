@@ -247,9 +247,9 @@ class ClassificationCard extends StatelessWidget {
           vertical: 4,
         ),
         decoration: BoxDecoration(
-          color: color.withOpacity(0.1),
+          color: color.withValues(alpha:0.1),
           borderRadius: BorderRadius.circular(AppTheme.borderRadiusSmall),
-          border: Border.all(color: color.withOpacity(0.5)),
+          border: Border.all(color: color.withValues(alpha:0.5)),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,

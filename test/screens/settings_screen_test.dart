@@ -579,7 +579,7 @@ void main() {
         final analyticsSwitch = find.widgetWithText(SwitchListTile, 'Analytics').first;
 
         // Rapidly toggle multiple times
-        for (int i = 0; i < 5; i++) {
+        for (var i = 0; i < 5; i++) {
           await tester.tap(analyticsSwitch);
           await tester.pump(const Duration(milliseconds: 100));
         }

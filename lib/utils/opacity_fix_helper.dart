@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 extension ColorOpacityFix on Color {
   /// Wraps [Color.withOpacity] so calls remain consistent across the codebase.
   Color withOpacityFixed(double opacity) {
-    return withOpacity(opacity);
+    return withValues(alpha:opacity);
   }
 }
 

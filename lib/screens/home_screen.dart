@@ -1902,7 +1902,6 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     }
     // Return empty streak if no daily classification streak exists
     return Streak(
-      longest: 0,
       lastUsageDate: DateTime.now(),
     );
   }

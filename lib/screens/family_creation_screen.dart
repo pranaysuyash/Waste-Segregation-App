@@ -45,7 +45,7 @@ class _FamilyCreationScreenState extends State<FamilyCreationScreen> {
                   width: 120,
                   height: 120,
                   decoration: BoxDecoration(
-                    color: AppTheme.primaryColor.withOpacity(0.1),
+                    color: AppTheme.primaryColor.withValues(alpha:0.1),
                     borderRadius: BorderRadius.circular(60),
                   ),
                   child: const Icon(
@@ -177,7 +177,7 @@ class _FamilyCreationScreenState extends State<FamilyCreationScreen> {
               Container(
                 padding: const EdgeInsets.all(AppTheme.paddingRegular),
                 decoration: BoxDecoration(
-                  color: Colors.blue.withOpacity(0.1),
+                  color: Colors.blue.withValues(alpha:0.1),
                   borderRadius: BorderRadius.circular(AppTheme.borderRadiusRegular),
                 ),
                 child: Row(
@@ -216,7 +216,7 @@ class _FamilyCreationScreenState extends State<FamilyCreationScreen> {
             width: 40,
             height: 40,
             decoration: BoxDecoration(
-              color: AppTheme.primaryColor.withOpacity(0.1),
+              color: AppTheme.primaryColor.withValues(alpha:0.1),
               borderRadius: BorderRadius.circular(20),
             ),
             child: Icon(

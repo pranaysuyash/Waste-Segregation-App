@@ -68,12 +68,12 @@ class _CyberpunkWasteImpactDashboardState extends State<CyberpunkWasteImpactDash
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   border: Border.all(
-                    color: const Color(0xFF00ffff).withOpacity(0.5),
+                    color: const Color(0xFF00ffff).withValues(alpha:0.5),
                     width: 3,
                   ),
                   gradient: RadialGradient(
                     colors: [
-                      const Color(0xFF00ffff).withOpacity(0.1),
+                      const Color(0xFF00ffff).withValues(alpha:0.1),
                       Colors.transparent,
                     ],
                   ),
@@ -94,7 +94,7 @@ class _CyberpunkWasteImpactDashboardState extends State<CyberpunkWasteImpactDash
                         'of ${dailyTarget.toInt()}',
                         style: TextStyle(
                           fontSize: 14,
-                          color: Colors.white.withOpacity(0.7),
+                          color: Colors.white.withValues(alpha:0.7),
                         ),
                       ),
                       const Text(
@@ -196,18 +196,18 @@ class _CyberpunkWasteImpactDashboardState extends State<CyberpunkWasteImpactDash
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            Colors.white.withOpacity(0.05),
-            Colors.white.withOpacity(0.02),
-            Colors.black.withOpacity(0.1),
+            Colors.white.withValues(alpha:0.05),
+            Colors.white.withValues(alpha:0.02),
+            Colors.black.withValues(alpha:0.1),
           ],
         ),
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
-          color: colors.first.withOpacity(0.3),
+          color: colors.first.withValues(alpha:0.3),
         ),
         boxShadow: [
           BoxShadow(
-            color: colors.first.withOpacity(0.2),
+            color: colors.first.withValues(alpha:0.2),
             blurRadius: 15,
             spreadRadius: 2,
           ),
@@ -223,7 +223,7 @@ class _CyberpunkWasteImpactDashboardState extends State<CyberpunkWasteImpactDash
               borderRadius: BorderRadius.circular(15),
               boxShadow: [
                 BoxShadow(
-                  color: colors.first.withOpacity(0.4),
+                  color: colors.first.withValues(alpha:0.4),
                   blurRadius: 8,
                   spreadRadius: 1,
                 ),
@@ -263,7 +263,7 @@ class _CyberpunkWasteImpactDashboardState extends State<CyberpunkWasteImpactDash
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     border: Border.all(
-                      color: colors.first.withOpacity(0.2),
+                      color: colors.first.withValues(alpha:0.2),
                       width: 6,
                     ),
                   ),
@@ -302,7 +302,7 @@ class _CyberpunkWasteImpactDashboardState extends State<CyberpunkWasteImpactDash
                       unit,
                       style: TextStyle(
                         fontSize: 8,
-                        color: Colors.white.withOpacity(0.7),
+                        color: Colors.white.withValues(alpha:0.7),
                         fontWeight: FontWeight.w600,
                       ),
                     ),
@@ -318,10 +318,10 @@ class _CyberpunkWasteImpactDashboardState extends State<CyberpunkWasteImpactDash
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
             decoration: BoxDecoration(
-              color: colors.first.withOpacity(0.1),
+              color: colors.first.withValues(alpha:0.1),
               borderRadius: BorderRadius.circular(10),
               border: Border.all(
-                color: colors.first.withOpacity(0.3),
+                color: colors.first.withValues(alpha:0.3),
               ),
             ),
             child: Text(
@@ -346,19 +346,19 @@ class _CyberpunkWasteImpactDashboardState extends State<CyberpunkWasteImpactDash
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            Colors.white.withOpacity(0.08),
-            Colors.white.withOpacity(0.03),
-            Colors.black.withOpacity(0.1),
+            Colors.white.withValues(alpha:0.08),
+            Colors.white.withValues(alpha:0.03),
+            Colors.black.withValues(alpha:0.1),
           ],
         ),
         borderRadius: BorderRadius.circular(25),
         border: Border.all(
-          color: const Color(0xFF00F5FF).withOpacity(0.3),
+          color: const Color(0xFF00F5FF).withValues(alpha:0.3),
           width: 2,
         ),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF00F5FF).withOpacity(0.2),
+            color: const Color(0xFF00F5FF).withValues(alpha:0.2),
             blurRadius: 20,
             spreadRadius: 3,
           ),
@@ -459,10 +459,10 @@ class _CyberpunkWasteImpactDashboardState extends State<CyberpunkWasteImpactDash
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
+        color: color.withValues(alpha:0.1),
         borderRadius: BorderRadius.circular(15),
         border: Border.all(
-          color: color.withOpacity(0.3),
+          color: color.withValues(alpha:0.3),
         ),
       ),
       child: Column(
@@ -488,7 +488,7 @@ class _CyberpunkWasteImpactDashboardState extends State<CyberpunkWasteImpactDash
           const SizedBox(height: 8),
           ShaderMask(
             shaderCallback: (bounds) => LinearGradient(
-              colors: [color, color.withOpacity(0.7)],
+              colors: [color, color.withValues(alpha:0.7)],
             ).createShader(bounds),
             child: Text(
               value,
@@ -503,7 +503,7 @@ class _CyberpunkWasteImpactDashboardState extends State<CyberpunkWasteImpactDash
             subtitle,
             style: TextStyle(
               fontSize: 10,
-              color: Colors.white.withOpacity(0.6),
+              color: Colors.white.withValues(alpha:0.6),
               fontWeight: FontWeight.w500,
             ),
           ),
@@ -520,19 +520,19 @@ class _CyberpunkWasteImpactDashboardState extends State<CyberpunkWasteImpactDash
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            Colors.white.withOpacity(0.06),
-            Colors.white.withOpacity(0.02),
-            Colors.black.withOpacity(0.15),
+            Colors.white.withValues(alpha:0.06),
+            Colors.white.withValues(alpha:0.02),
+            Colors.black.withValues(alpha:0.15),
           ],
         ),
         borderRadius: BorderRadius.circular(25),
         border: Border.all(
-          color: const Color(0xFFFF006E).withOpacity(0.3),
+          color: const Color(0xFFFF006E).withValues(alpha:0.3),
           width: 2,
         ),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFFFF006E).withOpacity(0.2),
+            color: const Color(0xFFFF006E).withValues(alpha:0.2),
             blurRadius: 20,
             spreadRadius: 3,
           ),
@@ -619,7 +619,7 @@ class _CyberpunkWasteImpactDashboardState extends State<CyberpunkWasteImpactDash
             borderRadius: BorderRadius.circular(15),
             boxShadow: [
               BoxShadow(
-                color: colors.first.withOpacity(0.4),
+                color: colors.first.withValues(alpha:0.4),
                 blurRadius: 8,
                 spreadRadius: 1,
               ),

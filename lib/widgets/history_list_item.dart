@@ -31,7 +31,7 @@ class HistoryListItem extends StatelessWidget {
         ),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(AppTheme.borderRadiusRegular),
-          side: BorderSide(color: categoryColor.withOpacity(0.3)),
+          side: BorderSide(color: categoryColor.withValues(alpha:0.3)),
         ),
         child: InkWell(
           onTap: onTap,
@@ -95,7 +95,7 @@ class HistoryListItem extends StatelessWidget {
                                   vertical: 2,
                                 ),
                                 decoration: BoxDecoration(
-                                  color: _getConfidenceColor().withOpacity(0.2),
+                                  color: _getConfidenceColor().withValues(alpha:0.2),
                                   borderRadius: BorderRadius.circular(AppTheme.borderRadiusSmall),
                                   border: Border.all(
                                     color: _getConfidenceColor(),
@@ -181,10 +181,10 @@ class HistoryListItem extends StatelessWidget {
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
           decoration: BoxDecoration(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha:0.05),
             borderRadius: BorderRadius.circular(AppTheme.borderRadiusSmall),
             border: Border.all(
-              color: categoryColor.withOpacity(0.5),
+              color: categoryColor.withValues(alpha:0.5),
             ),
           ),
           child: Text(

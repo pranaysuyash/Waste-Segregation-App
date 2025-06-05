@@ -27,7 +27,7 @@ void main() {
 
   group('TriggerCondition', () {
     test('should create with required parameters', () {
-      final condition = TriggerCondition(
+      const condition = TriggerCondition(
         type: HiddenContentTriggerType.specificItemDiscovery,
         parameters: {'itemId': 'vintage_camera_001'},
       );
@@ -37,7 +37,7 @@ void main() {
     });
 
     test('should serialize to and from JSON correctly', () {
-      final condition = TriggerCondition(
+      const condition = TriggerCondition(
         type: HiddenContentTriggerType.itemCountByTag,
         parameters: {'tag': 'vintage', 'count': 5},
       );
@@ -66,7 +66,7 @@ void main() {
     });
 
     test('should copyWith correctly', () {
-      final original = TriggerCondition(
+      const original = TriggerCondition(
         type: HiddenContentTriggerType.specificItemDiscovery,
         parameters: {'itemId': 'original'},
       );
@@ -82,7 +82,7 @@ void main() {
     });
 
     test('should handle complex parameters', () {
-      final condition = TriggerCondition(
+      const condition = TriggerCondition(
         type: HiddenContentTriggerType.specificItemSequence,
         parameters: {
           'items': ['itemA_id', 'itemB_id'],
@@ -104,7 +104,7 @@ void main() {
 
   group('HiddenContentRule', () {
     test('should create with required parameters', () {
-      final rule = HiddenContentRule(
+      const rule = HiddenContentRule(
         ruleId: 'rule_001',
         contentIdToUnlock: 'vintage_collector_badge',
         unlockedContentType: UnlockedContentType.badge,
@@ -128,7 +128,7 @@ void main() {
     });
 
     test('should create with optional parameters', () {
-      final rule = HiddenContentRule(
+      const rule = HiddenContentRule(
         ruleId: 'rule_002',
         contentIdToUnlock: 'map_area_secret',
         unlockedContentType: UnlockedContentType.mapArea,
@@ -145,7 +145,7 @@ void main() {
     });
 
     test('should serialize to and from JSON correctly', () {
-      final rule = HiddenContentRule(
+      const rule = HiddenContentRule(
         ruleId: 'rule_003',
         contentIdToUnlock: 'achievement_001',
         unlockedContentType: UnlockedContentType.achievement,
@@ -186,7 +186,7 @@ void main() {
     });
 
     test('should copyWith correctly', () {
-      final original = HiddenContentRule(
+      const original = HiddenContentRule(
         ruleId: 'rule_original',
         contentIdToUnlock: 'original_content',
         unlockedContentType: UnlockedContentType.badge,
@@ -209,7 +209,7 @@ void main() {
     });
 
     test('should handle multiple trigger conditions', () {
-      final rule = HiddenContentRule(
+      const rule = HiddenContentRule(
         ruleId: 'rule_multi',
         contentIdToUnlock: 'complex_achievement',
         unlockedContentType: UnlockedContentType.achievement,
@@ -238,7 +238,7 @@ void main() {
 
   group('DiscoveryQuestTemplate', () {
     test('should create with required parameters', () {
-      final template = DiscoveryQuestTemplate(
+      const template = DiscoveryQuestTemplate(
         templateId: 'quest_001',
         titleTemplate: 'The Mystery of the Missing {material}!',
         descriptionTemplate: 'Our scouts report a rare {item_property} {item_category} was last seen near...',
@@ -258,7 +258,7 @@ void main() {
     });
 
     test('should create with optional parameters', () {
-      final template = DiscoveryQuestTemplate(
+      const template = DiscoveryQuestTemplate(
         templateId: 'quest_002',
         titleTemplate: 'Advanced Quest',
         descriptionTemplate: 'A complex quest description',
@@ -277,7 +277,7 @@ void main() {
     });
 
     test('should serialize to and from JSON correctly', () {
-      final template = DiscoveryQuestTemplate(
+      const template = DiscoveryQuestTemplate(
         templateId: 'quest_json',
         titleTemplate: 'JSON Quest {type}',
         descriptionTemplate: 'Test description for {type}',
@@ -320,7 +320,7 @@ void main() {
     });
 
     test('should copyWith correctly', () {
-      final original = DiscoveryQuestTemplate(
+      const original = DiscoveryQuestTemplate(
         templateId: 'original_quest',
         titleTemplate: 'Original Title',
         descriptionTemplate: 'Original Description',
@@ -345,7 +345,7 @@ void main() {
     });
 
     test('should handle complex objective criteria', () {
-      final template = DiscoveryQuestTemplate(
+      const template = DiscoveryQuestTemplate(
         templateId: 'complex_quest',
         titleTemplate: 'Complex Discovery',
         descriptionTemplate: 'A quest with complex criteria',
@@ -374,7 +374,7 @@ void main() {
     });
 
     test('should validate template placeholders', () {
-      final template = DiscoveryQuestTemplate(
+      const template = DiscoveryQuestTemplate(
         templateId: 'placeholder_test',
         titleTemplate: 'Find the {material} {item_type} from {era}',
         descriptionTemplate: 'Search for a {rarity} {item_category} with {property}',
@@ -393,7 +393,7 @@ void main() {
 
   group('Edge Cases and Integration', () {
     test('should handle empty trigger conditions list', () {
-      final rule = HiddenContentRule(
+      const rule = HiddenContentRule(
         ruleId: 'empty_triggers',
         contentIdToUnlock: 'test_content',
         unlockedContentType: UnlockedContentType.loreSnippet,
@@ -410,7 +410,7 @@ void main() {
 
     test('should handle very large parameter maps', () {
       final largeParameters = <String, dynamic>{};
-      for (int i = 0; i < 100; i++) {
+      for (var i = 0; i < 100; i++) {
         largeParameters['param_$i'] = 'value_$i';
       }
 
@@ -428,7 +428,7 @@ void main() {
     });
 
     test('should handle special characters in strings', () {
-      final template = DiscoveryQuestTemplate(
+      const template = DiscoveryQuestTemplate(
         templateId: 'special_chars_123',
         titleTemplate: 'Quest with émojis 🎯 and spëcial chars!',
         descriptionTemplate: 'Description with "quotes" and \'apostrophes\' & symbols',
@@ -445,7 +445,7 @@ void main() {
     });
 
     test('should handle boundary values', () {
-      final template = DiscoveryQuestTemplate(
+      const template = DiscoveryQuestTemplate(
         templateId: '',
         titleTemplate: '',
         descriptionTemplate: '',

@@ -15,6 +15,8 @@ class CloudStorageService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final StorageService _localStorageService;
 
+  StorageService get localStorageService => _localStorageService;
+
   /// Saves or updates the user's profile in Firestore and updates the all-time leaderboard.
   Future<void> saveUserProfileToFirestore(UserProfile userProfile) async {
     if (userProfile.id.isEmpty) {

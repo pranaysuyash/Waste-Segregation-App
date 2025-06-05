@@ -5,10 +5,10 @@ import 'package:waste_segregation_app/models/gamification.dart';
 void main() {
   group('UserProfile', () {
     test('should create a UserProfile with all fields', () {
-      final profile = UserProfile(
+        final profile = UserProfile(
         id: 'user123',
         displayName: 'John Doe',
-        email: 'john.doe@example.com',
+          email: 'john.doe@example.com',
         photoUrl: 'https://example.com/photo.jpg',
         familyId: 'family456',
         role: UserRole.admin,
@@ -18,10 +18,10 @@ void main() {
           'notifications': true,
           'theme': 'dark',
         },
-        gamificationProfile: GamificationProfile(
+        gamificationProfile: const GamificationProfile(
           userId: 'user123',
           streaks: {},
-          points: const UserPoints(total: 1500, level: 5),
+          points: UserPoints(total: 1500, level: 5),
           achievements: [],
           activeChallenges: [],
           completedChallenges: [],
@@ -30,7 +30,7 @@ void main() {
 
       expect(profile.id, 'user123');
       expect(profile.displayName, 'John Doe');
-      expect(profile.email, 'john.doe@example.com');
+        expect(profile.email, 'john.doe@example.com');
       expect(profile.photoUrl, 'https://example.com/photo.jpg');
       expect(profile.familyId, 'family456');
       expect(profile.role, UserRole.admin);
@@ -43,7 +43,7 @@ void main() {
     });
 
     test('should create a minimal UserProfile with only required fields', () {
-      final profile = UserProfile(
+        final profile = UserProfile(
         id: 'user123',
       );
 
@@ -60,7 +60,7 @@ void main() {
     });
 
     test('should create UserProfile with admin role', () {
-      final profile = UserProfile(
+        final profile = UserProfile(
         id: 'admin123',
         displayName: 'Admin User',
         role: UserRole.admin,
@@ -73,10 +73,10 @@ void main() {
     });
 
     test('should create a UserProfile from JSON', () {
-      final json = {
+        final json = {
         'id': 'user123',
         'displayName': 'Bob Wilson',
-        'email': 'bob.wilson@example.com',
+          'email': 'bob.wilson@example.com',
         'photoUrl': 'https://example.com/bob.jpg',
         'familyId': 'family789',
         'role': 'member',
@@ -85,14 +85,14 @@ void main() {
         'preferences': {
           'notifications': true,
           'theme': 'light',
-        },
-      };
+          },
+        };
 
-      final profile = UserProfile.fromJson(json);
+        final profile = UserProfile.fromJson(json);
 
       expect(profile.id, 'user123');
       expect(profile.displayName, 'Bob Wilson');
-      expect(profile.email, 'bob.wilson@example.com');
+        expect(profile.email, 'bob.wilson@example.com');
       expect(profile.photoUrl, 'https://example.com/bob.jpg');
       expect(profile.familyId, 'family789');
       expect(profile.role, UserRole.member);
@@ -103,7 +103,7 @@ void main() {
     });
 
     test('should convert UserProfile to JSON', () {
-      final profile = UserProfile(
+        final profile = UserProfile(
         id: 'user123',
         displayName: 'John Doe',
         email: 'john.doe@example.com',
@@ -136,7 +136,7 @@ void main() {
         displayName: 'John Doe',
         email: 'john.doe@example.com',
         role: UserRole.member,
-        createdAt: DateTime.now(),
+          createdAt: DateTime.now(),
         lastActive: DateTime.now(),
       );
 
@@ -201,11 +201,11 @@ void main() {
     });
 
     test('should create UserProfile with child role', () {
-      final profile = UserProfile(
+        final profile = UserProfile(
         id: 'child123',
         displayName: 'Child User',
         role: UserRole.child,
-        createdAt: DateTime.now(),
+          createdAt: DateTime.now(),
         lastActive: DateTime.now(),
       );
 
@@ -256,7 +256,7 @@ void main() {
     });
 
     test('should handle gamification profile integration', () {
-      final gamificationProfile = GamificationProfile(
+      const gamificationProfile = GamificationProfile(
         userId: 'user123',
         streaks: {},
         points: const UserPoints(total: 5000, level: 10),
@@ -279,16 +279,16 @@ void main() {
     });
 
     test('should handle edge cases for copyWith', () {
-      final original = UserProfile(
+        final original = UserProfile(
         id: 'user123',
         displayName: 'Original Name',
-        createdAt: DateTime.now(),
+          createdAt: DateTime.now(),
         lastActive: DateTime.now(),
-      );
+        );
 
       // Test copying with null values
-      final updated = original.copyWith(
-        displayName: null,
+        final updated = original.copyWith(
+        
       );
 
       expect(updated.displayName, isNull);
@@ -298,8 +298,8 @@ void main() {
     test('should handle JSON serialization roundtrip', () {
       final original = UserProfile(
         id: 'user123',
-        displayName: 'Test User',
-        email: 'test@example.com',
+          displayName: 'Test User',
+          email: 'test@example.com',
         role: UserRole.member,
         createdAt: DateTime(2024, 1, 15, 10, 30),
         lastActive: DateTime(2024, 1, 16, 10, 30),

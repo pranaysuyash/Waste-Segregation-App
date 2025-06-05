@@ -1,22 +1,22 @@
-import 'package:flutter/foundation.dart';
+// import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mockito/mockito.dart';
+// import 'package:mockito/mockito.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:waste_segregation_app/services/educational_content_analytics_service.dart';
 
 void main() {
   group('ContentAnalytics', () {
     test('should create with required parameters', () {
-      final analytics = ContentAnalytics(
+      const analytics = ContentAnalytics(
         contentId: 'content_1',
         views: 5,
-        totalTimeSpent: const Duration(minutes: 15),
+        totalTimeSpent: Duration(minutes: 15),
         completions: 2,
       );
 
       expect(analytics.contentId, equals('content_1'));
       expect(analytics.views, equals(5));
-      expect(analytics.totalTimeSpent, equals(const Duration(minutes: 15)));
+      expect(analytics.totalTimeSpent, equals(Duration(minutes: 15)));
       expect(analytics.completions, equals(2));
       expect(analytics.interactions, equals(0));
       expect(analytics.lastViewed, isNull);
@@ -28,7 +28,7 @@ void main() {
       final analytics = ContentAnalytics(
         contentId: 'content_2',
         views: 10,
-        totalTimeSpent: const Duration(minutes: 30),
+        totalTimeSpent: Duration(minutes: 30),
         completions: 5,
         interactions: 8,
         lastViewed: lastViewed,
@@ -41,10 +41,10 @@ void main() {
     });
 
     test('should copyWith correctly', () {
-      final original = ContentAnalytics(
+      const original = ContentAnalytics(
         contentId: 'content_original',
         views: 3,
-        totalTimeSpent: const Duration(minutes: 10),
+        totalTimeSpent: Duration(minutes: 10),
         completions: 1,
       );
 
@@ -56,7 +56,7 @@ void main() {
 
       expect(updated.contentId, equals('content_original'));
       expect(updated.views, equals(5));
-      expect(updated.totalTimeSpent, equals(const Duration(minutes: 10)));
+      expect(updated.totalTimeSpent, equals(Duration(minutes: 10)));
       expect(updated.completions, equals(1));
       expect(updated.interactions, equals(3));
       expect(updated.isFavorite, isTrue);
@@ -65,25 +65,25 @@ void main() {
 
     test('should calculate engagement score correctly', () {
       // High engagement content
-      final highEngagement = ContentAnalytics(
+      const highEngagement = ContentAnalytics(
         contentId: 'high',
         views: 10, // 30 points (capped at 30)
-        totalTimeSpent: const Duration(minutes: 25), // 40 points (capped at 40)
+        totalTimeSpent: Duration(minutes: 25),
         completions: 5, // 20 points (capped at 20)
         interactions: 8, // 10 points (capped at 10)
       );
 
       // Low engagement content
-      final lowEngagement = ContentAnalytics(
+      const lowEngagement = ContentAnalytics(
         contentId: 'low',
         views: 1, // 5 points
-        totalTimeSpent: const Duration(minutes: 2), // 4 points
+        totalTimeSpent: Duration(minutes: 2),
         completions: 0, // 0 points
         interactions: 1, // 2 points
       );
 
       // Zero engagement content
-      final zeroEngagement = ContentAnalytics(
+      const zeroEngagement = ContentAnalytics(
         contentId: 'zero',
         views: 0,
         totalTimeSpent: Duration.zero,
@@ -97,10 +97,10 @@ void main() {
 
     test('should cap engagement score components correctly', () {
       // Over-engaged content that should be capped
-      final overEngagement = ContentAnalytics(
+      const overEngagement = ContentAnalytics(
         contentId: 'over',
         views: 20, // Should cap at 30 points
-        totalTimeSpent: const Duration(hours: 2), // Should cap at 40 points
+        totalTimeSpent: Duration(hours: 2),
         completions: 10, // Should cap at 20 points
         interactions: 20, // Should cap at 10 points
       );
@@ -121,7 +121,7 @@ void main() {
       );
 
       expect(metrics.totalViews, equals(100));
-      expect(metrics.totalTimeSpent, equals(const Duration(hours: 5)));
+      expect(metrics.totalTimeSpent, equals(Duration(hours: 5)));
       expect(metrics.totalCompletions, equals(25));
       expect(metrics.totalInteractions, equals(50));
       expect(metrics.uniqueContentViewed, equals(20));
@@ -147,7 +147,7 @@ void main() {
         favoriteCount: 0,
       );
 
-      expect(metrics.averageTimePerContent, equals(const Duration(minutes: 10)));
+      expect(metrics.averageTimePerContent, equals(Duration(minutes: 10)));
       expect(zeroContentMetrics.averageTimePerContent, equals(Duration.zero));
     });
 
@@ -265,7 +265,7 @@ void main() {
       });
 
       test('should limit recently viewed to 50 items', () async {
-        for (int i = 0; i < 60; i++) {
+        for (var i = 0; i < 60; i++) {
           await service.trackContentView('content_$i', 'Category');
         }
 
@@ -307,7 +307,7 @@ void main() {
       test('should handle session without completion', () async {
         service.startContentSession('content_1');
         await Future.delayed(const Duration(milliseconds: 100));
-        await service.endContentSession(wasCompleted: false);
+        await service.endContentSession();
 
         final analytics = service.getContentAnalytics('content_1');
         expect(analytics.totalTimeSpent.inMilliseconds, greaterThan(50));
@@ -424,7 +424,7 @@ void main() {
       });
 
       test('should limit popular queries results', () async {
-        for (int i = 0; i < 15; i++) {
+        for (var i = 0; i < 15; i++) {
           await service.trackSearchQuery('query_$i');
         }
 
@@ -500,7 +500,7 @@ void main() {
         ];
 
         // Mark one as heavily viewed
-        for (int i = 0; i < 5; i++) {
+        for (var i = 0; i < 5; i++) {
           await service.trackContentView('env_viewed', 'Environment');
         }
 
@@ -517,7 +517,6 @@ void main() {
       test('should handle empty content list for recommendations', () {
         final recommendations = service.getPersonalizedRecommendations(
           allContent: [],
-          limit: 5,
         );
 
         expect(recommendations, isEmpty);
@@ -578,7 +577,7 @@ void main() {
       test('should handle concurrent operations safely', () async {
         // Simulate concurrent view tracking
         final futures = <Future>[];
-        for (int i = 0; i < 10; i++) {
+        for (var i = 0; i < 10; i++) {
           futures.add(service.trackContentView('content_1', 'Environment'));
         }
         
@@ -613,7 +612,7 @@ void main() {
 
       test('should handle very large datasets', () async {
         // Track many content items
-        for (int i = 0; i < 1000; i++) {
+        for (var i = 0; i < 1000; i++) {
           await service.trackContentView('content_$i', 'Category_${i % 10}');
         }
 
@@ -667,7 +666,7 @@ void main() {
 
       test('should maintain state consistency during rapid operations', () async {
         // Rapid content viewing
-        for (int i = 0; i < 100; i++) {
+        for (var i = 0; i < 100; i++) {
           await service.trackContentView('rapid_content', 'Environment');
         }
 
@@ -676,6 +675,98 @@ void main() {
 
         final recentlyViewed = service.getRecentlyViewed();
         expect(recentlyViewed.where((id) => id == 'rapid_content'), hasLength(1));
+      });
+    });
+
+    group('Persistence', () {
+      test('should persist and load analytics data', () async {
+        await service.trackContentView('persist_1', 'CategoryA');
+        await service.recordTimeSpent('persist_1', const Duration(seconds: 30));
+        await service.trackContentInteraction('persist_1', ContentInteractionType.favorite);
+        await service.recordCompletion('persist_1');
+
+        // Create a new service instance to simulate app restart
+        final newService = EducationalContentAnalyticsService();
+        await Future.delayed(const Duration(milliseconds: 100)); // Allow initialization
+
+        final loadedAnalytics = newService.getContentAnalytics('persist_1');
+        expect(loadedAnalytics.views, equals(1));
+        expect(loadedAnalytics.totalTimeSpent, equals(const Duration(seconds: 30)));
+        expect(loadedAnalytics.interactions, equals(1)); // Favorite
+        expect(loadedAnalytics.completions, equals(1));
+        expect(loadedAnalytics.isFavorite, isTrue);
+
+        newService.dispose();
+      });
+
+      test('should clear analytics data correctly', () async {
+        await service.trackContentView('clear_test', 'CategoryClear');
+        await service.clearAnalyticsData();
+        
+        final analytics = service.getContentAnalytics('clear_test');
+        expect(analytics.views, equals(0));
+
+        // Verify persistence by loading into a new service
+        final newService = EducationalContentAnalyticsService();
+        await Future.delayed(const Duration(milliseconds: 100));
+        final loadedAnalytics = newService.getContentAnalytics('clear_test');
+        expect(loadedAnalytics.views, equals(0));
+        newService.dispose();
+      });
+
+      test('should handle multiple content items correctly', () async {
+        await service.trackContentView('multi_1', 'MultiCat');
+        await service.recordTimeSpent('multi_1', const Duration(minutes: 1));
+        await service.trackContentInteraction('multi_1', ContentInteractionType.like);
+
+        await service.trackContentView('multi_2', 'MultiCat');
+        await service.recordTimeSpent('multi_2', const Duration(minutes: 2));
+        await service.trackContentInteraction('multi_2', ContentInteractionType.bookmark);
+
+        // New service
+        final newService = EducationalContentAnalyticsService();
+        await Future.delayed(const Duration(milliseconds: 100));
+
+        final analytics1 = newService.getContentAnalytics('multi_1');
+        final analytics2 = newService.getContentAnalytics('multi_2');
+
+        expect(analytics1.views, equals(1));
+        expect(analytics1.totalTimeSpent, equals(const Duration(minutes: 1)));
+        expect(analytics1.interactions, equals(1));
+
+        expect(analytics2.views, equals(1));
+        expect(analytics2.totalTimeSpent, equals(const Duration(minutes: 2)));
+        expect(analytics2.interactions, equals(1));
+        
+        newService.dispose();
+      });
+
+      test('should calculate overall engagement metrics correctly', () async {
+        await service.trackContentView('content_A', 'CategoryX');
+        await service.recordTimeSpent('content_A', const Duration(minutes: 5));
+        await service.recordCompletion('content_A');
+        await service.trackContentInteraction('content_A', ContentInteractionType.favorite);
+
+        await service.trackContentView('content_B', 'CategoryY');
+        await service.recordTimeSpent('content_B', const Duration(minutes: 10));
+        // No completion for content_B
+        await service.trackContentInteraction('content_B', ContentInteractionType.share);
+        await service.trackContentInteraction('content_B', ContentInteractionType.like);
+
+
+        await service.trackContentView('content_A', 'CategoryX'); // Second view for content_A
+
+        final overallMetrics = service.getOverallEngagementMetrics();
+
+        expect(overallMetrics.totalViews, equals(3)); // 2 for A, 1 for B
+        expect(overallMetrics.totalTimeSpent, equals(const Duration(minutes: 15)));
+        expect(overallMetrics.totalCompletions, equals(1)); // Only A completed
+        expect(overallMetrics.totalInteractions, equals(3)); // 1 for A, 2 for B
+        expect(overallMetrics.uniqueContentViewed, equals(2)); // A and B
+        expect(overallMetrics.favoriteCount, equals(1)); // Only A favorited
+        
+        expect(overallMetrics.averageTimePerContent, equals(const Duration(minutes: 7, seconds: 30))); // 15 min / 2 unique contents
+        expect(overallMetrics.completionRate, closeTo(1/3, 0.01)); // 1 completion / 3 views
       });
     });
   });

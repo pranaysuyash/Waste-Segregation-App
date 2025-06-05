@@ -94,7 +94,7 @@ void main() {
         ),
       ];
 
-      testStats = CommunityStats(
+      testStats = const CommunityStats(
         totalUsers: 150,
         totalClassifications: 5420,
         totalPoints: 54200,
@@ -322,7 +322,6 @@ void main() {
             activityType: CommunityActivityType.classification,
             description: 'Started using the app',
             timestamp: DateTime.now(),
-            points: 0,
             metadata: {},
           ),
         ];
@@ -405,7 +404,7 @@ void main() {
       });
 
       testWidgets('should handle empty categories gracefully', (tester) async {
-        final statsWithEmptyCategories = CommunityStats(
+        const statsWithEmptyCategories = CommunityStats(
           totalUsers: 10,
           totalClassifications: 50,
           totalPoints: 500,

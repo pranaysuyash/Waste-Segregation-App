@@ -47,7 +47,7 @@ class InteractiveTag extends StatelessWidget {
           // Add shadow for better depth and readability
           boxShadow: isOutlined ? null : [
             BoxShadow(
-              color: color.withOpacity(0.3),
+              color: color.withValues(alpha:0.3),
               offset: const Offset(0, 2),
               blurRadius: 4,
             ),
@@ -74,7 +74,7 @@ class InteractiveTag extends StatelessWidget {
                   // Add text shadow for better readability on colored backgrounds
                   shadows: isOutlined ? null : [
                     Shadow(
-                      color: Colors.black.withOpacity(0.5),
+                      color: Colors.black.withValues(alpha:0.5),
                       offset: const Offset(1, 1),
                       blurRadius: 2,
                     ),
@@ -89,7 +89,7 @@ class InteractiveTag extends StatelessWidget {
             Icon(
               Icons.chevron_right,
               size: 14,
-              color: isOutlined ? color : textColor.withOpacity(0.8),
+              color: isOutlined ? color : textColor.withValues(alpha:0.8),
             ),
           ],
         ),

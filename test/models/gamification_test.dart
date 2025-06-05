@@ -33,7 +33,7 @@ void main() {
 
   group('Achievement', () {
     test('should create with required parameters', () {
-      final achievement = Achievement(
+      const achievement = Achievement(
         id: 'test_achievement',
         title: 'Test Achievement',
         description: 'A test achievement',
@@ -92,7 +92,7 @@ void main() {
     });
 
     test('should serialize to and from JSON correctly', () {
-      final achievement = Achievement(
+      const achievement = Achievement(
         id: 'json_test',
         title: 'JSON Test',
         description: 'Test JSON serialization',
@@ -156,7 +156,7 @@ void main() {
       expect(earnedAchievement.isEarned, isTrue);
       expect(earnedAchievement.isClaimable, isTrue);
 
-      final lockedAchievement = Achievement(
+      const lockedAchievement = Achievement(
         id: 'locked',
         title: 'Locked',
         description: 'Locked achievement',
@@ -171,7 +171,7 @@ void main() {
     });
 
     test('should get tier colors correctly', () {
-      final bronzeAchievement = Achievement(
+      const bronzeAchievement = Achievement(
         id: 'bronze',
         title: 'Bronze',
         description: 'Bronze achievement',
@@ -179,7 +179,6 @@ void main() {
         threshold: 10,
         iconName: 'medal',
         color: Colors.brown,
-        tier: AchievementTier.bronze,
       );
 
       expect(bronzeAchievement.getTierColor(), equals(const Color(0xFFCD7F32)));
@@ -189,7 +188,7 @@ void main() {
     });
 
     test('should get tier names correctly', () {
-      final silverAchievement = Achievement(
+      const silverAchievement = Achievement(
         id: 'silver',
         title: 'Silver',
         description: 'Silver achievement',
@@ -207,7 +206,7 @@ void main() {
     });
 
     test('should copyWith correctly', () {
-      final original = Achievement(
+      const original = Achievement(
         id: 'original',
         title: 'Original',
         description: 'Original achievement',
@@ -707,7 +706,7 @@ void main() {
 
   group('GamificationProfile', () {
     test('should create with required parameters', () {
-      final profile = GamificationProfile(
+      const profile = GamificationProfile(
         userId: 'user123',
         streaks: {},
         points: const UserPoints(),
@@ -798,13 +797,13 @@ void main() {
     });
 
     test('should copyWith correctly', () {
-      final original = GamificationProfile(
+      const original = GamificationProfile(
         userId: 'original_user',
         streaks: {},
         points: const UserPoints(total: 100),
       );
 
-      final newPoints = const UserPoints(total: 200, level: 2);
+      const newPoints = UserPoints(total: 200, level: 2);
       final updated = original.copyWith(
         points: newPoints,
         discoveredItemIds: {'new_item'},

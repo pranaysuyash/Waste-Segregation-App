@@ -487,7 +487,7 @@ void main() {
       test('should handle malformed data gracefully', () async {
         // Arrange
         when(mockStorageService.getCurrentUserProfile())
-            .thenThrow(FormatException('Invalid user data'));
+            .thenThrow(const FormatException('Invalid user data'));
 
         // Act & Assert
         expect(

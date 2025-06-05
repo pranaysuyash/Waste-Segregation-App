@@ -5,6 +5,7 @@ import 'package:hive/hive.dart';
 import '../models/community_feed.dart';
 import '../models/waste_classification.dart';
 import '../models/user_profile.dart';
+import '../models/gamification.dart';
 
 /// Service for managing community feed and social features
 class CommunityService {
@@ -184,15 +185,99 @@ class CommunityService {
   /// wrapper around [recordClassification] used in tests.
   Future<void> trackClassificationActivity(
     WasteClassification classification,
-    UserProfile user,
+    UserProfile? user, // Made user nullable
   ) async {
+    // If user is null, handle as guest or use a default/anonymous user profile
+    // For now, recordClassification uses 'current_user' and 'You' by default.
+    // This might need adjustment based on how guest activities should truly be recorded.
     await recordClassification(
       classification.category,
       classification.subcategory ?? '',
-      0,
+      0, // Assuming 0 points for this simplified tracking, or fetch from config
+    );
+  }
+
+  /// Track an achievement activity for a given user.
+  Future<void> trackAchievementActivity(Achievement achievement, UserProfile? user) async {
+    // Similar to trackClassificationActivity, decide how to handle user (especially if null)
+    // and how to get points for the achievement.
+    await recordAchievement(
+      achievement.title,
+      achievement.pointsReward, // Assuming Achievement model has pointsReward
+    );
+  }
+
+  /// Track a streak activity for a given user.
+  Future<void> trackStreakActivity(int streakDays, UserProfile? user) async {
+    // Points for streak might be calculated or fixed.
+    // Example: streakDays * some_bonus_multiplier
+    final points = streakDays * 3; // Example calculation
+    await recordStreak(
+      streakDays,
+      points,
     );
   }
   
+  /// Calculate points for a given activity type and data.
+  /// This is a simplified example; actual logic might be more complex.
+  int calculateActivityPoints(CommunityActivityType activityType, Map<String, dynamic> metadata) {
+    switch (activityType) {
+      case CommunityActivityType.classification:
+        // Example: points based on category rarity or correctness
+        final category = metadata['category'] as String?;
+        if (category == 'Hazardous Waste') return 15;
+        return 10; // Default classification points
+      case CommunityActivityType.achievement:
+        // Points might be defined in the achievement itself
+        return (metadata['pointsReward'] as int?) ?? 25;
+      case CommunityActivityType.streak:
+        final streakDays = metadata['streakDays'] as int?;
+        return (streakDays ?? 1) * 3; // Example: 3 points per day
+      case CommunityActivityType.challenge:
+        return (metadata['challengePoints'] as int?) ?? 20;
+      case CommunityActivityType.milestone:
+        return (metadata['milestonePoints'] as int?) ?? 30;
+      case CommunityActivityType.educational:
+        return (metadata['contentPoints'] as int?) ?? 5;
+      default:
+        return 0;
+    }
+  }
+
+  /// Batch track multiple classification activities.
+  Future<void> batchTrackActivities(List<WasteClassification> classifications, UserProfile? user) async {
+    for (final classification in classifications) {
+      // Decide if each should create an individual feed item or a summary.
+      // For now, creating individual items.
+      await trackClassificationActivity(classification, user);
+    }
+    // Alternatively, if Hive's addAll is preferred for raw data:
+    // final box = Hive.box(_communityBox);
+    // final activitiesData = classifications.map((c) => { /* convert to map */ }).toList();
+    // await box.addAll(activitiesData);
+    // Then, potentially update stats in a batched way.
+  }
+
+  /// Add a raw activity map. Used for testing or specific scenarios.
+  /// Note: Direct use of this is generally discouraged in favor of typed methods.
+  Future<void> addRawActivity(Map<String, dynamic> activityData) async {
+    // Basic validation
+    if (activityData['activityType'] == null || (activityData['activityType'] is! String && activityData['activityType'] is! CommunityActivityType) ) {
+      throw ArgumentError('Invalid or missing activityType');
+    }
+    if (activityData['userId'] == null || activityData['userId'] == '') {
+      throw ArgumentError('Invalid or missing userId');
+    }
+    // Convert to CommunityFeedItem before adding
+    try {
+      final item = CommunityFeedItem.fromJson(activityData);
+      await addFeedItem(item);
+    } catch (e) {
+      debugPrint('Error adding raw activity: $e. Data: $activityData');
+      throw ArgumentError('Failed to parse raw activity data: $e');
+    }
+  }
+
   /// Generate sample community data to make the feed feel active
   Future<void> generateSampleCommunityData() async {
     final sampleUsers = [
@@ -351,4 +436,32 @@ class CommunityService {
       debugPrint('❌ Error clearing community data: $e');
     }
   }
-} 
+
+  /// Clean up old activities from the community feed.
+  Future<void> cleanupOldActivities({required int olderThanDays}) async {
+    try {
+      final box = Hive.box(_communityBox);
+      final feedJson = box.get(_feedKey, defaultValue: '[]');
+      List<dynamic> feedList = jsonDecode(feedJson);
+      
+      final cutoffDate = DateTime.now().subtract(Duration(days: olderThanDays));
+      
+      // Filter out old items
+      feedList.removeWhere((itemJson) {
+        try {
+          final item = CommunityFeedItem.fromJson(itemJson as Map<String, dynamic>);
+          return item.timestamp.isBefore(cutoffDate);
+        } catch (e) {
+          // If an item is malformed and can't be parsed, remove it too
+          debugPrint('Error parsing item during cleanup, removing: $itemJson, error: $e');
+          return true;
+        }
+      });
+      
+      await box.put(_feedKey, jsonEncode(feedList));
+      debugPrint('✅ Old community activities (older than $olderThanDays days) cleaned up.');
+    } catch (e) {
+      debugPrint('❌ Error cleaning up old activities: $e');
+    }
+  }
+}

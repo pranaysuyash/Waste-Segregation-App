@@ -21,10 +21,10 @@ class StreakIndicator extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(AppTheme.paddingRegular),
         decoration: BoxDecoration(
-          color: _getStreakColor(streak.current).withOpacity(0.1),
+          color: _getStreakColor(streak.current).withValues(alpha:0.1),
           borderRadius: BorderRadius.circular(AppTheme.borderRadiusRegular),
           border: Border.all(
-            color: _getStreakColor(streak.current).withOpacity(0.3),
+            color: _getStreakColor(streak.current).withValues(alpha:0.3),
           ),
         ),
         child: Row(
@@ -69,7 +69,7 @@ class StreakIndicator extends StatelessWidget {
                     borderRadius:
                         BorderRadius.circular(AppTheme.borderRadiusSmall),
                     border: Border.all(
-                      color: _getStreakColor(streak.current).withOpacity(0.3),
+                      color: _getStreakColor(streak.current).withValues(alpha:0.3),
                     ),
                   ),
                   child: Row(
@@ -146,7 +146,7 @@ class ChallengeCard extends StatelessWidget {
               // Header
               Container(
                 padding: const EdgeInsets.all(AppTheme.paddingSmall),
-                color: challenge.color.withOpacity(0.1),
+                color: challenge.color.withValues(alpha:0.1),
                 child: Row(
                   children: [
                     Icon(
@@ -212,10 +212,10 @@ class PointsIndicator extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(AppTheme.paddingSmall),
         decoration: BoxDecoration(
-          color: AppTheme.primaryColor.withOpacity(0.1),
+          color: AppTheme.primaryColor.withValues(alpha:0.1),
           borderRadius: BorderRadius.circular(AppTheme.borderRadiusRegular),
           border: Border.all(
-            color: AppTheme.primaryColor.withOpacity(0.3),
+            color: AppTheme.primaryColor.withValues(alpha:0.3),
           ),
         ),
         child: Row(
@@ -266,7 +266,7 @@ class PointsIndicator extends StatelessWidget {
                     child: LinearProgressIndicator(
                       value: (points.total % 100) / 100,
                       minHeight: 4,
-                      backgroundColor: Colors.grey.withOpacity(0.3),
+                      backgroundColor: Colors.grey.withValues(alpha:0.3),
                       valueColor:
                           const AlwaysStoppedAnimation<Color>(AppTheme.primaryColor),
                     ),
@@ -371,10 +371,10 @@ class AchievementGrid extends StatelessWidget {
       message: achievement.title,
       child: Container(
         decoration: BoxDecoration(
-          color: achievement.color.withOpacity(0.1),
+          color: achievement.color.withValues(alpha:0.1),
           shape: BoxShape.circle,
           border: Border.all(
-            color: achievement.color.withOpacity(0.3),
+            color: achievement.color.withValues(alpha:0.3),
             width: 2,
           ),
         ),
@@ -420,7 +420,7 @@ class AchievementNotification extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.all(AppTheme.paddingSmall),
                   decoration: BoxDecoration(
-                    color: achievement.color.withOpacity(0.2),
+                    color: achievement.color.withValues(alpha:0.2),
                     shape: BoxShape.circle,
                   ),
                   child: Icon(

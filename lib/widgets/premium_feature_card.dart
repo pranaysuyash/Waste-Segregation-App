@@ -35,12 +35,12 @@ class PremiumFeatureCard extends StatelessWidget {
             gradient: LinearGradient(
               colors: isEnabled
                   ? [
-                      Theme.of(context).primaryColor.withOpacity(0.05),
-                      Theme.of(context).primaryColor.withOpacity(0.15),
+                      Theme.of(context).primaryColor.withValues(alpha:0.05),
+                      Theme.of(context).primaryColor.withValues(alpha:0.15),
                     ]
                   : [
-                      Colors.grey.withOpacity(0.05),
-                      Colors.grey.withOpacity(0.1),
+                      Colors.grey.withValues(alpha:0.05),
+                      Colors.grey.withValues(alpha:0.1),
                     ],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
@@ -54,8 +54,8 @@ class PremiumFeatureCard extends StatelessWidget {
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
                   color: isEnabled
-                      ? Theme.of(context).primaryColor.withOpacity(0.1)
-                      : Colors.grey.withOpacity(0.1),
+                      ? Theme.of(context).primaryColor.withValues(alpha:0.1)
+                      : Colors.grey.withValues(alpha:0.1),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Icon(

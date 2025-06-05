@@ -118,7 +118,7 @@ void main() {
 
       test('should handle LRU eviction correctly', () async {
         // Fill cache beyond MAX_CACHE_SIZE
-        for (int i = 0; i < EnhancedStorageService.MAX_CACHE_SIZE + 10; i++) {
+        for (var i = 0; i < EnhancedStorageService.MAX_CACHE_SIZE + 10; i++) {
           await service.store('key_$i', 'value_$i');
         }
 
@@ -139,7 +139,7 @@ void main() {
         const testValue = 'expiring_value';
 
         // Store with very short TTL
-        service._addToCache(testKey, testValue, ttl: const Duration(milliseconds: 1));
+        service.addToCache(testKey, testValue, ttl: const Duration(milliseconds: 1));
         
         // Wait for expiration
         await Future.delayed(const Duration(milliseconds: 10));
@@ -172,7 +172,7 @@ void main() {
         await service.store(testKey, testValue);
         
         // Verify it's in cache
-        var result = await service.get<String>(testKey);
+        final result = await service.get<String>(testKey);
         expect(result, equals(testValue));
         
         // Invalidate the entry
@@ -257,7 +257,7 @@ void main() {
 
     group('Box Routing Logic', () {
       test('should route user profile keys to user box', () async {
-        const userProfile = UserProfile(
+        final userProfile = UserProfile(
           id: 'test_user',
           displayName: 'Test User',
           email: 'test@example.com',
@@ -341,11 +341,11 @@ void main() {
         final futures = <Future>[];
         
         // Simulate concurrent reads and writes
-        for (int i = 0; i < 50; i++) {
+        for (var i = 0; i < 50; i++) {
           futures.add(service.store('concurrent_key_$i', 'value_$i'));
         }
         
-        for (int i = 0; i < 50; i++) {
+        for (var i = 0; i < 50; i++) {
           futures.add(service.get<String>('concurrent_key_$i'));
         }
         
@@ -360,7 +360,7 @@ void main() {
         final stopwatch = Stopwatch()..start();
         
         // Store many items
-        for (int i = 0; i < 1000; i++) {
+        for (var i = 0; i < 1000; i++) {
           await service.store('perf_key_$i', {
             'id': i,
             'data': 'large_data_$i' * 10, // Simulate larger data
@@ -384,7 +384,7 @@ void main() {
         await service.store('rare_key', 'rare_value');
         
         // Access frequent_key multiple times
-        for (int i = 0; i < 10; i++) {
+        for (var i = 0; i < 10; i++) {
           await service.get<String>('frequent_key');
         }
         
@@ -392,7 +392,7 @@ void main() {
         await service.get<String>('rare_key');
         
         // Add many more items to potentially evict from cache
-        for (int i = 0; i < 50; i++) {
+        for (var i = 0; i < 50; i++) {
           await service.store('filler_$i', 'filler_value_$i');
         }
         
@@ -443,7 +443,7 @@ void main() {
       });
 
       test('should handle very long keys', () async {
-        final longKey = 'very_long_key_' + 'a' * 1000;
+        final longKey = 'very_long_key_${'a' * 1000}';
         const longValue = 'very_long_value';
 
         await service.store(longKey, longValue);
@@ -465,7 +465,7 @@ void main() {
       test('should handle rapid cache invalidation', () async {
         const testKey = 'rapid_invalidate';
         
-        for (int i = 0; i < 100; i++) {
+        for (var i = 0; i < 100; i++) {
           await service.store(testKey, 'value_$i');
           service.invalidateCache(testKey);
         }
@@ -563,7 +563,7 @@ void main() {
         final initialStats = service.getCacheStats();
         
         // Perform many operations
-        for (int i = 0; i < 500; i++) {
+        for (var i = 0; i < 500; i++) {
           await service.store('memory_test_$i', 'value_$i');
           if (i % 10 == 0) {
             await service.get<String>('memory_test_${i ~/ 2}');

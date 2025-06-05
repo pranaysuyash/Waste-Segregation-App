@@ -584,7 +584,7 @@ void main() {
       });
 
       test('should have valid color codes', () {
-        final colorCodes = WasteInfo.colorCoding;
+        const colorCodes = WasteInfo.colorCoding;
         
         for (final color in colorCodes.values) {
           expect(color, startsWith('#'));
@@ -658,8 +658,8 @@ void main() {
 
       test('should have consistent font size relationships', () {
         // Font sizes should have reasonable jumps
-        final fontSizeDiff1 = AppTheme.fontSizeMedium - AppTheme.fontSizeRegular;
-        final fontSizeDiff2 = AppTheme.fontSizeLarge - AppTheme.fontSizeMedium;
+        const fontSizeDiff1 = AppTheme.fontSizeMedium - AppTheme.fontSizeRegular;
+        const fontSizeDiff2 = AppTheme.fontSizeLarge - AppTheme.fontSizeMedium;
         
         expect(fontSizeDiff1, equals(2.0)); // 14 to 16
         expect(fontSizeDiff2, equals(2.0)); // 16 to 18
