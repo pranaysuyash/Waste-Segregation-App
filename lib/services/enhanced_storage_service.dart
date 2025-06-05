@@ -37,7 +37,7 @@ class EnhancedStorageService extends StorageService {
     final result = await _getFromHive<T>(key);
     
     if (result != null) {
-      _addToCache(key, result);
+      addToCache(key, result);
     }
     
     return result;
@@ -46,7 +46,7 @@ class EnhancedStorageService extends StorageService {
   /// Generic store method with caching support
   Future<void> store<T>(String key, T value) async {
     // Store in cache
-    _addToCache(key, value);
+    addToCache(key, value);
     
     // Store in persistent storage using Hive directly
     await _storeInHive(key, value);
@@ -112,7 +112,7 @@ class EnhancedStorageService extends StorageService {
     }
   }
   
-  void _addToCache(String key, dynamic value, {Duration? ttl}) {
+  void addToCache(String key, dynamic value, {Duration? ttl}) {
     // Remove oldest entries if cache is full
     while (_lruCache.length >= MAX_CACHE_SIZE) {
       _lruCache.remove(_lruCache.keys.first);
@@ -130,9 +130,9 @@ class EnhancedStorageService extends StorageService {
     try {
       // Load critical data using the base class methods
       await Future.wait([
-        getCurrentUserProfile().then((data) => _addToCache(StorageKeys.userProfileKey, data)),
-        getSettings().then((data) => _addToCache('settings', data)),
-        getAllClassifications().then((data) => _addToCache('all_classifications', data)),
+        getCurrentUserProfile().then((data) => addToCache(StorageKeys.userProfileKey, data)),
+        getSettings().then((data) => addToCache('settings', data)),
+        getAllClassifications().then((data) => addToCache('all_classifications', data)),
       ]);
     } catch (e) {
       debugPrint('Error preloading critical data: $e');
@@ -160,7 +160,7 @@ class EnhancedStorageService extends StorageService {
     _cacheMisses++;
     final result = await super.getCurrentUserProfile();
     if (result != null) {
-      _addToCache(key, result);
+      addToCache(key, result);
     }
     return result;
   }
@@ -185,7 +185,7 @@ class EnhancedStorageService extends StorageService {
     // Cache miss - get from base class
     _cacheMisses++;
     final result = await super.getSettings();
-    _addToCache(key, result);
+    addToCache(key, result);
     return result;
   }
   

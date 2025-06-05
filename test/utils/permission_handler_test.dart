@@ -19,7 +19,7 @@ void main() {
         // This test primarily checks that the method doesn't throw
         // The actual permission system behavior depends on the platform and test environment
         expect(
-          () async => await PermissionHandler.checkCameraPermission(),
+          () async => PermissionHandler.checkCameraPermission(),
           returnsNormally,
         );
       });
@@ -41,7 +41,7 @@ void main() {
       test('should handle storage permission check gracefully', () async {
         // This test primarily checks that the method doesn't throw
         expect(
-          () async => await PermissionHandler.checkStoragePermission(),
+          () async => PermissionHandler.checkStoragePermission(),
           returnsNormally,
         );
       });
@@ -282,7 +282,7 @@ void main() {
 
       testWidgets('should handle permission dialog flow', (tester) async {
         var dialogShown = false;
-        var settingsOpened = false;
+        final settingsOpened = false;
 
         await tester.pumpWidget(
           MaterialApp(

@@ -4,7 +4,7 @@ import 'package:waste_segregation_app/models/waste_classification.dart';
 void main() {
   group('WasteClassification', () {
     test('should create a WasteClassification with all fields', () {
-      final classification = WasteClassification(
+        final classification = WasteClassification(
         id: 'test_123',
         itemName: 'Plastic Bottle',
         category: 'Dry Waste',
@@ -32,7 +32,7 @@ void main() {
         barcode: '123456789012',
         isSaved: false,
         userConfirmed: true,
-        confidence: 0.95,
+          confidence: 0.95,
         modelVersion: 'v2.1',
         processingTimeMs: 180,
         modelSource: 'waste_classifier_v2',
@@ -41,8 +41,8 @@ void main() {
         hasUrgentTimeframe: false,
         instructionsLang: 'en',
         source: 'ai_classification',
-        timestamp: DateTime(2024, 1, 15, 10, 30),
-      );
+          timestamp: DateTime(2024, 1, 15, 10, 30),
+        );
 
       expect(classification.id, 'test_123');
       expect(classification.itemName, 'Plastic Bottle');
@@ -66,7 +66,7 @@ void main() {
       expect(classification.barcode, '123456789012');
       expect(classification.isSaved, false);
       expect(classification.userConfirmed, true);
-      expect(classification.confidence, 0.95);
+        expect(classification.confidence, 0.95);
       expect(classification.modelVersion, 'v2.1');
       expect(classification.processingTimeMs, 180);
       expect(classification.modelSource, 'waste_classifier_v2');
@@ -75,11 +75,11 @@ void main() {
       expect(classification.hasUrgentTimeframe, false);
       expect(classification.instructionsLang, 'en');
       expect(classification.source, 'ai_classification');
-      expect(classification.timestamp, DateTime(2024, 1, 15, 10, 30));
-    });
+        expect(classification.timestamp, DateTime(2024, 1, 15, 10, 30));
+      });
 
     test('should create a minimal WasteClassification with required fields only', () {
-      final classification = WasteClassification(
+        final classification = WasteClassification(
         itemName: 'Unknown Item',
         category: 'Dry Waste',
         explanation: 'Basic classification',
@@ -118,7 +118,7 @@ void main() {
     });
 
     test('should handle confidence levels correctly', () {
-      final highConfidence = WasteClassification(
+        final highConfidence = WasteClassification(
         id: 'high',
         itemName: 'Test Item',
         category: 'Dry Waste',
@@ -132,9 +132,9 @@ void main() {
         visualFeatures: [],
         alternatives: [],
         confidence: 0.95,
-      );
+        );
 
-      final mediumConfidence = WasteClassification(
+        final mediumConfidence = WasteClassification(
         id: 'medium',
         itemName: 'Test Item',
         category: 'Dry Waste',
@@ -148,9 +148,9 @@ void main() {
         visualFeatures: [],
         alternatives: [],
         confidence: 0.75,
-      );
+        );
 
-      final lowConfidence = WasteClassification(
+        final lowConfidence = WasteClassification(
         id: 'low',
         itemName: 'Test Item',
         category: 'Dry Waste',
@@ -185,7 +185,7 @@ void main() {
         region: 'Test',
         visualFeatures: [],
         alternatives: [],
-        userConfirmed: true,
+          userConfirmed: true,
       );
 
       final inaccurate = WasteClassification(
@@ -256,8 +256,8 @@ void main() {
         region: 'Test',
         visualFeatures: [],
         alternatives: [],
-        timestamp: DateTime.now().subtract(const Duration(days: 30)),
-      );
+          timestamp: DateTime.now().subtract(const Duration(days: 30)),
+        );
 
       expect(recent.timestamp.isAfter(old.timestamp), true);
       expect(old.timestamp.isBefore(DateTime.now()), true);
@@ -277,7 +277,7 @@ void main() {
         region: 'Test',
         visualFeatures: [],
         alternatives: [],
-        userConfirmed: true,
+          userConfirmed: true,
         confidence: 0.9,
       );
 
@@ -303,17 +303,17 @@ void main() {
     });
 
     test('should handle WasteCategory enum values', () {
-      final categories = [
+        final categories = [
         WasteCategory.wet,
         WasteCategory.dry,
-        WasteCategory.hazardous,
+          WasteCategory.hazardous,
         WasteCategory.medical,
         WasteCategory.nonWaste,
-      ];
+        ];
 
-      for (final category in categories) {
+        for (final category in categories) {
         expect(category.name, isNotEmpty);
-        expect(category.description, isNotEmpty);
+          expect(category.description, isNotEmpty);
         expect(category.color, isNotEmpty);
       }
     });
@@ -382,8 +382,8 @@ void main() {
         visualFeatures: ['feature1'],
         alternatives: [],
         confidence: 0.9,
-        timestamp: DateTime(2024, 1, 15, 10, 30),
-      );
+          timestamp: DateTime(2024, 1, 15, 10, 30),
+        );
 
       final json = classification.toJson();
 
@@ -426,14 +426,13 @@ void main() {
         region: 'Test',
         visualFeatures: [],
         alternatives: [],
-        confidence: null,
       );
 
       expect(classification.confidence, isNull);
     });
 
     test('should handle complex disposal instructions', () {
-      final classification = WasteClassification(
+        final classification = WasteClassification(
         id: 'complex_disposal',
         itemName: 'Electronic Device',
         category: 'Hazardous Waste',

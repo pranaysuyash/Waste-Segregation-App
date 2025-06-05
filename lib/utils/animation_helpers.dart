@@ -44,7 +44,7 @@ class AnimationHelpers {
           width: size,
           height: size,
           decoration: BoxDecoration(
-            color: color.withOpacity(0.2 * animation.value),
+            color: color.withValues(alpha:0.2 * animation.value),
             shape: BoxShape.circle,
           ),
           child: Center(
@@ -188,7 +188,7 @@ class ParticlePainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     final animationValue = animation.value;
     final paint = Paint()
-      ..color = color.withOpacity(1.0 - animationValue)
+      ..color = color.withValues(alpha:1.0 - animationValue)
       ..style = PaintingStyle.fill;
     
     final center = size.width / 2;

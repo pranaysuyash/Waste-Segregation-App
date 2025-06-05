@@ -72,7 +72,7 @@ void main() {
       });
 
       testWidgets('should render full feedback widget', (tester) async {
-        await tester.pumpWidget(createTestWidget(showCompactVersion: false));
+        await tester.pumpWidget(createTestWidget());
 
         expect(find.text('Your feedback helps train our AI model to be more accurate.'), findsOneWidget);
         expect(find.text('Is this classification correct?'), findsOneWidget);
@@ -81,7 +81,7 @@ void main() {
       });
 
       testWidgets('should display classification details', (tester) async {
-        await tester.pumpWidget(createTestWidget(showCompactVersion: false));
+        await tester.pumpWidget(createTestWidget());
 
         expect(find.textContaining('Test Item'), findsOneWidget);
         expect(find.textContaining('Dry Waste'), findsOneWidget);
@@ -122,7 +122,7 @@ void main() {
       });
 
       testWidgets('should handle correct confirmation in full mode', (tester) async {
-        await tester.pumpWidget(createTestWidget(showCompactVersion: false));
+        await tester.pumpWidget(createTestWidget());
 
         await tester.tap(find.text('Yes, correct'));
         await tester.pumpAndSettle();
@@ -135,7 +135,7 @@ void main() {
       });
 
       testWidgets('should handle incorrect confirmation in full mode', (tester) async {
-        await tester.pumpWidget(createTestWidget(showCompactVersion: false));
+        await tester.pumpWidget(createTestWidget());
 
         await tester.tap(find.text('No, incorrect'));
         await tester.pumpAndSettle();
@@ -146,7 +146,7 @@ void main() {
       });
 
       testWidgets('should maintain state when switching between options', (tester) async {
-        await tester.pumpWidget(createTestWidget(showCompactVersion: false));
+        await tester.pumpWidget(createTestWidget());
 
         // Select incorrect first
         await tester.tap(find.text('No, incorrect'));
@@ -201,7 +201,7 @@ void main() {
       });
 
       testWidgets('should handle custom correction option', (tester) async {
-        await tester.pumpWidget(createTestWidget(showCompactVersion: false));
+        await tester.pumpWidget(createTestWidget());
 
         await tester.tap(find.text('No, incorrect'));
         await tester.pumpAndSettle();
@@ -214,7 +214,7 @@ void main() {
       });
 
       testWidgets('should handle custom correction input', (tester) async {
-        await tester.pumpWidget(createTestWidget(showCompactVersion: false));
+        await tester.pumpWidget(createTestWidget());
 
         await tester.tap(find.text('No, incorrect'));
         await tester.pumpAndSettle();
@@ -238,7 +238,7 @@ void main() {
       });
 
       testWidgets('should clear custom correction when selecting predefined option', (tester) async {
-        await tester.pumpWidget(createTestWidget(showCompactVersion: false));
+        await tester.pumpWidget(createTestWidget());
 
         await tester.tap(find.text('No, incorrect'));
         await tester.pumpAndSettle();
@@ -263,7 +263,7 @@ void main() {
 
     group('Notes and Additional Information', () {
       testWidgets('should handle notes input in full mode', (tester) async {
-        await tester.pumpWidget(createTestWidget(showCompactVersion: false));
+        await tester.pumpWidget(createTestWidget());
 
         const noteText = 'This item had a confusing label';
         await tester.enterText(
@@ -282,7 +282,7 @@ void main() {
       });
 
       testWidgets('should handle empty notes gracefully', (tester) async {
-        await tester.pumpWidget(createTestWidget(showCompactVersion: false));
+        await tester.pumpWidget(createTestWidget());
 
         await tester.tap(find.text('Yes, correct'));
         await tester.pumpAndSettle();
@@ -295,7 +295,7 @@ void main() {
       });
 
       testWidgets('should trim whitespace from notes', (tester) async {
-        await tester.pumpWidget(createTestWidget(showCompactVersion: false));
+        await tester.pumpWidget(createTestWidget());
 
         const noteText = '  This note has whitespace  ';
         await tester.enterText(
@@ -470,7 +470,7 @@ void main() {
 
     group('Feedback Submission', () {
       testWidgets('should submit feedback with all required information', (tester) async {
-        await tester.pumpWidget(createTestWidget(showCompactVersion: false));
+        await tester.pumpWidget(createTestWidget());
 
         await tester.tap(find.text('No, incorrect'));
         await tester.pumpAndSettle();
@@ -518,7 +518,7 @@ void main() {
       });
 
       testWidgets('should handle feedback submission without correction', (tester) async {
-        await tester.pumpWidget(createTestWidget(showCompactVersion: false));
+        await tester.pumpWidget(createTestWidget());
 
         await tester.tap(find.text('Yes, correct'));
         await tester.pumpAndSettle();
@@ -659,7 +659,7 @@ void main() {
       });
 
       testWidgets('should handle focus navigation properly', (tester) async {
-        await tester.pumpWidget(createTestWidget(showCompactVersion: false));
+        await tester.pumpWidget(createTestWidget());
 
         // Should be able to navigate through form elements
         await tester.tap(find.text('No, incorrect'));
@@ -708,7 +708,7 @@ void main() {
         await tester.pumpWidget(createTestWidget(showCompactVersion: true));
 
         // Rapidly tap correct button multiple times
-        for (int i = 0; i < 5; i++) {
+        for (var i = 0; i < 5; i++) {
           await tester.tap(find.text('Correct'));
           await tester.pump();
         }
@@ -728,7 +728,6 @@ void main() {
 
         await tester.pumpWidget(createTestWidget(
           classification: existingFeedbackClassification,
-          showCompactVersion: false,
         ));
 
         // Should show existing feedback state
@@ -736,7 +735,7 @@ void main() {
       });
 
       testWidgets('should handle empty custom correction submission', (tester) async {
-        await tester.pumpWidget(createTestWidget(showCompactVersion: false));
+        await tester.pumpWidget(createTestWidget());
 
         await tester.tap(find.text('No, incorrect'));
         await tester.pumpAndSettle();

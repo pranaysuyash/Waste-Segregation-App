@@ -125,7 +125,7 @@ class _ModernBottomNavigationState extends State<ModernBottomNavigation>
                  (isDark ? Colors.grey[900] : Colors.white),
           boxShadow: widget.style.shadow ?? [
             BoxShadow(
-              color: Colors.black.withOpacity(0.1),
+              color: Colors.black.withValues(alpha:0.1),
               blurRadius: 8,
               offset: const Offset(0, -2),
             ),
@@ -201,7 +201,7 @@ class _ModernBottomNavigationState extends State<ModernBottomNavigation>
                                  const EdgeInsets.all(2),
                         decoration: isSelected ? BoxDecoration(
                           color: (widget.style.selectedColor ?? AppTheme.primaryColor)
-                                 .withOpacity(0.15),
+                                 .withValues(alpha:0.15),
                           borderRadius: BorderRadius.circular(10),
                         ) : null,
                         child: Icon(
@@ -299,13 +299,13 @@ class ModernBottomNavStyle {
     final primary = primaryColor ?? AppTheme.primaryColor;
     
     return ModernBottomNavStyle(
-      backgroundColor: baseColor.withOpacity(0.8),
+      backgroundColor: baseColor.withValues(alpha:0.8),
       selectedColor: primary,
       unselectedColor: isDark ? Colors.grey[300] : Colors.grey[600],
       borderRadius: BorderRadius.circular(24),
       shadow: [
         BoxShadow(
-          color: Colors.black.withOpacity(0.1),
+          color: Colors.black.withValues(alpha:0.1),
           blurRadius: 20,
           offset: const Offset(0, -5),
         ),
@@ -328,7 +328,7 @@ class ModernBottomNavStyle {
       borderRadius: BorderRadius.circular(16),
       shadow: [
         BoxShadow(
-          color: Colors.black.withOpacity(0.08),
+          color: Colors.black.withValues(alpha:0.08),
           blurRadius: 12,
           offset: const Offset(0, -3),
         ),
@@ -349,7 +349,7 @@ class ModernBottomNavStyle {
       borderRadius: BorderRadius.circular(32),
       shadow: [
         BoxShadow(
-          color: Colors.black.withOpacity(0.15),
+          color: Colors.black.withValues(alpha:0.15),
           blurRadius: 16,
           offset: const Offset(0, 4),
         ),

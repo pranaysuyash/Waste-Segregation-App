@@ -142,7 +142,7 @@ void main() {
 
       test('should handle edge case dates', () {
         final farFuture = DateTime(2030, 12, 31);
-        final farPast = DateTime(2000, 1);
+        final farPast = DateTime(2000);
         
         final futureTip = service.getDailyTip(date: farFuture);
         final pastTip = service.getDailyTip(date: farPast);
@@ -653,20 +653,20 @@ void main() {
         final allContent = service.getAllContent();
         
         for (final content in allContent) {
-          expect(content.thumbnailUrl, startsWith('assets/') || startsWith('http'));
+          expect(content.thumbnailUrl, anyOf([startsWith('assets/'), startsWith('http')]));
           
           if (content.videoUrl != null) {
             expect(content.videoUrl!, startsWith('http'));
           }
           
           if (content.imageUrl != null) {
-            expect(content.imageUrl!, startsWith('assets/') || startsWith('http'));
+            expect(content.imageUrl!, anyOf([startsWith('assets/'), startsWith('http')]));
           }
           
           if (content.steps != null) {
             for (final step in content.steps!) {
               if (step.imageUrl != null) {
-                expect(step.imageUrl!, startsWith('assets/') || startsWith('http'));
+                expect(step.imageUrl!, anyOf([startsWith('assets/'), startsWith('http')]));
               }
             }
           }

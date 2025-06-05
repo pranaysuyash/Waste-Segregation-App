@@ -320,7 +320,7 @@ void main() {
       });
 
       test('should handle special characters in messages', () {
-        final specialMessage = 'Error with émojis 🚫 and ñovel characters: <>&"\'';
+        const specialMessage = 'Error with émojis 🚫 and ñovel characters: <>&"\'';
         final exception = NetworkException(specialMessage);
 
         expect(exception.message, equals(specialMessage));

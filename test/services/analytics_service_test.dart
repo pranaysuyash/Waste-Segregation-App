@@ -105,7 +105,7 @@ void main() {
           familyId: 'family_789',
           additionalData: {'invitation_method': 'email'},
         );
-
+        
         expect(analyticsService.pendingEventsCount, greaterThanOrEqualTo(0));
       });
 
@@ -127,7 +127,7 @@ void main() {
           stackTrace: 'Stack trace here...',
           additionalData: {'error_code': 'IMG_001'},
         );
-
+        
         expect(analyticsService.pendingEventsCount, greaterThanOrEqualTo(0));
       });
     });
@@ -199,14 +199,14 @@ void main() {
           eventType: AnalyticsEventTypes.userAction,
           eventName: 'test_event',
         );
-        
+
         expect(newAnalyticsService.pendingEventsCount, equals(0));
       });
 
       test('should handle storage service errors gracefully', () async {
         // Create a mock that throws errors
         final errorMockStorageService = ErrorThrowingMockStorageService();
-        
+
         final newAnalyticsService = AnalyticsService(errorMockStorageService);
         
         // Should not throw when storage service fails
@@ -237,7 +237,7 @@ void main() {
       expect(event.sessionId, equals('session_456'));
       expect(event.deviceInfo, equals('iOS 15.0'));
       expect(event.timestamp, isNotNull);
-    });
+      });
 
     test('should serialize to and from JSON correctly', () {
       final event = AnalyticsEvent.create(
@@ -247,7 +247,7 @@ void main() {
         parameters: {'button': 'capture', 'screen': 'home'},
         sessionId: 'session123',
         deviceInfo: 'iOS 15.0',
-      );
+        );
 
       final json = event.toJson();
       final fromJson = AnalyticsEvent.fromJson(json);
@@ -259,8 +259,8 @@ void main() {
       expect(fromJson.parameters, equals(event.parameters));
       expect(fromJson.sessionId, equals(event.sessionId));
       expect(fromJson.deviceInfo, equals(event.deviceInfo));
+      });
     });
-  });
 
   group('AnalyticsEventTypes Constants', () {
     test('should have correct event type constants', () {
@@ -271,7 +271,7 @@ void main() {
       expect(AnalyticsEventTypes.achievement, equals('achievement'));
       expect(AnalyticsEventTypes.error, equals('error'));
     });
-  });
+      });
 
   group('AnalyticsEventNames Constants', () {
     test('should have correct event name constants', () {
@@ -289,7 +289,7 @@ class ErrorThrowingMockStorageService extends StorageService {
   Future<UserProfile?> getCurrentUserProfile() async {
     throw Exception('Storage error');
   }
-
+  
   @override
   Future<void> saveAnalyticsEvents(List<dynamic> events) async {
     throw Exception('Storage error');

@@ -121,9 +121,9 @@ class _FacilityDetailScreenState extends State<FacilityDetailScreen> {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   decoration: BoxDecoration(
-                    color: _getFacilitySourceColor().withOpacity(0.1),
+                    color: _getFacilitySourceColor().withValues(alpha:0.1),
                     borderRadius: BorderRadius.circular(AppTheme.borderRadiusSmall),
-                    border: Border.all(color: _getFacilitySourceColor().withOpacity(0.3)),
+                    border: Border.all(color: _getFacilitySourceColor().withValues(alpha:0.3)),
                   ),
                   child: Text(
                     _getFacilitySourceLabel(),
@@ -138,7 +138,7 @@ class _FacilityDetailScreenState extends State<FacilityDetailScreen> {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   decoration: BoxDecoration(
-                    color: widget.facility.isActive ? Colors.green.withOpacity(0.1) : Colors.red.withOpacity(0.1),
+                    color: widget.facility.isActive ? Colors.green.withValues(alpha:0.1) : Colors.red.withValues(alpha:0.1),
                     borderRadius: BorderRadius.circular(AppTheme.borderRadiusSmall),
                   ),
                   child: Text(
@@ -341,9 +341,9 @@ class _FacilityDetailScreenState extends State<FacilityDetailScreen> {
                 children: widget.facility.acceptedMaterials.map((material) => Container(
                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   decoration: BoxDecoration(
-                    color: AppTheme.primaryColor.withOpacity(0.1),
+                    color: AppTheme.primaryColor.withValues(alpha:0.1),
                     borderRadius: BorderRadius.circular(AppTheme.borderRadiusSmall),
-                    border: Border.all(color: AppTheme.primaryColor.withOpacity(0.3)),
+                    border: Border.all(color: AppTheme.primaryColor.withValues(alpha:0.3)),
                   ),
                   child: Text(
                     material,
@@ -636,7 +636,7 @@ class _FacilityDetailScreenState extends State<FacilityDetailScreen> {
       leading: Container(
         padding: const EdgeInsets.all(8),
         decoration: BoxDecoration(
-          color: AppTheme.primaryColor.withOpacity(0.1),
+          color: AppTheme.primaryColor.withValues(alpha:0.1),
           borderRadius: BorderRadius.circular(8),
         ),
         child: Icon(icon, color: AppTheme.primaryColor),

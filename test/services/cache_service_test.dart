@@ -223,7 +223,7 @@ void main() {
         // Cache miss
         await cacheService.getCachedClassification('hash_2');
 
-        final stats = await cacheService.getCacheStatistics();
+        final stats = cacheService.getCacheStatistics();
         expect(stats.hits, equals(1));
         expect(stats.misses, equals(1));
         expect(stats.hitRate, equals(0.5));
@@ -240,7 +240,7 @@ void main() {
         await cacheService.getCachedClassification('perf_hash');
         final retrieveTime = stopwatch.elapsedMicroseconds;
 
-        final stats = await cacheService.getCacheStatistics();
+        final stats = cacheService.getCacheStatistics();
         expect(stats.averageCacheTime, greaterThan(0));
         expect(stats.averageRetrieveTime, greaterThan(0));
         expect(retrieveTime, lessThan(cacheTime)); // Retrieval should be faster
@@ -263,7 +263,7 @@ void main() {
           await cacheService.getCachedClassification('hash_$i');
         }
 
-        final stats = await cacheService.getCacheStatistics();
+        final stats = cacheService.getCacheStatistics();
         expect(stats.totalEntries, equals(10));
         expect(stats.mostAccessedEntry, equals('hash_0'));
         expect(stats.leastAccessedEntry, equals('hash_9'));

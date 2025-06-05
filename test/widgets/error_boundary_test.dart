@@ -10,14 +10,14 @@ import 'error_boundary_test.mocks.dart';
 
 // Test widget that can throw errors
 class ErrorThrowingWidget extends StatelessWidget {
-  final bool shouldThrow;
-  final String? errorMessage;
 
   const ErrorThrowingWidget({
     Key? key,
     this.shouldThrow = false,
     this.errorMessage,
   }) : super(key: key);
+  final bool shouldThrow;
+  final String? errorMessage;
 
   @override
   Widget build(BuildContext context) {
@@ -30,9 +30,6 @@ class ErrorThrowingWidget extends StatelessWidget {
 
 // Widget that throws errors during specific lifecycle events
 class LifecycleErrorWidget extends StatefulWidget {
-  final bool throwInInit;
-  final bool throwInBuild;
-  final bool throwInDispose;
 
   const LifecycleErrorWidget({
     Key? key,
@@ -40,6 +37,9 @@ class LifecycleErrorWidget extends StatefulWidget {
     this.throwInBuild = false,
     this.throwInDispose = false,
   }) : super(key: key);
+  final bool throwInInit;
+  final bool throwInBuild;
+  final bool throwInDispose;
 
   @override
   State<LifecycleErrorWidget> createState() => _LifecycleErrorWidgetState();
@@ -87,10 +87,10 @@ void main() {
       return MaterialApp(
         home: Scaffold(
           body: ErrorBoundary(
-            child: child ?? const Text('Normal Child'),
             fallback: fallback,
             onError: onError,
             analyticsService: mockAnalyticsService,
+            child: child ?? const Text('Normal Child'),
           ),
         ),
       );
@@ -108,8 +108,8 @@ void main() {
 
       testWidgets('should render complex child widgets normally', (WidgetTester tester) async {
         await tester.pumpWidget(createTestWidget(
-          child: Column(
-            children: const [
+          child: const Column(
+            children: [
               Text('Title'),
               Icon(Icons.check),
               ElevatedButton(onPressed: null, child: Text('Button')),
@@ -210,7 +210,7 @@ void main() {
 
     group('Error Recovery', () {
       testWidgets('should allow retry after error', (WidgetTester tester) async {
-        bool shouldThrow = true;
+        var shouldThrow = true;
 
         await tester.pumpWidget(
           MaterialApp(
@@ -218,13 +218,13 @@ void main() {
               body: StatefulBuilder(
                 builder: (context, setState) {
                   return ErrorBoundary(
-                    child: ErrorThrowingWidget(shouldThrow: shouldThrow),
                     onRetry: () {
                       setState(() {
                         shouldThrow = false;
                       });
                     },
                     analyticsService: mockAnalyticsService,
+                    child: ErrorThrowingWidget(shouldThrow: shouldThrow),
                   );
                 },
               ),
@@ -246,14 +246,14 @@ void main() {
       });
 
       testWidgets('should reset error state on rebuild', (WidgetTester tester) async {
-        bool shouldThrow = true;
+        var shouldThrow = true;
 
         Widget buildWidget() {
           return MaterialApp(
             home: Scaffold(
               body: ErrorBoundary(
-                child: ErrorThrowingWidget(shouldThrow: shouldThrow),
                 analyticsService: mockAnalyticsService,
+                child: ErrorThrowingWidget(shouldThrow: shouldThrow),
               ),
             ),
           );
@@ -273,7 +273,7 @@ void main() {
       });
 
       testWidgets('should handle multiple consecutive errors', (WidgetTester tester) async {
-        int errorCount = 0;
+        var errorCount = 0;
 
         await tester.pumpWidget(createTestWidget(
           child: const ErrorThrowingWidget(shouldThrow: true),
@@ -331,8 +331,8 @@ void main() {
         await tester.pumpWidget(createTestWidget(
           child: Builder(
             builder: (context) {
-              dynamic value = 'string';
-              int number = value as int; // Will throw type error
+              final dynamic value = 'string';
+              final number = value as int; // Will throw type error
               return Text('Number: $number');
             },
           ),
@@ -368,13 +368,17 @@ void main() {
 
     group('Error Boundary Nesting', () {
       testWidgets('should handle nested error boundaries', (WidgetTester tester) async {
-        bool outerErrorCaught = false;
-        bool innerErrorCaught = false;
+        var outerErrorCaught = false;
+        var innerErrorCaught = false;
 
         await tester.pumpWidget(
           MaterialApp(
             home: Scaffold(
               body: ErrorBoundary(
+                onError: (error, details) {
+                  outerErrorCaught = true;
+                },
+                analyticsService: mockAnalyticsService,
                 child: Column(
                   children: [
                     const Text('Outer Content'),
@@ -387,10 +391,6 @@ void main() {
                     ),
                   ],
                 ),
-                onError: (error, details) {
-                  outerErrorCaught = true;
-                },
-                analyticsService: mockAnalyticsService,
               ),
             ),
           ),
@@ -403,12 +403,16 @@ void main() {
       });
 
       testWidgets('should propagate errors if inner boundary fails', (WidgetTester tester) async {
-        bool outerErrorCaught = false;
+        var outerErrorCaught = false;
 
         await tester.pumpWidget(
           MaterialApp(
             home: Scaffold(
               body: ErrorBoundary(
+                onError: (error, details) {
+                  outerErrorCaught = true;
+                },
+                analyticsService: mockAnalyticsService,
                 child: ErrorBoundary(
                   child: const ErrorThrowingWidget(shouldThrow: true),
                   // Inner boundary that also throws an error
@@ -419,10 +423,6 @@ void main() {
                   ),
                   analyticsService: mockAnalyticsService,
                 ),
-                onError: (error, details) {
-                  outerErrorCaught = true;
-                },
-                analyticsService: mockAnalyticsService,
               ),
             ),
           ),
@@ -470,7 +470,7 @@ void main() {
       });
 
       testWidgets('should handle rapid error state changes', (WidgetTester tester) async {
-        bool shouldThrow = true;
+        var shouldThrow = true;
 
         Widget buildWidget() {
           return MaterialApp(
@@ -478,13 +478,13 @@ void main() {
               body: StatefulBuilder(
                 builder: (context, setState) {
                   return ErrorBoundary(
-                    child: ErrorThrowingWidget(shouldThrow: shouldThrow),
                     onRetry: () {
                       setState(() {
                         shouldThrow = !shouldThrow;
                       });
                     },
                     analyticsService: mockAnalyticsService,
+                    child: ErrorThrowingWidget(shouldThrow: shouldThrow),
                   );
                 },
               ),
@@ -495,7 +495,7 @@ void main() {
         await tester.pumpWidget(buildWidget());
 
         // Rapidly toggle error state
-        for (int i = 0; i < 5; i++) {
+        for (var i = 0; i < 5; i++) {
           await tester.tap(find.text('Try Again'));
           await tester.pump();
           
@@ -598,7 +598,7 @@ void main() {
             .thenAnswer((_) async => null);
 
         // Trigger same error multiple times
-        for (int i = 0; i < 5; i++) {
+        for (var i = 0; i < 5; i++) {
           await tester.pumpWidget(createTestWidget(
             child: const ErrorThrowingWidget(
               shouldThrow: true,

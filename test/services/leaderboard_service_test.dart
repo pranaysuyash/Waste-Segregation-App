@@ -4,6 +4,7 @@ import 'package:mockito/annotations.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:waste_segregation_app/services/leaderboard_service.dart';
 import 'package:waste_segregation_app/models/leaderboard.dart';
+import 'dart:async'; // Added for TimeoutException
 
 @GenerateMocks([
   FirebaseFirestore,
@@ -736,7 +737,6 @@ MockDocumentSnapshot<Map<String, dynamic>> _createMockDocumentSnapshot(
 
 // Additional mock classes
 class MockWriteBatch extends Mock implements WriteBatch {}
-class MockDocumentReference extends Mock implements DocumentReference<Map<String, dynamic>> {}
 class MockAchievementCallback extends Mock {
   void call(String achievementId);
 }

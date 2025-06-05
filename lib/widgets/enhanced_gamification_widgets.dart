@@ -107,10 +107,10 @@ class _EnhancedPointsIndicatorState extends State<EnhancedPointsIndicator>
       child: Container(
         padding: const EdgeInsets.all(AppTheme.paddingSmall),
         decoration: BoxDecoration(
-          color: AppTheme.primaryColor.withOpacity(0.1),
+          color: AppTheme.primaryColor.withValues(alpha:0.1),
           borderRadius: BorderRadius.circular(AppTheme.borderRadiusRegular),
           border: Border.all(
-            color: AppTheme.primaryColor.withOpacity(0.3),
+            color: AppTheme.primaryColor.withValues(alpha:0.3),
           ),
         ),
         child: Row(
@@ -129,7 +129,7 @@ class _EnhancedPointsIndicatorState extends State<EnhancedPointsIndicator>
                       shape: BoxShape.circle,
                       boxShadow: isLevelUp ? [
                         BoxShadow(
-                          color: AppTheme.primaryColor.withOpacity(0.5),
+                          color: AppTheme.primaryColor.withValues(alpha:0.5),
                           blurRadius: 8,
                           spreadRadius: 1,
                         ),
@@ -204,7 +204,7 @@ class _EnhancedPointsIndicatorState extends State<EnhancedPointsIndicator>
                               child: LinearProgressIndicator(
                                 value: _progressAnimation.value,
                                 minHeight: 4,
-                                backgroundColor: Colors.grey.withOpacity(0.3),
+                                backgroundColor: Colors.grey.withValues(alpha:0.3),
                                 valueColor: const AlwaysStoppedAnimation<Color>(AppTheme.primaryColor),
                               ),
                             );
@@ -499,11 +499,11 @@ class _PointsEarnedPopupState extends State<PointsEarnedPopup>
                 vertical: AppTheme.paddingSmall,
               ),
               decoration: BoxDecoration(
-                color: Colors.amber.withOpacity(0.9),
+                color: Colors.amber.withValues(alpha:0.9),
                 borderRadius: BorderRadius.circular(AppTheme.borderRadiusLarge),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.2),
+                    color: Colors.black.withValues(alpha:0.2),
                     blurRadius: 10,
                     spreadRadius: 1,
                   ),
@@ -674,7 +674,7 @@ class _FloatingAchievementBadgeState extends State<FloatingAchievementBadge>
                       borderRadius: BorderRadius.circular(AppTheme.borderRadiusLarge),
                       boxShadow: [
                         BoxShadow(
-                          color: widget.achievement.color.withOpacity(0.3),
+                          color: widget.achievement.color.withValues(alpha:0.3),
                           blurRadius: 8,
                           spreadRadius: 2,
                         ),
@@ -687,7 +687,7 @@ class _FloatingAchievementBadgeState extends State<FloatingAchievementBadge>
                         Container(
                           padding: const EdgeInsets.all(6),
                           decoration: BoxDecoration(
-                            color: widget.achievement.color.withOpacity(0.1),
+                            color: widget.achievement.color.withValues(alpha:0.1),
                             shape: BoxShape.circle,
                           ),
                           child: Icon(
@@ -850,7 +850,7 @@ class _EnhancedAchievementNotificationState
                         width: 60,
                         height: 60,
                         decoration: BoxDecoration(
-                          color: widget.achievement.color.withOpacity(0.1),
+                          color: widget.achievement.color.withValues(alpha:0.1),
                           shape: BoxShape.circle,
                           border: Border.all(
                             color: widget.achievement.color,
@@ -907,9 +907,9 @@ class _EnhancedAchievementNotificationState
                           vertical: AppTheme.paddingSmall,
                         ),
                         decoration: BoxDecoration(
-                          color: Colors.amber.withOpacity(0.1),
+                          color: Colors.amber.withValues(alpha:0.1),
                           borderRadius: BorderRadius.circular(AppTheme.borderRadiusRegular),
-                          border: Border.all(color: Colors.amber.withOpacity(0.5)),
+                          border: Border.all(color: Colors.amber.withValues(alpha:0.5)),
                         ),
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
@@ -1064,7 +1064,7 @@ class EnhancedChallengeCard extends StatelessWidget {
                       child: LinearProgressIndicator(
                         value: progress,
                         minHeight: 10,
-                        backgroundColor: challenge.color.withOpacity(0.2), // Lighter shade of challenge color for background
+                        backgroundColor: challenge.color.withValues(alpha:0.2), // Lighter shade of challenge color for background
                         valueColor: AlwaysStoppedAnimation<Color>(
                           challenge.isCompleted || progress >= 1.0 
                               ? AppTheme.successColor // Green for completed
@@ -1114,13 +1114,13 @@ class LifetimePointsIndicator extends StatelessWidget {
           gradient: LinearGradient(
             colors: [
               AppTheme.primaryColor,
-              AppTheme.primaryColor.withOpacity(0.8),
+              AppTheme.primaryColor.withValues(alpha:0.8),
             ],
           ),
           borderRadius: BorderRadius.circular(20),
           boxShadow: [
             BoxShadow(
-              color: AppTheme.primaryColor.withOpacity(0.3),
+              color: AppTheme.primaryColor.withValues(alpha:0.3),
               blurRadius: 8,
               offset: const Offset(0, 2),
             ),
@@ -1225,7 +1225,7 @@ class ArchivedPointsHistoryWidget extends StatelessWidget {
                 leading: Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: Colors.amber.withOpacity(0.1),
+                    color: Colors.amber.withValues(alpha:0.1),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: const Icon(

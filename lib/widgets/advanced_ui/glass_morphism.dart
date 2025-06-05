@@ -30,8 +30,8 @@ class GlassMorphismCard extends StatelessWidget {
     final theme = Theme.of(context);
     final effectiveColor = color ?? 
         (theme.brightness == Brightness.dark 
-            ? Colors.white.withOpacity(opacity)
-            : Colors.black.withOpacity(opacity));
+            ? Colors.white.withValues(alpha:opacity)
+            : Colors.black.withValues(alpha:opacity));
     
     return Container(
       margin: margin,
@@ -39,7 +39,7 @@ class GlassMorphismCard extends StatelessWidget {
         borderRadius: borderRadius ?? BorderRadius.circular(16),
         boxShadow: boxShadow ?? [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
+            color: Colors.black.withValues(alpha:0.1),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -54,7 +54,7 @@ class GlassMorphismCard extends StatelessWidget {
               color: effectiveColor,
               borderRadius: borderRadius ?? BorderRadius.circular(16),
               border: Border.all(
-                color: Colors.white.withOpacity(0.2),
+                color: Colors.white.withValues(alpha:0.2),
               ),
             ),
             padding: padding ?? const EdgeInsets.all(16),
@@ -257,7 +257,7 @@ class _MorphingProgressIndicatorState extends State<MorphingProgressIndicator>
                       borderRadius: BorderRadius.circular(widget.borderRadius),
                       boxShadow: [
                         BoxShadow(
-                          color: widget.primaryColor.withOpacity(0.4),
+                          color: widget.primaryColor.withValues(alpha:0.4),
                           blurRadius: 4,
                           spreadRadius: 1,
                         ),

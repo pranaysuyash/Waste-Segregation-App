@@ -35,6 +35,8 @@ import '../widgets/data_migration_dialog.dart';
 import '../services/cloud_storage_service.dart';
 import '../services/community_service.dart';
 import '../models/community_feed.dart';
+import '../services/google_drive_service.dart';
+import 'auth_screen.dart';
 
 class ModernHomeScreen extends StatefulWidget {
 
@@ -494,7 +496,7 @@ class _ModernHomeScreenState extends State<ModernHomeScreen> with TickerProvider
                 Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: theme.colorScheme.primary.withOpacity(0.1),
+                    color: theme.colorScheme.primary.withValues(alpha:0.1),
                     borderRadius: BorderRadius.circular(AppTheme.borderRadiusMd),
                   ),
                   child: Icon(
@@ -545,28 +547,31 @@ class _ModernHomeScreenState extends State<ModernHomeScreen> with TickerProvider
               Icons.more_vert,
               color: theme.colorScheme.onSurface,
             ),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
             onSelected: (value) {
               switch (value) {
                 case 'settings':
-                  // FIXED: Use direct navigation instead of named routes
                   Navigator.push(
                     context,
                     MaterialPageRoute(builder: (context) => const SettingsScreen()),
                   );
                   break;
                 case 'profile':
-                  // Navigate to profile/account screen - you can create this or redirect to settings
                   Navigator.push(
                     context,
                     MaterialPageRoute(builder: (context) => const SettingsScreen()),
                   );
                   break;
                 case 'help':
-                  // Show help dialog or navigate to help screen
                   _showHelpDialog(context);
                   break;
                 case 'about':
                   _showAboutDialog(context);
+                  break;
+                case 'sign_out':
+                  _showSignOutDialog(context);
                   break;
               }
             },
@@ -575,8 +580,8 @@ class _ModernHomeScreenState extends State<ModernHomeScreen> with TickerProvider
                 value: 'settings',
                 child: Row(
                   children: [
-                    Icon(Icons.settings),
-                    SizedBox(width: 8),
+                    Icon(Icons.settings, color: Colors.grey),
+                    SizedBox(width: 12),
                     Text('Settings'),
                   ],
                 ),
@@ -585,19 +590,20 @@ class _ModernHomeScreenState extends State<ModernHomeScreen> with TickerProvider
                 value: 'profile',
                 child: Row(
                   children: [
-                    Icon(Icons.person),
-                    SizedBox(width: 8),
+                    Icon(Icons.person, color: Colors.grey),
+                    SizedBox(width: 12),
                     Text('Profile'),
                   ],
                 ),
               ),
+              const PopupMenuDivider(),
               const PopupMenuItem(
                 value: 'help',
                 child: Row(
                   children: [
-                    Icon(Icons.help),
-                    SizedBox(width: 8),
-                    Text('Help'),
+                    Icon(Icons.help_outline, color: Colors.blue),
+                    SizedBox(width: 12),
+                    Text('Help & Support'),
                   ],
                 ),
               ),
@@ -605,9 +611,20 @@ class _ModernHomeScreenState extends State<ModernHomeScreen> with TickerProvider
                 value: 'about',
                 child: Row(
                   children: [
-                    Icon(Icons.info),
-                    SizedBox(width: 8),
+                    Icon(Icons.info_outline, color: Colors.blue),
+                    SizedBox(width: 12),
                     Text('About'),
+                  ],
+                ),
+              ),
+              const PopupMenuDivider(),
+              const PopupMenuItem(
+                value: 'sign_out',
+                child: Row(
+                  children: [
+                    Icon(Icons.logout, color: Colors.red),
+                    SizedBox(width: 12),
+                    Text('Sign Out', style: TextStyle(color: Colors.red)),
                   ],
                 ),
               ),
@@ -670,7 +687,7 @@ class _ModernHomeScreenState extends State<ModernHomeScreen> with TickerProvider
         end: Alignment.bottomRight,
         colors: [
           theme.colorScheme.primary,
-          theme.colorScheme.primary.withOpacity(0.8),
+          theme.colorScheme.primary.withValues(alpha:0.8),
         ],
       ),
       child: Column(
@@ -701,7 +718,7 @@ class _ModernHomeScreenState extends State<ModernHomeScreen> with TickerProvider
           Text(
             'What waste would you like to identify today?',
             style: theme.textTheme.bodyLarge?.copyWith(
-              color: Colors.white.withOpacity(0.9),
+              color: Colors.white.withValues(alpha:0.9),
             ),
           ),
           const SizedBox(height: AppTheme.spacingMd),
@@ -1313,5 +1330,139 @@ class _ModernHomeScreenState extends State<ModernHomeScreen> with TickerProvider
     // Get the daily classification streak, which is the primary streak
     final dailyStreak = profile.streaks[StreakType.dailyClassification.toString()];
     return dailyStreak?.currentCount ?? 0;
+  }
+
+  void _showSignOutDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+        ),
+        title: Row(
+          children: [
+            Icon(
+              Icons.logout,
+              color: Colors.red.shade600,
+              size: 28,
+            ),
+            const SizedBox(width: 12),
+            const Text(
+              'Sign Out',
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 20,
+              ),
+            ),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Are you sure you want to sign out?',
+              style: TextStyle(fontSize: 16),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'You can sign back in anytime to sync your data.',
+              style: TextStyle(
+                fontSize: 14,
+                color: Colors.grey.shade600,
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            style: TextButton.styleFrom(
+              foregroundColor: Colors.grey.shade600,
+            ),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              Navigator.of(context).pop();
+              await _performSignOut();
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red.shade600,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
+            child: const Text('Sign Out'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _performSignOut() async {
+    try {
+      // Show loading dialog
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const CircularProgressIndicator(),
+              const SizedBox(height: 16),
+              Text(
+                'Signing out...',
+                style: TextStyle(
+                  fontSize: 16,
+                  color: Colors.grey.shade700,
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+
+      final googleDriveService = Provider.of<GoogleDriveService>(context, listen: false);
+      await googleDriveService.signOut();
+
+      if (mounted) {
+        Navigator.of(context).pop(); // Close loading dialog
+        
+        // Navigate to auth screen
+        Navigator.of(context).pushAndRemoveUntil(
+          MaterialPageRoute(builder: (context) => const AuthScreen()),
+          (route) => false,
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        Navigator.of(context).pop(); // Close loading dialog
+        
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Row(
+              children: [
+                const Icon(Icons.error, color: Colors.white),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text('Error signing out: ${e.toString()}'),
+                ),
+              ],
+            ),
+            backgroundColor: Colors.red,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
+            ),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    }
   }
 }

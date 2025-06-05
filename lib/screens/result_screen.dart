@@ -543,7 +543,7 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
             fontWeight: FontWeight.bold,
             shadows: [
               Shadow(
-                color: Colors.black.withOpacity(0.3),
+                color: Colors.black.withValues(alpha:0.3),
                 offset: const Offset(1, 1),
                 blurRadius: 2,
               ),
@@ -610,7 +610,7 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
                                   borderRadius: BorderRadius.circular(AppTheme.borderRadiusRegular),
                                   boxShadow: [
                                     BoxShadow(
-                                      color: _getCategoryColor(widget.classification.category).withOpacity(0.3),
+                                      color: _getCategoryColor(widget.classification.category).withValues(alpha:0.3),
                                       offset: const Offset(0, 2),
                                       blurRadius: 8,
                                     ),

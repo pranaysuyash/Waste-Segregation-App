@@ -216,11 +216,10 @@ void main() {
           inviterUserId: 'test_inviter_id_expired_logic',
           inviterName: 'John Smith',
           invitedEmail: 'jane@example.com',
-          status: InvitationStatus.pending, // Must be pending to test model's isExpired
           createdAt: DateTime.now().subtract(const Duration(days: 10)),
           expiresAt: DateTime.now().subtract(const Duration(days: 3)), // Past expiry
         );
-        expect(pendingAndPastExpiry.isExpired, true, reason: "Invitation should be expired if pending and past expiresAt");
+        expect(pendingAndPastExpiry.isExpired, true, reason: 'Invitation should be expired if pending and past expiresAt');
 
         final pendingAndFutureExpiry = FamilyInvitation(
           id: 'invite124',
@@ -229,11 +228,10 @@ void main() {
           inviterUserId: 'test_inviter_id_not_expired_logic',
           inviterName: 'John Smith',
           invitedEmail: 'jane@example.com',
-          status: InvitationStatus.pending,
           createdAt: DateTime.now().subtract(const Duration(days: 1)),
           expiresAt: DateTime.now().add(const Duration(days: 3)), // Future expiry
         );
-        expect(pendingAndFutureExpiry.isExpired, false, reason: "Invitation should not be expired if pending and expiresAt is in the future");
+        expect(pendingAndFutureExpiry.isExpired, false, reason: 'Invitation should not be expired if pending and expiresAt is in the future');
       });
 
       test('should detect if invitation will expire soon', () {
@@ -357,7 +355,6 @@ void main() {
           inviterUserId: 'test_inviter_id_date_expired',
           inviterName: 'John Smith',
           invitedEmail: 'jane@example.com',
-          status: InvitationStatus.pending, // Pending, but date is past
           createdAt: DateTime.now().subtract(const Duration(days: 10)),
           expiresAt: DateTime.now().subtract(const Duration(days: 3)),
         );

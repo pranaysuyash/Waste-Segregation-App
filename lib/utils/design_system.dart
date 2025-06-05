@@ -221,7 +221,7 @@ class WasteAppDesignSystem {
     // Card Theme
     cardTheme: CardTheme(
       elevation: elevationS,
-      shadowColor: Colors.black.withOpacity(0.1),
+      shadowColor: Colors.black.withValues(alpha:0.1),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(radiusL),
       ),
@@ -354,7 +354,7 @@ class WasteAppDesignSystem {
     // Chip Theme
     chipTheme: ChipThemeData(
       backgroundColor: lightGray,
-      selectedColor: primaryGreen.withOpacity(0.2),
+      selectedColor: primaryGreen.withValues(alpha:0.2),
       labelStyle: GoogleFonts.inter(
         fontSize: 12,
         fontWeight: FontWeight.w500,
@@ -445,7 +445,7 @@ class WasteAppDesignSystem {
   static List<BoxShadow> getShadow(double elevation) {
     return [
       BoxShadow(
-        color: Colors.black.withOpacity(0.1),
+        color: Colors.black.withValues(alpha:0.1),
         blurRadius: elevation * 2,
         offset: Offset(0, elevation),
       ),
@@ -468,10 +468,10 @@ class WasteAppDesignSystem {
   static BoxDecoration getCategoryDecoration(String category) {
     final categoryColor = getCategoryColor(category);
     return BoxDecoration(
-      color: categoryColor.withOpacity(0.1),
+      color: categoryColor.withValues(alpha:0.1),
       borderRadius: BorderRadius.circular(radiusM),
       border: Border.all(
-        color: categoryColor.withOpacity(0.3),
+        color: categoryColor.withValues(alpha:0.3),
       ),
     );
   }

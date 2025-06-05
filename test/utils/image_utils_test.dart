@@ -49,7 +49,6 @@ void main() {
       test('should handle normalized vs non-normalized images consistently', () async {
         final hashNormalized = await ImageUtils.generateImageHash(
           testImageBytes,
-          normalize: true,
         );
         final hashNotNormalized = await ImageUtils.generateImageHash(
           testImageBytes,
@@ -140,7 +139,6 @@ void main() {
       test('should handle grayscale conversion option', () async {
         final processedGray = await ImageUtils.preprocessImage(
           testImageBytes,
-          convertToGrayscale: true,
         );
         
         final processedColor = await ImageUtils.preprocessImage(
@@ -156,7 +154,6 @@ void main() {
       test('should handle stronger blur option', () async {
         final normalBlur = await ImageUtils.preprocessImage(
           testImageBytes,
-          applyStrongerBlur: false,
         );
         
         final strongerBlur = await ImageUtils.preprocessImage(
@@ -221,7 +218,7 @@ void main() {
         expect(cropped, isNotNull);
         expect(cropped!, isNotEmpty);
         
-        final decodedImage = img.decodeImage(cropped!);
+        final decodedImage = img.decodeImage(cropped);
         expect(decodedImage, isNotNull);
         expect(decodedImage!.width, equals(100));
         expect(decodedImage.height, equals(100));
@@ -258,7 +255,7 @@ void main() {
         expect(cropped, isNotNull);
         expect(cropped!, isNotEmpty);
         
-        final decodedImage = img.decodeImage(cropped!);
+        final decodedImage = img.decodeImage(cropped);
         expect(decodedImage, isNotNull);
         expect(decodedImage!.width, equals(10));
         expect(decodedImage.height, equals(10));
@@ -267,7 +264,7 @@ void main() {
 
     group('Data URL Conversion', () {
       test('should convert valid PNG data URL to bytes', () {
-        final base64Data = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChAI9hVCzrwAAAABJRU5ErkJggg==';
+        const base64Data = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChAI9hVCzrwAAAABJRU5ErkJggg==';
         final dataUrl = 'data:image/png;base64,$base64Data';
         
         final bytes = ImageUtils.dataUrlToBytes(dataUrl);
@@ -277,7 +274,7 @@ void main() {
       });
 
       test('should convert valid JPEG data URL to bytes', () {
-        final base64Data = '/9j/4AAQSkZJRgABAQEAYABgAAD/2wBDAAEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQH/2wBDAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQH/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwA9AD/2Q==';
+        const base64Data = '/9j/4AAQSkZJRgABAQEAYABgAAD/2wBDAAEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQH/2wBDAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQH/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwA9AD/2Q==';
         final dataUrl = 'data:image/jpeg;base64,$base64Data';
         
         final bytes = ImageUtils.dataUrlToBytes(dataUrl);
@@ -302,7 +299,7 @@ void main() {
       });
 
       test('should handle data URL without explicit encoding', () {
-        final dataUrl = 'data:image/png,somerawdata';
+        const dataUrl = 'data:image/png,somerawdata';
         final bytes = ImageUtils.dataUrlToBytes(dataUrl);
         
         // This might return null or bytes depending on the URI parser
@@ -347,7 +344,7 @@ void main() {
       });
 
       test('should handle fromFlutterRect factory', () {
-        final flutterRect = ui.Rect.fromLTWH(10, 20, 30, 40);
+        const flutterRect = ui.Rect.fromLTWH(10, 20, 30, 40);
         final rect = Rect.fromFlutterRect(flutterRect);
         
         expect(rect.left, equals(10));
@@ -403,7 +400,7 @@ void main() {
         final futures = <Future>[];
         
         // Start multiple operations concurrently
-        for (int i = 0; i < 5; i++) {
+        for (var i = 0; i < 5; i++) {
           futures.add(ImageUtils.generateImageHash(testImageBytes));
           futures.add(ImageUtils.preprocessImage(testImageBytes));
         }
@@ -438,7 +435,7 @@ void main() {
         final hashes = <String>[];
         
         // Generate multiple hashes for the same image
-        for (int i = 0; i < 5; i++) {
+        for (var i = 0; i < 5; i++) {
           final hash = await ImageUtils.generateImageHash(testImageBytes);
           hashes.add(hash);
         }

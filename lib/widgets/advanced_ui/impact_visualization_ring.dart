@@ -291,7 +291,7 @@ class _ImpactVisualizationRingState extends State<ImpactVisualizationRing>
             padding: const EdgeInsets.all(WasteAppDesignSystem.spacingS),
             decoration: BoxDecoration(
               color: isReached 
-                  ? milestone.color.withOpacity(0.2)
+                  ? milestone.color.withValues(alpha:0.2)
                   : WasteAppDesignSystem.lightGray,
               shape: BoxShape.circle,
               border: isActive 
@@ -380,7 +380,7 @@ class ImpactRingPainter extends CustomPainter {
     
     // Draw background circle
     final backgroundPaint = Paint()
-      ..color = primaryColor.withOpacity(0.1)
+      ..color = primaryColor.withValues(alpha:0.1)
       ..style = PaintingStyle.stroke
       ..strokeWidth = strokeWidth
       ..strokeCap = StrokeCap.round;
@@ -389,7 +389,7 @@ class ImpactRingPainter extends CustomPainter {
     
     // Draw glow effect
     final glowPaint = Paint()
-      ..color = primaryColor.withOpacity(glowIntensity * 0.3)
+      ..color = primaryColor.withValues(alpha:glowIntensity * 0.3)
       ..style = PaintingStyle.stroke
       ..strokeWidth = strokeWidth + 4
       ..strokeCap = StrokeCap.round
@@ -454,7 +454,7 @@ class ImpactRingPainter extends CustomPainter {
     // Draw marker glow if reached
     if (isReached) {
       final glowPaint = Paint()
-        ..color = color.withOpacity(0.4)
+        ..color = color.withValues(alpha:0.4)
         ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 4);
       
       canvas.drawCircle(markerCenter, markerRadius + 2, glowPaint);
@@ -462,7 +462,7 @@ class ImpactRingPainter extends CustomPainter {
     
     // Draw marker
     final markerPaint = Paint()
-      ..color = isReached ? color : color.withOpacity(0.5)
+      ..color = isReached ? color : color.withValues(alpha:0.5)
       ..style = PaintingStyle.fill;
     
     canvas.drawCircle(markerCenter, markerRadius, markerPaint);

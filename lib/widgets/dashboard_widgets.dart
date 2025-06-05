@@ -226,7 +226,7 @@ class ImpactRingPainter extends CustomPainter {
 
     // Background circle
     final backgroundPaint = Paint()
-      ..color = primaryColor.withOpacity(0.1)
+      ..color = primaryColor.withValues(alpha:0.1)
       ..style = PaintingStyle.stroke
       ..strokeWidth = strokeWidth
       ..strokeCap = StrokeCap.round;
@@ -257,7 +257,7 @@ class ImpactRingPainter extends CustomPainter {
     // Goal reached celebration effect
     if (isGoalReached) {
       final celebrationPaint = Paint()
-        ..color = Colors.green.withOpacity(0.3)
+        ..color = Colors.green.withValues(alpha:0.3)
         ..style = PaintingStyle.stroke
         ..strokeWidth = strokeWidth + 4
         ..strokeCap = StrokeCap.round;
@@ -371,7 +371,7 @@ class CommunityFeedPreview extends StatelessWidget {
           // Avatar
           CircleAvatar(
             radius: 20,
-            backgroundColor: AppTheme.primaryColor.withOpacity(0.1),
+            backgroundColor: AppTheme.primaryColor.withValues(alpha:0.1),
             child: Text(
               activity.userName.isNotEmpty ? activity.userName[0].toUpperCase() : '?',
               style: const TextStyle(
@@ -583,10 +583,10 @@ class _GlobalImpactMeterState extends State<GlobalImpactMeter>
     return Container(
       padding: const EdgeInsets.all(AppTheme.paddingSmall),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
+        color: color.withValues(alpha:0.1),
         borderRadius: BorderRadius.circular(AppTheme.borderRadiusRegular),
         border: Border.all(
-          color: color.withOpacity(0.3),
+          color: color.withValues(alpha:0.3),
         ),
       ),
       child: Column(

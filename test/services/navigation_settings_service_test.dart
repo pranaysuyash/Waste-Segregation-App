@@ -474,7 +474,7 @@ void main() {
       });
 
       test('should handle rapid dispose and recreate cycles', () async {
-        for (int i = 0; i < 10; i++) {
+        for (var i = 0; i < 10; i++) {
           service = NavigationSettingsService();
           await Future.delayed(const Duration(milliseconds: 50));
           
@@ -503,7 +503,7 @@ void main() {
         final stopwatch = Stopwatch()..start();
 
         // Perform many operations
-        for (int i = 0; i < 100; i++) {
+        for (var i = 0; i < 100; i++) {
           await service.setBottomNavEnabled(i % 2 == 0);
           await service.setFabEnabled(i % 3 == 0);
           await service.setNavigationStyle('style_${i % 5}');
@@ -527,7 +527,7 @@ void main() {
         final listenerCounts = <int>[];
         
         // Add many listeners
-        for (int i = 0; i < 50; i++) {
+        for (var i = 0; i < 50; i++) {
           listenerCounts.add(0);
           final index = i;
           service.addListener(() {

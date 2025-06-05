@@ -110,7 +110,7 @@ void main() {
         mockPremiumService.setMockIsPremium(false);
         mockAdService.setMockBannerAd(const SizedBox(height: 50));
 
-        await tester.pumpWidget(createTestWidget(showAtBottom: false));
+        await tester.pumpWidget(createTestWidget());
 
         expect(find.byType(Positioned), findsNothing);
         expect(find.byType(Container), findsOneWidget);
@@ -261,7 +261,7 @@ void main() {
         mockPremiumService.setMockIsPremium(false);
         mockAdService.setMockBannerAd(const SizedBox(height: 50));
 
-        for (int i = 0; i < 5; i++) {
+        for (var i = 0; i < 5; i++) {
           await tester.pumpWidget(createTestWidget());
           await tester.pump();
         }

@@ -189,6 +189,10 @@ class CommunityStats {
     this.weeklyClassifications = 0,
     required this.categoryBreakdown,
     required this.lastUpdated,
+    this.averagePointsPerUser = 0.0,
+    this.weeklyActiveUsers = 0,
+    this.topContributors = const [],
+    this.anonymousContributions = 0,
   });
 
   factory CommunityStats.fromJson(Map<String, dynamic> json) {
@@ -202,6 +206,10 @@ class CommunityStats {
       weeklyClassifications: json['weeklyClassifications'] ?? 0,
       categoryBreakdown: Map<String, int>.from(json['categoryBreakdown'] ?? {}),
       lastUpdated: DateTime.tryParse(json['lastUpdated'] ?? '') ?? DateTime.now(),
+      averagePointsPerUser: (json['averagePointsPerUser'] as num?)?.toDouble() ?? 0.0,
+      weeklyActiveUsers: json['weeklyActiveUsers'] ?? 0,
+      topContributors: List<Map<String, dynamic>>.from(json['topContributors'] ?? []),
+      anonymousContributions: json['anonymousContributions'] ?? 0,
     );
   }
   final int totalUsers;
@@ -213,6 +221,10 @@ class CommunityStats {
   final int weeklyClassifications;
   final Map<String, int> categoryBreakdown;
   final DateTime lastUpdated;
+  final double averagePointsPerUser;
+  final int weeklyActiveUsers;
+  final List<Map<String, dynamic>> topContributors;
+  final int anonymousContributions;
 
   Map<String, dynamic> toJson() {
     return {
@@ -225,6 +237,10 @@ class CommunityStats {
       'weeklyClassifications': weeklyClassifications,
       'categoryBreakdown': categoryBreakdown,
       'lastUpdated': lastUpdated.toIso8601String(),
+      'averagePointsPerUser': averagePointsPerUser,
+      'weeklyActiveUsers': weeklyActiveUsers,
+      'topContributors': topContributors,
+      'anonymousContributions': anonymousContributions,
     };
   }
 

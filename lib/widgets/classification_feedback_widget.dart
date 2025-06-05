@@ -893,7 +893,7 @@ class _ClassificationFeedbackWidgetState extends State<ClassificationFeedbackWid
               Container(
                 padding: const EdgeInsets.all(AppTheme.paddingLarge),
                 decoration: BoxDecoration(
-                  color: AppTheme.primaryColor.withOpacity(0.1),
+                  color: AppTheme.primaryColor.withValues(alpha:0.1),
                   borderRadius: const BorderRadius.only(
                     topLeft: Radius.circular(AppTheme.borderRadiusLarge),
                     topRight: Radius.circular(AppTheme.borderRadiusLarge),
@@ -1058,7 +1058,7 @@ class _ClassificationFeedbackWidgetState extends State<ClassificationFeedbackWid
                     '${widget.classification.category} → ${newClassification.category}',
                     style: TextStyle(
                       fontSize: 12,
-                      color: Colors.white.withOpacity(0.9),
+                      color: Colors.white.withValues(alpha:0.9),
                     ),
                   ),
                 ],
@@ -1124,7 +1124,7 @@ class _ClassificationFeedbackWidgetState extends State<ClassificationFeedbackWid
                   'Your corrections have been saved for future improvement',
                   style: TextStyle(
                     fontSize: 12,
-                    color: Colors.white.withOpacity(0.9),
+                    color: Colors.white.withValues(alpha:0.9),
                   ),
                 ),
               ],
@@ -1195,7 +1195,7 @@ class FeedbackButton extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(AppTheme.paddingLarge),
                 decoration: BoxDecoration(
-                  color: AppTheme.primaryColor.withOpacity(0.1),
+                  color: AppTheme.primaryColor.withValues(alpha:0.1),
                   borderRadius: const BorderRadius.only(
                     topLeft: Radius.circular(AppTheme.borderRadiusLarge),
                     topRight: Radius.circular(AppTheme.borderRadiusLarge),

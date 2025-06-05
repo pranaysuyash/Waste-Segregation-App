@@ -122,13 +122,13 @@ class ModernBadge extends StatelessWidget {
         );
       case ModernBadgeStyle.soft:
         return BoxDecoration(
-          color: backgroundColor.withOpacity(0.15),
+          color: backgroundColor.withValues(alpha:0.15),
           borderRadius: BorderRadius.circular(AppTheme.borderRadiusXl),
         );
       case ModernBadgeStyle.glassmorphism:
         return BoxDecoration(
-          color: backgroundColor.withOpacity(0.1),
-          border: Border.all(color: backgroundColor.withOpacity(0.3)),
+          color: backgroundColor.withValues(alpha:0.1),
+          border: Border.all(color: backgroundColor.withValues(alpha:0.3)),
           borderRadius: BorderRadius.circular(AppTheme.borderRadiusXl),
         );
     }
@@ -293,7 +293,7 @@ class ModernChip extends StatelessWidget {
         );
       case ModernChipStyle.soft:
         return BoxDecoration(
-          color: isSelected ? selectedColor.withOpacity(0.15) : unselectedColor.withOpacity(0.5),
+          color: isSelected ? selectedColor.withValues(alpha:0.15) : unselectedColor.withValues(alpha:0.5),
           borderRadius: BorderRadius.circular(AppTheme.borderRadiusXl),
         );
     }

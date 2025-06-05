@@ -442,9 +442,9 @@ class _SplashScreenState extends State<_SplashScreen> with TickerProviderStateMi
             end: Alignment.bottomCenter,
             colors: [
               AppTheme.primaryColor,
-              AppTheme.primaryColor.withOpacity(0.8),
+              AppTheme.primaryColor.withValues(alpha:0.8),
               AppTheme.secondaryColor,
-              AppTheme.secondaryColor.withOpacity(0.6),
+              AppTheme.secondaryColor.withValues(alpha:0.6),
             ],
             stops: const [0.0, 0.3, 0.7, 1.0],
           ),
@@ -466,7 +466,7 @@ class _SplashScreenState extends State<_SplashScreen> with TickerProviderStateMi
                       borderRadius: BorderRadius.circular(35),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withOpacity(0.3),
+                          color: Colors.black.withValues(alpha:0.3),
                           blurRadius: 25,
                           offset: const Offset(0, 15),
                           spreadRadius: 5,
@@ -484,8 +484,8 @@ class _SplashScreenState extends State<_SplashScreen> with TickerProviderStateMi
                                 begin: Alignment.topLeft,
                                 end: Alignment.bottomRight,
                                 colors: [
-                                  AppTheme.primaryColor.withOpacity(0.1),
-                                  AppTheme.secondaryColor.withOpacity(0.1),
+                                  AppTheme.primaryColor.withValues(alpha:0.1),
+                                  AppTheme.secondaryColor.withValues(alpha:0.1),
                                 ],
                               ),
                             ),
@@ -507,7 +507,7 @@ class _SplashScreenState extends State<_SplashScreen> with TickerProviderStateMi
                                 borderRadius: BorderRadius.circular(20),
                                 boxShadow: [
                                   BoxShadow(
-                                    color: AppTheme.primaryColor.withOpacity(0.3),
+                                    color: AppTheme.primaryColor.withValues(alpha:0.3),
                                     blurRadius: 10,
                                     offset: const Offset(0, 5),
                                   ),
@@ -611,7 +611,7 @@ class _SplashScreenState extends State<_SplashScreen> with TickerProviderStateMi
                         style: TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.w500,
-                          color: Colors.white.withOpacity(0.8),
+                          color: Colors.white.withValues(alpha:0.8),
                           letterSpacing: 0.5,
                         ),
                         textAlign: TextAlign.center,
@@ -634,7 +634,7 @@ class _SplashScreenState extends State<_SplashScreen> with TickerProviderStateMi
                       child: CircularProgressIndicator(
                         valueColor: const AlwaysStoppedAnimation<Color>(Colors.white),
                         strokeWidth: 3.0,
-                        backgroundColor: Colors.white.withOpacity(0.3),
+                        backgroundColor: Colors.white.withValues(alpha:0.3),
                       ),
                     ),
                     const SizedBox(height: AppTheme.paddingRegular),
@@ -642,7 +642,7 @@ class _SplashScreenState extends State<_SplashScreen> with TickerProviderStateMi
                       'Initializing...',
                       style: TextStyle(
                         fontSize: 14,
-                        color: Colors.white.withOpacity(0.8),
+                        color: Colors.white.withValues(alpha:0.8),
                         fontWeight: FontWeight.w400,
                       ),
                     ),

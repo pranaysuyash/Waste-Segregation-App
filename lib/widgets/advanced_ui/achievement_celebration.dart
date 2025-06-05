@@ -136,7 +136,7 @@ class _AchievementCelebrationState extends State<AchievementCelebration>
               height: double.infinity,
               child: Stack(
                 children: [
-                  Container(color: Colors.black.withOpacity(0.7)),
+                  Container(color: Colors.black.withValues(alpha:0.7)),
                   CustomPaint(
                     painter: ConfettiPainter(
                       particles: _confettiParticles,
@@ -169,9 +169,9 @@ class _AchievementCelebrationState extends State<AchievementCelebration>
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
-            widget.achievement.color.withOpacity(0.1),
+            widget.achievement.color.withValues(alpha:0.1),
             Colors.white,
-            widget.achievement.color.withOpacity(0.1),
+            widget.achievement.color.withValues(alpha:0.1),
           ],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
@@ -179,7 +179,7 @@ class _AchievementCelebrationState extends State<AchievementCelebration>
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-            color: widget.achievement.color.withOpacity(0.3),
+            color: widget.achievement.color.withValues(alpha:0.3),
             blurRadius: 20,
             spreadRadius: 5,
           ),
@@ -254,16 +254,16 @@ class _AchievementCelebrationState extends State<AchievementCelebration>
         shape: BoxShape.circle,
         gradient: LinearGradient(
           colors: [
-            widget.achievement.color.withOpacity(0.8),
+            widget.achievement.color.withValues(alpha:0.8),
             widget.achievement.color,
-            widget.achievement.color.withOpacity(0.6),
+            widget.achievement.color.withValues(alpha:0.6),
           ],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
         boxShadow: [
           BoxShadow(
-            color: widget.achievement.color.withOpacity(0.4),
+            color: widget.achievement.color.withValues(alpha:0.4),
             blurRadius: 20,
             spreadRadius: 5,
             offset: const Offset(0, 10),
@@ -351,7 +351,7 @@ class ConfettiPainter extends CustomPainter {
       final opacity = math.max(0.0, 1.0 - (y / size.height));
       
       final paint = Paint()
-        ..color = particle.color.withOpacity(opacity)
+        ..color = particle.color.withValues(alpha:opacity)
         ..style = PaintingStyle.fill;
       
       canvas.save();
@@ -476,7 +476,7 @@ class _PointsEarnedPopupState extends State<PointsEarnedPopup>
                   borderRadius: BorderRadius.circular(25),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.amber.withOpacity(0.4),
+                      color: Colors.amber.withValues(alpha:0.4),
                       blurRadius: 12,
                       spreadRadius: 2,
                     ),

@@ -33,11 +33,9 @@ void main() {
             color: Colors.green,
             earnedOn: DateTime.now().subtract(const Duration(days: 5)),
             progress: 1.0,
-            tier: AchievementTier.bronze,
-            pointsReward: 50,
             claimStatus: ClaimStatus.claimed,
           ),
-          Achievement(
+          const Achievement(
             id: 'eco_warrior',
             title: 'Eco Warrior',
             description: 'Classify 100 items',
@@ -48,9 +46,8 @@ void main() {
             progress: 0.75,
             tier: AchievementTier.silver,
             pointsReward: 200,
-            claimStatus: ClaimStatus.ineligible,
           ),
-          Achievement(
+          const Achievement(
             id: 'locked_achievement',
             title: 'Advanced User',
             description: 'Unlocks at level 10',
@@ -58,11 +55,9 @@ void main() {
             threshold: 500,
             iconName: 'advanced',
             color: Colors.purple,
-            progress: 0.0,
             tier: AchievementTier.gold,
             unlocksAtLevel: 10,
             pointsReward: 500,
-            claimStatus: ClaimStatus.ineligible,
           ),
           Achievement(
             id: 'claimable_achievement',
@@ -139,7 +134,6 @@ void main() {
           WeeklyStats(
             weekStartDate: DateTime.now().subtract(const Duration(days: 14)),
             itemsIdentified: 18,
-            challengesCompleted: 0,
             streakMaximum: 5,
             pointsEarned: 180,
             categoryCounts: {'Plastic': 8, 'Paper': 6, 'Organic': 4},
@@ -348,7 +342,7 @@ void main() {
         final profileWithSecret = testProfile.copyWith(
           achievements: [
             ...testProfile.achievements,
-            Achievement(
+            const Achievement(
               id: 'secret_achievement',
               title: 'Secret Achievement',
               description: 'This is secret',
@@ -657,7 +651,7 @@ void main() {
       });
 
       testWidgets('should handle achievements with null dates', (tester) async {
-        final achievementWithNullDate = Achievement(
+        const achievementWithNullDate = Achievement(
           id: 'null_date',
           title: 'Null Date Achievement',
           description: 'No earned date',
@@ -666,8 +660,6 @@ void main() {
           iconName: 'test',
           color: Colors.red,
           progress: 1.0,
-          tier: AchievementTier.bronze,
-          pointsReward: 50,
         );
 
         final profileWithNullDate = testProfile.copyWith(

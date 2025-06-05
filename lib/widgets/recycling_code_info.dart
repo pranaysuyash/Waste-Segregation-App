@@ -59,7 +59,7 @@ class _RecyclingCodeInfoCardState extends State<RecyclingCodeInfoCard> {
       return Container(
         padding: const EdgeInsets.all(AppTheme.paddingRegular),
         decoration: BoxDecoration(
-          color: Colors.red.withOpacity(0.1),
+          color: Colors.red.withValues(alpha:0.1),
           borderRadius: BorderRadius.circular(AppTheme.borderRadiusRegular),
         ),
         child: Row(
@@ -80,7 +80,7 @@ class _RecyclingCodeInfoCardState extends State<RecyclingCodeInfoCard> {
     return Container(
       padding: const EdgeInsets.all(AppTheme.paddingRegular),
       decoration: BoxDecoration(
-        color: Colors.green.withOpacity(0.1),
+        color: Colors.green.withValues(alpha:0.1),
         borderRadius: BorderRadius.circular(AppTheme.borderRadiusRegular),
       ),
       child: Column(

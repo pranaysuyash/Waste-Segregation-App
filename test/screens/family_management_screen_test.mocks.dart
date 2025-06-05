@@ -598,6 +598,10 @@ class MockStorageService extends _i1.Mock implements _i10.StorageService {
     required bool? isGoogleSyncEnabled,
     bool? allowHistoryFeedback,
     int? feedbackTimeframeDays,
+    bool? notifications,
+    bool? eduNotifications,
+    bool? gamificationNotifications,
+    bool? reminderNotifications,
   }) =>
       (super.noSuchMethod(
         Invocation.method(
@@ -608,6 +612,10 @@ class MockStorageService extends _i1.Mock implements _i10.StorageService {
             #isGoogleSyncEnabled: isGoogleSyncEnabled,
             #allowHistoryFeedback: allowHistoryFeedback,
             #feedbackTimeframeDays: feedbackTimeframeDays,
+            #notifications: notifications,
+            #eduNotifications: eduNotifications,
+            #gamificationNotifications: gamificationNotifications,
+            #reminderNotifications: reminderNotifications,
           },
         ),
         returnValue: _i5.Future<void>.value(),

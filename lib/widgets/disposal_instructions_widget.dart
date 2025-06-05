@@ -42,7 +42,7 @@ class _DisposalInstructionsWidgetState extends State<DisposalInstructionsWidget>
               gradient: LinearGradient(
                 colors: widget.instructions.hasUrgentTimeframe
                     ? [Colors.red.shade400, Colors.red.shade600]
-                    : [AppTheme.primaryColor, AppTheme.primaryColor.withOpacity(0.8)],
+                    : [AppTheme.primaryColor, AppTheme.primaryColor.withValues(alpha:0.8)],
               ),
             ),
             child: Row(
@@ -106,7 +106,7 @@ class _DisposalInstructionsWidgetState extends State<DisposalInstructionsWidget>
                       vertical: 4,
                     ),
                     decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.2),
+                      color: Colors.white.withValues(alpha:0.2),
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Text(

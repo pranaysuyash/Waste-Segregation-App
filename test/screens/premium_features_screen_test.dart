@@ -172,7 +172,7 @@ void main() {
         when(mockPremiumService.getPremiumFeatures()).thenReturn([]);
         when(mockPremiumService.isPremiumFeature(any)).thenReturn(false);
         when(mockPremiumService.setPremiumFeature(any, any)).thenAnswer((_) async {
-          return null;
+          return;
         });
 
         await tester.pumpWidget(createTestWidget());
@@ -197,7 +197,7 @@ void main() {
         when(mockPremiumService.getPremiumFeatures()).thenReturn([]);
         when(mockPremiumService.isPremiumFeature(any)).thenReturn(false);
         when(mockPremiumService.resetPremiumFeatures()).thenAnswer((_) async {
-          return null;
+          return;
         });
 
         await tester.pumpWidget(createTestWidget());

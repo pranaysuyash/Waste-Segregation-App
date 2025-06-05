@@ -238,7 +238,6 @@ void main() {
         description: 'Active period',
         periodStart: now.subtract(const Duration(days: 1)),
         periodEnd: now.add(const Duration(days: 1)),
-        isActive: true,
       );
 
       // Expired period
@@ -247,7 +246,6 @@ void main() {
         description: 'Expired period',
         periodStart: now.subtract(const Duration(days: 10)),
         periodEnd: now.subtract(const Duration(days: 3)),
-        isActive: true,
       );
 
       // Future period
@@ -256,7 +254,6 @@ void main() {
         description: 'Future period',
         periodStart: now.add(const Duration(days: 1)),
         periodEnd: now.add(const Duration(days: 8)),
-        isActive: true,
       );
 
       // Inactive
@@ -315,11 +312,9 @@ void main() {
         description: 'End of year challenge',
         periodStart: start,
         periodEnd: end,
-        isActive: true,
         rewards: rewards,
         minimumPoints: 25,
         maxEntries: 75,
-        showDetailedStats: true,
       );
 
       final json = metadata.toJson();
@@ -360,7 +355,7 @@ void main() {
     });
 
     test('should create with all optional parameters', () {
-      final achievement = Achievement(
+      const achievement = Achievement(
         id: 'ach1',
         title: 'Test Achievement',
         description: 'Test description',
@@ -472,7 +467,7 @@ void main() {
     });
 
     test('should serialize to and from JSON correctly', () {
-      final achievement = Achievement(
+      const achievement = Achievement(
         id: 'json_ach',
         title: 'JSON Achievement',
         description: 'JSON description',
@@ -503,7 +498,6 @@ void main() {
         categoryBreakdown: {'Glass': 700, 'Plastic': 600, 'Metal': 450},
         recentAchievements: [achievement],
         stats: stats,
-        isCurrentUser: false,
         familyId: 'json_family',
         familyName: 'JSON Family',
       );
@@ -915,7 +909,7 @@ void main() {
     });
 
     test('should maintain consistency across serialization cycles', () {
-      final achievement = Achievement(
+      const achievement = Achievement(
         id: 'consistency_test',
         title: 'Consistency Achievement',
         description: 'Testing consistency',

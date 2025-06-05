@@ -104,7 +104,7 @@ class ProfileSummaryCard extends StatelessWidget {
                     value: (points.total % 100) / 100,
                     minHeight: 8,
                     color: AppTheme.primaryColor,
-                    backgroundColor: AppTheme.textSecondaryColor.withOpacity(0.2),
+                    backgroundColor: AppTheme.textSecondaryColor.withValues(alpha:0.2),
                   ),
                 ),
               ],

@@ -21,7 +21,7 @@ void main() {
       });
 
       test('should create FilterOptions with custom values', () {
-        final startDate = DateTime(2024, 1, 1);
+        final startDate = DateTime(2024, 1);
         final endDate = DateTime(2024, 1, 31);
         final categories = ['plastic', 'paper'];
         final subcategories = ['bottle', 'newspaper'];
@@ -140,7 +140,6 @@ void main() {
           searchText: 'original',
           categories: ['glass'],
           sortBy: SortField.name,
-          sortNewestFirst: true,
         );
 
         final copied = original.copyWith(
@@ -183,7 +182,7 @@ void main() {
 
       test('copyWith can clear a value by passing null', () {
         final original = FilterOptions(searchText: 'original');
-        final copied = original.copyWith(searchText: null);
+        final copied = original.copyWith();
         expect(copied.searchText, null);
       });
     });
@@ -207,7 +206,7 @@ void main() {
           searchText: 'bottle',
           categories: ['plastic', 'glass'],
           isRecyclable: true,
-          startDate: DateTime(2024, 1, 1),
+          startDate: DateTime(2024, 1),
           endDate: DateTime(2024,1,31)
         );
         // Basic check, exact format might vary slightly based on implementation details not shown

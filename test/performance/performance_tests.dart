@@ -7,7 +7,6 @@ import 'package:waste_segregation_app/services/storage_service.dart';
 import 'package:waste_segregation_app/services/cache_service.dart';
 import 'package:waste_segregation_app/services/gamification_service.dart';
 import 'package:waste_segregation_app/models/waste_classification.dart';
-import 'package:waste_segregation_app/models/user_profile.dart';
 import 'package:waste_segregation_app/models/gamification.dart';
 
 // Mock services for performance testing

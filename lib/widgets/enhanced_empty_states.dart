@@ -131,7 +131,7 @@ class _EnhancedEmptyStateState extends State<EnhancedEmptyState>
                 shape: BoxShape.circle,
                 boxShadow: [
                   BoxShadow(
-                    color: config.backgroundColor.withOpacity(0.3),
+                    color: config.backgroundColor.withValues(alpha:0.3),
                     blurRadius: 20,
                     offset: const Offset(0, 10),
                   ),
@@ -367,8 +367,8 @@ class _ScanningEmptyStateState extends State<ScanningEmptyState>
             shape: BoxShape.circle,
             gradient: RadialGradient(
               colors: [
-                AppTheme.primaryColor.withOpacity(0.1),
-                AppTheme.primaryColor.withOpacity(0.05),
+                AppTheme.primaryColor.withValues(alpha:0.1),
+                AppTheme.primaryColor.withValues(alpha:0.05),
                 Colors.transparent,
               ],
               stops: const [0.3, 0.7, 1.0],
@@ -384,7 +384,7 @@ class _ScanningEmptyStateState extends State<ScanningEmptyState>
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   border: Border.all(
-                    color: AppTheme.primaryColor.withOpacity(1.0 - _scanAnimation.value),
+                    color: AppTheme.primaryColor.withValues(alpha:1.0 - _scanAnimation.value),
                     width: 2,
                   ),
                 ),
@@ -399,7 +399,7 @@ class _ScanningEmptyStateState extends State<ScanningEmptyState>
                   shape: BoxShape.circle,
                   boxShadow: [
                     BoxShadow(
-                      color: AppTheme.primaryColor.withOpacity(0.3),
+                      color: AppTheme.primaryColor.withValues(alpha:0.3),
                       blurRadius: 15,
                       offset: const Offset(0, 5),
                     ),
