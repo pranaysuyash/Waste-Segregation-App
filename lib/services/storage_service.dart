@@ -560,6 +560,10 @@ class StorageService {
     required bool isGoogleSyncEnabled,
     bool? allowHistoryFeedback,
     int? feedbackTimeframeDays,
+    bool? notifications,
+    bool? eduNotifications,
+    bool? gamificationNotifications,
+    bool? reminderNotifications,
   }) async {
     final settings = await getSettings();
     
@@ -573,6 +577,18 @@ class StorageService {
     }
     if (feedbackTimeframeDays != null) {
       settings['feedbackTimeframeDays'] = feedbackTimeframeDays;
+    }
+    if (notifications != null) {
+      settings['notifications'] = notifications;
+    }
+    if (eduNotifications != null) {
+      settings['eduNotifications'] = eduNotifications;
+    }
+    if (gamificationNotifications != null) {
+      settings['gamificationNotifications'] = gamificationNotifications;
+    }
+    if (reminderNotifications != null) {
+      settings['reminderNotifications'] = reminderNotifications;
     }
     
     // Save the updated settings
@@ -592,6 +608,9 @@ class StorageService {
         // Default settings for new users - Cloud sync ENABLED by default
         final defaultSettings = {
           'notifications': true,
+          'eduNotifications': true,
+          'gamificationNotifications': true,
+          'reminderNotifications': true,
           'darkMode': false,
           'soundEffects': true,
           'autoSave': true,
@@ -608,6 +627,9 @@ class StorageService {
       // Return default settings with cloud sync enabled
       return {
         'notifications': true,
+        'eduNotifications': true,
+        'gamificationNotifications': true,
+        'reminderNotifications': true,
         'darkMode': false,
         'soundEffects': true,
         'autoSave': true,
