@@ -74,7 +74,7 @@ void main() async {
       ),
     ));
   } else {
-    originalMain();
+    await originalMain();
   }
 }
 

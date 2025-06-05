@@ -33,7 +33,7 @@ class ShareService {
       }
       
       // If context is provided, show a snackbar
-      if (context != null) {
+      if (context != null && context.mounted) {
         _showSnackBar(context, 'Content copied to clipboard');
       }
     } catch (e) {
@@ -45,7 +45,7 @@ class ShareService {
       }
       
       // If context is provided, show error snackbar
-      if (context != null) {
+      if (context != null && context.mounted) {
         _showSnackBar(context, 'Error sharing content');
       }
     }
