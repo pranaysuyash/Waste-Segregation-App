@@ -453,6 +453,54 @@ class GamificationService {
       debugPrint('🔥 SYNC ERROR: $e');
     }
   }
+
+  /// Ensure achievement progress reflects all stored classifications.
+  /// Useful when classifications were imported or processed offline.
+  Future<void> syncAchievementProgressFromClassifications() async {
+    try {
+      final classifications = await _storageService.getAllClassifications();
+      final profile = await getProfile();
+
+      // Calculate total classifications and unique categories
+      final total = classifications.length;
+      final categories = classifications.map((c) => c.category).toSet().length;
+
+      final updatedAchievements = profile.achievements.map((achievement) {
+        if (achievement.type == AchievementType.wasteIdentified) {
+          final progress = (total / achievement.threshold).clamp(0.0, 1.0);
+          if (progress >= 1.0 && !achievement.isEarned) {
+            final claimStatus = achievement.tier == AchievementTier.bronze
+                ? ClaimStatus.claimed
+                : ClaimStatus.unclaimed;
+            return achievement.copyWith(
+              progress: 1.0,
+              earnedOn: DateTime.now(),
+              claimStatus: claimStatus,
+            );
+          }
+          return achievement.copyWith(progress: progress);
+        } else if (achievement.type == AchievementType.categoriesIdentified) {
+          final progress = (categories / achievement.threshold).clamp(0.0, 1.0);
+          if (progress >= 1.0 && !achievement.isEarned) {
+            final claimStatus = achievement.tier == AchievementTier.bronze
+                ? ClaimStatus.claimed
+                : ClaimStatus.unclaimed;
+            return achievement.copyWith(
+              progress: 1.0,
+              earnedOn: DateTime.now(),
+              claimStatus: claimStatus,
+            );
+          }
+          return achievement.copyWith(progress: progress);
+        }
+        return achievement;
+      }).toList();
+
+      await saveProfile(profile.copyWith(achievements: updatedAchievements));
+    } catch (e) {
+      debugPrint('🔥 SYNC ACHIEVEMENTS ERROR: $e');
+    }
+  }
   
   // Process a waste classification for gamification
   // Returns a list of completed challenges
@@ -1570,13 +1618,16 @@ class GamificationService {
       
       // Update streak for today if needed
       await updateStreak();
-      
+
       // Ensure achievements are properly initialized
       if (profile.achievements.isEmpty) {
         debugPrint('🏆 Initializing default achievements');
         final updatedProfile = profile.copyWith(achievements: getDefaultAchievements());
         await saveProfile(updatedProfile);
       }
+
+      // Recalculate achievement progress from stored classifications
+      await syncAchievementProgressFromClassifications();
       
       // Ensure challenges are loaded
       if (profile.activeChallenges.isEmpty) {
