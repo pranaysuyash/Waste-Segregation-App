@@ -233,12 +233,29 @@ For comprehensive documentation including setup guides, technical details, and p
 - **[🗺️ Project Roadmap](docs/planning/roadmap/unified_project_roadmap.md)** - Development roadmap and timeline
 - **[❓ Troubleshooting](docs/reference/troubleshooting.md)** - Common issues and solutions
 
+### 📋 **Current Status Documents (Updated June 2025)**
+- **[🚨 Issues Summary](ISSUES_SUMMARY_2025-06-02.md)** - Comprehensive tracking of all known issues
+- **[🧪 Test Status](TEST_STATUS_SUMMARY.md)** - Critical test infrastructure failure analysis
+- **[📋 PR Status](PR_STATUS_SUMMARY.md)** - Pull request handling and remaining work
+
 ## Current Project Status
 
 **Version:** 0.1.5+97 (Research Milestone & Play Store Release)  
 **Previous Stable Version:** 0.1.4+96   
-**Status:** ✅ Ready for Production  
+**Status:** 🔴 **CRITICAL ISSUES - NOT READY FOR RELEASE**  
 **Latest Changes:** Comprehensive recycling research integrated. Critical UI fixes applied - AdWidget errors resolved, overflow warnings fixed, modal dialogs improved
+
+### 🚨 **CRITICAL RELEASE BLOCKERS**
+- **Test Infrastructure Failure**: 0% test success rate across all 21 test categories
+- **All Tests Timing Out**: Unit, widget, integration, and performance tests all failing
+- **Code Coverage**: Unable to generate coverage reports
+- **Impact**: Cannot release with failing test infrastructure
+
+### 📊 **Current Issues Summary**
+- **Linter Issues**: 342 deprecation warnings (mostly `withOpacity` usage)
+- **Test Status**: 0/21 test categories passing
+- **Documentation**: ✅ Recently updated with comprehensive tracking
+- **Main App**: ✅ Compiles and runs successfully
 
 ### Recent Critical Fixes ✅
 - **History Duplication Fix:** Fixed issue where scanning one item created two history entries due to duplicate save operations in result screen

@@ -438,6 +438,19 @@ Output:
     // Generate a new classification ID if not provided (for initial call)
     final currentClassificationId = classificationId ?? const Uuid().v4();
 
+    // Early exit for empty image data to prevent processing errors and unnecessary API calls
+    if (imageBytes.isEmpty) {
+      debugPrint('analyzeWebImage: Received empty imageBytes for imageName: $imageName. Returning fallback classification.');
+      // Ensure WasteClassification.fallback sets clarificationNeeded = true and handles an optional reason.
+      // If WasteClassification.fallback doesn't support a 'reason' parameter, it might need adjustment,
+      // or this call simplified. For now, assuming it can take it or ignore it.
+      return WasteClassification.fallback(
+        imageName,
+        id: currentClassificationId,
+        // reason: 'Input image data was empty.', // Add reason if supported by fallback
+      );
+    }
+
     try {
       // Check cache if enabled
       if (cachingEnabled) {
