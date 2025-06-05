@@ -60,6 +60,9 @@ class AiService {
   final String geminiApiKey;
   final ClassificationCacheService cacheService;
   
+  // ✅ OPTIMIZATION: Add as class field to avoid creating new instances repeatedly
+  final EnhancedImageService _imageService = EnhancedImageService();
+  
   // Simple segmentation parameters - can be adjusted based on needs
   static const int segmentGridSize = 3; // 3x3 grid for basic segmentation
   static const double minSegmentArea = 0.05; // Minimum 5% of image area
@@ -342,12 +345,18 @@ Output:
     final analysisRegion = region ?? defaultRegion;
     final analysisLang = instructionsLang ?? defaultLanguage;
 
-    // Ensure image is stored permanently before analysis
-    final permanentPath = await EnhancedImageService().saveFilePermanently(imageFile);
-    final permanentFile = File(permanentPath);
-
     // Generate a new classification ID if not provided (for initial call)
     final currentClassificationId = classificationId ?? const Uuid().v4();
+
+    // ✅ OPTIMIZATION: Use singleton instance with error handling
+    final File permanentFile;
+    try {
+      final permanentPath = await _imageService.saveFilePermanently(imageFile);
+      permanentFile = File(permanentPath);
+    } catch (e) {
+      debugPrint('Failed to save image permanently: $e');
+      return WasteClassification.fallback(imageFile.path, id: currentClassificationId);
+    }
 
     try {
       // Check cache if enabled
@@ -449,7 +458,7 @@ Output:
       // Ensure WasteClassification.fallback sets clarificationNeeded = true and handles an optional reason.
       // If WasteClassification.fallback doesn't support a 'reason' parameter, it might need adjustment,
       // or this call simplified. For now, assuming it can take it or ignore it.
-      final savedImagePath = await EnhancedImageService()
+      final savedImagePath = await _imageService
           .saveImagePermanently(imageBytes, fileName: imageName);
       return WasteClassification.fallback(
         savedImagePath,
@@ -458,10 +467,14 @@ Output:
       );
     }
 
-    // Persist the image first so that the resulting classification can
-    // reference a permanent file path instead of a temporary name.
-    final savedImagePath = await EnhancedImageService()
-        .saveImagePermanently(imageBytes, fileName: imageName);
+    // ✅ OPTIMIZATION: Use singleton instance with error handling
+    final String savedImagePath;
+    try {
+      savedImagePath = await _imageService.saveImagePermanently(imageBytes, fileName: imageName);
+    } catch (e) {
+      debugPrint('Failed to save image permanently: $e');
+      return WasteClassification.fallback(imageName, id: currentClassificationId);
+    }
 
     try {
       // Check cache if enabled
@@ -549,7 +562,7 @@ Output:
     String? instructionsLang,
     String? classificationId,
   }) async {
-    final permanentPath = await EnhancedImageService().saveFilePermanently(imageFile);
+    final permanentPath = await _imageService.saveFilePermanently(imageFile);
     final permanentFile = File(permanentPath);
     final imageBytes = await permanentFile.readAsBytes();
     return _analyzeImageSegmentsInternal(
@@ -574,7 +587,7 @@ Output:
     String? instructionsLang,
     String? classificationId,
   }) async {
-    final savedPath = await EnhancedImageService()
+    final savedPath = await _imageService
         .saveImagePermanently(imageBytes, fileName: imageName);
     return _analyzeImageSegmentsInternal(
       imageBytes,
