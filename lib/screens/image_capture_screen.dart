@@ -414,7 +414,7 @@ class _ImageCaptureScreenState extends State<ImageCaptureScreen> {
                                   'PRO',
                                   style: TextStyle(
                                     color: Colors.white,
-                                    fontSize: 10,
+                                    fontSize: 12,
                                     fontWeight: FontWeight.bold,
                                   ),
                                 ),
@@ -475,7 +475,7 @@ class _ImageCaptureScreenState extends State<ImageCaptureScreen> {
                                   child: Text(
                                     '${_segments.length} objects detected. Tap to select for analysis.',
                                     style: TextStyle(
-                                      fontSize: 12,
+                                      fontSize: 14,
                                       color: Colors.blue.shade700,
                                     ),
                                   ),

@@ -1370,7 +1370,7 @@ class GamificationSummaryCard extends StatelessWidget { // e.g., "+12%"
                     child: Text(
                       trend!,
                       style: TextStyle(
-                        fontSize: 10,
+                        fontSize: 12,
                         fontWeight: FontWeight.bold,
                         color: color,
                       ),

@@ -396,7 +396,7 @@ class _AchievementsScreenState extends State<AchievementsScreen>
                     child: Text(
                       'Claim Reward!',
                       style: TextStyle(
-                        fontSize: 10,
+                        fontSize: 12,
                         fontWeight: FontWeight.bold,
                         color: Colors.amber,
                       ),
@@ -408,7 +408,7 @@ class _AchievementsScreenState extends State<AchievementsScreen>
                     child: Text(
                       'Earned',
                       style: TextStyle(
-                        fontSize: 10,
+                        fontSize: 12,
                         color: achievement.color,
                       ),
                     ),
@@ -419,7 +419,7 @@ class _AchievementsScreenState extends State<AchievementsScreen>
                     child: Text(
                       'Unlocks at level ${achievement.unlocksAtLevel}',
                       style: const TextStyle(
-                        fontSize: 9,
+                        fontSize: 12,
                         color: Colors.grey,
                       ),
                     ),
@@ -1351,7 +1351,7 @@ class _AchievementsScreenState extends State<AchievementsScreen>
                     Text(
                       label,
                       style: TextStyle(
-                        fontSize: 10,
+                        fontSize: 12,
                         color: Colors.grey.shade700,
                       ),
                     ),
@@ -1392,7 +1392,7 @@ class _AchievementsScreenState extends State<AchievementsScreen>
         Text(
           label,
           style: TextStyle(
-            fontSize: 10,
+            fontSize: 12,
             color: Colors.grey.shade600,
           ),
         ),

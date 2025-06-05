@@ -100,7 +100,7 @@ class _CyberpunkWasteImpactDashboardState extends State<CyberpunkWasteImpactDash
                       const Text(
                         'ITEMS CLASSIFIED',
                         style: TextStyle(
-                          fontSize: 10,
+                          fontSize: 12,
                           color: Color(0xFF00ffff),
                           letterSpacing: 1,
                         ),
@@ -237,7 +237,7 @@ class _CyberpunkWasteImpactDashboardState extends State<CyberpunkWasteImpactDash
                 Text(
                   title,
                   style: const TextStyle(
-                    fontSize: 10,
+                    fontSize: 12,
                     fontWeight: FontWeight.w800,
                     color: Colors.white,
                     letterSpacing: 1,
@@ -301,7 +301,7 @@ class _CyberpunkWasteImpactDashboardState extends State<CyberpunkWasteImpactDash
                     Text(
                       unit,
                       style: TextStyle(
-                        fontSize: 8,
+                        fontSize: 12,
                         color: Colors.white.withValues(alpha:0.7),
                         fontWeight: FontWeight.w600,
                       ),
@@ -476,7 +476,7 @@ class _CyberpunkWasteImpactDashboardState extends State<CyberpunkWasteImpactDash
                 child: Text(
                   title,
                   style: TextStyle(
-                    fontSize: 10,
+                    fontSize: 12,
                     fontWeight: FontWeight.w700,
                     color: color,
                     letterSpacing: 0.5,
@@ -502,7 +502,7 @@ class _CyberpunkWasteImpactDashboardState extends State<CyberpunkWasteImpactDash
           Text(
             subtitle,
             style: TextStyle(
-              fontSize: 10,
+              fontSize: 12,
               color: Colors.white.withValues(alpha:0.6),
               fontWeight: FontWeight.w500,
             ),

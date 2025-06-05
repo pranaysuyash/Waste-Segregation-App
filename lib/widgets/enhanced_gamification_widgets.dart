@@ -164,7 +164,7 @@ class _EnhancedPointsIndicatorState extends State<EnhancedPointsIndicator>
                     Text(
                       '${widget.points.total}',
                       style: const TextStyle(
-                        fontSize: 10,
+                        fontSize: 12,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
@@ -177,7 +177,7 @@ class _EnhancedPointsIndicatorState extends State<EnhancedPointsIndicator>
                         child: Text(
                           ' (+${widget.points.total - widget.previousPoints!.total})',
                           style: const TextStyle(
-                            fontSize: 9,
+                            fontSize: 12,
                             color: Colors.green,
                             fontWeight: FontWeight.bold,
                           ),
@@ -220,7 +220,7 @@ class _EnhancedPointsIndicatorState extends State<EnhancedPointsIndicator>
                           child: Text(
                             '${widget.points.pointsToNextLevel} to LVL ${widget.points.level + 1}',
                             style: const TextStyle(
-                              fontSize: 8,
+                              fontSize: 12,
                               color: AppTheme.textSecondaryColor,
                             ),
                           ),
@@ -243,7 +243,7 @@ class _EnhancedPointsIndicatorState extends State<EnhancedPointsIndicator>
                               Text(
                                 'LEVEL UP!',
                                 style: TextStyle(
-                                  fontSize: 8,
+                                  fontSize: 12,
                                   fontWeight: FontWeight.bold,
                                   color: Colors.green,
                                 ),
@@ -706,7 +706,7 @@ class _FloatingAchievementBadgeState extends State<FloatingAchievementBadge>
                             Text(
                               'Achievement Unlocked!',
                               style: TextStyle(
-                                fontSize: 10,
+                                fontSize: 12,
                                 color: widget.achievement.color,
                                 fontWeight: FontWeight.bold,
                               ),
@@ -1157,7 +1157,7 @@ class LifetimePointsIndicator extends StatelessWidget {
                           'L: $lifetimePoints',
                           style: const TextStyle(
                             color: Colors.white70,
-                            fontSize: 10,
+                            fontSize: 12,
                           ),
                         ),
                     ],

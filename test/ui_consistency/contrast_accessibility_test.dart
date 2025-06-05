@@ -491,7 +491,7 @@ double _calculateContrast(Color color1, Color color2) {
   return (lighter + 0.05) / (darker + 0.05);
 }
 
-/// Simulate color blindness for testing (simplified simulation)
+/* // Method _simulateProtanopia removed as it was unused
 Color _simulateProtanopia(Color original) {
   // Simplified protanopia simulation (red weakness)
   return Color.fromARGB(
@@ -501,7 +501,9 @@ Color _simulateProtanopia(Color original) {
     original.blue,
   );
 }
+*/
 
+/* // Method _simulateDeuteranopia removed as it was unused
 Color _simulateDeuteranopia(Color original) {
   // Simplified deuteranopia simulation (green weakness)
   return Color.fromARGB(
@@ -510,4 +512,5 @@ Color _simulateDeuteranopia(Color original) {
     (original.green * 0.75).round(),
     original.blue,
   );
-} 
+}
+*/ 

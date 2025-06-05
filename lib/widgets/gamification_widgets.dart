@@ -83,7 +83,7 @@ class StreakIndicator extends StatelessWidget {
                       Text(
                         'Best: ${streak.longest}',
                         style: const TextStyle(
-                          fontSize: 10,
+                          fontSize: 12,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
@@ -251,7 +251,7 @@ class PointsIndicator extends StatelessWidget {
                     Text(
                       '${points.total}',
                       style: const TextStyle(
-                        fontSize: 10,
+                        fontSize: 12,
                         fontWeight: FontWeight.bold,
                       ),
                     ),

@@ -126,7 +126,6 @@ void main() {
         expect(stats['cache_size'], lessThanOrEqualTo(EnhancedStorageService.MAX_CACHE_SIZE));
         
         // Verify that older entries were evicted
-        final oldValue = await service.get<String>('key_0');
         final newValue = await service.get<String>('key_${EnhancedStorageService.MAX_CACHE_SIZE + 5}');
         
         // key_0 should have been evicted and result in cache miss

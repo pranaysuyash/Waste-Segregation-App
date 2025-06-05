@@ -323,7 +323,7 @@ class _OfflineModeSettingsScreenState extends State<OfflineModeSettingsScreen> {
                   child: const Text(
                     'Required',
                     style: TextStyle(
-                      fontSize: 10,
+                      fontSize: 12,
                       color: Colors.orange,
                       fontWeight: FontWeight.bold,
                     ),

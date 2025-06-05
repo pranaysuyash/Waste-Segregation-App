@@ -179,7 +179,7 @@ void main() {
           // All colors should be valid
           for (final color in colors) {
             expect(color, isA<Color>());
-            expect(color.value, greaterThan(0));
+            expect(color.toARGB32(), greaterThan(0));
           }
         });
 
@@ -686,8 +686,8 @@ void main() {
         ];
         
         for (final color in colors) {
-          expect(color.alpha, equals(255)); // Should be opaque
-          expect(color.value, greaterThan(0));
+          expect(color.a, equals(255)); // Should be opaque
+          expect(color.toARGB32(), greaterThan(0));
         }
       });
 

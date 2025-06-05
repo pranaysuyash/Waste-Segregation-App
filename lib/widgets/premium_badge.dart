@@ -5,7 +5,7 @@ class PremiumBadge extends StatelessWidget {
   const PremiumBadge({
     super.key,
     this.label = 'Coming Soon',
-    this.fontSize = 12,
+    this.fontSize = 14,
     this.padding = const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
   });
   final String label;

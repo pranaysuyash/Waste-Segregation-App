@@ -480,7 +480,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               child: const Text(
                 'NEW',
                 style: TextStyle(
-                  fontSize: 10,
+                  fontSize: 12,
                   fontWeight: FontWeight.bold,
                   color: Colors.blue,
                 ),
@@ -512,7 +512,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               child: const Text(
                 'UPDATED',
                 style: TextStyle(
-                  fontSize: 10,
+                  fontSize: 12,
                   fontWeight: FontWeight.bold,
                   color: Colors.purple,
                 ),

@@ -117,7 +117,7 @@ class _TodaysImpactGoalState extends State<TodaysImpactGoal>
                       'GOAL!',
                       style: TextStyle(
                         color: Colors.white,
-                        fontSize: 10,
+                        fontSize: 12,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
@@ -411,7 +411,7 @@ class CommunityFeedPreview extends StatelessWidget {
                   activity.timeAgo,
                   style: const TextStyle(
                     color: AppTheme.textSecondaryColor,
-                    fontSize: 10,
+                    fontSize: 12,
                   ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
@@ -608,7 +608,7 @@ class _GlobalImpactMeterState extends State<GlobalImpactMeter>
           Text(
             unit,
             style: TextStyle(
-              fontSize: 10,
+              fontSize: 12,
               color: color,
               fontWeight: FontWeight.w500,
             ),
@@ -616,7 +616,7 @@ class _GlobalImpactMeterState extends State<GlobalImpactMeter>
           Text(
             label,
             style: const TextStyle(
-              fontSize: 9,
+              fontSize: 12,
               color: AppTheme.textSecondaryColor,
             ),
           ),

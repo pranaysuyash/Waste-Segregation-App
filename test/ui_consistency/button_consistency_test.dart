@@ -98,9 +98,9 @@ void main() {
         expect(backgroundColor, isNotNull);
         
         // Should use red-ish color for destructive actions
-        final red = backgroundColor!.red;
-        final green = backgroundColor.green;
-        final blue = backgroundColor.blue;
+        final red = backgroundColor!.r;
+        final green = backgroundColor.g;
+        final blue = backgroundColor.b;
         
         expect(red, greaterThan(green),
                reason: 'Destructive buttons should have more red than green');
@@ -119,9 +119,9 @@ void main() {
         expect(backgroundColor, isNotNull);
         
         // Should use green-ish color for success actions
-        final red = backgroundColor!.red;
-        final green = backgroundColor.green;
-        final blue = backgroundColor.blue;
+        final red = backgroundColor!.r;
+        final green = backgroundColor.g;
+        final blue = backgroundColor.b;
         
         expect(green, greaterThan(red),
                reason: 'Success buttons should have more green than red');

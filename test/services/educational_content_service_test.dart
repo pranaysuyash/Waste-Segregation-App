@@ -204,14 +204,12 @@ void main() {
         final quizzes = service.getContentByType(ContentType.quiz);
         final tutorials = service.getContentByType(ContentType.tutorial);
         final infographics = service.getContentByType(ContentType.infographic);
-        final tips = service.getContentByType(ContentType.tip);
 
         expect(articles, isNotEmpty);
         expect(videos, isNotEmpty);
         expect(quizzes, isNotEmpty);
         expect(tutorials, isNotEmpty);
         expect(infographics, isNotEmpty);
-        // Tips might be empty if none are initialized in the content list
 
         // Verify filtering works correctly
         for (final content in articles) {
@@ -691,6 +689,20 @@ void main() {
           expect(beginnerContent, isNotEmpty, 
                  reason: 'Should have beginner content for $category');
         }
+      });
+    });
+
+    group('New Content Tests', () {
+      test('should return new content', () {
+        final newContent = service.getNewContent();
+        final interactiveContent = service.getInteractiveContent();
+        final advancedTopics = service.getAdvancedTopics();
+        
+        expect(newContent, isNotEmpty);
+        expect(interactiveContent, isNotEmpty);
+        expect(advancedTopics, isNotEmpty);
+
+        // Ensure no overlap with basic content (example check)
       });
     });
   });

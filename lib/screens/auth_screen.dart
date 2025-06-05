@@ -323,7 +323,7 @@ class _AuthScreenState extends State<AuthScreen> {
           Text(
             label,
             style: const TextStyle(
-              fontSize: 10,
+              fontSize: 12,
               color: Colors.white70,
             ),
             textAlign: TextAlign.center,

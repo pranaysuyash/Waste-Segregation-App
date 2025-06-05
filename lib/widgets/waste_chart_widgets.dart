@@ -275,7 +275,7 @@ class TopSubcategoriesBarChart extends StatelessWidget {
                                   child: Text(
                                     displayLabel,
                                     style: const TextStyle(
-                                      fontSize: 10,
+                                      fontSize: 12,
                                       fontWeight: FontWeight.bold,
                                     ),
                                     textAlign: TextAlign.center,
@@ -298,7 +298,7 @@ class TopSubcategoriesBarChart extends StatelessWidget {
                                   child: Text(
                                     value.toInt().toString(),
                                     style: const TextStyle(
-                                      fontSize: 10,
+                                      fontSize: 12,
                                     ),
                                   ),
                                 );
@@ -543,7 +543,7 @@ class WeeklyItemsChart extends StatelessWidget {
                                   child: Text(
                                     data[value.toInt()].label,
                                     style: const TextStyle(
-                                      fontSize: 10,
+                                      fontSize: 12,
                                       fontWeight: FontWeight.bold,
                                     ),
                                   ),
@@ -565,7 +565,7 @@ class WeeklyItemsChart extends StatelessWidget {
                                   child: Text(
                                     value.toInt().toString(),
                                     style: const TextStyle(
-                                      fontSize: 10,
+                                      fontSize: 12,
                                     ),
                                   ),
                                 );
@@ -749,7 +749,7 @@ class WasteTimeSeriesChart extends StatelessWidget {
                       child: Text(
                         data[index]['formattedDate'] as String,
                         style: const TextStyle(
-                          fontSize: 9,
+                          fontSize: 12,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
@@ -767,7 +767,7 @@ class WasteTimeSeriesChart extends StatelessWidget {
                       child: Text(
                         value.toInt().toString(),
                         style: const TextStyle(
-                          fontSize: 10,
+                          fontSize: 12,
                         ),
                       ),
                     );
@@ -907,7 +907,7 @@ class CategoryDistributionChart extends StatelessWidget {
                       child: Text(
                         data[index]['month'] as String,
                         style: const TextStyle(
-                          fontSize: 9,
+                          fontSize: 12,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
@@ -927,7 +927,7 @@ class CategoryDistributionChart extends StatelessWidget {
                       child: Text(
                         '${(value * 100).toInt()}%',
                         style: const TextStyle(
-                          fontSize: 9,
+                          fontSize: 12,
                         ),
                       ),
                     );

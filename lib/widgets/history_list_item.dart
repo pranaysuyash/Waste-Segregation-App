@@ -105,7 +105,7 @@ class HistoryListItem extends StatelessWidget {
                                   '${((classification.confidence ?? 0.0) * 100).round()}%',
                                   style: TextStyle(
                                     color: _getConfidenceColor(),
-                                    fontSize: 10,
+                                    fontSize: 12,
                                     fontWeight: FontWeight.bold,
                                   ),
                                 ),

@@ -6,13 +6,14 @@
 import 'dart:async' as _i4;
 
 import 'package:mockito/mockito.dart' as _i1;
-import 'package:mockito/src/dummies.dart' as _i9;
+import 'package:mockito/src/dummies.dart' as _i10;
 import 'package:waste_segregation_app/models/community_feed.dart' as _i2;
-import 'package:waste_segregation_app/models/filter_options.dart' as _i8;
+import 'package:waste_segregation_app/models/filter_options.dart' as _i9;
+import 'package:waste_segregation_app/models/gamification.dart' as _i7;
 import 'package:waste_segregation_app/models/user_profile.dart' as _i6;
 import 'package:waste_segregation_app/models/waste_classification.dart' as _i5;
 import 'package:waste_segregation_app/services/community_service.dart' as _i3;
-import 'package:waste_segregation_app/services/storage_service.dart' as _i7;
+import 'package:waste_segregation_app/services/storage_service.dart' as _i8;
 
 // ignore_for_file: type=lint
 // ignore_for_file: avoid_redundant_argument_values
@@ -180,6 +181,84 @@ class MockCommunityService extends _i1.Mock implements _i3.CommunityService {
       ) as _i4.Future<void>);
 
   @override
+  _i4.Future<void> trackAchievementActivity(
+    _i7.Achievement? achievement,
+    _i6.UserProfile? user,
+  ) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #trackAchievementActivity,
+          [
+            achievement,
+            user,
+          ],
+        ),
+        returnValue: _i4.Future<void>.value(),
+        returnValueForMissingStub: _i4.Future<void>.value(),
+      ) as _i4.Future<void>);
+
+  @override
+  _i4.Future<void> trackStreakActivity(
+    int? streakDays,
+    _i6.UserProfile? user,
+  ) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #trackStreakActivity,
+          [
+            streakDays,
+            user,
+          ],
+        ),
+        returnValue: _i4.Future<void>.value(),
+        returnValueForMissingStub: _i4.Future<void>.value(),
+      ) as _i4.Future<void>);
+
+  @override
+  int calculateActivityPoints(
+    _i2.CommunityActivityType? activityType,
+    Map<String, dynamic>? metadata,
+  ) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #calculateActivityPoints,
+          [
+            activityType,
+            metadata,
+          ],
+        ),
+        returnValue: 0,
+      ) as int);
+
+  @override
+  _i4.Future<void> batchTrackActivities(
+    List<_i5.WasteClassification>? classifications,
+    _i6.UserProfile? user,
+  ) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #batchTrackActivities,
+          [
+            classifications,
+            user,
+          ],
+        ),
+        returnValue: _i4.Future<void>.value(),
+        returnValueForMissingStub: _i4.Future<void>.value(),
+      ) as _i4.Future<void>);
+
+  @override
+  _i4.Future<void> addRawActivity(Map<String, dynamic>? activityData) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #addRawActivity,
+          [activityData],
+        ),
+        returnValue: _i4.Future<void>.value(),
+        returnValueForMissingStub: _i4.Future<void>.value(),
+      ) as _i4.Future<void>);
+
+  @override
   _i4.Future<void> generateSampleCommunityData() => (super.noSuchMethod(
         Invocation.method(
           #generateSampleCommunityData,
@@ -198,12 +277,24 @@ class MockCommunityService extends _i1.Mock implements _i3.CommunityService {
         returnValue: _i4.Future<void>.value(),
         returnValueForMissingStub: _i4.Future<void>.value(),
       ) as _i4.Future<void>);
+
+  @override
+  _i4.Future<void> cleanupOldActivities({required int? olderThanDays}) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #cleanupOldActivities,
+          [],
+          {#olderThanDays: olderThanDays},
+        ),
+        returnValue: _i4.Future<void>.value(),
+        returnValueForMissingStub: _i4.Future<void>.value(),
+      ) as _i4.Future<void>);
 }
 
 /// A class which mocks [StorageService].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockStorageService extends _i1.Mock implements _i7.StorageService {
+class MockStorageService extends _i1.Mock implements _i8.StorageService {
   MockStorageService() {
     _i1.throwOnMissingStub(this);
   }
@@ -261,7 +352,7 @@ class MockStorageService extends _i1.Mock implements _i7.StorageService {
 
   @override
   _i4.Future<List<_i5.WasteClassification>> getAllClassifications(
-          {_i8.FilterOptions? filterOptions}) =>
+          {_i9.FilterOptions? filterOptions}) =>
       (super.noSuchMethod(
         Invocation.method(
           #getAllClassifications,
@@ -274,7 +365,7 @@ class MockStorageService extends _i1.Mock implements _i7.StorageService {
 
   @override
   _i4.Future<List<_i5.WasteClassification>> getClassificationsWithPagination({
-    _i8.FilterOptions? filterOptions,
+    _i9.FilterOptions? filterOptions,
     int? pageSize = 20,
     int? page = 0,
   }) =>
@@ -293,7 +384,7 @@ class MockStorageService extends _i1.Mock implements _i7.StorageService {
       ) as _i4.Future<List<_i5.WasteClassification>>);
 
   @override
-  _i4.Future<int> getClassificationsCount({_i8.FilterOptions? filterOptions}) =>
+  _i4.Future<int> getClassificationsCount({_i9.FilterOptions? filterOptions}) =>
       (super.noSuchMethod(
         Invocation.method(
           #getClassificationsCount,
@@ -305,14 +396,14 @@ class MockStorageService extends _i1.Mock implements _i7.StorageService {
 
   @override
   _i4.Future<String> exportClassificationsToCSV(
-          {_i8.FilterOptions? filterOptions}) =>
+          {_i9.FilterOptions? filterOptions}) =>
       (super.noSuchMethod(
         Invocation.method(
           #exportClassificationsToCSV,
           [],
           {#filterOptions: filterOptions},
         ),
-        returnValue: _i4.Future<String>.value(_i9.dummyValue<String>(
+        returnValue: _i4.Future<String>.value(_i10.dummyValue<String>(
           this,
           Invocation.method(
             #exportClassificationsToCSV,
@@ -415,7 +506,7 @@ class MockStorageService extends _i1.Mock implements _i7.StorageService {
           #exportUserData,
           [],
         ),
-        returnValue: _i4.Future<String>.value(_i9.dummyValue<String>(
+        returnValue: _i4.Future<String>.value(_i10.dummyValue<String>(
           this,
           Invocation.method(
             #exportUserData,
@@ -497,7 +588,7 @@ class MockStorageService extends _i1.Mock implements _i7.StorageService {
   @override
   List<_i5.WasteClassification> applyFiltersToClassifications(
     List<_i5.WasteClassification>? classifications,
-    _i8.FilterOptions? filterOptions,
+    _i9.FilterOptions? filterOptions,
   ) =>
       (super.noSuchMethod(
         Invocation.method(

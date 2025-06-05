@@ -302,7 +302,7 @@ class _EducationalContentScreenState extends State<EducationalContentScreen>
                             'Premium',
                             style: TextStyle(
                               color: Colors.white,
-                              fontSize: 10,
+                              fontSize: 12,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
@@ -352,7 +352,7 @@ class _EducationalContentScreenState extends State<EducationalContentScreen>
                         child: Text(
                           content.getLevelText(),
                           style: TextStyle(
-                            fontSize: 10,
+                            fontSize: 12,
                             color: Colors.grey.shade700,
                             fontWeight: FontWeight.w500,
                           ),
@@ -376,7 +376,7 @@ class _EducationalContentScreenState extends State<EducationalContentScreen>
                       Text(
                         content.getFormattedDuration(),
                         style: TextStyle(
-                          fontSize: 10,
+                          fontSize: 12,
                           color: Colors.grey.shade600,
                         ),
                       ),

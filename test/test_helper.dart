@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:mockito/mockito.dart';
@@ -22,9 +23,9 @@ class TestHelper {
       // Note: Only register if not already registered
       
       _hiveInitialized = true;
-      print('✅ Test Hive initialized in memory');
+      debugPrint('✅ Test Hive initialized in memory');
     } catch (e) {
-      print('❌ Error initializing test Hive: $e');
+      debugPrint('❌ Error initializing test Hive: $e');
       // Don't rethrow - allow tests to continue with mock services
     }
   }
@@ -37,7 +38,7 @@ class TestHelper {
       // Close all boxes that might be open
       await Hive.close();
     } catch (e) {
-      print('⚠️ Warning: Error cleaning up test Hive: $e');
+      debugPrint('⚠️ Warning: Error cleaning up test Hive: $e');
     }
   }
 
@@ -48,9 +49,9 @@ class TestHelper {
     try {
       await Hive.close();
       _hiveInitialized = false;
-      print('✅ Test Hive torn down');
+      debugPrint('✅ Test Hive torn down');
     } catch (e) {
-      print('⚠️ Warning: Error tearing down test Hive: $e');
+      debugPrint('⚠️ Warning: Error tearing down test Hive: $e');
     }
   }
 
@@ -89,12 +90,10 @@ class TestHelper {
 
 /// Mock ClassificationCacheService that doesn't require Hive
 class MockClassificationCacheService extends Mock implements ClassificationCacheService {
-  bool _initialized = false;
   final Map<String, CachedClassification> _mockCache = {};
 
   @override
   Future<void> initialize() async {
-    _initialized = true;
   }
 
   @override

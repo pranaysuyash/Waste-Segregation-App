@@ -340,7 +340,7 @@ class StatsCard extends StatelessWidget {
                               style: TextStyle(
                                 color: isPositiveTrend ? Colors.green : Colors.red,
                                 fontWeight: FontWeight.bold,
-                                fontSize: 10, // Even smaller font for tight spaces
+                                fontSize: 12, // Accessibility compliant font size
                               ),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,

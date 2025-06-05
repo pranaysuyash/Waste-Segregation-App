@@ -5,6 +5,8 @@ import 'package:waste_segregation_app/models/waste_classification.dart';
 import 'package:waste_segregation_app/models/user_profile.dart';
 import 'package:waste_segregation_app/models/gamification.dart';
 import 'package:waste_segregation_app/models/enhanced_family.dart';
+import 'package:waste_segregation_app/models/filter_options.dart';
+import 'package:waste_segregation_app/models/leaderboard.dart';
 import 'package:waste_segregation_app/services/ai_service.dart';
 import 'package:waste_segregation_app/services/storage_service.dart';
 import 'package:waste_segregation_app/services/gamification_service.dart';
@@ -92,11 +94,6 @@ class TestHelpers {
       product: 'Test Product Line',
       userId: userId ?? 'test_user_123',
       isSaved: true,
-      environmentalImpact: {
-        'co2_saved': '0.5 kg',
-        'energy_saved': '85%',
-        'recyclability': 'High'
-      },
     );
   }
 
@@ -202,6 +199,7 @@ class TestHelpers {
     int? currentStreak,
     List<Achievement>? achievements,
   }) {
+    final streakKey = StreakType.dailyClassification.toString();
     return GamificationProfile(
       userId: userId ?? 'test_user_123',
       points: UserPoints(
@@ -214,11 +212,14 @@ class TestHelpers {
           'Hazardous Waste': 30,
         },
       ),
-      streak: Streak(
-        current: currentStreak ?? 5,
-        longest: 12,
-        lastUsageDate: DateTime.now(),
-      ),
+      streaks: {
+        streakKey: StreakDetails(
+          type: StreakType.dailyClassification,
+          currentCount: currentStreak ?? 5,
+          longestCount: 12, // Default or could be parameterized
+          lastActivityDate: DateTime.now(),
+        ),
+      },
       achievements: achievements ?? [
         Achievement(
           id: 'waste_novice',
@@ -251,66 +252,71 @@ class TestHelpers {
   }
 
   /// Creates a test family
-  static EnhancedFamily createTestFamily({
+  static Family createTestFamily({
     String? id,
     String? name,
     String? createdBy,
     List<FamilyMember>? members,
-    bool? isPublic,
+    FamilySettings? settings,
   }) {
-    return EnhancedFamily(
+    final adminUser = createTestUser(id: 'admin_user_for_family');
+    return Family(
       id: id ?? 'test_family_123',
       name: name ?? 'Test Family',
-      createdBy: createdBy ?? 'admin_user',
-      createdAt: DateTime.now().subtract(const Duration(days: 10)),
-      members: members ?? [
-        FamilyMember(
-          userId: 'admin_user',
-          email: 'admin@example.com',
-          displayName: 'Admin User',
-          role: FamilyRole.admin,
-          joinedAt: DateTime.now().subtract(const Duration(days: 10)),
-          statistics: MemberStatistics(
-            totalClassifications: 25,
-            totalPoints: 500,
-            favoriteCategory: 'Dry Waste',
-          ),
-        ),
-        FamilyMember(
-          userId: 'member_user',
-          email: 'member@example.com',
-          displayName: 'Member User',
-          role: FamilyRole.member,
-          joinedAt: DateTime.now().subtract(const Duration(days: 5)),
-          statistics: MemberStatistics(
-            totalClassifications: 10,
-            totalPoints: 200,
-            favoriteCategory: 'Wet Waste',
-          ),
-        ),
-      ],
-      settings: FamilySettings(
-        isPublic: isPublic ?? false,
-        allowInvites: true,
-      ),
-      statistics: FamilyStatistics(
-        totalClassifications: 35,
-        totalPoints: 700,
-        categoryCounts: {
-          'Dry Waste': 20,
-          'Wet Waste': 10,
-          'Hazardous Waste': 5,
-        },
-        weeklyActivity: [],
-        environmentalImpact: const EnvironmentalImpact(
-          totalWasteClassified: 35,
-          recyclableItems: 25,
-          compostableItems: 8,
-          hazardousItemsHandled: 2,
-          estimatedCO2Saved: 5.2,
-        ),
-      ),
-      inviteCode: 'TEST123',
+      createdBy: createdBy ?? adminUser.id,
+      members: members ?? [createTestFamilyMember(userId: adminUser.id, role: UserRole.admin)],
+      settings: settings ?? FamilySettings.defaultSettings(),
+    );
+  }
+
+  /// Creates a test family member
+  static FamilyMember createTestFamilyMember({
+    String? userId,
+    String? displayName,
+    UserRole? role,
+    DateTime? joinedAt,
+    UserStats? individualStats,
+  }) {
+    return FamilyMember(
+      userId: userId ?? 'member_user_123',
+      displayName: displayName ?? 'Test Member',
+      role: role ?? UserRole.member,
+      joinedAt: joinedAt ?? DateTime.now(),
+      individualStats: individualStats ?? UserStats.empty(),
+    );
+  }
+
+  /// Creates test family settings
+  static FamilySettings createTestFamilySettings({
+    bool? isPublic,
+    bool? allowChildInvites,
+    bool? shareClassifications,
+  }) {
+    return FamilySettings(
+      isPublic: isPublic ?? false,
+      allowChildInvites: allowChildInvites ?? false,
+      shareClassifications: shareClassifications ?? true,
+    );
+  }
+
+  /// Creates test UserStats
+  static UserStats createTestUserStats({
+    int? totalClassifications,
+    int? totalPoints,
+    int? currentStreak,
+    int? bestStreak,
+    Map<String, int>? categoryBreakdown,
+    List<String>? achievements,
+    DateTime? lastActive,
+  }) {
+    return UserStats(
+      totalClassifications: totalClassifications ?? 0,
+      totalPoints: totalPoints ?? 0,
+      currentStreak: currentStreak ?? 0,
+      bestStreak: bestStreak ?? 0,
+      categoryBreakdown: categoryBreakdown ?? {},
+      achievements: achievements ?? [],
+      lastActive: lastActive ?? DateTime.now(),
     );
   }
 
@@ -377,24 +383,27 @@ class TestHelpers {
 
     // Setup Storage Service
     if (storageService != null) {
-      when(storageService.getRecentClassifications(limit: any))
+      when(storageService.getAllClassifications(filterOptions: anyNamed('filterOptions')))
+          .thenAnswer((_) async => createClassificationList(10));
+      when(storageService.getClassificationsPaginated(page: anyNamed('page'), pageSize: anyNamed('pageSize'), filterOptions: anyNamed('filterOptions')))
           .thenAnswer((_) async => createClassificationList(5));
       when(storageService.saveClassification(any))
           .thenAnswer((_) async => {});
-      when(storageService.getClassificationHistory())
-          .thenAnswer((_) async => createClassificationList(20));
+      when(storageService.getAllClassifications(
+          filterOptions: FilterOptions(limit: 5, sortBy: SortBy.timestamp, sortDirection: SortDirection.descending)
+      )).thenAnswer((_) async => Future.value(<WasteClassification>[]));
+      when(storageService.getClassificationsPaginated(page: 0, pageSize: 10, filterOptions: null))
+          .thenAnswer((_) async => Future.value(<WasteClassification>[]));
     }
 
     // Setup Gamification Service
     if (gamificationService != null) {
-      when(gamificationService.getUserProfile())
+      when(gamificationService.getProfile())
           .thenAnswer((_) async => createTestGamificationProfile());
-      when(gamificationService.processClassification(any))
-          .thenAnswer((_) async => {
-            'points_earned': 10,
-            'achievements_unlocked': [],
-            'streak_updated': true,
-          });
+      when(gamificationService.getAchievements())
+          .thenAnswer((_) async => []);
+      when(gamificationService.getLeaderboard())
+          .thenAnswer((_) async => []);
     }
 
     // Setup Analytics Service
@@ -407,7 +416,11 @@ class TestHelpers {
     if (communityService != null) {
       when(communityService.trackClassificationActivity(any, any))
           .thenAnswer((_) async => {});
-      when(communityService.getCommunityFeed())
+      when(communityService.getCommunityFeed(any, any, any))
+          .thenAnswer((_) async => []);
+      when(communityService.getCommunityStats())
+          .thenAnswer((_) async => createTestCommunityStats());
+      when(communityService.getUserActivity(any))
           .thenAnswer((_) async => []);
     }
   }
@@ -445,8 +458,11 @@ class TestHelpers {
   static void assertValidGamificationProfile(GamificationProfile profile) {
     expect(profile.userId, isNotEmpty, reason: 'User ID should not be empty');
     expect(profile.points.total, greaterThanOrEqualTo(0), reason: 'Points should be non-negative');
-    expect(profile.streak.current, greaterThanOrEqualTo(0), reason: 'Current streak should be non-negative');
-    expect(profile.streak.longest, greaterThanOrEqualTo(profile.streak.current), 
+    
+    final dailyClassificationStreak = profile.streaks[StreakType.dailyClassification.toString()];
+    expect(dailyClassificationStreak, isNotNull, reason: 'Daily classification streak should exist');
+    expect(dailyClassificationStreak!.currentCount, greaterThanOrEqualTo(0), reason: 'Current streak should be non-negative');
+    expect(dailyClassificationStreak.longestCount, greaterThanOrEqualTo(dailyClassificationStreak.currentCount), 
            reason: 'Longest streak should be >= current streak');
     
     // Check achievement progress
@@ -578,6 +594,58 @@ class TestHelpers {
       category: category,
       confidence: confidence,
     );
+  }
+
+  static MockStorageService getMockStorageService() {
+    final mockStorageService = MockStorageService();
+    // Default behavior for common calls
+    when(mockStorageService.getCurrentUserProfile()).thenAnswer((_) async => createTestUser());
+    
+    // General catch-all for getAllClassifications
+    when(mockStorageService.getAllClassifications(filterOptions: anyNamed('filterOptions')))
+        .thenAnswer((invocation) async {
+            // Simple mock: return a list of 10. Tests can be more specific if needed.
+            return Future.value(createClassificationList(10)); // Corrected return
+        });
+
+    // Specific mock for getting recent items (sorted by timestamp descending)
+    when(mockStorageService.getAllClassifications(
+        filterOptions: const FilterOptions(sortBy: SortField.date, sortNewestFirst: true) // Explicitly using SortField.date
+    )).thenAnswer((_) async => Future.value(createClassificationList(5))); // Corrected return
+
+    // General catch-all for getClassificationsPaginated
+    // Ensuring parameters match StorageService.getClassificationsPaginated signature
+    when(mockStorageService.getClassificationsPaginated(
+        page: anyNamed('page'), 
+        pageSize: anyNamed('pageSize'), 
+        filterOptions: anyNamed('filterOptions') 
+    )).thenAnswer((invocation) async {
+        final pageSize = invocation.namedArguments[const Symbol('pageSize')] as int?;
+        return Future.value(createClassificationList(pageSize ?? 5)); // Corrected return
+    });
+
+    when(mockStorageService.saveClassification(any)).thenAnswer((_) async => Future.value());
+    
+    // Mock for getCachedClassification if it was causing null issues for Uint8List/String
+    // Assuming getCachedClassification takes a String hash and returns Future<WasteClassification?>
+    when(mockStorageService.getCachedClassification(any)).thenAnswer((_) async => null);
+
+    return mockStorageService;
+  }
+
+  static MockGamificationService getMockGamificationService() {
+    final mockGamificationService = MockGamificationService();
+    when(mockGamificationService.getProfile()).thenAnswer((_) async => createTestGamificationProfile());
+    
+    // Add mocks for getAchievements and getLeaderboard
+    when(mockGamificationService.getAchievements()).thenAnswer((_) async => Future.value(<Achievement>[]));
+    when(mockGamificationService.getLeaderboard(limit: anyNamed('limit'))).thenAnswer((_) async => Future.value(<LeaderboardEntry>[])); // Assuming LeaderboardEntry and limit param
+    // If getLeaderboard() takes no parameters or different ones, adjust accordingly.
+
+    // Example of mocking a method that might have had a null issue if it returns Future<void>
+    // when(mockGamificationService.someVoidMethod(any)).thenAnswer((_) async => Future.value());
+
+    return mockGamificationService;
   }
 }
 

@@ -662,7 +662,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                   'DAILY TIP',
                   style: TextStyle(
                     color: Colors.white,
-                    fontSize: 10,
+                    fontSize: 12,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
@@ -915,7 +915,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                           content.type.toString().split('.').last,
                           style: const TextStyle(
                             color: Colors.white,
-                            fontSize: 8,
+                            fontSize: 12,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
@@ -966,7 +966,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                           child: Text(
                             content.categories.first,
                             style: TextStyle(
-                              fontSize: 8,
+                              fontSize: 12,
                               fontWeight: FontWeight.bold,
                               color: _getCategoryColorCase(
                                   content.categories.first),
@@ -987,7 +987,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                           Text(
                             '${content.durationMinutes} min',
                             style: TextStyle(
-                              fontSize: 8,
+                              fontSize: 12,
                               color: Colors.grey.shade600,
                             ),
                           ),
@@ -1467,7 +1467,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                                                                         style: TextStyle(
                                                                           color: _getCategoryColorCase(
                                                                               classification.category),
-                                                                          fontSize: 10,
+                                                                          fontSize: 12,
                                                                           fontWeight: FontWeight.bold,
                                                                         ),
                                                                         overflow: TextOverflow.ellipsis,

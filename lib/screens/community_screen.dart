@@ -206,7 +206,7 @@ class _CommunityScreenState extends State<CommunityScreen> with TickerProviderSt
                           '+${item.points} pts',
                           style: const TextStyle(
                             color: AppTheme.primaryColor,
-                            fontSize: 10,
+                            fontSize: 12,
                             fontWeight: FontWeight.bold,
                           ),
                           overflow: TextOverflow.ellipsis,
