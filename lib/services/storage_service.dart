@@ -767,10 +767,28 @@ class StorageService {
     // Check if user has any existing classifications
     final existingUserClassifications = classificationsBox.keys
         .where((key) {
-          final jsonString = classificationsBox.get(key);
-          final json = jsonDecode(jsonString);
-          final classification = WasteClassification.fromJson(json);
-          return classification.userId == userProfile.id;
+          try {
+            final data = classificationsBox.get(key);
+            if (data == null) return false;
+            
+            Map<String, dynamic> json;
+            if (data is String) {
+              if (data.isEmpty) return false;
+              json = jsonDecode(data);
+            } else if (data is Map<String, dynamic>) {
+              json = data;
+            } else if (data is Map) {
+              json = Map<String, dynamic>.from(data);
+            } else {
+              return false;
+            }
+            
+            final classification = WasteClassification.fromJson(json);
+            return classification.userId == userProfile.id;
+          } catch (e) {
+            debugPrint('Error processing classification during migration count: $e');
+            return false;
+          }
         })
         .toList();
     
@@ -782,12 +800,30 @@ class StorageService {
     // Count guest classifications available for migration
     final guestClassifications = classificationsBox.keys
         .where((key) {
-          final jsonString = classificationsBox.get(key);
-          final json = jsonDecode(jsonString);
-          final classification = WasteClassification.fromJson(json);
-          return classification.userId == 'guest_user' || 
-                 classification.userId == null ||
-                 (classification.userId != null && classification.userId!.startsWith('guest_'));
+          try {
+            final data = classificationsBox.get(key);
+            if (data == null) return false;
+            
+            Map<String, dynamic> json;
+            if (data is String) {
+              if (data.isEmpty) return false;
+              json = jsonDecode(data);
+            } else if (data is Map<String, dynamic>) {
+              json = data;
+            } else if (data is Map) {
+              json = Map<String, dynamic>.from(data);
+            } else {
+              return false;
+            }
+            
+            final classification = WasteClassification.fromJson(json);
+            return classification.userId == 'guest_user' || 
+                   classification.userId == null ||
+                   (classification.userId != null && classification.userId!.startsWith('guest_'));
+          } catch (e) {
+            debugPrint('Error processing classification during migration count: $e');
+            return false;
+          }
         })
         .toList();
     
@@ -807,21 +843,39 @@ class StorageService {
     
     // Find all guest classifications
     for (final key in classificationsBox.keys) {
-      final jsonString = classificationsBox.get(key);
-      final json = jsonDecode(jsonString);
-      final classification = WasteClassification.fromJson(json);
-      
-      // Check if this is guest data
-      if (classification.userId == 'guest_user' || 
-          classification.userId == null ||
-          (classification.userId != null && classification.userId!.startsWith('guest_'))) {
+      try {
+        final data = classificationsBox.get(key);
+        if (data == null) continue;
         
-        // Migrate to current user
-        final migratedClassification = classification.copyWith(userId: userProfile.id);
-        await classificationsBox.put(key, jsonEncode(migratedClassification.toJson()));
-        migratedCount++;
+        Map<String, dynamic> json;
+        if (data is String) {
+          if (data.isEmpty) continue;
+          json = jsonDecode(data);
+        } else if (data is Map<String, dynamic>) {
+          json = data;
+        } else if (data is Map) {
+          json = Map<String, dynamic>.from(data);
+        } else {
+          continue;
+        }
         
-        debugPrint('🔄 Migrated classification: ${classification.itemName} to user ${userProfile.id}');
+        final classification = WasteClassification.fromJson(json);
+        
+        // Check if this is guest data
+        if (classification.userId == 'guest_user' || 
+            classification.userId == null ||
+            (classification.userId != null && classification.userId!.startsWith('guest_'))) {
+          
+          // Migrate to current user
+          final migratedClassification = classification.copyWith(userId: userProfile.id);
+          await classificationsBox.put(key, jsonEncode(migratedClassification.toJson()));
+          migratedCount++;
+          
+          debugPrint('🔄 Migrated classification: ${classification.itemName} to user ${userProfile.id}');
+        }
+      } catch (e) {
+        debugPrint('Error migrating classification for key $key: $e');
+        continue;
       }
     }
     

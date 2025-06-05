@@ -409,16 +409,17 @@ class _FamilyDashboardScreenState extends State<FamilyDashboardScreen> {
                         padding: const EdgeInsets.all(AppTheme.paddingSmall),
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
+                          mainAxisSize: MainAxisSize.min,
                           children: [
                             Stack(
                               children: [
                                 CircleAvatar(
-                                  radius: 25,
+                                  radius: 22,
                                   backgroundImage: memberProfile.photoUrl != null && memberProfile.photoUrl!.isNotEmpty
                                       ? NetworkImage(memberProfile.photoUrl!)
                                       : null,
                                   child: memberProfile.photoUrl == null || memberProfile.photoUrl!.isEmpty
-                                      ? Text(memberProfile.displayName?.substring(0, 1) ?? 'U', style: const TextStyle(fontSize: 20))
+                                      ? Text(memberProfile.displayName?.substring(0, 1) ?? 'U', style: const TextStyle(fontSize: 18))
                                       : null,
                                 ),
                                 if (memberProfile.id == currentUserId)
@@ -431,27 +432,31 @@ class _FamilyDashboardScreenState extends State<FamilyDashboardScreen> {
                                         color: Colors.white,
                                         shape: BoxShape.circle,
                                       ),
-                                      child: const Icon(Icons.check_circle, color: AppTheme.primaryColor, size: 16),
+                                      child: const Icon(Icons.check_circle, color: AppTheme.primaryColor, size: 14),
                                     ),
                                   ),
                               ],
                             ),
-                            const SizedBox(height: AppTheme.paddingSmall),
-                            Text(
-                              memberProfile.displayName ?? 'User',
-                              textAlign: TextAlign.center,
-                              overflow: TextOverflow.ellipsis,
-                              maxLines: 1,
-                              style: Theme.of(context).textTheme.bodySmall?.copyWith(fontWeight: FontWeight.bold),
+                            const SizedBox(height: 4),
+                            Flexible(
+                              child: Text(
+                                memberProfile.displayName ?? 'User',
+                                textAlign: TextAlign.center,
+                                overflow: TextOverflow.ellipsis,
+                                maxLines: 1,
+                                style: Theme.of(context).textTheme.bodySmall?.copyWith(fontWeight: FontWeight.bold, fontSize: 11),
+                              ),
                             ),
-                            Text(
-                               _getRoleName(userRole), 
-                              style: Theme.of(context).textTheme.bodySmall?.copyWith(color: AppTheme.textSecondaryColor, fontSize: 10),
+                            Flexible(
+                              child: Text(
+                                 _getRoleName(userRole), 
+                                style: Theme.of(context).textTheme.bodySmall?.copyWith(color: AppTheme.textSecondaryColor, fontSize: 9),
+                              ),
                             ),
                             if (userRole == family_models.UserRole.admin)
                               const Padding(
-                                padding: EdgeInsets.only(top: AppTheme.paddingMicro),
-                                child: Icon(Icons.admin_panel_settings, size: 12, color: AppTheme.accentColor),
+                                padding: EdgeInsets.only(top: 2),
+                                child: Icon(Icons.admin_panel_settings, size: 10, color: AppTheme.accentColor),
                               )
                           ],
                         ),

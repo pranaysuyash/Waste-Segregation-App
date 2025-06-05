@@ -23,10 +23,10 @@ class FamilyInviteScreen extends StatefulWidget {
 
 class _FamilyInviteScreenState extends State<FamilyInviteScreen>
     with SingleTickerProviderStateMixin {
-  late TabController _tabController;
   final _emailController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
   final _familyService = FirebaseFamilyService();
+  late TabController _tabController;
   
   UserRole _selectedRole = UserRole.member;
   bool _isLoading = false;

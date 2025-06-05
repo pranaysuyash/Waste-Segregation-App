@@ -153,6 +153,7 @@ class _ModernHomeScreenState extends State<ModernHomeScreen> with TickerProvider
   }
 
   Future<void> _loadGamificationData() async {
+    if (!mounted) return;
     setState(() {
       _isLoadingGamification = true;
     });
@@ -165,6 +166,7 @@ class _ModernHomeScreenState extends State<ModernHomeScreen> with TickerProvider
       final profile = await gamificationService.getProfile();
       final challenges = await gamificationService.getActiveChallenges();
 
+      if (!mounted) return;
       setState(() {
         _gamificationProfile = profile;
         _activeChallenges = challenges;
@@ -172,6 +174,7 @@ class _ModernHomeScreenState extends State<ModernHomeScreen> with TickerProvider
     } catch (e) {
       debugPrint('Error loading gamification data: $e');
     } finally {
+      if (!mounted) return;
       setState(() {
         _isLoadingGamification = false;
       });
@@ -180,6 +183,7 @@ class _ModernHomeScreenState extends State<ModernHomeScreen> with TickerProvider
 
   Future<void> _loadUserData() async {
     if (widget.isGuestMode) {
+      if (!mounted) return;
       setState(() {
         _userName = 'Guest';
       });
@@ -189,6 +193,7 @@ class _ModernHomeScreenState extends State<ModernHomeScreen> with TickerProvider
     final storageService = Provider.of<StorageService>(context, listen: false);
     final userProfile = await storageService.getCurrentUserProfile();
 
+    if (!mounted) return;
     if (userProfile != null && userProfile.displayName != null && userProfile.displayName!.isNotEmpty) {
       setState(() {
         _userName = userProfile.displayName!;
@@ -205,6 +210,7 @@ class _ModernHomeScreenState extends State<ModernHomeScreen> with TickerProvider
   }
 
   Future<void> _loadRecentClassifications() async {
+    if (!mounted) return;
     setState(() {
       _isLoading = true;
     });
@@ -228,6 +234,7 @@ class _ModernHomeScreenState extends State<ModernHomeScreen> with TickerProvider
           ? await cloudStorageService.getAllClassificationsWithCloudSync(isGoogleSyncEnabled)
           : await storageService.getAllClassifications();
 
+      if (!mounted) return;
       setState(() {
         _allClassifications = classifications;
         _recentClassifications = (classifications.length <= 3) 
@@ -250,6 +257,7 @@ class _ModernHomeScreenState extends State<ModernHomeScreen> with TickerProvider
         });
       }
     } finally {
+      if (!mounted) return;
       setState(() {
         _isLoading = false;
       });

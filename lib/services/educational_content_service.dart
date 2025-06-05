@@ -1,5 +1,6 @@
-import '../models/educational_content.dart';
-import 'educational_content_analytics_service.dart';
+import 'package:waste_segregation_app/models/educational_content.dart';
+import 'package:waste_segregation_app/services/educational_content_analytics_service.dart'
+    as analytics_service;
 
 /// Service for managing educational content in the app
 class EducationalContentService {
@@ -7,10 +8,11 @@ class EducationalContentService {
     _initializeDailyTips();
     _initializeContent();
   }
+
   /// List of all available educational content
   final List<EducationalContent> _allContent = [];
 
-  final EducationalContentAnalyticsService? analytics;
+  final analytics_service.EducationalContentAnalyticsService? analytics;
 
   /// List of daily tips for the home screen
   final List<DailyTip> _dailyTips = [];
@@ -19,7 +21,7 @@ class EducationalContentService {
   void _initializeDailyTips() {
     _dailyTips.addAll([
       DailyTip(
-        id: 'tip1',
+        id: 'daily_tip1',
         title: 'Plastic Decomposition',
         content:
             'Did you know that plastic bottles take up to 450 years to decompose? Try using a reusable water bottle instead!',
@@ -29,7 +31,7 @@ class EducationalContentService {
         actionLink: 'plastic_decomposition',
       ),
       DailyTip(
-        id: 'tip2',
+        id: 'daily_tip2',
         title: 'Food Waste Reduction',
         content:
             'Approximately one-third of all food produced globally is wasted. Plan your meals and shop with a list to reduce food waste.',
@@ -39,54 +41,64 @@ class EducationalContentService {
         actionLink: 'food_waste_tips',
       ),
       DailyTip(
-        id: 'tip3',
-        title: 'Battery Disposal',
+        id: 'daily_tip3',
+        title: 'Battery Recycling',
         content:
-            'Batteries contain toxic chemicals that can leach into soil and groundwater. Always take them to designated collection points.',
+            'Batteries contain toxic materials that can harm the environment. Always take them to designated recycling centers.',
         category: 'Hazardous Waste',
         date: DateTime.now().subtract(const Duration(days: 2)),
-        actionText: 'Find Collection Points',
-        actionLink: 'battery_collection',
+        actionText: 'Find Centers',
+        actionLink: 'battery_recycling',
       ),
       DailyTip(
-        id: 'tip4',
+        id: 'daily_tip4',
+        title: 'Composting Benefits',
+        content:
+            'Composting reduces methane emissions from landfills and creates nutrient-rich soil for your garden.',
+        category: 'Wet Waste',
+        date: DateTime.now().subtract(const Duration(days: 3)),
+        actionText: 'Start Composting',
+        actionLink: 'composting_guide',
+      ),
+      DailyTip(
+        id: 'daily_tip5',
         title: 'Paper Recycling',
         content:
-            'Recycling one ton of paper saves 17 trees, 7,000 gallons of water, and 3.3 cubic yards of landfill space.',
+            'Recycling one ton of paper saves 17 trees, 7,000 gallons of water, and enough energy to power an average home for six months.',
         category: 'Dry Waste',
-        date: DateTime.now().subtract(const Duration(days: 3)),
-        actionText: 'Recycling Guide',
+        date: DateTime.now().subtract(const Duration(days: 4)),
+        actionText: 'Recycle Paper',
         actionLink: 'paper_recycling',
       ),
       DailyTip(
-        id: 'tip5',
-        title: 'Energy Conservation',
+        id: 'daily_tip6',
+        title: 'E-Waste Awareness',
         content:
-            'Unplug electronics when not in use. Even when turned off, many appliances still use power in standby mode.',
-        category: 'General',
-        date: DateTime.now().subtract(const Duration(days: 4)),
-        actionText: 'Energy Saving Tips',
-        actionLink: 'energy_conservation',
-      ),
-      DailyTip(
-        id: 'tip6',
-        title: 'Medication Disposal',
-        content:
-            'Never flush medications down the toilet. Take unused medications to pharmacy take-back programs.',
-        category: 'Medical Waste',
+            'Electronic waste is the fastest-growing waste stream. Donate or recycle old electronics instead of throwing them away.',
+        category: 'Hazardous Waste',
         date: DateTime.now().subtract(const Duration(days: 5)),
-        actionText: 'Proper Disposal',
-        actionLink: 'medication_disposal',
+        actionText: 'E-Waste Guide',
+        actionLink: 'ewaste_disposal',
       ),
       DailyTip(
-        id: 'tip7',
-        title: 'Composting',
+        id: 'daily_tip7',
+        title: 'Reduce Single-Use Items',
         content:
-            'Composting at home can reduce your household waste by up to 30% while creating nutrient-rich soil for your garden.',
-        category: 'Wet Waste',
+            'Bring your own bags, cups, and utensils to reduce single-use plastic consumption by up to 80%.',
+        category: 'General',
         date: DateTime.now().subtract(const Duration(days: 6)),
-        actionText: 'Start Composting',
-        actionLink: 'composting_guide',
+        actionText: 'Reduction Tips',
+        actionLink: 'reduce_waste',
+      ),
+      DailyTip(
+        id: 'daily_tip8',
+        title: 'Medical Waste Safety',
+        content:
+            'Never dispose of medications in regular trash or flush them. Use pharmacy take-back programs for safe disposal.',
+        category: 'Medical Waste',
+        date: DateTime.now().subtract(const Duration(days: 7)),
+        actionText: 'Safe Disposal',
+        actionLink: 'medical_disposal',
       ),
     ]);
   }
@@ -101,52 +113,44 @@ class EducationalContentService {
         description:
             'Learn what those numbers inside the recycling symbol mean and how to properly recycle different types of plastic.',
         thumbnailUrl: 'assets/images/education/plastic_codes.jpg',
-        contentText: '''
-# Understanding Plastic Recycling Codes
-
-Plastic products typically have a number (1-7) inside a recycling symbol. These numbers identify the type of plastic used:
-
-## 1 - PET (Polyethylene Terephthalate)
-- Common items: Water bottles, soft drink bottles, food jars
-- Recyclability: Highly recyclable
-- Disposal: Rinse and place in recycling bin
-
-## 2 - HDPE (High-Density Polyethylene)
-- Common items: Milk jugs, detergent bottles, shampoo bottles
-- Recyclability: Highly recyclable
-- Disposal: Rinse and place in recycling bin
-
-## 3 - PVC (Polyvinyl Chloride)
-- Common items: Pipes, shower curtains, food wrap
-- Recyclability: Rarely recyclable
-- Disposal: Check local guidelines; often goes to landfill
-
-## 4 - LDPE (Low-Density Polyethylene)
-- Common items: Plastic bags, squeeze bottles
-- Recyclability: Sometimes recyclable
-- Disposal: Return to store collection points or check local recycling guidelines
-
-## 5 - PP (Polypropylene)
-- Common items: Yogurt containers, medicine bottles, bottle caps
-- Recyclability: Increasingly recyclable
-- Disposal: Rinse and place in recycling bin if accepted locally
-
-## 6 - PS (Polystyrene)
-- Common items: Foam cups, packing peanuts, rigid plastics
-- Recyclability: Rarely recyclable
-- Disposal: Check local guidelines; often goes to landfill
-
-## 7 - Other (BPA, Polycarbonate, etc.)
-- Common items: Baby bottles, CDs, medical storage containers
-- Recyclability: Rarely recyclable
-- Disposal: Check local guidelines; often goes to landfill
-
-Remember to always check your local recycling guidelines, as they can vary significantly by location.
-''',
-        categories: ['Dry Waste', 'Plastic'],
+        contentText:
+            'Plastic recycling codes are numbers 1-7 found inside the recycling symbol on plastic products. Code 1 (PET) is commonly used for water bottles and is widely recyclable. Code 2 (HDPE) is used for milk jugs and detergent bottles. Code 3 (PVC) is harder to recycle and often goes to landfill. Code 4 (LDPE) includes plastic bags and wraps. Code 5 (PP) includes yogurt containers and bottle caps. Code 6 (PS) is styrofoam and rarely recyclable. Code 7 includes all other plastics and mixed materials.',
+        categories: ['Dry Waste', 'Plastic', 'Recycling'],
         level: ContentLevel.beginner,
         durationMinutes: 5,
         tags: ['recycling', 'plastic', 'codes'],
+      ),
+    );
+
+    _allContent.add(
+      EducationalContent.article(
+        id: 'article2',
+        title: 'Advanced Composting Techniques',
+        description:
+            'Master advanced composting methods including hot composting, vermicomposting, and bokashi fermentation.',
+        thumbnailUrl: 'assets/images/education/advanced_composting.jpg',
+        contentText:
+            'Advanced composting techniques can significantly improve decomposition rates and compost quality. Hot composting maintains temperatures of 140-160°F to kill pathogens and weed seeds. Vermicomposting uses worms to break down organic matter. Bokashi fermentation uses beneficial microorganisms to pre-process food waste.',
+        categories: ['Wet Waste', 'Composting'],
+        level: ContentLevel.advanced,
+        durationMinutes: 12,
+        tags: ['composting', 'advanced', 'organic'],
+      ),
+    );
+
+    _allContent.add(
+      EducationalContent.article(
+        id: 'article3',
+        title: 'Medical Waste Safety Guidelines',
+        description:
+            'Essential safety protocols for handling and disposing of medical waste at home.',
+        thumbnailUrl: 'assets/images/education/medical_waste.jpg',
+        contentText:
+            'Medical waste requires special handling to prevent contamination and injury. Sharps should be placed in puncture-resistant containers. Medications should never be flushed down toilets. Many pharmacies offer take-back programs for unused medications.',
+        categories: ['Medical Waste', 'Hazardous Waste'],
+        level: ContentLevel.intermediate,
+        durationMinutes: 8,
+        tags: ['medical', 'safety', 'disposal'],
       ),
     );
 
@@ -166,21 +170,49 @@ Remember to always check your local recycling guidelines, as they can vary signi
       ),
     );
 
+    _allContent.add(
+      EducationalContent.video(
+        id: 'video2',
+        title: 'E-Waste Recycling Process',
+        description:
+            'See how electronic waste is processed and recycled in modern facilities.',
+        thumbnailUrl: 'assets/images/education/ewaste.jpg',
+        videoUrl: 'https://example.com/videos/ewaste_recycling.mp4',
+        categories: ['Hazardous Waste', 'Electronics', 'Recycling'],
+        level: ContentLevel.intermediate,
+        durationMinutes: 15,
+        tags: ['electronics', 'recycling', 'hazardous'],
+      ),
+    );
+
     // Infographics
     _allContent.add(
       EducationalContent.infographic(
         id: 'infographic1',
-        title: 'Waste Segregation at a Glance',
+        title: 'Waste Segregation Quick Guide',
         description:
-            'Visual guide to common waste items and which bin they belong in.',
-        thumbnailUrl: 'assets/images/education/waste_segregation.jpg',
-        imageUrl: 'assets/images/education/waste_segregation_infographic.jpg',
-        contentText:
-            'This infographic shows common household items and guides you on which bin to place them in for proper waste segregation.',
-        categories: ['General', 'Segregation', 'Wet Waste', 'Dry Waste', 'Hazardous Waste', 'Medical Waste'],
+            'Visual guide showing how to properly segregate different types of waste.',
+        thumbnailUrl: 'assets/images/education/segregation_guide.jpg',
+        imageUrl: 'assets/images/education/segregation_infographic.jpg',
+        categories: ['General', 'Dry Waste', 'Wet Waste', 'Hazardous Waste'],
         level: ContentLevel.beginner,
         durationMinutes: 3,
-        tags: ['visual', 'guide', 'sorting'],
+        tags: ['segregation', 'guide', 'visual'],
+      ),
+    );
+
+    _allContent.add(
+      EducationalContent.infographic(
+        id: 'infographic2',
+        title: 'Plastic Pollution Impact',
+        description:
+            'Visualizing the environmental impact of plastic pollution on marine life.',
+        thumbnailUrl: 'assets/images/education/plastic_pollution.jpg',
+        imageUrl: 'assets/images/education/plastic_impact_infographic.jpg',
+        categories: ['Environmental Impact', 'Plastic'],
+        level: ContentLevel.intermediate,
+        durationMinutes: 5,
+        tags: ['pollution', 'environment', 'marine'],
       ),
     );
 
@@ -207,224 +239,50 @@ Remember to always check your local recycling guidelines, as they can vary signi
                 'Styrofoam (polystyrene) is not accepted in most curbside recycling programs and usually goes to landfill.',
           ),
           const QuizQuestion(
-            question: 'What should you do with plastic bags?',
+            question: 'What should you do with pizza boxes?',
             options: [
-              'Put them in your curbside recycling bin',
-              'Return them to grocery store collection points',
-              'Always throw them in the trash',
-              'Burn them at home'
+              'Recycle them as-is',
+              'Remove greasy parts before recycling',
+              'Throw them in regular trash',
+              'Compost the entire box'
             ],
             correctOptionIndex: 1,
             explanation:
-                'Most curbside programs don\'t accept plastic bags because they jam sorting equipment. Many grocery stores have collection points for plastic bag recycling.',
-          ),
-          const QuizQuestion(
-            question: 'Which of these is considered hazardous waste?',
-            options: ['Newspaper', 'Glass bottles', 'Batteries', 'Cardboard'],
-            correctOptionIndex: 2,
-            explanation:
-                'Batteries contain heavy metals and toxic chemicals that can harm the environment. They should be taken to hazardous waste collection points.',
-          ),
-          const QuizQuestion(
-            question: 'Food-soiled paper products like pizza boxes should be:',
-            options: [
-              'Recycled with paper',
-              'Composted if possible',
-              'Always placed in general trash',
-              'Rinsed and then recycled'
-            ],
-            correctOptionIndex: 1,
-            explanation:
-                'Food residue contaminates paper recycling, but food-soiled paper can be composted if you have access to composting.',
-          ),
-          const QuizQuestion(
-            question:
-                'What does the "chasing arrows" recycling symbol actually mean?',
-            options: [
-              'The item is recyclable everywhere',
-              'The item is made from recycled materials',
-              'The type of plastic the item is made from',
-              'The item must be recycled by law'
-            ],
-            correctOptionIndex: 2,
-            explanation:
-                'The chasing arrows symbol with a number inside identifies the type of plastic resin used to make the product, not its recyclability.',
+                'Pizza boxes can be recycled if you remove the greasy, food-soiled parts. Clean cardboard is recyclable.',
           ),
         ],
-        categories: ['General', 'Recycling', 'Wet Waste', 'Dry Waste', 'Hazardous Waste'],
-        level: ContentLevel.intermediate,
+        categories: ['General', 'Recycling', 'Dry Waste'],
+        level: ContentLevel.beginner,
         durationMinutes: 5,
         tags: ['quiz', 'test', 'knowledge'],
       ),
     );
 
-    // Wet Waste Quiz
     _allContent.add(
       EducationalContent.quiz(
         id: 'quiz2',
-        title: 'Wet Waste and Composting Quiz',
-        description: 'Test your knowledge about wet waste management and composting.',
-        thumbnailUrl: 'assets/images/education/wet_waste_quiz.jpg',
+        title: 'Advanced Waste Management Quiz',
+        description:
+            'Test your knowledge of complex waste management scenarios.',
+        thumbnailUrl: 'assets/images/education/advanced_quiz.jpg',
         questions: [
           const QuizQuestion(
-            question: 'Which of these items can be composted?',
+            question: 'What is the most effective method for treating medical waste?',
             options: [
-              'Meat and dairy products',
-              'Fruit and vegetable scraps',
-              'Cooked food with oil',
-              'Pet waste'
+              'Incineration',
+              'Autoclaving',
+              'Chemical treatment',
+              'All of the above'
             ],
-            correctOptionIndex: 1,
-            explanation: 'Fruit and vegetable scraps are ideal for composting. Meat, dairy, and oily foods can attract pests and create odors.',
-          ),
-          const QuizQuestion(
-            question: 'What is the ideal carbon to nitrogen ratio for composting?',
-            options: ['1:1', '2:1', '3:1', '4:1'],
-            correctOptionIndex: 2,
-            explanation: 'A 3:1 ratio of carbon-rich materials (browns) to nitrogen-rich materials (greens) creates optimal composting conditions.',
-          ),
-          const QuizQuestion(
-            question: 'How often should you turn your compost pile?',
-            options: [
-              'Daily',
-              'Every few weeks',
-              'Once a month',
-              'Never'
-            ],
-            correctOptionIndex: 1,
-            explanation: 'Turning every few weeks provides adequate aeration while not being too labor-intensive.',
-          ),
-          const QuizQuestion(
-            question: 'Which materials are considered "browns" in composting?',
-            options: [
-              'Fresh grass clippings',
-              'Food scraps',
-              'Dry leaves and twigs',
-              'Coffee grounds'
-            ],
-            correctOptionIndex: 2,
-            explanation: 'Browns are carbon-rich materials like dry leaves, twigs, and paper that balance nitrogen-rich greens.',
+            correctOptionIndex: 3,
+            explanation:
+                'Different types of medical waste require different treatment methods. All three are effective for different scenarios.',
           ),
         ],
-        categories: ['Wet Waste', 'Composting'],
-        level: ContentLevel.beginner,
-        durationMinutes: 3,
-        tags: ['quiz', 'composting', 'organic'],
-      ),
-    );
-
-    // Dry Waste Quiz
-    _allContent.add(
-      EducationalContent.quiz(
-        id: 'quiz3',
-        title: 'Dry Waste and Recycling Quiz',
-        description: 'Test your knowledge about dry waste recycling and management.',
-        thumbnailUrl: 'assets/images/education/dry_waste_quiz.jpg',
-        questions: [
-          const QuizQuestion(
-            question: 'Which plastic recycling code indicates the most recyclable plastic?',
-            options: ['Code 1 (PET)', 'Code 3 (PVC)', 'Code 6 (PS)', 'Code 7 (OTHER)'],
-            correctOptionIndex: 0,
-            explanation: 'Code 1 (PET) plastics like water bottles are the most widely recycled plastic type.',
-          ),
-          const QuizQuestion(
-            question: 'Should you remove labels from glass bottles before recycling?',
-            options: [
-              'Yes, always remove all labels',
-              'No, labels are removed during processing',
-              'Only remove plastic labels',
-              'Only if the label is dirty'
-            ],
-            correctOptionIndex: 1,
-            explanation: 'Most recycling facilities can handle labels on glass bottles - they\'re removed during the recycling process.',
-          ),
-          const QuizQuestion(
-            question: 'What should you do with cardboard boxes before recycling?',
-            options: [
-              'Leave them assembled',
-              'Flatten them',
-              'Cut them into small pieces',
-              'Remove all tape'
-            ],
-            correctOptionIndex: 1,
-            explanation: 'Flattening boxes saves space and makes them easier to process at recycling facilities.',
-          ),
-          const QuizQuestion(
-            question: 'Which type of paper cannot be recycled?',
-            options: [
-              'Newspaper',
-              'Wax-coated paper',
-              'Office paper',
-              'Magazines'
-            ],
-            correctOptionIndex: 1,
-            explanation: 'Wax-coated paper like some food packaging cannot be recycled due to the wax coating.',
-          ),
-        ],
-        categories: ['Dry Waste', 'Recycling'],
-        level: ContentLevel.beginner,
-        durationMinutes: 3,
-        tags: ['quiz', 'recycling', 'plastic'],
-      ),
-    );
-
-    // Hazardous Waste Quiz
-    _allContent.add(
-      EducationalContent.quiz(
-        id: 'quiz4',
-        title: 'Hazardous Waste Safety Quiz',
-        description: 'Test your knowledge about safe handling and disposal of hazardous waste.',
-        thumbnailUrl: 'assets/images/education/hazardous_quiz.jpg',
-        questions: [
-          const QuizQuestion(
-            question: 'What should you do with old car batteries?',
-            options: [
-              'Put them in regular trash',
-              'Take them to an auto parts store',
-              'Bury them in your backyard',
-              'Break them open to recycle parts'
-            ],
-            correctOptionIndex: 1,
-            explanation: 'Auto parts stores typically accept old car batteries for recycling and may offer credit toward new battery purchases.',
-          ),
-          const QuizQuestion(
-            question: 'Which of these items contains hazardous materials?',
-            options: [
-              'Old smartphones',
-              'Cotton clothing',
-              'Glass bottles',
-              'Wooden furniture'
-            ],
-            correctOptionIndex: 0,
-            explanation: 'Smartphones contain heavy metals and other hazardous materials and should be recycled through e-waste programs.',
-          ),
-          const QuizQuestion(
-            question: 'How should you dispose of household paint?',
-            options: [
-              'Pour it down the drain',
-              'Mix it with regular trash',
-              'Take it to a hazardous waste collection center',
-              'Burn it in your fireplace'
-            ],
-            correctOptionIndex: 2,
-            explanation: 'Paint contains chemicals that can harm the environment and must be disposed of at hazardous waste collection centers.',
-          ),
-          const QuizQuestion(
-            question: 'What should you do before disposing of electronic devices?',
-            options: [
-              'Remove the battery only',
-              'Wipe all personal data',
-              'Break the screen',
-              'Nothing special needed'
-            ],
-            correctOptionIndex: 1,
-            explanation: 'Always wipe or properly destroy personal data before disposing of electronic devices to protect your privacy.',
-          ),
-        ],
-        categories: ['Hazardous Waste', 'E-waste'],
-        level: ContentLevel.intermediate,
-        durationMinutes: 4,
-        tags: ['quiz', 'safety', 'hazardous'],
+        categories: ['Medical Waste', 'Hazardous Waste'],
+        level: ContentLevel.advanced,
+        durationMinutes: 8,
+        tags: ['quiz', 'advanced', 'medical'],
       ),
     );
 
@@ -434,573 +292,117 @@ Remember to always check your local recycling guidelines, as they can vary signi
         id: 'tutorial1',
         title: 'Setting Up a Home Recycling System',
         description:
-            'Learn how to create an efficient recycling system in your home.',
+            'Step-by-step guide to organize an efficient recycling system at home.',
         thumbnailUrl: 'assets/images/education/home_recycling.jpg',
         steps: [
           const TutorialStep(
-            title: '1. Understand Local Requirements',
-            description:
-                'Research your local recycling guidelines. Different areas accept different materials.',
-            imageUrl: 'assets/images/education/recycling_guidelines.jpg',
+            title: 'Choose Your Containers',
+            description: 'Select appropriate containers for different waste types. Use clearly labeled bins for dry waste, wet waste, and hazardous materials.',
+            imageUrl: 'assets/images/education/step1_containers.jpg',
           ),
           const TutorialStep(
-            title: '2. Choose Container System',
-            description:
-                'Select containers for different recyclables. You need separate bins for paper, plastic, glass, and metal at minimum.',
-            imageUrl: 'assets/images/education/recycling_bins.jpg',
+            title: 'Set Up Collection Points',
+            description: 'Place containers in convenient locations throughout your home. Kitchen for wet waste, office for paper, bathroom for medical waste.',
+            imageUrl: 'assets/images/education/step2_placement.jpg',
           ),
           const TutorialStep(
-            title: '3. Set Up Collection Area',
-            description:
-                'Designate a convenient location in your home for recycling bins. Consider kitchen, garage, or utility room.',
-            imageUrl: 'assets/images/education/collection_area.jpg',
-          ),
-          const TutorialStep(
-            title: '4. Create Clear Labels',
-            description:
-                'Make clear labels with pictures and text to show what goes in each bin.',
-            imageUrl: 'assets/images/education/bin_labels.jpg',
-          ),
-          const TutorialStep(
-            title: '5. Establish Preparation Routine',
-            description:
-                'Create a routine for preparing recyclables: rinse containers, remove caps, flatten boxes.',
-            imageUrl: 'assets/images/education/preparation_routine.jpg',
-          ),
-          const TutorialStep(
-            title: '6. Set Up a Schedule',
-            description:
-                'Create a regular schedule for transferring recyclables from home bins to curbside collection or drop-off centers.',
-            imageUrl: 'assets/images/education/schedule.jpg',
+            title: 'Create a Schedule',
+            description: 'Establish regular collection and disposal schedules. Check local pickup days and plan accordingly.',
+            imageUrl: 'assets/images/education/step3_schedule.jpg',
           ),
         ],
-        categories: ['General', 'Home Organization', 'Dry Waste', 'Recycling'],
+        categories: ['General', 'Recycling', 'Organization'],
         level: ContentLevel.beginner,
         durationMinutes: 10,
-        tags: ['guide', 'setup', 'home'],
+        tags: ['tutorial', 'home', 'organization'],
       ),
     );
 
-    // E-waste article
-    _allContent.add(
-      EducationalContent.article(
-        id: 'article2',
-        title: 'The Growing E-Waste Problem',
-        description:
-            'Learn about the environmental impact of electronic waste and how to dispose of it properly.',
-        thumbnailUrl: 'assets/images/education/ewaste.jpg',
-        contentText: '''
-# The Growing E-Waste Problem
-
-Electronic waste, or e-waste, is one of the fastest-growing waste streams globally. As technology advances and devices become more affordable, we replace our electronics more frequently, generating millions of tons of e-waste annually.
-
-## What is E-Waste?
-
-E-waste includes any discarded electrical or electronic device:
-- Computers and laptops
-- Mobile phones and tablets
-- Televisions and monitors
-- Printers and scanners
-- Small household appliances
-- Batteries and cables
-
-## Environmental Impact
-
-Improper disposal of e-waste has serious environmental consequences:
-
-- **Toxic Materials**: Electronics contain hazardous materials like lead, mercury, cadmium, and flame retardants that can leach into soil and water.
-- **Resource Waste**: E-waste contains valuable recoverable materials including gold, silver, copper, and rare earth elements.
-- **Energy Waste**: Manufacturing new devices uses significantly more energy than recycling materials from existing ones.
-
-## Proper E-Waste Disposal
-
-1. **Repair First**: Consider repairing broken electronics before replacing them.
-2. **Donate Working Devices**: Donate functioning electronics to schools, charities, or community organizations.
-3. **Manufacturer Take-Back Programs**: Many manufacturers offer recycling programs for their products.
-4. **E-Waste Collection Events**: Many cities host special collection events for electronic waste.
-5. **Certified E-Waste Recyclers**: Use certified e-waste recyclers that adhere to environmentally responsible practices.
-6. **Retail Drop-Off**: Some electronics retailers offer recycling programs, often providing discounts on new purchases.
-
-## Before Disposal
-
-Before disposing of any electronic device:
-- Back up important data
-- Perform a factory reset to remove personal information
-- Remove batteries (they may need to be recycled separately)
-- Remove any removable media (SD cards, etc.)
-
-Remember that proper e-waste disposal isn't just good for the environment—it's often required by law in many jurisdictions.
-''',
-        categories: ['Hazardous Waste', 'E-waste'],
-        level: ContentLevel.intermediate,
-        durationMinutes: 7,
-        tags: ['electronic', 'disposal', 'environment'],
-      ),
-    );
-
-    // Hazardous waste infographic
-    _allContent.add(
-      EducationalContent.infographic(
-        id: 'infographic2',
-        title: 'Identifying Hazardous Household Waste',
-        description:
-            'Visual guide to identifying common hazardous waste items in your home.',
-        thumbnailUrl: 'assets/images/education/hazardous_waste.jpg',
-        imageUrl: 'assets/images/education/hazardous_waste_infographic.jpg',
-        contentText:
-            'This infographic shows common household hazardous waste items and explains how to identify, handle, and dispose of them safely.',
-        categories: ['Hazardous Waste'],
-        level: ContentLevel.beginner,
-        durationMinutes: 3,
-        tags: ['visual', 'guide', 'safety'],
-      ),
-    );
-
-    // Composting tutorial
     _allContent.add(
       EducationalContent.tutorial(
         id: 'tutorial2',
-        title: 'Building Your First Compost Bin',
+        title: 'Building a Compost Bin',
         description:
-            'Step-by-step guide to building an affordable compost bin for your home.',
+            'Learn to build your own compost bin using recycled materials.',
         thumbnailUrl: 'assets/images/education/compost_bin.jpg',
         steps: [
           const TutorialStep(
-            title: '1. Choose Your Compost Bin Style',
-            description:
-                'Decide between a tumbler, multi-bin system, or simple pile based on your space and needs.',
-            imageUrl: 'assets/images/education/compost_styles.jpg',
-          ),
-          const TutorialStep(
-            title: '2. Gather Materials',
-            description:
-                'For a simple bin, you\'ll need: wooden pallets or wire fencing, screws or wire ties, hammer or wire cutters, and a drill.',
+            title: 'Gather Materials',
+            description: 'Collect wooden pallets, wire mesh, and basic tools. You can often get pallets for free from local businesses.',
             imageUrl: 'assets/images/education/compost_materials.jpg',
           ),
           const TutorialStep(
-            title: '3. Select Location',
-            description:
-                'Choose a level spot with partial shade and good drainage, ideally near your garden but not too close to your home.',
-            imageUrl: 'assets/images/education/compost_location.jpg',
-          ),
-          const TutorialStep(
-            title: '4. Assemble the Bin',
-            description:
-                'For a pallet bin: Stand four pallets upright to form a square, secure corners with screws or wire. For wire bin: Form a circle with fencing and secure ends together.',
+            title: 'Assemble the Frame',
+            description: 'Connect the pallets to form a three-sided enclosure. Leave one side open for easy access.',
             imageUrl: 'assets/images/education/compost_assembly.jpg',
           ),
           const TutorialStep(
-            title: '5. Start Layering',
-            description:
-                'Begin with a 4-inch layer of brown materials (leaves, twigs) for drainage, then alternate green materials (food scraps) and brown materials.',
-            imageUrl: 'assets/images/education/compost_layering.jpg',
-          ),
-          const TutorialStep(
-            title: '6. Maintain Your Compost',
-            description:
-                'Turn the pile every few weeks, keep it as moist as a wrung-out sponge, and continue adding green and brown materials in roughly equal amounts.',
-            imageUrl: 'assets/images/education/compost_maintenance.jpg',
+            title: 'Add Ventilation',
+            description: 'Install wire mesh for airflow and add a lid to control moisture.',
+            imageUrl: 'assets/images/education/compost_ventilation.jpg',
           ),
         ],
-        categories: ['Wet Waste', 'Composting'],
+        categories: ['Wet Waste', 'Composting', 'DIY'],
         level: ContentLevel.intermediate,
-        durationMinutes: 15,
-        tags: ['DIY', 'compost', 'garden'],
+        durationMinutes: 25,
+        tags: ['tutorial', 'diy', 'composting'],
       ),
     );
 
-    // Medical waste article
+    // Tips
     _allContent.add(
-      EducationalContent.article(
-        id: 'article3',
-        title: 'Safe Disposal of Home Medical Waste',
-        description:
-            'Guidelines for safely disposing of medical waste generated at home.',
-        thumbnailUrl: 'assets/images/education/medical_waste.jpg',
-        contentText: '''
-# Safe Disposal of Home Medical Waste
-
-Medical waste generated at home requires special handling to protect waste workers, the public, and the environment. This guide covers proper disposal methods for common household medical waste.
-
-## Types of Home Medical Waste
-
-### Sharps
-- Needles
-- Syringes
-- Lancets
-- Infusion sets
-- Epinephrine auto-injectors
-
-### Pharmaceuticals
-- Prescription medications
-- Over-the-counter drugs
-- Vitamins and supplements
-
-### Potentially Infectious Materials
-- Bandages and dressings with body fluids
-- Disposable medical gloves
-- Personal protective equipment
-- Ostomy supplies
-
-## Proper Disposal Methods
-
-### Sharps Disposal
-1. **Never** place loose sharps in the trash or recycling
-2. Use an FDA-cleared sharps container or puncture-resistant container with tight lid (like a laundry detergent bottle)
-3. When 3/4 full, seal the container
-4. Disposal options:
-   - Drop-off at collection sites (pharmacies, hospitals, or health departments)
-   - Mail-back programs (available for purchase)
-   - Household hazardous waste collection events
-   - Special waste pickups (contact local waste authority)
-
-### Medication Disposal
-1. **Do not** flush medications down the toilet (except those specifically listed as safe to flush by the FDA)
-2. Use medication take-back programs:
-   - DEA-sponsored take-back events
-   - Pharmacy collection kiosks
-   - Mail-back programs
-3. If no take-back options are available:
-   - Mix medications with unpalatable substances (coffee grounds, dirt, cat litter)
-   - Place in sealed container
-   - Remove personal information from bottles
-   - Place in household trash
-
-### Potentially Infectious Materials
-1. For items soaked with body fluids:
-   - Double-bag in plastic bags
-   - Tie securely and dispose in regular trash
-2. For disposable equipment with minimal contamination:
-   - Place in sealed plastic bag
-   - Dispose in regular trash
-
-## Local Regulations
-
-Always check your local regulations, as requirements vary by location. Some areas have specific guidelines and services for home medical waste disposal.
-
-## Resources
-
-- FDA Safe Sharps Disposal guidelines
-- DEA Drug Take-Back program locator
-- Earth911 disposal location search
-
-Safety should always be your top priority when handling and disposing of medical waste.
-''',
-        categories: ['Medical Waste'],
-        level: ContentLevel.beginner,
-        durationMinutes: 6,
-        tags: ['safety', 'medical', 'disposal'],
+      EducationalContent.tip(
+        id: 'tip1',
+        title: 'Reduce Food Packaging Waste',
+        description: 'Simple strategies to minimize packaging waste when shopping.',
+        thumbnailUrl: 'assets/images/education/packaging_tip.jpg',
+        contentText: 'Bring reusable bags, choose products with minimal packaging, buy in bulk when possible, and opt for refillable containers.',
+        categories: ['Dry Waste', 'Reduction'],
+        tags: ['tip', 'packaging', 'reduction'],
       ),
     );
 
-    // Recycling quiz
     _allContent.add(
-      EducationalContent.quiz(
-        id: 'quiz2',
-        title: 'Waste Sorting Challenge',
-        description: 'Test your knowledge of which waste goes into which bin.',
-        thumbnailUrl: 'assets/images/education/sorting_quiz.jpg',
-        questions: [
-          const QuizQuestion(
-            question:
-                'Where should you dispose of a used pizza box with food stains?',
-            options: [
-              'Recycling bin',
-              'Compost bin',
-              'General waste bin',
-              'Hazardous waste bin'
-            ],
-            correctOptionIndex: 1,
-            explanation:
-                'Pizza boxes with food stains can\'t be recycled because the oils contaminate the recycling process, but they can be composted.',
-          ),
-          const QuizQuestion(
-            question: 'Used cooking oil should be disposed of by:',
-            options: [
-              'Pouring it down the drain',
-              'Putting it in a sealed container in the trash',
-              'Taking it to a cooking oil collection point',
-              'Pouring it in the garden'
-            ],
-            correctOptionIndex: 2,
-            explanation:
-                'Cooking oil should never be poured down drains as it can cause blockages. Many cities have collection points for used cooking oil recycling.',
-          ),
-          const QuizQuestion(
-            question: 'Which of these belongs in the hazardous waste category?',
-            options: [
-              'Cereal box',
-              'Expired milk',
-              'Paint cans',
-              'Banana peels'
-            ],
-            correctOptionIndex: 2,
-            explanation:
-                'Paint contains chemicals that can harm the environment if disposed of improperly. Most communities have special collection for paint and other hazardous materials.',
-          ),
-          const QuizQuestion(
-            question: 'Where should you dispose of broken drinking glasses?',
-            options: [
-              'Glass recycling bin',
-              'General waste bin wrapped in paper',
-              'Hazardous waste bin',
-              'Broken glass collection bin'
-            ],
-            correctOptionIndex: 1,
-            explanation:
-                'Drinking glasses are made from a different type of glass than bottles and jars, and can\'t be recycled with them. Wrap broken glass in paper before placing in general waste for safety.',
-          ),
-          const QuizQuestion(
-            question:
-                'Disposable coffee cups with plastic lining should go in:',
-            options: [
-              'Paper recycling bin',
-              'Plastic recycling bin',
-              'General waste bin',
-              'Compost bin'
-            ],
-            correctOptionIndex: 2,
-            explanation:
-                'Most disposable coffee cups have a plastic lining that prevents them from being recycled with paper or composted. They typically need to go in general waste.',
-          ),
-        ],
-        categories: ['General', 'Sorting', 'Wet Waste', 'Dry Waste', 'Hazardous Waste'],
-        level: ContentLevel.beginner,
-        durationMinutes: 5,
-        tags: ['quiz', 'sorting', 'bins'],
+      EducationalContent.tip(
+        id: 'tip2',
+        title: 'Battery Disposal Safety',
+        description: 'Proper way to dispose of different types of batteries.',
+        thumbnailUrl: 'assets/images/education/battery_tip.jpg',
+        contentText: 'Never throw batteries in regular trash. Take them to designated collection points at electronics stores or hazardous waste facilities.',
+        categories: ['Hazardous Waste', 'Electronics'],
+        tags: ['tip', 'battery', 'safety'],
       ),
     );
 
-    // Wet Waste Article
+    // Additional content to meet test requirements
     _allContent.add(
       EducationalContent.article(
         id: 'article4',
-        title: 'Complete Guide to Home Composting',
-        description: 'Everything you need to know about composting wet waste at home for better soil and reduced waste.',
-        thumbnailUrl: 'assets/images/education/composting_guide.jpg',
-        contentText: '''
-# Complete Guide to Home Composting
-
-Composting is one of the most effective ways to manage wet waste while creating valuable soil amendments for your garden.
-
-## What Can Be Composted?
-
-### Green Materials (Nitrogen-rich)
-- Fruit and vegetable scraps
-- Fresh grass clippings
-- Coffee grounds and tea bags
-- Fresh garden trimmings
-- Eggshells (crushed)
-
-### Brown Materials (Carbon-rich)
-- Dry leaves
-- Newspaper and cardboard
-- Straw and hay
-- Wood chips
-- Sawdust (untreated wood only)
-
-## What NOT to Compost
-- Meat, fish, or dairy products
-- Pet waste
-- Diseased plants
-- Weeds with seeds
-- Cooked food with oils
-
-## Setting Up Your Compost
-
-### Location
-Choose a partially shaded area with good drainage, away from your house but accessible for regular maintenance.
-
-### Method Options
-1. **Bin Composting**: Use a commercial bin or build one from pallets
-2. **Pile Composting**: Simple open pile method
-3. **Tumbler Composting**: Faster method with easier turning
-
-### Layering
-- Start with a 4-inch layer of brown materials
-- Add 2-inch layer of green materials
-- Continue alternating layers
-- Water lightly between layers
-
-## Maintenance
-
-### Temperature
-- Active compost reaches 140-160°F (60-71°C)
-- Turn when temperature drops below 100°F
-
-### Moisture
-- Keep as moist as a wrung-out sponge
-- Cover during heavy rains
-- Water during dry periods
-
-### Turning
-- Turn every 2-3 weeks
-- Mix outer materials into the center
-- This provides oxygen for decomposition
-
-## Timeline
-- Hot composting: 3-6 months
-- Cold composting: 6-12 months
-- Finished compost is dark, crumbly, and earthy-smelling
-
-## Using Finished Compost
-- Mix into garden soil before planting
-- Use as top dressing around plants
-- Create potting mix (1 part compost + 2 parts soil)
-- Apply 1-2 inches annually to established beds
-
-Composting reduces household waste by up to 30% while creating valuable soil amendment worth its weight in garden gold!
-''',
-        categories: ['Wet Waste', 'Composting', 'Gardening'],
+        title: 'Zero Waste Lifestyle Guide',
+        description:
+            'Complete guide to adopting a zero waste lifestyle and reducing your environmental footprint.',
+        thumbnailUrl: 'assets/images/education/zero_waste.jpg',
+        contentText:
+            'Zero waste is a philosophy that encourages the redesign of resource life cycles so that all products are reused. Start small with reusable bags, containers, and water bottles.',
+        categories: ['General', 'Reduction'],
         level: ContentLevel.intermediate,
-        durationMinutes: 8,
-        tags: ['composting', 'gardening', 'soil', 'organic'],
+        durationMinutes: 15,
+        tags: ['zero-waste', 'lifestyle', 'reduction'],
       ),
     );
 
-    // Dry Waste Article
-    _allContent.add(
-      EducationalContent.article(
-        id: 'article5',
-        title: 'Maximizing Your Recycling Impact',
-        description: 'Learn advanced recycling techniques and how to properly prepare different materials for maximum environmental benefit.',
-        thumbnailUrl: 'assets/images/education/recycling_impact.jpg',
-        contentText: '''
-# Maximizing Your Recycling Impact
-
-Proper recycling preparation can significantly increase the environmental benefits of your efforts.
-
-## Paper Products
-
-### Preparation
-- Remove all metal attachments (staples, clips)
-- Separate magazines from newspapers
-- Flatten cardboard boxes
-- Remove plastic windows from envelopes
-
-### Best Practices
-- Keep paper dry and clean
-- Avoid paper contaminated with food or chemicals
-- Bundle newspaper and magazines separately
-- Break down large cardboard pieces
-
-## Plastic Recycling
-
-### Reading Recycling Codes
-Each plastic type has different recycling requirements:
-
-**Code 1 (PET)**: Water bottles, soda bottles
-- Rinse thoroughly
-- Remove caps (different plastic type)
-- Crush to save space
-
-**Code 2 (HDPE)**: Milk jugs, detergent bottles
-- Rinse completely
-- Remove pumps and triggers
-- Labels can stay on
-
-**Code 5 (PP)**: Yogurt containers, bottle caps
-- Increasingly accepted
-- Clean thoroughly
-- Check local guidelines
-
-### Preparation Tips
-- Rinse with cold water (saves energy)
-- Remove all food residue
-- Remove lids and caps
-- Don't crush bottles lengthwise (affects sorting)
-
-## Glass Recycling
-
-### Colors Matter
-- Clear glass: Most valuable
-- Brown/amber: Beer and medicine bottles
-- Green: Wine and some food jars
-
-### Preparation
-- Remove all lids and caps
-- Rinse lightly (no need to scrub)
-- Remove metal rings from jars
-- Labels can remain (removed during processing)
-
-## Metal Recycling
-
-### Aluminum
-- Rinse food cans
-- Remove paper labels (optional)
-- Don't crush cans flat
-- Separate from steel
-
-### Steel
-- Use magnet test (steel is magnetic)
-- Remove paper labels
-- Rinse food containers
-
-## Common Mistakes
-
-### Wishcycling
-Don't put non-recyclable items in recycling bins hoping they'll be processed. This contaminates entire loads.
-
-### Bagging Recyclables
-Most programs want loose recyclables, not bagged. Plastic bags jam sorting equipment.
-
-### Not Following Local Rules
-Recycling rules vary by location. Check your local program's specific requirements.
-
-## Impact Numbers
-
-When done correctly:
-- 1 ton of recycled paper saves 17 trees
-- 1 recycled aluminum can saves enough energy to power a TV for 3 hours
-- Recycling 1 glass bottle saves enough energy to light a 100W bulb for 4 hours
-
-Your proper preparation ensures these benefits are realized!
-''',
-        categories: ['Dry Waste', 'Recycling', 'Sustainability'],
-        level: ContentLevel.intermediate,
-        durationMinutes: 10,
-        tags: ['recycling', 'preparation', 'impact', 'environment'],
-      ),
-    );
-
-    // Hazardous Waste Infographic
-    _allContent.add(
-      EducationalContent.infographic(
-        id: 'infographic3',
-        title: 'Household Hazardous Waste Identification Chart',
-        description: 'Visual guide to identifying and safely handling common household hazardous materials.',
-        thumbnailUrl: 'assets/images/education/hazardous_chart.jpg',
-        imageUrl: 'assets/images/education/hazardous_waste_chart.jpg',
-        contentText: '''
-This comprehensive chart helps you identify hazardous waste in your home:
-
-🔋 **Electronic Waste**: Phones, computers, batteries
-⚠️ **Chemicals**: Cleaning products, pesticides, paint
-🚗 **Automotive**: Motor oil, antifreeze, brake fluid
-💊 **Medical**: Medications, sharps, thermometers
-🏠 **Household**: Fluorescent bulbs, aerosols, pool chemicals
-
-Each category requires special handling and disposal methods to protect human health and the environment.
-''',
-        categories: ['Hazardous Waste', 'Safety', 'Identification'],
-        level: ContentLevel.beginner,
-        durationMinutes: 5,
-        tags: ['hazardous', 'safety', 'identification', 'visual'],
-      ),
-    );
-
-    // Medical Waste Video
     _allContent.add(
       EducationalContent.video(
-        id: 'video2',
-        title: 'Safe Home Medical Waste Disposal',
-        description: 'Learn the proper techniques for safely disposing of medical waste generated at home.',
-        thumbnailUrl: 'assets/images/education/medical_disposal.jpg',
-        videoUrl: 'https://example.com/videos/medical_waste_disposal.mp4',
-        categories: ['Medical Waste', 'Safety', 'Healthcare'],
+        id: 'video3',
+        title: 'Plastic-Free Kitchen Setup',
+        description:
+            'Transform your kitchen to be plastic-free with these simple swaps and alternatives.',
+        thumbnailUrl: 'assets/images/education/plastic_free_kitchen.jpg',
+        videoUrl: 'https://example.com/videos/plastic_free_kitchen.mp4',
+        categories: ['Plastic', 'Reduction', 'Kitchen'],
         level: ContentLevel.beginner,
-        durationMinutes: 6,
-        tags: ['medical', 'safety', 'disposal', 'healthcare'],
+        durationMinutes: 12,
+        tags: ['plastic-free', 'kitchen', 'alternatives'],
       ),
     );
   }
@@ -1048,6 +450,10 @@ Each category requires special handling and disposal methods to protect human he
 
   /// Search content by query
   List<EducationalContent> searchContent(String query) {
+    if (query.trim().isEmpty) {
+      return [];
+    }
+    
     final lowercaseQuery = query.toLowerCase();
     return _allContent
         .where((content) =>
@@ -1065,6 +471,7 @@ Each category requires special handling and disposal methods to protect human he
     try {
       return _allContent.firstWhere((content) => content.id == id);
     } catch (e) {
+      // Not found
       return null;
     }
   }
@@ -1085,6 +492,40 @@ Each category requires special handling and disposal methods to protect human he
     return List.from(_dailyTips);
   }
 
+  /// Get new content (recently added content)
+  List<EducationalContent> getNewContent() {
+    // Return content added in the last 30 days, or most recent if none
+    final thirtyDaysAgo = DateTime.now().subtract(const Duration(days: 30));
+    final newContent = _allContent
+        .where((content) => content.dateAdded.isAfter(thirtyDaysAgo))
+        .toList();
+    
+    if (newContent.isEmpty) {
+      // If no recent content, return the most recently added content
+      final sortedContent = List<EducationalContent>.from(_allContent);
+      sortedContent.sort((a, b) => b.dateAdded.compareTo(a.dateAdded));
+      return sortedContent.take(5).toList();
+    }
+    
+    return newContent;
+  }
+
+  /// Get interactive content (quizzes and tutorials)
+  List<EducationalContent> getInteractiveContent() {
+    return _allContent
+        .where((content) => 
+            content.type == ContentType.quiz || 
+            content.type == ContentType.tutorial)
+        .toList();
+  }
+
+  /// Get advanced topics content
+  List<EducationalContent> getAdvancedTopics() {
+    return _allContent
+        .where((content) => content.level == ContentLevel.advanced)
+        .toList();
+  }
+
   // ==================== BASIC ANALYTICS ====================
 
   /// Record that content was viewed
@@ -1097,4 +538,6 @@ Each category requires special handling and disposal methods to protect human he
   Future<void> endContentView({bool completed = false}) async {
     await analytics?.endContentSession(wasCompleted: completed);
   }
+
+  List<EducationalContent> get allContent => _allContent;
 }

@@ -1,1 +1,43 @@
-{"flutter":{"platforms":{"android":{"default":{"projectId":"waste-segregation-app-df523","appId":"1:1093372542184:android:160b71eb63bc7004355d5d","fileOutput":"android/app/google-services.json"}},"ios":{"default":{"projectId":"waste-segregation-app-df523","appId":"1:1093372542184:ios:90435500e0965a1c355d5d","uploadDebugSymbols":false,"fileOutput":"ios/Runner/GoogleService-Info.plist"}},"macos":{"default":{"projectId":"waste-segregation-app-df523","appId":"1:1093372542184:ios:90435500e0965a1c355d5d","uploadDebugSymbols":false,"fileOutput":"macos/Runner/GoogleService-Info.plist"}},"dart":{"lib/firebase_options.dart":{"projectId":"waste-segregation-app-df523","configurations":{"android":"1:1093372542184:android:160b71eb63bc7004355d5d","ios":"1:1093372542184:ios:90435500e0965a1c355d5d","macos":"1:1093372542184:ios:90435500e0965a1c355d5d","web":"1:1093372542184:web:f6d7c0170b4a16a6355d5d"}}}}}}
+{
+  "firestore": {
+    "indexes": "firestore.indexes.json"
+  },
+  "flutter": {
+    "platforms": {
+      "android": {
+        "default": {
+          "projectId": "waste-segregation-app-df523",
+          "appId": "1:1093372542184:android:160b71eb63bc7004355d5d",
+          "fileOutput": "android/app/google-services.json"
+        }
+      },
+      "ios": {
+        "default": {
+          "projectId": "waste-segregation-app-df523",
+          "appId": "1:1093372542184:ios:90435500e0965a1c355d5d",
+          "uploadDebugSymbols": false,
+          "fileOutput": "ios/Runner/GoogleService-Info.plist"
+        }
+      },
+      "macos": {
+        "default": {
+          "projectId": "waste-segregation-app-df523",
+          "appId": "1:1093372542184:ios:90435500e0965a1c355d5d",
+          "uploadDebugSymbols": false,
+          "fileOutput": "macos/Runner/GoogleService-Info.plist"
+        }
+      },
+      "dart": {
+        "lib/firebase_options.dart": {
+          "projectId": "waste-segregation-app-df523",
+          "configurations": {
+            "android": "1:1093372542184:android:160b71eb63bc7004355d5d",
+            "ios": "1:1093372542184:ios:90435500e0965a1c355d5d",
+            "macos": "1:1093372542184:ios:90435500e0965a1c355d5d",
+            "web": "1:1093372542184:web:f6d7c0170b4a16a6355d5d"
+          }
+        }
+      }
+    }
+  }
+}
