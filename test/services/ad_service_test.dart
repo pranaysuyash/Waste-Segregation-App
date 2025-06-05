@@ -365,7 +365,8 @@ void main() {
     });
 
     group('Integration Tests', () {
-      test('should integrate correctly with Flutter widget tree', () async {
+      testWidgets('should integrate correctly with Flutter widget tree',
+          (WidgetTester tester) async {
         await tester.pumpWidget(
           MaterialApp(
             home: Scaffold(
@@ -373,9 +374,9 @@ void main() {
             ),
           ),
         );
-        
+
         expect(find.byType(Scaffold), findsOneWidget);
-      }, skip: 'Requires widget tester');
+      });
 
       test('should work with ChangeNotifier pattern', () {
         var listenerCalled = false;
