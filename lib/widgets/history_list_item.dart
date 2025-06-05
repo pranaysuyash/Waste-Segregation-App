@@ -1,8 +1,10 @@
 import 'dart:io';
+import 'dart:typed_data';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import '../models/waste_classification.dart';
 import '../utils/constants.dart';
+import '../services/enhanced_image_service.dart';
 
 /// A simplified version of ClassificationCard for list views in the history screen
 class HistoryListItem extends StatelessWidget {
@@ -348,27 +350,24 @@ class HistoryListItem extends StatelessWidget {
   
   /// Builds the image widget based on platform with improved error handling
   Widget _buildImage() {
-    if (classification.imageUrl == null) {
+    final url = classification.imageUrl;
+    debugPrint('[HistoryListItem] Building image for: $url');
+    if (url == null) {
+      debugPrint('[HistoryListItem] No image URL provided');
       return _buildImagePlaceholder();
     }
-    
+
     // For web platform
     if (kIsWeb) {
-      // Handle web image formats (data URLs)
-      if (classification.imageUrl!.startsWith('web_image:')) {
+      if (url.startsWith('web_image:')) {
         try {
-          // Extract the data URL
-          final dataUrl = classification.imageUrl!.substring('web_image:'.length);
-          
-          // Check if it's a valid data URL
+          final dataUrl = url.substring('web_image:'.length);
           if (dataUrl.startsWith('data:image')) {
-            // Create Image widget from data URL
             return Image.network(
               dataUrl,
               height: 50,
               width: 50,
               fit: BoxFit.cover,
-              // Fade-in animation for smoother loading
               frameBuilder: (context, child, frame, wasSynchronouslyLoaded) {
                 if (wasSynchronouslyLoaded) return child;
                 return AnimatedOpacity(
@@ -379,60 +378,67 @@ class HistoryListItem extends StatelessWidget {
                 );
               },
               errorBuilder: (context, error, stackTrace) {
+                debugPrint('[HistoryListItem] Error loading web data URL: $error');
                 return _buildImagePlaceholder();
               },
             );
+          } else {
+            debugPrint('[HistoryListItem] Invalid data URL: $dataUrl');
           }
         } catch (e) {
+          debugPrint('[HistoryListItem] Data URL processing error: $e');
+        }
+        return _buildImagePlaceholder();
+      }
+
+      if (url.startsWith('http')) {
+        return FutureBuilder<Uint8List?>(
+          future: EnhancedImageService().fetchImageWithRetry(url),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return _buildImagePlaceholder();
+            }
+            if (snapshot.hasData) {
+              return Image.memory(
+                snapshot.data!,
+                height: 50,
+                width: 50,
+                fit: BoxFit.cover,
+              );
+            }
+            debugPrint('[HistoryListItem] Failed to load network image: $url');
+            return _buildImagePlaceholder();
+          },
+        );
+      }
+
+      return _buildImagePlaceholder();
+    }
+
+    // For mobile platforms (file paths)
+    final file = File(url);
+    return FutureBuilder<bool>(
+      future: file.exists(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
           return _buildImagePlaceholder();
         }
-      }
-      
-      // For regular web URLs
-      return Image.network(
-        classification.imageUrl!,
-        height: 50,
-        width: 50,
-        fit: BoxFit.cover,
-        frameBuilder: (context, child, frame, wasSynchronouslyLoaded) {
-          if (wasSynchronouslyLoaded) return child;
-          return AnimatedOpacity(
-            opacity: frame == null ? 0 : 1,
-            duration: const Duration(milliseconds: 300),
-            curve: Curves.easeInOut,
-            child: child,
+        if (snapshot.hasData && snapshot.data == true) {
+          return Image.file(
+            file,
+            height: 50,
+            width: 50,
+            fit: BoxFit.cover,
+            errorBuilder: (context, error, stackTrace) {
+              debugPrint('[HistoryListItem] Error rendering file image: $error');
+              return _buildImagePlaceholder();
+            },
           );
-        },
-        errorBuilder: (context, error, stackTrace) {
-          return _buildImagePlaceholder();
-        },
-      );
-    }
-    
-    // For mobile platforms (file paths)
-    final file = File(classification.imageUrl!);
-    if (file.existsSync()) {
-      return Image.file(
-        file,
-        height: 50,
-        width: 50,
-        fit: BoxFit.cover,
-        frameBuilder: (context, child, frame, wasSynchronouslyLoaded) {
-          if (wasSynchronouslyLoaded) return child;
-          return AnimatedOpacity(
-            opacity: frame == null ? 0 : 1,
-            duration: const Duration(milliseconds: 300),
-            curve: Curves.easeInOut,
-            child: child,
-          );
-        },
-        errorBuilder: (context, error, stackTrace) {
-          return _buildImagePlaceholder();
-        },
-      );
-    }
-    
-    return _buildImagePlaceholder();
+        }
+        debugPrint('[HistoryListItem] Image file missing: $url');
+        return _buildImagePlaceholder();
+      },
+    );
   }
   
   /// Builds a placeholder when image is not available
