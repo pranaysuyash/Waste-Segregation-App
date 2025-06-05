@@ -15,7 +15,7 @@ class ShareService {
     BuildContext? context,
   }) async {
     try {
-      print('ShareService.share called');
+      debugPrint('ShareService.share called');
       
       if (kIsWeb) {
         // Web implementation
@@ -25,7 +25,7 @@ class ShareService {
         await _shareOnNative(text, subject, files, context);
       }
       
-      print('ShareService.share completed');
+      debugPrint('ShareService.share completed');
       
       // Notify caller that sharing is complete
       if (onShareComplete != null) {
@@ -37,7 +37,7 @@ class ShareService {
         _showSnackBar(context, 'Content copied to clipboard');
       }
     } catch (e) {
-      print('Error in ShareService.share: $e');
+      debugPrint('Error in ShareService.share: $e');
       
       // Notify caller of error
       if (onShareComplete != null) {
@@ -63,7 +63,7 @@ class ShareService {
 
   // Web implementation with clipboard fallback
   static Future<void> _shareOnWeb(String text, String? subject, BuildContext? context) async {
-    print('Copying to clipboard: $text');
+    debugPrint('Copying to clipboard: $text');
     
     // Just copy to clipboard for simplicity
     await Clipboard.setData(ClipboardData(text: text));

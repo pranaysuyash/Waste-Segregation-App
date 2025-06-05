@@ -94,9 +94,9 @@ class DeveloperConfig {
     
     // Log the current state for verification (only in debug)
     if (kDebugMode) {
-      print('🔒 Developer Config Security Check Passed');
-      print('📊 Developer Mode Enabled: $isDeveloperModeEnabled');
-      print('🏗️ Build Mode: ${kDebugMode ? 'DEBUG' : kReleaseMode ? 'RELEASE' : 'PROFILE'}');
+      debugPrint('🔒 Developer Config Security Check Passed');
+      debugPrint('📊 Developer Mode Enabled: $isDeveloperModeEnabled');
+      debugPrint('🏗️ Build Mode: ${kDebugMode ? 'DEBUG' : kReleaseMode ? 'RELEASE' : 'PROFILE'}');
     }
   }
   
