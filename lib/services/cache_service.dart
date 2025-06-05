@@ -461,3 +461,8 @@ class ClassificationCacheService {
     }
   }
 }
+
+/// Temporary alias to maintain compatibility with older tests that referenced
+/// `CacheService`. This alias maps the old name to the current
+/// `ClassificationCacheService` implementation.
+typedef CacheService = ClassificationCacheService;
