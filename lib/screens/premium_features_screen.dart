@@ -19,8 +19,6 @@ class _PremiumFeaturesScreenState extends State<PremiumFeaturesScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final premiumService = Provider.of<PremiumService>(context);
-    
     return Scaffold(
       appBar: AppBar(
         title: const Text('Premium Features'),

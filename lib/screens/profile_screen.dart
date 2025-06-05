@@ -70,7 +70,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   radius: 40,
                   backgroundImage: profile?.photoUrl != null &&
                           profile!.photoUrl!.isNotEmpty
-                      ? NetworkImage(profile!.photoUrl!)
+                      ? NetworkImage(profile.photoUrl!)
                       : null,
                   child: profile?.photoUrl == null ||
                           profile?.photoUrl?.isEmpty == true

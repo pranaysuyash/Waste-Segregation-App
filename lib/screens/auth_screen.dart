@@ -42,7 +42,7 @@ class _AuthScreenState extends State<AuthScreen> {
       final user = await googleDriveService.signIn();
 
       if (user != null && mounted) {
-        navigator.pushReplacement(
+        await navigator.pushReplacement(
           MaterialPageRoute(builder: (context) => const MainNavigationWrapper()),
         );
       }
