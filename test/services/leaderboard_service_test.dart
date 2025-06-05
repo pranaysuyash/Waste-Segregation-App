@@ -149,7 +149,7 @@ void main() {
 
     group('Family Leaderboard', () {
       test('should fetch family leaderboard successfully', () async {
-        final familyId = 'family_123';
+        const familyId = 'family_123';
         final mockDocs = [
           _createMockDoc('family_user1', {
             'userId': 'family_user1',
@@ -196,7 +196,7 @@ void main() {
       });
 
       test('should handle empty family leaderboard', () async {
-        final familyId = 'empty_family';
+        const familyId = 'empty_family';
 
         when(mockCollection.where('familyId', isEqualTo: familyId))
             .thenReturn(mockQuery);
@@ -216,7 +216,7 @@ void main() {
       });
 
       test('should handle invalid family ID', () async {
-        final invalidFamilyId = '';
+        const invalidFamilyId = '';
 
         expect(
           () => leaderboardService.getFamilyLeaderboard(
@@ -230,7 +230,7 @@ void main() {
 
     group('User Ranking', () {
       test('should get user rank successfully', () async {
-        final userId = 'user_123';
+        const userId = 'user_123';
         final mockDoc = _createMockDocumentSnapshot(userId, {
           'userId': userId,
           'globalRank': 42,
@@ -268,7 +268,7 @@ void main() {
       });
 
       test('should handle user not found in leaderboard', () async {
-        final userId = 'non_existent_user';
+        const userId = 'non_existent_user';
         final mockDoc = _createMockDocumentSnapshot(userId, {});
 
         when(mockCollection.doc(userId)).thenReturn(MockDocumentReference());
@@ -285,7 +285,7 @@ void main() {
       });
 
       test('should handle invalid user ID', () async {
-        final invalidUserId = '';
+        const invalidUserId = '';
 
         expect(
           () => leaderboardService.getUserRank(
@@ -299,9 +299,9 @@ void main() {
 
     group('Leaderboard Updates', () {
       test('should update user score successfully', () async {
-        final userId = 'user_123';
-        final newScore = 1100;
-        final classificationsCount = 110;
+        const userId = 'user_123';
+        const newScore = 1100;
+        const classificationsCount = 110;
 
         when(mockCollection.doc(userId)).thenReturn(MockDocumentReference());
         when(mockCollection.doc(userId).set(any, any))
@@ -326,8 +326,8 @@ void main() {
       });
 
       test('should handle negative score update', () async {
-        final userId = 'user_123';
-        final negativeScore = -100;
+        const userId = 'user_123';
+        const negativeScore = -100;
 
         expect(
           () => leaderboardService.updateUserScore(
@@ -351,7 +351,7 @@ void main() {
         
         final mockBatch = MockWriteBatch();
         when(mockFirestore.batch()).thenReturn(mockBatch);
-        when(mockBatch.commit()).thenAnswer((_) async => null);
+        when(mockBatch.commit()).thenAnswer((_) async {});
 
         await leaderboardService.batchUpdateUsers(
           userUpdates,
@@ -391,7 +391,7 @@ void main() {
         when(mockFirestore.batch()).thenReturn(MockWriteBatch());
         final mockBatch = MockWriteBatch();
         when(mockFirestore.batch()).thenReturn(mockBatch);
-        when(mockBatch.commit()).thenAnswer((_) async => null);
+        when(mockBatch.commit()).thenAnswer((_) async {});
 
         await leaderboardService.recalculateRankings(LeaderboardPeriod.thisWeek);
 
@@ -428,7 +428,7 @@ void main() {
       });
 
       test('should get user position in leaderboard', () async {
-        final userId = 'user_42';
+        const userId = 'user_42';
         final mockDocs = List.generate(100, (index) => 
           _createMockDoc('user_$index', {
             'userId': 'user_$index',
@@ -452,7 +452,7 @@ void main() {
       });
 
       test('should get users around specific rank', () async {
-        final targetRank = 25;
+        const targetRank = 25;
         final mockDocs = List.generate(10, (index) => 
           _createMockDoc('user_${20 + index}', {
             'userId': 'user_${20 + index}',
@@ -523,7 +523,7 @@ void main() {
 
     group('Achievement Integration', () {
       test('should trigger achievement when reaching top rank', () async {
-        final userId = 'achievement_user';
+        const userId = 'achievement_user';
         final achievementCallback = MockAchievementCallback();
 
         leaderboardService.setAchievementCallback(achievementCallback.call);
@@ -540,7 +540,7 @@ void main() {
       });
 
       test('should trigger streak achievement', () async {
-        final userId = 'streak_user';
+        const userId = 'streak_user';
         final achievementCallback = MockAchievementCallback();
 
         leaderboardService.setAchievementCallback(achievementCallback.call);
@@ -563,7 +563,7 @@ void main() {
             .thenReturn(mockQuery);
         when(mockQuery.limit(50)).thenReturn(mockQuery);
         when(mockQuery.get()).thenThrow(
-          TimeoutException('Connection timeout', Duration(seconds: 30)),
+          TimeoutException('Connection timeout', const Duration(seconds: 30)),
         );
 
         expect(
@@ -596,7 +596,7 @@ void main() {
       });
 
       test('should handle concurrent rank updates', () async {
-        final userId = 'concurrent_user';
+        const userId = 'concurrent_user';
         
         // Simulate concurrent updates
         final futures = List.generate(5, (index) => 
@@ -620,7 +620,7 @@ void main() {
             'userId': 'old_user_$index',
             'period': 'thisWeek',
             'lastUpdated': DateTime.now()
-                .subtract(Duration(days: 14))
+                .subtract(const Duration(days: 14))
                 .toIso8601String(),
           })
         );
@@ -635,10 +635,10 @@ void main() {
         when(mockFirestore.batch()).thenReturn(MockWriteBatch());
         final mockBatch = MockWriteBatch();
         when(mockFirestore.batch()).thenReturn(mockBatch);
-        when(mockBatch.commit()).thenAnswer((_) async => null);
+        when(mockBatch.commit()).thenAnswer((_) async {});
 
         final deletedCount = await leaderboardService.cleanupOldData(
-          Duration(days: 7),
+          const Duration(days: 7),
         );
 
         expect(deletedCount, 10);
@@ -743,9 +743,9 @@ class MockAchievementCallback extends Mock {
 
 // Helper class for batch updates
 class LeaderboardUpdate {
+
+  LeaderboardUpdate(this.userId, this.score, this.classificationsCount);
   final String userId;
   final int score;
   final int classificationsCount;
-
-  LeaderboardUpdate(this.userId, this.score, this.classificationsCount);
 }

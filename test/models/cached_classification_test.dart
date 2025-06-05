@@ -316,7 +316,7 @@ void main() {
       test('should handle extreme timestamps', () {
         const imageHash = 'test_hash_extreme_time';
         final futureDate = DateTime(2030, 12, 31);
-        final pastDate = DateTime(1990, 1);
+        final pastDate = DateTime(1990);
         
         final futureCached = CachedClassification(
           imageHash: '${imageHash}_future',

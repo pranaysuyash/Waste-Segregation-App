@@ -353,7 +353,7 @@ void main() {
       });
 
       test('should get consent audit trail', () {
-        final auditEntry = '2024-01-15T10:30:00.000|analytics_consent|true';
+        const auditEntry = '2024-01-15T10:30:00.000|analytics_consent|true';
         when(mockSharedPreferences.getStringList('consent_audit_trail'))
             .thenReturn([auditEntry]);
 
@@ -503,7 +503,7 @@ void main() {
             .thenAnswer((_) async => true);
 
         // Simulate rapid consent changes
-        for (int i = 0; i < 100; i++) {
+        for (var i = 0; i < 100; i++) {
           await userConsentService.setAnalyticsConsent(i % 2 == 0);
         }
 

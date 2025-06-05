@@ -44,7 +44,7 @@ void main() {
           relatedItemId: 'classification_123',
           moderatorId: 'mod_001',
           moderatorName: 'Admin User',
-          reviewedAt: DateTime(2024, 1, 15, 11, 0),
+          reviewedAt: DateTime(2024, 1, 15, 11),
           reviewNotes: 'Excellent comprehensive guide',
           quality: ContributionQuality.excellent,
           visibility: ContributionVisibility.public,
@@ -58,7 +58,7 @@ void main() {
         expect(contribution.relatedItemId, 'classification_123');
         expect(contribution.moderatorId, 'mod_001');
         expect(contribution.moderatorName, 'Admin User');
-        expect(contribution.reviewedAt, DateTime(2024, 1, 15, 11, 0));
+        expect(contribution.reviewedAt, DateTime(2024, 1, 15, 11));
         expect(contribution.reviewNotes, 'Excellent comprehensive guide');
         expect(contribution.quality, ContributionQuality.excellent);
         expect(contribution.visibility, ContributionVisibility.public);
@@ -138,7 +138,7 @@ void main() {
         expect(contribution.category, 'bugs');
         expect(contribution.tags, ['camera', 'android', 'bug']);
         expect(contribution.moderatorId, 'mod_002');
-        expect(contribution.reviewedAt, DateTime(2024, 1, 15, 11, 0));
+        expect(contribution.reviewedAt, DateTime(2024, 1, 15, 11));
         expect(contribution.reviewNotes, 'Valid bug report, forwarded to dev team');
         expect(contribution.quality, ContributionQuality.average);
         expect(contribution.visibility, ContributionVisibility.public);
@@ -195,8 +195,6 @@ void main() {
           points: 50,
           timestamp: DateTime.now(),
           status: ContributionStatus.pending,
-          upvotes: 0,
-          downvotes: 0,
         );
 
         expect(contribution.netScore, 0);

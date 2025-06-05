@@ -31,7 +31,7 @@ void main() {
       test('should authenticate with Google Drive successfully', () async {
         when(mockAuthClient.credentials).thenReturn(
           AccessCredentials(
-            AccessToken('token', 'Bearer', DateTime.now().add(Duration(hours: 1))),
+            AccessToken('token', 'Bearer', DateTime.now().add(const Duration(hours: 1))),
             'refresh_token',
             ['https://www.googleapis.com/auth/drive.file'],
           ),
@@ -54,13 +54,13 @@ void main() {
 
       test('should refresh expired token', () async {
         final expiredCredentials = AccessCredentials(
-          AccessToken('old_token', 'Bearer', DateTime.now().subtract(Duration(hours: 1))),
+          AccessToken('old_token', 'Bearer', DateTime.now().subtract(const Duration(hours: 1))),
           'refresh_token',
           ['https://www.googleapis.com/auth/drive.file'],
         );
 
         final refreshedCredentials = AccessCredentials(
-          AccessToken('new_token', 'Bearer', DateTime.now().add(Duration(hours: 1))),
+          AccessToken('new_token', 'Bearer', DateTime.now().add(const Duration(hours: 1))),
           'refresh_token',
           ['https://www.googleapis.com/auth/drive.file'],
         );
@@ -85,8 +85,8 @@ void main() {
 
     group('File Operations', () {
       test('should upload file to Google Drive successfully', () async {
-        final testData = 'test file content';
-        final testFileName = 'test_backup.json';
+        const testData = 'test file content';
+        const testFileName = 'test_backup.json';
         
         final mockFile = drive.File();
         mockFile.id = 'file_123';
@@ -126,7 +126,7 @@ void main() {
       });
 
       test('should download file from Google Drive successfully', () async {
-        final fileId = 'file_123';
+        const fileId = 'file_123';
         final mockMedia = drive.Media(Stream.value([1, 2, 3, 4, 5]), 5);
 
         when(mockFilesResource.get(
@@ -145,7 +145,7 @@ void main() {
       });
 
       test('should handle file download failure', () async {
-        final fileId = 'file_123';
+        const fileId = 'file_123';
 
         when(mockFilesResource.get(
           fileId,
@@ -158,7 +158,7 @@ void main() {
       });
 
       test('should delete file from Google Drive successfully', () async {
-        final fileId = 'file_123';
+        const fileId = 'file_123';
 
         when(mockFilesResource.delete(fileId)).thenAnswer((_) async => null);
 
@@ -169,7 +169,7 @@ void main() {
       });
 
       test('should handle file deletion failure', () async {
-        final fileId = 'file_123';
+        const fileId = 'file_123';
 
         when(mockFilesResource.delete(fileId)).thenThrow(Exception('Delete failed'));
 
@@ -179,8 +179,8 @@ void main() {
       });
 
       test('should update existing file successfully', () async {
-        final fileId = 'file_123';
-        final newData = 'updated content';
+        const fileId = 'file_123';
+        const newData = 'updated content';
         
         final mockFile = drive.File();
         mockFile.id = fileId;
@@ -237,7 +237,7 @@ void main() {
       });
 
       test('should search files by name successfully', () async {
-        final searchQuery = 'backup';
+        const searchQuery = 'backup';
         final mockFileList = drive.FileList();
         final mockFiles = [
           drive.File()..id = 'file_1'..name = 'backup_data.json'..size = '1024',
@@ -263,7 +263,7 @@ void main() {
       });
 
       test('should filter files by type successfully', () async {
-        final mimeType = 'application/json';
+        const mimeType = 'application/json';
         final mockFileList = drive.FileList();
         final mockFiles = [
           drive.File()..id = 'file_1'..name = 'data.json'..mimeType = mimeType,
@@ -343,8 +343,8 @@ void main() {
       });
 
       test('should restore backup successfully', () async {
-        final backupId = 'backup_123';
-        final backupData = '''
+        const backupId = 'backup_123';
+        const backupData = '''
         {
           "classifications": [],
           "settings": {},
@@ -378,12 +378,12 @@ void main() {
           drive.File()
             ..id = 'backup_1'
             ..name = 'waste_app_backup_1704186600000.json'
-            ..createdTime = DateTime(2024, 1, 1, 10, 0)
+            ..createdTime = DateTime(2024, 1, 1, 10)
             ..size = '1024',
           drive.File()
             ..id = 'backup_2'
             ..name = 'waste_app_backup_1704273000000.json'
-            ..createdTime = DateTime(2024, 1, 2, 10, 0)
+            ..createdTime = DateTime(2024, 1, 2, 10)
             ..size = '2048',
         ];
         mockFileList.files = mockFiles;
@@ -414,11 +414,11 @@ void main() {
           drive.File()
             ..id = 'old_backup_1'
             ..name = 'waste_app_backup_old1.json'
-            ..createdTime = DateTime.now().subtract(Duration(days: 35)),
+            ..createdTime = DateTime.now().subtract(const Duration(days: 35)),
           drive.File()
             ..id = 'old_backup_2'
             ..name = 'waste_app_backup_old2.json'
-            ..createdTime = DateTime.now().subtract(Duration(days: 40)),
+            ..createdTime = DateTime.now().subtract(const Duration(days: 40)),
         ];
 
         final mockFileList = drive.FileList();
@@ -511,8 +511,8 @@ void main() {
       });
 
       test('should sync from Google Drive successfully', () async {
-        final syncFileId = 'sync_123';
-        final syncData = '''
+        const syncFileId = 'sync_123';
+        const syncData = '''
         {
           "user_data": {"classifications": [], "preferences": {}},
           "app_version": "1.0.0",
@@ -576,7 +576,7 @@ void main() {
           q: anyNamed('q'),
           spaces: anyNamed('spaces'),
           fields: anyNamed('fields'),
-        )).thenThrow(TimeoutException('Network timeout', Duration(seconds: 30)));
+        )).thenThrow(TimeoutException('Network timeout', const Duration(seconds: 30)));
 
         final result = await googleDriveService.listFiles();
 
@@ -609,7 +609,7 @@ void main() {
 
       test('should handle large file upload', () async {
         final largeData = List.filled(10 * 1024 * 1024, 65); // 10MB of 'A' characters
-        final fileName = 'large_backup.json';
+        const fileName = 'large_backup.json';
 
         final mockFile = drive.File();
         mockFile.id = 'large_file_123';
@@ -632,8 +632,8 @@ void main() {
       });
 
       test('should handle corrupted backup data', () async {
-        final backupId = 'corrupted_backup';
-        final corruptedData = 'invalid json data {{{';
+        const backupId = 'corrupted_backup';
+        const corruptedData = 'invalid json data {{{';
 
         final mockMedia = drive.Media(
           Stream.value(corruptedData.codeUnits),
@@ -706,7 +706,7 @@ void main() {
       test('should handle multiple concurrent uploads', () async {
         final futures = <Future<drive.File?>>[];
         
-        for (int i = 0; i < 5; i++) {
+        for (var i = 0; i < 5; i++) {
           final mockFile = drive.File();
           mockFile.id = 'file_$i';
           mockFile.name = 'test_$i.json';
@@ -726,7 +726,7 @@ void main() {
         final results = await Future.wait(futures);
 
         expect(results.length, 5);
-        for (int i = 0; i < 5; i++) {
+        for (var i = 0; i < 5; i++) {
           expect(results[i]?.id, 'file_$i');
         }
       });

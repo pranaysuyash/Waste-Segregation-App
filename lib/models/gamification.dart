@@ -1039,12 +1039,6 @@ enum StreakType {
 
 /// New StreakDetails class
 class StreakDetails {
-  final StreakType type;
-  final int currentCount;
-  final int longestCount;
-  final DateTime lastActivityDate;
-  final DateTime? lastMaintenanceAwardedDate;
-  final int lastMilestoneAwardedLevel;
 
   const StreakDetails({
     required this.type,
@@ -1067,6 +1061,12 @@ class StreakDetails {
       lastMilestoneAwardedLevel: json['lastMilestoneAwardedLevel'] ?? 0,
     );
   }
+  final StreakType type;
+  final int currentCount;
+  final int longestCount;
+  final DateTime lastActivityDate;
+  final DateTime? lastMaintenanceAwardedDate;
+  final int lastMilestoneAwardedLevel;
 
   Map<String, dynamic> toJson() => {
     'type': type.name,

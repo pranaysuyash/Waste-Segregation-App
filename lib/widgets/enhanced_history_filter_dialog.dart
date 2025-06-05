@@ -216,7 +216,7 @@ class _EnhancedHistoryFilterDialogState extends State<EnhancedHistoryFilterDialo
                     value: isSelected,
                     onChanged: (value) {
                       setState(() {
-                        var currentCategories = List<String>.from(_tempFilters.categories ?? []);
+                        final currentCategories = List<String>.from(_tempFilters.categories ?? []);
                         if (value == true) {
                           if (!currentCategories.contains(category)) {
                             currentCategories.add(category);
@@ -608,7 +608,7 @@ class _EnhancedHistoryFilterDialogState extends State<EnhancedHistoryFilterDialo
   void _clearDateFilters() {
     setState(() {
       _tempFilters = _tempFilters.copyWith(
-        endDate: null,
+        
       );
     });
   }

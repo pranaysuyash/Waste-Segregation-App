@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:waste_segregation_app/main.dart';
 import 'package:waste_segregation_app/utils/ui_consistency_utils.dart';
 
 void main() {

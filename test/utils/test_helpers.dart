@@ -230,7 +230,6 @@ class TestHelpers {
           color: Colors.blue,
           progress: 1.0,
           earnedOn: DateTime.now().subtract(const Duration(days: 5)),
-          pointsReward: 50,
         ),
       ],
       activeChallenges: [

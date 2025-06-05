@@ -1,12 +1,10 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:mockito/mockito.dart';
 import 'package:mockito/annotations.dart';
 
 import 'package:waste_segregation_app/services/storage_service.dart';
 import 'package:waste_segregation_app/models/user_profile.dart';
-import 'package:waste_segregation_app/models/waste_classification.dart';
 
 @GenerateMocks([])
 void main() {

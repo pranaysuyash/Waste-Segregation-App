@@ -249,7 +249,7 @@ void main() {
         mockService.setMockException(Exception('Mock API Error'));
 
         expect(
-          () async => await mockService.analyzeWebImage(
+          () async => mockService.analyzeWebImage(
             Uint8List.fromList([1, 2, 3, 4]), 
             'test.jpg'
           ),

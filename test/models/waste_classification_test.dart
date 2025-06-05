@@ -506,17 +506,17 @@ void main() {
           WasteClassification(
             id: 'class_3', imagePath: '/path3', category: 'glass',
             confidence: 0.7, disposalInstructions: 'Recycle',
-            timestamp: DateTime(2024, 1, 17, 12, 0),
+            timestamp: DateTime(2024, 1, 17, 12),
           ),
           WasteClassification(
             id: 'class_1', imagePath: '/path1', category: 'plastic',
             confidence: 0.9, disposalInstructions: 'Recycle',
-            timestamp: DateTime(2024, 1, 15, 10, 0),
+            timestamp: DateTime(2024, 1, 15, 10),
           ),
           WasteClassification(
             id: 'class_2', imagePath: '/path2', category: 'paper',
             confidence: 0.8, disposalInstructions: 'Recycle',
-            timestamp: DateTime(2024, 1, 16, 11, 0),
+            timestamp: DateTime(2024, 1, 16, 11),
           ),
         ];
 

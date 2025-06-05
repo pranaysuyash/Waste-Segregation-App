@@ -142,7 +142,7 @@ void main() {
 
       test('should handle edge case dates', () {
         final farFuture = DateTime(2030, 12, 31);
-        final farPast = DateTime(2000, 1, 1);
+        final farPast = DateTime(2000, 1);
         
         final futureTip = service.getDailyTip(date: farFuture);
         final pastTip = service.getDailyTip(date: farPast);
@@ -493,7 +493,7 @@ void main() {
       test('should handle rapid successive calls efficiently', () {
         final stopwatch = Stopwatch()..start();
         
-        for (int i = 0; i < 100; i++) {
+        for (var i = 0; i < 100; i++) {
           service.getAllContent();
           service.getRandomDailyTip();
           service.searchContent('test');
@@ -564,7 +564,7 @@ void main() {
         
         expect(content1.length, equals(content2.length));
         
-        for (int i = 0; i < content1.length; i++) {
+        for (var i = 0; i < content1.length; i++) {
           expect(content1[i].id, equals(content2[i].id));
           expect(content1[i].title, equals(content2[i].title));
         }
@@ -573,7 +573,7 @@ void main() {
       test('should handle concurrent access patterns', () {
         final futures = <Future>[];
         
-        for (int i = 0; i < 50; i++) {
+        for (var i = 0; i < 50; i++) {
           futures.add(Future(() {
             service.getAllContent();
             service.getRandomDailyTip();
@@ -582,7 +582,7 @@ void main() {
           }));
         }
         
-        expect(() async => await Future.wait(futures), returnsNormally);
+        expect(() async => Future.wait(futures), returnsNormally);
       });
     });
 

@@ -1155,7 +1155,6 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : SafeArea(
-              bottom: true,
               child: SingleChildScrollView(
                 padding: const EdgeInsets.all(AppTheme.paddingRegular),
                 child: Column(
@@ -1903,7 +1902,6 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     }
     // Return empty streak if no daily classification streak exists
     return Streak(
-      current: 0,
       longest: 0,
       lastUsageDate: DateTime.now(),
     );

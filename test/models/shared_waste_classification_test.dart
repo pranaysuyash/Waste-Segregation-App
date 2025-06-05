@@ -20,7 +20,7 @@ void main() {
           originalClassification: originalClassification,
           sharedBy: 'user123',
           sharedByName: 'John Doe',
-          sharedAt: DateTime(2024, 1, 15, 11, 0),
+          sharedAt: DateTime(2024, 1, 15, 11),
           visibility: SharingVisibility.public,
           familyId: 'family456',
         );
@@ -29,7 +29,7 @@ void main() {
         expect(sharedClassification.originalClassification, originalClassification);
         expect(sharedClassification.sharedBy, 'user123');
         expect(sharedClassification.sharedByName, 'John Doe');
-        expect(sharedClassification.sharedAt, DateTime(2024, 1, 15, 11, 0));
+        expect(sharedClassification.sharedAt, DateTime(2024, 1, 15, 11));
         expect(sharedClassification.visibility, SharingVisibility.public);
         expect(sharedClassification.familyId, 'family456');
       });
@@ -49,7 +49,7 @@ void main() {
           originalClassification: originalClassification,
           sharedBy: 'user456',
           sharedByName: 'Jane Smith',
-          sharedAt: DateTime(2024, 1, 15, 11, 0),
+          sharedAt: DateTime(2024, 1, 15, 11),
           visibility: SharingVisibility.family,
           familyId: 'family789',
           description: 'Great example of paper waste',
@@ -61,7 +61,7 @@ void main() {
               userId: 'user789',
               userName: 'Alice Brown',
               content: 'Great classification!',
-              timestamp: DateTime(2024, 1, 15, 12, 0),
+              timestamp: DateTime(2024, 1, 15, 12),
             ),
           ],
           sharingSettings: SharingSettings(
@@ -75,8 +75,8 @@ void main() {
         expect(sharedClassification.description, 'Great example of paper waste');
         expect(sharedClassification.tags, ['paper', 'recyclable', 'example']);
         expect(sharedClassification.likes, 5);
-        expect(sharedClassification.comments?.length, 1);
-        expect(sharedClassification.comments?[0].content, 'Great classification!');
+        expect(sharedClassification.comments.length, 1);
+        expect(sharedClassification.comments[0].content, 'Great classification!');
         expect(sharedClassification.sharingSettings?.allowComments, true);
       });
 
@@ -95,7 +95,7 @@ void main() {
           originalClassification: originalClassification,
           sharedBy: 'user123',
           sharedByName: 'John Doe',
-          sharedAt: DateTime(2024, 1, 15, 11, 0),
+          sharedAt: DateTime(2024, 1, 15, 11),
           visibility: SharingVisibility.public,
           description: 'Glass bottle example',
           tags: ['glass', 'bottle'],
@@ -156,7 +156,7 @@ void main() {
         expect(sharedClassification.description, 'Composting example');
         expect(sharedClassification.tags, ['organic', 'compost']);
         expect(sharedClassification.likes, 2);
-        expect(sharedClassification.comments?.length, 1);
+        expect(sharedClassification.comments.length, 1);
       });
 
       test('should check if classification can be viewed by user', () {
@@ -323,7 +323,7 @@ void main() {
         );
 
         // Engagement score calculation: likes + (comments * 2) + (shares * 3) + (views * 0.1)
-        final expectedScore = 10 + (5 * 2) + (3 * 3) + (50 * 0.1);
+        const expectedScore = 10 + (5 * 2) + (3 * 3) + (50 * 0.1);
         expect(sharedClassification.engagementScore, expectedScore);
       });
 
@@ -383,14 +383,14 @@ void main() {
           userId: 'user123',
           userName: 'John Doe',
           content: 'Great classification example!',
-          timestamp: DateTime(2024, 1, 15, 12, 0),
+          timestamp: DateTime(2024, 1, 15, 12),
         );
 
         expect(comment.id, 'comment_001');
         expect(comment.userId, 'user123');
         expect(comment.userName, 'John Doe');
         expect(comment.content, 'Great classification example!');
-        expect(comment.timestamp, DateTime(2024, 1, 15, 12, 0));
+        expect(comment.timestamp, DateTime(2024, 1, 15, 12));
       });
 
       test('should create SharingComment with optional properties', () {
@@ -399,7 +399,7 @@ void main() {
           userId: 'user456',
           userName: 'Jane Smith',
           content: 'Very helpful, thanks!',
-          timestamp: DateTime(2024, 1, 15, 12, 0),
+          timestamp: DateTime(2024, 1, 15, 12),
           likes: 3,
           isEdited: true,
           editedAt: DateTime(2024, 1, 15, 12, 5),
@@ -418,7 +418,7 @@ void main() {
           userId: 'user789',
           userName: 'Alice Brown',
           content: 'Thanks for sharing!',
-          timestamp: DateTime(2024, 1, 15, 12, 0),
+          timestamp: DateTime(2024, 1, 15, 12),
           likes: 2,
         );
 
@@ -642,7 +642,7 @@ void main() {
           ),
           sharedBy: 'user123',
           sharedByName: 'John Doe',
-          sharedAt: DateTime(2024, 1, 15, 11, 0),
+          sharedAt: DateTime(2024, 1, 15, 11),
           visibility: SharingVisibility.public,
         );
 
@@ -655,7 +655,7 @@ void main() {
           ),
           sharedBy: 'user123',
           sharedByName: 'John Doe',
-          sharedAt: DateTime(2024, 1, 15, 11, 0),
+          sharedAt: DateTime(2024, 1, 15, 11),
           visibility: SharingVisibility.public,
         );
 
@@ -668,7 +668,7 @@ void main() {
           ),
           sharedBy: 'user456',
           sharedByName: 'Jane Smith',
-          sharedAt: DateTime(2024, 1, 16, 11, 0),
+          sharedAt: DateTime(2024, 1, 16, 11),
           visibility: SharingVisibility.family,
         );
 

@@ -587,7 +587,7 @@ void main() {
           coordinates: testCoordinates,
           operatingHours: {
             'mond@y': '9äm-5pm',
-            'tües$day': '9ám-5pm ⏰',
+            'tüesday': '9ám-5pm ⏰',
           },
           contactInfo: {
             'phoñe': '+1-555-SPËCIAL',

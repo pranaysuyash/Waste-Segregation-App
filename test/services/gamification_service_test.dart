@@ -248,7 +248,6 @@ void main() {
             longestCount: 1,
             lastActivityDate: yesterday,
             lastMaintenanceAwardedDate: yesterday, // Added sensible default
-            lastMilestoneAwardedLevel: 0, // Added sensible default
           )
         },
         achievements: [],
@@ -286,7 +285,6 @@ void main() {
             longestCount: 2, // Longest streak was 2
             lastActivityDate: threeDaysAgo,
             lastMaintenanceAwardedDate: threeDaysAgo, // Added sensible default
-            lastMilestoneAwardedLevel: 0, // Added sensible default
           )
         },
         achievements: [],
@@ -324,7 +322,6 @@ void main() {
             longestCount: 1,
             lastActivityDate: today,
             lastMaintenanceAwardedDate: today, // Added sensible default
-            lastMilestoneAwardedLevel: 0, // Added sensible default
           )
         },
         achievements: [],
@@ -351,8 +348,8 @@ void main() {
 
     test('should award points for streak milestones', () async {
       final twoDaysAgo = DateTime.now().subtract(const Duration(days: 2));
-      final initialPoints = 0;
-      GamificationProfile initialGamificationProfile = GamificationProfile(
+      const initialPoints = 0;
+      var initialGamificationProfile = GamificationProfile(
         userId: 'test_user_123',
         points: UserPoints(total: initialPoints),
         streaks: {
@@ -362,7 +359,6 @@ void main() {
             longestCount: 2, 
             lastActivityDate: twoDaysAgo,
             lastMaintenanceAwardedDate: twoDaysAgo,
-            lastMilestoneAwardedLevel: 0,
           )
         },
         achievements: [],
@@ -370,7 +366,7 @@ void main() {
         unlockedHiddenContentIds: {},
       );
       
-      UserProfile mockUser = UserProfile(
+      var mockUser = UserProfile(
         id: 'test_user_123',
         email: 'test@example.com',
         displayName: 'Test User',
@@ -643,7 +639,6 @@ void main() {
             longestCount: 5,
             lastActivityDate: DateTime.now().subtract(const Duration(days: 1)),
             lastMaintenanceAwardedDate: DateTime.now().subtract(const Duration(days:1)),
-            lastMilestoneAwardedLevel: 0,
           )
         },
         achievements: [
@@ -662,18 +657,17 @@ void main() {
         unlockedHiddenContentIds: {'lore_piece_1'},
         discoveredItemIds: {'plastic_bottle_001'},
         lastDailyEngagementBonusAwardedDate: DateTime.now().subtract(const Duration(days:1)),
-        lastViewPersonalStatsAwardedDate: null,
       );
 
       final baseUserProfileForSave = UserProfile(
         id: userId, 
-        gamificationProfile: GamificationProfile(
+        gamificationProfile: const GamificationProfile(
           userId: userId, 
           streaks: {}, 
           achievements: [], 
           discoveredItemIds: {}, 
           unlockedHiddenContentIds: {},
-          points: const UserPoints(),
+          points: UserPoints(),
         )
       );
       when(mockStorageService.getCurrentUserProfile()).thenAnswer((_) async => baseUserProfileForSave);

@@ -160,7 +160,7 @@ void main() {
 
     group('Notification and Listeners', () {
       test('should notify listeners when theme changes', () {
-        bool notified = false;
+        var notified = false;
         themeProvider.addListener(() {
           notified = true;
         });
@@ -171,7 +171,7 @@ void main() {
       });
 
       test('should not notify listeners when setting same theme', () {
-        int notificationCount = 0;
+        var notificationCount = 0;
         themeProvider.addListener(() {
           notificationCount++;
         });
@@ -265,7 +265,7 @@ void main() {
 
       test('should handle rapid theme changes efficiently', () {
         // Simulate rapid theme switching
-        for (int i = 0; i < 100; i++) {
+        for (var i = 0; i < 100; i++) {
           themeProvider.setThemeMode(i % 2 == 0 ? ThemeMode.light : ThemeMode.dark);
         }
         

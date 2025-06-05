@@ -22,9 +22,7 @@ enum HiddenContentTriggerType {
 }
 
 // Represents a single condition that needs to be met for a HiddenContentRule
-class TriggerCondition {
-  final HiddenContentTriggerType type;
-  final Map<String, dynamic> parameters; // Parameters specific to the trigger type
+class TriggerCondition { // Parameters specific to the trigger type
 
   const TriggerCondition({
     required this.type,
@@ -37,6 +35,8 @@ class TriggerCondition {
       parameters: Map<String, dynamic>.from(json['parameters'] ?? {}),
     );
   }
+  final HiddenContentTriggerType type;
+  final Map<String, dynamic> parameters;
 
   Map<String, dynamic> toJson() => {
     'type': type.name,
@@ -56,15 +56,7 @@ class TriggerCondition {
 
 // Defines a rule for unlocking hidden content (badges, map areas, lore, etc.)
 // These rules would be curated (possibly AI-suggested initially) and stored.
-class HiddenContentRule {
-  final String ruleId; // Unique ID for this rule
-  final String contentIdToUnlock; // ID of the Badge, Achievement, MapArea, LoreSnippet etc.
-  final UnlockedContentType unlockedContentType;
-  final List<TriggerCondition> triggerConditions; // A list of conditions that must ALL be met
-  final String description; // For admin/curation: "Unlocks 'Vintage Collector' badge"
-  final bool isActive;
-  final int pointsBonus; // Optional points awarded directly when this rule triggers
-  final List<String> notificationMessages; // Potential messages to show user
+class HiddenContentRule { // Potential messages to show user
 
   const HiddenContentRule({
     required this.ruleId,
@@ -91,6 +83,14 @@ class HiddenContentRule {
       notificationMessages: List<String>.from(json['notificationMessages'] as List<dynamic>? ?? []),
     );
   }
+  final String ruleId; // Unique ID for this rule
+  final String contentIdToUnlock; // ID of the Badge, Achievement, MapArea, LoreSnippet etc.
+  final UnlockedContentType unlockedContentType;
+  final List<TriggerCondition> triggerConditions; // A list of conditions that must ALL be met
+  final String description; // For admin/curation: "Unlocks 'Vintage Collector' badge"
+  final bool isActive;
+  final int pointsBonus; // Optional points awarded directly when this rule triggers
+  final List<String> notificationMessages;
 
   Map<String, dynamic> toJson() => {
     'ruleId': ruleId,
@@ -128,19 +128,7 @@ class HiddenContentRule {
 
 // Template for AI-Personalized Discovery Quests
 // These would be curated templates that the AI can select and fill in.
-class DiscoveryQuestTemplate {
-  final String templateId;
-  final String titleTemplate; // e.g., "The Mystery of the Missing {material}!"
-  final String descriptionTemplate; // "Our scouts report a rare {item_property} {item_category} was last seen near..."
-                                  // Placeholders like {material}, {item_property}, {item_category} can be filled by AI.
-  final Map<String, dynamic> objectiveCriteria; // Defines what needs to be found/done.
-                                             // e.g., { "targetTag": "antique_toy", "count": 1 }
-                                             // or { "targetMaterial": "Bakelite", "minRarity": 7 }
-  final int pointsReward;
-  final String? achievementIdOnCompletion; // Optional: ID of an Achievement to award
-  final List<String> aiPersonalizationHints; // Tags for AI: "good_for_beginners", "needs_specific_item_type", "location_based_potential"
-  final bool isActive;
-  final int durationDays; // Optional: How long the quest is available once personalized/offered
+class DiscoveryQuestTemplate { // Optional: How long the quest is available once personalized/offered
 
   const DiscoveryQuestTemplate({
     required this.templateId,
@@ -167,6 +155,18 @@ class DiscoveryQuestTemplate {
       durationDays: json['durationDays'] ?? 7,
     );
   }
+  final String templateId;
+  final String titleTemplate; // e.g., "The Mystery of the Missing {material}!"
+  final String descriptionTemplate; // "Our scouts report a rare {item_property} {item_category} was last seen near..."
+                                  // Placeholders like {material}, {item_property}, {item_category} can be filled by AI.
+  final Map<String, dynamic> objectiveCriteria; // Defines what needs to be found/done.
+                                             // e.g., { "targetTag": "antique_toy", "count": 1 }
+                                             // or { "targetMaterial": "Bakelite", "minRarity": 7 }
+  final int pointsReward;
+  final String? achievementIdOnCompletion; // Optional: ID of an Achievement to award
+  final List<String> aiPersonalizationHints; // Tags for AI: "good_for_beginners", "needs_specific_item_type", "location_based_potential"
+  final bool isActive;
+  final int durationDays;
 
   Map<String, dynamic> toJson() => {
     'templateId': templateId,

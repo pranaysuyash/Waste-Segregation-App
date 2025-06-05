@@ -106,8 +106,6 @@ class GamificationService {
         streaks: {
           StreakType.dailyClassification.toString(): StreakDetails(
             type: StreakType.dailyClassification,
-            currentCount: 0,
-            longestCount: 0,
             lastActivityDate: DateTime.now(),
           ),
         },
@@ -141,8 +139,6 @@ class GamificationService {
         streaks: {
           StreakType.dailyClassification.toString(): StreakDetails(
             type: StreakType.dailyClassification,
-            currentCount: 0,
-            longestCount: 0,
             lastActivityDate: DateTime.now().subtract(const Duration(days: 1)),
           ),
         },
@@ -1383,8 +1379,6 @@ class GamificationService {
         streaks: {
           StreakType.dailyClassification.toString(): StreakDetails(
             type: StreakType.dailyClassification,
-            currentCount: 0,
-            longestCount: 0,
             lastActivityDate: DateTime.now(),
           ),
         },

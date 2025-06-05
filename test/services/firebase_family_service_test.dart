@@ -48,7 +48,6 @@ void main() {
             ),
           ],
           settings: const FamilySettings(
-            shareClassifications: true,
             allowInvites: true,
           ),
           statistics: FamilyStatistics(
@@ -96,7 +95,6 @@ void main() {
           createdAt: DateTime.now(),
           members: [], // No members
           settings: const FamilySettings(
-            shareClassifications: true,
             allowInvites: true,
           ),
           statistics: FamilyStatistics(
@@ -290,7 +288,6 @@ void main() {
             ),
           ],
           settings: const FamilySettings(
-            shareClassifications: true,
             allowInvites: true,
           ),
           statistics: FamilyStatistics(
@@ -412,7 +409,6 @@ void main() {
             ),
           ],
           settings: const FamilySettings(
-            shareClassifications: true,
             allowInvites: true,
           ),
           statistics: FamilyStatistics(
@@ -456,7 +452,6 @@ void main() {
           createdAt: DateTime.now(),
           members: [],
           settings: const FamilySettings(
-            shareClassifications: true,
             allowInvites: true,
           ),
           statistics: FamilyStatistics(
@@ -493,7 +488,6 @@ void main() {
           createdAt: DateTime.now(),
           members: [], // No members but createdBy exists
           settings: const FamilySettings(
-            shareClassifications: true,
             allowInvites: true,
           ),
           statistics: FamilyStatistics(
@@ -548,7 +542,6 @@ void main() {
             joinedAt: DateTime.now(),
           )),
           settings: const FamilySettings(
-            shareClassifications: true,
             allowInvites: true,
           ),
           statistics: FamilyStatistics(

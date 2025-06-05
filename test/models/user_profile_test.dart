@@ -9,14 +9,14 @@ void main() {
           id: 'user_123',
           email: 'john.doe@example.com',
           displayName: 'John Doe',
-          createdAt: DateTime(2024, 1, 1, 10, 0),
+          createdAt: DateTime(2024, 1, 1, 10),
           lastActiveAt: DateTime(2024, 1, 15, 10, 30),
         );
 
         expect(profile.id, 'user_123');
         expect(profile.email, 'john.doe@example.com');
         expect(profile.displayName, 'John Doe');
-        expect(profile.createdAt, DateTime(2024, 1, 1, 10, 0));
+        expect(profile.createdAt, DateTime(2024, 1, 1, 10));
         expect(profile.lastActiveAt, DateTime(2024, 1, 15, 10, 30));
       });
 
@@ -25,7 +25,7 @@ void main() {
           id: 'user_456',
           email: 'jane.smith@example.com',
           displayName: 'Jane Smith',
-          createdAt: DateTime(2024, 1, 1, 10, 0),
+          createdAt: DateTime(2024, 1, 1, 10),
           lastActiveAt: DateTime(2024, 1, 15, 10, 30),
           firstName: 'Jane',
           lastName: 'Smith',
@@ -93,7 +93,7 @@ void main() {
           id: 'user_789',
           email: 'alice.brown@example.com',
           displayName: 'Alice Brown',
-          createdAt: DateTime(2024, 1, 1, 10, 0),
+          createdAt: DateTime(2024, 1, 1, 10),
           lastActiveAt: DateTime(2024, 1, 15, 10, 30),
           firstName: 'Alice',
           lastName: 'Brown',
@@ -155,7 +155,7 @@ void main() {
         expect(profile.id, 'user_012');
         expect(profile.email, 'bob.wilson@example.com');
         expect(profile.displayName, 'Bob Wilson');
-        expect(profile.createdAt, DateTime(2024, 1, 1, 10, 0));
+        expect(profile.createdAt, DateTime(2024, 1, 1, 10));
         expect(profile.lastActiveAt, DateTime(2024, 1, 15, 10, 30));
         expect(profile.firstName, 'Bob');
         expect(profile.lastName, 'Wilson');
@@ -437,7 +437,7 @@ void main() {
           avatar: 'https://example.com/avatar.jpg',
           bio: 'Complete bio',
           location: 'City, State',
-          dateOfBirth: DateTime(1990, 1, 1),
+          dateOfBirth: DateTime(1990, 1),
           phoneNumber: '+1-555-123-4567',
         );
 
@@ -740,7 +740,7 @@ void main() {
           id: 'user_123',
           email: 'test@example.com',
           displayName: 'Test User',
-          createdAt: DateTime(2024, 1, 1, 10, 0),
+          createdAt: DateTime(2024, 1, 1, 10),
           lastActiveAt: DateTime(2024, 1, 15, 10, 30),
         );
 
@@ -748,7 +748,7 @@ void main() {
           id: 'user_123',
           email: 'test@example.com',
           displayName: 'Test User',
-          createdAt: DateTime(2024, 1, 1, 10, 0),
+          createdAt: DateTime(2024, 1, 1, 10),
           lastActiveAt: DateTime(2024, 1, 15, 10, 30),
         );
 
@@ -756,7 +756,7 @@ void main() {
           id: 'user_456',
           email: 'different@example.com',
           displayName: 'Different User',
-          createdAt: DateTime(2024, 1, 2, 10, 0),
+          createdAt: DateTime(2024, 1, 2, 10),
           lastActiveAt: DateTime(2024, 1, 16, 10, 30),
         );
 
@@ -807,7 +807,7 @@ void main() {
           id: 'user_123',
           email: 'john.doe@example.com',
           displayName: 'John Doe',
-          createdAt: DateTime(2024, 1, 1, 10, 0),
+          createdAt: DateTime(2024, 1, 1, 10),
           lastActiveAt: DateTime(2024, 1, 15, 10, 30),
           firstName: 'John',
           lastName: 'Doe',

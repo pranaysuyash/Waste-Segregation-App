@@ -119,7 +119,6 @@ class _ModernBottomNavigationState extends State<ModernBottomNavigation>
       top: false,
       left: false,
       right: false,
-      bottom: true,
       child: Container(
         decoration: BoxDecoration(
           color: widget.style.backgroundColor ?? 

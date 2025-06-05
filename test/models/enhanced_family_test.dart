@@ -47,7 +47,6 @@ void main() {
           createdAt: testDateTime,
           updatedAt: testDateTime,
           members: [testMember],
-          settings: const FamilySettings(),
           imageUrl: 'https://example.com/family.jpg',
           isPublic: true,
         );
@@ -349,13 +348,9 @@ void main() {
       test('should serialize and deserialize FamilySettings correctly', () {
         final original = FamilySettings(
           isPublic: true,
-          allowChildInvites: false,
-          shareClassifications: true,
-          showMemberActivity: true,
           notifications: NotificationSettings.defaultSettings(),
           privacy: PrivacySettings.defaultSettings(),
           customSettings: {'setting1': 'value1'},
-          leaderboardVisibility: FamilyLeaderboardVisibility.membersOnly,
         );
 
         // Test toJson
@@ -376,10 +371,8 @@ void main() {
       });
 
       test('should copyWith correctly', () {
-        final original = FamilySettings(
-          isPublic: false,
+        const original = FamilySettings(
           allowChildInvites: false,
-          shareClassifications: true,
           customSettings: {'original': 'value'},
         );
 
@@ -812,9 +805,6 @@ void main() {
 
         final settings = FamilySettings(
           isPublic: true,
-          allowChildInvites: false,
-          shareClassifications: true,
-          showMemberActivity: true,
           notifications: NotificationSettings.defaultSettings(),
           privacy: PrivacySettings.defaultSettings(),
           customSettings: {'theme': 'green', 'region': 'US'},
@@ -863,7 +853,6 @@ void main() {
           createdBy: '',
           createdAt: testDateTime,
           members: [],
-          settings: const FamilySettings(),
         );
 
         expect(emptyFamily.id, equals(''));
@@ -918,7 +907,7 @@ void main() {
 
       test('should handle date edge cases', () {
         final futureDate = DateTime(2030, 12, 31);
-        final pastDate = DateTime(1990, 1, 1);
+        final pastDate = DateTime(1990, 1);
         
         final timeTravelFamily = Family(
           id: 'time_travel',

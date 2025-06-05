@@ -64,7 +64,7 @@ void main() {
       });
 
       test('should track achievement unlock activities', () async {
-        final achievement = Achievement(
+        const achievement = Achievement(
           id: 'waste_novice',
           title: 'Waste Novice',
           description: 'Classify your first 5 items',
@@ -73,7 +73,6 @@ void main() {
           iconName: 'star',
           color: Colors.blue,
           progress: 1.0,
-          pointsReward: 50,
         );
 
         final user = UserProfile(

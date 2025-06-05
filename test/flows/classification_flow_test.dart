@@ -56,8 +56,17 @@ void main() {
         final mockGamificationProfile = GamificationProfile(
           userId: 'test_user_123',
           points: const UserPoints(total: 10, level: 0),
-          streak: Streak(current: 1, longest: 1, lastUsageDate: DateTime.now()),
+          streaks: {
+            StreakType.dailyClassification.toString(): StreakDetails(
+              type: StreakType.dailyClassification,
+              currentCount: 1,
+              longestCount: 1,
+              lastActivityDate: DateTime.now(),
+            ),
+          },
           achievements: [],
+          discoveredItemIds: {},
+          unlockedHiddenContentIds: {},
         );
 
         // Mock service responses

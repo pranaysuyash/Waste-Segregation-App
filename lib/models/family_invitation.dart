@@ -193,6 +193,41 @@ class FamilyInvitation {
         return 'Cancelled';
     }
   }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+
+    return other is FamilyInvitation &&
+        other.id == id &&
+        other.familyId == familyId &&
+        other.familyName == familyName &&
+        other.inviterUserId == inviterUserId &&
+        other.inviterName == inviterName &&
+        other.invitedEmail == invitedEmail &&
+        other.invitedUserId == invitedUserId &&
+        other.status == status &&
+        other.roleToAssign == roleToAssign &&
+        other.createdAt == createdAt &&
+        other.expiresAt == expiresAt &&
+        other.respondedAt == respondedAt;
+  }
+
+  @override
+  int get hashCode {
+    return id.hashCode ^
+        familyId.hashCode ^
+        familyName.hashCode ^
+        inviterUserId.hashCode ^
+        inviterName.hashCode ^
+        invitedEmail.hashCode ^
+        invitedUserId.hashCode ^
+        status.hashCode ^
+        roleToAssign.hashCode ^
+        createdAt.hashCode ^
+        expiresAt.hashCode ^
+        respondedAt.hashCode;
+  }
 }
 
 /// Represents a batch invitation for multiple email addresses.

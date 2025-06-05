@@ -596,6 +596,8 @@ class MockStorageService extends _i1.Mock implements _i10.StorageService {
   _i5.Future<void> saveSettings({
     required bool? isDarkMode,
     required bool? isGoogleSyncEnabled,
+    bool? allowHistoryFeedback,
+    int? feedbackTimeframeDays,
   }) =>
       (super.noSuchMethod(
         Invocation.method(
@@ -604,6 +606,8 @@ class MockStorageService extends _i1.Mock implements _i10.StorageService {
           {
             #isDarkMode: isDarkMode,
             #isGoogleSyncEnabled: isGoogleSyncEnabled,
+            #allowHistoryFeedback: allowHistoryFeedback,
+            #feedbackTimeframeDays: feedbackTimeframeDays,
           },
         ),
         returnValue: _i5.Future<void>.value(),
@@ -713,4 +717,47 @@ class MockStorageService extends _i1.Mock implements _i10.StorageService {
         returnValue: _i5.Future<List<Map<String, dynamic>>>.value(
             <Map<String, dynamic>>[]),
       ) as _i5.Future<List<Map<String, dynamic>>>);
+
+  @override
+  _i5.Future<int> getGuestDataMigrationCount() => (super.noSuchMethod(
+        Invocation.method(
+          #getGuestDataMigrationCount,
+          [],
+        ),
+        returnValue: _i5.Future<int>.value(0),
+      ) as _i5.Future<int>);
+
+  @override
+  _i5.Future<int> migrateGuestDataToCurrentUser() => (super.noSuchMethod(
+        Invocation.method(
+          #migrateGuestDataToCurrentUser,
+          [],
+        ),
+        returnValue: _i5.Future<int>.value(0),
+      ) as _i5.Future<int>);
+
+  @override
+  List<_i8.WasteClassification> applyFiltersToClassifications(
+    List<_i8.WasteClassification>? classifications,
+    _i11.FilterOptions? filterOptions,
+  ) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #applyFiltersToClassifications,
+          [
+            classifications,
+            filterOptions,
+          ],
+        ),
+        returnValue: <_i8.WasteClassification>[],
+      ) as List<_i8.WasteClassification>);
+
+  @override
+  _i5.Future<int> cleanupDuplicateClassifications() => (super.noSuchMethod(
+        Invocation.method(
+          #cleanupDuplicateClassifications,
+          [],
+        ),
+        returnValue: _i5.Future<int>.value(0),
+      ) as _i5.Future<int>);
 }

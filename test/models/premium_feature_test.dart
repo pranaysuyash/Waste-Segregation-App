@@ -205,7 +205,6 @@ void main() {
           icon: 'disabled_icon',
           category: FeatureCategory.analytics,
           tier: PremiumTier.basic,
-          isEnabled: false,
           sortOrder: 1,
         );
 
@@ -234,7 +233,7 @@ void main() {
           userId: 'user_123',
           tier: PremiumTier.pro,
           status: SubscriptionStatus.active,
-          startDate: DateTime(2024, 1, 1),
+          startDate: DateTime(2024, 1),
           endDate: DateTime(2024, 12, 31),
           autoRenew: true,
           paymentMethod: 'credit_card',
@@ -244,7 +243,7 @@ void main() {
         expect(subscription.userId, 'user_123');
         expect(subscription.tier, PremiumTier.pro);
         expect(subscription.status, SubscriptionStatus.active);
-        expect(subscription.startDate, DateTime(2024, 1, 1));
+        expect(subscription.startDate, DateTime(2024, 1));
         expect(subscription.endDate, DateTime(2024, 12, 31));
         expect(subscription.autoRenew, true);
         expect(subscription.paymentMethod, 'credit_card');
@@ -516,7 +515,6 @@ void main() {
           icon: 'different_icon',
           category: FeatureCategory.storage,
           tier: PremiumTier.basic,
-          isEnabled: false,
           sortOrder: 2,
         );
 
@@ -585,8 +583,8 @@ void main() {
         expect(() => PremiumSubscription(
           id: 'sub_001', userId: 'user_123', tier: PremiumTier.pro,
           status: SubscriptionStatus.active,
-          startDate: DateTime(2024, 6, 1),
-          endDate: DateTime(2024, 1, 1), // End before start
+          startDate: DateTime(2024, 6),
+          endDate: DateTime(2024, 1), // End before start
           autoRenew: true,
         ), throwsArgumentError);
       });

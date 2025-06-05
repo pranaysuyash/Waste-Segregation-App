@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:waste_segregation_app/services/gamification_service.dart';
 import 'package:waste_segregation_app/models/waste_classification.dart';
+import 'package:waste_segregation_app/models/gamification.dart';
 import 'package:waste_segregation_app/services/storage_service.dart';
 import 'test_config/plugin_mock_setup.dart';
 import 'mocks/mock_cloud_storage_service.dart';
@@ -265,7 +266,8 @@ void main() {
       final profile = await gamificationService.getProfile();
       
       // Streak should reflect consecutive classifications
-      expect(profile.streak.current, greaterThanOrEqualTo(1));
+      final dailyStreak = profile.streaks[StreakType.dailyClassification.toString()];
+      expect(dailyStreak?.currentCount ?? 0, greaterThanOrEqualTo(1));
     });
   });
 } 

@@ -127,7 +127,6 @@ void main() {
           createdAt: DateTime.now(),
           members: [],
           settings: const FamilySettings(
-            shareClassifications: true,
             allowInvites: true,
           ),
           statistics: FamilyStatistics(
@@ -221,7 +220,6 @@ void main() {
           createdAt: DateTime.now(),
           members: [admin, regularMember],
           settings: const FamilySettings(
-            shareClassifications: true,
             allowInvites: true,
           ),
           statistics: FamilyStatistics(
