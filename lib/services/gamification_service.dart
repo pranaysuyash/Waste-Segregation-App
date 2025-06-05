@@ -1564,7 +1564,10 @@ class GamificationService {
   Future<void> syncGamificationData() async {
     try {
       debugPrint('🔄 Syncing gamification data across app components...');
-      
+
+      // Ensure points accurately reflect all stored classifications
+      await syncClassificationPoints();
+
       // Force refresh profile
       final profile = await forceRefreshProfile();
       
