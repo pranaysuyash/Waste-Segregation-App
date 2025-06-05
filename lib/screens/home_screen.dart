@@ -1251,7 +1251,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                         //           Container(
                         //             padding: const EdgeInsets.all(8),
                         //             decoration: BoxDecoration(
-                        //               color: AppTheme.primaryColor.withValues(alpha: 0.1),
+                        //               color: AppTheme.primaryColor.withOpacityFixed(0.1),
                         //               borderRadius: BorderRadius.circular(AppTheme.borderRadiusRegular),
                         //             ),
                         //             child: const Icon(
