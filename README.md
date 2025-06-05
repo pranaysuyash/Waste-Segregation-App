@@ -2,7 +2,7 @@
 
 A comprehensive Flutter application for proper waste identification, segregation guidance, and environmental education, enhanced with world-class recycling research and AI-powered material recognition.
 
-## 🌟 **Latest Achievement: World's Most Comprehensive Recycling Research (Version 0.1.5+97)**
+## 🌟 **Latest Achievement: World's Most Comprehensive Recycling Research (Version 0.1.6+98)**
 
 **🔬 Research Milestone**: Completed the world's most comprehensive recycling codes and material identification research, synthesizing knowledge from 9 leading AI systems across 175+ authoritative sources covering 70+ countries and regions.
 
@@ -240,7 +240,7 @@ For comprehensive documentation including setup guides, technical details, and p
 
 ## Current Project Status
 
-**Version:** 0.1.5+97 (Research Milestone & Play Store Release)  
+**Version:** 0.1.6+98 (Research Milestone & Play Store Release)
 **Previous Stable Version:** 0.1.4+96   
 **Status:** 🔴 **CRITICAL ISSUES - NOT READY FOR RELEASE**  
 **Latest Changes:** Comprehensive recycling research integrated. Critical UI fixes applied - AdWidget errors resolved, overflow warnings fixed, modal dialogs improved
@@ -268,7 +268,7 @@ For comprehensive documentation including setup guides, technical details, and p
 
 ### Build Status
 - **Android App Bundle:** Ready for Play Store deployment
-- **Play Store Version:** 0.1.5+97 reserved for Google Play Store submission
+- **Play Store Version:** 0.1.6+98 reserved for Google Play Store submission
 - **Version Code:** Dynamically managed from pubspec.yaml
 - **UI Issues:** All critical overflow and widget tree errors resolved
 
@@ -302,7 +302,7 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 - All contributors to the open-source packages used in this project
 
 ## Versioning and Play Store Issue (May 2025)
-- The app now uses 0.1.x versioning for public/internal releases. Latest: 0.1.5+97.
+- The app now uses 0.1.x versioning for public/internal releases. Latest: 0.1.6+98.
 - Google Play App Signing SHA-1 is now added to Firebase for internal testing compatibility.
 - See CHANGELOG.md and docs/current_issues.md for details.
 

@@ -67,7 +67,7 @@ StorageService.saveClassification(classification)
   "disposalMethod": "Blue bin for dry waste",
   "recyclingCode": "1",
   "timestamp": "2024-12-26T10:30:00Z",
-  "appVersion": "0.1.5+97",
+  "appVersion": "0.1.6+98",
   "hashedUserId": "a1b2c3d4e5f6789...", // SHA-256 hash
   "region": "India",
   "language": "en", 
@@ -86,7 +86,7 @@ StorageService.saveClassification(classification)
 {
   "lastBackup": "2024-12-26T10:30:00Z",
   "classificationCount": 45,
-  "appVersion": "0.1.5+97",
+  "appVersion": "0.1.6+98",
   "createdAt": "2024-12-20T09:15:00Z"
   // Recovery tracking metadata only
 }
@@ -238,7 +238,7 @@ User Classification → Local Storage → User Cloud → Admin Collection → ML
 
 ## 🎯 **IMPLEMENTATION STATUS**
 
-### **✅ Currently Live (0.1.5+97)**:
+### **✅ Currently Live (0.1.6+98)**:
 - [x] Dual storage architecture implemented
 - [x] Privacy-preserving hash mechanism  
 - [x] Admin data collection active

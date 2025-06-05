@@ -55,7 +55,7 @@ admin_classifications/
     disposalMethod: "Blue bin for dry waste"
     recyclingCode: "1"
     timestamp: "2024-12-26T10:30:00Z"
-    appVersion: "0.1.5+97"
+    appVersion: "0.1.6+98"
     hashedUserId: "a1b2c3d4e5f6..." // SHA-256 hash
     region: "India"
     language: "en"
@@ -66,7 +66,7 @@ admin_user_recovery/
   {hashedUserId}/
     lastBackup: "2024-12-26T10:30:00Z"
     classificationCount: 45
-    appVersion: "0.1.5+97"
+    appVersion: "0.1.6+98"
     createdAt: "2024-12-20T09:15:00Z"
     // Recovery metadata only
 ```
@@ -122,7 +122,7 @@ Future<void> _updateRecoveryMetadata(String userId) async {
       .set({
     'lastBackup': FieldValue.serverTimestamp(),
     'classificationCount': FieldValue.increment(1),
-    'appVersion': '0.1.5+97',
+    'appVersion': '0.1.6+98',
   }, SetOptions(merge: true));
 }
 ```
