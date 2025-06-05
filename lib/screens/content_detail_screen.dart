@@ -6,18 +6,42 @@ import '../utils/constants.dart';
 import 'quiz_screen.dart';
 import 'package:video_player/video_player.dart';
 
-class ContentDetailScreen extends StatelessWidget {
-
+class ContentDetailScreen extends StatefulWidget {
   const ContentDetailScreen({
     super.key,
     required this.contentId,
   });
+
   final String contentId;
+
+  @override
+  State<ContentDetailScreen> createState() => _ContentDetailScreenState();
+}
+
+class _ContentDetailScreenState extends State<ContentDetailScreen> {
+  @override
+  void initState() {
+    super.initState();
+    final educationalService =
+        Provider.of<EducationalContentService>(context, listen: false);
+    final content = educationalService.getContentById(widget.contentId);
+    if (content != null) {
+      educationalService.trackContentViewed(content);
+    }
+  }
+
+  @override
+  void dispose() {
+    final educationalService =
+        Provider.of<EducationalContentService>(context, listen: false);
+    educationalService.endContentView();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     final educationalService = Provider.of<EducationalContentService>(context);
-    final content = educationalService.getContentById(contentId);
+    final content = educationalService.getContentById(widget.contentId);
 
     if (content == null) {
       return Scaffold(

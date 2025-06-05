@@ -319,37 +319,43 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   ),
                   subtitle: const Text('Customize navigation behavior'),
                   children: [
-                  SwitchListTile(
-                    title: const Text('Bottom Navigation'),
-                    subtitle: const Text('Show bottom navigation bar'),
-                    value: navSettings.bottomNavEnabled,
-                    onChanged: (value) async {
-                      await navSettings.setBottomNavEnabled(value);
-                      if (mounted) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text('Bottom navigation ${value ? 'enabled' : 'disabled'}'),
-                            duration: const Duration(seconds: 1),
-                          ),
-                        );
-                      }
-                    },
+                  Semantics(
+                    label: 'Toggle bottom navigation bar',
+                    child: SwitchListTile(
+                      title: const Text('Bottom Navigation'),
+                      subtitle: const Text('Show bottom navigation bar'),
+                      value: navSettings.bottomNavEnabled,
+                      onChanged: (value) async {
+                        await navSettings.setBottomNavEnabled(value);
+                        if (mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text('Bottom navigation ${value ? 'enabled' : 'disabled'}'),
+                              duration: const Duration(seconds: 1),
+                            ),
+                          );
+                        }
+                      },
+                    ),
                   ),
-                  SwitchListTile(
-                    title: const Text('Camera Button (FAB)'),
-                    subtitle: const Text('Show floating camera button'),
-                    value: navSettings.fabEnabled,
-                    onChanged: (value) async {
-                      await navSettings.setFabEnabled(value);
-                      if (mounted) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text('Camera button ${value ? 'enabled' : 'disabled'}'),
-                            duration: const Duration(seconds: 1),
-                          ),
-                        );
-                      }
-                    },
+                  Semantics(
+                    label: 'Toggle floating camera button',
+                    child: SwitchListTile(
+                      title: const Text('Camera Button (FAB)'),
+                      subtitle: const Text('Show floating camera button'),
+                      value: navSettings.fabEnabled,
+                      onChanged: (value) async {
+                        await navSettings.setFabEnabled(value);
+                        if (mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text('Camera button ${value ? 'enabled' : 'disabled'}'),
+                              duration: const Duration(seconds: 1),
+                            ),
+                          );
+                        }
+                      },
+                    ),
                   ),
                   ListTile(
                     title: const Text('Navigation Style'),
@@ -627,20 +633,23 @@ class _SettingsScreenState extends State<SettingsScreen> {
           // Google Sync toggle
           Card(
             margin: const EdgeInsets.only(bottom: 16),
-            child: SwitchListTile(
-              title: const Text('Google Cloud Sync'),
-              subtitle: Text(
-                _isGoogleSyncEnabled 
-                    ? 'Classifications sync to cloud automatically'
-                    : 'Classifications saved locally only',
-              ),
-              value: _isGoogleSyncEnabled,
-              onChanged: (value) async {
-                await _toggleGoogleSync(value);
-              },
-              secondary: Icon(
-                _isGoogleSyncEnabled ? Icons.cloud_done : Icons.cloud_off,
-                color: _isGoogleSyncEnabled ? Colors.green : Colors.grey,
+            child: Semantics(
+              label: 'Toggle Google Cloud Sync',
+              child: SwitchListTile(
+                title: const Text('Google Cloud Sync'),
+                subtitle: Text(
+                  _isGoogleSyncEnabled
+                      ? 'Classifications sync to cloud automatically'
+                      : 'Classifications saved locally only',
+                ),
+                value: _isGoogleSyncEnabled,
+                onChanged: (value) async {
+                  await _toggleGoogleSync(value);
+                },
+                secondary: Icon(
+                  _isGoogleSyncEnabled ? Icons.cloud_done : Icons.cloud_off,
+                  color: _isGoogleSyncEnabled ? Colors.green : Colors.grey,
+                ),
               ),
             ),
           ),
@@ -662,18 +671,21 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     
                     return Column(
                       children: [
-                        SwitchListTile(
-                          title: const Text('Allow Feedback on Recent History'),
-                          subtitle: Text(
-                            allowHistoryFeedback 
-                                ? 'Can provide feedback on recent classifications from history'
-                                : 'Can only provide feedback on new classifications',
+                        Semantics(
+                          label: 'Toggle feedback on recent history',
+                          child: SwitchListTile(
+                            title: const Text('Allow Feedback on Recent History'),
+                            subtitle: Text(
+                              allowHistoryFeedback
+                                  ? 'Can provide feedback on recent classifications from history'
+                                  : 'Can only provide feedback on new classifications',
+                            ),
+                            value: allowHistoryFeedback,
+                            onChanged: (value) async {
+                              await _toggleHistoryFeedback(value);
+                              setState(() {}); // Trigger rebuild
+                            },
                           ),
-                          value: allowHistoryFeedback,
-                          onChanged: (value) async {
-                            await _toggleHistoryFeedback(value);
-                            setState(() {}); // Trigger rebuild
-                          },
                         ),
                         if (allowHistoryFeedback) ...[
                           ListTile(
@@ -1165,22 +1177,25 @@ class _SettingsScreenState extends State<SettingsScreen> {
   ) {
     final isEnabled = premiumService.isPremiumFeature(featureId);
 
-    return SwitchListTile(
-      title: Text(title),
-      subtitle: Text(isEnabled ? 'Enabled' : 'Disabled'),
-      value: isEnabled,
-      activeColor: AppTheme.primaryColor,
-      onChanged: (bool value) async {
-        await premiumService.setPremiumFeature(featureId, value);
-        if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('$title ${value ? 'enabled' : 'disabled'}'),
-              duration: const Duration(seconds: 1),
-            ),
-          );
-        }
-      },
+    return Semantics(
+      label: 'Toggle $title',
+      child: SwitchListTile(
+        title: Text(title),
+        subtitle: Text(isEnabled ? 'Enabled' : 'Disabled'),
+        value: isEnabled,
+        activeColor: AppTheme.primaryColor,
+        onChanged: (bool value) async {
+          await premiumService.setPremiumFeature(featureId, value);
+          if (context.mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('$title ${value ? 'enabled' : 'disabled'}'),
+                duration: const Duration(seconds: 1),
+              ),
+            );
+          }
+        },
+      ),
     );
   }
 

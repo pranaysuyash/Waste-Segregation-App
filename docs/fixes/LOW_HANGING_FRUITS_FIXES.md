@@ -23,3 +23,20 @@ This document tracks quick win fixes that improve the user experience without ma
    - Wrapped initialization debug prints in `web_standalone.dart` with `kDebugMode` so they only appear in debug builds.
 
 These fixes remove small UX papercuts and make the app feel more polished.
+
+## June 2025 Additions
+
+6. **Color Palette Refresh**
+   - Updated category colors in `constants.dart` to the new "Living Earth" palette.
+
+7. **Animated Capture Button**
+   - Added a subtle press animation in `capture_button.dart` using `AnimatedScale`.
+
+8. **History Filter Dialog Polish**
+   - Inserted dividers and spacing for clearer grouping in the history screen filter dialog.
+
+9. **Educational Content Analytics**
+   - Basic view and completion tracking hooked up via `EducationalContentAnalyticsService`.
+
+10. **Settings Accessibility Improvements**
+    - Wrapped toggle controls in `Semantics` widgets for better screen reader support.

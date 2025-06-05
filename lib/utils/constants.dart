@@ -162,11 +162,12 @@ class AppTheme {
   );
 
   // Category Colors (used for badges, etc.)
-  static const Color wetWasteColor = Color(0xFF2E7D32); // Dark green for better contrast
-  static const Color dryWasteColor = Color(0xFFE65100); // Dark orange instead of yellow for accessibility
-  static const Color hazardousWasteColor = Color(0xFFD84315); // Dark red-orange
-  static const Color medicalWasteColor = Color(0xFFC62828); // Dark red
-  static const Color nonWasteColor = Color(0xFF6A1B9A); // Dark purple
+  // Updated colors from the "Living Earth" palette
+  static const Color wetWasteColor = Color(0xFF06FFA5); // Vibrant Green
+  static const Color dryWasteColor = Color(0xFF00B4D8); // Ocean Blue
+  static const Color hazardousWasteColor = Color(0xFFFF6B6B); // Sunset Coral
+  static const Color medicalWasteColor = Color(0xFF845EC2); // Digital Purple
+  static const Color nonWasteColor = Color(0xFFFF8AC1); // Soft Pink
   static const Color manualReviewColor = Color(0xFF795548); // Brown for manual review
   static const Color lightGreyColor = Color(0xFFD3D3D3); // For chips, etc.
 

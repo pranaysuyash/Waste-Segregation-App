@@ -1,14 +1,16 @@
 import '../models/educational_content.dart';
+import 'educational_content_analytics_service.dart';
 
 /// Service for managing educational content in the app
 class EducationalContentService {
-
-  EducationalContentService() {
+  EducationalContentService([this.analytics]) {
     _initializeDailyTips();
     _initializeContent();
   }
   /// List of all available educational content
   final List<EducationalContent> _allContent = [];
+
+  final EducationalContentAnalyticsService? analytics;
 
   /// List of daily tips for the home screen
   final List<DailyTip> _dailyTips = [];
@@ -1081,5 +1083,18 @@ Each category requires special handling and disposal methods to protect human he
   /// Get all daily tips
   List<DailyTip> getAllDailyTips() {
     return List.from(_dailyTips);
+  }
+
+  // ==================== BASIC ANALYTICS ====================
+
+  /// Record that content was viewed
+  void trackContentViewed(EducationalContent content) {
+    analytics?.trackContentView(content.id, content.categories.first);
+    analytics?.startContentSession(content.id);
+  }
+
+  /// End the session and optionally mark completion
+  Future<void> endContentView({bool completed = false}) async {
+    await analytics?.endContentSession(wasCompleted: completed);
   }
 }

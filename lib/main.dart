@@ -14,6 +14,7 @@ import 'services/google_drive_service.dart';
 import 'services/storage_service.dart';
 import 'services/enhanced_storage_service.dart';
 import 'services/educational_content_service.dart';
+import 'services/educational_content_analytics_service.dart';
 import 'services/gamification_service.dart';
 import 'services/premium_service.dart';
 import 'services/ad_service.dart';
@@ -163,7 +164,8 @@ Future<void> originalMain() async {
   final storageService = EnhancedStorageService();
   final aiService = AiService();
   final analyticsService = AnalyticsService(storageService);
-  final educationalContentService = EducationalContentService();
+  final educationalContentAnalyticsService = EducationalContentAnalyticsService();
+  final educationalContentService = EducationalContentService(educationalContentAnalyticsService);
   final gamificationService = GamificationService(storageService, CloudStorageService(storageService));
   final premiumService = PremiumService();
   final adService = AdService();
@@ -191,6 +193,7 @@ Future<void> originalMain() async {
     storageService: storageService,
     aiService: aiService,
     analyticsService: analyticsService,
+    educationalContentAnalyticsService: educationalContentAnalyticsService,
     educationalContentService: educationalContentService,
     gamificationService: gamificationService,
     premiumService: premiumService,
@@ -243,6 +246,7 @@ class WasteSegregationApp extends StatelessWidget {
     required this.analyticsService,
     required this.googleDriveService,
     required this.gamificationService,
+    required this.educationalContentAnalyticsService,
     required this.educationalContentService,
     required this.premiumService,
     required this.adService,
@@ -255,6 +259,7 @@ class WasteSegregationApp extends StatelessWidget {
   final GoogleDriveService googleDriveService;
   final GamificationService gamificationService;
   final EducationalContentService educationalContentService;
+  final EducationalContentAnalyticsService educationalContentAnalyticsService;
   final PremiumService premiumService;
   final AdService adService;
   final NavigationSettingsService navigationSettingsService;
@@ -271,6 +276,8 @@ class WasteSegregationApp extends StatelessWidget {
         Provider<StorageService>.value(value: storageService),
         Provider<AiService>.value(value: aiService),
         ChangeNotifierProvider<AnalyticsService>.value(value: analyticsService),
+        ChangeNotifierProvider<EducationalContentAnalyticsService>.value(
+            value: educationalContentAnalyticsService),
         Provider<GoogleDriveService>.value(value: googleDriveService),
         Provider<EducationalContentService>.value(value: educationalContentService),
         Provider<GamificationService>.value(value: gamificationService),
