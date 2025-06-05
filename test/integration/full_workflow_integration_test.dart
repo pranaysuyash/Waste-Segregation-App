@@ -405,7 +405,7 @@ void main() {
             type: AchievementType.wasteIdentified,
             threshold: 100,
             iconName: 'star',
-            color: Colors.gold,
+            color: Colors.amber,
             progress: 1.0,
           )),
         );
