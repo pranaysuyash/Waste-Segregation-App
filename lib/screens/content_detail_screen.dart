@@ -679,6 +679,7 @@ class _VideoPlayerWidgetState extends State<_VideoPlayerWidget> {
   }
 
   Future<void> _initializePlayer() async {
+    if (!mounted) return;
     try {
       _controller = VideoPlayerController.networkUrl(Uri.parse(widget.url))
         ..initialize().then((_) {

@@ -63,6 +63,7 @@ class _OfflineModeSettingsScreenState extends State<OfflineModeSettingsScreen> {
     // Load offline settings from storage
     final settings = await storage.get<Map<String, dynamic>>('offline_settings') ?? <String, dynamic>{};
     
+    if (!mounted) return;
     setState(() {
       _offlineEnabled = settings['enabled'] ?? false;
       _autoDownloadModels = settings['auto_download'] ?? true;
@@ -148,6 +149,7 @@ class _OfflineModeSettingsScreenState extends State<OfflineModeSettingsScreen> {
                     SwitchListTile(
                       value: _offlineEnabled,
                       onChanged: (value) {
+                        if (!mounted) return;
                         setState(() {
                           _offlineEnabled = value;
                         });
@@ -216,6 +218,7 @@ class _OfflineModeSettingsScreenState extends State<OfflineModeSettingsScreen> {
                       SwitchListTile(
                         value: _autoDownloadModels,
                         onChanged: (value) {
+                          if (!mounted) return;
                           setState(() {
                             _autoDownloadModels = value;
                           });
@@ -228,6 +231,7 @@ class _OfflineModeSettingsScreenState extends State<OfflineModeSettingsScreen> {
                       SwitchListTile(
                         value: _compressImages,
                         onChanged: (value) {
+                          if (!mounted) return;
                           setState(() {
                             _compressImages = value;
                           });
@@ -240,6 +244,7 @@ class _OfflineModeSettingsScreenState extends State<OfflineModeSettingsScreen> {
                       SwitchListTile(
                         value: _storageOptimization,
                         onChanged: (value) {
+                          if (!mounted) return;
                           setState(() {
                             _storageOptimization = value;
                           });

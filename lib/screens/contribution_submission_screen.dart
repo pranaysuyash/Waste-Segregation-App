@@ -772,6 +772,7 @@ class _ContributionSubmissionScreenState extends State<ContributionSubmissionScr
   void _addMaterial() {
     final material = _materialController.text.trim();
     if (material.isNotEmpty && !_acceptedMaterials.contains(material)) {
+      if (!mounted) return;
       setState(() {
         _acceptedMaterials.add(material);
         _materialController.clear();
@@ -780,6 +781,7 @@ class _ContributionSubmissionScreenState extends State<ContributionSubmissionScr
   }
 
   void _removeMaterial(String material) {
+    if (!mounted) return;
     setState(() {
       _acceptedMaterials.remove(material);
     });
@@ -795,6 +797,7 @@ class _ContributionSubmissionScreenState extends State<ContributionSubmissionScr
       );
       
       if (image != null) {
+        if (!mounted) return;
         setState(() {
           _selectedImages.add(File(image.path));
         });
@@ -809,6 +812,7 @@ class _ContributionSubmissionScreenState extends State<ContributionSubmissionScr
   }
 
   void _removeImage(int index) {
+    if (!mounted) return;
     setState(() {
       _selectedImages.removeAt(index);
     });
@@ -819,6 +823,7 @@ class _ContributionSubmissionScreenState extends State<ContributionSubmissionScr
       return;
     }
 
+    if (!mounted) return;
     setState(() {
       _isSubmitting = true;
     });
@@ -881,6 +886,7 @@ class _ContributionSubmissionScreenState extends State<ContributionSubmissionScr
   }
 
   Map<String, dynamic> _prepareSuggestedData() {
+    if (!mounted) return {};
     switch (widget.contributionType) {
       case ContributionType.editHours:
         return {

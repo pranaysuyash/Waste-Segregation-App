@@ -26,7 +26,7 @@ class _AuthScreenState extends State<AuthScreen> {
       );
       return;
     }
-    
+    if (!mounted) return;
     setState(() {
       _isLoading = true;
     });
@@ -53,11 +53,10 @@ class _AuthScreenState extends State<AuthScreen> {
         );
       }
     } finally {
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
-      }
+      if (!mounted) return;
+      setState(() {
+        _isLoading = false;
+      });
     }
   }
 
