@@ -1077,11 +1077,29 @@ Output:
         final choice = responseData['choices'][0];
         if (choice['message'] != null && choice['message']['content'] != null) {
           final String content = choice['message']['content'];
+          
+          // 🔍 ENHANCED DEBUGGING: Log the raw AI response
+          debugPrint('🤖 RAW AI RESPONSE:');
+          debugPrint('📝 Content length: ${content.length} characters');
+          debugPrint('📝 First 500 chars: ${content.length > 500 ? content.substring(0, 500) + "..." : content}');
+          
           final jsonString = _cleanJsonString(content);
+          
+          // 🔍 ENHANCED DEBUGGING: Log the cleaned JSON string
+          debugPrint('🧹 CLEANED JSON STRING:');
+          debugPrint('📝 Cleaned length: ${jsonString.length} characters');
+          debugPrint('📝 Cleaned content: ${jsonString.length > 1000 ? jsonString.substring(0, 1000) + "..." : jsonString}');
 
           Map<String, dynamic> jsonContent;
           try {
             jsonContent = jsonDecode(jsonString);
+            
+            // 🔍 ENHANCED DEBUGGING: Log successful parsing
+            debugPrint('✅ JSON PARSING SUCCESS');
+            debugPrint('📊 Parsed keys: ${jsonContent.keys.toList()}');
+            debugPrint('📊 ItemName from JSON: ${jsonContent['itemName']}');
+            debugPrint('📊 Category from JSON: ${jsonContent['category']}');
+            
             return _createClassificationFromJsonContent(
               jsonContent,
               imagePath,
@@ -1091,8 +1109,12 @@ Output:
               classificationId,
             );
           } catch (jsonError) {
-            debugPrint('Failed to parse JSON from AI response: $jsonError');
-            debugPrint('Problematic JSON content: $content');
+            // 🔍 ENHANCED DEBUGGING: Log JSON parsing failure details
+            debugPrint('❌ JSON PARSING FAILED');
+            debugPrint('❌ Error: $jsonError');
+            debugPrint('❌ Error type: ${jsonError.runtimeType}');
+            debugPrint('❌ Problematic JSON (first 1000 chars): ${jsonString.length > 1000 ? jsonString.substring(0, 1000) + "..." : jsonString}');
+            debugPrint('❌ Original content (first 1000 chars): ${content.length > 1000 ? content.substring(0, 1000) + "..." : content}');
 
             // Try to extract basic info even if full parsing fails
             return _createFallbackClassification(
@@ -1105,12 +1127,13 @@ Output:
         }
       }
     } catch (e) {
-      debugPrint('Error processing AI response data: $e');
+      debugPrint('❌ Error processing AI response data: $e');
       // Ensure fallback also uses the consistent ID
       return WasteClassification.fallback(imagePath, id: classificationId);
     }
 
     // Fallback for unexpected response structure
+    debugPrint('❌ Unexpected response structure, using fallback');
     return WasteClassification.fallback(imagePath, id: classificationId);
   }
 

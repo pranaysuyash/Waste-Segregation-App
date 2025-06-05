@@ -2,6 +2,14 @@
 
 All notable changes to the Waste Segregation App will be documented in this file.
 
+## [0.1.6+102] - 2025-01-04
+
+### 📚 Documentation
+- **Environment Setup Guide**: Added critical documentation for development environment setup (`docs/technical/development/ENVIRONMENT_SETUP.md`). Emphasizes the requirement to use `.env` file with `--dart-define-from-file=.env` for proper API key configuration during development.
+
+### 🛠️ Performance Optimizations  
+- **Service Instantiation Optimization**: Completed optimization of both `CloudStorageService` and `AiService` to use singleton pattern for `GamificationService` and `EnhancedImageService` respectively. Eliminates repeated service instantiation overhead and adds proper error handling.
+
 ## [0.1.6+101] - 2025-01-04
 
 ### 🛠️ Performance Optimizations

@@ -134,12 +134,9 @@ class StorageService {
     final userProfile = await getCurrentUserProfile();
     final currentUserId = userProfile?.id ?? 'guest_user';
 
-    // Debug logging - ENHANCED
-    debugPrint('=== CLASSIFICATION LOADING DEBUG ===');
-    debugPrint('📖 Current user ID: $currentUserId');
-    debugPrint('📖 User profile: ${userProfile?.toJson()}');
+    // Debug logging - REDUCED
+    debugPrint('📖 Loading classifications for user: $currentUserId');
     debugPrint('📖 Total classifications in storage: ${classificationsBox.keys.length}');
-    debugPrint('📖 All keys in storage: ${classificationsBox.keys.toList()}');
     
     // Counter for different types of classifications
     var totalProcessed = 0;
@@ -151,13 +148,12 @@ class StorageService {
     var signedInUserEntries = 0;
     var nullUserIdEntries = 0;
     
-    // Debug all classifications in storage
+    // Process classifications for the current user (main filtering loop)
     for (final key in classificationsBox.keys) {
       totalProcessed++;
       try {
         final data = classificationsBox.get(key);
         if (data == null) {
-          debugPrint('📖 DEBUG: Skipping null entry for key: $key');
           corruptedEntries++;
           continue;
         }
@@ -167,7 +163,6 @@ class StorageService {
         // Handle both JSON string and Map formats
         if (data is String) {
           if (data.isEmpty) {
-            debugPrint('📖 DEBUG: Skipping empty string entry for key: $key');
             corruptedEntries++;
             continue;
           }
@@ -177,12 +172,13 @@ class StorageService {
         } else if (data is Map) {
           json = Map<String, dynamic>.from(data);
         } else {
-          debugPrint('📖 DEBUG: Invalid data format for key: $key (${data.runtimeType})');
+          debugPrint('📖 ⚠️ Invalid data format for key: $key (${data.runtimeType}), deleting corrupted entry');
+          await classificationsBox.delete(key);
           corruptedEntries++;
           continue;
         }
         
-        final classification = WasteClassification.fromJson(json);
+        var classification = WasteClassification.fromJson(json);
         successfullyParsed++;
         
         // Count user ID types
@@ -193,48 +189,6 @@ class StorageService {
         } else {
           signedInUserEntries++;
         }
-        
-        debugPrint('📖 Classification: ${classification.itemName} | userId: "${classification.userId}" | timestamp: ${classification.timestamp}');
-      } catch (e) {
-        debugPrint('📖 DEBUG: Error reading classification with key $key: $e');
-        corruptedEntries++;
-      }
-    }
-    
-    // Print debug summary for the first loop
-    debugPrint('📊 DEBUG SUMMARY - PARSING:');
-    debugPrint('📊 Total entries processed: $totalProcessed');
-    debugPrint('📊 Successfully parsed: $successfullyParsed');
-    debugPrint('📊 Corrupted entries: $corruptedEntries');
-    debugPrint('📊 Null userId entries: $nullUserIdEntries');
-    debugPrint('📊 Guest entries: $guestEntries');
-    debugPrint('📊 Signed-in user entries: $signedInUserEntries');
-    
-    // Now process classifications for the current user (main filtering loop)
-    for (final key in classificationsBox.keys) {
-      try {
-        final data = classificationsBox.get(key);
-        if (data == null) {
-          continue;
-        }
-        
-        Map<String, dynamic> json;
-        
-        // Handle both JSON string and Map formats
-        if (data is String) {
-          if (data.isEmpty) continue;
-          json = jsonDecode(data);
-        } else if (data is Map<String, dynamic>) {
-          json = data;
-        } else if (data is Map) {
-          json = Map<String, dynamic>.from(data);
-        } else {
-          debugPrint('📖 ⚠️ Invalid data format for key: $key (${data.runtimeType}), deleting corrupted entry');
-          await classificationsBox.delete(key);
-          continue;
-        }
-        
-        var classification = WasteClassification.fromJson(json);
         
         // Assign a new ID if it's missing (for older entries) and save back
         if (classification.id.isEmpty) {
@@ -253,24 +207,20 @@ class StorageService {
                          classification.userId == null ||
                          (classification.userId != null && 
                           classification.userId!.startsWith('guest_'));
-          debugPrint('📖 Guest mode check for "${classification.itemName}": $shouldInclude (userId: "${classification.userId}")');
         } else {
           // For signed-in users, only include their own classifications
           shouldInclude = classification.userId == currentUserId;
-          debugPrint('📖 Signed-in mode check for "${classification.itemName}": $shouldInclude (looking for: "$currentUserId", found: "${classification.userId}")');
         }
         
         if (shouldInclude) {
           classifications.add(classification);
           includedForUser++;
-          debugPrint('📖 ✅ Including classification: ${classification.itemName}');
         } else {
           excludedDifferentUser++;
-          debugPrint('📖 ❌ Excluding classification: ${classification.itemName} (different user)');
         }
       } catch (e, stackTrace) {
         debugPrint('📖 ❌ Error processing classification with key $key: $e');
-        debugPrint('📖 ❌ Stack trace: $stackTrace');
+        corruptedEntries++;
         
         // Delete corrupted entry to prevent future errors
         try {
@@ -283,13 +233,13 @@ class StorageService {
     }
     
     // Final debug summary
-    debugPrint('📊 FINAL SUMMARY - FILTERING:');
-    debugPrint('📊 Current user ID: "$currentUserId"');
+    debugPrint('📊 SUMMARY:');
+    debugPrint('📊 Total entries processed: $totalProcessed');
+    debugPrint('📊 Successfully parsed: $successfullyParsed');
+    debugPrint('📊 Corrupted entries: $corruptedEntries');
     debugPrint('📊 Classifications included for user: $includedForUser');
     debugPrint('📊 Classifications excluded (different user): $excludedDifferentUser');
     debugPrint('📊 Total classifications returned: ${classifications.length}');
-    debugPrint('📖 Total classifications loaded for user $currentUserId: ${classifications.length}');
-    debugPrint('=====================================');
 
     // Apply filters if provided
     if (filterOptions != null && filterOptions.isNotEmpty) {
