@@ -195,7 +195,7 @@ class _AchievementsScreenState extends State<AchievementsScreen>
                         ),
                       ),
                       Text(
-                        '${profile.streak.current} ${profile.streak.current == 1 ? 'day' : 'days'}',
+                        '${_getCurrentStreak(profile)} ${_getCurrentStreak(profile) == 1 ? 'day' : 'days'}',
                         style: const TextStyle(
                           fontSize: 22,
                           fontWeight: FontWeight.bold,
@@ -215,7 +215,7 @@ class _AchievementsScreenState extends State<AchievementsScreen>
                         ),
                       ),
                       Text(
-                        '${profile.streak.longest} ${profile.streak.longest == 1 ? 'day' : 'days'}',
+                        '${_getLongestStreak(profile)} ${_getLongestStreak(profile) == 1 ? 'day' : 'days'}',
                         style: const TextStyle(
                           fontSize: AppTheme.fontSizeMedium,
                           fontWeight: FontWeight.bold,
@@ -1157,7 +1157,7 @@ class _AchievementsScreenState extends State<AchievementsScreen>
                     children: [
                       _buildStatItem(
                         'Longest Streak',
-                        '${profile.streak.longest} days',
+                        '${_getLongestStreak(profile)} days',
                         Icons.local_fire_department,
                         Colors.deepOrange,
                       ),
@@ -1509,5 +1509,18 @@ class _AchievementsScreenState extends State<AchievementsScreen>
   Icon getAchievementIcon(String iconName, {Color? color, double? size}) {
     // Always use a constant icon for release builds to avoid tree shaking issues
     return Icon(Icons.emoji_events, color: color, size: size);
+  }
+
+  // Helper methods for streak access
+  int _getCurrentStreak(GamificationProfile profile) {
+    // Get the daily classification streak, which is the primary streak
+    final dailyStreak = profile.streaks[StreakType.dailyClassification.toString()];
+    return dailyStreak?.currentCount ?? 0;
+  }
+
+  int _getLongestStreak(GamificationProfile profile) {
+    // Get the longest streak from daily classification streak
+    final dailyStreak = profile.streaks[StreakType.dailyClassification.toString()];
+    return dailyStreak?.longestCount ?? 0;
   }
 }

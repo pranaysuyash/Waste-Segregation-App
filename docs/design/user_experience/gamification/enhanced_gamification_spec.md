@@ -710,23 +710,36 @@ class GamificationService {
     
     // Check for first discovery of this material
     if (!profile.discoveredMaterials.contains(result.material)) {
-      reasons['First discovery: ${result.material}'] = 20;
+      reasons['First discovery: ${result.material}'] = 20; // Example value
     }
     
-    // Check for daily streak bonuses
-    if (profile.streakDays > 0) {
-      // Bonuses at milestone days
-      if (profile.streakDays % 7 == 0) {
-        reasons['${profile.streakDays} day streak bonus'] = 15;
-      } else {
-        reasons['Daily streak bonus'] = 5;
-      }
+    // Check for daily streak bonuses (for a relevant streak, e.g., classification_streak)
+    // This section should align with the main strategy document's dynamic streak rewards
+    // For simplicity, assuming 'profile.streakDays' refers to a relevant streak like daily classification.
+    // The main strategy document details daily maintenance points per streak type and larger, escalating milestone bonuses.
+
+    // Example of daily maintenance point (could be applied for each active streak type)
+    if (profile.streakDays > 0) { // Basic check if any streak is active
+        reasons['Daily classification streak upkeep'] = 5; // Per new strategy: daily maintenance
     }
+
+    // Example of milestone bonuses for the classification streak
+    // These values should match the main strategy document (e.g., gamification_engagement_strategy.md)
+    if (profile.streakDays == 3) {
+        reasons['3-Day Classification Streak Milestone!'] = 15;
+    } else if (profile.streakDays == 7) {
+        reasons['7-Day Classification Streak Milestone!'] = 35;
+    } else if (profile.streakDays == 14) {
+        reasons['14-Day Classification Streak Milestone!'] = 75;
+    } else if (profile.streakDays == 30) {
+        reasons['30-Day Classification Streak Milestone!'] = 150;
+    }
+    // ... add more milestones as defined in the strategy ...
     
-    // Challenge-specific bonuses
+    // Challenge-specific bonuses (if classification contributes to an active challenge)
     for (final challenge in profile.activeChallenge) {
       if (challengeMatchesClassification(challenge, result)) {
-        reasons['Challenge: ${challenge.title}'] = 5;
+        reasons['Challenge progress: ${challenge.title}'] = 5; // Small bonus for contributing action
       }
     }
     

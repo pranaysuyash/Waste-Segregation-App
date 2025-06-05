@@ -1028,7 +1028,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
 
         // Streak indicator
         StreakIndicator(
-          streak: _gamificationProfile!.streak,
+          streak: _getMainStreak(_gamificationProfile!),
           onTap: () {
             // Navigate to achievements screen with streak tab
             Navigator.push(
@@ -1887,6 +1887,25 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
           ),
         ),
       ),
+    );
+  }
+
+  // Helper method to get main streak from the new streaks map
+  Streak _getMainStreak(GamificationProfile profile) {
+    // Get the daily classification streak, which is the primary streak
+    final dailyStreak = profile.streaks[StreakType.dailyClassification.toString()];
+    if (dailyStreak != null) {
+      return Streak(
+        current: dailyStreak.currentCount,
+        longest: dailyStreak.longestCount,
+        lastUsageDate: dailyStreak.lastActivityDate,
+      );
+    }
+    // Return empty streak if no daily classification streak exists
+    return Streak(
+      current: 0,
+      longest: 0,
+      lastUsageDate: DateTime.now(),
     );
   }
 }

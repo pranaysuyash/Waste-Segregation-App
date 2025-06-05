@@ -7,6 +7,7 @@ import 'package:waste_segregation_app/services/cloud_storage_service.dart';
 import 'package:waste_segregation_app/models/gamification.dart';
 import 'package:waste_segregation_app/models/waste_classification.dart';
 import 'package:waste_segregation_app/models/user_profile.dart';
+import 'package:flutter/material.dart';
 
 // Manual mocks
 class MockStorageService extends Mock implements StorageService {}
@@ -90,7 +91,7 @@ void main() {
       
       expect(profile.userId, equals('test_user_123'));
       expect(profile.points.total, equals(0));
-      expect(profile.streak.current, equals(0));
+      expect(profile.streaks[StreakType.dailyClassification.toString()]?.currentCount, equals(0));
       expect(profile.achievements, isNotEmpty);
       
       // verify(mockStorageService.saveUserProfile(argThat(isA<UserProfile>())))
@@ -103,8 +104,19 @@ void main() {
       final existingProfile = GamificationProfile(
         userId: 'test_user_123',
         points: const UserPoints(total: 100),
-        streak: Streak(current: 5, longest: 10, lastUsageDate: DateTime.now()),
+        streaks: {
+          StreakType.dailyClassification.toString(): StreakDetails(
+            type: StreakType.dailyClassification,
+            currentCount: 5,
+            longestCount: 10,
+            lastActivityDate: DateTime.now(),
+            lastMaintenanceAwardedDate: DateTime.now().subtract(const Duration(days:1)),
+            lastMilestoneAwardedLevel: 1,
+          )
+        },
         achievements: [],
+        discoveredItemIds: {},
+        unlockedHiddenContentIds: {},
       );
       
       final mockUser = UserProfile(
@@ -121,7 +133,7 @@ void main() {
       
       expect(profile.userId, equals('test_user_123'));
       expect(profile.points.total, equals(100));
-      expect(profile.streak.current, equals(5));
+      expect(profile.streaks[StreakType.dailyClassification.toString()]?.currentCount, equals(5));
       
       // verifyNever(mockStorageService.saveUserProfile(any));
     });
@@ -216,82 +228,171 @@ void main() {
     });
 
     test('should start new streak on first use', () async {
-      final streak = await gamificationService.updateStreak();
+      await gamificationService.updateStreak(); // Assumes updates default streak
+      final profile = await gamificationService.getProfile();
       
-      expect(streak.current, equals(1));
-      expect(streak.longest, equals(1));
+      expect(profile.streaks[StreakType.dailyClassification.toString()]?.currentCount, equals(1));
+      expect(profile.streaks[StreakType.dailyClassification.toString()]?.longestCount, equals(1));
     });
 
     test('should increment streak for consecutive days', () async {
       // Simulate yesterday's usage
       final yesterday = DateTime.now().subtract(const Duration(days: 1));
-      final profile = await gamificationService.getProfile();
-      final updatedProfile = profile.copyWith(
-        streak: Streak(current: 1, longest: 1, lastUsageDate: yesterday),
+      final initialGamificationProfile = GamificationProfile(
+        userId: 'test_user_123',
+        points: const UserPoints(),
+        streaks: {
+          StreakType.dailyClassification.toString(): StreakDetails(
+            type: StreakType.dailyClassification,
+            currentCount: 1,
+            longestCount: 1,
+            lastActivityDate: yesterday,
+            lastMaintenanceAwardedDate: yesterday, // Added sensible default
+            lastMilestoneAwardedLevel: 0, // Added sensible default
+          )
+        },
+        achievements: [],
+        discoveredItemIds: {}, // Added required field
+        unlockedHiddenContentIds: {}, // Added required field
       );
       
       final mockUser = UserProfile(
         id: 'test_user_123',
         email: 'test@example.com',
         displayName: 'Test User',
-        gamificationProfile: updatedProfile,
+        gamificationProfile: initialGamificationProfile,
       );
       
       when(mockStorageService.getCurrentUserProfile())
           .thenAnswer((_) async => mockUser);
 
-      final newStreak = await gamificationService.updateStreak();
+      await gamificationService.updateStreak(); // Assumes updates default streak
+      final updatedProfile = await gamificationService.getProfile();
       
-      expect(newStreak.current, equals(2));
-      expect(newStreak.longest, equals(2));
+      expect(updatedProfile.streaks[StreakType.dailyClassification.toString()]?.currentCount, equals(2));
+      expect(updatedProfile.streaks[StreakType.dailyClassification.toString()]?.longestCount, equals(2));
     });
 
     test('should reset streak for missed days', () async {
       // Simulate usage 3 days ago
       final threeDaysAgo = DateTime.now().subtract(const Duration(days: 3));
-      final profile = await gamificationService.getProfile();
-      final updatedProfile = profile.copyWith(
-        streak: Streak(current: 5, longest: 5, lastUsageDate: threeDaysAgo),
+      final initialGamificationProfile = GamificationProfile(
+        userId: 'test_user_123',
+        points: const UserPoints(),
+        streaks: {
+          StreakType.dailyClassification.toString(): StreakDetails(
+            type: StreakType.dailyClassification,
+            currentCount: 2, // Current streak was 2
+            longestCount: 2, // Longest streak was 2
+            lastActivityDate: threeDaysAgo,
+            lastMaintenanceAwardedDate: threeDaysAgo, // Added sensible default
+            lastMilestoneAwardedLevel: 0, // Added sensible default
+          )
+        },
+        achievements: [],
+        discoveredItemIds: {}, // Added required field
+        unlockedHiddenContentIds: {}, // Added required field
       );
       
       final mockUser = UserProfile(
         id: 'test_user_123',
         email: 'test@example.com',
         displayName: 'Test User',
-        gamificationProfile: updatedProfile,
+        gamificationProfile: initialGamificationProfile,
       );
       
       when(mockStorageService.getCurrentUserProfile())
           .thenAnswer((_) async => mockUser);
 
-      final newStreak = await gamificationService.updateStreak();
+      await gamificationService.updateStreak(); // Assumes updates default streak
+      final updatedProfile = await gamificationService.getProfile();
       
-      expect(newStreak.current, equals(1)); // Reset to 1
-      expect(newStreak.longest, equals(5)); // Longest streak preserved
+      expect(updatedProfile.streaks[StreakType.dailyClassification.toString()]?.currentCount, equals(1)); // Reset to 1
+      expect(updatedProfile.streaks[StreakType.dailyClassification.toString()]?.longestCount, equals(2)); // Longest streak preserved
     });
 
-    test('should maintain streak for same day usage', () async {
-      // Simulate earlier today usage
-      final todayEarlier = DateTime.now().subtract(const Duration(hours: 2));
-      final profile = await gamificationService.getProfile();
-      final updatedProfile = profile.copyWith(
-        streak: Streak(current: 3, longest: 5, lastUsageDate: todayEarlier),
+    test('should not change streak for same-day usage', () async {
+      // Simulate usage earlier today
+      final today = DateTime.now();
+      final initialGamificationProfile = GamificationProfile(
+        userId: 'test_user_123',
+        points: const UserPoints(),
+        streaks: {
+          StreakType.dailyClassification.toString(): StreakDetails(
+            type: StreakType.dailyClassification,
+            currentCount: 1,
+            longestCount: 1,
+            lastActivityDate: today,
+            lastMaintenanceAwardedDate: today, // Added sensible default
+            lastMilestoneAwardedLevel: 0, // Added sensible default
+          )
+        },
+        achievements: [],
+        discoveredItemIds: {}, // Added required field
+        unlockedHiddenContentIds: {}, // Added required field
       );
       
       final mockUser = UserProfile(
         id: 'test_user_123',
         email: 'test@example.com',
         displayName: 'Test User',
-        gamificationProfile: updatedProfile,
+        gamificationProfile: initialGamificationProfile,
       );
       
       when(mockStorageService.getCurrentUserProfile())
           .thenAnswer((_) async => mockUser);
 
-      final newStreak = await gamificationService.updateStreak();
+      await gamificationService.updateStreak(); // Assumes updates default streak
+      final updatedProfile = await gamificationService.getProfile();
       
-      expect(newStreak.current, equals(3)); // Should remain the same
-      expect(newStreak.longest, equals(5));
+      expect(updatedProfile.streaks[StreakType.dailyClassification.toString()]?.currentCount, equals(1));
+      expect(updatedProfile.streaks[StreakType.dailyClassification.toString()]?.longestCount, equals(1));
+    });
+
+    test('should award points for streak milestones', () async {
+      final twoDaysAgo = DateTime.now().subtract(const Duration(days: 2));
+      final initialPoints = 0;
+      GamificationProfile initialGamificationProfile = GamificationProfile(
+        userId: 'test_user_123',
+        points: UserPoints(total: initialPoints),
+        streaks: {
+          StreakType.dailyClassification.toString(): StreakDetails(
+            type: StreakType.dailyClassification,
+            currentCount: 2, 
+            longestCount: 2, 
+            lastActivityDate: twoDaysAgo,
+            lastMaintenanceAwardedDate: twoDaysAgo,
+            lastMilestoneAwardedLevel: 0,
+          )
+        },
+        achievements: [],
+        discoveredItemIds: {},
+        unlockedHiddenContentIds: {},
+      );
+      
+      UserProfile mockUser = UserProfile(
+        id: 'test_user_123',
+        email: 'test@example.com',
+        displayName: 'Test User',
+        gamificationProfile: initialGamificationProfile,
+      );
+      when(mockStorageService.getCurrentUserProfile()).thenAnswer((_) async => mockUser);
+      
+      when(mockStorageService.saveUserProfile(argThat(isA<UserProfile>())))
+          .thenAnswer((invocation) async {
+        mockUser = invocation.positionalArguments[0] as UserProfile;
+        when(mockStorageService.getCurrentUserProfile()).thenAnswer((_) async => mockUser);
+      });
+      when(mockCloudStorageService.saveUserProfileToFirestore(argThat(isA<UserProfile>())))
+          .thenAnswer((_) async {});
+
+      await gamificationService.updateStreak(); 
+      
+      final finalProfile = await gamificationService.getProfile(); 
+
+      expect(finalProfile.streaks[StreakType.dailyClassification.toString()]?.currentCount, equals(3));
+      expect(finalProfile.points.total, equals(initialPoints + 1 + 25)); 
+      expect(finalProfile.streaks[StreakType.dailyClassification.toString()]?.lastMilestoneAwardedLevel, equals(3));
     });
   });
 
@@ -529,27 +630,92 @@ void main() {
   });
 
   group('Data Persistence', () {
-    test('should save and retrieve gamification data correctly', () async {
-      final mockUser = UserProfile(
-        id: 'test_user_123',
-        email: 'test@example.com',
-        displayName: 'Test User',
-      );
-      
-      when(mockStorageService.getCurrentUserProfile())
-          .thenAnswer((_) async => mockUser);
-      // when(mockStorageService.saveUserProfile(any))
-      //     .thenAnswer((_) async {});
-      // when(mockCloudStorageService.saveUserProfileToFirestore(any))
-      //     .thenAnswer((_) async {});
+    test('should save and load gamification profile correctly', () async {
+      const userId = 'test_user_persist';
 
-      // Add some points and update streak
-      await gamificationService.addPoints('classification', category: 'Dry Waste');
-      await gamificationService.updateStreak();
+      final targetGamificationProfileState = GamificationProfile(
+        userId: userId,
+        points: const UserPoints(total: 75, categoryPoints: {'Organic': 50, 'Recyclable': 25}),
+        streaks: {
+          StreakType.dailyClassification.toString(): StreakDetails(
+            type: StreakType.dailyClassification,
+            currentCount: 3,
+            longestCount: 5,
+            lastActivityDate: DateTime.now().subtract(const Duration(days: 1)),
+            lastMaintenanceAwardedDate: DateTime.now().subtract(const Duration(days:1)),
+            lastMilestoneAwardedLevel: 0,
+          )
+        },
+        achievements: [
+          Achievement(
+            id: 'ach1', 
+            title: 'Recycler',
+            description: 'Recycled 10 items', 
+            iconName: 'recycle_badge', 
+            earnedOn: DateTime.now(),
+            type: AchievementType.recyclingExpert,
+            threshold: 10,
+            color: Colors.green,
+            pointsReward: 100,
+          ),
+        ],
+        unlockedHiddenContentIds: {'lore_piece_1'},
+        discoveredItemIds: {'plastic_bottle_001'},
+        lastDailyEngagementBonusAwardedDate: DateTime.now().subtract(const Duration(days:1)),
+        lastViewPersonalStatsAwardedDate: null,
+      );
+
+      final baseUserProfileForSave = UserProfile(
+        id: userId, 
+        gamificationProfile: GamificationProfile(
+          userId: userId, 
+          streaks: {}, 
+          achievements: [], 
+          discoveredItemIds: {}, 
+          unlockedHiddenContentIds: {},
+          points: const UserPoints(),
+        )
+      );
+      when(mockStorageService.getCurrentUserProfile()).thenAnswer((_) async => baseUserProfileForSave);
+
+      when(mockStorageService.saveUserProfile(argThat(isA<UserProfile>())))
+          .thenAnswer((invocation) async {});
+      when(mockCloudStorageService.saveUserProfileToFirestore(argThat(isA<UserProfile>())))
+          .thenAnswer((_) async {});
       
-      // Verify save was called
-      // verify(mockStorageService.saveUserProfile(any)).called(greaterThan(0));
-      // verify(mockCloudStorageService.saveUserProfileToFirestore(any)).called(greaterThan(0));
+      await gamificationService.saveProfile(targetGamificationProfileState);
+
+      verify(mockStorageService.saveUserProfile(argThat(predicate<UserProfile>((userProfile) {
+        expect(userProfile.id, equals(userId));
+        expect(userProfile.gamificationProfile, isNotNull);
+        expect(userProfile.gamificationProfile?.points.total, equals(targetGamificationProfileState.points.total));
+        expect(userProfile.gamificationProfile?.streaks.length, equals(targetGamificationProfileState.streaks.length));
+        return true;
+      })))).called(1);
+      
+      verify(mockCloudStorageService.saveUserProfileToFirestore(argThat(predicate<UserProfile>((userProfile) {
+         expect(userProfile.id, equals(userId));
+         expect(userProfile.gamificationProfile?.points.total, equals(targetGamificationProfileState.points.total));
+         return true;
+      })))).called(1);
+
+      final userProfileWithSavedData = UserProfile(id: userId, gamificationProfile: targetGamificationProfileState);
+      when(mockStorageService.getCurrentUserProfile()).thenAnswer((_) async => userProfileWithSavedData);
+
+      final newGamificationService = GamificationService(mockStorageService, mockCloudStorageService);
+      await newGamificationService.initGamification(); 
+
+      final loadedProfile = await newGamificationService.getProfile();
+
+      expect(loadedProfile.userId, equals(userId));
+      expect(loadedProfile.points.total, equals(75));
+      expect(loadedProfile.points.categoryPoints['Organic'], equals(50));
+      expect(loadedProfile.streaks[StreakType.dailyClassification.toString()]?.currentCount, equals(3));
+      expect(loadedProfile.streaks[StreakType.dailyClassification.toString()]?.longestCount, equals(5));
+      expect(loadedProfile.achievements.any((a) => a.id == 'ach1'), isTrue);
+      expect(loadedProfile.unlockedHiddenContentIds, contains('lore_piece_1'));
+      expect(loadedProfile.discoveredItemIds, contains('plastic_bottle_001'));
+      expect(loadedProfile.lastDailyEngagementBonusAwardedDate?.day, equals(DateTime.now().subtract(const Duration(days:1)).day));
     });
   });
 } 

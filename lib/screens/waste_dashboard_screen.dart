@@ -727,7 +727,8 @@ class _WasteDashboardScreenState extends State<WasteDashboardScreen> {
         }
         final profile = snapshot.data!;
         final points = profile.points;
-        final streak = profile.streak;
+        final dailyStreak = profile.streaks[StreakType.dailyClassification.toString()];
+        final streakCurrent = dailyStreak?.currentCount ?? 0;
 
         return Card(
           elevation: 2,
@@ -762,7 +763,7 @@ class _WasteDashboardScreenState extends State<WasteDashboardScreen> {
                     children: [
                       GamificationSummaryCard(
                         title: 'Streak',
-                        value: streak.current.toString(),
+                        value: streakCurrent.toString(),
                         unit: 'days',
                         icon: Icons.local_fire_department,
                         color: Colors.orange,

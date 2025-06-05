@@ -785,7 +785,7 @@ class _ModernHomeScreenState extends State<ModernHomeScreen> with TickerProvider
         Expanded(
           child: StatsCard(
             title: 'Streak',
-            value: '${_gamificationProfile?.streak.current ?? 0}',
+            value: '${_getCurrentStreak(_gamificationProfile)}',
             icon: Icons.local_fire_department,
             color: Colors.orange,
             subtitle: 'days',
@@ -1305,5 +1305,13 @@ class _ModernHomeScreenState extends State<ModernHomeScreen> with TickerProvider
         debugPrint('Error checking data migration: $e');
       }
     }
+  }
+
+  // Helper method to get current streak from the new streaks map
+  int _getCurrentStreak(GamificationProfile? profile) {
+    if (profile == null) return 0;
+    // Get the daily classification streak, which is the primary streak
+    final dailyStreak = profile.streaks[StreakType.dailyClassification.toString()];
+    return dailyStreak?.currentCount ?? 0;
   }
 }

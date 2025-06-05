@@ -193,6 +193,7 @@ void main() {
             iconName: 'category',
             color: Colors.blue, // Added color
             progress: 1.0,
+            pointsReward: 75,
           )
         ];
 

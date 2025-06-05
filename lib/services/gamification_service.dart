@@ -103,9 +103,18 @@ class GamificationService {
       // Return a very basic, non-savable guest profile if no legacy one
       return GamificationProfile(
         userId: 'guest_user_${DateTime.now().millisecondsSinceEpoch}',
-        streak: Streak(lastUsageDate: DateTime.now()),
+        streaks: {
+          StreakType.dailyClassification.toString(): StreakDetails(
+            type: StreakType.dailyClassification,
+            currentCount: 0,
+            longestCount: 0,
+            lastActivityDate: DateTime.now(),
+          ),
+        },
         points: const UserPoints(),
         achievements: getDefaultAchievements(), // Provide default achievements
+        discoveredItemIds: {},
+        unlockedHiddenContentIds: {},
       );
     }
 
@@ -129,10 +138,19 @@ class GamificationService {
       
       final newGamificationProfile = GamificationProfile(
         userId: currentUserProfile.id, // Crucial: Use the actual user ID
-        streak: Streak(lastUsageDate: DateTime.now().subtract(const Duration(days: 1))), // Start with 0 streak, last used yesterday
+        streaks: {
+          StreakType.dailyClassification.toString(): StreakDetails(
+            type: StreakType.dailyClassification,
+            currentCount: 0,
+            longestCount: 0,
+            lastActivityDate: DateTime.now().subtract(const Duration(days: 1)),
+          ),
+        },
         points: const UserPoints(),
         achievements: getDefaultAchievements(), // Provide default achievements
         activeChallenges: activeChallenges, // Use safely loaded challenges
+        discoveredItemIds: {},
+        unlockedHiddenContentIds: {},
       );
 
       // Save this new gamification profile as part of the UserProfile
@@ -241,7 +259,34 @@ class GamificationService {
   Future<Streak> updateStreak() async {
     final profile = await getProfile();
     final now = DateTime.now();
-    final lastUsage = profile.streak.lastUsageDate;
+    
+    // Get the daily classification streak
+    final dailyStreakKey = StreakType.dailyClassification.toString();
+    final currentStreak = profile.streaks[dailyStreakKey];
+    
+    if (currentStreak == null) {
+      // Initialize streak if it doesn't exist
+      final newStreakDetails = StreakDetails(
+        type: StreakType.dailyClassification,
+        currentCount: 1,
+        longestCount: 1,
+        lastActivityDate: now,
+      );
+      
+      final updatedStreaks = Map<String, StreakDetails>.from(profile.streaks);
+      updatedStreaks[dailyStreakKey] = newStreakDetails;
+      
+      await saveProfile(profile.copyWith(streaks: updatedStreaks));
+      
+      // Return legacy Streak format for compatibility
+      return Streak(
+        current: 1,
+        longest: 1,
+        lastUsageDate: now,
+      );
+    }
+    
+    final lastUsage = currentStreak.lastActivityDate;
     
     // Create date objects for comparison (time-agnostic)
     final today = DateTime(now.year, now.month, now.day);
@@ -252,24 +297,29 @@ class GamificationService {
     debugPrint('  - Today: $today');
     debugPrint('  - Yesterday: $yesterday');
     debugPrint('  - Last usage day: $lastUsageDay');
-    debugPrint('  - Current streak: ${profile.streak.current}');
+    debugPrint('  - Current streak: ${currentStreak.currentCount}');
     
-    var newCurrent = profile.streak.current;
+    var newCurrent = currentStreak.currentCount;
     var shouldSave = false;
     
     if (lastUsageDay.isAtSameMomentAs(today)) {
       // Already used today, keep current streak (but ensure it's at least 1)
-      if (profile.streak.current == 0) {
+      if (currentStreak.currentCount == 0) {
         newCurrent = 1;
         shouldSave = true;
         debugPrint('  - First use today, setting streak to 1');
       } else {
-        debugPrint('  - Already used today, keeping streak: ${profile.streak.current}');
-        return profile.streak; // No need to save or award points again
+        debugPrint('  - Already used today, keeping streak: ${currentStreak.currentCount}');
+        // Return legacy Streak format for compatibility
+        return Streak(
+          current: currentStreak.currentCount,
+          longest: currentStreak.longestCount,
+          lastUsageDate: currentStreak.lastActivityDate,
+        );
       }
     } else if (lastUsageDay.isAtSameMomentAs(yesterday)) {
       // Last used yesterday, increment streak
-      newCurrent = profile.streak.current + 1;
+      newCurrent = currentStreak.currentCount + 1;
       shouldSave = true;
       debugPrint('  - Used yesterday, incrementing streak to: $newCurrent');
     } else {
@@ -280,27 +330,34 @@ class GamificationService {
     }
     
     if (!shouldSave) {
-      return profile.streak;
+      return Streak(
+        current: currentStreak.currentCount,
+        longest: currentStreak.longestCount,
+        lastUsageDate: currentStreak.lastActivityDate,
+      );
     }
     
     // Update longest streak if needed
-    final newLongest = newCurrent > profile.streak.longest 
+    final newLongest = newCurrent > currentStreak.longestCount 
         ? newCurrent 
-        : profile.streak.longest;
+        : currentStreak.longestCount;
     
-    final newStreak = Streak(
-      current: newCurrent,
-      longest: newLongest,
-      lastUsageDate: now,
+    final newStreakDetails = currentStreak.copyWith(
+      currentCount: newCurrent,
+      longestCount: newLongest,
+      lastActivityDate: now,
     );
     
     // Update the profile with the new streak
-    await saveProfile(profile.copyWith(streak: newStreak));
+    final updatedStreaks = Map<String, StreakDetails>.from(profile.streaks);
+    updatedStreaks[dailyStreakKey] = newStreakDetails;
+    
+    await saveProfile(profile.copyWith(streaks: updatedStreaks));
     
     debugPrint('  - New streak saved: current=$newCurrent, longest=$newLongest');
     
     // Award points for streak (only if streak increased)
-    if (newCurrent > profile.streak.current) {
+    if (newCurrent > currentStreak.currentCount) {
       await addPoints('daily_streak');
       debugPrint('  - Awarded daily streak points');
       
@@ -328,7 +385,12 @@ class GamificationService {
       debugPrint('  - Perfect week achieved! ${newCurrent ~/ 7} weeks');
     }
     
-    return newStreak;
+    // Return legacy Streak format for compatibility
+    return Streak(
+      current: newCurrent,
+      longest: newLongest,
+      lastUsageDate: now,
+    );
   }
   
   // Add points for an action
@@ -746,7 +808,8 @@ class GamificationService {
     
     // Get streak from profile
     final profile = await getProfile();
-    final streakValue = profile.streak.current;
+    final dailyStreak = profile.streaks[StreakType.dailyClassification.toString()];
+    final streakValue = dailyStreak?.currentCount ?? 0;
     
     // Create updated stats
     final updatedStats = currentWeekStats.copyWith(
@@ -1317,9 +1380,18 @@ class GamificationService {
       // Force recreation of fresh default profile with archived points reference
       final freshProfile = GamificationProfile(
         userId: 'default',
-        streak: Streak(lastUsageDate: DateTime.now()),
+        streaks: {
+          StreakType.dailyClassification.toString(): StreakDetails(
+            type: StreakType.dailyClassification,
+            currentCount: 0,
+            longestCount: 0,
+            lastActivityDate: DateTime.now(),
+          ),
+        },
         points: const UserPoints(), // This ensures 0 current points
         achievements: getDefaultAchievements(),
+        discoveredItemIds: {},
+        unlockedHiddenContentIds: {},
       );
       
       await box.put(_legacyProfileKey, jsonEncode(freshProfile.toJson()));
@@ -1422,14 +1494,20 @@ class GamificationService {
       final profile = await getProfile();
       final yesterday = DateTime.now().subtract(const Duration(days: 1));
       
-      final newStreak = Streak(
-        current: profile.streak.current,
-        longest: profile.streak.longest,
-        lastUsageDate: yesterday,
-      );
+      final dailyStreakKey = StreakType.dailyClassification.toString();
+      final currentStreak = profile.streaks[dailyStreakKey];
       
-      await saveProfile(profile.copyWith(streak: newStreak));
-      debugPrint('🔄 Streak reset to yesterday for testing');
+      if (currentStreak != null) {
+        final updatedStreak = currentStreak.copyWith(
+          lastActivityDate: yesterday,
+        );
+        
+        final updatedStreaks = Map<String, StreakDetails>.from(profile.streaks);
+        updatedStreaks[dailyStreakKey] = updatedStreak;
+        
+        await saveProfile(profile.copyWith(streaks: updatedStreaks));
+        debugPrint('🔄 Streak reset to yesterday for testing');
+      }
     } catch (e) {
       debugPrint('❌ Error resetting streak: $e');
     }

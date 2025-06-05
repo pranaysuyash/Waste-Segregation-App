@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/mockito.dart';
 import 'package:hive/hive.dart';
+import 'package:flutter/material.dart';
 import 'package:waste_segregation_app/services/community_service.dart';
 import 'package:waste_segregation_app/models/community_feed.dart';
 import 'package:waste_segregation_app/models/user_profile.dart';
@@ -72,6 +73,7 @@ void main() {
           iconName: 'star',
           color: Colors.blue,
           progress: 1.0,
+          pointsReward: 50,
         );
 
         final user = UserProfile(
