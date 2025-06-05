@@ -219,7 +219,7 @@ class _FamilyDashboardScreenState extends State<FamilyDashboardScreen> {
               tag: 'family_icon_${family.id}',
               child: CircleAvatar(
                 radius: 30,
-                backgroundColor: AppTheme.primaryColor.withValues(alpha: 0.1),
+                backgroundColor: AppTheme.primaryColor.withOpacity(0.1),
                 child: family.imageUrl != null && family.imageUrl!.isNotEmpty
                     ? ClipOval(child: Image.network(family.imageUrl!, fit: BoxFit.cover, width: 60, height: 60))
                     : const Icon(Icons.family_restroom, size: 30, color: AppTheme.primaryColor),
@@ -271,16 +271,16 @@ class _FamilyDashboardScreenState extends State<FamilyDashboardScreen> {
               Container(
                 padding: const EdgeInsets.all(AppTheme.paddingLarge),
                 decoration: BoxDecoration(
-                  color: AppTheme.primaryColor.withValues(alpha: 0.05),
+                  color: AppTheme.primaryColor.withOpacity(0.05),
                   borderRadius: BorderRadius.circular(AppTheme.borderRadiusRegular),
-                  border: Border.all(color: AppTheme.primaryColor.withValues(alpha: 0.1)),
+                  border: Border.all(color: AppTheme.primaryColor.withOpacity(0.1)),
                 ),
                 child: Column(
                   children: [
                     Icon(
                       Icons.family_restroom,
                       size: 48,
-                      color: AppTheme.primaryColor.withValues(alpha: 0.7),
+                      color: AppTheme.primaryColor.withOpacity(0.7),
                     ),
                     const SizedBox(height: AppTheme.paddingRegular),
                     Text(
@@ -502,7 +502,7 @@ class _FamilyDashboardScreenState extends State<FamilyDashboardScreen> {
               margin: const EdgeInsets.only(bottom: AppTheme.paddingRegular),
               child: ListTile(
                 leading: CircleAvatar(
-                  backgroundColor: AppTheme.secondaryColor.withValues(alpha: 0.1),
+                  backgroundColor: AppTheme.secondaryColor.withOpacity(0.1),
                   child: Icon(_getCategoryIcon(item.classification.category), color: AppTheme.secondaryColor),
                 ),
                 title: Text('${item.classification.itemName} (${item.classification.category})'),
@@ -565,9 +565,9 @@ class _FamilyDashboardScreenState extends State<FamilyDashboardScreen> {
     return Container(
       padding: const EdgeInsets.all(AppTheme.paddingSmall),
       decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.1),
+        color: color.withOpacity(0.1),
         borderRadius: BorderRadius.circular(AppTheme.borderRadiusMd),
-        border: Border.all(color: color.withValues(alpha: 0.3)),
+        border: Border.all(color: color.withOpacity(0.3)),
       ),
       child: Row(
         children: [

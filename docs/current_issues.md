@@ -439,7 +439,7 @@ _Last updated: June 1, 2025_
 - ✅ **Import Prefix Strategy**: Systematic solution for UserRole/InvitationStatus conflicts
 - ✅ **Role Conversion Utilities**: Bidirectional conversion between model types
 - ✅ **BuildContext Async Safety**: ScaffoldMessenger and Navigator captured before async operations
-- ✅ **Deprecated API Updates**: `withOpacity()` → `withValues(alpha:)` conversions
+- ✅ **Deprecated API Updates**: reverted to `withOpacity()` for color opacity.
 - ✅ **Enum Exhaustiveness**: All switch statements complete with proper case coverage
 
 ### 📊 **Final Build Status Post-Deployment**

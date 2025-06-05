@@ -12,7 +12,7 @@
 
 **Solution Implemented**:
 - ✅ **Removed all production print statements** - Wrapped in `kDebugMode` checks
-- ✅ **Fixed deprecated API calls** - Created `OpacityFix` helper for modern `.withValues()`
+- ✅ **Fixed deprecated API calls** - Created `OpacityFix` helper for modern `.withOpacity()`
 - ✅ **Eliminated unused imports** - Cleaned up codebase
 - ✅ **Performance optimization** - Created `PerformanceOptimizer` class
 

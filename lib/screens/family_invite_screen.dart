@@ -92,7 +92,7 @@ class _FamilyInviteScreenState extends State<FamilyInviteScreen>
                       width: 50,
                       height: 50,
                       decoration: BoxDecoration(
-                        color: AppTheme.primaryColor.withValues(alpha: 0.1),
+                        color: AppTheme.primaryColor.withOpacity(0.1),
                         borderRadius: BorderRadius.circular(AppTheme.borderRadiusRegular),
                       ),
                       child: const Icon(
@@ -235,7 +235,7 @@ class _FamilyInviteScreenState extends State<FamilyInviteScreen>
             Container(
               padding: const EdgeInsets.all(AppTheme.paddingRegular),
               decoration: BoxDecoration(
-                color: Colors.blue.withValues(alpha: 0.1),
+                color: Colors.blue.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(AppTheme.borderRadiusRegular),
               ),
               child: Row(
@@ -282,7 +282,7 @@ class _FamilyInviteScreenState extends State<FamilyInviteScreen>
                   Container(
                     padding: const EdgeInsets.all(AppTheme.paddingRegular),
                     decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.1),
+                      color: Colors.white.withOpacity(0.1),
                       borderRadius: BorderRadius.circular(AppTheme.borderRadiusRegular),
                     ),
                     child: QrImageView(
@@ -324,7 +324,7 @@ class _FamilyInviteScreenState extends State<FamilyInviteScreen>
                   Container(
                     padding: const EdgeInsets.all(AppTheme.paddingRegular),
                     decoration: BoxDecoration(
-                      color: Colors.grey.shade100.withValues(alpha: 0.1),
+                      color: Colors.grey.shade100.withOpacity(0.1),
                       borderRadius: BorderRadius.circular(AppTheme.borderRadiusRegular),
                     ),
                     child: Row(
@@ -399,7 +399,7 @@ class _FamilyInviteScreenState extends State<FamilyInviteScreen>
           Container(
             padding: const EdgeInsets.all(AppTheme.paddingRegular),
             decoration: BoxDecoration(
-              color: AppTheme.primaryColor.withValues(alpha: 0.1),
+              color: AppTheme.primaryColor.withOpacity(0.1),
               borderRadius: BorderRadius.circular(AppTheme.borderRadiusRegular),
             ),
             child: Column(
@@ -443,7 +443,7 @@ class _FamilyInviteScreenState extends State<FamilyInviteScreen>
               width: 50,
               height: 50,
               decoration: BoxDecoration(
-                color: AppTheme.primaryColor.withValues(alpha: 0.1),
+                color: AppTheme.primaryColor.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(AppTheme.borderRadiusRegular),
               ),
               child: Icon(

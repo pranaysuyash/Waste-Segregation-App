@@ -318,7 +318,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                               }
                             });
                           },
-                          selectedColor: categoryColor.withValues(alpha: 0.2),
+                          selectedColor: categoryColor.withOpacity(0.2),
                           checkmarkColor: categoryColor,
                           backgroundColor: Colors.grey.shade200,
                         );
@@ -611,7 +611,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
       floatingActionButton: _isLoadingMore
           ? FloatingActionButton(
               onPressed: null,
-              backgroundColor: AppTheme.primaryColor.withValues(alpha: 0.5),
+              backgroundColor: AppTheme.primaryColor.withOpacity(0.5),
               child: const SizedBox(
                 width: 24,
                 height: 24,

@@ -356,7 +356,7 @@ class _ContributionSubmissionScreenState extends State<ContributionSubmissionScr
                   label: Text(material),
                   deleteIcon: const Icon(Icons.close, size: 18),
                   onDeleted: () => _removeMaterial(material),
-                  backgroundColor: AppTheme.primaryColor.withValues(alpha: 0.1),
+                  backgroundColor: AppTheme.primaryColor.withOpacity(0.1),
                 )).toList(),
               ),
             ],

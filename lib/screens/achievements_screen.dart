@@ -348,7 +348,7 @@ class _AchievementsScreenState extends State<AchievementsScreen>
                   padding: const EdgeInsets.all(AppTheme.paddingSmall),
                   decoration: BoxDecoration(
                     color: isEarned
-                        ? achievement.color.withValues(alpha: 0.2)
+                        ? achievement.color.withOpacity(0.2)
                         : Colors.grey.shade200,
                     shape: BoxShape.circle,
                     border: isEarned && achievement.tier != AchievementTier.bronze
@@ -386,7 +386,7 @@ class _AchievementsScreenState extends State<AchievementsScreen>
                         minHeight: 4,
                         backgroundColor: Colors.grey.shade200,
                         valueColor: AlwaysStoppedAnimation<Color>(
-                            achievement.color.withValues(alpha: 0.7)),
+                            achievement.color.withOpacity(0.7)),
                       ),
                     ),
                   )
@@ -536,7 +536,7 @@ class _AchievementsScreenState extends State<AchievementsScreen>
               padding: const EdgeInsets.all(AppTheme.paddingRegular),
               decoration: BoxDecoration(
                 color: achievement.isEarned
-                    ? achievement.color.withValues(alpha: 0.2)
+                    ? achievement.color.withOpacity(0.2)
                     : Colors.grey.shade200,
                 shape: BoxShape.circle,
                 border: achievement.isEarned && achievement.tier != AchievementTier.bronze
@@ -574,7 +574,7 @@ class _AchievementsScreenState extends State<AchievementsScreen>
               margin: const EdgeInsets.symmetric(vertical: AppTheme.paddingSmall),
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
               decoration: BoxDecoration(
-                color: Colors.amber.withValues(alpha: 0.2),
+                color: Colors.amber.withOpacity(0.2),
                 borderRadius: BorderRadius.circular(AppTheme.borderRadiusSmall),
               ),
               child: Row(
@@ -890,7 +890,7 @@ class _AchievementsScreenState extends State<AchievementsScreen>
                                   leading: Container(
                                     padding: const EdgeInsets.all(8),
                                     decoration: BoxDecoration(
-                                      color: challenge.color.withValues(alpha: 0.2),
+                                      color: challenge.color.withOpacity(0.2),
                                       shape: BoxShape.circle,
                                     ),
                                     child: getAchievementIcon(
@@ -949,7 +949,7 @@ class _AchievementsScreenState extends State<AchievementsScreen>
                 Container(
                   padding: const EdgeInsets.all(AppTheme.paddingSmall),
                   decoration: BoxDecoration(
-                    color: challenge.color.withValues(alpha: 0.2),
+                    color: challenge.color.withOpacity(0.2),
                     shape: BoxShape.circle,
                   ),
                   child: getAchievementIcon(challenge.iconName, color: challenge.color, size: 28),
@@ -1326,7 +1326,7 @@ class _AchievementsScreenState extends State<AchievementsScreen>
         child: Container(
           padding: const EdgeInsets.all(AppTheme.paddingSmall),
           decoration: BoxDecoration(
-            color: color.withValues(alpha: 0.1),
+            color: color.withOpacity(0.1),
             borderRadius: BorderRadius.circular(AppTheme.borderRadiusSmall),
           ),
           child: Row(
@@ -1334,7 +1334,7 @@ class _AchievementsScreenState extends State<AchievementsScreen>
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: color.withValues(alpha: 0.2),
+                  color: color.withOpacity(0.2),
                   shape: BoxShape.circle,
                 ),
                 child: Icon(

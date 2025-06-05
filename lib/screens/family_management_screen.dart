@@ -141,7 +141,7 @@ class _FamilyManagementScreenState extends State<FamilyManagementScreen>
                 margin: const EdgeInsets.only(bottom: AppTheme.paddingRegular),
                 child: ListTile(
                   leading: CircleAvatar(
-                    backgroundColor: AppTheme.primaryColor.withValues(alpha: 0.1),
+                    backgroundColor: AppTheme.primaryColor.withOpacity(0.1),
                     backgroundImage: memberProfile.photoUrl != null
                         ? NetworkImage(memberProfile.photoUrl!)
                         : null,
@@ -164,7 +164,7 @@ class _FamilyManagementScreenState extends State<FamilyManagementScreen>
                             vertical: 2,
                           ),
                           decoration: BoxDecoration(
-                            color: Colors.blue.withValues(alpha: 0.1),
+                            color: Colors.blue.withOpacity(0.1),
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: const Text(

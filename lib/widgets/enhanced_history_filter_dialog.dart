@@ -58,7 +58,7 @@ class _EnhancedHistoryFilterDialogState extends State<EnhancedHistoryFilterDialo
           borderRadius: BorderRadius.circular(16.0),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.1),
+              color: Colors.black.withOpacity(0.1),
               blurRadius: 20,
               offset: const Offset(0, 8),
             ),
@@ -96,7 +96,7 @@ class _EnhancedHistoryFilterDialogState extends State<EnhancedHistoryFilterDialo
     return Container(
       padding: const EdgeInsets.all(20.0),
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.05),
+        color: Theme.of(context).colorScheme.primary.withOpacity(0.05),
         borderRadius: const BorderRadius.only(
           topLeft: Radius.circular(16.0),
           topRight: Radius.circular(16.0),
@@ -107,7 +107,7 @@ class _EnhancedHistoryFilterDialogState extends State<EnhancedHistoryFilterDialo
           Container(
             padding: const EdgeInsets.all(8.0),
             decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
+              color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
               borderRadius: BorderRadius.circular(8.0),
             ),
             child: Icon(
@@ -137,7 +137,7 @@ class _EnhancedHistoryFilterDialogState extends State<EnhancedHistoryFilterDialo
             onPressed: () => Navigator.of(context).pop(),
             icon: Icon(
               Icons.close,
-              color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
+              color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
             ),
           ),
         ],
@@ -157,7 +157,7 @@ class _EnhancedHistoryFilterDialogState extends State<EnhancedHistoryFilterDialo
       child: TabBar(
         controller: _tabController,
         labelColor: Theme.of(context).colorScheme.primary,
-        unselectedLabelColor: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
+        unselectedLabelColor: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
         indicatorColor: Theme.of(context).colorScheme.primary,
         tabs: const [
           Tab(
@@ -304,7 +304,7 @@ class _EnhancedHistoryFilterDialogState extends State<EnhancedHistoryFilterDialo
         Container(
           padding: const EdgeInsets.all(8.0),
           decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
+            color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
             borderRadius: BorderRadius.circular(8.0),
           ),
           child: Icon(
@@ -366,7 +366,7 @@ class _EnhancedHistoryFilterDialogState extends State<EnhancedHistoryFilterDialo
                   _clearDateFilters();
                 }
               },
-              selectedColor: Theme.of(context).colorScheme.primary.withValues(alpha: 0.2),
+              selectedColor: Theme.of(context).colorScheme.primary.withOpacity(0.2),
               checkmarkColor: Theme.of(context).colorScheme.primary,
             );
           }).toList(),

@@ -173,7 +173,7 @@ class GenZMicrointeractions {
                   title,
                   style: TextStyle(
                     fontSize: 14,
-                    color: textColor?.withValues(alpha: 0.7) ?? Colors.grey,
+                    color: textColor?.withOpacity(0.7) ?? Colors.grey,
                   ),
                 ),
               ],
@@ -208,7 +208,7 @@ class GenZMicrointeractions {
           borderRadius: BorderRadius.circular(isExpanded ? 30 : 30),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.2),
+              color: Colors.black.withOpacity(0.2),
               blurRadius: 8,
               offset: const Offset(0, 4),
             ),
