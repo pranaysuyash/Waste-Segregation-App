@@ -598,7 +598,11 @@ class FirebaseFamilyService {
       }
 
       final family = await getFamily(invitation.familyId);
-      if (family != null && !family.hasMember(userId)) {
+      if (family == null) {
+        throw Exception('Family not found');
+      }
+
+      if (!family.hasMember(userId)) {
         await addMember(invitation.familyId, userId, invitation.roleToAssign);
       }
 
@@ -613,6 +617,8 @@ class FirebaseFamilyService {
           .doc(invitationId)
           .update(updatedInvitation.toJson());
     } catch (e) {
+      // Log original error for debugging while showing user-friendly message
+      debugPrint('Invitation acceptance failed: $e');
       throw Exception('Unable to join family. Please try again later.');
     }
   }

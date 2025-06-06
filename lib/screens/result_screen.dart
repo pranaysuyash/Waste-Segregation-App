@@ -92,6 +92,11 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
     final classificationId = widget.classification.id;
     if (_savingClassifications.contains(classificationId)) {
       debugPrint('🚫 Classification $classificationId is already being saved, skipping');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Classification is already being saved...')),
+        );
+      }
       return;
     }
 
