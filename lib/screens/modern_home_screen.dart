@@ -37,6 +37,8 @@ import '../services/cloud_storage_service.dart';
 import '../services/community_service.dart';
 import '../models/community_feed.dart';
 import '../services/google_drive_service.dart';
+import '../utils/enhanced_animations.dart';
+import '../widgets/gen_z_microinteractions.dart';
 import 'auth_screen.dart';
 
 class ModernHomeScreen extends StatefulWidget {
@@ -632,16 +634,19 @@ class _ModernHomeScreenState extends State<ModernHomeScreen> with TickerProvider
       ),
       body: SafeArea(
         bottom: true,
-        child: FadeTransition(
-          opacity: _fadeAnimation,
-          child: SlideTransition(
-            position: _slideAnimation,
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(AppTheme.spacingMd),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _buildWelcomeSection(theme),
+        child: RefreshIndicator(
+          onRefresh: _refreshDataWithTimestamp,
+          child: FadeTransition(
+            opacity: _fadeAnimation,
+            child: SlideTransition(
+              position: _slideAnimation,
+              child: SingleChildScrollView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                padding: const EdgeInsets.all(AppTheme.spacingMd),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _buildWelcomeSection(theme),
                   const SizedBox(height: AppTheme.spacingMd),
                   _buildTodaysImpactGoal(),
                   const SizedBox(height: AppTheme.spacingMd),
@@ -727,23 +732,29 @@ class _ModernHomeScreenState extends State<ModernHomeScreen> with TickerProvider
           Row(
             children: [
               Expanded(
-                child: ModernButton(
-                  text: 'Take Photo',
-                  icon: Icons.camera_alt,
-                  backgroundColor: Colors.white,
-                  foregroundColor: theme.colorScheme.primary,
+                child: WasteAppAnimations.buildPressableButton(
                   onPressed: takePicture,
+                  child: ModernButton(
+                    text: 'Take Photo',
+                    icon: Icons.camera_alt,
+                    backgroundColor: Colors.white,
+                    foregroundColor: theme.colorScheme.primary,
+                    onPressed: takePicture,
+                  ),
                 ),
               ),
               const SizedBox(width: AppTheme.spacingSm),
               Expanded(
-                child: ModernButton(
-                  text: 'Upload',
-                  icon: Icons.photo_library,
-                  style: ModernButtonStyle.outlined,
-                  backgroundColor: Colors.transparent,
-                  foregroundColor: Colors.white,
+                child: WasteAppAnimations.buildPressableButton(
                   onPressed: pickImage,
+                  child: ModernButton(
+                    text: 'Upload',
+                    icon: Icons.photo_library,
+                    style: ModernButtonStyle.outlined,
+                    backgroundColor: Colors.transparent,
+                    foregroundColor: Colors.white,
+                    onPressed: pickImage,
+                  ),
                 ),
               ),
             ],
@@ -1042,30 +1053,35 @@ class _ModernHomeScreenState extends State<ModernHomeScreen> with TickerProvider
         ),
         const SizedBox(height: AppTheme.spacingMd),
         
-        ..._recentClassifications.map((classification) {
+        ..._recentClassifications.asMap().entries.map((entry) {
+          final index = entry.key;
+          final classification = entry.value;
           return Padding(
             padding: const EdgeInsets.only(bottom: AppTheme.spacingSm),
-            child: RecentClassificationCard(
-              itemName: classification.itemName,
-              category: classification.category,
-              subcategory: classification.subcategory,
-              timestamp: classification.timestamp,
-              imageUrl: classification.imageUrl,
-              isRecyclable: classification.isRecyclable,
-              isCompostable: classification.isCompostable,
-              requiresSpecialDisposal: classification.requiresSpecialDisposal,
-              categoryColor: _getCategoryColor(classification.category),
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => ResultScreen(
-                      classification: classification,
-                      showActions: false,
+            child: GenZMicrointeractions.buildBounceInListItem(
+              index: index,
+              child: RecentClassificationCard(
+                itemName: classification.itemName,
+                category: classification.category,
+                subcategory: classification.subcategory,
+                timestamp: classification.timestamp,
+                imageUrl: classification.imageUrl,
+                isRecyclable: classification.isRecyclable,
+                isCompostable: classification.isCompostable,
+                requiresSpecialDisposal: classification.requiresSpecialDisposal,
+                categoryColor: _getCategoryColor(classification.category),
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => ResultScreen(
+                        classification: classification,
+                        showActions: false,
+                      ),
                     ),
-                  ),
-                );
-              },
+                  );
+                },
+              ),
             ),
           );
         }),
