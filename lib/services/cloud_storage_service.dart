@@ -155,7 +155,12 @@ class CloudStorageService {
       await _saveToAdminCollection(cloudClassification);
 
       // Record successful sync time locally
-      await _localStorageService.updateLastCloudSync(DateTime.now());
+      try {
+        await _localStorageService.updateLastCloudSync(DateTime.now());
+      } catch (e) {
+        debugPrint('⚠️ Failed to update last sync time: $e');
+        // Don't rethrow - main sync operation was successful
+      }
 
     } catch (e) {
       debugPrint('☁️ ❌ Failed to sync classification to cloud: $e');
@@ -401,8 +406,15 @@ class CloudStorageService {
 
       debugPrint('🔄 ✅ Successfully synced $syncedCount/${localClassifications.length} classifications to cloud');
 
-      // Record the last sync time
-      await _localStorageService.updateLastCloudSync(DateTime.now());
+      // Only record the last sync time if something actually synced
+      if (syncedCount > 0) {
+        try {
+          await _localStorageService.updateLastCloudSync(DateTime.now());
+        } catch (e) {
+          debugPrint('⚠️ Failed to update last sync time: $e');
+          // Don't rethrow - main sync operation was successful
+        }
+      }
       return syncedCount;
     } catch (e) {
       debugPrint('🔄 ❌ Failed to sync local classifications to cloud: $e');

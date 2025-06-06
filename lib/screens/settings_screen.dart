@@ -1457,25 +1457,34 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
       final cloudStorageService = Provider.of<CloudStorageService>(context, listen: false);
       final syncedCount = await cloudStorageService.syncAllLocalClassificationsToCloud();
-      setState(() {
-        _lastCloudSync = DateTime.now();
-      });
+
+      if (syncedCount > 0) {
+        setState(() {
+          _lastCloudSync = DateTime.now();
+        });
+      }
       
       if (mounted) {
         Navigator.pop(context); // Close loading dialog
-        
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Row(
-              children: [
-                const Icon(Icons.cloud_done, color: Colors.white),
-                const SizedBox(width: 8),
-                Text('Successfully synced $syncedCount classifications to cloud!'),
-              ],
+
+        if (syncedCount > 0) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Row(
+                children: [
+                  const Icon(Icons.cloud_done, color: Colors.white),
+                  const SizedBox(width: 8),
+                  Text('Successfully synced $syncedCount classifications to cloud!'),
+                ],
+              ),
+              backgroundColor: Colors.green,
             ),
-            backgroundColor: Colors.green,
-          ),
-        );
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('No classifications were synced.')),
+          );
+        }
       }
     } catch (e) {
       if (mounted) {
@@ -1507,25 +1516,36 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
       final cloudStorageService = Provider.of<CloudStorageService>(context, listen: false);
       final classifications = await cloudStorageService.getAllClassificationsWithCloudSync(true);
-      setState(() {
-        _lastCloudSync = DateTime.now();
-      });
+
+      if (classifications.isNotEmpty) {
+        final storageService = Provider.of<StorageService>(context, listen: false);
+        await storageService.updateLastCloudSync(DateTime.now());
+        setState(() {
+          _lastCloudSync = DateTime.now();
+        });
+      }
       
       if (mounted) {
         Navigator.pop(context); // Close loading dialog
         
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Row(
-              children: [
-                const Icon(Icons.cloud_download, color: Colors.white),
-                const SizedBox(width: 8),
-                Text('Downloaded ${classifications.length} classifications from cloud!'),
-              ],
+        if (classifications.isNotEmpty) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Row(
+                children: [
+                  const Icon(Icons.cloud_download, color: Colors.white),
+                  const SizedBox(width: 8),
+                  Text('Downloaded ${classifications.length} classifications from cloud!'),
+                ],
+              ),
+              backgroundColor: Colors.green,
             ),
-            backgroundColor: Colors.green,
-          ),
-        );
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('No classifications were downloaded.')),
+          );
+        }
       }
     } catch (e) {
       if (mounted) {

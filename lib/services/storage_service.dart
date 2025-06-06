@@ -534,6 +534,13 @@ class StorageService {
 
   /// Update the last successful cloud sync timestamp.
   Future<void> updateLastCloudSync(DateTime timestamp) async {
+    // Prevent storing timestamps far in the future which could happen due to
+    // clock issues or bad data.
+    if (timestamp.isAfter(DateTime.now().add(const Duration(minutes: 1)))) {
+      debugPrint('⚠️ Invalid sync timestamp: $timestamp is in the future');
+      return;
+    }
+
     final settings = await getSettings();
     settings['lastCloudSync'] = timestamp.toIso8601String();
     final settingsBox = Hive.box(StorageKeys.settingsBox);
