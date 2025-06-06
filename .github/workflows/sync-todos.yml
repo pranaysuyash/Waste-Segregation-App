@@ -1,0 +1,116 @@
+name: "Sync TODO Status"
+on:
+  issues:
+    types: [closed, reopened]
+  workflow_dispatch:
+
+jobs:
+  sync-todos:
+    runs-on: ubuntu-latest
+    if: contains(github.event.issue.labels.*.name, 'todo')
+    
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+        
+    - name: Setup Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18'
+        
+    - name: Update TODO status in markdown files
+      run: |
+        # Extract issue title and number
+        ISSUE_TITLE="${{ github.event.issue.title }}"
+        ISSUE_NUMBER="${{ github.event.issue.number }}"
+        ISSUE_STATE="${{ github.event.issue.state }}"
+        
+        echo "Processing issue #$ISSUE_NUMBER: $ISSUE_TITLE (State: $ISSUE_STATE)"
+        
+        # Create a simple script to update TODO status
+        cat > update_todos.js << 'EOF'
+        const fs = require('fs');
+        const path = require('path');
+        
+        const issueTitle = process.env.ISSUE_TITLE;
+        const issueNumber = process.env.ISSUE_NUMBER;
+        const issueState = process.env.ISSUE_STATE;
+        
+        // Function to update TODO status in a file
+        function updateTodoInFile(filePath) {
+          if (!fs.existsSync(filePath)) return false;
+          
+          let content = fs.readFileSync(filePath, 'utf8');
+          let updated = false;
+          
+          // Look for TODO items that match the issue title
+          const todoPattern = /- \[ \] (.+)/g;
+          const completedPattern = /- \[x\] (.+)/g;
+          
+          if (issueState === 'closed') {
+            // Mark as completed
+            content = content.replace(todoPattern, (match, todoText) => {
+              if (todoText.toLowerCase().includes(issueTitle.replace('[TODO] ', '').toLowerCase())) {
+                updated = true;
+                return `- [x] ${todoText} (Completed in #${issueNumber})`;
+              }
+              return match;
+            });
+          } else if (issueState === 'open') {
+            // Mark as incomplete
+            content = content.replace(completedPattern, (match, todoText) => {
+              if (todoText.includes(`#${issueNumber}`)) {
+                updated = true;
+                return `- [ ] ${todoText.replace(` (Completed in #${issueNumber})`, '')}`;
+              }
+              return match;
+            });
+          }
+          
+          if (updated) {
+            fs.writeFileSync(filePath, content);
+            console.log(`Updated ${filePath}`);
+          }
+          
+          return updated;
+        }
+        
+        // Update TODO files
+        const todoFiles = [
+          'docs/MASTER_TODO_COMPREHENSIVE.md',
+          'README.md'
+        ];
+        
+        let anyUpdated = false;
+        todoFiles.forEach(file => {
+          if (updateTodoInFile(file)) {
+            anyUpdated = true;
+          }
+        });
+        
+        if (anyUpdated) {
+          console.log('TODO files updated successfully');
+        } else {
+          console.log('No matching TODOs found to update');
+        }
+        EOF
+        
+        # Run the update script
+        ISSUE_TITLE="${{ github.event.issue.title }}" \
+        ISSUE_NUMBER="${{ github.event.issue.number }}" \
+        ISSUE_STATE="${{ github.event.issue.state }}" \
+        node update_todos.js
+        
+    - name: Commit changes
+      run: |
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        
+        if git diff --quiet; then
+          echo "No changes to commit"
+        else
+          git add .
+          git commit -m "Auto-update TODO status for issue #${{ github.event.issue.number }}"
+          git push
+        fi 

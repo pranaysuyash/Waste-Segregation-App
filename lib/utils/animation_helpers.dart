@@ -64,6 +64,19 @@ class AnimationHelpers {
       },
     );
   }
+
+  /// Provides a standardized animation controller for widgets.
+  static AnimationController createController({
+    required TickerProvider vsync,
+    Duration duration = const Duration(milliseconds: 300),
+  }) {
+    return AnimationController(vsync: vsync, duration: duration);
+  }
+
+  /// Disposes an [AnimationController] if it is not null.
+  static void disposeController(AnimationController? controller) {
+    controller?.dispose();
+  }
   
   /// Creates a bouncing animation for UI elements
   static Animation<double> createBounceAnimation(AnimationController controller) {

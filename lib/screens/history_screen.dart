@@ -12,6 +12,7 @@ import '../services/storage_service.dart';
 import '../services/cloud_storage_service.dart';
 import '../utils/constants.dart';
 import '../widgets/history_list_item.dart';
+import '../widgets/animations/enhanced_loading_states.dart';
 
 /// A screen that displays the complete history of waste classifications with filtering and searching
 class HistoryScreen extends StatefulWidget {
@@ -608,7 +609,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
         ],
       ),
       body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
+          ? const HistoryLoadingWidget()
           : _classifications.isEmpty && !_isFilterActive()
               ? EmptyStateWidget(
                   title: 'No History Yet',

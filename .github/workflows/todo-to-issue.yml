@@ -1,0 +1,23 @@
+name: "TODO to Issue"
+on:
+  push:
+    branches: [ main, develop ]
+  workflow_dispatch:
+
+jobs:
+  todo:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: "TODO to Issue"
+      uses: "alstr/todo-to-issue-action@v4.11"
+      with:
+        TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        LABEL: "todo,auto-generated"
+        COMMENT_MARKER: "//"
+        TODO_PATTERN: "TODO:"
+        CLOSE_ISSUES: true
+        AUTO_P: true
+        AUTO_ASSIGN: true
+        IDENTIFIERS: '[{"name": "TODO", "labels": ["todo"]}, {"name": "FIXME", "labels": ["bug", "fixme"]}, {"name": "HACK", "labels": ["technical-debt"]}, {"name": "BUG", "labels": ["bug"]}, {"name": "FEATURE", "labels": ["enhancement"]}]' 

@@ -104,16 +104,25 @@ class _EnhancedPointsIndicatorState extends State<EnhancedPointsIndicator>
     return InkWell(
       onTap: widget.onTap,
       borderRadius: BorderRadius.circular(AppTheme.borderRadiusRegular),
-      child: Container(
-        padding: const EdgeInsets.all(AppTheme.paddingSmall),
-        decoration: BoxDecoration(
-          color: AppTheme.primaryColor.withValues(alpha:0.1),
-          borderRadius: BorderRadius.circular(AppTheme.borderRadiusRegular),
-          border: Border.all(
-            color: AppTheme.primaryColor.withValues(alpha:0.3),
-          ),
-        ),
-        child: Row(
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          if (isLevelUp)
+            AnimationHelpers.createParticleBurst(
+              color: AppTheme.primaryColor,
+              size: 150,
+              controller: _animationController,
+            ),
+          Container(
+            padding: const EdgeInsets.all(AppTheme.paddingSmall),
+            decoration: BoxDecoration(
+              color: AppTheme.primaryColor.withValues(alpha:0.1),
+              borderRadius: BorderRadius.circular(AppTheme.borderRadiusRegular),
+              border: Border.all(
+                color: AppTheme.primaryColor.withValues(alpha:0.3),
+              ),
+            ),
+            child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
             // Animated level badge
