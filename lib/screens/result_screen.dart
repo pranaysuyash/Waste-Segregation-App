@@ -1267,9 +1267,15 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
   }
   
   // Handle user feedback submission
-  Future<void> _handleFeedbackSubmission(WasteClassification updatedClassification) async {
+  Future<void> _handleFeedbackSubmission(
+      WasteClassification updatedClassification) async {
+    if (!mounted) return;
+
     try {
-      final storageService = Provider.of<StorageService>(context, listen: false);
+      final storageService =
+          Provider.of<StorageService>(context, listen: false);
+
+      // Save updated classification first
       await storageService.saveClassification(updatedClassification);
 
       final feedback = ClassificationFeedback(
@@ -1286,47 +1292,74 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
         appVersion: AppVersion.fullVersion,
       );
 
+      // Persist locally first
       await storageService.saveClassificationFeedback(feedback);
 
-      final cloudStorageService = Provider.of<CloudStorageService>(context, listen: false);
+      // Cloud sync handled separately
+      await _syncFeedbackToCloud(feedback);
+
+      await _handleFeedbackSuccess();
+    } catch (e, stackTrace) {
+      ErrorHandler.handleError(e, stackTrace);
+      await _handleFeedbackError(e);
+    }
+  }
+
+  Future<void> _syncFeedbackToCloud(ClassificationFeedback feedback) async {
+    try {
+      final cloudStorageService =
+          Provider.of<CloudStorageService>(context, listen: false);
+      final storageService =
+          Provider.of<StorageService>(context, listen: false);
       final settings = await storageService.getSettings();
       final isGoogleSyncEnabled = settings['isGoogleSyncEnabled'] ?? false;
       if (isGoogleSyncEnabled) {
         await cloudStorageService.saveClassificationFeedbackToCloud(feedback);
       }
-      
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: const Row(
-              children: [
-                Icon(Icons.check_circle, color: Colors.white, size: 20),
-                SizedBox(width: 8),
-                Expanded(
-                  child: Text('Thank you for your feedback!'),
-                ),
-              ],
+    } catch (e, stackTrace) {
+      // Log but do not block user experience
+      ErrorHandler.handleError(e, stackTrace);
+      debugPrint('Cloud sync failed for feedback, but local save succeeded');
+    }
+  }
+
+  Future<void> _handleFeedbackSuccess() async {
+    if (!mounted) return;
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: const Row(
+          children: [
+            Icon(Icons.check_circle, color: Colors.white, size: 20),
+            SizedBox(width: 8),
+            Expanded(
+              child: Text('Thank you for your feedback!'),
             ),
-            backgroundColor: Colors.green.shade600,
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
-        
-        // Award points for providing feedback
-        final gamificationService = Provider.of<GamificationService>(context, listen: false);
-        await gamificationService.addPoints('feedback_provided', customPoints: 5);
-      }
+          ],
+        ),
+        backgroundColor: Colors.green.shade600,
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
+
+    try {
+      final gamificationService =
+          Provider.of<GamificationService>(context, listen: false);
+      await gamificationService.addPoints('feedback_provided', customPoints: 5);
     } catch (e, stackTrace) {
       ErrorHandler.handleError(e, stackTrace);
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Failed to save feedback: ${ErrorHandler.getUserFriendlyMessage(e)}'),
-            backgroundColor: Colors.red.shade600,
-          ),
-        );
-      }
     }
+  }
+
+  Future<void> _handleFeedbackError(dynamic error) async {
+    if (!mounted) return;
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Failed to save feedback: ${ErrorHandler.getUserFriendlyMessage(error)}'),
+        backgroundColor: Colors.red.shade600,
+      ),
+    );
   }
 
   Future<bool> _isRecentClassification() async {

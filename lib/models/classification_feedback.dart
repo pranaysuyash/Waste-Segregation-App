@@ -1,6 +1,22 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:uuid/uuid.dart';
 
+/// Possible admin review statuses for feedback entries.
+enum ReviewStatus {
+  pendingReview('pending_review'),
+  approved('approved'),
+  rejected('rejected'),
+  inProgress('in_progress');
+
+  const ReviewStatus(this.value);
+  final String value;
+
+  static ReviewStatus fromString(String? value) {
+    return ReviewStatus.values
+            .firstWhere((e) => e.value == value, orElse: () => ReviewStatus.pendingReview);
+  }
+}
+
 /// Represents user feedback on an AI classification result.
 class ClassificationFeedback {
   ClassificationFeedback({
@@ -15,7 +31,7 @@ class ClassificationFeedback {
     required this.userSuggestedCategory,
     this.userSuggestedMaterial,
     this.userNotes,
-    this.reviewStatus = 'pending_review',
+    this.reviewStatus = ReviewStatus.pendingReview,
     this.adminReviewerId,
     this.adminReviewTimestamp,
     this.adminNotes,
@@ -41,7 +57,7 @@ class ClassificationFeedback {
       userSuggestedMaterial: json['userSuggestedMaterial'] as String?,
       userNotes: json['userNotes'] as String?,
       feedbackTimestamp: json['feedbackTimestamp'] as Timestamp?,
-      reviewStatus: json['reviewStatus'] as String? ?? 'pending_review',
+      reviewStatus: ReviewStatus.fromString(json['reviewStatus'] as String?),
       adminReviewerId: json['adminReviewerId'] as String?,
       adminReviewTimestamp: json['adminReviewTimestamp'] as Timestamp?,
       adminNotes: json['adminNotes'] as String?,
@@ -62,7 +78,7 @@ class ClassificationFeedback {
   final String? userSuggestedMaterial;
   final String? userNotes;
   final Timestamp feedbackTimestamp;
-  final String reviewStatus;
+  final ReviewStatus reviewStatus;
   final String? adminReviewerId;
   final Timestamp? adminReviewTimestamp;
   final String? adminNotes;
@@ -82,7 +98,7 @@ class ClassificationFeedback {
       'userSuggestedMaterial': userSuggestedMaterial,
       'userNotes': userNotes,
       'feedbackTimestamp': feedbackTimestamp,
-      'reviewStatus': reviewStatus,
+      'reviewStatus': reviewStatus.value,
       'adminReviewerId': adminReviewerId,
       'adminReviewTimestamp': adminReviewTimestamp,
       'adminNotes': adminNotes,
