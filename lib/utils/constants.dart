@@ -104,7 +104,7 @@ class AppTheme {
     radioTheme: RadioThemeData(
       fillColor: WidgetStateProperty.all(const Color(0xFF2E7D32)),
     ),
-    tabBarTheme: const TabBarTheme(
+    tabBarTheme: const TabBarThemeData(
       labelColor: Colors.white, // Selected tab text color
       unselectedLabelColor: Color(0x99FFFFFF), // Unselected tab text color (white with opacity)
       indicatorColor: Colors.white, // Indicator line color
@@ -154,7 +154,7 @@ class AppTheme {
     radioTheme: RadioThemeData(
       fillColor: WidgetStateProperty.all(const Color(0xFF2E7D32)),
     ),
-    tabBarTheme: const TabBarTheme(
+    tabBarTheme: const TabBarThemeData(
       labelColor: Colors.white, // Selected tab text color
       unselectedLabelColor: Color(0x99FFFFFF), // Unselected tab text color (white with opacity)
       indicatorColor: Colors.white, // Indicator line color

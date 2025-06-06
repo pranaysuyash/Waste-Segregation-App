@@ -89,23 +89,20 @@ class CommunityService {
       final feedJson = box.get(_feedKey, defaultValue: '[]');
       final List<dynamic> feedList = jsonDecode(feedJson);
       
-      // Calculate real stats from feed data, excluding sample users and test data
+      // Calculate real stats from feed data, excluding sample users
       final feedItems = feedList
           .map((json) => CommunityFeedItem.fromJson(json))
-          .where((item) => 
-              !item.userId.startsWith('sample_user_') && 
-              !item.userId.contains('sample_') &&
-              !(item.metadata['isSample'] == true) &&
-              !item.userId.startsWith('114999035178668880111') && // Filter specific test user
-              item.userId == 'current_user') // Only count current user for now
+          .where((item) => !item.userId.startsWith('sample_user_') && 
+                          !item.userId.contains('sample_') &&
+                          !(item.metadata['isSample'] == true)) // Also filter by metadata flag
           .toList();
       
       debugPrint('🌍 COMMUNITY STATS: Filtered feed items count: ${feedItems.length}');
       debugPrint('🌍 COMMUNITY STATS: Raw feed count: ${feedList.length}');
       
-      // Calculate unique REAL users only (should be 1 - current user)
+      // Calculate unique REAL users only
       final uniqueUsers = feedItems.map((item) => item.userId).toSet();
-      final totalUsers = uniqueUsers.isEmpty ? 1 : uniqueUsers.length; // Always show at least 1 (current user)
+      final totalUsers = uniqueUsers.length;
       
       debugPrint('🌍 COMMUNITY STATS: Unique real users: $uniqueUsers');
       debugPrint('🌍 COMMUNITY STATS: Total real users: $totalUsers');

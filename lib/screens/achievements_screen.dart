@@ -412,7 +412,7 @@ class _AchievementsScreenState extends State<AchievementsScreen>
         // Refresh the profile data
         if (mounted) {
           setState(() {
-            _loadProfile();
+            _refreshProfile();
           });
         }
         
@@ -668,7 +668,7 @@ class _AchievementsScreenState extends State<AchievementsScreen>
     return RefreshIndicator(
       onRefresh: () async {
         setState(() {
-          _loadProfile();
+          _refreshProfile();
         });
       },
       child: SingleChildScrollView(
@@ -749,7 +749,7 @@ class _AchievementsScreenState extends State<AchievementsScreen>
                             
                             if (mounted) {
                               setState(() {
-                                _loadProfile();
+                                _refreshProfile();
                               });
                               
                               ScaffoldMessenger.of(context).showSnackBar(

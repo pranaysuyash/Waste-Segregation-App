@@ -212,7 +212,7 @@ class _CommunityScreenState extends State<CommunityScreen> with TickerProviderSt
                           vertical: 2,
                         ),
                         decoration: BoxDecoration(
-                          color: AppTheme.accentColor.withOpacity(0.15),
+                          color: AppTheme.accentColor.withValues(alpha: 0.15),
                           borderRadius: BorderRadius.circular(AppTheme.borderRadiusSm),
                         ),
                         child: Text(

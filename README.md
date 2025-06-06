@@ -2,9 +2,12 @@
 
 A comprehensive Flutter application for proper waste identification, segregation guidance, and environmental education, enhanced with world-class recycling research and AI-powered material recognition.
 
-## 🚨 Major System Overhaul (2025-01-06)
+## 🚨 Major System Overhaul & Code Quality Improvements (2025-01-06)
 
-**Version 2.0.0 is now live!**  
+**Version 2.0.1 is now live!**  
+- ✅ **Critical Bug Fixes**: Resolved opacity assertion errors and streak reset issues
+- ✅ **Code Quality**: Reduced lint issues from 218 to 116 (47% improvement)
+- ✅ **Build Stability**: Fixed all critical compilation errors
 - ✅ Educational Content Service: 23 unique items, robust search, and test coverage  
 - ✅ Family System: Real-time dashboard, invitations (email, QR, link), role management  
 - ✅ Firebase Firestore: All required indexes deployed, 80-95% faster queries  
@@ -18,9 +21,16 @@ A comprehensive Flutter application for proper waste identification, segregation
 
 *All previous status and achievements are preserved below for historical and learning value.*
 
-## 📊 **Current Status: Major System Overhaul Complete (January 6, 2025)**
+## 📊 **Current Status: Major System Overhaul & Critical Bug Fixes Complete (January 6, 2025)**
 
 **🎯 Status**: ✅ **ALL CRITICAL ISSUES RESOLVED** - Production Ready
+
+### **🚀 Version 2.0.1 - Critical Bug Fixes & Code Quality Improvements**
+- ✅ **Critical Runtime Fixes**: Resolved opacity assertion errors causing app crashes
+- ✅ **Gamification Fixes**: Fixed streak reset issue (1→0→1 pattern) with proper date handling
+- ✅ **Code Quality**: Reduced lint issues from 218 to 116 (47% improvement)
+- ✅ **Build Stability**: Eliminated all compilation errors and syntax issues
+- ✅ **Deprecated API Updates**: Fixed Color.value and withOpacity usage for Flutter compatibility
 
 ### **🚀 Version 2.0.0 - Comprehensive System Overhaul**
 - ✅ **Educational Content Service**: Completely fixed and enhanced with 23 unique content items

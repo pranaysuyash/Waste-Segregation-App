@@ -13,7 +13,7 @@ import '../services/storage_service.dart';
 import '../services/gamification_service.dart';
 import '../services/ad_service.dart';
 import '../utils/constants.dart';
-import '../utils/safe_collection_utils.dart';
+
 import '../utils/permission_handler.dart';
 import 'history_screen.dart';
 import 'image_capture_screen.dart';
@@ -37,7 +37,7 @@ import '../services/cloud_storage_service.dart';
 import '../services/community_service.dart';
 import '../models/community_feed.dart';
 import '../services/google_drive_service.dart';
-import '../utils/enhanced_animations.dart';
+
 import '../widgets/gen_z_microinteractions.dart';
 import 'auth_screen.dart';
 
@@ -847,6 +847,8 @@ class _ModernHomeScreenState extends State<ModernHomeScreen> with TickerProvider
       return const Center(child: CircularProgressIndicator());
     }
 
+    final challenges = profile.activeChallenges;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -857,8 +859,6 @@ class _ModernHomeScreenState extends State<ModernHomeScreen> with TickerProvider
           ),
         ),
         const SizedBox(height: AppTheme.spacingMd),
-        
-        final challenges = profile.activeChallenges;
         if (challenges.isNotEmpty) ...[
           FeatureCard(
             icon: Icons.emoji_events,

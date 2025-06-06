@@ -219,7 +219,7 @@ class WasteAppDesignSystem {
     ),
     
     // Card Theme
-    cardTheme: CardTheme(
+    cardTheme: CardThemeData(
       elevation: elevationS,
       shadowColor: Colors.black.withValues(alpha:0.1),
       shape: RoundedRectangleBorder(
@@ -369,7 +369,7 @@ class WasteAppDesignSystem {
     ),
     
     // Dialog Theme
-    dialogTheme: DialogTheme(
+    dialogTheme: DialogThemeData(
       backgroundColor: surfaceWhite,
       elevation: elevationXL,
       shape: RoundedRectangleBorder(

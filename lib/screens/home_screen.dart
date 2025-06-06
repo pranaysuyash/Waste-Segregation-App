@@ -31,7 +31,7 @@ import 'educational_content_screen.dart';
 import 'content_detail_screen.dart';
 import 'achievements_screen.dart';
 // import 'settings_screen.dart';
-import 'waste_dashboard_screen.dart';
+
 // import '../services/premium_service.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -1115,39 +1115,45 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         title: const ResponsiveAppBarTitle(title: AppStrings.appName),
         actions: [
           // Points indicator in app bar
-          final profile = context.watch<GamificationService>().currentProfile;
-          if (profile != null)
-            Padding(
-              padding: const EdgeInsets.only(right: 8.0),
-              child: Center(
-                              child: LifetimePointsIndicator(
-                points: profile.points,
-                showLifetimePoints: true,
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) =>
-                          const AchievementsScreen(initialTabIndex: 2),
+          Consumer<GamificationService>(
+            builder: (context, gamificationService, child) {
+              final profile = gamificationService.currentProfile;
+              if (profile != null) {
+                return Padding(
+                  padding: const EdgeInsets.only(right: 8.0),
+                  child: Center(
+                    child: LifetimePointsIndicator(
+                      points: profile.points,
+                      showLifetimePoints: true,
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) =>
+                                const AchievementsScreen(initialTabIndex: 2),
+                          ),
+                        );
+                      },
                     ),
-                  );
-                },
-              ),
-              ),
-            ),
-          // Analytics button
-          IconButton(
-            icon: const Icon(Icons.analytics),
-            tooltip: 'Analytics Dashboard',
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const WasteDashboardScreen(),
-                ),
-              );
+                  ),
+                );
+              }
+              return const SizedBox.shrink();
             },
           ),
+          // Analytics button (temporarily disabled)
+          // IconButton(
+          //   icon: const Icon(Icons.analytics),
+          //   tooltip: 'Analytics Dashboard',
+          //   onPressed: () {
+          //     Navigator.push(
+          //       context,
+          //       MaterialPageRoute(
+          //         builder: (context) => const WasteDashboardScreen(),
+          //       ),
+          //     );
+          //   },
+          // ),
         ],
       ),
       body: _isLoading

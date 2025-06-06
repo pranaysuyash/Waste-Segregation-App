@@ -10,18 +10,12 @@ import 'storage_service.dart';
 import 'cloud_storage_service.dart';
 
 /// Service for managing gamification features
-class GamificationService extends ChangeNotifier {
-
+class GamificationService {
+  
   GamificationService(this._storageService, this._cloudStorageService);
   // Dependencies
   final StorageService _storageService;
   final CloudStorageService _cloudStorageService;
-
-  GamificationProfile? _cachedProfile;
-  bool _isUpdatingStreak = false; // Lock to prevent concurrent streak updates
-
-  /// Latest gamification profile cached in memory.
-  GamificationProfile? get currentProfile => _cachedProfile;
 
   // Hive constants (may be partially deprecated for authenticated users)
   static const String _gamificationBoxName = 'gamificationBox'; // Renamed for clarity
@@ -90,10 +84,7 @@ class GamificationService extends ChangeNotifier {
     // GamificationProfile will be created on-demand via getProfile() if needed.
   }
   
-  Future<GamificationProfile> getProfile({bool forceRefresh = false}) async {
-    if (!forceRefresh && _cachedProfile != null) {
-      return _cachedProfile!;
-    }
+  Future<GamificationProfile> getProfile() async {
     final currentUserProfile = await _storageService.getCurrentUserProfile();
 
     if (currentUserProfile == null || currentUserProfile.id.isEmpty) {
@@ -104,20 +95,17 @@ class GamificationService extends ChangeNotifier {
       final legacyProfileJson = box.get(_legacyProfileKey);
       if (legacyProfileJson != null) {
         try {
-          _cachedProfile = GamificationProfile.fromJson(jsonDecode(legacyProfileJson));
-          return _cachedProfile!;
+          return GamificationProfile.fromJson(jsonDecode(legacyProfileJson));
         } catch (e) {
           debugPrint('🔥 Error decoding legacy gamification profile: $e. Creating a temporary guest profile.');
         }
       }
       // Return a very basic, non-savable guest profile if no legacy one
-      _cachedProfile = GamificationProfile(
+      return GamificationProfile(
         userId: 'guest_user_${DateTime.now().millisecondsSinceEpoch}',
         streaks: {
           StreakType.dailyClassification.toString(): StreakDetails(
             type: StreakType.dailyClassification,
-            currentCount: 1, // Start guest with streak of 1
-            longestCount: 1,
             lastActivityDate: DateTime.now(),
           ),
         },
@@ -126,13 +114,11 @@ class GamificationService extends ChangeNotifier {
         discoveredItemIds: {},
         unlockedHiddenContentIds: {},
       );
-      return _cachedProfile!;
     }
 
     if (currentUserProfile.gamificationProfile != null) {
       debugPrint('✅ GamificationService: Found existing gamification profile for user ${currentUserProfile.id}');
-      _cachedProfile = currentUserProfile.gamificationProfile!;
-      return _cachedProfile!;
+      return currentUserProfile.gamificationProfile!;
     } else {
       // Logged-in user, but no gamification profile exists yet. Create one.
       debugPrint('✨ GamificationService: No gamification profile found for user ${currentUserProfile.id}. Creating a new one.');
@@ -153,8 +139,6 @@ class GamificationService extends ChangeNotifier {
         streaks: {
           StreakType.dailyClassification.toString(): StreakDetails(
             type: StreakType.dailyClassification,
-            currentCount: 0, // Start with 0 so first updateStreak call sets it to 1
-            longestCount: 0,
             lastActivityDate: DateTime.now().subtract(const Duration(days: 1)),
           ),
         },
@@ -175,8 +159,7 @@ class GamificationService extends ChangeNotifier {
         // Return the profile anyway, even if saving failed
       }
       
-      _cachedProfile = newGamificationProfile;
-      return _cachedProfile!;
+      return newGamificationProfile;
     }
   }
   
@@ -239,8 +222,6 @@ class GamificationService extends ChangeNotifier {
       final box = Hive.box(_gamificationBoxName);
       await box.put(_legacyProfileKey, jsonEncode(gamificationProfileToSave.toJson()));
       debugPrint('✅ Saved gamification profile to legacy local storage for guest session.');
-      _cachedProfile = gamificationProfileToSave;
-      notifyListeners();
       return;
     }
 
@@ -262,8 +243,6 @@ class GamificationService extends ChangeNotifier {
 
       await _cloudStorageService.saveUserProfileToFirestore(updatedUserProfile);
       debugPrint('☁️ GamificationService: UserProfile with updated gamification data synced to Firestore (triggers leaderboard update).');
-      _cachedProfile = gamificationProfileToSave;
-      notifyListeners();
     } catch (e) {
       debugPrint('🔥 GamificationService: Error saving user profile (local or cloud): $e');
       debugPrint('🔧 Stack trace: ${StackTrace.current}');
@@ -274,158 +253,140 @@ class GamificationService extends ChangeNotifier {
   
   // Update streak when the app is used
   Future<Streak> updateStreak() async {
-    if (_isUpdatingStreak) {
-      debugPrint('🔄 Streak update in progress. Returning current streak.');
-      final profile = await getProfile();
-      final dailyStreakKey = StreakType.dailyClassification.toString();
-      final currentStreak = profile.streaks[dailyStreakKey];
+    final profile = await getProfile();
+    final now = DateTime.now();
+    
+    // Get the daily classification streak
+    final dailyStreakKey = StreakType.dailyClassification.toString();
+    final currentStreak = profile.streaks[dailyStreakKey];
+    
+    if (currentStreak == null) {
+      // Initialize streak if it doesn't exist
+      final newStreakDetails = StreakDetails(
+        type: StreakType.dailyClassification,
+        currentCount: 1,
+        longestCount: 1,
+        lastActivityDate: now,
+      );
       
+      final updatedStreaks = Map<String, StreakDetails>.from(profile.streaks);
+      updatedStreaks[dailyStreakKey] = newStreakDetails;
+      
+      await saveProfile(profile.copyWith(streaks: updatedStreaks));
+      
+      // Return legacy Streak format for compatibility
       return Streak(
-        current: currentStreak?.currentCount ?? 0,
-        longest: currentStreak?.longestCount ?? 0,
-        lastUsageDate: currentStreak?.lastActivityDate ?? DateTime.now(),
+        current: 1,
+        longest: 1,
+        lastUsageDate: now,
       );
     }
-
-    _isUpdatingStreak = true;
-    try {
-      final profile = await getProfile();
-      final now = DateTime.now();
-      
-      // Get the daily classification streak
-      final dailyStreakKey = StreakType.dailyClassification.toString();
-      final currentStreak = profile.streaks[dailyStreakKey];
-      
-      if (currentStreak == null) {
-        // Initialize streak if it doesn't exist
-        final newStreakDetails = StreakDetails(
-          type: StreakType.dailyClassification,
-          currentCount: 1,
-          longestCount: 1,
-          lastActivityDate: now,
-        );
-        
-        final updatedStreaks = Map<String, StreakDetails>.from(profile.streaks);
-        updatedStreaks[dailyStreakKey] = newStreakDetails;
-        
-        await saveProfile(profile.copyWith(streaks: updatedStreaks));
-        
-        // Return legacy Streak format for compatibility
-        return Streak(
-          current: 1,
-          longest: 1,
-          lastUsageDate: now,
-        );
-      }
-      
-      final lastUsage = currentStreak.lastActivityDate;
-      
-      // Create date objects for comparison (time-agnostic)
-      final today = DateTime(now.year, now.month, now.day);
-      final yesterday = DateTime(now.year, now.month, now.day).subtract(const Duration(days: 1));
-      final lastUsageDay = DateTime(lastUsage.year, lastUsage.month, lastUsage.day);
-      
-      debugPrint('🔥 STREAK DEBUG:');
-      debugPrint('  - Today: $today');
-      debugPrint('  - Yesterday: $yesterday');
-      debugPrint('  - Last usage day: $lastUsageDay');
-      debugPrint('  - Current streak: ${currentStreak.currentCount}');
-      
-      var newCurrent = currentStreak.currentCount;
-      var shouldSave = false;
-      
-      if (lastUsageDay.isAtSameMomentAs(today)) {
-        // Already used today, keep current streak (but ensure it's at least 1)
-        if (currentStreak.currentCount == 0) {
-          newCurrent = 1;
-          shouldSave = true;
-          debugPrint('  - First use today, setting streak to 1');
-        } else {
-          debugPrint('  - Already used today, keeping streak: ${currentStreak.currentCount}');
-          // Return legacy Streak format for compatibility
-          return Streak(
-            current: currentStreak.currentCount,
-            longest: currentStreak.longestCount,
-            lastUsageDate: currentStreak.lastActivityDate,
-          );
-        }
-      } else if (lastUsageDay.isAtSameMomentAs(yesterday)) {
-        // Last used yesterday, increment streak
-        newCurrent = currentStreak.currentCount + 1;
-        shouldSave = true;
-        debugPrint('  - Used yesterday, incrementing streak to: $newCurrent');
-      } else {
-        // Last used before yesterday or never, start new streak
+    
+    final lastUsage = currentStreak.lastActivityDate;
+    
+    // Create date objects for comparison (time-agnostic)
+    final today = DateTime(now.year, now.month, now.day);
+    final yesterday = DateTime(now.year, now.month, now.day - 1);
+    final lastUsageDay = DateTime(lastUsage.year, lastUsage.month, lastUsage.day);
+    
+    debugPrint('🔥 STREAK DEBUG:');
+    debugPrint('  - Today: $today');
+    debugPrint('  - Yesterday: $yesterday');
+    debugPrint('  - Last usage day: $lastUsageDay');
+    debugPrint('  - Current streak: ${currentStreak.currentCount}');
+    
+    var newCurrent = currentStreak.currentCount;
+    var shouldSave = false;
+    
+    if (lastUsageDay.isAtSameMomentAs(today)) {
+      // Already used today, keep current streak (but ensure it's at least 1)
+      if (currentStreak.currentCount == 0) {
         newCurrent = 1;
         shouldSave = true;
-        debugPrint('  - Starting new streak: $newCurrent');
-      }
-      
-      if (!shouldSave) {
+        debugPrint('  - First use today, setting streak to 1');
+      } else {
+        debugPrint('  - Already used today, keeping streak: ${currentStreak.currentCount}');
+        // Return legacy Streak format for compatibility
         return Streak(
           current: currentStreak.currentCount,
           longest: currentStreak.longestCount,
           lastUsageDate: currentStreak.lastActivityDate,
         );
       }
-      
-      // Update longest streak if needed
-      final newLongest = newCurrent > currentStreak.longestCount 
-          ? newCurrent 
-          : currentStreak.longestCount;
-      
-      final newStreakDetails = currentStreak.copyWith(
-        currentCount: newCurrent,
-        longestCount: newLongest,
-        lastActivityDate: now,
-      );
-      
-      // Update the profile with the new streak
-      final updatedStreaks = Map<String, StreakDetails>.from(profile.streaks);
-      updatedStreaks[dailyStreakKey] = newStreakDetails;
-      
-      await saveProfile(profile.copyWith(streaks: updatedStreaks));
-      
-      debugPrint('  - New streak saved: current=$newCurrent, longest=$newLongest');
-      
-      // Award points for streak (only if streak increased)
-      if (newCurrent > currentStreak.currentCount) {
-        await addPoints('daily_streak');
-        debugPrint('  - Awarded daily streak points');
-        
-        // Record streak activity in community feed
-        try {
-          final communityService = CommunityService();
-          await communityService.initCommunity();
-          await communityService.recordStreak(newCurrent, 5); // 5 points for daily streak
-          debugPrint('🌍 COMMUNITY: Recorded streak activity');
-        } catch (e) {
-          debugPrint('🌍 COMMUNITY ERROR: Failed to record streak: $e');
-        }
-      }
-      
-      // Check for streak achievements
-      if (newCurrent >= 3) {
-        await updateAchievementProgress(AchievementType.streakMaintained, newCurrent);
-        debugPrint('  - Updated streak achievements for $newCurrent days');
-      }
-      
-      // Check for perfect week
-      if (newCurrent % 7 == 0 && newCurrent > 0) {
-        await updateAchievementProgress(AchievementType.perfectWeek, newCurrent ~/ 7);
-        await addPoints('perfect_week');
-        debugPrint('  - Perfect week achieved! ${newCurrent ~/ 7} weeks');
-      }
-      
-      // Return legacy Streak format for compatibility
-      return Streak(
-        current: newCurrent,
-        longest: newLongest,
-        lastUsageDate: now,
-      );
-    } finally {
-      _isUpdatingStreak = false;
+    } else if (lastUsageDay.isAtSameMomentAs(yesterday)) {
+      // Last used yesterday, increment streak
+      newCurrent = currentStreak.currentCount + 1;
+      shouldSave = true;
+      debugPrint('  - Used yesterday, incrementing streak to: $newCurrent');
+    } else {
+      // Last used before yesterday or never, start new streak
+      newCurrent = 1;
+      shouldSave = true;
+      debugPrint('  - Starting new streak: $newCurrent');
     }
+    
+    if (!shouldSave) {
+      return Streak(
+        current: currentStreak.currentCount,
+        longest: currentStreak.longestCount,
+        lastUsageDate: currentStreak.lastActivityDate,
+      );
+    }
+    
+    // Update longest streak if needed
+    final newLongest = newCurrent > currentStreak.longestCount 
+        ? newCurrent 
+        : currentStreak.longestCount;
+    
+    final newStreakDetails = currentStreak.copyWith(
+      currentCount: newCurrent,
+      longestCount: newLongest,
+      lastActivityDate: now,
+    );
+    
+    // Update the profile with the new streak
+    final updatedStreaks = Map<String, StreakDetails>.from(profile.streaks);
+    updatedStreaks[dailyStreakKey] = newStreakDetails;
+    
+    await saveProfile(profile.copyWith(streaks: updatedStreaks));
+    
+    debugPrint('  - New streak saved: current=$newCurrent, longest=$newLongest');
+    
+    // Award points for streak (only if streak increased)
+    if (newCurrent > currentStreak.currentCount) {
+      await addPoints('daily_streak');
+      debugPrint('  - Awarded daily streak points');
+      
+      // Record streak activity in community feed
+      try {
+        final communityService = CommunityService();
+        await communityService.initCommunity();
+        await communityService.recordStreak(newCurrent, 5); // 5 points for daily streak
+        debugPrint('🌍 COMMUNITY: Recorded streak activity');
+      } catch (e) {
+        debugPrint('🌍 COMMUNITY ERROR: Failed to record streak: $e');
+      }
+    }
+    
+    // Check for streak achievements
+    if (newCurrent >= 3) {
+      await updateAchievementProgress(AchievementType.streakMaintained, newCurrent);
+      debugPrint('  - Updated streak achievements for $newCurrent days');
+    }
+    
+    // Check for perfect week
+    if (newCurrent % 7 == 0 && newCurrent > 0) {
+      await updateAchievementProgress(AchievementType.perfectWeek, newCurrent ~/ 7);
+      await addPoints('perfect_week');
+      debugPrint('  - Perfect week achieved! ${newCurrent ~/ 7} weeks');
+    }
+    
+    // Return legacy Streak format for compatibility
+    return Streak(
+      current: newCurrent,
+      longest: newLongest,
+      lastUsageDate: now,
+    );
   }
   
   // Add points for an action
@@ -976,16 +937,8 @@ class GamificationService extends ChangeNotifier {
         ? allStats.sublist(allStats.length - 12) 
         : allStats;
     
-    // Save updated stats to local storage
-    await box.put(
-      _weeklyStatsKey,
-      jsonEncode(limitedStats.map((s) => s.toJson()).toList()),
-    );
-
-    // Also persist the stats on the gamification profile so that UI widgets
-    // using the profile data reflect the latest numbers immediately.
-    // We reuse the fetched profile from above to avoid another read.
-    await saveProfile(profile.copyWith(weeklyStats: limitedStats));
+    // Save updated stats
+    await box.put(_weeklyStatsKey, jsonEncode(limitedStats.map((s) => s.toJson()).toList()));
   }
   
   // Generate new challenges
@@ -1017,7 +970,7 @@ class GamificationService extends ChangeNotifier {
         endDate: now.add(const Duration(days: 7)),
         pointsReward: templateData['pointsReward'] ?? 25,
         iconName: templateData['iconName'] ?? 'task_alt',
-        color: templateData['color'] != null ? Color(templateData['color']) : AppTheme.secondaryColor,
+        color: Color(templateData['color'] ?? AppTheme.secondaryColor.value),
         requirements: templateData['requirements'] ?? {'any_item': true, 'count': 5},
       );
       
@@ -1378,7 +1331,7 @@ class GamificationService extends ChangeNotifier {
         'description': 'Identify 5 plastic items',
         'pointsReward': 25,
         'iconName': 'shopping_bag',
-        'color': AppTheme.dryWasteColor,
+        'color': AppTheme.dryWasteColor.value,
         'requirements': {
           'subcategory': 'Plastic',
           'count': 5,
@@ -1389,7 +1342,7 @@ class GamificationService extends ChangeNotifier {
         'description': 'Identify 3 food waste items',
         'pointsReward': 20,
         'iconName': 'restaurant',
-        'color': AppTheme.wetWasteColor,
+        'color': AppTheme.wetWasteColor.value,
         'requirements': {
           'subcategory': 'Food Waste',
           'count': 3,
@@ -1400,7 +1353,7 @@ class GamificationService extends ChangeNotifier {
         'description': 'Identify 5 recyclable items',
         'pointsReward': 25,
         'iconName': 'recycling',
-        'color': AppTheme.dryWasteColor,
+        'color': AppTheme.dryWasteColor.value,
         'requirements': {
           'category': 'Dry Waste',
           'count': 5,
@@ -1411,7 +1364,7 @@ class GamificationService extends ChangeNotifier {
         'description': 'Identify 4 compostable items',
         'pointsReward': 20,
         'iconName': 'compost',
-        'color': AppTheme.wetWasteColor,
+        'color': AppTheme.wetWasteColor.value,
         'requirements': {
           'category': 'Wet Waste',
           'count': 4,
@@ -1422,7 +1375,7 @@ class GamificationService extends ChangeNotifier {
         'description': 'Identify 2 hazardous waste items',
         'pointsReward': 30,
         'iconName': 'warning',
-        'color': AppTheme.hazardousWasteColor,
+        'color': AppTheme.hazardousWasteColor.value,
         'requirements': {
           'category': 'Hazardous Waste',
           'count': 2,
@@ -1433,7 +1386,7 @@ class GamificationService extends ChangeNotifier {
         'description': 'Identify 2 medical waste items',
         'pointsReward': 30,
         'iconName': 'medical_services',
-        'color': AppTheme.medicalWasteColor,
+        'color': AppTheme.medicalWasteColor.value,
         'requirements': {
           'category': 'Medical Waste',
           'count': 2,
@@ -1444,7 +1397,7 @@ class GamificationService extends ChangeNotifier {
         'description': 'Identify 3 reusable items',
         'pointsReward': 25,
         'iconName': 'autorenew',
-        'color': AppTheme.nonWasteColor,
+        'color': AppTheme.nonWasteColor.value,
         'requirements': {
           'category': 'Non-Waste',
           'count': 3,
@@ -1455,7 +1408,7 @@ class GamificationService extends ChangeNotifier {
         'description': 'Identify 4 paper items',
         'pointsReward': 20,
         'iconName': 'description',
-        'color': AppTheme.dryWasteColor,
+        'color': AppTheme.dryWasteColor.value,
         'requirements': {
           'subcategory': 'Paper',
           'count': 4,
@@ -1466,7 +1419,7 @@ class GamificationService extends ChangeNotifier {
         'description': 'Identify 3 glass items',
         'pointsReward': 25,
         'iconName': 'water_drop',
-        'color': AppTheme.dryWasteColor,
+        'color': AppTheme.dryWasteColor.value,
         'requirements': {
           'subcategory': 'Glass',
           'count': 3,
@@ -1477,7 +1430,7 @@ class GamificationService extends ChangeNotifier {
         'description': 'Identify 3 metal items',
         'pointsReward': 25,
         'iconName': 'hardware',
-        'color': AppTheme.dryWasteColor,
+        'color': AppTheme.dryWasteColor.value,
         'requirements': {
           'subcategory': 'Metal',
           'count': 3,
@@ -1488,7 +1441,7 @@ class GamificationService extends ChangeNotifier {
         'description': 'Identify 2 electronic waste items',
         'pointsReward': 30,
         'iconName': 'devices',
-        'color': AppTheme.hazardousWasteColor,
+        'color': AppTheme.hazardousWasteColor.value,
         'requirements': {
           'subcategory': 'Electronic Waste',
           'count': 2,
@@ -1499,7 +1452,7 @@ class GamificationService extends ChangeNotifier {
         'description': 'Identify 10 waste items of any type',
         'pointsReward': 40,
         'iconName': 'auto_awesome',
-        'color': Colors.amber,
+        'color': Colors.amber.value,
         'requirements': {
           'any_item': true,
           'count': 10,

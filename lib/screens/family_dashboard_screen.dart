@@ -306,38 +306,7 @@ class _FamilyDashboardScreenState extends State<FamilyDashboardScreen> {
     );
   }
 
-  Widget _buildManagementButtons(family_models.Family family) {
-    debugPrint('🏠 FAMILY: Building management buttons for family: ${family.name}');
-    debugPrint('🏠 FAMILY: Family ID: ${family.id}');
-    
-    return Card(
-      elevation: AppTheme.elevationSm,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: AppTheme.paddingSmall),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
-          children: [
-            TextButton.icon(
-              icon: const Icon(Icons.person_add_alt_1),
-              label: const Text('Invite'),
-              onPressed: () {
-                debugPrint('🏠 FAMILY: Invite button pressed');
-                _navigateToInvite(family);
-              },
-            ),
-            TextButton.icon(
-              icon: const Icon(Icons.manage_accounts),
-              label: const Text('Manage'),
-              onPressed: () {
-                debugPrint('🏠 FAMILY: Manage button pressed');
-                _navigateToManagement(family);
-              },
-            ),
-          ],
-        ),
-      ),
-    );
-  }
+
 
   Widget _buildStatsOverview(family_models.FamilyStats? stats) {
     if (stats == null) {
@@ -597,7 +566,7 @@ class _FamilyDashboardScreenState extends State<FamilyDashboardScreen> {
   Widget _buildStatChip(String label, int value, Color color) {
     return Chip(
       label: Text('$label: $value'),
-      backgroundColor: color.withOpacity(0.1),
+                      backgroundColor: color.withValues(alpha: 0.1),
       avatar: CircleAvatar(
         backgroundColor: color,
         child: Text(
