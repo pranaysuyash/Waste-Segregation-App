@@ -10,12 +10,17 @@ import 'storage_service.dart';
 import 'cloud_storage_service.dart';
 
 /// Service for managing gamification features
-class GamificationService {
-  
+class GamificationService extends ChangeNotifier {
+
   GamificationService(this._storageService, this._cloudStorageService);
   // Dependencies
   final StorageService _storageService;
   final CloudStorageService _cloudStorageService;
+
+  GamificationProfile? _cachedProfile;
+
+  /// Latest gamification profile cached in memory.
+  GamificationProfile? get currentProfile => _cachedProfile;
 
   // Hive constants (may be partially deprecated for authenticated users)
   static const String _gamificationBoxName = 'gamificationBox'; // Renamed for clarity
@@ -84,7 +89,10 @@ class GamificationService {
     // GamificationProfile will be created on-demand via getProfile() if needed.
   }
   
-  Future<GamificationProfile> getProfile() async {
+  Future<GamificationProfile> getProfile({bool forceRefresh = false}) async {
+    if (!forceRefresh && _cachedProfile != null) {
+      return _cachedProfile!;
+    }
     final currentUserProfile = await _storageService.getCurrentUserProfile();
 
     if (currentUserProfile == null || currentUserProfile.id.isEmpty) {
@@ -95,13 +103,14 @@ class GamificationService {
       final legacyProfileJson = box.get(_legacyProfileKey);
       if (legacyProfileJson != null) {
         try {
-          return GamificationProfile.fromJson(jsonDecode(legacyProfileJson));
+          _cachedProfile = GamificationProfile.fromJson(jsonDecode(legacyProfileJson));
+          return _cachedProfile!;
         } catch (e) {
           debugPrint('🔥 Error decoding legacy gamification profile: $e. Creating a temporary guest profile.');
         }
       }
       // Return a very basic, non-savable guest profile if no legacy one
-      return GamificationProfile(
+      _cachedProfile = GamificationProfile(
         userId: 'guest_user_${DateTime.now().millisecondsSinceEpoch}',
         streaks: {
           StreakType.dailyClassification.toString(): StreakDetails(
@@ -114,11 +123,13 @@ class GamificationService {
         discoveredItemIds: {},
         unlockedHiddenContentIds: {},
       );
+      return _cachedProfile!;
     }
 
     if (currentUserProfile.gamificationProfile != null) {
       debugPrint('✅ GamificationService: Found existing gamification profile for user ${currentUserProfile.id}');
-      return currentUserProfile.gamificationProfile!;
+      _cachedProfile = currentUserProfile.gamificationProfile!;
+      return _cachedProfile!;
     } else {
       // Logged-in user, but no gamification profile exists yet. Create one.
       debugPrint('✨ GamificationService: No gamification profile found for user ${currentUserProfile.id}. Creating a new one.');
@@ -159,7 +170,8 @@ class GamificationService {
         // Return the profile anyway, even if saving failed
       }
       
-      return newGamificationProfile;
+      _cachedProfile = newGamificationProfile;
+      return _cachedProfile!;
     }
   }
   
@@ -222,6 +234,8 @@ class GamificationService {
       final box = Hive.box(_gamificationBoxName);
       await box.put(_legacyProfileKey, jsonEncode(gamificationProfileToSave.toJson()));
       debugPrint('✅ Saved gamification profile to legacy local storage for guest session.');
+      _cachedProfile = gamificationProfileToSave;
+      notifyListeners();
       return;
     }
 
@@ -243,6 +257,8 @@ class GamificationService {
 
       await _cloudStorageService.saveUserProfileToFirestore(updatedUserProfile);
       debugPrint('☁️ GamificationService: UserProfile with updated gamification data synced to Firestore (triggers leaderboard update).');
+      _cachedProfile = gamificationProfileToSave;
+      notifyListeners();
     } catch (e) {
       debugPrint('🔥 GamificationService: Error saving user profile (local or cloud): $e');
       debugPrint('🔧 Stack trace: ${StackTrace.current}');
@@ -898,8 +914,16 @@ class GamificationService {
         ? allStats.sublist(allStats.length - 12) 
         : allStats;
     
-    // Save updated stats
-    await box.put(_weeklyStatsKey, jsonEncode(limitedStats.map((s) => s.toJson()).toList()));
+    // Save updated stats to local storage
+    await box.put(
+      _weeklyStatsKey,
+      jsonEncode(limitedStats.map((s) => s.toJson()).toList()),
+    );
+
+    // Also persist the stats on the gamification profile so that UI widgets
+    // using the profile data reflect the latest numbers immediately.
+    // We reuse the fetched profile from above to avoid another read.
+    await saveProfile(profile.copyWith(weeklyStats: limitedStats));
   }
   
   // Generate new challenges
