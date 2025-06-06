@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/cupertino.dart';
 import 'community_screen.dart';
 import 'family_dashboard_screen.dart';
 
@@ -13,15 +12,10 @@ class SocialScreen extends StatefulWidget {
 class _SocialScreenState extends State<SocialScreen> {
   int _currentIndex = 0;
 
-  static final List<Widget> _screens = [
-    const CommunityScreen(showAppBar: false),
-    const FamilyDashboardScreen(showAppBar: false),
-  ];
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
+      appBar: _currentIndex == 1 ? AppBar(
         title: const Text('Social'),
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(70),
@@ -91,16 +85,34 @@ class _SocialScreenState extends State<SocialScreen> {
             ),
           ),
         ),
+      ) : null,
+      body: IndexedStack(
+        index: _currentIndex,
+        children: const [
+          // Community Screen with its own tabs and AppBar
+          CommunityScreen(),
+          // Family Screen without AppBar (uses Social AppBar)
+          SafeArea(
+            top: false,
+            left: false,
+            right: false,
+            child: FamilyDashboardScreen(showAppBar: false),
+          ),
+        ],
       ),
-      body: SafeArea(
-        top: false,
-        left: false,
-        right: false,
-        child: IndexedStack(
-          index: _currentIndex,
-          children: _screens,
-        ),
+      // Floating action button for switching between sections when Community is active
+      floatingActionButton: _currentIndex == 0 ? FloatingActionButton.extended(
+        onPressed: () => setState(() => _currentIndex = 1),
+        icon: const Icon(Icons.family_restroom),
+        label: const Text('Family'),
+        backgroundColor: Theme.of(context).colorScheme.secondary,
+      ) : FloatingActionButton.extended(
+        onPressed: () => setState(() => _currentIndex = 0),
+        icon: const Icon(Icons.people),
+        label: const Text('Community'),
+        backgroundColor: Theme.of(context).colorScheme.secondary,
       ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
     );
   }
 }
