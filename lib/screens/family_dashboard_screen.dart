@@ -149,20 +149,6 @@ class _FamilyDashboardScreenState extends State<FamilyDashboardScreen> {
         return Scaffold(
           appBar: widget.showAppBar ? AppBar(
             title: Text(appBarTitle),
-            actions: [
-              if (family != null) ...[
-                IconButton(
-                  icon: const Icon(Icons.person_add),
-                  tooltip: 'Invite Member',
-                  onPressed: () => _navigateToInvite(family),
-                ),
-                IconButton(
-                  icon: const Icon(Icons.manage_accounts),
-                  tooltip: 'Manage Family',
-                  onPressed: () => _navigateToManagement(family),
-                ),
-              ],
-            ],
           ) : null,
           body: _buildBodyContent(familySnapshot, family, _familyStats), 
         );
@@ -171,25 +157,33 @@ class _FamilyDashboardScreenState extends State<FamilyDashboardScreen> {
   }
 
   Widget _buildBodyContent(AsyncSnapshot<family_models.Family?> familySnapshot, family_models.Family? family, family_models.FamilyStats? statsFromState) {
+    debugPrint('🏠 FAMILY: Building body content - family: ${family?.name}, hasError: ${familySnapshot.hasError}');
+    
     if (familySnapshot.connectionState == ConnectionState.waiting && family == null && !_isStatsLoading) {
+      debugPrint('🏠 FAMILY: Showing loading (waiting for family)');
       return const Center(child: CircularProgressIndicator());
     }
 
     if (familySnapshot.hasError && _error == null) {
+      debugPrint('🏠 FAMILY: Showing error state: ${familySnapshot.error}');
       return _buildErrorState('Error loading family details: ${familySnapshot.error}');
     }
 
     if (_error != null && family == null) { 
+      debugPrint('🏠 FAMILY: Showing error state: $_error');
       return _buildErrorState(_error!);
     }
 
     if (family == null ){
         if(familySnapshot.connectionState == ConnectionState.waiting || _isInitialLoading || _isStatsLoading) {
+             debugPrint('🏠 FAMILY: Showing loading (no family, still loading)');
              return const Center(child: CircularProgressIndicator());
         }
+        debugPrint('🏠 FAMILY: Showing no family state');
         return _buildNoFamilyState();
     }
 
+    debugPrint('🏠 FAMILY: Building normal family content for: ${family.name}');
     const bottomPadding = AppTheme.paddingRegular + 56.0;
 
     return RefreshIndicator(
@@ -205,6 +199,51 @@ class _FamilyDashboardScreenState extends State<FamilyDashboardScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             _buildFamilyHeader(family),
+            const SizedBox(height: AppTheme.paddingLarge),
+            // Force management buttons to be visible
+            Card(
+              elevation: AppTheme.elevationSm,
+              child: Padding(
+                padding: const EdgeInsets.all(AppTheme.paddingRegular),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Family Management',
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: AppTheme.paddingRegular),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: ElevatedButton.icon(
+                            icon: const Icon(Icons.person_add_alt_1),
+                            label: const Text('Invite Members'),
+                            onPressed: () {
+                              debugPrint('🏠 FAMILY: Invite button pressed');
+                              _navigateToInvite(family);
+                            },
+                          ),
+                        ),
+                        const SizedBox(width: AppTheme.paddingRegular),
+                        Expanded(
+                          child: OutlinedButton.icon(
+                            icon: const Icon(Icons.manage_accounts),
+                            label: const Text('Manage'),
+                            onPressed: () {
+                              debugPrint('🏠 FAMILY: Manage button pressed');
+                              _navigateToManagement(family);
+                            },
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
             const SizedBox(height: AppTheme.paddingLarge),
             if (_isStatsLoading) const Center(child: CircularProgressIndicator()) else _buildStatsOverview(statsFromState), 
             const SizedBox(height: AppTheme.paddingLarge),
@@ -257,6 +296,39 @@ class _FamilyDashboardScreenState extends State<FamilyDashboardScreen> {
                     ),
                 ],
               ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildManagementButtons(family_models.Family family) {
+    debugPrint('🏠 FAMILY: Building management buttons for family: ${family.name}');
+    debugPrint('🏠 FAMILY: Family ID: ${family.id}');
+    
+    return Card(
+      elevation: AppTheme.elevationSm,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: AppTheme.paddingSmall),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          children: [
+            TextButton.icon(
+              icon: const Icon(Icons.person_add_alt_1),
+              label: const Text('Invite'),
+              onPressed: () {
+                debugPrint('🏠 FAMILY: Invite button pressed');
+                _navigateToInvite(family);
+              },
+            ),
+            TextButton.icon(
+              icon: const Icon(Icons.manage_accounts),
+              label: const Text('Manage'),
+              onPressed: () {
+                debugPrint('🏠 FAMILY: Manage button pressed');
+                _navigateToManagement(family);
+              },
             ),
           ],
         ),
@@ -561,9 +633,9 @@ class _FamilyDashboardScreenState extends State<FamilyDashboardScreen> {
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
               crossAxisCount: 2,
-              childAspectRatio: 2.5,
-              crossAxisSpacing: AppTheme.paddingRegular,
-              mainAxisSpacing: AppTheme.paddingRegular,
+              childAspectRatio: 1.8, // Increased from 2.5 to prevent overflow
+              crossAxisSpacing: AppTheme.paddingSmall,
+              mainAxisSpacing: AppTheme.paddingSmall,
               children: [
                 _buildImpactItem(Icons.eco, 'CO₂ Saved', '${impact.co2Saved.toStringAsFixed(1)} kg', AppTheme.wetWasteColor, impact.co2Saved > 0),
                 _buildImpactItem(Icons.park, 'Trees Equivalent', impact.treesEquivalent.toStringAsFixed(1), AppTheme.dryWasteColor, impact.treesEquivalent > 0),
@@ -585,24 +657,51 @@ class _FamilyDashboardScreenState extends State<FamilyDashboardScreen> {
         borderRadius: BorderRadius.circular(AppTheme.borderRadiusMd),
         border: Border.all(color: color.withValues(alpha: 0.3)),
       ),
-      child: Row(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          Icon(icon, color: color, size: 24),
-          const SizedBox(width: AppTheme.paddingRegular),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(label, style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold)),
-                Text(
-                  value,
-                  style: Theme.of(context).textTheme.titleSmall?.copyWith(color: color, fontWeight: FontWeight.bold),
-                ),
-                if (!hasImpact) Text('No impact yet', style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Colors.grey))
-              ],
+          Icon(icon, color: color, size: 20),
+          const SizedBox(height: AppTheme.paddingMicro),
+          Flexible(
+            child: Text(
+              label,
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                fontWeight: FontWeight.bold,
+                fontSize: 10,
+              ),
+              textAlign: TextAlign.center,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
             ),
           ),
+          const SizedBox(height: AppTheme.paddingMicro),
+          Flexible(
+            child: Text(
+              value,
+              style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                color: color,
+                fontWeight: FontWeight.bold,
+                fontSize: 12,
+              ),
+              textAlign: TextAlign.center,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+          if (!hasImpact)
+            Flexible(
+              child: Text(
+                'No impact yet',
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: Colors.grey,
+                  fontSize: 8,
+                ),
+                textAlign: TextAlign.center,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
         ],
       ),
     );
