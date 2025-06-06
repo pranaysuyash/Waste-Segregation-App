@@ -280,7 +280,7 @@ class WasteSegregationApp extends StatelessWidget {
             value: educationalContentAnalyticsService),
         Provider<GoogleDriveService>.value(value: googleDriveService),
         Provider<EducationalContentService>.value(value: educationalContentService),
-        Provider<GamificationService>.value(value: gamificationService),
+        ChangeNotifierProvider<GamificationService>.value(value: gamificationService),
         ChangeNotifierProvider<PremiumService>.value(value: premiumService),
         ChangeNotifierProvider<AdService>.value(value: adService),
         ChangeNotifierProvider<NavigationSettingsService>.value(value: navigationSettingsService),
