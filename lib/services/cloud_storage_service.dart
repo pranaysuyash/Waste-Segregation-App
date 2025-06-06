@@ -497,14 +497,6 @@ class CloudStorageService {
         cloudClassifications,
       );
 
-      if (downloadedCount > 0) {
-        try {
-          await _localStorageService.updateLastCloudSync(DateTime.now());
-        } catch (e) {
-          debugPrint('⚠️ Failed to update last sync time: $e');
-        }
-      }
-
       return downloadedCount;
     } catch (e) {
       debugPrint('🔄 ❌ Failed to download from cloud: $e');

@@ -1518,13 +1518,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
       final cloudStorageService = Provider.of<CloudStorageService>(context, listen: false);
       final downloadedCount = await cloudStorageService.syncCloudToLocal();
-      if (downloadedCount > 0) {
-        final storageService = Provider.of<StorageService>(context, listen: false);
-        final lastSync = await storageService.getLastCloudSync();
-        setState(() {
-          _lastCloudSync = lastSync;
-        });
-      }
       
       if (mounted) {
         Navigator.pop(context); // Close loading dialog

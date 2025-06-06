@@ -234,6 +234,7 @@ Next Play Store release:
 - [x] Privacy-compliant hashing mechanism
 - [x] Recovery metadata tracking
 - [x] Sync timestamp persistence fixes
+- [x] Upload-only sync timestamp (downloads no longer modify the time)
 
 ### **Next Internal Builds (0.1.5+98+)**
 - [x] Enhanced sync status indicators
