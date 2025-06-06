@@ -108,6 +108,16 @@ type '_Map<String, dynamic>' is not a subtype of type 'String'
       "queryScope": "COLLECTION",
       "fields": [
         {"fieldPath": "familyId", "order": "ASCENDING"},
+        {"fieldPath": "status", "order": "ASCENDING"},
+        {"fieldPath": "createdAt", "order": "DESCENDING"}
+      ]
+    },
+    {
+      "collectionGroup": "invitations",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {"fieldPath": "invitedEmail", "order": "ASCENDING"},
+        {"fieldPath": "status", "order": "ASCENDING"},
         {"fieldPath": "createdAt", "order": "DESCENDING"}
       ]
     }
@@ -130,7 +140,8 @@ type '_Map<String, dynamic>' is not a subtype of type 'String'
 - `familyId + isActive + role`: Filter active members by role
 
 **Invitations**:
-- `familyId + createdAt`: Manage invitations by family, newest first
+- `familyId + status + createdAt`: Manage invitations by status
+- `invitedEmail + status + createdAt`: Track user's invitation history
 
 ### 2. **Storage Service Type Safety**
 

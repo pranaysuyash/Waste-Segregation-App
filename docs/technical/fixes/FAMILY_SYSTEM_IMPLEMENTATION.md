@@ -336,6 +336,7 @@ CircleAvatar(
   "collectionGroup": "invitations",
   "fields": [
     {"fieldPath": "familyId", "order": "ASCENDING"},
+    {"fieldPath": "status", "order": "ASCENDING"},
     {"fieldPath": "createdAt", "order": "DESCENDING"}
   ]
 }
