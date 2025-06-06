@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
 import '../models/waste_classification.dart';
 import '../models/user_profile.dart';
+import '../models/classification_feedback.dart';
 import 'storage_service.dart';
 import 'gamification_service.dart';
 import 'dart:convert';
@@ -432,6 +433,18 @@ class CloudStorageService {
       debugPrint('🗑️ ✅ Successfully cleared ${classificationsQuery.docs.length} cloud classifications');
     } catch (e) {
       debugPrint('🗑️ ❌ Failed to clear cloud data: $e');
+      rethrow;
+    }
+  }
+  /// Save classification feedback to Firestore
+  Future<void> saveClassificationFeedbackToCloud(ClassificationFeedback feedback) async {
+    try {
+      await _firestore
+          .collection('classification_feedback')
+          .doc(feedback.id)
+          .set(feedback.toJson(), SetOptions(merge: true));
+    } catch (e) {
+      debugPrint('Feedback cloud save failed: $e');
       rethrow;
     }
   }

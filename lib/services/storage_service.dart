@@ -6,6 +6,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../models/waste_classification.dart';
 import '../models/filter_options.dart';
 import '../models/user_profile.dart';
+import '../models/classification_feedback.dart';
 import '../utils/constants.dart';
 import 'gamification_service.dart';
 import 'cloud_storage_service.dart';
@@ -39,6 +40,7 @@ class StorageService {
     await Hive.openBox(StorageKeys.gamificationBox);
     await Hive.openBox(StorageKeys.familiesBox);
     await Hive.openBox(StorageKeys.invitationsBox);
+    await Hive.openBox(StorageKeys.classificationFeedbackBox);
     
     // Open cache box for image classification caching
     // We're using String type to store serialized CachedClassification objects
@@ -959,5 +961,38 @@ class StorageService {
     
     debugPrint('🧹 Cleanup complete: Removed $duplicatesFound duplicates');
     return duplicatesFound;
+
+  // ---------------------------------------------------------------------------
+  // Classification Feedback methods
+  // ---------------------------------------------------------------------------
+  Future<void> saveClassificationFeedback(ClassificationFeedback feedback) async {
+    final box = Hive.box(StorageKeys.classificationFeedbackBox);
+    await box.put(feedback.id, feedback.toJson());
   }
+
+  Future<List<ClassificationFeedback>> getAllClassificationFeedback() async {
+    final box = Hive.box(StorageKeys.classificationFeedbackBox);
+    final feedbackList = <ClassificationFeedback>[];
+    for (final key in box.keys) {
+      final data = box.get(key);
+      if (data == null) continue;
+      try {
+        Map<String, dynamic> json;
+        if (data is String) {
+          json = jsonDecode(data);
+        } else if (data is Map<String, dynamic>) {
+          json = data;
+        } else if (data is Map) {
+          json = Map<String, dynamic>.from(data);
+        } else {
+          continue;
+        }
+        feedbackList.add(ClassificationFeedback.fromJson(json, key.toString()));
+      } catch (_) {
+        continue;
+      }
+    }
+    return feedbackList;
+  }
+
 }

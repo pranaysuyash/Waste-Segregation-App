@@ -5,6 +5,9 @@ import '../models/waste_classification.dart';
 import '../models/gamification.dart';
 import '../services/storage_service.dart';
 import '../services/gamification_service.dart';
+import '../models/classification_feedback.dart';
+import '../services/cloud_storage_service.dart';
+import '../utils/app_version.dart';
 import '../utils/constants.dart';
 import '../utils/error_handler.dart';
 import '../utils/animation_helpers.dart';
@@ -1268,6 +1271,29 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
     try {
       final storageService = Provider.of<StorageService>(context, listen: false);
       await storageService.saveClassification(updatedClassification);
+
+      final feedback = ClassificationFeedback(
+        userId: updatedClassification.userId ?? 'guest_user',
+        originalClassificationId: widget.classification.id,
+        originalAIItemName: widget.classification.itemName,
+        originalAICategory: widget.classification.category,
+        originalAIMaterial: widget.classification.materialType,
+        originalAIConfidence: widget.classification.confidence,
+        userSuggestedItemName: updatedClassification.itemName,
+        userSuggestedCategory: updatedClassification.category,
+        userSuggestedMaterial: updatedClassification.materialType,
+        userNotes: updatedClassification.userNotes,
+        appVersion: AppVersion.fullVersion,
+      );
+
+      await storageService.saveClassificationFeedback(feedback);
+
+      final cloudStorageService = Provider.of<CloudStorageService>(context, listen: false);
+      final settings = await storageService.getSettings();
+      final isGoogleSyncEnabled = settings['isGoogleSyncEnabled'] ?? false;
+      if (isGoogleSyncEnabled) {
+        await cloudStorageService.saveClassificationFeedbackToCloud(feedback);
+      }
       
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
