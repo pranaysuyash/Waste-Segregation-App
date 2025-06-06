@@ -3,6 +3,7 @@
 *Derived from the [Animation Enhancement Board](https://link.to/animation-plan) for PR #22.*
 
 This document lists individual tasks derived from the comprehensive animation enhancement plan. Each task references the primary file(s) involved so that it can be tracked and implemented separately. New file paths are marked with `(new)` where appropriate.
+Paths marked as `(new)` do not exist yet and will be created during implementation.
 
 ## 🔄 Loading States
 - [ ] **Add `RefreshLoadingWidget`**  
