@@ -218,7 +218,7 @@ class StorageService {
         } else {
           excludedDifferentUser++;
         }
-      } catch (e, stackTrace) {
+      } catch (e) {
         debugPrint('📖 ❌ Error processing classification with key $key: $e');
         corruptedEntries++;
         

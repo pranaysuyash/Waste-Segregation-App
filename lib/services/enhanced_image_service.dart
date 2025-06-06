@@ -7,9 +7,9 @@ import 'package:path_provider/path_provider.dart';
 /// Provides helper methods for saving and loading images across
 /// platforms with basic retry logic for network requests.
 class EnhancedImageService {
-  static final EnhancedImageService _instance = EnhancedImageService._();
   EnhancedImageService._();
   factory EnhancedImageService() => _instance;
+  static final EnhancedImageService _instance = EnhancedImageService._();
 
   /// Directory name for stored images.
   static const _imagesDirName = 'images';

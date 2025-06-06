@@ -1094,7 +1094,7 @@ Output:
             );
           } catch (jsonError) {
             debugPrint('❌ JSON PARSING FAILED: $jsonError');
-            debugPrint('❌ Problematic content (first 500 chars): ${content.length > 500 ? content.substring(0, 500) + "..." : content}');
+            debugPrint('❌ Problematic content (first 500 chars): ${content.length > 500 ? "${content.substring(0, 500)}..." : content}');
 
             // Try to extract basic info even if full parsing fails
             return _createFallbackClassification(
@@ -1229,7 +1229,7 @@ Output:
       final alternatives = _parseAlternatives(jsonContent['alternatives']);
 
       // 🔧 ENHANCED ITEM NAME PARSING: Handle null itemName from AI
-      String itemName = _safeStringParse(jsonContent['itemName']) ?? '';
+      var itemName = _safeStringParse(jsonContent['itemName']) ?? '';
       
       if (itemName.isEmpty || itemName == 'null') {
         // Try to extract item name from explanation or subcategory

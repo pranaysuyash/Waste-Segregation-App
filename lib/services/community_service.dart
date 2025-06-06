@@ -440,7 +440,7 @@ class CommunityService {
     try {
       final box = Hive.box(_communityBox);
       final feedJson = box.get(_feedKey, defaultValue: '[]');
-      List<dynamic> feedList = jsonDecode(feedJson);
+      final List<dynamic> feedList = jsonDecode(feedJson);
       
       final cutoffDate = DateTime.now().subtract(Duration(days: olderThanDays));
       

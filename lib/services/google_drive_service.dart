@@ -43,7 +43,7 @@ class GoogleDriveService {
       final account = await _googleSignIn.signIn();
       if (account != null) {
         final userId = account.id;
-        UserProfile? userProfile = await _fetchUserProfileFromFirestore(userId);
+        var userProfile = await _fetchUserProfileFromFirestore(userId);
 
         if (userProfile == null) {
           // Truly new user, or Firestore fetch failed. Create a new UserProfile.

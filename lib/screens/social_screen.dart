@@ -29,7 +29,7 @@ class _SocialScreenState extends State<SocialScreen> {
             padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
             child: Container(
               decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.surfaceVariant,
+                color: Theme.of(context).colorScheme.surfaceContainerHighest,
                 borderRadius: BorderRadius.circular(25),
               ),
               child: Row(
@@ -93,7 +93,6 @@ class _SocialScreenState extends State<SocialScreen> {
         ),
       ),
       body: SafeArea(
-        bottom: true,
         top: false,
         left: false,
         right: false,

@@ -12,9 +12,9 @@ import 'family_creation_screen.dart';
 import 'classification_details_screen.dart'; // Import the new screen
 
 class FamilyDashboardScreen extends StatefulWidget {
-  final bool showAppBar;
 
   const FamilyDashboardScreen({super.key, this.showAppBar = true});
+  final bool showAppBar;
 
   @override
   State<FamilyDashboardScreen> createState() => _FamilyDashboardScreenState();
@@ -190,7 +190,7 @@ class _FamilyDashboardScreenState extends State<FamilyDashboardScreen> {
         return _buildNoFamilyState();
     }
 
-    final bottomPadding = AppTheme.paddingRegular + 56.0;
+    const bottomPadding = AppTheme.paddingRegular + 56.0;
 
     return RefreshIndicator(
       onRefresh: _handleRefresh,

@@ -7,9 +7,9 @@ import '../utils/constants.dart';
 import '../widgets/modern_ui/modern_cards.dart';
 
 class CommunityScreen extends StatefulWidget {
-  final bool showAppBar;
 
   const CommunityScreen({super.key, this.showAppBar = true});
+  final bool showAppBar;
 
   @override
   State<CommunityScreen> createState() => _CommunityScreenState();
@@ -128,7 +128,7 @@ class _CommunityScreenState extends State<CommunityScreen> with TickerProviderSt
       );
     }
 
-    final bottomPadding = AppTheme.paddingRegular + 56.0;
+    const bottomPadding = AppTheme.paddingRegular + 56.0;
 
     return RefreshIndicator(
       onRefresh: _loadCommunityData,
@@ -213,7 +213,7 @@ class _CommunityScreenState extends State<CommunityScreen> with TickerProviderSt
                         ),
                         child: Text(
                           '+${item.points} pts',
-                          style: TextStyle(
+                          style: const TextStyle(
                             color: AppTheme.accentColor,
                             fontWeight: FontWeight.bold,
                             fontSize: 10,
@@ -236,7 +236,7 @@ class _CommunityScreenState extends State<CommunityScreen> with TickerProviderSt
       return const Center(child: Text('No stats available'));
     }
 
-    final bottomPadding = AppTheme.paddingRegular + 56.0;
+    const bottomPadding = AppTheme.paddingRegular + 56.0;
 
     return SingleChildScrollView(
       padding: EdgeInsets.fromLTRB(
@@ -322,7 +322,6 @@ class _CommunityScreenState extends State<CommunityScreen> with TickerProviderSt
 
   Widget _buildMembersTab() {
     return const SafeArea(
-      bottom: true,
       top: false,
       left: false,
       right: false,
