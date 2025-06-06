@@ -53,7 +53,6 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   String? _userName;
 
   // Gamification state
-  GamificationProfile? _gamificationProfile;
   List<Challenge> _activeChallenges = [];
   bool _isLoadingGamification = false;
 
@@ -83,15 +82,12 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       // Update streak for today's app usage
       await gamificationService.updateStreak();
 
-      // Get gamification profile
-      final profile = await gamificationService.getProfile();
-
-      // Get active challenges
+      // Refresh profile and get active challenges
+      await gamificationService.getProfile(forceRefresh: true);
       final challenges = await gamificationService.getActiveChallenges();
 
       setState(() {
-      _gamificationProfile = profile;
-      _activeChallenges = challenges;
+        _activeChallenges = challenges;
       });
     } catch (e) {
       debugPrint('Error loading gamification data: $e');
@@ -1006,11 +1002,12 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
 
   // Build the gamification section of the home screen
   Widget _buildGamificationSection() {
+    final profile = context.watch<GamificationService>().currentProfile;
     if (_isLoadingGamification) {
       return const Center(child: CircularProgressIndicator());
     }
 
-    if (_gamificationProfile == null) {
+    if (profile == null) {
       return const SizedBox.shrink(); // Don't show anything if profile isn't loaded
     }
 
@@ -1028,7 +1025,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
 
         // Streak indicator
         StreakIndicator(
-          streak: _getMainStreak(_gamificationProfile!),
+          streak: _getMainStreak(profile),
           onTap: () {
             // Navigate to achievements screen with streak tab
             Navigator.push(
@@ -1091,7 +1088,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
 
         // Achievements grid
         AchievementGrid(
-          achievements: _gamificationProfile!.achievements,
+          achievements: profile.achievements,
           onViewAll: () {
             Navigator.push(
               context,
@@ -1118,12 +1115,13 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         title: const ResponsiveAppBarTitle(title: AppStrings.appName),
         actions: [
           // Points indicator in app bar
-          if (_gamificationProfile != null)
+          final profile = context.watch<GamificationService>().currentProfile;
+          if (profile != null)
             Padding(
               padding: const EdgeInsets.only(right: 8.0),
               child: Center(
                               child: LifetimePointsIndicator(
-                points: _gamificationProfile!.points,
+                points: profile.points,
                 showLifetimePoints: true,
                 onTap: () {
                   Navigator.push(

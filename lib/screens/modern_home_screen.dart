@@ -68,7 +68,6 @@ class _ModernHomeScreenState extends State<ModernHomeScreen> with TickerProvider
   DateTime? _lastRefresh;
 
   // Gamification state
-  GamificationProfile? _gamificationProfile;
   List<Challenge> _activeChallenges = [];
   bool _isLoadingGamification = false;
 
@@ -165,12 +164,11 @@ class _ModernHomeScreenState extends State<ModernHomeScreen> with TickerProvider
           Provider.of<GamificationService>(context, listen: false);
 
       await gamificationService.updateStreak();
-      final profile = await gamificationService.getProfile();
+      await gamificationService.getProfile(forceRefresh: true);
       final challenges = await gamificationService.getActiveChallenges();
 
       if (!mounted) return;
       setState(() {
-        _gamificationProfile = profile;
         _activeChallenges = challenges;
       });
     } catch (e) {
@@ -520,7 +518,7 @@ class _ModernHomeScreenState extends State<ModernHomeScreen> with TickerProvider
         ),
         actions: [
           // Achievement points badge
-          if (_gamificationProfile != null)
+          if (context.watch<GamificationService>().currentProfile != null)
             Padding(
               padding: const EdgeInsets.only(right: 8.0),
               child: GestureDetector(
@@ -534,7 +532,7 @@ class _ModernHomeScreenState extends State<ModernHomeScreen> with TickerProvider
                   );
                 },
                 child: ModernBadge(
-                  text: '${_gamificationProfile!.points.total}',
+                  text: '${context.watch<GamificationService>().currentProfile!.points.total}',
                   icon: Icons.stars,
                   style: ModernBadgeStyle.soft,
                   backgroundColor: Colors.amber,
@@ -789,6 +787,7 @@ class _ModernHomeScreenState extends State<ModernHomeScreen> with TickerProvider
   }
 
   Widget _buildStatsSection() {
+    final profile = context.watch<GamificationService>().currentProfile;
     return Row(
       children: [
         Expanded(
@@ -812,7 +811,7 @@ class _ModernHomeScreenState extends State<ModernHomeScreen> with TickerProvider
         Expanded(
           child: StatsCard(
             title: 'Streak',
-            value: '${_getCurrentStreak(_gamificationProfile)}',
+            value: '${_getCurrentStreak(profile)}',
             icon: Icons.local_fire_department,
             color: Colors.orange,
             subtitle: 'days',
@@ -830,7 +829,7 @@ class _ModernHomeScreenState extends State<ModernHomeScreen> with TickerProvider
         Expanded(
           child: StatsCard(
             title: 'Points',
-            value: '${_gamificationProfile?.points.total ?? 0}',
+            value: '${profile?.points.total ?? 0}',
             icon: Icons.stars,
             color: Colors.amber,
             trend: '+24',
@@ -849,7 +848,8 @@ class _ModernHomeScreenState extends State<ModernHomeScreen> with TickerProvider
   }
 
   Widget _buildGamificationSection() {
-    if (_isLoadingGamification || _gamificationProfile == null) {
+    final profile = context.watch<GamificationService>().currentProfile;
+    if (_isLoadingGamification || profile == null) {
       return const Center(child: CircularProgressIndicator());
     }
 
@@ -864,14 +864,15 @@ class _ModernHomeScreenState extends State<ModernHomeScreen> with TickerProvider
         ),
         const SizedBox(height: AppTheme.spacingMd),
         
-        if (_activeChallenges.isNotNullOrEmpty) ...[
+        final challenges = profile.activeChallenges;
+        if (challenges.isNotEmpty) ...[
           FeatureCard(
             icon: Icons.emoji_events,
             title: 'Active Challenge',
-            subtitle: _activeChallenges.first.description,
+            subtitle: challenges.first.description,
             trailing: ProgressBadge(
-              progress: _activeChallenges.first.progress,
-              text: '${(_activeChallenges.first.progress * 100).toInt()}%',
+              progress: challenges.first.progress,
+              text: '${(challenges.first.progress * 100).toInt()}%',
             ),
             onTap: () {
               Navigator.push(
@@ -887,11 +888,11 @@ class _ModernHomeScreenState extends State<ModernHomeScreen> with TickerProvider
         ],
         
         // Recent achievements
-        if (_gamificationProfile!.achievements.where((a) => a.isEarned).isNotEmpty)
+        if (profile.achievements.where((a) => a.isEarned).isNotEmpty)
           FeatureCard(
             icon: Icons.military_tech,
             title: 'Latest Achievement',
-            subtitle: _gamificationProfile!.achievements
+            subtitle: profile.achievements
                 .where((a) => a.isEarned)
                 .last
                 .title,

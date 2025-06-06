@@ -21,26 +21,18 @@ class AchievementsScreen extends StatefulWidget {
 class _AchievementsScreenState extends State<AchievementsScreen>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
-  late Future<GamificationProfile> _profileFuture;
 
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(
-        length: 3, vsync: this, initialIndex: widget.initialTabIndex);
-    _loadProfile();
-  }
-
-  void _loadProfile() {
-    final gamificationService =
-        Provider.of<GamificationService>(context, listen: false);
-    _profileFuture = gamificationService.getProfile();
+    _tabController =
+        TabController(length: 3, vsync: this, initialIndex: widget.initialTabIndex);
+    // Load initial profile
+    context.read<GamificationService>().getProfile();
   }
 
   Future<void> _refreshProfile() async {
-    setState(() {
-      _loadProfile();
-    });
+    await context.read<GamificationService>().getProfile(forceRefresh: true);
   }
 
   @override
@@ -65,67 +57,13 @@ class _AchievementsScreenState extends State<AchievementsScreen>
             ],
           ),
         ),
-        body: FutureBuilder<GamificationProfile>(
-          future: _profileFuture,
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
+        body: Builder(
+          builder: (context) {
+            final profile = context.watch<GamificationService>().currentProfile;
+
+            if (profile == null) {
               return const Center(child: CircularProgressIndicator());
             }
-
-            if (snapshot.hasError) {
-              return RefreshIndicator(
-                onRefresh: _refreshProfile,
-                child: SingleChildScrollView(
-                  physics: const AlwaysScrollableScrollPhysics(),
-                  child: SizedBox(
-                    height: MediaQuery.of(context).size.height * 0.8,
-                    child: Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(
-                            Icons.error_outline,
-                            size: 64,
-                            color: Theme.of(context).colorScheme.error,
-                          ),
-                          const SizedBox(height: AppTheme.paddingRegular),
-                          Text(
-                            'Error loading profile',
-                            style: Theme.of(context).textTheme.titleLarge,
-                          ),
-                          const SizedBox(height: AppTheme.paddingSmall),
-                          Text(
-                            '${snapshot.error}',
-                            style: Theme.of(context).textTheme.bodyMedium,
-                            textAlign: TextAlign.center,
-                          ),
-                          const SizedBox(height: AppTheme.paddingLarge),
-                          ElevatedButton.icon(
-                            onPressed: _refreshProfile,
-                            icon: const Icon(Icons.refresh),
-                            label: const Text('Retry'),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-              );
-            }
-
-            if (!snapshot.hasData) {
-              return RefreshIndicator(
-                onRefresh: _refreshProfile,
-                child: const SingleChildScrollView(
-                  physics: AlwaysScrollableScrollPhysics(),
-                  child: Center(
-                    child: Text('No profile data available'),
-                  ),
-                ),
-              );
-            }
-
-            final profile = snapshot.data!;
 
             return TabBarView(
               controller: _tabController,
