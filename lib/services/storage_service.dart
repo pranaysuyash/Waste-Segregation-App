@@ -488,6 +488,7 @@ class StorageService {
   Future<void> saveSettings({
     required bool isDarkMode,
     required bool isGoogleSyncEnabled,
+    DateTime? lastCloudSync,
     bool? allowHistoryFeedback,
     int? feedbackTimeframeDays,
     bool? notifications,
@@ -500,6 +501,9 @@ class StorageService {
     // Update the settings with new values
     settings['isDarkMode'] = isDarkMode;
     settings['isGoogleSyncEnabled'] = isGoogleSyncEnabled;
+    if (lastCloudSync != null) {
+      settings['lastCloudSync'] = lastCloudSync.toIso8601String();
+    }
     
     // Update feedback settings if provided
     if (allowHistoryFeedback != null) {
@@ -528,6 +532,31 @@ class StorageService {
     // Also save to the old format for backward compatibility
     await settingsBox.put(StorageKeys.isDarkModeKey, isDarkMode);
     await settingsBox.put(StorageKeys.isGoogleSyncEnabledKey, isGoogleSyncEnabled);
+  }
+
+  /// Update the last successful cloud sync timestamp.
+  Future<void> updateLastCloudSync(DateTime timestamp) async {
+    // Prevent storing timestamps far in the future which could happen due to
+    // clock issues or bad data.
+    if (timestamp.isAfter(DateTime.now().add(const Duration(minutes: 1)))) {
+      debugPrint('⚠️ Invalid sync timestamp: $timestamp is in the future');
+      return;
+    }
+
+    final settings = await getSettings();
+    settings['lastCloudSync'] = timestamp.toIso8601String();
+    final settingsBox = Hive.box(StorageKeys.settingsBox);
+    await settingsBox.put('settings', settings);
+  }
+
+  /// Retrieve the last successful cloud sync time, or null if none.
+  Future<DateTime?> getLastCloudSync() async {
+    final settings = await getSettings();
+    final value = settings['lastCloudSync'];
+    if (value is String) {
+      return DateTime.tryParse(value);
+    }
+    return null;
   }
 
   /// Get user settings with default values

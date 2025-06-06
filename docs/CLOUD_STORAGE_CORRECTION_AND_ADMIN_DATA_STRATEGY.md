@@ -233,11 +233,14 @@ Next Play Store release:
 - [x] Documentation corrections across all files
 - [x] Privacy-compliant hashing mechanism
 - [x] Recovery metadata tracking
+- [x] Sync timestamp persistence fixes
+- [x] Upload-only sync timestamp (downloads no longer modify the time)
 
 ### **Next Internal Builds (0.1.5+98+)**
-- [ ] Enhanced sync status indicators
-- [ ] Conflict resolution for duplicate data
-- [ ] Batch sync optimizations
+- [x] Enhanced sync status indicators
+- [x] Conflict resolution for duplicate data
+- [x] Batch sync optimizations
+  - Improved batch handling to support more than 500 classifications per sync
 - [ ] Admin dashboard foundations
 - [ ] User migration flow improvements
 

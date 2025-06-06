@@ -2,6 +2,13 @@
 
 All notable changes to the Waste Segregation App will be documented in this file.
 
+## [0.1.6+103] - 2025-06-06
+
+### 🐛 Bug Fixes
+- **Cloud Sync**: Fixed failure when uploading more than 500 classifications by
+  splitting write batches and committing pending operations reliably. Sync count
+  now reflects user data uploads even if admin logging fails.
+
 ## [0.1.6+102] - 2025-01-04
 
 ### 📚 Documentation
