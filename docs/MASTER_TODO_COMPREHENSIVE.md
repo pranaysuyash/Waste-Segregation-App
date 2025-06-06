@@ -208,7 +208,7 @@ This roadmap should be considered a living document, subject to prioritization a
 - [ ] ❌ **User feedback widget exists** but not integrated anywhere
 - [ ] ❌ **Users see old Hive-based family system** instead of new Firebase features
 
-#### Implementation Tasks:
+#### Implementation Tasks
 - [ ] 🔄 **URGENT**: Integrate FirebaseFamilyService into existing family screens
 - [ ] 🔄 **URGENT**: Add analytics tracking calls throughout app
 - [ ] 🔄 **URGENT**: Integrate feedback widget into result_screen.dart
@@ -227,7 +227,7 @@ This roadmap should be considered a living document, subject to prioritization a
 - [ ] ❌ **Missing GDPR compliance**
 - [ ] ❌ **No consent management**
 
-#### Implementation Tasks:
+#### Implementation Tasks
 - [ ] 🔄 Replace placeholder ad unit IDs with real AdMob console IDs
 - [ ] 🔄 Configure Android `android:value` in AndroidManifest.xml
 - [ ] 🔄 Configure iOS `GADApplicationIdentifier` in Info.plist
@@ -246,7 +246,7 @@ This roadmap should be considered a living document, subject to prioritization a
 - [ ] ❌ **ParentDataWidget incorrect usage** warnings
 - [ ] ❌ **Long descriptions** don't handle overflow properly
 
-#### Implementation Tasks:
+#### Implementation Tasks
 - [ ] 🔄 Implement `TextOverflow.ellipsis` with `maxLines` properties
 - [ ] 🔄 Add "Read More" buttons for lengthy content
 - [ ] 🔄 Fix recycling code widget structure (plastic name vs examples)
@@ -389,7 +389,7 @@ final basePreparation = [
 ];
 ```
 
-#### Implementation Tasks:
+#### Implementation Tasks
 - [ ] 🔄 Create `LLMDisposalService` class
 - [ ] 🔄 Define prompt templates for different waste categories
 - [ ] 🔄 Add location-aware prompts (Bangalore-specific)
@@ -614,6 +614,28 @@ final basePreparation = [
 - [ ] 🔄 **Waste reduction tips** and challenges
 - [ ] 🔄 **Environmental impact awareness** features
 - [ ] 🔄 **Sustainability goal tracking**
+
+---
+
+### 4. **Animation & Micro-Interaction Enhancements** 🕹️
+**Status**: ❌ **TODO** - Derived from animation_enhancement_tasks.md
+**Priority**: MEDIUM
+
+#### Implementation Tasks
+- [ ] Add `RefreshLoadingWidget` (`lib/widgets/animations/enhanced_loading_states.dart`)
+- [ ] Add `HistoryLoadingWidget` (`lib/widgets/animations/enhanced_loading_states.dart`)
+- [ ] Create `PageTransitionBuilder` and `AnimatedTabController` (`lib/widgets/animations/page_transitions.dart`)
+- [ ] Add `EmptyStateWidget` for history and `EmptyAchievementsWidget` (`lib/widgets/animations/empty_state_animations.dart`)
+- [ ] Create `SyncSuccessWidget` (`lib/widgets/animations/success_celebrations.dart`)
+- [ ] Create `ErrorRecoveryWidget` (`lib/widgets/animations/error_recovery_animations.dart`)
+- [ ] Add `ContentDiscoveryWidget` and `DailyTipRevealWidget` (`lib/widgets/animations/educational_animations.dart`)
+- [ ] Add `CommunityFeedWidget` animations and `LeaderboardWidget` (`lib/widgets/animations/social_animations.dart`)
+- [ ] Create `AnimatedSettingsToggle`, `ProfileUpdateWidget`, `SmartNotificationWidget` (`lib/widgets/animations/settings_animations.dart`)
+- [ ] Add `SearchResultsWidget` and `SortingAnimationWidget` (`lib/widgets/animations/enhanced_loading_states.dart`, `lib/widgets/animations/data_visualization_animations.dart`)
+- [ ] Create `AnimatedDashboardWidget` and `ProgressTrackingWidget` (`lib/widgets/animations/data_visualization_animations.dart`)
+- [ ] Extend `AnimationHelpers` utilities
+- [ ] Enhance `EnhancedGamificationWidgets` with celebration animations
+- [ ] Update `history_screen.dart`, `educational_content_screen.dart`, and `settings_screen.dart` with new widgets
 
 ---
 
