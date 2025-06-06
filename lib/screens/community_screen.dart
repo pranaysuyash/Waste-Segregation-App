@@ -44,7 +44,11 @@ class _CommunityScreenState extends State<CommunityScreen> with TickerProviderSt
       
       await communityService.initCommunity();
       
-      // Generate sample data if feed is empty
+      // Sync with real user data first
+      final userClassifications = await storageService.getAllClassifications();
+      await communityService.syncWithUserData(userClassifications, userProfile);
+      
+      // Generate sample data if feed is still empty after sync
       final existingItems = await communityService.getFeedItems();
       if (existingItems.isEmpty) {
         await communityService.generateSampleCommunityData();

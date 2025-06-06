@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'dart:io';
 import 'community_screen.dart';
 import 'family_dashboard_screen.dart';
 
@@ -14,6 +15,10 @@ class _SocialScreenState extends State<SocialScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Calculate safe bottom padding for FAB
+    final bottomPadding = MediaQuery.of(context).padding.bottom;
+    final isIOS = Platform.isIOS;
+    
     return Scaffold(
       appBar: _currentIndex == 1 ? AppBar(
         title: const Text('Social'),
@@ -100,17 +105,28 @@ class _SocialScreenState extends State<SocialScreen> {
           ),
         ],
       ),
-      // Floating action button for switching between sections when Community is active
-      floatingActionButton: _currentIndex == 0 ? FloatingActionButton.extended(
-        onPressed: () => setState(() => _currentIndex = 1),
-        icon: const Icon(Icons.family_restroom),
-        label: const Text('Family'),
-        backgroundColor: Theme.of(context).colorScheme.secondary,
-      ) : FloatingActionButton.extended(
-        onPressed: () => setState(() => _currentIndex = 0),
-        icon: const Icon(Icons.people),
-        label: const Text('Community'),
-        backgroundColor: Theme.of(context).colorScheme.secondary,
+      // Floating action button positioned to avoid bottom nav overlap
+      floatingActionButton: Container(
+        margin: EdgeInsets.only(
+          bottom: isIOS 
+              ? (bottomPadding > 0 ? bottomPadding + 16 : 32) // iOS safe area + extra padding
+              : 80, // Android bottom nav height + padding
+        ),
+        child: _currentIndex == 0 
+            ? FloatingActionButton.extended(
+                onPressed: () => setState(() => _currentIndex = 1),
+                icon: const Icon(Icons.family_restroom),
+                label: const Text('Family'),
+                backgroundColor: Theme.of(context).colorScheme.secondary,
+                elevation: 6,
+              ) 
+            : FloatingActionButton.extended(
+                onPressed: () => setState(() => _currentIndex = 0),
+                icon: const Icon(Icons.people),
+                label: const Text('Community'),
+                backgroundColor: Theme.of(context).colorScheme.secondary,
+                elevation: 6,
+              ),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
     );

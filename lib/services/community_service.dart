@@ -82,33 +82,105 @@ class CommunityService {
     }
   }
   
-  /// Get community statistics
+  /// Get community statistics based on real data
   Future<CommunityStats> getCommunityStats() async {
     try {
       final box = Hive.box(_communityBox);
-      final statsJson = box.get(_statsKey);
+      final feedJson = box.get(_feedKey, defaultValue: '[]');
+      final List<dynamic> feedList = jsonDecode(feedJson);
       
-      if (statsJson == null) {
-        return CommunityStats(
-          totalUsers: 1,
-          totalClassifications: 0,
-          totalAchievements: 0,
-          activeToday: 1,
-          activeUsers: 1,
-          categoryBreakdown: {},
-          lastUpdated: DateTime.now(),
-        );
+      // Calculate real stats from feed data
+      final feedItems = feedList
+          .map((json) => CommunityFeedItem.fromJson(json))
+          .toList();
+      
+      // Calculate unique users
+      final uniqueUsers = feedItems.map((item) => item.userId).toSet();
+      final totalUsers = uniqueUsers.length;
+      
+      // Calculate classifications and achievements
+      final classifications = feedItems.where((item) => 
+          item.activityType == CommunityActivityType.classification).toList();
+      final achievements = feedItems.where((item) => 
+          item.activityType == CommunityActivityType.achievement).toList();
+      
+      // Calculate total points from actual activities
+      final totalPoints = feedItems.fold<int>(0, (sum, item) => sum + item.points);
+      
+      // Calculate active today (users with activity today)
+      final today = DateTime.now();
+      final todayItems = feedItems.where((item) => 
+          item.timestamp.day == today.day &&
+          item.timestamp.month == today.month &&
+          item.timestamp.year == today.year).toList();
+      final activeToday = todayItems.map((item) => item.userId).toSet().length;
+      
+      // Calculate category breakdown from classifications
+      final categoryBreakdown = <String, int>{};
+      for (final item in classifications) {
+        final category = item.metadata['category'] as String?;
+        if (category != null) {
+          categoryBreakdown[category] = (categoryBreakdown[category] ?? 0) + 1;
+        }
       }
       
-      return CommunityStats.fromJson(jsonDecode(statsJson));
+      // Calculate weekly stats
+      final weekAgo = today.subtract(const Duration(days: 7));
+      final weeklyItems = feedItems.where((item) => 
+          item.timestamp.isAfter(weekAgo)).toList();
+      final weeklyClassifications = weeklyItems.where((item) => 
+          item.activityType == CommunityActivityType.classification).length;
+      final weeklyActiveUsers = weeklyItems.map((item) => item.userId).toSet().length;
+      
+      // Calculate average points per user
+      final averagePointsPerUser = totalUsers > 0 ? totalPoints / totalUsers : 0.0;
+      
+      // Get top contributors
+      final userPoints = <String, int>{};
+      final userActivities = <String, int>{};
+      for (final item in feedItems) {
+        userPoints[item.userId] = (userPoints[item.userId] ?? 0) + item.points;
+        userActivities[item.userId] = (userActivities[item.userId] ?? 0) + 1;
+      }
+      
+      final topContributors = userPoints.entries
+          .map((entry) => {
+                'userId': entry.key,
+                'totalPoints': entry.value,
+                'totalActivities': userActivities[entry.key] ?? 0,
+              })
+          .toList()
+        ..sort((a, b) => (b['totalPoints'] as int).compareTo(a['totalPoints'] as int));
+      
+      final realStats = CommunityStats(
+        totalUsers: totalUsers,
+        totalClassifications: classifications.length,
+        totalAchievements: achievements.length,
+        totalPoints: totalPoints,
+        activeToday: activeToday,
+        activeUsers: uniqueUsers.length,
+        weeklyClassifications: weeklyClassifications,
+        categoryBreakdown: categoryBreakdown,
+        lastUpdated: DateTime.now(),
+        averagePointsPerUser: averagePointsPerUser,
+        weeklyActiveUsers: weeklyActiveUsers,
+        topContributors: topContributors.take(10).toList(),
+        anonymousContributions: feedItems.where((item) => item.isAnonymous).length,
+      );
+      
+      // Cache the calculated stats
+      await box.put(_statsKey, jsonEncode(realStats.toJson()));
+      
+      return realStats;
     } catch (e) {
       debugPrint('❌ Error getting community stats: $e');
+      // Return minimal default stats only on error
       return CommunityStats(
-        totalUsers: 1,
+        totalUsers: 0,
         totalClassifications: 0,
         totalAchievements: 0,
-        activeToday: 1,
-        activeUsers: 1,
+        activeToday: 0,
+        activeUsers: 0,
         categoryBreakdown: {},
         lastUpdated: DateTime.now(),
       );
@@ -460,6 +532,56 @@ class CommunityService {
       debugPrint('✅ Old community activities (older than $olderThanDays days) cleaned up.');
     } catch (e) {
       debugPrint('❌ Error cleaning up old activities: $e');
+    }
+  }
+
+  /// Sync community stats with real user data from storage
+  Future<void> syncWithUserData(List<WasteClassification> userClassifications, UserProfile? userProfile) async {
+    try {
+      if (userClassifications.isEmpty) return;
+      
+      // Add feed items for recent classifications not already in community feed
+      final existingFeed = await getFeedItems();
+      final existingIds = existingFeed.map((item) => item.metadata['classificationId']).toSet();
+      
+      final recentClassifications = userClassifications
+          .where((classification) => 
+              !existingIds.contains(classification.id) &&
+              classification.timestamp.isAfter(DateTime.now().subtract(const Duration(days: 30))))
+          .toList();
+      
+      for (final classification in recentClassifications) {
+        final points = calculateActivityPoints(CommunityActivityType.classification, {
+          'category': classification.category,
+          'subcategory': classification.subcategory,
+          'confidence': classification.confidence,
+        });
+        
+        final feedItem = CommunityFeedItem(
+          id: 'sync_${classification.id}',
+          userId: userProfile?.id ?? 'current_user',
+          userName: userProfile?.displayName ?? 'You',
+          activityType: CommunityActivityType.classification,
+          title: 'Classified ${classification.category}',
+          description: 'Identified item as ${classification.category}${(classification.subcategory?.isNotEmpty ?? false) ? ' (${classification.subcategory})' : ''}',
+          timestamp: classification.timestamp,
+          points: points,
+          metadata: {
+            'category': classification.category,
+            'subcategory': classification.subcategory,
+            'confidence': classification.confidence,
+            'classificationId': classification.id,
+            'synced': true,
+          },
+          isAnonymous: userProfile?.preferences?['community_sharing'] == false,
+        );
+        
+        await addFeedItem(feedItem);
+      }
+      
+      debugPrint('🔄 Synced ${recentClassifications.length} classifications with community data');
+    } catch (e) {
+      debugPrint('❌ Error syncing with user data: $e');
     }
   }
 }
