@@ -461,10 +461,30 @@ class HistoryListItem extends StatelessWidget {
         borderRadius: BorderRadius.circular(AppTheme.borderRadiusSmall),
       ),
       child: Icon(
-        Icons.image_not_supported,
+        _getCategoryIcon(),
         color: Colors.grey.shade400,
         size: 24,
       ),
     );
+  }
+
+  /// Returns an icon that represents the classification category
+  IconData _getCategoryIcon() {
+    switch (classification.category.toLowerCase()) {
+      case 'wet waste':
+        return Icons.eco;
+      case 'dry waste':
+        return Icons.recycling;
+      case 'hazardous waste':
+        return Icons.warning;
+      case 'medical waste':
+        return Icons.medical_services;
+      case 'non-waste':
+        return Icons.check_circle;
+      case 'requires manual review':
+        return Icons.help_outline;
+      default:
+        return Icons.category;
+    }
   }
 }
