@@ -542,6 +542,7 @@ class FirebaseFamilyService {
     String inviterUserId,
     String inviteeEmail,
     user_profile_models.UserRole roleToAssign,
+    {invitation_models.InvitationMethod method = invitation_models.InvitationMethod.email}
   ) async {
     try {
       final family = await getFamily(familyId);
@@ -561,6 +562,7 @@ class FirebaseFamilyService {
         inviterName: inviter.displayName ?? 'Unknown User',
         invitedEmail: inviteeEmail,
         roleToAssign: roleToAssign,
+        method: method,
       );
 
       await _firestore

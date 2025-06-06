@@ -17,6 +17,15 @@ enum InvitationStatus {
   cancelled,
 }
 
+/// How an invitation was sent.
+enum InvitationMethod {
+  /// Invitation sent directly via email.
+  email,
+
+  /// Invitation generated as a shareable link or QR code.
+  qr,
+}
+
 /// Represents an invitation to join a family.
 class FamilyInvitation {
 
@@ -30,6 +39,7 @@ class FamilyInvitation {
     this.invitedUserId,
     this.status = InvitationStatus.pending,
     this.roleToAssign = UserRole.member,
+    this.method = InvitationMethod.email,
     DateTime? createdAt,
     DateTime? expiresAt,
     this.respondedAt,
@@ -50,6 +60,10 @@ class FamilyInvitation {
       status: InvitationStatus.values.firstWhere(
         (e) => e.toString().split('.').last == json['status'],
         orElse: () => InvitationStatus.pending,
+      ),
+      method: InvitationMethod.values.firstWhere(
+        (e) => e.toString().split('.').last == (json['method'] ?? 'email'),
+        orElse: () => InvitationMethod.email,
       ),
       roleToAssign: UserRole.values.firstWhere(
         (e) => e.toString().split('.').last == json['roleToAssign'],
@@ -83,6 +97,9 @@ class FamilyInvitation {
   /// The user ID of the invited person (if they accept).
   String? invitedUserId;
 
+  /// How the invitation was sent.
+  final InvitationMethod method;
+
   /// Current status of the invitation.
   InvitationStatus status;
 
@@ -109,6 +126,7 @@ class FamilyInvitation {
     String? invitedUserId,
     InvitationStatus? status,
     UserRole? roleToAssign,
+    InvitationMethod? method,
     DateTime? createdAt,
     DateTime? expiresAt,
     DateTime? respondedAt,
@@ -124,6 +142,7 @@ class FamilyInvitation {
       invitedUserId: invitedUserId ?? this.invitedUserId,
       status: status ?? this.status,
       roleToAssign: roleToAssign ?? this.roleToAssign,
+      method: method ?? this.method,
       createdAt: createdAt ?? this.createdAt,
       expiresAt: expiresAt ?? this.expiresAt,
       respondedAt: clearRespondedAt == true ? null : (respondedAt ?? this.respondedAt),
@@ -141,6 +160,7 @@ class FamilyInvitation {
       'invitedEmail': invitedEmail,
       'invitedUserId': invitedUserId,
       'status': status.toString().split('.').last,
+      'method': method.toString().split('.').last,
       'roleToAssign': roleToAssign.toString().split('.').last,
       'createdAt': createdAt.toIso8601String(),
       'expiresAt': expiresAt.toIso8601String(),
@@ -206,6 +226,7 @@ class FamilyInvitation {
         other.inviterName == inviterName &&
         other.invitedEmail == invitedEmail &&
         other.invitedUserId == invitedUserId &&
+        other.method == method &&
         other.status == status &&
         other.roleToAssign == roleToAssign &&
         other.createdAt == createdAt &&
@@ -222,6 +243,7 @@ class FamilyInvitation {
         inviterName.hashCode ^
         invitedEmail.hashCode ^
         invitedUserId.hashCode ^
+        method.hashCode ^
         status.hashCode ^
         roleToAssign.hashCode ^
         createdAt.hashCode ^

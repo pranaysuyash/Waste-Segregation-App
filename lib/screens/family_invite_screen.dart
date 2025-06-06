@@ -3,7 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import '../models/enhanced_family.dart' hide UserRole;
-// import '../models/family_invitation.dart'; // Unused import
+import '../models/family_invitation.dart' show InvitationMethod;
 import '../models/user_profile.dart' show UserRole;
 import '../services/firebase_family_service.dart';
 import '../services/storage_service.dart';
@@ -36,7 +36,9 @@ class _FamilyInviteScreenState extends State<FamilyInviteScreen>
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
-    _generateInviteLink();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _generateInviteLink();
+    });
   }
 
   @override
@@ -46,9 +48,31 @@ class _FamilyInviteScreenState extends State<FamilyInviteScreen>
     super.dispose();
   }
 
-  void _generateInviteLink() {
-    // Generate a shareable invite link
-    _inviteLink = 'https://wasteapp.com/invite/${widget.family.id}';
+  Future<void> _generateInviteLink() async {
+    try {
+      final storageService = Provider.of<StorageService>(context, listen: false);
+      final currentUser = await storageService.getCurrentUserProfile();
+      if (currentUser == null) {
+        throw Exception('User not found');
+      }
+
+      final invitation = await _familyService.createInvitation(
+        widget.family.id,
+        currentUser.id,
+        'qr.invite+${widget.family.id}@wasteapp.com',
+        UserRole.member,
+        method: InvitationMethod.qr,
+      );
+
+      setState(() {
+        _inviteLink = 'https://wasteapp.com/invite/${invitation.id}';
+      });
+    } catch (e) {
+      // Fallback to family id link if anything fails
+      setState(() {
+        _inviteLink = 'https://wasteapp.com/invite/${widget.family.id}';
+      });
+    }
   }
 
   @override
@@ -489,6 +513,7 @@ class _FamilyInviteScreenState extends State<FamilyInviteScreen>
         currentUser.id,
         _emailController.text.trim(),
         _selectedRole,
+        method: InvitationMethod.email,
       );
 
       if (mounted) {
