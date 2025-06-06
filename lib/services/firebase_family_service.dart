@@ -154,7 +154,8 @@ class FirebaseFamilyService {
       }
 
       if (family.hasMember(userId)) {
-        throw Exception('User is already a family member');
+        // User already part of family; no action needed
+        return;
       }
 
       final userProfile = await _getUserProfile(userId);
@@ -585,7 +586,8 @@ class FirebaseFamilyService {
         throw Exception('Invitation not found');
       }
 
-      final invitation = invitation_models.FamilyInvitation.fromJson(invitationDoc.data()!);
+      final invitation =
+          invitation_models.FamilyInvitation.fromJson(invitationDoc.data()!);
 
       if (invitation.status != invitation_models.InvitationStatus.pending) {
         throw Exception('Invitation is not pending');
@@ -595,10 +597,11 @@ class FirebaseFamilyService {
         throw Exception('Invitation has expired');
       }
 
-      // Add user to family
-      await addMember(invitation.familyId, userId, invitation.roleToAssign);
+      final family = await getFamily(invitation.familyId);
+      if (family != null && !family.hasMember(userId)) {
+        await addMember(invitation.familyId, userId, invitation.roleToAssign);
+      }
 
-      // Update invitation status
       final updatedInvitation = invitation.copyWith(
         status: invitation_models.InvitationStatus.accepted,
         respondedAt: DateTime.now(),
@@ -610,7 +613,7 @@ class FirebaseFamilyService {
           .doc(invitationId)
           .update(updatedInvitation.toJson());
     } catch (e) {
-      throw Exception('Failed to accept invitation: $e');
+      throw Exception('Unable to join family. Please try again later.');
     }
   }
 

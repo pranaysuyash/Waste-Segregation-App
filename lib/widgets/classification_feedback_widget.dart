@@ -424,14 +424,6 @@ class _ClassificationFeedbackWidgetState extends State<ClassificationFeedbackWid
                     ],
                   ),
                 ),
-              if (!_allModelsExhausted && _nextModelToTry != null)
-                Padding(
-                  padding: const EdgeInsets.only(top: 4.0),
-                  child: Text(
-                    'Next model: $_nextModelToTry',
-                    style: const TextStyle(color: Colors.blueGrey, fontSize: 12),
-                  ),
-                ),
             ],
             
             // Show reanalyzing indicator
@@ -750,14 +742,6 @@ class _ClassificationFeedbackWidgetState extends State<ClassificationFeedbackWid
                     ],
                   ),
                 ),
-              if (!_allModelsExhausted && _nextModelToTry != null)
-                Padding(
-                  padding: const EdgeInsets.only(top: 4.0),
-                  child: Text(
-                    'Next model: $_nextModelToTry',
-                    style: const TextStyle(color: Colors.blueGrey, fontSize: 12),
-                  ),
-                ),
             ],
             
             // Show reanalyzing indicator for full version
@@ -1042,13 +1026,13 @@ class _ClassificationFeedbackWidgetState extends State<ClassificationFeedbackWid
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Row(
-                    children: [
-                      const Icon(Icons.auto_awesome, color: Colors.white, size: 20),
-                      const SizedBox(width: 8),
+                    children: const [
+                      Icon(Icons.auto_awesome, color: Colors.white, size: 20),
+                      SizedBox(width: 8),
                       Expanded(
                         child: Text(
-                          'Reanalysis complete! ($_nextModelToTry)',
-                          style: const TextStyle(fontWeight: FontWeight.w600),
+                          'Reanalysis complete!',
+                          style: TextStyle(fontWeight: FontWeight.w600),
                         ),
                       ),
                     ],
