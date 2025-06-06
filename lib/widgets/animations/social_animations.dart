@@ -18,7 +18,6 @@ class _CommunityFeedWidgetState extends State<CommunityFeedWidget>
     super.initState();
     _controller = AnimationHelpers.createController(
       vsync: this,
-      duration: const Duration(milliseconds: 300),
     )..forward();
   }
 
@@ -43,9 +42,9 @@ class LeaderboardWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return FadeSlideAnimation(
-      child: child,
       startOffset: const Offset(0.0, 0.1),
       duration: const Duration(milliseconds: 300),
+      child: child,
     );
   }
 }

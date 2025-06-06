@@ -195,7 +195,7 @@ class _FamilyDashboardScreenState extends State<FamilyDashboardScreen> {
     return RefreshIndicator(
       onRefresh: _handleRefresh,
       child: SingleChildScrollView(
-        padding: EdgeInsets.fromLTRB(
+        padding: const EdgeInsets.fromLTRB(
           AppTheme.paddingRegular,
           AppTheme.paddingRegular,
           AppTheme.paddingRegular,

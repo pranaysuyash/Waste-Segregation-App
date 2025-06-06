@@ -125,148 +125,141 @@ class _EnhancedPointsIndicatorState extends State<EnhancedPointsIndicator>
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-            // Animated level badge
-            AnimatedBuilder(
-              animation: _animationController,
-              builder: (context, child) {
-                return Transform.scale(
-                  scale: isLevelUp ? _scaleAnimation.value : 1.0,
-                  child: Container(
-                    padding: const EdgeInsets.all(6),
-                    decoration: BoxDecoration(
-                      color: AppTheme.primaryColor,
-                      shape: BoxShape.circle,
-                      boxShadow: isLevelUp ? [
-                        BoxShadow(
-                          color: AppTheme.primaryColor.withValues(alpha:0.5),
-                          blurRadius: 8,
-                          spreadRadius: 1,
+                // Animated level badge
+                AnimatedBuilder(
+                  animation: _animationController,
+                  builder: (context, child) {
+                    return Transform.scale(
+                      scale: isLevelUp ? _scaleAnimation.value : 1.0,
+                      child: Container(
+                        padding: const EdgeInsets.all(6),
+                        decoration: BoxDecoration(
+                          color: AppTheme.primaryColor,
+                          shape: BoxShape.circle,
+                          boxShadow: isLevelUp ? [
+                            BoxShadow(
+                              color: AppTheme.primaryColor.withValues(alpha:0.5),
+                              blurRadius: 8,
+                              spreadRadius: 1,
+                            ),
+                          ] : null,
                         ),
-                      ] : null,
-                    ),
-                    child: Text(
-                      '${widget.points.level}',
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                        fontSize: AppTheme.fontSizeSmall,
+                        child: Text(
+                          '${widget.points.level}',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                            fontSize: AppTheme.fontSizeSmall,
+                          ),
+                        ),
                       ),
-                    ),
-                  ),
-                );
-              },
-            ),
-            const SizedBox(width: AppTheme.paddingSmall / 2), // Adjusted spacing
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min, // Ensure column takes minimum space
-              children: [
-                Row(
+                    );
+                  },
+                ),
+                const SizedBox(width: AppTheme.paddingSmall / 2),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Icon(
-                      Icons.stars,
-                      color: Colors.amber,
-                      size: 12,
-                    ),
-                    const SizedBox(width: 2),
-                    Text(
-                      '${widget.points.total}',
-                      style: const TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    
-                    // Show points increase if available
-                    if (widget.previousPoints != null &&
-                        widget.points.total > widget.previousPoints!.total)
-                      Padding( // Added padding for better visual separation
-                        padding: const EdgeInsets.only(left: 4.0),
-                        child: Text(
-                          ' (+${widget.points.total - widget.previousPoints!.total})',
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(
+                          Icons.stars,
+                          color: Colors.amber,
+                          size: 12,
+                        ),
+                        const SizedBox(width: 2),
+                        Text(
+                          '${widget.points.total}',
                           style: const TextStyle(
                             fontSize: 12,
-                            color: Colors.green,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
-                      ),
-                  ],
-                ),
-                const SizedBox(height: 2),
-                
-                // Animated progress bar
-                SizedBox(
-                  width: 60,
-                  height: 20, // Given explicit height to contain Positioned text
-                  child: Stack(
-                    clipBehavior: Clip.none, // Allow text to overflow slightly if needed
-                    children: [
-                      // Progress bar
-                      Positioned.fill( // Ensure progress bar takes full space before text
-                        child: AnimatedBuilder(
-                          animation: _progressAnimation,
-                          builder: (context, child) {
-                            return ClipRRect(
-                              borderRadius: BorderRadius.circular(AppTheme.borderRadiusSmall),
-                              child: LinearProgressIndicator(
-                                value: _progressAnimation.value,
-                                minHeight: 4,
-                                backgroundColor: Colors.grey.withValues(alpha:0.3),
-                                valueColor: const AlwaysStoppedAnimation<Color>(AppTheme.primaryColor),
+                        if (widget.previousPoints != null &&
+                            widget.points.total > widget.previousPoints!.total)
+                          Padding(
+                            padding: const EdgeInsets.only(left: 4.0),
+                            child: Text(
+                              ' (+${widget.points.total - widget.previousPoints!.total})',
+                              style: const TextStyle(
+                                fontSize: 12,
+                                color: Colors.green,
+                                fontWeight: FontWeight.bold,
                               ),
-                            );
-                          },
-                        ),
-                      ),
-                      
-                      // Points to next level
-                      if (!isLevelUp && widget.points.pointsToNextLevel > 0) // Added check for pointsToNextLevel
-                        Positioned(
-                          top: 5, // Adjusted position
-                          right: 0,
-                          child: Text(
-                            '${widget.points.pointsToNextLevel} to LVL ${widget.points.level + 1}',
-                            style: const TextStyle(
-                              fontSize: 12,
-                              color: AppTheme.textSecondaryColor,
                             ),
                           ),
-                        ),
-                        
-                      // Level up indicator
-                      if (isLevelUp)
-                        const Positioned(
-                          top: 5, // Adjusted position
-                          right: 0,
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(
-                                Icons.arrow_upward,
-                                size: 8,
-                                color: Colors.green,
-                              ),
-                              SizedBox(width: 2),
-                              Text(
-                                'LEVEL UP!',
-                                style: TextStyle(
+                      ],
+                    ),
+                    const SizedBox(height: 2),
+                    SizedBox(
+                      width: 60,
+                      height: 20,
+                      child: Stack(
+                        clipBehavior: Clip.none,
+                        children: [
+                          Positioned.fill(
+                            child: AnimatedBuilder(
+                              animation: _progressAnimation,
+                              builder: (context, child) {
+                                return ClipRRect(
+                                  borderRadius: BorderRadius.circular(AppTheme.borderRadiusSmall),
+                                  child: LinearProgressIndicator(
+                                    value: _progressAnimation.value,
+                                    minHeight: 4,
+                                    backgroundColor: Colors.grey.withValues(alpha:0.3),
+                                    valueColor: const AlwaysStoppedAnimation<Color>(AppTheme.primaryColor),
+                                  ),
+                                );
+                              },
+                            ),
+                          ),
+                          if (!isLevelUp && widget.points.pointsToNextLevel > 0)
+                            Positioned(
+                              top: 5,
+                              right: 0,
+                              child: Text(
+                                '${widget.points.pointsToNextLevel} to LVL ${widget.points.level + 1}',
+                                style: const TextStyle(
                                   fontSize: 12,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.green,
+                                  color: AppTheme.textSecondaryColor,
                                 ),
                               ),
-                            ],
-                          ),
-                        ),
-                    ],
-                  ),
+                            ),
+                          if (isLevelUp)
+                            const Positioned(
+                              top: 5,
+                              right: 0,
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(
+                                    Icons.arrow_upward,
+                                    size: 8,
+                                    color: Colors.green,
+                                  ),
+                                  SizedBox(width: 2),
+                                  Text(
+                                    'LEVEL UP!',
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.green,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

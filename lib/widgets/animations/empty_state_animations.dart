@@ -6,10 +6,10 @@ class EmptyStateWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Center(
+    return const Center(
       child: Column(
         mainAxisSize: MainAxisSize.min,
-        children: const [
+        children: [
           Icon(Icons.hourglass_empty, size: 80, color: Colors.grey),
           SizedBox(height: 16),
           Text('No History Yet'),
@@ -25,10 +25,10 @@ class EmptyAchievementsWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Center(
+    return const Center(
       child: Column(
         mainAxisSize: MainAxisSize.min,
-        children: const [
+        children: [
           Icon(Icons.emoji_events_outlined, size: 80, color: Colors.amber),
           SizedBox(height: 16),
           Text('Your journey starts here'),

@@ -180,7 +180,6 @@ class CommunityService {
         totalClassifications: 0,
         totalAchievements: 0,
         activeToday: 0,
-        activeUsers: 0,
         categoryBreakdown: {},
         lastUpdated: DateTime.now(),
       );

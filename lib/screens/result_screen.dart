@@ -21,7 +21,6 @@ import '../screens/waste_dashboard_screen.dart';
 import '../screens/educational_content_screen.dart';
 import '../screens/history_screen.dart';
 import '../screens/modern_home_screen.dart';
-import '../services/cloud_storage_service.dart';
 
 class ResultScreen extends StatefulWidget {
 

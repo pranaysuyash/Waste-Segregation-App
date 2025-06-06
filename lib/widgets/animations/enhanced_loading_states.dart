@@ -57,9 +57,9 @@ class HistoryLoadingWidget extends StatelessWidget {
     return ListView.builder(
       itemCount: 6,
       itemBuilder: (context, index) {
-        return Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          child: const ShimmerBox(height: 80, width: double.infinity),
+        return const Padding(
+          padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          child: ShimmerBox(height: 80, width: double.infinity),
         );
       },
     );

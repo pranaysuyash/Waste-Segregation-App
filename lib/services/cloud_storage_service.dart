@@ -414,7 +414,7 @@ class CloudStorageService {
 
       var syncedCount = 0;
       var opCount = 0;
-      WriteBatch batch = _firestore.batch();
+      var batch = _firestore.batch();
 
       for (final classification in localClassifications) {
         try {

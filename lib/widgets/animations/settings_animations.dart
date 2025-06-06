@@ -28,7 +28,6 @@ class _AnimatedSettingsToggleState extends State<AnimatedSettingsToggle>
     super.initState();
     _controller = AnimationHelpers.createController(
       vsync: this,
-      duration: const Duration(milliseconds: 300),
     );
     if (widget.value) {
       _controller.value = 1;

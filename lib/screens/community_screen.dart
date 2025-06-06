@@ -137,7 +137,7 @@ class _CommunityScreenState extends State<CommunityScreen> with TickerProviderSt
     return RefreshIndicator(
       onRefresh: _loadCommunityData,
       child: ListView.builder(
-        padding: EdgeInsets.fromLTRB(
+        padding: const EdgeInsets.fromLTRB(
           AppTheme.paddingRegular,
           AppTheme.paddingRegular,
           AppTheme.paddingRegular,
@@ -243,7 +243,7 @@ class _CommunityScreenState extends State<CommunityScreen> with TickerProviderSt
     const bottomPadding = AppTheme.paddingRegular + 56.0;
 
     return SingleChildScrollView(
-      padding: EdgeInsets.fromLTRB(
+      padding: const EdgeInsets.fromLTRB(
         AppTheme.paddingRegular,
         AppTheme.paddingRegular,
         AppTheme.paddingRegular,

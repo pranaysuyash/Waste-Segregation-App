@@ -633,7 +633,6 @@ class _ModernHomeScreenState extends State<ModernHomeScreen> with TickerProvider
         ],
       ),
       body: SafeArea(
-        bottom: true,
         child: RefreshIndicator(
           onRefresh: _refreshDataWithTimestamp,
           child: FadeTransition(
@@ -747,7 +746,7 @@ class _ModernHomeScreenState extends State<ModernHomeScreen> with TickerProvider
               Expanded(
                 child: WasteAppAnimations.buildPressableButton(
                   onPressed: pickImage,
-                  child: ModernButton(
+                  child: const ModernButton(
                     text: 'Upload',
                     icon: Icons.photo_library,
                     style: ModernButtonStyle.outlined,

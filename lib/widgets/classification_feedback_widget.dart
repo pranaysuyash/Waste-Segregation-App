@@ -1047,8 +1047,8 @@ class _ClassificationFeedbackWidgetState extends State<ClassificationFeedbackWid
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Row(
-                    children: const [
+                  const Row(
+                    children: [
                       Icon(Icons.auto_awesome, color: Colors.white, size: 20),
                       SizedBox(width: 8),
                       Expanded(
