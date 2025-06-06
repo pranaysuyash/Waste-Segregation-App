@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import '../models/waste_classification.dart';
 import '../utils/constants.dart';
 import '../services/enhanced_image_service.dart';
+import 'classification_feedback_widget.dart';
 
 /// A simplified version of ClassificationCard for list views in the history screen
 class HistoryListItem extends StatelessWidget {
@@ -12,9 +13,14 @@ class HistoryListItem extends StatelessWidget {
     super.key,
     required this.classification,
     required this.onTap,
+    required this.onFeedbackSubmitted,
+    this.showFeedbackButton = true,
   });
+
   final WasteClassification classification;
   final VoidCallback onTap;
+  final Function(WasteClassification) onFeedbackSubmitted;
+  final bool showFeedbackButton;
   
   @override
   Widget build(BuildContext context) {
@@ -144,7 +150,7 @@ class HistoryListItem extends StatelessWidget {
                 const SizedBox(height: 8),
                 
                 // Properties indicators row
-                _buildPropertiesRow(),
+                _buildPropertiesRow(context),
               ],
             ),
           ),
@@ -232,7 +238,7 @@ class HistoryListItem extends StatelessWidget {
   }
   
   /// Builds the properties indicators row
-  Widget _buildPropertiesRow() {
+  Widget _buildPropertiesRow(BuildContext context) {
     final indicators = <Widget>[];
     
     if (classification.isRecyclable == true) {
@@ -284,6 +290,11 @@ class HistoryListItem extends StatelessWidget {
           child: indicator,
         )),
         const Spacer(),
+        if (showFeedbackButton)
+          FeedbackButton(
+            classification: classification,
+            onFeedbackSubmitted: onFeedbackSubmitted,
+          ),
         const Icon(
           Icons.chevron_right,
           size: 18,

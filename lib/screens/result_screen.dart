@@ -5,6 +5,9 @@ import '../models/waste_classification.dart';
 import '../models/gamification.dart';
 import '../services/storage_service.dart';
 import '../services/gamification_service.dart';
+import '../models/classification_feedback.dart';
+import '../services/cloud_storage_service.dart';
+import '../utils/app_version.dart';
 import '../utils/constants.dart';
 import '../utils/error_handler.dart';
 import '../utils/animation_helpers.dart';
@@ -1264,43 +1267,99 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
   }
   
   // Handle user feedback submission
-  Future<void> _handleFeedbackSubmission(WasteClassification updatedClassification) async {
+  Future<void> _handleFeedbackSubmission(
+      WasteClassification updatedClassification) async {
+    if (!mounted) return;
+
     try {
-      final storageService = Provider.of<StorageService>(context, listen: false);
+      final storageService =
+          Provider.of<StorageService>(context, listen: false);
+
+      // Save updated classification first
       await storageService.saveClassification(updatedClassification);
-      
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: const Row(
-              children: [
-                Icon(Icons.check_circle, color: Colors.white, size: 20),
-                SizedBox(width: 8),
-                Expanded(
-                  child: Text('Thank you for your feedback!'),
-                ),
-              ],
-            ),
-            backgroundColor: Colors.green.shade600,
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
-        
-        // Award points for providing feedback
-        final gamificationService = Provider.of<GamificationService>(context, listen: false);
-        await gamificationService.addPoints('feedback_provided', customPoints: 5);
-      }
+
+      final feedback = ClassificationFeedback(
+        userId: updatedClassification.userId ?? 'guest_user',
+        originalClassificationId: widget.classification.id,
+        originalAIItemName: widget.classification.itemName,
+        originalAICategory: widget.classification.category,
+        originalAIMaterial: widget.classification.materialType,
+        originalAIConfidence: widget.classification.confidence,
+        userSuggestedItemName: updatedClassification.itemName,
+        userSuggestedCategory: updatedClassification.category,
+        userSuggestedMaterial: updatedClassification.materialType,
+        userNotes: updatedClassification.userNotes,
+        appVersion: AppVersion.fullVersion,
+      );
+
+      // Persist locally first
+      await storageService.saveClassificationFeedback(feedback);
+
+      // Cloud sync handled separately
+      await _syncFeedbackToCloud(feedback);
+
+      await _handleFeedbackSuccess();
     } catch (e, stackTrace) {
       ErrorHandler.handleError(e, stackTrace);
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Failed to save feedback: ${ErrorHandler.getUserFriendlyMessage(e)}'),
-            backgroundColor: Colors.red.shade600,
-          ),
-        );
-      }
+      await _handleFeedbackError(e);
     }
+  }
+
+  Future<void> _syncFeedbackToCloud(ClassificationFeedback feedback) async {
+    try {
+      final cloudStorageService =
+          Provider.of<CloudStorageService>(context, listen: false);
+      final storageService =
+          Provider.of<StorageService>(context, listen: false);
+      final settings = await storageService.getSettings();
+      final isGoogleSyncEnabled = settings['isGoogleSyncEnabled'] ?? false;
+      if (isGoogleSyncEnabled) {
+        await cloudStorageService.saveClassificationFeedbackToCloud(feedback);
+      }
+    } catch (e, stackTrace) {
+      // Log but do not block user experience
+      ErrorHandler.handleError(e, stackTrace);
+      debugPrint('Cloud sync failed for feedback, but local save succeeded');
+    }
+  }
+
+  Future<void> _handleFeedbackSuccess() async {
+    if (!mounted) return;
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: const Row(
+          children: [
+            Icon(Icons.check_circle, color: Colors.white, size: 20),
+            SizedBox(width: 8),
+            Expanded(
+              child: Text('Thank you for your feedback!'),
+            ),
+          ],
+        ),
+        backgroundColor: Colors.green.shade600,
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
+
+    try {
+      final gamificationService =
+          Provider.of<GamificationService>(context, listen: false);
+      await gamificationService.addPoints('feedback_provided', customPoints: 5);
+    } catch (e, stackTrace) {
+      ErrorHandler.handleError(e, stackTrace);
+    }
+  }
+
+  Future<void> _handleFeedbackError(dynamic error) async {
+    if (!mounted) return;
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Failed to save feedback: ${ErrorHandler.getUserFriendlyMessage(error)}'),
+        backgroundColor: Colors.red.shade600,
+      ),
+    );
   }
 
   Future<bool> _isRecentClassification() async {
