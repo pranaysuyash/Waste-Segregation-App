@@ -10,6 +10,7 @@ import '../services/navigation_settings_service.dart';
 import '../utils/constants.dart';
 import '../utils/app_version.dart';
 import '../utils/developer_config.dart';
+import '../widgets/animations/settings_animations.dart';
 import 'premium_features_screen.dart';
 import 'theme_settings_screen.dart';
 import 'waste_dashboard_screen.dart';
@@ -321,9 +322,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   children: [
                   Semantics(
                     label: 'Toggle bottom navigation bar',
-                    child: SwitchListTile(
-                      title: const Text('Bottom Navigation'),
-                      subtitle: const Text('Show bottom navigation bar'),
+                    child: AnimatedSettingsToggle(
+                      title: 'Bottom Navigation',
+                      subtitle: 'Show bottom navigation bar',
                       value: navSettings.bottomNavEnabled,
                       onChanged: (value) async {
                         await navSettings.setBottomNavEnabled(value);

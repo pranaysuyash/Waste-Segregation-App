@@ -5,6 +5,7 @@ import '../services/educational_content_service.dart';
 import '../services/ad_service.dart';
 import '../utils/constants.dart';
 import '../widgets/banner_ad_widget.dart';
+import '../widgets/animations/educational_animations.dart';
 import 'content_detail_screen.dart';
 
 class EducationalContentScreen extends StatefulWidget {
@@ -188,7 +189,9 @@ class _EducationalContentScreenState extends State<EducationalContentScreen>
                     final filteredContent = _getFilteredContent(context);
                     if (filteredContent.isEmpty) {
                       return const Center(
-                        child: Text('No content found matching your criteria'),
+                        child: ContentDiscoveryWidget(
+                          child: Text('No content found'),
+                        ),
                       );
                     }
                     return ListView.builder(
