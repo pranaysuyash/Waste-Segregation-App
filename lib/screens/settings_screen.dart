@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../services/premium_service.dart';
 import '../services/ad_service.dart';
+import 'package:intl/intl.dart';
 import '../services/storage_service.dart';
 import '../services/enhanced_storage_service.dart';
 import '../services/analytics_service.dart';
@@ -33,6 +34,7 @@ class SettingsScreen extends StatefulWidget {
 class _SettingsScreenState extends State<SettingsScreen> {
   bool _showDeveloperOptions = false;
   bool _isGoogleSyncEnabled = false;
+  DateTime? _lastCloudSync;
 
   @override
   void initState() {
@@ -736,6 +738,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
               margin: const EdgeInsets.only(bottom: 16),
               child: Column(
                 children: [
+                  if (_lastCloudSync != null)
+                    ListTile(
+                      leading: const Icon(Icons.cloud_done),
+                      title: const Text('Last Cloud Sync'),
+                      subtitle: Text(DateFormat.yMd().add_Hm().format(_lastCloudSync!)),
+                    ),
                   ListTile(
                     leading: const Icon(Icons.cloud_upload),
                     title: const Text('Sync Local Data to Cloud'),
@@ -1353,8 +1361,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
     try {
       final storageService = Provider.of<StorageService>(context, listen: false);
       final settings = await storageService.getSettings();
+      final lastSync = await storageService.getLastCloudSync();
       setState(() {
         _isGoogleSyncEnabled = settings['isGoogleSyncEnabled'] ?? false;
+        _lastCloudSync = lastSync;
       });
     } catch (e) {
       debugPrint('Error loading Google sync setting: $e');
@@ -1447,6 +1457,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
       final cloudStorageService = Provider.of<CloudStorageService>(context, listen: false);
       final syncedCount = await cloudStorageService.syncAllLocalClassificationsToCloud();
+      setState(() {
+        _lastCloudSync = DateTime.now();
+      });
       
       if (mounted) {
         Navigator.pop(context); // Close loading dialog
@@ -1494,6 +1507,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
       final cloudStorageService = Provider.of<CloudStorageService>(context, listen: false);
       final classifications = await cloudStorageService.getAllClassificationsWithCloudSync(true);
+      setState(() {
+        _lastCloudSync = DateTime.now();
+      });
       
       if (mounted) {
         Navigator.pop(context); // Close loading dialog

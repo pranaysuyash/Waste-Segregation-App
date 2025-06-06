@@ -154,6 +154,9 @@ class CloudStorageService {
       // 2. Save anonymized version to admin collection for ML training and data recovery
       await _saveToAdminCollection(cloudClassification);
 
+      // Record successful sync time locally
+      await _localStorageService.updateLastCloudSync(DateTime.now());
+
     } catch (e) {
       debugPrint('☁️ ❌ Failed to sync classification to cloud: $e');
       // Don't throw error - local save was successful
@@ -395,8 +398,11 @@ class CloudStorageService {
           debugPrint('🔄 ❌ Failed to sync classification ${classification.itemName}: $e');
         }
       }
-      
+
       debugPrint('🔄 ✅ Successfully synced $syncedCount/${localClassifications.length} classifications to cloud');
+
+      // Record the last sync time
+      await _localStorageService.updateLastCloudSync(DateTime.now());
       return syncedCount;
     } catch (e) {
       debugPrint('🔄 ❌ Failed to sync local classifications to cloud: $e');
