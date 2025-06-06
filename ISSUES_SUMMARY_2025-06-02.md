@@ -308,6 +308,9 @@ This document lists all known issues, technical debt, and improvement areas iden
 1. **Fix Missing Await Statements** - Target: 15 issues
 2. **Resolve BuildContext Issues** - Target: 10 issues
 3. **Clean Up Unused Code** - Target: 40-50 issues
+4. **Clarify Documentation** - Update README and env docs with correct model names
+5. **Replace Deprecated Opacity Calls** - Use withOpacityFixed and update permission checks
+6. **Centralize Debug Logging** - Consolidate logs and review service singletons
 
 ### Success Metrics
 - **Target**: Under 50 total issues
