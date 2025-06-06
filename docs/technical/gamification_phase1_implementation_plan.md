@@ -79,6 +79,7 @@ This section defines how users earn engagement points in Phase 1.
     *   **On Classification:** A Cloud Function triggered when a new successful classification is logged. This function will call `awardPoints` with `actionType: "CLASSIFICATION_SUCCESS"`.
     *   **On Educational Content Completion:** Cloud Functions triggered when an article/video is marked complete, or a quiz attempt is successfully saved. These will call `awardPoints` with appropriate `actionType` (e.g., "ARTICLE_COMPLETE", "QUIZ_COMPLETE", "QUIZ_COMPLETE_HIGH_SCORE").
 *   **Configuration for Point Values:** Point values for basic actions (like classification, article read) can be stored in a configuration document in Firestore (e.g., `app_config/gamification_settings`) that the `awardPoints` function can read. This allows for easier tuning via the Admin Panel later without re-deploying functions. (Note: The `gamification_engagement_strategy.md` provides a more comprehensive list of point-earning actions and dynamic considerations for future enhancements beyond Phase 1).
+    *   *Status:* The current code still relies on a static `_pointValues` map in `GamificationService`. The Firestore-based configuration described here is planned but has not yet been implemented in the app or UI.
 
 ## 4. Badge Implementation (Phase 1)
 
