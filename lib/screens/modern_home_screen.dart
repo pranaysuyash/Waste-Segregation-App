@@ -732,27 +732,21 @@ class _ModernHomeScreenState extends State<ModernHomeScreen> with TickerProvider
           Row(
             children: [
               Expanded(
-                child: WasteAppAnimations.buildPressableButton(
+                child: ModernFAB(
                   onPressed: takePicture,
-                  child: ModernButton(
-                    text: 'Take Photo',
-                    icon: Icons.camera_alt,
-                    backgroundColor: Colors.white,
-                    foregroundColor: theme.colorScheme.primary,
-                  ),
+                  icon: Icons.camera_alt,
+                  label: 'Take Photo',
+                  isExtended: true,
                 ),
               ),
               const SizedBox(width: AppTheme.spacingSm),
               Expanded(
-                child: WasteAppAnimations.buildPressableButton(
+                child: ModernFAB(
                   onPressed: pickImage,
-                  child: const ModernButton(
-                    text: 'Upload',
-                    icon: Icons.photo_library,
-                    style: ModernButtonStyle.outlined,
-                    backgroundColor: Colors.transparent,
-                    foregroundColor: Colors.white,
-                  ),
+                  icon: Icons.photo_library,
+                  label: 'Upload',
+                  isExtended: true,
+                  backgroundColor: theme.colorScheme.secondary,
                 ),
               ),
             ],
