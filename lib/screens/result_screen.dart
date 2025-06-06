@@ -12,7 +12,7 @@ import '../utils/constants.dart';
 import '../utils/error_handler.dart';
 import '../utils/animation_helpers.dart';
 import '../utils/safe_collection_utils.dart';
-import '../widgets/enhanced_gamification_widgets.dart';
+import '../widgets/enhanced_gamification_widgets.dart' as widgets;
 import '../widgets/interactive_tag.dart';
 import '../widgets/disposal_instructions_widget.dart';
 import '../widgets/classification_feedback_widget.dart';
@@ -360,7 +360,7 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
       context: context,
       builder: (context) => Dialog(
         backgroundColor: Colors.transparent,
-        child: EnhancedAchievementNotification(
+        child: widgets.EnhancedAchievementNotification(
           achievement: achievement,
           onDismiss: () => Navigator.of(context).pop(),
         ),
@@ -837,7 +837,7 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
                                 ],
                               ),
                               const SizedBox(height: AppTheme.paddingSmall),
-                              EnhancedChallengeCard(
+                              widgets.EnhancedChallengeCard(
                                 challenge: _completedChallenge!,
                               ),
                             ],
@@ -1122,7 +1122,7 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
               child: Container(
                 color: Colors.white,
                 child: Center(
-                  child: ClassificationFeedback(
+                  child: widgets.ClassificationFeedback(
                     category: widget.classification.category,
                     onComplete: () {
                       setState(() {
@@ -1141,7 +1141,7 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
               left: 0,
               right: 0,
               child: Center(
-                child: PointsEarnedPopup(
+                child: widgets.PointsEarnedPopup(
                   points: _pointsEarned,
                   action: 'classification',
                   onDismiss: () {
@@ -1163,7 +1163,7 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
                 children: _newlyEarnedAchievements.map((achievement) => 
                   Padding(
                     padding: const EdgeInsets.only(bottom: 8.0),
-                    child: FloatingAchievementBadge(
+                    child: widgets.FloatingAchievementBadge(
                       achievement: achievement,
                       onTap: () => _showAchievementDetails(achievement),
                     ),

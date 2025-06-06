@@ -990,6 +990,7 @@ class StorageService {
     
     debugPrint('🧹 Cleanup complete: Removed $duplicatesFound duplicates');
     return duplicatesFound;
+  }
 
   // ---------------------------------------------------------------------------
   // Classification Feedback methods

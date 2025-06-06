@@ -123,8 +123,8 @@ class _EnhancedPointsIndicatorState extends State<EnhancedPointsIndicator>
               ),
             ),
             child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
+              mainAxisSize: MainAxisSize.min,
+              children: [
             // Animated level badge
             AnimatedBuilder(
               animation: _animationController,

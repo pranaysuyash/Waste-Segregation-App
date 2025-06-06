@@ -23,7 +23,7 @@ class _ErrorRecoveryWidgetState extends State<ErrorRecoveryWidget>
   }
 
   void _play() {
-    if (_controller.isAnimating || _controller.isDisposed) {
+    if (_controller.isAnimating) {
       return;
     }
     _controller.forward(from: 0);
@@ -57,7 +57,7 @@ class _ErrorRecoveryWidgetState extends State<ErrorRecoveryWidget>
         ElevatedButton(
           onPressed: () {
             _play();
-            onRetry();
+            widget.onRetry();
           },
           child: const Text('Retry'),
         ),
