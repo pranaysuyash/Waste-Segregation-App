@@ -240,6 +240,7 @@ Next Play Store release:
 - [x] Enhanced sync status indicators
 - [x] Conflict resolution for duplicate data
 - [x] Batch sync optimizations
+  - Improved batch handling to support more than 500 classifications per sync
 - [ ] Admin dashboard foundations
 - [ ] User migration flow improvements
 

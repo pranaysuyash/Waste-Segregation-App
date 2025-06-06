@@ -405,17 +405,21 @@ class CloudStorageService {
         return 0;
       }
 
-      final localClassifications = await _localStorageService.getAllClassifications();
-      
-      debugPrint('🔄 Starting full sync of ${localClassifications.length} local classifications to cloud');
-      
+      final localClassifications =
+          await _localStorageService.getAllClassifications();
+
+      debugPrint(
+          '🔄 Starting full sync of ${localClassifications.length} local classifications to cloud');
+
       var syncedCount = 0;
-      final batch = _firestore.batch();
+      var opCount = 0;
+      WriteBatch batch = _firestore.batch();
 
       for (final classification in localClassifications) {
         try {
           final userProfileId = userProfile.id;
-          final cloudClassification = classification.copyWith(userId: userProfileId);
+          final cloudClassification =
+              classification.copyWith(userId: userProfileId);
           final docRef = _firestore
               .collection('users')
               .doc(userProfileId)
@@ -428,22 +432,34 @@ class CloudStorageService {
             'createdAt': FieldValue.serverTimestamp(),
           }, SetOptions(merge: true));
 
-          // Continue saving to admin collection individually
-          await _saveToAdminCollection(cloudClassification);
-
+          opCount++;
           syncedCount++;
+
+          if (opCount == 500) {
+            await batch.commit();
+            batch = _firestore.batch();
+            opCount = 0;
+          }
+
+          try {
+            await _saveToAdminCollection(cloudClassification);
+          } catch (e) {
+            debugPrint('⚠️ Failed to save admin data: $e');
+            // Don't block user data sync
+          }
         } catch (e) {
-          debugPrint('🔄 ❌ Failed to sync classification ${classification.itemName}: $e');
+          debugPrint(
+              '🔄 ❌ Failed to queue classification ${classification.itemName}: $e');
         }
       }
 
-      if (syncedCount > 0) {
+      if (opCount > 0) {
         await batch.commit();
       }
 
-      debugPrint('🔄 ✅ Successfully synced $syncedCount/${localClassifications.length} classifications to cloud');
+      debugPrint(
+          '🔄 ✅ Successfully synced $syncedCount/${localClassifications.length} classifications to cloud');
 
-      // Only record the last sync time if something actually synced
       if (syncedCount > 0) {
         try {
           await _localStorageService.updateLastCloudSync(DateTime.now());
@@ -452,6 +468,7 @@ class CloudStorageService {
           // Don't rethrow - main sync operation was successful
         }
       }
+
       return syncedCount;
     } catch (e) {
       debugPrint('🔄 ❌ Failed to sync local classifications to cloud: $e');
