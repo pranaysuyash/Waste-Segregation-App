@@ -108,9 +108,7 @@ class _SocialScreenState extends State<SocialScreen> {
       // Floating action button positioned to avoid bottom nav overlap
       floatingActionButton: Container(
         margin: EdgeInsets.only(
-          bottom: isIOS 
-              ? (bottomPadding > 0 ? bottomPadding + 16 : 32) // iOS safe area + extra padding
-              : 80, // Android bottom nav height + padding
+          bottom: (isIOS ? bottomPadding : 0) + kBottomNavigationBarHeight + 16,
         ),
         child: _currentIndex == 0 
             ? FloatingActionButton.extended(

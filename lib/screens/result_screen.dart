@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
+import 'dart:io';
 import 'package:provider/provider.dart';
 import '../utils/share_service.dart';
 import '../models/waste_classification.dart';
@@ -623,11 +625,7 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
                                     ),
                                   ],
                                 ),
-                                child: Icon(
-                                  _getCategoryIcon(widget.classification.category),
-                                  color: Colors.white,
-                                  size: 32,
-                                ),
+                                child: _buildThumbnail(32),
                               ),
                               const SizedBox(width: AppTheme.paddingRegular),
                               Expanded(
@@ -1211,6 +1209,66 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
       default:
         return Icons.category;
     }
+  }
+
+  /// Builds a thumbnail image for the classification if available
+  Widget _buildThumbnail(double size) {
+    final url = widget.classification.imageUrl;
+    if (url == null || url.isEmpty) {
+      return Icon(
+        _getCategoryIcon(widget.classification.category),
+        color: Colors.white,
+        size: size,
+      );
+    }
+
+    if (kIsWeb) {
+      if (url.startsWith('web_image:')) {
+        final dataUrl = url.substring('web_image:'.length);
+        if (dataUrl.startsWith('data:image')) {
+          return Image.network(
+            dataUrl,
+            height: size,
+            width: size,
+            fit: BoxFit.cover,
+          );
+        }
+      }
+
+      if (url.startsWith('http')) {
+        return Image.network(
+          url,
+          height: size,
+          width: size,
+          fit: BoxFit.cover,
+        );
+      }
+    } else {
+      final file = File(url);
+      if (file.existsSync()) {
+        return Image.file(
+          file,
+          height: size,
+          width: size,
+          fit: BoxFit.cover,
+        );
+      }
+
+      if (url.startsWith('http')) {
+        return Image.network(
+          url,
+          height: size,
+          width: size,
+          fit: BoxFit.cover,
+        );
+      }
+    }
+
+    return Icon(
+      _getCategoryIcon(widget.classification.category),
+      color: Colors.white,
+      size: size,
+    );
   }
 
   String _getEducationalFact(String category, String? subcategory) {
