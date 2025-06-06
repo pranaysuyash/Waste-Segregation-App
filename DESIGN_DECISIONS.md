@@ -48,6 +48,23 @@
 - ✅ Good performance for current needs
 - ⚠️ May need migration to Bloc if complexity increases
 
+### **ADR-004: Mapping Solution Selection** *(January 2025)*
+**Decision**: Use `flutter_map` with OpenStreetMap (OSM) as the primary mapping solution, replacing any consideration for proprietary services like Google Maps.
+**Context**: The app requires a scalable, cost-effective, and highly performant mapping solution to display thousands of waste disposal facilities, support offline use, and enable advanced geospatial features like heat maps and clustering.
+**Rationale**:
+- **Cost-Effective**: `flutter_map` and OSM are free, eliminating API call costs that would be substantial at scale with services like Google Maps ($7/1,000 loads). This is critical for a publicly-focused or municipally-deployed application.
+- **High Performance**: Superior performance in handling large marker datasets (10,000+), maintaining 60fps and consuming less memory (15-25MB vs 25-40MB for Google Maps).
+- **Offline Capability**: Excellent plugin support (`flutter_map_tile_caching`) enables robust offline functionality, which is essential for users in areas with poor connectivity.
+- **Customization & Control**: Provides complete control over map styling and data without restrictive licensing, allowing for a deeply integrated and branded user experience.
+- **Rich Plugin Ecosystem**: Leverages a strong ecosystem for clustering (`flutter_map_marker_cluster`), heatmaps (`flutter_map_heatmap`), and Firestore geospatial queries (`geoflutterfire_plus`).
+**Consequences**:
+- ✅ Significant cost savings at scale.
+- ✅ Superior performance and user experience, especially in data-dense areas.
+- ✅ Full offline functionality for core mapping features.
+- ✅ Avoids vendor lock-in and restrictive licensing terms.
+- ⚠️ Requires managing a slightly more complex stack of open-source plugins compared to a single provider solution.
+- ➡️ **Detailed technical implementation is documented in [Mapping Solution Architecture](docs/technical/architecture/mapping_solution_architecture.md).**
+
 ---
 
 ## 🎨 **UX/UI Design Decisions**

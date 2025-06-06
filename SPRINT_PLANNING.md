@@ -254,5 +254,68 @@ Success Metrics:
 
 ---
 
-*Last Updated: December 2024*  
+## 🎯 **Sprint 4: Interactive Mapping & Facility Finder (Weeks 7-8)**
+
+### **Epic: Interactive Waste Facility Mapping**
+**Story**: "As a user, I want to find nearby disposal facilities on an interactive map, so I can easily and efficiently dispose of my waste correctly."
+
+#### **Acceptance Criteria:**
+- [ ] Map screen implemented using `flutter_map` and OpenStreetMap tiles.
+- [ ] Disposal facilities from Firestore are displayed as markers on the map.
+- [ ] Markers are clustered at high zoom levels for performance (`flutter_map_marker_cluster`).
+- [ ] Tapping a marker or cluster shows facility details in a bottom sheet.
+- [ ] Map supports offline caching (`flutter_map_tile_caching`) for use in low-connectivity areas.
+- [ ] A search feature allows users to find facilities by waste type (e.g., "batteries", "e-waste").
+- [ ] Implement a heatmap layer (`flutter_map_heatmap`) to visualize waste classification density.
+- [ ] All map interactions are smooth and performant (60fps) even with 10,000+ data points.
+- [ ] Location-based achievements are created (e.g., "First Facility Visit," "Recycling Champion").
+- [ ] All map controls are accessible and meet WCAG 2.2 AA standards.
+
+#### **Performance Budgets:**
+- [ ] Map initial load time: <2s
+- [ ] Time to interactive (with markers): <2.5s
+- [ ] Memory usage for map screen: <150MB peak
+- [ ] Battery drain: Location services use intelligent duty cycling to minimize impact.
+
+#### **Test Cases:**
+- [ ] Load map with 10,000 markers - verify clustering works and UI is responsive.
+- [ ] Enable airplane mode - verify cached map tiles are visible.
+- [ ] Search for a specific waste type - verify only relevant facilities are shown.
+- [ ] Tap a facility - verify details are correct.
+- [ ] Run automated accessibility scan on map screen - 0 violations.
+
+---
+
+## 🚀 **Feature Implementation Roadmap**
+
+> This roadmap is based on the detailed [Strategic Mapping Features Plan](docs/planning/strategic_mapping_features.md).
+
+### **Phase 1: Foundation (3-4 months)**
+1. **Enhanced Facility Mapping**: Upgrade existing disposal facilities with real-time data fields (e.g., capacity, operational status).
+2. **Basic Heat Maps**: Implement waste classification density visualization using `flutter_map_heatmap`.
+3. **Simple Gamification**: Introduce location-based achievements for visiting and using different facility types ("Explorer Badges").
+4. **Core Infrastructure**: Ensure `flutter_map` with OpenStreetMap is fully integrated and performant.
+
+### **Phase 2: Community Building (2-3 months)**
+1. **User-Generated Content**: Enable users to submit facility reviews, photos, and status updates (e.g., "bin is full").
+2. **Community Challenges**: Implement neighborhood-based competitions and leaderboards to track recycling rates.
+3. **Social Features**: Allow users to form groups (family, friends) to compete in location-based challenges.
+
+### **Phase 3: Intelligence Layer (4-5 months)**
+1. **Predictive Analytics**: Develop and implement models for facility demand and suggest optimal visit times.
+2. **Advanced Heat Maps**: Introduce temporal and seasonal pattern analysis to visualize waste trends over time.
+3. **Route Optimization**: Provide users with optimal routing for visiting multiple disposal facilities based on waste type and facility hours.
+
+### **Phase 4: Integration & Scale (3-4 months)**
+1. **Municipal API Integration**: Connect with city service data for real-time collection schedules and alerts.
+2. **IoT Device Integration**: Support for smart bins to display live fill-level data on the map.
+3. **Advanced AI Features**: Roll out behavioral prediction and intervention nudges (e.g., "It seems you often dispose of electronics, did you know there's a special facility nearby?").
+
+### **Phase 5: Expansion (Ongoing)**
+1. **AR Facility Tours**: Develop and launch interactive AR guides for navigating complex disposal facilities.
+2. **Regional Scaling**: Architect the backend for multi-city deployment with localized configurations.
+3. **Policy Integration**: Build partnerships with government and NGOs to use the platform's data for policy-making and public education.
+
+---
+*Last Updated: January 2025*  
 *Next Review: Weekly sprint planning sessions* 

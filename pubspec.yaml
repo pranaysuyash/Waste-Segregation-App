@@ -51,6 +51,13 @@ dependencies:
   permission_handler: ^11.2.0  # For handling camera and storage permissions
   flutter_riverpod: ^2.4.9
 
+  # --- Mapping & Geospatial Dependencies (OpenStreetMap) ---
+  flutter_map: ^6.1.0 # High-performance, customizable map solution
+  flutter_map_tile_caching: ^9.0.0 # For offline map support
+  flutter_map_marker_cluster: ^6.1.0 # For clustering large numbers of markers
+  flutter_map_heatmap: ^2.1.0 # For visualizing data density (e.g., waste hotspots)
+  geoflutterfire_plus: ^1.0.0 # For Firebase geospatial queries
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
