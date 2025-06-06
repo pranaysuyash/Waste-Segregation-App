@@ -2,6 +2,8 @@
 
 This document outlines the planned changes and enhancements to `lib/services/gamification_service.dart` to implement the dynamic point system and AI-driven discovery features as defined in the main `gamification_engagement_strategy.md`.
 
+**Current Status:** The app presently uses a fixed `_pointValues` map for all rewards. The dynamic system described below is not yet live in the codebase or user interface.
+
 ## 1. Service Dependencies and Initialization
 
 No major changes anticipated to the constructor or `initGamification()` other than ensuring any new Hive boxes or configurations are handled if needed.
