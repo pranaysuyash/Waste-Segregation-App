@@ -1214,60 +1214,75 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
   /// Builds a thumbnail image for the classification if available
   Widget _buildThumbnail(double size) {
     final url = widget.classification.imageUrl;
+    Widget placeholder() => Icon(
+          _getCategoryIcon(widget.classification.category),
+          color: Colors.white,
+          size: size,
+        );
+
     if (url == null || url.isEmpty) {
-      return Icon(
-        _getCategoryIcon(widget.classification.category),
-        color: Colors.white,
-        size: size,
-      );
+      return placeholder();
     }
 
     if (kIsWeb) {
       if (url.startsWith('web_image:')) {
-        final dataUrl = url.substring('web_image:'.length);
-        if (dataUrl.startsWith('data:image')) {
-          return Image.network(
-            dataUrl,
+        try {
+          final dataUrl = url.substring('web_image:'.length);
+          if (dataUrl.startsWith('data:image')) {
+            return Image.network(
+              dataUrl,
+              height: size,
+              width: size,
+              fit: BoxFit.cover,
+              errorBuilder: (context, error, stackTrace) => placeholder(),
+            );
+          }
+        } catch (_) {
+          return placeholder();
+        }
+        return placeholder();
+      }
+
+      if (url.startsWith('http')) {
+        return Image.network(
+          url,
+          height: size,
+          width: size,
+          fit: BoxFit.cover,
+          errorBuilder: (context, error, stackTrace) => placeholder(),
+        );
+      }
+
+      return placeholder();
+    }
+
+    final file = File(url);
+    return FutureBuilder<bool>(
+      future: file.exists(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return placeholder();
+        }
+        if (snapshot.hasData && snapshot.data == true) {
+          return Image.file(
+            file,
             height: size,
             width: size,
             fit: BoxFit.cover,
+            errorBuilder: (context, error, stackTrace) => placeholder(),
           );
         }
-      }
-
-      if (url.startsWith('http')) {
-        return Image.network(
-          url,
-          height: size,
-          width: size,
-          fit: BoxFit.cover,
-        );
-      }
-    } else {
-      final file = File(url);
-      if (file.existsSync()) {
-        return Image.file(
-          file,
-          height: size,
-          width: size,
-          fit: BoxFit.cover,
-        );
-      }
-
-      if (url.startsWith('http')) {
-        return Image.network(
-          url,
-          height: size,
-          width: size,
-          fit: BoxFit.cover,
-        );
-      }
-    }
-
-    return Icon(
-      _getCategoryIcon(widget.classification.category),
-      color: Colors.white,
-      size: size,
+        if (url.startsWith('http')) {
+          return Image.network(
+            url,
+            height: size,
+            width: size,
+            fit: BoxFit.cover,
+            errorBuilder: (context, error, stackTrace) => placeholder(),
+          );
+        }
+        return placeholder();
+      },
     );
   }
 
