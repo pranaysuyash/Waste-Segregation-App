@@ -458,48 +458,87 @@ class GamificationService {
   /// Useful when classifications were imported or processed offline.
   Future<void> syncAchievementProgressFromClassifications() async {
     try {
+      debugPrint('🏆 SYNC: Starting achievement sync from classifications...');
+      
       final classifications = await _storageService.getAllClassifications();
       final profile = await getProfile();
 
+      debugPrint('🏆 SYNC: Found ${classifications.length} total classifications');
+      debugPrint('🏆 SYNC: User level: ${profile.points.level}');
+
       // Calculate total classifications and unique categories
       final total = classifications.length;
-      final categories = classifications.map((c) => c.category).toSet().length;
+      final categories = classifications.map((c) => c.category).toSet();
+      final categoriesCount = categories.length;
+      
+      debugPrint('🏆 SYNC: Total items: $total, Unique categories: $categoriesCount');
+      debugPrint('🏆 SYNC: Categories found: ${categories.toList()}');
 
       final updatedAchievements = profile.achievements.map((achievement) {
+        var wasUpdated = false;
+        var newAchievement = achievement;
+        
         if (achievement.type == AchievementType.wasteIdentified) {
           final progress = (total / achievement.threshold).clamp(0.0, 1.0);
-          if (progress >= 1.0 && !achievement.isEarned) {
+          final isLevelUnlocked = achievement.unlocksAtLevel == null || 
+                                 profile.points.level >= achievement.unlocksAtLevel!;
+          
+          debugPrint('🏆 SYNC: ${achievement.id} - progress: $total/${achievement.threshold} = ${(progress * 100).round()}%');
+          debugPrint('🏆 SYNC: ${achievement.id} - level unlocked: $isLevelUnlocked (requires ${achievement.unlocksAtLevel}, have ${profile.points.level})');
+          
+          if (progress >= 1.0 && isLevelUnlocked && !achievement.isEarned) {
             final claimStatus = achievement.tier == AchievementTier.bronze
                 ? ClaimStatus.claimed
                 : ClaimStatus.unclaimed;
-            return achievement.copyWith(
+            newAchievement = achievement.copyWith(
               progress: 1.0,
               earnedOn: DateTime.now(),
               claimStatus: claimStatus,
             );
+            wasUpdated = true;
+            debugPrint('🏆 SYNC: ✅ EARNED ${achievement.id}!');
+          } else if (achievement.progress != progress) {
+            newAchievement = achievement.copyWith(progress: progress);
+            wasUpdated = true;
+            debugPrint('🏆 SYNC: Updated ${achievement.id} progress to ${(progress * 100).round()}%');
           }
-          return achievement.copyWith(progress: progress);
         } else if (achievement.type == AchievementType.categoriesIdentified) {
-          final progress = (categories / achievement.threshold).clamp(0.0, 1.0);
-          if (progress >= 1.0 && !achievement.isEarned) {
+          final progress = (categoriesCount / achievement.threshold).clamp(0.0, 1.0);
+          final isLevelUnlocked = achievement.unlocksAtLevel == null || 
+                                 profile.points.level >= achievement.unlocksAtLevel!;
+          
+          debugPrint('🏆 SYNC: ${achievement.id} - categories progress: $categoriesCount/${achievement.threshold} = ${(progress * 100).round()}%');
+          
+          if (progress >= 1.0 && isLevelUnlocked && !achievement.isEarned) {
             final claimStatus = achievement.tier == AchievementTier.bronze
                 ? ClaimStatus.claimed
                 : ClaimStatus.unclaimed;
-            return achievement.copyWith(
+            newAchievement = achievement.copyWith(
               progress: 1.0,
               earnedOn: DateTime.now(),
               claimStatus: claimStatus,
             );
+            wasUpdated = true;
+            debugPrint('🏆 SYNC: ✅ EARNED ${achievement.id}!');
+          } else if (achievement.progress != progress) {
+            newAchievement = achievement.copyWith(progress: progress);
+            wasUpdated = true;
+            debugPrint('🏆 SYNC: Updated ${achievement.id} categories progress to ${(progress * 100).round()}%');
           }
-          return achievement.copyWith(progress: progress);
         }
-        return achievement;
+        
+        return newAchievement;
       }).toList();
 
       await saveProfile(profile.copyWith(achievements: updatedAchievements));
+      
+      final earnedCount = updatedAchievements.where((a) => a.isEarned).length;
+      debugPrint('🏆 SYNC: Completed. Total earned achievements: $earnedCount/${updatedAchievements.length}');
+      
     } catch (e) {
       debugPrint('🔥 SYNC ACHIEVEMENTS ERROR: $e');
-      rethrow; // Rethrow the error to ensure it's not silently caught
+      debugPrint('🔧 Stack trace: ${StackTrace.current}');
+      rethrow;
     }
   }
   
@@ -1606,6 +1645,46 @@ class GamificationService {
     } catch (e) {
       debugPrint('🔥 Error during force refresh: $e');
       return getProfile(); // Fallback to regular getProfile
+    }
+  }
+
+  /// Force a complete gamification data refresh and sync
+  Future<void> forceCompleteSyncAndRefresh() async {
+    try {
+      debugPrint('🔄 FORCE SYNC: Starting complete gamification refresh...');
+      
+      // 1. Sync classification points
+      await syncClassificationPoints();
+      debugPrint('🔄 FORCE SYNC: ✅ Classification points synced');
+      
+      // 2. Sync achievement progress
+      await syncAchievementProgressFromClassifications();
+      debugPrint('🔄 FORCE SYNC: ✅ Achievement progress synced');
+      
+      // 3. Update streak for today
+      await updateStreak();
+      debugPrint('🔄 FORCE SYNC: ✅ Streak updated');
+      
+      // 4. Clear any sample community data
+      final communityService = CommunityService();
+      await communityService.initCommunity();
+      await communityService.clearSampleData();
+      debugPrint('🔄 FORCE SYNC: ✅ Sample data cleared');
+      
+      // 5. Force refresh profile
+      final profile = await forceRefreshProfile();
+      debugPrint('🔄 FORCE SYNC: ✅ Profile refreshed');
+      debugPrint('🔄 FORCE SYNC: Final stats - Level: ${profile.points.level}, Points: ${profile.points.total}');
+      
+      // 6. Log final achievement status
+      final earnedAchievements = profile.achievements.where((a) => a.isEarned).toList();
+      debugPrint('🔄 FORCE SYNC: Earned achievements: ${earnedAchievements.map((a) => a.id).join(", ")}');
+      
+      debugPrint('🔄 FORCE SYNC: ✅ Complete sync finished successfully');
+      
+    } catch (e) {
+      debugPrint('🔥 FORCE SYNC ERROR: $e');
+      rethrow;
     }
   }
 
