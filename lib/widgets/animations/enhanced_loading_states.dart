@@ -59,7 +59,7 @@ class HistoryLoadingWidget extends StatelessWidget {
       itemBuilder: (context, index) {
         return Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          child: ShimmerBox(height: 80, width: double.infinity),
+          child: const ShimmerBox(height: 80, width: double.infinity),
         );
       },
     );
@@ -83,7 +83,7 @@ class _ShimmerBoxState extends State<ShimmerBox>
   @override
   void initState() {
     super.initState();
-    _controller = AnimationController(
+    _controller = AnimationHelpers.createController(
       vsync: this,
       duration: const Duration(milliseconds: 1500),
     )..repeat();
@@ -91,7 +91,7 @@ class _ShimmerBoxState extends State<ShimmerBox>
 
   @override
   void dispose() {
-    _controller.dispose();
+    AnimationHelpers.disposeController(_controller);
     super.dispose();
   }
 

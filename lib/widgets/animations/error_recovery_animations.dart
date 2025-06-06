@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'dart:math' as math;
 
 class ErrorRecoveryWidget extends StatefulWidget {
   const ErrorRecoveryWidget({super.key, required this.onRetry});
@@ -22,6 +23,9 @@ class _ErrorRecoveryWidgetState extends State<ErrorRecoveryWidget>
   }
 
   void _play() {
+    if (_controller.isAnimating || _controller.isDisposed) {
+      return;
+    }
     _controller.forward(from: 0);
   }
 
@@ -39,7 +43,9 @@ class _ErrorRecoveryWidgetState extends State<ErrorRecoveryWidget>
         AnimatedBuilder(
           animation: _controller,
           builder: (context, child) {
-            final offset = 4 * (1 - _controller.value);
+            final offset = 4 *
+                math.sin(_controller.value * 4 * math.pi) *
+                (1 - _controller.value);
             return Transform.translate(
               offset: Offset(offset, 0),
               child: child,

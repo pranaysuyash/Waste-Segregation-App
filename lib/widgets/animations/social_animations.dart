@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../utils/animation_helpers.dart';
 
 class CommunityFeedWidget extends StatefulWidget {
   const CommunityFeedWidget({super.key, required this.child});
@@ -15,7 +16,7 @@ class _CommunityFeedWidgetState extends State<CommunityFeedWidget>
   @override
   void initState() {
     super.initState();
-    _controller = AnimationController(
+    _controller = AnimationHelpers.createController(
       vsync: this,
       duration: const Duration(milliseconds: 300),
     )..forward();
@@ -23,7 +24,7 @@ class _CommunityFeedWidgetState extends State<CommunityFeedWidget>
 
   @override
   void dispose() {
-    _controller.dispose();
+    AnimationHelpers.disposeController(_controller);
     super.dispose();
   }
 
@@ -41,6 +42,10 @@ class LeaderboardWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return child;
+    return FadeSlideAnimation(
+      child: child,
+      startOffset: const Offset(0.0, 0.1),
+      duration: const Duration(milliseconds: 300),
+    );
   }
 }

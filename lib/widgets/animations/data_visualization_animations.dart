@@ -19,7 +19,11 @@ class AnimatedDashboardWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return child;
+    // TODO: replace with dashboard-specific animation
+    return AnimatedSwitcher(
+      duration: const Duration(milliseconds: 300),
+      child: child,
+    );
   }
 }
 
@@ -29,6 +33,10 @@ class ProgressTrackingWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return child;
+    // TODO: implement progress tracking animation
+    return AnimatedSwitcher(
+      duration: const Duration(milliseconds: 300),
+      child: child,
+    );
   }
 }
