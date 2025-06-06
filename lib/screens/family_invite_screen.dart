@@ -59,7 +59,7 @@ class _FamilyInviteScreenState extends State<FamilyInviteScreen>
       final invitation = await _familyService.createInvitation(
         widget.family.id,
         currentUser.id,
-        'QR Invite',
+        'qr.invite+${widget.family.id}@wasteapp.com',
         UserRole.member,
         method: InvitationMethod.qr,
       );
