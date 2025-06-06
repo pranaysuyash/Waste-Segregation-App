@@ -128,8 +128,8 @@ class CloudStorageService {
 
       debugPrint('☁️ Syncing classification to cloud for user: ${userProfile.id}');
       
-      // Create a unique document ID using timestamp and user ID
-      final docId = '${userProfile.id}_${DateTime.now().millisecondsSinceEpoch}';
+      // Use the local classification ID so repeated syncs overwrite existing docs
+      final docId = classification.id;
       
       // Add cloud metadata
       final cloudClassification = classification.copyWith(
@@ -147,7 +147,7 @@ class CloudStorageService {
         ...cloudClassification.toJson(),
         'syncedAt': FieldValue.serverTimestamp(),
         'createdAt': FieldValue.serverTimestamp(),
-      });
+      }, SetOptions(merge: true));
 
       debugPrint('☁️ ✅ Successfully synced classification: ${classification.itemName}');
 
@@ -197,9 +197,11 @@ class CloudStorageService {
         // NO personal information, email, or identifiable data
       };
 
+      final hashedUserId = _hashUserId(classification.userId!);
       await _firestore
           .collection('admin_classifications')
-          .add(adminData);
+          .doc('${hashedUserId}_${classification.id}')
+          .set(adminData, SetOptions(merge: true));
 
       debugPrint('🔬 ✅ Admin data collection: Classification saved for ML training');
 
