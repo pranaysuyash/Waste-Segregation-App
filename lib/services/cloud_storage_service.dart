@@ -318,10 +318,21 @@ class CloudStorageService {
       
       // Merge and deduplicate (cloud takes precedence for same timestamps)
       final merged = _mergeClassifications(localClassifications, cloudClassifications);
-      
+
       // Update local storage with any new cloud classifications
-      await _syncNewCloudClassificationsLocally(localClassifications, cloudClassifications);
-      
+      final downloadedCount = await _syncNewCloudClassificationsLocally(
+        localClassifications,
+        cloudClassifications,
+      );
+
+      if (downloadedCount > 0) {
+        try {
+          await _localStorageService.updateLastCloudSync(DateTime.now());
+        } catch (e) {
+          debugPrint('⚠️ Failed to update last sync time: $e');
+        }
+      }
+
       return merged;
     } catch (e) {
       debugPrint('🔄 ❌ Failed to load from cloud, returning local only: $e');
@@ -357,7 +368,7 @@ class CloudStorageService {
   }
 
   /// Save new cloud classifications to local storage
-  Future<void> _syncNewCloudClassificationsLocally(
+  Future<int> _syncNewCloudClassificationsLocally(
     List<WasteClassification> local,
     List<WasteClassification> cloud,
   ) async {
@@ -371,15 +382,17 @@ class CloudStorageService {
 
       if (newCloudClassifications.isNotEmpty) {
         debugPrint('🔄 Syncing ${newCloudClassifications.length} new cloud classifications to local storage');
-        
+
         for (final classification in newCloudClassifications) {
           await _localStorageService.saveClassification(classification);
         }
-        
+
         debugPrint('🔄 ✅ Successfully synced new cloud classifications locally');
       }
+      return newCloudClassifications.length;
     } catch (e) {
       debugPrint('🔄 ❌ Failed to sync cloud classifications locally: $e');
+      return 0;
     }
   }
 
@@ -397,13 +410,35 @@ class CloudStorageService {
       debugPrint('🔄 Starting full sync of ${localClassifications.length} local classifications to cloud');
       
       var syncedCount = 0;
+      final batch = _firestore.batch();
+
       for (final classification in localClassifications) {
         try {
-          await _syncClassificationToCloud(classification);
+          final userProfileId = userProfile.id;
+          final cloudClassification = classification.copyWith(userId: userProfileId);
+          final docRef = _firestore
+              .collection('users')
+              .doc(userProfileId)
+              .collection('classifications')
+              .doc(classification.id);
+
+          batch.set(docRef, {
+            ...cloudClassification.toJson(),
+            'syncedAt': FieldValue.serverTimestamp(),
+            'createdAt': FieldValue.serverTimestamp(),
+          }, SetOptions(merge: true));
+
+          // Continue saving to admin collection individually
+          await _saveToAdminCollection(cloudClassification);
+
           syncedCount++;
         } catch (e) {
           debugPrint('🔄 ❌ Failed to sync classification ${classification.itemName}: $e');
         }
+      }
+
+      if (syncedCount > 0) {
+        await batch.commit();
       }
 
       debugPrint('🔄 ✅ Successfully synced $syncedCount/${localClassifications.length} classifications to cloud');
@@ -420,6 +455,59 @@ class CloudStorageService {
       return syncedCount;
     } catch (e) {
       debugPrint('🔄 ❌ Failed to sync local classifications to cloud: $e');
+      return 0;
+    }
+  }
+
+  /// Download new classifications from cloud to local storage.
+  /// Returns the number of new items downloaded.
+  Future<int> syncCloudToLocal() async {
+    try {
+      final userProfile = await _localStorageService.getCurrentUserProfile();
+      if (userProfile == null || userProfile.id.isEmpty) {
+        debugPrint('🚫 Cannot sync from cloud: User not signed in');
+        return 0;
+      }
+
+      final localClassifications = await _localStorageService.getAllClassifications();
+
+      // Load classifications from cloud
+      final cloudSnapshot = await _firestore
+          .collection('users')
+          .doc(userProfile.id)
+          .collection('classifications')
+          .orderBy('timestamp', descending: true)
+          .get();
+
+      final cloudClassifications = cloudSnapshot.docs
+          .map((doc) {
+            try {
+              return WasteClassification.fromJson(doc.data());
+            } catch (e) {
+              debugPrint('🔄 ❌ Error parsing cloud classification: $e');
+              return null;
+            }
+          })
+          .where((c) => c != null)
+          .cast<WasteClassification>()
+          .toList();
+
+      final downloadedCount = await _syncNewCloudClassificationsLocally(
+        localClassifications,
+        cloudClassifications,
+      );
+
+      if (downloadedCount > 0) {
+        try {
+          await _localStorageService.updateLastCloudSync(DateTime.now());
+        } catch (e) {
+          debugPrint('⚠️ Failed to update last sync time: $e');
+        }
+      }
+
+      return downloadedCount;
+    } catch (e) {
+      debugPrint('🔄 ❌ Failed to download from cloud: $e');
       return 0;
     }
   }

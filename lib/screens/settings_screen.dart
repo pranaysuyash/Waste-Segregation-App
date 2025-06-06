@@ -1459,8 +1459,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
       final syncedCount = await cloudStorageService.syncAllLocalClassificationsToCloud();
 
       if (syncedCount > 0) {
+        final storageService = Provider.of<StorageService>(context, listen: false);
+        final lastSync = await storageService.getLastCloudSync();
         setState(() {
-          _lastCloudSync = DateTime.now();
+          _lastCloudSync = lastSync;
         });
       }
       
@@ -1515,27 +1517,26 @@ class _SettingsScreenState extends State<SettingsScreen> {
       );
 
       final cloudStorageService = Provider.of<CloudStorageService>(context, listen: false);
-      final classifications = await cloudStorageService.getAllClassificationsWithCloudSync(true);
-
-      if (classifications.isNotEmpty) {
+      final downloadedCount = await cloudStorageService.syncCloudToLocal();
+      if (downloadedCount > 0) {
         final storageService = Provider.of<StorageService>(context, listen: false);
-        await storageService.updateLastCloudSync(DateTime.now());
+        final lastSync = await storageService.getLastCloudSync();
         setState(() {
-          _lastCloudSync = DateTime.now();
+          _lastCloudSync = lastSync;
         });
       }
       
       if (mounted) {
         Navigator.pop(context); // Close loading dialog
         
-        if (classifications.isNotEmpty) {
+        if (downloadedCount > 0) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Row(
                 children: [
                   const Icon(Icons.cloud_download, color: Colors.white),
                   const SizedBox(width: 8),
-                  Text('Downloaded ${classifications.length} classifications from cloud!'),
+                  Text('Downloaded $downloadedCount classifications from cloud!'),
                 ],
               ),
               backgroundColor: Colors.green,
