@@ -11,6 +11,7 @@ import '../screens/result_screen.dart';
 import '../services/storage_service.dart';
 import '../services/cloud_storage_service.dart';
 import '../utils/constants.dart';
+import '../utils/error_handler.dart';
 import '../widgets/history_list_item.dart';
 import '../widgets/animations/enhanced_loading_states.dart';
 
@@ -47,6 +48,9 @@ class _HistoryScreenState extends State<HistoryScreen> {
   
   // List of classifications
   List<WasteClassification> _classifications = [];
+
+  bool _allowHistoryFeedback = true;
+  int _feedbackTimeframeDays = 7;
   
   // Scroll controller for pagination
   final ScrollController _scrollController = ScrollController();
@@ -113,9 +117,11 @@ class _HistoryScreenState extends State<HistoryScreen> {
       final storageService = Provider.of<StorageService>(context, listen: false);
       final cloudStorageService = Provider.of<CloudStorageService>(context, listen: false);
       
-      // Get Google sync setting
+      // Get Google sync and feedback settings
       final settings = await storageService.getSettings();
       final isGoogleSyncEnabled = settings['isGoogleSyncEnabled'] ?? false;
+      _allowHistoryFeedback = settings['allowHistoryFeedback'] ?? true;
+      _feedbackTimeframeDays = settings['feedbackTimeframeDays'] ?? 7;
       
       // Load from cloud or local based on sync setting
       final allClassifications = isGoogleSyncEnabled
@@ -682,10 +688,60 @@ class _HistoryScreenState extends State<HistoryScreen> {
           return HistoryListItem(
             classification: classification,
             onTap: () => _navigateToClassificationDetails(classification),
+            onFeedbackSubmitted: _handleFeedbackSubmission,
+            showFeedbackButton: _canProvideFeedback(classification),
           );
         },
       ),
     );
+  }
+
+  Future<void> _handleFeedbackSubmission(
+      WasteClassification updatedClassification) async {
+    try {
+      final storageService =
+          Provider.of<StorageService>(context, listen: false);
+      await storageService.saveClassification(updatedClassification);
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Row(
+              children: [
+                Icon(Icons.check_circle, color: Colors.white, size: 20),
+                SizedBox(width: 8),
+                Expanded(
+                  child: Text('Thank you for your feedback!'),
+                ),
+              ],
+            ),
+            backgroundColor: Colors.green.shade600,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+
+      // Refresh list to reflect feedback state
+      await _loadClassifications();
+    } catch (e, stackTrace) {
+      ErrorHandler.handleError(e, stackTrace);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content:
+                Text('Failed to save feedback: ${ErrorHandler.getUserFriendlyMessage(e)}'),
+            backgroundColor: Colors.red.shade600,
+          ),
+        );
+      }
+    }
+  }
+
+  bool _canProvideFeedback(WasteClassification classification) {
+    if (!_allowHistoryFeedback) return false;
+    final now = DateTime.now();
+    final daysDifference = now.difference(classification.timestamp).inDays;
+    return daysDifference <= _feedbackTimeframeDays;
   }
   
   bool _isFilterActive() {

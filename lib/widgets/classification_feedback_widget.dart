@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../models/waste_classification.dart';
 import '../services/ai_service.dart';
+import '../services/analytics_service.dart';
+import '../models/gamification.dart';
 import '../utils/constants.dart';
 import '../screens/result_screen.dart';
 
@@ -78,9 +80,7 @@ class _ClassificationFeedbackWidgetState extends State<ClassificationFeedbackWid
   }
 
   void _submitFeedback() {
-    // REMOVED: Feedback submission analytics
-    // final analyticsService = Provider.of<AnalyticsService>(context, listen: false);
-    // analyticsService.trackUserAction('classification_feedback_submitted', ...);
+    final analyticsService = Provider.of<AnalyticsService>(context, listen: false);
     
     String? correctedCategory;
     // String? correctedSubcategory; // This was declared but never used, can be kept or removed
@@ -120,6 +120,28 @@ class _ClassificationFeedbackWidgetState extends State<ClassificationFeedbackWid
       viewCount: (widget.classification.viewCount ?? 0) + 1, // This seems like existing logic
       confirmedByModel: _nextModelToTry, // Track which model was confirmed correct
     );
+
+    analyticsService.trackEvent(
+      eventType: AnalyticsEventTypes.userAction,
+      eventName: 'classification_feedback_submitted',
+      parameters: {
+        'is_correct': _userConfirmed,
+        'has_correction': correctedCategory != null,
+        'original_category': widget.classification.category,
+        if (correctedCategory != null) 'corrected_category': correctedCategory,
+      },
+    );
+
+    if (correctedCategory != null) {
+      analyticsService.trackEvent(
+        eventType: AnalyticsEventTypes.userAction,
+        eventName: 'classification_corrected',
+        parameters: {
+          'original_category': widget.classification.category,
+          'corrected_category': correctedCategory,
+        },
+      );
+    }
 
     widget.onFeedbackSubmitted(updatedClassification);
   }
