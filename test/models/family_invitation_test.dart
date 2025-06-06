@@ -26,6 +26,7 @@ void main() {
         expect(invitation.status, InvitationStatus.pending);
         expect(invitation.createdAt, DateTime(2024, 1, 15));
         expect(invitation.expiresAt, DateTime(2024, 1, 22));
+        expect(invitation.method, InvitationMethod.email);
       });
 
       test('should create FamilyInvitation with optional properties', () {
