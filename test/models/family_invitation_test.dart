@@ -26,6 +26,7 @@ void main() {
         expect(invitation.status, InvitationStatus.pending);
         expect(invitation.createdAt, DateTime(2024, 1, 15));
         expect(invitation.expiresAt, DateTime(2024, 1, 22));
+        expect(invitation.method, InvitationMethod.email);
       });
 
       test('should create FamilyInvitation with optional properties', () {
@@ -136,6 +137,42 @@ void main() {
         // expect(invitation.message, null); // Removed
         expect(invitation.invitedUserId, null); // Renamed
         expect(invitation.respondedAt, null); // Renamed
+      });
+
+      test('should handle method field in JSON serialization', () {
+        final invitation = FamilyInvitation(
+          id: 'inviteMethodQr',
+          familyId: 'family456',
+          familyName: 'Smith Family',
+          inviterUserId: 'inviter_json_method',
+          inviterName: 'John Smith',
+          invitedEmail: 'jane@example.com',
+          method: InvitationMethod.qr,
+          createdAt: DateTime(2024, 1, 15),
+          expiresAt: DateTime(2024, 1, 22),
+        );
+
+        final json = invitation.toJson();
+        expect(json['method'], 'qr');
+
+        final fromJson = FamilyInvitation.fromJson(json);
+        expect(fromJson.method, InvitationMethod.qr);
+      });
+
+      test('should create invitation with QR method', () {
+        final invitation = FamilyInvitation(
+          id: 'inviteQr',
+          familyId: 'family456',
+          familyName: 'Smith Family',
+          inviterUserId: 'inviter_qr_method',
+          inviterName: 'John Smith',
+          invitedEmail: 'jane@example.com',
+          method: InvitationMethod.qr,
+          createdAt: DateTime(2024, 1, 15),
+          expiresAt: DateTime(2024, 1, 22),
+        );
+
+        expect(invitation.method, InvitationMethod.qr);
       });
     });
 
@@ -436,6 +473,22 @@ void main() {
         expect(updated.respondedAt, DateTime(2024, 1, 16)); // Renamed
         expect(updated.invitedUserId, 'user789'); // Renamed
         expect(original.status, InvitationStatus.pending); // Original unchanged
+      });
+
+      test('should update method using copyWith', () {
+        final original = FamilyInvitation(
+          id: 'invite123',
+          familyId: 'family456',
+          familyName: 'Smith Family',
+          inviterUserId: 'copywith_inviter',
+          inviterName: 'John Smith',
+          invitedEmail: 'jane@example.com',
+        );
+
+        final updated = original.copyWith(method: InvitationMethod.qr);
+
+        expect(original.method, InvitationMethod.email);
+        expect(updated.method, InvitationMethod.qr);
       });
     });
 

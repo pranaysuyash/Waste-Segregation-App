@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../models/enhanced_family.dart' as family_models;
 import '../models/user_profile.dart' as user_profile_models;
 import '../models/shared_waste_classification.dart';
+import '../models/family_invitation.dart' as invitation_models;
 import '../services/firebase_family_service.dart';
 import '../services/storage_service.dart';
 import '../utils/constants.dart';
@@ -248,6 +249,8 @@ class _FamilyDashboardScreenState extends State<FamilyDashboardScreen> {
             if (_isStatsLoading) const Center(child: CircularProgressIndicator()) else _buildStatsOverview(statsFromState), 
             const SizedBox(height: AppTheme.paddingLarge),
             _buildMembersSection(family),
+            const SizedBox(height: AppTheme.paddingLarge),
+            _buildInvitationStatsCard(family.id),
             const SizedBox(height: AppTheme.paddingLarge),
             _buildRecentActivityStream(),
             const SizedBox(height: AppTheme.paddingLarge),
@@ -541,6 +544,67 @@ class _FamilyDashboardScreenState extends State<FamilyDashboardScreen> {
           ],
         );
       },
+    );
+  }
+
+  Widget _buildInvitationStatsCard(String familyId) {
+    return StreamBuilder<List<invitation_models.FamilyInvitation>>(
+      stream: _familyService.getInvitationsStream(familyId),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting && !snapshot.hasData) {
+          return const Center(child: CircularProgressIndicator());
+        }
+        final invitations = snapshot.data ?? [];
+        final total = invitations.length;
+        final accepted = invitations.where((i) => i.status == invitation_models.InvitationStatus.accepted).length;
+        final pending = invitations.where((i) => i.status == invitation_models.InvitationStatus.pending).length;
+        final declined = invitations.where((i) => i.status == invitation_models.InvitationStatus.declined).length;
+        final cancelled = invitations.where((i) => i.status == invitation_models.InvitationStatus.cancelled).length;
+        final qrCount = invitations.where((i) => i.method == invitation_models.InvitationMethod.qr).length;
+
+        return Card(
+          elevation: AppTheme.elevationSm,
+          child: Padding(
+            padding: const EdgeInsets.all(AppTheme.paddingRegular),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Invitation Stats',
+                  style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: AppTheme.paddingRegular),
+                Wrap(
+                  spacing: AppTheme.paddingRegular,
+                  runSpacing: AppTheme.paddingRegular,
+                  children: [
+                    _buildStatChip('Sent', total, Colors.blue),
+                    _buildStatChip('Accepted', accepted, Colors.green),
+                    _buildStatChip('Pending', pending, Colors.orange),
+                    _buildStatChip('Declined', declined, Colors.redAccent),
+                    _buildStatChip('Cancelled', cancelled, Colors.grey),
+                    _buildStatChip('From QR', qrCount, Colors.purple),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildStatChip(String label, int value, Color color) {
+    return Chip(
+      label: Text('$label: $value'),
+      backgroundColor: color.withOpacity(0.1),
+      avatar: CircleAvatar(
+        backgroundColor: color,
+        child: Text(
+          value.toString(),
+          style: const TextStyle(color: Colors.white, fontSize: 12),
+        ),
+      ),
     );
   }
 

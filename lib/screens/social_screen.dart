@@ -12,6 +12,8 @@ class SocialScreen extends StatefulWidget {
 
 class _SocialScreenState extends State<SocialScreen> {
   int _currentIndex = 0;
+  // Offset to keep the FAB above the bottom navigation bar
+  static const double _fabBottomOffset = 72.0; // 56 nav bar height + 16 padding
 
   @override
   Widget build(BuildContext context) {
@@ -108,9 +110,7 @@ class _SocialScreenState extends State<SocialScreen> {
       // Floating action button positioned to avoid bottom nav overlap
       floatingActionButton: Container(
         margin: EdgeInsets.only(
-          bottom: isIOS 
-              ? (bottomPadding > 0 ? bottomPadding + 16 : 32) // iOS safe area + extra padding
-              : 80, // Android bottom nav height + padding
+          bottom: (isIOS ? bottomPadding : 0) + _fabBottomOffset,
         ),
         child: _currentIndex == 0 
             ? FloatingActionButton.extended(

@@ -209,6 +209,9 @@ static const Map<String, int> _pointValues = {
   // ...
 };
 ```
+At present these values are hard coded in the service. A more dynamic
+Firestore-driven configuration is planned but not yet implemented, so
+editing this map is the primary way to change point rewards.
 
 ### Customizing the Dashboard
 

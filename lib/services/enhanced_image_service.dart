@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:path/path.dart' as p;
@@ -15,8 +16,31 @@ class EnhancedImageService {
   static const _imagesDirName = 'images';
 
   /// Save raw image bytes to a permanent file location and
-  /// return the file path.
+  /// return the file path. On web platforms, returns a base64 data URL.
   Future<String> saveImagePermanently(Uint8List bytes, {String? fileName}) async {
+    if (kIsWeb) {
+      final base64Data = base64Encode(bytes);
+      // Detect image format or default to jpeg
+      String mimeType = 'image/jpeg';
+      if (bytes.length > 4) {
+        // PNG signature: 0x89 0x50 0x4E 0x47
+        if (bytes[0] == 0x89 &&
+            bytes[1] == 0x50 &&
+            bytes[2] == 0x4E &&
+            bytes[3] == 0x47) {
+          mimeType = 'image/png';
+        }
+        // GIF signature: 'G' 'I' 'F'
+        else if (bytes[0] == 0x47 &&
+                 bytes[1] == 0x49 &&
+                 bytes[2] == 0x46) {
+          mimeType = 'image/gif';
+        }
+      }
+      // Prefix with custom identifier for easier detection in widgets
+      return 'web_image:data:$mimeType;base64,$base64Data';
+    }
+
     final dir = await getApplicationDocumentsDirectory();
     final imagesDir = Directory(p.join(dir.path, _imagesDirName));
     if (!await imagesDir.exists()) {
