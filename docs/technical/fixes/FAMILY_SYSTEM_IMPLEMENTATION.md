@@ -100,7 +100,7 @@ Future<FamilyInvitation> createInvitation(
     expiresAt: DateTime.now().add(Duration(days: 7)),
   );
   
-  await _firestore.collection('family_invitations').doc(invitation.id).set(invitation.toJson());
+  await _firestore.collection('invitations').doc(invitation.id).set(invitation.toJson());
   return invitation;
 }
 ```
@@ -300,7 +300,7 @@ CircleAvatar(
 }
 ```
 
-#### family_invitations
+#### invitations
 ```json
 {
   "id": "invitation_uuid",
@@ -333,10 +333,9 @@ CircleAvatar(
 #### Invitation Management
 ```json
 {
-  "collectionGroup": "family_invitations",
+  "collectionGroup": "invitations",
   "fields": [
     {"fieldPath": "familyId", "order": "ASCENDING"},
-    {"fieldPath": "status", "order": "ASCENDING"},
     {"fieldPath": "createdAt", "order": "DESCENDING"}
   ]
 }

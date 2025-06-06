@@ -104,20 +104,10 @@ type '_Map<String, dynamic>' is not a subtype of type 'String'
       ]
     },
     {
-      "collectionGroup": "family_invitations",
+      "collectionGroup": "invitations",
       "queryScope": "COLLECTION",
       "fields": [
         {"fieldPath": "familyId", "order": "ASCENDING"},
-        {"fieldPath": "status", "order": "ASCENDING"},
-        {"fieldPath": "createdAt", "order": "DESCENDING"}
-      ]
-    },
-    {
-      "collectionGroup": "family_invitations",
-      "queryScope": "COLLECTION",
-      "fields": [
-        {"fieldPath": "invitedEmail", "order": "ASCENDING"},
-        {"fieldPath": "status", "order": "ASCENDING"},
         {"fieldPath": "createdAt", "order": "DESCENDING"}
       ]
     }
@@ -139,9 +129,8 @@ type '_Map<String, dynamic>' is not a subtype of type 'String'
 - `familyId + role + joinedAt`: Get family members by role, sorted by join date
 - `familyId + isActive + role`: Filter active members by role
 
-**Family Invitations**:
-- `familyId + status + createdAt`: Manage family invitations by status
-- `invitedEmail + status + createdAt`: Track user's invitation history
+**Invitations**:
+- `familyId + createdAt`: Manage invitations by family, newest first
 
 ### 2. **Storage Service Type Safety**
 
@@ -484,8 +473,8 @@ service cloud.firestore {
     }
     
     // Invitation access control
-    match /family_invitations/{invitationId} {
-      allow read: if request.auth != null && 
+    match /invitations/{invitationId} {
+      allow read: if request.auth != null &&
         (resource.data.inviterUserId == request.auth.uid ||
          resource.data.invitedEmail == request.auth.token.email);
     }

@@ -105,7 +105,7 @@ This document provides a comprehensive summary of all fixes, improvements, and i
 | Collection | Index Type | Performance Gain |
 |------------|------------|------------------|
 | families | Composite (familyId + role + joinedAt) | 95% faster |
-| family_invitations | Composite (familyId + status + createdAt) | 90% faster |
+| invitations | Composite (familyId + createdAt) | 90% faster |
 | analytics_events | Composite (userId + eventType + timestamp) | 85% faster |
 | disposal_locations | Composite (source + isActive + name) | 80% faster |
 
