@@ -55,6 +55,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   // Gamification state
   List<Challenge> _activeChallenges = [];
   bool _isLoadingGamification = false;
+  final Map<String, bool> _imageExistenceCache = {};
 
   @override
   void initState() {
@@ -1737,10 +1738,18 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
 
   /// Checks if the given image file exists safely
   Future<bool> _checkImageExists(File file) async {
+    final path = file.path;
+    if (_imageExistenceCache.containsKey(path)) {
+      return _imageExistenceCache[path]!;
+    }
+
     try {
-      return await file.exists();
+      final exists = await file.exists();
+      _imageExistenceCache[path] = exists;
+      return exists;
     } catch (e) {
       debugPrint('Error checking image file existence: $e');
+      _imageExistenceCache[path] = false;
       return false;
     }
   }

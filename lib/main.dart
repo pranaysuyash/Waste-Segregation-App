@@ -84,7 +84,11 @@ Future<void> originalMain() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   final Trace startupTrace = FirebasePerformance.instance.newTrace('app_startup');
-  await startupTrace.start();
+  try {
+    await startupTrace.start();
+  } catch (e) {
+    debugPrint('Failed to start performance trace: $e');
+  }
 
   // Environment variables are now loaded via --dart-define-from-file=.env
   if (kDebugMode) {
@@ -209,7 +213,11 @@ Future<void> originalMain() async {
   if (kDebugMode) {
     debugPrint('After runApp');
   }
-  await startupTrace.stop();
+  try {
+    await startupTrace.stop();
+  } catch (e) {
+    debugPrint('Failed to stop performance trace: $e');
+  }
 }
 
 void _setupErrorHandling() {

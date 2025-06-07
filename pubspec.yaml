@@ -41,7 +41,7 @@ dependencies:
   firebase_auth: ^5.5.3  # Updated for iOS compatibility
   google_sign_in: ^6.3.0  # Updated for iOS compatibility
   firebase_crashlytics: ^4.3.5
-  firebase_performance: ^0.9.4
+  firebase_performance: ^0.10.1+5
   cloud_firestore: ^5.6.7  # For family data and real-time sync
   qr_flutter: ^4.1.0  # For QR code generation
   # mobile_scanner: ^4.0.1  # Temporarily disabled due to dependency conflicts
