@@ -1633,10 +1633,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
               children: [
                 Icon(Icons.check_circle, color: Colors.white),
                 SizedBox(width: 8),
-                Text('Classification migration completed successfully!'),
+                Expanded(
+                  child: Text('Classification migration completed! Check console for detailed results.'),
+                ),
               ],
             ),
             backgroundColor: Colors.green,
+            duration: Duration(seconds: 4),
           ),
         );
       }

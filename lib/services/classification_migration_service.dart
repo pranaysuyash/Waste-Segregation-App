@@ -28,6 +28,7 @@ class ClassificationMigrationService {
           updated: 0,
           skipped: 0,
           errors: 0,
+          cloudUpdated: 0,
           message: 'User not signed in',
         );
       }
@@ -40,6 +41,7 @@ class ClassificationMigrationService {
       int updated = 0;
       int skipped = 0;
       int errors = 0;
+      final updatedClassifications = <WasteClassification>[];
 
       for (final classification in localClassifications) {
         totalProcessed++;
@@ -68,15 +70,8 @@ class ClassificationMigrationService {
             // Save updated classification locally
             await _localStorageService.saveClassification(updatedClassification);
             
-            // Sync to cloud if user has cloud sync enabled
-            final isGoogleSyncEnabled = await _isGoogleSyncEnabled();
-            if (isGoogleSyncEnabled) {
-              await _cloudStorageService.saveClassificationWithSync(
-                updatedClassification,
-                true,
-                processGamification: false, // Don't reprocess gamification
-              );
-            }
+            // Add to list for batch cloud update
+            updatedClassifications.add(updatedClassification);
             
             updated++;
             debugPrint('✅ Updated classification: ${classification.itemName}');
@@ -90,18 +85,31 @@ class ClassificationMigrationService {
         }
       }
 
+      // Batch update cloud storage if there are updated classifications
+      int cloudUpdated = 0;
+      if (updatedClassifications.isNotEmpty) {
+        final isGoogleSyncEnabled = await _isGoogleSyncEnabled();
+        if (isGoogleSyncEnabled) {
+          debugPrint('☁️ Batch updating ${updatedClassifications.length} classifications in cloud...');
+          cloudUpdated = await _cloudStorageService.batchUpdateClassificationsInCloud(updatedClassifications);
+          debugPrint('☁️ Successfully updated $cloudUpdated classifications in cloud');
+        }
+      }
+
       final result = MigrationResult(
         success: true,
         totalProcessed: totalProcessed,
         updated: updated,
         skipped: skipped,
         errors: errors,
+        cloudUpdated: cloudUpdated,
         message: 'Migration completed successfully',
       );
 
       debugPrint('📊 Migration Summary:');
       debugPrint('📊 Total processed: $totalProcessed');
-      debugPrint('📊 Updated: $updated');
+      debugPrint('📊 Updated locally: $updated');
+      debugPrint('📊 Updated in cloud: $cloudUpdated');
       debugPrint('📊 Skipped: $skipped');
       debugPrint('📊 Errors: $errors');
 
@@ -114,6 +122,7 @@ class ClassificationMigrationService {
         updated: 0,
         skipped: 0,
         errors: 1,
+        cloudUpdated: 0,
         message: 'Migration failed: $e',
       );
     }
@@ -272,6 +281,7 @@ class MigrationResult {
   final int updated;
   final int skipped;
   final int errors;
+  final int cloudUpdated;
   final String message;
 
   MigrationResult({
@@ -280,11 +290,12 @@ class MigrationResult {
     required this.updated,
     required this.skipped,
     required this.errors,
+    required this.cloudUpdated,
     required this.message,
   });
 
   @override
   String toString() {
-    return 'MigrationResult(success: $success, processed: $totalProcessed, updated: $updated, skipped: $skipped, errors: $errors, message: $message)';
+    return 'MigrationResult(success: $success, processed: $totalProcessed, updated: $updated, cloudUpdated: $cloudUpdated, skipped: $skipped, errors: $errors, message: $message)';
   }
 } 

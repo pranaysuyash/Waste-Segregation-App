@@ -118,6 +118,113 @@ class CloudStorageService {
     }
   }
 
+  /// Update an existing classification in Firestore (for migrations and updates)
+  Future<void> updateClassificationInCloud(WasteClassification classification) async {
+    try {
+      final userProfile = await _localStorageService.getCurrentUserProfile();
+      if (userProfile == null || userProfile.id.isEmpty) {
+        debugPrint('🚫 Cannot update cloud classification: User not signed in');
+        return;
+      }
+
+      debugPrint('☁️ Updating classification in cloud for user: ${userProfile.id}');
+      
+      // Use the local classification ID so we update the existing document
+      final docId = classification.id;
+      
+      // Add cloud metadata
+      final cloudClassification = classification.copyWith(
+        userId: userProfile.id,
+      );
+
+      // Update the user's personal collection
+      await _firestore
+          .collection('users')
+          .doc(userProfile.id)
+          .collection('classifications')
+          .doc(docId)
+          .update({
+        ...cloudClassification.toJson(),
+        'updatedAt': FieldValue.serverTimestamp(),
+      });
+
+      debugPrint('☁️ ✅ Successfully updated classification in cloud: ${classification.itemName}');
+
+      // Also update the admin collection for consistency
+      await _saveToAdminCollection(cloudClassification);
+
+    } catch (e) {
+      debugPrint('☁️ ❌ Failed to update classification in cloud: $e');
+      // Don't throw error - this is a best-effort update
+    }
+  }
+
+  /// Batch update multiple classifications in Firestore (for migrations)
+  Future<int> batchUpdateClassificationsInCloud(List<WasteClassification> classifications) async {
+    try {
+      final userProfile = await _localStorageService.getCurrentUserProfile();
+      if (userProfile == null || userProfile.id.isEmpty) {
+        debugPrint('🚫 Cannot batch update cloud classifications: User not signed in');
+        return 0;
+      }
+
+      if (classifications.isEmpty) {
+        debugPrint('☁️ No classifications to update in cloud');
+        return 0;
+      }
+
+      debugPrint('☁️ Batch updating ${classifications.length} classifications in cloud for user: ${userProfile.id}');
+      
+      var updatedCount = 0;
+      var batch = _firestore.batch();
+      var operationCount = 0;
+
+      for (final classification in classifications) {
+        try {
+          final docId = classification.id;
+          final cloudClassification = classification.copyWith(userId: userProfile.id);
+          
+          final docRef = _firestore
+              .collection('users')
+              .doc(userProfile.id)
+              .collection('classifications')
+              .doc(docId);
+
+          batch.update(docRef, {
+            ...cloudClassification.toJson(),
+            'updatedAt': FieldValue.serverTimestamp(),
+          });
+
+          operationCount++;
+          updatedCount++;
+
+          // Firestore batch limit is 500 operations
+          if (operationCount >= 450) { // Leave some buffer
+            await batch.commit();
+            batch = _firestore.batch();
+            operationCount = 0;
+            debugPrint('☁️ Committed batch of 450 operations, continuing...');
+          }
+        } catch (e) {
+          debugPrint('☁️ ❌ Failed to add classification ${classification.itemName} to batch: $e');
+        }
+      }
+
+      // Commit remaining operations
+      if (operationCount > 0) {
+        await batch.commit();
+        debugPrint('☁️ Committed final batch of $operationCount operations');
+      }
+
+      debugPrint('☁️ ✅ Successfully batch updated $updatedCount classifications in cloud');
+      return updatedCount;
+
+    } catch (e) {
+      debugPrint('☁️ ❌ Failed to batch update classifications in cloud: $e');
+      return 0;
+    }
+  }
+
   /// Sync a single classification to Firestore
   Future<void> _syncClassificationToCloud(WasteClassification classification) async {
     try {
