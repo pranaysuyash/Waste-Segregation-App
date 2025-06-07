@@ -86,12 +86,16 @@ class _AuthScreenState extends State<AuthScreen> {
           ),
         ),
         child: SafeArea(
-          child: Center(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(AppTheme.paddingLarge),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              final isCompact = constraints.maxHeight < 600;
+              return SingleChildScrollView(
+                padding: const EdgeInsets.all(AppTheme.paddingLarge),
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(minHeight: constraints.maxHeight),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
                   // App logo
                   Container(
                     width: 120,
@@ -207,7 +211,11 @@ class _AuthScreenState extends State<AuthScreen> {
                     ),
                   ],
 
-                  const SizedBox(height: AppTheme.paddingExtraLarge * 2),
+                  SizedBox(
+                    height: isCompact
+                        ? AppTheme.paddingLarge
+                        : AppTheme.paddingExtraLarge * 2,
+                  ),
 
                   // Google Sign-in card (disabled on web)
                   _buildAuthCard(
@@ -287,8 +295,8 @@ class _AuthScreenState extends State<AuthScreen> {
                 ],
               ),
             ),
-          ),
-        ),
+          );
+        },
       ),
     );
   }

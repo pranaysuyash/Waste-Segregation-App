@@ -54,7 +54,7 @@ class ClassificationDetailsScreen extends StatelessWidget {
                           borderRadius: BorderRadius.circular(AppTheme.borderRadiusRegular),
                           child: Image.network(
                             originalClassification.imageUrl!,
-                            height: 200,
+                            height: MediaQuery.of(context).size.height * 0.25,
                             fit: BoxFit.cover,
                             errorBuilder: (context, error, stackTrace) =>
                               const Icon(Icons.image_not_supported, size: 100, color: AppTheme.textDisabledColor),

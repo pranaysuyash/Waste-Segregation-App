@@ -819,7 +819,8 @@ class _AchievementsScreenState extends State<AchievementsScreen>
                           title: const Text('All Completed Challenges'),
                           content: SizedBox(
                             width: double.maxFinite,
-                            height: 400,
+                            height:
+                                MediaQuery.of(context).size.height * 0.5,
                             child: ListView.builder(
                               itemCount: profile.completedChallenges.length,
                               itemBuilder: (context, index) {

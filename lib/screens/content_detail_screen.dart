@@ -87,8 +87,8 @@ class _ContentDetailScreenState extends State<ContentDetailScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
-            height: 200,
+            Container(
+              height: MediaQuery.of(context).size.height * 0.25,
             width: double.infinity,
             decoration: BoxDecoration(
               color: Colors.grey.shade200,
@@ -230,7 +230,7 @@ class _ContentDetailScreenState extends State<ContentDetailScreen> {
             _VideoPlayerWidget(url: content.videoUrl!)
           else
             Container(
-              height: 200,
+              height: MediaQuery.of(context).size.height * 0.25,
               width: double.infinity,
               decoration: BoxDecoration(
                 color: Colors.black,
@@ -374,15 +374,15 @@ class _ContentDetailScreenState extends State<ContentDetailScreen> {
                   ),
                 );
               },
-              errorBuilder: (context, error, stackTrace) => Container(
-                height: 200,
+                errorBuilder: (context, error, stackTrace) => Container(
+                  height: MediaQuery.of(context).size.height * 0.25,
                 color: Colors.grey.shade200,
                 child: const Icon(Icons.broken_image, size: 64, color: Colors.grey),
               ),
             )
           else
             Container(
-              height: 300,
+              height: MediaQuery.of(context).size.height * 0.3,
               width: double.infinity,
               decoration: BoxDecoration(
                 color: Colors.grey.shade200,
@@ -719,9 +719,9 @@ class _VideoPlayerWidgetState extends State<_VideoPlayerWidget> {
 
   @override
   Widget build(BuildContext context) {
-    if (_error != null) {
-      return Container(
-        height: 200,
+      if (_error != null) {
+        return Container(
+          height: MediaQuery.of(context).size.height * 0.25,
         color: Colors.black,
         alignment: Alignment.center,
         child: Padding(
@@ -734,9 +734,9 @@ class _VideoPlayerWidgetState extends State<_VideoPlayerWidget> {
         ),
       );
     }
-    if (!_isInitialized || _controller == null || !_controller!.value.isInitialized) {
-      return Container(
-        height: 200,
+      if (!_isInitialized || _controller == null || !_controller!.value.isInitialized) {
+        return Container(
+          height: MediaQuery.of(context).size.height * 0.25,
         color: Colors.black,
         alignment: Alignment.center,
         child: const CircularProgressIndicator(),

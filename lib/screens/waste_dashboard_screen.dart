@@ -267,9 +267,9 @@ class _WasteDashboardScreenState extends State<WasteDashboardScreen> {
   Widget _buildActivityChart() {
     final timeSeriesData = _getWasteTimeSeriesData();
     if (timeSeriesData.isEmpty) {
-      return Card(
-        child: Container(
-          height: 200,
+        return Card(
+          child: Container(
+            height: MediaQuery.of(context).size.height * 0.25,
           padding: const EdgeInsets.all(AppTheme.paddingLarge),
           child: const Center(
             child: Column(
@@ -287,9 +287,9 @@ class _WasteDashboardScreenState extends State<WasteDashboardScreen> {
       );
     }
     
-    return Card(
-      child: Container(
-        height: 250, // Increased height for better visibility
+      return Card(
+        child: Container(
+          height: MediaQuery.of(context).size.height * 0.3,
         padding: const EdgeInsets.all(AppTheme.paddingSmall),
         child: Column(
           children: [
@@ -313,10 +313,10 @@ class _WasteDashboardScreenState extends State<WasteDashboardScreen> {
   }
   
   Widget _buildCategoryDistribution() {
-    if (_wasteCategoryCounts.isEmpty) {
-      return Card(
-        child: Container(
-          height: 200,
+      if (_wasteCategoryCounts.isEmpty) {
+        return Card(
+          child: Container(
+            height: MediaQuery.of(context).size.height * 0.25,
           padding: const EdgeInsets.all(AppTheme.paddingLarge),
           child: const Center(
             child: Column(
@@ -365,9 +365,9 @@ class _WasteDashboardScreenState extends State<WasteDashboardScreen> {
               style: Theme.of(context).textTheme.titleSmall,
             ),
             const SizedBox(height: AppTheme.paddingRegular),
-            SizedBox(
-              height: 200,
-              child: WebPieChartWidget(data: pieData),
+              SizedBox(
+                height: MediaQuery.of(context).size.height * 0.3,
+                child: WebPieChartWidget(data: pieData),
             ),
             const SizedBox(height: AppTheme.paddingRegular),
             
@@ -1071,9 +1071,9 @@ class _WebChartWidgetState extends State<WebChartWidget> {
 
   @override
   Widget build(BuildContext context) {
-    if (_hasError) {
-      return Container(
-        height: 200,
+      if (_hasError) {
+        return Container(
+          height: MediaQuery.of(context).size.height * 0.25,
         alignment: Alignment.center,
         child: const Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -1091,9 +1091,9 @@ class _WebChartWidgetState extends State<WebChartWidget> {
     return Stack(
       children: [
         WebViewWidget(controller: controller),
-        if (_isLoading)
-          Container(
-            height: 200,
+          if (_isLoading)
+            Container(
+              height: MediaQuery.of(context).size.height * 0.25,
             alignment: Alignment.center,
             child: const CircularProgressIndicator(),
           ),
@@ -1250,9 +1250,9 @@ class _WebPieChartWidgetState extends State<WebPieChartWidget> {
 
   @override
   Widget build(BuildContext context) {
-    if (_hasError) {
-      return Container(
-        height: 200,
+      if (_hasError) {
+        return Container(
+          height: MediaQuery.of(context).size.height * 0.25,
         alignment: Alignment.center,
         child: const Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -1270,9 +1270,9 @@ class _WebPieChartWidgetState extends State<WebPieChartWidget> {
     return Stack(
       children: [
         WebViewWidget(controller: controller),
-        if (_isLoading)
-          Container(
-            height: 200,
+          if (_isLoading)
+            Container(
+              height: MediaQuery.of(context).size.height * 0.25,
             alignment: Alignment.center,
             child: const CircularProgressIndicator(),
           ),
