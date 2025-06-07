@@ -126,6 +126,7 @@ class _CaptureButtonState extends State<CaptureButton> {
                 padding: const EdgeInsets.symmetric(
                   vertical: AppTheme.paddingRegular,
                 ),
+                minimumSize: const Size(48, 48),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(AppTheme.borderRadiusRegular),
                 ),

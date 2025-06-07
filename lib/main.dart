@@ -6,6 +6,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart' show kIsWeb, kDebugMode;
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
+import 'package:firebase_performance/firebase_performance.dart';
 
 import 'firebase_options.dart';
 import 'services/ai_service.dart';
@@ -146,6 +147,14 @@ Future<void> originalMain() async {
     // Continue with app initialization even if Firebase fails
   }
 
+  Trace? startupTrace;
+  try {
+    startupTrace = FirebasePerformance.instance.newTrace('app_startup');
+    await startupTrace.start();
+  } catch (e) {
+    debugPrint('Failed to start performance trace: $e');
+  }
+
   if (kDebugMode) {
     debugPrint('Before StorageService.initializeHive');
   }
@@ -173,37 +182,47 @@ Future<void> originalMain() async {
   final navigationSettingsService = NavigationSettingsService();
   final communityService = CommunityService();
 
-  if (kDebugMode) {
-    debugPrint('Before service initializations');
-  }
-  await Future.wait([
-    gamificationService.initGamification(),
-    premiumService.initialize(),
-    adService.initialize(),
-    communityService.initCommunity(),
-  ]);
-  if (kDebugMode) {
-    debugPrint('After service initializations');
-  }
+  try {
+    if (kDebugMode) {
+      debugPrint('Before service initializations');
+    }
+    await Future.wait([
+      gamificationService.initGamification(),
+      premiumService.initialize(),
+      adService.initialize(),
+      communityService.initCommunity(),
+    ]);
+    if (kDebugMode) {
+      debugPrint('After service initializations');
+    }
 
-  if (kDebugMode) {
-    debugPrint('Before runApp');
-  }
-  runApp(WasteSegregationApp(
-    storageService: storageService,
-    aiService: aiService,
-    analyticsService: analyticsService,
-    educationalContentAnalyticsService: educationalContentAnalyticsService,
-    educationalContentService: educationalContentService,
-    gamificationService: gamificationService,
-    premiumService: premiumService,
-    adService: adService,
-    googleDriveService: googleDriveService,
-    navigationSettingsService: navigationSettingsService,
-    communityService: communityService,
-  ));
-  if (kDebugMode) {
-    debugPrint('After runApp');
+    if (kDebugMode) {
+      debugPrint('Before runApp');
+    }
+    runApp(WasteSegregationApp(
+      storageService: storageService,
+      aiService: aiService,
+      analyticsService: analyticsService,
+      educationalContentAnalyticsService: educationalContentAnalyticsService,
+      educationalContentService: educationalContentService,
+      gamificationService: gamificationService,
+      premiumService: premiumService,
+      adService: adService,
+      googleDriveService: googleDriveService,
+      navigationSettingsService: navigationSettingsService,
+      communityService: communityService,
+    ));
+    if (kDebugMode) {
+      debugPrint('After runApp');
+    }
+  } finally {
+    if (startupTrace != null) {
+      try {
+        await startupTrace.stop();
+      } catch (e) {
+        debugPrint('Failed to stop performance trace: $e');
+      }
+    }
   }
 }
 
