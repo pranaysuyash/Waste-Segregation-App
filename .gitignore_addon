@@ -1,0 +1,1 @@
+# Temporary files and debug artifacts\ntemp/\n\n# Local storage and cache files\nstorage/*.hive\nstorage/*.hive.lock\nstorage/cache/\n\n# Test outputs and temporary files\ntemp/test_output.txt\ntemp/*.log\ntemp/*.tmp\n\n# Exclude debug files unless specifically needed\ntemp/debug_*.dart\n\n# Keep directory structure but ignore contents\nstorage/.gitkeep\ntemp/.gitkeep\n
