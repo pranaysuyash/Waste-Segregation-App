@@ -136,7 +136,7 @@
 - **Issues**:
   - ❌ No GPS permission requests (VERIFIED)
   - ❌ Distance calculations hardcoded (VERIFIED)
-  - ❌ Maps integration TODO on line 242: "// TODO: Open maps or directions"
+  - ✅ Maps open via url_launcher (formerly TODO on line 242)
   - ❌ No geolocator dependency in pubspec.yaml
 - **Files**: `interactive_tag.dart` (line 242), location features
 - **Priority**: MEDIUM
@@ -247,8 +247,8 @@
    - Implement challenge generation
    - Navigate to all completed challenges
 
-5. **interactive_tag.dart** (1 TODO)
-   - Open maps or directions
+5. **interactive_tag.dart** (0 TODO)
+   - Maps open via url_launcher
 
 ### High Priority TODOs (10+)
 

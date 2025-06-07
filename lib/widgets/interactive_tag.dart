@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../utils/constants.dart';
 import '../screens/educational_content_screen.dart';
 import '../screens/history_screen.dart';
@@ -248,7 +249,7 @@ class InteractiveTag extends StatelessWidget {
           TextButton(
             onPressed: () {
               Navigator.of(context).pop();
-              // TODO: Open maps or directions
+              _openMaps();
             },
             child: const Text('Get Directions'),
           ),
@@ -388,6 +389,16 @@ class InteractiveTag extends StatelessWidget {
   String _getTipText() {
     return '${text.replaceFirst('Tip: ', '')}\n\nThis tip can help you dispose of waste more effectively and contribute to better environmental outcomes.';
   }
+  Future<void> _openMaps() async {
+    final query = Uri.encodeComponent(category ?? text);
+    final Uri url = Uri.parse("https://www.google.com/maps/search/?api=1&query=$query");
+    if (await canLaunchUrl(url)) {
+      await launchUrl(url, mode: LaunchMode.externalApplication);
+    } else {
+      debugPrint("Could not launch maps for $query");
+    }
+  }
+
 }
 
 /// Enhanced tag collection widget for displaying multiple interactive tags
