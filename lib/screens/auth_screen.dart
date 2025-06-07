@@ -78,9 +78,9 @@ class _AuthScreenState extends State<AuthScreen> {
             end: Alignment.bottomRight,
             colors: [
               AppTheme.primaryColor,
-              AppTheme.primaryColor.withOpacity(0.8),
+              AppTheme.primaryColor.withValues(alpha:0.8),
               AppTheme.secondaryColor,
-              AppTheme.secondaryColor.withOpacity(0.6),
+              AppTheme.secondaryColor.withValues(alpha:0.6),
             ],
             stops: const [0.0, 0.3, 0.7, 1.0],
           ),
@@ -187,11 +187,11 @@ class _AuthScreenState extends State<AuthScreen> {
                           padding:
                               const EdgeInsets.all(AppTheme.paddingRegular),
                           decoration: BoxDecoration(
-                            color: Colors.red.withOpacity(0.2),
+                            color: Colors.red.withValues(alpha:0.2),
                             borderRadius: BorderRadius.circular(
                                 AppTheme.borderRadiusRegular),
                             border:
-                                Border.all(color: Colors.red.withOpacity(0.5)),
+                                Border.all(color: Colors.red.withValues(alpha:0.5)),
                           ),
                           child: const Row(
                             children: [
@@ -272,7 +272,7 @@ class _AuthScreenState extends State<AuthScreen> {
                       Container(
                         padding: const EdgeInsets.all(AppTheme.paddingRegular),
                         decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.15),
+                          color: Colors.white.withValues(alpha:0.15),
                           borderRadius:
                               BorderRadius.circular(AppTheme.borderRadiusRegular),
                         ),
@@ -334,7 +334,7 @@ class _AuthScreenState extends State<AuthScreen> {
               boxShadow: backgroundColor != Colors.transparent
                   ? [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.1),
+                        color: Colors.black.withValues(alpha:0.1),
                         blurRadius: 8,
                         offset: const Offset(0, 4),
                       ),
@@ -362,7 +362,7 @@ class _AuthScreenState extends State<AuthScreen> {
                         subtitle,
                         style: TextStyle(
                           fontSize: AppTheme.fontSizeSmall,
-                          color: textColor.withOpacity(0.7),
+                          color: textColor.withValues(alpha:0.7),
                         ),
                       ),
                     ],
@@ -371,7 +371,7 @@ class _AuthScreenState extends State<AuthScreen> {
                 Icon(
                   Icons.arrow_forward_ios,
                   size: 16,
-                  color: textColor.withOpacity(0.5),
+                  color: textColor.withValues(alpha:0.5),
                 ),
               ],
             ),
@@ -385,10 +385,10 @@ class _AuthScreenState extends State<AuthScreen> {
     return Container(
       padding: const EdgeInsets.all(AppTheme.paddingSmall),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.15),
+        color: Colors.white.withValues(alpha:0.15),
         borderRadius: BorderRadius.circular(AppTheme.borderRadiusRegular),
         border: Border.all(
-          color: Colors.white.withOpacity(0.3),
+          color: Colors.white.withValues(alpha:0.3),
         ),
       ),
       child: Column(
