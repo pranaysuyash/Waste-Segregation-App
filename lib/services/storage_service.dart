@@ -11,6 +11,7 @@ import '../utils/constants.dart';
 import 'gamification_service.dart';
 import 'cloud_storage_service.dart';
 import 'package:uuid/uuid.dart';
+import 'classification_migration_service.dart';
 
 class StorageService {
   // Initialize Hive database
@@ -1023,6 +1024,26 @@ class StorageService {
       }
     }
     return feedbackList;
+  }
+
+  /// Trigger migration of old classifications to update imageUrl fields
+  Future<void> migrateOldClassifications() async {
+    try {
+      debugPrint('🔄 Starting classification migration process...');
+      
+      // Create cloud storage service instance
+      final cloudStorageService = CloudStorageService(this);
+      
+      // Create migration service
+      final migrationService = ClassificationMigrationService(this, cloudStorageService);
+      
+      // Run migration
+      final result = await migrationService.migrateOldClassifications();
+      
+      debugPrint('📊 Migration completed: $result');
+    } catch (e) {
+      debugPrint('❌ Migration failed: $e');
+    }
   }
 
 }

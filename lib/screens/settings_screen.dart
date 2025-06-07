@@ -296,6 +296,20 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         _showFactoryResetDialog(context, storageService, analyticsService, premiumService);
                       },
                     ),
+                  // Migration button for updating old classifications
+                  const SizedBox(height: 8),
+                  ElevatedButton.icon(
+                    icon: const Icon(Icons.update, color: Colors.green),
+                    label: const Text('Migrate Old Classifications', style: TextStyle(color: Colors.green)),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.white,
+                      foregroundColor: Colors.green,
+                      side: const BorderSide(color: Colors.green),
+                    ),
+                    onPressed: () {
+                      _runClassificationMigration(context, storageService);
+                    },
+                  ),
                 ],
               ),
             ),
@@ -1584,6 +1598,64 @@ class _SettingsScreenState extends State<SettingsScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Failed to update feedback timeframe: $e')),
       );
+    }
+  }
+
+  Future<void> _runClassificationMigration(BuildContext context, StorageService storageService) async {
+    try {
+      // Show loading dialog
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => const AlertDialog(
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              CircularProgressIndicator(),
+              SizedBox(height: 16),
+              Text('Migrating old classifications...'),
+              SizedBox(height: 8),
+              Text('This may take a few moments.', style: TextStyle(fontSize: 12, color: Colors.grey)),
+            ],
+          ),
+        ),
+      );
+
+      // Run the migration
+      await storageService.migrateOldClassifications();
+      
+      if (mounted) {
+        Navigator.pop(context); // Close loading dialog
+        
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Row(
+              children: [
+                Icon(Icons.check_circle, color: Colors.white),
+                SizedBox(width: 8),
+                Text('Classification migration completed successfully!'),
+              ],
+            ),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        Navigator.pop(context); // Close loading dialog
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Row(
+              children: [
+                const Icon(Icons.error, color: Colors.white),
+                const SizedBox(width: 8),
+                Expanded(child: Text('Migration failed: $e')),
+              ],
+            ),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
     }
   }
 }
