@@ -484,63 +484,56 @@ class _WasteDashboardScreenState extends State<WasteDashboardScreen> {
   }
 
   Widget _buildRecentClassifications() {
-    if (_classifications.isEmpty) {
-      return Card(
-        child: Container(
-          padding: const EdgeInsets.all(AppTheme.paddingLarge),
-          child: const Center(
-            child: Column(
-              children: [
-                Icon(Icons.history, size: 48, color: Colors.grey),
-                SizedBox(height: 8),
-                Text('No classifications yet'),
-                Text('Start classifying items to see your history!', 
-                     style: TextStyle(fontSize: 12, color: Colors.grey)),
-              ],
+    final recent = _classifications.reversed.take(5).toList();
+    
+    return ListView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      itemCount: recent.length,
+      itemBuilder: (context, index) {
+        final classification = recent[index];
+        
+        return Card(
+          margin: const EdgeInsets.symmetric(vertical: 4),
+          child: ListTile(
+            leading: SizedBox(
+              width: 50,
+              height: 50,
+              child: (classification.imageUrl?.isNotEmpty == true)
+                  ? ClipRRect(
+                      borderRadius: BorderRadius.circular(AppTheme.borderRadiusSmall),
+                      child: Image.network(
+                        classification.imageUrl!,
+                        fit: BoxFit.cover,
+                        loadingBuilder: (context, child, progress) {
+                          return progress == null
+                              ? child
+                              : const Center(child: CircularProgressIndicator());
+                        },
+                        errorBuilder: (context, error, stackTrace) {
+                          return const Icon(
+                            Icons.image_not_supported,
+                            color: AppTheme.textSecondaryColor,
+                          );
+                        },
+                      ),
+                    )
+                  : const Icon(
+                      Icons.image,
+                      color: AppTheme.textSecondaryColor,
+                    ),
             ),
+            title: Text(classification.itemName),
+            subtitle: Text(
+              '${classification.category} - ${classification.timestamp.toLocal()}',
+            ),
+            trailing: const Icon(Icons.arrow_forward_ios),
+            onTap: () {
+              // Navigate to a detailed view if available
+            },
           ),
-        ),
-      );
-    }
-    
-    // Get the most recent classifications (up to 5)
-    final recentClassifications = _classifications.reversed
-        .take(5)
-        .toList();
-    
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(AppTheme.paddingRegular),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Your latest classifications',
-              style: Theme.of(context).textTheme.titleSmall,
-            ),
-            const SizedBox(height: AppTheme.paddingSmall),
-            ...recentClassifications.map((classification) => 
-              Container(
-                margin: const EdgeInsets.only(bottom: 8),
-                child: ListTile(
-                  dense: true,
-                  leading: _getCategoryIcon(classification.category),
-                  title: Text(
-                    classification.itemName,
-                    style: const TextStyle(fontWeight: FontWeight.bold),
-                  ),
-                  subtitle: Text(
-                    '${classification.category} • ${DateFormat.yMMMd().format(classification.timestamp)}',
-                  ),
-                  trailing: classification.isRecyclable == true
-                      ? const Icon(Icons.recycling, color: AppTheme.primaryColor)
-                      : const Icon(Icons.do_not_disturb, color: Colors.red),
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
+        );
+      },
     );
   }
 
