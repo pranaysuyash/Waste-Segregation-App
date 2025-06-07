@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'dart:async';
+import 'dart:collection';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 // import 'dart:typed_data';
@@ -55,7 +56,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   // Gamification state
   List<Challenge> _activeChallenges = [];
   bool _isLoadingGamification = false;
-  final Map<String, bool> _imageExistenceCache = {};
+  final LinkedHashMap<String, bool> _imageExistenceCache = LinkedHashMap();
+  static const int _imageCacheMaxEntries = 100;
 
   @override
   void initState() {
@@ -1124,7 +1126,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                   padding: const EdgeInsets.only(right: 8.0),
                   child: Center(
                     child: Semantics(
-                      label: 'View lifetime points: ${profile.points}',
+                      label: 'View lifetime points: ${profile.points.total}',
                       button: true,
                       child: LifetimePointsIndicator(
                         points: profile.points,
@@ -1745,11 +1747,13 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
 
     try {
       final exists = await file.exists();
+      if (_imageExistenceCache.length >= _imageCacheMaxEntries) {
+        _imageExistenceCache.remove(_imageExistenceCache.keys.first);
+      }
       _imageExistenceCache[path] = exists;
       return exists;
     } catch (e) {
       debugPrint('Error checking image file existence: $e');
-      _imageExistenceCache[path] = false;
       return false;
     }
   }

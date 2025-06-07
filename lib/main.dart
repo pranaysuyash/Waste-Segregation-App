@@ -83,13 +83,6 @@ void main() async {
 Future<void> originalMain() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  final Trace startupTrace = FirebasePerformance.instance.newTrace('app_startup');
-  try {
-    await startupTrace.start();
-  } catch (e) {
-    debugPrint('Failed to start performance trace: $e');
-  }
-
   // Environment variables are now loaded via --dart-define-from-file=.env
   if (kDebugMode) {
     debugPrint('Environment variables loaded via --dart-define-from-file');
@@ -154,6 +147,14 @@ Future<void> originalMain() async {
     // Continue with app initialization even if Firebase fails
   }
 
+  Trace? startupTrace;
+  try {
+    startupTrace = FirebasePerformance.instance.newTrace('app_startup');
+    await startupTrace.start();
+  } catch (e) {
+    debugPrint('Failed to start performance trace: $e');
+  }
+
   if (kDebugMode) {
     debugPrint('Before StorageService.initializeHive');
   }
@@ -181,42 +182,47 @@ Future<void> originalMain() async {
   final navigationSettingsService = NavigationSettingsService();
   final communityService = CommunityService();
 
-  if (kDebugMode) {
-    debugPrint('Before service initializations');
-  }
-  await Future.wait([
-    gamificationService.initGamification(),
-    premiumService.initialize(),
-    adService.initialize(),
-    communityService.initCommunity(),
-  ]);
-  if (kDebugMode) {
-    debugPrint('After service initializations');
-  }
-
-  if (kDebugMode) {
-    debugPrint('Before runApp');
-  }
-  runApp(WasteSegregationApp(
-    storageService: storageService,
-    aiService: aiService,
-    analyticsService: analyticsService,
-    educationalContentAnalyticsService: educationalContentAnalyticsService,
-    educationalContentService: educationalContentService,
-    gamificationService: gamificationService,
-    premiumService: premiumService,
-    adService: adService,
-    googleDriveService: googleDriveService,
-    navigationSettingsService: navigationSettingsService,
-    communityService: communityService,
-  ));
-  if (kDebugMode) {
-    debugPrint('After runApp');
-  }
   try {
-    await startupTrace.stop();
-  } catch (e) {
-    debugPrint('Failed to stop performance trace: $e');
+    if (kDebugMode) {
+      debugPrint('Before service initializations');
+    }
+    await Future.wait([
+      gamificationService.initGamification(),
+      premiumService.initialize(),
+      adService.initialize(),
+      communityService.initCommunity(),
+    ]);
+    if (kDebugMode) {
+      debugPrint('After service initializations');
+    }
+
+    if (kDebugMode) {
+      debugPrint('Before runApp');
+    }
+    runApp(WasteSegregationApp(
+      storageService: storageService,
+      aiService: aiService,
+      analyticsService: analyticsService,
+      educationalContentAnalyticsService: educationalContentAnalyticsService,
+      educationalContentService: educationalContentService,
+      gamificationService: gamificationService,
+      premiumService: premiumService,
+      adService: adService,
+      googleDriveService: googleDriveService,
+      navigationSettingsService: navigationSettingsService,
+      communityService: communityService,
+    ));
+    if (kDebugMode) {
+      debugPrint('After runApp');
+    }
+  } finally {
+    if (startupTrace != null) {
+      try {
+        await startupTrace.stop();
+      } catch (e) {
+        debugPrint('Failed to stop performance trace: $e');
+      }
+    }
   }
 }
 
