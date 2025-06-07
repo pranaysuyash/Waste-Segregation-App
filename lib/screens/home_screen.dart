@@ -977,14 +977,14 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                           Icon(
                             Icons.access_time,
                             size: 10,
-                            color: Colors.grey.shade600,
+                            color: Colors.black54,
                           ),
                           const SizedBox(width: 2),
                           Text(
                             '${content.durationMinutes} min',
                             style: TextStyle(
                               fontSize: 12,
-                              color: Colors.grey.shade600,
+                              color: Colors.black87,
                             ),
                           ),
                         ],
@@ -1122,10 +1122,13 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                 return Padding(
                   padding: const EdgeInsets.only(right: 8.0),
                   child: Center(
-                    child: LifetimePointsIndicator(
-                      points: profile.points,
-                      showLifetimePoints: true,
-                      onTap: () {
+                    child: Semantics(
+                      label: 'View lifetime points: ${profile.points}',
+                      button: true,
+                      child: LifetimePointsIndicator(
+                        points: profile.points,
+                        showLifetimePoints: true,
+                        onTap: () {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
@@ -1215,17 +1218,23 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                         const SizedBox(height: AppTheme.paddingLarge),
 
                         // Capture image button
-                        CaptureButton(
-                          type: CaptureButtonType.camera,
-                          onPressed: _takePicture,
+                        Semantics(
+                          label: 'Take photo of waste item',
+                          child: CaptureButton(
+                            type: CaptureButtonType.camera,
+                            onPressed: _takePicture,
+                          ),
                         ),
 
                         const SizedBox(height: AppTheme.paddingRegular),
 
                         // Upload image button
-                        CaptureButton(
-                          type: CaptureButtonType.gallery,
-                          onPressed: _pickImage,
+                        Semantics(
+                          label: 'Upload image of waste item from gallery',
+                          child: CaptureButton(
+                            type: CaptureButtonType.gallery,
+                            onPressed: _pickImage,
+                          ),
                         ),
 
                         const SizedBox(height: AppTheme.paddingLarge),
@@ -1358,10 +1367,13 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                                   return Padding(
                                     padding: const EdgeInsets.only(
                                         bottom: AppTheme.paddingRegular),
-                                    child: InkWell(
-                                      onTap: () =>
-                                          _showClassificationDetails(classification),
-                                      child: Card(
+                                    child: Semantics(
+                                      label: 'View details for ${classification.itemName}',
+                                      button: true,
+                                      child: InkWell(
+                                        onTap: () =>
+                                            _showClassificationDetails(classification),
+                                        child: Card(
                                         elevation: 2,
                                         shape: RoundedRectangleBorder(
                                           borderRadius: BorderRadius.circular(
@@ -1687,12 +1699,12 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     } 
     
     // For mobile platforms - handle file existence check properly
-    try {
-      final file = File(classification.imageUrl!);
-      
-      // Use FutureBuilder to check if the file exists before rendering
-      return FutureBuilder<bool>(
-        future: file.exists(),
+      try {
+        final file = File(classification.imageUrl!);
+
+        // Use FutureBuilder to check if the file exists before rendering
+        return FutureBuilder<bool>(
+          future: _checkImageExists(file),
         builder: (context, snapshot) {
           // Show placeholder while checking
           if (snapshot.connectionState == ConnectionState.waiting) {
@@ -1720,6 +1732,16 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     } catch (e) {
       debugPrint('Error handling image file: $e');
       return _buildImagePlaceholder();
+    }
+  }
+
+  /// Checks if the given image file exists safely
+  Future<bool> _checkImageExists(File file) async {
+    try {
+      return await file.exists();
+    } catch (e) {
+      debugPrint('Error checking image file existence: $e');
+      return false;
     }
   }
   

@@ -6,6 +6,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart' show kIsWeb, kDebugMode;
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
+import 'package:firebase_performance/firebase_performance.dart';
 
 import 'firebase_options.dart';
 import 'services/ai_service.dart';
@@ -81,6 +82,9 @@ void main() async {
 
 Future<void> originalMain() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  final Trace startupTrace = FirebasePerformance.instance.newTrace('app_startup');
+  await startupTrace.start();
 
   // Environment variables are now loaded via --dart-define-from-file=.env
   if (kDebugMode) {
@@ -205,6 +209,7 @@ Future<void> originalMain() async {
   if (kDebugMode) {
     debugPrint('After runApp');
   }
+  await startupTrace.stop();
 }
 
 void _setupErrorHandling() {
