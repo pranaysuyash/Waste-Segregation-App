@@ -32,6 +32,7 @@ import 'screens/premium_features_screen.dart';
 import 'screens/data_export_screen.dart';
 import 'screens/offline_mode_settings_screen.dart';
 import 'screens/disposal_facilities_screen.dart';
+import 'widgets/global_settings_menu.dart';
 import 'widgets/navigation_wrapper.dart';
 import 'utils/constants.dart'; // For app constants, themes, and strings
 import 'utils/error_handler.dart'; // Correct import for ErrorHandler
@@ -298,6 +299,18 @@ class WasteSegregationApp extends StatelessWidget {
           theme: AppTheme.lightTheme,
           darkTheme: AppTheme.darkTheme,
           themeMode: themeProvider.themeMode,
+          builder: (context, child) {
+            return Stack(
+              children: [
+                if (child != null) child,
+                Positioned(
+                  top: MediaQuery.of(context).padding.top + 8,
+                  right: 8,
+                  child: const GlobalSettingsMenu(),
+                ),
+              ],
+            );
+          },
           
           // ADD ROUTE DEFINITIONS:
           routes: {
