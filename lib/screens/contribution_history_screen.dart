@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/user_contribution.dart';
 import '../utils/constants.dart';
+import '../services/storage_service.dart';
+import 'package:provider/provider.dart';
 
 class ContributionHistoryScreen extends StatefulWidget {
   const ContributionHistoryScreen({super.key});
@@ -11,7 +13,24 @@ class ContributionHistoryScreen extends StatefulWidget {
 }
 
 class _ContributionHistoryScreenState extends State<ContributionHistoryScreen> {
-  final String _currentUserId = 'current_user_id'; // TODO: Get from auth provider
+  String? _currentUserId;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadCurrentUserId();
+    });
+  }
+
+  Future<void> _loadCurrentUserId() async {
+    final storage = context.read<StorageService>();
+    final profile = await storage.getCurrentUserProfile();
+    if (!mounted) return;
+    setState(() {
+      _currentUserId = profile?.id ?? 'guest_user';
+    });
+  }
   
   @override
   Widget build(BuildContext context) {
@@ -22,12 +41,14 @@ class _ContributionHistoryScreenState extends State<ContributionHistoryScreen> {
         foregroundColor: Colors.white,
         elevation: 0,
       ),
-      body: StreamBuilder<QuerySnapshot>(
-        stream: FirebaseFirestore.instance
-            .collection('user_contributions')
-            .where('userId', isEqualTo: _currentUserId)
-            .orderBy('timestamp', descending: true)
-            .snapshots(),
+      body: _currentUserId == null
+          ? const Center(child: CircularProgressIndicator())
+          : StreamBuilder<QuerySnapshot>(
+              stream: FirebaseFirestore.instance
+                  .collection('user_contributions')
+                  .where('userId', isEqualTo: _currentUserId)
+                  .orderBy('timestamp', descending: true)
+                  .snapshots(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());

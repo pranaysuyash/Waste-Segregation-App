@@ -468,7 +468,7 @@ final basePreparation = [
 - ❌ No location services implemented
 - ❌ No GPS permission requests  
 - ❌ Distance calculations hardcoded
-- [ ] ❌ **TODO in interactive_tag.dart**: "Open maps or directions"
+- [x] ✅ **Maps open via url_launcher in interactive_tag.dart**
 
 #### Implementation Tasks:
 - [ ] 🔄 Add geolocator dependency to pubspec.yaml
@@ -476,7 +476,7 @@ final basePreparation = [
 - [ ] 🔄 Add location permissions for Android/iOS
 - [ ] 🔄 Update DisposalLocation with GPS calculations
 - [ ] 🔄 Add location-based facility sorting
-- [ ] 🔄 Fix TODO: Maps integration for disposal locations
+- [x] 🔄 Maps integration implemented for disposal locations
 
 ### 2. **User-Contributed Disposal Information** 👥
 **Status**: ❌ **TODO** - Community-driven accuracy  
