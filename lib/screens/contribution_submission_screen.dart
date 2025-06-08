@@ -843,8 +843,10 @@ class _ContributionSubmissionScreenState extends State<ContributionSubmissionScr
       final suggestedData = _prepareSuggestedData();
 
       // Create contribution
+      final storage = context.read<StorageService>();
+      final profile = await storage.getCurrentUserProfile();
       final contribution = UserContribution(
-        userId: 'current_user_id', // TODO: Get from auth provider
+        userId: profile?.id ?? 'guest_user',
         facilityId: widget.facilityId,
         contributionType: widget.contributionType,
         suggestedData: suggestedData,

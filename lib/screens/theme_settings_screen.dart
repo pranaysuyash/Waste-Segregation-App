@@ -138,7 +138,7 @@ class _ThemeSettingsScreenState extends State<ThemeSettingsScreen> {
           ElevatedButton(
             onPressed: () {
               Navigator.pop(context);
-              // TODO: Navigate to premium features screen
+              Navigator.pushNamed(context, '/premium');
             },
             child: const Text('Upgrade Now'),
           ),
