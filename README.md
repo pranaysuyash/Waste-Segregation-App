@@ -635,3 +635,39 @@ For support and questions:
 ---
 
 **Made with ❤️ for a cleaner environment**
+
+## 🎯 Current Version: v2.2.3 - Enhanced AI Discovery Content System
+
+### Latest Updates (v2.2.3)
+- **🧠 Robust AI Discovery Content System**: Implemented comprehensive improvements to the AI discovery content models
+- **🔧 Strongly Typed Parameters**: Added value objects and helper getters for type-safe parameter handling
+- **🗺️ Stable JSON Mapping**: Implemented enum-to-string mapping to prevent breaking changes during refactoring
+- **⚡ Performance Optimization**: Added rule evaluation optimizer with indexing for fast lookup
+- **🔀 AND/OR Logic Support**: Enhanced rules with complex boolean logic and anyOfGroups support
+- **✅ Comprehensive Validation**: Added validation methods for all models with descriptive error handling
+- **📝 Template Interpolation**: Built-in template engine for dynamic quest generation
+- **🧪 Extensive Test Coverage**: 41 comprehensive tests covering all new functionality
+
+### 🧠 AI Discovery Content System
+
+The app features a sophisticated AI-powered discovery system that creates dynamic "Easter eggs" and personalized quests:
+
+#### Key Features:
+- **Strongly Typed Parameters**: Type-safe parameter handling with dedicated value objects
+- **Flexible Rule Logic**: Support for both AND/OR conditions with complex boolean expressions
+- **Performance Optimized**: Indexed rule evaluation for instant discovery triggers
+- **Template Engine**: Dynamic quest generation with placeholder interpolation
+- **Comprehensive Validation**: Robust error handling and parameter validation
+- **Stable API**: JSON mapping that survives enum refactoring
+
+#### Discovery Types:
+- **Hidden Content Rules**: Unlock badges, achievements, map areas, and lore snippets
+- **Dynamic Quests**: AI-personalized discovery missions with template-based generation
+- **Complex Triggers**: Support for item discovery, count-based goals, accuracy streaks, and combined properties
+
+#### Technical Implementation:
+- Value objects for strongly typed parameters (e.g., `ItemCountByTagParams`, `ClassificationAccuracyStreakParams`)
+- `TemplateInterpolator` for dynamic content generation
+- `RuleEvaluationOptimizer` for performance-critical rule evaluation
+- Comprehensive validation with descriptive error messages
+- Stable JSON serialization with enum-to-string mapping

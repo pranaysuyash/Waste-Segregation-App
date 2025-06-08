@@ -591,4 +591,89 @@ This release represents a major milestone in app quality, transforming the app i
 - **Recovery Metadata**: Tracks backup status for each user without exposing personal info
 
 ### 🏗️ FIRESTORE COLLECTIONS STRUCTURE
-```
+
+## [2.2.3] - 2024-12-19
+
+### 🧠 Enhanced AI Discovery Content System
+**Major improvements to the AI-powered discovery system with robust, type-safe, and performant architecture**
+
+#### ✨ New Features
+- **Strongly Typed Parameters**: Added dedicated value objects for all trigger condition parameters
+  - `SpecificItemDiscoveryParams` for item-specific triggers
+  - `ItemCountByTagParams`, `ItemCountByCategoryParams`, `ItemCountByMaterialParams` for count-based triggers
+  - `ClassificationAccuracyStreakParams` for accuracy-based achievements
+  - `SpecificItemSequenceParams` for sequence-based discoveries
+  - `CombinedItemPropertiesParams` for complex multi-property conditions
+
+- **Template Interpolation Engine**: Built-in `TemplateInterpolator` class
+  - Dynamic placeholder replacement with `{key}` syntax
+  - Placeholder extraction and validation
+  - Template validation against provided values
+  - Robust error handling for missing placeholders
+
+- **Advanced Rule Logic**: Enhanced `HiddenContentRule` with AND/OR support
+  - `allMustMatch` flag for AND vs OR logic on main conditions
+  - `anyOfGroups` for complex boolean expressions (OR groups of AND conditions)
+  - Support for nested conditional logic
+
+- **Performance Optimization**: `RuleEvaluationOptimizer` for fast rule evaluation
+  - Rule indexing by trigger type for O(1) lookup
+  - Active rule filtering to skip inactive rules
+  - Rule-by-ID lookup for instant access
+  - Index clearing for rule updates
+
+#### 🔧 Technical Improvements
+- **Stable JSON Mapping**: Enum-to-string mapping to prevent breaking changes
+  - `_unlockedContentTypeMap` and `_triggerTypeMap` for stable serialization
+  - Reverse mapping for consistent JSON output
+  - Fallback handling for unknown enum values
+
+- **Comprehensive Validation**: Added validation methods throughout
+  - Parameter validation for all value objects
+  - Rule validation with descriptive error messages
+  - Template validation for quest generation
+  - Exception-safe validation with try-catch blocks
+
+- **Strongly Typed Getters**: Added convenience getters to `TriggerCondition`
+  - Direct property access (e.g., `condition.tag`, `condition.count`)
+  - Typed parameter objects (e.g., `condition.asItemCountByTag`)
+  - Type-safe parameter extraction with defaults
+
+#### 📈 Enhanced Quest System
+- **Dynamic Quest Generation**: Enhanced `DiscoveryQuestTemplate` capabilities
+  - `instantiateTitle()` and `instantiateDescription()` methods
+  - `getRequiredPlaceholders()` for template analysis
+  - `validateInstantiation()` for value validation
+  - Template structure validation
+
+#### 🧪 Testing & Quality
+- **Extensive Test Coverage**: 41 comprehensive tests covering:
+  - All value object validation scenarios
+  - Template interpolation edge cases
+  - Rule logic validation (AND/OR combinations)
+  - Performance optimizer functionality
+  - JSON serialization stability
+  - Error handling and edge cases
+
+#### 🔄 Migration & Compatibility
+- **Backward Compatible**: All existing code continues to work
+- **Graceful Degradation**: Unknown enum values fall back to safe defaults
+- **Exception Safety**: All validation methods handle exceptions gracefully
+
+#### 📊 Performance Metrics
+- **Rule Evaluation**: O(1) lookup for relevant rules by trigger type
+- **Memory Efficient**: Indexed storage with minimal overhead
+- **Validation Speed**: Fast parameter validation with early returns
+- **Template Processing**: Regex-based placeholder replacement with caching
+
+### 🛠️ Developer Experience
+- **Type Safety**: Compile-time type checking for all parameters
+- **IntelliSense Support**: Full IDE support with typed getters
+- **Clear Error Messages**: Descriptive validation errors for debugging
+- **Comprehensive Documentation**: Detailed inline documentation for all new features
+
+### 🎯 Use Cases Enabled
+- **Complex Achievement Systems**: Multi-condition achievements with flexible logic
+- **Dynamic Quest Generation**: AI-powered personalized discovery missions
+- **Performance-Critical Discovery**: Real-time rule evaluation without lag
+- **Robust Content Management**: Type-safe content rule creation and validation
