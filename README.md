@@ -2,6 +2,18 @@
 
 A comprehensive Flutter application for proper waste identification, segregation guidance, and environmental education, enhanced with world-class recycling research and AI-powered material recognition.
 
+## 🚨 Latest: Enhanced AI Analysis & Critical Bug Fixes (December 2024)
+
+**Version 0.1.6+99 with Enhanced AI Analysis v2.0 is now live!**  
+- ✅ **Enhanced AI Analysis**: Upgraded from 8-field to comprehensive 21-field classification system
+- ✅ **Critical Memory Leaks Fixed**: Resolved setState() after dispose() crashes in Family Dashboard
+- ✅ **Community Feed Sync**: Fixed data synchronization issues across all app screens
+- ✅ **Environmental Insights**: New fields for usage type, environmental impact, and points system
+- ✅ **Firestore Index**: Added missing indexes to prevent query failures
+
+**📋 [Detailed Technical Documentation](docs/fixes/2024-12-critical-bug-fixes-and-ai-enhancements.md)**  
+**🚀 [Enhanced AI Features Guide](docs/features/enhanced-ai-analysis-system.md)**  
+
 ## 🚨 Major System Overhaul & Code Quality Improvements (2025-01-06)
 
 **Version 2.0.1 is now live!**  
