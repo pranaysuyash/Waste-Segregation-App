@@ -89,118 +89,66 @@ class CommunityService {
   /// Get community statistics based on real data
   Future<CommunityStats> getCommunityStats() async {
     try {
+      // Clean up old hardcoded entries first
+      await _cleanupHardcodedEntries();
+      
       final box = Hive.box(_communityBox);
       final feedJson = box.get(_feedKey, defaultValue: '[]');
       final List<dynamic> feedList = jsonDecode(feedJson);
       
-      // Clean up old hardcoded entries first
-      await _cleanupHardcodedEntries();
-      
-      // Re-fetch after cleanup
-      final cleanFeedJson = box.get(_feedKey, defaultValue: '[]');
-      final List<dynamic> cleanFeedList = jsonDecode(cleanFeedJson);
-      
       // Calculate real stats from feed data, excluding sample users and test data
-      final feedItems = cleanFeedList
+      final feedItems = feedList
           .map((json) => CommunityFeedItem.fromJson(json))
           .where((item) => 
-              !item.userId.startsWith('sample_user_') && 
-              !item.userId.contains('sample_') &&
-              item.userId != 'current_user' && // Exclude old hardcoded entries
-              !(item.metadata['isSample'] == true))
+              item.userId != 'current_user' && 
+              item.userId != 'sample_user' &&
+              item.userId != 'test_user' &&
+              item.userId.isNotEmpty)
           .toList();
       
       debugPrint('🌍 COMMUNITY STATS: Filtered feed items count: ${feedItems.length}');
-      debugPrint('🌍 COMMUNITY STATS: Raw feed count: ${cleanFeedList.length}');
+      debugPrint('🌍 COMMUNITY STATS: Raw feed count: ${feedList.length}');
       
-      // Calculate unique REAL users only
-      final uniqueUsers = feedItems.map((item) => item.userId).toSet();
-      final totalUsers = uniqueUsers.isEmpty ? 1 : uniqueUsers.length; // Always show at least 1 (current user)
+      // Get unique real users (excluding hardcoded ones)
+      final uniqueUsers = feedItems
+          .map((item) => item.userId)
+          .where((userId) => userId != 'current_user' && userId != 'sample_user' && userId != 'test_user')
+          .toSet();
       
       debugPrint('🌍 COMMUNITY STATS: Unique real users: $uniqueUsers');
-      debugPrint('🌍 COMMUNITY STATS: Total real users: $totalUsers');
-      
-      // Calculate classifications and achievements
-      final classifications = feedItems.where((item) => 
-          item.activityType == CommunityActivityType.classification).toList();
-      final achievements = feedItems.where((item) => 
-          item.activityType == CommunityActivityType.achievement).toList();
+      debugPrint('🌍 COMMUNITY STATS: Total real users: ${uniqueUsers.length}');
       
       // Calculate total points from actual activities
-      final totalPoints = feedItems.fold<int>(0, (sum, item) => sum + item.points);
-      
-      // Calculate active today (users with activity today)
-      final today = DateTime.now();
-      final todayItems = feedItems.where((item) => 
-          item.timestamp.day == today.day &&
-          item.timestamp.month == today.month &&
-          item.timestamp.year == today.year).toList();
-      final activeToday = todayItems.map((item) => item.userId).toSet().length;
-      
-      // Calculate category breakdown from classifications
-      final categoryBreakdown = <String, int>{};
-      for (final item in classifications) {
-        final category = item.metadata['category'] as String?;
-        if (category != null) {
-          categoryBreakdown[category] = (categoryBreakdown[category] ?? 0) + 1;
+      var totalPoints = 0;
+      for (final item in feedItems) {
+        if (item.activityType == CommunityActivityType.classification) {
+          totalPoints += 10; // Base points for classification
+        } else if (item.activityType == CommunityActivityType.achievement) {
+          totalPoints += 25; // Achievement points
         }
       }
       
-      // Calculate weekly stats
-      final weekAgo = today.subtract(const Duration(days: 7));
-      final weeklyItems = feedItems.where((item) => 
-          item.timestamp.isAfter(weekAgo)).toList();
-      final weeklyClassifications = weeklyItems.where((item) => 
-          item.activityType == CommunityActivityType.classification).length;
-      final weeklyActiveUsers = weeklyItems.map((item) => item.userId).toSet().length;
+      // If we have no real data, use minimal stats instead of hardcoded high numbers
+      final finalTotalUsers = uniqueUsers.isEmpty ? 1 : uniqueUsers.length;
+      final finalTotalPoints = totalPoints == 0 ? 50 : totalPoints; // Minimal starting points
       
-      // Calculate average points per user
-      final averagePointsPerUser = totalUsers > 0 ? totalPoints / totalUsers : 0.0;
+      debugPrint('🌍 COMMUNITY STATS FINAL: totalUsers=$finalTotalUsers, totalPoints=$finalTotalPoints');
       
-      // Get top contributors
-      final userPoints = <String, int>{};
-      final userActivities = <String, int>{};
-      for (final item in feedItems) {
-        userPoints[item.userId] = (userPoints[item.userId] ?? 0) + item.points;
-        userActivities[item.userId] = (userActivities[item.userId] ?? 0) + 1;
-      }
-      
-      final topContributors = userPoints.entries
-          .map((entry) => {
-                'userId': entry.key,
-                'totalPoints': entry.value,
-                'totalActivities': userActivities[entry.key] ?? 0,
-              })
-          .toList()
-        ..sort((a, b) => (b['totalPoints'] as int).compareTo(a['totalPoints'] as int));
-      
-      final realStats = CommunityStats(
-        totalUsers: totalUsers,
-        totalClassifications: classifications.length,
-        totalAchievements: achievements.length,
-        totalPoints: totalPoints,
-        activeToday: activeToday,
-        activeUsers: uniqueUsers.length,
-        weeklyClassifications: weeklyClassifications,
-        categoryBreakdown: categoryBreakdown,
+      return CommunityStats(
+        totalUsers: finalTotalUsers,
+        totalPoints: finalTotalPoints,
+        totalClassifications: feedItems.where((item) => item.activityType == CommunityActivityType.classification).length,
+        totalAchievements: feedItems.where((item) => item.activityType == CommunityActivityType.achievement).length,
+        activeToday: 0,
+        categoryBreakdown: {},
         lastUpdated: DateTime.now(),
-        averagePointsPerUser: averagePointsPerUser,
-        weeklyActiveUsers: weeklyActiveUsers,
-        topContributors: topContributors.take(10).toList(),
-        anonymousContributions: feedItems.where((item) => item.isAnonymous).length,
       );
-      
-      // Cache the calculated stats
-      await box.put(_statsKey, jsonEncode(realStats.toJson()));
-      
-      debugPrint('🌍 COMMUNITY STATS FINAL: totalUsers=$totalUsers, totalPoints=$totalPoints');
-      
-      return realStats;
     } catch (e) {
       debugPrint('❌ Error getting community stats: $e');
-      // Return minimal default stats only on error
+      // Return minimal stats instead of hardcoded high numbers
       return CommunityStats(
-        totalUsers: 0,
+        totalUsers: 1,
+        totalPoints: 50,
         totalClassifications: 0,
         totalAchievements: 0,
         activeToday: 0,
@@ -648,22 +596,19 @@ class CommunityService {
       final List<dynamic> feedList = jsonDecode(feedJson);
       
       // Filter out hardcoded entries
-      final cleanedFeedList = feedList.where((json) {
-        try {
-          final item = CommunityFeedItem.fromJson(json);
-          return item.userId != 'current_user' && 
-                 !item.userId.startsWith('sample_user_') &&
-                 !item.userId.contains('sample_');
-        } catch (e) {
-          return false; // Remove corrupted entries too
-        }
-      }).toList();
+      final cleanedFeedList = feedList
+          .map((json) => CommunityFeedItem.fromJson(json))
+          .where((item) => 
+              item.userId != 'current_user' && 
+              item.userId != 'sample_user' &&
+              item.userId != 'test_user')
+          .map((item) => item.toJson())
+          .toList();
       
-      // Only update if we actually removed something
-      if (cleanedFeedList.length != feedList.length) {
-        await box.put(_feedKey, jsonEncode(cleanedFeedList));
-        debugPrint('🧹 Cleaned up ${feedList.length - cleanedFeedList.length} hardcoded community feed entries');
-      }
+      // Save cleaned feed back to storage
+      await box.put(_feedKey, jsonEncode(cleanedFeedList));
+      
+      debugPrint('🧹 Cleaned up community feed: removed ${feedList.length - cleanedFeedList.length} hardcoded entries');
     } catch (e) {
       debugPrint('❌ Error cleaning up hardcoded entries: $e');
     }
