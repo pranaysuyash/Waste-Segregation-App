@@ -2,6 +2,45 @@
 
 All notable changes to the Waste Segregation App will be documented in this file.
 
+## [2.0.2] - 2025-01-08
+
+### 🎨 Auth Screen UI Improvements
+- **FIXED**: Card text visibility issue - "Items Classified" text now fully visible
+- **REMOVED**: Unwanted scrolling behavior by eliminating SingleChildScrollView wrapper
+- **CLEANED**: Redundant information at bottom of screen for cleaner interface
+- **ENHANCED**: Impact card design with increased height (100px → 110px) and optimized text sizing
+- **SIMPLIFIED**: Layout structure by removing LayoutBuilder complexity and dynamic sizing logic
+
+### 🔧 RenderFlex Overflow Fixes
+- **FIXED**: 16-pixel overflow in modern button text rendering
+- **ADDED**: Flexible wrapper with ellipsis overflow handling for button text
+- **IMPROVED**: Button text display in constrained spaces across the app
+- **ENHANCED**: Modern UI components with robust overflow protection
+
+### 🛠️ Code Quality & Structure
+- **REMOVED**: All isCompact references and dynamic sizing logic
+- **SIMPLIFIED**: Auth screen layout to direct Column with center alignment
+- **OPTIMIZED**: Text sizing and spacing for better readability
+- **IMPROVED**: Code maintainability with cleaner structure
+
+### 🧹 Firebase Cleanup Service
+- **ADDED**: Comprehensive Firebase data cleanup service for testing
+- **IMPLEMENTED**: Debug-only operation for simulating fresh install experience
+- **SECURED**: Safe cleanup with multiple confirmation steps and error handling
+- **CREATED**: Developer tools for database management and testing
+
+### 📚 Documentation Updates
+- **UPDATED**: README.md with latest UI improvements and version information
+- **CREATED**: Comprehensive AUTH_SCREEN_UI_IMPROVEMENTS.md documentation
+- **DETAILED**: Technical implementation notes and testing verification
+- **DOCUMENTED**: Before/after comparisons and future considerations
+
+### 🎯 Results
+- **User Experience**: Cleaner, more professional authentication screen
+- **Accessibility**: Better text readability and contrast across all devices
+- **Responsiveness**: Consistent behavior across all screen sizes
+- **Maintainability**: Simplified code structure without dynamic breakpoints
+
 ## [0.1.6+99] - 2025-01-08
 
 ### 🔧 Build System Updates
