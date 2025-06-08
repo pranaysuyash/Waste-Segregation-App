@@ -70,9 +70,10 @@ class ModernCard extends StatelessWidget {
     if (onTap != null) {
       return Material(
         color: Colors.transparent,
+        clipBehavior: Clip.hardEdge,
+        borderRadius: BorderRadius.circular(effectiveRadius),
         child: InkWell(
           onTap: onTap,
-          borderRadius: BorderRadius.circular(effectiveRadius),
           child: cardContent,
         ),
       );

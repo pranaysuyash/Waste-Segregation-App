@@ -858,293 +858,231 @@ class HomeTab extends ConsumerWidget {
   }
 
   Widget _buildBeautifulClassificationCard(BuildContext context, WasteClassification classification) {
-    final categoryColor = _getCategoryColor(classification.category);
-    final categoryIcon = _getCategoryIcon(classification.category);
-    final isToday = _isToday(classification.timestamp);
-    final confidenceLevel = _getConfidenceLevel(classification.confidence);
-    
-    return Container(
-      margin: const EdgeInsets.only(bottom: AppTheme.spacingMd),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            categoryColor.withValues(alpha: 0.08),
-            categoryColor.withValues(alpha: 0.03),
-          ],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(AppTheme.borderRadiusLg),
-        border: Border.all(
-          color: categoryColor.withValues(alpha: 0.2),
-          width: 1,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: categoryColor.withValues(alpha: 0.1),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
-          ),
-        ],
+    final catColor = _getCategoryColor(classification.category);
+    final confidence = (classification.confidence ?? 0) * 100;
+    final timeAgo = _formatRelativeTime(classification.timestamp);
+
+    return Card(
+      elevation: 4,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+        side: BorderSide(color: catColor.withValues(alpha: 0.2)),
       ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          borderRadius: BorderRadius.circular(AppTheme.borderRadiusLg),
-          onTap: () {
-            // Navigate to classification details
-            _showClassificationDetails(context, classification);
-          },
-          child: Padding(
-            padding: const EdgeInsets.all(AppTheme.spacingLg),
-            child: Column(
-              children: [
-                Row(
-                  children: [
-                    // Enhanced category icon with animated gradient
-                    Hero(
-                      tag: 'classification_${classification.id}',
-                      child: Container(
-                        width: 64,
-                        height: 64,
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            colors: [
-                              categoryColor,
-                              categoryColor.withValues(alpha: 0.7),
-                            ],
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                          ),
-                          borderRadius: BorderRadius.circular(AppTheme.borderRadiusLg),
-                          boxShadow: [
-                            BoxShadow(
-                              color: categoryColor.withValues(alpha: 0.4),
-                              blurRadius: 12,
-                              offset: const Offset(0, 6),
+      clipBehavior: Clip.hardEdge,
+      child: InkWell(
+        onTap: () => _showClassificationDetails(context, classification),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Row(
+            children: [
+              // ── Thumbnail ─────────────────────────
+              Hero(
+                tag: 'photo-${classification.id}',
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(12),
+                  child: classification.imageUrl != null
+                      ? Image.network(
+                          classification.imageUrl!,
+                          width: 64, 
+                          height: 64, 
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) => Container(
+                            width: 64, 
+                            height: 64,
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                colors: [catColor, catColor.withValues(alpha: 0.7)],
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                              ),
                             ),
-                          ],
-                        ),
-                        child: Stack(
-                          alignment: Alignment.center,
-                          children: [
-                            Icon(
-                              categoryIcon,
+                            child: Icon(
+                              _getCategoryIcon(classification.category),
                               color: Colors.white,
                               size: 32,
                             ),
-                            if (isToday)
-                              Positioned(
-                                top: 4,
-                                right: 4,
-                                child: Container(
-                                  width: 12,
-                                  height: 12,
-                                  decoration: BoxDecoration(
-                                    color: Colors.orange,
-                                    borderRadius: BorderRadius.circular(6),
-                                    border: Border.all(color: Colors.white, width: 2),
-                                  ),
-                                ),
-                              ),
-                          ],
+                          ),
+                        )
+                      : Container(
+                          width: 64, 
+                          height: 64,
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              colors: [catColor, catColor.withValues(alpha: 0.7)],
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                            ),
+                          ),
+                          child: Icon(
+                            _getCategoryIcon(classification.category),
+                            color: Colors.white,
+                            size: 32,
+                          ),
                         ),
-                      ),
-                    ),
-                    const SizedBox(width: AppTheme.spacingLg),
-                    
-                    // Enhanced classification details
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            children: [
-                              Expanded(
-                                child: Text(
-                                  classification.itemName,
-                                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                                    fontWeight: FontWeight.bold,
-                                    color: Theme.of(context).colorScheme.onSurface,
-                                  ),
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ),
-                              if (classification.confidence != null && classification.confidence! > 0)
-                                Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 8,
-                                    vertical: 4,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: confidenceLevel.color.withValues(alpha: 0.1),
-                                    borderRadius: BorderRadius.circular(12),
-                                    border: Border.all(
-                                      color: confidenceLevel.color.withValues(alpha: 0.3),
-                                      width: 1,
-                                    ),
-                                  ),
-                                  child: Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      Icon(
-                                        confidenceLevel.icon,
-                                        size: 14,
-                                        color: confidenceLevel.color,
-                                      ),
-                                      const SizedBox(width: 4),
-                                      Text(
-                                        '${(classification.confidence! * 100).toInt()}%',
-                                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                          color: confidenceLevel.color,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                            ],
-                          ),
-                          const SizedBox(height: AppTheme.spacingXs),
-                          
-                          // Enhanced category and disposal info
-                          Row(
-                            children: [
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 10,
-                                  vertical: 4,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: categoryColor.withValues(alpha: 0.15),
-                                  borderRadius: BorderRadius.circular(12),
-                                  border: Border.all(
-                                    color: categoryColor.withValues(alpha: 0.4),
-                                    width: 1,
-                                  ),
-                                ),
-                                child: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Icon(
-                                      categoryIcon,
-                                      size: 14,
-                                      color: categoryColor,
-                                    ),
-                                    const SizedBox(width: 4),
-                                    Text(
-                                      classification.category,
-                                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                        color: categoryColor,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              const SizedBox(width: AppTheme.spacingSm),
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 8,
-                                  vertical: 4,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: _getDisposalColor(classification.disposalMethod).withValues(alpha: 0.1),
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                child: Text(
-                                  _getDisposalText(classification.disposalMethod),
-                                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                    color: _getDisposalColor(classification.disposalMethod),
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
                 ),
-                
-                const SizedBox(height: AppTheme.spacingMd),
-                
-                // Enhanced bottom section with more info
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              ),
+              const SizedBox(width: 16),
+
+              // ── Main Info ──────────────────────────
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Date and time with better formatting
+                    // Title
+                    Text(
+                      classification.itemName,
+                      style: Theme.of(context)
+                          .textTheme
+                          .titleLarge
+                          ?.copyWith(fontWeight: FontWeight.bold),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 8),
+
+                    // Chips
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 4,
+                      children: [
+                        // Category chip - filled with category color
+                        Chip(
+                          backgroundColor: catColor.withValues(alpha: 0.1),
+                          label: Text(
+                            classification.category,
+                            style: TextStyle(color: catColor, fontWeight: FontWeight.w500),
+                          ),
+                          avatar: Icon(
+                            _getCategoryIcon(classification.category),
+                            size: 16,
+                            color: catColor,
+                          ),
+                          visualDensity: VisualDensity.compact,
+                        ),
+
+                        // Disposal method chip - outline style
+                        if (classification.disposalMethod != null)
+                          Chip(
+                            backgroundColor: Colors.white,
+                            shape: StadiumBorder(
+                              side: BorderSide(color: catColor),
+                            ),
+                            label: Text(
+                              _getDisposalText(classification.disposalMethod),
+                              style: TextStyle(color: catColor, fontSize: 12),
+                            ),
+                            visualDensity: VisualDensity.compact,
+                          ),
+
+                        // Confidence chip - color-coded
+                        if (classification.confidence != null)
+                          Chip(
+                            backgroundColor: _confidenceColor(confidence).withValues(alpha: 0.1),
+                            label: Text(
+                              '${confidence.toInt()}%',
+                              style: TextStyle(
+                                color: _confidenceColor(confidence),
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                            avatar: Icon(
+                              Icons.verified,
+                              size: 16,
+                              color: _confidenceColor(confidence),
+                            ),
+                            visualDensity: VisualDensity.compact,
+                          ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+
+                    // Meta row: time ago
                     Row(
                       children: [
-                        Icon(
-                          isToday ? Icons.today : Icons.calendar_today,
-                          size: 16,
-                          color: isToday ? Colors.orange : Theme.of(context).colorScheme.onSurfaceVariant,
-                        ),
+                        Icon(Icons.access_time, size: 14, color: Colors.grey.shade600),
                         const SizedBox(width: 4),
                         Text(
-                          _formatDate(classification.timestamp),
-                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            fontWeight: FontWeight.w600,
-                            color: isToday ? Colors.orange : Theme.of(context).colorScheme.onSurfaceVariant,
-                          ),
-                        ),
-                        const SizedBox(width: AppTheme.spacingSm),
-                        Icon(
-                          Icons.access_time,
-                          size: 16,
-                          color: Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
-                        ),
-                        const SizedBox(width: 4),
-                        Text(
-                          _formatTime(classification.timestamp),
-                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
-                          ),
+                          timeAgo,
+                          style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
                         ),
                       ],
                     ),
-                    
-                    // Environmental impact indicator
-                    if (classification.environmentalImpact != null)
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 4,
-                        ),
-                        decoration: BoxDecoration(
-                          color: Colors.green.withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(
-                              Icons.eco,
-                              size: 14,
-                              color: Colors.green,
-                            ),
-                            const SizedBox(width: 4),
-                            Text(
-                              '+${classification.environmentalImpact ?? "0"} pts',
-                              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                color: Colors.green,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
                   ],
                 ),
-              ],
-            ),
+              ),
+
+              // ── Impact + Chevron ───────────────────
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  // Impact points
+                  if (classification.environmentalImpact != null)
+                    Chip(
+                      backgroundColor: Colors.green.withValues(alpha: 0.1),
+                      label: Text(
+                        '+${classification.environmentalImpact} pts',
+                        style: const TextStyle(
+                          color: Colors.green,
+                          fontWeight: FontWeight.w500,
+                          fontSize: 12,
+                        ),
+                      ),
+                      avatar: Icon(Icons.eco, size: 16, color: Colors.green),
+                      visualDensity: VisualDensity.compact,
+                    ),
+                  const SizedBox(height: 8),
+                  Icon(Icons.chevron_right, color: Colors.grey.shade400),
+                ],
+              ),
+            ],
           ),
         ),
       ),
     );
+  }
+
+  Color _getConfidenceColor(double confidence) {
+    if (confidence >= 0.8) return Colors.green;
+    if (confidence >= 0.6) return Colors.orange;
+    return Colors.red;
+  }
+
+  String _getRelativeTimeDisplay(DateTime timestamp) {
+    final now = DateTime.now();
+    final difference = now.difference(timestamp);
+    
+    if (difference.inDays == 0) {
+      // Today - show relative time
+      if (difference.inHours > 0) {
+        return '${difference.inHours}h ago';
+      } else if (difference.inMinutes > 0) {
+        return '${difference.inMinutes}m ago';
+      } else {
+        return 'Just now';
+      }
+    } else if (difference.inDays == 1) {
+      return 'Yesterday';
+    } else if (difference.inDays < 7) {
+      return '${difference.inDays}d ago';
+    } else {
+      // Older items - show date
+      return '${timestamp.day}/${timestamp.month}/${timestamp.year}';
+    }
+  }
+
+  // Helper methods for the enhanced classification cards
+  Color _confidenceColor(double pct) {
+    if (pct >= 80) return Colors.green;
+    if (pct >= 60) return Colors.orange;
+    return Colors.red;
+  }
+
+  String _formatRelativeTime(DateTime dt) {
+    final diff = DateTime.now().difference(dt);
+    if (diff.inDays > 0) return '${diff.inDays}d ago';
+    if (diff.inHours > 0) return '${diff.inHours}h ago';
+    if (diff.inMinutes > 0) return '${diff.inMinutes}m ago';
+    return 'Just now';
   }
 
   bool _isToday(DateTime dateTime) {
