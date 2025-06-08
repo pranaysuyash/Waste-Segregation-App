@@ -14,6 +14,19 @@ A comprehensive Flutter application for proper waste identification, segregation
 **📋 [Detailed Technical Documentation](docs/fixes/2024-12-critical-bug-fixes-and-ai-enhancements.md)**  
 **🚀 [Enhanced AI Features Guide](docs/features/enhanced-ai-analysis-system.md)**  
 
+## 🚨 New Modern Home Screen v2.1.0 - Complete Riverpod Implementation (2025-06-08)
+
+**Version 2.1.0 is now live!**  
+- ✅ **Enhanced Classification Cards**: Beautiful gradient backgrounds with Hero animations and interactive detail modals
+- ✅ **Riverpod State Management**: Complete implementation with FutureProvider for profile data and proper connectivity handling
+- ✅ **Tutorial Coach Marks**: Interactive onboarding with GlobalObjectKey targeting for key features
+- ✅ **SpeedDial FAB**: Quick access to achievements and disposal facilities with animated floating action button
+- ✅ **Offline Connectivity**: Smart banner system with proper ConnectivityResult stream handling
+- ✅ **Critical Fixes**: Resolved ProviderScope issues, layout overflows, and null safety improvements
+
+**📋 [New Home Screen Technical Analysis](docs/technical/fixes/NEW_HOME_SCREEN_ERROR_ANALYSIS_AND_FIXES.md)**  
+**🎨 [Enhanced UI Components Guide](docs/features/enhanced-classification-cards.md)**
+
 ## 🚨 Major System Overhaul & UI/UX Improvements (2025-01-08)
 
 **Version 2.0.2 is now live!**  
