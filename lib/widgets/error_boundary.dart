@@ -39,7 +39,8 @@ class _ErrorBoundaryState extends State<ErrorBoundary> {
       
       // Log error
       if (kDebugMode) {
-        debugPrint('🚨 Error Boundary Caught: ${details.exception}'); // TODO: Remove or guard for production
+        // Only log to console in debug mode
+        debugPrint('🚨 Error Boundary Caught: ${details.exception}');
       } else {
         FirebaseCrashlytics.instance.recordFlutterFatalError(details);
       }
