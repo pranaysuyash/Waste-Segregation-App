@@ -672,13 +672,13 @@ class WeeklyItemsChart extends StatelessWidget {
 
 /// A line chart widget for displaying waste generation over time
 class WasteTimeSeriesChart extends StatelessWidget {
-  
+
   const WasteTimeSeriesChart({
     super.key,
     required this.data,
     required this.animationController,
   });
-  final List<Map<String, dynamic>> data;
+  final List<ChartData> data;
   final AnimationController animationController;
   
   @override
@@ -690,7 +690,7 @@ class WasteTimeSeriesChart extends StatelessWidget {
     }
     
     // Calculate the maximum value for scaling
-    final maxValue = data.map((item) => item['count'] as int).reduce((a, b) => a > b ? a : b).toDouble();
+    final maxValue = data.map((item) => item.value).reduce((a, b) => a > b ? a : b);
     
     return AnimatedBuilder(
       animation: animationController,
@@ -706,7 +706,7 @@ class WasteTimeSeriesChart extends StatelessWidget {
                     if (itemIndex >= 0 && itemIndex < data.length) {
                       final item = data[itemIndex];
                       return LineTooltipItem(
-                        '${item['formattedDate']}\n',
+                        '${item.label}\n',
                         const TextStyle(
                           color: Colors.white,
                           fontWeight: FontWeight.bold,
@@ -714,7 +714,7 @@ class WasteTimeSeriesChart extends StatelessWidget {
                         ),
                         children: [
                           TextSpan(
-                            text: 'Items: ${item['count']}',
+                            text: 'Items: ${item.value.toInt()}',
                             style: const TextStyle(
                               color: Colors.white,
                               fontSize: 12,
@@ -743,11 +743,11 @@ class WasteTimeSeriesChart extends StatelessWidget {
                     if (index < 0 || index >= data.length) {
                       return const SizedBox.shrink();
                     }
-                    
+
                     return SideTitleWidget(
                       axisSide: meta.axisSide,
                       child: Text(
-                        data[index]['formattedDate'] as String,
+                        data[index].label,
                         style: const TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.bold,
@@ -796,8 +796,8 @@ class WasteTimeSeriesChart extends StatelessWidget {
                 spots: List.generate(
                   data.length,
                   (index) => FlSpot(
-                    index.toDouble(), 
-                    (data[index]['count'] as int).toDouble() * animationController.value,
+                    index.toDouble(),
+                    data[index].value * animationController.value,
                   ),
                 ),
                 isCurved: true,

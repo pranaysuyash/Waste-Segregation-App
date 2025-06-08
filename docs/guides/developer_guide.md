@@ -191,7 +191,7 @@ TopSubcategoriesBarChart(
 
 // Create line chart for time series
 WasteTimeSeriesChart(
-  data: timeSeriesData,
+  data: timeSeriesData, // List<ChartData>
   animationController: _animationController,
 );
 ```
