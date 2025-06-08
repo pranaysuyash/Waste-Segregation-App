@@ -1,7 +1,7 @@
 # Documentation Index
 ## Waste Segregation App Documentation Structure
 
-*Last Updated: June 6, 2025*
+*Last Updated: June 8, 2025*
 
 This document provides a comprehensive index to all project documentation, now properly organized in the `docs/` folder for better maintainability and navigation.
 
@@ -89,6 +89,10 @@ This document provides a comprehensive index to all project documentation, now p
 ### `/docs/technical/development/` - Development Documentation
 *(Ready for additional development guides)*
 
+### `/docs/technical/features/` - Technical Feature Documentation
+- **achievement_celebration_integration.md** - Comprehensive documentation for the achievement celebration feature
+- **achievement_celebration_usage_guide.md** - Developer guide for using the achievement celebration widget
+
 ### `/docs/testing/` - Testing Documentation
 - **TESTING_INFRASTRUCTURE_SUCCESS_SUMMARY.md** - Testing infrastructure overview
 - **TEST_IMPLEMENTATION_SUMMARY.md** - Comprehensive test suite implementation
@@ -134,8 +138,8 @@ High-priority documents for understanding current project state and ongoing issu
 ### **Planning & Strategy** (5 files)
 Project planning, roadmaps, and strategic documentation.
 
-### **Technical Documentation** (5 files)
-Architecture decisions, navigation systems, and development guides.
+### **Technical Documentation** (6 files)
+Architecture decisions, navigation systems, development guides, and feature documentation.
 
 ### **Testing** (5 files)
 Comprehensive testing infrastructure and quality assurance documentation.
@@ -166,10 +170,11 @@ Historical documentation and release notes.
 1. **Status documents** → `/docs/status/`
 2. **Technical guides** → `/docs/technical/development/`
 3. **Architecture docs** → `/docs/technical/architecture/`
-4. **Test documentation** → `/docs/testing/`
-5. **Process guides** → `/docs/processes/`
-6. **User documentation** → `/docs/reference/`
-7. **Fix summaries** → `/docs/fixes/`
+4. **Technical feature docs** -> `/docs/technical/features/`
+5. **Test documentation** → `/docs/testing/`
+6. **Process guides** → `/docs/processes/`
+7. **User documentation** → `/docs/reference/`
+8. **Fix summaries** → `/docs/fixes/`
 
 ### **Naming Conventions:**
 - Use UPPERCASE for important status documents
@@ -192,7 +197,7 @@ Many documents reference each other. When moving or renaming files, update inter
 
 ### **After Organization:**
 - 2 essential files remain at root level (README.md, CHANGELOG.md)
-- 40+ files properly categorized in 13 logical subdirectories
+- 42+ files properly categorized in 14 logical subdirectories
 - Clear structure with comprehensive categorization
 - Comprehensive index for easy navigation
 - Related documents grouped together
