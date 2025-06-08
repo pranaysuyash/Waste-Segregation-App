@@ -26,6 +26,12 @@ This document details the comprehensive fixes implemented to resolve three criti
 
 **Solution**: Proper type casting in storage service using `Map<String, dynamic>.from()`.
 
+### 4. Null check operator used on a null value (Image Capture)
+**Problem**: Crash when capturing photos on mobile due to null `imageFile` property
+**Root Cause**: `ImageCaptureScreen.fromXFile()` factory only populated `xFile` but not `imageFile`, causing null reference in `_buildImagePreview()`
+
+**Solution**: Dual-layer null safety approach
+
 ## 🔧 Implemented Fixes
 
 ### Fix 1: Smart Image Handling with ImageUtils
@@ -120,6 +126,23 @@ if (data is String) {
 - ✅ Graceful error handling
 - ✅ Automatic cleanup of corrupted entries
 
+### Fix 4: Null safety for photo capture
+
+**Updated**: `lib/screens/image_capture_screen.dart`
+
+**Implementation**:
+```dart
+factory ImageCaptureScreen.fromXFile(XFile xFile) =>
+    ImageCaptureScreen(
+      xFile: xFile,
+      imageFile: kIsWeb ? null : File(xFile.path), // Convert XFile to File for mobile
+    );
+```
+
+**Benefits**:
+- ✅ Eliminates crashes when capturing photos on mobile
+- ✅ Ensures photo capture functionality on mobile devices
+
 ## 🧪 Testing Results
 
 ### Before Fixes
@@ -137,6 +160,7 @@ Invalid argument(s): No host specified in URI file://...
 - ✅ No more file URI errors
 - ✅ Clean app startup and operation
 - ✅ Proper image display for all source types
+- ✅ Stable photo capture functionality on mobile
 
 ## 📊 Impact Summary
 
@@ -186,13 +210,14 @@ All fixes maintain full backward compatibility:
 1. `lib/utils/image_utils.dart` - **NEW**: Smart image handling utility
 2. `lib/services/gamification_service.dart` - Color serialization fixes
 3. `lib/services/storage_service.dart` - Map type casting (already implemented)
+4. `lib/screens/image_capture_screen.dart` - Null safety for photo capture
 
 ### UI Updates
-4. `lib/screens/classification_details_screen.dart` - Image and avatar fixes
-5. `lib/widgets/classification_card.dart` - Thumbnail image fixes
+5. `lib/screens/classification_details_screen.dart` - Image and avatar fixes
+6. `lib/widgets/classification_card.dart` - Thumbnail image fixes
 
 ### Documentation
-6. `docs/fixes/runtime-error-fixes-2024-12-19.md` - **NEW**: This comprehensive guide
+7. `docs/fixes/runtime-error-fixes-2024-12-19.md` - **NEW**: This comprehensive guide
 
 ## ✅ Verification Checklist
 

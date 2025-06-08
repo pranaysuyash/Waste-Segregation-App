@@ -20,9 +20,12 @@ class ImageCaptureScreen extends StatefulWidget {
     this.webImage,
   }) : assert(imageFile != null || xFile != null || webImage != null);
 
-  // Factory constructor for creating from XFile (useful for web)
+  // Factory constructor for creating from XFile (useful for web and mobile)
   factory ImageCaptureScreen.fromXFile(XFile xFile) =>
-      ImageCaptureScreen(xFile: xFile);
+      ImageCaptureScreen(
+        xFile: xFile,
+        imageFile: kIsWeb ? null : File(xFile.path), // Convert XFile to File for mobile
+      );
   final File? imageFile;
   final XFile? xFile;
   final Uint8List? webImage;
@@ -529,8 +532,10 @@ class _ImageCaptureScreenState extends State<ImageCaptureScreen> {
         return const Center(child: CircularProgressIndicator());
       }
     } else {
+      // For mobile, use imageFile if available, otherwise convert xFile to File
+      final file = widget.imageFile ?? File(widget.xFile!.path);
       imageWidget = Image.file(
-        widget.imageFile!,
+        file,
         fit: BoxFit.contain,
       );
     }
