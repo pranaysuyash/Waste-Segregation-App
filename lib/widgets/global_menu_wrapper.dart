@@ -8,16 +8,12 @@ class GlobalMenuWrapper extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Stack(
+      alignment: Alignment.topRight,
       children: [
         child,
         SafeArea(
-          child: Align(
-            alignment: Alignment.topRight,
-            child: Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: const GlobalSettingsMenu(),
-            ),
-          ),
+          minimum: const EdgeInsets.all(8.0),
+          child: const GlobalSettingsMenu(),
         ),
       ],
     );
