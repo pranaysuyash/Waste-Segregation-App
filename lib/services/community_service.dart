@@ -6,6 +6,7 @@ import '../models/community_feed.dart';
 import '../models/waste_classification.dart';
 import '../models/user_profile.dart';
 import '../models/gamification.dart';
+import '../services/storage_service.dart';
 
 /// Service for managing community feed and social features
 class CommunityService {
@@ -71,11 +72,14 @@ class CommunityService {
       final List<dynamic> feedList = jsonDecode(feedJson);
       
       final items = feedList
-          .take(limit)
           .map((json) => CommunityFeedItem.fromJson(json))
           .toList();
       
-      return items;
+      // Sort by timestamp in descending order (newest first)
+      items.sort((a, b) => b.timestamp.compareTo(a.timestamp));
+      
+      // Apply limit after sorting
+      return items.take(limit).toList();
     } catch (e) {
       debugPrint('❌ Error getting community feed: $e');
       return [];
@@ -205,10 +209,16 @@ class CommunityService {
   
   /// Record classification activity (simplified version)
   Future<void> recordClassification(String category, String subcategory, int points) async {
+    // Get actual user info instead of hardcoded values
+    final storageService = StorageService();
+    final userProfile = await storageService.getCurrentUserProfile();
+    final userId = userProfile?.id ?? 'guest_user';
+    final userName = userProfile?.displayName ?? 'You';
+    
     final feedItem = CommunityFeedItem(
       id: 'class_${DateTime.now().millisecondsSinceEpoch}',
-      userId: 'current_user',
-      userName: 'You',
+      userId: userId,
+      userName: userName,
       activityType: CommunityActivityType.classification,
       title: 'Classified $category',
       description: 'Identified item as $category${subcategory.isNotEmpty ? ' ($subcategory)' : ''}',
@@ -226,10 +236,16 @@ class CommunityService {
   
   /// Record streak activity
   Future<void> recordStreak(int streakDays, int points) async {
+    // Get actual user info instead of hardcoded values
+    final storageService = StorageService();
+    final userProfile = await storageService.getCurrentUserProfile();
+    final userId = userProfile?.id ?? 'guest_user';
+    final userName = userProfile?.displayName ?? 'You';
+    
     final feedItem = CommunityFeedItem(
       id: 'streak_${DateTime.now().millisecondsSinceEpoch}',
-      userId: 'current_user',
-      userName: 'You',
+      userId: userId,
+      userName: userName,
       activityType: CommunityActivityType.streak,
       title: 'Daily Streak: $streakDays days',
       description: 'Maintained daily app usage for $streakDays consecutive days',
@@ -246,10 +262,16 @@ class CommunityService {
   
   /// Record achievement activity (simplified version)
   Future<void> recordAchievement(String title, int points) async {
+    // Get actual user info instead of hardcoded values
+    final storageService = StorageService();
+    final userProfile = await storageService.getCurrentUserProfile();
+    final userId = userProfile?.id ?? 'guest_user';
+    final userName = userProfile?.displayName ?? 'You';
+    
     final feedItem = CommunityFeedItem(
       id: 'achieve_${DateTime.now().millisecondsSinceEpoch}',
-      userId: 'current_user',
-      userName: 'You',
+      userId: userId,
+      userName: userName,
       activityType: CommunityActivityType.achievement,
       title: 'Earned $title',
       description: 'Unlocked achievement: $title',

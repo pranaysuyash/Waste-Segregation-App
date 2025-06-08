@@ -675,6 +675,8 @@ class _VideoPlayerWidgetState extends State<_VideoPlayerWidget> {
   @override
   void initState() {
     super.initState();
+    // Call async method without await in initState - this is intentional
+    // as initState cannot be async and we handle errors in _initializePlayer
     _initializePlayer();
   }
 

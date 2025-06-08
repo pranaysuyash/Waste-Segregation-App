@@ -14,6 +14,11 @@ import 'package:uuid/uuid.dart';
 import 'classification_migration_service.dart';
 
 class StorageService {
+  static const String _userProfileKey = 'user_profile';
+  
+  // Lock mechanism to prevent concurrent saves
+  static final Set<String> _savingClassifications = <String>{};
+
   // Initialize Hive database
   static Future<void> initializeHive() async {
     if (kIsWeb) {
@@ -78,53 +83,74 @@ class StorageService {
 
   // Classification methods
   Future<void> saveClassification(WasteClassification classification) async {
-    final classificationsBox = Hive.box(StorageKeys.classificationsBox);
-    
-    // Get current user ID
-    final userProfile = await getCurrentUserProfile();
-    final currentUserId = userProfile?.id ?? 'guest_user';
-    
-    // Ensure the classification has the correct user ID
-    final classificationWithUserId = classification.copyWith(userId: currentUserId);
-    
-    // Debug logging
-    debugPrint('💾 Saving classification for user: $currentUserId');
-    debugPrint('💾 Classification: ${classification.itemName}');
-    debugPrint('💾 Classification ID: ${classification.id}');
-    
-    // ENHANCED DEDUPLICATION CHECK: Look for recent identical classifications
-    final now = DateTime.now();
-    final recentTimeWindow = now.subtract(const Duration(minutes: 5)); // 5-minute window
-    
-    // Get all existing classifications for this user
-    final existingClassifications = await getAllClassifications();
-    
-    // Check for duplicates based on multiple criteria
-    final isDuplicate = existingClassifications.any((existing) {
-      final isSameId = existing.id == classification.id;
-      final isSameContent = existing.itemName == classification.itemName &&
-                           existing.category == classification.category &&
-                           existing.subcategory == classification.subcategory;
-      final isRecent = existing.timestamp.isAfter(recentTimeWindow);
-      
-      // Also check for exact timestamp duplicates (critical for preventing same-session duplicates)
-      final isSameTimestamp = existing.timestamp.millisecondsSinceEpoch == classification.timestamp.millisecondsSinceEpoch;
-      
-      return isSameId || (isSameContent && isRecent) || (isSameContent && isSameTimestamp);
-    });
-    
-    if (isDuplicate) {
-      debugPrint('🚫 DUPLICATE DETECTED: Skipping save for ${classification.itemName}');
-      debugPrint('🚫 Classification ID: ${classification.id}');
-      debugPrint('🚫 Timestamp: ${classification.timestamp}');
-      return; // Skip saving duplicate
+    // Check if this classification is already being saved
+    if (_savingClassifications.contains(classification.id)) {
+      debugPrint('🔒 Classification ${classification.id} is already being saved, skipping');
+      return;
     }
     
-    // Save using classification ID as key for consistent upserting
-    await classificationsBox.put(classification.id, classificationWithUserId.toJson());
+    // Add to saving set
+    _savingClassifications.add(classification.id);
     
-    debugPrint('✅ Classification saved successfully');
-    debugPrint('✅ Total classifications in storage: ${classificationsBox.length}');
+    try {
+      final classificationsBox = Hive.box(StorageKeys.classificationsBox);
+      
+      // Get current user ID
+      final userProfile = await getCurrentUserProfile();
+      final currentUserId = userProfile?.id ?? 'guest_user';
+      
+      // Ensure the classification has the correct user ID
+      final classificationWithUserId = classification.copyWith(userId: currentUserId);
+      
+      // Debug logging
+      debugPrint('💾 Saving classification for user: $currentUserId');
+      debugPrint('💾 Classification: ${classification.itemName}');
+      debugPrint('💾 Classification ID: ${classification.id}');
+      
+      // Check if this exact classification already exists in storage
+      final existingData = classificationsBox.get(classification.id);
+      if (existingData != null) {
+        debugPrint('🚫 DUPLICATE DETECTED: Classification with ID ${classification.id} already exists');
+        return;
+      }
+      
+      // ENHANCED DEDUPLICATION CHECK: Look for recent identical classifications
+      final now = DateTime.now();
+      final recentTimeWindow = now.subtract(const Duration(minutes: 5)); // 5-minute window
+      
+      // Get all existing classifications for this user
+      final existingClassifications = await getAllClassifications();
+      
+      // Check for duplicates based on multiple criteria
+      final isDuplicate = existingClassifications.any((existing) {
+        final isSameContent = existing.itemName == classification.itemName &&
+                             existing.category == classification.category &&
+                             existing.subcategory == classification.subcategory;
+        final isRecent = existing.timestamp.isAfter(recentTimeWindow);
+        
+        // Also check for exact timestamp duplicates (critical for preventing same-session duplicates)
+        final isSameTimestamp = existing.timestamp.millisecondsSinceEpoch == classification.timestamp.millisecondsSinceEpoch;
+        
+        return (isSameContent && isRecent) || (isSameContent && isSameTimestamp);
+      });
+      
+      if (isDuplicate) {
+        debugPrint('🚫 DUPLICATE DETECTED: Skipping save for ${classification.itemName}');
+        debugPrint('🚫 Classification ID: ${classification.id}');
+        debugPrint('🚫 Timestamp: ${classification.timestamp}');
+        return; // Skip saving duplicate
+      }
+      
+      // Save using classification ID as key for consistent upserting
+      await classificationsBox.put(classification.id, classificationWithUserId.toJson());
+      
+      debugPrint('✅ Classification saved successfully');
+      debugPrint('✅ Total classifications in storage: ${classificationsBox.length}');
+      
+    } finally {
+      // Always remove from saving set
+      _savingClassifications.remove(classification.id);
+    }
     
     // Note: UI refresh will happen through provider pattern in calling code
   }
