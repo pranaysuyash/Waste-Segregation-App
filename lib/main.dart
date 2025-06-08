@@ -300,14 +300,23 @@ class WasteSegregationApp extends StatelessWidget {
           darkTheme: AppTheme.darkTheme,
           themeMode: themeProvider.themeMode,
           builder: (context, child) {
+            final hideMenuTypes = {
+              _SplashScreen,
+              AuthScreen,
+              ConsentDialogScreen,
+            };
+            final showMenu =
+                child != null && !hideMenuTypes.contains(child.runtimeType);
+
             return Stack(
               children: [
                 if (child != null) child,
-                Positioned(
-                  top: MediaQuery.of(context).padding.top + 8,
-                  right: 8,
-                  child: const GlobalSettingsMenu(),
-                ),
+                if (showMenu)
+                  Positioned(
+                    top: MediaQuery.of(context).padding.top + 8,
+                    right: 8,
+                    child: const GlobalSettingsMenu(),
+                  ),
               ],
             );
           },
