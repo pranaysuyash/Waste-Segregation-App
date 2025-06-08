@@ -95,9 +95,7 @@ class CommunityService {
           .where((item) => 
               !item.userId.startsWith('sample_user_') && 
               !item.userId.contains('sample_') &&
-              !(item.metadata['isSample'] == true) &&
-              !item.userId.startsWith('114999035178668880111') && // Filter specific test user
-              item.userId == 'current_user') // Only count current user for now
+              !(item.metadata['isSample'] == true))
           .toList();
       
       debugPrint('🌍 COMMUNITY STATS: Filtered feed items count: ${feedItems.length}');
@@ -527,19 +525,14 @@ class CommunityService {
       final feedJson = box.get(_feedKey, defaultValue: '[]');
       final List<dynamic> feedList = jsonDecode(feedJson);
       
-      // Filter out sample data
-      final realFeedItems = feedList.where((item) {
+      feedList.removeWhere((item) {
         final feedItem = CommunityFeedItem.fromJson(item);
-        return !feedItem.userId.startsWith('sample_user_') && 
-               !feedItem.userId.contains('sample_') &&
-               !(feedItem.metadata['isSample'] == true);
-      }).toList();
-      
-      await box.put(_feedKey, jsonEncode(realFeedItems));
-      debugPrint('✅ Cleared ${feedList.length - realFeedItems.length} sample feed items');
-      
-      // Force recalculation of stats
-      await getCommunityStats();
+        return feedItem.userId.startsWith('sample_user_') ||
+               feedItem.metadata['isSample'] == true;
+      });
+
+      await box.put(_feedKey, jsonEncode(feedList));
+      debugPrint('🧹 Cleared sample data from community feed');
     } catch (e) {
       debugPrint('❌ Error clearing sample data: $e');
     }
@@ -574,52 +567,46 @@ class CommunityService {
   }
 
   /// Sync community stats with real user data from storage
-  Future<void> syncWithUserData(List<WasteClassification> userClassifications, UserProfile? userProfile) async {
-    try {
-      if (userClassifications.isEmpty) return;
-      
-      // Add feed items for recent classifications not already in community feed
-      final existingFeed = await getFeedItems();
-      final existingIds = existingFeed.map((item) => item.metadata['classificationId']).toSet();
-      
-      final recentClassifications = userClassifications
-          .where((classification) => 
-              !existingIds.contains(classification.id) &&
-              classification.timestamp.isAfter(DateTime.now().subtract(const Duration(days: 30))))
-          .toList();
-      
-      for (final classification in recentClassifications) {
-        final points = calculateActivityPoints(CommunityActivityType.classification, {
-          'category': classification.category,
-          'subcategory': classification.subcategory,
-          'confidence': classification.confidence,
-        });
-        
+  Future<void> syncWithUserData(List<WasteClassification> classifications, UserProfile? userProfile) async {
+    if (userProfile == null) return;
+
+    final box = Hive.box(_communityBox);
+    final feedJson = box.get(_feedKey, defaultValue: '[]');
+    final List<dynamic> feedList = jsonDecode(feedJson);
+    final existingItemIds = feedList.map((item) => CommunityFeedItem.fromJson(item).id).toSet();
+    int newItemsCount = 0;
+
+    for (final classification in classifications) {
+      final itemId = 'classification_${classification.id}';
+      if (!existingItemIds.contains(itemId)) {
         final feedItem = CommunityFeedItem(
-          id: 'sync_${classification.id}',
-          userId: userProfile?.id ?? 'current_user',
-          userName: userProfile?.displayName ?? 'You',
+          id: itemId,
+          userId: userProfile.id,
+          userName: userProfile.displayName ?? 'Anonymous User',
           activityType: CommunityActivityType.classification,
           title: 'Classified ${classification.category}',
-          description: 'Identified item as ${classification.category}${(classification.subcategory?.isNotEmpty ?? false) ? ' (${classification.subcategory})' : ''}',
+          description: 'Identified item as ${classification.itemName}',
           timestamp: classification.timestamp,
-          points: points,
+          points: 10, // Default points for synced classifications
+          isAnonymous: userProfile.preferences?['isAnonymous'] == true,
           metadata: {
             'category': classification.category,
             'subcategory': classification.subcategory,
-            'confidence': classification.confidence,
+            'itemName': classification.itemName,
             'classificationId': classification.id,
-            'synced': true,
           },
-          isAnonymous: userProfile?.preferences?['community_sharing'] == false,
         );
-        
-        await addFeedItem(feedItem);
+        feedList.insert(0, feedItem.toJson());
+        newItemsCount++;
       }
-      
-      debugPrint('🔄 Synced ${recentClassifications.length} classifications with community data');
-    } catch (e) {
-      debugPrint('❌ Error syncing with user data: $e');
+    }
+
+    if (newItemsCount > 0) {
+      if (feedList.length > 100) {
+        feedList.removeRange(100, feedList.length);
+      }
+      await box.put(_feedKey, jsonEncode(feedList));
+      debugPrint('🔄 Synced $newItemsCount classifications with community data');
     }
   }
 }

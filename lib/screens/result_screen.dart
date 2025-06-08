@@ -389,6 +389,32 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
       tags.add(TagFactory.material(widget.classification.materialType!));
     }
     
+    // Usage type tag if available
+    if (widget.classification.isSingleUse != null) {
+      tags.add(TagFactory.property(
+        widget.classification.isSingleUse! ? 'Single-Use' : 'Multi-Use',
+        widget.classification.isSingleUse! ? false : true, // Multi-use is better
+      ));
+    }
+    
+    // Environmental impact tag if available
+    if (widget.classification.environmentalImpact != null) {
+      tags.add(TagFactory.didYouKnow(
+        widget.classification.environmentalImpact!,
+        Colors.green,
+      ));
+    }
+    
+    // Points awarded tag if available
+    if (widget.classification.pointsAwarded != null) {
+      tags.add(TagData(
+        text: '+${widget.classification.pointsAwarded} Points',
+        color: Colors.amber,
+        action: TagAction.info,
+        icon: Icons.star,
+      ));
+    }
+    
     // Property tags
     if (widget.classification.isRecyclable == true) {
       tags.add(TagFactory.property('Recyclable', true));

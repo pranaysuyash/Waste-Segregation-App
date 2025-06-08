@@ -131,7 +131,7 @@ Classification Hierarchy & Instructions:
    - requiredPPE: ["gloves", "mask"], if needed
 
 8. Booleans:
-   - isRecyclable, isCompostable, requiresSpecialDisposal
+   - isRecyclable, isCompostable, requiresSpecialDisposal, isSingleUse
 
 9. Brand/product/barcode: If present/visible
 10. Region/locale: City/country string (e.g., "$defaultRegion")
@@ -149,7 +149,11 @@ Classification Hierarchy & Instructions:
 
 19. Multilingual support:
     - If instructionsLang provided, output translated disposal instructions as translatedInstructions for ["hi", "kn"] as well as "en".
-20. User fields:
+20. Gamification & Engagement:
+    - pointsAwarded: An integer representing the points for this classification (typically 10).
+    - environmentalImpact: A short sentence describing the positive or negative environmental impact of this item.
+    - relatedItems: A list of up to 3 related items that are often found with this one.
+21. User fields:
     - Set isSaved, userConfirmed, userCorrection, disagreementReason, userNotes, viewCount to null unless provided in input context.
 
 Rules:
@@ -158,7 +162,7 @@ Rules:
 - Strictly match the field names and structure below.
 - Do not hallucinate image URLs or user fields unless given.
 
-Format the response as a valid JSON object with these fields: itemName, category, subcategory, materialType, recyclingCode, explanation, disposalMethod, disposalInstructions, region, localGuidelinesReference, imageUrl, imageHash, imageMetrics, visualFeatures, isRecyclable, isCompostable, requiresSpecialDisposal, colorCode, riskLevel, requiredPPE, brand, product, barcode, isSaved, userConfirmed, userCorrection, disagreementReason, userNotes, viewCount, clarificationNeeded, confidence, modelVersion, processingTimeMs, modelSource, analysisSessionId, alternatives, suggestedAction, hasUrgentTimeframe, instructionsLang, translatedInstructions
+Format the response as a valid JSON object with these fields: itemName, category, subcategory, materialType, recyclingCode, explanation, disposalMethod, disposalInstructions, region, localGuidelinesReference, imageUrl, imageHash, imageMetrics, visualFeatures, isRecyclable, isCompostable, requiresSpecialDisposal, colorCode, riskLevel, requiredPPE, brand, product, barcode, isSaved, userConfirmed, userCorrection, disagreementReason, userNotes, viewCount, clarificationNeeded, confidence, modelVersion, processingTimeMs, modelSource, analysisSessionId, alternatives, suggestedAction, hasUrgentTimeframe, instructionsLang, translatedInstructions, pointsAwarded, isSingleUse, environmentalImpact, relatedItems
 ''';
 
   /// Correction/disagreement prompt for handling user feedback.

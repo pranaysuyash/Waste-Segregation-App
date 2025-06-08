@@ -23,6 +23,7 @@ class WasteClassification {
     this.isRecyclable,
     this.isCompostable,
     this.requiresSpecialDisposal,
+    this.isSingleUse,
     this.colorCode,
     this.riskLevel,
     this.requiredPPE,
@@ -50,6 +51,9 @@ class WasteClassification {
     DateTime? timestamp,
     this.reanalysisModelsTried,
     this.confirmedByModel,
+    this.pointsAwarded,
+    this.environmentalImpact,
+    this.relatedItems,
   }) : id = id ?? const Uuid().v4(),
        timestamp = timestamp ?? DateTime.now();
 
@@ -144,6 +148,7 @@ class WasteClassification {
       isRecyclable: json['isRecyclable'],
       isCompostable: json['isCompostable'],
       requiresSpecialDisposal: json['requiresSpecialDisposal'],
+      isSingleUse: json['isSingleUse'],
       colorCode: json['colorCode'],
       riskLevel: json['riskLevel'],
       requiredPPE: json['requiredPPE'] != null
@@ -183,6 +188,11 @@ class WasteClassification {
           ? List<String>.from(json['reanalysisModelsTried'])
           : null,
       confirmedByModel: json['confirmedByModel'],
+      pointsAwarded: json['pointsAwarded'],
+      environmentalImpact: json['environmentalImpact'],
+      relatedItems: json['relatedItems'] != null
+          ? List<String>.from(json['relatedItems'])
+          : null,
     );
   }
   final String id;
@@ -212,6 +222,7 @@ class WasteClassification {
   final bool? isRecyclable;
   final bool? isCompostable;
   final bool? requiresSpecialDisposal;
+  final bool? isSingleUse;
   final String? colorCode;
   final String? riskLevel;
   final List<String>? requiredPPE;
@@ -245,6 +256,11 @@ class WasteClassification {
   // Multilingual support
   final String? instructionsLang;
   final Map<String, String>? translatedInstructions;
+
+  // Gamification & Engagement
+  final int? pointsAwarded;
+  final String? environmentalImpact;
+  final List<String>? relatedItems;
 
   // Processing context
   final String? source;
@@ -312,6 +328,7 @@ class WasteClassification {
       'isRecyclable': isRecyclable,
       'isCompostable': isCompostable,
       'requiresSpecialDisposal': requiresSpecialDisposal,
+      'isSingleUse': isSingleUse,
       'colorCode': colorCode,
       'riskLevel': riskLevel,
       'requiredPPE': requiredPPE,
@@ -339,6 +356,9 @@ class WasteClassification {
       'timestamp': timestamp.toIso8601String(),
       'reanalysisModelsTried': reanalysisModelsTried,
       'confirmedByModel': confirmedByModel,
+      'pointsAwarded': pointsAwarded,
+      'environmentalImpact': environmentalImpact,
+      'relatedItems': relatedItems,
     };
   }
 
@@ -363,6 +383,7 @@ class WasteClassification {
     bool? isRecyclable,
     bool? isCompostable,
     bool? requiresSpecialDisposal,
+    bool? isSingleUse,
     String? colorCode,
     String? riskLevel,
     List<String>? requiredPPE,
@@ -390,6 +411,9 @@ class WasteClassification {
     DateTime? timestamp,
     List<String>? reanalysisModelsTried,
     String? confirmedByModel,
+    int? pointsAwarded,
+    String? environmentalImpact,
+    List<String>? relatedItems,
   }) {
     return WasteClassification(
       id: id ?? this.id,
@@ -411,6 +435,7 @@ class WasteClassification {
       isRecyclable: isRecyclable ?? this.isRecyclable,
       isCompostable: isCompostable ?? this.isCompostable,
       requiresSpecialDisposal: requiresSpecialDisposal ?? this.requiresSpecialDisposal,
+      isSingleUse: isSingleUse ?? this.isSingleUse,
       colorCode: colorCode ?? this.colorCode,
       riskLevel: riskLevel ?? this.riskLevel,
       requiredPPE: requiredPPE ?? this.requiredPPE,
@@ -438,6 +463,9 @@ class WasteClassification {
       timestamp: timestamp ?? this.timestamp,
       reanalysisModelsTried: reanalysisModelsTried ?? this.reanalysisModelsTried,
       confirmedByModel: confirmedByModel ?? this.confirmedByModel,
+      pointsAwarded: pointsAwarded ?? this.pointsAwarded,
+      environmentalImpact: environmentalImpact ?? this.environmentalImpact,
+      relatedItems: relatedItems ?? this.relatedItems,
     );
   }
 }

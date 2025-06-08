@@ -9,8 +9,10 @@ import '../models/waste_classification.dart';
 import '../services/gamification_service.dart';
 import '../models/gamification.dart';
 import '../widgets/waste_chart_widgets.dart';
-// import '../widgets/enhanced_loading_widget.dart'; // Removed
-// Removed import for '../widgets/empty_state_widget.dart'; as EmptyStateWidget is defined below
+import 'package:fl_chart/fl_chart.dart';
+import '../providers/data_sync_provider.dart';
+
+enum _ChartTimescale { daily, weekly }
 
 class WasteDashboardScreen extends StatefulWidget {
   const WasteDashboardScreen({super.key});
@@ -27,9 +29,11 @@ class _WasteDashboardScreenState extends State<WasteDashboardScreen>
   Map<String, int> _wasteCategoryCounts = {};
   Map<String, int> _wasteSubcategoryCounts = {};
   Map<DateTime, int> _wasteByDate = {};
+  Map<DateTime, int> _wasteByWeek = {};
   final Map<String, String> _subcategoryCategoryMap = {};
   bool _isLoading = true;
   late final AnimationController _chartAnimationController;
+  _ChartTimescale _selectedTimescale = _ChartTimescale.daily;
 
   @override
   void initState() {
@@ -41,6 +45,11 @@ class _WasteDashboardScreenState extends State<WasteDashboardScreen>
     if (_chartAnimationController.duration != Duration.zero) {
       _chartAnimationController.forward(from: 0);
     }
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _ensureDataSync(context);
+    });
+
     _loadData();
   }
 
@@ -56,7 +65,7 @@ class _WasteDashboardScreenState extends State<WasteDashboardScreen>
     });
 
     try {
-      // Try to refresh gamification, but don’t block analytics if it fails
+      // Try to refresh gamification, but don't block analytics if it fails
       final gamificationService =
           Provider.of<GamificationService>(context, listen: false);
       try {
@@ -110,6 +119,7 @@ class _WasteDashboardScreenState extends State<WasteDashboardScreen>
     _wasteSubcategoryCounts = {};
     _subcategoryCategoryMap.clear();
     _wasteByDate = {};
+    _wasteByWeek = {};
     
     // Process each classification
     for (final classification in classifications) {
@@ -142,6 +152,13 @@ class _WasteDashboardScreenState extends State<WasteDashboardScreen>
       
       _wasteByDate.update(
         date, 
+        (value) => value + 1,
+        ifAbsent: () => 1,
+      );
+
+      final weekStart = date.subtract(Duration(days: date.weekday - 1));
+      _wasteByWeek.update(
+        weekStart,
         (value) => value + 1,
         ifAbsent: () => 1,
       );
@@ -182,9 +199,14 @@ class _WasteDashboardScreenState extends State<WasteDashboardScreen>
           _buildSummaryStats(),
           const SizedBox(height: AppTheme.paddingLarge),
           
-          // Recent activity chart
-          _buildSectionHeader('Recent Activity'),
-          _buildActivityChart(),
+          // Activity
+          _buildSectionHeader('Activity'),
+          _buildTimescaleToggle(),
+          const SizedBox(height: AppTheme.paddingSmall),
+          if (_selectedTimescale == _ChartTimescale.daily)
+            _buildDailyActivityChart()
+          else
+            _buildWeeklyActivityChart(),
           const SizedBox(height: AppTheme.paddingLarge),
           
           // Category distribution
@@ -300,56 +322,119 @@ class _WasteDashboardScreenState extends State<WasteDashboardScreen>
     );
   }
   
-  Widget _buildActivityChart() {
-    final timeSeriesData = _getWasteTimeSeriesData();
-    if (timeSeriesData.isEmpty) {
-        return Card(
-          child: Container(
-            height: MediaQuery.of(context).size.height * 0.25,
-          padding: const EdgeInsets.all(AppTheme.paddingLarge),
-          child: const Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(Icons.show_chart, size: 48, color: Colors.grey),
-                SizedBox(height: 8),
-                Text('Not enough data yet'),
-                Text('Classify some items to see your activity chart!', 
-                     style: TextStyle(fontSize: 12, color: Colors.grey)),
-              ],
+  Widget _buildTimescaleToggle() {
+    return ToggleButtons(
+      isSelected: [
+        _selectedTimescale == _ChartTimescale.daily,
+        _selectedTimescale == _ChartTimescale.weekly,
+      ],
+      onPressed: (index) {
+        setState(() {
+          _selectedTimescale = _ChartTimescale.values[index];
+          _chartAnimationController.forward(from: 0);
+        });
+      },
+      borderRadius: BorderRadius.circular(AppTheme.borderRadiusRegular),
+      children: const [
+        Padding(
+          padding: EdgeInsets.symmetric(horizontal: 16.0),
+          child: Text('Daily'),
+        ),
+        Padding(
+          padding: EdgeInsets.symmetric(horizontal: 16.0),
+          child: Text('Weekly'),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildDailyActivityChart() {
+    final data = _wasteByDate.entries.toList();
+    data.sort((a, b) => a.key.compareTo(b.key));
+
+    return SizedBox(
+      height: 200,
+      child: BarChart(
+        BarChartData(
+          barGroups: data
+              .asMap()
+              .map((i, entry) => MapEntry(
+                    i,
+                    BarChartGroupData(
+                      x: i,
+                      barRods: [
+                        BarChartRodData(
+                          toY: entry.value.toDouble(),
+                          color: AppTheme.primaryColor,
+                        ),
+                      ],
+                    ),
+                  ))
+              .values
+              .toList(),
+          titlesData: FlTitlesData(
+            bottomTitles: AxisTitles(
+              sideTitles: SideTitles(
+                showTitles: true,
+                getTitlesWidget: (value, meta) {
+                  final index = value.toInt();
+                  if (index >= 0 && index < data.length) {
+                    return Text(DateFormat.MMMd().format(data[index].key));
+                  }
+                  return const Text('');
+                },
+              ),
+            ),
+            leftTitles: AxisTitles(
+              sideTitles: SideTitles(showTitles: true),
             ),
           ),
         ),
-      );
-    }
-    final flData = timeSeriesData
-        .map((e) => ChartData(
-              DateFormat.Md().format(e['date'] as DateTime),
-              (e['count'] as int).toDouble(),
-              AppTheme.primaryColor,
-            ))
-        .toList();
+      ),
+    );
+  }
 
-    return Card(
-      child: Container(
-        height: MediaQuery.of(context).size.height * 0.35,
-        padding: const EdgeInsets.all(AppTheme.paddingSmall),
-        child: Column(
-          children: [
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Text(
-                'Items classified over time',
-                style: Theme.of(context).textTheme.titleSmall,
+  Widget _buildWeeklyActivityChart() {
+    final data = _wasteByWeek.entries.toList();
+    data.sort((a, b) => a.key.compareTo(b.key));
+
+    return SizedBox(
+      height: 200,
+      child: BarChart(
+        BarChartData(
+          barGroups: data
+              .asMap()
+              .map((i, entry) => MapEntry(
+                    i,
+                    BarChartGroupData(
+                      x: i,
+                      barRods: [
+                        BarChartRodData(
+                          toY: entry.value.toDouble(),
+                          color: AppTheme.secondaryColor,
+                        ),
+                      ],
+                    ),
+                  ))
+              .values
+              .toList(),
+          titlesData: FlTitlesData(
+            bottomTitles: AxisTitles(
+              sideTitles: SideTitles(
+                showTitles: true,
+                getTitlesWidget: (value, meta) {
+                  final index = value.toInt();
+                  if (index >= 0 && index < data.length) {
+                    return Text(DateFormat.MMMd().format(data[index].key));
+                  }
+                  return const Text('');
+                },
               ),
             ),
-            Expanded(
-              child: WasteTimeSeriesChart(
-                data: flData,
-                animationController: _chartAnimationController,
-              ),
+            leftTitles: AxisTitles(
+              sideTitles: SideTitles(showTitles: true),
             ),
-          ],
+          ),
         ),
       ),
     );
@@ -464,88 +549,38 @@ class _WasteDashboardScreenState extends State<WasteDashboardScreen>
   }
   
   Widget _buildTopSubcategories() {
-    if (_wasteSubcategoryCounts.isEmpty) {
-      return Card(
-        child: Container(
-          padding: const EdgeInsets.all(AppTheme.paddingLarge),
-          child: const Center(
-            child: Column(
-              children: [
-                Icon(Icons.bar_chart, size: 48, color: Colors.grey),
-                SizedBox(height: 8),
-                Text('Not enough data yet'),
-                Text('Classify more items to see top waste types!', 
-                     style: TextStyle(fontSize: 12, color: Colors.grey)),
-              ],
-            ),
+    final topSubcategories = _getTopSubcategories(5);
+    
+    if (topSubcategories.isEmpty) {
+      return const Card(
+        child: Padding(
+          padding: EdgeInsets.all(AppTheme.paddingLarge),
+          child: Center(
+            child: Text('No subcategory data yet.'),
           ),
         ),
       );
     }
     
-    final topSubcategories = _getTopSubcategories(5);
-    final maxValue = topSubcategories.isNotEmpty 
-        ? topSubcategories.map((e) => e.value).reduce((a, b) => a > b ? a : b) 
-        : 1;
-    
+    final data = topSubcategories
+        .map((e) => ChartData(
+              e.key,
+              e.value.toDouble(),
+              _getSubcategoryColor(e.key),
+            ))
+        .toList();
+
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(AppTheme.paddingRegular),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              'Most frequently identified waste types',
-              style: Theme.of(context).textTheme.titleSmall,
-            ),
-            const SizedBox(height: AppTheme.paddingRegular),
-            ...topSubcategories.map((entry) =>
-              Padding(
-                padding: const EdgeInsets.only(bottom: AppTheme.paddingSmall),
-                child: Row(
-                  children: [
-                    SizedBox(
-                      width: 100,
-                      child: Text(
-                        entry.key,
-                        style: const TextStyle(fontSize: AppTheme.fontSizeSmall),
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                    Expanded(
-                      child: LinearProgressIndicator(
-                        value: entry.value / maxValue,
-                        minHeight: 12,
-                        backgroundColor: Colors.grey.shade200,
-                        valueColor: const AlwaysStoppedAnimation<Color>(AppTheme.primaryColor),
-                      ),
-                    ),
-                    SizedBox(
-                      width: 40,
-                      child: Padding(
-                        padding: const EdgeInsets.only(left: AppTheme.paddingSmall),
-                        child: Text(
-                          '${entry.value}',
-                          style: const TextStyle(fontSize: AppTheme.fontSizeSmall),
-                          textAlign: TextAlign.end,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
+            Text('Top 5 Waste Types', style: Theme.of(context).textTheme.titleMedium),
             const SizedBox(height: AppTheme.paddingRegular),
             SizedBox(
-              height: 200,
+              height: 150,
               child: TopSubcategoriesBarChart(
-                data: topSubcategories
-                    .map((e) => ChartData(
-                          e.key,
-                          e.value.toDouble(),
-                          _getSubcategoryColor(e.key),
-                        ))
-                    .toList(),
+                data: data,
                 animationController: _chartAnimationController,
               ),
             ),
@@ -703,72 +738,6 @@ class _WasteDashboardScreenState extends State<WasteDashboardScreen>
     return now.difference(_firstClassificationDate!).inDays + 1;
   }
   
-  List<Map<String, dynamic>> _getWasteTimeSeriesData() {
-    if (_wasteByDate.isEmpty) return [];
-    
-    // Sort the dates
-    final sortedDates = _wasteByDate.keys.toList()..sort();
-    
-    // Create the time series data
-    return sortedDates.map((date) => {
-      'date': date,
-      'count': _wasteByDate[date] ?? 0,
-    }).toList();
-  }
-  
-  Color _getCategoryColor(String category) {
-    switch (category) {
-      case 'Wet Waste': return AppTheme.wetWasteColor;
-      case 'Dry Waste': return AppTheme.dryWasteColor;
-      case 'Hazardous Waste': return AppTheme.hazardousWasteColor;
-      case 'Medical Waste': return AppTheme.medicalWasteColor;
-      case 'Non-Waste': return AppTheme.nonWasteColor;
-      default: return AppTheme.lightGreyColor;
-    }
-  }
-
-  Color _getSubcategoryColor(String subcategory) {
-    final category = _subcategoryCategoryMap[subcategory];
-    return _getCategoryColor(category ?? subcategory);
-  }
-  
-  Widget _getCategoryIcon(String category) {
-    IconData iconData;
-    Color color;
-    
-    switch (category) {
-      case 'Wet Waste':
-        iconData = Icons.compost;
-        color = AppTheme.wetWasteColor;
-        break;
-      case 'Dry Waste':
-        iconData = Icons.recycling;
-        color = AppTheme.dryWasteColor;
-        break;
-      case 'Hazardous Waste':
-        iconData = Icons.warning;
-        color = AppTheme.hazardousWasteColor;
-        break;
-      case 'Medical Waste':
-        iconData = Icons.medical_services;
-        color = AppTheme.medicalWasteColor;
-        break;
-      case 'Non-Waste':
-        iconData = Icons.replay;
-        color = AppTheme.nonWasteColor;
-        break;
-      default:
-        iconData = Icons.category;
-        color = AppTheme.lightGreyColor;
-    }
-    
-    return CircleAvatar(
-      backgroundColor: color.withValues(alpha: 0.2),
-      radius: 16,
-      child: Icon(iconData, color: color, size: 18),
-    );
-  }
-  
   List<MapEntry<String, int>> _getTopSubcategories(int count) {
     final sortedEntries = _wasteSubcategoryCounts.entries.toList()
       ..sort((a, b) => b.value.compareTo(a.value));
@@ -883,6 +852,59 @@ class _WasteDashboardScreenState extends State<WasteDashboardScreen>
           ),
         );
       },
+    );
+  }
+
+  Color _getCategoryColor(String category) {
+    switch (category) {
+      case 'Wet Waste': return AppTheme.wetWasteColor;
+      case 'Dry Waste': return AppTheme.dryWasteColor;
+      case 'Hazardous Waste': return AppTheme.hazardousWasteColor;
+      case 'Medical Waste': return AppTheme.medicalWasteColor;
+      case 'Non-Waste': return AppTheme.nonWasteColor;
+      default: return AppTheme.lightGreyColor;
+    }
+  }
+
+  Color _getSubcategoryColor(String subcategory) {
+    final category = _subcategoryCategoryMap[subcategory];
+    return _getCategoryColor(category ?? subcategory);
+  }
+  
+  Widget _getCategoryIcon(String category) {
+    IconData iconData;
+    Color color;
+    
+    switch (category) {
+      case 'Wet Waste':
+        iconData = Icons.compost;
+        color = AppTheme.wetWasteColor;
+        break;
+      case 'Dry Waste':
+        iconData = Icons.recycling;
+        color = AppTheme.dryWasteColor;
+        break;
+      case 'Hazardous Waste':
+        iconData = Icons.warning;
+        color = AppTheme.hazardousWasteColor;
+        break;
+      case 'Medical Waste':
+        iconData = Icons.medical_services;
+        color = AppTheme.medicalWasteColor;
+        break;
+      case 'Non-Waste':
+        iconData = Icons.replay;
+        color = AppTheme.nonWasteColor;
+        break;
+      default:
+        iconData = Icons.category;
+        color = AppTheme.lightGreyColor;
+    }
+    
+    return CircleAvatar(
+      backgroundColor: color.withValues(alpha: 0.2),
+      radius: 16,
+      child: Icon(iconData, color: color, size: 18),
     );
   }
 }
@@ -1454,4 +1476,8 @@ class GamificationSummaryCard extends StatelessWidget { // e.g., "+12%"
       ),
     );
   }
+}
+
+Future<void> _ensureDataSync(BuildContext context) async {
+  // ... existing code ...
 }

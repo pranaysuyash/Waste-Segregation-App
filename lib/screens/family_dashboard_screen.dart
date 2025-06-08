@@ -38,6 +38,7 @@ class _FamilyDashboardScreenState extends State<FamilyDashboardScreen> {
   }
 
   Future<void> _initializeFamilyData() async {
+    if (!mounted) return;
     setState(() {
       _isInitialLoading = true;
       _isStatsLoading = true;
@@ -47,6 +48,7 @@ class _FamilyDashboardScreenState extends State<FamilyDashboardScreen> {
       final storageService = Provider.of<StorageService>(context, listen: false);
       final currentUser = await storageService.getCurrentUserProfile();
       if (currentUser?.familyId == null) {
+        if (!mounted) return;
         setState(() {
           // Don't set error - this is a normal state when user has no family
           _familyId = null;
@@ -59,11 +61,13 @@ class _FamilyDashboardScreenState extends State<FamilyDashboardScreen> {
           _loadMembers(),
           _loadFamilyStats(),
         ]);
+        if (!mounted) return;
         setState(() {
           _isInitialLoading = false;
         });
       }
     } catch (e) {
+      if (!mounted) return;
       setState(() {
         _error = 'Failed to get your family information: ${e.toString()}';
         _familyId = null;
