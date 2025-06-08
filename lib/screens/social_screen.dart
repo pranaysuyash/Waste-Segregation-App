@@ -22,88 +22,20 @@ class _SocialScreenState extends State<SocialScreen> {
     final isIOS = Platform.isIOS;
     
     return Scaffold(
-      appBar: _currentIndex == 1 ? AppBar(
-        title: const Text('Social'),
-        bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(70),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-            child: Container(
-              decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.surfaceContainerHighest,
-                borderRadius: BorderRadius.circular(25),
-              ),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: GestureDetector(
-                      onTap: () => setState(() => _currentIndex = 0),
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                        decoration: BoxDecoration(
-                          color: _currentIndex == 0
-                              ? Theme.of(context).colorScheme.primary
-                              : Colors.transparent,
-                          borderRadius: BorderRadius.circular(25),
-                        ),
-                        child: Text(
-                          'Community',
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            color: _currentIndex == 0
-                                ? Theme.of(context).colorScheme.onPrimary
-                                : Theme.of(context).textTheme.bodyLarge?.color,
-                            fontWeight: _currentIndex == 0
-                                ? FontWeight.bold
-                                : FontWeight.normal,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                  Expanded(
-                    child: GestureDetector(
-                      onTap: () => setState(() => _currentIndex = 1),
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                        decoration: BoxDecoration(
-                          color: _currentIndex == 1
-                              ? Theme.of(context).colorScheme.primary
-                              : Colors.transparent,
-                          borderRadius: BorderRadius.circular(25),
-                        ),
-                        child: Text(
-                          'Family',
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            color: _currentIndex == 1
-                                ? Theme.of(context).colorScheme.onPrimary
-                                : Theme.of(context).textTheme.bodyLarge?.color,
-                            fontWeight: _currentIndex == 1
-                                ? FontWeight.bold
-                                : FontWeight.normal,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
-      ) : null,
+      // Each screen manages its own AppBar. Removing the toggle row keeps the
+      // interface cleaner now that the FAB handles switching.
+      appBar: null,
       body: IndexedStack(
         index: _currentIndex,
         children: const [
           // Community Screen with its own tabs and AppBar
           CommunityScreen(),
-          // Family Screen without AppBar (uses Social AppBar)
+          // Family Screen with its own AppBar
           SafeArea(
             top: false,
             left: false,
             right: false,
-            child: FamilyDashboardScreen(showAppBar: false),
+            child: FamilyDashboardScreen(showAppBar: true),
           ),
         ],
       ),
