@@ -118,9 +118,13 @@ class _ModernHomeScreenState extends State<ModernHomeScreen> with TickerProvider
   void didChangeAppLifecycleState(AppLifecycleState state) {
     super.didChangeAppLifecycleState(state);
     if (state == AppLifecycleState.resumed) {
-      // Force refresh data when app comes back to foreground
-      debugPrint('App resumed - forcing data refresh');
-      _refreshDataWithTimestamp();
+      // Only refresh if it's been more than 30 seconds since last refresh
+      // to avoid excessive refreshing when switching between apps
+      final now = DateTime.now();
+      if (_lastRefresh == null || now.difference(_lastRefresh!).inSeconds > 30) {
+        debugPrint('App resumed - refreshing data (last refresh: $_lastRefresh)');
+        _refreshDataWithTimestamp();
+      }
     }
   }
 
@@ -163,14 +167,18 @@ class _ModernHomeScreenState extends State<ModernHomeScreen> with TickerProvider
       final gamificationService =
           Provider.of<GamificationService>(context, listen: false);
 
+      // Force refresh the profile to ensure points are up to date
       await gamificationService.updateStreak();
-      await gamificationService.getProfile(forceRefresh: true);
+      await gamificationService.forceRefreshProfile();
+      
       final challenges = await gamificationService.getActiveChallenges();
 
       if (!mounted) return;
       setState(() {
         _activeChallenges = challenges;
       });
+      
+      debugPrint('✅ Gamification data loaded - Points: ${gamificationService.currentProfile?.points.total ?? 0}');
     } catch (e) {
       debugPrint('Error loading gamification data: $e');
     } finally {
@@ -643,22 +651,34 @@ class _ModernHomeScreenState extends State<ModernHomeScreen> with TickerProvider
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    // Primary section: Welcome + Camera actions (40% of screen focus)
                     _buildWelcomeSection(theme),
-                    const SizedBox(height: AppTheme.spacingMd),
+                    const SizedBox(height: AppTheme.spacingLg),
+                    
+                    // Secondary section: Today's progress (prominent but not overwhelming)
                     _buildTodaysImpactGoal(),
-                    const SizedBox(height: AppTheme.spacingMd),
-                    _buildStatsSection(),
-                    const SizedBox(height: AppTheme.spacingMd),
-                    _buildGlobalImpactMeter(),
-                    const SizedBox(height: AppTheme.spacingMd),
-                    _buildCommunityFeedPreview(),
-                    const SizedBox(height: AppTheme.spacingMd),
-                    _buildGamificationSection(),
-                    const SizedBox(height: AppTheme.spacingMd),
-                    _buildQuickAccessSection(),
-                    const SizedBox(height: AppTheme.spacingMd),
-                    _buildRecentClassifications(),
-                    const SizedBox(height: AppTheme.spacingXl),
+                    const SizedBox(height: AppTheme.spacingLg),
+                    
+                    // Tertiary section: Quick stats (simplified to 2 cards max)
+                    _buildSimplifiedStatsSection(),
+                    const SizedBox(height: AppTheme.spacingLg),
+                    
+                    // Optional sections (only show if user has data/activity)
+                    if (_allClassifications.isNotEmpty) ...[
+                      _buildRecentClassifications(),
+                      const SizedBox(height: AppTheme.spacingLg),
+                    ],
+                    
+                    // Gamification only if user has active progress
+                    if (context.watch<GamificationService>().currentProfile != null && 
+                        (context.watch<GamificationService>().currentProfile!.points.total > 0 ||
+                         _getCurrentStreak(context.watch<GamificationService>().currentProfile) > 0)) ...[
+                      _buildGamificationSection(),
+                      const SizedBox(height: AppTheme.spacingLg),
+                    ],
+                    
+                    // Bottom padding for navigation
+                    SizedBox(height: MediaQuery.of(context).padding.bottom + 100),
                   ],
                 ),
               ),
@@ -780,17 +800,16 @@ class _ModernHomeScreenState extends State<ModernHomeScreen> with TickerProvider
     );
   }
 
-  Widget _buildStatsSection() {
+  Widget _buildSimplifiedStatsSection() {
     final profile = context.watch<GamificationService>().currentProfile;
     return Row(
       children: [
         Expanded(
           child: StatsCard(
-            title: 'Classifications',
+            title: 'Total Items',
             value: '${_allClassifications.length}',
-            icon: Icons.analytics,
-            color: AppTheme.infoColor,
-            trend: '+12%',
+            icon: Icons.recycling,
+            color: AppTheme.primaryColor,
             onTap: () {
               Navigator.push(
                 context,
@@ -804,29 +823,10 @@ class _ModernHomeScreenState extends State<ModernHomeScreen> with TickerProvider
         const SizedBox(width: AppTheme.spacingMd),
         Expanded(
           child: StatsCard(
-            title: 'Streak',
-            value: '${_getCurrentStreak(profile)}',
-            icon: Icons.local_fire_department,
-            color: Colors.orange,
-            subtitle: 'days',
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const AchievementsScreen(),
-                ),
-              );
-            },
-          ),
-        ),
-        const SizedBox(width: AppTheme.spacingMd),
-        Expanded(
-          child: StatsCard(
             title: 'Points',
             value: '${profile?.points.total ?? 0}',
             icon: Icons.stars,
             color: Colors.amber,
-            trend: '+24',
             onTap: () {
               Navigator.push(
                 context,
@@ -1301,17 +1301,9 @@ class _ModernHomeScreenState extends State<ModernHomeScreen> with TickerProvider
   void didChangeDependencies() {
     super.didChangeDependencies();
     
-    // Refresh data when returning to this screen from any navigation
-    // But only if it's been more than 2 seconds since last refresh to avoid excessive calls
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) {
-        final now = DateTime.now();
-        if (_lastRefresh == null || now.difference(_lastRefresh!).inSeconds > 2) {
-          debugPrint('ModernHomeScreen: didChangeDependencies - refreshing data');
-          _refreshDataWithTimestamp();
-        }
-      }
-    });
+    // Only refresh if we haven't refreshed recently to prevent excessive calls
+    // Remove automatic refresh on every dependency change as it causes performance issues
+    // Data will be refreshed when returning from image capture or when explicitly triggered
   }
 
   Future<void> _refreshDataWithTimestamp() async {

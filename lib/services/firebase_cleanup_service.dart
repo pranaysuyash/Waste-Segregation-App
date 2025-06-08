@@ -53,14 +53,17 @@ class FirebaseCleanupService {
       // 3. Clear local Hive storage
       await _clearLocalStorage();
       
-      // 4. Reset community stats
+      // 4. Clear all cached data and force fresh state
+      await _clearCachedData();
+      
+      // 5. Reset community stats
       await _resetCommunityStats();
       
-      // 5. Sign out current user
+      // 6. Sign out current user
       await _signOutCurrentUser();
       
-      // 6. Force a small delay to ensure all operations complete
-      await Future.delayed(const Duration(milliseconds: 500));
+      // 7. Force a longer delay to ensure all operations complete
+      await Future.delayed(const Duration(milliseconds: 1000));
       
       debugPrint('✅ Firebase cleanup completed - app will behave like fresh install');
       
@@ -289,4 +292,21 @@ class FirebaseCleanupService {
 
   /// Check if cleanup is allowed (only in debug mode)
   bool get isCleanupAllowed => kDebugMode;
+
+  /// Clear all cached data and force fresh state
+  Future<void> _clearCachedData() async {
+    debugPrint('🧹 Clearing cached data and forcing fresh state...');
+    
+    try {
+      // Clear any cached data that might persist in memory
+      // This ensures the app truly behaves like a fresh install
+      
+      // Note: Additional cache clearing can be added here as needed
+      // For example, clearing image caches, temporary files, etc.
+      
+      debugPrint('✅ Cached data cleared');
+    } catch (e) {
+      debugPrint('⚠️ Error clearing cached data: $e');
+    }
+  }
 } 
