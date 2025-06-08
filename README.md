@@ -14,9 +14,12 @@ A comprehensive Flutter application for proper waste identification, segregation
 **📋 [Detailed Technical Documentation](docs/fixes/2024-12-critical-bug-fixes-and-ai-enhancements.md)**  
 **🚀 [Enhanced AI Features Guide](docs/features/enhanced-ai-analysis-system.md)**  
 
-## 🚨 New Modern Home Screen v2.1.0 - Complete Riverpod Implementation (2025-06-08)
+## 🚨 New Modern Home Screen v2.2.1 - Now Main Home Screen (2025-06-08)
 
-**Version 2.1.0 is now live!**  
+**Version 2.2.1 is now live!**  
+- ✅ **New Modern Home Screen**: Beautiful new home screen is now the main home screen (replaced old version)
+- ✅ **Enhanced Navigation**: Classification cards now redirect to history screen as requested
+- ✅ **Streamlined Experience**: Removed developer option since new home screen is now production-ready
 - ✅ **Enhanced Classification Cards**: Beautiful gradient backgrounds with Hero animations and interactive detail modals
 - ✅ **Riverpod State Management**: Complete implementation with FutureProvider for profile data and proper connectivity handling
 - ✅ **Tutorial Coach Marks**: Interactive onboarding with GlobalObjectKey targeting for key features
