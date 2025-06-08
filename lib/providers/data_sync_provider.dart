@@ -118,9 +118,6 @@ class DataSyncProvider extends ChangeNotifier {
     try {
       await _communityService.initCommunity();
       
-      // Clear any stale sample data
-      await _communityService.clearSampleData();
-      
       // Sync with real user data
       if (_cachedClassifications != null) {
         final userProfile = await _storageService.getCurrentUserProfile();
@@ -219,9 +216,6 @@ class DataSyncProvider extends ChangeNotifier {
     try {
       debugPrint('🌍 Refreshing community feeds...');
       await _communityService.initCommunity();
-      
-      // Clear sample data and sync with real data
-      await _communityService.clearSampleData();
       
       if (_cachedClassifications != null) {
         final userProfile = await _storageService.getCurrentUserProfile();

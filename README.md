@@ -14,9 +14,11 @@ A comprehensive Flutter application for proper waste identification, segregation
 **📋 [Detailed Technical Documentation](docs/fixes/2024-12-critical-bug-fixes-and-ai-enhancements.md)**  
 **🚀 [Enhanced AI Features Guide](docs/features/enhanced-ai-analysis-system.md)**  
 
-## 🚨 Major System Overhaul & Code Quality Improvements (2025-01-06)
+## 🚨 Major System Overhaul & UI/UX Improvements (2025-01-08)
 
-**Version 2.0.1 is now live!**  
+**Version 2.0.2 is now live!**  
+- ✅ **Auth Screen Redesign**: Fixed card text visibility, removed scrolling, cleaned redundant content
+- ✅ **RenderFlex Overflow Fixes**: Resolved button text overflow issues in modern UI components
 - ✅ **Critical Bug Fixes**: Resolved opacity assertion errors and streak reset issues
 - ✅ **Code Quality**: Reduced lint issues from 218 to 116 (47% improvement)
 - ✅ **Build Stability**: Fixed all critical compilation errors

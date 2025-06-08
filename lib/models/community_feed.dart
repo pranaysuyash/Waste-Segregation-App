@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 /// Represents a community feed item showing user activities
 class CommunityFeedItem {
@@ -178,69 +180,41 @@ enum CommunityActivityType {
 
 /// Community feed statistics
 class CommunityStats {
-
   const CommunityStats({
     required this.totalUsers,
     required this.totalClassifications,
-    required this.totalAchievements,
-    this.totalPoints = 0,
-    required this.activeToday,
-    this.activeUsers = 0,
-    this.weeklyClassifications = 0,
-    required this.categoryBreakdown,
-    required this.lastUpdated,
-    this.averagePointsPerUser = 0.0,
-    this.weeklyActiveUsers = 0,
-    this.topContributors = const [],
-    this.anonymousContributions = 0,
+    required this.totalPoints,
+    this.categoryBreakdown = const {},
+    this.lastUpdated,
   });
 
   factory CommunityStats.fromJson(Map<String, dynamic> json) {
     return CommunityStats(
-      totalUsers: json['totalUsers'] ?? 0,
-      totalClassifications: json['totalClassifications'] ?? 0,
-      totalAchievements: json['totalAchievements'] ?? 0,
-      totalPoints: json['totalPoints'] ?? 0,
-      activeToday: json['activeToday'] ?? 0,
-      activeUsers: json['activeUsers'] ?? 0,
-      weeklyClassifications: json['weeklyClassifications'] ?? 0,
-      categoryBreakdown: Map<String, int>.from(json['categoryBreakdown'] ?? {}),
-      lastUpdated: DateTime.tryParse(json['lastUpdated'] ?? '') ?? DateTime.now(),
-      averagePointsPerUser: (json['averagePointsPerUser'] as num?)?.toDouble() ?? 0.0,
-      weeklyActiveUsers: json['weeklyActiveUsers'] ?? 0,
-      topContributors: List<Map<String, dynamic>>.from(json['topContributors'] ?? []),
-      anonymousContributions: json['anonymousContributions'] ?? 0,
+      totalUsers: json['totalUsers'] as int? ?? 0,
+      totalClassifications: json['totalClassifications'] as int? ?? 0,
+      totalPoints: json['totalPoints'] as int? ?? 0,
+      categoryBreakdown: json['categoryBreakdown'] != null
+          ? Map<String, int>.from(json['categoryBreakdown'] as Map)
+          : const {},
+      lastUpdated: json['lastUpdated'] != null
+          ? _parseDateTime(json['lastUpdated'])
+          : null,
     );
   }
+
   final int totalUsers;
   final int totalClassifications;
-  final int totalAchievements;
   final int totalPoints;
-  final int activeToday;
-  final int activeUsers;
-  final int weeklyClassifications;
   final Map<String, int> categoryBreakdown;
-  final DateTime lastUpdated;
-  final double averagePointsPerUser;
-  final int weeklyActiveUsers;
-  final List<Map<String, dynamic>> topContributors;
-  final int anonymousContributions;
+  final DateTime? lastUpdated;
 
   Map<String, dynamic> toJson() {
     return {
       'totalUsers': totalUsers,
       'totalClassifications': totalClassifications,
-      'totalAchievements': totalAchievements,
       'totalPoints': totalPoints,
-      'activeToday': activeToday,
-      'activeUsers': activeUsers,
-      'weeklyClassifications': weeklyClassifications,
       'categoryBreakdown': categoryBreakdown,
-      'lastUpdated': lastUpdated.toIso8601String(),
-      'averagePointsPerUser': averagePointsPerUser,
-      'weeklyActiveUsers': weeklyActiveUsers,
-      'topContributors': topContributors,
-      'anonymousContributions': anonymousContributions,
+      'lastUpdated': lastUpdated?.toIso8601String(),
     };
   }
 
@@ -249,5 +223,20 @@ class CommunityStats {
     final sorted = categoryBreakdown.entries.toList()
       ..sort((a, b) => b.value.compareTo(a.value));
     return Map.fromEntries(sorted.take(5));
+  }
+
+  /// Helper method to parse DateTime from various formats
+  static DateTime? _parseDateTime(dynamic value) {
+    if (value == null) return null;
+    
+    if (value is Timestamp) {
+      return value.toDate();
+    } else if (value is String) {
+      return DateTime.tryParse(value);
+    } else if (value is DateTime) {
+      return value;
+    }
+    
+    return null;
   }
 } 

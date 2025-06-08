@@ -546,11 +546,15 @@ class _ModernFABState extends State<ModernFAB>
                   ),
                   if (widget.isExtended && widget.label != null) ...[
                     const SizedBox(width: AppTheme.spacingSm),
-                    Text(
-                      widget.label!,
-                      style: theme.textTheme.labelLarge?.copyWith(
-                        color: widget.foregroundColor ?? Colors.white,
-                        fontWeight: FontWeight.w600,
+                    Flexible(
+                      child: Text(
+                        widget.label!,
+                        style: theme.textTheme.labelLarge?.copyWith(
+                          color: widget.foregroundColor ?? Colors.white,
+                          fontWeight: FontWeight.w600,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                        maxLines: 1,
                       ),
                     ),
                   ],

@@ -310,8 +310,6 @@ class _FamilyDashboardScreenState extends State<FamilyDashboardScreen> {
     );
   }
 
-
-
   Widget _buildStatsOverview(family_models.FamilyStats? stats) {
     if (stats == null) {
       // Enhanced empty state for new families
@@ -653,7 +651,7 @@ class _FamilyDashboardScreenState extends State<FamilyDashboardScreen> {
     if (stats == null) {
       return const SizedBox.shrink();
     }
-    final impact = stats.environmentalImpact;
+    
     return Card(
       elevation: AppTheme.elevationSm,
       child: Padding(
@@ -662,7 +660,7 @@ class _FamilyDashboardScreenState extends State<FamilyDashboardScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Environmental Impact',
+              'Family Activity',
               style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: AppTheme.paddingRegular),
@@ -670,14 +668,14 @@ class _FamilyDashboardScreenState extends State<FamilyDashboardScreen> {
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
               crossAxisCount: 2,
-              childAspectRatio: 1.8, // Increased from 2.5 to prevent overflow
+              childAspectRatio: 1.8,
               crossAxisSpacing: AppTheme.paddingSmall,
               mainAxisSpacing: AppTheme.paddingSmall,
               children: [
-                _buildImpactItem(Icons.eco, 'CO₂ Saved', '${impact.co2Saved.toStringAsFixed(1)} kg', AppTheme.wetWasteColor, impact.co2Saved > 0),
-                _buildImpactItem(Icons.park, 'Trees Equivalent', impact.treesEquivalent.toStringAsFixed(1), AppTheme.dryWasteColor, impact.treesEquivalent > 0),
-                _buildImpactItem(Icons.water_drop, 'Water Saved', '${impact.waterSaved.toStringAsFixed(1)} L', AppTheme.hazardousWasteColor, impact.waterSaved > 0),
-                 _buildImpactItem(Icons.timeline, 'Activity Streak', '${stats.currentStreak} days', AppTheme.medicalWasteColor, stats.currentStreak > 0 ),
+                _buildImpactItem(Icons.people, 'Members', '${stats.memberCount}', AppTheme.wetWasteColor, stats.memberCount > 0),
+                _buildImpactItem(Icons.category, 'Classifications', '${stats.totalClassifications}', AppTheme.dryWasteColor, stats.totalClassifications > 0),
+                _buildImpactItem(Icons.star, 'Total Points', '${stats.totalPoints}', AppTheme.hazardousWasteColor, stats.totalPoints > 0),
+                _buildImpactItem(Icons.timeline, 'Current Streak', '${stats.currentStreak} days', AppTheme.medicalWasteColor, stats.currentStreak > 0),
               ],
             ),
           ],

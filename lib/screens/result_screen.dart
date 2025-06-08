@@ -23,6 +23,7 @@ import '../screens/waste_dashboard_screen.dart';
 import '../screens/educational_content_screen.dart';
 import '../screens/history_screen.dart';
 import '../screens/modern_home_screen.dart';
+import '../widgets/modern_ui/modern_info_tile.dart';
 
 class ResultScreen extends StatefulWidget {
 
@@ -67,8 +68,7 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
     
     // Process the classification for gamification only if it's a new classification
     if (widget.showActions) {
-      _autoSaveClassification();
-      _processClassification();
+      _autoSaveAndProcess();
     } else {
       // 🎮 GAMIFICATION FIX: For existing classifications, check if they need 
       // retroactive gamification processing (fixes the 2/10 classifications but 0 points issue)
@@ -76,10 +76,109 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
     }
   }
   
-  // Enhance classification with disposal instructions if not already present
-  Future<WasteClassification> _enhanceClassificationWithDisposalInstructions() async {
-    // This method is now called from within _autoSaveClassification to prevent duplicate saves
-    return widget.classification;
+  // Automatically save the classification and process gamification sequentially
+  Future<void> _autoSaveAndProcess() async {
+    if (!widget.showActions || _isSaved) return;
+
+    final classificationId = widget.classification.id;
+    if (_savingClassifications.contains(classificationId)) {
+      debugPrint('🚫 Already processing ${classificationId}, skipping.');
+      return;
+    }
+
+    _savingClassifications.add(classificationId);
+    if(mounted) setState(() => _isAutoSaving = true);
+
+    try {
+      // Step 1: Get services
+      final storageService = Provider.of<StorageService>(context, listen: false);
+      final cloudStorageService = Provider.of<CloudStorageService>(context, listen: false);
+      final gamificationService = Provider.of<GamificationService>(context, listen: false);
+      
+      // Step 2: Save classification locally
+      debugPrint('➡️ STEP 1: Saving classification locally...');
+      final savedClassification = widget.classification.copyWith(isSaved: true);
+      await storageService.saveClassification(savedClassification);
+      debugPrint('✅ STEP 1: Local save complete.');
+
+      // Step 3: Process for gamification (points, achievements)
+      debugPrint('➡️ STEP 2: Processing for gamification...');
+      final oldProfile = await gamificationService.getProfile();
+      await gamificationService.processClassification(savedClassification);
+      final newProfile = await gamificationService.getProfile(forceRefresh: true);
+      debugPrint('✅ STEP 2: Gamification processing complete.');
+
+      // Step 4: Sync to cloud
+      final settings = await storageService.getSettings();
+      final isGoogleSyncEnabled = settings['isGoogleSyncEnabled'] ?? false;
+      if (isGoogleSyncEnabled) {
+        debugPrint('➡️ STEP 3: Syncing classification and profile to cloud...');
+        await cloudStorageService.saveClassificationWithSync(
+          savedClassification,
+          isGoogleSyncEnabled,
+          processGamification: false, // Already processed
+        );
+         await gamificationService.saveProfile(newProfile); // Explicitly save updated profile
+        debugPrint('✅ STEP 3: Cloud sync complete.');
+      } else {
+        debugPrint('Skipped cloud sync (disabled).');
+      }
+
+      // Step 5: Update UI
+      final earnedPoints = newProfile.points.total - oldProfile.points.total;
+      
+      // Correctly and efficiently calculate newly earned achievements
+      final oldAchievementIds = oldProfile.achievements.map((a) => a.id).toSet();
+      final newlyEarnedAchievements = newProfile.achievements
+          .where((a) => a.isEarned && !oldAchievementIds.contains(a.id))
+          .toList();
+
+      if (mounted) {
+        setState(() {
+          _isSaved = true;
+          _isAutoSaving = false;
+          _pointsEarned = earnedPoints;
+          _newlyEarnedAchievements = newlyEarnedAchievements;
+          _completedChallenge = newProfile.completedChallenges
+              .where((c) => !oldProfile.completedChallenges.map((oc) => oc.id).contains(c.id))
+              .firstOrNull;
+          
+          // Show points popup
+          if (earnedPoints > 0) {
+            debugPrint('🎮 RESULT_SCREEN: Showing points popup for $earnedPoints points');
+            _showingPointsPopup = true;
+            
+            Future.delayed(const Duration(milliseconds: 3000), () {
+              if (mounted) {
+                setState(() {
+                  _showingPointsPopup = false;
+                });
+              }
+            });
+          } else {
+            debugPrint('🎮 RESULT_SCREEN: No points to show popup for');
+          }
+        });
+
+        // Show feedback
+        final syncMessage = isGoogleSyncEnabled ? 'Saved and synced!' : 'Saved locally!';
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text(syncMessage),
+          backgroundColor: Colors.green,
+        ));
+      }
+
+    } catch (e, stackTrace) {
+      ErrorHandler.handleError(e, stackTrace);
+      if(mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text('Error: ${ErrorHandler.getUserFriendlyMessage(e)}'),
+        ));
+      }
+    } finally {
+      _savingClassifications.remove(classificationId);
+      if(mounted) setState(() => _isAutoSaving = false);
+    }
   }
   
   @override
@@ -88,177 +187,6 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
     super.dispose();
   }
   
-  // Automatically save the classification when the screen loads
-  Future<void> _autoSaveClassification() async {
-    if (!widget.showActions || _isSaved) return;
-
-    // Check if this classification is already being saved
-    final classificationId = widget.classification.id;
-    if (_savingClassifications.contains(classificationId)) {
-      debugPrint('🚫 Classification $classificationId is already being saved, skipping');
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Classification is already being saved...')),
-        );
-      }
-      return;
-    }
-
-    // Add to saving set
-    _savingClassifications.add(classificationId);
-
-    setState(() {
-      _isAutoSaving = true;
-    });
-
-    try {
-      final storageService = Provider.of<StorageService>(context, listen: false);
-      final cloudStorageService = Provider.of<CloudStorageService>(context, listen: false);
-      
-      // Get Google sync setting
-      final settings = await storageService.getSettings();
-      final isGoogleSyncEnabled = settings['isGoogleSyncEnabled'] ?? false;
-      
-      // Enhance classification with disposal instructions if needed
-      final enhancedClassification = await _enhanceClassificationWithDisposalInstructions();
-      
-      // Save the enhanced classification with isSaved flag
-      final savedClassification = enhancedClassification.copyWith(isSaved: true);
-      
-      // Use cloud storage service which handles both local and cloud saving
-      await cloudStorageService.saveClassificationWithSync(
-        savedClassification,
-        isGoogleSyncEnabled,
-      );
-
-      if (mounted) {
-        setState(() {
-          _isSaved = true;
-          _isAutoSaving = false;
-        });
-        
-        // Trigger refresh of home screen data
-        ModernHomeScreen.triggerRefresh();
-        
-        final syncMessage = isGoogleSyncEnabled 
-            ? 'Saved locally and synced to cloud!'
-            : 'Saved locally!';
-        
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Row(
-              children: [
-                Icon(
-                  isGoogleSyncEnabled ? Icons.cloud_done : Icons.save,
-                  color: Colors.white,
-                ),
-                const SizedBox(width: 8),
-                Text(syncMessage),
-              ],
-            ),
-            backgroundColor: Colors.green,
-          ),
-        );
-      }
-    } catch (e, stackTrace) {
-      ErrorHandler.handleError(e, stackTrace);
-      if (mounted) {
-        setState(() {
-          _isAutoSaving = false;
-        });
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Auto-save failed: ${ErrorHandler.getUserFriendlyMessage(e)}')), 
-        );
-      }
-    } finally {
-      // Always remove from saving set
-      _savingClassifications.remove(classificationId);
-    }
-  }
-  
-  Future<void> _processClassification() async {
-    try {
-      debugPrint('🎮 RESULT_SCREEN: Starting _processClassification');
-      debugPrint('🎮 RESULT_SCREEN: showActions = ${widget.showActions}');
-      debugPrint('🎮 RESULT_SCREEN: classification = ${widget.classification.itemName} (${widget.classification.category})');
-      
-      final gamificationService = Provider.of<GamificationService>(context, listen: false);
-      
-      // Record the old profile to compare for new achievements
-      final oldProfile = await gamificationService.getProfile();
-      debugPrint('🎮 RESULT_SCREEN: Old profile points = ${oldProfile.points.total}');
-      
-      // Process the classification
-      await gamificationService.processClassification(widget.classification);
-      debugPrint('🎮 RESULT_SCREEN: processClassification completed');
-      
-      // Get updated profile
-      final newProfile = await gamificationService.getProfile();
-      debugPrint('🎮 RESULT_SCREEN: New profile points = ${newProfile.points.total}');
-      
-      // Calculate points earned
-      final earnedPoints = newProfile.points.total - oldProfile.points.total;
-      debugPrint('🎮 RESULT_SCREEN: Points earned = $earnedPoints');
-      
-      // Check for new achievements using safe collection access
-      final oldAchievementIds = oldProfile.achievements
-          .safeWhere((a) => a.isEarned)
-          .map((a) => a.id)
-          .toSet();
-          
-      final newAchievements = newProfile.achievements
-          .safeWhere((a) => a.isEarned && !oldAchievementIds.contains(a.id));
-          
-      // Check for completed challenges using safe access
-      final oldChallengeIds = oldProfile.completedChallenges
-          .map((c) => c.id)
-          .toSet();
-          
-      final completedChallenges = newProfile.completedChallenges
-          .safeWhere((c) => !oldChallengeIds.contains(c.id));
-      
-      debugPrint('🎮 RESULT_SCREEN: New achievements count = ${newAchievements.length}');
-      debugPrint('🎮 RESULT_SCREEN: Completed challenges count = ${completedChallenges.length}');
-      
-      // Update the state after classification feedback is done
-      Future.delayed(const Duration(milliseconds: 2000), () {
-        if (mounted) {
-          setState(() {
-            _showingClassificationFeedback = false;
-            _pointsEarned = earnedPoints;
-            _newlyEarnedAchievements = newAchievements;
-            _completedChallenge = completedChallenges.safeFirst;
-            
-            // Show points popup
-            if (earnedPoints > 0) {
-              debugPrint('🎮 RESULT_SCREEN: Showing points popup for $earnedPoints points');
-              _showingPointsPopup = true;
-              
-              Future.delayed(const Duration(milliseconds: 3000), () {
-                if (mounted) {
-                  setState(() {
-                    _showingPointsPopup = false;
-                  });
-                }
-              });
-            } else {
-              debugPrint('🎮 RESULT_SCREEN: No points to show popup for');
-            }
-          });
-        }
-      });
-      
-    } catch (e, stackTrace) {
-      debugPrint('🎮 RESULT_SCREEN: Error in _processClassification: $e');
-      ErrorHandler.handleError(e, stackTrace);
-      if (mounted) {
-        setState(() {
-          _showingClassificationFeedback = false;
-        });
-      }
-    }
-  }
-
   /// Check if this existing classification needs retroactive gamification processing
   /// This fixes the issue where users have classifications but 0 points
   Future<void> _checkRetroactiveGamificationProcessing() async {
@@ -566,6 +494,46 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
     }
   }
 
+  Widget _buildDetailsSection(BuildContext context, WasteClassification classification) {
+    return ExpansionTile(
+      title: const Text(
+        'Detailed Analysis',
+        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+      ),
+      initiallyExpanded: true,
+      children: [
+        ModernInfoTile(
+          icon: Icons.eco,
+          label: 'Environmental Impact',
+          value: classification.environmentalImpact ?? 'Not available',
+        ),
+        ModernInfoTile(
+          icon: Icons.recycling,
+          label: 'Recyclable',
+          value: classification.isRecyclable == null ? 'Unknown' : (classification.isRecyclable! ? 'Yes' : 'No'),
+          valueColor: classification.isRecyclable == null ? null : (classification.isRecyclable! ? Colors.green : Colors.red),
+        ),
+        ModernInfoTile(
+          icon: Icons.compost,
+          label: 'Compostable',
+          value: classification.isCompostable == null ? 'Unknown' : (classification.isCompostable! ? 'Yes' : 'No'),
+           valueColor: classification.isCompostable == null ? null : (classification.isCompostable! ? Colors.green : Colors.red),
+        ),
+        ModernInfoTile(
+          icon: Icons.warning_amber,
+          label: 'Risk Level',
+          value: classification.riskLevel ?? 'Not assessed',
+        ),
+        if (classification.requiredPPE != null && classification.requiredPPE!.isNotEmpty)
+          ModernInfoTile(
+            icon: Icons.health_and_safety,
+            label: 'Required PPE',
+            value: classification.requiredPPE!.join(', '),
+          ),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -760,6 +728,11 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
                               ],
                             ),
                           ),
+                          
+                          const SizedBox(height: AppTheme.paddingLarge),
+                          
+                          // Display detailed analysis
+                          _buildDetailsSection(context, widget.classification),
                           
                           const SizedBox(height: AppTheme.paddingLarge),
                           

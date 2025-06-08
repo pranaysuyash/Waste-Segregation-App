@@ -24,6 +24,7 @@ import 'auth_screen.dart';
 import 'notification_settings_screen.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import '../services/cloud_storage_service.dart';
+import '../services/firebase_cleanup_service.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -296,6 +297,20 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         _showFactoryResetDialog(context, storageService, analyticsService, premiumService);
                       },
                     ),
+                  // Firebase cleanup button (debug only)
+                  const SizedBox(height: 8),
+                  ElevatedButton.icon(
+                    icon: const Icon(Icons.cloud_off, color: Colors.red),
+                    label: const Text('Clear Firebase Data (Fresh Install)', style: TextStyle(color: Colors.red)),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.white,
+                      foregroundColor: Colors.red,
+                      side: const BorderSide(color: Colors.red),
+                    ),
+                    onPressed: () {
+                      _showFirebaseCleanupDialog(context);
+                    },
+                  ),
                   // Migration button for updating old classifications
                   const SizedBox(height: 8),
                   ElevatedButton.icon(
@@ -1599,6 +1614,106 @@ class _SettingsScreenState extends State<SettingsScreen> {
         SnackBar(content: Text('Failed to update feedback timeframe: $e')),
       );
     }
+  }
+
+  void _showFirebaseCleanupDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Row(
+          children: [
+            Icon(Icons.warning, color: Colors.red),
+            SizedBox(width: 8),
+            Text('Clear Firebase Data'),
+          ],
+        ),
+        content: const Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'This will delete ALL Firebase data to simulate a fresh install:',
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
+            SizedBox(height: 8),
+            Text('• All user data and classifications'),
+            Text('• Community feed and stats'),
+            Text('• Family data and invitations'),
+            Text('• Analytics and achievements'),
+            SizedBox(height: 8),
+            Text(
+              'This action cannot be undone and is only for testing purposes.',
+              style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+              foregroundColor: Colors.white,
+            ),
+            onPressed: () async {
+              Navigator.pop(context);
+              
+              // Show loading dialog
+              showDialog(
+                context: context,
+                barrierDismissible: false,
+                builder: (context) => const AlertDialog(
+                  content: Row(
+                    children: [
+                      CircularProgressIndicator(),
+                      SizedBox(width: 16),
+                      Text('Clearing Firebase data...'),
+                    ],
+                  ),
+                ),
+              );
+              
+              try {
+                final cleanupService = FirebaseCleanupService();
+                await cleanupService.clearAllDataForFreshInstall();
+                
+                if (context.mounted) {
+                  Navigator.pop(context); // Close loading dialog
+                  
+                  // Navigate to auth screen for fresh start
+                  Navigator.of(context).pushAndRemoveUntil(
+                    MaterialPageRoute(builder: (_) => const AuthScreen()),
+                    (Route<dynamic> route) => false,
+                  );
+                  
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Firebase data cleared - app reset to fresh install state'),
+                      backgroundColor: Colors.green,
+                      duration: Duration(seconds: 3),
+                    ),
+                  );
+                }
+              } catch (e) {
+                if (context.mounted) {
+                  Navigator.pop(context); // Close loading dialog
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Error clearing Firebase data: $e'),
+                      backgroundColor: Colors.red,
+                      duration: const Duration(seconds: 3),
+                    ),
+                  );
+                }
+              }
+            },
+            child: const Text('CLEAR ALL DATA'),
+          ),
+        ],
+      ),
+    );
   }
 
   Future<void> _runClassificationMigration(BuildContext context, StorageService storageService) async {

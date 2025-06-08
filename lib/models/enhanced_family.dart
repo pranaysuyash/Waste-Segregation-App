@@ -386,34 +386,20 @@ class PrivacySettings {
   }
 }
 
-/// Comprehensive statistics for a family.
+/// Aggregated statistics for a family.
 class FamilyStats {
 
   const FamilyStats({
-    required this.totalClassifications,
-    required this.totalPoints,
-    required this.currentStreak,
-    required this.bestStreak,
-    required this.categoryBreakdown,
-    required this.environmentalImpact,
-    required this.weeklyProgress,
-    required this.achievementCount,
-    required this.lastUpdated,
+    this.totalClassifications = 0,
+    this.totalPoints = 0,
+    this.currentStreak = 0,
+    this.memberCount = 0,
+    this.categoryCounts = const {},
   });
 
-  /// Creates empty family stats.
+  /// Creates empty stats.
   factory FamilyStats.empty() {
-    return FamilyStats(
-      totalClassifications: 0,
-      totalPoints: 0,
-      currentStreak: 0,
-      bestStreak: 0,
-      categoryBreakdown: {},
-      environmentalImpact: EnvironmentalImpact.empty(),
-      weeklyProgress: [],
-      achievementCount: 0,
-      lastUpdated: DateTime.now(),
-    );
+    return const FamilyStats();
   }
 
   /// Creates stats from a JSON map.
@@ -422,51 +408,34 @@ class FamilyStats {
       totalClassifications: json['totalClassifications'] as int? ?? 0,
       totalPoints: json['totalPoints'] as int? ?? 0,
       currentStreak: json['currentStreak'] as int? ?? 0,
-      bestStreak: json['bestStreak'] as int? ?? 0,
-      categoryBreakdown: Map<String, int>.from(json['categoryBreakdown'] as Map? ?? {}),
-      environmentalImpact: EnvironmentalImpact.fromJson(
-        json['environmentalImpact'] as Map<String, dynamic>? ?? {},
-      ),
-      weeklyProgress: (json['weeklyProgress'] as List<dynamic>?)
-              ?.map((w) => WeeklyProgress.fromJson(w as Map<String, dynamic>))
-              .toList() ??
-          [],
-      achievementCount: json['achievementCount'] as int? ?? 0,
-      lastUpdated: DateTime.parse(json['lastUpdated'] as String),
+      memberCount: json['memberCount'] as int? ?? 0,
+      categoryCounts: json['categoryCounts'] != null
+          ? Map<String, int>.from(json['categoryCounts'] as Map)
+          : const {},
     );
   }
+
   final int totalClassifications;
   final int totalPoints;
   final int currentStreak;
-  final int bestStreak;
-  final Map<String, int> categoryBreakdown;
-  final EnvironmentalImpact environmentalImpact;
-  final List<WeeklyProgress> weeklyProgress;
-  final int achievementCount;
-  final DateTime lastUpdated;
+  final int memberCount;
+  final Map<String, int> categoryCounts;
+
 
   /// Creates a copy of these stats with updated fields.
   FamilyStats copyWith({
     int? totalClassifications,
     int? totalPoints,
     int? currentStreak,
-    int? bestStreak,
-    Map<String, int>? categoryBreakdown,
-    EnvironmentalImpact? environmentalImpact,
-    List<WeeklyProgress>? weeklyProgress,
-    int? achievementCount,
-    DateTime? lastUpdated,
+    int? memberCount,
+    Map<String, int>? categoryCounts,
   }) {
     return FamilyStats(
       totalClassifications: totalClassifications ?? this.totalClassifications,
       totalPoints: totalPoints ?? this.totalPoints,
       currentStreak: currentStreak ?? this.currentStreak,
-      bestStreak: bestStreak ?? this.bestStreak,
-      categoryBreakdown: categoryBreakdown ?? this.categoryBreakdown,
-      environmentalImpact: environmentalImpact ?? this.environmentalImpact,
-      weeklyProgress: weeklyProgress ?? this.weeklyProgress,
-      achievementCount: achievementCount ?? this.achievementCount,
-      lastUpdated: lastUpdated ?? DateTime.now(),
+      memberCount: memberCount ?? this.memberCount,
+      categoryCounts: categoryCounts ?? this.categoryCounts,
     );
   }
 
@@ -476,12 +445,8 @@ class FamilyStats {
       'totalClassifications': totalClassifications,
       'totalPoints': totalPoints,
       'currentStreak': currentStreak,
-      'bestStreak': bestStreak,
-      'categoryBreakdown': categoryBreakdown,
-      'environmentalImpact': environmentalImpact.toJson(),
-      'weeklyProgress': weeklyProgress.map((w) => w.toJson()).toList(),
-      'achievementCount': achievementCount,
-      'lastUpdated': lastUpdated.toIso8601String(),
+      'memberCount': memberCount,
+      'categoryCounts': categoryCounts,
     };
   }
 }

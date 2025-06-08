@@ -248,52 +248,45 @@ class _CommunityScreenState extends State<CommunityScreen> with TickerProviderSt
         children: [
           // Community overview
           ModernCard(
-            child: Padding(
-              padding: const EdgeInsets.all(AppTheme.paddingLarge),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Community Overview',
-                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: AppTheme.paddingRegular),
-                  
-                  _buildStatRow('Total Members', '${_stats!.totalUsers}'),
-                  _buildStatRow('Total Classifications', '${_stats!.totalClassifications}'),
-                  _buildStatRow('Total Points Earned', '${_stats!.totalPoints}'),
-                  _buildStatRow('Active Today', '${_stats!.activeToday}'),
-                ],
-              ),
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Community Stats',
+                  style: Theme.of(context).textTheme.headlineSmall,
+                ),
+                const SizedBox(height: 16),
+                _buildStatRow('Total Users', '${_stats!.totalUsers}'),
+                _buildStatRow('Total Classifications', '${_stats!.totalClassifications}'),
+                _buildStatRow('Total Points Earned', '${_stats!.totalPoints}'),
+              ],
             ),
           ),
-          
           const SizedBox(height: AppTheme.paddingLarge),
-          
-          // Top categories
-          ModernCard(
-            child: Padding(
-              padding: const EdgeInsets.all(AppTheme.paddingLarge),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Popular Categories',
-                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                      fontWeight: FontWeight.bold,
+          // Top Categories
+          if (_stats!.categoryBreakdown.isNotEmpty)
+            ModernCard(
+              child: Padding(
+                padding: const EdgeInsets.all(AppTheme.paddingLarge),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Popular Categories',
+                      style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: AppTheme.paddingRegular),
-                  
-                  ..._stats!.topCategories.entries.map((entry) {
-                    return _buildStatRow(entry.key, '${entry.value} items');
-                  }),
-                ],
+                    const SizedBox(height: AppTheme.paddingRegular),
+                    
+                    ..._stats!.topCategories.entries.map((entry) {
+                      return _buildStatRow(entry.key, '${entry.value} items');
+                    }),
+                  ],
+                ),
               ),
             ),
-          ),
         ],
       ),
     );

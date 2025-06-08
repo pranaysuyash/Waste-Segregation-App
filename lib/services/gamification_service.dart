@@ -395,8 +395,11 @@ class GamificationService extends ChangeNotifier {
         try {
           final communityService = CommunityService();
           await communityService.initCommunity();
-          await communityService.recordStreak(newCurrent, 5); // 5 points for daily streak
-          debugPrint('🌍 COMMUNITY: Recorded streak activity');
+          final userProfile = await _storageService.getCurrentUserProfile();
+          if (userProfile != null) {
+            await communityService.recordStreak(newCurrent, userProfile);
+            debugPrint('🌍 COMMUNITY: Recorded streak activity');
+          }
         } catch (e) {
           debugPrint('🌍 COMMUNITY ERROR: Failed to record streak: $e');
         }
@@ -619,12 +622,11 @@ class GamificationService extends ChangeNotifier {
     try {
       final communityService = CommunityService();
       await communityService.initCommunity();
-      await communityService.recordClassification(
-        classification.category,
-        classification.subcategory ?? '',
-        10, // Points earned for classification
-      );
-      debugPrint('🌍 COMMUNITY: Recorded classification activity');
+      final userProfile = await _storageService.getCurrentUserProfile();
+      if (userProfile != null) {
+        await communityService.recordClassification(classification, userProfile);
+        debugPrint('🌍 COMMUNITY: Recorded classification activity');
+      }
     } catch (e) {
       debugPrint('🌍 COMMUNITY ERROR: Failed to record classification: $e');
     }
@@ -721,11 +723,11 @@ class GamificationService extends ChangeNotifier {
           try {
             final communityService = CommunityService();
             await communityService.initCommunity();
-            await communityService.recordAchievement(
-              achievement.title,
-              achievement.pointsReward,
-            );
-            debugPrint('🌍 COMMUNITY: Recorded achievement activity');
+            final userProfile = await _storageService.getCurrentUserProfile();
+            if (userProfile != null) {
+              await communityService.recordAchievement(achievement, userProfile);
+              debugPrint('🌍 COMMUNITY: Recorded achievement activity');
+            }
           } catch (e) {
             debugPrint('🌍 COMMUNITY ERROR: Failed to record achievement: $e');
           }
@@ -1710,11 +1712,10 @@ class GamificationService extends ChangeNotifier {
       await updateStreak();
       debugPrint('🔄 FORCE SYNC: ✅ Streak updated');
       
-      // 4. Clear any sample community data
+      // 4. Initialize community service
       final communityService = CommunityService();
       await communityService.initCommunity();
-      await communityService.clearSampleData();
-      debugPrint('🔄 FORCE SYNC: ✅ Sample data cleared');
+      debugPrint('🔄 FORCE SYNC: ✅ Community service initialized');
       
       // 5. Force refresh profile
       final profile = await forceRefreshProfile();

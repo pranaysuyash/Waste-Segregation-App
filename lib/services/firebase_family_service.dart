@@ -322,49 +322,154 @@ class FirebaseFamilyService {
 
   // ================ FAMILY STATISTICS ================
 
-  /// Gets comprehensive statistics for a family.
+  /// Gets family statistics from the dedicated stats document.
   Future<family_models.FamilyStats> getFamilyStats(String familyId) async {
     try {
-      // Get family classifications
-      final classifications = await getFamilyClassifications(familyId);
-      
-      // Calculate statistics
-      final totalClassifications = classifications.length;
-      final totalPoints = classifications.fold<int>(
-        0, 
-        (accumulator, classification) => accumulator + 10, // Default 10 points per classification
-      );
+      final statsDoc = await _firestore
+          .collection('family_stats')
+          .doc(familyId)
+          .get();
 
-      // Calculate category breakdown
-      final categoryBreakdown = <String, int>{};
-      for (final classification in classifications) {
-        final category = classification.classification.category;
-        categoryBreakdown[category] = (categoryBreakdown[category] ?? 0) + 1;
+      if (statsDoc.exists && statsDoc.data() != null) {
+        return family_models.FamilyStats.fromJson(statsDoc.data()!);
+      } else {
+        // If no stats doc exists, calculate from scratch and create it
+        return _recalculateAndSaveFamilyStats(familyId);
       }
-
-      // Calculate streaks (simplified - would need more complex logic)
-      final currentStreak = _calculateCurrentStreak(classifications);
-      final bestStreak = _calculateBestStreak(classifications);
-
-      // Calculate environmental impact
-      final environmentalImpact = _calculateEnvironmentalImpact(classifications);
-
-      // Get weekly progress
-      final weeklyProgress = _calculateWeeklyProgress(classifications);
-
-      return family_models.FamilyStats(
-        totalClassifications: totalClassifications,
-        totalPoints: totalPoints,
-        currentStreak: currentStreak,
-        bestStreak: bestStreak,
-        categoryBreakdown: categoryBreakdown,
-        environmentalImpact: environmentalImpact,
-        weeklyProgress: weeklyProgress,
-        achievementCount: 0, // Would be calculated from achievements
-        lastUpdated: DateTime.now(),
-      );
     } catch (e) {
-      throw Exception('Failed to get family stats: $e');
+      debugPrint('Error getting family stats, attempting recalculation: $e');
+      // Fallback to recalculation if there's an error
+      return _recalculateAndSaveFamilyStats(familyId);
+    }
+  }
+
+  /// Updates family stats after a new classification is shared.
+  Future<void> _updateFamilyStatsAfterClassification(
+      String familyId, int pointsEarned, String category) async {
+    final statsRef = _firestore.collection('family_stats').doc(familyId);
+
+    await _firestore.runTransaction((transaction) async {
+      final snapshot = await transaction.get(statsRef);
+
+      if (!snapshot.exists) {
+        // If stats don't exist, recalculate everything to be safe
+        await _recalculateAndSaveFamilyStats(familyId, transaction: transaction);
+      } else {
+        // Atomically update the existing stats
+        transaction.update(statsRef, {
+          'totalClassifications': FieldValue.increment(1),
+          'totalPoints': FieldValue.increment(pointsEarned),
+          'categoryCounts.$category': FieldValue.increment(1),
+          'lastUpdated': FieldValue.serverTimestamp(),
+        });
+      }
+    });
+  }
+
+  /// Recalculates all stats from scratch. Can be run inside a transaction.
+  Future<family_models.FamilyStats> _recalculateAndSaveFamilyStats(
+    String familyId, {
+    Transaction? transaction,
+  }) async {
+    final family = await getFamily(familyId);
+    if (family == null) return family_models.FamilyStats.empty();
+
+    var totalClassifications = 0;
+    var totalPoints = 0;
+    final categoryCounts = <String, int>{};
+    var currentStreak = 0; // Streak logic can be complex, simplifying for now
+
+    final allClassifications = <WasteClassification>[];
+    for (final member in family.members) {
+      final memberClassifications = await _getUserClassifications(member.userId);
+      allClassifications.addAll(memberClassifications);
+    }
+
+    totalClassifications = allClassifications.length;
+    for (final classification in allClassifications) {
+      totalPoints += classification.pointsAwarded ?? 10;
+      categoryCounts.update(
+        classification.category,
+        (value) => value + 1,
+        ifAbsent: () => 1,
+      );
+    }
+
+    // Simplified streak calculation - you can expand this
+    currentStreak = _calculateStreakFromDates(
+        allClassifications.map((c) => c.timestamp).toList());
+
+    final stats = family_models.FamilyStats(
+      totalClassifications: totalClassifications,
+      totalPoints: totalPoints,
+      memberCount: family.members.length,
+      currentStreak: currentStreak,
+      categoryCounts: categoryCounts,
+    );
+
+    // Save the newly calculated stats
+    final statsRef = _firestore.collection('family_stats').doc(familyId);
+    final statsJson = stats.toJson();
+    statsJson['lastUpdated'] = FieldValue.serverTimestamp(); // Use server timestamp
+
+    if (transaction != null) {
+      transaction.set(statsRef, statsJson);
+    } else {
+      await statsRef.set(statsJson);
+    }
+
+    return stats;
+  }
+  
+  /// Pure function to calculate streak from a list of dates
+  int _calculateStreakFromDates(List<DateTime> dates) {
+      if (dates.isEmpty) return 0;
+      final now = DateTime.now();
+      
+      final uniqueDays = dates
+          .map((d) => DateTime(d.year, d.month, d.day))
+          .toSet()
+          .toList()
+        ..sort((a, b) => b.compareTo(a));
+
+      if (uniqueDays.isEmpty) return 0;
+
+      var streak = 0;
+      var today = DateTime(now.year, now.month, now.day);
+      
+      final firstDay = uniqueDays.first;
+
+      // Check if the streak is current (activity today or yesterday)
+      if (firstDay.isAtSameMomentAs(today) ||
+          firstDay.isAtSameMomentAs(today.subtract(const Duration(days: 1)))) {
+          streak = 1;
+          for (var i = 0; i < uniqueDays.length - 1; i++) {
+            final diff = uniqueDays[i].difference(uniqueDays[i+1]).inDays;
+            if (diff == 1) {
+              streak++;
+            } else {
+              break; // Streak broken
+            }
+          }
+      }
+      return streak;
+  }
+
+  /// Helper to get all classifications for a single user
+  Future<List<WasteClassification>> _getUserClassifications(String userId) async {
+    try {
+      final snapshot = await _firestore
+          .collection(_usersCollection)
+          .doc(userId)
+          .collection('classifications')
+          .get();
+      
+      return snapshot.docs
+          .map((doc) => WasteClassification.fromJson(doc.data()))
+          .toList();
+    } catch (e) {
+      debugPrint('Error getting user classifications for $userId: $e');
+      return [];
     }
   }
 
@@ -461,7 +566,8 @@ class FirebaseFamilyService {
           .set(sharedClassification.toJson());
 
       // Update family stats
-      await _updateFamilyStatsAfterClassification(familyId, pointsEarned);
+      await _updateFamilyStatsAfterClassification(
+          familyId, pointsEarned, classification.category);
     } catch (e) {
       throw Exception('Failed to save shared classification: $e');
     }
@@ -790,45 +896,6 @@ class FirebaseFamilyService {
     } catch (e) {
       return [];
     }
-  }
-
-  /// Updates family stats after a new classification.
-  Future<void> _updateFamilyStatsAfterClassification(String familyId, int pointsEarned) async {
-    // This method needs to be re-evaluated as Family model does not have a stats property directly.
-    // It might involve updating a separate 'family_stats' collection or denormalizing stats into the family document.
-    // For now, this will be a no-op to prevent errors.
-    debugPrint('Skipping _updateFamilyStatsAfterClassification as Family.stats is not directly available.');
-    return;
-    /* try {
-      final family = await getFamily(familyId);
-      if (family == null) return;
-
-      // This part is problematic as family.stats doesn't exist directly
-      // final updatedStats = family.stats.copyWith(
-      //   totalClassifications: family.stats.totalClassifications + 1,
-      //   totalPoints: family.stats.totalPoints + pointsEarned,
-      //   lastUpdated: DateTime.now(),
-      // );
-
-      // final updatedFamily = family.copyWith(stats: updatedStats); // also problematic
-      // await updateFamily(updatedFamily);
-    } catch (e) {
-      // Log error but don't throw to avoid breaking classification flow
-      debugPrint('Failed to update family stats: $e');
-    }*/
-  }
-
-  /// Calculates current streak for a family.
-  int _calculateCurrentStreak(List<SharedWasteClassification> classifications) {
-    // Simplified implementation - would need more complex logic
-    // to track consecutive days with classifications
-    return 0;
-  }
-
-  /// Calculates best streak for a family.
-  int _calculateBestStreak(List<SharedWasteClassification> classifications) {
-    // Simplified implementation
-    return 0;
   }
 
   /// Calculates environmental impact metrics.
