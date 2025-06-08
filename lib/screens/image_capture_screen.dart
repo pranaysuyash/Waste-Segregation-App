@@ -18,7 +18,7 @@ class ImageCaptureScreen extends StatefulWidget {
     this.imageFile,
     this.xFile,
     this.webImage,
-  }) : assert(imageFile != null || xFile != null || webImage != null);
+  });
 
   // Factory constructor for creating from XFile (useful for web and mobile)
   factory ImageCaptureScreen.fromXFile(XFile xFile) =>
@@ -37,6 +37,10 @@ class ImageCaptureScreen extends StatefulWidget {
 class _ImageCaptureScreenState extends State<ImageCaptureScreen> {
   bool _isAnalyzing = false;
   bool _isCancelled = false;
+
+  // Local state for holding image data
+  File? _imageFile;
+  XFile? _xFile;
   Uint8List? _webImageBytes;
 
   bool _useSegmentation = false;
@@ -46,17 +50,56 @@ class _ImageCaptureScreenState extends State<ImageCaptureScreen> {
   @override
   void initState() {
     super.initState();
-    if (kIsWeb && widget.xFile != null) {
+    _imageFile = widget.imageFile;
+    _xFile = widget.xFile;
+    _webImageBytes = widget.webImage;
+
+    if (_imageFile == null && _xFile == null && _webImageBytes == null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _captureImage();
+      });
+    } else if (kIsWeb && _xFile != null) {
       _loadWebImage();
     }
   }
 
+  Future<void> _captureImage() async {
+    final imagePicker = ImagePicker();
+    final image = await imagePicker.pickImage(
+      source: ImageSource.camera,
+      maxWidth: 1200,
+      maxHeight: 1200,
+      imageQuality: 85,
+    );
+
+    if (image != null) {
+      if (mounted) {
+        setState(() {
+          _xFile = image;
+          if (!kIsWeb) {
+            _imageFile = File(image.path);
+          }
+        });
+        if (kIsWeb) {
+          await _loadWebImage();
+        }
+      }
+    } else {
+      // User cancelled, pop the screen if there's no image
+      if (mounted && _imageFile == null && _xFile == null && _webImageBytes == null) {
+        Navigator.of(context).pop();
+      }
+    }
+  }
+
   Future<void> _loadWebImage() async {
-    if (widget.xFile != null) {
-      final bytes = await widget.xFile!.readAsBytes();
-      setState(() {
-        _webImageBytes = bytes;
-      });
+    if (_xFile != null) {
+      final bytes = await _xFile!.readAsBytes();
+      if (mounted) {
+        setState(() {
+          _webImageBytes = bytes;
+        });
+      }
     }
   }
 
@@ -64,16 +107,16 @@ class _ImageCaptureScreenState extends State<ImageCaptureScreen> {
     final aiService = Provider.of<AiService>(context, listen: false);
     List<Map<String, dynamic>> segments;
     if (kIsWeb) {
-      final imageBytes = _webImageBytes ?? widget.webImage;
+      final imageBytes = _webImageBytes;
       if (imageBytes == null || imageBytes.isEmpty) {
         throw Exception('No image data available for segmentation');
       }
       segments = await aiService.segmentImage(imageBytes);
     } else {
-      if (widget.imageFile == null) {
+      if (_imageFile == null) {
         throw Exception('No image file available for segmentation');
       }
-      segments = await aiService.segmentImage(widget.imageFile!);
+      segments = await aiService.segmentImage(_imageFile!);
     }
     setState(() {
       _segments = segments;
@@ -95,14 +138,14 @@ class _ImageCaptureScreenState extends State<ImageCaptureScreen> {
 
       if (kIsWeb) {
         // For web, we need to handle the image differently
-        if (widget.xFile != null) {
+        if (_xFile != null) {
           // First check if we already have the web image bytes loaded
           var imageBytes = _webImageBytes;
 
           // If not, read them now
           if (imageBytes == null) {
             try {
-              imageBytes = await widget.xFile!.readAsBytes();
+              imageBytes = await _xFile!.readAsBytes();
 
               // Check if cancelled during image reading
               if (_isCancelled) {
@@ -135,25 +178,25 @@ class _ImageCaptureScreenState extends State<ImageCaptureScreen> {
 
           // Log the image size for debugging
           debugPrint(
-              'Analyzing web image: ${widget.xFile!.name}, size: ${imageBytes.length} bytes');
+              'Analyzing web image: ${_xFile!.name}, size: ${imageBytes.length} bytes');
 
           if (_useSegmentation && _selectedSegments.isNotEmpty) {
             // Already using our custom Rect type from segmentImage()
             classification = await aiService.analyzeImageSegmentsWeb(
               imageBytes,
-              widget.xFile!.name,
+              _xFile!.name,
               _selectedSegments.map((i) => _segments[i]).toList(),
             );
           } else {
             classification = await aiService.analyzeWebImage(
               imageBytes,
-              widget.xFile!.name,
+              _xFile!.name,
             );
           }
 
           // Log success for debugging
           debugPrint('Web image analysis complete: ${classification.itemName}');
-        } else if (widget.webImage != null) {
+        } else if (_webImageBytes != null) {
           // Check if cancelled before starting analysis
           if (_isCancelled) {
             debugPrint('Analysis cancelled before starting web bytes analysis');
@@ -162,18 +205,18 @@ class _ImageCaptureScreenState extends State<ImageCaptureScreen> {
 
           // We were provided with the image bytes directly
           debugPrint(
-              'Analyzing web image from bytes, size: ${widget.webImage!.length} bytes');
+              'Analyzing web image from bytes, size: ${_webImageBytes!.length} bytes');
 
           if (_useSegmentation && _selectedSegments.isNotEmpty) {
             // Using our custom Rect class from segmentImage()
             classification = await aiService.analyzeImageSegmentsWeb(
-              widget.webImage!,
+              _webImageBytes!,
               'uploaded_image.jpg',
               _selectedSegments.map((i) => _segments[i]).toList(),
             );
           } else {
             classification = await aiService.analyzeWebImage(
-              widget.webImage!,
+              _webImageBytes!,
               'uploaded_image.jpg',
             );
           }
@@ -186,7 +229,7 @@ class _ImageCaptureScreenState extends State<ImageCaptureScreen> {
         }
       } else {
         // For mobile platforms
-        if (widget.imageFile != null) {
+        if (_imageFile != null) {
           // Check if cancelled before starting analysis
           if (_isCancelled) {
             debugPrint('Analysis cancelled before starting mobile analysis');
@@ -196,18 +239,18 @@ class _ImageCaptureScreenState extends State<ImageCaptureScreen> {
             return;
           }
 
-          debugPrint('Analyzing mobile image file: ${widget.imageFile!.path}');
+          debugPrint('Analyzing mobile image file: ${_imageFile!.path}');
 
           // Check if file exists and is readable
-          if (await widget.imageFile!.exists()) {
+          if (await _imageFile!.exists()) {
             if (_useSegmentation && _selectedSegments.isNotEmpty) {
               // Using our custom Rect class from segmentImage()
               classification = await aiService.analyzeImageSegments(
-                widget.imageFile!,
+                _imageFile!,
                 _selectedSegments.map((i) => _segments[i]).toList(),
               );
             } else {
-              classification = await aiService.analyzeImage(widget.imageFile!);
+              classification = await aiService.analyzeImage(_imageFile!);
             }
             debugPrint(
                 'Mobile image analysis complete: ${classification.itemName}');
@@ -265,16 +308,39 @@ class _ImageCaptureScreenState extends State<ImageCaptureScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // If no image is available yet and we are not analyzing, show a loader or placeholder
+    if (_imageFile == null && _xFile == null && _webImageBytes == null && !_isAnalyzing) {
+      return Scaffold(
+        appBar: AppBar(
+          title: const Text('Capture Image'),
+        ),
+        body: const Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              CircularProgressIndicator(),
+              SizedBox(height: 16),
+              Text('Waiting for camera...'),
+            ],
+          ),
+        ),
+      );
+    }
+    
     return Scaffold(
       appBar: AppBar(
         title: const Text('Review Image'),
       ),
       body: _isAnalyzing
           ? EnhancedAnalysisLoader(
-              imageName: widget.imageFile?.path.split('/').last ?? 
-                         widget.xFile?.name ?? 
+              imageName: _imageFile?.path.split('/').last ?? 
+                         _xFile?.name ?? 
                          'captured_image.jpg',
               onCancel: () {
+                // Cancel the AI service analysis
+                final aiService = Provider.of<AiService>(context, listen: false);
+                aiService.cancelAnalysis();
+                
                 setState(() {
                   _isCancelled = true;
                   _isAnalyzing = false;
@@ -523,17 +589,12 @@ class _ImageCaptureScreenState extends State<ImageCaptureScreen> {
           _webImageBytes!,
           fit: BoxFit.contain,
         );
-      } else if (widget.webImage != null) {
-        imageWidget = Image.memory(
-          widget.webImage!,
-          fit: BoxFit.contain,
-        );
       } else {
         return const Center(child: CircularProgressIndicator());
       }
     } else {
       // For mobile, use imageFile if available, otherwise convert xFile to File
-      final file = widget.imageFile ?? File(widget.xFile!.path);
+      final file = _imageFile ?? File(_xFile!.path);
       imageWidget = Image.file(
         file,
         fit: BoxFit.contain,

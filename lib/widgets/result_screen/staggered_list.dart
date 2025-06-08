@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 /// A widget that displays a list of items with staggered entrance animations
 class StaggeredList<T> extends StatelessWidget {
   final List<T> items;
-  final Widget Function(BuildContext, T, int) itemBuilder;
+  final Widget Function(BuildContext, T) itemBuilder;
   final Duration initialDelay;
   final Duration stepDelay;
   final Axis direction;
@@ -36,7 +36,7 @@ class StaggeredList<T> extends StatelessWidget {
       final item = entry.value;
       return DelayedDisplay(
         delay: initialDelay + stepDelay * index,
-        child: itemBuilder(context, item, index),
+        child: itemBuilder(context, item),
       );
     }).toList();
   }

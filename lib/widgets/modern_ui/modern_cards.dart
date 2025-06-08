@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import '../../utils/constants.dart';
 import 'modern_badges.dart';
 
+/// Enum to represent trend direction for stats
+enum Trend { up, down, flat }
+
 /// Modern card widget with glassmorphism effect and customizable appearance
 class ModernCard extends StatelessWidget {
 
@@ -47,17 +50,17 @@ class ModernCard extends StatelessWidget {
       padding: padding ?? const EdgeInsets.all(AppTheme.spacingMd),
       decoration: BoxDecoration(
         color: enableGlassmorphism 
-            ? (backgroundColor ?? theme.cardColor).withValues(alpha:opacity)
+            ? (backgroundColor ?? theme.cardColor).withOpacity(opacity)
             : backgroundColor ?? theme.cardColor,
         borderRadius: BorderRadius.circular(effectiveRadius),
         border: border ?? (enableGlassmorphism 
             ? Border.all(
-                color: Colors.white.withValues(alpha:0.2),
+                color: Colors.white.withOpacity(0.2),
               ) 
             : null),
         boxShadow: shadows ?? [
           BoxShadow(
-            color: Colors.black.withValues(alpha:isDark ? 0.3 : 0.1),
+            color: Colors.black.withOpacity(isDark ? 0.3 : 0.1),
             blurRadius: blur,
             offset: const Offset(0, 4),
           ),
@@ -174,7 +177,7 @@ class FeatureCard extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: effectiveIconColor.withValues(alpha:0.1),
+                  color: effectiveIconColor.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(AppTheme.borderRadiusMd),
                 ),
                 child: Icon(
@@ -248,7 +251,7 @@ class StatsCard extends StatelessWidget {
   final String? subtitle;
   final IconData? icon;
   final Color? color;
-  final String? trend;
+  final Trend? trend;
   final bool isPositiveTrend;
   final VoidCallback? onTap;
 
@@ -256,117 +259,96 @@ class StatsCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final effectiveColor = color ?? theme.colorScheme.primary;
-    
+
     return ModernCard(
       onTap: onTap,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      padding: const EdgeInsets.all(AppTheme.spacingMd),
+      child: Row(
         children: [
-          // Header with icon
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Expanded(
-                child: Text(
+          if (icon != null) ...[
+            Container(
+              padding: const EdgeInsets.all(AppTheme.spacingSm),
+              decoration: BoxDecoration(
+                color: effectiveColor.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(AppTheme.borderRadiusMd),
+              ),
+              child: Icon(icon, color: effectiveColor, size: AppTheme.iconSizeLg),
+            ),
+            const SizedBox(width: AppTheme.spacingMd),
+          ],
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
                   title,
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    color: theme.colorScheme.onSurfaceVariant,
-                    fontWeight: FontWeight.w500,
-                  ),
-                  overflow: TextOverflow.ellipsis,
-                  maxLines: 1,
-                ),
-              ),
-              if (icon != null) ...[
-                const SizedBox(width: 4),
-                Icon(
-                  icon,
-                  color: effectiveColor,
-                  size: AppTheme.iconSizeSm,
-                ),
-              ],
-            ],
-          ),
-          
-          const SizedBox(height: AppTheme.spacingSm),
-          
-          // Main value with responsive sizing and overflow protection
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Expanded(
-                flex: 2, // Give more space to the main value
-                child: Text(
-                  value,
-                  style: theme.textTheme.displaySmall?.copyWith(
-                    color: effectiveColor,
-                    fontWeight: FontWeight.bold,
-                  ),
+                  style: theme.textTheme.bodySmall,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
-              ),
-              if (trend != null) ...[
-                const SizedBox(width: 2), // Reduced spacing
-                Flexible(
-                  child: LayoutBuilder(
-                    builder: (context, constraints) {
-                      // Hide trend if space is too constrained
-                      if (constraints.maxWidth < 30) {
-                        return const SizedBox.shrink();
-                      }
-                      
-                      // Show icon only if very tight on space
-                      if (constraints.maxWidth < 50) {
-                        return Icon(
-                          isPositiveTrend ? Icons.trending_up : Icons.trending_down,
-                          color: isPositiveTrend ? Colors.green : Colors.red,
-                          size: 12,
-                        );
-                      }
-                      
-                      // Full trend display
-                      return Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            isPositiveTrend ? Icons.trending_up : Icons.trending_down,
-                            color: isPositiveTrend ? Colors.green : Colors.red,
-                            size: 14,
-                          ),
-                          const SizedBox(width: 1),
-                          Flexible(
-                            child: Text(
-                              trend!,
-                              style: TextStyle(
-                                color: isPositiveTrend ? Colors.green : Colors.red,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 12, // Accessibility compliant font size
-                              ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                        ],
-                      );
-                    },
+                const SizedBox(height: 2),
+                FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Text(
+                    value,
+                    style: theme.textTheme.headlineSmall?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+                    maxLines: 1,
                   ),
                 ),
+                if (subtitle != null) ...[
+                  const SizedBox(height: 2),
+                  Text(
+                    subtitle!,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
               ],
-            ],
+            ),
           ),
-          if (subtitle != null) ...[
-            const SizedBox(height: 2),
-            Text(
-              subtitle!,
-              style: theme.textTheme.bodySmall,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
+          if (trend != null) ...[
+            const SizedBox(width: 8),
+            _TrendIcon(
+              trend: trend!,
+              isPositive: isPositiveTrend,
             ),
           ],
         ],
       ),
     );
+  }
+}
+
+class _TrendIcon extends StatelessWidget {
+  const _TrendIcon({required this.trend, this.isPositive = true});
+
+  final Trend trend;
+  final bool isPositive;
+
+  @override
+  Widget build(BuildContext context) {
+    switch (trend) {
+      case Trend.up:
+        return Icon(
+          Icons.trending_up,
+          color: isPositive ? Colors.green : Colors.red,
+        );
+      case Trend.down:
+        return Icon(
+          Icons.trending_down,
+          color: isPositive ? Colors.red : Colors.green,
+        );
+      case Trend.flat:
+        return Icon(
+          Icons.trending_flat,
+          color: Colors.grey,
+        );
+    }
   }
 }
 
@@ -401,7 +383,7 @@ class ActionCard extends StatelessWidget {
       end: Alignment.bottomRight,
       colors: [
         effectiveColor,
-        effectiveColor.withValues(alpha:0.8),
+        effectiveColor.withOpacity(0.8),
       ],
     );
     
@@ -434,7 +416,7 @@ class ActionCard extends StatelessWidget {
                 Text(
                   subtitle!,
                   style: theme.textTheme.bodyMedium?.copyWith(
-                    color: Colors.white.withValues(alpha:0.9),
+                    color: Colors.white.withOpacity(0.9),
                   ),
                 ),
               ],
@@ -501,7 +483,7 @@ class ActiveChallengeCard extends StatelessWidget {
                     Container(
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
-                        color: effectiveColor.withValues(alpha:0.1),
+                        color: effectiveColor.withOpacity(0.1),
                         borderRadius: BorderRadius.circular(AppTheme.borderRadiusSm),
                       ),
                       child: Icon(
@@ -574,7 +556,7 @@ class ActiveChallengeCard extends StatelessWidget {
                       child: LinearProgressIndicator(
                         value: clampedProgress,
                         minHeight: isNarrow ? 4 : 6,
-                        backgroundColor: effectiveColor.withValues(alpha:0.1),
+                        backgroundColor: effectiveColor.withOpacity(0.2),
                         valueColor: AlwaysStoppedAnimation<Color>(effectiveColor),
                       ),
                     ),
@@ -587,11 +569,10 @@ class ActiveChallengeCard extends StatelessWidget {
                         vertical: isNarrow ? 2 : 4,
                       ),
                       decoration: BoxDecoration(
-                        color: Colors.amber.withValues(alpha:0.1),
+                        color: Colors.amber.withOpacity(0.1),
                         borderRadius: BorderRadius.circular(AppTheme.borderRadiusXs),
                         border: Border.all(
-                          color: Colors.amber.withValues(alpha:0.3),
-                          width: 0.5,
+                          color: Colors.amber.withOpacity(0.3),
                         ),
                       ),
                       child: Row(
@@ -668,7 +649,7 @@ class RecentClassificationCard extends StatelessWidget {
       ),
       padding: const EdgeInsets.all(AppTheme.spacingMd),
       border: Border.all(
-        color: effectiveCategoryColor.withValues(alpha:0.3),
+        color: effectiveCategoryColor.withOpacity(0.3),
       ),
       child: LayoutBuilder(
         builder: (context, constraints) {
@@ -685,7 +666,7 @@ class RecentClassificationCard extends StatelessWidget {
                   child: Container(
                     width: isNarrow ? 50 : 60,
                     height: isNarrow ? 50 : 60,
-                    color: effectiveCategoryColor.withValues(alpha:0.1),
+                    color: effectiveCategoryColor.withOpacity(0.1),
                     child: _buildImageWidget(isNarrow ? 50 : 60),
                   ),
                 ),
@@ -866,11 +847,10 @@ class RecentClassificationCard extends StatelessWidget {
                     vertical: isNarrow ? 1 : 2,
                   ),
                   decoration: BoxDecoration(
-                    color: Colors.black.withValues(alpha:0.05),
+                    color: Colors.black.withOpacity(0.05),
                     borderRadius: BorderRadius.circular(AppTheme.borderRadiusXs),
                     border: Border.all(
-                      color: categoryColor.withValues(alpha:0.5),
-                      width: 0.5,
+                      color: categoryColor.withOpacity(0.5),
                     ),
                   ),
                   child: Text(

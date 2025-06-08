@@ -3,6 +3,7 @@ import 'dart:io';
 import 'dart:math' show pow, sqrt;
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
+import 'package:dio/dio.dart';
 import 'package:image/image.dart' as img;
 import '../models/waste_classification.dart';
 import '../utils/constants.dart';
@@ -63,6 +64,10 @@ class AiService {
   // ✅ OPTIMIZATION: Add as class field to avoid creating new instances repeatedly
   final EnhancedImageService _imageService = EnhancedImageService();
   
+  // Dio client for HTTP requests with cancellation support
+  final Dio _dio = Dio();
+  CancelToken? _cancelToken;
+  
   // Simple segmentation parameters - can be adjusted based on needs
   static const int segmentGridSize = 3; // 3x3 grid for basic segmentation
   static const double minSegmentArea = 0.05; // Minimum 5% of image area
@@ -80,6 +85,46 @@ class AiService {
     // Initialize the cache service if caching is enabled
     if (cachingEnabled) {
       await cacheService.initialize();
+    }
+    
+    // Configure Dio with default timeouts
+    _dio.options.connectTimeout = const Duration(seconds: 60);
+    _dio.options.receiveTimeout = const Duration(seconds: 60);
+    _dio.options.sendTimeout = const Duration(seconds: 60);
+  }
+
+  /// Prepares a new cancel token for the next analysis operation.
+  /// Call this before starting any new analysis to reset cancellation state.
+  void prepareCancelToken() {
+    _cancelToken?.cancel("New analysis started");
+    _cancelToken = CancelToken();
+    debugPrint('🔄 New cancel token prepared for analysis');
+  }
+
+  /// Cancels any ongoing analysis operation.
+  /// This will immediately abort in-flight HTTP requests.
+  void cancelAnalysis() {
+    if (_cancelToken != null && !_cancelToken!.isCancelled) {
+      _cancelToken!.cancel("User requested cancellation");
+      debugPrint('❌ Analysis cancelled by user');
+    }
+  }
+
+  /// Checks if the current operation has been cancelled.
+  bool get isCancelled => _cancelToken?.isCancelled ?? false;
+
+  /// Handles DioException and converts cancellation to a more user-friendly exception
+  void _handleDioException(DioException e) {
+    if (e.type == DioExceptionType.cancel) {
+      throw Exception('Analysis cancelled by user');
+    } else if (e.type == DioExceptionType.connectionTimeout) {
+      throw Exception('Connection timeout - please check your internet connection');
+    } else if (e.type == DioExceptionType.receiveTimeout) {
+      throw Exception('Request timeout - the server took too long to respond');
+    } else if (e.type == DioExceptionType.sendTimeout) {
+      throw Exception('Upload timeout - failed to send image data');
+    } else {
+      throw Exception('Network error: ${e.message}');
     }
   }
 
@@ -352,6 +397,11 @@ Output:
     // Generate a new classification ID if not provided (for initial call)
     final currentClassificationId = classificationId ?? const Uuid().v4();
 
+    // Prepare cancel token for new analysis (only on initial call, not retries)
+    if (retryCount == 0) {
+      prepareCancelToken();
+    }
+
     // ✅ OPTIMIZATION: Use singleton instance with error handling
     final File permanentFile;
     try {
@@ -455,6 +505,11 @@ Output:
 
     // Generate a new classification ID if not provided (for initial call)
     final currentClassificationId = classificationId ?? const Uuid().v4();
+
+    // Prepare cancel token for new analysis (only on initial call, not retries)
+    if (retryCount == 0) {
+      prepareCancelToken();
+    }
 
     // Early exit for empty image data to prevent processing errors and unnecessary API calls
     if (imageBytes.isEmpty) {
@@ -715,19 +770,28 @@ Output:
       'temperature': 0.1
     };
 
-    final response = await http.post(
-      Uri.parse('${ApiConfig.openAiBaseUrl}/chat/completions'),
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer ${ApiConfig.openAiApiKey}',
-      },
-      body: jsonEncode(requestBody),
-    );
+    late final Response response;
+    try {
+      response = await _dio.post(
+        '${ApiConfig.openAiBaseUrl}/chat/completions',
+        options: Options(
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ${ApiConfig.openAiApiKey}',
+          },
+        ),
+        data: requestBody,
+        cancelToken: _cancelToken,
+      );
+    } on DioException catch (e) {
+      _handleDioException(e);
+      return WasteClassification.fallback(imageName, id: classificationId);
+    }
 
     // Enhanced error handling with detailed logging
     if (response.statusCode == 200) {
       debugPrint('✅ OpenAI API Success');
-      final Map<String, dynamic> responseData = jsonDecode(response.body);
+      final Map<String, dynamic> responseData = response.data;
       final classification = _processAiResponseData(
         responseData,
         imageName,
@@ -747,11 +811,11 @@ Output:
       // ENHANCED ERROR LOGGING
       debugPrint('❌ OpenAI API Error - Status: ${response.statusCode}');
       debugPrint('❌ Response Headers: ${response.headers}');
-      debugPrint('❌ Response Body: ${response.body}');
+      debugPrint('❌ Response Data: ${response.data}');
       
       // Parse error details if available
       try {
-        final errorData = jsonDecode(response.body);
+        final errorData = response.data;
         if (errorData['error'] != null) {
           debugPrint('❌ OpenAI Error Type: ${errorData['error']['type']}');
           debugPrint('❌ OpenAI Error Message: ${errorData['error']['message']}');
@@ -765,15 +829,15 @@ Output:
       
       // Handle specific error codes
       if (response.statusCode == 400) {
-        throw Exception('OpenAI Bad Request - Check image format and prompt: ${response.body}');
+        throw Exception('OpenAI Bad Request - Check image format and prompt: ${response.data}');
       } else if (response.statusCode == 401) {
-        throw Exception('OpenAI Unauthorized - Check API key: ${response.body}');
+        throw Exception('OpenAI Unauthorized - Check API key: ${response.data}');
       } else if (response.statusCode == 429) {
-        throw Exception('OpenAI Rate limit exceeded: ${response.body}');
+        throw Exception('OpenAI Rate limit exceeded: ${response.data}');
       } else if (response.statusCode == 503) {
-        throw Exception('OpenAI Service unavailable: ${response.body}');
+        throw Exception('OpenAI Service unavailable: ${response.data}');
       } else {
-        throw Exception('OpenAI API Error ${response.statusCode}: ${response.body}');
+        throw Exception('OpenAI API Error ${response.statusCode}: ${response.data}');
       }
     }
   }
@@ -885,18 +949,27 @@ Output:
       }
     };
 
-    final response = await http.post(
-      Uri.parse('$geminiBaseUrl/models/${ApiConfig.tertiaryModel}:generateContent'),
-      headers: {
-        'Content-Type': 'application/json',
-        'x-goog-api-key': geminiApiKey,
-      },
-      body: jsonEncode(requestBody),
-    );
+    late final Response response;
+    try {
+      response = await _dio.post(
+        '$geminiBaseUrl/models/${ApiConfig.tertiaryModel}:generateContent',
+        options: Options(
+          headers: {
+            'Content-Type': 'application/json',
+            'x-goog-api-key': geminiApiKey,
+          },
+        ),
+        data: requestBody,
+        cancelToken: _cancelToken,
+      );
+    } on DioException catch (e) {
+      _handleDioException(e);
+      return WasteClassification.fallback(imageName, id: classificationId);
+    }
 
     if (response.statusCode == 200) {
       debugPrint('✅ Gemini API Success');
-      final Map<String, dynamic> responseData = jsonDecode(response.body);
+      final Map<String, dynamic> responseData = response.data;
       
       // Extract content from Gemini response format
       if (responseData['candidates'] != null && 
@@ -939,8 +1012,8 @@ Output:
     } else {
       debugPrint('❌ Gemini API Error - Status: ${response.statusCode}');
       debugPrint('❌ Response Headers: ${response.headers}');
-      debugPrint('❌ Response Body: ${response.body}');
-      throw Exception('Gemini API Error ${response.statusCode}: ${response.body}');
+      debugPrint('❌ Response Data: ${response.data}');
+      throw Exception('Gemini API Error ${response.statusCode}: ${response.data}');
     }
   }
 
@@ -1020,17 +1093,30 @@ Output:
           'temperature': 0.1
         };
 
-      final response = await http.post(
-        Uri.parse('${ApiConfig.openAiBaseUrl}/chat/completions'),
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer ${ApiConfig.openAiApiKey}',
-        },
-        body: jsonEncode(requestBody),
-      );
+      late final Response response;
+      try {
+        response = await _dio.post(
+          '${ApiConfig.openAiBaseUrl}/chat/completions',
+          options: Options(
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': 'Bearer ${ApiConfig.openAiApiKey}',
+            },
+          ),
+          data: requestBody,
+          cancelToken: _cancelToken,
+        );
+      } on DioException catch (e) {
+        _handleDioException(e);
+        return originalClassification.copyWith(
+          userCorrection: userCorrection,
+          disagreementReason: 'Analysis cancelled by user',
+          clarificationNeeded: true,
+        );
+      }
 
       if (response.statusCode == 200) {
-        final Map<String, dynamic> responseData = jsonDecode(response.body);
+        final Map<String, dynamic> responseData = response.data;
         final correctedClassification = _processAiResponseData(
           responseData, 
           originalClassification.imageUrl ?? 'correction_update',
@@ -1048,7 +1134,7 @@ Output:
           userCorrection: userCorrection,
         );
       } else {
-        debugPrint('Error in correction request: ${response.body}');
+        debugPrint('Error in correction request: ${response.data}');
         throw Exception('Failed to process correction: ${response.statusCode}');
       }
     } catch (e) {

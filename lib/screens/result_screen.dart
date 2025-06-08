@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
-import 'dart:io';
 import 'package:provider/provider.dart';
 import '../utils/share_service.dart';
 import '../models/waste_classification.dart';
@@ -12,27 +11,23 @@ import '../services/cloud_storage_service.dart';
 import '../utils/app_version.dart';
 import '../utils/constants.dart';
 import '../utils/error_handler.dart';
-import '../utils/animation_helpers.dart';
 import '../widgets/enhanced_gamification_widgets.dart' as widgets;
 import '../widgets/interactive_tag.dart';
 import '../widgets/disposal_instructions_widget.dart';
 import '../widgets/classification_feedback_widget.dart';
 import '../widgets/expandable_section.dart';
-import '../widgets/simple_shimmer.dart';
 import '../widgets/result_screen/action_buttons.dart';
 import '../widgets/result_screen/classification_card.dart';
 import '../widgets/result_screen/staggered_list.dart';
-import '../widgets/modern_ui/modern_cards.dart';
+import '../widgets/modern_ui/modern_cards.dart' show StatsCard, Trend, ModernCard;
 import '../widgets/modern_ui/modern_buttons.dart';
 import '../widgets/enhanced_analysis_loader.dart';
 import '../screens/waste_dashboard_screen.dart';
-import '../screens/educational_content_screen.dart';
-import '../screens/history_screen.dart';
-import '../screens/modern_home_screen.dart';
 import '../widgets/modern_ui/modern_info_tile.dart';
+import '../services/analytics_service.dart';
+import '../screens/image_capture_screen.dart';
 
 class ResultScreen extends StatefulWidget {
-
   const ResultScreen({
     super.key,
     required this.classification,
@@ -45,7 +40,8 @@ class ResultScreen extends StatefulWidget {
   State<ResultScreen> createState() => _ResultScreenState();
 }
 
-class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderStateMixin {
+class _ResultScreenState extends State<ResultScreen>
+    with SingleTickerProviderStateMixin {
   bool _isSaved = false;
   bool _isAutoSaving = false;
   bool _showingClassificationFeedback = false;
@@ -60,10 +56,13 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
   static final Set<String> _savingClassifications = <String>{};
 
   late AnimationController _animationController;
+  late AnalyticsService _analyticsService;
 
   @override
   void initState() {
     super.initState();
+    _analyticsService = Provider.of<AnalyticsService>(context, listen: false);
+    _analyticsService.trackScreenView('ResultScreen');
     _animationController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 1500),
@@ -226,6 +225,10 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
   }
 
   Future<void> _saveResult() async {
+    _analyticsService.trackUserAction('classification_save', parameters: {
+      'category': widget.classification.category,
+      'item': widget.classification.itemName,
+    });
     if (_isSaved || _isAutoSaving) return;
 
     setState(() => _isAutoSaving = true);
@@ -259,6 +262,12 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
   }
 
   Future<void> _shareResult() async {
+    if (_isAutoSaving) return;
+    
+    _analyticsService.trackUserAction('classification_share', parameters: {
+      'category': widget.classification.category,
+      'item': widget.classification.itemName,
+    });
     try {
       await ShareService.share(
         text: 'I identified ${widget.classification.itemName} as ${widget.classification.category} waste using the Waste Segregation app!',
@@ -439,6 +448,7 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
   }
 
   Widget _buildDetailsSection(BuildContext context, WasteClassification classification) {
+    final confidence = classification.confidence;
     return ExpansionTile(
       title: const Text(
         'Detailed Analysis',
@@ -446,6 +456,22 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
       ),
       initiallyExpanded: true,
       children: [
+        if (confidence != null && confidence < 0.6)
+          ModernCard(
+            backgroundColor: Colors.orange.shade50,
+            child: ListTile(
+              leading: Icon(Icons.warning, color: Colors.orange.shade800),
+              title:
+                  Text('Low confidence (${(confidence * 100).round()}%)'),
+              subtitle: const Text('You may want to re-analyze this item.'),
+            ),
+          ),
+        ModernInfoTile(
+          icon: Icons.loop,
+          label: 'Use Type',
+          value: classification.isSingleUse == true
+              ? 'Single-Use'
+              : 'Reusable / Multi-Use'),
         ModernInfoTile(
           icon: Icons.eco,
           label: 'Environmental Impact',
@@ -454,21 +480,30 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
         ModernInfoTile(
           icon: Icons.recycling,
           label: 'Recyclable',
-          value: classification.isRecyclable == null ? 'Unknown' : (classification.isRecyclable! ? 'Yes' : 'No'),
-          valueColor: classification.isRecyclable == null ? null : (classification.isRecyclable! ? Colors.green : Colors.red),
+          value: classification.isRecyclable == null
+              ? 'Unknown'
+              : (classification.isRecyclable! ? 'Yes' : 'No'),
+          valueColor: classification.isRecyclable == null
+              ? null
+              : (classification.isRecyclable! ? Colors.green : Colors.red),
         ),
         ModernInfoTile(
           icon: Icons.compost,
           label: 'Compostable',
-          value: classification.isCompostable == null ? 'Unknown' : (classification.isCompostable! ? 'Yes' : 'No'),
-           valueColor: classification.isCompostable == null ? null : (classification.isCompostable! ? Colors.green : Colors.red),
+          value: classification.isCompostable == null
+              ? 'Unknown'
+              : (classification.isCompostable! ? 'Yes' : 'No'),
+          valueColor: classification.isCompostable == null
+              ? null
+              : (classification.isCompostable! ? Colors.green : Colors.red),
         ),
         ModernInfoTile(
           icon: Icons.warning_amber,
           label: 'Risk Level',
           value: classification.riskLevel ?? 'Not assessed',
         ),
-        if (classification.requiredPPE != null && classification.requiredPPE!.isNotEmpty)
+        if (classification.requiredPPE != null &&
+            classification.requiredPPE!.isNotEmpty)
           ModernInfoTile(
             icon: Icons.health_and_safety,
             label: 'Required PPE',
@@ -524,6 +559,28 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
                           thumbnailBuilder: (size) => _buildThumbnail(size),
                           tags: _buildInteractiveTags(),
                         ),
+                        const SizedBox(height: 16),
+                        StaggeredList<TagData>(
+                          items: _buildInteractiveTags(),
+                          itemBuilder: (_, tag) => InteractiveTag(
+                            text: tag.text,
+                            color: tag.color,
+                            icon: tag.icon,
+                            textColor: tag.textColor,
+                            action: tag.action,
+                            category: tag.category,
+                            subcategory: tag.subcategory,
+                            isOutlined: tag.isOutlined,
+                            onTap: tag.onTap,
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        ModernButton(
+                          text: 'Re-analyze',
+                          icon: Icons.refresh,
+                          style: ModernButtonStyle.outlined,
+                          onPressed: _isAutoSaving ? null : _reAnalyze,
+                        ),
                         const SizedBox(height: 24),
                         ExpandableSection(
                           title: 'Explanation',
@@ -553,14 +610,11 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
                           ),
                         const SizedBox(height: 24),
                         if (_pointsEarned > 0)
-                          ModernCard(
-                            child: ListTile(
-                              leading: Icon(Icons.stars,
-                                  color: Colors.amber, size: 32),
-                              title: Text('$_pointsEarned Points Earned!'),
-                              subtitle:
-                                  Text('Keep up the great work!'),
-                            ),
+                          StatsCard(
+                            title: 'Points Earned',
+                            value: '$_pointsEarned',
+                            icon: Icons.stars,
+                            trend: Trend.up,
                           ),
                         if (_completedChallenge != null) ...[
                           const SizedBox(height: 16),
@@ -575,6 +629,25 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
                             ),
                           )
                         ],
+                        const SizedBox(height: 16),
+                        ModernButton(
+                          text: 'Back to Home',
+                          icon: Icons.home,
+                          style: ModernButtonStyle.outlined,
+                          onPressed: () =>
+                              Navigator.popUntil(context, (r) => r.isFirst),
+                        ),
+                        const SizedBox(height: 24),
+                        ModernButton(
+                          text: 'View Analytics',
+                          icon: Icons.bar_chart,
+                          style: ModernButtonStyle.outlined,
+                          onPressed: () {
+                            _analyticsService.trackUserAction('view_analytics_dashboard');
+                            Navigator.push(context, MaterialPageRoute(builder: (_) => const WasteDashboardScreen()));
+                          },
+                        ),
+                        const SizedBox(height: 24),
                         FutureBuilder<bool>(
                           future: widget.showActions
                               ? Future.value(true)
@@ -748,34 +821,8 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
       return placeholder();
     }
 
-    final file = File(url);
-    return FutureBuilder<bool>(
-      future: file.exists(),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return placeholder();
-        }
-        if (snapshot.hasData && snapshot.data == true) {
-          return Image.file(
-            file,
-            height: size,
-            width: size,
-            fit: BoxFit.cover,
-            errorBuilder: (context, error, stackTrace) => placeholder(),
-          );
-        }
-        if (url.startsWith('http')) {
-          return Image.network(
-            url,
-            height: size,
-            width: size,
-            fit: BoxFit.cover,
-            errorBuilder: (context, error, stackTrace) => placeholder(),
-          );
-        }
-        return placeholder();
-      },
-    );
+    // On non-web platforms, just return the placeholder; ClassificationCard handles file logic.
+    return placeholder();
   }
 
   // Award points for completing disposal steps
@@ -891,5 +938,13 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
       debugPrint('Error checking recent classification: $e');
       return false;
     }
+  }
+
+  void _reAnalyze() {
+    _analyticsService.trackUserAction('classification_reanalyze');
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (_) => ImageCaptureScreen()),
+    );
   }
 }
