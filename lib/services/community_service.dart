@@ -93,19 +93,27 @@ class CommunityService {
       final feedJson = box.get(_feedKey, defaultValue: '[]');
       final List<dynamic> feedList = jsonDecode(feedJson);
       
+      // Clean up old hardcoded entries first
+      await _cleanupHardcodedEntries();
+      
+      // Re-fetch after cleanup
+      final cleanFeedJson = box.get(_feedKey, defaultValue: '[]');
+      final List<dynamic> cleanFeedList = jsonDecode(cleanFeedJson);
+      
       // Calculate real stats from feed data, excluding sample users and test data
-      final feedItems = feedList
+      final feedItems = cleanFeedList
           .map((json) => CommunityFeedItem.fromJson(json))
           .where((item) => 
               !item.userId.startsWith('sample_user_') && 
               !item.userId.contains('sample_') &&
+              item.userId != 'current_user' && // Exclude old hardcoded entries
               !(item.metadata['isSample'] == true))
           .toList();
       
       debugPrint('🌍 COMMUNITY STATS: Filtered feed items count: ${feedItems.length}');
-      debugPrint('🌍 COMMUNITY STATS: Raw feed count: ${feedList.length}');
+      debugPrint('🌍 COMMUNITY STATS: Raw feed count: ${cleanFeedList.length}');
       
-      // Calculate unique REAL users only (should be 1 - current user)
+      // Calculate unique REAL users only
       final uniqueUsers = feedItems.map((item) => item.userId).toSet();
       final totalUsers = uniqueUsers.isEmpty ? 1 : uniqueUsers.length; // Always show at least 1 (current user)
       
@@ -629,6 +637,35 @@ class CommunityService {
       }
       await box.put(_feedKey, jsonEncode(feedList));
       debugPrint('🔄 Synced $newItemsCount classifications with community data');
+    }
+  }
+
+  /// Clean up old hardcoded entries from community feed
+  Future<void> _cleanupHardcodedEntries() async {
+    try {
+      final box = Hive.box(_communityBox);
+      final feedJson = box.get(_feedKey, defaultValue: '[]');
+      final List<dynamic> feedList = jsonDecode(feedJson);
+      
+      // Filter out hardcoded entries
+      final cleanedFeedList = feedList.where((json) {
+        try {
+          final item = CommunityFeedItem.fromJson(json);
+          return item.userId != 'current_user' && 
+                 !item.userId.startsWith('sample_user_') &&
+                 !item.userId.contains('sample_');
+        } catch (e) {
+          return false; // Remove corrupted entries too
+        }
+      }).toList();
+      
+      // Only update if we actually removed something
+      if (cleanedFeedList.length != feedList.length) {
+        await box.put(_feedKey, jsonEncode(cleanedFeedList));
+        debugPrint('🧹 Cleaned up ${feedList.length - cleanedFeedList.length} hardcoded community feed entries');
+      }
+    } catch (e) {
+      debugPrint('❌ Error cleaning up hardcoded entries: $e');
     }
   }
 }

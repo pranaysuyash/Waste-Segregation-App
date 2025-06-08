@@ -16,8 +16,9 @@ import 'classification_migration_service.dart';
 class StorageService {
   static const String _userProfileKey = 'user_profile';
   
-  // Lock mechanism to prevent concurrent saves
-  static final Set<String> _savingClassifications = <String>{};
+  // Global lock mechanism to prevent concurrent saves across all code paths
+  static final Map<String, DateTime> _recentSaves = <String, DateTime>{};
+  static final Set<String> _activeSaves = <String>{};
 
   // Initialize Hive database
   static Future<void> initializeHive() async {
@@ -83,14 +84,25 @@ class StorageService {
 
   // Classification methods
   Future<void> saveClassification(WasteClassification classification) async {
-    // Check if this classification is already being saved
-    if (_savingClassifications.contains(classification.id)) {
-      debugPrint('🔒 Classification ${classification.id} is already being saved, skipping');
+    // Create a unique key based on content and user to prevent duplicates
+    final contentHash = '${classification.itemName}_${classification.category}_${classification.subcategory}_${classification.userId}';
+    final now = DateTime.now();
+    
+    // Check if this exact content was saved recently (within 30 seconds)
+    final recentSaveTime = _recentSaves[contentHash];
+    if (recentSaveTime != null && now.difference(recentSaveTime).inSeconds < 30) {
+      debugPrint('🚫 RECENT SAVE DETECTED: Skipping save for ${classification.itemName} (saved ${now.difference(recentSaveTime).inSeconds}s ago)');
       return;
     }
     
-    // Add to saving set
-    _savingClassifications.add(classification.id);
+    // Check if this classification ID is currently being saved
+    if (_activeSaves.contains(classification.id)) {
+      debugPrint('🔒 ACTIVE SAVE DETECTED: Classification ${classification.id} is currently being saved, skipping');
+      return;
+    }
+    
+    // Add to active saves
+    _activeSaves.add(classification.id);
     
     try {
       final classificationsBox = Hive.box(StorageKeys.classificationsBox);
@@ -110,46 +122,31 @@ class StorageService {
       // Check if this exact classification already exists in storage
       final existingData = classificationsBox.get(classification.id);
       if (existingData != null) {
-        debugPrint('🚫 DUPLICATE DETECTED: Classification with ID ${classification.id} already exists');
+        debugPrint('🚫 DUPLICATE DETECTED: Classification with ID ${classification.id} already exists in storage');
         return;
-      }
-      
-      // ENHANCED DEDUPLICATION CHECK: Look for recent identical classifications
-      final now = DateTime.now();
-      final recentTimeWindow = now.subtract(const Duration(minutes: 5)); // 5-minute window
-      
-      // Get all existing classifications for this user
-      final existingClassifications = await getAllClassifications();
-      
-      // Check for duplicates based on multiple criteria
-      final isDuplicate = existingClassifications.any((existing) {
-        final isSameContent = existing.itemName == classification.itemName &&
-                             existing.category == classification.category &&
-                             existing.subcategory == classification.subcategory;
-        final isRecent = existing.timestamp.isAfter(recentTimeWindow);
-        
-        // Also check for exact timestamp duplicates (critical for preventing same-session duplicates)
-        final isSameTimestamp = existing.timestamp.millisecondsSinceEpoch == classification.timestamp.millisecondsSinceEpoch;
-        
-        return (isSameContent && isRecent) || (isSameContent && isSameTimestamp);
-      });
-      
-      if (isDuplicate) {
-        debugPrint('🚫 DUPLICATE DETECTED: Skipping save for ${classification.itemName}');
-        debugPrint('🚫 Classification ID: ${classification.id}');
-        debugPrint('🚫 Timestamp: ${classification.timestamp}');
-        return; // Skip saving duplicate
       }
       
       // Save using classification ID as key for consistent upserting
       await classificationsBox.put(classification.id, classificationWithUserId.toJson());
       
+      // Record this save to prevent immediate duplicates
+      _recentSaves[contentHash] = now;
+      
+      // Clean up old entries (keep only last 100 entries)
+      if (_recentSaves.length > 100) {
+        final oldestEntries = _recentSaves.entries.toList()
+          ..sort((a, b) => a.value.compareTo(b.value));
+        for (int i = 0; i < 20; i++) {
+          _recentSaves.remove(oldestEntries[i].key);
+        }
+      }
+      
       debugPrint('✅ Classification saved successfully');
       debugPrint('✅ Total classifications in storage: ${classificationsBox.length}');
       
     } finally {
-      // Always remove from saving set
-      _savingClassifications.remove(classification.id);
+      // Always remove from active saves
+      _activeSaves.remove(classification.id);
     }
     
     // Note: UI refresh will happen through provider pattern in calling code
