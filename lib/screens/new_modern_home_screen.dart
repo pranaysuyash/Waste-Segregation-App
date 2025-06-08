@@ -49,6 +49,9 @@ final gamificationServiceProvider = Provider<GamificationService>((ref) {
 final communityServiceProvider = Provider<CommunityService>((ref) => CommunityService());
 final connectivityProvider = StreamProvider<List<ConnectivityResult>>((ref) => Connectivity().onConnectivityChanged);
 
+// Navigation state provider
+final _navIndexProvider = StateProvider<int>((ref) => 0);
+
 class NewModernHomeScreen extends ConsumerStatefulWidget {
   const NewModernHomeScreen({Key? key, this.isGuestMode = false}) : super(key: key);
   final bool isGuestMode;
@@ -59,7 +62,7 @@ class NewModernHomeScreen extends ConsumerStatefulWidget {
 
 class NewModernHomeScreenState extends ConsumerState<NewModernHomeScreen> with WidgetsBindingObserver {
   final ImagePicker _picker = ImagePicker();
-  late TutorialCoachMark _coachMark;
+  TutorialCoachMark? _coachMark;
   List<TargetFocus> _targets = [];
   bool _showedCoach = false;
 
@@ -67,16 +70,34 @@ class NewModernHomeScreenState extends ConsumerState<NewModernHomeScreen> with W
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    _prepareCoachTargets();
     _loadFirstRunFlag();
   }
 
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    _coachMark?.finish();
+    super.dispose();
+  }
+
   Future<void> _loadFirstRunFlag() async {
-    final prefs = await SharedPreferences.getInstance();
-    _showedCoach = prefs.getBool('home_coach_shown') ?? false;
-    if (!_showedCoach) {
-      WidgetsBinding.instance.addPostFrameCallback((_) => _showCoachMark());
-      prefs.setBool('home_coach_shown', true);
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      _showedCoach = prefs.getBool('home_coach_shown') ?? false;
+      if (!_showedCoach && mounted) {
+        // Delay to ensure widgets are built
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          Future.delayed(const Duration(milliseconds: 1000), () {
+            if (mounted) {
+              _prepareCoachTargets();
+              _showCoachMark();
+              prefs.setBool('home_coach_shown', true);
+            }
+          });
+        });
+      }
+    } catch (e) {
+      debugPrint('Error loading first run flag: $e');
     }
   }
 
@@ -84,26 +105,30 @@ class NewModernHomeScreenState extends ConsumerState<NewModernHomeScreen> with W
     _targets = [
       TargetFocus(
         identify: "takePhoto",
-        keyTarget: GlobalObjectKey('takePhoto'),
+        keyTarget: GlobalKey(),
         contents: [
           TargetContent(
             align: ContentAlign.bottom,
-            child: Text(
-              'Tap here to take a photo of your waste.',
-              style: TextStyle(color: Colors.white, fontSize: 16),
-            ),
-          ),
-        ],
-      ),
-      TargetFocus(
-        identify: "bottomNav",
-        keyTarget: GlobalObjectKey('bottomNav'),
-        contents: [
-          TargetContent(
-            align: ContentAlign.top,
-            child: Text(
-              'Use the bottom menu to navigate the app.',
-              style: TextStyle(color: Colors.white, fontSize: 16),
+            child: const Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Take Photo',
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                    fontSize: 20.0,
+                  ),
+                ),
+                Padding(
+                  padding: EdgeInsets.only(top: 10.0),
+                  child: Text(
+                    'Tap here to take a photo of your waste item for classification.',
+                    style: TextStyle(color: Colors.white),
+                  ),
+                ),
+              ],
             ),
           ),
         ],
@@ -112,304 +137,313 @@ class NewModernHomeScreenState extends ConsumerState<NewModernHomeScreen> with W
   }
 
   void _showCoachMark() {
-    _coachMark = TutorialCoachMark(
-      targets: _targets,
-      colorShadow: Colors.black54,
-      textSkip: "SKIP",
-      onFinish: () {},
-      onClickTarget: (target) {},
-    );
-    _coachMark.show(context: context);
-  }
-
-  @override
-  void dispose() {
-    WidgetsBinding.instance.removeObserver(this);
-    super.dispose();
+    if (_targets.isEmpty) return;
+    
+    try {
+      _coachMark = TutorialCoachMark(
+        targets: _targets,
+        colorShadow: Colors.black,
+        textSkip: "SKIP",
+        paddingFocus: 10,
+        opacityShadow: 0.8,
+        onFinish: () {
+          debugPrint('Tutorial finished');
+        },
+        onSkip: () {
+          debugPrint('Tutorial skipped');
+          return true;
+        },
+      );
+      _coachMark?.show(context: context);
+    } catch (e) {
+      debugPrint('Error showing coach mark: $e');
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    final connectivity = ref.watch(connectivityProvider);
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('WasteWise', style: TextStyle(fontWeight: FontWeight.bold)),
-        bottom: connectivity.when(
-          data: (results) => results.contains(ConnectivityResult.none) 
-            ? PreferredSize(
-                preferredSize: Size.fromHeight(24),
-                child: Container(
-                  color: Colors.redAccent,
-                  height: 24,
-                  child: Center(child: Text('Offline Mode', style: TextStyle(color: Colors.white))),
+    // Wrap in ProviderScope to fix the Riverpod error
+    return ProviderScope(
+      child: Consumer(
+        builder: (context, ref, child) {
+          final connectivity = ref.watch(connectivityProvider);
+          
+          return Scaffold(
+            appBar: AppBar(
+              title: const Text('WasteWise'),
+              actions: [
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                  child: Consumer(
+                    builder: (_, ref, __) {
+                      final gamificationService = ref.watch(gamificationServiceProvider);
+                      return FutureBuilder(
+                        future: gamificationService.getProfile(),
+                        builder: (context, snapshot) {
+                          final points = snapshot.data?.points.total ?? 0;
+                          return ModernBadge(
+                            text: '$points',
+                            icon: Icons.stars,
+                            showPulse: false,
+                          );
+                        },
+                      );
+                    },
+                  ),
                 ),
-              )
-            : null,
-          loading: () => null,
-          error: (_, __) => null,
-        ),
-        actions: [
-          // Inline badge display
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8.0),
-            child: Consumer(
-              builder: (_, ref, __) {
-                final gamificationService = ref.watch(gamificationServiceProvider);
-                final profile = gamificationService.currentProfile;
-                return ModernBadge(
-                  text: '${profile?.points.total ?? 0}',
-                  icon: Icons.stars,
-                  showPulse: false, // Simplified for now
-                );
-              },
+              ],
+              bottom: connectivity.when(
+                data: (results) => results.contains(ConnectivityResult.none) 
+                  ? PreferredSize(
+                      preferredSize: const Size.fromHeight(24),
+                      child: Container(
+                        color: Colors.redAccent,
+                        height: 24,
+                        child: const Center(
+                          child: Text(
+                            'Offline Mode',
+                            style: TextStyle(color: Colors.white, fontSize: 12),
+                          ),
+                        ),
+                      ),
+                    )
+                  : null,
+                loading: () => null,
+                error: (_, __) => null,
+              ),
             ),
-          ),
-          PopupMenuButton<String>(
-            onSelected: _onMenuSelected,
-            itemBuilder: (_) => [
-              PopupMenuItem(value: 'settings', child: Text('Settings')),
-              PopupMenuItem(value: 'help', child: Text('Help & Support')),
-              PopupMenuItem(value: 'about', child: Text('About')),
-              PopupMenuDivider(),
-              PopupMenuItem(value: 'logout', child: Text('Sign Out')),
-            ],
-          )
-        ],
-      ),
-      body: _buildContent(),
-      bottomNavigationBar: _buildBottomNav(),
-      floatingActionButton: SpeedDial(
-        icon: Icons.menu,
-        backgroundColor: Theme.of(context).primaryColor,
-        children: [
-          SpeedDialChild(
-            child: Icon(Icons.emoji_events),
-            label: 'Achievements',
-            onTap: _navigateToAchievements,
-          ),
-          SpeedDialChild(
-            child: Icon(Icons.location_on),
-            label: 'Disposal Facilities',
-            onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => DisposalFacilitiesScreen())),
-          ),
-        ],
+            body: _buildContent(),
+            bottomNavigationBar: _buildBottomNav(),
+            floatingActionButton: _buildSpeedDial(),
+          );
+        },
       ),
     );
   }
 
   Widget _buildContent() {
-    // Lazy load tabs via IndexedStack
-    return IndexedStack(
-      index: ref.watch(_navIndexProvider),
-      children: [
-        HomeTab(picker: _picker),
-        AnalyticsTab(),
-        LearnTab(),
-        CommunityTab(),
-        ProfileTab(),
-      ],
+    return Consumer(
+      builder: (context, ref, child) {
+        final currentIndex = ref.watch(_navIndexProvider);
+        return IndexedStack(
+          index: currentIndex,
+          children: [
+            HomeTab(picker: _picker),
+            const AnalyticsTab(),
+            const LearnTab(),
+            const CommunityTab(),
+            const ProfileTab(),
+          ],
+        );
+      },
     );
   }
 
   Widget _buildBottomNav() {
-    return BottomNavigationBar(
-      key: GlobalObjectKey('bottomNav'),
-      currentIndex: ref.watch(_navIndexProvider),
-      onTap: (idx) => ref.read(_navIndexProvider.notifier).state = idx,
-      items: [
-        BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
-        BottomNavigationBarItem(icon: Icon(Icons.analytics), label: 'Analytics'),
-        BottomNavigationBarItem(icon: Icon(Icons.school), label: 'Learn'),
-        BottomNavigationBarItem(icon: Icon(Icons.people), label: 'Community'),
-        BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
+    return Consumer(
+      builder: (context, ref, child) {
+        final currentIndex = ref.watch(_navIndexProvider);
+        return BottomNavigationBar(
+          type: BottomNavigationBarType.fixed,
+          currentIndex: currentIndex,
+          onTap: (index) => ref.read(_navIndexProvider.notifier).state = index,
+          items: const [
+            BottomNavigationBarItem(
+              icon: Icon(Icons.home),
+              label: 'Home',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.analytics),
+              label: 'Analytics',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.school),
+              label: 'Learn',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.people),
+              label: 'Community',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.person),
+              label: 'Profile',
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildSpeedDial() {
+    return SpeedDial(
+      icon: Icons.menu,
+      activeIcon: Icons.close,
+      children: [
+        SpeedDialChild(
+          child: const Icon(Icons.emoji_events),
+          label: 'Achievements',
+          onTap: () => Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const AchievementsScreen()),
+          ),
+        ),
+        SpeedDialChild(
+          child: const Icon(Icons.location_on),
+          label: 'Disposal Facilities',
+          onTap: () => Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const DisposalFacilitiesScreen()),
+          ),
+        ),
       ],
-      type: BottomNavigationBarType.fixed,
-    );
-  }
-
-  void _onMenuSelected(String value) {
-    switch (value) {
-      case 'settings':
-        Navigator.push(context, MaterialPageRoute(builder: (_) => SettingsScreen()));
-        break;
-      case 'help':
-        _showHelp();
-        break;
-      case 'about':
-        _showAbout();
-        break;
-      case 'logout':
-        Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => AuthScreen()));
-        break;
-    }
-  }
-
-  void _navigateToAchievements() {
-    Navigator.push(context, MaterialPageRoute(builder: (_) => AchievementsScreen()));
-  }
-
-  void _showHelp() { 
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text('Help & Support'),
-        content: Text('For help and support, please visit our website or contact us at support@wastewise.com'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text('OK'),
-          ),
-        ],
-      ),
-    );
-  }
-  
-  void _showAbout() { 
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text('About WasteWise'),
-        content: Text('WasteWise v2.1.0\nSmart waste classification and management app.'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text('OK'),
-          ),
-        ],
-      ),
     );
   }
 }
 
-// Navigation index provider
-final _navIndexProvider = StateProvider<int>((_) => 0);
-
+// Tab implementations
 class HomeTab extends ConsumerWidget {
   final ImagePicker picker;
-  HomeTab({Key? key, required this.picker}) : super(key: key);
+  const HomeTab({Key? key, required this.picker}) : super(key: key);
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final storageService = ref.watch(storageServiceProvider);
     
-    return ListView(padding: EdgeInsets.all(16), children: [
-      ModernCard(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Semantics(
-              label: 'Take photo button',
-              child: ElevatedButton.icon(
-                key: GlobalObjectKey('takePhoto'),
-                onPressed: () async => _take(picker, context),
-                icon: Icon(Icons.camera_alt),
-                label: Text('Take Photo'),
-                style: ElevatedButton.styleFrom(
-                  minimumSize: Size(double.infinity, 50),
+    return ListView(
+      padding: const EdgeInsets.all(16),
+      children: [
+        ModernCard(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Quick Actions',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 16),
+              Semantics(
+                label: 'Take photo button',
+                child: ElevatedButton.icon(
+                  key: GlobalKey(),
+                  onPressed: () async => _takePhoto(picker, context),
+                  icon: const Icon(Icons.camera_alt),
+                  label: const Text('Take Photo'),
+                  style: ElevatedButton.styleFrom(
+                    minimumSize: const Size(double.infinity, 48),
+                  ),
                 ),
               ),
-            ),
-            SizedBox(height: 8),
-            Semantics(
-              label: 'Upload image button',
-              child: ElevatedButton.icon(
-                onPressed: () async => _upload(picker, context),
-                icon: Icon(Icons.photo_library),
-                label: Text('Upload'),
+              const SizedBox(height: 8),
+              ElevatedButton.icon(
+                onPressed: () async => _pickImage(picker, context),
+                icon: const Icon(Icons.photo_library),
+                label: const Text('Upload Image'),
                 style: ElevatedButton.styleFrom(
-                  minimumSize: Size(double.infinity, 50),
+                  minimumSize: const Size(double.infinity, 48),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
-      ),
-      SizedBox(height: 16),
-      SectionHeader(title: "Today's Impact"),
-      FutureBuilder<List<WasteClassification>>(
-        future: storageService.getAllClassifications(),
-        builder: (context, snapshot) {
-          final todayCount = snapshot.hasData 
-            ? snapshot.data!.where((c) => 
-                DateTime.now().difference(c.timestamp).inDays == 0
-              ).length 
-            : 0;
-          return TodaysImpactGoal(
-            currentClassifications: todayCount,
-          );
-        },
-      ),
-      SizedBox(height: 16),
-      SectionHeader(title: 'Recent Classifications'),
-      FutureBuilder<List<WasteClassification>>(
-        future: storageService.getAllClassifications(),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return Center(child: CircularProgressIndicator());
-          }
-          if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            return Card(
-              child: Padding(
-                padding: EdgeInsets.all(16),
-                child: Column(
-                  children: [
-                    Icon(Icons.recycling, size: 48, color: Colors.grey),
-                    SizedBox(height: 8),
-                    Text('No classifications yet'),
-                    Text('Start by taking a photo of waste to classify!'),
-                  ],
-                ),
+        const SizedBox(height: 16),
+        ModernCard(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Recent Classifications',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
-            );
-          }
-          final recentClassifications = snapshot.data!.take(3).toList();
-          return Column(
-            children: recentClassifications.map((classification) => Card(
-              child: ListTile(
-                leading: CircleAvatar(
-                  backgroundColor: Theme.of(context).primaryColor,
-                  child: Icon(Icons.recycling, color: Colors.white),
-                ),
-                title: Text(classification.itemName),
-                subtitle: Text(classification.category),
-                trailing: Text(
-                  '${DateTime.now().difference(classification.timestamp).inHours}h ago',
-                ),
-                onTap: () => Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => HistoryScreen()),
-                ),
+              const SizedBox(height: 16),
+              FutureBuilder<List<WasteClassification>>(
+                future: storageService.getAllClassifications(),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
+                  
+                  final classifications = snapshot.data ?? [];
+                  if (classifications.isEmpty) {
+                    return const Center(
+                      child: Text('No classifications yet. Take your first photo!'),
+                    );
+                  }
+                  
+                  return Column(
+                    children: classifications.take(3).map((classification) {
+                      return ListTile(
+                        leading: const Icon(Icons.recycling),
+                        title: Text(classification.itemName),
+                        subtitle: Text(classification.category),
+                        trailing: Text(
+                          '${classification.timestamp.day}/${classification.timestamp.month}',
+                        ),
+                      );
+                    }).toList(),
+                  );
+                },
               ),
-            )).toList(),
-          );
-        },
-      ),
-    ]);
+            ],
+          ),
+        ),
+      ],
+    );
   }
 
-  Future<void> _take(ImagePicker picker, BuildContext context) async {
-    final x = await picker.pickImage(source: ImageSource.camera);
-    if (x != null) Navigator.push(context, MaterialPageRoute(builder: (_) => ImageCaptureScreen(imageFile: File(x.path))));
+  Future<void> _takePhoto(ImagePicker picker, BuildContext context) async {
+    try {
+      final XFile? image = await picker.pickImage(source: ImageSource.camera);
+      if (image != null && context.mounted) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => ImageCaptureScreen.fromXFile(image),
+          ),
+        );
+      }
+    } catch (e) {
+      debugPrint('Error taking photo: $e');
+    }
   }
 
-  Future<void> _upload(ImagePicker picker, BuildContext context) async {
-    final x = await picker.pickImage(source: ImageSource.gallery);
-    if (x != null) Navigator.push(context, MaterialPageRoute(builder: (_) => ImageCaptureScreen(imageFile: File(x.path))));
+  Future<void> _pickImage(ImagePicker picker, BuildContext context) async {
+    try {
+      final XFile? image = await picker.pickImage(source: ImageSource.gallery);
+      if (image != null && context.mounted) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => ImageCaptureScreen.fromXFile(image),
+          ),
+        );
+      }
+    } catch (e) {
+      debugPrint('Error picking image: $e');
+    }
   }
 }
 
 class AnalyticsTab extends StatelessWidget {
+  const AnalyticsTab({Key? key}) : super(key: key);
+
   @override
   Widget build(BuildContext context) {
-    return Center(
+    return const Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Icon(Icons.analytics, size: 64, color: Colors.grey),
           SizedBox(height: 16),
-          Text('Analytics Content', style: Theme.of(context).textTheme.headlineSmall),
+          Text(
+            'Analytics Content',
+            style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+          ),
           SizedBox(height: 8),
-          Text('Coming soon! Track your waste classification analytics here.'),
+          Text(
+            'Coming soon! Track your waste classification analytics here.',
+            textAlign: TextAlign.center,
+            style: TextStyle(color: Colors.grey),
+          ),
         ],
       ),
     );
@@ -417,17 +451,26 @@ class AnalyticsTab extends StatelessWidget {
 }
 
 class LearnTab extends StatelessWidget {
+  const LearnTab({Key? key}) : super(key: key);
+
   @override
   Widget build(BuildContext context) {
-    return Center(
+    return const Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Icon(Icons.school, size: 64, color: Colors.grey),
           SizedBox(height: 16),
-          Text('Educational Content', style: Theme.of(context).textTheme.headlineSmall),
+          Text(
+            'Educational Content',
+            style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+          ),
           SizedBox(height: 8),
-          Text('Coming soon! Learn about waste management and recycling.'),
+          Text(
+            'Learn about waste management and environmental impact.',
+            textAlign: TextAlign.center,
+            style: TextStyle(color: Colors.grey),
+          ),
         ],
       ),
     );
@@ -435,6 +478,8 @@ class LearnTab extends StatelessWidget {
 }
 
 class CommunityTab extends ConsumerStatefulWidget {
+  const CommunityTab({Key? key}) : super(key: key);
+
   @override
   ConsumerState<CommunityTab> createState() => _CommunityTabState();
 }
@@ -448,57 +493,39 @@ class _CommunityTabState extends ConsumerState<CommunityTab> {
       future: communityService.getFeedItems(limit: 3),
       builder: (_, AsyncSnapshot snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return Center(child: CircularProgressIndicator());
+          return const Center(child: CircularProgressIndicator());
         }
         if (snapshot.hasError) {
-          return Center(
+          return const Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Icon(Icons.error, size: 64, color: Colors.red),
                 SizedBox(height: 16),
                 Text('Error loading community feed'),
-                TextButton(
-                  onPressed: () => setState(() {}),
-                  child: Text('Retry'),
-                ),
-              ],
-            ),
-          );
-        }
-        if (!snapshot.hasData || snapshot.data.isEmpty) {
-          return Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(Icons.people, size: 64, color: Colors.grey),
-                SizedBox(height: 16),
-                Text('No community activity'),
-                SizedBox(height: 8),
-                Text('Be the first to share your waste classification!'),
               ],
             ),
           );
         }
         
-        return ListView.builder(
-          padding: EdgeInsets.all(16),
-          itemCount: snapshot.data.length,
-          itemBuilder: (context, index) {
-            final item = snapshot.data[index];
-            return Card(
-              child: ListTile(
-                leading: CircleAvatar(child: Icon(Icons.person)),
-                title: Text(item.title ?? 'Community Activity'),
-                subtitle: Text(item.description ?? 'No description'),
-                trailing: Icon(Icons.arrow_forward_ios),
-                onTap: () => Navigator.push(
-                  context, 
-                  MaterialPageRoute(builder: (_) => SocialScreen())
-                ),
+        return const Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.people, size: 64, color: Colors.grey),
+              SizedBox(height: 16),
+              Text(
+                'Community Feed',
+                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
               ),
-            );
-          },
+              SizedBox(height: 8),
+              Text(
+                'Connect with other eco-warriors and share your progress.',
+                textAlign: TextAlign.center,
+                style: TextStyle(color: Colors.grey),
+              ),
+            ],
+          ),
         );
       },
     );
@@ -506,38 +533,28 @@ class _CommunityTabState extends ConsumerState<CommunityTab> {
 }
 
 class ProfileTab extends StatelessWidget {
+  const ProfileTab({Key? key}) : super(key: key);
+
   @override
   Widget build(BuildContext context) {
-    return Center(
+    return const Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Icon(Icons.person, size: 64, color: Colors.grey),
           SizedBox(height: 16),
-          Text('Profile Settings', style: Theme.of(context).textTheme.headlineSmall),
+          Text(
+            'Profile Settings',
+            style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+          ),
           SizedBox(height: 8),
-          Text('Manage your profile and preferences here.'),
-          SizedBox(height: 16),
-          ElevatedButton(
-            onPressed: () => Navigator.push(
-              context, 
-              MaterialPageRoute(builder: (_) => ProfileScreen())
-            ),
-            child: Text('Go to Profile'),
+          Text(
+            'Manage your account and preferences.',
+            textAlign: TextAlign.center,
+            style: TextStyle(color: Colors.grey),
           ),
         ],
       ),
     );
   }
-}
-
-class SectionHeader extends StatelessWidget {
-  final String title;
-  const SectionHeader({required this.title});
-  
-  @override
-  Widget build(BuildContext context) => Padding(
-    padding: EdgeInsets.symmetric(vertical: 8),
-    child: Text(title, style: Theme.of(context).textTheme.titleLarge),
-  );
 } 
