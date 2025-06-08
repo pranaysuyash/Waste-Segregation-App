@@ -24,12 +24,23 @@ class _ContributionHistoryScreenState extends State<ContributionHistoryScreen> {
   }
 
   Future<void> _loadCurrentUserId() async {
-    final storage = context.read<StorageService>();
-    final profile = await storage.getCurrentUserProfile();
-    if (!mounted) return;
-    setState(() {
-      _currentUserId = profile?.id ?? 'guest_user';
-    });
+    try {
+      final storage = context.read<StorageService>();
+      final profile = await storage.getCurrentUserProfile();
+      if (!mounted) return;
+      setState(() {
+        _currentUserId = profile?.id ?? 'guest_user';
+      });
+    } catch (e) {
+      debugPrint('Error loading current user id: $e');
+      if (!mounted) {
+        _currentUserId = 'guest_user';
+        return;
+      }
+      setState(() {
+        _currentUserId = 'guest_user';
+      });
+    }
   }
   
   @override
