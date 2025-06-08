@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
@@ -7,47 +6,62 @@ import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:tutorial_coach_mark/tutorial_coach_mark.dart';
 import 'package:flutter_speed_dial/flutter_speed_dial.dart';
 
-import '../utils/web_handler.dart';
-import '../utils/permission_handler.dart';
 import '../utils/constants.dart';
 import '../models/waste_classification.dart';
+import '../models/gamification.dart';
 import '../services/storage_service.dart';
 import '../services/cloud_storage_service.dart';
 import '../services/gamification_service.dart';
-import '../services/ad_service.dart';
 import '../services/community_service.dart';
-import '../services/google_drive_service.dart';
 import '../widgets/modern_ui/modern_cards.dart';
-import '../widgets/modern_ui/modern_buttons.dart';
 import '../widgets/modern_ui/modern_badges.dart';
-import '../widgets/responsive_text.dart';
-import '../widgets/gen_z_microinteractions.dart';
-import '../widgets/dashboard_widgets.dart';
 import 'image_capture_screen.dart';
-import 'result_screen.dart';
 import 'history_screen.dart';
 import 'achievements_screen.dart';
 import 'educational_content_screen.dart';
 import 'waste_dashboard_screen.dart';
 import 'disposal_facilities_screen.dart';
 import 'settings_screen.dart';
-import 'profile_screen.dart';
 import 'social_screen.dart';
-import 'auth_screen.dart';
 
 // Riverpod providers
 final storageServiceProvider = Provider<StorageService>((ref) => StorageService());
+
 final cloudStorageServiceProvider = Provider<CloudStorageService>((ref) {
   final storageService = ref.watch(storageServiceProvider);
   return CloudStorageService(storageService);
 });
+
 final gamificationServiceProvider = Provider<GamificationService>((ref) {
   final storageService = ref.watch(storageServiceProvider);
   final cloudStorageService = ref.watch(cloudStorageServiceProvider);
   return GamificationService(storageService, cloudStorageService);
 });
+
 final communityServiceProvider = Provider<CommunityService>((ref) => CommunityService());
-final connectivityProvider = StreamProvider<List<ConnectivityResult>>((ref) => Connectivity().onConnectivityChanged);
+
+// Fixed connectivity provider to return single ConnectivityResult
+final connectivityProvider = StreamProvider<ConnectivityResult>((ref) {
+  return Connectivity().onConnectivityChanged.map((results) => 
+    results.isNotEmpty ? results.first : ConnectivityResult.none);
+});
+
+// Profile provider using FutureProvider for better performance
+final profileProvider = FutureProvider<GamificationProfile?>((ref) async {
+  final gamificationService = ref.watch(gamificationServiceProvider);
+  try {
+    return await gamificationService.getProfile();
+  } catch (e) {
+    debugPrint('Error loading profile: $e');
+    return null;
+  }
+});
+
+// Classifications provider
+final classificationsProvider = FutureProvider<List<WasteClassification>>((ref) async {
+  final storageService = ref.watch(storageServiceProvider);
+  return await storageService.getAllClassifications();
+});
 
 // Navigation state provider
 final _navIndexProvider = StateProvider<int>((ref) => 0);
@@ -60,16 +74,29 @@ class NewModernHomeScreen extends ConsumerStatefulWidget {
   NewModernHomeScreenState createState() => NewModernHomeScreenState();
 }
 
-class NewModernHomeScreenState extends ConsumerState<NewModernHomeScreen> with WidgetsBindingObserver {
+class NewModernHomeScreenState extends ConsumerState<NewModernHomeScreen> 
+    with TickerProviderStateMixin, WidgetsBindingObserver {
   final ImagePicker _picker = ImagePicker();
   TutorialCoachMark? _coachMark;
   List<TargetFocus> _targets = [];
   bool _showedCoach = false;
 
+  // Animation controllers
+  late AnimationController _fadeController;
+  late AnimationController _slideController;
+  late Animation<double> _fadeAnimation;
+  late Animation<Offset> _slideAnimation;
+
+  // Global keys for tutorial targets
+  final GlobalObjectKey _takePhotoKey = const GlobalObjectKey('takePhoto');
+  final GlobalObjectKey _homeTabKey = const GlobalObjectKey('homeTab');
+  final GlobalObjectKey _analyticsTabKey = const GlobalObjectKey('analyticsTab');
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    _initializeAnimations();
     _loadFirstRunFlag();
   }
 
@@ -77,21 +104,52 @@ class NewModernHomeScreenState extends ConsumerState<NewModernHomeScreen> with W
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     _coachMark?.finish();
+    _fadeController.dispose();
+    _slideController.dispose();
     super.dispose();
+  }
+
+  void _initializeAnimations() {
+    _fadeController = AnimationController(
+      duration: const Duration(milliseconds: 800),
+      vsync: this,
+    );
+    
+    _slideController = AnimationController(
+      duration: const Duration(milliseconds: 1000),
+      vsync: this,
+    );
+
+    _fadeAnimation = CurvedAnimation(
+      parent: _fadeController,
+      curve: Curves.easeInOut,
+    );
+
+    _slideAnimation = Tween<Offset>(
+      begin: const Offset(0, 0.3),
+      end: Offset.zero,
+    ).animate(CurvedAnimation(
+      parent: _slideController,
+      curve: Curves.easeOutCubic,
+    ));
+
+    // Start animations
+    _fadeController.forward();
+    _slideController.forward();
   }
 
   Future<void> _loadFirstRunFlag() async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      _showedCoach = prefs.getBool('home_coach_shown') ?? false;
+      _showedCoach = prefs.getBool('new_home_coach_shown') ?? false;
       if (!_showedCoach && mounted) {
         // Delay to ensure widgets are built
         WidgetsBinding.instance.addPostFrameCallback((_) {
-          Future.delayed(const Duration(milliseconds: 1000), () {
+          Future.delayed(const Duration(milliseconds: 1500), () {
             if (mounted) {
               _prepareCoachTargets();
               _showCoachMark();
-              prefs.setBool('home_coach_shown', true);
+              prefs.setBool('new_home_coach_shown', true);
             }
           });
         });
@@ -105,7 +163,7 @@ class NewModernHomeScreenState extends ConsumerState<NewModernHomeScreen> with W
     _targets = [
       TargetFocus(
         identify: "takePhoto",
-        keyTarget: GlobalKey(),
+        keyTarget: _takePhotoKey,
         contents: [
           TargetContent(
             align: ContentAlign.bottom,
@@ -125,6 +183,36 @@ class NewModernHomeScreenState extends ConsumerState<NewModernHomeScreen> with W
                   padding: EdgeInsets.only(top: 10.0),
                   child: Text(
                     'Tap here to take a photo of your waste item for classification.',
+                    style: TextStyle(color: Colors.white),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+      TargetFocus(
+        identify: "analytics",
+        keyTarget: _analyticsTabKey,
+        contents: [
+          TargetContent(
+            align: ContentAlign.top,
+            child: const Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Analytics',
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                    fontSize: 20.0,
+                  ),
+                ),
+                Padding(
+                  padding: EdgeInsets.only(top: 10.0),
+                  child: Text(
+                    'View your waste classification statistics and progress.',
                     style: TextStyle(color: Colors.white),
                   ),
                 ),
@@ -162,62 +250,63 @@ class NewModernHomeScreenState extends ConsumerState<NewModernHomeScreen> with W
 
   @override
   Widget build(BuildContext context) {
-    // Wrap in ProviderScope to fix the Riverpod error
-    return ProviderScope(
-      child: Consumer(
-        builder: (context, ref, child) {
-          final connectivity = ref.watch(connectivityProvider);
-          
-          return Scaffold(
-            appBar: AppBar(
-              title: const Text('WasteWise'),
-              actions: [
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                  child: Consumer(
-                    builder: (_, ref, __) {
-                      final gamificationService = ref.watch(gamificationServiceProvider);
-                      return FutureBuilder(
-                        future: gamificationService.getProfile(),
-                        builder: (context, snapshot) {
-                          final points = snapshot.data?.points.total ?? 0;
-                          return ModernBadge(
-                            text: '$points',
+    return Consumer(
+      builder: (context, ref, child) {
+        final connectivity = ref.watch(connectivityProvider);
+        
+        return FadeTransition(
+          opacity: _fadeAnimation,
+          child: SlideTransition(
+            position: _slideAnimation,
+            child: Scaffold(
+              appBar: AppBar(
+                title: const Text('WasteWise'),
+                actions: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                    child: Consumer(
+                      builder: (_, ref, __) {
+                        final profileAsync = ref.watch(profileProvider);
+                        return profileAsync.when(
+                          data: (profile) => ModernBadge(
+                            text: '${profile?.points.total ?? 0}',
                             icon: Icons.stars,
                             showPulse: false,
-                          );
-                        },
-                      );
-                    },
-                  ),
-                ),
-              ],
-              bottom: connectivity.when(
-                data: (results) => results.contains(ConnectivityResult.none) 
-                  ? PreferredSize(
-                      preferredSize: const Size.fromHeight(24),
-                      child: Container(
-                        color: Colors.redAccent,
-                        height: 24,
-                        child: const Center(
-                          child: Text(
-                            'Offline Mode',
-                            style: TextStyle(color: Colors.white, fontSize: 12),
+                            backgroundColor: Colors.amber,
                           ),
-                        ),
-                      ),
-                    )
-                  : null,
-                loading: () => null,
-                error: (_, __) => null,
+                          loading: () => const ModernBadge(
+                            text: '...',
+                            icon: Icons.stars,
+                            showPulse: false,
+                          ),
+                          error: (_, __) => const ModernBadge(
+                            text: '0',
+                            icon: Icons.stars,
+                            showPulse: false,
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                ],
+                bottom: connectivity.when(
+                  data: (result) => result == ConnectivityResult.none 
+                    ? const PreferredSize(
+                        preferredSize: Size.fromHeight(24),
+                        child: ConnectivityBanner(),
+                      )
+                    : null,
+                  loading: () => null,
+                  error: (_, __) => null,
+                ),
               ),
+              body: _buildContent(),
+              bottomNavigationBar: _buildBottomNav(),
+              floatingActionButton: _buildSpeedDial(),
             ),
-            body: _buildContent(),
-            bottomNavigationBar: _buildBottomNav(),
-            floatingActionButton: _buildSpeedDial(),
-          );
-        },
-      ),
+          ),
+        );
+      },
     );
   }
 
@@ -228,7 +317,7 @@ class NewModernHomeScreenState extends ConsumerState<NewModernHomeScreen> with W
         return IndexedStack(
           index: currentIndex,
           children: [
-            HomeTab(picker: _picker),
+            HomeTab(picker: _picker, takePhotoKey: _takePhotoKey),
             const AnalyticsTab(),
             const LearnTab(),
             const CommunityTab(),
@@ -247,24 +336,26 @@ class NewModernHomeScreenState extends ConsumerState<NewModernHomeScreen> with W
           type: BottomNavigationBarType.fixed,
           currentIndex: currentIndex,
           onTap: (index) => ref.read(_navIndexProvider.notifier).state = index,
-          items: const [
+          items: [
             BottomNavigationBarItem(
-              icon: Icon(Icons.home),
+              key: _homeTabKey,
+              icon: const Icon(Icons.home),
               label: 'Home',
             ),
             BottomNavigationBarItem(
-              icon: Icon(Icons.analytics),
+              key: _analyticsTabKey,
+              icon: const Icon(Icons.analytics),
               label: 'Analytics',
             ),
-            BottomNavigationBarItem(
+            const BottomNavigationBarItem(
               icon: Icon(Icons.school),
               label: 'Learn',
             ),
-            BottomNavigationBarItem(
+            const BottomNavigationBarItem(
               icon: Icon(Icons.people),
               label: 'Community',
             ),
-            BottomNavigationBarItem(
+            const BottomNavigationBarItem(
               icon: Icon(Icons.person),
               label: 'Profile',
             ),
@@ -278,10 +369,13 @@ class NewModernHomeScreenState extends ConsumerState<NewModernHomeScreen> with W
     return SpeedDial(
       icon: Icons.menu,
       activeIcon: Icons.close,
+      backgroundColor: AppTheme.primaryColor,
+      foregroundColor: Colors.white,
       children: [
         SpeedDialChild(
           child: const Icon(Icons.emoji_events),
           label: 'Achievements',
+          backgroundColor: Colors.amber,
           onTap: () => Navigator.push(
             context,
             MaterialPageRoute(builder: (_) => const AchievementsScreen()),
@@ -290,6 +384,7 @@ class NewModernHomeScreenState extends ConsumerState<NewModernHomeScreen> with W
         SpeedDialChild(
           child: const Icon(Icons.location_on),
           label: 'Disposal Facilities',
+          backgroundColor: Colors.green,
           onTap: () => Navigator.push(
             context,
             MaterialPageRoute(builder: (_) => const DisposalFacilitiesScreen()),
@@ -300,94 +395,893 @@ class NewModernHomeScreenState extends ConsumerState<NewModernHomeScreen> with W
   }
 }
 
-// Tab implementations
+// Connectivity banner widget
+class ConnectivityBanner extends StatelessWidget {
+  const ConnectivityBanner({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      color: Colors.redAccent,
+      height: 24,
+      child: const Center(
+        child: Text(
+          'Offline Mode',
+          style: TextStyle(color: Colors.white, fontSize: 12),
+        ),
+      ),
+    );
+  }
+}
+
+// Tab implementations with beautiful design
 class HomeTab extends ConsumerWidget {
   final ImagePicker picker;
-  const HomeTab({Key? key, required this.picker}) : super(key: key);
+  final GlobalKey takePhotoKey;
+  
+  const HomeTab({
+    Key? key, 
+    required this.picker, 
+    required this.takePhotoKey,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final storageService = ref.watch(storageServiceProvider);
+    final classificationsAsync = ref.watch(classificationsProvider);
+    final profileAsync = ref.watch(profileProvider);
     
     return ListView(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(AppTheme.spacingMd),
       children: [
-        ModernCard(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text(
-                'Quick Actions',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 16),
-              Semantics(
-                label: 'Take photo button',
-                child: ElevatedButton.icon(
-                  key: GlobalKey(),
-                  onPressed: () async => _takePhoto(picker, context),
-                  icon: const Icon(Icons.camera_alt),
-                  label: const Text('Take Photo'),
-                  style: ElevatedButton.styleFrom(
-                    minimumSize: const Size(double.infinity, 48),
+        // Welcome section with user stats
+        _buildWelcomeSection(context, profileAsync),
+        const SizedBox(height: AppTheme.spacingLg),
+        
+        // Quick actions with beautiful cards
+        _buildQuickActionsSection(context),
+        const SizedBox(height: AppTheme.spacingLg),
+        
+        // Stats overview
+        _buildStatsSection(context, classificationsAsync, profileAsync),
+        const SizedBox(height: AppTheme.spacingLg),
+        
+        // Recent classifications
+        _buildRecentClassifications(context, classificationsAsync),
+        
+        // Bottom padding for navigation
+        const SizedBox(height: AppTheme.spacingXl),
+      ],
+    );
+  }
+
+  Widget _buildWelcomeSection(BuildContext context, AsyncValue<GamificationProfile?> profileAsync) {
+    return profileAsync.when(
+      data: (profile) => ModernCard(
+        gradient: LinearGradient(
+          colors: [
+            AppTheme.primaryColor.withValues(alpha: 0.8),
+            AppTheme.primaryColor.withValues(alpha: 0.6),
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Welcome back!',
+                        style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: AppTheme.spacingXs),
+                      Text(
+                        'Ready to make a difference today?',
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: Colors.white.withValues(alpha: 0.9),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.2),
+                    borderRadius: BorderRadius.circular(AppTheme.borderRadiusMd),
+                  ),
+                  child: Icon(
+                    Icons.eco,
+                    color: Colors.white,
+                    size: AppTheme.iconSizeLg,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: AppTheme.spacingMd),
+            Row(
+              children: [
+                                 _buildStatChip('${profile?.points.total ?? 0}', 'Points', Icons.stars),
+                 const SizedBox(width: AppTheme.spacingMd),
+                 _buildStatChip('${profile?.streaks[StreakType.dailyClassification.toString()]?.currentCount ?? 0}', 'Day Streak', Icons.local_fire_department),
+              ],
+            ),
+          ],
+        ),
+      ),
+      loading: () => const ModernCard(
+        child: Center(child: CircularProgressIndicator()),
+      ),
+      error: (_, __) => const ModernCard(
+        child: Text('Error loading profile'),
+      ),
+    );
+  }
+
+  Widget _buildStatChip(String value, String label, IconData icon) {
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppTheme.spacingMd,
+        vertical: AppTheme.spacingSm,
+      ),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.2),
+        borderRadius: BorderRadius.circular(AppTheme.borderRadiusSm),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, color: Colors.white, size: 16),
+          const SizedBox(width: AppTheme.spacingXs),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                value,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16,
+                ),
               ),
-              const SizedBox(height: 8),
-              ElevatedButton.icon(
-                onPressed: () async => _pickImage(picker, context),
-                icon: const Icon(Icons.photo_library),
-                label: const Text('Upload Image'),
-                style: ElevatedButton.styleFrom(
-                  minimumSize: const Size(double.infinity, 48),
+              Text(
+                label,
+                style: TextStyle(
+                  color: Colors.white.withValues(alpha: 0.8),
+                  fontSize: 12,
                 ),
               ),
             ],
           ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildQuickActionsSection(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Quick Actions',
+          style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+            fontWeight: FontWeight.bold,
+          ),
         ),
-        const SizedBox(height: 16),
-        ModernCard(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text(
-                'Recent Classifications',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+        const SizedBox(height: AppTheme.spacingMd),
+        Row(
+          children: [
+            Expanded(
+              child: ModernCard(
+                onTap: () => _takePhoto(picker, context),
+                backgroundColor: Colors.blue.withValues(alpha: 0.1),
+                child: Column(
+                  children: [
+                    Container(
+                      key: takePhotoKey,
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: Colors.blue,
+                        borderRadius: BorderRadius.circular(AppTheme.borderRadiusMd),
+                      ),
+                      child: const Icon(
+                        Icons.camera_alt,
+                        color: Colors.white,
+                        size: 32,
+                      ),
+                    ),
+                    const SizedBox(height: AppTheme.spacingMd),
+                    const Text(
+                      'Take Photo',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                      ),
+                    ),
+                    const SizedBox(height: AppTheme.spacingXs),
+                    Text(
+                      'Classify waste item',
+                      style: TextStyle(
+                        color: Colors.grey[600],
+                        fontSize: 12,
+                      ),
+                    ),
+                  ],
+                ),
               ),
-              const SizedBox(height: 16),
-              FutureBuilder<List<WasteClassification>>(
-                future: storageService.getAllClassifications(),
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return const Center(child: CircularProgressIndicator());
-                  }
-                  
-                  final classifications = snapshot.data ?? [];
-                  if (classifications.isEmpty) {
-                    return const Center(
-                      child: Text('No classifications yet. Take your first photo!'),
+            ),
+            const SizedBox(width: AppTheme.spacingMd),
+            Expanded(
+              child: ModernCard(
+                onTap: () => _pickImage(picker, context),
+                backgroundColor: Colors.green.withValues(alpha: 0.1),
+                child: Column(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: Colors.green,
+                        borderRadius: BorderRadius.circular(AppTheme.borderRadiusMd),
+                      ),
+                      child: const Icon(
+                        Icons.photo_library,
+                        color: Colors.white,
+                        size: 32,
+                      ),
+                    ),
+                    const SizedBox(height: AppTheme.spacingMd),
+                    const Text(
+                      'Upload Image',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                      ),
+                    ),
+                    const SizedBox(height: AppTheme.spacingXs),
+                    Text(
+                      'From gallery',
+                      style: TextStyle(
+                        color: Colors.grey[600],
+                        fontSize: 12,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildStatsSection(
+    BuildContext context, 
+    AsyncValue<List<WasteClassification>> classificationsAsync,
+    AsyncValue<GamificationProfile?> profileAsync,
+  ) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Your Impact',
+          style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        const SizedBox(height: AppTheme.spacingMd),
+        Row(
+          children: [
+            Expanded(
+              child: classificationsAsync.when(
+                data: (classifications) => StatsCard(
+                  title: 'Total Items',
+                  value: '${classifications.length}',
+                  icon: Icons.recycling,
+                  color: AppTheme.primaryColor,
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const HistoryScreen(),
+                      ),
                     );
-                  }
-                  
-                  return Column(
-                    children: classifications.take(3).map((classification) {
-                      return ListTile(
-                        leading: const Icon(Icons.recycling),
-                        title: Text(classification.itemName),
-                        subtitle: Text(classification.category),
-                        trailing: Text(
-                          '${classification.timestamp.day}/${classification.timestamp.month}',
-                        ),
-                      );
-                    }).toList(),
-                  );
-                },
+                  },
+                ),
+                loading: () => const StatsCard(
+                  title: 'Total Items',
+                  value: '...',
+                  icon: Icons.recycling,
+                  color: AppTheme.primaryColor,
+                ),
+                error: (_, __) => const StatsCard(
+                  title: 'Total Items',
+                  value: '0',
+                  icon: Icons.recycling,
+                  color: AppTheme.primaryColor,
+                ),
               ),
-            ],
+            ),
+            const SizedBox(width: AppTheme.spacingMd),
+            Expanded(
+              child: profileAsync.when(
+                data: (profile) => StatsCard(
+                  title: 'Points',
+                  value: '${profile?.points.total ?? 0}',
+                  icon: Icons.stars,
+                  color: Colors.amber,
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const AchievementsScreen(),
+                      ),
+                    );
+                  },
+                ),
+                loading: () => const StatsCard(
+                  title: 'Points',
+                  value: '...',
+                  icon: Icons.stars,
+                  color: Colors.amber,
+                ),
+                error: (_, __) => const StatsCard(
+                  title: 'Points',
+                  value: '0',
+                  icon: Icons.stars,
+                  color: Colors.amber,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildRecentClassifications(
+    BuildContext context, 
+    AsyncValue<List<WasteClassification>> classificationsAsync,
+  ) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              'Recent Classifications',
+              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const HistoryScreen(),
+                  ),
+                );
+              },
+              child: const Text('View All'),
+            ),
+          ],
+        ),
+        const SizedBox(height: AppTheme.spacingMd),
+        classificationsAsync.when(
+          data: (classifications) {
+            if (classifications.isEmpty) {
+              return ModernCard(
+                child: Column(
+                  children: [
+                    Icon(
+                      Icons.history,
+                      size: AppTheme.iconSizeXl,
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+                    const SizedBox(height: AppTheme.spacingMd),
+                    Text(
+                      'No classifications yet',
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: AppTheme.spacingXs),
+                    Text(
+                      'Take a photo or upload an image to get started',
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ],
+                ),
+              );
+            }
+            
+            return Column(
+              children: classifications.take(3).map((classification) {
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: AppTheme.spacingMd),
+                  child: _buildBeautifulClassificationCard(context, classification),
+                );
+              }).toList(),
+            );
+          },
+          loading: () => const ModernCard(
+            child: Center(child: CircularProgressIndicator()),
+          ),
+          error: (_, __) => const ModernCard(
+            child: Text('Error loading classifications'),
           ),
         ),
       ],
     );
+  }
+
+  Color _getCategoryColor(String category) {
+    switch (category.toLowerCase()) {
+      case 'recyclable':
+        return Colors.green;
+      case 'organic':
+        return Colors.brown;
+      case 'hazardous':
+        return Colors.red;
+      case 'electronic':
+        return Colors.blue;
+      default:
+        return Colors.grey;
+    }
+  }
+
+  IconData _getCategoryIcon(String category) {
+    switch (category.toLowerCase()) {
+      case 'recyclable':
+        return Icons.recycling;
+      case 'organic':
+        return Icons.eco;
+      case 'hazardous':
+        return Icons.warning;
+      case 'electronic':
+        return Icons.electrical_services;
+      default:
+        return Icons.delete;
+    }
+  }
+
+  Widget _buildBeautifulClassificationCard(BuildContext context, WasteClassification classification) {
+    final categoryColor = _getCategoryColor(classification.category);
+    final categoryIcon = _getCategoryIcon(classification.category);
+    final isToday = _isToday(classification.timestamp);
+    final confidenceLevel = _getConfidenceLevel(classification.confidence);
+    
+    return Container(
+      margin: const EdgeInsets.only(bottom: AppTheme.spacingMd),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            categoryColor.withValues(alpha: 0.08),
+            categoryColor.withValues(alpha: 0.03),
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(AppTheme.borderRadiusLg),
+        border: Border.all(
+          color: categoryColor.withValues(alpha: 0.2),
+          width: 1,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: categoryColor.withValues(alpha: 0.1),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(AppTheme.borderRadiusLg),
+          onTap: () {
+            // Navigate to classification details
+            _showClassificationDetails(context, classification);
+          },
+          child: Padding(
+            padding: const EdgeInsets.all(AppTheme.spacingLg),
+            child: Column(
+              children: [
+                Row(
+                  children: [
+                    // Enhanced category icon with animated gradient
+                    Hero(
+                      tag: 'classification_${classification.id}',
+                      child: Container(
+                        width: 64,
+                        height: 64,
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: [
+                              categoryColor,
+                              categoryColor.withValues(alpha: 0.7),
+                            ],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          ),
+                          borderRadius: BorderRadius.circular(AppTheme.borderRadiusLg),
+                          boxShadow: [
+                            BoxShadow(
+                              color: categoryColor.withValues(alpha: 0.4),
+                              blurRadius: 12,
+                              offset: const Offset(0, 6),
+                            ),
+                          ],
+                        ),
+                        child: Stack(
+                          alignment: Alignment.center,
+                          children: [
+                            Icon(
+                              categoryIcon,
+                              color: Colors.white,
+                              size: 32,
+                            ),
+                            if (isToday)
+                              Positioned(
+                                top: 4,
+                                right: 4,
+                                child: Container(
+                                  width: 12,
+                                  height: 12,
+                                  decoration: BoxDecoration(
+                                    color: Colors.orange,
+                                    borderRadius: BorderRadius.circular(6),
+                                    border: Border.all(color: Colors.white, width: 2),
+                                  ),
+                                ),
+                              ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: AppTheme.spacingLg),
+                    
+                    // Enhanced classification details
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  classification.itemName,
+                                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                    color: Theme.of(context).colorScheme.onSurface,
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                              if (classification.confidence != null && classification.confidence! > 0)
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 8,
+                                    vertical: 4,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: confidenceLevel.color.withValues(alpha: 0.1),
+                                    borderRadius: BorderRadius.circular(12),
+                                    border: Border.all(
+                                      color: confidenceLevel.color.withValues(alpha: 0.3),
+                                      width: 1,
+                                    ),
+                                  ),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Icon(
+                                        confidenceLevel.icon,
+                                        size: 14,
+                                        color: confidenceLevel.color,
+                                      ),
+                                      const SizedBox(width: 4),
+                                      Text(
+                                        '${(classification.confidence! * 100).toInt()}%',
+                                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                          color: confidenceLevel.color,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                            ],
+                          ),
+                          const SizedBox(height: AppTheme.spacingXs),
+                          
+                          // Enhanced category and disposal info
+                          Row(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 10,
+                                  vertical: 4,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: categoryColor.withValues(alpha: 0.15),
+                                  borderRadius: BorderRadius.circular(12),
+                                  border: Border.all(
+                                    color: categoryColor.withValues(alpha: 0.4),
+                                    width: 1,
+                                  ),
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Icon(
+                                      categoryIcon,
+                                      size: 14,
+                                      color: categoryColor,
+                                    ),
+                                    const SizedBox(width: 4),
+                                    Text(
+                                      classification.category,
+                                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                        color: categoryColor,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              const SizedBox(width: AppTheme.spacingSm),
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 8,
+                                  vertical: 4,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: _getDisposalColor(classification.disposalMethod).withValues(alpha: 0.1),
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: Text(
+                                  _getDisposalText(classification.disposalMethod),
+                                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                    color: _getDisposalColor(classification.disposalMethod),
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                
+                const SizedBox(height: AppTheme.spacingMd),
+                
+                // Enhanced bottom section with more info
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    // Date and time with better formatting
+                    Row(
+                      children: [
+                        Icon(
+                          isToday ? Icons.today : Icons.calendar_today,
+                          size: 16,
+                          color: isToday ? Colors.orange : Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          _formatDate(classification.timestamp),
+                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            fontWeight: FontWeight.w600,
+                            color: isToday ? Colors.orange : Theme.of(context).colorScheme.onSurfaceVariant,
+                          ),
+                        ),
+                        const SizedBox(width: AppTheme.spacingSm),
+                        Icon(
+                          Icons.access_time,
+                          size: 16,
+                          color: Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          _formatTime(classification.timestamp),
+                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color: Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
+                          ),
+                        ),
+                      ],
+                    ),
+                    
+                    // Environmental impact indicator
+                    if (classification.environmentalImpact != null)
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 4,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.green.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              Icons.eco,
+                              size: 14,
+                              color: Colors.green,
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              '+${classification.environmentalImpact ?? "0"} pts',
+                              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                color: Colors.green,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  bool _isToday(DateTime dateTime) {
+    final now = DateTime.now();
+    return dateTime.year == now.year &&
+           dateTime.month == now.month &&
+           dateTime.day == now.day;
+  }
+
+  ({Color color, IconData icon}) _getConfidenceLevel(double? confidence) {
+    if (confidence == null) return (color: Colors.grey, icon: Icons.help_outline);
+    if (confidence >= 0.8) return (color: Colors.green, icon: Icons.verified);
+    if (confidence >= 0.6) return (color: Colors.orange, icon: Icons.check_circle_outline);
+    return (color: Colors.red, icon: Icons.warning_outlined);
+  }
+
+  Color _getDisposalColor(String? disposalMethod) {
+    switch (disposalMethod?.toLowerCase()) {
+      case 'recycle':
+        return Colors.green;
+      case 'compost':
+        return Colors.brown;
+      case 'hazardous':
+        return Colors.red;
+      case 'landfill':
+        return Colors.grey;
+      default:
+        return Colors.blue;
+    }
+  }
+
+  String _getDisposalText(String? disposalMethod) {
+    switch (disposalMethod?.toLowerCase()) {
+      case 'recycle':
+        return 'Recycle';
+      case 'compost':
+        return 'Compost';
+      case 'hazardous':
+        return 'Hazardous';
+      case 'landfill':
+        return 'Landfill';
+      default:
+        return 'General';
+    }
+  }
+
+  void _showClassificationDetails(BuildContext context, WasteClassification classification) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => DraggableScrollableSheet(
+        initialChildSize: 0.7,
+        maxChildSize: 0.9,
+        minChildSize: 0.5,
+        builder: (context, scrollController) => Container(
+          decoration: BoxDecoration(
+            color: Theme.of(context).colorScheme.surface,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+          ),
+          child: Column(
+            children: [
+              Container(
+                width: 40,
+                height: 4,
+                margin: const EdgeInsets.symmetric(vertical: 12),
+                decoration: BoxDecoration(
+                  color: Colors.grey[300],
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              Expanded(
+                child: ListView(
+                  controller: scrollController,
+                  padding: const EdgeInsets.all(20),
+                  children: [
+                    Text(
+                      'Classification Details',
+                      style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                    Text(
+                      classification.itemName,
+                      style: Theme.of(context).textTheme.titleLarge,
+                    ),
+                    const SizedBox(height: 10),
+                    Text(
+                      'Category: ${classification.category}',
+                      style: Theme.of(context).textTheme.bodyLarge,
+                    ),
+                    if (classification.confidence != null)
+                      Text(
+                        'Confidence: ${(classification.confidence! * 100).toInt()}%',
+                        style: Theme.of(context).textTheme.bodyLarge,
+                      ),
+                    if (classification.disposalMethod != null)
+                      Text(
+                        'Disposal: ${classification.disposalMethod}',
+                        style: Theme.of(context).textTheme.bodyLarge,
+                      ),
+                    Text(
+                      'Date: ${_formatDate(classification.timestamp)} at ${_formatTime(classification.timestamp)}',
+                      style: Theme.of(context).textTheme.bodyLarge,
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  String _formatDate(DateTime dateTime) {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final yesterday = today.subtract(const Duration(days: 1));
+    final classificationDate = DateTime(dateTime.year, dateTime.month, dateTime.day);
+    
+    if (classificationDate == today) {
+      return 'Today';
+    } else if (classificationDate == yesterday) {
+      return 'Yesterday';
+    } else {
+      return '${dateTime.day}/${dateTime.month}';
+    }
+  }
+
+  String _formatTime(DateTime dateTime) {
+    final hour = dateTime.hour;
+    final minute = dateTime.minute.toString().padLeft(2, '0');
+    final period = hour >= 12 ? 'PM' : 'AM';
+    final displayHour = hour > 12 ? hour - 12 : (hour == 0 ? 12 : hour);
+    return '$displayHour:$minute $period';
   }
 
   Future<void> _takePhoto(ImagePicker picker, BuildContext context) async {
@@ -423,26 +1317,166 @@ class HomeTab extends ConsumerWidget {
   }
 }
 
-class AnalyticsTab extends StatelessWidget {
+class AnalyticsTab extends ConsumerWidget {
   const AnalyticsTab({Key? key}) : super(key: key);
 
   @override
-  Widget build(BuildContext context) {
-    return const Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(Icons.analytics, size: 64, color: Colors.grey),
-          SizedBox(height: 16),
-          Text(
-            'Analytics Content',
-            style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+  Widget build(BuildContext context, WidgetRef ref) {
+    final classificationsAsync = ref.watch(classificationsProvider);
+    final profileAsync = ref.watch(profileProvider);
+
+    return ListView(
+      padding: const EdgeInsets.all(AppTheme.spacingMd),
+      children: [
+        Text(
+          'Analytics Dashboard',
+          style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+            fontWeight: FontWeight.bold,
           ),
-          SizedBox(height: 8),
+        ),
+        const SizedBox(height: AppTheme.spacingLg),
+        
+        // Quick stats cards
+        Row(
+          children: [
+            Expanded(
+              child: classificationsAsync.when(
+                data: (classifications) => _buildAnalyticsCard(
+                  context,
+                  'Total Classifications',
+                  '${classifications.length}',
+                  Icons.analytics,
+                  Colors.blue,
+                ),
+                loading: () => _buildAnalyticsCard(
+                  context,
+                  'Total Classifications',
+                  '...',
+                  Icons.analytics,
+                  Colors.blue,
+                ),
+                error: (_, __) => _buildAnalyticsCard(
+                  context,
+                  'Total Classifications',
+                  '0',
+                  Icons.analytics,
+                  Colors.blue,
+                ),
+              ),
+            ),
+            const SizedBox(width: AppTheme.spacingMd),
+            Expanded(
+              child: classificationsAsync.when(
+                data: (classifications) {
+                  final today = DateTime.now();
+                  final todayCount = classifications.where((c) => 
+                    c.timestamp.year == today.year &&
+                    c.timestamp.month == today.month &&
+                    c.timestamp.day == today.day
+                  ).length;
+                  return _buildAnalyticsCard(
+                    context,
+                    'Today',
+                    '$todayCount',
+                    Icons.today,
+                    Colors.green,
+                  );
+                },
+                loading: () => _buildAnalyticsCard(
+                  context,
+                  'Today',
+                  '...',
+                  Icons.today,
+                  Colors.green,
+                ),
+                error: (_, __) => _buildAnalyticsCard(
+                  context,
+                  'Today',
+                  '0',
+                  Icons.today,
+                  Colors.green,
+                ),
+              ),
+            ),
+          ],
+        ),
+        
+        const SizedBox(height: AppTheme.spacingLg),
+        
+        // Feature cards for detailed analytics
+        FeatureCard(
+          icon: Icons.bar_chart,
+          title: 'Detailed Analytics',
+          subtitle: 'View comprehensive waste classification statistics',
+          iconColor: AppTheme.infoColor,
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const WasteDashboardScreen(),
+              ),
+            );
+          },
+        ),
+        
+        const SizedBox(height: AppTheme.spacingSm),
+        
+        FeatureCard(
+          icon: Icons.history,
+          title: 'Classification History',
+          subtitle: 'Browse all your past classifications',
+          iconColor: Colors.purple,
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const HistoryScreen(),
+              ),
+            );
+          },
+        ),
+      ],
+    );
+  }
+
+  Widget _buildAnalyticsCard(
+    BuildContext context,
+    String title,
+    String value,
+    IconData icon,
+    Color color,
+  ) {
+    return ModernCard(
+      backgroundColor: color.withValues(alpha: 0.1),
+      child: Column(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: color,
+              borderRadius: BorderRadius.circular(AppTheme.borderRadiusMd),
+            ),
+            child: Icon(
+              icon,
+              color: Colors.white,
+              size: 24,
+            ),
+          ),
+          const SizedBox(height: AppTheme.spacingMd),
           Text(
-            'Coming soon! Track your waste classification analytics here.',
+            value,
+            style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+              fontWeight: FontWeight.bold,
+              color: color,
+            ),
+          ),
+          const SizedBox(height: AppTheme.spacingXs),
+          Text(
+            title,
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+              color: Colors.grey[600],
+            ),
             textAlign: TextAlign.center,
-            style: TextStyle(color: Colors.grey),
           ),
         ],
       ),
@@ -455,106 +1489,214 @@ class LearnTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(Icons.school, size: 64, color: Colors.grey),
-          SizedBox(height: 16),
-          Text(
-            'Educational Content',
-            style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+    return ListView(
+      padding: const EdgeInsets.all(AppTheme.spacingMd),
+      children: [
+        Text(
+          'Learn & Grow',
+          style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+            fontWeight: FontWeight.bold,
           ),
-          SizedBox(height: 8),
-          Text(
-            'Learn about waste management and environmental impact.',
-            textAlign: TextAlign.center,
-            style: TextStyle(color: Colors.grey),
-          ),
-        ],
-      ),
+        ),
+        const SizedBox(height: AppTheme.spacingLg),
+        
+        FeatureCard(
+          icon: Icons.school,
+          title: 'Educational Content',
+          subtitle: 'Learn about waste management and environmental impact',
+          iconColor: AppTheme.successColor,
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const EducationalContentScreen(),
+              ),
+            );
+          },
+        ),
+        
+        const SizedBox(height: AppTheme.spacingSm),
+        
+        FeatureCard(
+          icon: Icons.tips_and_updates,
+          title: 'Eco Tips',
+          subtitle: 'Daily tips for sustainable living',
+          iconColor: Colors.orange,
+          onTap: () {
+            // Navigate to tips screen
+          },
+        ),
+        
+        const SizedBox(height: AppTheme.spacingSm),
+        
+        FeatureCard(
+          icon: Icons.quiz,
+          title: 'Knowledge Quiz',
+          subtitle: 'Test your environmental knowledge',
+          iconColor: Colors.purple,
+          onTap: () {
+            // Navigate to quiz screen
+          },
+        ),
+      ],
     );
   }
 }
 
-class CommunityTab extends ConsumerStatefulWidget {
+class CommunityTab extends ConsumerWidget {
   const CommunityTab({Key? key}) : super(key: key);
 
   @override
-  ConsumerState<CommunityTab> createState() => _CommunityTabState();
-}
-
-class _CommunityTabState extends ConsumerState<CommunityTab> {
-  @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final communityService = ref.watch(communityServiceProvider);
     
-    return FutureBuilder(
-      future: communityService.getFeedItems(limit: 3),
-      builder: (_, AsyncSnapshot snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(child: CircularProgressIndicator());
-        }
-        if (snapshot.hasError) {
-          return const Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(Icons.error, size: 64, color: Colors.red),
-                SizedBox(height: 16),
-                Text('Error loading community feed'),
-              ],
-            ),
-          );
-        }
-        
-        return const Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(Icons.people, size: 64, color: Colors.grey),
-              SizedBox(height: 16),
-              Text(
-                'Community Feed',
-                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-              ),
-              SizedBox(height: 8),
-              Text(
-                'Connect with other eco-warriors and share your progress.',
-                textAlign: TextAlign.center,
-                style: TextStyle(color: Colors.grey),
-              ),
-            ],
+    return ListView(
+      padding: const EdgeInsets.all(AppTheme.spacingMd),
+      children: [
+        Text(
+          'Community',
+          style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+            fontWeight: FontWeight.bold,
           ),
-        );
-      },
+        ),
+        const SizedBox(height: AppTheme.spacingLg),
+        
+        FeatureCard(
+          icon: Icons.people,
+          title: 'Community Feed',
+          subtitle: 'Connect with other eco-warriors',
+          iconColor: Colors.blue,
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const SocialScreen(),
+              ),
+            );
+          },
+        ),
+        
+        const SizedBox(height: AppTheme.spacingSm),
+        
+        FeatureCard(
+          icon: Icons.leaderboard,
+          title: 'Leaderboard',
+          subtitle: 'See how you rank among other users',
+          iconColor: Colors.amber,
+          onTap: () {
+            // Navigate to leaderboard
+          },
+        ),
+        
+        const SizedBox(height: AppTheme.spacingSm),
+        
+        FeatureCard(
+          icon: Icons.campaign,
+          title: 'Environmental Campaigns',
+          subtitle: 'Join local environmental initiatives',
+          iconColor: Colors.green,
+          onTap: () {
+            // Navigate to campaigns
+          },
+        ),
+      ],
     );
   }
 }
 
-class ProfileTab extends StatelessWidget {
+class ProfileTab extends ConsumerWidget {
   const ProfileTab({Key? key}) : super(key: key);
 
   @override
-  Widget build(BuildContext context) {
-    return const Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(Icons.person, size: 64, color: Colors.grey),
-          SizedBox(height: 16),
-          Text(
-            'Profile Settings',
-            style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+  Widget build(BuildContext context, WidgetRef ref) {
+    final profileAsync = ref.watch(profileProvider);
+    
+    return ListView(
+      padding: const EdgeInsets.all(AppTheme.spacingMd),
+      children: [
+        Text(
+          'Profile',
+          style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+            fontWeight: FontWeight.bold,
           ),
-          SizedBox(height: 8),
-          Text(
-            'Manage your account and preferences.',
-            textAlign: TextAlign.center,
-            style: TextStyle(color: Colors.grey),
+        ),
+        const SizedBox(height: AppTheme.spacingLg),
+        
+        // Profile card
+        profileAsync.when(
+          data: (profile) => ModernCard(
+            child: Column(
+              children: [
+                CircleAvatar(
+                  radius: 40,
+                  backgroundColor: AppTheme.primaryColor,
+                  child: Text(
+                    'U',
+                    style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: AppTheme.spacingMd),
+                Text(
+                  'User Profile',
+                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: AppTheme.spacingXs),
+                                 Text(
+                   '${profile?.points.total ?? 0} points • Level ${profile?.points.level ?? 1}',
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: Colors.grey[600],
+                  ),
+                ),
+              ],
+            ),
           ),
-        ],
-      ),
+          loading: () => const ModernCard(
+            child: Center(child: CircularProgressIndicator()),
+          ),
+          error: (_, __) => const ModernCard(
+            child: Text('Error loading profile'),
+          ),
+        ),
+        
+        const SizedBox(height: AppTheme.spacingLg),
+        
+        FeatureCard(
+          icon: Icons.settings,
+          title: 'Settings',
+          subtitle: 'Manage your account and preferences',
+          iconColor: Colors.grey,
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const SettingsScreen(),
+              ),
+            );
+          },
+        ),
+        
+        const SizedBox(height: AppTheme.spacingSm),
+        
+        FeatureCard(
+          icon: Icons.emoji_events,
+          title: 'Achievements',
+          subtitle: 'View your earned badges and milestones',
+          iconColor: Colors.amber,
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const AchievementsScreen(),
+              ),
+            );
+          },
+        ),
+      ],
     );
   }
 } 

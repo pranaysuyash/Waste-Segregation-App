@@ -1,6 +1,7 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart' as riverpod;
 import 'package:provider/provider.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -287,32 +288,33 @@ class WasteSegregationApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MultiProvider(
-      providers: [
-        // ThemeProvider for dynamic theming
-        ChangeNotifierProvider(create: (_) => ThemeProvider()),
-        
-        // Provide existing service instances
-        Provider<StorageService>.value(value: storageService),
-        Provider<AiService>.value(value: aiService),
-        ChangeNotifierProvider<AnalyticsService>.value(value: analyticsService),
-        ChangeNotifierProvider<EducationalContentAnalyticsService>.value(
-            value: educationalContentAnalyticsService),
-        Provider<GoogleDriveService>.value(value: googleDriveService),
-        Provider<EducationalContentService>.value(value: educationalContentService),
-        ChangeNotifierProvider<GamificationService>.value(value: gamificationService),
-        ChangeNotifierProvider<PremiumService>.value(value: premiumService),
-        ChangeNotifierProvider<AdService>.value(value: adService),
-        ChangeNotifierProvider<NavigationSettingsService>.value(value: navigationSettingsService),
-        Provider<CommunityService>.value(value: communityService),
+    return riverpod.ProviderScope(
+      child: MultiProvider(
+        providers: [
+          // ThemeProvider for dynamic theming
+          ChangeNotifierProvider(create: (_) => ThemeProvider()),
+          
+          // Provide existing service instances
+          Provider<StorageService>.value(value: storageService),
+          Provider<AiService>.value(value: aiService),
+          ChangeNotifierProvider<AnalyticsService>.value(value: analyticsService),
+          ChangeNotifierProvider<EducationalContentAnalyticsService>.value(
+              value: educationalContentAnalyticsService),
+          Provider<GoogleDriveService>.value(value: googleDriveService),
+          Provider<EducationalContentService>.value(value: educationalContentService),
+          ChangeNotifierProvider<GamificationService>.value(value: gamificationService),
+          ChangeNotifierProvider<PremiumService>.value(value: premiumService),
+          ChangeNotifierProvider<AdService>.value(value: adService),
+          ChangeNotifierProvider<NavigationSettingsService>.value(value: navigationSettingsService),
+          Provider<CommunityService>.value(value: communityService),
 
-        // Other providers
-        Provider(create: (_) => UserConsentService()),
-        Provider(create: (context) => CloudStorageService(context.read<StorageService>())),
-      ],
-      child: Consumer<ThemeProvider>(
-        builder: (context, themeProvider, child) {
-          return MaterialApp(
+          // Other providers
+          Provider(create: (_) => UserConsentService()),
+          Provider(create: (context) => CloudStorageService(context.read<StorageService>())),
+        ],
+        child: Consumer<ThemeProvider>(
+          builder: (context, themeProvider, child) {
+            return MaterialApp(
           navigatorKey: navigatorKey,
           title: AppStrings.appName,
           theme: AppTheme.lightTheme,
@@ -367,8 +369,9 @@ class WasteSegregationApp extends StatelessWidget {
                 return const AuthScreen(); // Will automatically redirect to HomeScreen if logged in
               },
             ),
-          );
-        },
+            );
+          },
+        ),
       ),
     );
   }
