@@ -20,6 +20,7 @@ The query requires an index. You can create it here: https://console.firebase.go
 **Affected Queries**:
 - Family member filtering by `familyId + role + joinedAt`
 - Invitation management by `familyId + status + createdAt`
+- Invitation list sorting by `familyId + createdAt`
 - Analytics events by `userId + eventType + timestamp`
 - Disposal locations by `source + isActive + name`
 
@@ -116,6 +117,14 @@ type '_Map<String, dynamic>' is not a subtype of type 'String'
       "collectionGroup": "invitations",
       "queryScope": "COLLECTION",
       "fields": [
+        {"fieldPath": "familyId", "order": "ASCENDING"},
+        {"fieldPath": "createdAt", "order": "DESCENDING"}
+      ]
+    },
+    {
+      "collectionGroup": "invitations",
+      "queryScope": "COLLECTION",
+      "fields": [
         {"fieldPath": "invitedEmail", "order": "ASCENDING"},
         {"fieldPath": "status", "order": "ASCENDING"},
         {"fieldPath": "createdAt", "order": "DESCENDING"}
@@ -141,6 +150,7 @@ type '_Map<String, dynamic>' is not a subtype of type 'String'
 
 **Invitations**:
 - `familyId + status + createdAt`: Manage invitations by status
+- `familyId + createdAt`: Retrieve invitations sorted by creation date
 - `invitedEmail + status + createdAt`: Track user's invitation history
 
 ### 2. **Storage Service Type Safety**
