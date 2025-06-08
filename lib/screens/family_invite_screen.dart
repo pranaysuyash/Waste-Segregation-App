@@ -285,6 +285,10 @@ class _FamilyInviteScreenState extends State<FamilyInviteScreen>
   }
 
   Widget _buildShareLinkTab() {
+    if (_inviteLink == null) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
     return SingleChildScrollView(
       padding: const EdgeInsets.all(AppTheme.paddingRegular),
       child: Column(
@@ -547,6 +551,7 @@ class _FamilyInviteScreenState extends State<FamilyInviteScreen>
   }
 
   void _copyInviteLink() {
+    if (_inviteLink == null) return;
     Clipboard.setData(ClipboardData(text: _inviteLink!));
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
