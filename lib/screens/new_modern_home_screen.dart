@@ -15,6 +15,7 @@ import '../services/gamification_service.dart';
 import '../services/community_service.dart';
 import '../widgets/modern_ui/modern_cards.dart';
 import '../widgets/modern_ui/modern_badges.dart';
+import '../widgets/classification_card.dart';
 import 'image_capture_screen.dart';
 import 'history_screen.dart';
 import 'achievements_screen.dart';
@@ -807,13 +808,14 @@ class HomeTab extends ConsumerWidget {
               );
             }
             
-            return Column(
-              children: classifications.take(3).map((classification) {
-                return Padding(
-                  padding: const EdgeInsets.only(bottom: AppTheme.spacingMd),
-                  child: _buildBeautifulClassificationCard(context, classification),
-                );
-              }).toList(),
+            // show just the last 3
+            final recent = classifications.take(3).toList();
+            return ListView.separated(
+              physics: const NeverScrollableScrollPhysics(),
+              shrinkWrap: true,
+              itemCount: recent.length,
+              separatorBuilder: (_, __) => const SizedBox(height: AppTheme.spacingMd),
+              itemBuilder: (_, i) => ClassificationCard(classification: recent[i]),
             );
           },
           loading: () => const ModernCard(
