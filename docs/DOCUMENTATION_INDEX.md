@@ -48,6 +48,7 @@ This document provides a comprehensive index to all project documentation, now p
 - **MASTER_TODO_COMPREHENSIVE.md** - Comprehensive TODO tracking
 - **ROADMAP_INTEGRATION_SUMMARY.md** - Roadmap integration status
 - **STRATEGIC_ROADMAP_COMPREHENSIVE.md** - Strategic planning and vision
+- **account_reset_and_delete_specification.md** - Specification for account reset and deletion flows
 
 ### `/docs/processes/` - Development Processes
 - **MANUAL_COMMIT_INSTRUCTIONS.md** - Manual commit procedures when git fails
@@ -135,7 +136,7 @@ This document provides a comprehensive index to all project documentation, now p
 ### **Status & Tracking** (10 files)
 High-priority documents for understanding current project state and ongoing issues.
 
-### **Planning & Strategy** (5 files)
+### **Planning & Strategy** (6 files)
 Project planning, roadmaps, and strategic documentation.
 
 ### **Technical Documentation** (6 files)
@@ -197,7 +198,7 @@ Many documents reference each other. When moving or renaming files, update inter
 
 ### **After Organization:**
 - 2 essential files remain at root level (README.md, CHANGELOG.md)
-- 42+ files properly categorized in 14 logical subdirectories
+- 43+ files properly categorized in 14 logical subdirectories
 - Clear structure with comprehensive categorization
 - Comprehensive index for easy navigation
 - Related documents grouped together
