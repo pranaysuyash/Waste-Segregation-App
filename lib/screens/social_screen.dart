@@ -22,9 +22,18 @@ class _SocialScreenState extends State<SocialScreen> {
     final isIOS = Platform.isIOS;
     
     return Scaffold(
-      appBar: _currentIndex == 1 ? AppBar(
-        title: const Text('Family'),
-      ) : null,
+      appBar: _currentIndex == 1
+          ? AppBar(
+              title: const Text('Family'),
+              actions: [
+                IconButton(
+                  icon: const Icon(Icons.swap_horiz),
+                  onPressed: () => setState(() => _currentIndex = 0),
+                  tooltip: 'Switch to Community',
+                ),
+              ],
+            )
+          : null,
       body: IndexedStack(
         index: _currentIndex,
         children: const [
