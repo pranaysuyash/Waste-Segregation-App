@@ -8,6 +8,7 @@ import '../utils/constants.dart';
 import '../models/waste_classification.dart';
 import '../services/gamification_service.dart';
 import '../models/gamification.dart';
+import '../widgets/waste_chart_widgets.dart';
 // import '../widgets/enhanced_loading_widget.dart'; // Removed
 // Removed import for '../widgets/empty_state_widget.dart'; as EmptyStateWidget is defined below
 
@@ -18,19 +19,35 @@ class WasteDashboardScreen extends StatefulWidget {
   State<WasteDashboardScreen> createState() => _WasteDashboardScreenState();
 }
 
-class _WasteDashboardScreenState extends State<WasteDashboardScreen> {
+class _WasteDashboardScreenState extends State<WasteDashboardScreen>
+    with SingleTickerProviderStateMixin {
   // Classification data
   late List<WasteClassification> _classifications = [];
   DateTime? _firstClassificationDate;
   Map<String, int> _wasteCategoryCounts = {};
   Map<String, int> _wasteSubcategoryCounts = {};
   Map<DateTime, int> _wasteByDate = {};
+  final Map<String, String> _subcategoryCategoryMap = {};
   bool _isLoading = true;
+  late final AnimationController _chartAnimationController;
 
   @override
   void initState() {
     super.initState();
+    _chartAnimationController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 800),
+    );
+    if (_chartAnimationController.duration != Duration.zero) {
+      _chartAnimationController.forward(from: 0);
+    }
     _loadData();
+  }
+
+  @override
+  void dispose() {
+    _chartAnimationController.dispose();
+    super.dispose();
   }
 
   Future<void> _loadData() async {
@@ -39,16 +56,30 @@ class _WasteDashboardScreenState extends State<WasteDashboardScreen> {
     });
 
     try {
+      // Try to refresh gamification, but don’t block analytics if it fails
+      final gamificationService =
+          Provider.of<GamificationService>(context, listen: false);
+      try {
+        await gamificationService.syncGamificationData();
+      } catch (e, s) {
+        debugPrint('Gamification sync failed: $e\n$s');
+      }
+
       // Get the real data from storage service
       final storageService = Provider.of<StorageService>(context, listen: false);
       final classifications = await storageService.getAllClassifications();
       
       // Process the classifications to generate statistics
       _processClassifications(classifications);
-      
+
       setState(() {
         _classifications = classifications;
         _isLoading = false;
+        if (_chartAnimationController.status == AnimationStatus.completed) {
+          _chartAnimationController
+            ..reset()
+            ..forward(from: 0);
+        }
       });
     } catch (e) {
       debugPrint('Error loading analytics data: $e');
@@ -77,6 +108,7 @@ class _WasteDashboardScreenState extends State<WasteDashboardScreen> {
     // Reset counters
     _wasteCategoryCounts = {};
     _wasteSubcategoryCounts = {};
+    _subcategoryCategoryMap.clear();
     _wasteByDate = {};
     
     // Process each classification
@@ -94,6 +126,10 @@ class _WasteDashboardScreenState extends State<WasteDashboardScreen> {
           classification.subcategory!,
           (value) => value + 1,
           ifAbsent: () => 1,
+        );
+        _subcategoryCategoryMap.putIfAbsent(
+          classification.subcategory!,
+          () => classification.category,
         );
       }
       
@@ -286,10 +322,17 @@ class _WasteDashboardScreenState extends State<WasteDashboardScreen> {
         ),
       );
     }
-    
-      return Card(
-        child: Container(
-          height: MediaQuery.of(context).size.height * 0.3,
+    final flData = timeSeriesData
+        .map((e) => ChartData(
+              DateFormat.Md().format(e['date'] as DateTime),
+              (e['count'] as int).toDouble(),
+              AppTheme.primaryColor,
+            ))
+        .toList();
+
+    return Card(
+      child: Container(
+        height: MediaQuery.of(context).size.height * 0.35,
         padding: const EdgeInsets.all(AppTheme.paddingSmall),
         child: Column(
           children: [
@@ -301,9 +344,9 @@ class _WasteDashboardScreenState extends State<WasteDashboardScreen> {
               ),
             ),
             Expanded(
-              child: WebChartWidget(
-                data: timeSeriesData,
-                title: 'Recent Activity',
+              child: WasteTimeSeriesChart(
+                data: flData,
+                animationController: _chartAnimationController,
               ),
             ),
           ],
@@ -370,14 +413,29 @@ class _WasteDashboardScreenState extends State<WasteDashboardScreen> {
                 child: WebPieChartWidget(data: pieData),
             ),
             const SizedBox(height: AppTheme.paddingRegular),
-            
+            SizedBox(
+              height: MediaQuery.of(context).size.height * 0.3,
+              child: WasteCategoryPieChart(
+                data: _wasteCategoryCounts.entries
+                    .map((e) => ChartData(
+                          e.key,
+                          e.value.toDouble(),
+                          _getCategoryColor(e.key).withValues(alpha: 0.8),
+                        ))
+                    .toList(),
+                animationController: _chartAnimationController,
+              ),
+            ),
+            const SizedBox(height: AppTheme.paddingRegular),
+
             // Legend
             Wrap(
               spacing: AppTheme.paddingRegular,
               runSpacing: AppTheme.paddingSmall,
-              children: _wasteCategoryCounts.entries.map((entry) => 
-                _buildLegendItem(entry.key, _getCategoryColor(entry.key))
-              ).toList(),
+              children: _wasteCategoryCounts.entries
+                  .map((entry) =>
+                      _buildLegendItem(entry.key, _getCategoryColor(entry.key)))
+                  .toList(),
             ),
           ],
         ),
@@ -441,7 +499,7 @@ class _WasteDashboardScreenState extends State<WasteDashboardScreen> {
               style: Theme.of(context).textTheme.titleSmall,
             ),
             const SizedBox(height: AppTheme.paddingRegular),
-            ...topSubcategories.map((entry) => 
+            ...topSubcategories.map((entry) =>
               Padding(
                 padding: const EdgeInsets.only(bottom: AppTheme.paddingSmall),
                 child: Row(
@@ -475,6 +533,20 @@ class _WasteDashboardScreenState extends State<WasteDashboardScreen> {
                     ),
                   ],
                 ),
+              ),
+            ),
+            const SizedBox(height: AppTheme.paddingRegular),
+            SizedBox(
+              height: 200,
+              child: TopSubcategoriesBarChart(
+                data: topSubcategories
+                    .map((e) => ChartData(
+                          e.key,
+                          e.value.toDouble(),
+                          _getSubcategoryColor(e.key),
+                        ))
+                    .toList(),
+                animationController: _chartAnimationController,
               ),
             ),
           ],
@@ -653,6 +725,11 @@ class _WasteDashboardScreenState extends State<WasteDashboardScreen> {
       case 'Non-Waste': return AppTheme.nonWasteColor;
       default: return AppTheme.lightGreyColor;
     }
+  }
+
+  Color _getSubcategoryColor(String subcategory) {
+    final category = _subcategoryCategoryMap[subcategory];
+    return _getCategoryColor(category ?? subcategory);
   }
   
   Widget _getCategoryIcon(String category) {
