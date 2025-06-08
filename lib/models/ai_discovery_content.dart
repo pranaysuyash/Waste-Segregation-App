@@ -222,6 +222,9 @@ class TemplateInterpolator {
   static final RegExp _placeholderRegex = RegExp(r'\{([^}]+)\}');
   
   /// Instantiate a template string with the provided values
+  /// 
+  /// Replaces all placeholders in the format {key} with corresponding values.
+  /// If a placeholder has no corresponding value, it remains unchanged.
   static String instantiate(String template, Map<String, String> values) {
     return template.replaceAllMapped(_placeholderRegex, (match) {
       final key = match.group(1);
@@ -230,6 +233,8 @@ class TemplateInterpolator {
   }
   
   /// Extract all placeholder keys from a template
+  /// 
+  /// Returns a Set of all unique placeholder keys found in the template.
   static Set<String> extractPlaceholders(String template) {
     return _placeholderRegex.allMatches(template)
         .map((match) => match.group(1)!)
@@ -237,6 +242,8 @@ class TemplateInterpolator {
   }
   
   /// Validate that all placeholders in template have corresponding values
+  /// 
+  /// Returns true if all placeholders can be filled with the provided values.
   static bool validateTemplate(String template, Map<String, String> values) {
     final placeholders = extractPlaceholders(template);
     return placeholders.every((placeholder) => values.containsKey(placeholder));
@@ -251,7 +258,9 @@ class TriggerCondition {
   });
 
   factory TriggerCondition.fromJson(Map<String, dynamic> json) {
-    final typeString = json['type'] as String? ?? 'specific_item_discovery';
+    // Improved null-safety: check type before casting
+    final typeValue = json['type'];
+    final typeString = typeValue is String ? typeValue : 'specific_item_discovery';
     final type = _triggerTypeMap[typeString] ?? HiddenContentTriggerType.specificItemDiscovery;
     
     return TriggerCondition(
@@ -303,6 +312,9 @@ class TriggerCondition {
   };
 
   /// Validate that the parameters are valid for this trigger type
+  /// 
+  /// Returns true if all parameters are valid according to the trigger type's requirements.
+  /// Uses exception-safe validation to handle malformed data gracefully.
   bool validate() {
     try {
       switch (type) {
@@ -353,7 +365,9 @@ class HiddenContentRule {
   });
 
   factory HiddenContentRule.fromJson(Map<String, dynamic> json) {
-    final typeString = json['unlockedContentType'] as String? ?? 'badge';
+    // Improved null-safety: check type before casting
+    final typeValue = json['unlockedContentType'];
+    final typeString = typeValue is String ? typeValue : 'badge';
     final unlockedContentType = _unlockedContentTypeMap[typeString] ?? UnlockedContentType.badge;
     
     return HiddenContentRule(
@@ -402,6 +416,10 @@ class HiddenContentRule {
   };
   
   /// Validate the entire rule and all its conditions
+  /// 
+  /// Performs comprehensive validation including basic rule structure,
+  /// all trigger conditions, and anyOfGroups conditions.
+  /// Returns false if any validation fails or if an exception occurs.
   bool validate() {
     try {
       // Basic validation
@@ -427,6 +445,10 @@ class HiddenContentRule {
   }
   
   /// Get all trigger types used in this rule for indexing
+  /// 
+  /// Returns a Set of all HiddenContentTriggerType values used in both
+  /// the main triggerConditions and all anyOfGroups. This is used by
+  /// the RuleEvaluationOptimizer for efficient rule indexing.
   Set<HiddenContentTriggerType> getTriggerTypes() {
     final types = <HiddenContentTriggerType>{};
     types.addAll(triggerConditions.map((c) => c.type));
@@ -436,7 +458,11 @@ class HiddenContentRule {
     return types;
   }
   
-  /// Check if this rule should be evaluated for a given trigger type (for performance)
+  /// Check if this rule should be evaluated for a given trigger type
+  /// 
+  /// Returns true if this rule contains any conditions that match the
+  /// specified trigger type. Used for performance optimization to avoid
+  /// evaluating irrelevant rules.
   bool isRelevantForTriggerType(HiddenContentTriggerType triggerType) {
     return getTriggerTypes().contains(triggerType);
   }
@@ -507,16 +533,23 @@ class DiscoveryQuestTemplate {
   final int durationDays;
 
   /// Instantiate the title template with provided values
+  /// 
+  /// Uses the TemplateInterpolator to replace placeholders in the title template.
   String instantiateTitle(Map<String, String> values) {
     return TemplateInterpolator.instantiate(titleTemplate, values);
   }
   
   /// Instantiate the description template with provided values
+  /// 
+  /// Uses the TemplateInterpolator to replace placeholders in the description template.
   String instantiateDescription(Map<String, String> values) {
     return TemplateInterpolator.instantiate(descriptionTemplate, values);
   }
   
   /// Get all placeholders used in title and description templates
+  /// 
+  /// Returns a Set of all unique placeholder keys required to fully
+  /// instantiate both the title and description templates.
   Set<String> getRequiredPlaceholders() {
     final titlePlaceholders = TemplateInterpolator.extractPlaceholders(titleTemplate);
     final descriptionPlaceholders = TemplateInterpolator.extractPlaceholders(descriptionTemplate);
@@ -524,6 +557,9 @@ class DiscoveryQuestTemplate {
   }
   
   /// Validate the template and objective criteria
+  /// 
+  /// Checks that all required fields are present and valid.
+  /// Returns false if any validation fails or if an exception occurs.
   bool validate() {
     try {
       if (templateId.isEmpty || titleTemplate.isEmpty || descriptionTemplate.isEmpty) {
@@ -539,6 +575,9 @@ class DiscoveryQuestTemplate {
   }
   
   /// Validate that the provided values can fill all template placeholders
+  /// 
+  /// Returns true if all placeholders in both title and description templates
+  /// have corresponding values in the provided map.
   bool validateInstantiation(Map<String, String> values) {
     return TemplateInterpolator.validateTemplate(titleTemplate, values) &&
            TemplateInterpolator.validateTemplate(descriptionTemplate, values);
@@ -587,6 +626,10 @@ class RuleEvaluationOptimizer {
   static final Map<String, HiddenContentRule> _rulesById = {};
   
   /// Index rules by trigger type for fast lookup
+  /// 
+  /// Creates optimized indexes for rule evaluation. Only active rules are indexed.
+  /// Rules are organized by trigger type for O(1) lookup during evaluation.
+  /// Call this method whenever rules are updated to refresh the indexes.
   static void indexRules(List<HiddenContentRule> rules) {
     _rulesByTriggerType.clear();
     _rulesById.clear();
@@ -601,21 +644,34 @@ class RuleEvaluationOptimizer {
   }
   
   /// Get only rules relevant to a specific trigger type
+  /// 
+  /// Returns a list of rules that contain conditions matching the specified
+  /// trigger type. This enables efficient rule evaluation by only processing
+  /// relevant rules instead of all rules.
   static List<HiddenContentRule> getRulesForTriggerType(HiddenContentTriggerType triggerType) {
     return _rulesByTriggerType[triggerType] ?? [];
   }
   
   /// Get rule by ID for fast lookup
+  /// 
+  /// Provides O(1) access to rules by their unique ID.
+  /// Returns null if the rule is not found or is inactive.
   static HiddenContentRule? getRuleById(String ruleId) {
     return _rulesById[ruleId];
   }
   
   /// Get all active rules
+  /// 
+  /// Returns a list of all currently active and indexed rules.
+  /// Useful for administrative operations and bulk processing.
   static List<HiddenContentRule> getAllActiveRules() {
     return _rulesById.values.toList();
   }
   
   /// Clear the index (call when rules are updated)
+  /// 
+  /// Clears all internal indexes. Call this before re-indexing with
+  /// updated rules to ensure clean state.
   static void clearIndex() {
     _rulesByTriggerType.clear();
     _rulesById.clear();

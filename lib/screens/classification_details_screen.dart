@@ -5,13 +5,56 @@ import 'package:waste_segregation_app/models/gamification.dart' show FamilyReact
 import 'package:waste_segregation_app/utils/constants.dart';
 import 'package:waste_segregation_app/widgets/modern_ui/modern_cards.dart';
 
-class ClassificationDetailsScreen extends StatelessWidget {
+class ClassificationDetailsScreen extends StatefulWidget {
   const ClassificationDetailsScreen({super.key, required this.classification});
   final SharedWasteClassification classification;
 
   @override
+  State<ClassificationDetailsScreen> createState() => _ClassificationDetailsScreenState();
+}
+
+class _ClassificationDetailsScreenState extends State<ClassificationDetailsScreen> with TickerProviderStateMixin {
+  bool _isBookmarked = false;
+  late AnimationController _bookmarkAnimationController;
+  late Animation<double> _bookmarkAnimation;
+
+  // Avatar fallback colors palette
+  static const List<Color> _avatarColors = [
+    Color(0xFF6B73FF), // Blue
+    Color(0xFF9C27B0), // Purple
+    Color(0xFF00BCD4), // Cyan
+    Color(0xFF4CAF50), // Green
+    Color(0xFFFF9800), // Orange
+    Color(0xFFE91E63), // Pink
+    Color(0xFF795548), // Brown
+    Color(0xFF607D8B), // Blue Grey
+  ];
+
+  @override
+  void initState() {
+    super.initState();
+    _bookmarkAnimationController = AnimationController(
+      duration: const Duration(milliseconds: 300),
+      vsync: this,
+    );
+    _bookmarkAnimation = Tween<double>(
+      begin: 1.0,
+      end: 1.2,
+    ).animate(CurvedAnimation(
+      parent: _bookmarkAnimationController,
+      curve: Curves.elasticOut,
+    ));
+  }
+
+  @override
+  void dispose() {
+    _bookmarkAnimationController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final originalClassification = classification.classification;
+    final originalClassification = widget.classification.classification;
 
     return Scaffold(
       appBar: AppBar(
@@ -19,10 +62,25 @@ class ClassificationDetailsScreen extends StatelessWidget {
         backgroundColor: AppTheme.primaryColor,
         foregroundColor: Colors.white,
         actions: [
-          IconButton(
-            onPressed: () => _toggleBookmark(context),
-            icon: const Icon(Icons.bookmark_border),
-            tooltip: 'Bookmark this classification',
+          AnimatedBuilder(
+            animation: _bookmarkAnimation,
+            builder: (context, child) {
+              return Transform.scale(
+                scale: _bookmarkAnimation.value,
+                child: IconButton(
+                  onPressed: () => _toggleBookmark(context),
+                  icon: AnimatedSwitcher(
+                    duration: const Duration(milliseconds: 200),
+                    child: Icon(
+                      _isBookmarked ? Icons.bookmark : Icons.bookmark_border,
+                      key: ValueKey(_isBookmarked),
+                      color: _isBookmarked ? Colors.amber : Colors.white,
+                    ),
+                  ),
+                  tooltip: _isBookmarked ? 'Remove bookmark' : 'Bookmark this classification',
+                ),
+              );
+            },
           ),
         ],
       ),
@@ -102,7 +160,7 @@ class ClassificationDetailsScreen extends StatelessWidget {
                       Icon(Icons.person, size: 16, color: AppTheme.textSecondaryColor),
                       const SizedBox(width: AppTheme.spacingXs),
                       Text(
-                        'Shared by ${classification.sharedByDisplayName}',
+                        'Shared by ${widget.classification.sharedByDisplayName}',
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
                           fontStyle: FontStyle.italic,
                         ),
@@ -115,7 +173,7 @@ class ClassificationDetailsScreen extends StatelessWidget {
                       Icon(Icons.access_time, size: 16, color: AppTheme.textSecondaryColor),
                       const SizedBox(width: AppTheme.spacingXs),
                       Text(
-                        _formatDateWithIntl(classification.sharedAt),
+                        _formatDateWithIntl(widget.classification.sharedAt),
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
                           fontStyle: FontStyle.italic,
                         ),
@@ -125,11 +183,11 @@ class ClassificationDetailsScreen extends StatelessWidget {
                 ],
               ),
             ),
-            const SizedBox(height: AppTheme.spacingLg),
+            const SizedBox(height: AppTheme.spacingMd),
 
             // Reactions Section
             _buildReactionsSection(context),
-            const SizedBox(height: AppTheme.spacingLg),
+            const SizedBox(height: AppTheme.spacingMd),
 
             // Comments Section
             _buildCommentsSection(context),
@@ -162,15 +220,15 @@ class ClassificationDetailsScreen extends StatelessWidget {
           ),
 
           // Horizontal reaction summary or empty state
-          if (classification.reactions.isNotEmpty)
+          if (widget.classification.reactions.isNotEmpty)
             SizedBox(
               height: 56,
               child: ListView.separated(
                 scrollDirection: Axis.horizontal,
-                itemCount: classification.reactions.length > 6 ? 6 : classification.reactions.length,
-                separatorBuilder: (_, __) => const SizedBox(width: AppTheme.spacingXs),
+                itemCount: widget.classification.reactions.length > 6 ? 6 : widget.classification.reactions.length,
+                separatorBuilder: (_, __) => const SizedBox(width: AppTheme.spacingSm),
                 itemBuilder: (_, i) {
-                  if (i == 5 && classification.reactions.length > 6) {
+                  if (i == 5 && widget.classification.reactions.length > 6) {
                     return Center(
                       child: Container(
                         padding: const EdgeInsets.symmetric(
@@ -179,30 +237,38 @@ class ClassificationDetailsScreen extends StatelessWidget {
                         ),
                         decoration: BoxDecoration(
                           color: AppTheme.primaryColor.withValues(alpha: 0.1),
+                          border: Border.all(
+                            color: AppTheme.primaryColor.withValues(alpha: 0.3),
+                            width: 1,
+                          ),
                           borderRadius: BorderRadius.circular(AppTheme.borderRadiusSm),
                         ),
                         child: Text(
-                          '+${classification.reactions.length - 5} more',
+                          '+${widget.classification.reactions.length - 5} more',
                           style: Theme.of(context).textTheme.bodySmall?.copyWith(
                             color: AppTheme.primaryColor,
-                            fontWeight: FontWeight.w500,
+                            fontWeight: FontWeight.w600,
                           ),
                         ),
                       ),
                     );
                   }
-                  final reaction = classification.reactions[i];
+                  final reaction = widget.classification.reactions[i];
                   return Column(
                     children: [
                       CircleAvatar(
                         radius: 20,
+                        backgroundColor: _getAvatarColor(reaction.displayName),
                         backgroundImage: reaction.photoUrl != null && reaction.photoUrl!.isNotEmpty
                             ? NetworkImage(reaction.photoUrl!)
                             : null,
                         child: reaction.photoUrl == null || reaction.photoUrl!.isEmpty
                             ? Text(
                                 reaction.displayName.substring(0, 1).toUpperCase(),
-                                style: const TextStyle(fontWeight: FontWeight.bold),
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white,
+                                ),
                               )
                             : null,
                       ),
@@ -240,23 +306,28 @@ class ClassificationDetailsScreen extends StatelessWidget {
             ),
 
           // Show detailed reactions if there are any
-          if (classification.reactions.isNotEmpty) ...[
+          if (widget.classification.reactions.isNotEmpty) ...[
             const SizedBox(height: AppTheme.spacingMd),
             const Divider(),
             const SizedBox(height: AppTheme.spacingSm),
-            ...classification.reactions.map((reaction) => Padding(
+            ...widget.classification.reactions.map((reaction) => Padding(
               padding: const EdgeInsets.symmetric(vertical: AppTheme.spacingXs),
               child: Row(
                 children: [
                   CircleAvatar(
                     radius: 16,
+                    backgroundColor: _getAvatarColor(reaction.displayName),
                     backgroundImage: reaction.photoUrl != null && reaction.photoUrl!.isNotEmpty
                         ? NetworkImage(reaction.photoUrl!)
                         : null,
                     child: reaction.photoUrl == null || reaction.photoUrl!.isEmpty
                         ? Text(
                             reaction.displayName.substring(0, 1).toUpperCase(),
-                            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                            style: const TextStyle(
+                              fontSize: 12, 
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
                           )
                         : null,
                   ),
@@ -274,6 +345,10 @@ class ClassificationDetailsScreen extends StatelessWidget {
                     ),
                     decoration: BoxDecoration(
                       color: _getReactionColor(reaction.type).withValues(alpha: 0.1),
+                      border: Border.all(
+                        color: _getReactionColor(reaction.type).withValues(alpha: 0.3),
+                        width: 1,
+                      ),
                       borderRadius: BorderRadius.circular(AppTheme.borderRadiusSm),
                     ),
                     child: Row(
@@ -288,7 +363,7 @@ class ClassificationDetailsScreen extends StatelessWidget {
                           reaction.type.toString().split('.').last,
                           style: Theme.of(context).textTheme.bodySmall?.copyWith(
                             color: _getReactionColor(reaction.type),
-                            fontWeight: FontWeight.w500,
+                            fontWeight: FontWeight.w600,
                           ),
                         ),
                       ],
@@ -325,57 +400,84 @@ class ClassificationDetailsScreen extends StatelessWidget {
             ),
           ),
 
-          if (classification.comments.isNotEmpty)
-            ...classification.comments.map((comment) => Padding(
-              padding: const EdgeInsets.symmetric(vertical: AppTheme.spacingSm),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  CircleAvatar(
-                    radius: 18,
-                    backgroundImage: comment.photoUrl != null && comment.photoUrl!.isNotEmpty
-                        ? NetworkImage(comment.photoUrl!)
-                        : null,
-                    child: comment.photoUrl == null || comment.photoUrl!.isEmpty
-                        ? Text(
-                            comment.displayName.substring(0, 1).toUpperCase(),
-                            style: const TextStyle(fontWeight: FontWeight.bold),
-                          )
-                        : null,
-                  ),
-                  const SizedBox(width: AppTheme.spacingSm),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            Text(
-                              comment.displayName,
-                              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                fontWeight: FontWeight.w600,
-                              ),
+          if (widget.classification.comments.isNotEmpty)
+            Column(
+              children: widget.classification.comments.asMap().entries.map((entry) {
+                final index = entry.key;
+                final comment = entry.value;
+                final isLast = index == widget.classification.comments.length - 1;
+                
+                return Column(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(vertical: AppTheme.spacingSm),
+                      decoration: BoxDecoration(
+                        color: index.isEven 
+                          ? Colors.transparent 
+                          : AppTheme.primaryColor.withValues(alpha: 0.02),
+                        borderRadius: BorderRadius.circular(AppTheme.borderRadiusSm),
+                      ),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          CircleAvatar(
+                            radius: 18,
+                            backgroundColor: _getAvatarColor(comment.displayName),
+                            backgroundImage: comment.photoUrl != null && comment.photoUrl!.isNotEmpty
+                                ? NetworkImage(comment.photoUrl!)
+                                : null,
+                            child: comment.photoUrl == null || comment.photoUrl!.isEmpty
+                                ? Text(
+                                    comment.displayName.substring(0, 1).toUpperCase(),
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.white,
+                                    ),
+                                  )
+                                : null,
+                          ),
+                          const SizedBox(width: AppTheme.spacingSm),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  children: [
+                                    Text(
+                                      comment.displayName,
+                                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                    const Spacer(),
+                                    Text(
+                                      _formatDateWithIntl(comment.timestamp),
+                                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                        color: AppTheme.textSecondaryColor,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: AppTheme.spacingXs),
+                                Text(
+                                  comment.text,
+                                  style: Theme.of(context).textTheme.bodyMedium,
+                                ),
+                              ],
                             ),
-                            const Spacer(),
-                            Text(
-                              _formatDateWithIntl(comment.timestamp),
-                              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                color: AppTheme.textSecondaryColor,
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: AppTheme.spacingXs),
-                        Text(
-                          comment.text,
-                          style: Theme.of(context).textTheme.bodyMedium,
-                        ),
-                      ],
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
-                ],
-              ),
-            ))
+                    if (!isLast) 
+                      Divider(
+                        height: 1,
+                        color: AppTheme.textDisabledColor.withValues(alpha: 0.2),
+                      ),
+                  ],
+                );
+              }).toList(),
+            )
           else
             Center(
               child: Padding(
@@ -404,13 +506,28 @@ class ClassificationDetailsScreen extends StatelessWidget {
   }
 
   void _toggleBookmark(BuildContext context) {
-    // TODO: Implement bookmark functionality
+    setState(() {
+      _isBookmarked = !_isBookmarked;
+    });
+    
+    // Trigger animation
+    _bookmarkAnimationController.forward().then((_) {
+      _bookmarkAnimationController.reverse();
+    });
+    
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Bookmark feature coming soon!'),
-        duration: Duration(seconds: 2),
+      SnackBar(
+        content: Text(_isBookmarked ? 'Added to bookmarks!' : 'Removed from bookmarks'),
+        duration: const Duration(seconds: 2),
+        backgroundColor: _isBookmarked ? Colors.green : Colors.orange,
       ),
     );
+  }
+
+  /// Get a consistent color for avatar fallback based on display name
+  Color _getAvatarColor(String displayName) {
+    final hash = displayName.hashCode;
+    return _avatarColors[hash.abs() % _avatarColors.length];
   }
 
   String _formatDateWithIntl(DateTime date) {
