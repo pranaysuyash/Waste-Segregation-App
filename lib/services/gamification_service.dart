@@ -1773,4 +1773,91 @@ class GamificationService extends ChangeNotifier {
       debugPrint('🔥 Error syncing gamification data: $e');
     }
   }
+
+  /// Sync weekly stats with actual classification data from storage service
+  /// This fixes the mismatch between weekly progress and daily analytics
+  Future<void> syncWeeklyStatsWithClassifications() async {
+    try {
+      debugPrint('📊 Syncing weekly stats with classification data...');
+      
+      // Get all classifications from storage service
+      final classifications = await _storageService.getAllClassifications();
+      if (classifications.isEmpty) {
+        debugPrint('📊 No classifications found, skipping weekly stats sync');
+        return;
+      }
+      
+      // Group classifications by week
+      final Map<DateTime, List<WasteClassification>> weeklyClassifications = {};
+      
+      for (final classification in classifications) {
+        // Calculate week start (Monday)
+        final date = classification.timestamp;
+        final weekStart = date.subtract(Duration(days: date.weekday - 1));
+        final weekStartDate = DateTime(weekStart.year, weekStart.month, weekStart.day);
+        
+        weeklyClassifications.putIfAbsent(weekStartDate, () => []).add(classification);
+      }
+      
+      // Generate weekly stats from actual data
+      final List<WeeklyStats> updatedWeeklyStats = [];
+      
+      for (final entry in weeklyClassifications.entries) {
+        final weekStart = entry.key;
+        final weekClassifications = entry.value;
+        
+        // Calculate category counts
+        final Map<String, int> categoryCounts = {};
+        for (final classification in weekClassifications) {
+          categoryCounts.update(
+            classification.category,
+            (value) => value + 1,
+            ifAbsent: () => 1,
+          );
+        }
+        
+        // Calculate points (10 points per classification)
+        final pointsEarned = weekClassifications.length * 10;
+        
+        // Calculate streak for this week (simplified - max consecutive days)
+        final weekDays = <DateTime>{};
+        for (final classification in weekClassifications) {
+          final day = DateTime(
+            classification.timestamp.year,
+            classification.timestamp.month,
+            classification.timestamp.day,
+          );
+          weekDays.add(day);
+        }
+        
+        final weeklyStats = WeeklyStats(
+          weekStartDate: weekStart,
+          itemsIdentified: weekClassifications.length,
+          challengesCompleted: 0, // TODO: Calculate from actual challenge completions
+          streakMaximum: weekDays.length, // Number of unique days with activity
+          pointsEarned: pointsEarned,
+          categoryCounts: categoryCounts,
+        );
+        
+        updatedWeeklyStats.add(weeklyStats);
+      }
+      
+      // Sort by week start date (newest first)
+      updatedWeeklyStats.sort((a, b) => b.weekStartDate.compareTo(a.weekStartDate));
+      
+      // Update the profile with synced weekly stats
+      final currentProfile = await getProfile();
+      final updatedProfile = currentProfile.copyWith(weeklyStats: updatedWeeklyStats);
+      
+      await saveProfile(updatedProfile);
+      
+      debugPrint('📊 ✅ Weekly stats synced successfully');
+      debugPrint('📊 Generated ${updatedWeeklyStats.length} weekly stat entries');
+      debugPrint('📊 Total classifications processed: ${classifications.length}');
+      
+    } catch (e, stackTrace) {
+      debugPrint('📊 ❌ Error syncing weekly stats: $e');
+      debugPrint('📊 Stack trace: $stackTrace');
+    }
+  }
 }

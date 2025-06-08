@@ -70,6 +70,7 @@ class _WasteDashboardScreenState extends State<WasteDashboardScreen>
           Provider.of<GamificationService>(context, listen: false);
       try {
         await gamificationService.syncGamificationData();
+        await gamificationService.syncWeeklyStatsWithClassifications();
       } catch (e, s) {
         debugPrint('Gamification sync failed: $e\n$s');
       }

@@ -19,6 +19,12 @@ class GlobalSettingsMenu extends StatelessWidget {
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
       ),
+      offset: const Offset(0, 40),
+      constraints: const BoxConstraints(
+        minWidth: 200,
+        maxWidth: 250,
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 8),
       onSelected: (value) {
         switch (value) {
           case 'settings':
