@@ -10,10 +10,14 @@ class GlobalMenuWrapper extends StatelessWidget {
     return Stack(
       children: [
         child,
-        Positioned(
-          top: MediaQuery.of(context).padding.top + 8,
-          right: 8,
-          child: const GlobalSettingsMenu(),
+        SafeArea(
+          child: Align(
+            alignment: Alignment.topRight,
+            child: Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: const GlobalSettingsMenu(),
+            ),
+          ),
         ),
       ],
     );
