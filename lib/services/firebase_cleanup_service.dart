@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 
 /// Service to clear Firebase data for testing fresh install experience
 /// This should only be used in development/testing environments
@@ -10,6 +11,7 @@ class FirebaseCleanupService {
 
   /// Collections to clear for fresh install simulation
   static const List<String> _collectionsToDelete = [
+    'users',
     'community_feed',
     'community_stats', 
     'families',
@@ -17,6 +19,19 @@ class FirebaseCleanupService {
     'shared_classifications',
     'analytics_events',
     'family_stats',
+  ];
+
+  /// Hive boxes to clear for fresh install simulation
+  static const List<String> _hiveBoxesToClear = [
+    'classifications',
+    'userProfile',
+    'settings',
+    'achievements',
+    'communityStats',
+    'communityFeed',
+    'analytics',
+    'contentProgress',
+    'familyData',
   ];
 
   /// Clear all Firebase data to simulate fresh install
@@ -35,11 +50,17 @@ class FirebaseCleanupService {
       // 2. Clear global collections
       await _clearGlobalCollections();
       
-      // 3. Reset community stats
+      // 3. Clear local Hive storage
+      await _clearLocalStorage();
+      
+      // 4. Reset community stats
       await _resetCommunityStats();
       
-      // 4. Sign out current user
+      // 5. Sign out current user
       await _signOutCurrentUser();
+      
+      // 6. Force a small delay to ensure all operations complete
+      await Future.delayed(const Duration(milliseconds: 500));
       
       debugPrint('✅ Firebase cleanup completed - app will behave like fresh install');
       
@@ -95,6 +116,63 @@ class FirebaseCleanupService {
         debugPrint('⚠️ Error clearing collection $collection: $e');
       }
     }
+  }
+
+  /// Clear local Hive storage
+  Future<void> _clearLocalStorage() async {
+    debugPrint('🗑️ Clearing local Hive storage...');
+
+    for (final boxName in _hiveBoxesToClear) {
+      try {
+        if (Hive.isBoxOpen(boxName)) {
+          final box = Hive.box(boxName);
+          await box.clear();
+          debugPrint('✅ Cleared Hive box: $boxName');
+        } else {
+          // Try to open and clear the box
+          try {
+            final box = await Hive.openBox(boxName);
+            await box.clear();
+            await box.close();
+            debugPrint('✅ Cleared Hive box: $boxName');
+          } catch (e) {
+            debugPrint('ℹ️ Hive box $boxName not found or already empty');
+          }
+        }
+      } catch (e) {
+        debugPrint('⚠️ Error clearing Hive box $boxName: $e');
+      }
+    }
+
+    // Also clear any remaining boxes that might exist
+    try {
+      // Get all registered adapters and clear their boxes if open
+      final allPossibleBoxes = [
+        'userSettings',
+        'appData',
+        'cache',
+        'temp',
+        'backup',
+      ];
+      
+      for (final boxName in allPossibleBoxes) {
+        if (!_hiveBoxesToClear.contains(boxName)) {
+          try {
+            if (Hive.isBoxOpen(boxName)) {
+              final box = Hive.box(boxName);
+              await box.clear();
+              debugPrint('✅ Cleared additional Hive box: $boxName');
+            }
+          } catch (e) {
+            debugPrint('⚠️ Error clearing additional box $boxName: $e');
+          }
+        }
+      }
+    } catch (e) {
+      debugPrint('ℹ️ No additional Hive boxes to clear');
+    }
+
+    debugPrint('✅ Local storage cleanup completed');
   }
 
   /// Delete all documents in a collection
@@ -158,12 +236,17 @@ class FirebaseCleanupService {
     debugPrint('📊 Resetting community stats...');
     
     try {
+      // First delete the existing document
+      await _firestore.collection('community_stats').doc('main').delete();
+      
+      // Then create a fresh one with zero values
       await _firestore.collection('community_stats').doc('main').set({
         'totalUsers': 0,
         'totalClassifications': 0,
         'totalPoints': 0,
         'categoryBreakdown': <String, int>{},
         'lastUpdated': FieldValue.serverTimestamp(),
+        'createdAt': FieldValue.serverTimestamp(),
       });
       
       debugPrint('✅ Community stats reset to zero');

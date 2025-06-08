@@ -18,6 +18,7 @@ A comprehensive Flutter application for proper waste identification, segregation
 
 **Version 2.0.2 is now live!**  
 - ✅ **Auth Screen Redesign**: Fixed card text visibility, removed scrolling, cleaned redundant content
+- ✅ **Enhanced Firebase Cleanup**: Comprehensive data clearing including local Hive storage for true fresh install simulation
 - ✅ **RenderFlex Overflow Fixes**: Resolved button text overflow issues in modern UI components
 - ✅ **Critical Bug Fixes**: Resolved opacity assertion errors and streak reset issues
 - ✅ **Code Quality**: Reduced lint issues from 218 to 116 (47% improvement)
