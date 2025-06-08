@@ -468,7 +468,7 @@ final basePreparation = [
 - ❌ No location services implemented
 - ❌ No GPS permission requests  
 - ❌ Distance calculations hardcoded
- - [x] ✅ **Maps open via url_launcher in interactive_tag.dart**
+- [x] ✅ **Maps open via url_launcher in interactive_tag.dart**
 
 #### Implementation Tasks:
 - [ ] 🔄 Add geolocator dependency to pubspec.yaml

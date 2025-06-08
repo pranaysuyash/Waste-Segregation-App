@@ -18,12 +18,15 @@ class _ContributionHistoryScreenState extends State<ContributionHistoryScreen> {
   @override
   void initState() {
     super.initState();
-    _loadCurrentUserId();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadCurrentUserId();
+    });
   }
 
   Future<void> _loadCurrentUserId() async {
     final storage = context.read<StorageService>();
     final profile = await storage.getCurrentUserProfile();
+    if (!mounted) return;
     setState(() {
       _currentUserId = profile?.id ?? 'guest_user';
     });
