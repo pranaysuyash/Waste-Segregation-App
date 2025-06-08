@@ -117,6 +117,14 @@ type '_Map<String, dynamic>' is not a subtype of type 'String'
       "collectionGroup": "invitations",
       "queryScope": "COLLECTION",
       "fields": [
+        {"fieldPath": "familyId", "order": "ASCENDING"},
+        {"fieldPath": "createdAt", "order": "DESCENDING"}
+      ]
+    },
+    {
+      "collectionGroup": "invitations",
+      "queryScope": "COLLECTION",
+      "fields": [
         {"fieldPath": "invitedEmail", "order": "ASCENDING"},
         {"fieldPath": "status", "order": "ASCENDING"},
         {"fieldPath": "createdAt", "order": "DESCENDING"}
