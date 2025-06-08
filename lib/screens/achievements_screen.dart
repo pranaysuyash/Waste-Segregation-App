@@ -5,6 +5,7 @@ import '../models/gamification.dart';
 import '../services/gamification_service.dart';
 import '../utils/constants.dart';
 import '../widgets/profile_summary_card.dart';
+import '../widgets/advanced_ui/achievement_celebration.dart';
 
 class AchievementsScreen extends StatefulWidget {
 
@@ -21,6 +22,10 @@ class AchievementsScreen extends StatefulWidget {
 class _AchievementsScreenState extends State<AchievementsScreen>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
+  
+  // Achievement celebration state
+  bool _showCelebration = false;
+  Achievement? _celebrationAchievement;
 
   @override
   void initState() {
@@ -41,6 +46,20 @@ class _AchievementsScreenState extends State<AchievementsScreen>
     super.dispose();
   }
 
+  void _showAchievementCelebration(Achievement achievement) {
+    setState(() {
+      _celebrationAchievement = achievement;
+      _showCelebration = true;
+    });
+  }
+
+  void _onCelebrationDismissed() {
+    setState(() {
+      _showCelebration = false;
+      _celebrationAchievement = null;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return DefaultTabController(
@@ -57,7 +76,9 @@ class _AchievementsScreenState extends State<AchievementsScreen>
             ],
           ),
         ),
-        body: Builder(
+        body: Stack(
+          children: [
+            Builder(
           builder: (context) {
             final profile = context.watch<GamificationService>().currentProfile;
 
@@ -83,6 +104,15 @@ class _AchievementsScreenState extends State<AchievementsScreen>
               ],
             );
           },
+        ),
+            
+            // Achievement celebration overlay
+            if (_showCelebration && _celebrationAchievement != null)
+              AchievementCelebration(
+                achievement: _celebrationAchievement!,
+                onDismiss: _onCelebrationDismissed,
+              ),
+          ],
         ),
       ),
     );
@@ -381,6 +411,12 @@ class _AchievementsScreenState extends State<AchievementsScreen>
 
   void _showAchievementDetails(Achievement achievement, GamificationProfile profile) {
     final gamificationService = Provider.of<GamificationService>(context, listen: false);
+    
+    // Show celebration for earned achievements when viewed
+    if (achievement.isEarned && achievement.tier != AchievementTier.bronze) {
+      _showAchievementCelebration(achievement);
+      return; // Don't show the dialog, just show the celebration
+    }
     
     // Helper function to handle claiming rewards
     Future<void> claimReward() async {

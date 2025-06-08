@@ -12,6 +12,7 @@ import '../utils/app_version.dart';
 import '../utils/constants.dart';
 import '../utils/error_handler.dart';
 import '../widgets/enhanced_gamification_widgets.dart' as widgets;
+import '../widgets/advanced_ui/achievement_celebration.dart';
 import '../widgets/interactive_tag.dart';
 import '../widgets/disposal_instructions_widget.dart';
 import '../widgets/classification_feedback_widget.dart';
@@ -51,6 +52,10 @@ class _ResultScreenState extends State<ResultScreen>
   List<Achievement> _newlyEarnedAchievements = [];
   int _pointsEarned = 0;
   Challenge? _completedChallenge;
+  
+  // Achievement celebration state
+  bool _showCelebration = false;
+  Achievement? _celebrationAchievement;
   
   // Static set to track classifications being saved to prevent duplicates
   static final Set<String> _savingClassifications = <String>{};
@@ -145,6 +150,15 @@ class _ResultScreenState extends State<ResultScreen>
               .where((c) => !oldProfile.completedChallenges.map((oc) => oc.id).contains(c.id))
               .firstOrNull;
           
+          // Show achievement celebration for major achievements
+          if (newlyEarnedAchievements.isNotEmpty) {
+            final majorAchievement = newlyEarnedAchievements.firstWhere(
+              (a) => a.tier != AchievementTier.bronze || a.pointsReward >= 25,
+              orElse: () => newlyEarnedAchievements.first,
+            );
+            _showAchievementCelebration(majorAchievement);
+          }
+          
           // Show points popup
           if (earnedPoints > 0) {
             debugPrint('🎮 RESULT_SCREEN: Showing points popup for $earnedPoints points');
@@ -187,6 +201,20 @@ class _ResultScreenState extends State<ResultScreen>
   void dispose() {
     _animationController.dispose();
     super.dispose();
+  }
+
+  void _showAchievementCelebration(Achievement achievement) {
+    setState(() {
+      _celebrationAchievement = achievement;
+      _showCelebration = true;
+    });
+  }
+
+  void _onCelebrationDismissed() {
+    setState(() {
+      _showCelebration = false;
+      _celebrationAchievement = null;
+    });
   }
   
   /// Check if this existing classification needs retroactive gamification processing
@@ -732,6 +760,12 @@ class _ResultScreenState extends State<ResultScreen>
                         ))
                     .toList(),
               ),
+            ),
+          // Achievement celebration overlay
+          if (_showCelebration && _celebrationAchievement != null)
+            AchievementCelebration(
+              achievement: _celebrationAchievement!,
+              onDismiss: _onCelebrationDismissed,
             ),
         ],
       ),

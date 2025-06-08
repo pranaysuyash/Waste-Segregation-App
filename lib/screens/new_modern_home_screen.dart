@@ -16,6 +16,7 @@ import '../services/community_service.dart';
 import '../widgets/modern_ui/modern_cards.dart';
 import '../widgets/modern_ui/modern_badges.dart';
 import '../widgets/classification_card.dart';
+import '../widgets/advanced_ui/achievement_celebration.dart';
 import 'image_capture_screen.dart';
 import 'history_screen.dart';
 import 'achievements_screen.dart';
@@ -92,6 +93,10 @@ class NewModernHomeScreenState extends ConsumerState<NewModernHomeScreen>
   final GlobalObjectKey _takePhotoKey = const GlobalObjectKey('takePhoto');
   final GlobalObjectKey _homeTabKey = const GlobalObjectKey('homeTab');
   final GlobalObjectKey _analyticsTabKey = const GlobalObjectKey('analyticsTab');
+
+  // Achievement celebration state
+  bool _showCelebration = false;
+  Achievement? _celebrationAchievement;
 
   @override
   void initState() {
@@ -251,148 +256,230 @@ class NewModernHomeScreenState extends ConsumerState<NewModernHomeScreen>
 
   @override
   Widget build(BuildContext context) {
-    return Consumer(
-      builder: (context, ref, child) {
-        final connectivity = ref.watch(connectivityProvider);
-        
-        return FadeTransition(
-          opacity: _fadeAnimation,
-          child: SlideTransition(
-            position: _slideAnimation,
-            child: Scaffold(
-              appBar: AppBar(
-                title: const Text('WasteWise'),
-                actions: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                    child: Consumer(
-                      builder: (_, ref, __) {
-                        final profileAsync = ref.watch(profileProvider);
-                        return profileAsync.when(
-                          data: (profile) => ModernBadge(
-                            text: '${profile?.points.total ?? 0}',
-                            icon: Icons.stars,
-                            showPulse: false,
-                            backgroundColor: Colors.amber,
-                          ),
-                          loading: () => const ModernBadge(
-                            text: '...',
-                            icon: Icons.stars,
-                            showPulse: false,
-                          ),
-                          error: (_, __) => const ModernBadge(
-                            text: '0',
-                            icon: Icons.stars,
-                            showPulse: false,
-                          ),
-                        );
-                      },
+    final navIndex = ref.watch(_navIndexProvider);
+    final connectivityAsync = ref.watch(connectivityProvider);
+    
+    return Scaffold(
+      body: Stack(
+        children: [
+          Column(
+            children: [
+              // Connectivity banner
+              connectivityAsync.when(
+                data: (connectivity) => connectivity == ConnectivityResult.none
+                    ? const ConnectivityBanner()
+                    : const SizedBox.shrink(),
+                loading: () => const SizedBox.shrink(),
+                error: (_, __) => const SizedBox.shrink(),
+              ),
+              
+              // Main content
+              Expanded(
+                child: FadeTransition(
+                  opacity: _fadeAnimation,
+                  child: SlideTransition(
+                    position: _slideAnimation,
+                    child: IndexedStack(
+                      index: navIndex,
+                      children: [
+                                                 HomeTab(
+                           picker: _picker, 
+                           takePhotoKey: _takePhotoKey,
+                           onTakePhoto: _takePhoto,
+                           onPickImage: _pickImage,
+                         ),
+                        const AnalyticsTab(),
+                        const LearnTab(),
+                        const CommunityTab(),
+                        const ProfileTab(),
+                      ],
                     ),
                   ),
-                ],
-                bottom: connectivity.when(
-                  data: (result) => result == ConnectivityResult.none 
-                    ? const PreferredSize(
-                        preferredSize: Size.fromHeight(24),
-                        child: ConnectivityBanner(),
-                      )
-                    : null,
-                  loading: () => null,
-                  error: (_, __) => null,
                 ),
               ),
-              body: _buildContent(),
-              bottomNavigationBar: _buildBottomNav(),
-              floatingActionButton: _buildSpeedDial(),
-            ),
+            ],
           ),
-        );
-      },
+          
+          // Achievement celebration overlay
+          if (_showCelebration && _celebrationAchievement != null)
+            AchievementCelebration(
+              achievement: _celebrationAchievement!,
+              onDismiss: _onCelebrationDismissed,
+            ),
+        ],
+      ),
+      bottomNavigationBar: _buildBottomNavigation(navIndex),
     );
   }
 
-  Widget _buildContent() {
-    return Consumer(
-      builder: (context, ref, child) {
-        final currentIndex = ref.watch(_navIndexProvider);
-        return IndexedStack(
-          index: currentIndex,
-          children: [
-            HomeTab(picker: _picker, takePhotoKey: _takePhotoKey),
-            const AnalyticsTab(),
-            const LearnTab(),
-            const CommunityTab(),
-            const ProfileTab(),
-          ],
-        );
-      },
-    );
-  }
-
-  Widget _buildBottomNav() {
-    return Consumer(
-      builder: (context, ref, child) {
-        final currentIndex = ref.watch(_navIndexProvider);
-        return BottomNavigationBar(
-          type: BottomNavigationBarType.fixed,
-          currentIndex: currentIndex,
-          onTap: (index) => ref.read(_navIndexProvider.notifier).state = index,
-          items: [
-            BottomNavigationBarItem(
-              key: _homeTabKey,
-              icon: const Icon(Icons.home),
-              label: 'Home',
-            ),
-            BottomNavigationBarItem(
-              key: _analyticsTabKey,
-              icon: const Icon(Icons.analytics),
-              label: 'Analytics',
-            ),
-            const BottomNavigationBarItem(
-              icon: Icon(Icons.school),
-              label: 'Learn',
-            ),
-            const BottomNavigationBarItem(
-              icon: Icon(Icons.people),
-              label: 'Community',
-            ),
-            const BottomNavigationBarItem(
-              icon: Icon(Icons.person),
-              label: 'Profile',
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  Widget _buildSpeedDial() {
-    return SpeedDial(
-      icon: Icons.menu,
-      activeIcon: Icons.close,
-      backgroundColor: AppTheme.primaryColor,
-      foregroundColor: Colors.white,
-      children: [
-        SpeedDialChild(
-          child: const Icon(Icons.emoji_events),
-          label: 'Achievements',
-          backgroundColor: Colors.amber,
-          onTap: () => Navigator.push(
-            context,
-            MaterialPageRoute(builder: (_) => const AchievementsScreen()),
-          ),
+  Widget _buildBottomNavigation(int index) {
+    return BottomNavigationBar(
+      type: BottomNavigationBarType.fixed,
+      currentIndex: index,
+      onTap: (index) => ref.read(_navIndexProvider.notifier).state = index,
+      items: [
+        BottomNavigationBarItem(
+          key: _homeTabKey,
+          icon: const Icon(Icons.home),
+          label: 'Home',
         ),
-        SpeedDialChild(
-          child: const Icon(Icons.location_on),
-          label: 'Disposal Facilities',
-          backgroundColor: Colors.green,
-          onTap: () => Navigator.push(
-            context,
-            MaterialPageRoute(builder: (_) => const DisposalFacilitiesScreen()),
-          ),
+        BottomNavigationBarItem(
+          key: _analyticsTabKey,
+          icon: const Icon(Icons.analytics),
+          label: 'Analytics',
+        ),
+        const BottomNavigationBarItem(
+          icon: Icon(Icons.school),
+          label: 'Learn',
+        ),
+        const BottomNavigationBarItem(
+          icon: Icon(Icons.people),
+          label: 'Community',
+        ),
+        const BottomNavigationBarItem(
+          icon: Icon(Icons.person),
+          label: 'Profile',
         ),
       ],
     );
+  }
+
+  // Photo capture methods
+  Future<void> _takePhoto(ImagePicker picker, BuildContext context) async {
+    try {
+      final XFile? image = await picker.pickImage(
+        source: ImageSource.camera,
+        maxWidth: 1024,
+        maxHeight: 1024,
+        imageQuality: 85,
+      );
+      
+      if (image != null && mounted) {
+        await _navigateToImageCapture(image);
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error taking photo: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _pickImage(ImagePicker picker, BuildContext context) async {
+    try {
+      final XFile? image = await picker.pickImage(
+        source: ImageSource.gallery,
+        maxWidth: 1024,
+        maxHeight: 1024,
+        imageQuality: 85,
+      );
+      
+      if (image != null && mounted) {
+        await _navigateToImageCapture(image);
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error picking image: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _navigateToImageCapture(XFile image) async {
+    final gamificationService = ref.read(gamificationServiceProvider);
+    final oldProfile = await gamificationService.getProfile();
+    
+    final result = await Navigator.push<WasteClassification>(
+      context,
+      MaterialPageRoute(
+        builder: (context) => ImageCaptureScreen.fromXFile(image),
+      ),
+    );
+    
+    if (result != null && mounted) {
+      await _handleScanResult(result, oldProfile);
+    }
+  }
+
+  Future<void> _handleScanResult(WasteClassification result, GamificationProfile oldProfile) async {
+    try {
+      final gamificationService = ref.read(gamificationServiceProvider);
+      
+      // Process the classification for gamification
+      await gamificationService.processClassification(result);
+      
+      // Get updated profile
+      final newProfile = await gamificationService.getProfile();
+      
+      // Check for daily goal achievement
+      await _checkDailyGoalAchievement(oldProfile, newProfile);
+      
+      // Check for other newly earned achievements
+      await _checkNewlyEarnedAchievements(oldProfile, newProfile);
+      
+    } catch (e) {
+      debugPrint('Error handling scan result: $e');
+    }
+  }
+
+  Future<void> _checkDailyGoalAchievement(GamificationProfile oldProfile, GamificationProfile newProfile) async {
+    // Check if daily goal was reached for the first time today
+    const dailyGoal = 50; // You can make this configurable from user profile
+    
+    if (oldProfile.points.total < dailyGoal && newProfile.points.total >= dailyGoal) {
+      // Daily goal reached! Show celebration
+      final dailyGoalAchievement = Achievement(
+        id: 'daily_goal_${DateTime.now().day}',
+        title: "Daily Impact Goal Reached!",
+        description: "You've hit your $dailyGoal-point goal today!",
+        type: AchievementType.userGoal,
+        threshold: dailyGoal,
+        pointsReward: 25,
+        color: AppTheme.successColor,
+        iconName: "local_fire_department",
+      );
+      
+      _showAchievementCelebration(dailyGoalAchievement);
+    }
+  }
+
+  Future<void> _checkNewlyEarnedAchievements(GamificationProfile oldProfile, GamificationProfile newProfile) async {
+    // Find newly earned achievements
+    final oldEarnedIds = oldProfile.achievements
+        .where((a) => a.isEarned)
+        .map((a) => a.id)
+        .toSet();
+    
+    final newlyEarned = newProfile.achievements
+        .where((a) => a.isEarned && !oldEarnedIds.contains(a.id))
+        .toList();
+    
+    // Show celebration for the first newly earned achievement
+    if (newlyEarned.isNotEmpty) {
+      _showAchievementCelebration(newlyEarned.first);
+    }
+  }
+
+  void _showAchievementCelebration(Achievement achievement) {
+    setState(() {
+      _celebrationAchievement = achievement;
+      _showCelebration = true;
+    });
+  }
+
+  void _onCelebrationDismissed() {
+    setState(() {
+      _showCelebration = false;
+      _celebrationAchievement = null;
+    });
   }
 }
 
@@ -419,11 +506,15 @@ class ConnectivityBanner extends StatelessWidget {
 class HomeTab extends ConsumerWidget {
   final ImagePicker picker;
   final GlobalKey takePhotoKey;
+  final Future<void> Function(ImagePicker, BuildContext) onTakePhoto;
+  final Future<void> Function(ImagePicker, BuildContext) onPickImage;
   
   const HomeTab({
     Key? key, 
     required this.picker, 
     required this.takePhotoKey,
+    required this.onTakePhoto,
+    required this.onPickImage,
   }) : super(key: key);
 
   @override
@@ -581,7 +672,7 @@ class HomeTab extends ConsumerWidget {
           children: [
             Expanded(
               child: ModernCard(
-                onTap: () => _takePhoto(picker, context),
+                onTap: () => onTakePhoto(picker, context),
                 backgroundColor: Colors.blue.withValues(alpha: 0.1),
                 child: Column(
                   children: [
@@ -621,7 +712,7 @@ class HomeTab extends ConsumerWidget {
             const SizedBox(width: AppTheme.spacingMd),
             Expanded(
               child: ModernCard(
-                onTap: () => _pickImage(picker, context),
+                onTap: () => onPickImage(picker, context),
                 backgroundColor: Colors.green.withValues(alpha: 0.1),
                 child: Column(
                   children: [
@@ -1222,38 +1313,6 @@ class HomeTab extends ConsumerWidget {
     final period = hour >= 12 ? 'PM' : 'AM';
     final displayHour = hour > 12 ? hour - 12 : (hour == 0 ? 12 : hour);
     return '$displayHour:$minute $period';
-  }
-
-  Future<void> _takePhoto(ImagePicker picker, BuildContext context) async {
-    try {
-      final XFile? image = await picker.pickImage(source: ImageSource.camera);
-      if (image != null && context.mounted) {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => ImageCaptureScreen.fromXFile(image),
-          ),
-        );
-      }
-    } catch (e) {
-      debugPrint('Error taking photo: $e');
-    }
-  }
-
-  Future<void> _pickImage(ImagePicker picker, BuildContext context) async {
-    try {
-      final XFile? image = await picker.pickImage(source: ImageSource.gallery);
-      if (image != null && context.mounted) {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => ImageCaptureScreen.fromXFile(image),
-          ),
-        );
-      }
-    } catch (e) {
-      debugPrint('Error picking image: $e');
-    }
   }
 }
 
