@@ -8,6 +8,7 @@ import '../utils/constants.dart';
 import '../models/waste_classification.dart';
 import '../services/gamification_service.dart';
 import '../models/gamification.dart';
+import '../widgets/waste_chart_widgets.dart';
 // import '../widgets/enhanced_loading_widget.dart'; // Removed
 // Removed import for '../widgets/empty_state_widget.dart'; as EmptyStateWidget is defined below
 
@@ -18,7 +19,8 @@ class WasteDashboardScreen extends StatefulWidget {
   State<WasteDashboardScreen> createState() => _WasteDashboardScreenState();
 }
 
-class _WasteDashboardScreenState extends State<WasteDashboardScreen> {
+class _WasteDashboardScreenState extends State<WasteDashboardScreen>
+    with SingleTickerProviderStateMixin {
   // Classification data
   late List<WasteClassification> _classifications = [];
   DateTime? _firstClassificationDate;
@@ -26,11 +28,22 @@ class _WasteDashboardScreenState extends State<WasteDashboardScreen> {
   Map<String, int> _wasteSubcategoryCounts = {};
   Map<DateTime, int> _wasteByDate = {};
   bool _isLoading = true;
+  late final AnimationController _chartAnimationController;
 
   @override
   void initState() {
     super.initState();
+    _chartAnimationController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 800),
+    )..forward();
     _loadData();
+  }
+
+  @override
+  void dispose() {
+    _chartAnimationController.dispose();
+    super.dispose();
   }
 
   Future<void> _loadData() async {
@@ -39,16 +52,24 @@ class _WasteDashboardScreenState extends State<WasteDashboardScreen> {
     });
 
     try {
+      // Ensure gamification stats are up to date
+      final gamificationService =
+          Provider.of<GamificationService>(context, listen: false);
+      await gamificationService.syncGamificationData();
+
       // Get the real data from storage service
       final storageService = Provider.of<StorageService>(context, listen: false);
       final classifications = await storageService.getAllClassifications();
       
       // Process the classifications to generate statistics
       _processClassifications(classifications);
-      
+
       setState(() {
         _classifications = classifications;
         _isLoading = false;
+        _chartAnimationController
+          ..reset()
+          ..forward();
       });
     } catch (e) {
       debugPrint('Error loading analytics data: $e');
@@ -286,10 +307,16 @@ class _WasteDashboardScreenState extends State<WasteDashboardScreen> {
         ),
       );
     }
-    
-      return Card(
-        child: Container(
-          height: MediaQuery.of(context).size.height * 0.3,
+    final flData = timeSeriesData
+        .map((e) => {
+              'formattedDate': DateFormat.Md().format(e['date'] as DateTime),
+              'count': e['count'],
+            })
+        .toList();
+
+    return Card(
+      child: Container(
+        height: MediaQuery.of(context).size.height * 0.45,
         padding: const EdgeInsets.all(AppTheme.paddingSmall),
         child: Column(
           children: [
@@ -301,6 +328,14 @@ class _WasteDashboardScreenState extends State<WasteDashboardScreen> {
               ),
             ),
             Expanded(
+              child: WasteTimeSeriesChart(
+                data: flData,
+                animationController: _chartAnimationController,
+              ),
+            ),
+            const SizedBox(height: AppTheme.paddingSmall),
+            SizedBox(
+              height: MediaQuery.of(context).size.height * 0.25,
               child: WebChartWidget(
                 data: timeSeriesData,
                 title: 'Recent Activity',
@@ -370,14 +405,29 @@ class _WasteDashboardScreenState extends State<WasteDashboardScreen> {
                 child: WebPieChartWidget(data: pieData),
             ),
             const SizedBox(height: AppTheme.paddingRegular),
-            
+            SizedBox(
+              height: MediaQuery.of(context).size.height * 0.3,
+              child: WasteCategoryPieChart(
+                data: _wasteCategoryCounts.entries
+                    .map((e) => ChartData(
+                          e.key,
+                          e.value.toDouble(),
+                          _getCategoryColor(e.key),
+                        ))
+                    .toList(),
+                animationController: _chartAnimationController,
+              ),
+            ),
+            const SizedBox(height: AppTheme.paddingRegular),
+
             // Legend
             Wrap(
               spacing: AppTheme.paddingRegular,
               runSpacing: AppTheme.paddingSmall,
-              children: _wasteCategoryCounts.entries.map((entry) => 
-                _buildLegendItem(entry.key, _getCategoryColor(entry.key))
-              ).toList(),
+              children: _wasteCategoryCounts.entries
+                  .map((entry) =>
+                      _buildLegendItem(entry.key, _getCategoryColor(entry.key)))
+                  .toList(),
             ),
           ],
         ),
@@ -441,7 +491,7 @@ class _WasteDashboardScreenState extends State<WasteDashboardScreen> {
               style: Theme.of(context).textTheme.titleSmall,
             ),
             const SizedBox(height: AppTheme.paddingRegular),
-            ...topSubcategories.map((entry) => 
+            ...topSubcategories.map((entry) =>
               Padding(
                 padding: const EdgeInsets.only(bottom: AppTheme.paddingSmall),
                 child: Row(
@@ -475,6 +525,20 @@ class _WasteDashboardScreenState extends State<WasteDashboardScreen> {
                     ),
                   ],
                 ),
+              ),
+            ),
+            const SizedBox(height: AppTheme.paddingRegular),
+            SizedBox(
+              height: 200,
+              child: TopSubcategoriesBarChart(
+                data: topSubcategories
+                    .map((e) => ChartData(
+                          e.key,
+                          e.value.toDouble(),
+                          AppTheme.primaryColor,
+                        ))
+                    .toList(),
+                animationController: _chartAnimationController,
               ),
             ),
           ],

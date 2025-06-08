@@ -2,6 +2,12 @@
 
 All notable changes to the Waste Segregation App will be documented in this file.
 
+## [2.0.3] - 2025-06-08
+
+### 📈 Analytics Improvements
+- Added animated FL_Chart widgets to complement existing WebView charts
+- Synchronized gamification data during analytics load for consistent points
+
 ## [2.0.2] - 2025-06-06
 
 ### 📚 Documentation Reorganization
