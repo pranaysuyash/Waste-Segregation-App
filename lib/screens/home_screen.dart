@@ -1132,14 +1132,15 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                         points: profile.points,
                         showLifetimePoints: true,
                         onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) =>
-                                const AchievementsScreen(initialTabIndex: 2),
-                          ),
-                        );
-                      },
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) =>
+                                  const AchievementsScreen(initialTabIndex: 2),
+                            ),
+                          );
+                        },
+                      ),
                     ),
                   ),
                 );
@@ -1524,6 +1525,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                                         ),
                                       ),
                                     ),
+                                    )
                                   );
                                 },
                               ),
