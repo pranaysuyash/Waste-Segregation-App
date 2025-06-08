@@ -247,9 +247,9 @@ class InteractiveTag extends StatelessWidget {
             child: const Text('Close'),
           ),
           TextButton(
-            onPressed: () {
+            onPressed: () async {
               Navigator.of(context).pop();
-              _openMaps();
+              await _openMaps();
             },
             child: const Text('Get Directions'),
           ),
