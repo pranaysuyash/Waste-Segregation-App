@@ -50,6 +50,7 @@ dependencies:
   auto_size_text: ^3.0.0  # For responsive text that auto-adjusts font size
   permission_handler: ^11.2.0  # For handling camera and storage permissions
   flutter_riverpod: ^2.4.9
+  package_info_plus: ^6.0.0
 
   # --- Mapping & Geospatial Dependencies (OpenStreetMap) ---
   flutter_map: ^7.0.2 # High-performance, customizable map solution

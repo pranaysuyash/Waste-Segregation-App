@@ -325,6 +325,20 @@ class AppStrings {
   static const String learnMore = 'Learn More';
   static const String history = 'History';
   static const String settings = 'Settings';
+
+  // Global Settings Menu / Help Dialog
+  static const String helpDialogTitle = 'Help & Support';
+  static const String helpStep1 = '1. Take a photo or upload an image of waste';
+  static const String helpStep2 = '2. Get AI-powered classification';
+  static const String helpStep3 = '3. Follow disposal instructions';
+  static const String helpStep4 = '4. Earn points and achievements';
+  static const String helpFooterText =
+      'Need more help? Check the Settings for tutorials and guides.';
+
+  // About Dialog
+  static const String appTagline = 'Smart Waste Classification';
+  static const String appDescription =
+      'An AI-powered app to help you classify and manage waste properly.';
   
   // Image Capture Screen
   static const String analyzeImage = 'Analyze Image';

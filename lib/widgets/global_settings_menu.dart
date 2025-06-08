@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import '../screens/settings_screen.dart';
 import '../screens/profile_screen.dart';
 import '../utils/simplified_navigation_service.dart';
+import '../utils/constants.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 
 class GlobalSettingsMenu extends StatelessWidget {
   const GlobalSettingsMenu({super.key});
@@ -20,16 +22,20 @@ class GlobalSettingsMenu extends StatelessWidget {
       onSelected: (value) {
         switch (value) {
           case 'settings':
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => const SettingsScreen()),
-            );
+            try {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const SettingsScreen()),
+              );
+            } catch (_) {}
             break;
           case 'profile':
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => const ProfileScreen()),
-            );
+            try {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const ProfileScreen()),
+              );
+            } catch (_) {}
             break;
           case 'help':
             _showHelpDialog(context);
@@ -49,7 +55,7 @@ class GlobalSettingsMenu extends StatelessWidget {
             children: [
               Icon(Icons.settings, color: Colors.grey),
               SizedBox(width: 12),
-              Text('Settings'),
+              Text(AppStrings.settings),
             ],
           ),
         ),
@@ -70,7 +76,7 @@ class GlobalSettingsMenu extends StatelessWidget {
             children: [
               Icon(Icons.help_outline, color: Colors.blue),
               SizedBox(width: 12),
-              Text('Help & Support'),
+              Text(AppStrings.helpDialogTitle),
             ],
           ),
         ),
@@ -103,19 +109,19 @@ class GlobalSettingsMenu extends StatelessWidget {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Help & Support'),
+        title: const Text(AppStrings.helpDialogTitle),
         content: const Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('How to use WasteWise:'),
+            Text(AppStrings.helpDialogTitle + ':'),
             SizedBox(height: 8),
-            Text('1. Take a photo or upload an image of waste'),
-            Text('2. Get AI-powered classification'),
-            Text('3. Follow disposal instructions'),
-            Text('4. Earn points and achievements'),
+            Text(AppStrings.helpStep1),
+            Text(AppStrings.helpStep2),
+            Text(AppStrings.helpStep3),
+            Text(AppStrings.helpStep4),
             SizedBox(height: 16),
-            Text('Need more help? Check the Settings for tutorials and guides.'),
+            Text(AppStrings.helpFooterText),
           ],
         ),
         actions: [
@@ -126,10 +132,12 @@ class GlobalSettingsMenu extends StatelessWidget {
           TextButton(
             onPressed: () {
               Navigator.of(context).pop();
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const SettingsScreen()),
-              );
+              Future.delayed(const Duration(milliseconds: 100), () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const SettingsScreen()),
+                );
+              });
             },
             child: const Text('Settings'),
           ),
@@ -142,16 +150,20 @@ class GlobalSettingsMenu extends StatelessWidget {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('About WasteWise'),
-        content: const Column(
+        title: Text('${AppStrings.appName} - ${AppStrings.appTagline}'),
+        content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('WasteWise - Smart Waste Classification'),
+            Text(AppStrings.appDescription),
             SizedBox(height: 8),
-            Text('Version 1.0.0'),
-            SizedBox(height: 8),
-            Text('An AI-powered app to help you classify and manage waste properly.'),
+            FutureBuilder<PackageInfo>(
+              future: PackageInfo.fromPlatform(),
+              builder: (context, snapshot) {
+                final version = snapshot.data?.version ?? 'Unknown';
+                return Text('Version $version');
+              },
+            ),
           ],
         ),
         actions: [

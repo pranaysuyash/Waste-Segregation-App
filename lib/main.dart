@@ -33,6 +33,7 @@ import 'screens/data_export_screen.dart';
 import 'screens/offline_mode_settings_screen.dart';
 import 'screens/disposal_facilities_screen.dart';
 import 'widgets/global_settings_menu.dart';
+import 'widgets/global_menu_wrapper.dart';
 import 'widgets/navigation_wrapper.dart';
 import 'utils/constants.dart'; // For app constants, themes, and strings
 import 'utils/error_handler.dart'; // Correct import for ErrorHandler
@@ -299,40 +300,20 @@ class WasteSegregationApp extends StatelessWidget {
           theme: AppTheme.lightTheme,
           darkTheme: AppTheme.darkTheme,
           themeMode: themeProvider.themeMode,
-          builder: (context, child) {
-            final hideMenuTypes = {
-              _SplashScreen,
-              AuthScreen,
-              ConsentDialogScreen,
-            };
-            final showMenu =
-                child != null && !hideMenuTypes.contains(child.runtimeType);
-
-            return Stack(
-              children: [
-                if (child != null) child,
-                if (showMenu)
-                  Positioned(
-                    top: MediaQuery.of(context).padding.top + 8,
-                    right: 8,
-                    child: const GlobalSettingsMenu(),
-                  ),
-              ],
-            );
-          },
+          builder: (context, child) => child ?? const SizedBox.shrink(),
           
           // ADD ROUTE DEFINITIONS:
           routes: {
-            '/home': (context) => const MainNavigationWrapper(),
-            '/settings': (context) => const SettingsScreen(),
-            '/history': (context) => const HistoryScreen(),
-            '/achievements': (context) => const AchievementsScreen(),
-            '/educational': (context) => const EducationalContentScreen(),
-            '/analytics': (context) => const WasteDashboardScreen(),
-            '/premium': (context) => const PremiumFeaturesScreen(),
-            '/data-export': (context) => const DataExportScreen(),
-            '/offline-settings': (context) => const OfflineModeSettingsScreen(),
-            '/disposal-facilities': (context) => const DisposalFacilitiesScreen(),
+            '/home': (context) => const GlobalMenuWrapper(child: MainNavigationWrapper()),
+            '/settings': (context) => const GlobalMenuWrapper(child: SettingsScreen()),
+            '/history': (context) => const GlobalMenuWrapper(child: HistoryScreen()),
+            '/achievements': (context) => const GlobalMenuWrapper(child: AchievementsScreen()),
+            '/educational': (context) => const GlobalMenuWrapper(child: EducationalContentScreen()),
+            '/analytics': (context) => const GlobalMenuWrapper(child: WasteDashboardScreen()),
+            '/premium': (context) => const GlobalMenuWrapper(child: PremiumFeaturesScreen()),
+            '/data-export': (context) => const GlobalMenuWrapper(child: DataExportScreen()),
+            '/offline-settings': (context) => const GlobalMenuWrapper(child: OfflineModeSettingsScreen()),
+            '/disposal-facilities': (context) => const GlobalMenuWrapper(child: DisposalFacilitiesScreen()),
           },
             home: FutureBuilder<Map<String, bool>>(
               future: _checkInitialConditions(),
