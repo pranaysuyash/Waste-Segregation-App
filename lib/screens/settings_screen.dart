@@ -25,6 +25,7 @@ import 'notification_settings_screen.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import '../services/cloud_storage_service.dart';
 import '../services/firebase_cleanup_service.dart';
+import '../screens/new_modern_home_screen.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -323,6 +324,25 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     ),
                     onPressed: () {
                       _runClassificationMigration(context, storageService);
+                    },
+                  ),
+                  // Test new home screen implementation
+                  const SizedBox(height: 8),
+                  ElevatedButton.icon(
+                    icon: const Icon(Icons.home, color: Colors.blue),
+                    label: const Text('Test New Home Screen (v2.1.0)', style: TextStyle(color: Colors.blue)),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.white,
+                      foregroundColor: Colors.blue,
+                      side: const BorderSide(color: Colors.blue),
+                    ),
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const NewModernHomeScreen(),
+                        ),
+                      );
                     },
                   ),
                 ],

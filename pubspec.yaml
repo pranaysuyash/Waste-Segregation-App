@@ -52,6 +52,9 @@ dependencies:
   permission_handler: ^11.2.0  # For handling camera and storage permissions
   flutter_riverpod: ^2.4.9
   package_info_plus: ^6.0.0
+  connectivity_plus: ^6.0.5  # For network connectivity monitoring
+  tutorial_coach_mark: ^1.2.11  # For onboarding coach marks
+  flutter_speed_dial: ^7.0.0  # For floating action button speed dial
 
   # --- Mapping & Geospatial Dependencies (OpenStreetMap) ---
   flutter_map: ^7.0.2 # High-performance, customizable map solution
