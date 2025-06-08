@@ -692,7 +692,6 @@ class _FamilyDashboardScreenState extends State<FamilyDashboardScreen> {
       ),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
-        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           Icon(icon, color: color, size: 20),
           const SizedBox(height: AppTheme.paddingMicro),

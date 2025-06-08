@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'global_settings_menu.dart';
 
 class GlobalMenuWrapper extends StatelessWidget {
-  final Widget child;
   const GlobalMenuWrapper({super.key, required this.child});
+  final Widget child;
 
   @override
   Widget build(BuildContext context) {

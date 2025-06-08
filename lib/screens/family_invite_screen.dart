@@ -517,7 +517,6 @@ class _FamilyInviteScreenState extends State<FamilyInviteScreen>
         currentUser.id,
         _emailController.text.trim(),
         _selectedRole,
-        method: InvitationMethod.email,
       );
 
       if (mounted) {

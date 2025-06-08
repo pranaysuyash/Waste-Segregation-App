@@ -153,8 +153,6 @@ class GamificationService extends ChangeNotifier {
         streaks: {
           StreakType.dailyClassification.toString(): StreakDetails(
             type: StreakType.dailyClassification,
-            currentCount: 0, // Start with 0 so first updateStreak call sets it to 1
-            longestCount: 0,
             lastActivityDate: DateTime.now().subtract(const Duration(days: 1)),
           ),
         },

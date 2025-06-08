@@ -1639,7 +1639,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ],
             ),
             backgroundColor: Colors.green,
-            duration: Duration(seconds: 4),
           ),
         );
       }

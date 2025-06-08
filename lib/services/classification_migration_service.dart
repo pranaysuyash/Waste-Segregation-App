@@ -8,11 +8,11 @@ import 'cloud_storage_service.dart';
 
 /// Service to migrate old classification records and update them with existing images
 class ClassificationMigrationService {
+
+  ClassificationMigrationService(this._localStorageService, this._cloudStorageService);
   final StorageService _localStorageService;
   final CloudStorageService _cloudStorageService;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-
-  ClassificationMigrationService(this._localStorageService, this._cloudStorageService);
 
   /// Migrate old classifications by updating imageUrl if images exist locally
   Future<MigrationResult> migrateOldClassifications() async {
@@ -37,10 +37,10 @@ class ClassificationMigrationService {
       final localClassifications = await _localStorageService.getAllClassifications();
       debugPrint('📊 Found ${localClassifications.length} local classifications');
 
-      int totalProcessed = 0;
-      int updated = 0;
-      int skipped = 0;
-      int errors = 0;
+      var totalProcessed = 0;
+      var updated = 0;
+      var skipped = 0;
+      var errors = 0;
       final updatedClassifications = <WasteClassification>[];
 
       for (final classification in localClassifications) {
@@ -86,7 +86,7 @@ class ClassificationMigrationService {
       }
 
       // Batch update cloud storage if there are updated classifications
-      int cloudUpdated = 0;
+      var cloudUpdated = 0;
       if (updatedClassifications.isNotEmpty) {
         final isGoogleSyncEnabled = await _isGoogleSyncEnabled();
         if (isGoogleSyncEnabled) {
@@ -131,17 +131,13 @@ class ClassificationMigrationService {
   /// Try to find an existing image for a classification
   Future<WasteClassification?> _findAndUpdateImage(WasteClassification classification) async {
     // Strategy 1: Look for images with classification ID in filename
-    String? foundImagePath = await _findImageByClassificationId(classification.id);
+    var foundImagePath = await _findImageByClassificationId(classification.id);
     
     // Strategy 2: Look for images with similar timestamp
-    if (foundImagePath == null) {
-      foundImagePath = await _findImageByTimestamp(classification.timestamp);
-    }
+    foundImagePath ??= await _findImageByTimestamp(classification.timestamp);
     
     // Strategy 3: Look for images with similar item name
-    if (foundImagePath == null) {
-      foundImagePath = await _findImageByItemName(classification.itemName);
-    }
+    foundImagePath ??= await _findImageByItemName(classification.itemName);
 
     if (foundImagePath != null) {
       return classification.copyWith(imageUrl: foundImagePath);
@@ -185,7 +181,7 @@ class ClassificationMigrationService {
     
     try {
       final searchPaths = await _getImageSearchPaths();
-      final timeWindow = const Duration(minutes: 5);
+      const timeWindow = Duration(minutes: 5);
       
       for (final searchPath in searchPaths) {
         final directory = Directory(searchPath);
@@ -276,13 +272,6 @@ class ClassificationMigrationService {
 
 /// Result of the migration operation
 class MigrationResult {
-  final bool success;
-  final int totalProcessed;
-  final int updated;
-  final int skipped;
-  final int errors;
-  final int cloudUpdated;
-  final String message;
 
   MigrationResult({
     required this.success,
@@ -293,6 +282,13 @@ class MigrationResult {
     required this.cloudUpdated,
     required this.message,
   });
+  final bool success;
+  final int totalProcessed;
+  final int updated;
+  final int skipped;
+  final int errors;
+  final int cloudUpdated;
+  final String message;
 
   @override
   String toString() {

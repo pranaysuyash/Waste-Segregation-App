@@ -114,7 +114,7 @@ class GlobalSettingsMenu extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(AppStrings.helpDialogTitle + ':'),
+            Text('${AppStrings.helpDialogTitle}:'),
             SizedBox(height: 8),
             Text(AppStrings.helpStep1),
             Text(AppStrings.helpStep2),
@@ -150,13 +150,13 @@ class GlobalSettingsMenu extends StatelessWidget {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text('${AppStrings.appName} - ${AppStrings.appTagline}'),
+        title: const Text('${AppStrings.appName} - ${AppStrings.appTagline}'),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(AppStrings.appDescription),
-            SizedBox(height: 8),
+            const Text(AppStrings.appDescription),
+            const SizedBox(height: 8),
             FutureBuilder<PackageInfo>(
               future: PackageInfo.fromPlatform(),
               builder: (context, snapshot) {

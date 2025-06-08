@@ -391,11 +391,11 @@ class InteractiveTag extends StatelessWidget {
   }
   Future<void> _openMaps() async {
     final query = Uri.encodeComponent(category ?? text);
-    final Uri url = Uri.parse("https://www.google.com/maps/search/?api=1&query=$query");
+    final url = Uri.parse('https://www.google.com/maps/search/?api=1&query=$query');
     if (await canLaunchUrl(url)) {
       await launchUrl(url, mode: LaunchMode.externalApplication);
     } else {
-      debugPrint("Could not launch maps for $query");
+      debugPrint('Could not launch maps for $query');
     }
   }
 

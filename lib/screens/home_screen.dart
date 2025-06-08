@@ -977,7 +977,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                       Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Icon(
+                          const Icon(
                             Icons.access_time,
                             size: 10,
                             color: Colors.black54,
@@ -985,7 +985,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                           const SizedBox(width: 2),
                           Text(
                             '${content.durationMinutes} min',
-                            style: TextStyle(
+                            style: const TextStyle(
                               fontSize: 12,
                               color: Colors.black87,
                             ),

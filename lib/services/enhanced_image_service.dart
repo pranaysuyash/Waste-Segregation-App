@@ -21,7 +21,7 @@ class EnhancedImageService {
     if (kIsWeb) {
       final base64Data = base64Encode(bytes);
       // Detect image format or default to jpeg
-      String mimeType = 'image/jpeg';
+      var mimeType = 'image/jpeg';
       if (bytes.length > 4) {
         // PNG signature: 0x89 0x50 0x4E 0x47
         if (bytes[0] == 0x89 &&
