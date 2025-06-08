@@ -1,8 +1,6 @@
-import 'dart:io';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import '../models/waste_classification.dart';
-import '../utils/constants.dart';
+import '../screens/history_screen.dart';
 
 /// The new beautified classification card with modern Material Design
 class ClassificationCard extends StatelessWidget {
@@ -27,7 +25,7 @@ class ClassificationCard extends StatelessWidget {
       ),
       clipBehavior: Clip.hardEdge,
       child: InkWell(
-        onTap: () => _showDetails(context),
+        onTap: () => _navigateToHistory(context),
         child: Padding(
           padding: const EdgeInsets.all(16),
           child: Row(
@@ -163,6 +161,15 @@ class ClassificationCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(12),
       ),
       child: Icon(_categoryIcon(classification.category), color: Colors.white, size: 32),
+    );
+  }
+
+  void _navigateToHistory(BuildContext context) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const HistoryScreen(),
+      ),
     );
   }
 
