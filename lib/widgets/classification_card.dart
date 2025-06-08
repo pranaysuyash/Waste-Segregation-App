@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/waste_classification.dart';
 import '../screens/history_screen.dart';
+import 'package:waste_segregation_app/utils/image_utils.dart';
 
 /// The new beautified classification card with modern Material Design
 class ClassificationCard extends StatelessWidget {
@@ -36,12 +37,24 @@ class ClassificationCard extends StatelessWidget {
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(12),
                   child: classification.imageUrl != null
-                      ? Image.network(
-                          classification.imageUrl!,
-                          width: 64,
-                          height: 64,
+                      ? ImageUtils.buildImage(
+                          imageSource: classification.imageUrl!,
+                          width: 60,
+                          height: 60,
                           fit: BoxFit.cover,
-                          errorBuilder: (_, __, ___) => _fallbackIcon(catColor),
+                          errorWidget: Container(
+                            width: 60,
+                            height: 60,
+                            decoration: BoxDecoration(
+                              color: Colors.grey[200],
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: const Icon(
+                              Icons.image_not_supported,
+                              color: Colors.grey,
+                              size: 30,
+                            ),
+                          ),
                         )
                       : _fallbackIcon(catColor),
                 ),

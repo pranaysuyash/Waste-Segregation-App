@@ -3,6 +3,8 @@ import 'dart:ui' as ui;
 import 'package:crypto/crypto.dart';
 import 'package:flutter/foundation.dart';
 import 'package:image/image.dart' as img;
+import 'dart:io';
+import 'package:flutter/material.dart';
 
 /// Utility class for image manipulation and hashing
 class ImageUtils {
@@ -255,6 +257,196 @@ class ImageUtils {
       }
     } catch (e) {
       debugPrint('Error converting data URL to bytes: $e');
+    }
+    return null;
+  }
+
+  /// Creates the appropriate Image widget based on the image URL/path
+  /// 
+  /// Automatically detects whether the source is:
+  /// - A local file path (file:// URI or absolute path)
+  /// - A network URL (http:// or https://)
+  /// - An asset path (assets/)
+  /// 
+  /// Returns the appropriate Image widget with error handling
+  static Widget buildImage({
+    required String imageSource,
+    double? width,
+    double? height,
+    BoxFit fit = BoxFit.cover,
+    Widget? errorWidget,
+    Widget? loadingWidget,
+  }) {
+    // Default error widget
+    errorWidget ??= Container(
+      width: width,
+      height: height,
+      decoration: BoxDecoration(
+        color: Colors.grey[100],
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: const Icon(
+        Icons.image_not_supported,
+        size: 50,
+        color: Colors.grey,
+      ),
+    );
+
+    // Default loading widget
+    loadingWidget ??= Container(
+      width: width,
+      height: height,
+      decoration: BoxDecoration(
+        color: Colors.grey[50],
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: const Center(
+        child: CircularProgressIndicator(),
+      ),
+    );
+
+    try {
+      // Check if it's a network URL
+      if (imageSource.startsWith('http://') || imageSource.startsWith('https://')) {
+        return Image.network(
+          imageSource,
+          width: width,
+          height: height,
+          fit: fit,
+          loadingBuilder: (context, child, loadingProgress) {
+            if (loadingProgress == null) return child;
+            return loadingWidget!;
+          },
+          errorBuilder: (context, error, stackTrace) => errorWidget!,
+        );
+      }
+      
+      // Check if it's an asset
+      if (imageSource.startsWith('assets/')) {
+        return Image.asset(
+          imageSource,
+          width: width,
+          height: height,
+          fit: fit,
+          errorBuilder: (context, error, stackTrace) => errorWidget!,
+        );
+      }
+      
+      // Handle file:// URI or local file path
+      String filePath = imageSource;
+      if (imageSource.startsWith('file://')) {
+        filePath = imageSource.substring(7); // Remove 'file://' prefix
+      }
+      
+      final file = File(filePath);
+      if (file.existsSync()) {
+        return Image.file(
+          file,
+          width: width,
+          height: height,
+          fit: fit,
+          errorBuilder: (context, error, stackTrace) => errorWidget!,
+        );
+      } else {
+        // File doesn't exist
+        return errorWidget!;
+      }
+    } catch (e) {
+      // Any other error, return error widget
+      return errorWidget!;
+    }
+  }
+
+  /// Creates a circular avatar image with proper source handling
+  static Widget buildCircularAvatar({
+    required String imageSource,
+    required double radius,
+    Widget? child,
+    Color? backgroundColor,
+  }) {
+    try {
+      ImageProvider? backgroundImage;
+      
+      // Check if it's a network URL
+      if (imageSource.startsWith('http://') || imageSource.startsWith('https://')) {
+        backgroundImage = NetworkImage(imageSource);
+      } else if (imageSource.startsWith('assets/')) {
+        backgroundImage = AssetImage(imageSource);
+      } else {
+        // Handle file:// URI or local file path
+        String filePath = imageSource;
+        if (imageSource.startsWith('file://')) {
+          filePath = imageSource.substring(7);
+        }
+        
+        final file = File(filePath);
+        if (file.existsSync()) {
+          backgroundImage = FileImage(file);
+        }
+      }
+      
+      return CircleAvatar(
+        radius: radius,
+        backgroundColor: backgroundColor,
+        backgroundImage: backgroundImage,
+        child: backgroundImage == null ? child : null,
+        onBackgroundImageError: backgroundImage != null 
+          ? (exception, stackTrace) {
+              // Handle image loading error silently
+              debugPrint('Avatar image failed to load: $exception');
+            }
+          : null,
+      );
+    } catch (e) {
+      return CircleAvatar(
+        radius: radius,
+        backgroundColor: backgroundColor,
+        child: child,
+      );
+    }
+  }
+
+  /// Checks if an image source is valid and accessible
+  static Future<bool> isImageSourceValid(String imageSource) async {
+    try {
+      if (imageSource.startsWith('http://') || imageSource.startsWith('https://')) {
+        // For network images, we'd need to make a HEAD request to check
+        // For now, assume network URLs are valid if properly formatted
+        return Uri.tryParse(imageSource) != null;
+      } else if (imageSource.startsWith('assets/')) {
+        // Asset validation would require checking the asset bundle
+        // For now, assume assets are valid if properly formatted
+        return true;
+      } else {
+        // Check if local file exists
+        String filePath = imageSource;
+        if (imageSource.startsWith('file://')) {
+          filePath = imageSource.substring(7);
+        }
+        
+        final file = File(filePath);
+        return file.existsSync();
+      }
+    } catch (e) {
+      return false;
+    }
+  }
+
+  /// Extracts the file extension from an image source
+  static String? getImageExtension(String imageSource) {
+    try {
+      final uri = Uri.parse(imageSource);
+      final path = uri.path;
+      final lastDot = path.lastIndexOf('.');
+      if (lastDot != -1 && lastDot < path.length - 1) {
+        return path.substring(lastDot + 1).toLowerCase();
+      }
+    } catch (e) {
+      // If parsing fails, try simple string manipulation
+      final lastDot = imageSource.lastIndexOf('.');
+      if (lastDot != -1 && lastDot < imageSource.length - 1) {
+        return imageSource.substring(lastDot + 1).toLowerCase();
+      }
     }
     return null;
   }

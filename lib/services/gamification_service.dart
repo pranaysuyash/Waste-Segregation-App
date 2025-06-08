@@ -1378,7 +1378,7 @@ class GamificationService extends ChangeNotifier {
         'description': 'Identify 5 plastic items',
         'pointsReward': 25,
         'iconName': 'shopping_bag',
-        'color': AppTheme.dryWasteColor,
+        'color': AppTheme.dryWasteColor.value,
         'requirements': {
           'subcategory': 'Plastic',
           'count': 5,
@@ -1389,7 +1389,7 @@ class GamificationService extends ChangeNotifier {
         'description': 'Identify 3 food waste items',
         'pointsReward': 20,
         'iconName': 'restaurant',
-        'color': AppTheme.wetWasteColor,
+        'color': AppTheme.wetWasteColor.value,
         'requirements': {
           'subcategory': 'Food Waste',
           'count': 3,
@@ -1400,7 +1400,7 @@ class GamificationService extends ChangeNotifier {
         'description': 'Identify 5 recyclable items',
         'pointsReward': 25,
         'iconName': 'recycling',
-        'color': AppTheme.dryWasteColor,
+        'color': AppTheme.dryWasteColor.value,
         'requirements': {
           'category': 'Dry Waste',
           'count': 5,
@@ -1411,7 +1411,7 @@ class GamificationService extends ChangeNotifier {
         'description': 'Identify 4 compostable items',
         'pointsReward': 20,
         'iconName': 'compost',
-        'color': AppTheme.wetWasteColor,
+        'color': AppTheme.wetWasteColor.value,
         'requirements': {
           'category': 'Wet Waste',
           'count': 4,
@@ -1422,7 +1422,7 @@ class GamificationService extends ChangeNotifier {
         'description': 'Identify 2 hazardous waste items',
         'pointsReward': 30,
         'iconName': 'warning',
-        'color': AppTheme.hazardousWasteColor,
+        'color': AppTheme.hazardousWasteColor.value,
         'requirements': {
           'category': 'Hazardous Waste',
           'count': 2,
@@ -1433,7 +1433,7 @@ class GamificationService extends ChangeNotifier {
         'description': 'Identify 2 medical waste items',
         'pointsReward': 30,
         'iconName': 'medical_services',
-        'color': AppTheme.medicalWasteColor,
+        'color': AppTheme.medicalWasteColor.value,
         'requirements': {
           'category': 'Medical Waste',
           'count': 2,
@@ -1444,7 +1444,7 @@ class GamificationService extends ChangeNotifier {
         'description': 'Identify 3 reusable items',
         'pointsReward': 25,
         'iconName': 'autorenew',
-        'color': AppTheme.nonWasteColor,
+        'color': AppTheme.nonWasteColor.value,
         'requirements': {
           'category': 'Non-Waste',
           'count': 3,
@@ -1455,7 +1455,7 @@ class GamificationService extends ChangeNotifier {
         'description': 'Identify 4 paper items',
         'pointsReward': 20,
         'iconName': 'description',
-        'color': AppTheme.dryWasteColor,
+        'color': AppTheme.dryWasteColor.value,
         'requirements': {
           'subcategory': 'Paper',
           'count': 4,
@@ -1466,7 +1466,7 @@ class GamificationService extends ChangeNotifier {
         'description': 'Identify 3 glass items',
         'pointsReward': 25,
         'iconName': 'water_drop',
-        'color': AppTheme.dryWasteColor,
+        'color': AppTheme.dryWasteColor.value,
         'requirements': {
           'subcategory': 'Glass',
           'count': 3,
@@ -1477,7 +1477,7 @@ class GamificationService extends ChangeNotifier {
         'description': 'Identify 3 metal items',
         'pointsReward': 25,
         'iconName': 'hardware',
-        'color': AppTheme.dryWasteColor,
+        'color': AppTheme.dryWasteColor.value,
         'requirements': {
           'subcategory': 'Metal',
           'count': 3,
@@ -1488,7 +1488,7 @@ class GamificationService extends ChangeNotifier {
         'description': 'Identify 2 electronic waste items',
         'pointsReward': 30,
         'iconName': 'devices',
-        'color': AppTheme.hazardousWasteColor,
+        'color': AppTheme.hazardousWasteColor.value,
         'requirements': {
           'subcategory': 'Electronic Waste',
           'count': 2,
@@ -1499,7 +1499,7 @@ class GamificationService extends ChangeNotifier {
         'description': 'Identify 10 waste items of any type',
         'pointsReward': 40,
         'iconName': 'auto_awesome',
-        'color': Colors.amber,
+        'color': Colors.amber.value,
         'requirements': {
           'any_item': true,
           'count': 10,

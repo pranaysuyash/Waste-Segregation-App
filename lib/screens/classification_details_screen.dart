@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 import 'package:waste_segregation_app/models/shared_waste_classification.dart';
 import 'package:waste_segregation_app/models/gamification.dart' show FamilyReactionType;
 import 'package:waste_segregation_app/utils/constants.dart';
+import 'package:waste_segregation_app/utils/image_utils.dart';
 import 'package:waste_segregation_app/widgets/modern_ui/modern_cards.dart';
 
 class ClassificationDetailsScreen extends StatefulWidget {
@@ -132,23 +133,22 @@ class _ClassificationDetailsScreenState extends State<ClassificationDetailsScree
                         ),
                         child: ClipRRect(
                           borderRadius: BorderRadius.circular(AppTheme.borderRadiusMd),
-                          child: Image.network(
-                            originalClassification.imageUrl!,
+                          child: ImageUtils.buildImage(
+                            imageSource: originalClassification.imageUrl!,
                             height: MediaQuery.of(context).size.height * 0.25,
                             fit: BoxFit.cover,
-                            errorBuilder: (context, error, stackTrace) =>
-                              Container(
-                                height: MediaQuery.of(context).size.height * 0.25,
-                                decoration: BoxDecoration(
-                                  color: Colors.grey[100],
-                                  borderRadius: BorderRadius.circular(AppTheme.borderRadiusMd),
-                                ),
-                                child: const Icon(
-                                  Icons.image_not_supported, 
-                                  size: 100, 
-                                  color: AppTheme.textDisabledColor,
-                                ),
+                            errorWidget: Container(
+                              height: MediaQuery.of(context).size.height * 0.25,
+                              decoration: BoxDecoration(
+                                color: Colors.grey[100],
+                                borderRadius: BorderRadius.circular(AppTheme.borderRadiusMd),
                               ),
+                              child: const Icon(
+                                Icons.image_not_supported, 
+                                size: 100, 
+                                color: AppTheme.textDisabledColor,
+                              ),
+                            ),
                           ),
                         ),
                       ),
@@ -256,22 +256,30 @@ class _ClassificationDetailsScreenState extends State<ClassificationDetailsScree
                   final reaction = widget.classification.reactions[i];
                   return Column(
                     children: [
-                      CircleAvatar(
-                        radius: 20,
-                        backgroundColor: _getAvatarColor(reaction.displayName),
-                        backgroundImage: reaction.photoUrl != null && reaction.photoUrl!.isNotEmpty
-                            ? NetworkImage(reaction.photoUrl!)
-                            : null,
-                        child: reaction.photoUrl == null || reaction.photoUrl!.isEmpty
-                            ? Text(
-                                reaction.displayName.substring(0, 1).toUpperCase(),
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.white,
-                                ),
-                              )
-                            : null,
-                      ),
+                      reaction.photoUrl != null && reaction.photoUrl!.isNotEmpty
+                        ? ImageUtils.buildCircularAvatar(
+                            imageSource: reaction.photoUrl!,
+                            radius: 20,
+                            backgroundColor: _getAvatarColor(reaction.displayName),
+                            child: Text(
+                              reaction.displayName.substring(0, 1).toUpperCase(),
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                              ),
+                            ),
+                          )
+                        : CircleAvatar(
+                            radius: 20,
+                            backgroundColor: _getAvatarColor(reaction.displayName),
+                            child: Text(
+                              reaction.displayName.substring(0, 1).toUpperCase(),
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ),
                       const SizedBox(height: AppTheme.spacingXs),
                       Text(
                         _getReactionEmoji(reaction.type),
@@ -314,23 +322,32 @@ class _ClassificationDetailsScreenState extends State<ClassificationDetailsScree
               padding: const EdgeInsets.symmetric(vertical: AppTheme.spacingXs),
               child: Row(
                 children: [
-                  CircleAvatar(
-                    radius: 16,
-                    backgroundColor: _getAvatarColor(reaction.displayName),
-                    backgroundImage: reaction.photoUrl != null && reaction.photoUrl!.isNotEmpty
-                        ? NetworkImage(reaction.photoUrl!)
-                        : null,
-                    child: reaction.photoUrl == null || reaction.photoUrl!.isEmpty
-                        ? Text(
-                            reaction.displayName.substring(0, 1).toUpperCase(),
-                            style: const TextStyle(
-                              fontSize: 12, 
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white,
-                            ),
-                          )
-                        : null,
-                  ),
+                  reaction.photoUrl != null && reaction.photoUrl!.isNotEmpty
+                    ? ImageUtils.buildCircularAvatar(
+                        imageSource: reaction.photoUrl!,
+                        radius: 16,
+                        backgroundColor: _getAvatarColor(reaction.displayName),
+                        child: Text(
+                          reaction.displayName.substring(0, 1).toUpperCase(),
+                          style: const TextStyle(
+                            fontSize: 12, 
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                        ),
+                      )
+                    : CircleAvatar(
+                        radius: 16,
+                        backgroundColor: _getAvatarColor(reaction.displayName),
+                        child: Text(
+                          reaction.displayName.substring(0, 1).toUpperCase(),
+                          style: const TextStyle(
+                            fontSize: 12, 
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
                   const SizedBox(width: AppTheme.spacingSm),
                   Expanded(
                     child: Text(
@@ -420,22 +437,30 @@ class _ClassificationDetailsScreenState extends State<ClassificationDetailsScree
                       child: Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          CircleAvatar(
-                            radius: 18,
-                            backgroundColor: _getAvatarColor(comment.displayName),
-                            backgroundImage: comment.photoUrl != null && comment.photoUrl!.isNotEmpty
-                                ? NetworkImage(comment.photoUrl!)
-                                : null,
-                            child: comment.photoUrl == null || comment.photoUrl!.isEmpty
-                                ? Text(
-                                    comment.displayName.substring(0, 1).toUpperCase(),
-                                    style: const TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.white,
-                                    ),
-                                  )
-                                : null,
-                          ),
+                          comment.photoUrl != null && comment.photoUrl!.isNotEmpty
+                            ? ImageUtils.buildCircularAvatar(
+                                imageSource: comment.photoUrl!,
+                                radius: 18,
+                                backgroundColor: _getAvatarColor(comment.displayName),
+                                child: Text(
+                                  comment.displayName.substring(0, 1).toUpperCase(),
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                              )
+                            : CircleAvatar(
+                                radius: 18,
+                                backgroundColor: _getAvatarColor(comment.displayName),
+                                child: Text(
+                                  comment.displayName.substring(0, 1).toUpperCase(),
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                              ),
                           const SizedBox(width: AppTheme.spacingSm),
                           Expanded(
                             child: Column(
