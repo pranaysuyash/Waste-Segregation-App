@@ -1,0 +1,438 @@
+{
+  "@@locale": "en",
+  
+  "settingsTitle": "Settings",
+  "@settingsTitle": {
+    "description": "Title for the settings screen"
+  },
+  
+  "accountSection": "Account",
+  "@accountSection": {
+    "description": "Header for account management section"
+  },
+  
+  "signOut": "Sign Out",
+  "@signOut": {
+    "description": "Button text to sign out"
+  },
+  
+  "switchToGoogle": "Switch to Google Account",
+  "@switchToGoogle": {
+    "description": "Button text to switch to Google account"
+  },
+  
+  "signOutSubtitle": "Sign out and return to login screen",
+  "@signOutSubtitle": {
+    "description": "Subtitle for sign out option"
+  },
+  
+  "guestModeSubtitle": "Currently in guest mode - sign in to sync data",
+  "@guestModeSubtitle": {
+    "description": "Subtitle when in guest mode"
+  },
+  
+  "signOutConfirmTitle": "Sign Out",
+  "@signOutConfirmTitle": {
+    "description": "Title for sign out confirmation dialog"
+  },
+  
+  "signOutConfirmBody": "Are you sure you want to sign out? Your data will remain on this device, but you won't be able to sync with the cloud.",
+  "@signOutConfirmBody": {
+    "description": "Confirmation text when signing out"
+  },
+  
+  "cancel": "Cancel",
+  "@cancel": {
+    "description": "Cancel button text"
+  },
+  
+  "premiumSection": "Premium",
+  "@premiumSection": {
+    "description": "Header for premium features section"
+  },
+  
+  "premiumFeatures": "Premium Features",
+  "@premiumFeatures": {
+    "description": "Premium features menu item"
+  },
+  
+  "premiumFeaturesSubtitle": "Unlock advanced features",
+  "@premiumFeaturesSubtitle": {
+    "description": "Subtitle for premium features"
+  },
+  
+  "appSettingsSection": "App Settings",
+  "@appSettingsSection": {
+    "description": "Header for app settings section"
+  },
+  
+  "themeSettings": "Theme Settings",
+  "@themeSettings": {
+    "description": "Theme settings menu item"
+  },
+  
+  "themeSettingsSubtitle": "Customize app appearance",
+  "@themeSettingsSubtitle": {
+    "description": "Subtitle for theme settings"
+  },
+  
+  "notificationSettings": "Notification Settings",
+  "@notificationSettings": {
+    "description": "Notification settings menu item"
+  },
+  
+  "notificationSettingsSubtitle": "Manage notifications and alerts",
+  "@notificationSettingsSubtitle": {
+    "description": "Subtitle for notification settings"
+  },
+  
+  "offlineMode": "Offline Mode",
+  "@offlineMode": {
+    "description": "Offline mode menu item"
+  },
+  
+  "offlineModeSubtitle": "Configure offline functionality",
+  "@offlineModeSubtitle": {
+    "description": "Subtitle for offline mode"
+  },
+  
+  "dataExport": "Data Export",
+  "@dataExport": {
+    "description": "Data export menu item"
+  },
+  
+  "dataExportSubtitle": "Export your data and history",
+  "@dataExportSubtitle": {
+    "description": "Subtitle for data export"
+  },
+  
+  "navigationSection": "Navigation",
+  "@navigationSection": {
+    "description": "Header for navigation settings section"
+  },
+  
+  "navigationSettings": "Navigation Settings",
+  "@navigationSettings": {
+    "description": "Navigation settings menu item"
+  },
+  
+  "navigationSettingsSubtitle": "Customize navigation behavior",
+  "@navigationSettingsSubtitle": {
+    "description": "Subtitle for navigation settings"
+  },
+  
+  "bottomNavigation": "Bottom Navigation",
+  "@bottomNavigation": {
+    "description": "Bottom navigation toggle"
+  },
+  
+  "bottomNavigationSubtitle": "Show bottom navigation bar",
+  "@bottomNavigationSubtitle": {
+    "description": "Subtitle for bottom navigation toggle"
+  },
+  
+  "cameraButton": "Camera Button (FAB)",
+  "@cameraButton": {
+    "description": "Camera button toggle"
+  },
+  
+  "cameraButtonSubtitle": "Show floating camera button",
+  "@cameraButtonSubtitle": {
+    "description": "Subtitle for camera button toggle"
+  },
+  
+  "navigationStyle": "Navigation Style",
+  "@navigationStyle": {
+    "description": "Navigation style setting"
+  },
+  
+  "navigationStyleCurrent": "Current: {style}",
+  "@navigationStyleCurrent": {
+    "description": "Current navigation style display",
+    "placeholders": {
+      "style": {
+        "type": "String"
+      }
+    }
+  },
+  
+  "navigationStyles": "Navigation Styles",
+  "@navigationStyles": {
+    "description": "Navigation styles demo"
+  },
+  
+  "navigationStylesSubtitle": "Try different navigation designs",
+  "@navigationStylesSubtitle": {
+    "description": "Subtitle for navigation styles demo"
+  },
+  
+  "featuresSection": "Features & Tools",
+  "@featuresSection": {
+    "description": "Header for features section"
+  },
+  
+  "modernUIComponents": "Modern UI Components",
+  "@modernUIComponents": {
+    "description": "Modern UI components showcase"
+  },
+  
+  "modernUIComponentsSubtitle": "Showcase of new design elements",
+  "@modernUIComponentsSubtitle": {
+    "description": "Subtitle for modern UI components"
+  },
+  
+  "offlineModeClassify": "Classify items without internet",
+  "@offlineModeClassify": {
+    "description": "Subtitle for offline mode feature"
+  },
+  
+  "analytics": "Analytics",
+  "@analytics": {
+    "description": "Analytics menu item"
+  },
+  
+  "analyticsSubtitle": "View your waste classification insights",
+  "@analyticsSubtitle": {
+    "description": "Subtitle for analytics"
+  },
+  
+  "advancedAnalytics": "Advanced Analytics",
+  "@advancedAnalytics": {
+    "description": "Advanced analytics menu item"
+  },
+  
+  "advancedAnalyticsSubtitle": "Detailed insights and trends",
+  "@advancedAnalyticsSubtitle": {
+    "description": "Subtitle for advanced analytics"
+  },
+  
+  "legalSupportSection": "Legal & Support",
+  "@legalSupportSection": {
+    "description": "Header for legal and support section"
+  },
+  
+  "privacyPolicy": "Privacy Policy",
+  "@privacyPolicy": {
+    "description": "Privacy policy menu item"
+  },
+  
+  "privacyPolicySubtitle": "How we handle your data",
+  "@privacyPolicySubtitle": {
+    "description": "Subtitle for privacy policy"
+  },
+  
+  "termsOfService": "Terms of Service",
+  "@termsOfService": {
+    "description": "Terms of service menu item"
+  },
+  
+  "termsOfServiceSubtitle": "Terms and conditions",
+  "@termsOfServiceSubtitle": {
+    "description": "Subtitle for terms of service"
+  },
+  
+  "helpSupport": "Help & Support",
+  "@helpSupport": {
+    "description": "Help and support menu item"
+  },
+  
+  "helpSupportSubtitle": "Get help and contact support",
+  "@helpSupportSubtitle": {
+    "description": "Subtitle for help and support"
+  },
+  
+  "about": "About",
+  "@about": {
+    "description": "About menu item"
+  },
+  
+  "aboutSubtitle": "App version and information",
+  "@aboutSubtitle": {
+    "description": "Subtitle for about"
+  },
+  
+  "contactSupport": "Contact Support",
+  "@contactSupport": {
+    "description": "Contact support option"
+  },
+  
+  "contactSupportSubtitle": "Send us an email",
+  "@contactSupportSubtitle": {
+    "description": "Subtitle for contact support"
+  },
+  
+  "reportBug": "Report a Bug",
+  "@reportBug": {
+    "description": "Report bug option"
+  },
+  
+  "reportBugSubtitle": "Help us improve the app",
+  "@reportBugSubtitle": {
+    "description": "Subtitle for report bug"
+  },
+  
+  "rateApp": "Rate the App",
+  "@rateApp": {
+    "description": "Rate app option"
+  },
+  
+  "rateAppSubtitle": "Leave a review",
+  "@rateAppSubtitle": {
+    "description": "Subtitle for rate app"
+  },
+  
+  "developerOptions": "DEVELOPER OPTIONS",
+  "@developerOptions": {
+    "description": "Developer options header"
+  },
+  
+  "toggleDeveloperMode": "Toggle Developer Mode",
+  "@toggleDeveloperMode": {
+    "description": "Tooltip for developer mode toggle"
+  },
+  
+  "toggleFeaturesForTesting": "Toggle features for testing",
+  "@toggleFeaturesForTesting": {
+    "description": "Subtitle for developer options"
+  },
+  
+  "resetAll": "Reset All",
+  "@resetAll": {
+    "description": "Reset all button text"
+  },
+  
+  "factoryReset": "Factory Reset",
+  "@factoryReset": {
+    "description": "Factory reset dialog title"
+  },
+  
+  "factoryResetBody": "This will delete ALL app data including classifications, settings, and user preferences. This action cannot be undone.\\n\\nAre you sure you want to continue?",
+  "@factoryResetBody": {
+    "description": "Factory reset confirmation text"
+  },
+  
+  "resetAllData": "Reset All Data",
+  "@resetAllData": {
+    "description": "Reset all data button text"
+  },
+  
+  "clearFirebaseData": "Clear Firebase Data",
+  "@clearFirebaseData": {
+    "description": "Clear Firebase data dialog title"
+  },
+  
+  "clearFirebaseDataBody": "This will clear all Firebase data for testing purposes. This simulates a fresh install experience.\\n\\nContinue?",
+  "@clearFirebaseDataBody": {
+    "description": "Clear Firebase data confirmation text"
+  },
+  
+  "clearData": "Clear Data",
+  "@clearData": {
+    "description": "Clear data button text"
+  },
+  
+  "premiumFeatureTitle": "{feature} - Premium Feature",
+  "@premiumFeatureTitle": {
+    "description": "Premium feature dialog title",
+    "placeholders": {
+      "feature": {
+        "type": "String"
+      }
+    }
+  },
+  
+  "premiumFeatureBody": "{feature} is a premium feature. Upgrade to unlock this and other advanced features.",
+  "@premiumFeatureBody": {
+    "description": "Premium feature dialog body",
+    "placeholders": {
+      "feature": {
+        "type": "String"
+      }
+    }
+  },
+  
+  "upgrade": "Upgrade",
+  "@upgrade": {
+    "description": "Upgrade button text"
+  },
+  
+  "bottomNavEnabled": "Bottom navigation {status}",
+  "@bottomNavEnabled": {
+    "description": "Bottom navigation status message",
+    "placeholders": {
+      "status": {
+        "type": "String"
+      }
+    }
+  },
+  
+  "cameraButtonEnabled": "Camera button {status}",
+  "@cameraButtonEnabled": {
+    "description": "Camera button status message",
+    "placeholders": {
+      "status": {
+        "type": "String"
+      }
+    }
+  },
+  
+  "navigationStyleChanged": "Navigation style changed to {style}",
+  "@navigationStyleChanged": {
+    "description": "Navigation style change message",
+    "placeholders": {
+      "style": {
+        "type": "String"
+      }
+    }
+  },
+  
+  "enabled": "enabled",
+  "@enabled": {
+    "description": "Enabled status"
+  },
+  
+  "disabled": "disabled",
+  "@disabled": {
+    "description": "Disabled status"
+  },
+  
+  "successfullySignedIn": "Successfully signed in to Google account",
+  "@successfullySignedIn": {
+    "description": "Success message for sign in"
+  },
+  
+  "signOutFailed": "Failed to sign out: {error}",
+  "@signOutFailed": {
+    "description": "Error message for sign out failure",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  
+  "newFeatureBadge": "New feature",
+  "@newFeatureBadge": {
+    "description": "Semantic label for new feature badge"
+  },
+  
+  "updatedFeatureBadge": "Updated feature",
+  "@updatedFeatureBadge": {
+    "description": "Semantic label for updated feature badge"
+  },
+  
+  "premiumFeatureBadge": "Premium feature",
+  "@premiumFeatureBadge": {
+    "description": "Semantic label for premium feature badge"
+  },
+  
+  "toggleBottomNavigation": "Toggle bottom navigation bar",
+  "@toggleBottomNavigation": {
+    "description": "Semantic label for bottom navigation toggle"
+  },
+  
+  "toggleFloatingCameraButton": "Toggle floating camera button",
+  "@toggleFloatingCameraButton": {
+    "description": "Semantic label for floating camera button toggle"
+  }
+} 

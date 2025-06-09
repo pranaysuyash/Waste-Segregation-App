@@ -35,7 +35,7 @@ dependencies:
   google_mobile_ads: ^6.0.0  # Updated for iOS compatibility
   fl_chart: ^0.68.0  # For data visualization in dashboard
   flutter_markdown: ^0.6.18  # For displaying markdown documents
-  intl: ^0.19.0  # For internationalization and date formatting
+  intl: ^0.20.2  # For internationalization and date formatting
   webview_flutter: ^4.8.0  # For webview integration
   # Updated Firebase dependencies with web-compatible versions
   firebase_core: ^3.13.0  # Updated for iOS compatibility
@@ -56,6 +56,8 @@ dependencies:
   connectivity_plus: ^6.0.5  # For network connectivity monitoring
   tutorial_coach_mark: ^1.2.11  # For onboarding coach marks
   flutter_speed_dial: ^7.0.0  # For floating action button speed dial
+  flutter_localizations:
+    sdk: flutter
 
   # --- Mapping & Geospatial Dependencies (OpenStreetMap) ---
   flutter_map: ^7.0.2 # High-performance, customizable map solution
@@ -72,6 +74,7 @@ dev_dependencies:
   json_serializable: ^6.7.1
   hive_generator: ^2.0.1
   mockito: ^5.4.4
+  golden_toolkit: ^0.15.0
 
   share_plus_platform_interface: any
 dependency_overrides:
@@ -79,6 +82,7 @@ dependency_overrides:
 
 flutter:
   uses-material-design: true
+  generate: true  # enables gen_l10n
   assets:
     - assets/images/
     - assets/icons/
