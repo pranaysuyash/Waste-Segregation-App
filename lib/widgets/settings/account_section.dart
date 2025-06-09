@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import '../../services/google_drive_service.dart';
+import '../../services/firebase_cleanup_service.dart';
 import '../../utils/routes.dart';
 import '../../utils/dialog_helper.dart';
 import 'setting_tile.dart';
@@ -53,6 +55,27 @@ class AccountSection extends StatelessWidget {
               },
             );
           },
+        ),
+        
+        // Reset Account
+        SettingTile(
+          icon: Icons.refresh,
+          iconColor: SettingsTheme.dataColor,
+          // TODO(i18n): Localize title and subtitle
+          title: 'Reset Account',
+          subtitle: 'Archive & clear your data, keep login credentials',
+          onTap: () => _confirmReset(context),
+        ),
+        
+        // Delete Account
+        SettingTile(
+          icon: Icons.delete_forever,
+          iconColor: SettingsTheme.dangerColor,
+          titleColor: SettingsTheme.dangerColor,
+          // TODO(i18n): Localize title and subtitle
+          title: 'Delete Account',
+          subtitle: 'Archive & clear all data, then delete your account',
+          onTap: () => _confirmDelete(context),
         ),
       ],
     );
@@ -121,6 +144,237 @@ class AccountSection extends StatelessWidget {
         context,
         'Successfully signed in to Google account',
       );
+    }
+  }
+
+  /// Show confirmation dialog for account reset
+  Future<void> _confirmReset(BuildContext context) async {
+    final shouldReset = await showDialog<bool>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Row(
+            children: [
+              Icon(Icons.refresh, color: Colors.orange),
+              SizedBox(width: 8),
+              Text('Reset Account?'),
+            ],
+          ),
+          content: const Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'This will archive and clear your data but keep you signed out. You can sign back in with the same credentials.',
+                style: TextStyle(fontWeight: FontWeight.w500),
+              ),
+              SizedBox(height: 12),
+              Text('• All classification history will be archived'),
+              Text('• All gamification progress will be archived'),
+              Text('• All settings and preferences will be archived'),
+              Text('• Local data will be cleared'),
+              Text('• You will be signed out'),
+              SizedBox(height: 12),
+              Text(
+                'You can sign back in anytime with the same account.',
+                style: TextStyle(
+                  color: Colors.green,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: () => Navigator.of(context).pop(true),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.orange,
+                foregroundColor: Colors.white,
+              ),
+              child: const Text('Reset Account'),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (shouldReset == true && context.mounted) {
+      await _performReset(context);
+    }
+  }
+
+  /// Show confirmation dialog for account deletion
+  Future<void> _confirmDelete(BuildContext context) async {
+    final shouldDelete = await showDialog<bool>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Row(
+            children: [
+              Icon(Icons.delete_forever, color: Colors.red),
+              SizedBox(width: 8),
+              Text('Delete Account?'),
+            ],
+          ),
+          content: const Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'This will archive all your data and delete your account permanently.',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+              SizedBox(height: 12),
+              Text('• All data will be archived for admin purposes'),
+              Text('• Your account will be permanently deleted'),
+              Text('• You will NOT be able to sign in again'),
+              Text('• Local data will be cleared'),
+              SizedBox(height: 12),
+              Text(
+                'This action cannot be undone!',
+                style: TextStyle(
+                  color: Colors.red,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: () => Navigator.of(context).pop(true),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.red,
+                foregroundColor: Colors.white,
+              ),
+              child: const Text('Delete Account'),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (shouldDelete == true && context.mounted) {
+      await _performDelete(context);
+    }
+  }
+
+  /// Perform account reset
+  Future<void> _performReset(BuildContext context) async {
+    try {
+      // Show loading dialog
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (BuildContext context) {
+          return const AlertDialog(
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                CircularProgressIndicator(),
+                SizedBox(height: 16),
+                Text('Resetting account...'),
+              ],
+            ),
+          );
+        },
+      );
+
+      final currentUser = FirebaseAuth.instance.currentUser;
+      if (currentUser == null) {
+        throw Exception('No user signed in');
+      }
+
+      final cleanupService = FirebaseCleanupService();
+      await cleanupService.resetAccount(currentUser.uid);
+
+      if (context.mounted) {
+        Navigator.of(context).pop(); // Close loading dialog
+        
+        // Show success message and navigate to auth screen
+        SettingsTheme.showSuccessSnackBar(
+          context,
+          'Account reset successfully. You can sign back in anytime.',
+        );
+
+        // Navigate to auth screen
+        Navigator.of(context).pushNamedAndRemoveUntil(
+          Routes.auth,
+          (route) => false,
+        );
+      }
+    } catch (e) {
+      if (context.mounted) {
+        Navigator.of(context).pop(); // Close loading dialog
+        
+        SettingsTheme.showErrorSnackBar(
+          context,
+          'Error resetting account: ${e.toString()}',
+        );
+      }
+    }
+  }
+
+  /// Perform account deletion
+  Future<void> _performDelete(BuildContext context) async {
+    try {
+      // Show loading dialog
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (BuildContext context) {
+          return const AlertDialog(
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                CircularProgressIndicator(),
+                SizedBox(height: 16),
+                Text('Deleting account...'),
+              ],
+            ),
+          );
+        },
+      );
+
+      final currentUser = FirebaseAuth.instance.currentUser;
+      if (currentUser == null) {
+        throw Exception('No user signed in');
+      }
+
+      final cleanupService = FirebaseCleanupService();
+      await cleanupService.deleteAccount(currentUser.uid);
+
+      if (context.mounted) {
+        Navigator.of(context).pop(); // Close loading dialog
+        
+        // Show success message and navigate to welcome screen
+        SettingsTheme.showSuccessSnackBar(
+          context,
+          'Account deleted successfully.',
+        );
+
+        // Navigate to welcome/auth screen
+        Navigator.of(context).pushNamedAndRemoveUntil(
+          Routes.auth,
+          (route) => false,
+        );
+      }
+    } catch (e) {
+      if (context.mounted) {
+        Navigator.of(context).pop(); // Close loading dialog
+        
+        SettingsTheme.showErrorSnackBar(
+          context,
+          'Error deleting account: ${e.toString()}',
+        );
+      }
     }
   }
 } 

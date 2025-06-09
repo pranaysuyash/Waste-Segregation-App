@@ -1,13 +1,19 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:crypto/crypto.dart';
+import 'dart:convert';
 
 /// Service to clear Firebase data for testing fresh install experience
 /// This should only be used in development/testing environments
 class FirebaseCleanupService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseAuth _auth = FirebaseAuth.instance;
+
+  /// Admin salt for anonymization (should be moved to constants)
+  static const String _adminSalt = 'waste_segregation_app_admin_salt_2024';
 
   /// Collections to clear for fresh install simulation
   static const List<String> _collectionsToDelete = [
@@ -19,6 +25,36 @@ class FirebaseCleanupService {
     'shared_classifications',
     'analytics_events',
     'family_stats',
+  ];
+
+  /// Global collections that need archiving before deletion
+  static const List<String> _globalCollections = [
+    'community_feed',
+    'community_stats',
+    'families',
+    'invitations',
+    'shared_classifications',
+    'analytics_events',
+    'family_stats',
+    'disposal_locations',
+    'recycling_facilities',
+    'facility_reviews',
+    'content_library',
+    'daily_challenges',
+    'user_achievements',
+    'badges',
+    'leaderboard_allTime',
+    'leaderboard_weekly',
+    'leaderboard_monthly',
+  ];
+
+  /// User subcollections that need archiving
+  static const List<String> _userSubcollections = [
+    'classifications',
+    'achievements',
+    'settings',
+    'analytics',
+    'content_progress',
   ];
 
   /// Hive boxes to clear for fresh install simulation
@@ -33,6 +69,258 @@ class FirebaseCleanupService {
     'contentProgress',
     'familyData',
   ];
+
+  /// Reset Account: Archive & clear user data, keep login credentials
+  Future<void> resetAccount(String userId) async {
+    if (kReleaseMode) {
+      throw Exception('Account reset is not allowed in release mode');
+    }
+
+    debugPrint('🔄 Starting account reset for user: $userId');
+    
+    try {
+      // 1. Archive all user-scoped collections
+      await _archiveUserData(userId);
+      
+      // 2. Delete all user data in main DB
+      await _deleteUserData(userId);
+      
+      // 3. Clear local storage & tokens
+      await _clearLocalData();
+      
+      // 4. Sign out
+      await _auth.signOut();
+      
+      debugPrint('✅ Account reset completed successfully');
+    } catch (e) {
+      debugPrint('❌ Error during account reset: $e');
+      rethrow;
+    }
+  }
+
+  /// Delete Account: Archive & clear all data, then delete auth record
+  Future<void> deleteAccount(String userId) async {
+    if (kReleaseMode) {
+      throw Exception('Account deletion is not allowed in release mode');
+    }
+
+    debugPrint('🗑️ Starting account deletion for user: $userId');
+    
+    try {
+      // 1. Archive all user-scoped collections
+      await _archiveUserData(userId);
+      
+      // 2. Delete all user data in main DB
+      await _deleteUserData(userId);
+      
+      // 3. Delete auth record
+      final currentUser = _auth.currentUser;
+      if (currentUser != null && currentUser.uid == userId) {
+        await currentUser.delete();
+        debugPrint('✅ Firebase Auth record deleted');
+      }
+      
+      // 4. Clear local storage & tokens
+      await _clearLocalData();
+      
+      debugPrint('✅ Account deletion completed successfully');
+    } catch (e) {
+      debugPrint('❌ Error during account deletion: $e');
+      rethrow;
+    }
+  }
+
+  /// Archive user data to admin collections
+  Future<void> _archiveUserData(String uid) async {
+    debugPrint('📦 Archiving user data for: $uid');
+    
+    final batch = _firestore.batch();
+    final hash = _generateAnonymousId(uid);
+
+    try {
+      // 1a. Archive user profile
+      final userDoc = await _firestore.collection('users').doc(uid).get();
+      if (userDoc.exists) {
+        final userData = userDoc.data()!;
+        // Remove PII and add anonymization data
+        userData.remove('email');
+        userData.remove('displayName');
+        userData.remove('photoURL');
+        userData['anonId'] = hash;
+        userData['archivedAt'] = FieldValue.serverTimestamp();
+        
+        batch.set(
+          _firestore.collection('admin_archived_users').doc(uid),
+          userData,
+        );
+        debugPrint('  ✅ User profile archived');
+      }
+
+      // 1b. Archive user subcollections
+      for (final subcollection in _userSubcollections) {
+        await _archiveUserSubcollection(uid, subcollection, hash);
+      }
+
+      // 1c. Archive global collections (if this is a complete reset)
+      for (final globalCollection in _globalCollections) {
+        await _archiveGlobalCollection(globalCollection, hash);
+      }
+
+      await batch.commit();
+      debugPrint('✅ User data archiving completed');
+    } catch (e) {
+      debugPrint('❌ Error archiving user data: $e');
+      rethrow;
+    }
+  }
+
+  /// Archive a user's subcollection
+  Future<void> _archiveUserSubcollection(String uid, String subcollectionName, String hash) async {
+    try {
+      final subcollectionRef = _firestore
+          .collection('users')
+          .doc(uid)
+          .collection(subcollectionName);
+      
+      final snapshot = await subcollectionRef.get();
+      
+      if (snapshot.docs.isNotEmpty) {
+        final batch = _firestore.batch();
+        
+        for (final doc in snapshot.docs) {
+          final data = doc.data();
+          data['anonId'] = hash;
+          data['archivedAt'] = FieldValue.serverTimestamp();
+          
+          batch.set(
+            _firestore
+                .collection('admin_archived_$subcollectionName')
+                .doc('${uid}_${doc.id}'),
+            data,
+          );
+        }
+        
+        await batch.commit();
+        debugPrint('  ✅ Archived ${snapshot.docs.length} documents from $subcollectionName');
+      }
+    } catch (e) {
+      debugPrint('  ⚠️ Error archiving $subcollectionName: $e');
+    }
+  }
+
+  /// Archive a global collection
+  Future<void> _archiveGlobalCollection(String collectionName, String hash) async {
+    try {
+      final collectionRef = _firestore.collection(collectionName);
+      final snapshot = await collectionRef.get();
+      
+      if (snapshot.docs.isNotEmpty) {
+        final batch = _firestore.batch();
+        
+        for (final doc in snapshot.docs) {
+          final data = doc.data();
+          data['archivedAt'] = FieldValue.serverTimestamp();
+          data['archivedBy'] = hash;
+          
+          batch.set(
+            _firestore
+                .collection('admin_archived_$collectionName')
+                .doc(doc.id),
+            data,
+          );
+        }
+        
+        await batch.commit();
+        debugPrint('  ✅ Archived ${snapshot.docs.length} documents from $collectionName');
+      }
+    } catch (e) {
+      debugPrint('  ⚠️ Error archiving $collectionName: $e');
+    }
+  }
+
+  /// Delete user data from main database
+  Future<void> _deleteUserData(String uid) async {
+    debugPrint('🗑️ Deleting user data from main database');
+    
+    try {
+      // Delete user document and subcollections
+      await _deleteUserDocument(uid);
+      
+      // Delete global collections (for complete reset)
+      for (final collection in _globalCollections) {
+        await _deleteCollection(collection);
+      }
+      
+      debugPrint('✅ User data deletion completed');
+    } catch (e) {
+      debugPrint('❌ Error deleting user data: $e');
+      rethrow;
+    }
+  }
+
+  /// Delete user document and all subcollections
+  Future<void> _deleteUserDocument(String uid) async {
+    try {
+      // Delete user subcollections first
+      for (final subcollection in _userSubcollections) {
+        await _deleteSubcollection('users/$uid/$subcollection');
+      }
+      
+      // Delete user document
+      await _firestore.collection('users').doc(uid).delete();
+      debugPrint('  ✅ User document deleted');
+    } catch (e) {
+      debugPrint('  ⚠️ Error deleting user document: $e');
+    }
+  }
+
+  /// Clear local storage and revoke tokens
+  Future<void> _clearLocalData() async {
+    debugPrint('🧹 Clearing local storage and tokens');
+    
+    try {
+      // Clear Hive boxes
+      for (final boxName in _hiveBoxesToClear) {
+        try {
+          if (Hive.isBoxOpen(boxName)) {
+            final box = Hive.box(boxName);
+            await box.clear();
+            debugPrint('  ✅ Cleared Hive box: $boxName');
+          } else {
+            try {
+              final box = await Hive.openBox(boxName);
+              await box.clear();
+              await box.close();
+              debugPrint('  ✅ Cleared Hive box: $boxName');
+            } catch (e) {
+              debugPrint('  ℹ️ Hive box $boxName not found or already empty');
+            }
+          }
+        } catch (e) {
+          debugPrint('  ⚠️ Error clearing Hive box $boxName: $e');
+        }
+      }
+      
+      // Revoke FCM token
+      try {
+        await FirebaseMessaging.instance.deleteToken();
+        debugPrint('  ✅ FCM token revoked');
+      } catch (e) {
+        debugPrint('  ⚠️ Error revoking FCM token: $e');
+      }
+      
+      debugPrint('✅ Local storage cleanup completed');
+    } catch (e) {
+      debugPrint('❌ Error clearing local data: $e');
+    }
+  }
+
+  /// Generate anonymous ID for archiving
+  String _generateAnonymousId(String uid) {
+    final bytes = utf8.encode(uid + _adminSalt);
+    final digest = sha256.convert(bytes);
+    return digest.toString();
+  }
 
   /// Clear all Firebase data to simulate fresh install
   /// WARNING: This will delete ALL data - use only for testing!
@@ -89,15 +377,7 @@ class FirebaseCleanupService {
       await _firestore.collection('users').doc(userId).delete();
       
       // Clear user subcollections
-      final subcollections = [
-        'classifications',
-        'achievements',
-        'settings', 
-        'analytics',
-        'content_progress',
-      ];
-
-      for (final subcollection in subcollections) {
+      for (final subcollection in _userSubcollections) {
         await _deleteSubcollection('users/$userId/$subcollection');
       }
 

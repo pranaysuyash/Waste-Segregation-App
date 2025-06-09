@@ -536,6 +536,15 @@ This release resolves critical compilation errors that were preventing the app f
 - **Zero critical UI issues remaining**
 
 ### Added
+- **Data Reset and Account Delete Functionality** (2025-01-XX)
+  - Reset Account: Archive & clear user data while keeping login credentials for re-signin
+  - Delete Account: Archive & clear all data then permanently delete Firebase Auth account
+  - Comprehensive data archiving to admin collections before deletion for compliance
+  - Anonymization of PII data during archiving process with SHA-256 hashing
+  - Local storage cleanup including Hive boxes and FCM token revocation
+  - User-friendly confirmation dialogs with clear explanations of each action
+  - Proper error handling and loading states during account operations
+  - Integration with existing AccountSection in settings screen
 - **Phase 3 Settings Enhancement - Polish Features** (2025-01-XX)
   - Golden tests for visual regression testing with 6 comprehensive test scenarios
   - Responsive design system with mobile/tablet/desktop breakpoints and adaptive layouts
