@@ -17,3 +17,15 @@ extension ColorValues on Color {
     );
   }
 }
+
+/// Extension to apply fractional opacity to a Color in a const-friendly way.
+extension ColorOpacity on Color {
+  /// Returns this color with a fractional alpha, where [fraction] is a
+  /// value between 0.0 (transparent) and 1.0 (opaque).
+  Color withAlphaFraction(double fraction) {
+    // Clamping to ensure the fraction is within the valid range.
+    final double clampedFraction = fraction.clamp(0.0, 1.0);
+    final int alpha = (clampedFraction * 255).round();
+    return withAlpha(alpha);
+  }
+}

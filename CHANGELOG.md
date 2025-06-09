@@ -684,3 +684,26 @@ This release represents a major milestone in app quality, transforming the app i
 ### Changed
 - **UI Component Usage**: Replaced direct implementation of buttons and cards on the `ResultScreen` with standardized widgets from `lib/widgets/modern_ui/` and `lib/widgets/result_screen/`.
 - **Code Structure**: Restructured the `build` method in `ResultScreen` to be more readable and maintainable by removing nested conditional logic and using a cleaner widget hierarchy.
+
+## [0.9.1+91] - 2024-07-22
+### 🚀 Features
+- **Enhanced Classification History:** History items now show a preview image and allow for full-screen view.
+
+## [0.9.2] - YYYY-MM-DD
+### ✨ Features & Enhancements
+- **Recycling Info Card Overhaul:** Completely refactored the `RecyclingCodeInfoCard` widget for improved usability, maintainability, and modern UX.
+  - Replaced raw data maps with a strongly-typed `RecyclingCode` model for robustness.
+  - Extracted UI into reusable sub-widgets (`CodeCircle`, `InfoRow`).
+  - Added smooth expand/collapse animations and a rotating chevron icon.
+  - Implemented long-press-to-copy for example text.
+  - Enhanced UI with theme-aware colors, improved typography, and haptic feedback.
+  - Added a fallback for unknown recycling codes to prevent errors.
+  - Improved accessibility with semantic labels for interactive elements.
+- **Utility Extensions:** Added a new `Color` extension (`withAlphaFraction`) for a clean, non-deprecated way to handle opacity.
+
+### 🐛 Bug Fixes
+- Resolved an issue where the `RecyclingCodeInfoCard` could display inconsistently or error on unknown codes.
+
+### ⚙️ Code Quality & Technical Debt
+- Removed deprecated `.withValues()` color API calls.
+- Marked all user-facing strings in the new widget for future internationalization.
