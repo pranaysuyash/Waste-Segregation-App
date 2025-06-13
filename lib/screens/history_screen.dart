@@ -12,6 +12,7 @@ import '../services/storage_service.dart';
 import '../services/cloud_storage_service.dart';
 import '../utils/constants.dart';
 import '../utils/error_handler.dart';
+import '../l10n/app_localizations.dart';
 import '../widgets/history_list_item.dart';
 import '../widgets/animations/enhanced_loading_states.dart';
 
@@ -650,17 +651,22 @@ class _HistoryScreenState extends State<HistoryScreen> with RestorationMixin {
                     title: 'No History Yet',
                     message: 'Start classifying items to build your waste history.',
                     icon: Icons.history_toggle_off_outlined,
-                    actionButton: Semantics(
-                      label: 'Start classifying',
-                      hint: 'Opens the camera to classify waste',
-                      button: true,
-                      child: ElevatedButton.icon(
-                        icon: const Icon(Icons.camera_alt),
-                        label: const Text('Start Classifying'),
-                        onPressed: () {
-                          Navigator.pop(context);
-                        },
-                      ),
+                    actionButton: Builder(
+                      builder: (context) {
+                        final t = AppLocalizations.of(context)!;
+                        return Semantics(
+                          excludeSemantics: true,
+                          hint: t.startClassifyingHint,
+                          button: true,
+                          child: ElevatedButton.icon(
+                            icon: const Icon(Icons.camera_alt),
+                            label: const Text('Start Classifying'),
+                            onPressed: () {
+                              Navigator.pop(context);
+                            },
+                          ),
+                        );
+                      },
                     ),
                   )
                 : _classifications.isEmpty && _isFilterActive()

@@ -1,6 +1,7 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
 import '../utils/constants.dart';
+import '../l10n/app_localizations.dart';
 
 /// Animated FAB with pulsing effects and celebratory animations
 class AnimatedFAB extends StatefulWidget {
@@ -182,25 +183,30 @@ class _AnimatedFABState extends State<AnimatedFAB>
               scale: _pulseAnimation.value * _scaleAnimation.value,
               child: Transform.rotate(
                 angle: _rotationAnimation.value * 0.1,
-                child: Semantics(
-                  label: widget.tooltip ?? 'Camera shutter',
-                  hint: 'Takes a photo',
-                  button: true,
-                  child: FloatingActionButton(
-                    onPressed: _onPressed,
-                    tooltip: widget.tooltip,
-                    backgroundColor: AppTheme.primaryColor,
-                    foregroundColor: Colors.white,
-                    elevation: 8,
-                    child: AnimatedSwitcher(
-                      duration: const Duration(milliseconds: 300),
-                      child: Icon(
-                        widget.icon,
-                        key: ValueKey(widget.icon),
-                        size: 28,
+                child: Builder(
+                  builder: (context) {
+                    final t = AppLocalizations.of(context)!;
+                    return Semantics(
+                      label: t.cameraShutterLabel,
+                      hint: t.cameraShutterHint,
+                      button: true,
+                      child: FloatingActionButton(
+                        onPressed: _onPressed,
+                        tooltip: widget.tooltip,
+                        backgroundColor: AppTheme.primaryColor,
+                        foregroundColor: Colors.white,
+                        elevation: 8,
+                        child: AnimatedSwitcher(
+                          duration: const Duration(milliseconds: 300),
+                          child: Icon(
+                            widget.icon,
+                            key: ValueKey(widget.icon),
+                            size: 28,
+                          ),
+                        ),
                       ),
-                    ),
-                  ),
+                    );
+                  },
                 ),
               ),
             ),

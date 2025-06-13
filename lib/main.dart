@@ -322,7 +322,7 @@ class WasteSegregationApp extends StatelessWidget {
           themeMode: themeProvider.themeMode,
           builder: (context, child) {
             final mediaQuery = MediaQuery.of(context);
-            final scale = mediaQuery.textScaleFactor.clamp(1.0, 2.0);
+            final scale = mediaQuery.textScaleFactor.clamp(1.0, 2.0) as double;
             return MediaQuery(
               data: mediaQuery.copyWith(textScaleFactor: scale),
               child: child ?? const SizedBox.shrink(),

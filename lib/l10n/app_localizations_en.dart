@@ -261,4 +261,19 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get toggleFloatingCameraButton => 'Toggle floating camera button';
+
+  @override
+  String get cameraShutterLabel => 'Camera shutter';
+
+  @override
+  String get cameraShutterHint => 'Takes a photo';
+
+  @override
+  String get startClassifyingHint => 'Opens the camera to classify waste';
+
+  @override
+  String get rewardConfettiLabel => 'Reward confetti';
+
+  @override
+  String get rewardConfettiHint => 'Celebrates your achievement';
 }
