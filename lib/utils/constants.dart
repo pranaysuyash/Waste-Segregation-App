@@ -64,103 +64,66 @@ class StorageKeys {
 
 // App Theme Constants
 class AppTheme {
-  // Light Theme
-  static final ThemeData lightTheme = ThemeData(
-    brightness: Brightness.light,
-    primaryColor: const Color(0xFF2E7D32),
-    colorScheme: const ColorScheme.light(
-      primary: Color(0xFF2E7D32),
-      secondary: Color(0xFF2196F3),
-      error: Color(0xFFF44336),
-      onSecondary: Colors.white,
-      onSurface: Color(0xFF212121),
-    ),
-    scaffoldBackgroundColor: const Color(0xFFFFFFFF),
-    cardColor: Colors.white,
-    textTheme: const TextTheme(
-      bodyLarge: TextStyle(color: Color(0xFF212121)),
-      bodyMedium: TextStyle(color: Color(0xFF212121)),
-      bodySmall: TextStyle(color: Color(0xFF757575)),
-      titleLarge: TextStyle(color: Color(0xFF212121), fontWeight: FontWeight.bold),
-      titleMedium: TextStyle(color: Color(0xFF212121)),
-      titleSmall: TextStyle(color: Color(0xFF757575)),
-    ),
-    appBarTheme: const AppBarTheme(
-      backgroundColor: Color(0xFF2E7D32),
-      foregroundColor: Colors.white,
-      elevation: 2,
-    ),
-    elevatedButtonTheme: ElevatedButtonThemeData(
-      style: ElevatedButton.styleFrom(
-        backgroundColor: const Color(0xFF2E7D32),
-        foregroundColor: Colors.white,
-      ),
-    ),
-    outlinedButtonTheme: OutlinedButtonThemeData(
-      style: OutlinedButton.styleFrom(
-        foregroundColor: const Color(0xFF2E7D32),
-      ),
-    ),
-    radioTheme: RadioThemeData(
-      fillColor: WidgetStateProperty.all(const Color(0xFF2E7D32)),
-    ),
-    tabBarTheme: const TabBarThemeData(
-      labelColor: Colors.white, // Selected tab text color
-      unselectedLabelColor: Color(0x99FFFFFF), // Unselected tab text color (white with opacity)
-      indicatorColor: Colors.white, // Indicator line color
-      indicatorSize: TabBarIndicatorSize.tab,
-    ),
-  );
+  /// Primary seed color used if dynamic color is not available.
+  static const Color seedColor = Color(0xFF2E7D32);
 
-  // Dark Theme
-  static final ThemeData darkTheme = ThemeData(
-    brightness: Brightness.dark,
-    primaryColor: const Color(0xFF2E7D32),
-    colorScheme: const ColorScheme.dark(
-      primary: Color(0xFF2E7D32),
-      secondary: Color(0xFF1976D2),
-      surface: Color(0xFF1E1E1E),
-      error: Color(0xFFF44336),
-      onPrimary: Colors.white,
-      onSecondary: Colors.white,
-      onError: Colors.white,
-    ),
-    scaffoldBackgroundColor: const Color(0xFF121212),
-    cardColor: const Color(0xFF1E1E1E),
-    textTheme: const TextTheme(
-      bodyLarge: TextStyle(color: Colors.white),
-      bodyMedium: TextStyle(color: Colors.white),
-      bodySmall: TextStyle(color: Color(0xFFBDBDBD)),
-      titleLarge: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-      titleMedium: TextStyle(color: Colors.white),
-      titleSmall: TextStyle(color: Color(0xFFBDBDBD)),
-    ),
-    appBarTheme: const AppBarTheme(
-      backgroundColor: Color(0xFF2E7D32),
-      foregroundColor: Colors.white,
-      elevation: 2,
-    ),
-    elevatedButtonTheme: ElevatedButtonThemeData(
-      style: ElevatedButton.styleFrom(
-        backgroundColor: const Color(0xFF2E7D32),
+  /// Base text theme using Roboto for consistent typography.
+  static TextTheme _roboto(TextTheme base) =>
+      GoogleFonts.robotoTextTheme(base);
+
+  /// Build a [ThemeData] from the given [ColorScheme].
+  static ThemeData fromScheme(ColorScheme scheme) {
+    final ThemeData base = ThemeData(useMaterial3: true, colorScheme: scheme);
+    return base.copyWith(
+      primaryColor: seedColor,
+      scaffoldBackgroundColor: scheme.surface,
+      cardColor: scheme.surface,
+      appBarTheme: AppBarTheme(
+        backgroundColor: seedColor,
         foregroundColor: Colors.white,
+        elevation: 2,
       ),
-    ),
-    outlinedButtonTheme: OutlinedButtonThemeData(
-      style: OutlinedButton.styleFrom(
-        foregroundColor: const Color(0xFF2E7D32),
+      elevatedButtonTheme: ElevatedButtonThemeData(
+        style: ElevatedButton.styleFrom(
+          backgroundColor: seedColor,
+          foregroundColor: Colors.white,
+        ),
       ),
-    ),
-    radioTheme: RadioThemeData(
-      fillColor: WidgetStateProperty.all(const Color(0xFF2E7D32)),
-    ),
-    tabBarTheme: const TabBarThemeData(
-      labelColor: Colors.white, // Selected tab text color
-      unselectedLabelColor: Color(0x99FFFFFF), // Unselected tab text color (white with opacity)
-      indicatorColor: Colors.white, // Indicator line color
-      indicatorSize: TabBarIndicatorSize.tab,
-    ),
-  );
+      outlinedButtonTheme: OutlinedButtonThemeData(
+        style: OutlinedButton.styleFrom(foregroundColor: seedColor),
+      ),
+      radioTheme: RadioThemeData(
+        fillColor: WidgetStateProperty.all(seedColor),
+      ),
+      tabBarTheme: const TabBarTheme(
+        labelColor: Colors.white,
+        unselectedLabelColor: Color(0x99FFFFFF),
+        indicatorColor: Colors.white,
+        indicatorSize: TabBarIndicatorSize.tab,
+      ),
+      textTheme: _roboto(
+        scheme.brightness == Brightness.dark
+            ? ThemeData.dark().textTheme
+            : ThemeData.light().textTheme,
+      ),
+    );
+  }
+
+  /// Default light theme using [ColorScheme.fromSeed].
+  static ThemeData get lightTheme =>
+      fromScheme(ColorScheme.fromSeed(seedColor: seedColor));
+
+  /// Default dark theme using [ColorScheme.fromSeed].
+  static ThemeData get darkTheme => fromScheme(
+      ColorScheme.fromSeed(seedColor: seedColor, brightness: Brightness.dark));
+
+  /// High contrast light theme.
+  static ThemeData get highContrastTheme => fromScheme(
+      ColorScheme.fromSeed(seedColor: seedColor, contrastLevel: 1.0));
+
+  /// High contrast dark theme.
+  static ThemeData get highContrastDarkTheme => fromScheme(
+      ColorScheme.fromSeed(seedColor: seedColor, brightness: Brightness.dark, contrastLevel: 1.0));
 
   // Category Colors (used for badges, etc.)
   // Updated colors from the "Living Earth" palette
