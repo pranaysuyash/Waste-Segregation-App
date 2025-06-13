@@ -32,10 +32,14 @@ This document provides a comprehensive index to all project documentation, now p
 - **UI_ROADMAP_COMPREHENSIVE.md** - UI design roadmap and strategy
 - **animation_enhancement_tasks.md** - Animation and micro-interaction improvements
 
+### `/docs/design/user_experience/` - User Experience Documentation
+- **achievements-and-account-ui-improvements-2024-12-19.md** - UI/UX improvements for achievements loading and account management
+
 ### `/docs/features/` - Feature Documentation
 - **COMMUNITY_SYSTEM_DOCUMENTATION.md** - Community features and social system
 
 ### `/docs/fixes/` - Fix Documentation
+- **achievements-loading-and-account-management-fix-2024-12-19.md** - Comprehensive fix for achievements loading and account management issues
 - **COMMUNITY_TABS_FIX_SUMMARY.md** - Community screen tabs fix details
 - **CRITICAL_FIXES_DOCUMENTATION.md** - Critical bug fixes and resolutions
 

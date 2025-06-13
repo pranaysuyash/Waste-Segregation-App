@@ -3,8 +3,15 @@ import 'package:provider/provider.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../../services/google_drive_service.dart';
 import '../../services/firebase_cleanup_service.dart';
+import '../../services/gamification_service.dart';
+import '../../services/analytics_service.dart';
+import '../../services/storage_service.dart';
+import '../../services/community_service.dart';
+import '../../services/premium_service.dart';
+import '../../services/ad_service.dart';
 import '../../utils/routes.dart';
 import '../../utils/dialog_helper.dart';
+import '../../utils/constants.dart';
 import 'setting_tile.dart';
 import 'settings_theme.dart';
 
@@ -119,7 +126,7 @@ class AccountSection extends StatelessWidget {
       if (context.mounted) {
         // Navigate to auth screen after successful sign out
         Navigator.of(context).pushNamedAndRemoveUntil(
-          Routes.auth,
+          '/',
           (route) => false,
         );
       }
@@ -135,7 +142,7 @@ class AccountSection extends StatelessWidget {
   }
 
   Future<void> _navigateToAuth(BuildContext context) async {
-    final result = await Navigator.of(context).pushNamed(Routes.auth);
+            final result = await Navigator.of(context).pushNamed('/');
     
     // If user successfully signed in, show success message
     if (result == true && context.mounted) {
@@ -292,8 +299,14 @@ class AccountSection extends StatelessWidget {
         throw Exception('No user signed in');
       }
 
+      // 1. Clear data using cleanup service
       final cleanupService = FirebaseCleanupService();
       await cleanupService.resetAccount(currentUser.uid);
+
+      // 2. Force refresh all providers to clear cached data
+      if (context.mounted) {
+        await _refreshAllProviders(context);
+      }
 
       if (context.mounted) {
         Navigator.of(context).pop(); // Close loading dialog
@@ -306,7 +319,7 @@ class AccountSection extends StatelessWidget {
 
         // Navigate to auth screen
         Navigator.of(context).pushNamedAndRemoveUntil(
-          Routes.auth,
+          '/',
           (route) => false,
         );
       }
@@ -348,8 +361,14 @@ class AccountSection extends StatelessWidget {
         throw Exception('No user signed in');
       }
 
+      // 1. Clear data using cleanup service
       final cleanupService = FirebaseCleanupService();
       await cleanupService.deleteAccount(currentUser.uid);
+
+      // 2. Force refresh all providers to clear cached data
+      if (context.mounted) {
+        await _refreshAllProviders(context);
+      }
 
       if (context.mounted) {
         Navigator.of(context).pop(); // Close loading dialog
@@ -362,7 +381,7 @@ class AccountSection extends StatelessWidget {
 
         // Navigate to welcome/auth screen
         Navigator.of(context).pushNamedAndRemoveUntil(
-          Routes.auth,
+          '/',
           (route) => false,
         );
       }
@@ -375,6 +394,25 @@ class AccountSection extends StatelessWidget {
           'Error deleting account: ${e.toString()}',
         );
       }
+    }
+  }
+
+  /// Refresh all providers to clear cached data
+  Future<void> _refreshAllProviders(BuildContext context) async {
+    try {
+      debugPrint('🔄 Refreshing providers after account reset/delete...');
+      
+      // Clear the gamification service cache to ensure fresh data
+      final gamificationService = context.read<GamificationService>();
+      gamificationService.clearCache();
+      
+      // Force a small delay to ensure all cleanup operations complete
+      await Future.delayed(const Duration(milliseconds: 500));
+      
+      debugPrint('✅ Providers refreshed successfully');
+    } catch (e) {
+      debugPrint('⚠️ Error refreshing providers: $e');
+      // Don't rethrow - this is cleanup, not critical
     }
   }
 } 

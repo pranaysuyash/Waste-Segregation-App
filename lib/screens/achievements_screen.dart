@@ -1,5 +1,7 @@
 // import 'dart:math' as math;
+import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:provider/provider.dart';
 import '../models/gamification.dart';
 import '../services/gamification_service.dart';
@@ -26,18 +28,123 @@ class _AchievementsScreenState extends State<AchievementsScreen>
   // Achievement celebration state
   bool _showCelebration = false;
   Achievement? _celebrationAchievement;
+  
+  // Loading state tracking
+  bool _isLoadingProfile = true;
+  bool _hasLoadingError = false;
 
   @override
   void initState() {
     super.initState();
     _tabController =
         TabController(length: 3, vsync: this, initialIndex: widget.initialTabIndex);
-    // Load initial profile
-    context.read<GamificationService>().getProfile();
+    // Load initial profile asynchronously and trigger rebuild
+    _loadInitialProfile();
+  }
+
+  Future<void> _loadInitialProfile() async {
+    if (mounted) {
+      setState(() {
+        _isLoadingProfile = true;
+        _hasLoadingError = false;
+      });
+    }
+    
+    try {
+      debugPrint('🏆 AchievementsScreen: Loading initial profile...');
+      
+      // Add timeout to prevent infinite loading
+      await context.read<GamificationService>().getProfile().timeout(
+        const Duration(seconds: 10),
+        onTimeout: () {
+          debugPrint('🔥 AchievementsScreen: Profile loading timed out');
+          throw TimeoutException('Profile loading timed out', const Duration(seconds: 10));
+        },
+      );
+      
+      debugPrint('🏆 AchievementsScreen: Initial profile loaded successfully');
+      
+      if (mounted) {
+        setState(() {
+          _isLoadingProfile = false;
+          _hasLoadingError = false;
+        });
+      }
+      // The profile should now be available and the widget will rebuild due to Provider
+    } catch (e) {
+      debugPrint('🔥 AchievementsScreen: Error loading initial profile: $e');
+      
+      if (mounted) {
+        setState(() {
+          _isLoadingProfile = false;
+          _hasLoadingError = true;
+        });
+      }
+      
+      // Try to force a profile creation as last resort
+      try {
+        debugPrint('🆘 AchievementsScreen: Attempting emergency profile creation...');
+        final gamificationService = context.read<GamificationService>();
+        
+        // Force create a basic profile if none exists
+        if (gamificationService.currentProfile == null) {
+          // This should trigger the emergency fallback in the service
+          await gamificationService.getProfile(forceRefresh: true);
+          
+          if (mounted) {
+            setState(() {
+              _hasLoadingError = false;
+            });
+          }
+        }
+      } catch (emergencyError) {
+        debugPrint('🔥 AchievementsScreen: Emergency profile creation failed: $emergencyError');
+      }
+      
+      // Even if there's an error, the service should provide a fallback profile
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to load achievements: ${e.toString()}'),
+            backgroundColor: Colors.orange,
+            action: SnackBarAction(
+              label: 'Retry',
+              onPressed: _loadInitialProfile,
+            ),
+          ),
+        );
+      }
+    }
   }
 
   Future<void> _refreshProfile() async {
-    await context.read<GamificationService>().getProfile(forceRefresh: true);
+    try {
+      debugPrint('🏆 AchievementsScreen: Refreshing profile...');
+      
+      if (mounted) {
+        setState(() {
+          _hasLoadingError = false;
+        });
+      }
+      
+      await context.read<GamificationService>().getProfile(forceRefresh: true);
+      debugPrint('🏆 AchievementsScreen: Profile refreshed successfully');
+    } catch (e) {
+      debugPrint('🔥 AchievementsScreen: Error refreshing profile: $e');
+      
+      if (mounted) {
+        setState(() {
+          _hasLoadingError = true;
+        });
+        
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to refresh achievements: ${e.toString()}'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
   }
 
   @override
@@ -80,11 +187,82 @@ class _AchievementsScreenState extends State<AchievementsScreen>
           children: [
             Builder(
           builder: (context) {
-            final profile = context.watch<GamificationService>().currentProfile;
+            final gamificationService = context.watch<GamificationService>();
+            final profile = gamificationService.currentProfile;
 
-            if (profile == null) {
-              return const Center(child: CircularProgressIndicator());
+            debugPrint('🏆 AchievementsScreen: Profile status - ${profile != null ? 'loaded' : 'loading'}');
+
+            // Show loading state
+            if (profile == null && _isLoadingProfile) {
+              debugPrint('🏆 AchievementsScreen: Profile is null, showing loading indicator');
+              return const Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    CircularProgressIndicator(),
+                    SizedBox(height: 16),
+                    Text('Loading achievements...'),
+                    SizedBox(height: 8),
+                    Text(
+                      'This may take a few moments',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.grey,
+                      ),
+                    ),
+                  ],
+                ),
+              );
             }
+            
+            // Show error state with retry option
+            if (profile == null && _hasLoadingError) {
+              return Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(
+                      Icons.error_outline,
+                      size: 64,
+                      color: Colors.orange,
+                    ),
+                    const SizedBox(height: 16),
+                    const Text(
+                      'Failed to load achievements',
+                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    ),
+                    const SizedBox(height: 8),
+                    const Text(
+                      'Please check your connection and try again',
+                      style: TextStyle(color: Colors.grey),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 24),
+                    ElevatedButton.icon(
+                      onPressed: _loadInitialProfile,
+                      icon: const Icon(Icons.refresh),
+                      label: const Text('Retry'),
+                    ),
+                  ],
+                ),
+              );
+            }
+            
+            // Show fallback loading if profile is still null
+            if (profile == null) {
+              return const Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    CircularProgressIndicator(),
+                    SizedBox(height: 16),
+                    Text('Initializing achievements...'),
+                  ],
+                ),
+              );
+            }
+
+            debugPrint('🏆 AchievementsScreen: Profile loaded with ${profile.achievements.length} achievements');
 
             return TabBarView(
               controller: _tabController,

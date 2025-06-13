@@ -91,89 +91,131 @@ class GamificationService extends ChangeNotifier {
   }
   
   Future<GamificationProfile> getProfile({bool forceRefresh = false}) async {
-    if (!forceRefresh && _cachedProfile != null) {
-      return _cachedProfile!;
-    }
-    final currentUserProfile = await _storageService.getCurrentUserProfile();
-
-    if (currentUserProfile == null || currentUserProfile.id.isEmpty) {
-      debugPrint('⚠️ GamificationService: No authenticated user profile found. Falling back to legacy local profile (if any).');
-      // Fallback for guest or unauthenticated state (reads from old Hive key)
-      // This part might need further refinement based on how guests are handled.
-      final box = Hive.box(_gamificationBoxName);
-      final legacyProfileJson = box.get(_legacyProfileKey);
-      if (legacyProfileJson != null) {
-        try {
-          _cachedProfile = GamificationProfile.fromJson(jsonDecode(legacyProfileJson));
-          return _cachedProfile!;
-        } catch (e) {
-          debugPrint('🔥 Error decoding legacy gamification profile: $e. Creating a temporary guest profile.');
-        }
+    try {
+      debugPrint('🏆 GamificationService.getProfile called (forceRefresh: $forceRefresh)');
+      
+      if (!forceRefresh && _cachedProfile != null) {
+        debugPrint('🏆 Returning cached profile for user: ${_cachedProfile!.userId}');
+        return _cachedProfile!;
       }
-      // Return a very basic, non-savable guest profile if no legacy one
+      
+      // Ensure Hive box is open before proceeding
+      if (!Hive.isBoxOpen(_gamificationBoxName)) {
+        debugPrint('📦 Hive box not open, opening now...');
+        await Hive.openBox(_gamificationBoxName);
+      }
+      
+      final currentUserProfile = await _storageService.getCurrentUserProfile();
+      debugPrint('🏆 Current user profile: ${currentUserProfile?.id ?? 'null'}');
+
+      if (currentUserProfile == null || currentUserProfile.id.isEmpty) {
+        debugPrint('⚠️ GamificationService: No authenticated user profile found. Falling back to legacy local profile (if any).');
+        // Fallback for guest or unauthenticated state (reads from old Hive key)
+        // This part might need further refinement based on how guests are handled.
+        final box = Hive.box(_gamificationBoxName);
+        final legacyProfileJson = box.get(_legacyProfileKey);
+        if (legacyProfileJson != null) {
+          try {
+            _cachedProfile = GamificationProfile.fromJson(jsonDecode(legacyProfileJson));
+            debugPrint('🏆 Loaded legacy profile for guest user');
+            notifyListeners(); // Notify listeners when profile is loaded
+            return _cachedProfile!;
+          } catch (e) {
+            debugPrint('🔥 Error decoding legacy gamification profile: $e. Creating a temporary guest profile.');
+          }
+        }
+        // Return a very basic, non-savable guest profile if no legacy one
+        debugPrint('🏆 Creating new guest profile');
+        _cachedProfile = GamificationProfile(
+          userId: 'guest_user_${DateTime.now().millisecondsSinceEpoch}',
+          streaks: {
+            StreakType.dailyClassification.toString(): StreakDetails(
+              type: StreakType.dailyClassification,
+              currentCount: 1, // Start guest with streak of 1
+              longestCount: 1,
+              lastActivityDate: DateTime.now(),
+            ),
+          },
+          points: const UserPoints(),
+          achievements: getDefaultAchievements(), // Provide default achievements
+          discoveredItemIds: {},
+          unlockedHiddenContentIds: {},
+        );
+        notifyListeners(); // Notify listeners when profile is created
+        return _cachedProfile!;
+      }
+
+      if (currentUserProfile.gamificationProfile != null) {
+        debugPrint('✅ GamificationService: Found existing gamification profile for user ${currentUserProfile.id}');
+        _cachedProfile = currentUserProfile.gamificationProfile!;
+        notifyListeners(); // Notify listeners when profile is loaded
+        return _cachedProfile!;
+      } else {
+        // Logged-in user, but no gamification profile exists yet. Create one.
+        debugPrint('✨ GamificationService: No gamification profile found for user ${currentUserProfile.id}. Creating a new one.');
+        
+        // Load default challenges safely
+        var activeChallenges = <Challenge>[];
+        try {
+          activeChallenges = await _loadDefaultChallengesFromHive();
+          debugPrint('🎯 Loaded ${activeChallenges.length} active challenges for new profile');
+        } catch (e) {
+          debugPrint('🔥 Failed to load challenges for new profile: $e');
+          debugPrint('🔧 Creating profile without active challenges');
+          // Continue with empty challenges list
+        }
+        
+        final newGamificationProfile = GamificationProfile(
+          userId: currentUserProfile.id, // Crucial: Use the actual user ID
+          streaks: {
+            StreakType.dailyClassification.toString(): StreakDetails(
+              type: StreakType.dailyClassification,
+              lastActivityDate: DateTime.now().subtract(const Duration(days: 1)),
+            ),
+          },
+          points: const UserPoints(),
+          achievements: getDefaultAchievements(), // Provide default achievements
+          activeChallenges: activeChallenges, // Use safely loaded challenges
+          discoveredItemIds: {},
+          unlockedHiddenContentIds: {},
+        );
+
+        // Save this new gamification profile as part of the UserProfile
+        try {
+          await saveProfile(newGamificationProfile); // This will save UserProfile locally and to Firestore
+          debugPrint('💾 New gamification profile saved successfully');
+          debugPrint('📊 Profile initialized with ${newGamificationProfile.achievements.length} achievements and ${newGamificationProfile.activeChallenges.length} challenges');
+        } catch (e) {
+          debugPrint('🔥 Failed to save new gamification profile: $e');
+          // Return the profile anyway, even if saving failed
+        }
+        
+        _cachedProfile = newGamificationProfile;
+        notifyListeners(); // Notify listeners when profile is created
+        return _cachedProfile!;
+      }
+    } catch (e, stackTrace) {
+      debugPrint('🔥 Critical error in GamificationService.getProfile: $e');
+      debugPrint('🔧 Stack trace: $stackTrace');
+      
+      // Create a fallback profile to prevent the app from hanging
+      debugPrint('🆘 Creating emergency fallback profile');
       _cachedProfile = GamificationProfile(
-        userId: 'guest_user_${DateTime.now().millisecondsSinceEpoch}',
+        userId: 'emergency_user_${DateTime.now().millisecondsSinceEpoch}',
         streaks: {
           StreakType.dailyClassification.toString(): StreakDetails(
             type: StreakType.dailyClassification,
-            currentCount: 1, // Start guest with streak of 1
-            longestCount: 1,
+            currentCount: 0,
+            longestCount: 0,
             lastActivityDate: DateTime.now(),
           ),
         },
         points: const UserPoints(),
-        achievements: getDefaultAchievements(), // Provide default achievements
+        achievements: [], // Empty achievements to prevent further errors
         discoveredItemIds: {},
         unlockedHiddenContentIds: {},
       );
-      return _cachedProfile!;
-    }
-
-    if (currentUserProfile.gamificationProfile != null) {
-      debugPrint('✅ GamificationService: Found existing gamification profile for user ${currentUserProfile.id}');
-      _cachedProfile = currentUserProfile.gamificationProfile!;
-      return _cachedProfile!;
-    } else {
-      // Logged-in user, but no gamification profile exists yet. Create one.
-      debugPrint('✨ GamificationService: No gamification profile found for user ${currentUserProfile.id}. Creating a new one.');
-      
-      // Load default challenges safely
-      var activeChallenges = <Challenge>[];
-      try {
-        activeChallenges = await _loadDefaultChallengesFromHive();
-        debugPrint('🎯 Loaded ${activeChallenges.length} active challenges for new profile');
-      } catch (e) {
-        debugPrint('🔥 Failed to load challenges for new profile: $e');
-        debugPrint('🔧 Creating profile without active challenges');
-        // Continue with empty challenges list
-      }
-      
-      final newGamificationProfile = GamificationProfile(
-        userId: currentUserProfile.id, // Crucial: Use the actual user ID
-        streaks: {
-          StreakType.dailyClassification.toString(): StreakDetails(
-            type: StreakType.dailyClassification,
-            lastActivityDate: DateTime.now().subtract(const Duration(days: 1)),
-          ),
-        },
-        points: const UserPoints(),
-        achievements: getDefaultAchievements(), // Provide default achievements
-        activeChallenges: activeChallenges, // Use safely loaded challenges
-        discoveredItemIds: {},
-        unlockedHiddenContentIds: {},
-      );
-
-      // Save this new gamification profile as part of the UserProfile
-      try {
-        await saveProfile(newGamificationProfile); // This will save UserProfile locally and to Firestore
-        debugPrint('💾 New gamification profile saved successfully');
-        debugPrint('📊 Profile initialized with ${newGamificationProfile.achievements.length} achievements and ${newGamificationProfile.activeChallenges.length} challenges');
-      } catch (e) {
-        debugPrint('🔥 Failed to save new gamification profile: $e');
-        // Return the profile anyway, even if saving failed
-      }
-      
-      _cachedProfile = newGamificationProfile;
+      notifyListeners();
       return _cachedProfile!;
     }
   }
@@ -1860,5 +1902,12 @@ class GamificationService extends ChangeNotifier {
       debugPrint('📊 ❌ Error syncing weekly stats: $e');
       debugPrint('📊 Stack trace: $stackTrace');
     }
+  }
+
+  /// Clear cached profile (useful for logout/reset scenarios)
+  void clearCache() {
+    debugPrint('🧹 GamificationService: Clearing cached profile');
+    _cachedProfile = null;
+    notifyListeners();
   }
 }

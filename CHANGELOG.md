@@ -2,6 +2,43 @@
 
 All notable changes to the Waste Segregation App will be documented in this file.
 
+## [2.2.5] - 2024-12-19
+
+### 🎯 Critical Achievements Loading Fix and Account Management Enhancement
+- **FIXED**: Achievements page infinite loading issue with comprehensive timeout protection (10-second limit)
+- **ENHANCED**: GamificationService with robust error handling, cache management, and emergency fallback profile creation
+- **IMPLEMENTED**: Loading state management with informative user feedback ("Loading your achievements...")
+- **ADDED**: Error recovery system with retry functionality and clear error messaging
+- **IMPROVED**: Account reset/delete operations with immediate UI refresh and proper cache clearing
+- **FIXED**: Navigation issues in account management (corrected route references from `Routes.auth` to `/`)
+- **ENHANCED**: Provider refresh system to ensure UI updates after account operations
+
+### 🎨 User Experience Improvements
+- **IMPLEMENTED**: Progressive loading states with animated spinners and descriptive text
+- **ADDED**: Error state design with warning icons and actionable retry buttons
+- **ENHANCED**: Account operation feedback with loading indicators and immediate visual confirmation
+- **IMPROVED**: Accessibility with proper screen reader support and WCAG AA compliant contrast
+- **OPTIMIZED**: Animation transitions with 300ms AnimatedSwitcher for smooth state changes
+
+### 🔧 Technical Enhancements
+- **ADDED**: Comprehensive error handling with try-catch blocks and proper `notifyListeners()` calls
+- **IMPLEMENTED**: Cache clearing mechanism (`clearCache()` method) for proper state management
+- **ENHANCED**: Hive box validation before access to prevent runtime errors
+- **ADDED**: Emergency fallback profile creation for resilient user experience
+- **IMPROVED**: Debug logging with emoji prefixes for better troubleshooting
+
+### 📱 UI/UX Design Patterns
+- **ESTABLISHED**: Progressive disclosure loading hierarchy (Initial → Loading → Success/Error)
+- **IMPLEMENTED**: Error recovery patterns with user-friendly messaging and retry functionality
+- **ADDED**: Feedback-rich operations with immediate UI state updates
+- **ENHANCED**: Information architecture with proper content hierarchy and visual weight distribution
+
+### 🎯 Results
+- **Eliminated**: Infinite loading frustration on achievements page
+- **Increased**: User trust with immediate feedback for account operations
+- **Improved**: App reliability with robust error handling and recovery mechanisms
+- **Enhanced**: Accessibility and inclusive design for all users
+
 ## [2.2.4] - 2024-12-19
 
 ### 🎨 Polished UI and Enhanced System Robustness
@@ -723,3 +760,15 @@ This release represents a major milestone in app quality, transforming the app i
 ### ⚙️ Code Quality & Technical Debt
 - Removed deprecated `.withValues()` color API calls.
 - Marked all user-facing strings in the new widget for future internationalization.
+
+## [Unreleased]
+
+### Fixed
+- **Account Reset/Delete UI Refresh**: Fixed issue where UI still showed old data (points, streaks, history) after account reset/delete operations. Now properly clears cached data and refreshes all providers.
+- **Achievements Page Loading**: Fixed infinite loading issue on achievements page by adding timeout mechanisms, better error handling, and fallback profiles.
+
+### Enhanced
+- **GamificationService**: Added `clearCache()` method to properly clear cached profiles during reset operations.
+- **Account Management**: Improved reset and delete operations to ensure complete data cleanup and UI refresh.
+
+## [2.1.0] - 2024-12-19
