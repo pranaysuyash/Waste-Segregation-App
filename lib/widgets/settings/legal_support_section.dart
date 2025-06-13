@@ -144,9 +144,9 @@ class LegalSupportSection extends StatelessWidget {
         color: Colors.green,
       ),
       children: [
-        Text(t.aboutDialogLine1),
+        Text(AppLocalizations.of(context)!.aboutDialogLine1),
         const SizedBox(height: 16),
-        Text(t.aboutDialogLine2),
+        Text(AppLocalizations.of(context)!.aboutDialogLine2),
       ],
     );
   }

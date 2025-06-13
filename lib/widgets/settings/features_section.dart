@@ -124,9 +124,10 @@ class FeaturesSection extends StatelessWidget {
   }
 
   void _handleOfflineModeNavigation(
-    BuildContext context, 
+    BuildContext context,
     PremiumService premiumService,
   ) {
+    final t = AppLocalizations.of(context)!;
     if (premiumService.isPremiumFeature('offline_mode')) {
       // Navigate to offline mode settings
       // This would be implemented when the screen is available
@@ -144,9 +145,10 @@ class FeaturesSection extends StatelessWidget {
   }
 
   void _handleAdvancedAnalyticsNavigation(
-    BuildContext context, 
+    BuildContext context,
     PremiumService premiumService,
   ) {
+    final t = AppLocalizations.of(context)!;
     if (premiumService.isPremiumFeature('advanced_analytics')) {
       // Navigate to advanced analytics
       _navigateToAnalytics(context);
