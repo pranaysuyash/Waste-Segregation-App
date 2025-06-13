@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 // Export color utilities so widgets importing constants get access to
 // the modern Color.withValues extension without an extra import.
@@ -95,7 +96,7 @@ class AppTheme {
       radioTheme: RadioThemeData(
         fillColor: WidgetStateProperty.all(seedColor),
       ),
-      tabBarTheme: const TabBarTheme(
+      tabBarTheme: const TabBarThemeData(
         labelColor: Colors.white,
         unselectedLabelColor: Color(0x99FFFFFF),
         indicatorColor: Colors.white,

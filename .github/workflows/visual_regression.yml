@@ -1,0 +1,112 @@
+name: Visual Regression Tests
+
+on:
+  pull_request:
+    branches: [ main, develop ]
+  push:
+    branches: [ main, develop ]
+
+jobs:
+  golden_tests:
+    name: Golden Tests & Visual Diff
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Flutter
+      uses: subosito/flutter-action@v2
+      with:
+        flutter-version: '3.24.5'
+        channel: 'stable'
+        
+    - name: Get dependencies
+      run: flutter pub get
+      
+    - name: Run golden tests
+      run: |
+        # Run golden tests and capture output
+        flutter test test/golden/ --reporter=json > golden_test_results.json || true
+        
+        # Check if any golden tests failed
+        if grep -q '"result":"error"' golden_test_results.json; then
+          echo "❌ Golden tests failed - visual regressions detected!"
+          echo "::error::Visual regressions detected in golden tests"
+          
+          # Extract failed test details
+          echo "Failed tests:"
+          grep -A 5 -B 5 '"result":"error"' golden_test_results.json || true
+          
+          exit 1
+        else
+          echo "✅ All golden tests passed - no visual regressions detected"
+        fi
+        
+    - name: Upload golden test results
+      if: failure()
+      uses: actions/upload-artifact@v4
+      with:
+        name: golden-test-failures
+        path: |
+          test/golden/failures/
+          golden_test_results.json
+          
+    - name: Comment on PR with visual diff results
+      if: failure() && github.event_name == 'pull_request'
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const fs = require('fs');
+          
+          let comment = `## 🎨 Visual Regression Detected
+          
+          ❌ **Golden tests failed** - Visual changes detected that may be regressions.
+          
+          ### What this means:
+          - UI components have visual differences from the approved "golden" images
+          - This could be intentional changes or unintended regressions
+          
+          ### Next steps:
+          1. **Review the changes**: Check if the visual changes are intentional
+          2. **If intentional**: Update golden files with \`flutter test --update-goldens\`
+          3. **If regression**: Fix the UI issues
+          4. **Re-run tests**: Push your changes to re-trigger this check
+          
+          ### Download artifacts:
+          - Check the "golden-test-failures" artifact for detailed diff images
+          
+          > 🤖 **AI Agent Note**: If you made intentional UI changes, you may need to update the golden files.`;
+          
+          github.rest.issues.createComment({
+            issue_number: context.issue.number,
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            body: comment
+          });
+
+  storybook_visual_diff:
+    name: Storybook Visual Diff
+    runs-on: ubuntu-latest
+    if: false  # Enable this when Storybook is set up
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Flutter
+      uses: subosito/flutter-action@v2
+      with:
+        flutter-version: '3.24.5'
+        channel: 'stable'
+        
+    - name: Build Storybook
+      run: |
+        # This would build Flutter Storybook
+        # flutter packages pub run build_runner build
+        echo "Storybook build would go here"
+        
+    - name: Run visual diff tests
+      run: |
+        # This would run visual diff tests against Storybook
+        echo "Visual diff tests would go here" 

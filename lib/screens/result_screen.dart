@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../utils/share_service.dart';
 import '../models/waste_classification.dart';
@@ -27,6 +28,7 @@ import '../screens/waste_dashboard_screen.dart';
 import '../widgets/modern_ui/modern_info_tile.dart';
 import '../services/analytics_service.dart';
 import '../screens/image_capture_screen.dart';
+import '../services/haptic_settings_service.dart';
 
 class ResultScreen extends StatefulWidget {
   const ResultScreen({
@@ -67,7 +69,16 @@ class _ResultScreenState extends State<ResultScreen>
   void initState() {
     super.initState();
     _analyticsService = Provider.of<AnalyticsService>(context, listen: false);
-    _analyticsService.trackScreenView('ResultScreen');
+    
+    // Track screen view with classification details
+    _analyticsService.trackScreenView('ResultScreen', parameters: {
+      'classification_id': widget.classification.id,
+      'category': widget.classification.category,
+      'item_name': widget.classification.itemName,
+      'show_actions': widget.showActions,
+      'confidence': widget.classification.confidence,
+    });
+    
     _animationController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 1500),
@@ -182,6 +193,11 @@ class _ResultScreenState extends State<ResultScreen>
           content: Text(syncMessage),
           backgroundColor: Colors.green,
         ));
+
+        final haptic = context.read<HapticSettingsService>();
+        if (haptic.enabled && widget.classification.category != 'Requires Manual Review') {
+          HapticFeedback.lightImpact();
+        }
       }
 
     } catch (e, stackTrace) {
@@ -277,6 +293,11 @@ class _ResultScreenState extends State<ResultScreen>
           backgroundColor: Colors.green,
         ),
       );
+
+      final haptic = context.read<HapticSettingsService>();
+      if (haptic.enabled && widget.classification.category != 'Requires Manual Review') {
+        HapticFeedback.lightImpact();
+      }
     } catch (e, stackTrace) {
       ErrorHandler.handleError(e, stackTrace);
       setState(() => _isAutoSaving = false);
@@ -582,6 +603,11 @@ class _ResultScreenState extends State<ResultScreen>
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
+                        // Low confidence warning banner
+                        if (widget.classification.confidence != null && 
+                            widget.classification.confidence! < 0.7)
+                          _buildLowConfidenceWarningBanner(),
+                        
                         ClassificationCard(
                           classification: widget.classification,
                           thumbnailBuilder: (size) => _buildThumbnail(size),
@@ -979,6 +1005,103 @@ class _ResultScreenState extends State<ResultScreen>
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(builder: (_) => ImageCaptureScreen()),
+    );
+  }
+
+  /// Build low confidence warning banner
+  Widget _buildLowConfidenceWarningBanner() {
+    final confidence = widget.classification.confidence!;
+    final confidencePercent = (confidence * 100).round();
+    
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.orange.shade50,
+        borderRadius: BorderRadius.circular(AppTheme.borderRadiusRegular),
+        border: Border.all(
+          color: Colors.orange.shade300,
+          width: 1,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(
+                Icons.warning_amber,
+                color: Colors.orange.shade700,
+                size: 24,
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  'Low Confidence Classification',
+                  style: TextStyle(
+                    fontSize: AppTheme.fontSizeMedium,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.orange.shade800,
+                  ),
+                ),
+              ),
+              // Confidence percentage badge
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 8,
+                  vertical: 4,
+                ),
+                decoration: BoxDecoration(
+                  color: Colors.orange.shade200,
+                  borderRadius: BorderRadius.circular(AppTheme.borderRadiusSmall),
+                ),
+                child: Text(
+                  '$confidencePercent%',
+                  style: TextStyle(
+                    fontSize: AppTheme.fontSizeSmall,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.orange.shade800,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'This classification has lower confidence than usual. Consider re-analyzing with a clearer image or different angle for better accuracy.',
+            style: TextStyle(
+              fontSize: AppTheme.fontSizeRegular,
+              color: Colors.orange.shade700,
+              height: 1.4,
+            ),
+          ),
+          const SizedBox(height: 12),
+          // Re-analyze button
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton.icon(
+              onPressed: () {
+                // Track low confidence re-analyze
+                _analyticsService.trackUserAction('low_confidence_reanalyze', parameters: {
+                  'original_confidence': confidence,
+                  'category': widget.classification.category,
+                });
+                _reAnalyze();
+              },
+              icon: const Icon(Icons.refresh),
+              label: const Text('Re-analyze with Better Image'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.orange.shade600,
+                foregroundColor: Colors.white,
+                elevation: 2,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(AppTheme.borderRadiusRegular),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

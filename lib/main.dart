@@ -23,6 +23,7 @@ import 'services/premium_service.dart';
 import 'services/ad_service.dart';
 import 'services/user_consent_service.dart';
 import 'services/navigation_settings_service.dart';
+import 'services/haptic_settings_service.dart';
 import 'services/community_service.dart';
 import 'screens/auth_screen.dart';
 import 'screens/consent_dialog_screen.dart';
@@ -183,6 +184,7 @@ Future<void> originalMain() async {
   final adService = AdService();
   final googleDriveService = GoogleDriveService(storageService);
   final navigationSettingsService = NavigationSettingsService();
+  final hapticSettingsService = HapticSettingsService();
   final communityService = CommunityService();
 
   try {
@@ -213,6 +215,7 @@ Future<void> originalMain() async {
       adService: adService,
       googleDriveService: googleDriveService,
       navigationSettingsService: navigationSettingsService,
+      hapticSettingsService: hapticSettingsService,
       communityService: communityService,
     ));
     if (kDebugMode) {
@@ -273,6 +276,7 @@ class WasteSegregationApp extends StatelessWidget {
     required this.premiumService,
     required this.adService,
     required this.navigationSettingsService,
+    required this.hapticSettingsService,
     required this.communityService,
   });
   final StorageService storageService;
@@ -285,6 +289,7 @@ class WasteSegregationApp extends StatelessWidget {
   final PremiumService premiumService;
   final AdService adService;
   final NavigationSettingsService navigationSettingsService;
+  final HapticSettingsService hapticSettingsService;
   final CommunityService communityService;
 
   @override
@@ -307,6 +312,7 @@ class WasteSegregationApp extends StatelessWidget {
           ChangeNotifierProvider<PremiumService>.value(value: premiumService),
           ChangeNotifierProvider<AdService>.value(value: adService),
           ChangeNotifierProvider<NavigationSettingsService>.value(value: navigationSettingsService),
+          ChangeNotifierProvider<HapticSettingsService>.value(value: hapticSettingsService),
           Provider<CommunityService>.value(value: communityService),
 
           // Other providers
@@ -329,7 +335,14 @@ class WasteSegregationApp extends StatelessWidget {
                   highContrastTheme: AppTheme.highContrastTheme,
                   highContrastDarkTheme: AppTheme.highContrastDarkTheme,
                   themeMode: themeProvider.themeMode,
-                  builder: (context, child) => child ?? const SizedBox.shrink(),
+                  builder: (context, child) {
+                    final mediaQuery = MediaQuery.of(context);
+                    final scale = mediaQuery.textScaleFactor.clamp(1.0, 2.0) as double;
+                    return MediaQuery(
+                      data: mediaQuery.copyWith(textScaleFactor: scale),
+                      child: child ?? const SizedBox.shrink(),
+                    );
+                  },
           
           // ADD ROUTE DEFINITIONS:
           routes: {
@@ -378,6 +391,8 @@ class WasteSegregationApp extends StatelessWidget {
                 return const AuthScreen(); // Will automatically redirect to HomeScreen if logged in
               },
             ),
+                );
+              },
             );
           },
         ),
