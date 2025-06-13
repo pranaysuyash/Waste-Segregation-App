@@ -9,6 +9,7 @@ import '../utils/constants.dart';
 
 import '../widgets/capture_button.dart';
 import '../widgets/enhanced_analysis_loader.dart';
+import '../widgets/premium_segmentation_toggle.dart';
 import 'result_screen.dart';
 
 class ImageCaptureScreen extends StatefulWidget {
@@ -553,118 +554,73 @@ class _ImageCaptureScreenState extends State<ImageCaptureScreen> with Restoratio
                 Padding(
                   padding: const EdgeInsets.symmetric(
                       horizontal: AppTheme.paddingRegular),
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: Colors.blue.shade50,
-                      borderRadius: BorderRadius.circular(AppTheme.borderRadiusRegular),
-                      border: Border.all(
-                        color: Colors.blue.shade200,
-                      ),
-                    ),
-                    child: Column(
-                      children: [
-                        SwitchListTile(
-                          title: Row(
-                            children: [
-                              const Expanded(
-                                child: Text(
-                                  'Advanced Segmentation',
-                                  overflow: TextOverflow.ellipsis,
-                                ),
+                  child: PremiumSegmentationToggle(
+                    value: _useSegmentation,
+                    onChanged: (bool value) async {
+                      setState(() {
+                        _useSegmentation = value;
+                      });
+                      // Set restoration property safely after state update
+                      WidgetsBinding.instance.addPostFrameCallback((_) {
+                        if (mounted) {
+                          _useSegmentationRestorable.value = value;
+                        }
+                      });
+                      if (value && _segments.isEmpty) {
+                        // Capture ScaffoldMessenger before async operation
+                        final scaffoldMessenger = ScaffoldMessenger.of(context);
+                        try {
+                          await _runSegmentation();
+                        } catch (e) {
+                          debugPrint('Segmentation error: $e');
+                          if (mounted) {
+                            scaffoldMessenger.showSnackBar(
+                              SnackBar(
+                                content:
+                                    Text('Segmentation failed: ${e.toString()}'),
+                                duration: const Duration(seconds: 5),
                               ),
-                              const SizedBox(width: 8),
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 6,
-                                  vertical: 2,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: Colors.blue.shade600,
-                                  borderRadius: BorderRadius.circular(4),
-                                ),
-                                child: const Text(
-                                  'PRO',
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                          subtitle: const Text(
-                            'Identify multiple objects in a single image',
-                            style: TextStyle(fontSize: 12),
-                          ),
-                          value: _useSegmentation,
-                          onChanged: (bool value) async {
-                            // For now, allow all users to use segmentation
-                            // In future, add subscription check here
+                            );
                             setState(() {
-                              _useSegmentation = value;
+                              _useSegmentation = false;
                             });
-                            // Set restoration property safely after state update
-                            WidgetsBinding.instance.addPostFrameCallback((_) {
-                              if (mounted) {
-                                _useSegmentationRestorable.value = value;
-                              }
-                            });
-                            if (value && _segments.isEmpty) {
-                              // Capture ScaffoldMessenger before async operation
-                              final scaffoldMessenger = ScaffoldMessenger.of(context);
-                              try {
-                                await _runSegmentation();
-                              } catch (e) {
-                                debugPrint('Segmentation error: $e');
-                                if (mounted) {
-                                  scaffoldMessenger.showSnackBar(
-                                    SnackBar(
-                                      content:
-                                          Text('Segmentation failed: ${e.toString()}'),
-                                      duration: const Duration(seconds: 5),
-                                    ),
-                                  );
-                                  setState(() {
-                                    _useSegmentation = false;
-                                  });
-                                }
-                              }
-                            } else if (!value) {
-                              setState(() {
-                                _segments.clear();
-                                _selectedSegments.clear();
-                              });
-                            }
-                          },
+                          }
+                        }
+                      } else if (!value) {
+                        setState(() {
+                          _segments.clear();
+                          _selectedSegments.clear();
+                        });
+                      }
+                    },
+                  ),
+                ),
+                
+                // Segmentation results info
+                if (_useSegmentation && _segments.isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.info_outline,
+                          size: 16,
+                          color: Colors.blue.shade600,
                         ),
-                        if (_useSegmentation && _segments.isNotEmpty)
-                          Padding(
-                            padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
-                            child: Row(
-                              children: [
-                                Icon(
-                                  Icons.info_outline,
-                                  size: 16,
-                                  color: Colors.blue.shade600,
-                                ),
-                                const SizedBox(width: 8),
-                                Expanded(
-                                  child: Text(
-                                    '${_segments.length} objects detected. Tap to select for analysis.',
-                                    style: TextStyle(
-                                      fontSize: 14,
-                                      color: Colors.blue.shade700,
-                                    ),
-                                  ),
-                                ),
-                              ],
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            '${_segments.length} objects detected. Tap to select for analysis.',
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: Colors.blue.shade700,
                             ),
                           ),
+                        ),
                       ],
                     ),
                   ),
-                ),
+                        
 
                 // Action buttons
                 Padding(
