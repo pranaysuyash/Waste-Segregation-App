@@ -19,12 +19,14 @@ import '../services/storage_service.dart';
 import '../services/educational_content_service.dart';
 import '../services/gamification_service.dart';
 import '../services/ad_service.dart';
+import '../services/analytics_service.dart';
 import '../utils/constants.dart';
 import '../utils/safe_collection_utils.dart';
 import '../widgets/capture_button.dart';
 import '../widgets/enhanced_gamification_widgets.dart';
 import '../widgets/gamification_widgets.dart';
 import '../widgets/responsive_text.dart';
+import '../widgets/animations/empty_state_animations.dart';
 import 'history_screen.dart';
 import 'image_capture_screen.dart';
 import 'result_screen.dart';
@@ -58,10 +60,18 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   bool _isLoadingGamification = false;
   final LinkedHashMap<String, bool> _imageExistenceCache = LinkedHashMap();
   static const int _imageCacheMaxEntries = 100;
+  late AnalyticsService _analyticsService;
 
   @override
   void initState() {
     super.initState();
+    _analyticsService = Provider.of<AnalyticsService>(context, listen: false);
+    
+    // Track screen view
+    _analyticsService.trackScreenView('HomeScreen', parameters: {
+      'is_guest_mode': widget.isGuestMode,
+    });
+    
     _loadUserData();
     _loadRecentClassifications();
     _loadGamificationData();
@@ -163,6 +173,9 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   }
 
   Future<void> _takePicture() async {
+    // Track camera button interaction
+    _analyticsService.trackButtonClick('take_picture', screenName: 'HomeScreen');
+    
     try {
       debugPrint('Starting camera capture process...');
 
@@ -307,6 +320,9 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   }
 
   Future<void> _pickImage() async {
+    // Track gallery button interaction
+    _analyticsService.trackButtonClick('pick_image_gallery', screenName: 'HomeScreen');
+    
     try {
       // Show loading indicator while initializing
       if (mounted) {
@@ -558,6 +574,14 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   }
 
   void _showClassificationDetails(WasteClassification classification) {
+    // Track viewing classification details
+    _analyticsService.trackUserAction('view_classification_details', parameters: {
+      'classification_id': classification.id,
+      'category': classification.category,
+      'item_name': classification.itemName,
+      'from_screen': 'HomeScreen',
+    });
+    
     Navigator.push(
       context,
       MaterialPageRoute(
@@ -599,6 +623,49 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       debugPrint('Error processing gamification: $e');
       return [];
     }
+  }
+
+  // Show dialog to let user choose between camera and gallery
+  void _showImageSourceDialog() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Choose Image Source'),
+          content: const Text('How would you like to add your waste item image?'),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                _takePicture();
+              },
+              child: const Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.camera_alt),
+                  SizedBox(width: 8),
+                  Text('Camera'),
+                ],
+              ),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                _pickImage();
+              },
+              child: const Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.photo_library),
+                  SizedBox(width: 8),
+                  Text('Gallery'),
+                ],
+              ),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   Widget _buildDailyTip() {
@@ -680,6 +747,12 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
             alignment: Alignment.centerRight,
             child: TextButton(
               onPressed: () {
+                // Track daily tip interaction
+                _analyticsService.trackUserAction('daily_tip_learn_more', parameters: {
+                  'tip_title': dailyTip.title,
+                  'tip_category': dailyTip.category,
+                });
+                
                 // Navigate to educational content related to this tip
                 Navigator.push(
                   context,
@@ -720,6 +793,9 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
             ),
             TextButton(
               onPressed: () {
+                // Track view all educational content
+                _analyticsService.trackButtonClick('view_all_educational_content', screenName: 'HomeScreen');
+                
                 Navigator.push(
                   context,
                   MaterialPageRoute(
@@ -815,6 +891,12 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   Widget _buildCategoryCard(String title, IconData icon, Color color) {
     return GestureDetector(
       onTap: () {
+        // Track category card interaction
+        _analyticsService.trackUserAction('educational_category_selected', parameters: {
+          'category': title,
+          'from_screen': 'HomeScreen',
+        });
+        
         Navigator.push(
           context,
           MaterialPageRoute(
@@ -858,6 +940,14 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   Widget _buildContentCard(EducationalContent content) {
     return GestureDetector(
       onTap: () {
+        // Track featured content interaction
+        _analyticsService.trackUserAction('featured_content_selected', parameters: {
+          'content_id': content.id,
+          'content_title': content.title,
+          'content_type': content.type.toString(),
+          'from_screen': 'HomeScreen',
+        });
+        
         Navigator.push(
           context,
           MaterialPageRoute(

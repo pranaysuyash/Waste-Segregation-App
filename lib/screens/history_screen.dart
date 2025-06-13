@@ -15,6 +15,7 @@ import '../utils/error_handler.dart';
 import '../l10n/app_localizations.dart';
 import '../widgets/history_list_item.dart';
 import '../widgets/animations/enhanced_loading_states.dart';
+import '../services/analytics_service.dart';
 
 /// A screen that displays the complete history of waste classifications with filtering and searching
 class HistoryScreen extends StatefulWidget {
@@ -71,6 +72,9 @@ class _HistoryScreenState extends State<HistoryScreen> with RestorationMixin {
   // Selected classification for wide layouts
   WasteClassification? _selectedClassification;
   final RestorableStringN _selectedClassificationId = RestorableStringN(null);
+  
+  // Analytics service
+  late AnalyticsService _analyticsService;
 
   @override
   String? get restorationId => 'history_screen';
@@ -95,6 +99,13 @@ class _HistoryScreenState extends State<HistoryScreen> with RestorationMixin {
   @override
   void initState() {
     super.initState();
+    _analyticsService = Provider.of<AnalyticsService>(context, listen: false);
+    
+    // Track screen view
+    _analyticsService.trackScreenView('HistoryScreen', parameters: {
+      'filter_category': widget.filterCategory,
+      'filter_subcategory': widget.filterSubcategory,
+    });
     
     // Apply initial filters if provided
     if (widget.filterCategory != null) {
@@ -333,6 +344,12 @@ class _HistoryScreenState extends State<HistoryScreen> with RestorationMixin {
   
   // Show filter dialog
   Future<void> _showFilterDialog() async {
+    // Track filter dialog open
+    _analyticsService.trackUserAction('open_history_filter_dialog', parameters: {
+      'current_active_filters': _isFilterActive(),
+      'active_categories': _selectedCategories,
+    });
+    
     final tempSelectedCategories = List<String>.from(_selectedCategories);
     
     await showDialog(
@@ -489,6 +506,12 @@ class _HistoryScreenState extends State<HistoryScreen> with RestorationMixin {
                 ),
                 ElevatedButton(
                   onPressed: () {
+                    // Track filter application
+                    _analyticsService.trackUserAction('apply_history_filters', parameters: {
+                      'categories_selected': tempSelectedCategories,
+                      'filters_count': tempSelectedCategories.length,
+                    });
+                    
                     Navigator.of(context).pop();
                     // Update selected categories and apply filters
                     _selectedCategories.clear();
@@ -512,6 +535,13 @@ class _HistoryScreenState extends State<HistoryScreen> with RestorationMixin {
   // Export classifications to CSV
   Future<void> _exportToCSV() async {
     if (!mounted) return;
+    
+    // Track export action
+    _analyticsService.trackUserAction('export_history_csv', parameters: {
+      'total_classifications': _classifications.length,
+      'active_filters': _isFilterActive(),
+      'selected_categories': _selectedCategories,
+    });
     
     try {
       setState(() {
@@ -620,6 +650,15 @@ class _HistoryScreenState extends State<HistoryScreen> with RestorationMixin {
   
   // Navigate to classification details
   void _navigateToClassificationDetails(WasteClassification classification) {
+    // Track viewing classification from history
+    _analyticsService.trackUserAction('view_history_classification', parameters: {
+      'classification_id': classification.id,
+      'category': classification.category,
+      'item_name': classification.itemName,
+      'from_screen': 'HistoryScreen',
+      'is_wide_layout': MediaQuery.of(context).size.width >= 840,
+    });
+    
     _selectedClassificationId.value = classification.id;
     if (MediaQuery.of(context).size.width >= 840) {
       setState(() {
