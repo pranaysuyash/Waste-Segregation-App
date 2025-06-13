@@ -223,4 +223,18 @@ Based on critical nature and user impact, the suggested implementation order is:
 - **Focus:** UI Polishing and Core Feature Completion
 - **Estimated Effort:** 2-3 development weeks
 
+### Responsive Layout Support
+- **Files:** `/lib/screens/history_screen.dart`, `/lib/screens/result_screen.dart`
+- **Tasks:**
+  - Introduce a `LayoutBuilder` with Material 3 size classes.
+  - Display history list and result details side-by-side on screens >= 840 dp.
+  - Fallback to the current single-pane flow on smaller devices.
+
+### Orientation Preservation
+- **File:** `/lib/screens/image_capture_screen.dart`
+- **Tasks:**
+  - Migrate to `RestorationMixin` to persist captured image state.
+  - Wrap the camera preview in an `AspectRatio` widget (16∶9).
+  - Ensure rotating the device no longer resets the capture workflow.
+
 This task list should be updated as work progresses, with completed items marked and any new issues discovered during implementation added to the appropriate sections.

@@ -30,7 +30,7 @@ class HistoryScreen extends StatefulWidget {
   State<HistoryScreen> createState() => _HistoryScreenState();
 }
 
-class _HistoryScreenState extends State<HistoryScreen> {
+class _HistoryScreenState extends State<HistoryScreen> with RestorationMixin {
   // Current filter options
   FilterOptions _filterOptions = FilterOptions.empty();
   
@@ -66,6 +66,30 @@ class _HistoryScreenState extends State<HistoryScreen> {
     'Medical Waste',
     'Non-Waste',
   ];
+
+  // Selected classification for wide layouts
+  WasteClassification? _selectedClassification;
+  final RestorableStringN _selectedClassificationId = RestorableStringN(null);
+
+  @override
+  String? get restorationId => 'history_screen';
+
+  @override
+  void restoreState(RestorationBucket? oldBucket, bool initialRestore) {
+    registerForRestoration(
+        _selectedClassificationId, 'selected_classification_id');
+
+    // When data is loaded, attempt to restore selected classification
+    if (_classifications.isNotEmpty && _selectedClassificationId.value != null) {
+      final id = _selectedClassificationId.value!;
+      try {
+        _selectedClassification =
+            _classifications.firstWhere((c) => c.id == id);
+      } catch (_) {
+        _selectedClassification = null;
+      }
+    }
+  }
   
   @override
   void initState() {
@@ -90,6 +114,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
     _searchController.dispose();
     _scrollController.removeListener(_scrollListener);
     _scrollController.dispose();
+    _selectedClassificationId.dispose();
     super.dispose();
   }
   
@@ -149,6 +174,15 @@ class _HistoryScreenState extends State<HistoryScreen> {
         _classifications = pageClassifications;
         _hasMorePages = endIndex < filteredClassifications.length;
       });
+
+      if (_selectedClassificationId.value != null) {
+        try {
+          _selectedClassification = _classifications
+              .firstWhere((c) => c.id == _selectedClassificationId.value);
+        } catch (_) {
+          _selectedClassification = null;
+        }
+      }
       
       debugPrint('📊 History: Loaded ${pageClassifications.length} classifications (Google sync: $isGoogleSyncEnabled)');
     } catch (e) {
@@ -585,78 +619,108 @@ class _HistoryScreenState extends State<HistoryScreen> {
   
   // Navigate to classification details
   void _navigateToClassificationDetails(WasteClassification classification) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => ResultScreen(
-          classification: classification,
-          showActions: false,
+    _selectedClassificationId.value = classification.id;
+    if (MediaQuery.of(context).size.width >= 840) {
+      setState(() {
+        _selectedClassification = classification;
+      });
+    } else {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => ResultScreen(
+            classification: classification,
+            showActions: false,
+          ),
         ),
-      ),
-    );
+      );
+    }
   }
   
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('History'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.filter_list),
-            onPressed: _showFilterDialog,
-            tooltip: 'Filter',
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isWide = constraints.maxWidth >= 840;
+
+        Widget listBody = _isLoading
+            ? const HistoryLoadingWidget()
+            : _classifications.isEmpty && !_isFilterActive()
+                ? EmptyStateWidget(
+                    title: 'No History Yet',
+                    message: 'Start classifying items to build your waste history.',
+                    icon: Icons.history_toggle_off_outlined,
+                    actionButton: ElevatedButton.icon(
+                      icon: const Icon(Icons.camera_alt),
+                      label: const Text('Start Classifying'),
+                      onPressed: () {
+                        Navigator.pop(context);
+                      },
+                    ),
+                  )
+                : _classifications.isEmpty && _isFilterActive()
+                    ? EmptyStateWidget(
+                        title: 'No Results Found',
+                        message: 'Try adjusting your filters or clearing them to see more items.',
+                        icon: Icons.filter_alt_off_outlined,
+                        actionButton: ElevatedButton.icon(
+                          icon: const Icon(Icons.clear_all),
+                          label: const Text('Clear Filters'),
+                          onPressed: _clearFilters,
+                        ),
+                      )
+                    : _buildHistoryList();
+
+        Widget scaffoldBody = isWide
+            ? Row(
+                children: [
+                  Expanded(child: listBody),
+                  const VerticalDivider(width: 1),
+                  Expanded(
+                    child: _selectedClassification != null
+                        ? ResultScreen(
+                            classification: _selectedClassification!,
+                            showActions: false,
+                          )
+                        : const Center(child: Text('Select an item')),
+                  ),
+                ],
+              )
+            : listBody;
+
+        return Scaffold(
+          appBar: AppBar(
+            title: const Text('History'),
+            actions: [
+              IconButton(
+                icon: const Icon(Icons.filter_list),
+                onPressed: _showFilterDialog,
+                tooltip: 'Filter',
+              ),
+              IconButton(
+                icon: const Icon(Icons.share),
+                onPressed: _exportToCSV,
+                tooltip: 'Export History',
+              ),
+            ],
           ),
-          IconButton(
-            icon: const Icon(Icons.share),
-            onPressed: _exportToCSV,
-            tooltip: 'Export History',
-          ),
-        ],
-      ),
-      body: _isLoading
-          ? const HistoryLoadingWidget()
-          : _classifications.isEmpty && !_isFilterActive()
-              ? EmptyStateWidget(
-                  title: 'No History Yet',
-                  message: 'Start classifying items to build your waste history.',
-                  icon: Icons.history_toggle_off_outlined,
-                  actionButton: ElevatedButton.icon(
-                    icon: const Icon(Icons.camera_alt),
-                    label: const Text('Start Classifying'),
-                    onPressed: () {
-                      // Navigate back to home screen where camera can be accessed
-                      Navigator.pop(context);
-                    },
+          body: scaffoldBody,
+          floatingActionButton: _isLoadingMore
+              ? FloatingActionButton(
+                  onPressed: null,
+                  backgroundColor: AppTheme.primaryColor.withValues(alpha: 0.5),
+                  child: const SizedBox(
+                    width: 24,
+                    height: 24,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                    ),
                   ),
                 )
-              : _classifications.isEmpty && _isFilterActive()
-                  ? EmptyStateWidget(
-                      title: 'No Results Found',
-                      message:
-                          'Try adjusting your filters or clearing them to see more items.',
-                      icon: Icons.filter_alt_off_outlined,
-                      actionButton: ElevatedButton.icon(
-                        icon: const Icon(Icons.clear_all),
-                        label: const Text('Clear Filters'),
-                        onPressed: _clearFilters,
-                      ),
-                    )
-                  : _buildHistoryList(),
-      floatingActionButton: _isLoadingMore
-          ? FloatingActionButton(
-              onPressed: null,
-              backgroundColor: AppTheme.primaryColor.withValues(alpha: 0.5),
-              child: const SizedBox(
-                width: 24,
-                height: 24,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2,
-                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                ),
-              ),
-            )
-          : null,
+              : null,
+        );
+      },
     );
   }
   
