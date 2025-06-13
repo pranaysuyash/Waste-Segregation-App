@@ -3,7 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:golden_toolkit/golden_toolkit.dart';
 import 'package:provider/provider.dart';
 
-import '../test_config/test_providers.dart';
+import '../helpers/test_helper.dart';
 import '../../lib/widgets/settings/setting_tile.dart';
 import '../../lib/widgets/settings/settings_theme.dart';
 import '../../lib/widgets/settings/account_section.dart';
@@ -11,6 +11,10 @@ import '../../lib/widgets/settings/premium_section.dart';
 import '../../lib/widgets/settings/app_settings_section.dart';
 
 void main() {
+  setUpAll(() async {
+    await setupFirebaseForTesting();
+  });
+
   group('Settings Golden Tests', () {
     testGoldens('SettingTile variants', (tester) async {
       final builder = DeviceBuilder()
@@ -216,27 +220,22 @@ Widget _buildSettingTileStates() {
 }
 
 Widget _buildSettingsSections(ThemeMode themeMode) {
-  return MultiProvider(
-    providers: TestProviders.allProviders,
-    child: MaterialApp(
-      theme: ThemeData.light(),
-      darkTheme: ThemeData.dark(),
-      themeMode: themeMode,
-      home: Scaffold(
-        appBar: AppBar(title: const Text('Settings')),
-        body: const SingleChildScrollView(
-          child: Column(
-            children: [
-              AccountSection(),
-              SizedBox(height: 16),
-              PremiumSection(),
-              SizedBox(height: 16),
-              AppSettingsSection(),
-            ],
-          ),
+  return createTestWidget(
+    child: Scaffold(
+      appBar: AppBar(title: const Text('Settings')),
+      body: const SingleChildScrollView(
+        child: Column(
+          children: [
+            AccountSection(),
+            SizedBox(height: 16),
+            PremiumSection(),
+            SizedBox(height: 16),
+            AppSettingsSection(),
+          ],
         ),
       ),
     ),
+    theme: themeMode == ThemeMode.dark ? ThemeData.dark() : ThemeData.light(),
   );
 }
 

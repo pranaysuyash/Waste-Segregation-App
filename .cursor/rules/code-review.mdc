@@ -3,4 +3,3 @@ description:
 globs: 
 alwaysApply: false
 ---
-When asked for a code review, do not change an existing code if it does not have to do anything with the requested change/issue/correction/update. If you are changing it, don't delete the code in the first go, comment it out and mention the changes you did.Once it is confirmed to be working, remove the comments and update/append relevant docs but do not delete.

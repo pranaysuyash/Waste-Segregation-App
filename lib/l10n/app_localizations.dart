@@ -594,6 +594,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Toggle floating camera button'**
   String get toggleFloatingCameraButton;
+
+  /// Semantic label for camera shutter button
+  ///
+  /// In en, this message translates to:
+  /// **'Camera shutter'**
+  String get cameraShutterLabel;
+
+  /// Hint for camera shutter button
+  ///
+  /// In en, this message translates to:
+  /// **'Takes a photo'**
+  String get cameraShutterHint;
+
+  /// Hint for the start classifying button
+  ///
+  /// In en, this message translates to:
+  /// **'Opens the camera to classify waste'**
+  String get startClassifyingHint;
+
+  /// Semantic label for achievement confetti overlay
+  ///
+  /// In en, this message translates to:
+  /// **'Reward confetti'**
+  String get rewardConfettiLabel;
+
+  /// Hint for achievement confetti overlay
+  ///
+  /// In en, this message translates to:
+  /// **'Celebrates your achievement'**
+  String get rewardConfettiHint;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

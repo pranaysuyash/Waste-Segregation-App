@@ -18,6 +18,7 @@ import '../widgets/modern_ui/modern_badges.dart';
 import '../widgets/classification_card.dart';
 import '../widgets/advanced_ui/achievement_celebration.dart';
 import 'image_capture_screen.dart';
+import 'instant_analysis_screen.dart';
 import 'history_screen.dart';
 import 'achievements_screen.dart';
 import 'educational_content_screen.dart';
@@ -282,12 +283,14 @@ class NewModernHomeScreenState extends ConsumerState<NewModernHomeScreen>
                     child: IndexedStack(
                       index: navIndex,
                       children: [
-                                                 HomeTab(
-                           picker: _picker, 
-                           takePhotoKey: _takePhotoKey,
-                           onTakePhoto: _takePhoto,
-                           onPickImage: _pickImage,
-                         ),
+                                                                         HomeTab(
+                          picker: _picker, 
+                          takePhotoKey: _takePhotoKey,
+                          onTakePhoto: _takePhoto,
+                          onPickImage: _pickImage,
+                          onTakePhotoInstant: _takePhotoInstant,
+                          onPickImageInstant: _pickImageInstant,
+                        ),
                         const AnalyticsTab(),
                         const LearnTab(),
                         const CommunityTab(),
@@ -393,20 +396,87 @@ class NewModernHomeScreenState extends ConsumerState<NewModernHomeScreen>
     }
   }
 
-  Future<void> _navigateToImageCapture(XFile image) async {
+  // Instant analyze methods
+  Future<void> _takePhotoInstant(ImagePicker picker, BuildContext context) async {
+    try {
+      final XFile? image = await picker.pickImage(
+        source: ImageSource.camera,
+        maxWidth: 1024,
+        maxHeight: 1024,
+        imageQuality: 85,
+      );
+      
+      if (image != null && mounted) {
+        await _navigateToImageCapture(image, autoAnalyze: true);
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error taking photo: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _pickImageInstant(ImagePicker picker, BuildContext context) async {
+    try {
+      final XFile? image = await picker.pickImage(
+        source: ImageSource.gallery,
+        maxWidth: 1024,
+        maxHeight: 1024,
+        imageQuality: 85,
+      );
+      
+      if (image != null && mounted) {
+        await _navigateToImageCapture(image, autoAnalyze: true);
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error picking image: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _navigateToImageCapture(XFile image, {bool autoAnalyze = false}) async {
     final gamificationService = ref.read(gamificationServiceProvider);
     final oldProfile = await gamificationService.getProfile();
     
-    final result = await Navigator.push<WasteClassification>(
-      context,
-      MaterialPageRoute(
-        builder: (context) => ImageCaptureScreen.fromXFile(image),
-      ),
-    );
+    WasteClassification? result;
+    
+    if (autoAnalyze) {
+      // For auto-analyze, go directly to analysis without showing ImageCaptureScreen
+      result = await _navigateToInstantAnalysis(image);
+    } else {
+      // For manual review, use the traditional flow
+      result = await Navigator.push<WasteClassification>(
+        context,
+        MaterialPageRoute(
+          builder: (context) => ImageCaptureScreen.fromXFile(image, autoAnalyze: false),
+        ),
+      );
+    }
     
     if (result != null && mounted) {
       await _handleScanResult(result, oldProfile);
     }
+  }
+
+  Future<WasteClassification?> _navigateToInstantAnalysis(XFile image) async {
+    // Navigate directly to analysis loader, then to results
+    return await Navigator.push<WasteClassification>(
+      context,
+      MaterialPageRoute(
+        builder: (context) => InstantAnalysisScreen(image: image),
+      ),
+    );
   }
 
   Future<void> _handleScanResult(WasteClassification result, GamificationProfile oldProfile) async {
@@ -508,6 +578,8 @@ class HomeTab extends ConsumerWidget {
   final GlobalKey takePhotoKey;
   final Future<void> Function(ImagePicker, BuildContext) onTakePhoto;
   final Future<void> Function(ImagePicker, BuildContext) onPickImage;
+  final Future<void> Function(ImagePicker, BuildContext) onTakePhotoInstant;
+  final Future<void> Function(ImagePicker, BuildContext) onPickImageInstant;
   
   const HomeTab({
     Key? key, 
@@ -515,6 +587,8 @@ class HomeTab extends ConsumerWidget {
     required this.takePhotoKey,
     required this.onTakePhoto,
     required this.onPickImage,
+    required this.onTakePhotoInstant,
+    required this.onPickImageInstant,
   }) : super(key: key);
 
   @override
@@ -699,7 +773,7 @@ class HomeTab extends ConsumerWidget {
                     ),
                     const SizedBox(height: AppTheme.spacingXs),
                     Text(
-                      'Classify waste item',
+                      'Review & analyze',
                       style: TextStyle(
                         color: Colors.grey[600],
                         fontSize: 12,
@@ -742,6 +816,90 @@ class HomeTab extends ConsumerWidget {
                       style: TextStyle(
                         color: Colors.grey[600],
                         fontSize: 12,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: AppTheme.spacingMd),
+        
+        // Instant analyze options
+        Row(
+          children: [
+            Expanded(
+              child: ModernCard(
+                                 onTap: () => onTakePhotoInstant(picker, context),
+                backgroundColor: Colors.orange.withValues(alpha: 0.1),
+                child: Column(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: Colors.orange,
+                        borderRadius: BorderRadius.circular(AppTheme.borderRadiusMd),
+                      ),
+                      child: const Icon(
+                        Icons.flash_on,
+                        color: Colors.white,
+                        size: 24,
+                      ),
+                    ),
+                                         const SizedBox(height: AppTheme.spacingXs),
+                     const Text(
+                       'Instant Camera',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 14,
+                      ),
+                    ),
+                    const SizedBox(height: AppTheme.spacingXs),
+                    Text(
+                      'Auto-analyze',
+                      style: TextStyle(
+                        color: Colors.grey[600],
+                        fontSize: 11,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(width: AppTheme.spacingMd),
+            Expanded(
+              child: ModernCard(
+                                 onTap: () => onPickImageInstant(picker, context),
+                backgroundColor: Colors.purple.withValues(alpha: 0.1),
+                child: Column(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: Colors.purple,
+                        borderRadius: BorderRadius.circular(AppTheme.borderRadiusMd),
+                      ),
+                      child: const Icon(
+                        Icons.bolt,
+                        color: Colors.white,
+                        size: 24,
+                      ),
+                    ),
+                                         const SizedBox(height: AppTheme.spacingXs),
+                     const Text(
+                       'Instant Upload',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 14,
+                      ),
+                    ),
+                    const SizedBox(height: AppTheme.spacingXs),
+                    Text(
+                      'Auto-analyze',
+                      style: TextStyle(
+                        color: Colors.grey[600],
+                        fontSize: 11,
                       ),
                     ),
                   ],
