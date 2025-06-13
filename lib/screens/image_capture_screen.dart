@@ -18,17 +18,20 @@ class ImageCaptureScreen extends StatefulWidget {
     this.imageFile,
     this.xFile,
     this.webImage,
+    this.autoAnalyze = false,
   });
 
   // Factory constructor for creating from XFile (useful for web and mobile)
-  factory ImageCaptureScreen.fromXFile(XFile xFile) =>
+  factory ImageCaptureScreen.fromXFile(XFile xFile, {bool autoAnalyze = false}) =>
       ImageCaptureScreen(
         xFile: xFile,
         imageFile: kIsWeb ? null : File(xFile.path), // Convert XFile to File for mobile
+        autoAnalyze: autoAnalyze,
       );
   final File? imageFile;
   final XFile? xFile;
   final Uint8List? webImage;
+  final bool autoAnalyze;
 
   @override
   State<ImageCaptureScreen> createState() => _ImageCaptureScreenState();
@@ -66,7 +69,11 @@ class _ImageCaptureScreenState extends State<ImageCaptureScreen> with Restoratio
       if (file.existsSync()) {
         _imageFile = file;
       } else {
-        _imagePath.value = null;
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) {
+            _imagePath.value = null;
+          }
+        });
       }
     }
 
@@ -82,12 +89,22 @@ class _ImageCaptureScreenState extends State<ImageCaptureScreen> with Restoratio
     _imageFile = widget.imageFile;
     _xFile = widget.xFile;
     _webImageBytes = widget.webImage;
-    if (_imageFile != null) {
-      _imagePath.value = _imageFile!.path;
-    } else if (_xFile != null) {
-      _imagePath.value = _xFile!.path;
-    }
-    _useSegmentationRestorable.value = _useSegmentation;
+    
+    // Initialize restoration properties after registration
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_imageFile != null) {
+        _imagePath.value = _imageFile!.path;
+      } else if (_xFile != null) {
+        _imagePath.value = _xFile!.path;
+      }
+      _useSegmentationRestorable.value = _useSegmentation;
+      
+      // Auto-analyze if enabled and image is available
+      if (widget.autoAnalyze && (_imageFile != null || _xFile != null || _webImageBytes != null)) {
+        debugPrint('🚀 Auto-analyze enabled - starting analysis immediately');
+        _analyzeImage();
+      }
+    });
 
     if (_imageFile == null && _xFile == null && _webImageBytes == null) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -114,7 +131,12 @@ class _ImageCaptureScreenState extends State<ImageCaptureScreen> with Restoratio
           if (!kIsWeb) {
             _imageFile = File(image.path);
           }
-          _imagePath.value = image.path;
+        });
+        // Set restoration property safely after state update
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) {
+            _imagePath.value = image.path;
+          }
         });
         if (kIsWeb) {
           await _loadWebImage();
@@ -363,9 +385,54 @@ class _ImageCaptureScreenState extends State<ImageCaptureScreen> with Restoratio
       );
     }
     
+    // If auto-analyze is enabled, show only the loader (no review screen)
+    if (widget.autoAnalyze) {
+      return Scaffold(
+        body: _isAnalyzing 
+          ? EnhancedAnalysisLoader(
+              imageName: _imageFile?.path.split('/').last ?? 
+                         _xFile?.name ?? 
+                         'captured_image.jpg',
+              onCancel: () {
+                // Cancel the AI service analysis
+                final aiService = Provider.of<AiService>(context, listen: false);
+                aiService.cancelAnalysis();
+                
+                setState(() {
+                  _isCancelled = true;
+                  _isAnalyzing = false;
+                });
+                debugPrint('Analysis cancelled by user');
+                
+                // Show cancellation feedback
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Analysis cancelled.'),
+                      duration: Duration(seconds: 2),
+                    ),
+                  );
+                }
+                // Navigate back to home screen
+                Navigator.of(context).popUntil((route) => route.isFirst);
+              },
+            )
+          : const Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  CircularProgressIndicator(),
+                  SizedBox(height: 16),
+                  Text('Preparing image for analysis...'),
+                ],
+              ),
+            ),
+      );
+    }
+    
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Review Image'),
+        title: Text(widget.autoAnalyze ? 'Analyzing Image' : 'Review Image'),
       ),
       body: _isAnalyzing
           ? EnhancedAnalysisLoader(
@@ -536,7 +603,12 @@ class _ImageCaptureScreenState extends State<ImageCaptureScreen> with Restoratio
                             // In future, add subscription check here
                             setState(() {
                               _useSegmentation = value;
-                              _useSegmentationRestorable.value = value;
+                            });
+                            // Set restoration property safely after state update
+                            WidgetsBinding.instance.addPostFrameCallback((_) {
+                              if (mounted) {
+                                _useSegmentationRestorable.value = value;
+                              }
                             });
                             if (value && _segments.isEmpty) {
                               // Capture ScaffoldMessenger before async operation
@@ -600,14 +672,46 @@ class _ImageCaptureScreenState extends State<ImageCaptureScreen> with Restoratio
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
+                      // Quick analyze button (prominent)
                       CaptureButton(
                         type: CaptureButtonType.analyze,
                         onPressed: _analyzeImage,
                       ),
-                      const SizedBox(height: AppTheme.paddingRegular),
-                      CaptureButton(
-                        type: CaptureButtonType.retry,
-                        onPressed: () => Navigator.pop(context),
+                      const SizedBox(height: AppTheme.paddingSmall),
+                      
+                      // Quick action row
+                      Row(
+                        children: [
+                          Expanded(
+                            child: TextButton.icon(
+                              onPressed: () => Navigator.pop(context),
+                              icon: const Icon(Icons.arrow_back, size: 18),
+                              label: const Text('Back'),
+                              style: TextButton.styleFrom(
+                                foregroundColor: Colors.grey.shade600,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: AppTheme.paddingSmall),
+                          Expanded(
+                            child: TextButton.icon(
+                              onPressed: () {
+                                // Show tip about auto-analyze
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text('💡 Tip: Use camera button with long press for instant analysis!'),
+                                    duration: Duration(seconds: 3),
+                                  ),
+                                );
+                              },
+                              icon: const Icon(Icons.flash_on, size: 18),
+                              label: const Text('Quick Tip'),
+                              style: TextButton.styleFrom(
+                                foregroundColor: AppTheme.primaryColor,
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                     ],
                   ),
@@ -686,7 +790,7 @@ class _ImageCaptureScreenState extends State<ImageCaptureScreen> with Restoratio
           ),
         ],
       ),
-    );
+    ));
   }
 
   @override
