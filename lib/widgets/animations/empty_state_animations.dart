@@ -662,8 +662,8 @@ class _RefreshLoadingWidgetState extends State<RefreshLoadingWidget>
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
                           border: Border.all(
-                            color: AppTheme.primaryColor.withOpacity(
-                              1.0 - _particleAnimation.value,
+                            color: AppTheme.primaryColor.withValues(
+                              alpha: 1.0 - _particleAnimation.value,
                             ),
                             width: 2,
                           ),

@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 
 /// Helper extension providing a stable API for adjusting opacity.
 extension ColorOpacityFix on Color {
-  /// Wraps [Color.withOpacity] so calls remain consistent across the codebase.
+  /// Wraps [Color.withValues] so calls remain consistent across the codebase.
   Color withOpacityFixed(double opacity) {
-    return withValues(alpha:opacity);
+    return withValues(alpha: opacity);
   }
 }
 

@@ -20,7 +20,6 @@ class _CommunityScreenState extends State<CommunityScreen> with TickerProviderSt
   List<CommunityFeedItem> _feedItems = [];
   CommunityStats? _stats;
   bool _isLoading = true;
-  String? _currentUserId;
 
   @override
   void initState() {
@@ -40,7 +39,6 @@ class _CommunityScreenState extends State<CommunityScreen> with TickerProviderSt
       final storageService = Provider.of<StorageService>(context, listen: false);
       final communityService = Provider.of<CommunityService>(context, listen: false);
       final userProfile = await storageService.getCurrentUserProfile();
-      _currentUserId = userProfile?.id ?? 'guest_user';
       
       await communityService.initCommunity();
       

@@ -1,7 +1,6 @@
 import 'package:flutter/foundation.dart';
 import '../services/gamification_service.dart';
 import '../services/storage_service.dart';
-import '../services/analytics_service.dart';
 import '../services/community_service.dart';
 import '../models/gamification.dart';
 import '../models/waste_classification.dart';
@@ -15,7 +14,6 @@ class DataSyncProvider extends ChangeNotifier {
   DataSyncProvider(
     this._gamificationService,
     this._storageService,
-    this._analyticsService,
     this._communityService,
   ) {
     // Listen to gamification changes
@@ -29,7 +27,6 @@ class DataSyncProvider extends ChangeNotifier {
   }
   final GamificationService _gamificationService;
   final StorageService _storageService;
-  final AnalyticsService _analyticsService;
   final CommunityService _communityService;
   
   // Cached data that all screens can access

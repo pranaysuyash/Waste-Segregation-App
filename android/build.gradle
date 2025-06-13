@@ -51,8 +51,8 @@ buildscript {
         // Google Services Gradle plugin (latest version)
         classpath 'com.google.gms:google-services:4.4.2'
         
-        // Android Gradle Plugin (stable version for Kotlin 1.9.10 support)
-        classpath 'com.android.tools.build:gradle:8.5.0'
+        // Android Gradle Plugin (updated to support camera dependencies)
+        classpath 'com.android.tools.build:gradle:8.6.0'
     }
 }
 
