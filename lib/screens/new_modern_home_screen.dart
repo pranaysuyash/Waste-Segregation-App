@@ -18,6 +18,7 @@ import '../widgets/modern_ui/modern_badges.dart';
 import '../widgets/classification_card.dart';
 import '../widgets/advanced_ui/achievement_celebration.dart';
 import 'image_capture_screen.dart';
+import 'instant_analysis_screen.dart';
 import 'history_screen.dart';
 import 'achievements_screen.dart';
 import 'educational_content_screen.dart';
@@ -448,16 +449,34 @@ class NewModernHomeScreenState extends ConsumerState<NewModernHomeScreen>
     final gamificationService = ref.read(gamificationServiceProvider);
     final oldProfile = await gamificationService.getProfile();
     
-    final result = await Navigator.push<WasteClassification>(
-      context,
-      MaterialPageRoute(
-        builder: (context) => ImageCaptureScreen.fromXFile(image, autoAnalyze: autoAnalyze),
-      ),
-    );
+    WasteClassification? result;
+    
+    if (autoAnalyze) {
+      // For auto-analyze, go directly to analysis without showing ImageCaptureScreen
+      result = await _navigateToInstantAnalysis(image);
+    } else {
+      // For manual review, use the traditional flow
+      result = await Navigator.push<WasteClassification>(
+        context,
+        MaterialPageRoute(
+          builder: (context) => ImageCaptureScreen.fromXFile(image, autoAnalyze: false),
+        ),
+      );
+    }
     
     if (result != null && mounted) {
       await _handleScanResult(result, oldProfile);
     }
+  }
+
+  Future<WasteClassification?> _navigateToInstantAnalysis(XFile image) async {
+    // Navigate directly to analysis loader, then to results
+    return await Navigator.push<WasteClassification>(
+      context,
+      MaterialPageRoute(
+        builder: (context) => InstantAnalysisScreen(image: image),
+      ),
+    );
   }
 
   Future<void> _handleScanResult(WasteClassification result, GamificationProfile oldProfile) async {
