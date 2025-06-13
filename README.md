@@ -420,6 +420,7 @@ For comprehensive documentation including setup guides, technical details, and p
 - **[🔧 Technical Documentation](docs/technical/README.md)** - Recent fixes and technical details
 - **[🧪 Testing Guide](docs/testing/TESTING_GUIDE.md)** - Comprehensive testing documentation and best practices
 - **[📱 UX/UI 2025 Task List](docs/design/user_experience/mobile_ux_ui_2025_tasks.md)** - Actions from latest mobile best practices research
+- **[📱 UX Improvements Task List (2025)](docs/design/user_experience/ux_2025_custom_tasks.md)** - Fine-grained UX tasks for upcoming work
 - **[📋 Resolution Plan](docs/planning/RESOLUTION_PLAN.md)** - Priority issues and fixes
 - **[🗺️ Project Roadmap](docs/planning/roadmap/unified_project_roadmap.md)** - Development roadmap and timeline
 - **[❓ Troubleshooting](docs/reference/troubleshooting.md)** - Common issues and solutions
@@ -914,6 +915,7 @@ For comprehensive documentation including setup guides, technical details, and p
 - **[🔧 Technical Documentation](docs/technical/README.md)** - Recent fixes and technical details
 - **[🧪 Testing Guide](docs/testing/TESTING_GUIDE.md)** - Comprehensive testing documentation and best practices
 - **[📱 UX/UI 2025 Task List](docs/design/user_experience/mobile_ux_ui_2025_tasks.md)** - Actions from latest mobile best practices research
+- **[📱 UX Improvements Task List (2025)](docs/design/user_experience/ux_2025_custom_tasks.md)** - Fine-grained UX tasks for upcoming work
 - **[📋 Resolution Plan](docs/planning/RESOLUTION_PLAN.md)** - Priority issues and fixes
 - **[🗺️ Project Roadmap](docs/planning/roadmap/unified_project_roadmap.md)** - Development roadmap and timeline
 - **[❓ Troubleshooting](docs/reference/troubleshooting.md)** - Common issues and solutions
