@@ -25,9 +25,11 @@ import 'services/user_consent_service.dart';
 import 'services/navigation_settings_service.dart';
 import 'services/haptic_settings_service.dart';
 import 'services/community_service.dart';
+import 'services/dynamic_link_service.dart';
 import 'screens/auth_screen.dart';
 import 'screens/consent_dialog_screen.dart';
 import 'screens/settings_screen.dart';
+import 'l10n/app_localizations.dart';
 import 'screens/history_screen.dart';
 import 'screens/achievements_screen.dart';
 import 'screens/educational_content_screen.dart';
@@ -65,28 +67,9 @@ Required packages:
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   
-  // Initialize Firebase
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
-
   // Set up error handling
   _setupErrorHandling();
-
-  if (kIsWeb) {
-    runApp(const MaterialApp(
-      home: Scaffold(
-        body: Center(child: Text('It works!')),
-      ),
-    ));
-  } else {
-    await originalMain();
-  }
-}
-
-Future<void> originalMain() async {
-  WidgetsFlutterBinding.ensureInitialized();
-
+  
   // Environment variables are now loaded via --dart-define-from-file=.env
   if (kDebugMode) {
     debugPrint('Environment variables loaded via --dart-define-from-file');
@@ -218,6 +201,12 @@ Future<void> originalMain() async {
       hapticSettingsService: hapticSettingsService,
       communityService: communityService,
     ));
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final context = navigatorKey.currentState?.context;
+      if (context != null) {
+        DynamicLinkService.initDynamicLinks(context);
+      }
+    });
     if (kDebugMode) {
       debugPrint('After runApp');
     }
@@ -335,6 +324,8 @@ class WasteSegregationApp extends StatelessWidget {
                   highContrastTheme: AppTheme.highContrastTheme,
                   highContrastDarkTheme: AppTheme.highContrastDarkTheme,
                   themeMode: themeProvider.themeMode,
+                  localizationsDelegates: AppLocalizations.localizationsDelegates,
+                  supportedLocales: AppLocalizations.supportedLocales,
                   builder: (context, child) {
                     final mediaQuery = MediaQuery.of(context);
                     final scale = mediaQuery.textScaleFactor.clamp(1.0, 2.0) as double;

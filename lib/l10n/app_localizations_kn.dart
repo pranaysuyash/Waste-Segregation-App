@@ -4,9 +4,9 @@ import 'app_localizations.dart';
 
 // ignore_for_file: type=lint
 
-/// The translations for English (`en`).
-class AppLocalizationsEn extends AppLocalizations {
-  AppLocalizationsEn([String locale = 'en']) : super(locale);
+/// The translations for Kannada (`kn`).
+class AppLocalizationsKn extends AppLocalizations {
+  AppLocalizationsKn([String locale = 'kn']) : super(locale);
 
   @override
   String get settingsTitle => 'Settings';
@@ -270,19 +270,4 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get toggleFloatingCameraButton => 'Toggle floating camera button';
-
-  @override
-  String get cameraShutterLabel => 'Camera shutter';
-
-  @override
-  String get cameraShutterHint => 'Takes a photo';
-
-  @override
-  String get startClassifyingHint => 'Opens the camera to classify waste';
-
-  @override
-  String get rewardConfettiLabel => 'Reward confetti';
-
-  @override
-  String get rewardConfettiHint => 'Celebrates your achievement';
 }
