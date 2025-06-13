@@ -182,18 +182,23 @@ class _AnimatedFABState extends State<AnimatedFAB>
               scale: _pulseAnimation.value * _scaleAnimation.value,
               child: Transform.rotate(
                 angle: _rotationAnimation.value * 0.1,
-                child: FloatingActionButton(
-                  onPressed: _onPressed,
-                  tooltip: widget.tooltip,
-                  backgroundColor: AppTheme.primaryColor,
-                  foregroundColor: Colors.white,
-                  elevation: 8,
-                  child: AnimatedSwitcher(
-                    duration: const Duration(milliseconds: 300),
-                    child: Icon(
-                      widget.icon,
-                      key: ValueKey(widget.icon),
-                      size: 28,
+                child: Semantics(
+                  label: widget.tooltip ?? 'Camera shutter',
+                  hint: 'Takes a photo',
+                  button: true,
+                  child: FloatingActionButton(
+                    onPressed: _onPressed,
+                    tooltip: widget.tooltip,
+                    backgroundColor: AppTheme.primaryColor,
+                    foregroundColor: Colors.white,
+                    elevation: 8,
+                    child: AnimatedSwitcher(
+                      duration: const Duration(milliseconds: 300),
+                      child: Icon(
+                        widget.icon,
+                        key: ValueKey(widget.icon),
+                        size: 28,
+                      ),
                     ),
                   ),
                 ),

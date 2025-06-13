@@ -320,7 +320,14 @@ class WasteSegregationApp extends StatelessWidget {
           theme: AppTheme.lightTheme,
           darkTheme: AppTheme.darkTheme,
           themeMode: themeProvider.themeMode,
-          builder: (context, child) => child ?? const SizedBox.shrink(),
+          builder: (context, child) {
+            final mediaQuery = MediaQuery.of(context);
+            final scale = mediaQuery.textScaleFactor.clamp(1.0, 2.0);
+            return MediaQuery(
+              data: mediaQuery.copyWith(textScaleFactor: scale),
+              child: child ?? const SizedBox.shrink(),
+            );
+          },
           
           // ADD ROUTE DEFINITIONS:
           routes: {

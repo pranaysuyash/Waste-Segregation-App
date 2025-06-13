@@ -124,7 +124,11 @@ class _AchievementCelebrationState extends State<AchievementCelebration>
   
   @override
   Widget build(BuildContext context) {
-    return Material(
+    return Semantics(
+      container: true,
+      label: 'Reward confetti',
+      hint: 'Celebrates your achievement',
+      child: Material(
       color: Colors.transparent,
       child: AnimatedBuilder(
         animation: Listenable.merge([_mainController, _confettiController]),
