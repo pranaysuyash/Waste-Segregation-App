@@ -34,7 +34,7 @@ class ImageCaptureScreen extends StatefulWidget {
   State<ImageCaptureScreen> createState() => _ImageCaptureScreenState();
 }
 
-class _ImageCaptureScreenState extends State<ImageCaptureScreen> {
+class _ImageCaptureScreenState extends State<ImageCaptureScreen> with RestorationMixin {
   bool _isAnalyzing = false;
   bool _isCancelled = false;
 
@@ -47,12 +47,42 @@ class _ImageCaptureScreenState extends State<ImageCaptureScreen> {
   List<Map<String, dynamic>> _segments = [];
   final Set<int> _selectedSegments = {};
 
+  // Restoration properties
+  final RestorableStringN _imagePath = RestorableStringN(null);
+  final RestorableBool _useSegmentationRestorable = RestorableBool(false);
+
+  @override
+  String? get restorationId => 'image_capture_screen';
+
+  @override
+  void restoreState(RestorationBucket? oldBucket, bool initialRestore) {
+    registerForRestoration(_imagePath, 'image_path');
+    registerForRestoration(_useSegmentationRestorable, 'use_segmentation');
+
+    _useSegmentation = _useSegmentationRestorable.value;
+
+    if (_imageFile == null && _imagePath.value != null && !kIsWeb) {
+      _imageFile = File(_imagePath.value!);
+    }
+
+    if (_xFile == null && _imagePath.value != null && kIsWeb) {
+      _xFile = XFile(_imagePath.value!);
+      _loadWebImage();
+    }
+  }
+
   @override
   void initState() {
     super.initState();
     _imageFile = widget.imageFile;
     _xFile = widget.xFile;
     _webImageBytes = widget.webImage;
+    if (_imageFile != null) {
+      _imagePath.value = _imageFile!.path;
+    } else if (_xFile != null) {
+      _imagePath.value = _xFile!.path;
+    }
+    _useSegmentationRestorable.value = _useSegmentation;
 
     if (_imageFile == null && _xFile == null && _webImageBytes == null) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -79,6 +109,7 @@ class _ImageCaptureScreenState extends State<ImageCaptureScreen> {
           if (!kIsWeb) {
             _imageFile = File(image.path);
           }
+          _imagePath.value = image.path;
         });
         if (kIsWeb) {
           await _loadWebImage();
@@ -500,6 +531,7 @@ class _ImageCaptureScreenState extends State<ImageCaptureScreen> {
                             // In future, add subscription check here
                             setState(() {
                               _useSegmentation = value;
+                              _useSegmentationRestorable.value = value;
                             });
                             if (value && _segments.isEmpty) {
                               // Capture ScaffoldMessenger before async operation
@@ -602,12 +634,14 @@ class _ImageCaptureScreenState extends State<ImageCaptureScreen> {
     }
     
     // Wrap with InteractiveViewer for zoom functionality
-    return InteractiveViewer(
-      minScale: 0.5, // Minimum zoom out
-      maxScale: 4.0, // Maximum zoom in
-      child: Stack(
-        fit: StackFit.expand, // FIXED: Use StackFit.expand instead of infinite container
-        children: [
+    return AspectRatio(
+      aspectRatio: 16 / 9,
+      child: InteractiveViewer(
+        minScale: 0.5, // Minimum zoom out
+        maxScale: 4.0, // Maximum zoom in
+        child: Stack(
+          fit: StackFit.expand, // FIXED: Use StackFit.expand instead of infinite container
+          children: [
           // FIXED: Center the image within available space
           Center(child: imageWidget),
           // Zoom instruction overlay (shows briefly)
@@ -648,5 +682,12 @@ class _ImageCaptureScreenState extends State<ImageCaptureScreen> {
         ],
       ),
     );
+  }
+
+  @override
+  void dispose() {
+    _imagePath.dispose();
+    _useSegmentationRestorable.dispose();
+    super.dispose();
   }
 }
