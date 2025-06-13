@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'dart:math' as math;
 import '../../models/gamification.dart';
+import '../../l10n/app_localizations.dart';
 
 /// Epic achievement celebration with confetti and 3D badge effect
 class AchievementCelebration extends StatefulWidget {
@@ -124,41 +125,58 @@ class _AchievementCelebrationState extends State<AchievementCelebration>
   
   @override
   Widget build(BuildContext context) {
-    return Material(
-      color: Colors.transparent,
-      child: AnimatedBuilder(
-        animation: Listenable.merge([_mainController, _confettiController]),
-        builder: (context, child) {
-          return Opacity(
-            opacity: 1.0 - _opacityAnimation.value,
-            child: SizedBox(
-              width: double.infinity,
-              height: double.infinity,
-              child: Stack(
-                children: [
-                  Container(color: Colors.black.withValues(alpha:0.7)),
-                  CustomPaint(
-                    painter: ConfettiPainter(
-                      particles: _confettiParticles,
-                      animationValue: _confettiController.value,
+    return Stack(
+      children: [
+        const ModalBarrier(dismissible: false, color: Colors.transparent),
+        Semantics(
+          container: true,
+          label: AppLocalizations.of(context)!.rewardConfettiLabel,
+          hint: AppLocalizations.of(context)!.rewardConfettiHint,
+          child: Material(
+            color: Colors.transparent,
+            child: AnimatedBuilder(
+              animation: Listenable.merge([
+                _mainController,
+                _confettiController,
+              ]),
+              builder: (context, child) {
+                return Opacity(
+                  opacity: 1.0 - _opacityAnimation.value,
+                  child: SizedBox(
+                    width: double.infinity,
+                    height: double.infinity,
+                    child: Stack(
+                      children: [
+                        Container(color: Colors.black.withOpacity(0.7)),
+                        CustomPaint(
+                          painter: ConfettiPainter(
+                            particles: _confettiParticles,
+                            animationValue: _confettiController.value,
+                          ),
+                          size: Size.infinite,
+                        ),
+                        Center(
+                          child: Transform.translate(
+                            offset: Offset(
+                              0,
+                              _slideAnimation.value *
+                                  MediaQuery.of(context).size.height,
+                            ),
+                            child: Transform.scale(
+                              scale: _scaleAnimation.value,
+                              child: _buildCelebrationCard(),
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
-                    size: Size.infinite,
                   ),
-                  Center(
-                    child: Transform.translate(
-                      offset: Offset(0, _slideAnimation.value * MediaQuery.of(context).size.height),
-                      child: Transform.scale(
-                        scale: _scaleAnimation.value,
-                        child: _buildCelebrationCard(),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
+                );
+              },
             ),
-          );
-        },
-      ),
+          ),
+        ),
+      ],
     );
   }
   

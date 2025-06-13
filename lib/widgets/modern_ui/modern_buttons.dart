@@ -541,7 +541,8 @@ class _ModernFABState extends State<ModernFAB>
                 children: [
                   Icon(
                     widget.icon,
-                    color: widget.foregroundColor ?? Colors.white,
+                    color: widget.foregroundColor ??
+                        theme.colorScheme.onPrimary,
                     size: AppTheme.iconSizeMd,
                   ),
                   if (widget.isExtended && widget.label != null) ...[
@@ -550,7 +551,8 @@ class _ModernFABState extends State<ModernFAB>
                       child: Text(
                         widget.label!,
                         style: theme.textTheme.labelLarge?.copyWith(
-                          color: widget.foregroundColor ?? Colors.white,
+                          color: widget.foregroundColor ??
+                              theme.colorScheme.onPrimary,
                           fontWeight: FontWeight.w600,
                         ),
                         overflow: TextOverflow.ellipsis,
