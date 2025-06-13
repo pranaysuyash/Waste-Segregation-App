@@ -115,6 +115,26 @@ class _MainNavigationWrapperState extends State<MainNavigationWrapper> {
     ];
   }
 
+  List<NavigationRailDestination> _getRailDestinations() {
+    return _getNavItems()
+        .map((item) => NavigationRailDestination(
+              icon: Icon(item.icon),
+              selectedIcon: Icon(item.selectedIcon ?? item.icon),
+              label: Text(item.label ?? ''),
+            ))
+        .toList();
+  }
+
+  List<NavigationDrawerDestination> _getDrawerDestinations() {
+    return _getNavItems()
+        .map((item) => NavigationDrawerDestination(
+              icon: Icon(item.icon),
+              selectedIcon: Icon(item.selectedIcon ?? item.icon),
+              label: Text(item.label ?? ''),
+            ))
+        .toList();
+  }
+
   // FIXED: Direct camera/upload implementation
   void _showCaptureOptions(BuildContext context) {
     showModalBottomSheet(
@@ -344,6 +364,7 @@ class _MainNavigationWrapperState extends State<MainNavigationWrapper> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
+    final width = MediaQuery.of(context).size.width;
     
     return Consumer<NavigationSettingsService>(
       builder: (context, navSettings, child) {
@@ -369,17 +390,64 @@ class _MainNavigationWrapperState extends State<MainNavigationWrapper> {
             );
         }
         
+        if (width >= 1024) {
+          // Large screens - use NavigationDrawer
+          return Scaffold(
+            body: Row(
+              children: [
+                NavigationDrawer(
+                  selectedIndex: _currentIndex,
+                  onDestinationSelected: _onTabTapped,
+                  children: _getDrawerDestinations(),
+                ),
+                Expanded(
+                  child: PageView(
+                    controller: _pageController,
+                    onPageChanged: _onPageChanged,
+                    children: _getScreens(),
+                  ),
+                ),
+              ],
+            ),
+            floatingActionButton: navSettings.fabEnabled
+                ? AnimatedFAB(onPressed: () => _showCaptureOptions(context))
+                : null,
+          );
+        } else if (width >= 600) {
+          // Medium screens - use NavigationRail
+          return Scaffold(
+            body: Row(
+              children: [
+                NavigationRail(
+                  selectedIndex: _currentIndex,
+                  onDestinationSelected: _onTabTapped,
+                  labelType: NavigationRailLabelType.all,
+                  destinations: _getRailDestinations(),
+                ),
+                Expanded(
+                  child: PageView(
+                    controller: _pageController,
+                    onPageChanged: _onPageChanged,
+                    children: _getScreens(),
+                  ),
+                ),
+              ],
+            ),
+            floatingActionButton: navSettings.fabEnabled
+                ? AnimatedFAB(onPressed: () => _showCaptureOptions(context))
+                : null,
+          );
+        }
+
+        // Small screens - bottom navigation
         return Scaffold(
           body: Stack(
             children: [
-              // Main content pages
               PageView(
                 controller: _pageController,
                 onPageChanged: _onPageChanged,
                 children: _getScreens(),
               ),
-              
-              // Bottom navigation overlay (only if enabled)
               if (navSettings.bottomNavEnabled)
                 Positioned(
                   bottom: 0,
@@ -388,11 +456,8 @@ class _MainNavigationWrapperState extends State<MainNavigationWrapper> {
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      // Banner ad space (if not premium)
                       if (!Provider.of<PremiumService>(context).isPremiumFeature('remove_ads'))
                         Provider.of<AdService>(context).getBannerAd(),
-                      
-                      // Bottom navigation
                       Container(
                         margin: const EdgeInsets.all(16),
                         child: ModernBottomNavigation(
@@ -400,7 +465,7 @@ class _MainNavigationWrapperState extends State<MainNavigationWrapper> {
                           onTap: _onTabTapped,
                           items: _getNavItems(),
                           style: navStyle,
-                          hasNotch: navSettings.fabEnabled, // Only add notch if FAB is enabled
+                          hasNotch: navSettings.fabEnabled,
                         ),
                       ),
                     ],
@@ -408,12 +473,11 @@ class _MainNavigationWrapperState extends State<MainNavigationWrapper> {
                 ),
             ],
           ),
-          // Add the animated floating action button (only if enabled)
-          floatingActionButton: navSettings.fabEnabled ? AnimatedFAB(
-            onPressed: () => _showCaptureOptions(context),
-          ) : null,
-          floatingActionButtonLocation: navSettings.fabEnabled && navSettings.bottomNavEnabled 
-              ? FloatingActionButtonLocation.centerDocked 
+          floatingActionButton: navSettings.fabEnabled
+              ? AnimatedFAB(onPressed: () => _showCaptureOptions(context))
+              : null,
+          floatingActionButtonLocation: navSettings.fabEnabled && navSettings.bottomNavEnabled
+              ? FloatingActionButtonLocation.centerDocked
               : FloatingActionButtonLocation.endFloat,
         );
       },

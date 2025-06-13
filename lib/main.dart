@@ -23,6 +23,7 @@ import 'services/ad_service.dart';
 import 'services/user_consent_service.dart';
 import 'services/navigation_settings_service.dart';
 import 'services/community_service.dart';
+import 'services/dynamic_link_service.dart';
 import 'screens/auth_screen.dart';
 import 'screens/consent_dialog_screen.dart';
 import 'screens/settings_screen.dart';
@@ -214,6 +215,12 @@ Future<void> originalMain() async {
       navigationSettingsService: navigationSettingsService,
       communityService: communityService,
     ));
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final context = navigatorKey.currentState?.context;
+      if (context != null) {
+        DynamicLinkService.initDynamicLinks(context);
+      }
+    });
     if (kDebugMode) {
       debugPrint('After runApp');
     }

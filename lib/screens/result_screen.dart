@@ -26,6 +26,7 @@ import '../widgets/enhanced_analysis_loader.dart';
 import '../screens/waste_dashboard_screen.dart';
 import '../widgets/modern_ui/modern_info_tile.dart';
 import '../services/analytics_service.dart';
+import '../services/dynamic_link_service.dart';
 import '../screens/image_capture_screen.dart';
 
 class ResultScreen extends StatefulWidget {
@@ -297,8 +298,11 @@ class _ResultScreenState extends State<ResultScreen>
       'item': widget.classification.itemName,
     });
     try {
+      final link = await DynamicLinkService.createResultLink(widget.classification);
       await ShareService.share(
-        text: 'I identified ${widget.classification.itemName} as ${widget.classification.category} waste using the Waste Segregation app!',
+        text:
+            'I identified ${widget.classification.itemName} as ${widget.classification.category} waste using the Waste Segregation app!\n$link',
+        subject: 'Waste Classification Result',
         context: context,
       );
     } catch (e, stackTrace) {
