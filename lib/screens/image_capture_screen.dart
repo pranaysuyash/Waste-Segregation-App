@@ -62,7 +62,12 @@ class _ImageCaptureScreenState extends State<ImageCaptureScreen> with Restoratio
     _useSegmentation = _useSegmentationRestorable.value;
 
     if (_imageFile == null && _imagePath.value != null && !kIsWeb) {
-      _imageFile = File(_imagePath.value!);
+      final file = File(_imagePath.value!);
+      if (file.existsSync()) {
+        _imageFile = file;
+      } else {
+        _imagePath.value = null;
+      }
     }
 
     if (_xFile == null && _imagePath.value != null && kIsWeb) {

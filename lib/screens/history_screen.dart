@@ -30,7 +30,7 @@ class HistoryScreen extends StatefulWidget {
   State<HistoryScreen> createState() => _HistoryScreenState();
 }
 
-class _HistoryScreenState extends State<HistoryScreen> {
+class _HistoryScreenState extends State<HistoryScreen> with RestorationMixin {
   // Current filter options
   FilterOptions _filterOptions = FilterOptions.empty();
   
@@ -69,6 +69,27 @@ class _HistoryScreenState extends State<HistoryScreen> {
 
   // Selected classification for wide layouts
   WasteClassification? _selectedClassification;
+  final RestorableStringN _selectedClassificationId = RestorableStringN(null);
+
+  @override
+  String? get restorationId => 'history_screen';
+
+  @override
+  void restoreState(RestorationBucket? oldBucket, bool initialRestore) {
+    registerForRestoration(
+        _selectedClassificationId, 'selected_classification_id');
+
+    // When data is loaded, attempt to restore selected classification
+    if (_classifications.isNotEmpty && _selectedClassificationId.value != null) {
+      final id = _selectedClassificationId.value!;
+      try {
+        _selectedClassification =
+            _classifications.firstWhere((c) => c.id == id);
+      } catch (_) {
+        _selectedClassification = null;
+      }
+    }
+  }
   
   @override
   void initState() {
@@ -93,6 +114,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
     _searchController.dispose();
     _scrollController.removeListener(_scrollListener);
     _scrollController.dispose();
+    _selectedClassificationId.dispose();
     super.dispose();
   }
   
@@ -152,6 +174,15 @@ class _HistoryScreenState extends State<HistoryScreen> {
         _classifications = pageClassifications;
         _hasMorePages = endIndex < filteredClassifications.length;
       });
+
+      if (_selectedClassificationId.value != null) {
+        try {
+          _selectedClassification = _classifications
+              .firstWhere((c) => c.id == _selectedClassificationId.value);
+        } catch (_) {
+          _selectedClassification = null;
+        }
+      }
       
       debugPrint('📊 History: Loaded ${pageClassifications.length} classifications (Google sync: $isGoogleSyncEnabled)');
     } catch (e) {
@@ -588,6 +619,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
   
   // Navigate to classification details
   void _navigateToClassificationDetails(WasteClassification classification) {
+    _selectedClassificationId.value = classification.id;
     if (MediaQuery.of(context).size.width >= 840) {
       setState(() {
         _selectedClassification = classification;
