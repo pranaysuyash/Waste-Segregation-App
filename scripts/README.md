@@ -14,6 +14,7 @@ This directory contains all development, build, testing, and maintenance scripts
 - **quick_test.sh** - Fast testing for development iterations
 - **test_low_hanging_fruits.sh** - Quick wins and simple test execution
 - **test_runner.sh** - Basic test runner for specific test categories
+- **test_api_connectivity.sh** - API connectivity validation and troubleshooting for OpenAI and Gemini APIs
 
 ### `/scripts/build/` - Build & Deployment Scripts
 - **build_production.sh** - Production builds for different platforms (APK, App Bundle, iOS)
@@ -39,13 +40,16 @@ This directory contains all development, build, testing, and maintenance scripts
 
 ### **Daily Development Workflow**
 ```bash
-# 1. Run the app with environment validation
+# 1. Test API connectivity (if having classification issues)
+./scripts/testing/test_api_connectivity.sh
+
+# 2. Run the app with environment validation
 ./scripts/development/run_with_env.sh
 
-# 2. Quick testing during development
+# 3. Quick testing during development
 ./scripts/testing/quick_test.sh
 
-# 3. Comprehensive testing before commits
+# 4. Comprehensive testing before commits
 ./scripts/testing/comprehensive_test_runner.sh
 ```
 
@@ -65,6 +69,9 @@ This directory contains all development, build, testing, and maintenance scripts
 
 ### **Problem Resolution Workflow**
 ```bash
+# API connectivity issues (image classification not working)
+./scripts/testing/test_api_connectivity.sh
+
 # Flutter SDK issues
 ./scripts/fixes/fix_flutter_sdk.sh
 
@@ -95,6 +102,7 @@ Automated testing tools for quality assurance and continuous integration.
 - **Comprehensive**: Full test suite with coverage reports
 - **Quick**: Fast feedback during development
 - **Specific**: Targeted testing for particular components
+- **API Testing**: Real-time validation of OpenAI and Gemini API connectivity with detailed diagnostics
 
 ### **Build Scripts**
 Production build automation for different platforms and deployment targets.
