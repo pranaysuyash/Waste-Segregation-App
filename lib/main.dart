@@ -1,5 +1,6 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:dynamic_color/dynamic_color.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart' as riverpod;
 import 'package:provider/provider.dart';
@@ -320,20 +321,28 @@ class WasteSegregationApp extends StatelessWidget {
         ],
         child: Consumer<ThemeProvider>(
           builder: (context, themeProvider, child) {
-            return MaterialApp(
-          navigatorKey: navigatorKey,
-          title: AppStrings.appName,
-          theme: AppTheme.lightTheme,
-          darkTheme: AppTheme.darkTheme,
-          themeMode: themeProvider.themeMode,
-          builder: (context, child) {
-            final mediaQuery = MediaQuery.of(context);
-            final scale = mediaQuery.textScaleFactor.clamp(1.0, 2.0) as double;
-            return MediaQuery(
-              data: mediaQuery.copyWith(textScaleFactor: scale),
-              child: child ?? const SizedBox.shrink(),
-            );
-          },
+            return DynamicColorBuilder(
+              builder: (lightDynamic, darkDynamic) {
+                final lightScheme =
+                    lightDynamic ?? ColorScheme.fromSeed(seedColor: AppTheme.seedColor);
+                final darkScheme = darkDynamic ??
+                    ColorScheme.fromSeed(seedColor: AppTheme.seedColor, brightness: Brightness.dark);
+                return MaterialApp(
+                  navigatorKey: navigatorKey,
+                  title: AppStrings.appName,
+                  theme: AppTheme.fromScheme(lightScheme),
+                  darkTheme: AppTheme.fromScheme(darkScheme),
+                  highContrastTheme: AppTheme.highContrastTheme,
+                  highContrastDarkTheme: AppTheme.highContrastDarkTheme,
+                  themeMode: themeProvider.themeMode,
+                  builder: (context, child) {
+                    final mediaQuery = MediaQuery.of(context);
+                    final scale = mediaQuery.textScaleFactor.clamp(1.0, 2.0) as double;
+                    return MediaQuery(
+                      data: mediaQuery.copyWith(textScaleFactor: scale),
+                      child: child ?? const SizedBox.shrink(),
+                    );
+                  },
           
           // ADD ROUTE DEFINITIONS:
           routes: {
@@ -382,6 +391,8 @@ class WasteSegregationApp extends StatelessWidget {
                 return const AuthScreen(); // Will automatically redirect to HomeScreen if logged in
               },
             ),
+                );
+              },
             );
           },
         ),

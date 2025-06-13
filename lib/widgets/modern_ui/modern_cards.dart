@@ -45,29 +45,22 @@ class ModernCard extends StatelessWidget {
     
     final effectiveRadius = borderRadius ?? AppTheme.borderRadiusLg;
     
-    final Widget cardContent = Container(
-      margin: margin ?? const EdgeInsets.all(AppTheme.spacingSm),
-      padding: padding ?? const EdgeInsets.all(AppTheme.spacingMd),
-      decoration: BoxDecoration(
-        color: enableGlassmorphism 
-            ? (backgroundColor ?? theme.cardColor).withOpacity(opacity)
-            : backgroundColor ?? theme.cardColor,
-        borderRadius: BorderRadius.circular(effectiveRadius),
-        border: border ?? (enableGlassmorphism 
-            ? Border.all(
-                color: Colors.white.withOpacity(0.2),
-              ) 
-            : null),
-        boxShadow: shadows ?? [
-          BoxShadow(
-            color: Colors.black.withOpacity(isDark ? 0.3 : 0.1),
-            blurRadius: blur,
-            offset: const Offset(0, 4),
-          ),
-        ],
-        gradient: gradient,
+    final Widget cardContent = Material(
+      elevation: elevation ?? AppTheme.elevationMd,
+      color: enableGlassmorphism
+          ? (backgroundColor ?? theme.cardColor).withOpacity(opacity)
+          : backgroundColor ?? theme.cardColor,
+      borderRadius: BorderRadius.circular(effectiveRadius),
+      child: Container(
+        margin: margin ?? const EdgeInsets.all(AppTheme.spacingSm),
+        padding: padding ?? const EdgeInsets.all(AppTheme.spacingMd),
+        decoration: BoxDecoration(
+          border: border ??
+              (enableGlassmorphism ? Border.all(color: Colors.white.withOpacity(0.2)) : null),
+          gradient: gradient,
+        ),
+        child: child,
       ),
-      child: child,
     );
 
     if (onTap != null) {

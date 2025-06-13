@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../utils/constants.dart';
 
 /// Responsive layout for settings that adapts to different screen sizes
 class ResponsiveSettingsLayout extends StatelessWidget {
@@ -209,18 +210,9 @@ class ResponsiveSettingsLayout extends StatelessWidget {
 
   /// Wrap section for grid layout
   Widget _wrapSectionForGrid(Widget section) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
+    return Material(
+      elevation: AppTheme.elevationMd,
+      borderRadius: BorderRadius.circular(12),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(12),
         child: section,
