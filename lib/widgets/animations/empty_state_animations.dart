@@ -301,16 +301,15 @@ class _EmptyStateWidgetState extends State<EmptyStateWidget>
           child: Container(
             padding: const EdgeInsets.all(AppTheme.paddingRegular),
             decoration: BoxDecoration(
-              color: AppTheme.primaryColor.withOpacity(0.1),
+              color: AppTheme.primaryColor.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(AppTheme.borderRadiusRegular),
               border: Border.all(
-                color: AppTheme.primaryColor.withOpacity(0.3),
-                width: 1,
+                color: AppTheme.primaryColor.withValues(alpha: 0.3),
               ),
             ),
             child: Row(
               children: [
-                Icon(
+                const Icon(
                   Icons.lightbulb_outline,
                   color: AppTheme.primaryColor,
                   size: 20,
@@ -387,7 +386,6 @@ class EmptyHistoryStateWidget extends StatelessWidget {
       title: 'No History Yet',
       message: 'Start classifying items to build your waste history.\nEvery classification helps you learn and track your environmental impact!',
       icon: Icons.history_toggle_off_outlined,
-      animationType: EmptyStateAnimationType.fadeInScale,
       educationalTip: 'Tip: Take photos of different waste items to learn proper disposal methods',
       actionText: 'Start Classifying',
       onActionPressed: onStartClassifying,
@@ -463,7 +461,6 @@ class EmptyFilteredResultsWidget extends StatelessWidget {
       title: 'No Results Found',
       message: 'Your current filters don\'t match any items.\nTry adjusting or clearing your filters to see more results.',
       icon: Icons.filter_alt_off_outlined,
-      animationType: EmptyStateAnimationType.fadeInScale,
       educationalTip: activeFiltersCount > 1 
           ? 'Try removing some filters to expand your results'
           : 'Different categories might have the content you\'re looking for',
@@ -730,7 +727,7 @@ class _RefreshLoadingWidgetState extends State<RefreshLoadingWidget>
                     child: Container(
                       padding: const EdgeInsets.all(AppTheme.paddingRegular),
                       decoration: BoxDecoration(
-                        color: AppTheme.primaryColor.withOpacity(0.1),
+                        color: AppTheme.primaryColor.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(AppTheme.borderRadiusRegular),
                       ),
                       child: Row(

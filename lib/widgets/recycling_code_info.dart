@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../models/recycling_code.dart';
 import '../utils/constants.dart';
-import '../utils/color_extensions.dart';
 
 // 1. Data Model & Structure
 const unknownCode = RecyclingCode(
@@ -78,7 +77,7 @@ class _RecyclingCodeInfoCardState extends State<RecyclingCodeInfoCard> {
     } else if (text.contains('rarely') || text.contains('avoid')) {
       return Colors.red;
     }
-    return Theme.of(context).colorScheme.onSurface.withOpacity(0.7);
+    return Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7);
   }
 
   @override

@@ -328,9 +328,10 @@ class WasteSegregationApp extends StatelessWidget {
                   supportedLocales: AppLocalizations.supportedLocales,
                   builder: (context, child) {
                     final mediaQuery = MediaQuery.of(context);
-                    final scale = mediaQuery.textScaleFactor.clamp(1.0, 2.0) as double;
+                    final currentScale = mediaQuery.textScaler.scale(1.0);
+                    final clampedScale = currentScale.clamp(1.0, 2.0);
                     return MediaQuery(
-                      data: mediaQuery.copyWith(textScaleFactor: scale),
+                      data: mediaQuery.copyWith(textScaler: TextScaler.linear(clampedScale)),
                       child: child ?? const SizedBox.shrink(),
                     );
                   },

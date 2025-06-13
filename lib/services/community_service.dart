@@ -17,7 +17,7 @@ class CommunityService {
   Future<void> initCommunity() async {
     // No more Hive initialization needed
     // The stats document will be created on-the-fly if it doesn't exist
-    debugPrint("CommunityService initialized with Firestore.");
+    debugPrint('CommunityService initialized with Firestore.');
   }
 
   // Add a feed item to Firestore
@@ -82,8 +82,8 @@ class CommunityService {
           'totalUsers': 1,
         });
       } else {
-        var classificationIncrement = item.activityType == CommunityActivityType.classification ? 1 : 0;
-        var categoryKey = item.metadata['category'] as String?;
+        final classificationIncrement = item.activityType == CommunityActivityType.classification ? 1 : 0;
+        final categoryKey = item.metadata['category'] as String?;
 
         transaction.update(statsRef, {
           'totalClassifications': FieldValue.increment(classificationIncrement),
@@ -135,7 +135,7 @@ class CommunityService {
       userName: user.displayName ?? 'Anonymous',
       activityType: CommunityActivityType.streak,
       title: 'Kept the fire going!',
-      description: 'Maintained a ${streakDays}-day streak!',
+      description: 'Maintained a $streakDays-day streak!',
       timestamp: DateTime.now(),
       points: 5, // Standard points for a streak
       metadata: {'streakDays': streakDays},
@@ -150,6 +150,6 @@ class CommunityService {
   ) async {
     if (user == null) return;
     // This could be used to backfill, but for now, new activities are sufficient
-    debugPrint("syncWithUserData now primarily handles new events via record... methods.");
+    debugPrint('syncWithUserData now primarily handles new events via record... methods.');
   }
 }

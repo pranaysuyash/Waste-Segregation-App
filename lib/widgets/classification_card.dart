@@ -5,12 +5,12 @@ import 'package:waste_segregation_app/utils/image_utils.dart';
 
 /// The new beautified classification card with modern Material Design
 class ClassificationCard extends StatelessWidget {
-  final WasteClassification classification;
   
   const ClassificationCard({
     super.key, 
     required this.classification,
   });
+  final WasteClassification classification;
 
   @override
   Widget build(BuildContext context) {
@@ -41,7 +41,6 @@ class ClassificationCard extends StatelessWidget {
                           imageSource: classification.imageUrl!,
                           width: 60,
                           height: 60,
-                          fit: BoxFit.cover,
                           errorWidget: Container(
                             width: 60,
                             height: 60,

@@ -3,13 +3,6 @@ import 'package:flutter/material.dart';
 /// A reusable widget that provides smooth expand/collapse animations for content sections.
 /// Perfect for explanations, educational facts, and other collapsible content.
 class ExpandableSection extends StatefulWidget {
-  final String title;
-  final String content;
-  final int trimLines;
-  final Color titleColor;
-  final IconData? titleIcon;
-  final Color? backgroundColor;
-  final Color? borderColor;
   
   const ExpandableSection({
     super.key,
@@ -21,6 +14,13 @@ class ExpandableSection extends StatefulWidget {
     this.backgroundColor,
     this.borderColor,
   });
+  final String title;
+  final String content;
+  final int trimLines;
+  final Color titleColor;
+  final IconData? titleIcon;
+  final Color? backgroundColor;
+  final Color? borderColor;
 
   @override
   State<ExpandableSection> createState() => _ExpandableSectionState();

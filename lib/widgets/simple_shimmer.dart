@@ -3,9 +3,6 @@ import 'package:flutter/material.dart';
 /// A simple shimmer effect widget for loading states.
 /// Provides a smooth animated placeholder without requiring external dependencies.
 class SimpleShimmer extends StatefulWidget {
-  final double width;
-  final double height;
-  final BorderRadius? borderRadius;
   
   const SimpleShimmer({
     super.key, 
@@ -13,6 +10,9 @@ class SimpleShimmer extends StatefulWidget {
     this.height = 16,
     this.borderRadius,
   });
+  final double width;
+  final double height;
+  final BorderRadius? borderRadius;
   
   @override
   State<SimpleShimmer> createState() => _SimpleShimmerState();
@@ -78,9 +78,9 @@ class _SimpleShimmerState extends State<SimpleShimmer>
 
 /// A shimmer placeholder for card-like content
 class ShimmerCard extends StatelessWidget {
-  final double height;
   
   const ShimmerCard({super.key, this.height = 200});
+  final double height;
   
   @override
   Widget build(BuildContext context) {
@@ -108,8 +108,6 @@ class ShimmerCard extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       SimpleShimmer(
-                        width: double.infinity,
-                        height: 16,
                         borderRadius: BorderRadius.circular(4),
                       ),
                       const SizedBox(height: 8),
@@ -125,13 +123,11 @@ class ShimmerCard extends StatelessWidget {
             ),
             const SizedBox(height: 16),
             SimpleShimmer(
-              width: double.infinity,
               height: 12,
               borderRadius: BorderRadius.circular(4),
             ),
             const SizedBox(height: 8),
             SimpleShimmer(
-              width: double.infinity,
               height: 12,
               borderRadius: BorderRadius.circular(4),
             ),

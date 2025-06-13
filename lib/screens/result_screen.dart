@@ -51,7 +51,7 @@ class _ResultScreenState extends State<ResultScreen>
   bool _isAutoSaving = false;
   bool _showingClassificationFeedback = false;
   bool _showingPointsPopup = false;
-  bool _isEducationalFactExpanded = false;
+  final bool _isEducationalFactExpanded = false;
   
   List<Achievement> _newlyEarnedAchievements = [];
   int _pointsEarned = 0;
@@ -102,7 +102,7 @@ class _ResultScreenState extends State<ResultScreen>
 
     final classificationId = widget.classification.id;
     if (_savingClassifications.contains(classificationId)) {
-      debugPrint('🚫 Already processing ${classificationId}, skipping.');
+      debugPrint('🚫 Already processing $classificationId, skipping.');
       return;
     }
 
@@ -320,7 +320,7 @@ class _ResultScreenState extends State<ResultScreen>
       'item': widget.classification.itemName,
     });
     try {
-      final link = await DynamicLinkService.createResultLink(widget.classification);
+      final link = DynamicLinkService.createResultLink(widget.classification);
       await ShareService.share(
         text:
             'I identified ${widget.classification.itemName} as ${widget.classification.category} waste using the Waste Segregation app!\n$link',
@@ -645,7 +645,6 @@ class _ResultScreenState extends State<ResultScreen>
                           title: 'Explanation',
                           content: widget.classification.explanation,
                           titleIcon: Icons.info_outline,
-                          trimLines: 3,
                         ),
                         const SizedBox(height: 24),
                         ExpandableSection(
@@ -679,7 +678,7 @@ class _ResultScreenState extends State<ResultScreen>
                           const SizedBox(height: 16),
                           ModernCard(
                             child: ListTile(
-                              leading: Icon(Icons.emoji_events,
+                              leading: const Icon(Icons.emoji_events,
                                   color: Colors.amber, size: 32),
                               title: Text(_completedChallenge!.title),
                               subtitle: Text(_completedChallenge!.description),
@@ -739,17 +738,16 @@ class _ResultScreenState extends State<ResultScreen>
                             });
                           },
                         ),
-                        if (widget.classification.disposalInstructions !=
-                            null) ...[
-                          const SizedBox(height: 24),
-                          DisposalInstructionsWidget(
-                            instructions:
-                                widget.classification.disposalInstructions,
-                            onStepCompleted: (step) {
-                              _awardPointsForDisposalStep();
-                            },
-                          ),
-                        ],
+                        ...[
+                        const SizedBox(height: 24),
+                        DisposalInstructionsWidget(
+                          instructions:
+                              widget.classification.disposalInstructions,
+                          onStepCompleted: (step) {
+                            _awardPointsForDisposalStep();
+                          },
+                        ),
+                      ],
                         const SizedBox(height: 24),
                       ],
                     ),
@@ -1023,7 +1021,7 @@ class _ResultScreenState extends State<ResultScreen>
     _analyticsService.trackUserAction('classification_reanalyze');
     Navigator.pushReplacement(
       context,
-      MaterialPageRoute(builder: (_) => ImageCaptureScreen()),
+      MaterialPageRoute(builder: (_) => const ImageCaptureScreen()),
     );
   }
 
@@ -1040,7 +1038,6 @@ class _ResultScreenState extends State<ResultScreen>
         borderRadius: BorderRadius.circular(AppTheme.borderRadiusRegular),
         border: Border.all(
           color: Colors.orange.shade300,
-          width: 1,
         ),
       ),
       child: Column(

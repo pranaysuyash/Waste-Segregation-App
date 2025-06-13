@@ -67,12 +67,11 @@ class _PolishedSettingsScreenState extends State<PolishedSettingsScreen>
 
   @override
   Widget buildWithTracking(BuildContext context) {
-    Widget content = _buildContent();
+    var content = _buildContent();
 
     // Wrap with performance monitoring if enabled
     if (widget.enablePerformanceMonitoring) {
       content = PerformanceAwareSettingsScreen(
-        enableMonitoring: true,
         child: content,
       );
     }
@@ -252,7 +251,7 @@ class _PolishedSettingsScreenState extends State<PolishedSettingsScreen>
   List<Widget> _interleaveSectionsWithSpacing(List<Widget> sections) {
     final result = <Widget>[];
     
-    for (int i = 0; i < sections.length; i++) {
+    for (var i = 0; i < sections.length; i++) {
       result.add(sections[i]);
       
       if (i < sections.length - 1) {
@@ -427,7 +426,6 @@ class GoldenTestSettingsScreen extends StatelessWidget {
         child: const PolishedSettingsScreen(
           enableAnimations: false, // Disable for consistent golden tests
           enablePerformanceMonitoring: false,
-          enableResponsiveLayout: true,
         ),
       ),
     );

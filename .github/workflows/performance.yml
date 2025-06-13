@@ -1,0 +1,251 @@
+name: Performance Monitoring
+
+on:
+  pull_request:
+    branches: [ main, develop ]
+  push:
+    branches: [ main, develop ]
+  schedule:
+    # Run performance benchmarks weekly
+    - cron: '0 3 * * 1'
+
+jobs:
+  performance-analysis:
+    name: Performance Analysis
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Flutter
+      uses: subosito/flutter-action@v2
+      with:
+        flutter-version: '3.24.5'
+        channel: 'stable'
+        
+    - name: Get dependencies
+      run: flutter pub get
+      
+    - name: Run performance tests
+      run: |
+        echo "## 📊 Performance Analysis Report" > performance-report.md
+        echo "" >> performance-report.md
+        echo "**Generated**: $(date)" >> performance-report.md
+        echo "**Commit**: ${{ github.sha }}" >> performance-report.md
+        echo "" >> performance-report.md
+        
+        # Run integration tests with performance metrics
+        if [ -d "integration_test" ]; then
+          echo "### 🧪 Integration Test Performance" >> performance-report.md
+          flutter test integration_test/ --reporter=json > integration_results.json || true
+          
+          if [ -f integration_results.json ]; then
+            # Extract timing information from test results
+            TOTAL_TESTS=$(jq '[.[] | select(.type == "testDone")] | length' integration_results.json 2>/dev/null || echo "0")
+            echo "- **Total integration tests**: $TOTAL_TESTS" >> performance-report.md
+            
+            # Calculate average test duration
+            AVG_DURATION=$(jq '[.[] | select(.type == "testDone") | .time] | add / length' integration_results.json 2>/dev/null || echo "N/A")
+            echo "- **Average test duration**: ${AVG_DURATION}ms" >> performance-report.md
+          else
+            echo "- **Integration tests**: No performance data available" >> performance-report.md
+          fi
+        else
+          echo "- **Integration tests**: Not found" >> performance-report.md
+        fi
+        
+        echo "" >> performance-report.md
+        
+    - name: Analyze build performance
+      run: |
+        echo "### 🏗️ Build Performance" >> performance-report.md
+        echo "" >> performance-report.md
+        
+        # Time the build process
+        START_TIME=$(date +%s)
+        
+        # Build APK with size analysis
+        flutter build apk --release --analyze-size --target-platform android-arm64 2>&1 | tee build-output.txt
+        
+        END_TIME=$(date +%s)
+        BUILD_DURATION=$((END_TIME - START_TIME))
+        
+        echo "- **Build duration**: ${BUILD_DURATION} seconds" >> performance-report.md
+        
+        # Extract app size information
+        if [ -f "build/app/outputs/flutter-apk/app-release.apk" ]; then
+          APK_SIZE=$(stat -f%z "build/app/outputs/flutter-apk/app-release.apk" 2>/dev/null || stat -c%s "build/app/outputs/flutter-apk/app-release.apk" 2>/dev/null || echo "Unknown")
+          APK_SIZE_MB=$(echo "scale=2; $APK_SIZE / 1048576" | bc 2>/dev/null || echo "N/A")
+          echo "- **APK size**: ${APK_SIZE_MB} MB" >> performance-report.md
+        fi
+        
+        # Check for size analysis output
+        if grep -q "app-release.apk" build-output.txt; then
+          echo "- **Size analysis**: Available in build logs" >> performance-report.md
+        fi
+        
+        echo "" >> performance-report.md
+        
+    - name: Memory and resource analysis
+      run: |
+        echo "### 💾 Resource Analysis" >> performance-report.md
+        echo "" >> performance-report.md
+        
+        # Analyze Dart code metrics
+        echo "#### Code Metrics" >> performance-report.md
+        
+        # Count lines of code
+        LOC=$(find lib/ -name "*.dart" -exec wc -l {} + | tail -n 1 | awk '{print $1}' 2>/dev/null || echo "N/A")
+        echo "- **Lines of Dart code**: $LOC" >> performance-report.md
+        
+        # Count Dart files
+        DART_FILES=$(find lib/ -name "*.dart" | wc -l)
+        echo "- **Dart files**: $DART_FILES" >> performance-report.md
+        
+        # Count test files
+        TEST_FILES=$(find test/ -name "*.dart" | wc -l 2>/dev/null || echo "0")
+        echo "- **Test files**: $TEST_FILES" >> performance-report.md
+        
+        # Test coverage if available
+        if [ -f "coverage/lcov.info" ]; then
+          COVERAGE=$(lcov --summary coverage/lcov.info 2>/dev/null | grep "lines" | awk '{print $2}' || echo "N/A")
+          echo "- **Test coverage**: $COVERAGE" >> performance-report.md
+        fi
+        
+        echo "" >> performance-report.md
+        
+    - name: Dependency analysis
+      run: |
+        echo "### 📦 Dependency Analysis" >> performance-report.md
+        echo "" >> performance-report.md
+        
+        # Analyze pubspec dependencies
+        DIRECT_DEPS=$(grep -c "^  [a-zA-Z]" pubspec.yaml || echo "0")
+        echo "- **Direct dependencies**: $DIRECT_DEPS" >> performance-report.md
+        
+        # Check for outdated dependencies
+        flutter pub outdated --json > outdated.json 2>/dev/null || true
+        if [ -f outdated.json ]; then
+          OUTDATED_COUNT=$(jq '.packages | length' outdated.json 2>/dev/null || echo "0")
+          echo "- **Outdated dependencies**: $OUTDATED_COUNT" >> performance-report.md
+        fi
+        
+        # Generate dependency tree size
+        flutter pub deps --json > deps.json 2>/dev/null || true
+        if [ -f deps.json ]; then
+          TOTAL_DEPS=$(jq '.packages | length' deps.json 2>/dev/null || echo "N/A")
+          echo "- **Total dependencies**: $TOTAL_DEPS" >> performance-report.md
+        fi
+        
+        echo "" >> performance-report.md
+        
+    - name: AI/ML performance metrics
+      run: |
+        echo "### 🤖 AI/ML Performance" >> performance-report.md
+        echo "" >> performance-report.md
+        
+        # Check for AI-related assets
+        if [ -d "assets/models" ]; then
+          MODEL_COUNT=$(find assets/models -name "*.tflite" -o -name "*.mlmodel" | wc -l)
+          echo "- **ML models**: $MODEL_COUNT" >> performance-report.md
+          
+          # Calculate total model size
+          MODEL_SIZE=$(find assets/models -name "*.tflite" -o -name "*.mlmodel" -exec stat -f%z {} + 2>/dev/null | awk '{sum+=$1} END {print sum/1048576}' || echo "N/A")
+          echo "- **Total model size**: ${MODEL_SIZE} MB" >> performance-report.md
+        else
+          echo "- **ML models**: Not found in assets/models" >> performance-report.md
+        fi
+        
+        # Check for AI test performance
+        if [ -d "test/ai" ]; then
+          echo "- **AI tests**: Available" >> performance-report.md
+        else
+          echo "- **AI tests**: Not found" >> performance-report.md
+        fi
+        
+        echo "" >> performance-report.md
+        
+    - name: Generate performance summary
+      run: |
+        echo "### 📈 Performance Summary" >> performance-report.md
+        echo "" >> performance-report.md
+        
+        # Create a performance score based on various metrics
+        SCORE=100
+        
+        # Deduct points for large APK size (if > 50MB)
+        if [ -f "build/app/outputs/flutter-apk/app-release.apk" ]; then
+          APK_SIZE=$(stat -f%z "build/app/outputs/flutter-apk/app-release.apk" 2>/dev/null || stat -c%s "build/app/outputs/flutter-apk/app-release.apk" 2>/dev/null || echo "0")
+          if [ "$APK_SIZE" -gt 52428800 ]; then  # 50MB
+            SCORE=$((SCORE - 10))
+            echo "⚠️ **Large APK size detected** (>50MB)" >> performance-report.md
+          fi
+        fi
+        
+        # Check build time (if > 5 minutes)
+        if [ -f build-output.txt ] && grep -q "Built build/app/outputs/flutter-apk/app-release.apk" build-output.txt; then
+          echo "✅ **Build completed successfully**" >> performance-report.md
+        fi
+        
+        # Add recommendations
+        echo "" >> performance-report.md
+        echo "### 💡 Recommendations" >> performance-report.md
+        echo "" >> performance-report.md
+        
+        if [ "$SCORE" -lt 80 ]; then
+          echo "- Consider optimizing app size and build performance" >> performance-report.md
+        else
+          echo "- Performance metrics look good!" >> performance-report.md
+        fi
+        
+        if [ -f outdated.json ]; then
+          OUTDATED_COUNT=$(jq '.packages | length' outdated.json 2>/dev/null || echo "0")
+          if [ "$OUTDATED_COUNT" -gt 5 ]; then
+            echo "- Consider updating outdated dependencies" >> performance-report.md
+          fi
+        fi
+        
+        echo "- Run performance tests on physical devices for real-world metrics" >> performance-report.md
+        echo "- Monitor memory usage during AI classification tasks" >> performance-report.md
+        
+        echo "" >> performance-report.md
+        echo "**Performance Score**: $SCORE/100" >> performance-report.md
+        
+        # Display the full report
+        cat performance-report.md
+        
+    - name: Upload performance artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: performance-analysis
+        path: |
+          performance-report.md
+          integration_results.json
+          build-output.txt
+          deps.json
+          outdated.json
+          
+    - name: Comment on PR with performance results
+      if: github.event_name == 'pull_request'
+      uses: actions/github-script@v6
+      with:
+        script: |
+          const fs = require('fs');
+          
+          if (fs.existsSync('performance-report.md')) {
+            const performanceReport = fs.readFileSync('performance-report.md', 'utf8');
+            
+            let comment = `## 📊 Performance Analysis Results\n\n`;
+            comment += performanceReport;
+            comment += `\n\n---\n`;
+            comment += `📁 **Full analysis available in the \`performance-analysis\` artifact**\n`;
+            comment += `*Automated performance monitoring via GitHub Actions*`;
+            
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: comment
+            });
+          }

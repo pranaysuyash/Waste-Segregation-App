@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
-import 'dart:typed_data';
 import 'package:flutter/foundation.dart';
 
 import '../models/waste_classification.dart';
@@ -13,12 +12,12 @@ import '../screens/result_screen.dart';
 /// Screen that performs instant analysis without showing review screen
 /// Provides the most streamlined experience: capture → analyze → results
 class InstantAnalysisScreen extends StatefulWidget {
-  final XFile image;
 
   const InstantAnalysisScreen({
-    Key? key,
+    super.key,
     required this.image,
-  }) : super(key: key);
+  });
+  final XFile image;
 
   @override
   State<InstantAnalysisScreen> createState() => _InstantAnalysisScreenState();
@@ -60,7 +59,7 @@ class _InstantAnalysisScreenState extends State<InstantAnalysisScreen> {
         result = await aiService.analyzeImage(file);
       }
 
-      if (!_isCancelled && result != null && mounted) {
+      if (!_isCancelled && mounted) {
         debugPrint('Navigation to results screen with classification');
         
         // Navigate to results screen and return the result to parent

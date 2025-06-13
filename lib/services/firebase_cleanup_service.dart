@@ -463,7 +463,7 @@ class FirebaseCleanupService {
     final collection = _firestore.collection(collectionName);
     
     QuerySnapshot snapshot;
-    int totalDeleted = 0;
+    var totalDeleted = 0;
     
     do {
       snapshot = await collection.limit(50).get();

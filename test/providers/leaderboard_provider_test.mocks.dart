@@ -7,6 +7,8 @@ import 'dart:async' as _i3;
 
 import 'package:mockito/mockito.dart' as _i1;
 import 'package:mockito/src/dummies.dart' as _i9;
+import 'package:waste_segregation_app/models/classification_feedback.dart'
+    as _i10;
 import 'package:waste_segregation_app/models/filter_options.dart' as _i8;
 import 'package:waste_segregation_app/models/leaderboard.dart' as _i4;
 import 'package:waste_segregation_app/models/user_profile.dart' as _i6;
@@ -213,6 +215,7 @@ class MockStorageService extends _i1.Mock implements _i5.StorageService {
   _i3.Future<void> saveSettings({
     required bool? isDarkMode,
     required bool? isGoogleSyncEnabled,
+    DateTime? lastCloudSync,
     bool? allowHistoryFeedback,
     int? feedbackTimeframeDays,
     bool? notifications,
@@ -227,6 +230,7 @@ class MockStorageService extends _i1.Mock implements _i5.StorageService {
           {
             #isDarkMode: isDarkMode,
             #isGoogleSyncEnabled: isGoogleSyncEnabled,
+            #lastCloudSync: lastCloudSync,
             #allowHistoryFeedback: allowHistoryFeedback,
             #feedbackTimeframeDays: feedbackTimeframeDays,
             #notifications: notifications,
@@ -238,6 +242,26 @@ class MockStorageService extends _i1.Mock implements _i5.StorageService {
         returnValue: _i3.Future<void>.value(),
         returnValueForMissingStub: _i3.Future<void>.value(),
       ) as _i3.Future<void>);
+
+  @override
+  _i3.Future<void> updateLastCloudSync(DateTime? timestamp) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #updateLastCloudSync,
+          [timestamp],
+        ),
+        returnValue: _i3.Future<void>.value(),
+        returnValueForMissingStub: _i3.Future<void>.value(),
+      ) as _i3.Future<void>);
+
+  @override
+  _i3.Future<DateTime?> getLastCloudSync() => (super.noSuchMethod(
+        Invocation.method(
+          #getLastCloudSync,
+          [],
+        ),
+        returnValue: _i3.Future<DateTime?>.value(),
+      ) as _i3.Future<DateTime?>);
 
   @override
   _i3.Future<Map<String, dynamic>> getSettings() => (super.noSuchMethod(
@@ -385,4 +409,37 @@ class MockStorageService extends _i1.Mock implements _i5.StorageService {
         ),
         returnValue: _i3.Future<int>.value(0),
       ) as _i3.Future<int>);
+
+  @override
+  _i3.Future<void> saveClassificationFeedback(
+          _i10.ClassificationFeedback? feedback) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #saveClassificationFeedback,
+          [feedback],
+        ),
+        returnValue: _i3.Future<void>.value(),
+        returnValueForMissingStub: _i3.Future<void>.value(),
+      ) as _i3.Future<void>);
+
+  @override
+  _i3.Future<List<_i10.ClassificationFeedback>>
+      getAllClassificationFeedback() => (super.noSuchMethod(
+            Invocation.method(
+              #getAllClassificationFeedback,
+              [],
+            ),
+            returnValue: _i3.Future<List<_i10.ClassificationFeedback>>.value(
+                <_i10.ClassificationFeedback>[]),
+          ) as _i3.Future<List<_i10.ClassificationFeedback>>);
+
+  @override
+  _i3.Future<void> migrateOldClassifications() => (super.noSuchMethod(
+        Invocation.method(
+          #migrateOldClassifications,
+          [],
+        ),
+        returnValue: _i3.Future<void>.value(),
+        returnValueForMissingStub: _i3.Future<void>.value(),
+      ) as _i3.Future<void>);
 }

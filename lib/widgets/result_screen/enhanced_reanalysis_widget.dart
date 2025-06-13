@@ -5,15 +5,9 @@ import '../../models/waste_classification.dart';
 import '../../services/ai_service.dart';
 import '../../services/analytics_service.dart';
 import '../../services/haptic_settings_service.dart';
-import '../../screens/result_screen.dart';
 
 /// Enhanced re-analysis widget with better UI hooks and user experience
 class EnhancedReanalysisWidget extends StatefulWidget {
-  final WasteClassification classification;
-  final String? userCorrection;
-  final String? userNotes;
-  final VoidCallback? onReanalysisStarted;
-  final Function(WasteClassification)? onReanalysisCompleted;
 
   const EnhancedReanalysisWidget({
     super.key,
@@ -23,6 +17,11 @@ class EnhancedReanalysisWidget extends StatefulWidget {
     this.onReanalysisStarted,
     this.onReanalysisCompleted,
   });
+  final WasteClassification classification;
+  final String? userCorrection;
+  final String? userNotes;
+  final VoidCallback? onReanalysisStarted;
+  final Function(WasteClassification)? onReanalysisCompleted;
 
   @override
   State<EnhancedReanalysisWidget> createState() => _EnhancedReanalysisWidgetState();
@@ -91,11 +90,10 @@ class _EnhancedReanalysisWidgetState extends State<EnhancedReanalysisWidget>
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
           color: isLowConfidence ? Colors.orange.shade300 : Colors.blue.shade300,
-          width: 1,
         ),
         boxShadow: [
           BoxShadow(
-            color: (isLowConfidence ? Colors.orange : Colors.blue).withOpacity(0.1),
+            color: (isLowConfidence ? Colors.orange : Colors.blue).withValues(alpha: 0.1),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),

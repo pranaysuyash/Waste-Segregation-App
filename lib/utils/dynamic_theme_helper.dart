@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:dynamic_color/dynamic_color.dart';
-import 'constants.dart';
 
 /// Helper class for Material You dynamic colors with WCAG contrast validation
 class DynamicThemeHelper {
@@ -24,7 +22,6 @@ class DynamicThemeHelper {
       // Fallback to seed-based color scheme
       colorScheme = ColorScheme.fromSeed(
         seedColor: fallbackSeedColor,
-        brightness: Brightness.light,
       );
     }
     

@@ -136,7 +136,6 @@ class _ClassificationDetailsScreenState extends State<ClassificationDetailsScree
                           child: ImageUtils.buildImage(
                             imageSource: originalClassification.imageUrl!,
                             height: MediaQuery.of(context).size.height * 0.25,
-                            fit: BoxFit.cover,
                             errorWidget: Container(
                               height: MediaQuery.of(context).size.height * 0.25,
                               decoration: BoxDecoration(
@@ -157,7 +156,7 @@ class _ClassificationDetailsScreenState extends State<ClassificationDetailsScree
                   const SizedBox(height: AppTheme.spacingMd),
                   Row(
                     children: [
-                      Icon(Icons.person, size: 16, color: AppTheme.textSecondaryColor),
+                      const Icon(Icons.person, size: 16, color: AppTheme.textSecondaryColor),
                       const SizedBox(width: AppTheme.spacingXs),
                       Text(
                         'Shared by ${widget.classification.sharedByDisplayName}',
@@ -170,7 +169,7 @@ class _ClassificationDetailsScreenState extends State<ClassificationDetailsScree
                   const SizedBox(height: AppTheme.spacingXs),
                   Row(
                     children: [
-                      Icon(Icons.access_time, size: 16, color: AppTheme.textSecondaryColor),
+                      const Icon(Icons.access_time, size: 16, color: AppTheme.textSecondaryColor),
                       const SizedBox(width: AppTheme.spacingXs),
                       Text(
                         _formatDateWithIntl(widget.classification.sharedAt),
@@ -207,7 +206,7 @@ class _ClassificationDetailsScreenState extends State<ClassificationDetailsScree
             padding: const EdgeInsets.only(bottom: AppTheme.spacingMd),
             child: Row(
               children: [
-                Icon(Icons.emoji_emotions, color: AppTheme.primaryColor),
+                const Icon(Icons.emoji_emotions, color: AppTheme.primaryColor),
                 const SizedBox(width: AppTheme.spacingSm),
                 Text(
                   'Reactions',
@@ -239,7 +238,6 @@ class _ClassificationDetailsScreenState extends State<ClassificationDetailsScree
                           color: AppTheme.primaryColor.withValues(alpha: 0.1),
                           border: Border.all(
                             color: AppTheme.primaryColor.withValues(alpha: 0.3),
-                            width: 1,
                           ),
                           borderRadius: BorderRadius.circular(AppTheme.borderRadiusSm),
                         ),
@@ -256,8 +254,7 @@ class _ClassificationDetailsScreenState extends State<ClassificationDetailsScree
                   final reaction = widget.classification.reactions[i];
                   return Column(
                     children: [
-                      reaction.photoUrl != null && reaction.photoUrl!.isNotEmpty
-                        ? ImageUtils.buildCircularAvatar(
+                      if (reaction.photoUrl != null && reaction.photoUrl!.isNotEmpty) ImageUtils.buildCircularAvatar(
                             imageSource: reaction.photoUrl!,
                             radius: 20,
                             backgroundColor: _getAvatarColor(reaction.displayName),
@@ -268,8 +265,7 @@ class _ClassificationDetailsScreenState extends State<ClassificationDetailsScree
                                 color: Colors.white,
                               ),
                             ),
-                          )
-                        : CircleAvatar(
+                          ) else CircleAvatar(
                             radius: 20,
                             backgroundColor: _getAvatarColor(reaction.displayName),
                             child: Text(
@@ -296,7 +292,7 @@ class _ClassificationDetailsScreenState extends State<ClassificationDetailsScree
                 padding: const EdgeInsets.symmetric(vertical: AppTheme.spacingMd),
                 child: Column(
                   children: [
-                    Icon(
+                    const Icon(
                       Icons.emoji_emotions_outlined,
                       size: 48,
                       color: AppTheme.textDisabledColor,
@@ -322,8 +318,7 @@ class _ClassificationDetailsScreenState extends State<ClassificationDetailsScree
               padding: const EdgeInsets.symmetric(vertical: AppTheme.spacingXs),
               child: Row(
                 children: [
-                  reaction.photoUrl != null && reaction.photoUrl!.isNotEmpty
-                    ? ImageUtils.buildCircularAvatar(
+                  if (reaction.photoUrl != null && reaction.photoUrl!.isNotEmpty) ImageUtils.buildCircularAvatar(
                         imageSource: reaction.photoUrl!,
                         radius: 16,
                         backgroundColor: _getAvatarColor(reaction.displayName),
@@ -335,8 +330,7 @@ class _ClassificationDetailsScreenState extends State<ClassificationDetailsScree
                             color: Colors.white,
                           ),
                         ),
-                      )
-                    : CircleAvatar(
+                      ) else CircleAvatar(
                         radius: 16,
                         backgroundColor: _getAvatarColor(reaction.displayName),
                         child: Text(
@@ -364,7 +358,6 @@ class _ClassificationDetailsScreenState extends State<ClassificationDetailsScree
                       color: _getReactionColor(reaction.type).withValues(alpha: 0.1),
                       border: Border.all(
                         color: _getReactionColor(reaction.type).withValues(alpha: 0.3),
-                        width: 1,
                       ),
                       borderRadius: BorderRadius.circular(AppTheme.borderRadiusSm),
                     ),
@@ -405,7 +398,7 @@ class _ClassificationDetailsScreenState extends State<ClassificationDetailsScree
             padding: const EdgeInsets.only(bottom: AppTheme.spacingMd),
             child: Row(
               children: [
-                Icon(Icons.chat_bubble_outline, color: AppTheme.primaryColor),
+                const Icon(Icons.chat_bubble_outline, color: AppTheme.primaryColor),
                 const SizedBox(width: AppTheme.spacingSm),
                 Text(
                   'Comments',
@@ -437,8 +430,7 @@ class _ClassificationDetailsScreenState extends State<ClassificationDetailsScree
                       child: Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          comment.photoUrl != null && comment.photoUrl!.isNotEmpty
-                            ? ImageUtils.buildCircularAvatar(
+                          if (comment.photoUrl != null && comment.photoUrl!.isNotEmpty) ImageUtils.buildCircularAvatar(
                                 imageSource: comment.photoUrl!,
                                 radius: 18,
                                 backgroundColor: _getAvatarColor(comment.displayName),
@@ -449,8 +441,7 @@ class _ClassificationDetailsScreenState extends State<ClassificationDetailsScree
                                     color: Colors.white,
                                   ),
                                 ),
-                              )
-                            : CircleAvatar(
+                              ) else CircleAvatar(
                                 radius: 18,
                                 backgroundColor: _getAvatarColor(comment.displayName),
                                 child: Text(
@@ -509,7 +500,7 @@ class _ClassificationDetailsScreenState extends State<ClassificationDetailsScree
                 padding: const EdgeInsets.symmetric(vertical: AppTheme.spacingMd),
                 child: Column(
                   children: [
-                    Icon(
+                    const Icon(
                       Icons.chat_bubble_outline,
                       size: 48,
                       color: AppTheme.textDisabledColor,

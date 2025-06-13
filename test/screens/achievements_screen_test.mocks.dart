@@ -4,6 +4,7 @@
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
 import 'dart:async' as _i4;
+import 'dart:ui' as _i7;
 
 import 'package:mockito/mockito.dart' as _i1;
 import 'package:waste_segregation_app/models/educational_content.dart' as _i6;
@@ -66,6 +67,12 @@ class MockGamificationService extends _i1.Mock
   }
 
   @override
+  bool get hasListeners => (super.noSuchMethod(
+        Invocation.getter(#hasListeners),
+        returnValue: false,
+      ) as bool);
+
+  @override
   _i4.Future<void> initGamification() => (super.noSuchMethod(
         Invocation.method(
           #initGamification,
@@ -76,10 +83,13 @@ class MockGamificationService extends _i1.Mock
       ) as _i4.Future<void>);
 
   @override
-  _i4.Future<_i2.GamificationProfile> getProfile() => (super.noSuchMethod(
+  _i4.Future<_i2.GamificationProfile> getProfile(
+          {bool? forceRefresh = false}) =>
+      (super.noSuchMethod(
         Invocation.method(
           #getProfile,
           [],
+          {#forceRefresh: forceRefresh},
         ),
         returnValue: _i4.Future<_i2.GamificationProfile>.value(
             _FakeGamificationProfile_0(
@@ -87,6 +97,7 @@ class MockGamificationService extends _i1.Mock
           Invocation.method(
             #getProfile,
             [],
+            {#forceRefresh: forceRefresh},
           ),
         )),
       ) as _i4.Future<_i2.GamificationProfile>);
@@ -145,6 +156,27 @@ class MockGamificationService extends _i1.Mock
           ),
         )),
       ) as _i4.Future<_i2.UserPoints>);
+
+  @override
+  _i4.Future<void> syncClassificationPoints() => (super.noSuchMethod(
+        Invocation.method(
+          #syncClassificationPoints,
+          [],
+        ),
+        returnValue: _i4.Future<void>.value(),
+        returnValueForMissingStub: _i4.Future<void>.value(),
+      ) as _i4.Future<void>);
+
+  @override
+  _i4.Future<void> syncAchievementProgressFromClassifications() =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #syncAchievementProgressFromClassifications,
+          [],
+        ),
+        returnValue: _i4.Future<void>.value(),
+        returnValueForMissingStub: _i4.Future<void>.value(),
+      ) as _i4.Future<void>);
 
   @override
   _i4.Future<List<_i2.Challenge>> processClassification(
@@ -282,6 +314,16 @@ class MockGamificationService extends _i1.Mock
       ) as _i4.Future<_i2.GamificationProfile>);
 
   @override
+  _i4.Future<void> forceCompleteSyncAndRefresh() => (super.noSuchMethod(
+        Invocation.method(
+          #forceCompleteSyncAndRefresh,
+          [],
+        ),
+        returnValue: _i4.Future<void>.value(),
+        returnValueForMissingStub: _i4.Future<void>.value(),
+      ) as _i4.Future<void>);
+
+  @override
   _i4.Future<void> syncGamificationData() => (super.noSuchMethod(
         Invocation.method(
           #syncGamificationData,
@@ -290,4 +332,59 @@ class MockGamificationService extends _i1.Mock
         returnValue: _i4.Future<void>.value(),
         returnValueForMissingStub: _i4.Future<void>.value(),
       ) as _i4.Future<void>);
+
+  @override
+  _i4.Future<void> syncWeeklyStatsWithClassifications() => (super.noSuchMethod(
+        Invocation.method(
+          #syncWeeklyStatsWithClassifications,
+          [],
+        ),
+        returnValue: _i4.Future<void>.value(),
+        returnValueForMissingStub: _i4.Future<void>.value(),
+      ) as _i4.Future<void>);
+
+  @override
+  void clearCache() => super.noSuchMethod(
+        Invocation.method(
+          #clearCache,
+          [],
+        ),
+        returnValueForMissingStub: null,
+      );
+
+  @override
+  void addListener(_i7.VoidCallback? listener) => super.noSuchMethod(
+        Invocation.method(
+          #addListener,
+          [listener],
+        ),
+        returnValueForMissingStub: null,
+      );
+
+  @override
+  void removeListener(_i7.VoidCallback? listener) => super.noSuchMethod(
+        Invocation.method(
+          #removeListener,
+          [listener],
+        ),
+        returnValueForMissingStub: null,
+      );
+
+  @override
+  void dispose() => super.noSuchMethod(
+        Invocation.method(
+          #dispose,
+          [],
+        ),
+        returnValueForMissingStub: null,
+      );
+
+  @override
+  void notifyListeners() => super.noSuchMethod(
+        Invocation.method(
+          #notifyListeners,
+          [],
+        ),
+        returnValueForMissingStub: null,
+      );
 }

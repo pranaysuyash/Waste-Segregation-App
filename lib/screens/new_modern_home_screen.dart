@@ -4,7 +4,6 @@ import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:tutorial_coach_mark/tutorial_coach_mark.dart';
-import 'package:flutter_speed_dial/flutter_speed_dial.dart';
 
 import '../utils/constants.dart';
 import '../models/waste_classification.dart';
@@ -14,7 +13,6 @@ import '../services/cloud_storage_service.dart';
 import '../services/gamification_service.dart';
 import '../services/community_service.dart';
 import '../widgets/modern_ui/modern_cards.dart';
-import '../widgets/modern_ui/modern_badges.dart';
 import '../widgets/classification_card.dart';
 import '../widgets/advanced_ui/achievement_celebration.dart';
 import 'image_capture_screen.dart';
@@ -23,7 +21,6 @@ import 'history_screen.dart';
 import 'achievements_screen.dart';
 import 'educational_content_screen.dart';
 import 'waste_dashboard_screen.dart';
-import 'disposal_facilities_screen.dart';
 import 'settings_screen.dart';
 import 'social_screen.dart';
 
@@ -63,14 +60,14 @@ final profileProvider = FutureProvider<GamificationProfile?>((ref) async {
 // Classifications provider
 final classificationsProvider = FutureProvider<List<WasteClassification>>((ref) async {
   final storageService = ref.watch(storageServiceProvider);
-  return await storageService.getAllClassifications();
+  return storageService.getAllClassifications();
 });
 
 // Navigation state provider
 final _navIndexProvider = StateProvider<int>((ref) => 0);
 
 class NewModernHomeScreen extends ConsumerStatefulWidget {
-  const NewModernHomeScreen({Key? key, this.isGuestMode = false}) : super(key: key);
+  const NewModernHomeScreen({super.key, this.isGuestMode = false});
   final bool isGuestMode;
 
   @override
@@ -169,11 +166,10 @@ class NewModernHomeScreenState extends ConsumerState<NewModernHomeScreen>
   void _prepareCoachTargets() {
     _targets = [
       TargetFocus(
-        identify: "takePhoto",
+        identify: 'takePhoto',
         keyTarget: _takePhotoKey,
         contents: [
           TargetContent(
-            align: ContentAlign.bottom,
             child: const Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -199,7 +195,7 @@ class NewModernHomeScreenState extends ConsumerState<NewModernHomeScreen>
         ],
       ),
       TargetFocus(
-        identify: "analytics",
+        identify: 'analytics',
         keyTarget: _analyticsTabKey,
         contents: [
           TargetContent(
@@ -237,10 +233,6 @@ class NewModernHomeScreenState extends ConsumerState<NewModernHomeScreen>
     try {
       _coachMark = TutorialCoachMark(
         targets: _targets,
-        colorShadow: Colors.black,
-        textSkip: "SKIP",
-        paddingFocus: 10,
-        opacityShadow: 0.8,
         onFinish: () {
           debugPrint('Tutorial finished');
         },
@@ -350,7 +342,7 @@ class NewModernHomeScreenState extends ConsumerState<NewModernHomeScreen>
   // Photo capture methods
   Future<void> _takePhoto(ImagePicker picker, BuildContext context) async {
     try {
-      final XFile? image = await picker.pickImage(
+      final image = await picker.pickImage(
         source: ImageSource.camera,
         maxWidth: 1024,
         maxHeight: 1024,
@@ -374,7 +366,7 @@ class NewModernHomeScreenState extends ConsumerState<NewModernHomeScreen>
 
   Future<void> _pickImage(ImagePicker picker, BuildContext context) async {
     try {
-      final XFile? image = await picker.pickImage(
+      final image = await picker.pickImage(
         source: ImageSource.gallery,
         maxWidth: 1024,
         maxHeight: 1024,
@@ -399,7 +391,7 @@ class NewModernHomeScreenState extends ConsumerState<NewModernHomeScreen>
   // Instant analyze methods
   Future<void> _takePhotoInstant(ImagePicker picker, BuildContext context) async {
     try {
-      final XFile? image = await picker.pickImage(
+      final image = await picker.pickImage(
         source: ImageSource.camera,
         maxWidth: 1024,
         maxHeight: 1024,
@@ -423,7 +415,7 @@ class NewModernHomeScreenState extends ConsumerState<NewModernHomeScreen>
 
   Future<void> _pickImageInstant(ImagePicker picker, BuildContext context) async {
     try {
-      final XFile? image = await picker.pickImage(
+      final image = await picker.pickImage(
         source: ImageSource.gallery,
         maxWidth: 1024,
         maxHeight: 1024,
@@ -459,7 +451,7 @@ class NewModernHomeScreenState extends ConsumerState<NewModernHomeScreen>
       result = await Navigator.push<WasteClassification>(
         context,
         MaterialPageRoute(
-          builder: (context) => ImageCaptureScreen.fromXFile(image, autoAnalyze: false),
+          builder: (context) => ImageCaptureScreen.fromXFile(image),
         ),
       );
     }
@@ -471,7 +463,7 @@ class NewModernHomeScreenState extends ConsumerState<NewModernHomeScreen>
 
   Future<WasteClassification?> _navigateToInstantAnalysis(XFile image) async {
     // Navigate directly to analysis loader, then to results
-    return await Navigator.push<WasteClassification>(
+    return Navigator.push<WasteClassification>(
       context,
       MaterialPageRoute(
         builder: (context) => InstantAnalysisScreen(image: image),
@@ -508,13 +500,13 @@ class NewModernHomeScreenState extends ConsumerState<NewModernHomeScreen>
       // Daily goal reached! Show celebration
       final dailyGoalAchievement = Achievement(
         id: 'daily_goal_${DateTime.now().day}',
-        title: "Daily Impact Goal Reached!",
+        title: 'Daily Impact Goal Reached!',
         description: "You've hit your $dailyGoal-point goal today!",
         type: AchievementType.userGoal,
         threshold: dailyGoal,
         pointsReward: 25,
         color: AppTheme.successColor,
-        iconName: "local_fire_department",
+        iconName: 'local_fire_department',
       );
       
       _showAchievementCelebration(dailyGoalAchievement);
@@ -555,7 +547,7 @@ class NewModernHomeScreenState extends ConsumerState<NewModernHomeScreen>
 
 // Connectivity banner widget
 class ConnectivityBanner extends StatelessWidget {
-  const ConnectivityBanner({Key? key}) : super(key: key);
+  const ConnectivityBanner({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -574,22 +566,22 @@ class ConnectivityBanner extends StatelessWidget {
 
 // Tab implementations with beautiful design
 class HomeTab extends ConsumerWidget {
-  final ImagePicker picker;
-  final GlobalKey takePhotoKey;
-  final Future<void> Function(ImagePicker, BuildContext) onTakePhoto;
-  final Future<void> Function(ImagePicker, BuildContext) onPickImage;
-  final Future<void> Function(ImagePicker, BuildContext) onTakePhotoInstant;
-  final Future<void> Function(ImagePicker, BuildContext) onPickImageInstant;
   
   const HomeTab({
-    Key? key, 
+    super.key, 
     required this.picker, 
     required this.takePhotoKey,
     required this.onTakePhoto,
     required this.onPickImage,
     required this.onTakePhotoInstant,
     required this.onPickImageInstant,
-  }) : super(key: key);
+  });
+  final ImagePicker picker;
+  final GlobalKey takePhotoKey;
+  final Future<void> Function(ImagePicker, BuildContext) onTakePhoto;
+  final Future<void> Function(ImagePicker, BuildContext) onPickImage;
+  final Future<void> Function(ImagePicker, BuildContext) onTakePhotoInstant;
+  final Future<void> Function(ImagePicker, BuildContext) onPickImageInstant;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -663,7 +655,7 @@ class HomeTab extends ConsumerWidget {
                     color: Colors.white.withValues(alpha: 0.2),
                     borderRadius: BorderRadius.circular(AppTheme.borderRadiusMd),
                   ),
-                  child: Icon(
+                  child: const Icon(
                     Icons.eco,
                     color: Colors.white,
                     size: AppTheme.iconSizeLg,
@@ -1278,7 +1270,7 @@ class HomeTab extends ConsumerWidget {
                           fontSize: 12,
                         ),
                       ),
-                      avatar: Icon(Icons.eco, size: 16, color: Colors.green),
+                      avatar: const Icon(Icons.eco, size: 16, color: Colors.green),
                       visualDensity: VisualDensity.compact,
                     ),
                   const SizedBox(height: 8),
@@ -1475,7 +1467,7 @@ class HomeTab extends ConsumerWidget {
 }
 
 class AnalyticsTab extends ConsumerWidget {
-  const AnalyticsTab({Key? key}) : super(key: key);
+  const AnalyticsTab({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -1642,7 +1634,7 @@ class AnalyticsTab extends ConsumerWidget {
 }
 
 class LearnTab extends StatelessWidget {
-  const LearnTab({Key? key}) : super(key: key);
+  const LearnTab({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -1701,7 +1693,7 @@ class LearnTab extends StatelessWidget {
 }
 
 class CommunityTab extends ConsumerWidget {
-  const CommunityTab({Key? key}) : super(key: key);
+  const CommunityTab({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -1762,7 +1754,7 @@ class CommunityTab extends ConsumerWidget {
 }
 
 class ProfileTab extends ConsumerWidget {
-  const ProfileTab({Key? key}) : super(key: key);
+  const ProfileTab({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {

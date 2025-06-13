@@ -22,9 +22,6 @@ class _SocialScreenState extends State<SocialScreen> {
     final isIOS = Platform.isIOS;
     
     return Scaffold(
-      // Each screen manages its own AppBar. Removing the toggle row keeps the
-      // interface cleaner now that the FAB handles switching.
-      appBar: null,
       body: IndexedStack(
         index: _currentIndex,
         children: const [
@@ -35,7 +32,7 @@ class _SocialScreenState extends State<SocialScreen> {
             top: false,
             left: false,
             right: false,
-            child: FamilyDashboardScreen(showAppBar: true),
+            child: FamilyDashboardScreen(),
           ),
         ],
       ),

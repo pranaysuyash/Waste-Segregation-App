@@ -1,7 +1,6 @@
 // import 'dart:math' as math;
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:flutter/foundation.dart';
 import 'package:provider/provider.dart';
 import '../models/gamification.dart';
 import '../services/gamification_service.dart';
@@ -102,8 +101,9 @@ class _AchievementsScreenState extends State<AchievementsScreen>
       }
       
       // Even if there's an error, the service should provide a fallback profile
+      final scaffoldMessenger = ScaffoldMessenger.of(context);
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
+        scaffoldMessenger.showSnackBar(
           SnackBar(
             content: Text('Failed to load achievements: ${e.toString()}'),
             backgroundColor: Colors.orange,
@@ -132,12 +132,13 @@ class _AchievementsScreenState extends State<AchievementsScreen>
     } catch (e) {
       debugPrint('🔥 AchievementsScreen: Error refreshing profile: $e');
       
+      final scaffoldMessenger = ScaffoldMessenger.of(context);
       if (mounted) {
         setState(() {
           _hasLoadingError = true;
         });
         
-        ScaffoldMessenger.of(context).showSnackBar(
+        scaffoldMessenger.showSnackBar(
           SnackBar(
             content: Text('Failed to refresh achievements: ${e.toString()}'),
             backgroundColor: Colors.red,

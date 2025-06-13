@@ -10,9 +10,9 @@ class GlobalMenuWrapper extends StatelessWidget {
     return Stack(
       children: [
         child,
-        SafeArea(
-          minimum: const EdgeInsets.all(8.0),
-          child: const Align(
+        const SafeArea(
+          minimum: EdgeInsets.all(8.0),
+          child: Align(
             alignment: Alignment.topRight,
             child: GlobalSettingsMenu(),
           ),

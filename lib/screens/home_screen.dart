@@ -26,7 +26,6 @@ import '../widgets/capture_button.dart';
 import '../widgets/enhanced_gamification_widgets.dart';
 import '../widgets/gamification_widgets.dart';
 import '../widgets/responsive_text.dart';
-import '../widgets/animations/empty_state_animations.dart';
 import 'history_screen.dart';
 import 'image_capture_screen.dart';
 import 'result_screen.dart';

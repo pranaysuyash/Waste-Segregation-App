@@ -57,7 +57,6 @@ const _triggerTypeReverseMap = {
 
 // Value objects for strongly typed parameters
 class SpecificItemDiscoveryParams {
-  final String itemId;
   
   const SpecificItemDiscoveryParams({required this.itemId});
   
@@ -66,6 +65,7 @@ class SpecificItemDiscoveryParams {
       itemId: params['itemId'] as String? ?? '',
     );
   }
+  final String itemId;
   
   Map<String, dynamic> toJson() => {'itemId': itemId};
   
@@ -73,8 +73,6 @@ class SpecificItemDiscoveryParams {
 }
 
 class ItemCountByTagParams {
-  final String tag;
-  final int count;
   
   const ItemCountByTagParams({required this.tag, required this.count});
   
@@ -84,6 +82,8 @@ class ItemCountByTagParams {
       count: (params['count'] as num?)?.toInt() ?? 0,
     );
   }
+  final String tag;
+  final int count;
   
   Map<String, dynamic> toJson() => {'tag': tag, 'count': count};
   
@@ -91,8 +91,6 @@ class ItemCountByTagParams {
 }
 
 class ItemCountByCategoryParams {
-  final String category;
-  final int count;
   
   const ItemCountByCategoryParams({required this.category, required this.count});
   
@@ -102,6 +100,8 @@ class ItemCountByCategoryParams {
       count: (params['count'] as num?)?.toInt() ?? 0,
     );
   }
+  final String category;
+  final int count;
   
   Map<String, dynamic> toJson() => {'category': category, 'count': count};
   
@@ -109,8 +109,6 @@ class ItemCountByCategoryParams {
 }
 
 class ItemCountByMaterialParams {
-  final String material;
-  final int count;
   
   const ItemCountByMaterialParams({required this.material, required this.count});
   
@@ -120,6 +118,8 @@ class ItemCountByMaterialParams {
       count: (params['count'] as num?)?.toInt() ?? 0,
     );
   }
+  final String material;
+  final int count;
   
   Map<String, dynamic> toJson() => {'material': material, 'count': count};
   
@@ -127,9 +127,6 @@ class ItemCountByMaterialParams {
 }
 
 class SpecificItemSequenceParams {
-  final List<String> items;
-  final bool ordered;
-  final int withinSeconds;
   
   const SpecificItemSequenceParams({
     required this.items,
@@ -144,6 +141,9 @@ class SpecificItemSequenceParams {
       withinSeconds: (params['withinSeconds'] as num?)?.toInt() ?? 300,
     );
   }
+  final List<String> items;
+  final bool ordered;
+  final int withinSeconds;
   
   Map<String, dynamic> toJson() => {
     'items': items,
@@ -155,8 +155,6 @@ class SpecificItemSequenceParams {
 }
 
 class ClassificationAccuracyStreakParams {
-  final double accuracyThreshold;
-  final int streakLength;
   
   const ClassificationAccuracyStreakParams({
     required this.accuracyThreshold,
@@ -169,6 +167,8 @@ class ClassificationAccuracyStreakParams {
       streakLength: (params['streakLength'] as num?)?.toInt() ?? 10,
     );
   }
+  final double accuracyThreshold;
+  final int streakLength;
   
   Map<String, dynamic> toJson() => {
     'accuracyThreshold': accuracyThreshold,
@@ -179,11 +179,6 @@ class ClassificationAccuracyStreakParams {
 }
 
 class CombinedItemPropertiesParams {
-  final String? material;
-  final String? tag;
-  final String? era;
-  final String? category;
-  final int count;
   
   const CombinedItemPropertiesParams({
     this.material,
@@ -202,6 +197,11 @@ class CombinedItemPropertiesParams {
       count: (params['count'] as num?)?.toInt() ?? 1,
     );
   }
+  final String? material;
+  final String? tag;
+  final String? era;
+  final String? category;
+  final int count;
   
   Map<String, dynamic> toJson() => {
     if (material != null) 'material': material!,

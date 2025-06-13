@@ -96,7 +96,7 @@ class AiService {
   /// Prepares a new cancel token for the next analysis operation.
   /// Call this before starting any new analysis to reset cancellation state.
   void prepareCancelToken() {
-    _cancelToken?.cancel("New analysis started");
+    _cancelToken?.cancel('New analysis started');
     _cancelToken = CancelToken();
     debugPrint('🔄 New cancel token prepared for analysis');
   }
@@ -105,7 +105,7 @@ class AiService {
   /// This will immediately abort in-flight HTTP requests.
   void cancelAnalysis() {
     if (_cancelToken != null && !_cancelToken!.isCancelled) {
-      _cancelToken!.cancel("User requested cancellation");
+      _cancelToken!.cancel('User requested cancellation');
       debugPrint('❌ Analysis cancelled by user');
     }
   }

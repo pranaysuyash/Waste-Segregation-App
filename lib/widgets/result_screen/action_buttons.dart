@@ -3,10 +3,6 @@ import '../../utils/constants.dart';
 
 /// Action buttons for the result screen with proper state management
 class ActionButtons extends StatelessWidget {
-  final bool isSaved;
-  final bool isAutoSaving;
-  final VoidCallback onSave;
-  final VoidCallback onShare;
   
   const ActionButtons({
     super.key,
@@ -15,6 +11,10 @@ class ActionButtons extends StatelessWidget {
     required this.onSave,
     required this.onShare,
   });
+  final bool isSaved;
+  final bool isAutoSaving;
+  final VoidCallback onSave;
+  final VoidCallback onShare;
   
   @override
   Widget build(BuildContext context) {
@@ -56,7 +56,7 @@ class ActionButtons extends StatelessWidget {
             onPressed: onShare,
             style: OutlinedButton.styleFrom(
               foregroundColor: AppTheme.primaryColor,
-              side: BorderSide(
+              side: const BorderSide(
                 color: AppTheme.primaryColor,
                 width: 2,
               ),

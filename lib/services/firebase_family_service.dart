@@ -435,7 +435,7 @@ class FirebaseFamilyService {
       if (uniqueDays.isEmpty) return 0;
 
       var streak = 0;
-      var today = DateTime(now.year, now.month, now.day);
+      final today = DateTime(now.year, now.month, now.day);
       
       final firstDay = uniqueDays.first;
 

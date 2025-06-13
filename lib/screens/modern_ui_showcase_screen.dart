@@ -99,7 +99,7 @@ class _ModernUIShowcaseScreenState extends State<ModernUIShowcaseScreen> {
         const SizedBox(height: AppTheme.spacingMd),
         
         // Stats Card Row
-        Row(
+        const Row(
           children: [
             Expanded(
               child: StatsCard(
@@ -111,7 +111,7 @@ class _ModernUIShowcaseScreenState extends State<ModernUIShowcaseScreen> {
                 subtitle: 'This month',
               ),
             ),
-            const SizedBox(width: AppTheme.spacingMd),
+            SizedBox(width: AppTheme.spacingMd),
             Expanded(
               child: StatsCard(
                 title: 'Recycled',

@@ -147,7 +147,7 @@ class _AchievementCelebrationState extends State<AchievementCelebration>
                     height: double.infinity,
                     child: Stack(
                       children: [
-                        Container(color: Colors.black.withOpacity(0.7)),
+                        Container(color: Colors.black.withValues(alpha: 0.7)),
                         CustomPaint(
                           painter: ConfettiPainter(
                             particles: _confettiParticles,

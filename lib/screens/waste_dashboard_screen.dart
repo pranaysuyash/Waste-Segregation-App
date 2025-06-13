@@ -10,7 +10,6 @@ import '../services/gamification_service.dart';
 import '../models/gamification.dart';
 import '../widgets/waste_chart_widgets.dart';
 import 'package:fl_chart/fl_chart.dart';
-import '../providers/data_sync_provider.dart';
 
 enum _ChartTimescale { daily, weekly }
 
@@ -386,7 +385,7 @@ class _WasteDashboardScreenState extends State<WasteDashboardScreen>
                 },
               ),
             ),
-            leftTitles: AxisTitles(
+            leftTitles: const AxisTitles(
               sideTitles: SideTitles(showTitles: true),
             ),
           ),
@@ -432,7 +431,7 @@ class _WasteDashboardScreenState extends State<WasteDashboardScreen>
                 },
               ),
             ),
-            leftTitles: AxisTitles(
+            leftTitles: const AxisTitles(
               sideTitles: SideTitles(showTitles: true),
             ),
           ),

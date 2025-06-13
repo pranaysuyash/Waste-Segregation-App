@@ -24,8 +24,8 @@ extension ColorOpacity on Color {
   /// value between 0.0 (transparent) and 1.0 (opaque).
   Color withAlphaFraction(double fraction) {
     // Clamping to ensure the fraction is within the valid range.
-    final double clampedFraction = fraction.clamp(0.0, 1.0);
-    final int alpha = (clampedFraction * 255).round();
+    final clampedFraction = fraction.clamp(0.0, 1.0);
+    final alpha = (clampedFraction * 255).round();
     return withAlpha(alpha);
   }
 }

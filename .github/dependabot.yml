@@ -1,0 +1,36 @@
+version: 2
+updates:
+  # Keep GitHub Actions up to date
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+
+  # Keep Flutter/Dart dependencies up to date  
+  - package-ecosystem: "pub"
+    directory: "/"
+    schedule:
+      interval: "weekly" 
+    open-pull-requests-limit: 10
+    # Group patch updates together
+    groups:
+      patch-updates:
+        patterns:
+          - "*"
+        update-types:
+          - "patch"
+
+  # Keep Firebase dependencies aligned
+  - package-ecosystem: "pub"
+    directory: "/"
+    schedule:
+      interval: "monthly"
+    groups:
+      firebase-updates:
+        patterns:
+          - "firebase_*"
+          - "cloud_firestore*"
+        update-types:
+          - "minor"
+          - "patch"

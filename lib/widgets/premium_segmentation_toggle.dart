@@ -4,9 +4,6 @@ import '../services/premium_service.dart';
 
 /// Premium segmentation toggle widget with visual indicators for free tier users
 class PremiumSegmentationToggle extends StatelessWidget {
-  final bool value;
-  final ValueChanged<bool>? onChanged;
-  final VoidCallback? onUpgradePressed;
 
   const PremiumSegmentationToggle({
     super.key,
@@ -14,6 +11,9 @@ class PremiumSegmentationToggle extends StatelessWidget {
     this.onChanged,
     this.onUpgradePressed,
   });
+  final bool value;
+  final ValueChanged<bool>? onChanged;
+  final VoidCallback? onUpgradePressed;
 
   @override
   Widget build(BuildContext context) {

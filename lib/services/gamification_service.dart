@@ -205,8 +205,6 @@ class GamificationService extends ChangeNotifier {
         streaks: {
           StreakType.dailyClassification.toString(): StreakDetails(
             type: StreakType.dailyClassification,
-            currentCount: 0,
-            longestCount: 0,
             lastActivityDate: DateTime.now(),
           ),
         },
@@ -1420,7 +1418,7 @@ class GamificationService extends ChangeNotifier {
         'description': 'Identify 5 plastic items',
         'pointsReward': 25,
         'iconName': 'shopping_bag',
-        'color': AppTheme.dryWasteColor.value,
+        'color': AppTheme.dryWasteColor.toARGB32(),
         'requirements': {
           'subcategory': 'Plastic',
           'count': 5,
@@ -1431,7 +1429,7 @@ class GamificationService extends ChangeNotifier {
         'description': 'Identify 3 food waste items',
         'pointsReward': 20,
         'iconName': 'restaurant',
-        'color': AppTheme.wetWasteColor.value,
+        'color': AppTheme.wetWasteColor.toARGB32(),
         'requirements': {
           'subcategory': 'Food Waste',
           'count': 3,
@@ -1442,7 +1440,7 @@ class GamificationService extends ChangeNotifier {
         'description': 'Identify 5 recyclable items',
         'pointsReward': 25,
         'iconName': 'recycling',
-        'color': AppTheme.dryWasteColor.value,
+        'color': AppTheme.dryWasteColor.toARGB32(),
         'requirements': {
           'category': 'Dry Waste',
           'count': 5,
@@ -1453,7 +1451,7 @@ class GamificationService extends ChangeNotifier {
         'description': 'Identify 4 compostable items',
         'pointsReward': 20,
         'iconName': 'compost',
-        'color': AppTheme.wetWasteColor.value,
+        'color': AppTheme.wetWasteColor.toARGB32(),
         'requirements': {
           'category': 'Wet Waste',
           'count': 4,
@@ -1464,7 +1462,7 @@ class GamificationService extends ChangeNotifier {
         'description': 'Identify 2 hazardous waste items',
         'pointsReward': 30,
         'iconName': 'warning',
-        'color': AppTheme.hazardousWasteColor.value,
+        'color': AppTheme.hazardousWasteColor.toARGB32(),
         'requirements': {
           'category': 'Hazardous Waste',
           'count': 2,
@@ -1475,7 +1473,7 @@ class GamificationService extends ChangeNotifier {
         'description': 'Identify 2 medical waste items',
         'pointsReward': 30,
         'iconName': 'medical_services',
-        'color': AppTheme.medicalWasteColor.value,
+        'color': AppTheme.medicalWasteColor.toARGB32(),
         'requirements': {
           'category': 'Medical Waste',
           'count': 2,
@@ -1486,7 +1484,7 @@ class GamificationService extends ChangeNotifier {
         'description': 'Identify 3 reusable items',
         'pointsReward': 25,
         'iconName': 'autorenew',
-        'color': AppTheme.nonWasteColor.value,
+        'color': AppTheme.nonWasteColor.toARGB32(),
         'requirements': {
           'category': 'Non-Waste',
           'count': 3,
@@ -1497,7 +1495,7 @@ class GamificationService extends ChangeNotifier {
         'description': 'Identify 4 paper items',
         'pointsReward': 20,
         'iconName': 'description',
-        'color': AppTheme.dryWasteColor.value,
+        'color': AppTheme.dryWasteColor.toARGB32(),
         'requirements': {
           'subcategory': 'Paper',
           'count': 4,
@@ -1508,7 +1506,7 @@ class GamificationService extends ChangeNotifier {
         'description': 'Identify 3 glass items',
         'pointsReward': 25,
         'iconName': 'water_drop',
-        'color': AppTheme.dryWasteColor.value,
+        'color': AppTheme.dryWasteColor.toARGB32(),
         'requirements': {
           'subcategory': 'Glass',
           'count': 3,
@@ -1519,7 +1517,7 @@ class GamificationService extends ChangeNotifier {
         'description': 'Identify 3 metal items',
         'pointsReward': 25,
         'iconName': 'hardware',
-        'color': AppTheme.dryWasteColor.value,
+        'color': AppTheme.dryWasteColor.toARGB32(),
         'requirements': {
           'subcategory': 'Metal',
           'count': 3,
@@ -1530,7 +1528,7 @@ class GamificationService extends ChangeNotifier {
         'description': 'Identify 2 electronic waste items',
         'pointsReward': 30,
         'iconName': 'devices',
-        'color': AppTheme.hazardousWasteColor.value,
+        'color': AppTheme.hazardousWasteColor.toARGB32(),
         'requirements': {
           'subcategory': 'Electronic Waste',
           'count': 2,
@@ -1541,7 +1539,7 @@ class GamificationService extends ChangeNotifier {
         'description': 'Identify 10 waste items of any type',
         'pointsReward': 40,
         'iconName': 'auto_awesome',
-        'color': Colors.amber.value,
+        'color': Colors.amber.toARGB32(),
         'requirements': {
           'any_item': true,
           'count': 10,
@@ -1831,7 +1829,7 @@ class GamificationService extends ChangeNotifier {
       }
       
       // Group classifications by week
-      final Map<DateTime, List<WasteClassification>> weeklyClassifications = {};
+      final weeklyClassifications = <DateTime, List<WasteClassification>>{};
       
       for (final classification in classifications) {
         // Calculate week start (Monday)
@@ -1843,14 +1841,14 @@ class GamificationService extends ChangeNotifier {
       }
       
       // Generate weekly stats from actual data
-      final List<WeeklyStats> updatedWeeklyStats = [];
+      final updatedWeeklyStats = <WeeklyStats>[];
       
       for (final entry in weeklyClassifications.entries) {
         final weekStart = entry.key;
         final weekClassifications = entry.value;
         
         // Calculate category counts
-        final Map<String, int> categoryCounts = {};
+        final categoryCounts = <String, int>{};
         for (final classification in weekClassifications) {
           categoryCounts.update(
             classification.category,
@@ -1876,7 +1874,6 @@ class GamificationService extends ChangeNotifier {
         final weeklyStats = WeeklyStats(
           weekStartDate: weekStart,
           itemsIdentified: weekClassifications.length,
-          challengesCompleted: 0, // TODO: Calculate from actual challenge completions
           streakMaximum: weekDays.length, // Number of unique days with activity
           pointsEarned: pointsEarned,
           categoryCounts: categoryCounts,

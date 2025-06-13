@@ -1,0 +1,176 @@
+name: Security Scan
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+  schedule:
+    # Run security scans weekly on Sundays at 2 AM UTC
+    - cron: '0 2 * * 0'
+
+permissions:
+  contents: read
+  security-events: write
+
+jobs:
+  trivy-scan:
+    name: Trivy Security Scanner
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Run Trivy vulnerability scanner in repo mode
+      uses: aquasecurity/trivy-action@master
+      with:
+        scan-type: 'fs'
+        scan-ref: '.'
+        format: 'sarif'
+        output: 'trivy-results.sarif'
+        severity: 'CRITICAL,HIGH,MEDIUM'
+        
+    - name: Upload Trivy scan results to GitHub Security tab
+      uses: github/codeql-action/upload-sarif@v2
+      if: always()
+      with:
+        sarif_file: 'trivy-results.sarif'
+        
+    - name: Generate security report
+      if: always()
+      run: |
+        echo "## 🔒 Security Scan Results" > security-report.md
+        echo "" >> security-report.md
+        echo "Trivy security scan completed for commit ${{ github.sha }}" >> security-report.md
+        echo "" >> security-report.md
+        
+        # Check if vulnerabilities were found
+        if [ -f trivy-results.sarif ]; then
+          VULN_COUNT=$(jq '.runs[0].results | length' trivy-results.sarif)
+          if [ "$VULN_COUNT" -gt 0 ]; then
+            echo "⚠️ **${VULN_COUNT} potential security issues detected**" >> security-report.md
+            echo "" >> security-report.md
+            echo "Please review the Security tab for detailed findings." >> security-report.md
+          else
+            echo "✅ **No security vulnerabilities detected**" >> security-report.md
+          fi
+        else
+          echo "❓ **Security scan completed with no results file**" >> security-report.md
+        fi
+        
+        cat security-report.md
+
+  dependency-scan:
+    name: Dependency Security Check
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Flutter
+      uses: subosito/flutter-action@v2
+      with:
+        flutter-version: '3.24.5'
+        channel: 'stable'
+        
+    - name: Get dependencies
+      run: flutter pub get
+      
+    - name: Analyze dependencies for security issues
+      run: |
+        echo "## 📦 Dependency Security Analysis" > dependency-report.md
+        echo "" >> dependency-report.md
+        
+        # Check for known vulnerable packages (this is a basic check)
+        echo "### Dependencies Analysis" >> dependency-report.md
+        flutter pub deps --json > deps.json
+        
+        # Basic check for outdated packages
+        echo "### Outdated Dependencies" >> dependency-report.md
+        flutter pub outdated --json > outdated.json || true
+        
+        if [ -f outdated.json ]; then
+          OUTDATED_COUNT=$(jq '.packages | length' outdated.json 2>/dev/null || echo "0")
+          echo "Found $OUTDATED_COUNT outdated dependencies" >> dependency-report.md
+        fi
+        
+        cat dependency-report.md
+        
+    - name: Upload dependency analysis
+      uses: actions/upload-artifact@v3
+      with:
+        name: dependency-analysis
+        path: |
+          deps.json
+          outdated.json
+          dependency-report.md
+
+  secrets-scan:
+    name: Secrets Detection
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Check for exposed secrets
+      run: |
+        echo "## 🔐 Secrets Scan Results" > secrets-report.md
+        echo "" >> secrets-report.md
+        
+        # Basic patterns to check (expand as needed)
+        PATTERNS=(
+          "password\s*=\s*['\"][^'\"]+['\"]"
+          "api_key\s*=\s*['\"][^'\"]+['\"]"
+          "secret\s*=\s*['\"][^'\"]+['\"]"
+          "token\s*=\s*['\"][^'\"]+['\"]"
+          "firebase.*private_key"
+        )
+        
+        SECRETS_FOUND=0
+        
+        for pattern in "${PATTERNS[@]}"; do
+          if grep -ri "$pattern" . --exclude-dir=.git --exclude-dir=build --exclude="*.md" --exclude="secrets-report.md"; then
+            SECRETS_FOUND=$((SECRETS_FOUND + 1))
+            echo "⚠️ Potential secret pattern found: $pattern" >> secrets-report.md
+          fi
+        done
+        
+        if [ $SECRETS_FOUND -eq 0 ]; then
+          echo "✅ **No obvious secret patterns detected**" >> secrets-report.md
+        else
+          echo "⚠️ **$SECRETS_FOUND potential secret patterns found**" >> secrets-report.md
+          echo "" >> secrets-report.md
+          echo "**Important**: Review the findings above to ensure no actual secrets are exposed." >> secrets-report.md
+        fi
+        
+        cat secrets-report.md
+        
+    - name: Comment on PR (if applicable)
+      if: github.event_name == 'pull_request'
+      uses: actions/github-script@v6
+      with:
+        script: |
+          const fs = require('fs');
+          
+          let comment = `## 🔒 Security Scan Summary\n\n`;
+          comment += `Security scanning completed for this PR:\n\n`;
+          comment += `- 🔍 **Trivy Vulnerability Scan**: Check Security tab for detailed results\n`;
+          comment += `- 📦 **Dependency Analysis**: Download the dependency-analysis artifact\n`;
+          comment += `- 🔐 **Secrets Detection**: Basic pattern matching completed\n\n`;
+          
+          if (fs.existsSync('secrets-report.md')) {
+            const secretsReport = fs.readFileSync('secrets-report.md', 'utf8');
+            comment += secretsReport;
+          }
+          
+          comment += `\n\n---\n*Automated security scanning via GitHub Actions*`;
+          
+          github.rest.issues.createComment({
+            issue_number: context.issue.number,
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            body: comment
+          });

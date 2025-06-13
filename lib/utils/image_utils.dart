@@ -333,7 +333,7 @@ class ImageUtils {
       }
       
       // Handle file:// URI or local file path
-      String filePath = imageSource;
+      var filePath = imageSource;
       if (imageSource.startsWith('file://')) {
         filePath = imageSource.substring(7); // Remove 'file://' prefix
       }
@@ -349,11 +349,11 @@ class ImageUtils {
         );
       } else {
         // File doesn't exist
-        return errorWidget!;
+        return errorWidget;
       }
     } catch (e) {
       // Any other error, return error widget
-      return errorWidget!;
+      return errorWidget;
     }
   }
 
@@ -374,7 +374,7 @@ class ImageUtils {
         backgroundImage = AssetImage(imageSource);
       } else {
         // Handle file:// URI or local file path
-        String filePath = imageSource;
+        var filePath = imageSource;
         if (imageSource.startsWith('file://')) {
           filePath = imageSource.substring(7);
         }
@@ -389,13 +389,13 @@ class ImageUtils {
         radius: radius,
         backgroundColor: backgroundColor,
         backgroundImage: backgroundImage,
-        child: backgroundImage == null ? child : null,
         onBackgroundImageError: backgroundImage != null 
           ? (exception, stackTrace) {
               // Handle image loading error silently
               debugPrint('Avatar image failed to load: $exception');
             }
           : null,
+        child: backgroundImage == null ? child : null,
       );
     } catch (e) {
       return CircleAvatar(
@@ -419,7 +419,7 @@ class ImageUtils {
         return true;
       } else {
         // Check if local file exists
-        String filePath = imageSource;
+        var filePath = imageSource;
         if (imageSource.startsWith('file://')) {
           filePath = imageSource.substring(7);
         }

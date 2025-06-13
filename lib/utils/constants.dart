@@ -74,12 +74,12 @@ class AppTheme {
 
   /// Build a [ThemeData] from the given [ColorScheme].
   static ThemeData fromScheme(ColorScheme scheme) {
-    final ThemeData base = ThemeData(useMaterial3: true, colorScheme: scheme);
+    final base = ThemeData(useMaterial3: true, colorScheme: scheme);
     return base.copyWith(
       primaryColor: seedColor,
       scaffoldBackgroundColor: scheme.surface,
       cardColor: scheme.surface,
-      appBarTheme: AppBarTheme(
+      appBarTheme: const AppBarTheme(
         backgroundColor: seedColor,
         foregroundColor: Colors.white,
         elevation: 2,

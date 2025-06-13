@@ -48,7 +48,7 @@ class ModernCard extends StatelessWidget {
     final Widget cardContent = Material(
       elevation: elevation ?? AppTheme.elevationMd,
       color: enableGlassmorphism
-          ? (backgroundColor ?? theme.cardColor).withOpacity(opacity)
+          ? (backgroundColor ?? theme.cardColor).withValues(alpha: opacity)
           : backgroundColor ?? theme.cardColor,
       borderRadius: BorderRadius.circular(effectiveRadius),
       child: Container(
@@ -56,7 +56,7 @@ class ModernCard extends StatelessWidget {
         padding: padding ?? const EdgeInsets.all(AppTheme.spacingMd),
         decoration: BoxDecoration(
           border: border ??
-              (enableGlassmorphism ? Border.all(color: Colors.white.withOpacity(0.2)) : null),
+              (enableGlassmorphism ? Border.all(color: Colors.white.withValues(alpha: 0.2)) : null),
           gradient: gradient,
         ),
         child: child,
@@ -170,7 +170,7 @@ class FeatureCard extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: effectiveIconColor.withOpacity(0.1),
+                  color: effectiveIconColor.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(AppTheme.borderRadiusMd),
                 ),
                 child: Icon(
@@ -262,7 +262,7 @@ class StatsCard extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(AppTheme.spacingSm),
               decoration: BoxDecoration(
-                color: effectiveColor.withOpacity(0.1),
+                color: effectiveColor.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(AppTheme.borderRadiusMd),
               ),
               child: Icon(icon, color: effectiveColor, size: AppTheme.iconSizeLg),
@@ -337,7 +337,7 @@ class _TrendIcon extends StatelessWidget {
           color: isPositive ? Colors.red : Colors.green,
         );
       case Trend.flat:
-        return Icon(
+        return const Icon(
           Icons.trending_flat,
           color: Colors.grey,
         );
@@ -376,7 +376,7 @@ class ActionCard extends StatelessWidget {
       end: Alignment.bottomRight,
       colors: [
         effectiveColor,
-        effectiveColor.withOpacity(0.8),
+        effectiveColor.withValues(alpha: 0.8),
       ],
     );
     
@@ -409,7 +409,7 @@ class ActionCard extends StatelessWidget {
                 Text(
                   subtitle!,
                   style: theme.textTheme.bodyMedium?.copyWith(
-                    color: Colors.white.withOpacity(0.9),
+                    color: Colors.white.withValues(alpha: 0.9),
                   ),
                 ),
               ],
@@ -476,7 +476,7 @@ class ActiveChallengeCard extends StatelessWidget {
                     Container(
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
-                        color: effectiveColor.withOpacity(0.1),
+                        color: effectiveColor.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(AppTheme.borderRadiusSm),
                       ),
                       child: Icon(
@@ -549,7 +549,7 @@ class ActiveChallengeCard extends StatelessWidget {
                       child: LinearProgressIndicator(
                         value: clampedProgress,
                         minHeight: isNarrow ? 4 : 6,
-                        backgroundColor: effectiveColor.withOpacity(0.2),
+                        backgroundColor: effectiveColor.withValues(alpha: 0.2),
                         valueColor: AlwaysStoppedAnimation<Color>(effectiveColor),
                       ),
                     ),
@@ -562,10 +562,10 @@ class ActiveChallengeCard extends StatelessWidget {
                         vertical: isNarrow ? 2 : 4,
                       ),
                       decoration: BoxDecoration(
-                        color: Colors.amber.withOpacity(0.1),
+                        color: Colors.amber.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(AppTheme.borderRadiusXs),
                         border: Border.all(
-                          color: Colors.amber.withOpacity(0.3),
+                          color: Colors.amber.withValues(alpha: 0.3),
                         ),
                       ),
                       child: Row(
@@ -642,7 +642,7 @@ class RecentClassificationCard extends StatelessWidget {
       ),
       padding: const EdgeInsets.all(AppTheme.spacingMd),
       border: Border.all(
-        color: effectiveCategoryColor.withOpacity(0.3),
+        color: effectiveCategoryColor.withValues(alpha: 0.3),
       ),
       child: LayoutBuilder(
         builder: (context, constraints) {
@@ -659,7 +659,7 @@ class RecentClassificationCard extends StatelessWidget {
                   child: Container(
                     width: isNarrow ? 50 : 60,
                     height: isNarrow ? 50 : 60,
-                    color: effectiveCategoryColor.withOpacity(0.1),
+                    color: effectiveCategoryColor.withValues(alpha: 0.1),
                     child: _buildImageWidget(isNarrow ? 50 : 60),
                   ),
                 ),
@@ -840,10 +840,10 @@ class RecentClassificationCard extends StatelessWidget {
                     vertical: isNarrow ? 1 : 2,
                   ),
                   decoration: BoxDecoration(
-                    color: Colors.black.withOpacity(0.05),
+                    color: Colors.black.withValues(alpha: 0.05),
                     borderRadius: BorderRadius.circular(AppTheme.borderRadiusXs),
                     border: Border.all(
-                      color: categoryColor.withOpacity(0.5),
+                      color: categoryColor.withValues(alpha: 0.5),
                     ),
                   ),
                   child: Text(

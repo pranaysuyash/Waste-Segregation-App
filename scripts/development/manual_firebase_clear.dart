@@ -70,7 +70,7 @@ void main() async {
   print('\n📊 Resetting community stats...');
   
   // Create a temporary script to reset community stats
-  final resetScript = '''
+  const resetScript = '''
 const admin = require('firebase-admin');
 const serviceAccount = require('./path/to/serviceAccountKey.json');
 

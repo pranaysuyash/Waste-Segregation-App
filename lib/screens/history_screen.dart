@@ -683,7 +683,7 @@ class _HistoryScreenState extends State<HistoryScreen> with RestorationMixin {
       builder: (context, constraints) {
         final isWide = constraints.maxWidth >= 840;
 
-        Widget listBody = _isLoading
+        final listBody = _isLoading
             ? const HistoryLoadingWidget()
             : _classifications.isEmpty && !_isFilterActive()
                 ? EmptyStateWidget(
@@ -721,7 +721,7 @@ class _HistoryScreenState extends State<HistoryScreen> with RestorationMixin {
                       )
                     : _buildHistoryList();
 
-        Widget scaffoldBody = isWide
+        final scaffoldBody = isWide
             ? Row(
                 children: [
                   Expanded(child: listBody),

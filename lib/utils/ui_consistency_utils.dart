@@ -8,8 +8,9 @@ class UIConsistency {
   
   /// Primary action button style (for main CTAs)
   static ButtonStyle primaryButtonStyle(BuildContext context) {
-    final textScaleFactor = MediaQuery.textScaleFactorOf(context);
-    final scaledMinHeight = (AppTheme.buttonHeightMd * textScaleFactor).clamp(48.0, double.infinity);
+    final textScaler = MediaQuery.textScalerOf(context);
+    final scaleFactor = textScaler.scale(AppTheme.fontSizeMedium);
+    final scaledMinHeight = (AppTheme.buttonHeightMd * scaleFactor / AppTheme.fontSizeMedium).clamp(48.0, double.infinity);
     
     return ElevatedButton.styleFrom(
       elevation: AppTheme.elevationSm,
@@ -63,8 +64,9 @@ class UIConsistency {
   
   /// Secondary action button style (for secondary CTAs)
   static ButtonStyle secondaryButtonStyle(BuildContext context) {
-    final textScaleFactor = MediaQuery.textScaleFactorOf(context);
-    final scaledMinHeight = (AppTheme.buttonHeightMd * textScaleFactor).clamp(48.0, double.infinity);
+    final textScaler = MediaQuery.textScalerOf(context);
+    final scaleFactor = textScaler.scale(AppTheme.fontSizeMedium);
+    final scaledMinHeight = (AppTheme.buttonHeightMd * scaleFactor / AppTheme.fontSizeMedium).clamp(48.0, double.infinity);
     
     return OutlinedButton.styleFrom(
       textStyle: const TextStyle(
@@ -116,8 +118,9 @@ class UIConsistency {
   
   /// Tertiary action button style (for text buttons)
   static ButtonStyle tertiaryButtonStyle(BuildContext context) {
-    final textScaleFactor = MediaQuery.textScaleFactorOf(context);
-    final scaledMinHeight = (AppTheme.buttonHeightMd * textScaleFactor).clamp(48.0, double.infinity);
+    final textScaler = MediaQuery.textScalerOf(context);
+    final scaleFactor = textScaler.scale(AppTheme.fontSizeRegular);
+    final scaledMinHeight = (AppTheme.buttonHeightMd * scaleFactor / AppTheme.fontSizeRegular).clamp(48.0, double.infinity);
     
     return TextButton.styleFrom(
       textStyle: const TextStyle(
@@ -163,8 +166,9 @@ class UIConsistency {
   static ButtonStyle destructiveButtonStyle(BuildContext context) {
     const destructiveColor = Color(0xFFD32F2F);
     
-    final textScaleFactor = MediaQuery.textScaleFactorOf(context);
-    final scaledMinHeight = (AppTheme.buttonHeightMd * textScaleFactor).clamp(48.0, double.infinity);
+    final textScaler = MediaQuery.textScalerOf(context);
+    final scaleFactor = textScaler.scale(AppTheme.fontSizeMedium);
+    final scaledMinHeight = (AppTheme.buttonHeightMd * scaleFactor / AppTheme.fontSizeMedium).clamp(48.0, double.infinity);
     
     return ElevatedButton.styleFrom(
       elevation: AppTheme.elevationSm,
@@ -220,8 +224,9 @@ class UIConsistency {
   static ButtonStyle successButtonStyle(BuildContext context) {
     const successColor = Color(0xFF2E7D32);
     
-    final textScaleFactor = MediaQuery.textScaleFactorOf(context);
-    final scaledMinHeight = (AppTheme.buttonHeightMd * textScaleFactor).clamp(48.0, double.infinity);
+    final textScaler = MediaQuery.textScalerOf(context);
+    final scaleFactor = textScaler.scale(AppTheme.fontSizeMedium);
+    final scaledMinHeight = (AppTheme.buttonHeightMd * scaleFactor / AppTheme.fontSizeMedium).clamp(48.0, double.infinity);
     
     return ElevatedButton.styleFrom(
       elevation: AppTheme.elevationSm,

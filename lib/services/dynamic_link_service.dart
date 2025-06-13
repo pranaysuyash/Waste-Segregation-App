@@ -1,50 +1,56 @@
 import 'package:flutter/material.dart';
-import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
+import 'package:app_links/app_links.dart';
 import '../models/waste_classification.dart';
 import '../screens/result_screen.dart';
 
-/// Handles Firebase Dynamic Links for sharing and deep linking
+/// Handles deep linking for sharing and navigation using app_links
 class DynamicLinkService {
-  static const _uriPrefix = 'https://wastesegapp.page.link';
+  static const _baseUrl = 'https://wastewise.app';
+  static AppLinks? _appLinks;
 
-  /// Create a short dynamic link that opens a result screen for [classification].
-  static Future<String> createResultLink(WasteClassification classification) async {
-    final parameters = DynamicLinkParameters(
-      uriPrefix: _uriPrefix,
-      link: Uri.parse(
-        '$_uriPrefix/result?id=${classification.id}'
+  /// Create a shareable link that opens a result screen for [classification].
+  static String createResultLink(WasteClassification classification) {
+    // Create a web-compatible URL that can be shared
+    return '$_baseUrl/result?id=${classification.id}'
         '&item=${Uri.encodeComponent(classification.itemName)}'
-        '&category=${Uri.encodeComponent(classification.category)}',
-      ),
-      androidParameters: const AndroidParameters(
-        packageName: 'com.example.waste_segregation_app',
-      ),
-      iosParameters: const IOSParameters(
-        bundleId: 'com.example.wasteSegregationApp',
-      ),
-    );
-
-    final shortLink = await FirebaseDynamicLinks.instance.buildShortLink(parameters);
-    return shortLink.shortUrl.toString();
+        '&category=${Uri.encodeComponent(classification.category)}';
   }
 
   /// Initialize listeners for incoming links.
   static Future<void> initDynamicLinks(BuildContext context) async {
-    final data = await FirebaseDynamicLinks.instance.getInitialLink();
-    _handleLinkData(data, context);
+    _appLinks = AppLinks();
+    
+    // Handle initial link if app was launched from a link
+    try {
+      final initialLink = await _appLinks!.getInitialLink();
+      if (initialLink != null) {
+        if (!context.mounted) return;
+        _handleLinkData(initialLink, context);
+      }
+    } catch (e) {
+      // Handle error silently - app wasn't launched from a link
+    }
 
-    FirebaseDynamicLinks.instance.onLink.listen(
-      (event) => _handleLinkData(event, context),
+    // Listen for incoming links when app is already running
+    _appLinks!.uriLinkStream.listen(
+      (uri) {
+        if (!context.mounted) return;
+        _handleLinkData(uri, context);
+      },
+      onError: (err) {
+        // Handle error silently
+      },
     );
   }
 
-  static void _handleLinkData(PendingDynamicLinkData? data, BuildContext context) {
-    final deepLink = data?.link;
+  static void _handleLinkData(Uri? deepLink, BuildContext context) {
     if (deepLink == null) return;
+    
     if (deepLink.pathSegments.contains('result')) {
       final id = deepLink.queryParameters['id'];
       final item = deepLink.queryParameters['item'];
       final category = deepLink.queryParameters['category'];
+      
       if (id != null && item != null && category != null) {
         final classification = WasteClassification(
           id: id,
@@ -60,6 +66,7 @@ class DynamicLinkService {
           visualFeatures: const [],
           alternatives: const [],
         );
+        
         Navigator.push(
           context,
           MaterialPageRoute(
@@ -71,5 +78,10 @@ class DynamicLinkService {
         );
       }
     }
+  }
+
+  /// Dispose of resources
+  static void dispose() {
+    _appLinks = null;
   }
 }

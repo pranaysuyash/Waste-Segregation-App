@@ -5,10 +5,6 @@ import '../interactive_tag.dart';
 
 /// Main classification display card with thumbnail and basic information
 class ClassificationCard extends StatelessWidget {
-  final WasteClassification classification;
-  final bool isLoading;
-  final Widget Function(double size) thumbnailBuilder;
-  final List<TagData> tags;
   
   const ClassificationCard({
     super.key,
@@ -17,6 +13,10 @@ class ClassificationCard extends StatelessWidget {
     required this.tags,
     this.isLoading = false,
   });
+  final WasteClassification classification;
+  final bool isLoading;
+  final Widget Function(double size) thumbnailBuilder;
+  final List<TagData> tags;
   
   Color _getCategoryColor(String category) {
     switch (category.toLowerCase()) {

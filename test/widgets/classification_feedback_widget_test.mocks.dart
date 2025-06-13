@@ -126,6 +126,12 @@ class MockAiService extends _i1.Mock implements _i4.AiService {
       ) as String);
 
   @override
+  bool get isCancelled => (super.noSuchMethod(
+        Invocation.getter(#isCancelled),
+        returnValue: false,
+      ) as bool);
+
+  @override
   _i6.Future<void> initialize() => (super.noSuchMethod(
         Invocation.method(
           #initialize,
@@ -134,6 +140,24 @@ class MockAiService extends _i1.Mock implements _i4.AiService {
         returnValue: _i6.Future<void>.value(),
         returnValueForMissingStub: _i6.Future<void>.value(),
       ) as _i6.Future<void>);
+
+  @override
+  void prepareCancelToken() => super.noSuchMethod(
+        Invocation.method(
+          #prepareCancelToken,
+          [],
+        ),
+        returnValueForMissingStub: null,
+      );
+
+  @override
+  void cancelAnalysis() => super.noSuchMethod(
+        Invocation.method(
+          #cancelAnalysis,
+          [],
+        ),
+        returnValueForMissingStub: null,
+      );
 
   @override
   _i6.Future<_i3.WasteClassification> analyzeImage(

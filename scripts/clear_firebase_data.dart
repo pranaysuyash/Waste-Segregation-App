@@ -219,7 +219,7 @@ class FirebaseDataCleaner {
   Future<void> verifyCleanup() async {
     print('🔍 Verifying cleanup...');
     
-    int totalDocuments = 0;
+    var totalDocuments = 0;
     
     for (final collection in _collectionsToDelete) {
       try {

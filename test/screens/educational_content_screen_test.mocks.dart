@@ -3,14 +3,14 @@
 // Do not manually edit this file.
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
-import 'dart:async' as _i7;
+import 'dart:async' as _i6;
 import 'dart:ui' as _i8;
 
 import 'package:flutter/foundation.dart' as _i4;
 import 'package:flutter/material.dart' as _i3;
 import 'package:mockito/mockito.dart' as _i1;
 import 'package:waste_segregation_app/models/educational_content.dart' as _i2;
-import 'package:waste_segregation_app/services/ad_service.dart' as _i6;
+import 'package:waste_segregation_app/services/ad_service.dart' as _i7;
 import 'package:waste_segregation_app/services/educational_content_service.dart'
     as _i5;
 
@@ -59,6 +59,12 @@ class MockEducationalContentService extends _i1.Mock
   MockEducationalContentService() {
     _i1.throwOnMissingStub(this);
   }
+
+  @override
+  List<_i2.EducationalContent> get allContent => (super.noSuchMethod(
+        Invocation.getter(#allContent),
+        returnValue: <_i2.EducationalContent>[],
+      ) as List<_i2.EducationalContent>);
 
   @override
   _i2.DailyTip getRandomDailyTip() => (super.noSuchMethod(
@@ -155,12 +161,61 @@ class MockEducationalContentService extends _i1.Mock
         ),
         returnValue: <_i2.DailyTip>[],
       ) as List<_i2.DailyTip>);
+
+  @override
+  List<_i2.EducationalContent> getNewContent() => (super.noSuchMethod(
+        Invocation.method(
+          #getNewContent,
+          [],
+        ),
+        returnValue: <_i2.EducationalContent>[],
+      ) as List<_i2.EducationalContent>);
+
+  @override
+  List<_i2.EducationalContent> getInteractiveContent() => (super.noSuchMethod(
+        Invocation.method(
+          #getInteractiveContent,
+          [],
+        ),
+        returnValue: <_i2.EducationalContent>[],
+      ) as List<_i2.EducationalContent>);
+
+  @override
+  List<_i2.EducationalContent> getAdvancedTopics() => (super.noSuchMethod(
+        Invocation.method(
+          #getAdvancedTopics,
+          [],
+        ),
+        returnValue: <_i2.EducationalContent>[],
+      ) as List<_i2.EducationalContent>);
+
+  @override
+  void trackContentViewed(_i2.EducationalContent? content) =>
+      super.noSuchMethod(
+        Invocation.method(
+          #trackContentViewed,
+          [content],
+        ),
+        returnValueForMissingStub: null,
+      );
+
+  @override
+  _i6.Future<void> endContentView({bool? completed = false}) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #endContentView,
+          [],
+          {#completed: completed},
+        ),
+        returnValue: _i6.Future<void>.value(),
+        returnValueForMissingStub: _i6.Future<void>.value(),
+      ) as _i6.Future<void>);
 }
 
 /// A class which mocks [AdService].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockAdService extends _i1.Mock implements _i6.AdService {
+class MockAdService extends _i1.Mock implements _i7.AdService {
   MockAdService() {
     _i1.throwOnMissingStub(this);
   }
@@ -205,14 +260,14 @@ class MockAdService extends _i1.Mock implements _i6.AdService {
       );
 
   @override
-  _i7.Future<void> initialize() => (super.noSuchMethod(
+  _i6.Future<void> initialize() => (super.noSuchMethod(
         Invocation.method(
           #initialize,
           [],
         ),
-        returnValue: _i7.Future<void>.value(),
-        returnValueForMissingStub: _i7.Future<void>.value(),
-      ) as _i7.Future<void>);
+        returnValue: _i6.Future<void>.value(),
+        returnValueForMissingStub: _i6.Future<void>.value(),
+      ) as _i6.Future<void>);
 
   @override
   _i3.Widget getBannerAd() => (super.noSuchMethod(
@@ -230,13 +285,13 @@ class MockAdService extends _i1.Mock implements _i6.AdService {
       ) as _i3.Widget);
 
   @override
-  _i7.Future<bool> showInterstitialAd() => (super.noSuchMethod(
+  _i6.Future<bool> showInterstitialAd() => (super.noSuchMethod(
         Invocation.method(
           #showInterstitialAd,
           [],
         ),
-        returnValue: _i7.Future<bool>.value(false),
-      ) as _i7.Future<bool>);
+        returnValue: _i6.Future<bool>.value(false),
+      ) as _i6.Future<bool>);
 
   @override
   void trackClassificationCompleted() => super.noSuchMethod(

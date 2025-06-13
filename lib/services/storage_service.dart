@@ -115,7 +115,7 @@ class StorageService {
       final classificationWithUserId = classification.copyWith(userId: currentUserId);
       
       // Check for existing classification with same content (not just ID)
-      bool isDuplicate = false;
+      var isDuplicate = false;
       for (final key in classificationsBox.keys) {
         try {
           final existingData = classificationsBox.get(key);
@@ -169,7 +169,7 @@ class StorageService {
       if (_recentSaves.length > 50) {
         final oldestEntries = _recentSaves.entries.toList()
           ..sort((a, b) => a.value.compareTo(b.value));
-        for (int i = 0; i < 10; i++) {
+        for (var i = 0; i < 10; i++) {
           _recentSaves.remove(oldestEntries[i].key);
         }
       }

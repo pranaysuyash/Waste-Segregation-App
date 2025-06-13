@@ -45,6 +45,7 @@ This document provides a comprehensive index to all project documentation, now p
 
 ### `/docs/guides/` - User & Developer Guides
 - **QUICK_START.md** - Quick implementation guide for new features
+- **DEVOPS_QUICK_REFERENCE.md** - Daily DevOps commands and procedures reference
 
 ### `/docs/planning/` - Project Planning & Strategy
 - **SPRINT_PLANNING.md** - Sprint planning and acceptance criteria
@@ -116,10 +117,11 @@ This document provides a comprehensive index to all project documentation, now p
 4. Review **CURRENT_ISSUES_SUMMARY.md** for current priorities
 
 ### **For Development**
-1. **SPRINT_PLANNING.md** - Current sprint goals and acceptance criteria
-2. **TEST_STATUS_SUMMARY.md** - Latest testing status
-3. **ISSUES_SUMMARY_2025-06-02.md** - Detailed technical issues
-4. **MANUAL_COMMIT_INSTRUCTIONS.md** - Git workflow procedures
+1. **DEVOPS_QUICK_REFERENCE.md** - Daily commands and procedures (START HERE)
+2. **SPRINT_PLANNING.md** - Current sprint goals and acceptance criteria
+3. **TEST_STATUS_SUMMARY.md** - Latest testing status
+4. **ISSUES_SUMMARY_2025-06-02.md** - Detailed technical issues
+5. **MANUAL_COMMIT_INSTRUCTIONS.md** - Git workflow procedures
 
 ### **For QA & Testing**
 1. **TESTING_INFRASTRUCTURE_SUCCESS_SUMMARY.md** - Testing framework overview
@@ -158,8 +160,8 @@ Development workflow and integration procedures.
 ### **Fixes & Summaries** (4 files)
 Fix documentation, summaries, and post-mortems.
 
-### **Reference & Guides** (2 files)
-User documentation and implementation guides.
+### **Reference & Guides** (3 files)
+User documentation, implementation guides, and DevOps procedures.
 
 ### **Design & Features** (3 files)
 UI/UX design documentation and feature specifications.

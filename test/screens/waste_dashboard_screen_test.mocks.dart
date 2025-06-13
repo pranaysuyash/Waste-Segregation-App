@@ -4,16 +4,19 @@
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
 import 'dart:async' as _i4;
+import 'dart:ui' as _i12;
 
 import 'package:mockito/mockito.dart' as _i1;
 import 'package:mockito/src/dummies.dart' as _i8;
-import 'package:waste_segregation_app/models/educational_content.dart' as _i10;
+import 'package:waste_segregation_app/models/classification_feedback.dart'
+    as _i9;
+import 'package:waste_segregation_app/models/educational_content.dart' as _i11;
 import 'package:waste_segregation_app/models/filter_options.dart' as _i7;
 import 'package:waste_segregation_app/models/gamification.dart' as _i2;
 import 'package:waste_segregation_app/models/user_profile.dart' as _i5;
 import 'package:waste_segregation_app/models/waste_classification.dart' as _i6;
 import 'package:waste_segregation_app/services/gamification_service.dart'
-    as _i9;
+    as _i10;
 import 'package:waste_segregation_app/services/storage_service.dart' as _i3;
 
 // ignore_for_file: type=lint
@@ -206,6 +209,7 @@ class MockStorageService extends _i1.Mock implements _i3.StorageService {
   _i4.Future<void> saveSettings({
     required bool? isDarkMode,
     required bool? isGoogleSyncEnabled,
+    DateTime? lastCloudSync,
     bool? allowHistoryFeedback,
     int? feedbackTimeframeDays,
     bool? notifications,
@@ -220,6 +224,7 @@ class MockStorageService extends _i1.Mock implements _i3.StorageService {
           {
             #isDarkMode: isDarkMode,
             #isGoogleSyncEnabled: isGoogleSyncEnabled,
+            #lastCloudSync: lastCloudSync,
             #allowHistoryFeedback: allowHistoryFeedback,
             #feedbackTimeframeDays: feedbackTimeframeDays,
             #notifications: notifications,
@@ -231,6 +236,26 @@ class MockStorageService extends _i1.Mock implements _i3.StorageService {
         returnValue: _i4.Future<void>.value(),
         returnValueForMissingStub: _i4.Future<void>.value(),
       ) as _i4.Future<void>);
+
+  @override
+  _i4.Future<void> updateLastCloudSync(DateTime? timestamp) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #updateLastCloudSync,
+          [timestamp],
+        ),
+        returnValue: _i4.Future<void>.value(),
+        returnValueForMissingStub: _i4.Future<void>.value(),
+      ) as _i4.Future<void>);
+
+  @override
+  _i4.Future<DateTime?> getLastCloudSync() => (super.noSuchMethod(
+        Invocation.method(
+          #getLastCloudSync,
+          [],
+        ),
+        returnValue: _i4.Future<DateTime?>.value(),
+      ) as _i4.Future<DateTime?>);
 
   @override
   _i4.Future<Map<String, dynamic>> getSettings() => (super.noSuchMethod(
@@ -378,16 +403,55 @@ class MockStorageService extends _i1.Mock implements _i3.StorageService {
         ),
         returnValue: _i4.Future<int>.value(0),
       ) as _i4.Future<int>);
+
+  @override
+  _i4.Future<void> saveClassificationFeedback(
+          _i9.ClassificationFeedback? feedback) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #saveClassificationFeedback,
+          [feedback],
+        ),
+        returnValue: _i4.Future<void>.value(),
+        returnValueForMissingStub: _i4.Future<void>.value(),
+      ) as _i4.Future<void>);
+
+  @override
+  _i4.Future<List<_i9.ClassificationFeedback>> getAllClassificationFeedback() =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #getAllClassificationFeedback,
+          [],
+        ),
+        returnValue: _i4.Future<List<_i9.ClassificationFeedback>>.value(
+            <_i9.ClassificationFeedback>[]),
+      ) as _i4.Future<List<_i9.ClassificationFeedback>>);
+
+  @override
+  _i4.Future<void> migrateOldClassifications() => (super.noSuchMethod(
+        Invocation.method(
+          #migrateOldClassifications,
+          [],
+        ),
+        returnValue: _i4.Future<void>.value(),
+        returnValueForMissingStub: _i4.Future<void>.value(),
+      ) as _i4.Future<void>);
 }
 
 /// A class which mocks [GamificationService].
 ///
 /// See the documentation for Mockito's code generation for more information.
 class MockGamificationService extends _i1.Mock
-    implements _i9.GamificationService {
+    implements _i10.GamificationService {
   MockGamificationService() {
     _i1.throwOnMissingStub(this);
   }
+
+  @override
+  bool get hasListeners => (super.noSuchMethod(
+        Invocation.getter(#hasListeners),
+        returnValue: false,
+      ) as bool);
 
   @override
   _i4.Future<void> initGamification() => (super.noSuchMethod(
@@ -400,10 +464,13 @@ class MockGamificationService extends _i1.Mock
       ) as _i4.Future<void>);
 
   @override
-  _i4.Future<_i2.GamificationProfile> getProfile() => (super.noSuchMethod(
+  _i4.Future<_i2.GamificationProfile> getProfile(
+          {bool? forceRefresh = false}) =>
+      (super.noSuchMethod(
         Invocation.method(
           #getProfile,
           [],
+          {#forceRefresh: forceRefresh},
         ),
         returnValue: _i4.Future<_i2.GamificationProfile>.value(
             _FakeGamificationProfile_0(
@@ -411,6 +478,7 @@ class MockGamificationService extends _i1.Mock
           Invocation.method(
             #getProfile,
             [],
+            {#forceRefresh: forceRefresh},
           ),
         )),
       ) as _i4.Future<_i2.GamificationProfile>);
@@ -471,6 +539,27 @@ class MockGamificationService extends _i1.Mock
       ) as _i4.Future<_i2.UserPoints>);
 
   @override
+  _i4.Future<void> syncClassificationPoints() => (super.noSuchMethod(
+        Invocation.method(
+          #syncClassificationPoints,
+          [],
+        ),
+        returnValue: _i4.Future<void>.value(),
+        returnValueForMissingStub: _i4.Future<void>.value(),
+      ) as _i4.Future<void>);
+
+  @override
+  _i4.Future<void> syncAchievementProgressFromClassifications() =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #syncAchievementProgressFromClassifications,
+          [],
+        ),
+        returnValue: _i4.Future<void>.value(),
+        returnValueForMissingStub: _i4.Future<void>.value(),
+      ) as _i4.Future<void>);
+
+  @override
   _i4.Future<List<_i2.Challenge>> processClassification(
           _i6.WasteClassification? classification) =>
       (super.noSuchMethod(
@@ -483,7 +572,7 @@ class MockGamificationService extends _i1.Mock
 
   @override
   _i4.Future<void> processEducationalContent(
-          _i10.EducationalContent? content) =>
+          _i11.EducationalContent? content) =>
       (super.noSuchMethod(
         Invocation.method(
           #processEducationalContent,
@@ -607,6 +696,16 @@ class MockGamificationService extends _i1.Mock
       ) as _i4.Future<_i2.GamificationProfile>);
 
   @override
+  _i4.Future<void> forceCompleteSyncAndRefresh() => (super.noSuchMethod(
+        Invocation.method(
+          #forceCompleteSyncAndRefresh,
+          [],
+        ),
+        returnValue: _i4.Future<void>.value(),
+        returnValueForMissingStub: _i4.Future<void>.value(),
+      ) as _i4.Future<void>);
+
+  @override
   _i4.Future<void> syncGamificationData() => (super.noSuchMethod(
         Invocation.method(
           #syncGamificationData,
@@ -615,4 +714,59 @@ class MockGamificationService extends _i1.Mock
         returnValue: _i4.Future<void>.value(),
         returnValueForMissingStub: _i4.Future<void>.value(),
       ) as _i4.Future<void>);
+
+  @override
+  _i4.Future<void> syncWeeklyStatsWithClassifications() => (super.noSuchMethod(
+        Invocation.method(
+          #syncWeeklyStatsWithClassifications,
+          [],
+        ),
+        returnValue: _i4.Future<void>.value(),
+        returnValueForMissingStub: _i4.Future<void>.value(),
+      ) as _i4.Future<void>);
+
+  @override
+  void clearCache() => super.noSuchMethod(
+        Invocation.method(
+          #clearCache,
+          [],
+        ),
+        returnValueForMissingStub: null,
+      );
+
+  @override
+  void addListener(_i12.VoidCallback? listener) => super.noSuchMethod(
+        Invocation.method(
+          #addListener,
+          [listener],
+        ),
+        returnValueForMissingStub: null,
+      );
+
+  @override
+  void removeListener(_i12.VoidCallback? listener) => super.noSuchMethod(
+        Invocation.method(
+          #removeListener,
+          [listener],
+        ),
+        returnValueForMissingStub: null,
+      );
+
+  @override
+  void dispose() => super.noSuchMethod(
+        Invocation.method(
+          #dispose,
+          [],
+        ),
+        returnValueForMissingStub: null,
+      );
+
+  @override
+  void notifyListeners() => super.noSuchMethod(
+        Invocation.method(
+          #notifyListeners,
+          [],
+        ),
+        returnValueForMissingStub: null,
+      );
 }

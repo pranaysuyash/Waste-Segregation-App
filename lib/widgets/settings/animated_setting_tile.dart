@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'setting_tile.dart';
 
 /// Animated version of SettingTile with smooth transitions and micro-interactions
 class AnimatedSettingTile extends StatefulWidget {
@@ -182,7 +181,7 @@ class _AnimatedSettingTileState extends State<AnimatedSettingTile>
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     
-    Widget child = _buildTileContent(theme);
+    var child = _buildTileContent(theme);
 
     // Apply slide-in animation
     if (widget.enableSlideInAnimation) {
@@ -398,7 +397,7 @@ class _StaggeredSettingsAnimationState extends State<StaggeredSettingsAnimation>
   }
 
   void _startStaggeredAnimation() {
-    for (int i = 0; i < _controllers.length; i++) {
+    for (var i = 0; i < _controllers.length; i++) {
       Future.delayed(widget.staggerDelay * i, () {
         if (mounted) {
           _controllers[i].forward();

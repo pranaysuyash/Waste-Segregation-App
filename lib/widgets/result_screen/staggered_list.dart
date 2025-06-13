@@ -2,11 +2,6 @@ import 'package:flutter/material.dart';
 
 /// A widget that displays a list of items with staggered entrance animations
 class StaggeredList<T> extends StatelessWidget {
-  final List<T> items;
-  final Widget Function(BuildContext, T) itemBuilder;
-  final Duration initialDelay;
-  final Duration stepDelay;
-  final Axis direction;
   
   const StaggeredList({
     super.key,
@@ -16,6 +11,11 @@ class StaggeredList<T> extends StatelessWidget {
     this.stepDelay = const Duration(milliseconds: 100),
     this.direction = Axis.vertical,
   });
+  final List<T> items;
+  final Widget Function(BuildContext, T) itemBuilder;
+  final Duration initialDelay;
+  final Duration stepDelay;
+  final Axis direction;
   
   @override
   Widget build(BuildContext context) {
@@ -44,10 +44,6 @@ class StaggeredList<T> extends StatelessWidget {
 
 /// A widget that displays its child with a delayed fade and slide animation
 class DelayedDisplay extends StatefulWidget {
-  final Widget child;
-  final Duration delay;
-  final Duration duration;
-  final Offset slideOffset;
   
   const DelayedDisplay({
     super.key,
@@ -56,6 +52,10 @@ class DelayedDisplay extends StatefulWidget {
     this.duration = const Duration(milliseconds: 500),
     this.slideOffset = const Offset(0, 20),
   });
+  final Widget child;
+  final Duration delay;
+  final Duration duration;
+  final Offset slideOffset;
   
   @override
   State<DelayedDisplay> createState() => _DelayedDisplayState();
@@ -124,12 +124,12 @@ class _DelayedDisplayState extends State<DelayedDisplay>
 
 /// Wrapper for staggered tag animations
 class StaggeredTagList extends StatelessWidget {
-  final List<Widget> tags;
   
   const StaggeredTagList({
     super.key,
     required this.tags,
   });
+  final List<Widget> tags;
   
   @override
   Widget build(BuildContext context) {

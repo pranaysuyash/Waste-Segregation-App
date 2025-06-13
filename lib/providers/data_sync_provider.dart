@@ -11,6 +11,22 @@ import 'package:shared_preferences/shared_preferences.dart';
 /// Enhanced provider that ensures all screens show consistent data
 /// This solves the points synchronization issues across Home, Analytics, Community, and History screens
 class DataSyncProvider extends ChangeNotifier {
+  
+  DataSyncProvider(
+    this._gamificationService,
+    this._storageService,
+    this._analyticsService,
+    this._communityService,
+  ) {
+    // Listen to gamification changes
+    _gamificationService.addListener(_onGamificationChanged);
+    
+    // Perform initial sync
+    _performInitialSync();
+    
+    // Schedule daily image refresh
+    _scheduleDailyImageRefresh();
+  }
   final GamificationService _gamificationService;
   final StorageService _storageService;
   final AnalyticsService _analyticsService;
@@ -28,22 +44,6 @@ class DataSyncProvider extends ChangeNotifier {
   
   // Synchronization lock to prevent concurrent updates
   bool _isUpdating = false;
-  
-  DataSyncProvider(
-    this._gamificationService,
-    this._storageService,
-    this._analyticsService,
-    this._communityService,
-  ) {
-    // Listen to gamification changes
-    _gamificationService.addListener(_onGamificationChanged);
-    
-    // Perform initial sync
-    _performInitialSync();
-    
-    // Schedule daily image refresh
-    _scheduleDailyImageRefresh();
-  }
   
   @override
   void dispose() {
@@ -179,9 +179,9 @@ class DataSyncProvider extends ChangeNotifier {
     return now.difference(_lastSyncTime!).inMinutes > 2; // 2 minute threshold
   }
   
-  void _onGamificationChanged() {
+  void _onGamificationChanged() async {
     // When gamification data changes, refresh our cache
-    _refreshCache();
+    await _refreshCache();
   }
   
   Future<void> _performInitialSync() async {
@@ -244,7 +244,7 @@ class DataSyncProvider extends ChangeNotifier {
       final now = DateTime.now();
       
       final classifications = _cachedClassifications ?? await _storageService.getAllClassifications();
-      final List<WasteClassification> updatedClassifications = [];
+      final updatedClassifications = <WasteClassification>[];
 
       for (final classification in classifications) {
         if (classification.imageUrl != null) {

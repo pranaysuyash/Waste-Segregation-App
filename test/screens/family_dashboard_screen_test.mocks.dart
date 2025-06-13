@@ -7,6 +7,8 @@ import 'dart:async' as _i5;
 
 import 'package:mockito/mockito.dart' as _i1;
 import 'package:mockito/src/dummies.dart' as _i12;
+import 'package:waste_segregation_app/models/classification_feedback.dart'
+    as _i13;
 import 'package:waste_segregation_app/models/enhanced_family.dart' as _i2;
 import 'package:waste_segregation_app/models/family_invitation.dart' as _i3;
 import 'package:waste_segregation_app/models/filter_options.dart' as _i11;
@@ -343,8 +345,9 @@ class MockFirebaseFamilyService extends _i1.Mock
     String? familyId,
     String? inviterUserId,
     String? inviteeEmail,
-    _i6.UserRole? roleToAssign,
-  ) =>
+    _i6.UserRole? roleToAssign, {
+    _i3.InvitationMethod? method = _i3.InvitationMethod.email,
+  }) =>
       (super.noSuchMethod(
         Invocation.method(
           #createInvitation,
@@ -354,6 +357,7 @@ class MockFirebaseFamilyService extends _i1.Mock
             inviteeEmail,
             roleToAssign,
           ],
+          {#method: method},
         ),
         returnValue:
             _i5.Future<_i3.FamilyInvitation>.value(_FakeFamilyInvitation_2(
@@ -366,6 +370,7 @@ class MockFirebaseFamilyService extends _i1.Mock
               inviteeEmail,
               roleToAssign,
             ],
+            {#method: method},
           ),
         )),
       ) as _i5.Future<_i3.FamilyInvitation>);
@@ -596,6 +601,7 @@ class MockStorageService extends _i1.Mock implements _i10.StorageService {
   _i5.Future<void> saveSettings({
     required bool? isDarkMode,
     required bool? isGoogleSyncEnabled,
+    DateTime? lastCloudSync,
     bool? allowHistoryFeedback,
     int? feedbackTimeframeDays,
     bool? notifications,
@@ -610,6 +616,7 @@ class MockStorageService extends _i1.Mock implements _i10.StorageService {
           {
             #isDarkMode: isDarkMode,
             #isGoogleSyncEnabled: isGoogleSyncEnabled,
+            #lastCloudSync: lastCloudSync,
             #allowHistoryFeedback: allowHistoryFeedback,
             #feedbackTimeframeDays: feedbackTimeframeDays,
             #notifications: notifications,
@@ -621,6 +628,26 @@ class MockStorageService extends _i1.Mock implements _i10.StorageService {
         returnValue: _i5.Future<void>.value(),
         returnValueForMissingStub: _i5.Future<void>.value(),
       ) as _i5.Future<void>);
+
+  @override
+  _i5.Future<void> updateLastCloudSync(DateTime? timestamp) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #updateLastCloudSync,
+          [timestamp],
+        ),
+        returnValue: _i5.Future<void>.value(),
+        returnValueForMissingStub: _i5.Future<void>.value(),
+      ) as _i5.Future<void>);
+
+  @override
+  _i5.Future<DateTime?> getLastCloudSync() => (super.noSuchMethod(
+        Invocation.method(
+          #getLastCloudSync,
+          [],
+        ),
+        returnValue: _i5.Future<DateTime?>.value(),
+      ) as _i5.Future<DateTime?>);
 
   @override
   _i5.Future<Map<String, dynamic>> getSettings() => (super.noSuchMethod(
@@ -768,4 +795,37 @@ class MockStorageService extends _i1.Mock implements _i10.StorageService {
         ),
         returnValue: _i5.Future<int>.value(0),
       ) as _i5.Future<int>);
+
+  @override
+  _i5.Future<void> saveClassificationFeedback(
+          _i13.ClassificationFeedback? feedback) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #saveClassificationFeedback,
+          [feedback],
+        ),
+        returnValue: _i5.Future<void>.value(),
+        returnValueForMissingStub: _i5.Future<void>.value(),
+      ) as _i5.Future<void>);
+
+  @override
+  _i5.Future<List<_i13.ClassificationFeedback>>
+      getAllClassificationFeedback() => (super.noSuchMethod(
+            Invocation.method(
+              #getAllClassificationFeedback,
+              [],
+            ),
+            returnValue: _i5.Future<List<_i13.ClassificationFeedback>>.value(
+                <_i13.ClassificationFeedback>[]),
+          ) as _i5.Future<List<_i13.ClassificationFeedback>>);
+
+  @override
+  _i5.Future<void> migrateOldClassifications() => (super.noSuchMethod(
+        Invocation.method(
+          #migrateOldClassifications,
+          [],
+        ),
+        returnValue: _i5.Future<void>.value(),
+        returnValueForMissingStub: _i5.Future<void>.value(),
+      ) as _i5.Future<void>);
 }

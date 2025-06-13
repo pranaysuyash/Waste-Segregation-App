@@ -4,9 +4,9 @@ import 'package:flutter/scheduler.dart';
 
 /// Performance monitoring system for settings screen
 class SettingsPerformanceMonitor {
-  static final SettingsPerformanceMonitor _instance = SettingsPerformanceMonitor._internal();
   factory SettingsPerformanceMonitor() => _instance;
   SettingsPerformanceMonitor._internal();
+  static final SettingsPerformanceMonitor _instance = SettingsPerformanceMonitor._internal();
 
   final Map<String, PerformanceMetrics> _metrics = {};
   final List<FrameTimingInfo> _frameTimings = [];

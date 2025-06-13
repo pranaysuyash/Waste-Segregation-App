@@ -7,6 +7,8 @@ import 'dart:async' as _i4;
 
 import 'package:mockito/mockito.dart' as _i1;
 import 'package:mockito/src/dummies.dart' as _i10;
+import 'package:waste_segregation_app/models/classification_feedback.dart'
+    as _i11;
 import 'package:waste_segregation_app/models/community_feed.dart' as _i2;
 import 'package:waste_segregation_app/models/filter_options.dart' as _i9;
 import 'package:waste_segregation_app/models/gamification.dart' as _i7;
@@ -69,7 +71,7 @@ class MockCommunityService extends _i1.Mock implements _i3.CommunityService {
       ) as _i4.Future<void>);
 
   @override
-  _i4.Future<List<_i2.CommunityFeedItem>> getFeedItems({int? limit = 20}) =>
+  _i4.Future<List<_i2.CommunityFeedItem>> getFeedItems({int? limit = 50}) =>
       (super.noSuchMethod(
         Invocation.method(
           #getFeedItems,
@@ -79,21 +81,6 @@ class MockCommunityService extends _i1.Mock implements _i3.CommunityService {
         returnValue: _i4.Future<List<_i2.CommunityFeedItem>>.value(
             <_i2.CommunityFeedItem>[]),
       ) as _i4.Future<List<_i2.CommunityFeedItem>>);
-
-  @override
-  _i4.Future<_i2.CommunityStats> getCommunityStats() => (super.noSuchMethod(
-        Invocation.method(
-          #getCommunityStats,
-          [],
-        ),
-        returnValue: _i4.Future<_i2.CommunityStats>.value(_FakeCommunityStats_0(
-          this,
-          Invocation.method(
-            #getCommunityStats,
-            [],
-          ),
-        )),
-      ) as _i4.Future<_i2.CommunityStats>);
 
   @override
   _i4.Future<_i2.CommunityStats> getStats() => (super.noSuchMethod(
@@ -112,65 +99,12 @@ class MockCommunityService extends _i1.Mock implements _i3.CommunityService {
 
   @override
   _i4.Future<void> recordClassification(
-    String? category,
-    String? subcategory,
-    int? points,
-  ) =>
-      (super.noSuchMethod(
-        Invocation.method(
-          #recordClassification,
-          [
-            category,
-            subcategory,
-            points,
-          ],
-        ),
-        returnValue: _i4.Future<void>.value(),
-        returnValueForMissingStub: _i4.Future<void>.value(),
-      ) as _i4.Future<void>);
-
-  @override
-  _i4.Future<void> recordStreak(
-    int? streakDays,
-    int? points,
-  ) =>
-      (super.noSuchMethod(
-        Invocation.method(
-          #recordStreak,
-          [
-            streakDays,
-            points,
-          ],
-        ),
-        returnValue: _i4.Future<void>.value(),
-        returnValueForMissingStub: _i4.Future<void>.value(),
-      ) as _i4.Future<void>);
-
-  @override
-  _i4.Future<void> recordAchievement(
-    String? title,
-    int? points,
-  ) =>
-      (super.noSuchMethod(
-        Invocation.method(
-          #recordAchievement,
-          [
-            title,
-            points,
-          ],
-        ),
-        returnValue: _i4.Future<void>.value(),
-        returnValueForMissingStub: _i4.Future<void>.value(),
-      ) as _i4.Future<void>);
-
-  @override
-  _i4.Future<void> trackClassificationActivity(
     _i5.WasteClassification? classification,
     _i6.UserProfile? user,
   ) =>
       (super.noSuchMethod(
         Invocation.method(
-          #trackClassificationActivity,
+          #recordClassification,
           [
             classification,
             user,
@@ -181,13 +115,13 @@ class MockCommunityService extends _i1.Mock implements _i3.CommunityService {
       ) as _i4.Future<void>);
 
   @override
-  _i4.Future<void> trackAchievementActivity(
+  _i4.Future<void> recordAchievement(
     _i7.Achievement? achievement,
     _i6.UserProfile? user,
   ) =>
       (super.noSuchMethod(
         Invocation.method(
-          #trackAchievementActivity,
+          #recordAchievement,
           [
             achievement,
             user,
@@ -198,13 +132,13 @@ class MockCommunityService extends _i1.Mock implements _i3.CommunityService {
       ) as _i4.Future<void>);
 
   @override
-  _i4.Future<void> trackStreakActivity(
+  _i4.Future<void> recordStreak(
     int? streakDays,
     _i6.UserProfile? user,
   ) =>
       (super.noSuchMethod(
         Invocation.method(
-          #trackStreakActivity,
+          #recordStreak,
           [
             streakDays,
             user,
@@ -215,76 +149,17 @@ class MockCommunityService extends _i1.Mock implements _i3.CommunityService {
       ) as _i4.Future<void>);
 
   @override
-  int calculateActivityPoints(
-    _i2.CommunityActivityType? activityType,
-    Map<String, dynamic>? metadata,
-  ) =>
-      (super.noSuchMethod(
-        Invocation.method(
-          #calculateActivityPoints,
-          [
-            activityType,
-            metadata,
-          ],
-        ),
-        returnValue: 0,
-      ) as int);
-
-  @override
-  _i4.Future<void> batchTrackActivities(
+  _i4.Future<void> syncWithUserData(
     List<_i5.WasteClassification>? classifications,
     _i6.UserProfile? user,
   ) =>
       (super.noSuchMethod(
         Invocation.method(
-          #batchTrackActivities,
+          #syncWithUserData,
           [
             classifications,
             user,
           ],
-        ),
-        returnValue: _i4.Future<void>.value(),
-        returnValueForMissingStub: _i4.Future<void>.value(),
-      ) as _i4.Future<void>);
-
-  @override
-  _i4.Future<void> addRawActivity(Map<String, dynamic>? activityData) =>
-      (super.noSuchMethod(
-        Invocation.method(
-          #addRawActivity,
-          [activityData],
-        ),
-        returnValue: _i4.Future<void>.value(),
-        returnValueForMissingStub: _i4.Future<void>.value(),
-      ) as _i4.Future<void>);
-
-  @override
-  _i4.Future<void> generateSampleCommunityData() => (super.noSuchMethod(
-        Invocation.method(
-          #generateSampleCommunityData,
-          [],
-        ),
-        returnValue: _i4.Future<void>.value(),
-        returnValueForMissingStub: _i4.Future<void>.value(),
-      ) as _i4.Future<void>);
-
-  @override
-  _i4.Future<void> clearCommunityData() => (super.noSuchMethod(
-        Invocation.method(
-          #clearCommunityData,
-          [],
-        ),
-        returnValue: _i4.Future<void>.value(),
-        returnValueForMissingStub: _i4.Future<void>.value(),
-      ) as _i4.Future<void>);
-
-  @override
-  _i4.Future<void> cleanupOldActivities({required int? olderThanDays}) =>
-      (super.noSuchMethod(
-        Invocation.method(
-          #cleanupOldActivities,
-          [],
-          {#olderThanDays: olderThanDays},
         ),
         returnValue: _i4.Future<void>.value(),
         returnValueForMissingStub: _i4.Future<void>.value(),
@@ -437,6 +312,7 @@ class MockStorageService extends _i1.Mock implements _i8.StorageService {
   _i4.Future<void> saveSettings({
     required bool? isDarkMode,
     required bool? isGoogleSyncEnabled,
+    DateTime? lastCloudSync,
     bool? allowHistoryFeedback,
     int? feedbackTimeframeDays,
     bool? notifications,
@@ -451,6 +327,7 @@ class MockStorageService extends _i1.Mock implements _i8.StorageService {
           {
             #isDarkMode: isDarkMode,
             #isGoogleSyncEnabled: isGoogleSyncEnabled,
+            #lastCloudSync: lastCloudSync,
             #allowHistoryFeedback: allowHistoryFeedback,
             #feedbackTimeframeDays: feedbackTimeframeDays,
             #notifications: notifications,
@@ -462,6 +339,26 @@ class MockStorageService extends _i1.Mock implements _i8.StorageService {
         returnValue: _i4.Future<void>.value(),
         returnValueForMissingStub: _i4.Future<void>.value(),
       ) as _i4.Future<void>);
+
+  @override
+  _i4.Future<void> updateLastCloudSync(DateTime? timestamp) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #updateLastCloudSync,
+          [timestamp],
+        ),
+        returnValue: _i4.Future<void>.value(),
+        returnValueForMissingStub: _i4.Future<void>.value(),
+      ) as _i4.Future<void>);
+
+  @override
+  _i4.Future<DateTime?> getLastCloudSync() => (super.noSuchMethod(
+        Invocation.method(
+          #getLastCloudSync,
+          [],
+        ),
+        returnValue: _i4.Future<DateTime?>.value(),
+      ) as _i4.Future<DateTime?>);
 
   @override
   _i4.Future<Map<String, dynamic>> getSettings() => (super.noSuchMethod(
@@ -609,4 +506,37 @@ class MockStorageService extends _i1.Mock implements _i8.StorageService {
         ),
         returnValue: _i4.Future<int>.value(0),
       ) as _i4.Future<int>);
+
+  @override
+  _i4.Future<void> saveClassificationFeedback(
+          _i11.ClassificationFeedback? feedback) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #saveClassificationFeedback,
+          [feedback],
+        ),
+        returnValue: _i4.Future<void>.value(),
+        returnValueForMissingStub: _i4.Future<void>.value(),
+      ) as _i4.Future<void>);
+
+  @override
+  _i4.Future<List<_i11.ClassificationFeedback>>
+      getAllClassificationFeedback() => (super.noSuchMethod(
+            Invocation.method(
+              #getAllClassificationFeedback,
+              [],
+            ),
+            returnValue: _i4.Future<List<_i11.ClassificationFeedback>>.value(
+                <_i11.ClassificationFeedback>[]),
+          ) as _i4.Future<List<_i11.ClassificationFeedback>>);
+
+  @override
+  _i4.Future<void> migrateOldClassifications() => (super.noSuchMethod(
+        Invocation.method(
+          #migrateOldClassifications,
+          [],
+        ),
+        returnValue: _i4.Future<void>.value(),
+        returnValueForMissingStub: _i4.Future<void>.value(),
+      ) as _i4.Future<void>);
 }
