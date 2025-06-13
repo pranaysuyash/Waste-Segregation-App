@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../services/premium_service.dart';
 import '../../utils/routes.dart';
+import '../../l10n/app_localizations.dart';
 import '../../utils/dialog_helper.dart';
 import 'setting_tile.dart';
 import 'settings_theme.dart';
@@ -12,18 +13,17 @@ class FeaturesSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context)!;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // TODO(i18n): Localize section header
-        const SettingsSectionHeader(title: 'Features & Tools'),
+        SettingsSectionHeader(title: t.featuresSection),
         
         SettingTile(
           icon: Icons.design_services,
           iconColor: Colors.purple,
-          // TODO(i18n): Localize title and subtitle
-          title: 'Modern UI Components',
-          subtitle: 'Showcase of new design elements',
+          title: t.modernUIComponents,
+          subtitle: t.modernUIComponentsSubtitle,
           trailing: _buildUpdatedBadge(),
           onTap: () => _navigateToModernUIShowcase(context),
         ),
@@ -33,9 +33,8 @@ class FeaturesSection extends StatelessWidget {
             return SettingTile(
               icon: Icons.offline_bolt,
               iconColor: Colors.indigo,
-              // TODO(i18n): Localize title and subtitle
-              title: 'Offline Mode',
-              subtitle: 'Classify items without internet',
+              title: t.offlineMode,
+              subtitle: t.offlineModeClassify,
               trailing: _buildFeatureIndicator(
                 context, 
                 premiumService.isPremiumFeature('offline_mode'),
@@ -51,9 +50,8 @@ class FeaturesSection extends StatelessWidget {
         SettingTile(
           icon: Icons.analytics,
           iconColor: Colors.green,
-          // TODO(i18n): Localize title and subtitle
-          title: 'Analytics',
-          subtitle: 'View your waste classification insights',
+          title: t.analytics,
+          subtitle: t.analyticsSubtitle,
           onTap: () => _navigateToAnalytics(context),
         ),
         
@@ -62,9 +60,8 @@ class FeaturesSection extends StatelessWidget {
             return SettingTile(
               icon: Icons.analytics_outlined,
               iconColor: Colors.teal,
-              // TODO(i18n): Localize title and subtitle
-              title: 'Advanced Analytics',
-              subtitle: 'Detailed insights and trends',
+              title: t.advancedAnalytics,
+              subtitle: t.advancedAnalyticsSubtitle,
               trailing: _buildFeatureIndicator(
                 context, 
                 premiumService.isPremiumFeature('advanced_analytics'),
@@ -127,18 +124,19 @@ class FeaturesSection extends StatelessWidget {
   }
 
   void _handleOfflineModeNavigation(
-    BuildContext context, 
+    BuildContext context,
     PremiumService premiumService,
   ) {
+    final t = AppLocalizations.of(context)!;
     if (premiumService.isPremiumFeature('offline_mode')) {
       // Navigate to offline mode settings
       // This would be implemented when the screen is available
       SettingsTheme.showInfoSnackBar(
         context,
-        'Offline mode settings coming soon!',
+        t.offlineModeComingSoon,
       );
     } else {
-      _showPremiumFeaturePrompt(context, 'Offline Mode');
+      _showPremiumFeaturePrompt(context, t.offlineMode);
     }
   }
 
@@ -147,14 +145,15 @@ class FeaturesSection extends StatelessWidget {
   }
 
   void _handleAdvancedAnalyticsNavigation(
-    BuildContext context, 
+    BuildContext context,
     PremiumService premiumService,
   ) {
+    final t = AppLocalizations.of(context)!;
     if (premiumService.isPremiumFeature('advanced_analytics')) {
       // Navigate to advanced analytics
       _navigateToAnalytics(context);
     } else {
-      _showPremiumFeaturePrompt(context, 'Advanced Analytics');
+      _showPremiumFeaturePrompt(context, t.advancedAnalytics);
     }
   }
 

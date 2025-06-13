@@ -1,5 +1,5 @@
 {
-  "@@locale": "en",
+  "@@locale": "kn",
   
   "settingsTitle": "Settings",
   "@settingsTitle": {
@@ -446,30 +446,5 @@
   "toggleFloatingCameraButton": "Toggle floating camera button",
   "@toggleFloatingCameraButton": {
     "description": "Semantic label for floating camera button toggle"
-  },
-
-  "cameraShutterLabel": "Camera shutter",
-  "@cameraShutterLabel": {
-    "description": "Semantic label for camera shutter button"
-  },
-
-  "cameraShutterHint": "Takes a photo",
-  "@cameraShutterHint": {
-    "description": "Hint for camera shutter button"
-  },
-
-  "startClassifyingHint": "Opens the camera to classify waste",
-  "@startClassifyingHint": {
-    "description": "Hint for the start classifying button"
-  },
-
-  "rewardConfettiLabel": "Reward confetti",
-  "@rewardConfettiLabel": {
-    "description": "Semantic label for achievement confetti overlay"
-  },
-
-  "rewardConfettiHint": "Celebrates your achievement",
-  "@rewardConfettiHint": {
-    "description": "Hint for achievement confetti overlay"
   }
-}
+} 
