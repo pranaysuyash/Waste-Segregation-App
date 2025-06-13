@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../utils/share_service.dart';
 import '../models/waste_classification.dart';
@@ -27,6 +28,7 @@ import '../screens/waste_dashboard_screen.dart';
 import '../widgets/modern_ui/modern_info_tile.dart';
 import '../services/analytics_service.dart';
 import '../screens/image_capture_screen.dart';
+import '../services/haptic_settings_service.dart';
 
 class ResultScreen extends StatefulWidget {
   const ResultScreen({
@@ -182,6 +184,11 @@ class _ResultScreenState extends State<ResultScreen>
           content: Text(syncMessage),
           backgroundColor: Colors.green,
         ));
+
+        final haptic = context.read<HapticSettingsService>();
+        if (haptic.enabled && widget.classification.category != 'Requires Manual Review') {
+          HapticFeedback.lightImpact();
+        }
       }
 
     } catch (e, stackTrace) {
@@ -277,6 +284,11 @@ class _ResultScreenState extends State<ResultScreen>
           backgroundColor: Colors.green,
         ),
       );
+
+      final haptic = context.read<HapticSettingsService>();
+      if (haptic.enabled && widget.classification.category != 'Requires Manual Review') {
+        HapticFeedback.lightImpact();
+      }
     } catch (e, stackTrace) {
       ErrorHandler.handleError(e, stackTrace);
       setState(() => _isAutoSaving = false);

@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../screens/theme_settings_screen.dart';
 import '../../screens/notification_settings_screen.dart';
 import '../../screens/offline_mode_settings_screen.dart';
 import '../../screens/data_export_screen.dart';
+import '../../services/haptic_settings_service.dart';
 import 'setting_tile.dart';
 import 'settings_theme.dart';
 
@@ -51,6 +53,19 @@ class AppSettingsSection extends StatelessWidget {
           title: 'Data Export',
           subtitle: 'Export your data and history',
           onTap: () => _navigateToDataExport(context),
+        ),
+
+        Consumer<HapticSettingsService>(
+          builder: (context, hapticSettings, child) {
+            return SettingToggleTile(
+              icon: Icons.vibration,
+              iconColor: Colors.orange,
+              title: 'Haptic Feedback',
+              subtitle: 'Vibrate on successful scan',
+              value: hapticSettings.enabled,
+              onChanged: hapticSettings.setEnabled,
+            );
+          },
         ),
       ],
     );
