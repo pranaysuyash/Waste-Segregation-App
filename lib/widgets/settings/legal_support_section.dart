@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../screens/legal_document_screen.dart';
 import '../../utils/app_version.dart';
 import 'setting_tile.dart';
+import '../../l10n/app_localizations.dart';
 import 'settings_theme.dart';
 
 /// Legal and support section for settings screen
@@ -10,21 +11,20 @@ class LegalSupportSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context)!;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // TODO(i18n): Localize section header
-        const SettingsSectionHeader(title: 'Legal & Support'),
+        SettingsSectionHeader(title: t.legalSupportSection),
         
         SettingTile(
           icon: Icons.privacy_tip,
           iconColor: SettingsTheme.legalColor,
-          // TODO(i18n): Localize title and subtitle
-          title: 'Privacy Policy',
-          subtitle: 'View our privacy policy',
+          title: t.privacyPolicy,
+          subtitle: t.privacyPolicySubtitle,
           onTap: () => _navigateToLegalDocument(
-            context, 
-            'Privacy Policy',
+            context,
+            t.privacyPolicy,
             'assets/docs/privacy_policy.md',
           ),
         ),
@@ -32,12 +32,11 @@ class LegalSupportSection extends StatelessWidget {
         SettingTile(
           icon: Icons.description,
           iconColor: SettingsTheme.legalColor,
-          // TODO(i18n): Localize title and subtitle
-          title: 'Terms of Service',
-          subtitle: 'View terms and conditions',
+          title: t.termsOfService,
+          subtitle: t.termsOfServiceSubtitle,
           onTap: () => _navigateToLegalDocument(
-            context, 
-            'Terms of Service',
+            context,
+            t.termsOfService,
             'assets/docs/terms_of_service.md',
           ),
         ),
@@ -45,18 +44,16 @@ class LegalSupportSection extends StatelessWidget {
         SettingTile(
           icon: Icons.help,
           iconColor: Colors.blue,
-          // TODO(i18n): Localize title and subtitle
-          title: 'Help & Support',
-          subtitle: 'Get help and contact support',
+          title: t.helpSupport,
+          subtitle: t.helpSupportSubtitle,
           onTap: () => _showSupportOptions(context),
         ),
         
         SettingTile(
           icon: Icons.info_outline,
           iconColor: Colors.indigo,
-          // TODO(i18n): Localize title and subtitle
-          title: 'About',
-          subtitle: 'App version and information',
+          title: t.about,
+          subtitle: t.aboutSubtitle,
           onTap: () => _showAboutDialog(context),
         ),
       ],
@@ -83,15 +80,15 @@ class LegalSupportSection extends StatelessWidget {
     showModalBottomSheet(
       context: context,
       builder: (BuildContext context) {
+        final t = AppLocalizations.of(context)!;
         return Container(
           padding: const EdgeInsets.all(16),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // TODO(i18n): Localize support options
               Text(
-                'Help & Support',
+                t.helpSupport,
                 style: Theme.of(context).textTheme.titleLarge?.copyWith(
                   fontWeight: FontWeight.bold,
                 ),
@@ -100,8 +97,8 @@ class LegalSupportSection extends StatelessWidget {
               
               ListTile(
                 leading: const Icon(Icons.email, color: Colors.blue),
-                title: const Text('Contact Support'),
-                subtitle: const Text('Send us an email'),
+                title: Text(t.contactSupport),
+                subtitle: Text(t.contactSupportSubtitle),
                 onTap: () {
                   Navigator.pop(context);
                   _contactSupport(context);
@@ -110,8 +107,8 @@ class LegalSupportSection extends StatelessWidget {
               
               ListTile(
                 leading: const Icon(Icons.bug_report, color: Colors.orange),
-                title: const Text('Report a Bug'),
-                subtitle: const Text('Help us improve the app'),
+                title: Text(t.reportBug),
+                subtitle: Text(t.reportBugSubtitle),
                 onTap: () {
                   Navigator.pop(context);
                   _reportBug(context);
@@ -120,8 +117,8 @@ class LegalSupportSection extends StatelessWidget {
               
               ListTile(
                 leading: const Icon(Icons.star, color: Colors.amber),
-                title: const Text('Rate the App'),
-                subtitle: const Text('Leave a review'),
+                title: Text(t.rateApp),
+                subtitle: Text(t.rateAppSubtitle),
                 onTap: () {
                   Navigator.pop(context);
                   _rateApp(context);
@@ -147,15 +144,9 @@ class LegalSupportSection extends StatelessWidget {
         color: Colors.green,
       ),
       children: [
-        // TODO(i18n): Localize about dialog content
-        const Text(
-          'A comprehensive Flutter application for proper waste identification, '
-          'segregation guidance, and environmental education.',
-        ),
+        Text(t.aboutDialogLine1),
         const SizedBox(height: 16),
-        const Text(
-          'Built with Flutter and powered by AI for accurate waste classification.',
-        ),
+        Text(t.aboutDialogLine2),
       ],
     );
   }

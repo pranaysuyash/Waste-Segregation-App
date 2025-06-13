@@ -26,6 +26,7 @@ import 'services/community_service.dart';
 import 'screens/auth_screen.dart';
 import 'screens/consent_dialog_screen.dart';
 import 'screens/settings_screen.dart';
+import 'l10n/app_localizations.dart';
 import 'screens/history_screen.dart';
 import 'screens/achievements_screen.dart';
 import 'screens/educational_content_screen.dart';
@@ -70,20 +71,17 @@ void main() async {
 
   // Set up error handling
   _setupErrorHandling();
-
   if (kIsWeb) {
-    runApp(const MaterialApp(
-      home: Scaffold(
+    runApp(MaterialApp(
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
+      home: const Scaffold(
         body: Center(child: Text('It works!')),
       ),
     ));
   } else {
     await originalMain();
   }
-}
-
-Future<void> originalMain() async {
-  WidgetsFlutterBinding.ensureInitialized();
 
   // Environment variables are now loaded via --dart-define-from-file=.env
   if (kDebugMode) {
@@ -320,6 +318,8 @@ class WasteSegregationApp extends StatelessWidget {
           theme: AppTheme.lightTheme,
           darkTheme: AppTheme.darkTheme,
           themeMode: themeProvider.themeMode,
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
           builder: (context, child) => child ?? const SizedBox.shrink(),
           
           // ADD ROUTE DEFINITIONS:

@@ -6,6 +6,8 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:intl/intl.dart' as intl;
 
 import 'app_localizations_en.dart';
+import 'app_localizations_hi.dart';
+import 'app_localizations_kn.dart';
 
 // ignore_for_file: type=lint
 
@@ -90,7 +92,9 @@ abstract class AppLocalizations {
 
   /// A list of this localizations delegate's supported locales.
   static const List<Locale> supportedLocales = <Locale>[
-    Locale('en')
+    Locale('en'),
+    Locale('hi'),
+    Locale('kn'),
   ];
 
   /// Title for the settings screen
@@ -309,6 +313,12 @@ abstract class AppLocalizations {
   /// **'Classify items without internet'**
   String get offlineModeClassify;
 
+  /// SnackBar text for offline mode settings coming soon
+  ///
+  /// In en, this message translates to:
+  /// **'Offline mode settings coming soon!'**
+  String get offlineModeComingSoon;
+
   /// Analytics menu item
   ///
   /// In en, this message translates to:
@@ -386,6 +396,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'App version and information'**
   String get aboutSubtitle;
+
+  /// First line of about dialog
+  ///
+  /// In en, this message translates to:
+  /// **'A comprehensive Flutter application for proper waste identification, segregation guidance, and environmental education.'**
+  String get aboutDialogLine1;
+
+  /// Second line of about dialog
+  ///
+  /// In en, this message translates to:
+  /// **'Built with Flutter and powered by AI for accurate waste classification.'**
+  String get aboutDialogLine2;
 
   /// Contact support option
   ///
@@ -594,6 +616,8 @@ AppLocalizations lookupAppLocalizations(Locale locale) {
 
   // Lookup logic when only language code is specified.
   switch (locale.languageCode) {
+    case 'hi': return AppLocalizationsHi();
+    case 'kn': return AppLocalizationsKn();
     case 'en': return AppLocalizationsEn();
   }
 
