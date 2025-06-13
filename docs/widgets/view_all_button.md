@@ -14,11 +14,11 @@ It adapts its appearance based on the available width, transitioning between ful
 
 The button has three main display states determined by `LayoutBuilder`:
 
-1.  **Full Text (Default)**: Displays "View All" along with an optional icon (e.g., `Icons.arrow_forward`). This is used when sufficient width is available (>= 120 logical pixels).
-2.  **Abbreviated Text (Narrow)**: Displays only the last word of the `text` property (e.g., "All") or a truncated version if the last word is too long, plus the icon. This is used for widths between 80 and 120 logical pixels.
-3.  **Icon-Only (Very Narrow)**: Displays only the icon. A tooltip showing the full text ("View All") is automatically displayed on hover or long-press. This is used when the width is less than 80 logical pixels.
+1.  **Full Text (Default)**: Displays "View All" along with an optional icon (e.g., `Icons.arrow_forward`). This is used when sufficient width is available (≥ 120 logical pixels).
+2.  **Abbreviated Text (Narrow)**: Displays only the last word of the `text` property (e.g., "All") or a truncated version if the last word is too long, plus the icon. This is used for widths between 80–119 logical pixels.
+3.  **Icon-Only (Very Narrow)**: Displays only the icon. A tooltip showing the full text ("View All") is automatically displayed on hover or long-press. This is used when the width is < 80 logical pixels.
 
-## Key Features
+## Key features
 
 - **Automatic Responsiveness**: Uses `LayoutBuilder` to adapt its content dynamically based on available width
 - **Intelligent Text Abbreviation**: Extracts last word from multi-word text or truncates long single words
@@ -39,14 +39,15 @@ The `ViewAllButton` has its own set of parameters optimized for the "View All" u
 - **`style`**: `ModernButtonStyle` - Button style (defaults to `ModernButtonStyle.text`)
 - **`size`**: `ModernButtonSize` - Button size (defaults to `ModernButtonSize.small`)
 
-### Inherited ModernButton Features
+### Inherited ModernButton features
 Since `ViewAllButton` uses `ModernButton` internally, it inherits:
-- **Tooltip Support**: Automatic tooltip in icon-only mode
+- **Tooltip Support**: Automatic tooltip in icon-only mode via `tooltipMessage` parameter
 - **Animation Effects**: Scale animation on press
 - **Theme Integration**: Automatic color and style theming
-- **Accessibility**: Screen reader support and semantic labels
+- **Accessibility**: Screen reader support and semantic labels via `semanticLabel`
+- **Custom Padding**: Configurable padding parameter for fine-tuned spacing
 
-## Usage Example
+## Usage examples
 
 ```dart
 // Basic usage - typically at the end of a list section
@@ -92,45 +93,71 @@ Row(
     ),
   ],
 )
+
+// Testing responsive behavior in constrained space
+SizedBox(
+  width: 70, // Forces icon-only mode
+  child: ViewAllButton(
+    text: "View All Items",
+    onPressed: () => _showAllItems(),
+  ),
+)
 ```
 
-## Implementation Details
+## Implementation details
 
-### Responsive Breakpoints
+### Responsive breakpoints
 - **< 80px**: Icon-only mode with tooltip
-- **80-120px**: Abbreviated text mode
+- **80–119px**: Abbreviated text mode
 - **≥ 120px**: Full text mode
 
-### Text Abbreviation Algorithm
-1. **Multi-word text**: Extracts the last word (e.g., "View All Items" → "Items")
-2. **Single long word**: Truncates to 4 characters (e.g., "Classifications" → "Clas")
+### Text abbreviation algorithm
+1. **Multi-word text**: Uses the last word (e.g., "View All Items" → "Items")
+2. **Single long word**: Truncates to the first **4** characters (e.g., "Classifications" → "Clas")
 3. **Short single word**: Displays as-is
 
-### Performance Considerations
+### Internal implementation
+The widget uses `LayoutBuilder` to determine the available width and conditionally renders different `ModernButton` configurations:
+
+```dart
+LayoutBuilder(
+  builder: (context, constraints) {
+    if (constraints.maxWidth < 80) {
+      return ModernButton.iconOnly(...);
+    } else if (constraints.maxWidth < 120) {
+      return ModernButton.abbreviated(...);
+    } else {
+      return ModernButton.fullText(...);
+    }
+  },
+);
+```
+
+### Performance considerations
 - Uses `LayoutBuilder` for efficient responsive behavior
 - Minimal widget rebuilds through proper state management
 - Leverages `ModernButton`'s optimized rendering
 
-## Accessibility Features
+## Accessibility features
 
-- **Automatic Tooltips**: Full text shown as tooltip in icon-only mode
-- **Semantic Labels**: Proper screen reader support
-- **Touch Targets**: Maintains minimum 44px touch target size
-- **High Contrast**: Works with system accessibility settings
+- **Automatic tooltips**: Full text shown as tooltip in icon-only mode
+- **Semantic labels**: Proper screen reader support with `semanticLabel` on the underlying `ModernButton`
+- **Touch targets**: Maintains minimum 44px touch target size
+- **High contrast**: Works with system accessibility settings
 
-## Best Practices
+## Best practices
 
-### When to Use
+### When to use
 - ✅ At the end of list sections for navigation to full views
 - ✅ In constrained spaces where text might overflow
 - ✅ For consistent "View All" actions across the app
 
-### When Not to Use
+### When not to use
 - ❌ For primary actions (use `ModernButton` instead)
 - ❌ When space is not constrained (use regular buttons)
 - ❌ For actions other than navigation/viewing more content
 
-## Related Components
+## Related components
 
 - **`ModernButton`**: Base button component with full styling options
 - **`ResponsiveText`**: For responsive text without button functionality

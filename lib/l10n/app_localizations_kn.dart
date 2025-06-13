@@ -270,4 +270,19 @@ class AppLocalizationsKn extends AppLocalizations {
 
   @override
   String get toggleFloatingCameraButton => 'Toggle floating camera button';
+
+  @override
+  String get cameraShutterLabel => 'ಕ್ಯಾಮೆರಾ ಶಟರ್';
+
+  @override
+  String get cameraShutterHint => 'ಫೋಟೋ ತೆಗೆಯುತ್ತದೆ';
+
+  @override
+  String get rewardConfettiLabel => 'ಪುರಸ್ಕಾರ ಕಾನ್ಫೆಟ್ಟಿ';
+
+  @override
+  String get rewardConfettiHint => 'ನಿಮ್ಮ ಸಾಧನೆಯನ್ನು ಆಚರಿಸುತ್ತದೆ';
+
+  @override
+  String get startClassifyingHint => 'ತ್ಯಾಜ್ಯವನ್ನು ವರ್ಗೀಕರಿಸಲು ಕ್ಯಾಮೆರಾ ತೆರೆಯುತ್ತದೆ';
 }

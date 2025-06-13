@@ -270,4 +270,19 @@ class AppLocalizationsHi extends AppLocalizations {
 
   @override
   String get toggleFloatingCameraButton => 'Toggle floating camera button';
+
+  @override
+  String get cameraShutterLabel => 'कैमरा शटर';
+
+  @override
+  String get cameraShutterHint => 'फोटो लेता है';
+
+  @override
+  String get rewardConfettiLabel => 'पुरस्कार कन्फेटी';
+
+  @override
+  String get rewardConfettiHint => 'आपकी उपलब्धि का जश्न मनाता है';
+
+  @override
+  String get startClassifyingHint => 'कचरे को वर्गीकृत करने के लिए कैमरा खोलता है';
 }

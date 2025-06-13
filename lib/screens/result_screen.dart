@@ -21,6 +21,7 @@ import '../widgets/expandable_section.dart';
 import '../widgets/result_screen/action_buttons.dart';
 import '../widgets/result_screen/classification_card.dart';
 import '../widgets/result_screen/staggered_list.dart';
+import '../widgets/result_screen/enhanced_reanalysis_widget.dart';
 import '../widgets/modern_ui/modern_cards.dart' show StatsCard, Trend, ModernCard;
 import '../widgets/modern_ui/modern_buttons.dart';
 import '../widgets/enhanced_analysis_loader.dart';
@@ -722,6 +723,20 @@ class _ResultScreenState extends State<ResultScreen>
                                 showCompactVersion: !widget.showActions,
                               ),
                             );
+                          },
+                        ),
+                        // Enhanced re-analysis widget
+                        const SizedBox(height: 16),
+                        EnhancedReanalysisWidget(
+                          classification: widget.classification,
+                          onReanalysisStarted: () {
+                            _analyticsService.trackUserAction('enhanced_reanalysis_started');
+                          },
+                          onReanalysisCompleted: (newClassification) {
+                            _analyticsService.trackUserAction('enhanced_reanalysis_completed', parameters: {
+                              'original_category': widget.classification.category,
+                              'new_category': newClassification.category,
+                            });
                           },
                         ),
                         if (widget.classification.disposalInstructions !=
