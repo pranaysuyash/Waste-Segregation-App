@@ -1,0 +1,181 @@
+name: Build and Test
+
+on:
+  pull_request:
+    branches: [ main, develop ]
+  push:
+    branches: [ main, develop ]
+
+jobs:
+  # This provides the "build" status check
+  build:
+    name: Build Flutter App
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Flutter
+      uses: subosito/flutter-action@v2
+      with:
+        flutter-version: '3.24.5'
+        channel: 'stable'
+        
+    - name: Get dependencies
+      run: flutter pub get
+      
+    - name: Analyze code
+      run: flutter analyze
+      
+    - name: Build APK
+      run: flutter build apk --debug
+      
+    - name: Build iOS (if on macOS)
+      if: runner.os == 'macOS'
+      run: flutter build ios --no-codesign
+      
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: build-artifacts
+        path: |
+          build/app/outputs/flutter-apk/
+          build/ios/
+
+  # This provides the "test" status check  
+  test:
+    name: Run Tests
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Flutter
+      uses: subosito/flutter-action@v2
+      with:
+        flutter-version: '3.24.5'
+        channel: 'stable'
+        
+    - name: Get dependencies
+      run: flutter pub get
+      
+    - name: Run unit tests
+      run: flutter test --coverage --exclude-tags=golden
+      
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v3
+      with:
+        file: coverage/lcov.info
+        fail_ci_if_error: false
+
+  # This provides the "Golden Tests & Visual Diff" status check
+  golden_tests:
+    name: Golden Tests & Visual Diff
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Flutter
+      uses: subosito/flutter-action@v2
+      with:
+        flutter-version: '3.24.5'
+        channel: 'stable'
+        
+    - name: Get dependencies
+      run: flutter pub get
+      
+    - name: Run golden tests
+      run: |
+        # Run golden tests and capture output
+        flutter test test/golden/ --reporter=json > golden_test_results.json || true
+        
+        # Check if any golden tests failed
+        if grep -q '"result":"error"' golden_test_results.json; then
+          echo "❌ Golden tests failed - Visual regressions detected!"
+          echo ""
+          echo "📊 Test Results Summary:"
+          grep -o '"name":"[^"]*"' golden_test_results.json | sed 's/"name":"//g' | sed 's/"//g' | while read test_name; do
+            if grep -A5 -B5 "\"name\":\"$test_name\"" golden_test_results.json | grep -q '"result":"error"'; then
+              echo "  ❌ $test_name"
+            else
+              echo "  ✅ $test_name"
+            fi
+          done
+          echo ""
+          echo "🔍 Visual differences detected in golden tests."
+          echo "If these changes are intentional, update the golden files:"
+          echo "  ./scripts/testing/golden_test_manager.sh update"
+          echo ""
+          echo "📁 Check the test/golden/failures/ directory for visual diffs."
+          exit 1
+        else
+          echo "✅ All golden tests passed - No visual regressions detected!"
+        fi
+        
+    - name: Upload golden test failures
+      if: failure()
+      uses: actions/upload-artifact@v3
+      with:
+        name: golden-test-failures
+        path: test/golden/failures/
+        
+    - name: Comment on PR with visual diff results
+      if: failure() && github.event_name == 'pull_request'
+      uses: actions/github-script@v6
+      with:
+        script: |
+          const fs = require('fs');
+          const path = require('path');
+          
+          let comment = `## 🎨 Visual Regression Test Results\n\n`;
+          comment += `❌ **Golden tests failed** - Visual differences detected!\n\n`;
+          comment += `### 📊 What this means:\n`;
+          comment += `- Your changes have modified the visual appearance of UI components\n`;
+          comment += `- This could be intentional (new features) or unintentional (regressions)\n\n`;
+          comment += `### 🔧 Next steps:\n`;
+          comment += `1. **If changes are intentional**: Update golden files with \`./scripts/testing/golden_test_manager.sh update\`\n`;
+          comment += `2. **If changes are unintentional**: Review your code for UI regressions\n`;
+          comment += `3. **Check visual diffs**: Download the \`golden-test-failures\` artifact to see exact differences\n\n`;
+          comment += `### 📁 Artifacts:\n`;
+          comment += `- Visual diff images are available in the \`golden-test-failures\` artifact\n`;
+          comment += `- Each failed test includes before/after/diff images\n`;
+          
+          github.rest.issues.createComment({
+            issue_number: context.issue.number,
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            body: comment
+          });
+
+  # This provides additional quality checks
+  code_quality:
+    name: Code Quality
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Flutter
+      uses: subosito/flutter-action@v2
+      with:
+        flutter-version: '3.24.5'
+        channel: 'stable'
+        
+    - name: Get dependencies
+      run: flutter pub get
+      
+    - name: Check formatting
+      run: dart format --set-exit-if-changed .
+      
+    - name: Run static analysis
+      run: flutter analyze --fatal-infos
+      
+    - name: Check for unused dependencies
+      run: |
+        flutter pub deps --json > deps.json
+        # Add custom logic here if you have tools to check unused deps 
