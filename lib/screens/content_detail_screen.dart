@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../models/educational_content.dart';
@@ -683,27 +684,27 @@ class _VideoPlayerWidgetState extends State<_VideoPlayerWidget> {
   Future<void> _initializePlayer() async {
     if (!mounted) return;
     try {
-      _controller = VideoPlayerController.networkUrl(Uri.parse(widget.url))
-        ..initialize().then((_) {
-          if (!mounted) return;
-          setState(() {
-            _isInitialized = true;
-          });
-          _controller?.addListener(() {
-            if (!mounted) return;
-            if (_controller?.value.isPlaying != _isPlaying) {
-              setState(() {
-                _isPlaying = _controller!.value.isPlaying;
-              });
-            }
-          });
-        }).catchError((e) {
-          if (!mounted) return;
-          setState(() {
-            _error = 'Failed to load video: ${e.toString()}';
-            _isInitialized = true; 
-          });
+      _controller = VideoPlayerController.networkUrl(Uri.parse(widget.url));
+      unawaited(_controller!.initialize().then((_) {
+        if (!mounted) return;
+        setState(() {
+          _isInitialized = true;
         });
+        _controller?.addListener(() {
+          if (!mounted) return;
+          if (_controller?.value.isPlaying != _isPlaying) {
+            setState(() {
+              _isPlaying = _controller!.value.isPlaying;
+            });
+          }
+        });
+      }).catchError((e) {
+        if (!mounted) return;
+        setState(() {
+          _error = 'Failed to load video: ${e.toString()}';
+          _isInitialized = true; 
+        });
+      }));
     } catch (e) {
       if (!mounted) return;
       setState(() {

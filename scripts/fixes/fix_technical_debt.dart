@@ -1,9 +1,5 @@
 #!/usr/bin/env dart
 
-/// Script to systematically fix technical debt issues
-/// Run with: dart scripts/fixes/fix_technical_debt.dart
-
-import 'dart:io';
 
 void main() async {
   print('🔧 Starting Technical Debt Cleanup...\n');

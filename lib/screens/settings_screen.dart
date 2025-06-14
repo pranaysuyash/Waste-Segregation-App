@@ -1,5 +1,9 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+import 'package:url_launcher/url_launcher.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import '../services/premium_service.dart';
 import '../services/ad_service.dart';
 import 'package:intl/intl.dart';
@@ -1034,6 +1038,72 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
           ),
 
+          // Email Support
+          Card(
+            margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+            child: ListTile(
+              leading: Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: Colors.green.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Icon(Icons.email, color: Colors.green),
+              ),
+              title: const Text(
+                'Contact Support',
+                style: TextStyle(fontWeight: FontWeight.w500),
+              ),
+              subtitle: const Text('Get help via email'),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () => _contactSupport(context),
+            ),
+          ),
+
+          // Bug Reporting
+          Card(
+            margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+            child: ListTile(
+              leading: Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: Colors.orange.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Icon(Icons.bug_report, color: Colors.orange),
+              ),
+              title: const Text(
+                'Report a Bug',
+                style: TextStyle(fontWeight: FontWeight.w500),
+              ),
+              subtitle: const Text('Help us improve the app'),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () => _reportBug(context),
+            ),
+          ),
+
+          // Rate App
+          Card(
+            margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+            child: ListTile(
+              leading: Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: Colors.purple.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Icon(Icons.star_rate, color: Colors.purple),
+              ),
+              title: const Text(
+                'Rate App',
+                style: TextStyle(fontWeight: FontWeight.w500),
+              ),
+              subtitle: const Text('Rate us on the app store'),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () => _rateApp(context),
+            ),
+          ),
+
           const SizedBox(height: 16),
         ],
       ),
@@ -1208,6 +1278,183 @@ class _SettingsScreenState extends State<SettingsScreen> {
         ],
       );
     }
+  }
+
+  // Contact Support via Email
+  Future<void> _contactSupport(BuildContext context) async {
+    try {
+      final packageInfo = await PackageInfo.fromPlatform();
+      final appVersion = packageInfo.version;
+      final buildNumber = packageInfo.buildNumber;
+      
+      final subject = Uri.encodeComponent('Waste Segregation App - Support Request');
+      final body = Uri.encodeComponent(
+        'Hi Support Team,\n\n'
+        'I need help with the Waste Segregation App.\n\n'
+        'App Version: $appVersion ($buildNumber)\n'
+        'Platform: ${Platform.operatingSystem}\n'
+        'Device: ${Platform.operatingSystemVersion}\n\n'
+        'Please describe your issue below:\n\n'
+      );
+      
+      final emailUrl = 'mailto:support@wastewise.app?subject=$subject&body=$body';
+      final uri = Uri.parse(emailUrl);
+      
+      if (await canLaunchUrl(uri)) {
+        await launchUrl(uri);
+      } else {
+        if (context.mounted) {
+          _showEmailFallback(context, 'support@wastewise.app');
+        }
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error opening email: ${e.toString()}'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
+  // Report a Bug
+  Future<void> _reportBug(BuildContext context) async {
+    try {
+      final packageInfo = await PackageInfo.fromPlatform();
+      final appVersion = packageInfo.version;
+      final buildNumber = packageInfo.buildNumber;
+      
+      final subject = Uri.encodeComponent('Waste Segregation App - Bug Report');
+      final body = Uri.encodeComponent(
+        'Hi Development Team,\n\n'
+        'I found a bug in the Waste Segregation App.\n\n'
+        'App Version: $appVersion ($buildNumber)\n'
+        'Platform: ${Platform.operatingSystem}\n'
+        'Device: ${Platform.operatingSystemVersion}\n\n'
+        'Bug Description:\n'
+        '- What happened?\n'
+        '- What did you expect to happen?\n'
+        '- Steps to reproduce:\n'
+        '  1. \n'
+        '  2. \n'
+        '  3. \n\n'
+        'Additional Information:\n'
+        '- Screenshots (if applicable): \n'
+        '- Frequency: Always / Sometimes / Once\n\n'
+      );
+      
+      final emailUrl = 'mailto:bugs@wastewise.app?subject=$subject&body=$body';
+      final uri = Uri.parse(emailUrl);
+      
+      if (await canLaunchUrl(uri)) {
+        await launchUrl(uri);
+      } else {
+        if (context.mounted) {
+          _showEmailFallback(context, 'bugs@wastewise.app');
+        }
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error opening email: ${e.toString()}'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
+  // Rate the App
+  Future<void> _rateApp(BuildContext context) async {
+    try {
+      String storeUrl;
+      if (Platform.isIOS) {
+        // Replace with actual App Store ID when published
+        storeUrl = 'https://apps.apple.com/app/waste-segregation-app/id123456789';
+      } else if (Platform.isAndroid) {
+        // Replace with actual package name when published
+        storeUrl = 'https://play.google.com/store/apps/details?id=com.wastewise.app';
+      } else {
+        // Fallback for other platforms
+        storeUrl = 'https://wastewise.app';
+      }
+      
+      final uri = Uri.parse(storeUrl);
+      
+      if (await canLaunchUrl(uri)) {
+        await launchUrl(uri, mode: LaunchMode.externalApplication);
+      } else {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Unable to open app store. Please search for "Waste Segregation App" in your app store.'),
+              backgroundColor: Colors.orange,
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error opening app store: ${e.toString()}'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
+  // Show email fallback when email client is not available
+  void _showEmailFallback(BuildContext context, String email) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Email Not Available'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text('No email app found. Please send an email to:'),
+            const SizedBox(height: 8),
+            SelectableText(
+              email,
+              style: const TextStyle(
+                fontWeight: FontWeight.bold,
+                color: Colors.blue,
+              ),
+            ),
+            const SizedBox(height: 16),
+            Row(
+              children: [
+                Expanded(
+                  child: ElevatedButton.icon(
+                    onPressed: () {
+                      Clipboard.setData(ClipboardData(text: email));
+                      Navigator.pop(context);
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Email address copied to clipboard')),
+                      );
+                    },
+                    icon: const Icon(Icons.copy),
+                    label: const Text('Copy Email'),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Close'),
+          ),
+        ],
+      ),
+    );
   }
 
   Widget _buildTestModeFeature(

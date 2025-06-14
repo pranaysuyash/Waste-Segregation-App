@@ -17,6 +17,12 @@ This document analyzes the current state of user and admin management capabiliti
 - ❌ Critical admin implementation gap (90% of admin features missing)
 - ⚠️ Compliance features need enhancement for GDPR requirements
 
+### **Key Risks**
+- **⚠️ Delayed Admin Rollout**: Blocks user support and data recovery operations
+- **🚨 GDPR Non-Compliance**: Potential fines up to 4% of revenue for missing user data rights
+- **📉 User Trust**: Inability to recover lost data damages user confidence
+- **🔐 Security Gaps**: No admin audit trails or role-based access controls
+
 ---
 
 ## 📊 Current State Analysis
@@ -56,7 +62,7 @@ This document analyzes the current state of user and admin management capabiliti
 | **Account Reset** (wipe data, keep login) | ✅ Implemented | None | - |
 | **Account Delete** (wipe data + Auth) | ❌ Missing | Critical | HIGH |
 | **Download My Data** (GDPR export) | ⚠️ Partial | Format compliance | HIGH |
-| **View My Archive** | ❌ Missing | Full feature | MEDIUM |
+| **View My Archive** | ❌ Missing | GDPR data access right | HIGH |
 | **Restore My Account** | ❌ Missing | Self-service recovery | MEDIUM |
 
 **Current End-User Experience:**
@@ -74,8 +80,13 @@ Settings Screen:
 
 ### **👨‍💼 Admin/Support Capabilities**
 
+#### **Admin Role Types**
+- **Super Admin**: Full system access, user management, configuration
+- **Admin**: User management, data recovery, audit viewing
+- **Read-Only Admin**: Audit logs, user viewing (no data modification)
+- **Support**: Limited user assistance, data recovery requests
+
 | **Action/Feature** | **Current Status** | **Gap** | **Priority** |
-|-------------------|-------------------|---------|--------------|
 | **View/Manage Users** | ❌ Missing | Full admin dashboard | CRITICAL |
 | **Data Recovery** | ⚠️ Designed only | Complete implementation | CRITICAL |
 | **Restore Accounts** | ❌ Missing | Full workflow | HIGH |
@@ -164,19 +175,48 @@ Admin Capabilities:
 ## 🚀 Implementation Plan
 
 ### **Phase 1: Foundation Infrastructure** 
-**Timeline**: 2-3 weeks | **Priority**: CRITICAL
+**Timeline**: 3-4 weeks (Split into 2 sprints) | **Priority**: CRITICAL
+
+#### **Sprint 1A: Authentication & Roles (Week 1-2)**
+- Firebase Custom Claims setup
+- Basic admin role verification
+- Minimum Viable Admin (MVP) - user list & suspend
+
+#### **Sprint 1B: Core Services (Week 3-4)**
+- Complete admin service layer
+- Service account permissions
+- Enhanced user data management
 
 #### **1.1 Admin Authentication & Authorization**
 ```dart
 // Enhanced UserProfile with admin capabilities
 enum UserRole { 
-  guest, member, admin, superAdmin 
+  guest, member, admin, superAdmin, readOnlyAdmin 
 }
 
+// Firebase Custom Claims Integration
 class AdminAuthService {
+  // Set custom claims for admin roles
+  Future<void> setAdminClaims(String userId, UserRole role) async {
+    await FirebaseAuth.instance.setCustomUserClaims(userId, {
+      'role': role.toString(),
+      'adminAccess': role.isAdmin,
+      'permissions': getPermissionsForRole(role),
+    });
+  }
+  
   Future<bool> verifyAdminAccess(String userId);
   Future<List<Permission>> getUserPermissions(String userId);
   Future<void> auditAdminAction(AdminAction action);
+}
+
+// Service Account Permissions for Cloud Functions
+class ServiceAccountConfig {
+  static const adminFunctions = {
+    'userManagement': 'firebase-admin-sdk@project.iam.gserviceaccount.com',
+    'dataRecovery': 'data-recovery@project.iam.gserviceaccount.com',
+    'auditLogging': 'audit-service@project.iam.gserviceaccount.com',
+  };
 }
 ```
 
@@ -221,9 +261,16 @@ class AdminDataService {
 #### **2.1 Enhanced Data Management**
 ```dart
 class EnhancedUserDataService {
+  // Server-side GDPR export with queue for large datasets
+  Future<String> requestGDPRExport(String userId) async {
+    // Return job ID, process server-side to avoid UI timeouts
+    return await CloudFunctions.instance.httpsCallable('generateGDPRExport')
+        .call({'userId': userId});
+  }
+  
+  Future<GDPRExportStatus> checkExportStatus(String jobId);
   Future<void> deleteAccountPermanently(String userId);
-  Future<GDPRExport> generateGDPRExport(String userId);
-  Future<List<ArchivedData>> getUserArchive(String userId);
+  Future<List<ArchivedData>> getUserArchive(String userId); // HIGH priority for GDPR
   Future<void> requestDataRecovery(String userId);
 }
 ```
@@ -271,9 +318,33 @@ class AdminRoutes {
 #### **3.3 User Management Views**
 ```dart
 class AdminUserListScreen extends StatefulWidget {
-  // User table with filtering, sorting, pagination
-  // Bulk operations (export, notify, suspend)
-  // Individual user detail views
+  // Cursor-based pagination for thousands of users
+  Widget buildUserTable() {
+    return PaginatedDataTable2(
+      source: UserDataSource(
+        pageSize: 50,
+        cursorField: 'createdAt', // Efficient Firestore pagination
+      ),
+      columns: [...],
+      actions: [
+        BulkActionButton(
+          onPressed: () => showBulkConfirmation(
+            'Are you sure you want to suspend 23 users?',
+            rateLimited: true, // Prevent accidental mass operations
+          ),
+        ),
+      ],
+    );
+  }
+  
+  // Role management UI
+  Widget buildRoleManagement(UserProfile user) {
+    return RoleSelector(
+      currentRole: user.role,
+      availableRoles: [UserRole.member, UserRole.admin],
+      onRoleChanged: (newRole) => confirmRoleChange(user, newRole),
+    );
+  }
 }
 ```
 
@@ -303,6 +374,8 @@ class AdminUserListScreen extends StatefulWidget {
 - Test data seeding and management tools
 - Automated system health checks
 - Development environment indicators
+- Health check endpoint (/healthz) for load balancers
+- Cloud Monitoring metrics export (function invocations, latencies)
 
 ---
 
@@ -395,7 +468,7 @@ class AdminAuditService {
     required Map<String, dynamic> details,
     String? targetUserId,
   }) async {
-    await firestore.collection('admin_audit_logs').add({
+    final auditLog = {
       'adminId': adminId,
       'action': action,
       'details': details,
@@ -403,10 +476,37 @@ class AdminAuditService {
       'timestamp': FieldValue.serverTimestamp(),
       'ipAddress': await getClientIpAddress(),
       'userAgent': await getUserAgent(),
-    });
+    };
+    
+    // Write to main audit collection
+    await firestore.collection('admin_audit_logs').add(auditLog);
+    
+    // Archive to immutable storage for compliance
+    await _archiveToImmutableStorage(auditLog);
+  }
+  
+  // Immutable audit log storage
+  Future<void> _archiveToImmutableStorage(Map<String, dynamic> auditLog) async {
+    // Export to Cloud Storage with write-once, read-many policy
+    final bucket = FirebaseStorage.instance.bucket('audit-logs-immutable');
+    final fileName = 'audit-${DateTime.now().toIso8601String()}-${auditLog['adminId']}.json';
+    
+    await bucket.file(fileName).writeAsString(
+      jsonEncode(auditLog),
+      metadata: {
+        'retention': '7years', // Configurable retention policy
+        'immutable': 'true',
+      },
+    );
   }
 }
 ```
+
+### **Log Retention Policy**
+- **Active Logs**: 90 days in Firestore for fast querying
+- **Archived Logs**: 7 years in immutable Cloud Storage
+- **Purge Policy**: Automated cleanup after retention period
+- **Access Control**: Only super admins can export/view historical logs
 
 ---
 
@@ -417,6 +517,8 @@ class AdminAuditService {
 - **User Satisfaction**: User data management satisfaction score (target: >4.5/5)
 - **Compliance**: GDPR request resolution time (target: <72 hours)
 - **System Reliability**: Admin tool uptime (target: >99.5%)
+- **Admin Error Rate**: % of admin operations failing (target: <1%)
+- **Mean Time to Recovery**: Average time from user request to data restored (target: <2 hours)
 
 ### **User Experience Metrics**
 - Account deletion completion rate
@@ -435,20 +537,22 @@ class AdminAuditService {
 ## 🎯 Next Steps & Action Items
 
 ### **Immediate Actions (Next 2 Weeks)**
-1. **Create admin service layer foundation**
-   - Implement AdminUserService and AdminDataService
-   - Set up admin authentication middleware
-   - Create basic admin models
+1. **Build Minimum Viable Admin (Sprint 1A)**
+   - Firebase custom claims setup
+   - Basic user list screen (view, suspend, delete only)
+   - Admin authentication middleware
+   - This provides immediate admin capability and early feedback
 
-2. **Enhance end-user data management**
+2. **Enhanced end-user GDPR compliance**
+   - Raise user archive viewing to HIGH priority
    - Implement proper account deletion
-   - Improve data export to be GDPR-compliant
-   - Add account status visibility
+   - Server-side GDPR export with job queuing
+   - User data access rights interface
 
-3. **Set up development infrastructure**
-   - Create admin module structure
-   - Set up admin-specific routing
-   - Implement audit logging foundation
+3. **Security & audit foundation**
+   - Immutable audit log storage setup
+   - Service account permissions configuration
+   - Role-based access control implementation
 
 ### **Short-term Goals (1 Month)**
 1. Complete Phase 1 (Foundation Infrastructure)

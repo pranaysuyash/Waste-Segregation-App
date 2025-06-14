@@ -56,6 +56,8 @@ This document provides a comprehensive index to all project documentation, now p
 - **account_reset_and_delete_specification.md** - Specification for account reset and deletion flows
 - **REFINED_REPOSITORY_IMPROVEMENT_PRIORITIES.md** - Updated repository enhancement priorities based on actual assessment
 - **FINAL_ACTION_PLAN_COMPLETE.md** - Comprehensive implementation summary and next steps
+- **COMPREHENSIVE_TASK_MATRIX.md** - Master planning sheet with all tasks organized by category and priority
+- **INTEGRATED_DEVELOPMENT_ROADMAP.md** - Unified roadmap integrating task matrix with user/admin management plan
 
 ### `/docs/processes/` - Development Processes
 - **MANUAL_COMMIT_INSTRUCTIONS.md** - Manual commit procedures when git fails
@@ -146,7 +148,7 @@ This document provides a comprehensive index to all project documentation, now p
 ### **Status & Tracking** (10 files)
 High-priority documents for understanding current project state and ongoing issues.
 
-### **Planning & Strategy** (8 files)
+### **Planning & Strategy** (10 files)
 Project planning, roadmaps, strategic documentation, and implementation priorities.
 
 ### **Technical Documentation** (6 files)
