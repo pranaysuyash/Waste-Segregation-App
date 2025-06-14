@@ -101,6 +101,11 @@ linter:
     use_function_type_syntax_for_parameters: true
     use_rethrow_when_possible: true
     valid_regexps: true
+    
+    # Additional rules for technical debt cleanup
+    await_only_futures: true
+    cascade_invocations: true
+    # Note: unused_* rules are built into the analyzer, not lint rules
 
 # Additional information about this file can be found at
 # https://dart.dev/guides/language/analysis-options

@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'dart:async';
 import '../services/gamification_service.dart';
 import '../services/storage_service.dart';
 import '../services/community_service.dart';
@@ -183,9 +184,9 @@ class DataSyncProvider extends ChangeNotifier {
   
   Future<void> _performInitialSync() async {
     // Don't block the UI on initial sync
-    Future.microtask(() async {
+    unawaited(Future.microtask(() async {
       await forceSyncAllData();
-    });
+    }));
   }
   
   Future<void> _refreshCache() async {
@@ -232,7 +233,8 @@ class DataSyncProvider extends ChangeNotifier {
   /// Daily image refresh functionality
   void _scheduleDailyImageRefresh() {
     // Check if image refresh is needed on app startup
-    _checkAndRefreshImages();
+    // Use unawaited to avoid blocking initialization
+    unawaited(_checkAndRefreshImages());
   }
   
   /// Check and refresh images if needed (daily)

@@ -394,36 +394,5 @@ class _EducationalContentScreenState extends State<EducationalContentScreen>
     );
   }
 
-  Color _getCategoryColor(String category) {
-    switch (category) {
-      case 'Wet Waste':
-        return AppTheme.wetWasteColor;
-      case 'Dry Waste':
-        return AppTheme.dryWasteColor;
-      case 'Hazardous Waste':
-        return AppTheme.hazardousWasteColor;
-      case 'Medical Waste':
-        return AppTheme.medicalWasteColor;
-      case 'Non-Waste':
-        return AppTheme.nonWasteColor;
-      case 'Requires Manual Review':
-        return AppTheme.manualReviewColor;
-      case 'General':
-        return AppTheme.secondaryColor;
-      case 'Sorting':
-        return AppTheme.secondaryColor;
-      case 'Composting':
-        return Colors.green.shade800;
-      case 'Recycling':
-        return Colors.blue.shade700;
-      case 'E-waste':
-        return Colors.orange;
-      case 'Plastic':
-        return Colors.lightBlue;
-      case 'Home Organization':
-        return Colors.purple;
-      default:
-        return Colors.grey;
-    }
-  }
+
 }

@@ -289,26 +289,30 @@ class _ResultScreenState extends State<ResultScreen>
         _isAutoSaving = false;
       });
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Classification saved successfully!'),
-          backgroundColor: Colors.green,
-        ),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Classification saved successfully!'),
+            backgroundColor: Colors.green,
+          ),
+        );
 
-      final haptic = context.read<HapticSettingsService>();
-      if (haptic.enabled && widget.classification.category != 'Requires Manual Review') {
-        HapticFeedback.lightImpact();
+        final haptic = context.read<HapticSettingsService>();
+        if (haptic.enabled && widget.classification.category != 'Requires Manual Review') {
+          HapticFeedback.lightImpact();
+        }
       }
     } catch (e, stackTrace) {
       ErrorHandler.handleError(e, stackTrace);
       setState(() => _isAutoSaving = false);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Error saving: ${ErrorHandler.getUserFriendlyMessage(e)}'),
-          backgroundColor: Colors.red,
-        ),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error saving: ${ErrorHandler.getUserFriendlyMessage(e)}'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
     }
   }
 
@@ -329,12 +333,14 @@ class _ResultScreenState extends State<ResultScreen>
       );
     } catch (e, stackTrace) {
       ErrorHandler.handleError(e, stackTrace);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Error sharing: ${ErrorHandler.getUserFriendlyMessage(e)}'),
-          backgroundColor: Colors.red,
-        ),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error sharing: ${ErrorHandler.getUserFriendlyMessage(e)}'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
     }
   }
 

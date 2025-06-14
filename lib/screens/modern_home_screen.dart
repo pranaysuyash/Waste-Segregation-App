@@ -68,7 +68,6 @@ class _ModernHomeScreenState extends State<ModernHomeScreen> with TickerProvider
   DateTime? _lastRefresh;
 
   // Gamification state
-  List<Challenge> _activeChallenges = [];
   bool _isLoadingGamification = false;
 
   // Animation controllers
@@ -171,12 +170,8 @@ class _ModernHomeScreenState extends State<ModernHomeScreen> with TickerProvider
       await gamificationService.updateStreak();
       await gamificationService.forceRefreshProfile();
       
-      final challenges = await gamificationService.getActiveChallenges();
-
-      if (!mounted) return;
-      setState(() {
-        _activeChallenges = challenges;
-      });
+      // Load active challenges (for future use)
+      await gamificationService.getActiveChallenges();
       
       debugPrint('✅ Gamification data loaded - Points: ${gamificationService.currentProfile?.points.total ?? 0}');
     } catch (e) {
