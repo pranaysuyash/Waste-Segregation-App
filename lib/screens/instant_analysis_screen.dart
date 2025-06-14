@@ -62,7 +62,7 @@ class _InstantAnalysisScreenState extends State<InstantAnalysisScreen> {
       if (!_isCancelled && mounted) {
         debugPrint('Navigation to results screen with classification');
         
-        // Navigate to results screen and return the result to parent
+        // Navigate to results screen and wait for it to complete
         await Navigator.pushReplacement<void, void>(
           context,
           MaterialPageRoute(
@@ -72,10 +72,10 @@ class _InstantAnalysisScreenState extends State<InstantAnalysisScreen> {
           ),
         );
         
-        // Return the result to the calling screen
-        if (mounted) {
-          Navigator.of(context).pop(result);
-        }
+        // Note: Removed the conflicting Navigator.pop(result) call that was causing 
+        // the double navigation issue. The result is now handled entirely by the 
+        // ResultScreen, and the parent screen will get the result through the 
+        // normal navigation flow.
       }
     } catch (e) {
       if (!_isCancelled && mounted) {

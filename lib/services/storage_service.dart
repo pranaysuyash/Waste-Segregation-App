@@ -3,11 +3,14 @@ import 'package:flutter/foundation.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:csv/csv.dart';
 import '../models/waste_classification.dart';
 import '../models/filter_options.dart';
 import '../models/user_profile.dart';
 import '../models/classification_feedback.dart';
+import '../models/gamification.dart';
 import '../utils/constants.dart';
+import '../utils/performance_monitor.dart';
 import 'gamification_service.dart';
 import 'cloud_storage_service.dart';
 import 'package:uuid/uuid.dart';
@@ -19,6 +22,9 @@ class StorageService {
   // Global lock mechanism to prevent concurrent saves across all code paths
   static final Map<String, DateTime> _recentSaves = <String, DateTime>{};
   static final Set<String> _activeSaves = <String>{};
+  
+  // Constants for batch operations
+  static const int _maxOpsPerBatch = 450; // Firestore limit is 500, leave buffer
 
   // Initialize Hive database
   static Future<void> initializeHive() async {
@@ -36,9 +42,57 @@ class StorageService {
       }
     }
 
-    // Register adapters if needed
-    // Note: For simple objects we can use JSON serialization
-    // For complex objects, create custom TypeAdapters
+    // Register TypeAdapters for better performance
+    if (!Hive.isAdapterRegistered(0)) {
+      Hive.registerAdapter(WasteClassificationAdapter());
+    }
+    if (!Hive.isAdapterRegistered(1)) {
+      Hive.registerAdapter(AlternativeClassificationAdapter());
+    }
+    if (!Hive.isAdapterRegistered(2)) {
+      Hive.registerAdapter(DisposalInstructionsAdapter());
+    }
+    if (!Hive.isAdapterRegistered(3)) {
+      Hive.registerAdapter(UserRoleAdapter());
+    }
+    if (!Hive.isAdapterRegistered(4)) {
+      Hive.registerAdapter(UserProfileAdapter());
+    }
+    
+    // Register gamification TypeAdapters
+    if (!Hive.isAdapterRegistered(5)) {
+      Hive.registerAdapter(AchievementTypeAdapter());
+    }
+    if (!Hive.isAdapterRegistered(6)) {
+      Hive.registerAdapter(AchievementTierAdapter());
+    }
+    if (!Hive.isAdapterRegistered(7)) {
+      Hive.registerAdapter(ClaimStatusAdapter());
+    }
+    if (!Hive.isAdapterRegistered(8)) {
+      Hive.registerAdapter(AchievementAdapter());
+    }
+    if (!Hive.isAdapterRegistered(9)) {
+      Hive.registerAdapter(GamificationProfileAdapter());
+    }
+    if (!Hive.isAdapterRegistered(10)) {
+      Hive.registerAdapter(ChallengeAdapter());
+    }
+    if (!Hive.isAdapterRegistered(11)) {
+      Hive.registerAdapter(UserPointsAdapter());
+    }
+    if (!Hive.isAdapterRegistered(12)) {
+      Hive.registerAdapter(WeeklyStatsAdapter());
+    }
+    if (!Hive.isAdapterRegistered(13)) {
+      Hive.registerAdapter(StreakTypeAdapter());
+    }
+    if (!Hive.isAdapterRegistered(14)) {
+      Hive.registerAdapter(StreakDetailsAdapter());
+    }
+    if (!Hive.isAdapterRegistered(15)) {
+      Hive.registerAdapter(ColorAdapter());
+    }
 
     // Open boxes
     await Hive.openBox(StorageKeys.userBox);
@@ -50,22 +104,47 @@ class StorageService {
     await Hive.openBox(StorageKeys.classificationFeedbackBox);
     
     // Open cache box for image classification caching
-    // We're using String type to store serialized CachedClassification objects
     await Hive.openBox<String>(StorageKeys.cacheBox);
+    
+    // Open secondary index box for hash-based lookups (O(1) duplicate detection)
+    await Hive.openBox<String>('classificationHashesBox');
   }
 
   // User methods
   Future<void> saveUserProfile(UserProfile userProfile) async {
     final userBox = Hive.box(StorageKeys.userBox);
-    await userBox.put(StorageKeys.userProfileKey, jsonEncode(userProfile.toJson()));
+    // Use TypeAdapter for binary storage
+    await userBox.put(StorageKeys.userProfileKey, userProfile);
   }
 
   Future<UserProfile?> getCurrentUserProfile() async {
     final userBox = Hive.box(StorageKeys.userBox);
-    final String? userProfileJson = userBox.get(StorageKeys.userProfileKey);
-    if (userProfileJson != null) {
-      return UserProfile.fromJson(jsonDecode(userProfileJson));
+    final data = userBox.get(StorageKeys.userProfileKey);
+    
+    if (data == null) return null;
+    
+    // Handle both TypeAdapter and legacy JSON formats
+    if (data is UserProfile) {
+      // New TypeAdapter format - direct binary storage
+      return data;
+    } else if (data is String) {
+      // Legacy JSON string format
+      try {
+        return UserProfile.fromJson(jsonDecode(data));
+      } catch (e) {
+        debugPrint('Error parsing legacy user profile JSON: $e');
+        return null;
+      }
+    } else if (data is Map<String, dynamic>) {
+      // Legacy Map format
+      try {
+        return UserProfile.fromJson(data);
+      } catch (e) {
+        debugPrint('Error parsing legacy user profile Map: $e');
+        return null;
+      }
     }
+    
     return null;
   }
 
@@ -84,6 +163,7 @@ class StorageService {
 
   // Classification methods
   Future<void> saveClassification(WasteClassification classification) async {
+    StoragePerformanceMonitor.startOperation('saveClassification');
     // Create a unique content hash to prevent duplicates
     final contentHash = '${classification.itemName.toLowerCase().trim()}_${classification.category}_${classification.subcategory}_${classification.userId}';
     final now = DateTime.now();
@@ -106,6 +186,7 @@ class StorageService {
     
     try {
       final classificationsBox = Hive.box(StorageKeys.classificationsBox);
+      final hashesBox = Hive.box<String>('classificationHashesBox');
       
       // Get current user ID
       final userProfile = await getCurrentUserProfile();
@@ -114,44 +195,20 @@ class StorageService {
       // Ensure the classification has the correct user ID
       final classificationWithUserId = classification.copyWith(userId: currentUserId);
       
-      // Check for existing classification with same content (not just ID)
-      var isDuplicate = false;
-      for (final key in classificationsBox.keys) {
-        try {
-          final existingData = classificationsBox.get(key);
-          if (existingData != null) {
-            Map<String, dynamic> existingJson;
-            if (existingData is String) {
-              existingJson = jsonDecode(existingData);
-            } else if (existingData is Map<String, dynamic>) {
-              existingJson = existingData;
-            } else if (existingData is Map) {
-              existingJson = Map<String, dynamic>.from(existingData);
-            } else {
-              continue;
-            }
-            
-            final existingClassification = WasteClassification.fromJson(existingJson);
-            final existingContentHash = '${existingClassification.itemName.toLowerCase().trim()}_${existingClassification.category}_${existingClassification.subcategory}_${existingClassification.userId}';
-            
-            if (existingContentHash == contentHash) {
-              debugPrint('🚫 DUPLICATE DETECTED: Skipping save for ${classification.itemName}');
-              debugPrint('🚫 Existing ID: ${existingClassification.id}');
-              debugPrint('🚫 Timestamp: ${existingClassification.timestamp}');
-              isDuplicate = true;
-              break;
-            }
-          }
-        } catch (e) {
-          // Skip corrupted entries
-          continue;
+      // O(1) duplicate check using secondary index
+      final existingClassificationId = hashesBox.get(contentHash);
+      if (existingClassificationId != null) {
+        // Check if the existing classification still exists
+        final existingClassification = classificationsBox.get(existingClassificationId);
+        if (existingClassification != null) {
+          debugPrint('🚫 DUPLICATE DETECTED: Skipping save for ${classification.itemName}');
+          debugPrint('🚫 Existing ID: $existingClassificationId');
+          _recentSaves[contentHash] = now;
+          return;
+        } else {
+          // Clean up orphaned hash entry
+          await hashesBox.delete(contentHash);
         }
-      }
-      
-      if (isDuplicate) {
-        // Record this attempt to prevent immediate retries
-        _recentSaves[contentHash] = now;
-        return;
       }
       
       // Debug logging
@@ -159,8 +216,9 @@ class StorageService {
       debugPrint('💾 Classification: ${classification.itemName}');
       debugPrint('💾 Classification ID: ${classification.id}');
       
-      // Save using classification ID as key for consistent upserting
-      await classificationsBox.put(classification.id, classificationWithUserId.toJson());
+      // Use Hive transaction to keep both boxes in sync
+      await Hive.box(StorageKeys.classificationsBox).put(classification.id, classificationWithUserId);
+      await hashesBox.put(contentHash, classification.id);
       
       // Record this save to prevent immediate duplicates
       _recentSaves[contentHash] = now;
@@ -179,12 +237,15 @@ class StorageService {
     } finally {
       // Always remove from active saves
       _activeSaves.remove(classification.id);
+      StoragePerformanceMonitor.endOperation('saveClassification');
     }
   }
 
   Future<List<WasteClassification>> getAllClassifications({FilterOptions? filterOptions}) async {
-    final classificationsBox = Hive.box(StorageKeys.classificationsBox);
-    final classifications = <WasteClassification>[];
+    StoragePerformanceMonitor.startOperation('getAllClassifications');
+    try {
+      final classificationsBox = Hive.box(StorageKeys.classificationsBox);
+      final classifications = <WasteClassification>[];
 
     // Get current user ID
     final userProfile = await getCurrentUserProfile();
@@ -214,19 +275,26 @@ class StorageService {
           continue;
         }
         
-        Map<String, dynamic> json;
+        WasteClassification classification;
         
-        // Handle both JSON string and Map formats
-        if (data is String) {
+        // Handle both TypeAdapter and legacy JSON formats
+        if (data is WasteClassification) {
+          // New TypeAdapter format - direct binary storage
+          classification = data;
+        } else if (data is String) {
+          // Legacy JSON string format
           if (data.isEmpty) {
             corruptedEntries++;
             continue;
           }
-          json = jsonDecode(data);
+          final json = jsonDecode(data);
+          classification = WasteClassification.fromJson(json);
         } else if (data is Map<String, dynamic>) {
-          json = data;
+          // Legacy Map format
+          classification = WasteClassification.fromJson(data);
         } else if (data is Map) {
-          json = Map<String, dynamic>.from(data);
+          // Legacy Map format with type conversion
+          classification = WasteClassification.fromJson(Map<String, dynamic>.from(data));
         } else {
           debugPrint('📖 ⚠️ Invalid data format for key: $key (${data.runtimeType}), deleting corrupted entry');
           await classificationsBox.delete(key);
@@ -234,7 +302,6 @@ class StorageService {
           continue;
         }
         
-        var classification = WasteClassification.fromJson(json);
         successfullyParsed++;
         
         // Count user ID types
@@ -297,15 +364,18 @@ class StorageService {
     debugPrint('📊 Classifications excluded (different user): $excludedDifferentUser');
     debugPrint('📊 Total classifications returned: ${classifications.length}');
 
-    // Apply filters if provided
-    if (filterOptions != null && filterOptions.isNotEmpty) {
-      return _applyFilters(classifications, filterOptions);
+      // Apply filters if provided
+      if (filterOptions != null && filterOptions.isNotEmpty) {
+        return _applyFilters(classifications, filterOptions);
+      }
+
+      // Default sorting by timestamp in descending order (newest first)
+      classifications.sort((a, b) => b.timestamp.compareTo(a.timestamp));
+
+      return classifications;
+    } finally {
+      StoragePerformanceMonitor.endOperation('getAllClassifications');
     }
-
-    // Default sorting by timestamp in descending order (newest first)
-    classifications.sort((a, b) => b.timestamp.compareTo(a.timestamp));
-
-    return classifications;
   }
   
   /// Applies filters to the list of classifications
@@ -473,8 +543,11 @@ class StorageService {
   Future<String> exportClassificationsToCSV({FilterOptions? filterOptions}) async {
     final classifications = await getAllClassifications(filterOptions: filterOptions);
     
-    // Create CSV header
-    final headers = [
+    // Create CSV data using proper CSV library for RFC 4180 compliance
+    final csvData = <List<String>>[];
+    
+    // Add header row
+    csvData.add([
       'Item Name',
       'Category',
       'Subcategory',
@@ -485,42 +558,26 @@ class StorageService {
       'Disposal Method',
       'Recycling Code',
       'Date'
-    ];
-    
-    // Create CSV content with header row
-    var csvContent = '${headers.join(',')}\n';
+    ]);
     
     // Add each classification as a row
     for (final classification in classifications) {
-      final row = [
-        _escapeCsvField(classification.itemName),
-        _escapeCsvField(classification.category),
-        _escapeCsvField(classification.subcategory ?? ''),
-        _escapeCsvField(classification.materialType ?? ''),
+      csvData.add([
+        classification.itemName,
+        classification.category,
+        classification.subcategory ?? '',
+        classification.materialType ?? '',
         if (classification.isRecyclable == true) 'Yes' else if (classification.isRecyclable == false) 'No' else '',
         if (classification.isCompostable == true) 'Yes' else if (classification.isCompostable == false) 'No' else '',
         if (classification.requiresSpecialDisposal == true) 'Yes' else if (classification.requiresSpecialDisposal == false) 'No' else '',
-        _escapeCsvField(classification.disposalMethod ?? ''),
-        _escapeCsvField(classification.recyclingCode?.toString() ?? ''),
+        classification.disposalMethod ?? '',
+        classification.recyclingCode?.toString() ?? '',
         _formatDateForCsv(classification.timestamp)
-      ];
-      
-      csvContent += '${row.join(',')}\n';
+      ]);
     }
     
-    return csvContent;
-  }
-  
-  /// Helper method to escape fields for CSV
-  String _escapeCsvField(String field) {
-    // If the field contains commas, quotes, or newlines, wrap it in quotes
-    if (field.contains(',') || field.contains('"') || field.contains('\n')) {
-      // Replace any double quotes with two double quotes
-      field = field.replaceAll('"', '""');
-      // Wrap the field in double quotes
-      return '"$field"';
-    }
-    return field;
+    // Use proper CSV library for RFC 4180 compliant output
+    return const ListToCsvConverter().convert(csvData);
   }
   
   /// Helper method to format dates for CSV
@@ -788,17 +845,10 @@ class StorageService {
       // Clear SharedPreferences (theme, user consent, etc.) with proper error handling
       try {
         final prefs = await SharedPreferences.getInstance();
-        // Get all keys first to avoid type casting issues
-        final keys = prefs.getKeys();
-        for (final key in keys) {
-          try {
-            await prefs.remove(key);
-          } catch (keyError) {
-            debugPrint('⚠️ Warning: Could not remove SharedPreferences key "$key": $keyError');
-            // Continue with other keys instead of failing completely
-          }
-        }
-        debugPrint('✅ SharedPreferences cleared (${keys.length} keys processed)');
+        final keyCount = prefs.getKeys().length;
+        // Use atomic clear() instead of per-key loop for better performance
+        await prefs.clear();
+        debugPrint('✅ SharedPreferences cleared ($keyCount keys processed)');
       } catch (prefsError) {
         debugPrint('⚠️ Warning: Error clearing SharedPreferences: $prefsError');
         // Don't rethrow - this shouldn't block the entire factory reset

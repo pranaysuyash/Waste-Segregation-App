@@ -1,14 +1,22 @@
 import './gamification.dart';
+import 'package:hive/hive.dart';
+
+part 'user_profile.g.dart';
 
 /// Defines the roles a user can have within a family or team.
+@HiveType(typeId: 3)
 enum UserRole {
   /// Can manage family settings and members.
+  @HiveField(0)
   admin,
   /// Regular family member with standard permissions.
+  @HiveField(1)
   member,
   /// Limited permissions, typically for younger family members.
+  @HiveField(2)
   child,
   /// Temporary access, potentially for guests or trial users within a family context.
+  @HiveField(3)
   guest
 }
 
@@ -16,6 +24,7 @@ enum UserRole {
 ///
 /// This model stores core user details and information related to their
 /// family/team membership and role.
+@HiveType(typeId: 4)
 class UserProfile {
 
 
@@ -59,33 +68,43 @@ class UserProfile {
     );
   }
   /// The unique identifier for the user, typically from the authentication provider.
+  @HiveField(0)
   final String id;
 
   /// The user's display name.
+  @HiveField(1)
   final String? displayName;
 
   /// The user's email address.
+  @HiveField(2)
   final String? email;
 
   /// The URL of the user's profile photo.
+  @HiveField(3)
   final String? photoUrl;
 
   /// The ID of the family or team this user belongs to, if any.
+  @HiveField(4)
   final String? familyId;
 
   /// The user's role within their family or team.
+  @HiveField(5)
   final UserRole? role;
   
   /// Timestamp of when the user profile was created.
+  @HiveField(6)
   final DateTime? createdAt;
 
   /// Timestamp of the user's last activity.
+  @HiveField(7)
   final DateTime? lastActive;
   
   /// User-specific preferences.
+  @HiveField(8)
   final Map<String, dynamic>? preferences;
 
   /// User's gamification data.
+  @HiveField(9)
   final GamificationProfile? gamificationProfile;
 
   /// Creates a copy of this UserProfile but with the given fields replaced.

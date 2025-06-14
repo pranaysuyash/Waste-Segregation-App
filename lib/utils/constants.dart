@@ -558,3 +558,105 @@ class WasteInfo {
     '7': 'Other (BPA, Polycarbonate, etc.) - Various plastic products',
   };
 }
+
+// Gamification Configuration
+class GamificationConfig {
+  // Points earned for various actions
+  static const int kPointsPerItem = 10;
+  static const int kPointsPerStreak = 5;
+  static const int kPointsPerChallenge = 25;
+  static const int kPointsPerBadge = 20;
+  static const int kPointsPerQuiz = 15;
+  static const int kPointsPerEducationalContent = 5;
+  static const int kPointsPerPerfectWeek = 50;
+  static const int kPointsPerCommunityChallenge = 30;
+  
+  // Timeouts and retry configuration
+  static const Duration kProfileTimeout = Duration(seconds: 10);
+  static const Duration kClaimTimeout = Duration(seconds: 5);
+  static const Duration kSyncTimeout = Duration(seconds: 15);
+  static const int kMaxRetryAttempts = 3;
+  
+  // UI Configuration
+  static const int kCelebrationDuration = 3000; // milliseconds
+  static const double kProgressAnimationDuration = 1.5; // seconds
+  static const double kMinContrastRatio = 4.5; // WCAG AA standard
+}
+
+// App Exception Classes for better error handling
+abstract class AppException implements Exception {
+  const AppException(this.message, [this.code]);
+  
+  final String message;
+  final String? code;
+  
+  factory AppException.timeout([String? message]) => 
+      TimeoutAppException(message ?? 'Operation timed out');
+  
+  factory AppException.network([String? message]) => 
+      NetworkAppException(message ?? 'Network error occurred');
+  
+  factory AppException.auth([String? message]) => 
+      AuthAppException(message ?? 'Authentication error');
+  
+  factory AppException.storage([String? message]) => 
+      StorageAppException(message ?? 'Storage error occurred');
+  
+  @override
+  String toString() => 'AppException: $message${code != null ? ' (Code: $code)' : ''}';
+}
+
+class TimeoutAppException extends AppException {
+  const TimeoutAppException(super.message, [super.code]);
+}
+
+class NetworkAppException extends AppException {
+  const NetworkAppException(super.message, [super.code]);
+}
+
+class AuthAppException extends AppException {
+  const AuthAppException(super.message, [super.code]);
+}
+
+class StorageAppException extends AppException {
+  const StorageAppException(super.message, [super.code]);
+}
+
+// Result type for better error handling
+sealed class Result<T, E> {
+  const Result();
+  
+  factory Result.success(T value) => Success(value);
+  factory Result.failure(E error) => Failure(error);
+  
+  bool get isSuccess => this is Success<T, E>;
+  bool get isFailure => this is Failure<T, E>;
+  
+  T? get value => switch (this) {
+    Success(value: final v) => v,
+    Failure() => null,
+  };
+  
+  E? get error => switch (this) {
+    Success() => null,
+    Failure(error: final e) => e,
+  };
+  
+  R when<R>({
+    required R Function(T value) success,
+    required R Function(E error) failure,
+  }) => switch (this) {
+    Success(value: final v) => success(v),
+    Failure(error: final e) => failure(e),
+  };
+}
+
+class Success<T, E> extends Result<T, E> {
+  const Success(this.value);
+  final T value;
+}
+
+class Failure<T, E> extends Result<T, E> {
+  const Failure(this.error);
+  final E error;
+}

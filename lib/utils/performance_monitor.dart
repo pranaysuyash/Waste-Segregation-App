@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'dart:collection';
+import 'dart:async';
 
 /// Performance Monitoring and Optimization Utilities
 /// Tracks app performance metrics and provides optimization recommendations
@@ -265,5 +266,139 @@ class PerformanceAwareOperations {
       '${PerformanceOperations.screenLoad}_$screenName',
       loadOperation,
     );
+  }
+}
+
+/// Performance monitoring utility for storage operations
+class StoragePerformanceMonitor {
+  static final Map<String, Stopwatch> _activeOperations = {};
+  static final Map<String, List<Duration>> _operationHistory = {};
+  static const int _maxHistorySize = 100;
+
+  /// Start timing an operation
+  static void startOperation(String operationName) {
+    if (kDebugMode) {
+      final stopwatch = Stopwatch()..start();
+      _activeOperations[operationName] = stopwatch;
+    }
+  }
+
+  /// End timing an operation and log the result
+  static void endOperation(String operationName) {
+    if (kDebugMode) {
+      final stopwatch = _activeOperations.remove(operationName);
+      if (stopwatch != null) {
+        stopwatch.stop();
+        final duration = stopwatch.elapsed;
+        
+        // Store in history
+        _operationHistory.putIfAbsent(operationName, () => <Duration>[]);
+        final history = _operationHistory[operationName]!;
+        history.add(duration);
+        
+        // Keep only recent operations
+        if (history.length > _maxHistorySize) {
+          history.removeAt(0);
+        }
+        
+        // Log performance
+        final ms = duration.inMilliseconds;
+        if (ms > 1000) {
+          debugPrint('🐌 SLOW OPERATION: $operationName took ${ms}ms');
+        } else if (ms > 500) {
+          debugPrint('⚠️ MODERATE: $operationName took ${ms}ms');
+        } else {
+          debugPrint('⚡ FAST: $operationName took ${ms}ms');
+        }
+      }
+    }
+  }
+
+  /// Get performance statistics for an operation
+  static Map<String, dynamic> getStats(String operationName) {
+    if (!kDebugMode) return {};
+    
+    final history = _operationHistory[operationName];
+    if (history == null || history.isEmpty) {
+      return {'error': 'No data for operation: $operationName'};
+    }
+
+    final durations = history.map((d) => d.inMilliseconds).toList();
+    durations.sort();
+
+    final count = durations.length;
+    final sum = durations.reduce((a, b) => a + b);
+    final avg = sum / count;
+    final min = durations.first;
+    final max = durations.last;
+    final median = count % 2 == 0
+        ? (durations[count ~/ 2 - 1] + durations[count ~/ 2]) / 2
+        : durations[count ~/ 2].toDouble();
+
+    return {
+      'operation': operationName,
+      'count': count,
+      'average_ms': avg.round(),
+      'median_ms': median.round(),
+      'min_ms': min,
+      'max_ms': max,
+      'total_ms': sum,
+    };
+  }
+
+  /// Get all performance statistics
+  static Map<String, Map<String, dynamic>> getAllStats() {
+    if (!kDebugMode) return {};
+    
+    final stats = <String, Map<String, dynamic>>{};
+    for (final operationName in _operationHistory.keys) {
+      stats[operationName] = getStats(operationName);
+    }
+    return stats;
+  }
+
+  /// Clear all performance data
+  static void clearStats() {
+    if (kDebugMode) {
+      _operationHistory.clear();
+      _activeOperations.clear();
+    }
+  }
+
+  /// Log a summary of all operations
+  static void logSummary() {
+    if (!kDebugMode) return;
+    
+    debugPrint('📊 PERFORMANCE SUMMARY:');
+    final allStats = getAllStats();
+    
+    if (allStats.isEmpty) {
+      debugPrint('   No performance data available');
+      return;
+    }
+
+    // Sort by average time (slowest first)
+    final sortedOperations = allStats.entries.toList()
+      ..sort((a, b) => (b.value['average_ms'] as int).compareTo(a.value['average_ms'] as int));
+
+    for (final entry in sortedOperations) {
+      final name = entry.key;
+      final stats = entry.value;
+      debugPrint('   $name: avg=${stats['average_ms']}ms, count=${stats['count']}, max=${stats['max_ms']}ms');
+    }
+  }
+}
+
+/// Extension to make performance monitoring easier
+extension PerformanceMonitorExtension<T> on Future<T> Function() {
+  /// Wrap a function with performance monitoring
+  Future<T> withPerformanceMonitoring(String operationName) async {
+    StoragePerformanceMonitor.startOperation(operationName);
+    try {
+      final result = await this();
+      return result;
+    } finally {
+      StoragePerformanceMonitor.endOperation(operationName);
+    }
   }
 }

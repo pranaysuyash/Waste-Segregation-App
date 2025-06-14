@@ -1,49 +1,101 @@
 import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
+import 'package:hive/hive.dart';
+
+part 'gamification.g.dart';
+
+/// Custom TypeAdapter for Flutter Color class
+class ColorAdapter extends TypeAdapter<Color> {
+  @override
+  final int typeId = 15;
+
+  @override
+  Color read(BinaryReader reader) {
+    return Color(reader.readUint32());
+  }
+
+  @override
+  void write(BinaryWriter writer, Color obj) {
+    writer.writeUint32(obj.value);
+  }
+}
 
 /// Represents the types of achievements available in the app
+@HiveType(typeId: 5)
 enum AchievementType {
   // Category-based achievements
+  @HiveField(0)
   wasteIdentified,      // Identify waste items
+  @HiveField(1)
   categoriesIdentified, // Identify different categories
+  @HiveField(2)
   streakMaintained,     // Maintain a usage streak
+  @HiveField(3)
   challengesCompleted,  // Complete challenges
+  @HiveField(4)
   perfectWeek,          // Use app every day for a week
+  @HiveField(5)
   knowledgeMaster,      // Complete educational content
+  @HiveField(6)
   quizCompleted,        // Complete quizzes
+  @HiveField(7)
   specialItem,          // Identify special or rare items
+  @HiveField(8)
   communityContribution, // Contribute to community challenges
+  @HiveField(9)
   metaAchievement,      // Achievements for earning other achievements
+  @HiveField(10)
   specialEvent,         // Limited-time or event-based achievements
+  @HiveField(11)
   userGoal,             // User-defined goal achievements
+  @HiveField(12)
   collectionMilestone,  // Milestone in waste type collection
+  @HiveField(13)
   firstClassification,
+  @HiveField(14)
   weekStreak,
+  @HiveField(15)
   monthStreak,
+  @HiveField(16)
   recyclingExpert,
+  @HiveField(17)
   compostMaster,
+  @HiveField(18)
   ecoWarrior,
+  @HiveField(19)
   familyTeamwork,
+  @HiveField(20)
   helpfulMember,
+  @HiveField(21)
   educationalContent,
 }
 
 /// Represents the tiers of achievements (increasing difficulty/rarity)
+@HiveType(typeId: 6)
 enum AchievementTier {
+  @HiveField(0)
   bronze,
+  @HiveField(1)
   silver,
+  @HiveField(2)
   gold,
+  @HiveField(3)
   platinum
 }
 
 /// Represents the claim status of an achievement
+@HiveType(typeId: 7)
 enum ClaimStatus {
+  @HiveField(0)
   claimed,      // User has claimed the reward
+  @HiveField(1)
   unclaimed,    // User is eligible but hasn't claimed the reward
+  @HiveField(2)
   ineligible    // User is not yet eligible to claim
 }
 
 /// Represents a badge or trophy that can be earned
+@HiveType(typeId: 8)
 class Achievement {   // For meta-achievements
 
   const Achievement({
@@ -107,25 +159,43 @@ class Achievement {   // For meta-achievements
       clues: json['clues'] != null ? List<String>.from(json['clues']) : const [],
     );
   }
+  @HiveField(0)
   final String id;
+  @HiveField(1)
   final String title;
+  @HiveField(2)
   final String description;
+  @HiveField(3)
   final AchievementType type;
+  @HiveField(4)
   final int threshold;  // Number required to earn this achievement
+  @HiveField(5)
   final String iconName;
+  @HiveField(6)
   final Color color;
+  @HiveField(7)
   final bool isSecret;  // Whether this is a hidden achievement
+  @HiveField(8)
   final DateTime? earnedOn;
+  @HiveField(9)
   final double progress; // Progress from 0.0 to 1.0
   
   // New properties for enhanced gamification
+  @HiveField(10)
   final AchievementTier tier;                 // Bronze, Silver, Gold, Platinum
+  @HiveField(11)
   final String? achievementFamilyId;          // Groups related tiered achievements
+  @HiveField(12)
   final int? unlocksAtLevel;                  // Level required to unlock this achievement
+  @HiveField(13)
   final ClaimStatus claimStatus;              // Whether the achievement reward is claimed
+  @HiveField(14)
   final Map<String, dynamic> metadata;        // Additional achievement-specific data
+  @HiveField(15)
   final int pointsReward;                     // Points earned when achievement is completed
+  @HiveField(16)
   final List<String> relatedAchievementIds;
+  @HiveField(17)
   final List<String> clues;
   
   bool get isEarned => earnedOn != null;
@@ -275,6 +345,7 @@ class Streak {
 }
 
 /// Represents a challenge that can be completed for rewards
+@HiveType(typeId: 10)
 class Challenge { // For team challenges
   
   const Challenge({
@@ -291,7 +362,7 @@ class Challenge { // For team challenges
     this.progress = 0.0,
     this.participantIds = const [],
   });
-  
+
   // For deserialization
   factory Challenge.fromJson(Map<String, dynamic> json) {
     return Challenge(
@@ -311,17 +382,29 @@ class Challenge { // For team challenges
           : [],
     );
   }
+  @HiveField(0)
   final String id;
+  @HiveField(1)
   final String title;
+  @HiveField(2)
   final String description;
+  @HiveField(3)
   final DateTime startDate;
+  @HiveField(4)
   final DateTime endDate;
+  @HiveField(5)
   final int pointsReward;
+  @HiveField(6)
   final String iconName;
+  @HiveField(7)
   final Color color;
+  @HiveField(8)
   final Map<String, dynamic> requirements; // Flexible requirements structure
+  @HiveField(9)
   final bool isCompleted;
+  @HiveField(10)
   final double progress; // Progress from 0.0 to 1.0
+  @HiveField(11)
   final List<String> participantIds;
   
   bool get isActive => 
@@ -381,6 +464,7 @@ class Challenge { // For team challenges
 }
 
 /// Represents a user's points and rank
+@HiveType(typeId: 11)
 class UserPoints { // Points per waste category
   
   const UserPoints({
@@ -390,7 +474,7 @@ class UserPoints { // Points per waste category
     this.level = 1,
     this.categoryPoints = const {},
   });
-  
+
   // For deserialization
   factory UserPoints.fromJson(Map<String, dynamic> json) {
     return UserPoints(
@@ -403,10 +487,15 @@ class UserPoints { // Points per waste category
           : {},
     );
   }
+  @HiveField(0)
   final int total;
+  @HiveField(1)
   final int weeklyTotal;
+  @HiveField(2)
   final int monthlyTotal;
+  @HiveField(3)
   final int level;
+  @HiveField(4)
   final Map<String, int> categoryPoints;
   
   // Fixed: Calculate points needed to reach next level
@@ -455,6 +544,7 @@ class UserPoints { // Points per waste category
 }
 
 /// Represents weekly statistics for leaderboards
+@HiveType(typeId: 12)
 class WeeklyStats { // Count per waste category
   
   const WeeklyStats({
@@ -465,7 +555,7 @@ class WeeklyStats { // Count per waste category
     this.pointsEarned = 0,
     this.categoryCounts = const {},
   });
-  
+
   // For deserialization
   factory WeeklyStats.fromJson(Map<String, dynamic> json) {
     return WeeklyStats(
@@ -479,11 +569,17 @@ class WeeklyStats { // Count per waste category
           : {},
     );
   }
+  @HiveField(0)
   final DateTime weekStartDate;
+  @HiveField(1)
   final int itemsIdentified;
+  @HiveField(2)
   final int challengesCompleted;
+  @HiveField(3)
   final int streakMaximum;
+  @HiveField(4)
   final int pointsEarned;
+  @HiveField(5)
   final Map<String, int> categoryCounts;
   
   // For serialization
@@ -519,6 +615,7 @@ class WeeklyStats { // Count per waste category
 }
 
 /// User's gamification profile containing all gamification data
+@HiveType(typeId: 9)
 class GamificationProfile {
   
   const GamificationProfile({
@@ -534,7 +631,7 @@ class GamificationProfile {
     this.lastViewPersonalStatsAwardedDate,
     this.unlockedHiddenContentIds = const {},
   });
-  
+
   // For deserialization
   factory GamificationProfile.fromJson(Map<String, dynamic> json) {
     return GamificationProfile(
@@ -577,16 +674,27 @@ class GamificationProfile {
       unlockedHiddenContentIds: Set<String>.from(json['unlockedHiddenContentIds'] as List<dynamic>? ?? []),
     );
   }
+  @HiveField(0)
   final String userId;
+  @HiveField(1)
   final List<Achievement> achievements;
+  @HiveField(2)
   final Map<String, StreakDetails> streaks;
+  @HiveField(3)
   final UserPoints points;
+  @HiveField(4)
   final List<Challenge> activeChallenges;
+  @HiveField(5)
   final List<Challenge> completedChallenges;
+  @HiveField(6)
   final List<WeeklyStats> weeklyStats;
+  @HiveField(7)
   final Set<String> discoveredItemIds;
+  @HiveField(8)
   final DateTime? lastDailyEngagementBonusAwardedDate;
+  @HiveField(9)
   final DateTime? lastViewPersonalStatsAwardedDate;
+  @HiveField(10)
   final Set<String> unlockedHiddenContentIds;
   
   // For serialization
@@ -1028,15 +1136,21 @@ class AnalyticsEventNames {
 }
 
 /// Added StreakType Enum
+@HiveType(typeId: 13)
 enum StreakType {
+  @HiveField(0)
   dailyClassification,
+  @HiveField(1)
   dailyLearning,
+  @HiveField(2)
   dailyEngagement,
+  @HiveField(3)
   itemDiscovery,
   // Add more types as needed
 }
 
 /// New StreakDetails class
+@HiveType(typeId: 14)
 class StreakDetails {
 
   const StreakDetails({
@@ -1060,11 +1174,17 @@ class StreakDetails {
       lastMilestoneAwardedLevel: json['lastMilestoneAwardedLevel'] ?? 0,
     );
   }
+  @HiveField(0)
   final StreakType type;
+  @HiveField(1)
   final int currentCount;
+  @HiveField(2)
   final int longestCount;
+  @HiveField(3)
   final DateTime lastActivityDate;
+  @HiveField(4)
   final DateTime? lastMaintenanceAwardedDate;
+  @HiveField(5)
   final int lastMilestoneAwardedLevel;
 
   Map<String, dynamic> toJson() => {

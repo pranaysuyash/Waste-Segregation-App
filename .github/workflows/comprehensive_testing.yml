@@ -1,0 +1,250 @@
+name: Comprehensive Testing & Navigation Validation
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  # Unit and Widget Tests
+  unit_tests:
+    name: Unit & Widget Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.16.0'
+          channel: 'stable'
+          
+      - name: Get dependencies
+        run: flutter pub get
+        
+      - name: Generate code
+        run: dart run build_runner build --delete-conflicting-outputs
+        
+      - name: Run unit tests
+        run: flutter test --coverage
+        
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v3
+        with:
+          file: coverage/lcov.info
+
+  # Navigation-specific tests
+  navigation_tests:
+    name: Navigation Logic Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.16.0'
+          channel: 'stable'
+          
+      - name: Get dependencies
+        run: flutter pub get
+        
+      - name: Generate code
+        run: dart run build_runner build --delete-conflicting-outputs
+        
+      - name: Run navigation tests
+        run: flutter test test/widgets/navigation_test.dart --reporter=expanded
+        
+      - name: Verify no double navigation patterns
+        run: |
+          echo "Checking for potential double navigation patterns..."
+          if grep -r "Navigator\.push.*Navigator\.push" lib/; then
+            echo "❌ Found potential double navigation pattern!"
+            exit 1
+          fi
+          if grep -r "pushReplacement.*pop(" lib/; then
+            echo "❌ Found pushReplacement + pop pattern!"
+            exit 1
+          fi
+          echo "✅ No double navigation patterns detected"
+
+  # Golden tests
+  golden_tests:
+    name: Golden Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.16.0'
+          channel: 'stable'
+          
+      - name: Get dependencies
+        run: flutter pub get
+        
+      - name: Generate code
+        run: dart run build_runner build --delete-conflicting-outputs
+        
+      - name: Run golden tests
+        run: flutter test test/golden/ --update-goldens=false
+        
+      - name: Upload golden test failures
+        if: failure()
+        uses: actions/upload-artifact@v3
+        with:
+          name: golden-test-failures
+          path: test/golden/failures/
+
+  # Integration tests
+  integration_tests:
+    name: Integration Tests
+    runs-on: macos-latest
+    strategy:
+      matrix:
+        device: ['iPhone 15', 'iPad Air (5th generation)']
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.16.0'
+          channel: 'stable'
+          
+      - name: Get dependencies
+        run: flutter pub get
+        
+      - name: Generate code
+        run: dart run build_runner build --delete-conflicting-outputs
+        
+      - name: Start iOS Simulator
+        run: |
+          xcrun simctl boot "${{ matrix.device }}" || true
+          xcrun simctl list devices
+          
+      - name: Run integration tests
+        run: flutter test integration_test/navigation_integration_test.dart --device-id="${{ matrix.device }}"
+        
+      - name: Upload integration test screenshots
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: integration-screenshots-${{ matrix.device }}
+          path: integration_test/screenshots/
+
+  # Static analysis
+  static_analysis:
+    name: Static Analysis
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.16.0'
+          channel: 'stable'
+          
+      - name: Get dependencies
+        run: flutter pub get
+        
+      - name: Generate code
+        run: dart run build_runner build --delete-conflicting-outputs
+        
+      - name: Run Flutter analyze
+        run: flutter analyze --fatal-infos
+        
+      - name: Check for navigation anti-patterns
+        run: |
+          echo "Checking for navigation anti-patterns..."
+          
+          # Check for missing navigation guards
+          if ! grep -r "_isNavigating" lib/screens/; then
+            echo "⚠️ Warning: No navigation guards found in screens"
+          fi
+          
+          # Check for proper Navigator usage
+          if grep -r "Navigator\.of(context)\.push" lib/ | grep -v "await"; then
+            echo "⚠️ Warning: Found non-awaited Navigator.push calls"
+          fi
+          
+          # Check for proper error handling in navigation
+          if ! grep -r "try.*Navigator\.push.*catch" lib/; then
+            echo "⚠️ Warning: Navigation calls should be wrapped in try-catch"
+          fi
+          
+          echo "✅ Static analysis complete"
+
+  # Performance tests
+  performance_tests:
+    name: Performance Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.16.0'
+          channel: 'stable'
+          
+      - name: Get dependencies
+        run: flutter pub get
+        
+      - name: Generate code
+        run: dart run build_runner build --delete-conflicting-outputs
+        
+      - name: Run performance tests
+        run: flutter test test/performance/ --reporter=expanded
+        
+      - name: Check for memory leaks in navigation
+        run: |
+          echo "Checking for potential memory leaks..."
+          if grep -r "late.*Controller" lib/ | grep -v "dispose"; then
+            echo "⚠️ Warning: Found controllers that might not be disposed"
+          fi
+          echo "✅ Memory leak check complete"
+
+  # Security checks
+  security_checks:
+    name: Security Checks
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Run security audit
+        run: |
+          echo "Running security checks..."
+          
+          # Check for hardcoded secrets
+          if grep -r "sk_.*" lib/ || grep -r "pk_.*" lib/; then
+            echo "❌ Found potential hardcoded API keys!"
+            exit 1
+          fi
+          
+          # Check for debug prints in production code
+          if grep -r "debugPrint.*password\|debugPrint.*token\|debugPrint.*key" lib/; then
+            echo "❌ Found potential sensitive data in debug prints!"
+            exit 1
+          fi
+          
+          echo "✅ Security checks passed"
+
+  # Final validation
+  final_validation:
+    name: Final Validation
+    needs: [unit_tests, navigation_tests, golden_tests, static_analysis]
+    runs-on: ubuntu-latest
+    steps:
+      - name: All tests passed
+        run: |
+          echo "🎉 All tests passed successfully!"
+          echo "✅ Unit tests: PASSED"
+          echo "✅ Navigation tests: PASSED" 
+          echo "✅ Golden tests: PASSED"
+          echo "✅ Static analysis: PASSED"
+          echo ""
+          echo "The code is ready for merge! 🚀" 

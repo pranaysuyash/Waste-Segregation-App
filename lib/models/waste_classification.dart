@@ -1,7 +1,11 @@
 import 'package:uuid/uuid.dart';
+import 'package:hive/hive.dart';
+
+part 'waste_classification.g.dart';
 
 /// Represents a waste classification result with comprehensive disposal information
-class WasteClassification {
+@HiveType(typeId: 0)
+class WasteClassification extends HiveObject {
 
   WasteClassification({
     String? id,
@@ -195,81 +199,131 @@ class WasteClassification {
           : null,
     );
   }
+  @HiveField(0)
   final String id;
+  @HiveField(1)
   final String itemName;
+  @HiveField(2)
   final String category;
+  @HiveField(3)
   final String? subcategory;
+  @HiveField(4)
   final String? materialType;
+  @HiveField(5)
   final int? recyclingCode;
+  @HiveField(6)
   final String explanation;
+  @HiveField(7)
   final String? disposalMethod;
+  @HiveField(8)
   final DisposalInstructions disposalInstructions;
 
   // User identification
+  @HiveField(9)
   final String? userId;
 
   // Location and guidelines
+  @HiveField(10)
   final String region;
+  @HiveField(11)
   final String? localGuidelinesReference;
 
   // Image and visual data
+  @HiveField(12)
   final String? imageUrl;
+  @HiveField(13)
   final String? imageHash;
+  @HiveField(14)
   final Map<String, double>? imageMetrics;
+  @HiveField(15)
   final List<String> visualFeatures;
 
   // Waste properties
+  @HiveField(16)
   final bool? isRecyclable;
+  @HiveField(17)
   final bool? isCompostable;
+  @HiveField(18)
   final bool? requiresSpecialDisposal;
+  @HiveField(19)
   final bool? isSingleUse;
+  @HiveField(20)
   final String? colorCode;
+  @HiveField(21)
   final String? riskLevel;
+  @HiveField(22)
   final List<String>? requiredPPE;
 
   // Product identification
+  @HiveField(23)
   final String? brand;
+  @HiveField(24)
   final String? product;
+  @HiveField(25)
   final String? barcode;
 
   // User interaction data
+  @HiveField(26)
   final bool? isSaved;
+  @HiveField(27)
   final bool? userConfirmed;
+  @HiveField(28)
   final String? userCorrection;
+  @HiveField(29)
   final String? disagreementReason;
+  @HiveField(30)
   final String? userNotes;
+  @HiveField(31)
   final int? viewCount;
+  @HiveField(32)
   final bool? clarificationNeeded;
 
   // AI model performance data
+  @HiveField(33)
   final double? confidence;
+  @HiveField(34)
   final String? modelVersion;
+  @HiveField(35)
   final int? processingTimeMs;
+  @HiveField(36)
   final String? modelSource;
+  @HiveField(37)
   final String? analysisSessionId;
 
   // Alternative classifications and actions
+  @HiveField(38)
   final List<AlternativeClassification> alternatives;
+  @HiveField(39)
   final String? suggestedAction;
+  @HiveField(40)
   final bool? hasUrgentTimeframe;
 
   // Multilingual support
+  @HiveField(41)
   final String? instructionsLang;
+  @HiveField(42)
   final Map<String, String>? translatedInstructions;
 
   // Gamification & Engagement
+  @HiveField(43)
   final int? pointsAwarded;
+  @HiveField(44)
   final String? environmentalImpact;
+  @HiveField(45)
   final List<String>? relatedItems;
 
   // Processing context
+  @HiveField(46)
   final String? source;
+  @HiveField(47)
   final DateTime timestamp;
 
   // List of model names that have been used for reanalysis on this classification
+  @HiveField(48)
   final List<String>? reanalysisModelsTried;
 
   // The model that produced a user-confirmed correct result
+  @HiveField(49)
   final String? confirmedByModel;
 
   /// Parse disposal instructions from various input formats
@@ -471,6 +525,7 @@ class WasteClassification {
 }
 
 /// Alternative classification suggestion
+@HiveType(typeId: 1)
 class AlternativeClassification {
 
   AlternativeClassification({
@@ -488,9 +543,13 @@ class AlternativeClassification {
       reason: json['reason'] ?? '',
     );
   }
+  @HiveField(0)
   final String category;
+  @HiveField(1)
   final String? subcategory;
+  @HiveField(2)
   final double confidence;
+  @HiveField(3)
   final String reason;
 
   Map<String, dynamic> toJson() {
@@ -504,6 +563,7 @@ class AlternativeClassification {
 }
 
 /// Detailed disposal instructions
+@HiveType(typeId: 2)
 class DisposalInstructions {
 
   DisposalInstructions({
@@ -531,14 +591,23 @@ class DisposalInstructions {
       hasUrgentTimeframe: json['hasUrgentTimeframe'] ?? false,
     );
   }
+  @HiveField(0)
   final String primaryMethod;
+  @HiveField(1)
   final List<String> steps;
+  @HiveField(2)
   final String? timeframe;
+  @HiveField(3)
   final String? location;
+  @HiveField(4)
   final List<String>? warnings;
+  @HiveField(5)
   final List<String>? tips;
+  @HiveField(6)
   final String? recyclingInfo;
+  @HiveField(7)
   final String? estimatedTime;
+  @HiveField(8)
   final bool hasUrgentTimeframe;
 
   /// Parse steps from various input formats (List, String with separators)

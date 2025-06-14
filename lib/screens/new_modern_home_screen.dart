@@ -76,6 +76,7 @@ class NewModernHomeScreen extends ConsumerStatefulWidget {
 
 class NewModernHomeScreenState extends ConsumerState<NewModernHomeScreen> 
     with TickerProviderStateMixin, WidgetsBindingObserver {
+  int _selectedIndex = 0;
   final ImagePicker _picker = ImagePicker();
   TutorialCoachMark? _coachMark;
   List<TargetFocus> _targets = [];
@@ -95,6 +96,9 @@ class NewModernHomeScreenState extends ConsumerState<NewModernHomeScreen>
   // Achievement celebration state
   bool _showCelebration = false;
   Achievement? _celebrationAchievement;
+  
+  // Navigation guard to prevent double navigation
+  bool _isNavigating = false;
 
   @override
   void initState() {
@@ -341,129 +345,162 @@ class NewModernHomeScreenState extends ConsumerState<NewModernHomeScreen>
 
   // Photo capture methods
   Future<void> _takePhoto(ImagePicker picker, BuildContext context) async {
+    if (_isNavigating) {
+      debugPrint('🚫 Navigation already in progress, ignoring tap');
+      return;
+    }
+    
+    _isNavigating = true;
+    debugPrint('📸 Taking photo - manual review mode');
+    
     try {
-      final image = await picker.pickImage(
+      final XFile? image = await picker.pickImage(
         source: ImageSource.camera,
-        maxWidth: 1024,
-        maxHeight: 1024,
         imageQuality: 85,
+        maxWidth: 1920,
+        maxHeight: 1080,
       );
       
       if (image != null && mounted) {
-        await _navigateToImageCapture(image);
+        await _navigateToImageCapture(image, autoAnalyze: false);
       }
     } catch (e) {
+      debugPrint('Error taking photo: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error taking photo: $e'),
-            backgroundColor: Colors.red,
-          ),
+          SnackBar(content: Text('Error taking photo: $e')),
         );
       }
+    } finally {
+      _isNavigating = false;
     }
   }
 
   Future<void> _pickImage(ImagePicker picker, BuildContext context) async {
+    if (_isNavigating) {
+      debugPrint('🚫 Navigation already in progress, ignoring tap');
+      return;
+    }
+    
+    _isNavigating = true;
+    debugPrint('🖼️ Picking image - manual review mode');
+    
     try {
-      final image = await picker.pickImage(
+      final XFile? image = await picker.pickImage(
         source: ImageSource.gallery,
-        maxWidth: 1024,
-        maxHeight: 1024,
         imageQuality: 85,
+        maxWidth: 1920,
+        maxHeight: 1080,
       );
       
       if (image != null && mounted) {
-        await _navigateToImageCapture(image);
+        await _navigateToImageCapture(image, autoAnalyze: false);
       }
     } catch (e) {
+      debugPrint('Error picking image: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error picking image: $e'),
-            backgroundColor: Colors.red,
-          ),
+          SnackBar(content: Text('Error picking image: $e')),
         );
       }
+    } finally {
+      _isNavigating = false;
     }
   }
 
   // Instant analyze methods
   Future<void> _takePhotoInstant(ImagePicker picker, BuildContext context) async {
+    if (_isNavigating) {
+      debugPrint('🚫 Navigation already in progress, ignoring tap');
+      return;
+    }
+    
+    _isNavigating = true;
+    debugPrint('📸 Taking photo - instant analysis mode');
+    
     try {
-      final image = await picker.pickImage(
+      final XFile? image = await picker.pickImage(
         source: ImageSource.camera,
-        maxWidth: 1024,
-        maxHeight: 1024,
         imageQuality: 85,
+        maxWidth: 1920,
+        maxHeight: 1080,
       );
       
       if (image != null && mounted) {
         await _navigateToImageCapture(image, autoAnalyze: true);
       }
     } catch (e) {
+      debugPrint('Error taking photo: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error taking photo: $e'),
-            backgroundColor: Colors.red,
-          ),
+          SnackBar(content: Text('Error taking photo: $e')),
         );
       }
+    } finally {
+      _isNavigating = false;
     }
   }
 
   Future<void> _pickImageInstant(ImagePicker picker, BuildContext context) async {
+    if (_isNavigating) {
+      debugPrint('🚫 Navigation already in progress, ignoring tap');
+      return;
+    }
+    
+    _isNavigating = true;
+    debugPrint('🖼️ Picking image - instant analysis mode');
+    
     try {
-      final image = await picker.pickImage(
+      final XFile? image = await picker.pickImage(
         source: ImageSource.gallery,
-        maxWidth: 1024,
-        maxHeight: 1024,
         imageQuality: 85,
+        maxWidth: 1920,
+        maxHeight: 1080,
       );
       
       if (image != null && mounted) {
         await _navigateToImageCapture(image, autoAnalyze: true);
       }
     } catch (e) {
+      debugPrint('Error picking image: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error picking image: $e'),
-            backgroundColor: Colors.red,
-          ),
+          SnackBar(content: Text('Error picking image: $e')),
         );
       }
+    } finally {
+      _isNavigating = false;
     }
   }
 
   Future<void> _navigateToImageCapture(XFile image, {bool autoAnalyze = false}) async {
-    final gamificationService = ref.read(gamificationServiceProvider);
-    final oldProfile = await gamificationService.getProfile();
-    
-    WasteClassification? result;
-    
     if (autoAnalyze) {
       // For auto-analyze, go directly to analysis without showing ImageCaptureScreen
-      result = await _navigateToInstantAnalysis(image);
+      // The InstantAnalysisScreen will handle the entire flow including navigation to ResultScreen
+      // and all gamification processing is handled within the ResultScreen itself
+      await _navigateToInstantAnalysis(image);
     } else {
       // For manual review, use the traditional flow
-      result = await Navigator.push<WasteClassification>(
+      final gamificationService = ref.read(gamificationServiceProvider);
+      final oldProfile = await gamificationService.getProfile();
+      
+      final result = await Navigator.push<WasteClassification>(
         context,
         MaterialPageRoute(
           builder: (context) => ImageCaptureScreen.fromXFile(image),
         ),
       );
-    }
-    
-    if (result != null && mounted) {
-      await _handleScanResult(result, oldProfile);
+      
+      if (result != null && mounted) {
+        await _handleScanResult(result, oldProfile);
+      }
     }
   }
 
-  Future<WasteClassification?> _navigateToInstantAnalysis(XFile image) async {
+  Future<void> _navigateToInstantAnalysis(XFile image) async {
     // Navigate directly to analysis loader, then to results
-    return Navigator.push<WasteClassification>(
+    // No need to await a result since InstantAnalysisScreen handles everything internally
+    await Navigator.push<void>(
       context,
       MaterialPageRoute(
         builder: (context) => InstantAnalysisScreen(image: image),

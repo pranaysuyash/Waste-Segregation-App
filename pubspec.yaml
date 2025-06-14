@@ -63,6 +63,7 @@ dependencies:
   flutter_speed_dial: ^7.0.0  # For floating action button speed dial
   flutter_localizations:
     sdk: flutter
+  csv: ^6.0.0  # For proper CSV handling with RFC 4180 compliance
 
   # --- Mapping & Geospatial Dependencies (OpenStreetMap) ---
   flutter_map: ^7.0.2  # Keep current major for compatibility with heatmap

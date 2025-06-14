@@ -1,0 +1,71 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // User profiles - users can only read/write their own data
+    match /users/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+      
+      // User's personal classifications
+      match /classifications/{classificationId} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+      }
+      
+      // Validate gamification profile updates
+      allow update: if request.auth != null 
+        && request.auth.uid == userId
+        && validateGamificationUpdate(resource.data, request.resource.data);
+    }
+    
+    // Leaderboards - read-only for users, write-only for Cloud Functions
+    match /leaderboard_allTime/{userId} {
+      allow read: if request.auth != null;
+      allow write: if false; // Only Cloud Functions can write leaderboards
+    }
+    
+    // Weekly leaderboards
+    match /leaderboard_weekly/{weekId} {
+      allow read: if request.auth != null;
+      allow write: if false; // Only Cloud Functions can write
+    }
+    
+    // Community challenges - read-only for users
+    match /community_challenges/{challengeId} {
+      allow read: if request.auth != null;
+      allow write: if false; // Only admins via Cloud Functions
+    }
+    
+    // Admin collections - no direct user access
+    match /admin/{document=**} {
+      allow read, write: if false; // Only Cloud Functions with admin privileges
+    }
+    
+    // Helper function to validate gamification updates
+    function validateGamificationUpdate(oldData, newData) {
+      let oldGamification = oldData.gamificationProfile;
+      let newGamification = newData.gamificationProfile;
+      
+      return oldGamification != null 
+        && newGamification != null
+        && validatePointsIncrease(oldGamification, newGamification)
+        && validateAchievementProgress(oldGamification, newGamification)
+        && validateStreakLogic(oldGamification, newGamification);
+    }
+    
+    // Ensure points can only increase or stay the same (prevent cheating)
+    function validatePointsIncrease(oldGamification, newGamification) {
+      return newGamification.points.total >= oldGamification.points.total;
+    }
+    
+    // Validate achievement progress can only increase
+    function validateAchievementProgress(oldGamification, newGamification) {
+      // This is a simplified check - in production, you'd validate each achievement
+      return newGamification.achievements.size() >= oldGamification.achievements.size();
+    }
+    
+    // Validate streak updates follow logical rules
+    function validateStreakLogic(oldGamification, newGamification) {
+      // Simplified validation - streaks can only increase by 1 per day max
+      return true; // Implement detailed streak validation based on timestamps
+    }
+  }
+} 
