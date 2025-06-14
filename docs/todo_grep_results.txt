@@ -1,0 +1,246 @@
+docs/fixes/CRITICAL_FIXES_DOCUMENTATION.md:## 📝 **TODO: AdMob Configuration**
+docs/fixes/ui_critical_fixes.md:    width: _bannerAd!.size.width.toDouble(),
+docs/fixes/ui_critical_fixes.md:    height: _bannerAd!.size.height.toDouble(),
+docs/design/ui/critical_bug_fixes.md:        value: entry.value.toDouble(),
+docs/design/UI_ROADMAP_COMPREHENSIVE.md:**Status**: Current UI Analysis + TODO UI + Future UI Vision
+docs/design/UI_ROADMAP_COMPREHENSIVE.md:| UI Category | Current State | TODO Fixes | Future Vision | Total Screens |
+docs/design/UI_ROADMAP_COMPREHENSIVE.md:**Overall UI Progress**: ~60% Current | ~25% TODO | ~15% Future Vision
+docs/design/UI_ROADMAP_COMPREHENSIVE.md:**Status**: ✅ **FUNCTIONAL** with TODO features
+docs/design/UI_ROADMAP_COMPREHENSIVE.md:- **TODOs**: ❌ Family name editing, ❌ Copy family ID, ❌ Toggle settings
+docs/design/UI_ROADMAP_COMPREHENSIVE.md:**Status**: ✅ **FUNCTIONAL** with TODO share features
+docs/design/UI_ROADMAP_COMPREHENSIVE.md:- **TODOs**: ❌ Share via messages, ❌ Share via email, ❌ Generic share
+docs/design/UI_ROADMAP_COMPREHENSIVE.md:**Status**: ✅ **FUNCTIONAL** with TODO premium features
+docs/design/UI_ROADMAP_COMPREHENSIVE.md:- **TODOs**: ❌ Navigate to premium features screen
+docs/design/UI_ROADMAP_COMPREHENSIVE.md:## 🚧 **TODO UI FIXES** (Immediate Improvements Needed)
+docs/design/UI_ROADMAP_COMPREHENSIVE.md:### 🔧 **Family Management TODOs** (MEDIUM Priority)
+docs/design/UI_ROADMAP_COMPREHENSIVE.md:- [ ] ❌ **TODO**: Implement family name editing
+docs/design/UI_ROADMAP_COMPREHENSIVE.md:- [ ] ❌ **TODO**: Copy family ID to clipboard
+docs/design/UI_ROADMAP_COMPREHENSIVE.md:- [ ] ❌ **TODO**: Implement toggle public family
+docs/design/UI_ROADMAP_COMPREHENSIVE.md:- [ ] ❌ **TODO**: Implement toggle share classifications
+docs/design/UI_ROADMAP_COMPREHENSIVE.md:- [ ] ❌ **TODO**: Implement toggle show member activity
+docs/design/UI_ROADMAP_COMPREHENSIVE.md:- [ ] ❌ **TODO**: Implement share via messages
+docs/design/UI_ROADMAP_COMPREHENSIVE.md:- [ ] ❌ **TODO**: Implement share via email
+docs/design/UI_ROADMAP_COMPREHENSIVE.md:- [ ] ❌ **TODO**: Implement generic share
+docs/design/UI_ROADMAP_COMPREHENSIVE.md:### 🏆 **Achievements Screen TODOs** (LOW Priority)
+docs/design/UI_ROADMAP_COMPREHENSIVE.md:- [ ] ❌ **TODO**: Implement challenge generation
+docs/design/UI_ROADMAP_COMPREHENSIVE.md:- [ ] ❌ **TODO**: Navigate to all completed challenges
+docs/design/UI_ROADMAP_COMPREHENSIVE.md:2. **Family Management TODOs** - Complete missing family features
+docs/design/UI_ROADMAP_COMPREHENSIVE.md:4. **Achievement Screen TODOs** - Complete challenge system
+docs/QUICK_WINS_TODO.md:## 🎯 PRIORITY QUICK WINS TODO
+docs/analysis/mark_as_incorrect_functionality_analysis.md:## 📋 **UPDATED TODO LIST**
+docs/analysis/CODEBASE_DOCS_DISCREPANCY_REPORT.md:*   **Documentation Claim (MASTER_TODO_COMPREHENSIVE.md -> CRITICAL BLOCKERS):**
+docs/analysis/CODEBASE_DOCS_DISCREPANCY_REPORT.md:*   **Recommendation:** Update the MASTER_TODO_COMPREHENSIVE.md to reflect that the Firebase family service is already integrated into the UI. Remove this from the critical blockers list.
+docs/analysis/CODEBASE_DOCS_DISCREPANCY_REPORT.md:*   **Documentation Claim (MASTER_TODO_COMPREHENSIVE.md -> CRITICAL BLOCKERS):**
+docs/archive/todos/TODO_COMPREHENSIVE.md:# Comprehensive Development TODO
+docs/archive/todos/next_development_tasks.md:- **i18n Ready:** Marked all strings with `TODO(i18n)` comments for future localization
+docs/archive/todos/next_development_tasks.md:- **Current Status:** UI present but functionality incomplete (TODO in code)
+docs/REFINED_REPOSITORY_IMPROVEMENT_PRIORITIES.md:  - Professional issue templates (bug_report.md, feature_request.md, todo_item.md)
+docs/processes/GITHUB_TODO_INTEGRATION.md:# 🔗 GitHub TODO Integration Guide
+docs/processes/GITHUB_TODO_INTEGRATION.md:This document explains how our hybrid TODO tracking system works, combining GitHub Issues with our existing markdown files and code TODOs.
+docs/processes/GITHUB_TODO_INTEGRATION.md:Our TODO tracking system maintains **three synchronized sources**:
+docs/processes/GITHUB_TODO_INTEGRATION.md:1. **📝 Markdown Files** (`docs/MASTER_TODO_COMPREHENSIVE.md`, etc.)
+docs/processes/GITHUB_TODO_INTEGRATION.md:2. **💻 Code TODOs** (Comments in source files)
+docs/processes/GITHUB_TODO_INTEGRATION.md:- **Code TODOs → GitHub Issues**: When you push code with `// TODO:` comments, GitHub Actions automatically creates issues
+docs/processes/GITHUB_TODO_INTEGRATION.md:- **Issue Closed → Markdown Updated**: When you close a GitHub issue, the corresponding TODO in markdown files gets marked as completed
+docs/processes/GITHUB_TODO_INTEGRATION.md:- Use GitHub issue templates to create issues from existing TODOs
+docs/processes/GITHUB_TODO_INTEGRATION.md:- Reference TODO items in commit messages to auto-close issues
+docs/processes/GITHUB_TODO_INTEGRATION.md:### **1. Working with Code TODOs**
+docs/processes/GITHUB_TODO_INTEGRATION.md:// TODO: Fix community stats calculation to use real data instead of dummy values
+docs/processes/GITHUB_TODO_INTEGRATION.md:**Result**: GitHub Action creates issue titled "[TODO] Fix community stats calculation..."
+docs/processes/GITHUB_TODO_INTEGRATION.md:### **3. Converting Markdown TODOs to Issues**
+docs/processes/GITHUB_TODO_INTEGRATION.md:2. Choose "TODO Item" template
+docs/processes/GITHUB_TODO_INTEGRATION.md:3. Copy TODO text from markdown file
+docs/processes/GITHUB_TODO_INTEGRATION.md:- `todo` - From TODO comments
+docs/processes/GITHUB_TODO_INTEGRATION.md:### **For New TODOs**
+docs/processes/GITHUB_TODO_INTEGRATION.md:1. **In Code**: Use `// TODO: Description` format
+docs/processes/GITHUB_TODO_INTEGRATION.md:### **For Existing TODOs**
+docs/processes/GITHUB_TODO_INTEGRATION.md:1. **Convert High Priority**: Create GitHub issues for critical TODOs
+docs/processes/GITHUB_TODO_INTEGRATION.md:2. **Keep Low Priority**: Leave minor TODOs in markdown/code
+docs/processes/GITHUB_TODO_INTEGRATION.md:- **Visibility**: See all TODOs in one place (GitHub Issues)
+docs/processes/GITHUB_TODO_INTEGRATION.md:- **Discussion**: Comment and collaborate on specific TODOs
+docs/processes/GITHUB_TODO_INTEGRATION.md:- **Assignment**: Assign TODOs to team members
+docs/processes/GITHUB_TODO_INTEGRATION.md:- **Code TODOs**: Keep using TODO comments in code
+docs/processes/GITHUB_TODO_INTEGRATION.md:4. Create new issues for urgent TODOs
+docs/processes/GITHUB_TODO_INTEGRATION.md:3. Sync any missed TODO items
+docs/processes/GITHUB_TODO_INTEGRATION.md:## 🔍 **Finding TODOs**
+docs/processes/GITHUB_TODO_INTEGRATION.md:- **All TODOs**: `label:todo`
+docs/processes/GITHUB_TODO_INTEGRATION.md:- **High Priority**: `label:todo label:priority-high`
+docs/processes/GITHUB_TODO_INTEGRATION.md:- **UI Related**: `label:todo label:ui-ux`
+docs/processes/GITHUB_TODO_INTEGRATION.md:- **Your TODOs**: `assignee:@me label:todo`
+docs/processes/GITHUB_TODO_INTEGRATION.md:# Find all TODO comments
+docs/processes/GITHUB_TODO_INTEGRATION.md:grep -r "TODO:" lib/
+docs/processes/GITHUB_TODO_INTEGRATION.md:# Find incomplete TODOs in markdown
+docs/processes/GITHUB_TODO_INTEGRATION.md:1. **Be Specific**: Write clear, actionable TODO descriptions
+docs/USER_AHA_MOMENTS_ANALYSIS.md:      confidence: jsonContent['confidence']?.toDouble(),
+docs/planning/CONSOLIDATED_FUNCTIONAL_IMPROVEMENTS_ROADMAP.md:This document consolidates potential functional improvements identified from codebase analysis, existing documentation (master TODOs, strategic roadmaps, UI roadmaps, feature specifications, ideas lists), and specific design documents like `core_screen_implementations.md`. Its purpose is to provide a centralized reference for planning, prioritizing, and tracking the development of new and enhanced functionalities.
+docs/planning/MASTER_TODO_COMPREHENSIVE.md:codebase analysis, existing documentation (master TODOs, strategic roadmaps, UI
+docs/planning/MASTER_TODO_COMPREHENSIVE.md:# 🚀 Master TODO - Waste Segregation App
+docs/planning/MASTER_TODO_COMPREHENSIVE.md:| **Code TODOs**        | 0            | 0            | 40+     | 40+   |
+docs/planning/MASTER_TODO_COMPREHENSIVE.md:- [ ] ❌ **15+ TODO comments** in AdMob service
+docs/planning/MASTER_TODO_COMPREHENSIVE.md:**Status**: ❌ **TODO** - Replace hardcoded steps  
+docs/planning/MASTER_TODO_COMPREHENSIVE.md:**Status**: ❌ **TODO** - No location capture currently  
+docs/planning/MASTER_TODO_COMPREHENSIVE.md:**Status**: ❌ **TODO** - Community-driven accuracy  
+docs/planning/MASTER_TODO_COMPREHENSIVE.md:**Status**: ❌ **TODO** - Same UI for both platforms  
+docs/planning/MASTER_TODO_COMPREHENSIVE.md:**Status**: ❌ **TODO** - Current design needs modernization  
+docs/planning/MASTER_TODO_COMPREHENSIVE.md:**Status**: ❌ **TODO** - Security rules needed  
+docs/planning/MASTER_TODO_COMPREHENSIVE.md:**Status**: ❌ **TODO** - Optimization needed  
+docs/planning/MASTER_TODO_COMPREHENSIVE.md:**Status**: ❌ **TODO** - Comprehensive error handling needed  
+docs/planning/MASTER_TODO_COMPREHENSIVE.md:**Status**: ❌ **TODO** - Advanced features needed  
+docs/planning/MASTER_TODO_COMPREHENSIVE.md:#### Code TODOs to Fix:
+docs/planning/MASTER_TODO_COMPREHENSIVE.md:- [ ] ❌ **TODO**: Implement family name editing
+docs/planning/MASTER_TODO_COMPREHENSIVE.md:- [ ] ❌ **TODO**: Copy family ID to clipboard
+docs/planning/MASTER_TODO_COMPREHENSIVE.md:- [ ] ❌ **TODO**: Implement toggle public family
+docs/planning/MASTER_TODO_COMPREHENSIVE.md:- [ ] ❌ **TODO**: Implement toggle share classifications
+docs/planning/MASTER_TODO_COMPREHENSIVE.md:- [ ] ❌ **TODO**: Implement toggle show member activity
+docs/planning/MASTER_TODO_COMPREHENSIVE.md:**Status**: ❌ **TODO** - Enhanced educational content  
+docs/planning/MASTER_TODO_COMPREHENSIVE.md:**Status**: ❌ **TODO** - Derived from animation_enhancement_tasks.md
+docs/planning/MASTER_TODO_COMPREHENSIVE.md:**Status**: ❌ **TODO** - Future enhancement  
+docs/planning/MASTER_TODO_COMPREHENSIVE.md:**Status**: ❌ **TODO** - Advanced feature  
+docs/planning/MASTER_TODO_COMPREHENSIVE.md:## 🐛 **BUG FIXES & CODE TODOS** (Ongoing)
+docs/planning/MASTER_TODO_COMPREHENSIVE.md:### 1. **Family Invite Screen TODOs** 📧
+docs/planning/MASTER_TODO_COMPREHENSIVE.md:**Status**: ❌ **TODO** - Share functionality incomplete  
+docs/planning/MASTER_TODO_COMPREHENSIVE.md:#### Code TODOs to Fix:
+docs/planning/MASTER_TODO_COMPREHENSIVE.md:- [ ] ❌ **TODO**: Implement share via messages
+docs/planning/MASTER_TODO_COMPREHENSIVE.md:- [ ] ❌ **TODO**: Implement share via email
+docs/planning/MASTER_TODO_COMPREHENSIVE.md:- [ ] ❌ **TODO**: Implement generic share
+docs/planning/MASTER_TODO_COMPREHENSIVE.md:### 2. **Achievements Screen TODOs** 🏆
+docs/planning/MASTER_TODO_COMPREHENSIVE.md:**Status**: ❌ **TODO** - Challenge features incomplete  
+docs/planning/MASTER_TODO_COMPREHENSIVE.md:#### Code TODOs to Fix:
+docs/planning/MASTER_TODO_COMPREHENSIVE.md:- [ ] ❌ **TODO**: Implement challenge generation
+docs/planning/MASTER_TODO_COMPREHENSIVE.md:- [ ] ❌ **TODO**: Navigate to all completed challenges
+docs/planning/MASTER_TODO_COMPREHENSIVE.md:### 3. **Theme Settings TODOs** 🎨
+docs/planning/MASTER_TODO_COMPREHENSIVE.md:**Status**: ❌ **TODO** - Premium features incomplete  
+docs/planning/MASTER_TODO_COMPREHENSIVE.md:#### Code TODOs to Fix:
+docs/planning/MASTER_TODO_COMPREHENSIVE.md:- [ ] ❌ **TODO**: Navigate to premium features screen
+docs/planning/MASTER_TODO_COMPREHENSIVE.md:### 4. **Offline Mode Settings TODOs** 📱
+docs/planning/MASTER_TODO_COMPREHENSIVE.md:**Status**: ✅ **MOSTLY COMPLETE** → ❌ **MINOR TODOS**  
+docs/planning/MASTER_TODO_COMPREHENSIVE.md:#### Remaining TODOs:
+docs/planning/MASTER_TODO_COMPREHENSIVE.md:- [ ] ❌ **Variable naming**: `_autoDownloadModels` used inconsistently
+docs/planning/MASTER_TODO_COMPREHENSIVE.md:**Status**: ❌ **TODO** - Privacy controls needed  
+docs/planning/MASTER_TODO_COMPREHENSIVE.md:**Status**: ❌ **TODO** - Security improvements needed  
+docs/planning/MASTER_TODO_COMPREHENSIVE.md:**Status**: ❌ **TODO** - Testing framework needed  
+docs/planning/MASTER_TODO_COMPREHENSIVE.md:**Status**: ❌ **TODO** - Documentation and standards needed  
+docs/planning/MASTER_TODO_COMPREHENSIVE.md:3. 🔄 **Family Management TODOs** (complete existing features)
+docs/planning/MASTER_TODO_COMPREHENSIVE.md:- **Code TODOs**: 40+ scattered throughout codebase need addressing
+docs/planning/MASTER_TODO_COMPREHENSIVE.md:This Master TODO focuses on **immediate implementation tasks** and **current
+docs/planning/MASTER_TODO_COMPREHENSIVE.md:1. **Master TODO** (this document) - Immediate fixes and current implementation
+docs/planning/PRIORITY_TODOS.md:# 🚀 Waste Segregation App - Priority TODOs & Enhancements
+docs/planning/PRIORITY_TODOS.md:**Status**: PARTIALLY SUPERSEDED BY BROADER AI PLANNING (Was: TODO)
+docs/planning/PRIORITY_TODOS.md:**Status**: TODO (Review priority and phasing)
+docs/planning/PRIORITY_TODOS.md:**Status**: DETAILED PLANNING COMPLETE (Was: NOT IMPLEMENTED (Planning Exists) → TODO (Review priority, significant feature))
+docs/planning/PRIORITY_TODOS.md:**Status**: TODO (Continuous improvement effort)
+docs/planning/PRIORITY_TODOS.md:**Status**: TODO (Integrate with new feature designs)
+docs/planning/PRIORITY_TODOS.md:**Status**: HIGH-LEVEL PLANNING INITIATED (Was: TODO - Future enhancement)
+docs/planning/PRIORITY_TODOS.md:**Status**: HIGH-LEVEL PLANNING INITIATED (Was: TODO - Future enhancement)
+docs/planning/PRIORITY_TODOS.md:**Status**: HIGH-LEVEL PLANNING INITIATED (Was: TODO - Advanced feature)
+docs/planning/ROADMAP_INTEGRATION_SUMMARY.md:- **[MASTER_TODO_COMPREHENSIVE.md](MASTER_TODO_COMPREHENSIVE.md)** - Critical fixes and current codebase tasks
+docs/planning/ROADMAP_INTEGRATION_SUMMARY.md:- **Focus**: Firebase UI integration, bug fixes, code TODOs
+docs/planning/ROADMAP_INTEGRATION_SUMMARY.md:1. Start with **[MASTER_TODO_COMPREHENSIVE.md](MASTER_TODO_COMPREHENSIVE.md)** for current tasks
+docs/status/PR_STATUS_SUMMARY.md:  - Added TODO comments for production cleanup
+docs/status/issues_backup.md:- 🔴 **TODO**: Identified issues not yet implemented/fully verified
+docs/status/ENHANCED_ISSUES_TRACKING.md:- 🔴 **TODO**: Identified issues not yet implemented/fully verified
+docs/status/issues.md:- 🔴 **TODO**: Identified issues not yet implemented/fully verified
+docs/status/issues_enhanced.md:- 🔴 **TODO**: Identified issues not yet implemented/fully verified
+docs/status/ISSUES_SUMMARY_2025-06-02.md:- **Details**: There are 15+ TODOs in the AdMob service, including replacing test IDs, implementing GDPR compliance, and adding reward ad functionality. These are critical for monetization and legal compliance.
+docs/status/ISSUES_SUMMARY_2025-06-02.md:- **Details**: There is no geolocator dependency, and maps integration is only marked as a TODO.
+docs/status/ISSUES_SUMMARY_2025-06-02.md:## 4. Code TODOs and Technical Debt
+docs/status/ISSUES_SUMMARY_2025-06-02.md:- **Details**: 15+ TODOs including ad unit ID replacement, manifest configuration, GDPR compliance, consent management, and reward ad functionality.
+docs/status/ISSUES_SUMMARY_2025-06-02.md:- **Details**: Multiple TODOs for editing family names, copying IDs, toggling public status, sharing classifications, and showing member activity. Firebase service integration is incomplete.
+docs/status/ISSUES_SUMMARY_2025-06-02.md:- **Details**: TODOs for implementing sharing via messages, email, and generic share options.
+docs/status/ISSUES_SUMMARY_2025-06-02.md:- **Details**: TODOs for challenge generation and navigation to completed challenges.
+docs/status/ISSUES_SUMMARY_2025-06-02.md:- **Details**: TODO for opening maps or directions for location-based features.
+docs/status/ISSUES_SUMMARY_2025-06-02.md:- **Details**: TODOs for image segmentation, confidence threshold handling, and learning from corrections.
+docs/status/ISSUES_SUMMARY_2025-06-02.md:- **Details**: TODOs for Firebase migration, data sync, and conflict resolution.
+docs/status/ISSUES_SUMMARY_2025-06-02.md:- **Details**: TODOs for social features, leaderboard, and advanced challenges.
+docs/status/ISSUES_SUMMARY_2025-06-02.md:- **Details**: TODOs for platform-specific components, responsive design, animations, micro-interactions, and accessibility improvements.
+docs/status/ISSUES_SUMMARY_2025-06-02.md:- **Details**: TODOs for code comments, API documentation, and architecture diagrams.
+docs/status/CURRENT_ISSUES_SUMMARY.md:## 🔧 **GitHub TODO Integration Ready**
+docs/status/CURRENT_ISSUES_SUMMARY.md:✅ **Setup Complete**: GitHub TODO tracking system is now ready
+docs/status/CURRENT_ISSUES_SUMMARY.md:✅ **Templates Created**: Issue templates for bugs, features, and TODOs
+docs/status/CURRENT_ISSUES_SUMMARY.md:✅ **Automation Ready**: GitHub Actions will auto-create issues from code TODOs
+docs/status/CURRENT_ISSUES_SUMMARY.md:1. **Run GitHub Setup Script**: `./scripts/setup_github_todos.sh`
+docs/status/CURRENT_ISSUES_SUMMARY.md:1. **Use GitHub Issues**: Start tracking all TODOs in GitHub
+docs/status/CURRENT_ISSUES_SUMMARY.md:3. **Update Documentation**: Keep TODO tracking current
+docs/status/CURRENT_ISSUES_SUMMARY.md:## 📋 **How to Use GitHub TODO System**
+docs/status/CURRENT_ISSUES_SUMMARY.md:1. **Run Setup**: `./scripts/setup_github_todos.sh`
+docs/project/PROJECT_STATUS_COMPREHENSIVE.md:- **Medium** *(Nice-to-have)*: TODO comments cleanup (40+ identified)
+docs/project/PROJECT_STATUS_COMPREHENSIVE.md:3. 🔄 **Family Feature Completion** - TODOs in management screens *(By Mon 6/2)*
+docs/project/PROJECT_STATUS_COMPREHENSIVE.md:**Related Documents**: [MASTER_TODO_COMPREHENSIVE.md](MASTER_TODO_COMPREHENSIVE.md), [STRATEGIC_ROADMAP_COMPREHENSIVE.md](STRATEGIC_ROADMAP_COMPREHENSIVE.md)
+docs/project/CONSOLIDATED_ISSUES_LIST.md:| **Code TODOs** | 15 | 11 | 15 | 20+ | 61+ |
+docs/project/CONSOLIDATED_ISSUES_LIST.md:  - 15+ TODO comments in AdMob service (VERIFIED)
+docs/project/CONSOLIDATED_ISSUES_LIST.md:  - ✅ Maps open via url_launcher (formerly TODO on line 242)
+docs/project/CONSOLIDATED_ISSUES_LIST.md:## 📝 CODE TODOs (By File)
+docs/project/CONSOLIDATED_ISSUES_LIST.md:### Critical TODOs (19+)
+docs/project/CONSOLIDATED_ISSUES_LIST.md:1. **ad_service.dart** (15 TODOs - VERIFIED)
+docs/project/CONSOLIDATED_ISSUES_LIST.md:2. **family_management_screen.dart** (6 TODOs - VERIFIED)
+docs/project/CONSOLIDATED_ISSUES_LIST.md:   - Line 502: `// TODO: Implement family name editing`
+docs/project/CONSOLIDATED_ISSUES_LIST.md:   - Line 508: `// TODO: Copy family ID to clipboard`
+docs/project/CONSOLIDATED_ISSUES_LIST.md:   - Line 514: `// TODO: Implement toggle public family`
+docs/project/CONSOLIDATED_ISSUES_LIST.md:   - Line 518: `// TODO: Implement toggle share classifications`
+docs/project/CONSOLIDATED_ISSUES_LIST.md:   - Line 522: `// TODO: Implement toggle show member activity`
+docs/project/CONSOLIDATED_ISSUES_LIST.md:3. **family_invite_screen.dart** (3 TODOs)
+docs/project/CONSOLIDATED_ISSUES_LIST.md:4. **achievements_screen.dart** (2 TODOs)
+docs/project/CONSOLIDATED_ISSUES_LIST.md:5. **interactive_tag.dart** (0 TODO)
+docs/project/CONSOLIDATED_ISSUES_LIST.md:### High Priority TODOs (10+)
+docs/project/CONSOLIDATED_ISSUES_LIST.md:### Medium Priority TODOs (15+)
+docs/project/CONSOLIDATED_ISSUES_LIST.md:### Low Priority TODOs (20+)
+docs/project/CONSOLIDATED_ISSUES_LIST.md:- [Master TODO](docs/MASTER_TODO_COMPREHENSIVE.md)
+docs/project/CONSOLIDATED_ISSUES_LIST.md:4. **TODOs**: 61+ TODOs found in code, with 19 critical TODOs in ad_service.dart and family_management_screen.dart.
+docs/project/CONSOLIDATED_ISSUES_LIST.md:7. **Location Services**: Confirmed missing - TODO exists in interactive_tag.dart line 242.
+docs/project/SETTINGS_COMPLETION_SUMMARY.md:- **Removed TODO comments** and replaced with functional navigation
+docs/project/SETTINGS_COMPLETION_SUMMARY.md:**Before (TODOs):**
+docs/project/SETTINGS_COMPLETION_SUMMARY.md:// TODO: Implement offline mode settings
+docs/project/SETTINGS_COMPLETION_SUMMARY.md:// TODO: Implement data export
+docs/project/SETTINGS_COMPLETION_SUMMARY.md:- ✅ Settings Screen TODOs resolved
+docs/project/SETTINGS_COMPLETION_SUMMARY.md:- ✅ **Complete Feature Implementation**: No more TODOs in Settings Screen
+docs/project/SETTINGS_COMPLETION_SUMMARY.md:> "Current Status: UI present but functionality incomplete (TODO in code)"
+docs/testing/QA_CHECKLIST.md:**Integration**: Aligned with [MASTER_TODO_COMPREHENSIVE.md](MASTER_TODO_COMPREHENSIVE.md) and [STRATEGIC_ROADMAP_COMPREHENSIVE.md](STRATEGIC_ROADMAP_COMPREHENSIVE.md)
+docs/testing/QA_CHECKLIST.md:- [ ] **No "Already in tree" AdWidget errors** (Critical: AdMob service has 15+ TODOs)
+docs/testing/QA_CHECKLIST.md:- [ ] **No TODO comments** in production code (40+ TODOs identified in codebase)
+docs/testing/QA_CHECKLIST.md:#### Scenario 4: Critical Integration Tests (Based on Master TODO)
+docs/testing/QA_CHECKLIST.md:# Check for TODO comments (40+ identified in codebase)
+docs/testing/QA_CHECKLIST.md:TODO_COUNT=$(grep -r "TODO" lib/ --exclude-dir=test | wc -l)
+docs/testing/QA_CHECKLIST.md:echo "TODO comments found: $TODO_COUNT"
+docs/testing/QA_CHECKLIST.md:if [ $TODO_COUNT -gt 50 ]; then echo "Too many TODOs for production"; exit 1; fi
+docs/testing/QA_CHECKLIST.md:      # TODO threshold check
+docs/testing/QA_CHECKLIST.md:      - name: TODO Count Check
+docs/testing/QA_CHECKLIST.md:          TODO_COUNT=$(grep -r "TODO" lib/ --exclude-dir=test | wc -l)
+docs/testing/QA_CHECKLIST.md:          echo "TODO comments found: $TODO_COUNT"
+docs/testing/QA_CHECKLIST.md:          if [ $TODO_COUNT -gt 50 ]; then 
+docs/testing/QA_CHECKLIST.md:            echo "Too many TODOs for production"; 
+docs/testing/QA_CHECKLIST.md:- [ ] **Family management TODOs completed** (Name editing, copy ID, toggle settings)
+docs/testing/QA_CHECKLIST.md:- [ ] **Achievement screen TODOs resolved** (Challenge generation, navigation)
+docs/testing/QA_CHECKLIST.md:### Immediate Implementation Validation (Master TODO)
+docs/testing/QA_CHECKLIST.md:- [ ] **All TODO comments** resolved or documented for future releases
+docs/testing/QA_CHECKLIST.md:todo_count_max: 50
+docs/testing/QA_CHECKLIST.md:- **[MASTER_TODO_COMPREHENSIVE.md](MASTER_TODO_COMPREHENSIVE.md)** - Critical fixes and current codebase tasks
+docs/testing/QA_CHECKLIST.md:**Integration**: Aligned with Master TODO and Strategic Roadmap for comprehensive quality assurance
+docs/DOCUMENTATION_INDEX.md:- **MASTER_TODO_COMPREHENSIVE.md** - Comprehensive TODO tracking
+docs/DOCUMENTATION_INDEX.md:- **GITHUB_TODO_INTEGRATION.md** - GitHub integration and TODO tracking
+docs/technical/development/ENVIRONMENT_SETUP.md:10. **📋 TODO**: Monitor app performance and user feedback in production
+docs/technical/development/ENVIRONMENT_SETUP.md:11. **📋 TODO**: Consider additional UI/UX improvements based on user testing
+docs/technical/data_storage/ADMIN_DATA_RETENTION_AND_USER_DATA_FLOW.md:### 3.3 Privacy Policy (TODO)
+docs/technical/data_storage/ADMIN_DATA_RETENTION_AND_USER_DATA_FLOW.md:- **TODO:**
+docs/technical/data_storage/ADMIN_DATA_RETENTION_AND_USER_DATA_FLOW.md:## 7. Open TODOs
+docs/technical/data_storage/enhanced_storage_and_asset_management.md:      final itemsToDownload = <ContentItem>[];
+docs/technical/data_storage/enhanced_storage_and_asset_management.md:          itemsToDownload.add(item);
+docs/technical/data_storage/enhanced_storage_and_asset_management.md:      if (itemsToDownload.isEmpty) {
+docs/technical/data_storage/enhanced_storage_and_asset_management.md:      for (final item in itemsToDownload) {
+docs/technical/data_storage/enhanced_storage_and_asset_management.md:        success: downloadedCount == itemsToDownload.length,
+docs/technical/data_storage/enhanced_storage_and_asset_management.md:        totalItems: itemsToDownload.length,
+docs/technical/implementation/comprehensive_testing_strategy.md:          : pow((colorComponent + 0.055) / 1.055, 2.4).toDouble();
+docs/technical/implementation/IMPLEMENTATION_SUMMARY.md:  itemsClassified: userStats.itemsToday.toDouble(),
+docs/technical/implementation/IMPLEMENTATION_SUMMARY.md:}).length.toDouble();
+docs/technical/implementation/FIREBASE_SETUP_GUIDE.md:      // TODO: Add SDKs for Firebase products that you want to use
+docs/technical/implementation/settings_screen_refactor_summary.md:All user-facing strings are marked with `TODO(i18n)` comments:
+docs/technical/implementation/settings_screen_refactor_summary.md:// TODO(i18n): Localize title
+docs/technical/implementation/settings_screen_refactor_summary.md:3. Remove TODO comments
+docs/technical/implementation/settings_enhancement_summary.md:- **TODO Markers**: All hardcoded strings marked with `TODO(i18n)` comments
+docs/technical/implementation/settings_enhancement_guide.md:- **TODO markers**: All hardcoded strings marked for future localization
+docs/technical/implementation/advanced_ui_components.md:  currentValue: userStats.itemsClassifiedToday.toDouble(),
+docs/technical/implementation/advanced_ui_components.md:  targetValue: userStats.dailyTarget.toDouble(),
+docs/technical/implementation/advanced_ui_components.md:      currentValue: userStats.itemsToday.toDouble(),
+docs/technical/implementation/advanced_ui_components.md:      targetValue: userStats.dailyTarget.toDouble(),
+docs/technical/implementation/advanced_ui_components.md:  currentValue: classificationService.itemsClassifiedToday.toDouble(),
+docs/technical/implementation/advanced_ui_components.md:  targetValue: settingsService.dailyGoal.toDouble(),
+docs/technical/implementation/advanced_ui_components.md:  currentValue: gamificationService.currentStreak.toDouble(),

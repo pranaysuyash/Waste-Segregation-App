@@ -11,15 +11,26 @@ This file aggregates all actionable TODOs, open tasks, and incomplete checklist 
 - [ ] Firebase Integration & Migration: Complete data migration, analytics, and backup/rollback (see `docs/planning/MASTER_TODO_COMPREHENSIVE.md`)
 - [ ] AI Classification Consistency & Re-Analysis: Add re-analysis option, confidence warnings, and feedback aggregation (see `docs/planning/MASTER_TODO_COMPREHENSIVE.md`)
 - [ ] Image Segmentation Enhancement: Complete SAM integration, multi-object detection, and user controls (see `docs/planning/MASTER_TODO_COMPREHENSIVE.md`)
+- [ ] "Re-Scan" Button on Results Screen: Let users re-run classification on the same image (e.g. after adjusting camera framing or lighting)
+- [ ] Confidence Threshold Slider in Settings: Allow power users to adjust the minimum confidence at which the AI auto-classifies vs. prompts for manual review
+- [ ] Batch Classification: Add a gallery multi-select so users can queue up several images at once for back-to-back classification
 
 ### UI/UX & Platform
 - [ ] Android vs iOS Native Design Language: Implement platform-specific UI, navigation, and animations (see `docs/planning/MASTER_TODO_COMPREHENSIVE.md`)
 - [ ] Modern Design System Overhaul: Add dark mode, glassmorphism, micro-interactions, and dynamic theming (see `docs/planning/MASTER_TODO_COMPREHENSIVE.md`)
+- [ ] Camera Permission Retry: If the user denies camera access, show a friendly in-app walkthrough on how to re-enable permissions
+- [ ] Segmentation Fail States: Handle cases where no objects are detected (offer manual crop tool as fallback)
+- [ ] Rate-Limit Feedback: If the LLM or Vision API throttles you, display a "please wait" indicator rather than a generic error
 
 ### Technical Debt & Security
 - [ ] Firebase Security Rules: Add comprehensive Firestore rules, data access control, and analytics protection (see `docs/planning/MASTER_TODO_COMPREHENSIVE.md`)
 - [ ] Performance & Memory Management: Optimize analytics, image caching, and memory leak prevention (see `docs/planning/MASTER_TODO_COMPREHENSIVE.md`)
 - [ ] Error Handling & Resilience: Add comprehensive error handling, retry mechanisms, and data consistency checks (see `docs/planning/MASTER_TODO_COMPREHENSIVE.md`)
+- [ ] Security Rules Testing: Automate Firestore rule tests in CI (e.g. via the Firebase Emulator Suite)
+
+### CI/CD & Quality Gates
+- [ ] Docs-Lint Workflow: Add a GitHub Action to fail the build if any TODOs remain in markdown or code (e.g. using markdown-todo-lint or a custom script)
+- [ ] Code Quality Checks: Enforce dart analyze, flutter test --coverage, and dart_code_metrics on every PR (blocking merge if thresholds drop)
 
 ### Family & Social Features
 - [ ] Family Management: Implement name editing, copy ID, toggle public/share, show member activity (see `docs/planning/MASTER_TODO_COMPREHENSIVE.md`)
@@ -29,6 +40,11 @@ This file aggregates all actionable TODOs, open tasks, and incomplete checklist 
 ### Security & Privacy
 - [ ] Data Protection: Add granular privacy settings, consent management, analytics opt-out, and data deletion/export tools (see `docs/planning/MASTER_TODO_COMPREHENSIVE.md`)
 - [ ] Security Hardening: Input validation, SQL injection prevention, rate limiting, audit logging (see `docs/planning/MASTER_TODO_COMPREHENSIVE.md`)
+
+### Offline & Sync Behavior
+- [ ] Offline Queue: Cache scans and classification requests while offline, then auto-sync when connectivity returns
+- [ ] Conflict Resolution UX: If a user edits or deletes an offline scan, provide in-app merge/conflict dialogs when syncing
+- [ ] Connectivity Indicator: Show a subtle banner or icon when offline, with "reconnect to sync" call-to-action
 
 ---
 
@@ -45,6 +61,49 @@ This file aggregates all actionable TODOs, open tasks, and incomplete checklist 
 ### Testing & Quality
 - [ ] Comprehensive Testing: Add unit, integration, widget, end-to-end, and performance tests (see `docs/planning/MASTER_TODO_COMPREHENSIVE.md`)
 - [ ] Code Quality: Add documentation, code coverage, automated testing pipeline, and review checklist (see `docs/planning/MASTER_TODO_COMPREHENSIVE.md`)
+- [ ] End-to-End Tests for Reset/Delete: Write Flutter integration tests that simulate a user tapping "Reset Account" and verify data is gone
+- [ ] Restore Flow Tests: In emulator, archive → delete → restore → assert user data and auth are fully back
+- [ ] Inactive-Cleanup Cron Simulator: Add a test harness to fast-forward clock and run the cleanup, verifying logs
+
+### Accessibility & Internationalization
+- [ ] a11y Audit: Run an accessibility scanner (e.g. accessibility_test package) against key screens and surface failures as tasks
+- [ ] Dark-Mode QA: Add visual regression tests (e.g. via golden_toolkit) to ensure both light and dark themes render correctly
+- [ ] Localization Completion: Validate generated ARB files against translations missing keys
+- [ ] Automate "missing translations" reports in CI
+- [ ] Voice-Guided Scan: For low-vision users, guide them through framing via haptic/audio cues ("move phone up")
+- [ ] Large-Text Mode: Override UI to use extra-large fonts for key screens, respecting system accessibility settings
+
+### User Feedback & Reporting
+- [ ] In-App Feedback Widget: Let users flag a misclassification directly from the Results screen, sending image + category for review
+- [ ] Usage Survey: After a few scans, prompt opt-in for a 1-minute survey on accuracy and feature requests
+
+### Analytics & Telemetry
+- [ ] Event Instrumentation: Track key events—scans started, scans succeeded, scans failed, re-analysis used, share actions—to inform product decisions
+- [ ] Funnel Analysis: Add custom events around onboarding, first scan, and sharing to identify drop-off points
+
+### Personalization & Settings
+- [ ] Scan Presets: Allow users to save common "scan contexts" (e.g. kitchen vs. office) that pre-select disposal categories or filters
+- [ ] Custom Categories: Enable power users to define new waste categories (e.g. "e-waste") and map them to existing disposal instructions
+
+### Social & Sharing
+- [ ] One-Tap Share: Build share cards (image + "I just recycled a plastic bottle!") for Instagram/WhatsApp
+- [ ] Group Challenges: Allow users to "invite a friend" to a mini-challenge (e.g. "Recycle 10 items this week") directly from the app
+
+### Monitoring & Observability
+- [ ] Crashlytics Verification: Beyond wiring, write a sanity check that ensures you're receiving real crash events (e.g. a test crash)
+- [ ] Performance Benchmarks: Create a benchmark script to record image-segmentation latency on typical mid-range devices
+
+### Dev-Phase Debug Tools
+- [ ] Hidden Debug UI: Document and implement the /debug panel behind ENABLE_DEBUG_UI flag—list the routes and stub out buttons
+- [ ] Feature-Flag Config: Create a simple feature_flags.md listing all flags (enable_account_cleanup, enable_restore_ui, etc.) and their default settings
+
+### Backup & Disaster Recovery
+- [ ] Firestore Backup Validation: Write a small script or Cloud Function that periodically verifies your daily backups contain expected collections/doc counts
+- [ ] Rollback Drill: Document and script a rollback procedure in case a migration goes wrong—test it end-to-end in a staging project
+
+### Documentation Gaps
+- [ ] Feature-Flag Guide: Add a short doc (docs/admin/feature_flags.md) explaining how to flip flags, where they live, and the intended use
+- [ ] Admin Panel Spec: If you haven't already, write up the high-level wireframe and API contract for the archive/restore screens in docs/admin/restore_spec.md
 
 ---
 

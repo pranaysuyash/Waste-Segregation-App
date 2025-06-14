@@ -1,0 +1,102 @@
+lib/utils/dialog_helper.dart:2:// TODO: Uncomment when gen_l10n is properly set up
+lib/utils/dialog_helper.dart:17:    // TODO: Use AppLocalizations when properly set up
+lib/utils/dialog_helper.dart:186:    // TODO: Use AppLocalizations when properly set up
+lib/screens/family_invite_screen.dart:564:    // TODO: Implement share via messages
+lib/screens/family_invite_screen.dart:571:    // TODO: Implement share via email
+lib/screens/family_invite_screen.dart:578:    // TODO: Implement generic share
+lib/screens/theme_settings_screen.dart:141:              // TODO: Navigate to premium features screen
+lib/screens/polished_settings_screen.dart:87:      // TODO(i18n): Use AppLocalizations.of(context)!.settingsTitle
+lib/screens/polished_settings_screen.dart:102:            // TODO(i18n): Use AppLocalizations.of(context)!.toggleDeveloperMode
+lib/screens/polished_settings_screen.dart:113:              // TODO(i18n): Use AppLocalizations.of(context)!.toggleDeveloperMode
+lib/screens/polished_settings_screen.dart:170:      title: 'Account', // TODO(i18n): Localize
+lib/screens/polished_settings_screen.dart:178:      title: 'Premium', // TODO(i18n): Localize
+lib/screens/polished_settings_screen.dart:186:      title: 'App Settings', // TODO(i18n): Localize
+lib/screens/polished_settings_screen.dart:194:      title: 'Navigation', // TODO(i18n): Localize
+lib/screens/polished_settings_screen.dart:202:      title: 'Features & Tools', // TODO(i18n): Localize
+lib/screens/polished_settings_screen.dart:210:      title: 'Legal & Support', // TODO(i18n): Localize
+lib/screens/polished_settings_screen.dart:220:      title: 'Developer Options', // TODO(i18n): Localize
+lib/screens/polished_settings_screen.dart:284:      // TODO(i18n): Localize
+lib/screens/refactored_settings_screen.dart:50:      // TODO(i18n): Localize app bar title
+lib/screens/refactored_settings_screen.dart:63:            // TODO(i18n): Localize tooltip
+lib/screens/enhanced_settings_screen.dart:56:      // TODO(i18n): Use AppLocalizations.of(context)!.settingsTitle
+lib/screens/enhanced_settings_screen.dart:62:            // TODO(i18n): Use AppLocalizations.of(context)!.toggleDeveloperMode
+lib/screens/enhanced_settings_screen.dart:73:              // TODO(i18n): Use AppLocalizations.of(context)!.toggleDeveloperMode
+lib/screens/enhanced_settings_screen.dart:128:        // TODO(i18n): Use AppLocalizations.of(context)!.enhancedFeaturesDemo
+lib/screens/enhanced_settings_screen.dart:135:          // TODO(i18n): Localize
+lib/screens/enhanced_settings_screen.dart:145:          // TODO(i18n): Localize
+lib/screens/enhanced_settings_screen.dart:155:          // TODO(i18n): Localize
+lib/screens/enhanced_settings_screen.dart:165:          // TODO(i18n): Localize
+lib/screens/enhanced_settings_screen.dart:173:          // TODO(i18n): Localize semantic label
+lib/screens/enhanced_settings_screen.dart:178:            // TODO(i18n): Localize
+lib/screens/enhanced_settings_screen.dart:182:              // TODO(i18n): Localize
+lib/screens/enhanced_settings_screen.dart:219:      // TODO(i18n): Localize
+lib/screens/enhanced_settings_screen.dart:227:      // TODO(i18n): Localize
+lib/screens/enhanced_settings_screen.dart:238:      // TODO(i18n): Localize
+lib/screens/enhanced_settings_screen.dart:249:      // TODO(i18n): Localize
+lib/screens/enhanced_settings_screen.dart:260:        // TODO(i18n): Localize
+lib/screens/enhanced_settings_screen.dart:275:        // TODO(i18n): Localize
+lib/screens/enhanced_settings_screen.dart:286:          // TODO(i18n): Localize
+lib/screens/enhanced_settings_screen.dart:296:      // TODO(i18n): Localize
+lib/screens/contribution_submission_screen.dart:835:        // TODO: Implement photo upload functionality
+lib/screens/contribution_submission_screen.dart:847:        userId: 'current_user_id', // TODO: Get from auth provider
+lib/services/leaderboard_service.dart:104:  // TODO: Potentially add methods for weekly/monthly leaderboards if those collections are created.
+lib/services/ad_service.dart:12:  // TODO: ADMOB CONFIGURATION REQUIRED
+lib/services/ad_service.dart:23:    // TODO: Replace with your actual banner ad unit IDs from AdMob console
+lib/services/ad_service.dart:29:    // TODO: Replace with your actual interstitial ad unit IDs from AdMob console
+lib/services/ad_service.dart:34:  // TODO: Add reward ad unit IDs when implementing reward ads
+lib/services/ad_service.dart:102:      // TODO: Verify AdMob App ID is correctly configured in platform files
+lib/services/ad_service.dart:110:      // TODO: Add consent management for GDPR compliance
+lib/services/ad_service.dart:127:      // TODO: Implement proper error tracking/analytics
+lib/services/ad_service.dart:436:  // TODO: Implement reward ad functionality
+lib/widgets/settings/navigation_section.dart:36:                // TODO(i18n): Localize title and subtitle
+lib/widgets/settings/navigation_section.dart:44:                    // TODO(i18n): Localize semantic label
+lib/widgets/settings/navigation_section.dart:47:                      // TODO(i18n): Localize title and subtitle
+lib/widgets/settings/navigation_section.dart:59:                    // TODO(i18n): Localize semantic label
+lib/widgets/settings/navigation_section.dart:62:                      // TODO(i18n): Localize title and subtitle
+lib/widgets/settings/navigation_section.dart:74:                    // TODO(i18n): Localize title and subtitle
+lib/widgets/settings/navigation_section.dart:110:          // TODO(i18n): Localize title and subtitle
+lib/widgets/settings/navigation_section.dart:148:      // TODO(i18n): Localize feedback message
+lib/widgets/settings/navigation_section.dart:163:      // TODO(i18n): Localize feedback message
+lib/widgets/settings/navigation_section.dart:179:        // TODO(i18n): Localize feedback message
+lib/widgets/settings/app_settings_section.dart:25:          // TODO(i18n): Localize title and subtitle
+lib/widgets/settings/app_settings_section.dart:34:          // TODO(i18n): Localize title and subtitle
+lib/widgets/settings/app_settings_section.dart:43:          // TODO(i18n): Localize title and subtitle
+lib/widgets/settings/app_settings_section.dart:52:          // TODO(i18n): Localize title and subtitle
+lib/widgets/settings/premium_section.dart:20:          // TODO(i18n): Localize title and subtitle
+lib/widgets/settings/account_section.dart:20:        // TODO(i18n): Localize section header
+lib/widgets/settings/account_section.dart:38:                  // TODO(i18n): Localize title and subtitle
+lib/widgets/settings/account_section.dart:64:          // TODO(i18n): Localize title and subtitle
+lib/widgets/settings/account_section.dart:75:          // TODO(i18n): Localize title and subtitle
+lib/widgets/settings/account_section.dart:104:      title: 'Sign Out', // TODO(i18n): Localize
+lib/widgets/settings/account_section.dart:106:            'but you won\'t be able to sync with the cloud.', // TODO(i18n): Localize
+lib/widgets/settings/account_section.dart:107:      okLabel: 'Sign Out', // TODO(i18n): Localize
+lib/widgets/settings/account_section.dart:128:        // TODO(i18n): Localize error message
+lib/widgets/settings/account_section.dart:142:      // TODO(i18n): Localize success message
+lib/widgets/settings/developer_section.dart:60:              // TODO(i18n): Localize developer mode title
+lib/widgets/settings/developer_section.dart:80:          // TODO(i18n): Localize developer mode subtitle
+lib/widgets/settings/developer_section.dart:136:      // TODO(i18n): Localize feature titles
+lib/widgets/settings/developer_section.dart:141:                 // await premiumService.togglePremiumFeature(featureKey, value); // TODO: Check correct method name
+lib/widgets/settings/developer_section.dart:143:          // TODO(i18n): Localize feedback message
+lib/widgets/settings/developer_section.dart:231:      // TODO(i18n): Localize success message
+lib/widgets/settings/developer_section.dart:248:          // TODO(i18n): Localize dialog content
+lib/widgets/settings/developer_section.dart:281:          // TODO(i18n): Localize dialog content
+lib/widgets/settings/developer_section.dart:316:       // await storageService.clearAllData(); // TODO: Check correct method name
+lib/widgets/settings/developer_section.dart:317:       // await analyticsService.clearAnalyticsData(); // TODO: Check correct method name
+lib/widgets/settings/developer_section.dart:321:        // TODO(i18n): Localize success message
+lib/widgets/settings/developer_section.dart:329:        // TODO(i18n): Localize error message
+lib/widgets/settings/developer_section.dart:341:             // await cleanupService.performComprehensiveCleanup(); // TODO: Check correct method name
+lib/widgets/settings/developer_section.dart:344:        // TODO(i18n): Localize success message
+lib/widgets/settings/developer_section.dart:352:        // TODO(i18n): Localize error message
+lib/widgets/settings/developer_section.dart:365:      // TODO: Implement classification migration logic
+lib/widgets/settings/developer_section.dart:369:        // TODO(i18n): Localize success message
+lib/widgets/settings/developer_section.dart:377:        // TODO(i18n): Localize error message
+lib/widgets/settings/legal_support_section.dart:155:    // TODO: Implement email support functionality
+lib/widgets/settings/legal_support_section.dart:163:    // TODO: Implement bug reporting functionality
+lib/widgets/settings/legal_support_section.dart:171:    // TODO: Implement app rating functionality
+lib/widgets/recycling_code_info.dart:132:                      // TODO(i18n): Localize plastic name
+lib/widgets/recycling_code_info.dart:142:                        // TODO(i18n): Localize examples text
+lib/widgets/recycling_code_info.dart:154:                  // TODO(i18n): Localize semantics label
+lib/widgets/recycling_code_info.dart:188:                              // TODO(i18n): Localize SnackBar content
+lib/widgets/recycling_code_info.dart:263:            // TODO(i18n): Localize label
+lib/widgets/animations/data_visualization_animations.dart:22:    // TODO: replace with dashboard-specific animation
+lib/widgets/animations/data_visualization_animations.dart:36:    // TODO: implement progress tracking animation
