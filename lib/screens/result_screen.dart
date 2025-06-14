@@ -16,6 +16,7 @@ import '../widgets/enhanced_gamification_widgets.dart' as widgets;
 import '../widgets/advanced_ui/achievement_celebration.dart';
 import '../widgets/interactive_tag.dart';
 import '../widgets/disposal_instructions_widget.dart';
+import '../widgets/enhanced_disposal_instructions_widget.dart';
 import '../widgets/classification_feedback_widget.dart';
 import '../widgets/expandable_section.dart';
 import '../widgets/result_screen/action_buttons.dart';
@@ -746,9 +747,8 @@ class _ResultScreenState extends State<ResultScreen>
                         ),
                         ...[
                         const SizedBox(height: 24),
-                        DisposalInstructionsWidget(
-                          instructions:
-                              widget.classification.disposalInstructions,
+                        EnhancedDisposalInstructionsWidget(
+                          classification: widget.classification,
                           onStepCompleted: (step) {
                             _awardPointsForDisposalStep();
                           },
