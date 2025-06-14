@@ -119,9 +119,6 @@ class AppLocalizationsHi extends AppLocalizations {
   String get offlineModeClassify => 'Classify items without internet';
 
   @override
-  String get offlineModeComingSoon => 'Offline mode settings coming soon!';
-
-  @override
   String get analytics => 'Analytics';
 
   @override
@@ -132,6 +129,9 @@ class AppLocalizationsHi extends AppLocalizations {
 
   @override
   String get advancedAnalyticsSubtitle => 'Detailed insights and trends';
+
+  @override
+  String get offlineModeComingSoon => 'Offline mode settings coming soon!';
 
   @override
   String get legalSupportSection => 'Legal & Support';
@@ -159,12 +159,6 @@ class AppLocalizationsHi extends AppLocalizations {
 
   @override
   String get aboutSubtitle => 'App version and information';
-
-  @override
-  String get aboutDialogLine1 => 'A comprehensive Flutter application for proper waste identification, segregation guidance, and environmental education.';
-
-  @override
-  String get aboutDialogLine2 => 'Built with Flutter and powered by AI for accurate waste classification.';
 
   @override
   String get contactSupport => 'Contact Support';
@@ -272,17 +266,214 @@ class AppLocalizationsHi extends AppLocalizations {
   String get toggleFloatingCameraButton => 'Toggle floating camera button';
 
   @override
-  String get cameraShutterLabel => 'कैमरा शटर';
+  String get cameraShutterLabel => 'Camera shutter';
 
   @override
-  String get cameraShutterHint => 'फोटो लेता है';
+  String get cameraShutterHint => 'Takes a photo';
 
   @override
-  String get rewardConfettiLabel => 'पुरस्कार कन्फेटी';
+  String get startClassifyingHint => 'Opens the camera to classify waste';
 
   @override
-  String get rewardConfettiHint => 'आपकी उपलब्धि का जश्न मनाता है';
+  String get rewardConfettiLabel => 'Reward confetti';
 
   @override
-  String get startClassifyingHint => 'कचरे को वर्गीकृत करने के लिए कैमरा खोलता है';
+  String get rewardConfettiHint => 'Celebrates your achievement';
+
+  @override
+  String get allPremiumFeaturesReset => 'All premium features reset';
+
+  @override
+  String get removeAds => 'Remove Ads';
+
+  @override
+  String get themeCustomization => 'Theme Customization';
+
+  @override
+  String get advancedAnalyticsFeature => 'Advanced Analytics';
+
+  @override
+  String get exportData => 'Export Data';
+
+  @override
+  String get forceCrashTest => 'Force Crash (Crashlytics Test)';
+
+  @override
+  String get resetFullData => 'Reset Full Data (Factory Reset)';
+
+  @override
+  String get clearFirebaseDataFresh => 'Clear Firebase Data (Fresh Install)';
+
+  @override
+  String get migrateOldClassifications => 'Migrate Old Classifications';
+
+  @override
+  String get glassmorphism => 'Glassmorphism';
+
+  @override
+  String get material3 => 'Material 3';
+
+  @override
+  String get floating => 'Floating';
+
+  @override
+  String get adsDisabled => 'Ads are disabled';
+
+  @override
+  String get manageAdPreferences => 'Manage ad preferences';
+
+  @override
+  String get adsCurrentlyDisabled => 'Ads are currently disabled';
+
+  @override
+  String get exportDataSubtitle => 'Export your classification history';
+
+  @override
+  String get googleCloudSync => 'Google Cloud Sync';
+
+  @override
+  String get feedbackSettings => 'Feedback Settings';
+
+  @override
+  String get feedbackSettingsSubtitle => 'Control when you can provide feedback';
+
+  @override
+  String get allowFeedbackRecentHistory => 'Allow Feedback on Recent History';
+
+  @override
+  String get feedbackTimeframe => 'Feedback Timeframe';
+
+  @override
+  String feedbackTimeframeDays(int days) {
+    return 'Can provide feedback on items from last $days days';
+  }
+
+  @override
+  String get oneDay => '1 day';
+
+  @override
+  String get threeDays => '3 days';
+
+  @override
+  String get sevenDays => '7 days';
+
+  @override
+  String get fourteenDays => '14 days';
+
+  @override
+  String get thirtyDays => '30 days';
+
+  @override
+  String get lastCloudSync => 'Last Cloud Sync';
+
+  @override
+  String get syncLocalDataToCloud => 'Sync Local Data to Cloud';
+
+  @override
+  String get syncLocalDataSubtitle => 'Upload existing local classifications to cloud';
+
+  @override
+  String get forceDownloadFromCloud => 'Force Download from Cloud';
+
+  @override
+  String get forceDownloadSubtitle => 'Download latest data from cloud';
+
+  @override
+  String get resetAllAppData => 'Reset all app data (history, settings, preferences)';
+
+  @override
+  String get allDataClearedSuccessfully => 'All data cleared successfully';
+
+  @override
+  String get privacyPolicyAndTerms => 'Privacy Policy and Terms of Service';
+
+  @override
+  String get appInformationAndCredits => 'App information and credits';
+
+  @override
+  String get getHelpViaEmail => 'Get help via email';
+
+  @override
+  String get helpUsImproveApp => 'Help us improve the app';
+
+  @override
+  String get rateUsOnAppStore => 'Rate us on the app store';
+
+  @override
+  String get signingOut => 'Signing out...';
+
+  @override
+  String errorSigningOut(String error) {
+    return 'Error signing out: $error';
+  }
+
+  @override
+  String get stayInGuestMode => 'Stay in Guest Mode';
+
+  @override
+  String get signIn => 'Sign In';
+
+  @override
+  String upgradeToUse(String feature) {
+    return 'Upgrade to Use $feature';
+  }
+
+  @override
+  String get notNow => 'Not Now';
+
+  @override
+  String get seePremiumFeatures => 'See Premium Features';
+
+  @override
+  String errorOpeningEmail(String error) {
+    return 'Error opening email: $error';
+  }
+
+  @override
+  String get unableToOpenAppStore => 'Unable to open app store. Please search for \"Waste Segregation App\" in your app store.';
+
+  @override
+  String errorOpeningAppStore(String error) {
+    return 'Error opening app store: $error';
+  }
+
+  @override
+  String get emailNotAvailable => 'Email Not Available';
+
+  @override
+  String get noEmailAppFound => 'No email app found. Please send an email to:';
+
+  @override
+  String get emailAddressCopied => 'Email address copied to clipboard';
+
+  @override
+  String get copyEmail => 'Copy Email';
+
+  @override
+  String get close => 'Close';
+
+  @override
+  String featureStatusChanged(String title, String status) {
+    return '$title $status';
+  }
+
+  @override
+  String get factoryResetWarning => 'This will delete ALL app data including:\\n\\n• All classification history\\n• All gamification progress (points, streaks, achievements)\\n• All user preferences and settings\\n• All cached data\\n• All premium feature settings\\n\\nThis action cannot be undone.\\n\\nAre you sure you want to continue?';
+
+  @override
+  String get resettingToFactorySettings => 'Resetting app to factory settings...';
+
+  @override
+  String get googleSyncDisabled => 'Google sync disabled. Future classifications will be saved locally only.';
+
+  @override
+  String failedToToggleGoogleSync(String error) {
+    return 'Failed to toggle Google sync: $error';
+  }
+
+  @override
+  String get googleSyncEnabled => 'Google Sync Enabled';
+
+  @override
+  String get googleSyncEnabledMessage => 'Google sync is now enabled!';
 }

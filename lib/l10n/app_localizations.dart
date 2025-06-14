@@ -94,7 +94,7 @@ abstract class AppLocalizations {
   static const List<Locale> supportedLocales = <Locale>[
     Locale('en'),
     Locale('hi'),
-    Locale('kn'),
+    Locale('kn')
   ];
 
   /// Title for the settings screen
@@ -313,12 +313,6 @@ abstract class AppLocalizations {
   /// **'Classify items without internet'**
   String get offlineModeClassify;
 
-  /// SnackBar text for offline mode settings coming soon
-  ///
-  /// In en, this message translates to:
-  /// **'Offline mode settings coming soon!'**
-  String get offlineModeComingSoon;
-
   /// Analytics menu item
   ///
   /// In en, this message translates to:
@@ -342,6 +336,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Detailed insights and trends'**
   String get advancedAnalyticsSubtitle;
+
+  /// SnackBar text for offline mode settings coming soon
+  ///
+  /// In en, this message translates to:
+  /// **'Offline mode settings coming soon!'**
+  String get offlineModeComingSoon;
 
   /// Header for legal and support section
   ///
@@ -396,18 +396,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'App version and information'**
   String get aboutSubtitle;
-
-  /// First line of about dialog
-  ///
-  /// In en, this message translates to:
-  /// **'A comprehensive Flutter application for proper waste identification, segregation guidance, and environmental education.'**
-  String get aboutDialogLine1;
-
-  /// Second line of about dialog
-  ///
-  /// In en, this message translates to:
-  /// **'Built with Flutter and powered by AI for accurate waste classification.'**
-  String get aboutDialogLine2;
 
   /// Contact support option
   ///
@@ -624,6 +612,372 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Celebrates your achievement'**
   String get rewardConfettiHint;
+
+  /// Message when all premium features are reset
+  ///
+  /// In en, this message translates to:
+  /// **'All premium features reset'**
+  String get allPremiumFeaturesReset;
+
+  /// Remove ads feature name
+  ///
+  /// In en, this message translates to:
+  /// **'Remove Ads'**
+  String get removeAds;
+
+  /// Theme customization feature name
+  ///
+  /// In en, this message translates to:
+  /// **'Theme Customization'**
+  String get themeCustomization;
+
+  /// Advanced analytics feature name
+  ///
+  /// In en, this message translates to:
+  /// **'Advanced Analytics'**
+  String get advancedAnalyticsFeature;
+
+  /// Export data feature name
+  ///
+  /// In en, this message translates to:
+  /// **'Export Data'**
+  String get exportData;
+
+  /// Force crash test button
+  ///
+  /// In en, this message translates to:
+  /// **'Force Crash (Crashlytics Test)'**
+  String get forceCrashTest;
+
+  /// Reset full data button
+  ///
+  /// In en, this message translates to:
+  /// **'Reset Full Data (Factory Reset)'**
+  String get resetFullData;
+
+  /// Clear Firebase data button
+  ///
+  /// In en, this message translates to:
+  /// **'Clear Firebase Data (Fresh Install)'**
+  String get clearFirebaseDataFresh;
+
+  /// Migrate old classifications button
+  ///
+  /// In en, this message translates to:
+  /// **'Migrate Old Classifications'**
+  String get migrateOldClassifications;
+
+  /// Glassmorphism navigation style
+  ///
+  /// In en, this message translates to:
+  /// **'Glassmorphism'**
+  String get glassmorphism;
+
+  /// Material 3 navigation style
+  ///
+  /// In en, this message translates to:
+  /// **'Material 3'**
+  String get material3;
+
+  /// Floating navigation style
+  ///
+  /// In en, this message translates to:
+  /// **'Floating'**
+  String get floating;
+
+  /// Message when ads are disabled
+  ///
+  /// In en, this message translates to:
+  /// **'Ads are disabled'**
+  String get adsDisabled;
+
+  /// Subtitle for ad settings
+  ///
+  /// In en, this message translates to:
+  /// **'Manage ad preferences'**
+  String get manageAdPreferences;
+
+  /// Snackbar message when ads are disabled
+  ///
+  /// In en, this message translates to:
+  /// **'Ads are currently disabled'**
+  String get adsCurrentlyDisabled;
+
+  /// Subtitle for export data option
+  ///
+  /// In en, this message translates to:
+  /// **'Export your classification history'**
+  String get exportDataSubtitle;
+
+  /// Google cloud sync setting
+  ///
+  /// In en, this message translates to:
+  /// **'Google Cloud Sync'**
+  String get googleCloudSync;
+
+  /// Feedback settings title
+  ///
+  /// In en, this message translates to:
+  /// **'Feedback Settings'**
+  String get feedbackSettings;
+
+  /// Feedback settings subtitle
+  ///
+  /// In en, this message translates to:
+  /// **'Control when you can provide feedback'**
+  String get feedbackSettingsSubtitle;
+
+  /// Allow feedback on recent history setting
+  ///
+  /// In en, this message translates to:
+  /// **'Allow Feedback on Recent History'**
+  String get allowFeedbackRecentHistory;
+
+  /// Feedback timeframe setting
+  ///
+  /// In en, this message translates to:
+  /// **'Feedback Timeframe'**
+  String get feedbackTimeframe;
+
+  /// Feedback timeframe description
+  ///
+  /// In en, this message translates to:
+  /// **'Can provide feedback on items from last {days} days'**
+  String feedbackTimeframeDays(int days);
+
+  /// One day option
+  ///
+  /// In en, this message translates to:
+  /// **'1 day'**
+  String get oneDay;
+
+  /// Three days option
+  ///
+  /// In en, this message translates to:
+  /// **'3 days'**
+  String get threeDays;
+
+  /// Seven days option
+  ///
+  /// In en, this message translates to:
+  /// **'7 days'**
+  String get sevenDays;
+
+  /// Fourteen days option
+  ///
+  /// In en, this message translates to:
+  /// **'14 days'**
+  String get fourteenDays;
+
+  /// Thirty days option
+  ///
+  /// In en, this message translates to:
+  /// **'30 days'**
+  String get thirtyDays;
+
+  /// Last cloud sync label
+  ///
+  /// In en, this message translates to:
+  /// **'Last Cloud Sync'**
+  String get lastCloudSync;
+
+  /// Sync local data to cloud option
+  ///
+  /// In en, this message translates to:
+  /// **'Sync Local Data to Cloud'**
+  String get syncLocalDataToCloud;
+
+  /// Sync local data subtitle
+  ///
+  /// In en, this message translates to:
+  /// **'Upload existing local classifications to cloud'**
+  String get syncLocalDataSubtitle;
+
+  /// Force download from cloud option
+  ///
+  /// In en, this message translates to:
+  /// **'Force Download from Cloud'**
+  String get forceDownloadFromCloud;
+
+  /// Force download subtitle
+  ///
+  /// In en, this message translates to:
+  /// **'Download latest data from cloud'**
+  String get forceDownloadSubtitle;
+
+  /// Reset all app data subtitle
+  ///
+  /// In en, this message translates to:
+  /// **'Reset all app data (history, settings, preferences)'**
+  String get resetAllAppData;
+
+  /// Message when all data is cleared
+  ///
+  /// In en, this message translates to:
+  /// **'All data cleared successfully'**
+  String get allDataClearedSuccessfully;
+
+  /// Privacy policy and terms subtitle
+  ///
+  /// In en, this message translates to:
+  /// **'Privacy Policy and Terms of Service'**
+  String get privacyPolicyAndTerms;
+
+  /// About section subtitle
+  ///
+  /// In en, this message translates to:
+  /// **'App information and credits'**
+  String get appInformationAndCredits;
+
+  /// Contact support subtitle
+  ///
+  /// In en, this message translates to:
+  /// **'Get help via email'**
+  String get getHelpViaEmail;
+
+  /// Report bug subtitle
+  ///
+  /// In en, this message translates to:
+  /// **'Help us improve the app'**
+  String get helpUsImproveApp;
+
+  /// Rate app subtitle
+  ///
+  /// In en, this message translates to:
+  /// **'Rate us on the app store'**
+  String get rateUsOnAppStore;
+
+  /// Signing out progress message
+  ///
+  /// In en, this message translates to:
+  /// **'Signing out...'**
+  String get signingOut;
+
+  /// Error signing out message
+  ///
+  /// In en, this message translates to:
+  /// **'Error signing out: {error}'**
+  String errorSigningOut(String error);
+
+  /// Stay in guest mode button
+  ///
+  /// In en, this message translates to:
+  /// **'Stay in Guest Mode'**
+  String get stayInGuestMode;
+
+  /// Sign in button
+  ///
+  /// In en, this message translates to:
+  /// **'Sign In'**
+  String get signIn;
+
+  /// Upgrade to use feature dialog title
+  ///
+  /// In en, this message translates to:
+  /// **'Upgrade to Use {feature}'**
+  String upgradeToUse(String feature);
+
+  /// Not now button
+  ///
+  /// In en, this message translates to:
+  /// **'Not Now'**
+  String get notNow;
+
+  /// See premium features button
+  ///
+  /// In en, this message translates to:
+  /// **'See Premium Features'**
+  String get seePremiumFeatures;
+
+  /// Error opening email message
+  ///
+  /// In en, this message translates to:
+  /// **'Error opening email: {error}'**
+  String errorOpeningEmail(String error);
+
+  /// Unable to open app store message
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to open app store. Please search for \"Waste Segregation App\" in your app store.'**
+  String get unableToOpenAppStore;
+
+  /// Error opening app store message
+  ///
+  /// In en, this message translates to:
+  /// **'Error opening app store: {error}'**
+  String errorOpeningAppStore(String error);
+
+  /// Email not available dialog title
+  ///
+  /// In en, this message translates to:
+  /// **'Email Not Available'**
+  String get emailNotAvailable;
+
+  /// No email app found message
+  ///
+  /// In en, this message translates to:
+  /// **'No email app found. Please send an email to:'**
+  String get noEmailAppFound;
+
+  /// Email address copied message
+  ///
+  /// In en, this message translates to:
+  /// **'Email address copied to clipboard'**
+  String get emailAddressCopied;
+
+  /// Copy email button
+  ///
+  /// In en, this message translates to:
+  /// **'Copy Email'**
+  String get copyEmail;
+
+  /// Close button
+  ///
+  /// In en, this message translates to:
+  /// **'Close'**
+  String get close;
+
+  /// Feature status changed message
+  ///
+  /// In en, this message translates to:
+  /// **'{title} {status}'**
+  String featureStatusChanged(String title, String status);
+
+  /// Factory reset warning message
+  ///
+  /// In en, this message translates to:
+  /// **'This will delete ALL app data including:\\n\\n• All classification history\\n• All gamification progress (points, streaks, achievements)\\n• All user preferences and settings\\n• All cached data\\n• All premium feature settings\\n\\nThis action cannot be undone.\\n\\nAre you sure you want to continue?'**
+  String get factoryResetWarning;
+
+  /// Resetting to factory settings message
+  ///
+  /// In en, this message translates to:
+  /// **'Resetting app to factory settings...'**
+  String get resettingToFactorySettings;
+
+  /// Google sync disabled message
+  ///
+  /// In en, this message translates to:
+  /// **'Google sync disabled. Future classifications will be saved locally only.'**
+  String get googleSyncDisabled;
+
+  /// Failed to toggle Google sync message
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to toggle Google sync: {error}'**
+  String failedToToggleGoogleSync(String error);
+
+  /// Google sync enabled dialog title
+  ///
+  /// In en, this message translates to:
+  /// **'Google Sync Enabled'**
+  String get googleSyncEnabled;
+
+  /// Google sync enabled message
+  ///
+  /// In en, this message translates to:
+  /// **'Google sync is now enabled!'**
+  String get googleSyncEnabledMessage;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {
@@ -635,7 +989,7 @@ class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> 
   }
 
   @override
-  bool isSupported(Locale locale) => <String>['en'].contains(locale.languageCode);
+  bool isSupported(Locale locale) => <String>['en', 'hi', 'kn'].contains(locale.languageCode);
 
   @override
   bool shouldReload(_AppLocalizationsDelegate old) => false;
@@ -646,9 +1000,9 @@ AppLocalizations lookupAppLocalizations(Locale locale) {
 
   // Lookup logic when only language code is specified.
   switch (locale.languageCode) {
+    case 'en': return AppLocalizationsEn();
     case 'hi': return AppLocalizationsHi();
     case 'kn': return AppLocalizationsKn();
-    case 'en': return AppLocalizationsEn();
   }
 
   throw FlutterError(

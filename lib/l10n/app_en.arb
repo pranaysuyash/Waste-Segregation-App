@@ -471,5 +471,348 @@
   "rewardConfettiHint": "Celebrates your achievement",
   "@rewardConfettiHint": {
     "description": "Hint for achievement confetti overlay"
+  },
+
+  "allPremiumFeaturesReset": "All premium features reset",
+  "@allPremiumFeaturesReset": {
+    "description": "Message when all premium features are reset"
+  },
+
+  "removeAds": "Remove Ads",
+  "@removeAds": {
+    "description": "Remove ads feature name"
+  },
+
+  "themeCustomization": "Theme Customization",
+  "@themeCustomization": {
+    "description": "Theme customization feature name"
+  },
+
+  "advancedAnalyticsFeature": "Advanced Analytics",
+  "@advancedAnalyticsFeature": {
+    "description": "Advanced analytics feature name"
+  },
+
+  "exportData": "Export Data",
+  "@exportData": {
+    "description": "Export data feature name"
+  },
+
+  "forceCrashTest": "Force Crash (Crashlytics Test)",
+  "@forceCrashTest": {
+    "description": "Force crash test button"
+  },
+
+  "resetFullData": "Reset Full Data (Factory Reset)",
+  "@resetFullData": {
+    "description": "Reset full data button"
+  },
+
+  "clearFirebaseDataFresh": "Clear Firebase Data (Fresh Install)",
+  "@clearFirebaseDataFresh": {
+    "description": "Clear Firebase data button"
+  },
+
+  "migrateOldClassifications": "Migrate Old Classifications",
+  "@migrateOldClassifications": {
+    "description": "Migrate old classifications button"
+  },
+
+  "glassmorphism": "Glassmorphism",
+  "@glassmorphism": {
+    "description": "Glassmorphism navigation style"
+  },
+
+  "material3": "Material 3",
+  "@material3": {
+    "description": "Material 3 navigation style"
+  },
+
+  "floating": "Floating",
+  "@floating": {
+    "description": "Floating navigation style"
+  },
+
+  "adsDisabled": "Ads are disabled",
+  "@adsDisabled": {
+    "description": "Message when ads are disabled"
+  },
+
+  "manageAdPreferences": "Manage ad preferences",
+  "@manageAdPreferences": {
+    "description": "Subtitle for ad settings"
+  },
+
+  "adsCurrentlyDisabled": "Ads are currently disabled",
+  "@adsCurrentlyDisabled": {
+    "description": "Snackbar message when ads are disabled"
+  },
+
+  "exportDataSubtitle": "Export your classification history",
+  "@exportDataSubtitle": {
+    "description": "Subtitle for export data option"
+  },
+
+  "googleCloudSync": "Google Cloud Sync",
+  "@googleCloudSync": {
+    "description": "Google cloud sync setting"
+  },
+
+  "feedbackSettings": "Feedback Settings",
+  "@feedbackSettings": {
+    "description": "Feedback settings title"
+  },
+
+  "feedbackSettingsSubtitle": "Control when you can provide feedback",
+  "@feedbackSettingsSubtitle": {
+    "description": "Feedback settings subtitle"
+  },
+
+  "allowFeedbackRecentHistory": "Allow Feedback on Recent History",
+  "@allowFeedbackRecentHistory": {
+    "description": "Allow feedback on recent history setting"
+  },
+
+  "feedbackTimeframe": "Feedback Timeframe",
+  "@feedbackTimeframe": {
+    "description": "Feedback timeframe setting"
+  },
+
+  "feedbackTimeframeDays": "Can provide feedback on items from last {days} days",
+  "@feedbackTimeframeDays": {
+    "description": "Feedback timeframe description",
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+
+  "oneDay": "1 day",
+  "@oneDay": {
+    "description": "One day option"
+  },
+
+  "threeDays": "3 days",
+  "@threeDays": {
+    "description": "Three days option"
+  },
+
+  "sevenDays": "7 days",
+  "@sevenDays": {
+    "description": "Seven days option"
+  },
+
+  "fourteenDays": "14 days",
+  "@fourteenDays": {
+    "description": "Fourteen days option"
+  },
+
+  "thirtyDays": "30 days",
+  "@thirtyDays": {
+    "description": "Thirty days option"
+  },
+
+  "lastCloudSync": "Last Cloud Sync",
+  "@lastCloudSync": {
+    "description": "Last cloud sync label"
+  },
+
+  "syncLocalDataToCloud": "Sync Local Data to Cloud",
+  "@syncLocalDataToCloud": {
+    "description": "Sync local data to cloud option"
+  },
+
+  "syncLocalDataSubtitle": "Upload existing local classifications to cloud",
+  "@syncLocalDataSubtitle": {
+    "description": "Sync local data subtitle"
+  },
+
+  "forceDownloadFromCloud": "Force Download from Cloud",
+  "@forceDownloadFromCloud": {
+    "description": "Force download from cloud option"
+  },
+
+  "forceDownloadSubtitle": "Download latest data from cloud",
+  "@forceDownloadSubtitle": {
+    "description": "Force download subtitle"
+  },
+
+  "resetAllAppData": "Reset all app data (history, settings, preferences)",
+  "@resetAllAppData": {
+    "description": "Reset all app data subtitle"
+  },
+
+  "allDataClearedSuccessfully": "All data cleared successfully",
+  "@allDataClearedSuccessfully": {
+    "description": "Message when all data is cleared"
+  },
+
+  "privacyPolicyAndTerms": "Privacy Policy and Terms of Service",
+  "@privacyPolicyAndTerms": {
+    "description": "Privacy policy and terms subtitle"
+  },
+
+  "appInformationAndCredits": "App information and credits",
+  "@appInformationAndCredits": {
+    "description": "About section subtitle"
+  },
+
+  "getHelpViaEmail": "Get help via email",
+  "@getHelpViaEmail": {
+    "description": "Contact support subtitle"
+  },
+
+  "helpUsImproveApp": "Help us improve the app",
+  "@helpUsImproveApp": {
+    "description": "Report bug subtitle"
+  },
+
+  "rateUsOnAppStore": "Rate us on the app store",
+  "@rateUsOnAppStore": {
+    "description": "Rate app subtitle"
+  },
+
+  "signingOut": "Signing out...",
+  "@signingOut": {
+    "description": "Signing out progress message"
+  },
+
+  "errorSigningOut": "Error signing out: {error}",
+  "@errorSigningOut": {
+    "description": "Error signing out message",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+
+  "stayInGuestMode": "Stay in Guest Mode",
+  "@stayInGuestMode": {
+    "description": "Stay in guest mode button"
+  },
+
+  "signIn": "Sign In",
+  "@signIn": {
+    "description": "Sign in button"
+  },
+
+  "upgradeToUse": "Upgrade to Use {feature}",
+  "@upgradeToUse": {
+    "description": "Upgrade to use feature dialog title",
+    "placeholders": {
+      "feature": {
+        "type": "String"
+      }
+    }
+  },
+
+  "notNow": "Not Now",
+  "@notNow": {
+    "description": "Not now button"
+  },
+
+  "seePremiumFeatures": "See Premium Features",
+  "@seePremiumFeatures": {
+    "description": "See premium features button"
+  },
+
+  "errorOpeningEmail": "Error opening email: {error}",
+  "@errorOpeningEmail": {
+    "description": "Error opening email message",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+
+  "unableToOpenAppStore": "Unable to open app store. Please search for \"Waste Segregation App\" in your app store.",
+  "@unableToOpenAppStore": {
+    "description": "Unable to open app store message"
+  },
+
+  "errorOpeningAppStore": "Error opening app store: {error}",
+  "@errorOpeningAppStore": {
+    "description": "Error opening app store message",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+
+  "emailNotAvailable": "Email Not Available",
+  "@emailNotAvailable": {
+    "description": "Email not available dialog title"
+  },
+
+  "noEmailAppFound": "No email app found. Please send an email to:",
+  "@noEmailAppFound": {
+    "description": "No email app found message"
+  },
+
+  "emailAddressCopied": "Email address copied to clipboard",
+  "@emailAddressCopied": {
+    "description": "Email address copied message"
+  },
+
+  "copyEmail": "Copy Email",
+  "@copyEmail": {
+    "description": "Copy email button"
+  },
+
+  "close": "Close",
+  "@close": {
+    "description": "Close button"
+  },
+
+  "featureStatusChanged": "{title} {status}",
+  "@featureStatusChanged": {
+    "description": "Feature status changed message",
+    "placeholders": {
+      "title": {
+        "type": "String"
+      },
+      "status": {
+        "type": "String"
+      }
+    }
+  },
+
+  "factoryResetWarning": "This will delete ALL app data including:\\n\\n• All classification history\\n• All gamification progress (points, streaks, achievements)\\n• All user preferences and settings\\n• All cached data\\n• All premium feature settings\\n\\nThis action cannot be undone.\\n\\nAre you sure you want to continue?",
+  "@factoryResetWarning": {
+    "description": "Factory reset warning message"
+  },
+
+  "resettingToFactorySettings": "Resetting app to factory settings...",
+  "@resettingToFactorySettings": {
+    "description": "Resetting to factory settings message"
+  },
+
+  "googleSyncDisabled": "Google sync disabled. Future classifications will be saved locally only.",
+  "@googleSyncDisabled": {
+    "description": "Google sync disabled message"
+  },
+
+  "failedToToggleGoogleSync": "Failed to toggle Google sync: {error}",
+  "@failedToToggleGoogleSync": {
+    "description": "Failed to toggle Google sync message",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+
+  "googleSyncEnabled": "Google Sync Enabled",
+  "@googleSyncEnabled": {
+    "description": "Google sync enabled dialog title"
+  },
+
+  "googleSyncEnabledMessage": "Google sync is now enabled!",
+  "@googleSyncEnabledMessage": {
+    "description": "Google sync enabled message"
   }
 }

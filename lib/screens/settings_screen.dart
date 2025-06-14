@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:package_info_plus/package_info_plus.dart';
+import '../l10n/app_localizations.dart';
 import '../services/premium_service.dart';
 import '../services/ad_service.dart';
 import 'package:intl/intl.dart';
@@ -51,6 +52,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final premiumService = Provider.of<PremiumService>(context);
     final storageService = Provider.of<StorageService>(context);
     final adService = Provider.of<AdService>(context, listen: false);
@@ -64,7 +66,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Settings'),
+        title: Text(l10n.settingsTitle),
         actions: [
           // Only show developer mode toggle when developer features are enabled
           if (DeveloperConfig.canShowDeveloperOptions)
@@ -88,7 +90,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
             child: Text(
-              'Account',
+              l10n.accountSection,
               style: Theme.of(context).textTheme.titleMedium?.copyWith(
                 fontWeight: FontWeight.bold,
                 color: Theme.of(context).colorScheme.primary,
@@ -117,7 +119,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     ),
                   ),
                   title: Text(
-                    isSignedIn ? 'Sign Out' : 'Switch to Google Account',
+                    isSignedIn ? l10n.signOut : l10n.switchToGoogle,
                     style: TextStyle(
                       fontWeight: FontWeight.w500,
                       color: isSignedIn ? Colors.red : Colors.blue,
@@ -125,8 +127,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   ),
                   subtitle: Text(
                     isSignedIn 
-                        ? 'Sign out and return to login screen'
-                        : 'Currently in guest mode - sign in to sync data',
+                        ? l10n.signOutSubtitle
+                        : l10n.guestModeSubtitle,
                   ),
                   trailing: Icon(
                     Icons.chevron_right,
@@ -144,7 +146,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
             child: Text(
-              'Premium',
+              l10n.premiumSection,
               style: Theme.of(context).textTheme.titleMedium?.copyWith(
                 fontWeight: FontWeight.bold,
                 color: Theme.of(context).colorScheme.primary,
@@ -163,11 +165,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ),
                 child: const Icon(Icons.workspace_premium, color: Colors.amber),
               ),
-              title: const Text(
-                'Premium Features',
-                style: TextStyle(fontWeight: FontWeight.w500),
+              title: Text(
+                l10n.premiumFeatures,
+                style: const TextStyle(fontWeight: FontWeight.w500),
               ),
-              subtitle: const Text('Unlock advanced features'),
+              subtitle: Text(l10n.premiumFeaturesSubtitle),
               trailing: const Icon(Icons.chevron_right),
               onTap: () {
                 Navigator.push(
@@ -186,7 +188,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
             child: Text(
-              'App Settings',
+              l10n.appSettingsSection,
               style: Theme.of(context).textTheme.titleMedium?.copyWith(
                 fontWeight: FontWeight.bold,
                 color: Theme.of(context).colorScheme.primary,
