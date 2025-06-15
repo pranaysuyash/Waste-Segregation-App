@@ -12,6 +12,100 @@ class ImageUtils {
   static const int defaultTargetWidth = 300;
   static const int defaultTargetHeight = 300;
 
+  /// Generates both perceptual and content hashes efficiently in isolate
+  ///
+  /// This method computes both hashes in a single isolate call to minimize
+  /// overhead and prevent UI lag on low-end devices.
+  ///
+  /// [imageBytes]: The raw image data as Uint8List
+  ///
+  /// Returns a Map with 'perceptualHash' and 'contentHash' keys
+  static Future<Map<String, String>> generateDualHashes(Uint8List imageBytes) async {
+    try {
+      // Use compute for better performance and to avoid blocking UI thread
+      final result = await compute(_generateDualHashesIsolate, imageBytes);
+      return result;
+    } catch (e) {
+      debugPrint('Error generating dual hashes: $e');
+      // Fallback to individual hash generation
+      return {
+        'perceptualHash': await generateImageHash(imageBytes),
+        'contentHash': generateContentHash(imageBytes),
+      };
+    }
+  }
+
+  /// Generates both hashes in an isolate for optimal performance
+  static Map<String, String> _generateDualHashesIsolate(Uint8List imageBytes) {
+    try {
+      // Generate content hash first (fastest)
+      final contentHash = md5.convert(imageBytes).toString();
+      
+      // Generate perceptual hash
+      String perceptualHash;
+      try {
+        // Preprocess the image for perceptual hashing
+        final image = img.decodeImage(imageBytes);
+        if (image == null) {
+          throw Exception('Failed to decode image for perceptual hashing');
+        }
+
+        // Resize to exactly 8x8 for DCT (Discrete Cosine Transform approximation)
+        final smallImage = img.copyResize(img.grayscale(image), width: 8, height: 8);
+
+        // Calculate the average pixel value
+        var totalValue = 0;
+        final pixelValues = <int>[];
+
+        for (var y = 0; y < smallImage.height; y++) {
+          for (var x = 0; x < smallImage.width; x++) {
+            final pixel = smallImage.getPixel(x, y);
+            final value = img.getLuminance(pixel);
+            totalValue += value.toInt();
+            pixelValues.add(value.toInt());
+          }
+        }
+
+        // Calculate the average
+        final avgValue = totalValue ~/ (smallImage.width * smallImage.height);
+
+        // Generate the hash by comparing each pixel to the average
+        var hashBits = '';
+        for (final value in pixelValues) {
+          hashBits += (value >= avgValue) ? '1' : '0';
+        }
+
+        // Convert binary string to hexadecimal
+        var hexHash = '';
+        for (var i = 0; i < 64; i += 4) {
+          if (i + 4 <= hashBits.length) {
+            final chunk = hashBits.substring(i, i + 4);
+            final hexDigit = int.parse(chunk, radix: 2).toRadixString(16);
+            hexHash += hexDigit;
+          }
+        }
+
+        perceptualHash = 'phash_$hexHash';
+      } catch (e) {
+        debugPrint('Error in perceptual hash calculation: $e');
+        perceptualHash = 'error_hash_${DateTime.now().millisecondsSinceEpoch}';
+      }
+
+      return {
+        'perceptualHash': perceptualHash,
+        'contentHash': 'md5_$contentHash',
+      };
+    } catch (e) {
+      debugPrint('Error in dual hash generation: $e');
+      // Return error hashes that won't match anything
+      final timestamp = DateTime.now().millisecondsSinceEpoch;
+      return {
+        'perceptualHash': 'error_phash_$timestamp',
+        'contentHash': 'error_md5_$timestamp',
+      };
+    }
+  }
+
   /// Generates a perceptual hash of the image data
   ///
   /// This method creates a consistent identifier for visually similar images,
@@ -60,6 +154,26 @@ class ImageUtils {
             imageBytes[imageBytes.length - 1].toString();
         return 'simple_$simpleHash';
       }
+    }
+  }
+
+  /// Generates a content hash (MD5) of the raw image data
+  ///
+  /// This method creates an exact fingerprint of the image bytes,
+  /// used for precise duplicate detection in dual-hash verification.
+  /// Unlike perceptual hashes, this will only match identical images.
+  ///
+  /// [imageBytes]: The raw image data as Uint8List
+  ///
+  /// Returns a String representation of the MD5 hash
+  static String generateContentHash(Uint8List imageBytes) {
+    try {
+      final digest = md5.convert(imageBytes);
+      return 'md5_${digest.toString()}';
+    } catch (e) {
+      debugPrint('Error generating content hash: $e');
+      // Return a unique fallback that won't match anything
+      return 'content_error_${DateTime.now().millisecondsSinceEpoch}';
     }
   }
 
