@@ -76,6 +76,8 @@ functions/.env.local
 firebase-debug.log
 firestore-debug.log
 ui-debug.log
+functions/lib/
+functions/.runtimeconfig.json
 
 # Package manager lock files (optional - some teams prefer to commit these)
 package-lock.json
