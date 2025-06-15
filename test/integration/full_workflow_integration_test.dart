@@ -10,7 +10,7 @@ void main() {
     group('Model Creation Tests', () {
       test('should create test classification successfully', () async {
         // Test basic classification creation
-        final classification = WasteClassification(
+        final classification = WasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
           itemName: 'Test Item',
           category: 'Dry Waste',
           subcategory: 'Test',
@@ -127,7 +127,7 @@ void main() {
       });
 
       test('should handle classification with confidence score', () async {
-        final classification = WasteClassification(
+        final classification = WasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
           itemName: 'Confident Item',
           category: 'Wet Waste',
           subcategory: 'Food',
@@ -160,7 +160,7 @@ void main() {
       });
 
       test('should handle minimal classification data', () async {
-        final minimalClassification = WasteClassification(
+        final minimalClassification = WasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
           itemName: 'Minimal Item',
           category: 'Unknown',
           explanation: '',
@@ -314,7 +314,7 @@ void main() {
 
     group('Edge Case Tests', () {
       test('should handle special characters in item names', () async {
-        final specialCharClassification = WasteClassification(
+        final specialCharClassification = WasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
           itemName: 'Special!@#\$%^&*()_+{}|:"<>?[]\\;\',./',
           category: 'Test Category',
           explanation: 'Testing special characters',
@@ -337,7 +337,7 @@ void main() {
       test('should handle very long text fields', () async {
         final longText = 'A' * 1000; // 1000 character string
         
-        final longTextClassification = WasteClassification(
+        final longTextClassification = WasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
           itemName: 'Long Text Item',
           category: 'Test',
           explanation: longText,
@@ -361,7 +361,7 @@ void main() {
         final futureDate = DateTime(2100, 12, 31);
         final pastDate = DateTime(1900, 1);
         
-        final futureDateClassification = WasteClassification(
+        final futureDateClassification = WasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
           itemName: 'Future Item',
           category: 'Test',
           explanation: 'Future dated item',
@@ -385,7 +385,7 @@ void main() {
 
 // Helper function to create test classifications
 WasteClassification _createTestClassification(String itemName) {
-  return WasteClassification(
+  return WasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
     itemName: itemName,
     category: 'Dry Waste',
     subcategory: 'Test',

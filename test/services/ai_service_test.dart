@@ -90,7 +90,7 @@ void main() {
       // Test with mock service to avoid real API calls
       test('should return classification result from mock service', () async {
         final mockService = MockAiService();
-        final expectedClassification = WasteClassification(
+        final expectedClassification = WasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
           itemName: 'Plastic Bottle',
           category: 'Dry Waste',
           subcategory: 'Plastic',
@@ -123,7 +123,7 @@ void main() {
 
     group('Classification Result Validation', () {
       test('WasteClassification should have required fields', () {
-        final classification = WasteClassification(
+        final classification = WasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
           itemName: 'Test Item',
           category: 'Dry Waste',
           subcategory: 'Plastic',
@@ -149,7 +149,7 @@ void main() {
       });
 
       test('should validate confidence score range', () {
-        final highConfidenceClassification = WasteClassification(
+        final highConfidenceClassification = WasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
           itemName: 'Test Item',
           category: 'Dry Waste',
           explanation: 'Test explanation',
@@ -165,7 +165,7 @@ void main() {
           confidence: 0.95,
         );
 
-        final lowConfidenceClassification = WasteClassification(
+        final lowConfidenceClassification = WasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
           itemName: 'Test Item',
           category: 'Dry Waste',
           explanation: 'Test explanation',
@@ -197,7 +197,7 @@ void main() {
         ];
 
         for (final category in validCategories) {
-          final classification = WasteClassification(
+          final classification = WasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
             itemName: 'Test Item',
             category: category,
             explanation: 'Test explanation',

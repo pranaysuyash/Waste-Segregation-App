@@ -112,11 +112,14 @@ class MockStorageService extends _i1.Mock implements _i3.StorageService {
 
   @override
   _i4.Future<void> saveClassification(
-          _i6.WasteClassification? classification) =>
+    _i6.WasteClassification? classification, {
+    bool? force = false,
+  }) =>
       (super.noSuchMethod(
         Invocation.method(
           #saveClassification,
           [classification],
+          {#force: force},
         ),
         returnValue: _i4.Future<void>.value(),
         returnValueForMissingStub: _i4.Future<void>.value(),
@@ -431,6 +434,16 @@ class MockStorageService extends _i1.Mock implements _i3.StorageService {
   _i4.Future<void> migrateOldClassifications() => (super.noSuchMethod(
         Invocation.method(
           #migrateOldClassifications,
+          [],
+        ),
+        returnValue: _i4.Future<void>.value(),
+        returnValueForMissingStub: _i4.Future<void>.value(),
+      ) as _i4.Future<void>);
+
+  @override
+  _i4.Future<void> migrateImagePathsToRelative() => (super.noSuchMethod(
+        Invocation.method(
+          #migrateImagePathsToRelative,
           [],
         ),
         returnValue: _i4.Future<void>.value(),

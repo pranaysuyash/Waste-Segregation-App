@@ -6,11 +6,14 @@ void main() {
     
     test('WasteClassification model should have correct properties', () {
       // Create a test classification
-      final classification = WasteClassification(
+      final classification = WasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
         itemName: 'Test Plastic Bottle',
         category: 'Dry Waste',
         subcategory: 'Plastic',
         confidence: 0.95,
+            region: 'Test Region',
+            visualFeatures: ['test feature'],
+            alternatives: [],
         timestamp: DateTime.now(),
         imageUrl: '/test/path/image.jpg',
         explanation: 'This is a plastic bottle that should be recycled',
@@ -42,7 +45,7 @@ void main() {
     
     test('WasteClassification copyWith should preserve original values', () {
       // Create a test classification
-      final original = WasteClassification(
+      final original = WasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
         itemName: 'Test Item',
         category: 'Dry Waste',
         explanation: 'Test explanation',

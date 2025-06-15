@@ -24,7 +24,7 @@ void main() {
         submittedClassifications.add(classification);
       };
 
-      testClassification = WasteClassification(
+      testClassification = WasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
         id: 'test-id',
         itemName: 'Test Item',
         category: 'Dry Waste',
@@ -679,7 +679,7 @@ void main() {
 
     group('Edge Cases and Error Handling', () {
       testWidgets('should handle null classification gracefully', (tester) async {
-        final nullFieldsClassification = WasteClassification(
+        final nullFieldsClassification = WasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
           id: 'test_id',
           itemName: 'Test Item',
           category: 'Unknown',

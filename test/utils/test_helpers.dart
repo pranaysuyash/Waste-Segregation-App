@@ -25,7 +25,7 @@ class TestHelpers {
 
   /// Creates a basic test classification with minimal required fields
   static WasteClassification createBasicClassification([String? itemName]) {
-    return WasteClassification(
+    return WasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
       itemName: itemName ?? 'Test Item',
       category: 'Dry Waste',
       subcategory: 'Test Subcategory',
@@ -53,7 +53,7 @@ class TestHelpers {
     int? recyclingCode,
     List<AlternativeClassification>? alternatives,
   }) {
-    return WasteClassification(
+    return WasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
       itemName: itemName ?? 'Detailed Test Item',
       category: category ?? 'Dry Waste',
       subcategory: 'Plastic',
@@ -99,7 +99,7 @@ class TestHelpers {
 
   /// Creates a hazardous waste classification for testing special disposal
   static WasteClassification createHazardousClassification() {
-    return WasteClassification(
+    return WasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
       itemName: 'Lithium Battery',
       category: 'Hazardous Waste',
       subcategory: 'Electronic Waste',
@@ -149,7 +149,7 @@ class TestHelpers {
       final category = categories[index % categories.length];
       final item = items[index % items.length];
       
-      return WasteClassification(
+      return WasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
         itemName: '$item ${index + 1}',
         category: category,
         subcategory: 'Test Subcategory $index',
@@ -511,7 +511,7 @@ class TestHelpers {
 
   /// Creates invalid test data for testing error handling
   static WasteClassification createInvalidClassification() {
-    return WasteClassification(
+    return WasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
       itemName: '', // Invalid: empty name
       category: 'Invalid Category', // Invalid category
       explanation: '', // Invalid: empty explanation
@@ -541,7 +541,7 @@ class TestHelpers {
       createDetailedClassification(confidence: 0.00001),
       
       // Maximum alternatives
-      WasteClassification(
+      WasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
         itemName: 'Ambiguous Item',
         category: 'Dry Waste',
         explanation: 'Item with many possible classifications',

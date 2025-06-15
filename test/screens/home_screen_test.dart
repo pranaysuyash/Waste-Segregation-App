@@ -97,7 +97,7 @@ void main() {
     group('Recent Classifications', () {
       testWidgets('should show recent classifications when available', (WidgetTester tester) async {
         final recentClassifications = [
-          WasteClassification(
+          WasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
             itemName: 'Plastic Bottle',
             category: 'Dry Waste',
             subcategory: 'Plastic',
@@ -113,7 +113,7 @@ void main() {
             alternatives: [],
             confidence: 0.95,
           ),
-          WasteClassification(
+          WasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
             itemName: 'Apple Core',
             category: 'Wet Waste',
             subcategory: 'Food Waste',
@@ -502,7 +502,7 @@ void main() {
 
 // Helper function to create test classification
 WasteClassification _createTestClassification(String itemName, String category) {
-  return WasteClassification(
+  return WasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
     itemName: itemName,
     category: category,
     subcategory: 'Test',

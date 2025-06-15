@@ -18,9 +18,9 @@ SharedWasteClassification createMockSharedClassification({
   List<FamilyReaction> reactions = const [],
   List<FamilyComment> comments = const [],
 }) {
-  return SharedWasteClassification(
+  return SharedWasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
     id: id,
-    classification: wc_model.WasteClassification(
+    classification: wc_model.WasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
       id: 'wc-$id',
       itemName: itemName,
       category: category,

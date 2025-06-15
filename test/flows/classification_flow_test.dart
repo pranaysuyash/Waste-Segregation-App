@@ -36,7 +36,7 @@ void main() {
           displayName: 'Test User',
         );
 
-        final mockClassification = WasteClassification(
+        final mockClassification = WasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
           itemName: 'Plastic Water Bottle',
           category: 'Dry Waste',
           subcategory: 'Plastic',
@@ -135,7 +135,7 @@ void main() {
 
     group('Gamification Integration', () {
       test('should award points for successful classification', () async {
-        final classification = WasteClassification(
+        final classification = WasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
           itemName: 'Apple Core',
           category: 'Wet Waste',
           explanation: 'Organic waste, compostable',
@@ -177,7 +177,7 @@ void main() {
       });
 
       test('should track category achievements correctly', () async {
-        final dryWasteClassification = WasteClassification(
+        final dryWasteClassification = WasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
           itemName: 'Paper',
           category: 'Dry Waste',
           explanation: 'Recyclable paper',
@@ -224,7 +224,7 @@ void main() {
 
     group('Storage and Persistence', () {
       test('should save classification with proper metadata', () async {
-        final classification = WasteClassification(
+        final classification = WasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
           itemName: 'Glass Jar',
           category: 'Dry Waste',
           subcategory: 'Glass',
@@ -259,7 +259,7 @@ void main() {
 
       test('should retrieve classification history', () async {
         final savedClassifications = [
-          WasteClassification(
+          WasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
             itemName: 'Plastic Bottle',
             category: 'Dry Waste',
             explanation: 'Test item 1',
@@ -274,7 +274,7 @@ void main() {
             alternatives: [],
             userId: 'test_user_123',
           ),
-          WasteClassification(
+          WasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
             itemName: 'Apple Core',
             category: 'Wet Waste',
             explanation: 'Test item 2',
@@ -304,7 +304,7 @@ void main() {
 
     group('Error Recovery and Edge Cases', () {
       test('should handle low confidence classifications', () async {
-        final lowConfidenceClassification = WasteClassification(
+        final lowConfidenceClassification = WasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
           itemName: 'Unknown Object',
           category: 'Dry Waste',
           explanation: 'Unable to determine exact type',
@@ -342,7 +342,7 @@ void main() {
 
       test('should validate required classification fields', () {
         expect(
-          () => WasteClassification(
+          () => WasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
             itemName: '', // Empty item name
             category: 'Dry Waste',
             explanation: 'Test',
@@ -360,7 +360,7 @@ void main() {
         );
 
         // But verify the object handles empty fields appropriately
-        final classification = WasteClassification(
+        final classification = WasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
           itemName: '',
           category: 'Dry Waste',
           explanation: 'Test',
@@ -385,7 +385,7 @@ void main() {
         // Simulate large image (5MB)
         final largeImageBytes = Uint8List(5 * 1024 * 1024);
 
-        final mockClassification = WasteClassification(
+        final mockClassification = WasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
           itemName: 'Large Image Item',
           category: 'Dry Waste',
           explanation: 'Processed large image',
@@ -411,7 +411,7 @@ void main() {
 
       test('should batch save multiple classifications efficiently', () async {
         final classifications = List.generate(10, (index) =>
-          WasteClassification(
+          WasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
             itemName: 'Item $index',
             category: 'Dry Waste',
             explanation: 'Test item $index',

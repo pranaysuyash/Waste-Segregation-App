@@ -36,7 +36,7 @@ void main() {
 
     group('Activity Tracking', () {
       test('should track classification activities correctly', () async {
-        final classification = WasteClassification(
+        final classification = WasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
           itemName: 'Plastic Bottle',
           category: 'Dry Waste',
           subcategory: 'Plastic',
@@ -464,7 +464,7 @@ void main() {
       });
 
       test('should anonymize sensitive data in activities', () async {
-        final sensitiveClassification = WasteClassification(
+        final sensitiveClassification = WasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
           itemName: 'Medication Bottle with Personal Label',
           category: 'Hazardous Waste', 
           disposalInstructions: DisposalInstructions(primaryMethod: 'Test', steps: [], hasUrgentTimeframe: false),
@@ -755,7 +755,7 @@ void main() {
 
 // Helper to create a test WasteClassification
 WasteClassification _createTestClassification({String? userId, DateTime? timestamp}) {
-  return WasteClassification(
+  return WasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
     itemName: 'Test Item',
     category: 'Recyclable',
     subcategory: 'Test Subcategory',

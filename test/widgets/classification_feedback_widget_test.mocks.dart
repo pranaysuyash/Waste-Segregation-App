@@ -363,6 +363,21 @@ class MockAiService extends _i1.Mock implements _i4.AiService {
       ) as _i6.Future<_i3.WasteClassification>);
 
   @override
+  String cleanJsonString(String? rawContent) => (super.noSuchMethod(
+        Invocation.method(
+          #cleanJsonString,
+          [rawContent],
+        ),
+        returnValue: _i5.dummyValue<String>(
+          this,
+          Invocation.method(
+            #cleanJsonString,
+            [rawContent],
+          ),
+        ),
+      ) as String);
+
+  @override
   _i6.Future<List<Map<String, dynamic>>> segmentImage(dynamic imageSource) =>
       (super.noSuchMethod(
         Invocation.method(
