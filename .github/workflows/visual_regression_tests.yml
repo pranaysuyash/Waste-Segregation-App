@@ -1,0 +1,228 @@
+name: Visual Regression & E2E Tests
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup Flutter
+      uses: subosito/flutter-action@v2
+      with:
+        flutter-version: '3.24.0'
+        channel: 'stable'
+    
+    - name: Setup Node.js for Percy
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+    
+    - name: Install Percy CLI
+      run: npm install -g @percy/cli
+    
+    - name: Get dependencies
+      run: flutter pub get
+    
+    - name: Generate code
+      run: flutter packages pub run build_runner build --delete-conflicting-outputs
+    
+    - name: Run unit tests
+      run: flutter test --coverage
+    
+    - name: Run widget tests
+      run: flutter test test/widgets/ --coverage
+    
+    - name: Run golden tests
+      run: flutter test test/golden/ --update-goldens
+    
+    - name: Build Widgetbook for visual testing
+      run: flutter build web --target=widgetbook/main.dart --web-renderer html
+    
+    - name: Upload Widgetbook screenshots to Percy
+      run: percy upload build/web
+      env:
+        PERCY_TOKEN: ${{ secrets.PERCY_TOKEN }}
+    
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v3
+      with:
+        file: coverage/lcov.info
+        fail_ci_if_error: true
+
+  integration_tests:
+    runs-on: macos-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup Flutter
+      uses: subosito/flutter-action@v2
+      with:
+        flutter-version: '3.24.0'
+        channel: 'stable'
+    
+    - name: Get dependencies
+      run: flutter pub get
+    
+    - name: Generate code
+      run: flutter packages pub run build_runner build --delete-conflicting-outputs
+    
+    - name: Start iOS Simulator
+      run: |
+        xcrun simctl boot "iPhone 14" || true
+        xcrun simctl list devices
+    
+    - name: Run integration tests
+      run: flutter test integration_test/ -d "iPhone 14"
+    
+    - name: Install Patrol CLI
+      run: dart pub global activate patrol_cli
+    
+    - name: Run Patrol E2E tests
+      run: patrol test --target integration_test/patrol_test.dart
+      continue-on-error: true
+
+  android_tests:
+    runs-on: macos-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup Flutter
+      uses: subosito/flutter-action@v2
+      with:
+        flutter-version: '3.24.0'
+        channel: 'stable'
+    
+    - name: Setup Java
+      uses: actions/setup-java@v3
+      with:
+        distribution: 'zulu'
+        java-version: '11'
+    
+    - name: Get dependencies
+      run: flutter pub get
+    
+    - name: Generate code
+      run: flutter packages pub run build_runner build --delete-conflicting-outputs
+    
+    - name: Enable KVM group perms
+      run: |
+        echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+        sudo udevadm control --reload-rules
+        sudo udevadm trigger --name-match=kvm
+    
+    - name: AVD cache
+      uses: actions/cache@v3
+      id: avd-cache
+      with:
+        path: |
+          ~/.android/avd/*
+          ~/.android/adb*
+        key: avd-29
+    
+    - name: Create AVD and generate snapshot for caching
+      if: steps.avd-cache.outputs.cache-hit != 'true'
+      uses: reactivecircus/android-emulator-runner@v2
+      with:
+        api-level: 29
+        target: google_apis
+        arch: x86_64
+        profile: Nexus 6
+        force-avd-creation: false
+        emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
+        disable-animations: false
+        script: echo "Generated AVD snapshot for caching."
+    
+    - name: Run Android integration tests
+      uses: reactivecircus/android-emulator-runner@v2
+      with:
+        api-level: 29
+        target: google_apis
+        arch: x86_64
+        profile: Nexus 6
+        emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
+        disable-animations: true
+        script: flutter test integration_test/ --coverage
+
+  visual_diff_check:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+    
+    - name: Setup Flutter
+      uses: subosito/flutter-action@v2
+      with:
+        flutter-version: '3.24.0'
+        channel: 'stable'
+    
+    - name: Get dependencies
+      run: flutter pub get
+    
+    - name: Generate code
+      run: flutter packages pub run build_runner build --delete-conflicting-outputs
+    
+    - name: Run golden tests and check for changes
+      run: |
+        flutter test test/golden/ --update-goldens
+        if git diff --exit-code test/golden/; then
+          echo "No visual changes detected"
+        else
+          echo "Visual changes detected in golden files"
+          git diff test/golden/
+          exit 1
+        fi
+    
+    - name: Comment PR with visual changes
+      if: failure()
+      uses: actions/github-script@v6
+      with:
+        script: |
+          github.rest.issues.createComment({
+            issue_number: context.issue.number,
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            body: '⚠️ Visual regression detected! Golden test files have changed. Please review the visual changes and update the golden files if the changes are intentional.'
+          })
+
+  performance_tests:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup Flutter
+      uses: subosito/flutter-action@v2
+      with:
+        flutter-version: '3.24.0'
+        channel: 'stable'
+    
+    - name: Get dependencies
+      run: flutter pub get
+    
+    - name: Generate code
+      run: flutter packages pub run build_runner build --delete-conflicting-outputs
+    
+    - name: Run performance tests
+      run: flutter test test/performance/ --coverage
+      continue-on-error: true
+    
+    - name: Build app for performance profiling
+      run: flutter build apk --profile
+    
+    - name: Upload APK for performance testing
+      uses: actions/upload-artifact@v3
+      with:
+        name: profile-apk
+        path: build/app/outputs/flutter-apk/app-profile.apk 

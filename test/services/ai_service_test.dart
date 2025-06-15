@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:waste_segregation_app/services/ai_service.dart';
 import 'package:waste_segregation_app/models/waste_classification.dart';
 import '../test_helper.dart';
+import 'dart:convert';
 
 // Simple mock for testing without external dependencies
 class MockAiService {
@@ -277,6 +278,67 @@ void main() {
         expect(service.cachingEnabled, isFalse);
         expect(service.defaultRegion, equals('Mumbai, IN'));
         expect(service.defaultLanguage, equals('hi'));
+      });
+    });
+
+    group('JSON parsing with comments', () {
+      test('should parse JSON with single-line comments', () {
+        const jsonWithComments = '''
+        {
+          "itemName": "Red Pen", // This is a red writing instrument
+          "category": "Dry Waste",
+          "subcategory": "Plastic", // Made of plastic material
+          "explanation": "A red plastic pen used for writing"
+        }''';
+        
+        final aiService = AiService();
+        final cleanedJson = aiService.cleanJsonString(jsonWithComments);
+        
+        expect(() => jsonDecode(cleanedJson), returnsNormally);
+        
+        final parsed = jsonDecode(cleanedJson);
+        expect(parsed['itemName'], equals('Red Pen'));
+        expect(parsed['category'], equals('Dry Waste'));
+        expect(parsed['subcategory'], equals('Plastic'));
+      });
+
+      test('should parse JSON with multi-line comments', () {
+        const jsonWithComments = '''
+        {
+          "itemName": "Blue Bottle", /* This is a 
+                                        multi-line comment
+                                        about the bottle */
+          "category": "Dry Waste",
+          "explanation": "A blue plastic bottle"
+        }''';
+        
+        final aiService = AiService();
+        final cleanedJson = aiService.cleanJsonString(jsonWithComments);
+        
+        expect(() => jsonDecode(cleanedJson), returnsNormally);
+        
+        final parsed = jsonDecode(cleanedJson);
+        expect(parsed['itemName'], equals('Blue Bottle'));
+        expect(parsed['category'], equals('Dry Waste'));
+      });
+
+      test('should handle JSON without comments', () {
+        const normalJson = '''
+        {
+          "itemName": "Green Can",
+          "category": "Dry Waste",
+          "subcategory": "Metal"
+        }''';
+        
+        final aiService = AiService();
+        final cleanedJson = aiService.cleanJsonString(normalJson);
+        
+        expect(() => jsonDecode(cleanedJson), returnsNormally);
+        
+        final parsed = jsonDecode(cleanedJson);
+        expect(parsed['itemName'], equals('Green Can'));
+        expect(parsed['category'], equals('Dry Waste'));
+        expect(parsed['subcategory'], equals('Metal'));
       });
     });
   });

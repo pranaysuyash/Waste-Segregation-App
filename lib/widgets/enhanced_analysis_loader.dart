@@ -212,6 +212,7 @@ class _EnhancedAnalysisLoaderState extends State<EnhancedAnalysisLoader>
 
   Widget _buildMainAnalysisAnimation() {
     return AnimatedBuilder(
+      key: const ValueKey('main_analysis_animation'),
       animation: Listenable.merge([_pulseAnimation, _particleController]),
       builder: (context, child) {
         return Stack(
