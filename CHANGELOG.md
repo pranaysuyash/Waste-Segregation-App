@@ -2,6 +2,42 @@
 
 All notable changes to the Waste Segregation App will be documented in this file.
 
+## [2.3.5] - 2025-06-15
+
+### Fixed
+- **UX Polish & Critical Flow Issues**: Fixed 5 critical UX issues affecting user experience
+  - **Points Popup Display**: Points popup now shows for any earned points (removed 20-point threshold)
+    - Fixed issue where single scans earning 10 points wouldn't show reward feedback
+    - Users now get immediate visual confirmation for all point-earning actions
+  - **Duplicate Detection Improvement**: Enhanced duplicate hash to include timestamp hour
+    - Prevents false duplicates when same object photographed at different times/scales
+    - Fixes points dropping issue after cloud sync due to overly aggressive duplicate detection
+  - **Result Screen Thumbnail**: Fixed missing thumbnails on result screen
+    - Added `imageRelativePath` field population during classification creation
+    - Ensures thumbnails display consistently across result and history screens
+  - **Recent Scans Ordering**: Fixed home screen recent scans not showing newest-first
+    - Added proper sorting by timestamp before taking first 3 items
+    - Eliminates jumping and ensures chronological order in recent classifications
+  - **Card Visual Improvements**: Enhanced card styling for modern Material 3 appearance
+    - Updated card theme to use `surfaceContainerHighest` color with elevation 4
+    - Reduced padding and spacing in history list items for more compact, modern look
+    - Changed main column padding from `paddingRegular` (16px) to `paddingSmall` (8px)
+    - Reduced SizedBox heights from 12px to 4px for tighter vertical spacing
+
+### Technical Details
+- **Points System**: Removed arbitrary 20-point threshold for popup display
+- **Storage**: Enhanced content hash algorithm with hourly timestamp inclusion
+- **Image Handling**: Automatic relative path extraction from absolute paths during classification
+- **UI Components**: Modernized card theming with proper Material 3 surface colors
+- **Performance**: Optimized recent scans loading with proper sorting before pagination
+
+### User Impact
+- ✅ Immediate feedback for all point-earning actions (no more missed +10 point notifications)
+- ✅ Consistent points totals across app sessions (no more mysterious point drops)
+- ✅ Reliable thumbnail display on result screens
+- ✅ Properly ordered recent scans (newest items always appear first)
+- ✅ Modern, polished card appearance with improved visual hierarchy
+
 ## [2.3.4] - 2025-06-15
 
 ### Fixed
