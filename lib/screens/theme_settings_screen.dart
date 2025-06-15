@@ -1,36 +1,17 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import '../services/premium_service.dart';
-import '../providers/theme_provider.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../providers.dart';
 import 'premium_features_screen.dart';
 
-class ThemeSettingsScreen extends StatefulWidget {
+class ThemeSettingsScreen extends ConsumerWidget {
   const ThemeSettingsScreen({super.key});
 
   @override
-  State<ThemeSettingsScreen> createState() => _ThemeSettingsScreenState();
-}
+  Widget build(BuildContext context, WidgetRef ref) {
+    final theme = ref.watch(themeProvider);
+    final premium = ref.read(premiumServiceProvider);
+    final isPremium = premium.isPremiumFeature('theme_customization');
 
-class _ThemeSettingsScreenState extends State<ThemeSettingsScreen> {
-  ThemeMode? _currentThemeMode;
-
-  @override
-  void initState() {
-    super.initState();
-    // Initialize immediately with the current theme provider value
-    final themeProvider = Provider.of<ThemeProvider>(context, listen: false);
-    _currentThemeMode = themeProvider.themeMode;
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final premiumService = Provider.of<PremiumService>(context);
-    final themeProvider = Provider.of<ThemeProvider>(context);
-    final isPremium = premiumService.isPremiumFeature('theme_customization');
-    
-    // Ensure _currentThemeMode is always set
-    _currentThemeMode ??= themeProvider.themeMode;
-    
     return Scaffold(
       appBar: AppBar(
         title: const Text('Theme Settings'),
@@ -44,13 +25,10 @@ class _ThemeSettingsScreenState extends State<ThemeSettingsScreen> {
             subtitle: const Text('Follow system theme settings'),
             trailing: Radio<ThemeMode>(
               value: ThemeMode.system,
-              groupValue: _currentThemeMode,
+              groupValue: theme.themeMode,
               onChanged: (ThemeMode? value) {
                 if (value != null) {
-                  setState(() {
-                    _currentThemeMode = value;
-                  });
-                  _updateThemeMode(value);
+                  _updateThemeMode(ref, value);
                 }
               },
             ),
@@ -61,13 +39,10 @@ class _ThemeSettingsScreenState extends State<ThemeSettingsScreen> {
             subtitle: const Text('Always use light theme'),
             trailing: Radio<ThemeMode>(
               value: ThemeMode.light,
-              groupValue: _currentThemeMode,
+              groupValue: theme.themeMode,
               onChanged: (ThemeMode? value) {
                 if (value != null) {
-                  setState(() {
-                    _currentThemeMode = value;
-                  });
-                  _updateThemeMode(value);
+                  _updateThemeMode(ref, value);
                 }
               },
             ),
@@ -78,13 +53,10 @@ class _ThemeSettingsScreenState extends State<ThemeSettingsScreen> {
             subtitle: const Text('Always use dark theme'),
             trailing: Radio<ThemeMode>(
               value: ThemeMode.dark,
-              groupValue: _currentThemeMode,
+              groupValue: theme.themeMode,
               onChanged: (ThemeMode? value) {
                 if (value != null) {
-                  setState(() {
-                    _currentThemeMode = value;
-                  });
-                  _updateThemeMode(value);
+                  _updateThemeMode(ref, value);
                 }
               },
             ),
@@ -143,7 +115,7 @@ class _ThemeSettingsScreenState extends State<ThemeSettingsScreen> {
                 subtitle: const Text('Create your own theme colors'),
                 trailing: const Icon(Icons.workspace_premium, color: Colors.amber),
                 onTap: () {
-                  _showPremiumFeaturePrompt(context);
+                  _showPremiumFeaturePrompt(context, ref);
                 },
               ),
             ),
@@ -153,12 +125,11 @@ class _ThemeSettingsScreenState extends State<ThemeSettingsScreen> {
     );
   }
 
-  void _updateThemeMode(ThemeMode mode) {
-    final themeProvider = Provider.of<ThemeProvider>(context, listen: false);
-    themeProvider.setThemeMode(mode);
+  void _updateThemeMode(WidgetRef ref, ThemeMode mode) {
+    ref.read(themeProvider.notifier).setThemeMode(mode);
   }
 
-  void _showPremiumFeaturePrompt(BuildContext context) {
+  void _showPremiumFeaturePrompt(BuildContext context, WidgetRef ref) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(

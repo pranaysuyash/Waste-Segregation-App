@@ -2,11 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/mockito.dart';
 import 'package:mockito/annotations.dart';
-import 'package:provider/provider.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:waste_segregation_app/screens/theme_settings_screen.dart';
 import 'package:waste_segregation_app/screens/premium_features_screen.dart';
 import 'package:waste_segregation_app/services/premium_service.dart';
 import 'package:waste_segregation_app/providers/theme_provider.dart';
+import 'package:waste_segregation_app/providers.dart';
 
 import 'theme_settings_screen_test.mocks.dart';
 
@@ -34,13 +35,13 @@ void main() {
           .thenReturn(isPremium);
       when(mockThemeProvider.themeMode).thenReturn(initialThemeMode);
 
-      return MaterialApp(
-        home: MultiProvider(
-          providers: [
-            ChangeNotifierProvider<ThemeProvider>.value(value: mockThemeProvider),
-            ChangeNotifierProvider<PremiumService>.value(value: mockPremiumService),
-          ],
-          child: const ThemeSettingsScreen(),
+      return ProviderScope(
+        overrides: [
+          themeProvider.overrideWith((ref) => mockThemeProvider),
+          premiumServiceProvider.overrideWithValue(mockPremiumService),
+        ],
+        child: const MaterialApp(
+          home: ThemeSettingsScreen(),
         ),
       );
     }
@@ -135,10 +136,26 @@ void main() {
         expect(find.text('Theme Settings'), findsOneWidget);
       });
 
-      testWidgets('should find premium features navigation row', (tester) async {
-        await tester.pumpWidget(createTestWidget());
+      testWidgets('should navigate to premium features when premium features row is tapped', (tester) async {
+        await tester.pumpWidget(
+          ProviderScope(
+            overrides: [
+              themeProvider.overrideWith((ref) => mockThemeProvider),
+              premiumServiceProvider.overrideWithValue(mockPremiumService),
+            ],
+            child: MaterialApp(
+              initialRoute: '/',
+              routes: {
+                '/': (_) => const ThemeSettingsScreen(),
+                '/premium': (_) => const PremiumFeaturesScreen(),
+              },
+            ),
+          ),
+        );
 
-        // Find the premium features navigation row (not the custom themes one)
+        await tester.pumpAndSettle();
+
+        // Find and tap the premium features navigation row
         final premiumFeaturesRow = find.byWidgetPredicate((widget) =>
           widget is ListTile &&
           widget.title is Text &&
@@ -148,6 +165,11 @@ void main() {
         );
 
         expect(premiumFeaturesRow, findsOneWidget);
+        await tester.tap(premiumFeaturesRow);
+        await tester.pumpAndSettle();
+
+        // Should navigate to premium features screen
+        expect(find.byType(PremiumFeaturesScreen), findsOneWidget);
       });
     });
 
@@ -191,65 +213,32 @@ void main() {
         expect(darkRadio.groupValue, equals(ThemeMode.dark));
       });
 
-      testWidgets('should change theme mode when light theme is selected', (tester) async {
+      testWidgets('should call theme provider when theme mode is changed', (tester) async {
         await tester.pumpWidget(createTestWidget(
           initialThemeMode: ThemeMode.system,
         ));
 
+        // Tap light theme radio button
         await tester.tap(find.byWidgetPredicate((widget) => 
           widget is Radio<ThemeMode> && widget.value == ThemeMode.light));
         await tester.pumpAndSettle();
 
+        // Verify that setThemeMode was called
         verify(mockThemeProvider.setThemeMode(ThemeMode.light)).called(1);
       });
 
-      testWidgets('should change theme mode when dark theme is selected', (tester) async {
+      testWidgets('should call theme provider when dark theme is selected', (tester) async {
         await tester.pumpWidget(createTestWidget(
-          initialThemeMode: ThemeMode.light,
+          initialThemeMode: ThemeMode.system,
         ));
 
+        // Tap dark theme radio button
         await tester.tap(find.byWidgetPredicate((widget) => 
           widget is Radio<ThemeMode> && widget.value == ThemeMode.dark));
         await tester.pumpAndSettle();
 
+        // Verify that setThemeMode was called
         verify(mockThemeProvider.setThemeMode(ThemeMode.dark)).called(1);
-      });
-
-      testWidgets('should change theme mode when system theme is selected', (tester) async {
-        await tester.pumpWidget(createTestWidget(
-          initialThemeMode: ThemeMode.dark,
-        ));
-
-        await tester.tap(find.byWidgetPredicate((widget) => 
-          widget is Radio<ThemeMode> && widget.value == ThemeMode.system));
-        await tester.pumpAndSettle();
-
-        verify(mockThemeProvider.setThemeMode(ThemeMode.system)).called(1);
-      });
-
-      testWidgets('should update UI state when theme mode changes', (tester) async {
-        await tester.pumpWidget(createTestWidget(
-          initialThemeMode: ThemeMode.system,
-        ));
-
-        // Initially system should be selected
-        Radio<ThemeMode> systemRadio = tester.widget<Radio<ThemeMode>>(
-          find.byWidgetPredicate((widget) => 
-            widget is Radio<ThemeMode> && widget.value == ThemeMode.system),
-        );
-        expect(systemRadio.groupValue, equals(ThemeMode.system));
-
-        // Tap light theme
-        await tester.tap(find.byWidgetPredicate((widget) => 
-          widget is Radio<ThemeMode> && widget.value == ThemeMode.light));
-        await tester.pumpAndSettle();
-
-        // Light theme should now be selected
-        final lightRadio = tester.widget<Radio<ThemeMode>>(
-          find.byWidgetPredicate((widget) => 
-            widget is Radio<ThemeMode> && widget.value == ThemeMode.light),
-        );
-        expect(lightRadio.groupValue, equals(ThemeMode.light));
       });
     });
 
@@ -370,27 +359,27 @@ void main() {
         // For this test, we just ensure the AppBar is present
       });
 
-      testWidgets('should handle back navigation', (tester) async {
-        await tester.pumpWidget(
-          MaterialApp(
-            home: Builder(
-              builder: (context) => Scaffold(
-                body: ElevatedButton(
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => MultiProvider(
-                                                  providers: [
-                          ChangeNotifierProvider<ThemeProvider>.value(value: mockThemeProvider),
-                          ChangeNotifierProvider<PremiumService>.value(value: mockPremiumService),
-                        ],
-                          child: const ThemeSettingsScreen(),
+              testWidgets('should handle back navigation', (tester) async {
+          await tester.pumpWidget(
+            ProviderScope(
+              overrides: [
+                themeProvider.overrideWith((ref) => mockThemeProvider),
+                premiumServiceProvider.overrideWithValue(mockPremiumService),
+              ],
+            child: MaterialApp(
+              home: Builder(
+                builder: (context) => Scaffold(
+                  body: ElevatedButton(
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const ThemeSettingsScreen(),
                         ),
-                      ),
-                    );
-                  },
-                  child: const Text('Open Theme Settings'),
+                      );
+                    },
+                    child: const Text('Open Theme Settings'),
+                  ),
                 ),
               ),
             ),

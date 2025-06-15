@@ -5,6 +5,7 @@ import 'test_config/plugin_mock_setup.dart';
 void main() {
   // Set up plugin mocks before any tests run
   setUpAll(() {
+    PluginMockSetup.setupAll();
     TestHelpers.setUpAll();
   });
 
