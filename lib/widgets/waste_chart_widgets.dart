@@ -271,7 +271,7 @@ class TopSubcategoriesBarChart extends StatelessWidget {
                                     : label;
                                     
                                 return SideTitleWidget(
-                                  meta: meta,
+                                  axisSide: meta.axisSide,
                                   child: Text(
                                     displayLabel,
                                     style: const TextStyle(
@@ -294,7 +294,7 @@ class TopSubcategoriesBarChart extends StatelessWidget {
                                 }
                                 
                                 return SideTitleWidget(
-                                  meta: meta,
+                                  axisSide: meta.axisSide,
                                   child: Text(
                                     value.toInt().toString(),
                                     style: const TextStyle(
@@ -539,7 +539,7 @@ class WeeklyItemsChart extends StatelessWidget {
                                 }
                                 
                                 return SideTitleWidget(
-                                  meta: meta,
+                                  axisSide: meta.axisSide,
                                   child: Text(
                                     data[value.toInt()].label,
                                     style: const TextStyle(
@@ -561,7 +561,7 @@ class WeeklyItemsChart extends StatelessWidget {
                                 }
                                 
                                 return SideTitleWidget(
-                                  meta: meta,
+                                  axisSide: meta.axisSide,
                                   child: Text(
                                     value.toInt().toString(),
                                     style: const TextStyle(
@@ -745,7 +745,7 @@ class WasteTimeSeriesChart extends StatelessWidget {
                     }
 
                     return SideTitleWidget(
-                      meta: meta,
+                      axisSide: meta.axisSide,
                       child: Text(
                         data[index].label,
                         style: const TextStyle(
@@ -763,7 +763,7 @@ class WasteTimeSeriesChart extends StatelessWidget {
                   showTitles: true,
                   getTitlesWidget: (value, meta) {
                     return SideTitleWidget(
-                      meta: meta,
+                      axisSide: meta.axisSide,
                       child: Text(
                         value.toInt().toString(),
                         style: const TextStyle(
@@ -903,7 +903,7 @@ class CategoryDistributionChart extends StatelessWidget {
                     }
                     
                     return SideTitleWidget(
-                      meta: meta,
+                      axisSide: meta.axisSide,
                       child: Text(
                         data[index]['month'] as String,
                         style: const TextStyle(
@@ -923,7 +923,7 @@ class CategoryDistributionChart extends StatelessWidget {
                   getTitlesWidget: (value, meta) {
                     // Show as percentage
                     return SideTitleWidget(
-                      meta: meta,
+                      axisSide: meta.axisSide,
                       child: Text(
                         '${(value * 100).toInt()}%',
                         style: const TextStyle(
