@@ -184,7 +184,7 @@ class _ImageCaptureScreenState extends State<ImageCaptureScreen> with Restoratio
   }
 
   Future<void> _analyzeImage() async {
-    if (_isAnalyzing) return;
+    if (_isAnalyzing || _isCancelled) return;
 
     setState(() {
       _isAnalyzing = true;
@@ -225,7 +225,7 @@ class _ImageCaptureScreenState extends State<ImageCaptureScreen> with Restoratio
           }
 
           // Ensure we have bytes before proceeding
-          if (imageBytes.isEmpty) {
+          if (imageBytes == null || imageBytes.isEmpty) {
             throw Exception('Image data is empty or could not be read');
           }
 

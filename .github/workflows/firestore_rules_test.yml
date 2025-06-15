@@ -1,0 +1,481 @@
+name: Firestore Rules Testing
+
+on:
+  pull_request:
+    branches: [ main, develop ]
+    paths:
+      - 'firestore.rules'
+      - 'firestore.indexes.json'
+      - 'functions/**'
+  push:
+    branches: [ main, develop ]
+    paths:
+      - 'firestore.rules'
+      - 'firestore.indexes.json'
+      - 'functions/**'
+
+jobs:
+  firestore_rules_test:
+    name: Test Firestore Security Rules
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+        cache-dependency-path: functions/package-lock.json
+        
+    - name: Install Firebase CLI
+      run: npm install -g firebase-tools
+      
+    - name: Install Functions dependencies
+      run: |
+        cd functions
+        npm ci
+        
+    - name: Create Enhanced Firestore rules test
+      run: |
+        mkdir -p test/firestore-rules
+        cat > test/firestore-rules/rules.test.js << 'EOF'
+        const { initializeTestEnvironment, assertFails, assertSucceeds } = require('@firebase/rules-unit-testing');
+        const fs = require('fs');
+
+        let testEnv;
+
+        beforeAll(async () => {
+          testEnv = await initializeTestEnvironment({
+            projectId: 'waste-segregation-test',
+            firestore: {
+              rules: fs.readFileSync('firestore.rules', 'utf8'),
+            },
+          });
+        });
+
+        afterAll(async () => {
+          await testEnv.cleanup();
+        });
+
+        beforeEach(async () => {
+          await testEnv.clearFirestore();
+        });
+
+        describe('User Profile Security', () => {
+          test('Users can read/write their own profile', async () => {
+            const alice = testEnv.authenticatedContext('alice');
+            const aliceProfile = alice.firestore().collection('users').doc('alice');
+            
+            await assertSucceeds(aliceProfile.set({ name: 'Alice', email: 'alice@test.com' }));
+            await assertSucceeds(aliceProfile.get());
+          });
+
+          test('Users cannot read other users profiles', async () => {
+            const alice = testEnv.authenticatedContext('alice');
+            const bobProfile = alice.firestore().collection('users').doc('bob');
+            
+            await assertFails(bobProfile.get());
+            await assertFails(bobProfile.set({ name: 'Bob' }));
+          });
+        });
+
+        describe('Enhanced Leaderboard Security', () => {
+          test('Users can read leaderboard entries', async () => {
+            const alice = testEnv.authenticatedContext('alice');
+            const leaderboard = alice.firestore().collection('leaderboard_allTime').doc('alice');
+            
+            await assertSucceeds(leaderboard.get());
+          });
+
+          test('Users can only write their own leaderboard entry with valid data', async () => {
+            const alice = testEnv.authenticatedContext('alice');
+            const aliceEntry = alice.firestore().collection('leaderboard_allTime').doc('alice');
+            const bobEntry = alice.firestore().collection('leaderboard_allTime').doc('bob');
+            
+            // Valid entry for own user
+            await assertSucceeds(aliceEntry.set({
+              userId: 'alice',
+              points: 100,
+              displayName: 'Alice',
+              lastUpdated: new Date()
+            }));
+            
+            // Cannot write to other user's entry
+            await assertFails(bobEntry.set({
+              userId: 'bob',
+              points: 100,
+              displayName: 'Bob',
+              lastUpdated: new Date()
+            }));
+            
+            // Cannot write invalid data - negative points
+            await assertFails(aliceEntry.set({
+              userId: 'alice',
+              points: -10,
+              displayName: 'Alice',
+              lastUpdated: new Date()
+            }));
+
+            // Cannot write invalid data - excessive points
+            await assertFails(aliceEntry.set({
+              userId: 'alice',
+              points: 2000000, // Over limit
+              displayName: 'Alice',
+              lastUpdated: new Date()
+            }));
+
+            // Cannot write invalid data - empty display name
+            await assertFails(aliceEntry.set({
+              userId: 'alice',
+              points: 100,
+              displayName: '',
+              lastUpdated: new Date()
+            }));
+
+            // Cannot write invalid data - display name too long
+            await assertFails(aliceEntry.set({
+              userId: 'alice',
+              points: 100,
+              displayName: 'A'.repeat(100), // Too long
+              lastUpdated: new Date()
+            }));
+          });
+
+          test('Weekly leaderboard validation', async () => {
+            const alice = testEnv.authenticatedContext('alice');
+            const weekEntry = alice.firestore().collection('leaderboard_weekly').doc('2025-W24');
+            
+            // Valid weekly entry
+            await assertSucceeds(weekEntry.set({
+              userId: 'alice',
+              weeklyPoints: 500,
+              weekId: '2025-W24',
+              lastUpdated: new Date()
+            }));
+
+            // Invalid week ID format
+            const invalidWeekEntry = alice.firestore().collection('leaderboard_weekly').doc('invalid-week');
+            await assertFails(invalidWeekEntry.set({
+              userId: 'alice',
+              weeklyPoints: 500,
+              weekId: 'invalid-week',
+              lastUpdated: new Date()
+            }));
+
+            // Excessive weekly points
+            await assertFails(weekEntry.set({
+              userId: 'alice',
+              weeklyPoints: 20000, // Over weekly limit
+              weekId: '2025-W24',
+              lastUpdated: new Date()
+            }));
+          });
+        });
+
+        describe('Enhanced Community Feed Security', () => {
+          test('Users can read community posts', async () => {
+            const alice = testEnv.authenticatedContext('alice');
+            const posts = alice.firestore().collection('community_feed');
+            
+            await assertSucceeds(posts.get());
+          });
+
+          test('Users can create posts with their own userId and valid data', async () => {
+            const alice = testEnv.authenticatedContext('alice');
+            const post = alice.firestore().collection('community_feed').doc('post1');
+            
+            // Valid post
+            await assertSucceeds(post.set({
+              userId: 'alice',
+              content: 'Great classification today!',
+              timestamp: new Date(),
+              type: 'classification'
+            }));
+
+            // Valid post with optional fields
+            await assertSucceeds(post.set({
+              userId: 'alice',
+              content: 'Another great post!',
+              timestamp: new Date(),
+              type: 'achievement',
+              likes: 5,
+              comments: 2
+            }));
+          });
+
+          test('Community post validation failures', async () => {
+            const alice = testEnv.authenticatedContext('alice');
+            const post = alice.firestore().collection('community_feed').doc('post1');
+            
+            // Cannot create posts with other userId
+            await assertFails(post.set({
+              userId: 'bob', // Wrong userId
+              content: 'Fake post',
+              timestamp: new Date(),
+              type: 'classification'
+            }));
+
+            // Cannot create posts with empty content
+            await assertFails(post.set({
+              userId: 'alice',
+              content: '', // Empty content
+              timestamp: new Date(),
+              type: 'classification'
+            }));
+
+            // Cannot create posts with content too long
+            await assertFails(post.set({
+              userId: 'alice',
+              content: 'A'.repeat(1500), // Too long
+              timestamp: new Date(),
+              type: 'classification'
+            }));
+
+            // Cannot create posts with invalid type
+            await assertFails(post.set({
+              userId: 'alice',
+              content: 'Valid content',
+              timestamp: new Date(),
+              type: 'invalid-type'
+            }));
+
+            // Cannot create posts with negative likes
+            await assertFails(post.set({
+              userId: 'alice',
+              content: 'Valid content',
+              timestamp: new Date(),
+              type: 'classification',
+              likes: -1
+            }));
+          });
+
+          test('Community post update restrictions', async () => {
+            const alice = testEnv.authenticatedContext('alice');
+            const bob = testEnv.authenticatedContext('bob');
+            
+            // Alice creates a post
+            const alicePost = alice.firestore().collection('community_feed').doc('post1');
+            await assertSucceeds(alicePost.set({
+              userId: 'alice',
+              content: 'Original content',
+              timestamp: new Date(),
+              type: 'classification',
+              likes: 5
+            }));
+            
+            // Alice can update her own post content
+            await assertSucceeds(alicePost.update({
+              content: 'Updated content',
+              likes: 6 // Can increase likes
+            }));
+            
+            // Alice cannot decrease likes
+            await assertFails(alicePost.update({
+              likes: 3 // Cannot decrease
+            }));
+
+            // Alice cannot modify restricted fields
+            await assertFails(alicePost.update({
+              userId: 'bob', // Cannot change userId
+              type: 'achievement' // Cannot change type
+            }));
+            
+            // Bob cannot update Alice's post
+            const bobViewOfAlicePost = bob.firestore().collection('community_feed').doc('post1');
+            await assertFails(bobViewOfAlicePost.update({
+              content: 'Malicious update'
+            }));
+          });
+        });
+
+        describe('Gamification Security', () => {
+          test('Points can only increase within limits', async () => {
+            const alice = testEnv.authenticatedContext('alice');
+            const aliceProfile = alice.firestore().collection('users').doc('alice');
+            
+            // Set initial profile
+            await assertSucceeds(aliceProfile.set({
+              gamificationProfile: {
+                points: { total: 100 },
+                achievements: ['first_classification'],
+                currentStreak: 5
+              }
+            }));
+
+            // Valid points increase
+            await assertSucceeds(aliceProfile.update({
+              gamificationProfile: {
+                points: { total: 150 }, // Valid increase
+                achievements: ['first_classification', 'streak_master'],
+                currentStreak: 6
+              }
+            }));
+
+            // Cannot decrease points
+            await assertFails(aliceProfile.update({
+              gamificationProfile: {
+                points: { total: 50 }, // Decrease not allowed
+                achievements: ['first_classification'],
+                currentStreak: 5
+              }
+            }));
+
+            // Cannot increase points too much
+            await assertFails(aliceProfile.update({
+              gamificationProfile: {
+                points: { total: 1200 }, // Too large increase
+                achievements: ['first_classification'],
+                currentStreak: 5
+              }
+            }));
+          });
+        });
+
+        describe('Admin Collections Security', () => {
+          test('Users cannot access admin collections', async () => {
+            const alice = testEnv.authenticatedContext('alice');
+            const adminDoc = alice.firestore().collection('admin').doc('config');
+            
+            await assertFails(adminDoc.get());
+            await assertFails(adminDoc.set({ config: 'value' }));
+          });
+        });
+
+        describe('Disposal Instructions Security', () => {
+          test('Users can read disposal instructions', async () => {
+            const alice = testEnv.authenticatedContext('alice');
+            const instructions = alice.firestore().collection('disposal_instructions').doc('apple');
+            
+            await assertSucceeds(instructions.get());
+          });
+
+          test('Users cannot write disposal instructions', async () => {
+            const alice = testEnv.authenticatedContext('alice');
+            const instructions = alice.firestore().collection('disposal_instructions').doc('apple');
+            
+            await assertFails(instructions.set({
+              steps: ['Step 1', 'Step 2'],
+              primaryMethod: 'Compost'
+            }));
+          });
+        });
+
+        describe('Unauthenticated Access', () => {
+          test('Unauthenticated users cannot access any data', async () => {
+            const unauth = testEnv.unauthenticatedContext();
+            
+            await assertFails(unauth.firestore().collection('users').doc('alice').get());
+            await assertFails(unauth.firestore().collection('leaderboard_allTime').doc('alice').get());
+            await assertFails(unauth.firestore().collection('community_feed').doc('post1').get());
+            await assertFails(unauth.firestore().collection('disposal_instructions').doc('apple').get());
+          });
+        });
+        EOF
+        
+    - name: Create package.json for enhanced rules testing
+      run: |
+        cat > test/firestore-rules/package.json << 'EOF'
+        {
+          "name": "firestore-rules-test",
+          "version": "1.0.0",
+          "scripts": {
+            "test": "jest --verbose"
+          },
+          "devDependencies": {
+            "@firebase/rules-unit-testing": "^3.0.0",
+            "jest": "^29.0.0"
+          },
+          "jest": {
+            "testEnvironment": "node",
+            "testMatch": ["**/*.test.js"],
+            "testTimeout": 30000
+          }
+        }
+        EOF
+        
+    - name: Install test dependencies
+      run: |
+        cd test/firestore-rules
+        npm install
+        
+    - name: Start Firebase Emulator
+      run: |
+        firebase emulators:start --only firestore --project=waste-segregation-test &
+        sleep 15
+        
+    - name: Run Enhanced Firestore Rules Tests
+      run: |
+        cd test/firestore-rules
+        npm test
+        
+    - name: Stop Firebase Emulator
+      if: always()
+      run: |
+        pkill -f "firebase.*emulators" || true
+        
+    - name: Validate Rules Syntax
+      run: |
+        echo "Validating Firestore rules syntax..."
+        firebase firestore:rules --project=waste-segregation-test || {
+          echo "❌ Firestore rules syntax validation failed!"
+          exit 1
+        }
+        echo "✅ Firestore rules syntax is valid"
+        
+    - name: Check Enhanced Rules Coverage
+      run: |
+        echo "Checking enhanced rules coverage for all collections..."
+        
+        # Check if all expected collections have rules
+        collections=("users" "leaderboard_allTime" "leaderboard_weekly" "community_feed" "community_challenges" "disposal_instructions" "admin")
+        
+        for collection in "${collections[@]}"; do
+          if grep -q "match /$collection/" firestore.rules; then
+            echo "✅ Rules found for collection: $collection"
+          else
+            echo "❌ No rules found for collection: $collection"
+            exit 1
+          fi
+        done
+        
+        # Check for enhanced validation functions
+        validation_functions=("validateLeaderboardEntry" "validateCommunityPost" "validateGamificationUpdate" "hasRequiredCommunityFields" "canModifyRestrictedFields")
+        
+        for func in "${validation_functions[@]}"; do
+          if grep -q "function $func" firestore.rules; then
+            echo "✅ Validation function found: $func"
+          else
+            echo "❌ Missing validation function: $func"
+            exit 1
+          fi
+        done
+        
+        echo "✅ All collections have enhanced security rules defined"
+        
+    - name: Enhanced Security Rules Summary
+      if: always()
+      run: |
+        echo "## 🔒 Enhanced Firestore Security Rules Test Summary" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### Collections Protected:" >> $GITHUB_STEP_SUMMARY
+        echo "- ✅ User profiles (read/write own data only)" >> $GITHUB_STEP_SUMMARY
+        echo "- ✅ Leaderboards (read all, write own with strict validation)" >> $GITHUB_STEP_SUMMARY
+        echo "- ✅ Community feed (read all, write/update own posts with schema validation)" >> $GITHUB_STEP_SUMMARY
+        echo "- ✅ Community challenges (read only)" >> $GITHUB_STEP_SUMMARY
+        echo "- ✅ Disposal instructions (read only)" >> $GITHUB_STEP_SUMMARY
+        echo "- ✅ Admin collections (no user access)" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### Enhanced Security Features:" >> $GITHUB_STEP_SUMMARY
+        echo "- 🛡️ User authentication required for all operations" >> $GITHUB_STEP_SUMMARY
+        echo "- 🔐 Strict data validation with limits and format checks" >> $GITHUB_STEP_SUMMARY
+        echo "- 🚫 Prevention of negative points and excessive values" >> $GITHUB_STEP_SUMMARY
+        echo "- 📝 Content length limits and type validation" >> $GITHUB_STEP_SUMMARY
+        echo "- 🏷️ Schema enforcement with hasOnly() validation" >> $GITHUB_STEP_SUMMARY
+        echo "- 🔒 Restricted field modification prevention" >> $GITHUB_STEP_SUMMARY
+        echo "- ⏰ Week ID format validation (YYYY-WNN)" >> $GITHUB_STEP_SUMMARY
+        echo "- 📊 Points increase limits (max 1000 per update)" >> $GITHUB_STEP_SUMMARY
+        echo "- 🏆 Achievement progress validation (max 5 new per update)" >> $GITHUB_STEP_SUMMARY
+        echo "- 🔥 Streak logic validation (max +1 per day or reset)" >> $GITHUB_STEP_SUMMARY 

@@ -19,6 +19,7 @@ import '../services/storage_service.dart';
 import '../services/educational_content_service.dart';
 import '../services/gamification_service.dart';
 import '../services/ad_service.dart';
+import '../providers/points_engine_provider.dart';
 import '../services/analytics_service.dart';
 import '../utils/constants.dart';
 import '../utils/safe_collection_utils.dart';
@@ -1206,10 +1207,10 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       appBar: AppBar(
         title: const ResponsiveAppBarTitle(title: AppStrings.appName),
         actions: [
-          // Points indicator in app bar
-          Consumer<GamificationService>(
-            builder: (context, gamificationService, child) {
-              final profile = gamificationService.currentProfile;
+          // Points indicator in app bar - Using Points Engine
+          Consumer<PointsEngineProvider>(
+            builder: (context, pointsEngineProvider, child) {
+              final profile = pointsEngineProvider.pointsEngine.currentProfile;
               if (profile != null) {
                 return Padding(
                   padding: const EdgeInsets.only(right: 8.0),

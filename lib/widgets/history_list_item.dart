@@ -1,6 +1,9 @@
 import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:path/path.dart' as path;
 import '../models/waste_classification.dart';
 import '../utils/constants.dart';
 import '../services/enhanced_image_service.dart';
@@ -31,6 +34,7 @@ class HistoryListItem extends StatelessWidget {
       label: 'Classification result for ${classification.itemName}, ${classification.category}',
       hint: 'Tap to view details',
       child: Card(
+        color: Theme.of(context).colorScheme.surfaceContainerHighest,
         elevation: 2,
         margin: const EdgeInsets.symmetric(
           vertical: AppTheme.paddingSmall, 
@@ -40,11 +44,12 @@ class HistoryListItem extends StatelessWidget {
           borderRadius: BorderRadius.circular(AppTheme.borderRadiusRegular),
           side: BorderSide(color: categoryColor.withValues(alpha:0.3)),
         ),
+        clipBehavior: Clip.antiAlias,
         child: InkWell(
           onTap: onTap,
           borderRadius: BorderRadius.circular(AppTheme.borderRadiusRegular),
           child: Padding(
-            padding: const EdgeInsets.all(AppTheme.paddingRegular),
+            padding: const EdgeInsets.all(AppTheme.paddingSmall),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -125,7 +130,7 @@ class HistoryListItem extends StatelessWidget {
                     
                     // Thumbnail (if available)
                     if (classification.imageUrl != null) ...[
-                      const SizedBox(width: AppTheme.paddingRegular),
+                      const SizedBox(width: AppTheme.paddingSmall),
                       Semantics(
                         image: true,
                         label: 'Thumbnail image of ${classification.itemName}',
@@ -142,12 +147,12 @@ class HistoryListItem extends StatelessWidget {
                   ],
                 ),
                 
-                const SizedBox(height: 12),
+                const SizedBox(height: 4),
                 
                 // Tags row with proper wrapping
                 _buildTagsSection(categoryColor),
                 
-                const SizedBox(height: 8),
+                const SizedBox(height: 4),
                 
                 // Properties indicators row
                 _buildPropertiesRow(context),
@@ -360,6 +365,67 @@ class HistoryListItem extends StatelessWidget {
   
   /// Builds the image widget based on platform with improved error handling
   Widget _buildImage() {
+    // Try relative path first (new approach)
+    if (classification.imageRelativePath != null) {
+      return FutureBuilder<String>(
+        future: _getFullImagePath(classification.imageRelativePath!),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return _buildImagePlaceholder();
+          }
+          if (snapshot.hasData) {
+            final file = File(snapshot.data!);
+            return FutureBuilder<bool>(
+              future: file.exists(),
+              builder: (context, existsSnapshot) {
+                if (existsSnapshot.connectionState == ConnectionState.waiting) {
+                  return _buildImagePlaceholder();
+                }
+                if (existsSnapshot.hasData && existsSnapshot.data == true) {
+                  return Image.file(
+                    file,
+                    height: 50,
+                    width: 50,
+                    fit: BoxFit.cover,
+                    cacheHeight: 90, // Optimize memory usage
+                    errorBuilder: (context, error, stackTrace) {
+                      debugPrint('[HistoryListItem] Error rendering relative path image: $error');
+                      return _buildImagePlaceholder();
+                    },
+                  );
+                }
+                debugPrint('[HistoryListItem] Relative path image missing: ${snapshot.data}');
+                return _buildImagePlaceholder();
+              },
+            );
+          }
+          return _buildImagePlaceholder();
+        },
+      );
+    }
+    
+    // ---------- NEW fallback ----------
+    // If local file missing but Firestore doc has imageUrl (remote URL)
+    if (classification.imageRelativePath != null &&
+        classification.imageUrl != null &&
+        classification.imageUrl!.startsWith('http')) {
+      return FutureBuilder<Uint8List?>(
+        future: EnhancedImageService()
+            .fetchImageWithRetry(classification.imageUrl!),
+        builder: (context, snap) {
+          if (!snap.hasData) return _buildImagePlaceholder();
+          // Persist to disk so next cold start is instant
+          _persistBytes(
+            snap.data!,
+            classification.imageRelativePath!,
+          );
+          return Image.memory(snap.data!, fit: BoxFit.cover);
+        },
+      );
+    }
+    // -------- END new code ---------
+    
+    // Fallback to legacy absolute path logic
     final url = classification.imageUrl;
     debugPrint('[HistoryListItem] Building image for: $url');
     if (url == null) {
@@ -439,6 +505,7 @@ class HistoryListItem extends StatelessWidget {
             height: 50,
             width: 50,
             fit: BoxFit.cover,
+            cacheHeight: 90, // Optimize memory usage
             errorBuilder: (context, error, stackTrace) {
               debugPrint('[HistoryListItem] Error rendering file image: $error');
               return _buildImagePlaceholder();
@@ -485,6 +552,22 @@ class HistoryListItem extends StatelessWidget {
         return Icons.help_outline;
       default:
         return Icons.category;
+    }
+  }
+
+  /// Get full image path from relative path
+  Future<String> _getFullImagePath(String relativePath) async {
+    final dir = await getApplicationDocumentsDirectory();
+    // iOS & Android store images/…  ➜ was missing in join
+    return path.join(dir.path, 'images', relativePath);
+  }
+
+  Future<void> _persistBytes(Uint8List bytes, String relPath) async {
+    try {
+      final full = await _getFullImagePath(relPath);
+      await File(full).writeAsBytes(bytes, flush: true);
+    } catch (e) {
+      debugPrint('[HistoryListItem] Failed to persist image: $e');
     }
   }
 }

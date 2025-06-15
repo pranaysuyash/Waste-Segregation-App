@@ -369,15 +369,14 @@ class GamificationRepository {
   List<Achievement> _getDefaultAchievements() {
     // This should be moved to a proper service or configuration
     return [
-      Achievement(
+      const Achievement(
         id: 'first_classification',
         title: 'First Steps',
         description: 'Complete your first waste classification',
         type: AchievementType.firstClassification,
         threshold: 1,
         iconName: 'eco',
-        color: const Color(0xFF4CAF50),
-        tier: AchievementTier.bronze,
+        color: Color(0xFF4CAF50),
         pointsReward: GamificationConfig.kPointsPerItem,
       ),
       // Add more default achievements...

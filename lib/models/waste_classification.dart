@@ -58,6 +58,8 @@ class WasteClassification extends HiveObject {
     this.pointsAwarded,
     this.environmentalImpact,
     this.relatedItems,
+    this.imageRelativePath,
+    this.thumbnailRelativePath,
   }) : id = id ?? const Uuid().v4(),
        timestamp = timestamp ?? DateTime.now();
 
@@ -197,6 +199,8 @@ class WasteClassification extends HiveObject {
       relatedItems: json['relatedItems'] != null
           ? List<String>.from(json['relatedItems'])
           : null,
+      imageRelativePath: json['imageRelativePath'],
+      thumbnailRelativePath: json['thumbnailRelativePath'],
     );
   }
   @HiveField(0)
@@ -231,6 +235,14 @@ class WasteClassification extends HiveObject {
   // Image and visual data
   @HiveField(12)
   final String? imageUrl;
+  
+  /// Relative path to the image (for better cross-platform compatibility)
+  @HiveField(60)
+  final String? imageRelativePath;
+  
+  /// Relative path to the thumbnail image
+  @HiveField(61)
+  final String? thumbnailRelativePath;
   @HiveField(13)
   final String? imageHash;
   @HiveField(14)
@@ -413,6 +425,8 @@ class WasteClassification extends HiveObject {
       'pointsAwarded': pointsAwarded,
       'environmentalImpact': environmentalImpact,
       'relatedItems': relatedItems,
+      'imageRelativePath': imageRelativePath,
+      'thumbnailRelativePath': thumbnailRelativePath,
     };
   }
 
@@ -468,6 +482,8 @@ class WasteClassification extends HiveObject {
     int? pointsAwarded,
     String? environmentalImpact,
     List<String>? relatedItems,
+    String? imageRelativePath,
+    String? thumbnailRelativePath,
   }) {
     return WasteClassification(
       id: id ?? this.id,
@@ -520,6 +536,8 @@ class WasteClassification extends HiveObject {
       pointsAwarded: pointsAwarded ?? this.pointsAwarded,
       environmentalImpact: environmentalImpact ?? this.environmentalImpact,
       relatedItems: relatedItems ?? this.relatedItems,
+      imageRelativePath: imageRelativePath ?? this.imageRelativePath,
+      thumbnailRelativePath: thumbnailRelativePath ?? this.thumbnailRelativePath,
     );
   }
 }

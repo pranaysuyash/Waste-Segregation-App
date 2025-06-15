@@ -4,10 +4,13 @@ import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:tutorial_coach_mark/tutorial_coach_mark.dart';
+import 'package:provider/provider.dart' as provider;
 
 import '../utils/constants.dart';
 import '../models/waste_classification.dart';
 import '../models/gamification.dart';
+import '../models/user_profile.dart';
+import '../providers/points_engine_provider.dart';
 import '../services/storage_service.dart';
 import '../services/cloud_storage_service.dart';
 import '../services/gamification_service.dart';
@@ -76,7 +79,7 @@ class NewModernHomeScreen extends ConsumerStatefulWidget {
 
 class NewModernHomeScreenState extends ConsumerState<NewModernHomeScreen> 
     with TickerProviderStateMixin, WidgetsBindingObserver {
-  int _selectedIndex = 0;
+  final int _selectedIndex = 0;
   final ImagePicker _picker = ImagePicker();
   TutorialCoachMark? _coachMark;
   List<TargetFocus> _targets = [];
@@ -354,7 +357,7 @@ class NewModernHomeScreenState extends ConsumerState<NewModernHomeScreen>
     debugPrint('📸 Taking photo - manual review mode');
     
     try {
-      final XFile? image = await picker.pickImage(
+      final image = await picker.pickImage(
         source: ImageSource.camera,
         imageQuality: 85,
         maxWidth: 1920,
@@ -362,7 +365,7 @@ class NewModernHomeScreenState extends ConsumerState<NewModernHomeScreen>
       );
       
       if (image != null && mounted) {
-        await _navigateToImageCapture(image, autoAnalyze: false);
+        await _navigateToImageCapture(image);
       }
     } catch (e) {
       debugPrint('Error taking photo: $e');
@@ -386,7 +389,7 @@ class NewModernHomeScreenState extends ConsumerState<NewModernHomeScreen>
     debugPrint('🖼️ Picking image - manual review mode');
     
     try {
-      final XFile? image = await picker.pickImage(
+      final image = await picker.pickImage(
         source: ImageSource.gallery,
         imageQuality: 85,
         maxWidth: 1920,
@@ -394,7 +397,7 @@ class NewModernHomeScreenState extends ConsumerState<NewModernHomeScreen>
       );
       
       if (image != null && mounted) {
-        await _navigateToImageCapture(image, autoAnalyze: false);
+        await _navigateToImageCapture(image);
       }
     } catch (e) {
       debugPrint('Error picking image: $e');
@@ -419,7 +422,7 @@ class NewModernHomeScreenState extends ConsumerState<NewModernHomeScreen>
     debugPrint('📸 Taking photo - instant analysis mode');
     
     try {
-      final XFile? image = await picker.pickImage(
+      final image = await picker.pickImage(
         source: ImageSource.camera,
         imageQuality: 85,
         maxWidth: 1920,
@@ -451,7 +454,7 @@ class NewModernHomeScreenState extends ConsumerState<NewModernHomeScreen>
     debugPrint('🖼️ Picking image - instant analysis mode');
     
     try {
-      final XFile? image = await picker.pickImage(
+      final image = await picker.pickImage(
         source: ImageSource.gallery,
         imageQuality: 85,
         maxWidth: 1920,
@@ -703,7 +706,7 @@ class HomeTab extends ConsumerWidget {
             const SizedBox(height: AppTheme.spacingMd),
             Row(
               children: [
-                                 _buildStatChip('${profile?.points.total ?? 0}', 'Points', Icons.stars),
+                                 _buildPointsChip(context),
                  const SizedBox(width: AppTheme.spacingMd),
                  _buildStatChip('${profile?.streaks[StreakType.dailyClassification.toString()]?.currentCount ?? 0}', 'Day Streak', Icons.local_fire_department),
               ],
@@ -717,6 +720,22 @@ class HomeTab extends ConsumerWidget {
       error: (_, __) => const ModernCard(
         child: Text('Error loading profile'),
       ),
+    );
+  }
+
+  Widget _buildPointsChip(BuildContext context) {
+    // Use Points Engine as the single source of truth
+    final pointsEngineProvider = provider.Provider.of<PointsEngineProvider>(context);
+    final pointsEngine = pointsEngineProvider.pointsEngine;
+    
+    return FutureBuilder<void>(
+      future: pointsEngine.initialize(),
+      builder: (context, snapshot) {
+        final profile = pointsEngine.currentProfile;
+        final points = profile?.points.total ?? 0;
+        
+        return _buildStatChip('$points', 'Points', Icons.stars);
+      },
     );
   }
 
@@ -1087,7 +1106,9 @@ class HomeTab extends ConsumerWidget {
             }
             
             // show just the last 3
-            final recent = classifications.take(3).toList();
+            final latest = [...classifications]
+              ..sort((a, b) => b.timestamp.compareTo(a.timestamp));
+            final recent = latest.take(3).toList();
             return ListView.separated(
               physics: const NeverScrollableScrollPhysics(),
               shrinkWrap: true,

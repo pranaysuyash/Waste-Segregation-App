@@ -58,7 +58,7 @@ extension AchievementExtensions on Achievement {
   /// Get semantic label for accessibility
   String getSemanticLabel() {
     final statusText = isEarned ? 'completed' : 'in progress';
-    final progressText = isEarned ? '' : ', ${progressPercentInt}% complete';
+    final progressText = isEarned ? '' : ', $progressPercentInt% complete';
     return '$title, $tierName tier, $statusText$progressText';
   }
 }

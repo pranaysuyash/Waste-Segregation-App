@@ -21,10 +21,6 @@ final disposalInstructionsProvider = FutureProvider.family<DisposalInstructions,
 
 /// Request object for disposal instructions
 class DisposalInstructionsRequest {
-  final String material;
-  final String? category;
-  final String? subcategory;
-  final String lang;
 
   const DisposalInstructionsRequest({
     required this.material,
@@ -32,6 +28,10 @@ class DisposalInstructionsRequest {
     this.subcategory,
     this.lang = 'en',
   });
+  final String material;
+  final String? category;
+  final String? subcategory;
+  final String lang;
 
   @override
   bool operator ==(Object other) {

@@ -165,8 +165,9 @@ class StorageService {
   Future<void> saveClassification(WasteClassification classification) async {
     StoragePerformanceMonitor.startOperation('saveClassification');
     // Create a unique content hash to prevent duplicates
-    final contentHash = '${classification.itemName.toLowerCase().trim()}_${classification.category}_${classification.subcategory}_${classification.userId}';
+    // Include timestamp hour to allow same object at different times/scales
     final now = DateTime.now();
+    final contentHash = '${classification.itemName.toLowerCase().trim()}_${classification.category}_${classification.subcategory}_${classification.userId}_${now.year}${now.month}${now.day}${now.hour}';
     
     // Check if this exact content was saved recently (within 60 seconds)
     final recentSaveTime = _recentSaves[contentHash];
@@ -1146,6 +1147,80 @@ class StorageService {
       debugPrint('📊 Migration completed: $result');
     } catch (e) {
       debugPrint('❌ Migration failed: $e');
+    }
+  }
+
+  /// Migrate existing absolute image paths to relative paths
+  Future<void> migrateImagePathsToRelative() async {
+    try {
+      debugPrint('🔄 Starting image path migration...');
+      
+      final classifications = await getAllClassifications();
+      bool hasChanges = false;
+      
+      for (int i = 0; i < classifications.length; i++) {
+        final classification = classifications[i];
+        
+        // Skip if already has relative path
+        if (classification.imageRelativePath != null) {
+          continue;
+        }
+        
+        // Convert absolute path to relative path
+        if (classification.imageUrl != null && classification.imageUrl!.isNotEmpty) {
+          final relativePath = _convertToRelativePath(classification.imageUrl!);
+          if (relativePath != null) {
+            classifications[i] = classification.copyWith(
+              imageRelativePath: relativePath,
+            );
+            hasChanges = true;
+            debugPrint('🔄 Migrated: ${classification.imageUrl} -> $relativePath');
+          }
+        }
+      }
+      
+      if (hasChanges) {
+        // Use the existing box instead of opening a new one
+        final box = Hive.box<WasteClassification>(StorageKeys.classificationsBox);
+        await box.clear();
+        for (final classification in classifications) {
+          await box.add(classification);
+        }
+        debugPrint('✅ Image path migration completed. Updated ${classifications.length} classifications.');
+      } else {
+        debugPrint('✅ No image path migration needed.');
+      }
+      
+    } catch (e) {
+      debugPrint('🔥 Error during image path migration: $e');
+    }
+  }
+  
+  /// Convert absolute path to relative path
+  String? _convertToRelativePath(String absolutePath) {
+    try {
+      // Extract relative path from common absolute path patterns
+      if (absolutePath.contains('/images/')) {
+        final index = absolutePath.indexOf('/images/');
+        return absolutePath.substring(index + 1); // Remove leading slash
+      }
+      
+      if (absolutePath.contains('\\images\\')) {
+        final index = absolutePath.indexOf('\\images\\');
+        return absolutePath.substring(index + 1).replaceAll('\\', '/');
+      }
+      
+      // If path ends with a filename that looks like an image
+      if (absolutePath.contains('.jpg') || absolutePath.contains('.png') || 
+          absolutePath.contains('.jpeg') || absolutePath.contains('.webp')) {
+        final fileName = absolutePath.split('/').last.split('\\').last;
+        return 'images/$fileName';
+      }
+      
+      return null;
+    } catch (e) {
+      debugPrint('🔥 Error converting path to relative: $e');
+      return null;
     }
   }
 

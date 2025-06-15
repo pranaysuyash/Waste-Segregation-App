@@ -1,0 +1,101 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [ main ]
+  push:
+    branches: [ main ]
+
+jobs:
+  # 1. Static analysis & overflow detection
+  analyze:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: 'stable'
+      - name: Install dependencies
+        run: flutter pub get
+      - name: Dart & Flutter analyze
+        run: |
+          flutter analyze --fatal-infos
+          # custom script to catch overflow in stats cards
+          dart tool/check_overflows.dart lib/widgets/modern_ui/modern_cards.dart
+      - name: Fail if overflow found
+        if: failure()
+        run: echo "::error::Layout overflow detected in stats cards" && exit 1
+
+  # 2. Unit & widget tests (including Firebase init)
+  test:
+    needs: analyze
+    runs-on: ubuntu-latest
+    services:
+      firebase-emulator:
+        image: firebase/emulator:latest
+        ports:
+          - 8080:8080
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: 'stable'
+      - name: Install dependencies
+        run: flutter pub get
+      - name: Stub Firebase for tests
+        run: |
+          # Generate a test config that points to the emulator
+          echo "const useFirebaseEmulator = true;" > test/firebase_config.dart
+      - name: Run all tests
+        run: flutter test --coverage --test-randomize-ordering-seed random
+
+  # 3. Golden tests
+  golden:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: 'stable'
+      - name: Ensure golden_toolkit is added
+        run: |
+          grep -q "golden_toolkit:" pubspec.yaml || (
+            echo "Adding missing golden_toolkit dependency"
+            flutter pub add --dev golden_toolkit
+          )
+      - name: Install dependencies
+        run: flutter pub get
+      - name: Run golden tests
+        run: flutter test --tags=golden
+
+  # 4. Storybook visual diffs
+  storybook:
+    needs: golden
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+      - name: Install Storybook & diff tool
+        run: |
+          npm ci
+      - name: Build Storybook snapshots
+        run: npm run test:storybook
+      - name: Upload Storybook diffs
+        if: failure()
+        run: echo "::error::Visual diff failures detected in Storybook"
+
+  # 5. Auto-merge on success
+  automerge:
+    needs: [ analyze, test, golden, storybook ]
+    if: github.event_name == 'pull_request' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: peter-evans/enable-pull-request-automerge@v2
+        with:
+          merge-method: squash
+          pull-request-number: ${{ github.event.pull_request.number }}
+          token: ${{ secrets.GITHUB_TOKEN }} 

@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:waste_segregation_app/widgets/banner_ad_widget.dart';
 import 'package:waste_segregation_app/services/ad_service.dart';
 import 'package:waste_segregation_app/services/premium_service.dart';
+import '../test_config/test_app_wrapper.dart';
 
 // Simple mock classes without using mockito
 class MockAdService extends AdService {
@@ -45,6 +46,16 @@ void main() {
     late MockAdService mockAdService;
     late MockPremiumService mockPremiumService;
 
+    setUpAll(() async {
+      // Initialize Hive for testing
+      await initializeHiveForTesting();
+    });
+
+    tearDownAll(() async {
+      // Clean up Hive after testing
+      await cleanupHiveAfterTesting();
+    });
+
     setUp(() {
       mockAdService = MockAdService();
       mockPremiumService = MockPremiumService();
@@ -61,10 +72,20 @@ void main() {
             ChangeNotifierProvider<PremiumService>.value(value: mockPremiumService),
           ],
           child: Scaffold(
-            body: BannerAdWidget(
-              height: height ?? 50,
-              showAtBottom: showAtBottom,
-            ),
+            body: showAtBottom 
+              ? Stack(
+                  children: [
+                    Container(), // Empty container as background
+                    BannerAdWidget(
+                      height: height ?? 50,
+                      showAtBottom: showAtBottom,
+                    ),
+                  ],
+                )
+              : BannerAdWidget(
+                  height: height ?? 50,
+                  showAtBottom: showAtBottom,
+                ),
           ),
         ),
       );

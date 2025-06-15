@@ -16,22 +16,55 @@ service cloud.firestore {
         && validateGamificationUpdate(resource.data, request.resource.data);
     }
     
-    // Leaderboards - read-only for users, write-only for Cloud Functions
+    // Leaderboards - read all, write only own entry with strict validation
     match /leaderboard_allTime/{userId} {
       allow read: if request.auth != null;
-      allow write: if false; // Only Cloud Functions can write leaderboards
+      // Only owners can write their doc with strict validation
+      allow write: if request.auth != null 
+        && request.auth.uid == userId
+        && validateLeaderboardEntry(request.resource.data)
+        && request.resource.data.userId == request.auth.uid;
     }
     
-    // Weekly leaderboards
+    // Weekly leaderboards with enhanced validation
     match /leaderboard_weekly/{weekId} {
       allow read: if request.auth != null;
-      allow write: if false; // Only Cloud Functions can write
+      // Users can update their own weekly stats with validation
+      allow write: if request.auth != null 
+        && request.resource.data.userId == request.auth.uid
+        && validateWeeklyLeaderboardEntry(request.resource.data)
+        && isValidWeekId(weekId);
+    }
+    
+    // Community feed - enhanced validation and schema enforcement
+    match /community_feed/{postId} {
+      allow read: if request.auth != null;
+      // Feed items must cite the author (strict validation)
+      allow create: if request.auth != null 
+        && request.resource.data.userId == request.auth.uid
+        && validateCommunityPost(request.resource.data)
+        && hasRequiredCommunityFields(request.resource.data);
+      // Users can only update their own posts with field restrictions
+      allow update: if request.auth != null 
+        && resource.data.userId == request.auth.uid
+        && request.resource.data.userId == request.auth.uid
+        && validateCommunityPostUpdate(resource.data, request.resource.data)
+        && !canModifyRestrictedFields(resource.data, request.resource.data);
+      // Users can only delete their own posts
+      allow delete: if request.auth != null 
+        && resource.data.userId == request.auth.uid;
     }
     
     // Community challenges - read-only for users
     match /community_challenges/{challengeId} {
       allow read: if request.auth != null;
       allow write: if false; // Only admins via Cloud Functions
+    }
+    
+    // Disposal instructions cache - read-only for users
+    match /disposal_instructions/{materialId} {
+      allow read: if request.auth != null;
+      allow write: if false; // Only Cloud Functions can write
     }
     
     // Admin collections - no direct user access
@@ -53,19 +86,96 @@ service cloud.firestore {
     
     // Ensure points can only increase or stay the same (prevent cheating)
     function validatePointsIncrease(oldGamification, newGamification) {
-      return newGamification.points.total >= oldGamification.points.total;
+      return newGamification.points.total >= oldGamification.points.total
+        && newGamification.points.total <= oldGamification.points.total + 1000; // Max 1000 points per update
     }
     
     // Validate achievement progress can only increase
     function validateAchievementProgress(oldGamification, newGamification) {
-      // This is a simplified check - in production, you'd validate each achievement
-      return newGamification.achievements.size() >= oldGamification.achievements.size();
+      return newGamification.achievements.size() >= oldGamification.achievements.size()
+        && newGamification.achievements.size() <= oldGamification.achievements.size() + 5; // Max 5 new achievements per update
     }
     
     // Validate streak updates follow logical rules
     function validateStreakLogic(oldGamification, newGamification) {
-      // Simplified validation - streaks can only increase by 1 per day max
-      return true; // Implement detailed streak validation based on timestamps
+      // Streaks can only increase by 1 per day max, or reset to 0
+      return newGamification.currentStreak == 0 
+        || newGamification.currentStreak <= oldGamification.currentStreak + 1;
+    }
+    
+    // Enhanced leaderboard entry validation with schema enforcement
+    function validateLeaderboardEntry(data) {
+      return data.keys().hasAll(['userId', 'points', 'displayName', 'lastUpdated'])
+        && data.keys().hasOnly(['userId', 'points', 'displayName', 'lastUpdated', 'rank', 'weeklyPoints'])
+        && data.userId is string
+        && data.userId.size() > 0
+        && data.points is number
+        && data.points >= 0
+        && data.points <= 1000000 // Reasonable upper limit
+        && data.displayName is string
+        && data.displayName.size() > 0
+        && data.displayName.size() <= 50
+        && data.lastUpdated is timestamp;
+    }
+    
+    // Enhanced weekly leaderboard validation
+    function validateWeeklyLeaderboardEntry(data) {
+      return data.keys().hasAll(['userId', 'weeklyPoints', 'weekId', 'lastUpdated'])
+        && data.keys().hasOnly(['userId', 'weeklyPoints', 'weekId', 'lastUpdated', 'rank'])
+        && data.userId is string
+        && data.userId.size() > 0
+        && data.weeklyPoints is number
+        && data.weeklyPoints >= 0
+        && data.weeklyPoints <= 10000 // Weekly limit
+        && data.weekId is string
+        && data.weekId.matches('^\\d{4}-W\\d{2}$') // Format: 2025-W24
+        && data.lastUpdated is timestamp;
+    }
+    
+    // Validate week ID format
+    function isValidWeekId(weekId) {
+      return weekId.matches('^\\d{4}-W\\d{2}$');
+    }
+    
+    // Enhanced community post validation with strict schema
+    function validateCommunityPost(data) {
+      return data.keys().hasAll(['userId', 'content', 'timestamp', 'type'])
+        && data.userId is string
+        && data.userId.size() > 0
+        && data.content is string
+        && data.content.size() > 0
+        && data.content.size() <= 1000
+        && data.timestamp is timestamp
+        && data.type in ['classification', 'achievement', 'challenge', 'tip']
+        && (!data.keys().hasAny(['imageUrl']) || (data.imageUrl is string && data.imageUrl.size() <= 500))
+        && (!data.keys().hasAny(['likes']) || (data.likes is number && data.likes >= 0))
+        && (!data.keys().hasAny(['comments']) || (data.comments is number && data.comments >= 0));
+    }
+    
+    // Check if post has required community fields
+    function hasRequiredCommunityFields(data) {
+      return data.keys().hasAll(['userId', 'content', 'timestamp', 'type'])
+        && data.keys().hasOnly(['userId', 'content', 'timestamp', 'type', 'imageUrl', 'likes', 'comments', 'tags']);
+    }
+    
+    // Enhanced community post update validation
+    function validateCommunityPostUpdate(oldData, newData) {
+      return oldData.userId == newData.userId
+        && oldData.timestamp == newData.timestamp
+        && oldData.type == newData.type
+        && newData.content.size() > 0
+        && newData.content.size() <= 1000
+        && (!newData.keys().hasAny(['likes']) || newData.likes >= oldData.get('likes', 0))
+        && (!newData.keys().hasAny(['comments']) || newData.comments >= oldData.get('comments', 0))
+        && (!newData.keys().hasAny(['imageUrl']) || newData.imageUrl == oldData.get('imageUrl', ''));
+    }
+    
+    // Prevent modification of restricted fields
+    function canModifyRestrictedFields(oldData, newData) {
+      // These fields cannot be modified after creation
+      return oldData.userId != newData.userId
+        || oldData.timestamp != newData.timestamp
+        || oldData.type != newData.type;
     }
   }
 } 

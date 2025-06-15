@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:waste_segregation_app/widgets/responsive_text.dart';
 import 'package:waste_segregation_app/widgets/modern_ui/modern_cards.dart';
+import 'package:waste_segregation_app/widgets/modern_ui/modern_cards.dart';
 
 void main() {
   group('ResponsiveText Widget Tests', () {
@@ -294,7 +295,7 @@ void main() {
             body: StatsCard(
               title: 'Performance',
               value: '25',
-              trend: '-5%',
+                              trend: Trend.down,
               isPositiveTrend: false,
             ),
           ),
@@ -351,7 +352,7 @@ void main() {
             body: StatsCard(
               title: 'Test',
               value: '100',
-              trend: '-10%',
+                              trend: Trend.down,
               isPositiveTrend: false,
             ),
           ),

@@ -35,7 +35,7 @@ class GamificationNotifier extends AsyncNotifier<GamificationProfile> {
       );
     } catch (e) {
       if (e is AppException) {
-        throw e;
+        rethrow;
       } else {
         throw AppException.storage('Failed to load gamification profile: $e');
       }
