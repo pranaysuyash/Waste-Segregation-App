@@ -32,8 +32,8 @@ void main() {
       expect(newRouteCount, equals(initialRouteCount + 1),
              reason: 'Should navigate to exactly one new screen');
 
-      // Take a screenshot for visual verification
-      await tester.binding.convertFlutterSurfaceToImage();
+      // Visual verification - app should be in stable state
+      await tester.pumpAndSettle();
     });
 
     testWidgets('Rapid button taps should not cause multiple navigations', (WidgetTester tester) async {
@@ -90,8 +90,10 @@ void main() {
                reason: 'Auto-analyze should not create multiple routes');
 
         // Verify we're on the expected screen
-        expect(find.textContaining('Result').or(find.textContaining('Classification')), 
-               findsAtLeastNWidgets(1));
+        final resultFinder = find.textContaining('Result');
+        final classificationFinder = find.textContaining('Classification');
+        expect(resultFinder.evaluate().isNotEmpty || classificationFinder.evaluate().isNotEmpty, 
+               isTrue, reason: 'Should find either Result or Classification text');
       }
     });
 
@@ -164,8 +166,8 @@ void main() {
         // Let animations complete
         await tester.pumpAndSettle(const Duration(seconds: 2));
         
-        // Take screenshot to verify final state
-        await tester.binding.convertFlutterSurfaceToImage();
+        // Verify final state is stable
+        await tester.pumpAndSettle();
         
         // Verify no duplicate screens are visible
         expect(find.byType(Scaffold), findsOneWidget);

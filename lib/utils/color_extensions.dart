@@ -8,12 +8,12 @@ extension ColorValues on Color {
   Color withValues({double? alpha, int? red, int? green, int? blue}) {
     final a = alpha != null
         ? (alpha.clamp(0.0, 1.0) * 255).round()
-        : (value >> 24) & 0xff;
+        : this.a.toInt();
     return Color.fromARGB(
       a,
-      red ?? (value >> 16) & 0xff,
-      green ?? (value >> 8) & 0xff,
-      blue ?? value & 0xff,
+      red ?? this.r.toInt(),
+      green ?? this.g.toInt(),
+      blue ?? this.b.toInt(),
     );
   }
 }

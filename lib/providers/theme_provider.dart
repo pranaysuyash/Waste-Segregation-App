@@ -15,7 +15,15 @@ class ThemeProvider extends ChangeNotifier {
   Future<void> _loadThemeMode() async {
     _prefs = await SharedPreferences.getInstance();
     final themeModeIndex = _prefs?.getInt(StorageKeys.themeModeKey) ?? 1;
-    _themeMode = ThemeMode.values[themeModeIndex];
+    
+    // Validate the index is within valid range
+    if (themeModeIndex >= 0 && themeModeIndex < ThemeMode.values.length) {
+      _themeMode = ThemeMode.values[themeModeIndex];
+    } else {
+      // Fallback to light theme for invalid indices
+      _themeMode = ThemeMode.light;
+    }
+    
     notifyListeners();
   }
 

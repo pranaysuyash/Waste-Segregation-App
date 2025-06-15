@@ -9,12 +9,10 @@ void main() {
   group('UI Overflow Fixes Tests', () {
     testWidgets('Classification feedback chips handle overflow correctly', (WidgetTester tester) async {
       // Create a test classification
-      final classification = WasteClassification(
+      final classification = WasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
         itemName: 'Very Long Item Name That Could Cause Overflow Issues',
-        category: 'Very Long Category Name',
         subcategory: 'Very Long Subcategory Name',
         explanation: 'Test explanation',
-        disposalInstructions: DisposalInstructions(
           primaryMethod: 'Test method',
           steps: ['Test step'],
           hasUrgentTimeframe: false,
@@ -56,12 +54,10 @@ void main() {
     });
 
     testWidgets('History list item handles long category names', (WidgetTester tester) async {
-      final classification = WasteClassification(
+      final classification = WasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
         itemName: 'Very Long Item Name That Could Cause Overflow',
-        category: 'Very Long Category Name That Might Overflow',
         subcategory: 'Very Long Subcategory Name',
         explanation: 'Test explanation',
-        disposalInstructions: DisposalInstructions(
           primaryMethod: 'Test method',
           steps: ['Test step'],
           hasUrgentTimeframe: false,
@@ -129,11 +125,9 @@ void main() {
     });
 
     testWidgets('Modal dialogs have proper height constraints', (WidgetTester tester) async {
-      final classification = WasteClassification(
+      final classification = WasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
         itemName: 'Test Item',
-        category: 'Test Category',
         explanation: 'Test explanation',
-        disposalInstructions: DisposalInstructions(
           primaryMethod: 'Test method',
           steps: ['Test step'],
           hasUrgentTimeframe: false,

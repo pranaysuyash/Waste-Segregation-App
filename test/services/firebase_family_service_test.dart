@@ -150,13 +150,15 @@ void main() {
 
     group('Family Data Synchronization', () {
       test('should sync classification to family', () async {
-        final classification = WasteClassification(
+        final classification = WasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
           itemName: 'Test Item',
-          category: 'Dry Waste',
           subcategory: 'Plastic',
           isRecyclable: true,
           isCompostable: false,
           requiresSpecialDisposal: false,
+            region: 'Test Region',
+            visualFeatures: ['test feature'],
+            alternatives: [],
           timestamp: DateTime.now(),
           imageUrl: 'test.jpg',
           confidence: 0.95,

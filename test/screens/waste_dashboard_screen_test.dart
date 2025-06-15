@@ -25,12 +25,14 @@ void main() {
 
       // Create test data
       testClassifications = [
-        WasteClassification(
+        WasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
           id: 'test1',
           itemName: 'Plastic Bottle',
-          category: 'Dry Waste',
           subcategory: 'Plastic',
           confidence: 0.95,
+            region: 'Test Region',
+            visualFeatures: ['test feature'],
+            alternatives: [],
           timestamp: DateTime.now().subtract(const Duration(days: 5)),
           imageUrl: 'test_url_1',
           source: 'ai',
@@ -43,12 +45,14 @@ void main() {
             hasUrgentTimeframe: false,
           ),
         ),
-        WasteClassification(
+        WasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
           id: 'test2',
           itemName: 'Food Scraps',
-          category: 'Wet Waste',
           subcategory: 'Food Waste',
           confidence: 0.87,
+            region: 'Test Region',
+            visualFeatures: ['test feature'],
+            alternatives: [],
           timestamp: DateTime.now().subtract(const Duration(days: 3)),
           imageUrl: 'test_url_2',
           source: 'ai',
@@ -61,12 +65,14 @@ void main() {
             hasUrgentTimeframe: false,
           ),
         ),
-        WasteClassification(
+        WasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
           id: 'test3',
           itemName: 'Battery',
-          category: 'Hazardous Waste',
           subcategory: 'Batteries',
           confidence: 0.92,
+            region: 'Test Region',
+            visualFeatures: ['test feature'],
+            alternatives: [],
           timestamp: DateTime.now().subtract(const Duration(days: 1)),
           imageUrl: 'test_url_3',
           source: 'ai',
@@ -686,12 +692,14 @@ void main() {
     group('Performance and Edge Cases', () {
       testWidgets('should handle large datasets efficiently', (tester) async {
         final largeDataset = List.generate(1000, (index) =>
-          WasteClassification(
+          WasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
             id: 'test_$index',
             itemName: 'Item $index',
-            category: ['Dry Waste', 'Wet Waste', 'Hazardous Waste'][index % 3],
             subcategory: 'Subcategory $index',
             confidence: 0.8,
+            region: 'Test Region',
+            visualFeatures: ['test feature'],
+            alternatives: [],
             timestamp: DateTime.now().subtract(Duration(days: index % 30)),
             imageUrl: 'test_url_$index',
             source: 'ai',
@@ -707,7 +715,7 @@ void main() {
         );
 
         when(mockStorageService.getAllClassifications())
-            .thenAnswer((_) async => largeDataset);
+            .thenAnswer((_) async => largeDataset.cast<WasteClassification>());
 
         final stopwatch = Stopwatch()..start();
 
@@ -722,11 +730,13 @@ void main() {
       });
 
       testWidgets('should handle classifications with null values', (tester) async {
-        final classificationWithNulls = WasteClassification(
+        final classificationWithNulls = WasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
           id: 'test_null',
           itemName: 'Test Item',
-          category: 'Unknown',
           confidence: 0.5,
+            region: 'Test Region',
+            visualFeatures: ['test feature'],
+            alternatives: [],
           timestamp: DateTime.now(),
           imageUrl: 'test_url',
           source: 'ai',

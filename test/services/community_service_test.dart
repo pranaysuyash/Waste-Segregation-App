@@ -36,12 +36,10 @@ void main() {
 
     group('Activity Tracking', () {
       test('should track classification activities correctly', () async {
-        final classification = WasteClassification(
+        final classification = WasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
           itemName: 'Plastic Bottle',
-          category: 'Dry Waste',
           subcategory: 'Plastic',
           explanation: 'Recyclable plastic bottle',
-          disposalInstructions: DisposalInstructions(
             primaryMethod: 'Recycle',
             steps: ['Clean', 'Recycle'],
             hasUrgentTimeframe: false,
@@ -464,10 +462,8 @@ void main() {
       });
 
       test('should anonymize sensitive data in activities', () async {
-        final sensitiveClassification = WasteClassification(
+        final sensitiveClassification = WasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
           itemName: 'Medication Bottle with Personal Label',
-          category: 'Hazardous Waste', 
-          disposalInstructions: DisposalInstructions(primaryMethod: 'Test', steps: [], hasUrgentTimeframe: false),
           timestamp: DateTime.now(), explanation: '', region: '', alternatives: [], visualFeatures: [], confidence: 0.9, userId: 'user_medical',
           subcategory: 'Medical'
         );
@@ -755,12 +751,10 @@ void main() {
 
 // Helper to create a test WasteClassification
 WasteClassification _createTestClassification({String? userId, DateTime? timestamp}) {
-  return WasteClassification(
+  return WasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
     itemName: 'Test Item',
-    category: 'Recyclable',
     subcategory: 'Test Subcategory',
     explanation: 'Test explanation',
-    disposalInstructions: DisposalInstructions(
       primaryMethod: 'Recycle Bin',
       steps: ['Step 1', 'Step 2'],
       hasUrgentTimeframe: false,

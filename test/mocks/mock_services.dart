@@ -25,11 +25,13 @@ class MockAiService extends Mock implements AiService {
     String? instructionsLang,
     String? classificationId,
   }) async {
-    return WasteClassification(
+    return WasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
       id: 'mock-id',
       itemName: 'Mock Item',
-      category: 'Mock Category',
       confidence: 0.95,
+            region: 'Test Region',
+            visualFeatures: ['test feature'],
+            alternatives: [],
       timestamp: DateTime.now(),
       imageRelativePath: 'images/mock_image.jpg',
       userId: 'mock-user',
@@ -52,11 +54,13 @@ class MockAiService extends Mock implements AiService {
     String? instructionsLang,
     String? classificationId,
   }) async {
-    return WasteClassification(
+    return WasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
       id: 'mock-id',
       itemName: 'Mock Item',
-      category: 'Mock Category',
       confidence: 0.95,
+            region: 'Test Region',
+            visualFeatures: ['test feature'],
+            alternatives: [],
       timestamp: DateTime.now(),
       imageRelativePath: 'images/$imageName',
       userId: 'mock-user',

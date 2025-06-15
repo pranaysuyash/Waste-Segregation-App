@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:patrol/patrol.dart';
-import 'package:waste_segregation_app/main.dart' as app;
+// Removed unused import: main.dart
 
 void main() {
   patrolTest(
@@ -17,7 +17,7 @@ void main() {
       await $(#homeScreen).waitUntilVisible();
       
       // Test camera/classification flow
-      if (await $(#classifyButton).exists) {
+      if ($(#classifyButton).exists) {
         await $(#classifyButton).tap();
         await $(#cameraScreen).waitUntilVisible();
         
@@ -29,7 +29,7 @@ void main() {
       }
 
       // Test history navigation
-      if (await $(#historyButton).exists) {
+      if ($(#historyButton).exists) {
         await $(#historyButton).tap();
         await $(#historyScreen).waitUntilVisible();
         
@@ -40,13 +40,13 @@ void main() {
       }
 
       // Test achievements
-      if (await $(#achievementsButton).exists) {
+      if ($(#achievementsButton).exists) {
         await $(#achievementsButton).tap();
         await $(#achievementsScreen).waitUntilVisible();
         
         // Test achievement claiming (if any available)
         final claimButtons = $(#claimButton);
-        if (await claimButtons.exists) {
+        if (claimButtons.exists) {
           await claimButtons.tap();
           // Verify points update
           await $(#pointsDisplay).waitUntilVisible();
@@ -64,7 +64,7 @@ void main() {
       await Future.delayed(const Duration(seconds: 2));
 
       // Navigate to premium features
-      if (await $(#premiumButton).exists) {
+      if ($(#premiumButton).exists) {
         await $(#premiumButton).tap();
         await $(#premiumScreen).waitUntilVisible();
         
@@ -72,7 +72,7 @@ void main() {
         await $(#premiumBanner).waitUntilVisible();
         
         // Test upgrade button
-        if (await $(#upgradeButton).exists) {
+        if ($(#upgradeButton).exists) {
           await $(#upgradeButton).tap();
           // Handle potential system dialogs for payments
           await $.native.grantPermissionWhenInUse();
@@ -91,14 +91,14 @@ void main() {
       await $(#pointsDisplay).waitUntilVisible();
       
       // Get initial points value
-      final initialPointsText = await $(#pointsDisplay).text;
+      final initialPointsText = $(#pointsDisplay).text;
       
       // Perform an action that should award points (mock classification)
-      if (await $(#classifyButton).exists) {
+      if ($(#classifyButton).exists) {
         await $(#classifyButton).tap();
         
         // Simulate successful classification
-        if (await $(#mockClassificationButton).exists) {
+        if ($(#mockClassificationButton).exists) {
           await $(#mockClassificationButton).tap();
           
           // Navigate back to home
@@ -106,7 +106,7 @@ void main() {
           
           // Verify points increased
           await $(#pointsDisplay).waitUntilVisible();
-          final newPointsText = await $(#pointsDisplay).text;
+          final newPointsText = $(#pointsDisplay).text;
           
           // Points should have changed
           expect(newPointsText, isNot(equals(initialPointsText)));
@@ -122,28 +122,28 @@ void main() {
       await Future.delayed(const Duration(seconds: 2));
 
       // Navigate to settings
-      if (await $(#settingsButton).exists) {
+      if ($(#settingsButton).exists) {
         await $(#settingsButton).tap();
         await $(#settingsScreen).waitUntilVisible();
         
         // Test theme toggle
-        if (await $(#themeToggle).exists) {
+        if ($(#themeToggle).exists) {
           await $(#themeToggle).tap();
           // Verify theme change (visual test would be better)
         }
         
         // Test notification settings
-        if (await $(#notificationToggle).exists) {
+        if ($(#notificationToggle).exists) {
           await $(#notificationToggle).tap();
           // Handle system permission dialog if needed
           await $.native.grantPermissionWhenInUse();
         }
         
         // Test language settings
-        if (await $(#languageSelector).exists) {
+        if ($(#languageSelector).exists) {
           await $(#languageSelector).tap();
           // Select a different language if available
-          if (await $(#languageOption).exists) {
+          if ($(#languageOption).exists) {
             await $(#languageOption).tap();
           }
         }
@@ -162,7 +162,7 @@ void main() {
       await $.native.disableCellular();
       
       // Try to perform network-dependent action
-      if (await $(#classifyButton).exists) {
+      if ($(#classifyButton).exists) {
         await $(#classifyButton).tap();
         
         // Should show offline message

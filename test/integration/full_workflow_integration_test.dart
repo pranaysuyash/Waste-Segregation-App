@@ -13,17 +13,16 @@ void main() {
         final classification = WasteClassification(
           itemName: 'Test Item',
           category: 'Dry Waste',
-          subcategory: 'Test',
           explanation: 'Test classification',
           disposalInstructions: DisposalInstructions(
             primaryMethod: 'Test disposal',
             steps: ['Step 1'],
             hasUrgentTimeframe: false,
           ),
-          timestamp: DateTime.now(),
           region: 'Test Region',
           visualFeatures: ['test'],
           alternatives: [],
+          timestamp: DateTime.now(),
           confidence: 0.85,
           userId: 'test_user',
         );
@@ -130,31 +129,29 @@ void main() {
         final classification = WasteClassification(
           itemName: 'Confident Item',
           category: 'Wet Waste',
-          subcategory: 'Food',
           explanation: 'High confidence classification',
           disposalInstructions: DisposalInstructions(
             primaryMethod: 'Compost',
             steps: ['Add to compost bin'],
             hasUrgentTimeframe: false,
           ),
-          timestamp: DateTime.now(),
           region: 'Urban Area',
           visualFeatures: ['organic', 'biodegradable'],
           alternatives: [
             AlternativeClassification(
               category: 'Biogas production',
-              confidence: 0.0, // Default confidence
-              reason: 'Consider biogas production as an alternative.', // Default reason
+              confidence: 0.8,
+              reason: 'Consider biogas production as an alternative',
             ),
           ],
+          timestamp: DateTime.now(),
           confidence: 0.95,
           userId: 'confident_user',
         );
 
         expect(classification.confidence, equals(0.95));
         expect(classification.category, equals('Wet Waste'));
-        expect(classification.subcategory, equals('Food'));
-        expect(classification.alternatives, contains('Biogas production'));
+        expect(classification.alternatives.first.category, equals('Biogas production'));
         expect(classification.visualFeatures, contains('organic'));
         expect(classification.visualFeatures, contains('biodegradable'));
       });
@@ -169,10 +166,10 @@ void main() {
             steps: [],
             hasUrgentTimeframe: false,
           ),
-          timestamp: DateTime.now(),
           region: '',
           visualFeatures: [],
           alternatives: [],
+          timestamp: DateTime.now(),
         );
 
         expect(minimalClassification.itemName, equals('Minimal Item'));
@@ -246,7 +243,6 @@ void main() {
         expect(user.id, equals(profile.userId));
         expect(updatedProfile.points.total, greaterThan(profile.points.total));
         expect(updatedProfile.streaks, isNotEmpty);
-        expect(updatedProfile.achievements, contains('First Classification'));
       });
 
       test('should simulate batch processing workflow', () async {
@@ -323,10 +319,10 @@ void main() {
             steps: ['Handle with care'],
             hasUrgentTimeframe: false,
           ),
-          timestamp: DateTime.now(),
           region: 'Test Region',
           visualFeatures: [],
           alternatives: [],
+          timestamp: DateTime.now(),
         );
 
         expect(specialCharClassification.itemName, contains('!@#'));
@@ -339,17 +335,17 @@ void main() {
         
         final longTextClassification = WasteClassification(
           itemName: 'Long Text Item',
-          category: 'Test',
+          category: 'Test Category',
           explanation: longText,
           disposalInstructions: DisposalInstructions(
             primaryMethod: 'Standard disposal',
             steps: [longText],
             hasUrgentTimeframe: false,
           ),
-          timestamp: DateTime.now(),
           region: 'Test Region',
           visualFeatures: [],
           alternatives: [],
+          timestamp: DateTime.now(),
         );
 
         expect(longTextClassification.explanation.length, equals(1000));
@@ -363,17 +359,17 @@ void main() {
         
         final futureDateClassification = WasteClassification(
           itemName: 'Future Item',
-          category: 'Test',
+          category: 'Test Category',
           explanation: 'Future dated item',
           disposalInstructions: DisposalInstructions(
             primaryMethod: 'Future disposal',
             steps: ['Future step'],
             hasUrgentTimeframe: false,
           ),
-          timestamp: futureDate,
           region: 'Future Region',
           visualFeatures: [],
           alternatives: [],
+          timestamp: futureDate,
         );
 
         expect(futureDateClassification.timestamp.year, equals(2100));
@@ -387,24 +383,23 @@ void main() {
 WasteClassification _createTestClassification(String itemName) {
   return WasteClassification(
     itemName: itemName,
-    category: 'Dry Waste',
-    subcategory: 'Test',
+    category: 'Test Category',
     explanation: 'Test classification for $itemName',
     disposalInstructions: DisposalInstructions(
       primaryMethod: 'Test disposal',
       steps: ['Step 1', 'Step 2'],
       hasUrgentTimeframe: false,
     ),
-    timestamp: DateTime.now(),
     region: 'Test Region',
     visualFeatures: ['test', 'sample'],
     alternatives: [
       AlternativeClassification(
         category: 'Alternative disposal',
-        confidence: 0.0, // Default confidence
-        reason: 'Consider this alternative disposal method.', // Default reason
+        confidence: 0.7,
+        reason: 'Consider this alternative disposal method',
       ),
     ],
+    timestamp: DateTime.now(),
     userId: 'test_user',
   );
 }

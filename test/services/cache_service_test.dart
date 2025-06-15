@@ -22,12 +22,10 @@ void main() {
         final imageData = Uint8List.fromList([1, 2, 3, 4, 5]);
         final imageHash = sha256.convert(imageData).toString();
         
-        final classification = WasteClassification(
+        final classification = WasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
           itemName: 'Plastic Bottle',
-          category: 'Dry Waste',
           subcategory: 'Plastic',
           explanation: 'Recyclable plastic bottle',
-          disposalInstructions: DisposalInstructions(
             primaryMethod: 'Recycle',
             steps: ['Clean', 'Recycle'],
             hasUrgentTimeframe: false,
@@ -97,11 +95,9 @@ void main() {
         // Add items beyond the limit
         for (var i = 0; i < maxCacheSize + 5; i++) {
           final imageHash = 'hash_$i';
-          final classification = WasteClassification(
+          final classification = WasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
             itemName: 'Item $i',
-            category: 'Dry Waste',
             explanation: 'Test item $i',
-            disposalInstructions: DisposalInstructions(
               primaryMethod: 'Test',
               steps: ['Step 1'],
               hasUrgentTimeframe: false,
@@ -410,12 +406,10 @@ void main() {
 
 // Helper function to create test classifications
 WasteClassification _createTestClassification(String itemName) {
-  return WasteClassification(
+  return WasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
     itemName: itemName,
-    category: 'Dry Waste',
     subcategory: 'Test',
     explanation: 'Test classification for $itemName',
-    disposalInstructions: DisposalInstructions(
       primaryMethod: 'Test disposal',
       steps: ['Step 1', 'Step 2'],
       hasUrgentTimeframe: false,

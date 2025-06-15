@@ -37,12 +37,10 @@ void main() {
       mockAiService = MockAiService();
       mockImageBytes = Uint8List.fromList([0xFF, 0xD8, 0xFF, 0xE0]); // Mock JPEG header
       
-      mockClassification = WasteClassification(
+      mockClassification = WasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
         itemName: 'Test Plastic Bottle',
-        category: 'Dry Waste',
         subcategory: 'Plastic',
         explanation: 'Test recyclable plastic bottle',
-        disposalInstructions: DisposalInstructions(
           primaryMethod: 'Recycle',
           steps: ['Step 1', 'Step 2'],
           hasUrgentTimeframe: false,

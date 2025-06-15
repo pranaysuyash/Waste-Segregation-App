@@ -20,15 +20,16 @@ void main() {
 
     testWidgets('should not call setState after dispose during async operations', (WidgetTester tester) async {
       // Create a test classification
-      final testClassification = WasteClassification(
+      final testClassification = WasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
         id: 'test-1',
         itemName: 'Test Item',
-        category: 'Dry Waste',
         subcategory: 'Plastic',
         confidence: 0.95,
         explanation: 'Test explanation',
-        disposalInstructions: 'Test disposal',
-        imagePath: 'test/path',
+        imageUrl: 'test/path',
+            region: 'Test Region',
+            visualFeatures: ['test feature'],
+            alternatives: [],
         timestamp: DateTime.now(),
         userId: 'test-user',
       );
@@ -75,15 +76,16 @@ void main() {
 
     testWidgets('should handle rapid navigation without memory leaks', (WidgetTester tester) async {
       final testClassifications = List.generate(50, (index) => 
-        WasteClassification(
+        WasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
           id: 'test-$index',
           itemName: 'Test Item $index',
-          category: 'Dry Waste',
           subcategory: 'Plastic',
           confidence: 0.95,
           explanation: 'Test explanation $index',
-          disposalInstructions: 'Test disposal $index',
-          imagePath: 'test/path$index',
+          imageUrl: 'test/path$index',
+            region: 'Test Region',
+            visualFeatures: ['test feature'],
+            alternatives: [],
           timestamp: DateTime.now().subtract(Duration(days: index)),
           userId: 'test-user',
         ),
@@ -156,15 +158,16 @@ void main() {
     });
 
     testWidgets('should handle export operation cancellation gracefully', (WidgetTester tester) async {
-      final testClassification = WasteClassification(
+      final testClassification = WasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
         id: 'test-1',
         itemName: 'Test Item',
-        category: 'Dry Waste',
         subcategory: 'Plastic',
         confidence: 0.95,
         explanation: 'Test explanation',
-        disposalInstructions: 'Test disposal',
-        imagePath: 'test/path',
+        imageUrl: 'test/path',
+            region: 'Test Region',
+            visualFeatures: ['test feature'],
+            alternatives: [],
         timestamp: DateTime.now(),
         userId: 'test-user',
       );
@@ -214,15 +217,16 @@ void main() {
 
     testWidgets('should handle filter operations during disposal', (WidgetTester tester) async {
       final testClassifications = List.generate(10, (index) => 
-        WasteClassification(
+        WasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
           id: 'test-$index',
           itemName: 'Test Item $index',
-          category: index % 2 == 0 ? 'Dry Waste' : 'Wet Waste',
           subcategory: 'Test Subcategory',
           confidence: 0.95,
           explanation: 'Test explanation $index',
-          disposalInstructions: 'Test disposal $index',
-          imagePath: 'test/path$index',
+          imageUrl: 'test/path$index',
+            region: 'Test Region',
+            visualFeatures: ['test feature'],
+            alternatives: [],
           timestamp: DateTime.now().subtract(Duration(days: index)),
           userId: 'test-user',
         ),

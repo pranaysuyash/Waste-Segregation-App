@@ -10,17 +10,15 @@ void main() {
     late WasteClassification mockClassification;
 
     setUp(() {
-      mockClassification = WasteClassification(
+      mockClassification = WasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
         id: 'test-id',
         itemName: 'Plastic Bottle',
-        category: 'Dry Waste',
         subcategory: 'Plastic',
         materialType: 'PET Plastic',
         explanation: 'This is a plastic bottle made of PET plastic',
         region: 'Test Region',
         visualFeatures: ['transparent', 'bottle-shaped'],
         alternatives: [],
-        disposalInstructions: DisposalInstructions(
           primaryMethod: 'Recycle in blue bin',
           steps: ['Clean the bottle', 'Remove cap', 'Place in recycling bin'],
           hasUrgentTimeframe: false,

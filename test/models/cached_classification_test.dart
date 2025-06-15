@@ -18,12 +18,10 @@ void main() {
 
     setUp(() {
       testTimestamp = DateTime.parse('2024-01-15T10:30:00Z');
-      mockClassification = WasteClassification(
+      mockClassification = WasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
         itemName: 'Plastic Water Bottle',
-        category: 'Dry Waste',
         subcategory: 'Plastic',
         explanation: 'Clear plastic bottle, recyclable with PET code 1',
-        disposalInstructions: DisposalInstructions(
           primaryMethod: 'Recycle in blue bin',
           steps: ['Remove cap and label', 'Rinse thoroughly', 'Place in recycling bin'],
           hasUrgentTimeframe: false,
@@ -357,12 +355,10 @@ void main() {
       });
 
       test('should handle classification with all optional fields', () {
-        final fullClassification = WasteClassification(
+        final fullClassification = WasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
           itemName: 'Complex Item',
-          category: 'Hazardous Waste',
           subcategory: 'Chemical',
           explanation: 'Complex hazardous chemical requiring special handling',
-          disposalInstructions: DisposalInstructions(
             primaryMethod: 'Special facility disposal',
             steps: ['Contact facility', 'Use protective equipment', 'Transport safely'],
             hasUrgentTimeframe: true,

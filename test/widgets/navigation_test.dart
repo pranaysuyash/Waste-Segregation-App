@@ -24,12 +24,10 @@ void main() {
       mockStorageService = MockStorageService();
       mockGamificationService = MockGamificationService();
       
-      mockClassification = WasteClassification(
+      mockClassification = WasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
         id: 'test-id',
         itemName: 'Test Item',
-        category: 'Test Category',
         explanation: 'Test explanation',
-        disposalInstructions: DisposalInstructions(
           primaryMethod: 'Test method',
           steps: ['Test step'],
           hasUrgentTimeframe: false,

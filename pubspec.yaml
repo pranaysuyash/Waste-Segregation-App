@@ -5,7 +5,7 @@ publish_to: 'none'
 version: 0.1.6+99
 
 environment:
-  sdk: '>=3.0.0 <4.0.0'
+  sdk: '>=3.5.0 <4.0.0'
 
 dependencies:
   flutter:
@@ -19,10 +19,10 @@ dependencies:
   image_picker_for_web: ^3.0.1
   camera: ^0.11.1  # Updated to latest
   path_provider: ^2.1.1
-  path: ^1.9.0
+  path: ^1.8.3
   # google_sign_in upgraded in Firebase section to ensure compatibility
-  googleapis: ^14.0.0  # Updated to latest major
-  googleapis_auth: ^2.0.0  # Updated to latest major
+  googleapis: ^13.2.0  # Compatible with Dart SDK 3.5.0
+  googleapis_auth: ^1.6.0  # Compatible with Dart SDK 3.5.0
   share_plus: ^7.2.2  # Keep current major for compatibility
   cross_file: ^0.3.3+8  # Required for XFile for share_plus
   hive: ^2.2.3
@@ -33,16 +33,16 @@ dependencies:
   openai_api: ^0.3.7  # Updated to latest
   crypto: ^3.0.3  # For SHA-256 hashing
   image: ^4.0.17  # For image preprocessing
-  google_mobile_ads: ^6.0.0  # Updated for iOS compatibility
-  fl_chart: ^1.0.0  # Updated to new major version with new API
+  google_mobile_ads: ^5.0.0  # Compatible with Dart SDK 3.5.0 and webview_flutter 4.8.0
+  fl_chart: ^0.68.0  # Compatible with Dart SDK 3.5.0
   # REPLACED: flutter_markdown (discontinued) with markdown_widget
   markdown_widget: ^2.3.2+6  # Community-maintained alternative with rich features
   intl: any  # For internationalization and date formatting (version managed by flutter_localizations)
-  webview_flutter: ^4.13.0  # Updated to latest
+  webview_flutter: ^4.8.0  # Compatible with Dart SDK 3.5.0 and google_mobile_ads
   # Updated Firebase dependencies with web-compatible versions
   firebase_core: ^3.14.0  # Updated to latest
   firebase_auth: ^5.6.0  # Updated to latest
-  google_sign_in: ^6.3.0  # Updated for iOS compatibility
+  google_sign_in: ^6.2.0  # Compatible with Dart SDK 3.5.0
   firebase_crashlytics: ^4.3.7  # Updated to latest
   firebase_performance: ^0.10.1+7  # Updated to latest
   firebase_messaging: ^15.2.7  # Updated to latest
@@ -51,7 +51,7 @@ dependencies:
   app_links: ^6.3.2  # Official replacement for uni_links and deep linking
   qr_flutter: ^4.1.0  # For QR code generation
   # mobile_scanner: ^4.0.1  # Temporarily disabled due to dependency conflicts
-  video_player: ^2.10.0  # Updated to latest
+  video_player: ^2.9.1  # Compatible with current Dart SDK
   url_launcher: ^6.3.0  # For launching URLs and making phone calls
   uuid: ^4.5.0  # For generating unique IDs
   auto_size_text: ^3.0.0  # For responsive text that auto-adjusts font size
@@ -111,6 +111,14 @@ dev_dependencies:
   firebase_storage: any
 dependency_overrides:
   web: ^1.1.1  # Override to resolve Firebase and package_info_plus conflicts
+  path: 1.8.3  # Pin to version required by integration_test from Flutter SDK
+  video_player_platform_interface: ^6.2.0  # Ensure compatibility
+  google_sign_in: 6.2.0  # Pin to exact version compatible with Dart SDK 3.5.0
+  webview_flutter: 4.8.0  # Pin to version compatible with Dart SDK 3.5.0
+  fl_chart: 0.68.0  # Pin to version compatible with Dart SDK 3.5.0
+  google_mobile_ads: 5.0.0  # Pin to version compatible with Dart SDK 3.5.0
+  googleapis_auth: 1.6.0  # Pin to version compatible with Dart SDK 3.5.0
+  googleapis: 13.2.0  # Pin to version compatible with Dart SDK 3.5.0
 
 flutter:
   uses-material-design: true

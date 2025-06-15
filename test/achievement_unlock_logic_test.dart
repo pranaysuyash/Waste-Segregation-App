@@ -34,13 +34,15 @@ void main() {
       await storageService.clearClassifications();
 
       // When: User makes their first classification
-      final classification = WasteClassification(
+      final classification = WasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
         itemName: 'Plastic Bottle',
-        category: 'Dry Waste',
         subcategory: 'Recyclable Plastic',
         isRecyclable: true,
         isCompostable: false,
         requiresSpecialDisposal: false,
+            region: 'Test Region',
+            visualFeatures: ['test feature'],
+            alternatives: [],
         timestamp: DateTime(2023, 1, 1, 10),
         imageUrl: 'test.jpg',
         confidence: 0.95,
@@ -71,13 +73,15 @@ void main() {
       await storageService.clearClassifications();
       
       for (var i = 0; i < 49; i++) {
-        final classification = WasteClassification(
+        final classification = WasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
           itemName: 'Recyclable Item $i',
-          category: 'Dry Waste',
           subcategory: 'Recyclable',
           isRecyclable: true,
           isCompostable: false,
           requiresSpecialDisposal: false,
+            region: 'Test Region',
+            visualFeatures: ['test feature'],
+            alternatives: [],
           timestamp: DateTime(2023, 1, 1, 10),
           imageUrl: 'test.jpg',
           confidence: 0.95,
@@ -96,13 +100,15 @@ void main() {
       }
 
       // When: User classifies their 50th recyclable item
-      final finalClassification = WasteClassification(
+      final finalClassification = WasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
         itemName: 'Final Recyclable',
-        category: 'Dry Waste',
         subcategory: 'Recyclable',
         isRecyclable: true,
         isCompostable: false,
         requiresSpecialDisposal: false,
+            region: 'Test Region',
+            visualFeatures: ['test feature'],
+            alternatives: [],
         timestamp: DateTime(2023, 1, 1, 11),
         imageUrl: 'test.jpg',
         confidence: 0.95,
@@ -136,13 +142,15 @@ void main() {
 
       // Test various classification types and their point values
       final classifications = [
-        WasteClassification(
+        WasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
           itemName: 'Compost',
-          category: 'Wet Waste',
           subcategory: 'Organic',
           isRecyclable: false,
           isCompostable: true,
           requiresSpecialDisposal: false,
+            region: 'Test Region',
+            visualFeatures: ['test feature'],
+            alternatives: [],
           timestamp: DateTime(2023, 1, 1, 10),
           imageUrl: 'test.jpg',
           confidence: 0.95,
@@ -157,13 +165,15 @@ void main() {
             hasUrgentTimeframe: false,
           ),
         ),
-        WasteClassification(
+        WasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
           itemName: 'Battery',
-          category: 'Hazardous Waste',
           subcategory: 'Electronic Waste',
           isRecyclable: false,
           isCompostable: false,
           requiresSpecialDisposal: true,
+            region: 'Test Region',
+            visualFeatures: ['test feature'],
+            alternatives: [],
           timestamp: DateTime(2023, 1, 1, 11),
           imageUrl: 'test.jpg',
           confidence: 0.95,
@@ -194,13 +204,15 @@ void main() {
       await storageService.clearClassifications();
       
       // Simulate classifications on consecutive days
-      final classification1 = WasteClassification(
+      final classification1 = WasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
         itemName: 'Day 1 Item',
-        category: 'Dry Waste',
         subcategory: 'Recyclable',
         isRecyclable: true,
         isCompostable: false,
         requiresSpecialDisposal: false,
+            region: 'Test Region',
+            visualFeatures: ['test feature'],
+            alternatives: [],
         timestamp: DateTime(2023, 1, 1, 10),
         imageUrl: 'test.jpg',
         confidence: 0.95,
@@ -215,13 +227,15 @@ void main() {
           hasUrgentTimeframe: false,
         ),
       );
-      final classification2 = WasteClassification(
+      final classification2 = WasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
         itemName: 'Day 2 Item',
-        category: 'Dry Waste',
         subcategory: 'Recyclable',
         isRecyclable: true,
         isCompostable: false,
         requiresSpecialDisposal: false,
+            region: 'Test Region',
+            visualFeatures: ['test feature'],
+            alternatives: [],
         timestamp: DateTime(2023, 1, 2, 10),
         imageUrl: 'test.jpg',
         confidence: 0.95,
@@ -237,13 +251,15 @@ void main() {
         ),
       );
 
-      final classification3 = WasteClassification(
+      final classification3 = WasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
         itemName: 'Day 3 Item',
-        category: 'Dry Waste',
         subcategory: 'Recyclable',
         isRecyclable: true,
         isCompostable: false,
         requiresSpecialDisposal: false,
+            region: 'Test Region',
+            visualFeatures: ['test feature'],
+            alternatives: [],
         timestamp: DateTime(2023, 1, 3, 10),
         imageUrl: 'test.jpg',
         confidence: 0.95,

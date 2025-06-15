@@ -46,12 +46,10 @@ void main() {
 
     group('Classification Display', () {
       testWidgets('should display classification results correctly', (WidgetTester tester) async {
-        final classification = WasteClassification(
+        final classification = WasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
           itemName: 'Plastic Water Bottle',
-          category: 'Dry Waste',
           subcategory: 'Plastic',
           explanation: 'Clear plastic bottle, recyclable with PET code 1. This type of plastic is widely accepted in recycling programs.',
-          disposalInstructions: DisposalInstructions(
             primaryMethod: 'Recycle in blue bin',
             steps: ['Remove cap and label', 'Rinse thoroughly', 'Place in recycling bin'],
             hasUrgentTimeframe: false,
@@ -99,12 +97,10 @@ void main() {
       });
 
       testWidgets('should handle long item names without overflow', (WidgetTester tester) async {
-        final classification = WasteClassification(
+        final classification = WasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
           itemName: 'Very Long Item Name That Could Potentially Cause Text Overflow Issues In The UI Components',
-          category: 'Dry Waste',
           subcategory: 'Plastic',
           explanation: 'This is a very long explanation that contains a lot of detailed information about the waste item and its classification, disposal methods, environmental impact, and various other relevant details that users might find useful.',
-          disposalInstructions: DisposalInstructions(
             primaryMethod: 'Very detailed disposal method with extensive instructions',
             steps: [
               'This is a very long step with detailed instructions that might cause overflow',
@@ -135,11 +131,9 @@ void main() {
       });
 
       testWidgets('should show confidence scores appropriately', (WidgetTester tester) async {
-        final highConfidenceClassification = WasteClassification(
+        final highConfidenceClassification = WasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
           itemName: 'Clear Plastic Bottle',
-          category: 'Dry Waste',
           explanation: 'High confidence classification',
-          disposalInstructions: DisposalInstructions(
             primaryMethod: 'Recycle',
             steps: ['Recycle'],
             hasUrgentTimeframe: false,
@@ -171,11 +165,9 @@ void main() {
       });
 
       testWidgets('should display alternative classifications', (WidgetTester tester) async {
-        final classification = WasteClassification(
+        final classification = WasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
           itemName: 'Glass Jar',
-          category: 'Dry Waste',
           explanation: 'Glass container',
-          disposalInstructions: DisposalInstructions(
             primaryMethod: 'Recycle',
             steps: ['Clean', 'Recycle'],
             hasUrgentTimeframe: false,
@@ -301,12 +293,10 @@ void main() {
 
     group('Disposal Instructions', () {
       testWidgets('should display detailed disposal instructions', (WidgetTester tester) async {
-        final classification = WasteClassification(
+        final classification = WasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
           itemName: 'Hazardous Battery',
-          category: 'Hazardous Waste',
           subcategory: 'Electronic Waste',
           explanation: 'Contains toxic materials',
-          disposalInstructions: DisposalInstructions(
             primaryMethod: 'Take to hazardous waste facility',
             steps: [
               'Do not throw in regular trash',
@@ -358,12 +348,10 @@ void main() {
       });
 
       testWidgets('should show location-specific disposal information', (WidgetTester tester) async {
-        final classification = WasteClassification(
+        final classification = WasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
           itemName: 'Paper Box',
-          category: 'Dry Waste',
           subcategory: 'Paper',
           explanation: 'Recyclable cardboard',
-          disposalInstructions: DisposalInstructions(
             primaryMethod: 'Recycle in blue bin',
             steps: ['Flatten the box', 'Remove any tape', 'Place in recycling bin'],
             hasUrgentTimeframe: false,
@@ -393,12 +381,10 @@ void main() {
 
     group('Environmental Impact', () {
       testWidgets('should display environmental impact information', (WidgetTester tester) async {
-        final classification = WasteClassification(
+        final classification = WasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
           itemName: 'Aluminum Can',
-          category: 'Dry Waste',
           subcategory: 'Metal',
           explanation: 'Highly recyclable aluminum',
-          disposalInstructions: DisposalInstructions(
             primaryMethod: 'Recycle',
             steps: ['Rinse clean', 'Recycle'],
             hasUrgentTimeframe: false,
@@ -559,12 +545,10 @@ void main() {
 
     group('Performance', () {
       testWidgets('should render large classifications efficiently', (WidgetTester tester) async {
-        final largeClassification = WasteClassification(
+        final largeClassification = WasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
           itemName: 'Complex Multi-Material Item',
-          category: 'Mixed Waste',
           subcategory: 'Composite',
           explanation: 'A' * 5000, // Very long explanation
-          disposalInstructions: DisposalInstructions(
             primaryMethod: 'Special handling required',
             steps: List.generate(50, (i) => 'Step ${i + 1}: ${'Detailed instruction ' * 10}'),
             hasUrgentTimeframe: false,
@@ -600,7 +584,7 @@ void main() {
         
         // Add image path to classification
         final classificationWithImage = classification.copyWith(
-          imagePath: 'test_image.jpg',
+          imageUrl: 'test_image.jpg',
         );
 
         await tester.pumpWidget(createResultScreen(classificationWithImage));
@@ -615,12 +599,10 @@ void main() {
 
 // Helper function to create test classification
 WasteClassification _createTestClassification() {
-  return WasteClassification(
+  return WasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
     itemName: 'Test Item',
-    category: 'Dry Waste',
     subcategory: 'Plastic',
     explanation: 'Test classification for UI testing',
-    disposalInstructions: DisposalInstructions(
       primaryMethod: 'Recycle',
       steps: ['Clean item', 'Place in recycling bin'],
       hasUrgentTimeframe: false,

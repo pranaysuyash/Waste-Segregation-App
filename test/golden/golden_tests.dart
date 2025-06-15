@@ -32,7 +32,7 @@ void main() {
           ClassificationCard(
             classification: Classification(
               id: 'test-1',
-              imagePath: 'test_image.jpg',
+              imageUrl: 'test_image.jpg',
               wasteType: 'Plastic',
               confidence: 0.95,
               timestamp: DateTime(2024, 1, 15),
@@ -50,7 +50,7 @@ void main() {
           ClassificationCard(
             classification: Classification(
               id: 'test-2',
-              imagePath: 'test_image.jpg',
+              imageUrl: 'test_image.jpg',
               wasteType: 'Organic',
               confidence: 0.75,
               timestamp: DateTime(2024, 1, 15),
@@ -68,7 +68,7 @@ void main() {
           ClassificationCard(
             classification: Classification(
               id: 'test-3',
-              imagePath: 'test_image.jpg',
+              imageUrl: 'test_image.jpg',
               wasteType: 'Hazardous',
               confidence: 0.60,
               timestamp: DateTime(2024, 1, 15),
@@ -218,7 +218,7 @@ void main() {
                   ClassificationCard(
                     classification: Classification(
                       id: 'theme-test',
-                      imagePath: 'test_image.jpg',
+                      imageUrl: 'test_image.jpg',
                       wasteType: 'Plastic',
                       confidence: 0.90,
                       timestamp: DateTime(2024, 1, 15),
@@ -252,7 +252,7 @@ void main() {
                   ClassificationCard(
                     classification: Classification(
                       id: 'theme-test',
-                      imagePath: 'test_image.jpg',
+                      imageUrl: 'test_image.jpg',
                       wasteType: 'Plastic',
                       confidence: 0.90,
                       timestamp: DateTime(2024, 1, 15),

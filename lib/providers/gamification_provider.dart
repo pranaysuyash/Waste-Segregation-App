@@ -225,16 +225,6 @@ class AchievementStats {
   final int completionPercentage;
 }
 
-/// Result wrapper for operations that can fail
-class Result<T, E> {
-  const Result.success(this.value) : error = null;
-  const Result.failure(this.error) : value = null;
-
-  final T? value;
-  final E? error;
-
-  bool get isSuccess => value != null;
-  bool get isFailure => error != null;
-}
+// Using Result class from constants.dart - removed duplicate definition
 
 // REMOVED: Duplicate AppException class - using the one from constants.dart 
