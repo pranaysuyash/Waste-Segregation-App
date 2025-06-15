@@ -7,6 +7,7 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../models/waste_classification.dart';
 import '../models/gamification.dart';
+import '../models/user_profile.dart';
 import '../providers/app_providers.dart';
 import '../providers/points_manager.dart';
 import '../screens/history_screen.dart';
@@ -21,6 +22,17 @@ final profileProvider = FutureProvider<GamificationProfile?>((ref) async {
     return await gamificationService.getProfile();
   } catch (e) {
     debugPrint('Error loading profile: $e');
+    return null;
+  }
+});
+
+// User profile provider for getting actual user name
+final userProfileProvider = FutureProvider<UserProfile?>((ref) async {
+  final storageService = ref.watch(storageServiceProvider);
+  try {
+    return await storageService.getCurrentUserProfile();
+  } catch (e) {
+    debugPrint('Error loading user profile: $e');
     return null;
   }
 });
@@ -101,6 +113,7 @@ class _UltraModernHomeScreenState extends ConsumerState<UltraModernHomeScreen>
   Widget build(BuildContext context) {
     final classificationsAsync = ref.watch(classificationsProvider);
     final profileAsync = ref.watch(profileProvider);
+    final userProfileAsync = ref.watch(userProfileProvider);
     
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.surface,
@@ -117,32 +130,38 @@ class _UltraModernHomeScreenState extends ConsumerState<UltraModernHomeScreen>
               child: CustomScrollView(
                 slivers: [
                   // Hero header with gradient
-                  _buildHeroHeader(context, profileAsync),
+                  _buildHeroHeader(context, profileAsync, userProfileAsync),
                   
                   // Content sections
                   SliverToBoxAdapter(
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 20),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const SizedBox(height: 24),
-                          
-                          // Horizontal scrolling action chips
-                          _buildActionChips(context),
-                          const SizedBox(height: 32),
-                          
-                          // Your Impact section with progress ring
-                          _buildImpactSection(context, classificationsAsync, profileAsync),
-                          const SizedBox(height: 32),
-                          
-                          // Recent Classifications
-                          _buildRecentClassifications(context, classificationsAsync),
-                          
-                          // Bottom padding for navigation
-                          const SizedBox(height: 100),
-                        ],
-                      ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const SizedBox(height: 24),
+                        
+                        // Horizontal scrolling action chips
+                        _buildActionChips(context),
+                        const SizedBox(height: 32),
+                        
+                        // Content with padding
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 20),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              // Your Impact section with progress ring
+                              _buildImpactSection(context, classificationsAsync, profileAsync),
+                              const SizedBox(height: 32),
+                              
+                              // Recent Classifications
+                              _buildRecentClassifications(context, classificationsAsync),
+                              
+                              // Bottom padding for navigation
+                              const SizedBox(height: 100),
+                            ],
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ],
@@ -154,7 +173,7 @@ class _UltraModernHomeScreenState extends ConsumerState<UltraModernHomeScreen>
     );
   }
 
-  Widget _buildHeroHeader(BuildContext context, AsyncValue<GamificationProfile?> profileAsync) {
+  Widget _buildHeroHeader(BuildContext context, AsyncValue<GamificationProfile?> profileAsync, AsyncValue<UserProfile?> userProfileAsync) {
     final hour = DateTime.now().hour;
     final timePhase = _getTimePhase(hour);
     final greeting = _getPersonalizedGreeting(timePhase);
@@ -175,67 +194,110 @@ class _UltraModernHomeScreenState extends ConsumerState<UltraModernHomeScreen>
             ),
           ),
           child: Padding(
-            padding: const EdgeInsets.all(20),
+            padding: const EdgeInsets.fromLTRB(20, 20, 20, 16),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisAlignment: MainAxisAlignment.end,
+              mainAxisSize: MainAxisSize.min,
               children: [
+                // Greeting and user info
                 Row(
                   children: [
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
                         children: [
-                          Text(
-                            '$greeting, Eco-hero!',
-                            style: GoogleFonts.inter(
-                              fontSize: 28,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white,
-                              height: 1.2,
+                          userProfileAsync.when(
+                            data: (userProfile) {
+                              final firstName = userProfile?.displayName?.split(' ').first ?? 'Eco-hero';
+                              return Text(
+                                '$greeting, $firstName!',
+                                style: GoogleFonts.inter(
+                                  fontSize: 24,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white,
+                                  height: 1.1,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              );
+                            },
+                            loading: () => Text(
+                              '$greeting, Eco-hero!',
+                              style: GoogleFonts.inter(
+                                fontSize: 24,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                                height: 1.1,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            error: (_, __) => Text(
+                              '$greeting, Eco-hero!',
+                              style: GoogleFonts.inter(
+                                fontSize: 24,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                                height: 1.1,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
                             ),
                           ),
-                          const SizedBox(height: 8),
+                          const SizedBox(height: 4),
                           Text(
                             _getMotivationalMessage(timePhase),
                             style: GoogleFonts.inter(
-                              fontSize: 16,
+                              fontSize: 14,
                               color: Colors.white.withValues(alpha: 0.9),
-                              height: 1.4,
+                              height: 1.2,
                             ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                           ),
                         ],
                       ),
                     ),
+                    const SizedBox(width: 12),
                     // Time-aware animated icon
                     Container(
-                      padding: const EdgeInsets.all(16),
+                      padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
                         color: Colors.white.withValues(alpha: 0.2),
-                        borderRadius: BorderRadius.circular(16),
+                        borderRadius: BorderRadius.circular(12),
                       ),
                       child: Icon(
                         _getTimeBasedIcon(timePhase),
                         color: Colors.white,
-                        size: 32,
+                        size: 24,
                       ),
                     ),
                   ],
                 ),
-                const SizedBox(height: 20),
-                // Stats chips
+                const SizedBox(height: 16),
+                // Stats chips with impact info
                 Row(
                   children: [
                     _buildPointsChip(context),
-                    const SizedBox(width: 12),
+                    const SizedBox(width: 8),
                     profileAsync.when(
                       data: (profile) => _buildStatChip(
                         '${profile?.streaks[StreakType.dailyClassification.toString()]?.currentCount ?? 0}',
-                        'Day Streak',
+                        'Streak',
                         Icons.local_fire_department,
                       ),
-                      loading: () => _buildStatChip('...', 'Day Streak', Icons.local_fire_department),
-                      error: (_, __) => _buildStatChip('0', 'Day Streak', Icons.local_fire_department),
+                      loading: () => _buildStatChip('...', 'Streak', Icons.local_fire_department),
+                      error: (_, __) => _buildStatChip('0', 'Streak', Icons.local_fire_department),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: _buildStatChip(
+                        '${DateTime.now().difference(DateTime(2024, 1, 1)).inDays}',
+                        'Days Active',
+                        Icons.eco,
+                      ),
                     ),
                   ],
                 ),
@@ -295,31 +357,18 @@ class _UltraModernHomeScreenState extends ConsumerState<UltraModernHomeScreen>
   }
 
   Widget _buildActionChips(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Quick Actions',
-          style: GoogleFonts.inter(
-            fontSize: 24,
-            fontWeight: FontWeight.bold,
-            color: Theme.of(context).colorScheme.onSurface,
-          ),
-        ),
-        const SizedBox(height: 16),
-        SizedBox(
-          height: 120,
-          child: ListView.separated(
-            scrollDirection: Axis.horizontal,
-            itemCount: _getActionItems().length,
-            separatorBuilder: (_, __) => const SizedBox(width: 12),
-            itemBuilder: (context, index) {
-              final action = _getActionItems()[index];
-              return _buildActionCard(action);
-            },
-          ),
-        ),
-      ],
+    return SizedBox(
+      height: 120,
+      child: ListView.separated(
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.symmetric(horizontal: 20),
+        itemCount: _getActionItems().length,
+        separatorBuilder: (_, __) => const SizedBox(width: 12),
+        itemBuilder: (context, index) {
+          final action = _getActionItems()[index];
+          return _buildActionCard(action);
+        },
+      ),
     );
   }
 
@@ -366,7 +415,7 @@ class _UltraModernHomeScreenState extends ConsumerState<UltraModernHomeScreen>
         onTapCancel: () => setState(() {}),
         onTap: action.onTap,
         child: Container(
-          width: 96,
+          width: MediaQuery.of(context).size.width * 0.22, // Show partial last card
           decoration: BoxDecoration(
             color: Theme.of(context).colorScheme.surface,
             borderRadius: BorderRadius.circular(16),
