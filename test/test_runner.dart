@@ -5,6 +5,9 @@ import 'test_config/plugin_mock_setup.dart';
 void main() {
   // Set up plugin mocks before any tests run
   setUpAll(() {
+    // Initialize Flutter binding first
+    TestWidgetsFlutterBinding.ensureInitialized();
+    PluginMockSetup.setupAll();
     TestHelpers.setUpAll();
   });
 

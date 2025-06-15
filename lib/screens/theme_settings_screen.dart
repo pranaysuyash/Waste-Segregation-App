@@ -1,35 +1,17 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import '../services/premium_service.dart';
-import '../providers/theme_provider.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../providers.dart';
+import 'premium_features_screen.dart';
 
-class ThemeSettingsScreen extends StatefulWidget {
+class ThemeSettingsScreen extends ConsumerWidget {
   const ThemeSettingsScreen({super.key});
 
   @override
-  State<ThemeSettingsScreen> createState() => _ThemeSettingsScreenState();
-}
+  Widget build(BuildContext context, WidgetRef ref) {
+    final theme = ref.watch(themeProvider);
+    final premium = ref.read(premiumServiceProvider);
+    final isPremium = premium.isPremiumFeature('theme_customization');
 
-class _ThemeSettingsScreenState extends State<ThemeSettingsScreen> {
-  ThemeMode? _currentThemeMode;
-
-  @override
-  void initState() {
-    super.initState();
-    // Initialize immediately with the current theme provider value
-    final themeProvider = Provider.of<ThemeProvider>(context, listen: false);
-    _currentThemeMode = themeProvider.themeMode;
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final premiumService = Provider.of<PremiumService>(context);
-    final themeProvider = Provider.of<ThemeProvider>(context);
-    final isPremium = premiumService.isPremiumFeature('theme_customization');
-    
-    // Ensure _currentThemeMode is always set
-    _currentThemeMode ??= themeProvider.themeMode;
-    
     return Scaffold(
       appBar: AppBar(
         title: const Text('Theme Settings'),
@@ -43,13 +25,10 @@ class _ThemeSettingsScreenState extends State<ThemeSettingsScreen> {
             subtitle: const Text('Follow system theme settings'),
             trailing: Radio<ThemeMode>(
               value: ThemeMode.system,
-              groupValue: _currentThemeMode,
+              groupValue: theme.themeMode,
               onChanged: (ThemeMode? value) {
                 if (value != null) {
-                  setState(() {
-                    _currentThemeMode = value;
-                  });
-                  _updateThemeMode(value);
+                  _updateThemeMode(ref, value);
                 }
               },
             ),
@@ -60,13 +39,10 @@ class _ThemeSettingsScreenState extends State<ThemeSettingsScreen> {
             subtitle: const Text('Always use light theme'),
             trailing: Radio<ThemeMode>(
               value: ThemeMode.light,
-              groupValue: _currentThemeMode,
+              groupValue: theme.themeMode,
               onChanged: (ThemeMode? value) {
                 if (value != null) {
-                  setState(() {
-                    _currentThemeMode = value;
-                  });
-                  _updateThemeMode(value);
+                  _updateThemeMode(ref, value);
                 }
               },
             ),
@@ -77,39 +53,71 @@ class _ThemeSettingsScreenState extends State<ThemeSettingsScreen> {
             subtitle: const Text('Always use dark theme'),
             trailing: Radio<ThemeMode>(
               value: ThemeMode.dark,
-              groupValue: _currentThemeMode,
+              groupValue: theme.themeMode,
               onChanged: (ThemeMode? value) {
                 if (value != null) {
-                  setState(() {
-                    _currentThemeMode = value;
-                  });
-                  _updateThemeMode(value);
+                  _updateThemeMode(ref, value);
                 }
               },
             ),
           ),
           const Divider(),
 
-          // Premium Features Section
-          if (!isPremium) ...[
-            const Padding(
-              padding: EdgeInsets.all(16.0),
-              child: Text(
-                'Premium Features',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
+          // Premium Features Navigation
+          const Padding(
+            padding: EdgeInsets.fromLTRB(16, 16, 16, 8),
+            child: Text(
+              'Premium Features',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
               ),
             ),
-            ListTile(
-              leading: const Icon(Icons.palette, color: Colors.amber),
-              title: const Text('Custom Themes'),
-              subtitle: const Text('Create your own theme colors'),
-              trailing: const Icon(Icons.workspace_premium, color: Colors.amber),
+          ),
+          
+          // Premium Features Row - Always visible for easy access
+          Card(
+            margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+            child: ListTile(
+              leading: Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: Colors.amber.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Icon(Icons.workspace_premium, color: Colors.amber),
+              ),
+              title: const Text(
+                'Premium Features',
+                style: TextStyle(fontWeight: FontWeight.w500),
+              ),
+              subtitle: const Text('Unlock advanced theme customization and more'),
+              trailing: const Icon(Icons.chevron_right),
               onTap: () {
-                _showPremiumFeaturePrompt(context);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const PremiumFeaturesScreen(),
+                  ),
+                );
               },
+            ),
+          ),
+
+          // Custom Themes Section (only for non-premium users)
+          if (!isPremium) ...[
+            const SizedBox(height: 8),
+            Card(
+              margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+              child: ListTile(
+                leading: const Icon(Icons.palette, color: Colors.amber),
+                title: const Text('Custom Themes'),
+                subtitle: const Text('Create your own theme colors'),
+                trailing: const Icon(Icons.workspace_premium, color: Colors.amber),
+                onTap: () {
+                  _showPremiumFeaturePrompt(context, ref);
+                },
+              ),
             ),
           ],
         ],
@@ -117,12 +125,11 @@ class _ThemeSettingsScreenState extends State<ThemeSettingsScreen> {
     );
   }
 
-  void _updateThemeMode(ThemeMode mode) {
-    final themeProvider = Provider.of<ThemeProvider>(context, listen: false);
-    themeProvider.setThemeMode(mode);
+  void _updateThemeMode(WidgetRef ref, ThemeMode mode) {
+    ref.read(themeProvider.notifier).setThemeMode(mode);
   }
 
-  void _showPremiumFeaturePrompt(BuildContext context) {
+  void _showPremiumFeaturePrompt(BuildContext context, WidgetRef ref) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -138,7 +145,13 @@ class _ThemeSettingsScreenState extends State<ThemeSettingsScreen> {
           ElevatedButton(
             onPressed: () {
               Navigator.pop(context);
-              // TODO: Navigate to premium features screen
+              // Navigate to premium features screen
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const PremiumFeaturesScreen(),
+                ),
+              );
             },
             child: const Text('Upgrade Now'),
           ),
