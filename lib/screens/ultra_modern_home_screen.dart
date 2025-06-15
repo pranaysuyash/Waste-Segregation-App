@@ -14,6 +14,7 @@ import '../screens/history_screen.dart';
 import '../screens/achievements_screen.dart';
 import '../screens/image_capture_screen.dart';
 import '../screens/instant_analysis_screen.dart';
+import '../utils/constants.dart';
 
 // Profile provider using FutureProvider for better performance
 final profileProvider = FutureProvider<GamificationProfile?>((ref) async {
@@ -141,7 +142,7 @@ class _UltraModernHomeScreenState extends ConsumerState<UltraModernHomeScreen>
                         
                         // Horizontal scrolling action chips
                         _buildActionChips(context),
-                        const SizedBox(height: 32),
+                        const SizedBox(height: 20),
                         
                         // Content with padding
                         Padding(
@@ -149,8 +150,8 @@ class _UltraModernHomeScreenState extends ConsumerState<UltraModernHomeScreen>
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              // Your Impact section with progress ring
-                              _buildImpactSection(context, classificationsAsync, profileAsync),
+                              // Active Challenge section
+                              _buildActiveChallengeSection(context, profileAsync),
                               const SizedBox(height: 32),
                               
                               // Recent Classifications
@@ -194,7 +195,7 @@ class _UltraModernHomeScreenState extends ConsumerState<UltraModernHomeScreen>
             ),
           ),
           child: Padding(
-            padding: const EdgeInsets.fromLTRB(20, 20, 20, 16),
+            padding: const EdgeInsets.fromLTRB(20, 10, 20, 16),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisAlignment: MainAxisAlignment.end,
@@ -214,7 +215,7 @@ class _UltraModernHomeScreenState extends ConsumerState<UltraModernHomeScreen>
                               return Text(
                                 '$greeting, $firstName!',
                                 style: GoogleFonts.inter(
-                                  fontSize: 24,
+                                  fontSize: AppTheme.fontSizeLarge,
                                   fontWeight: FontWeight.bold,
                                   color: Colors.white,
                                   height: 1.1,
@@ -226,7 +227,7 @@ class _UltraModernHomeScreenState extends ConsumerState<UltraModernHomeScreen>
                             loading: () => Text(
                               '$greeting, Eco-hero!',
                               style: GoogleFonts.inter(
-                                fontSize: 24,
+                                fontSize: AppTheme.fontSizeLarge,
                                 fontWeight: FontWeight.bold,
                                 color: Colors.white,
                                 height: 1.1,
@@ -237,7 +238,7 @@ class _UltraModernHomeScreenState extends ConsumerState<UltraModernHomeScreen>
                             error: (_, __) => Text(
                               '$greeting, Eco-hero!',
                               style: GoogleFonts.inter(
-                                fontSize: 24,
+                                fontSize: AppTheme.fontSizeLarge,
                                 fontWeight: FontWeight.bold,
                                 color: Colors.white,
                                 height: 1.1,
@@ -293,11 +294,7 @@ class _UltraModernHomeScreenState extends ConsumerState<UltraModernHomeScreen>
                     ),
                     const SizedBox(width: 8),
                     Expanded(
-                      child: _buildStatChip(
-                        '${DateTime.now().difference(DateTime(2024, 1, 1)).inDays}',
-                        'Days Active',
-                        Icons.eco,
-                      ),
+                      child: _buildDaysActiveChip(context),
                     ),
                   ],
                 ),
@@ -319,9 +316,46 @@ class _UltraModernHomeScreenState extends ConsumerState<UltraModernHomeScreen>
     );
   }
 
+  Widget _buildDaysActiveChip(BuildContext context) {
+    final classificationsAsync = ref.watch(classificationsProvider);
+    final userProfileAsync = ref.watch(userProfileProvider);
+    
+    return classificationsAsync.when(
+      data: (classifications) {
+        return userProfileAsync.when(
+          data: (userProfile) {
+            // Calculate unique days with activity (classifications)
+            final uniqueActivityDays = <String>{};
+            for (final classification in classifications) {
+              final dateKey = '${classification.timestamp.year}-${classification.timestamp.month}-${classification.timestamp.day}';
+              uniqueActivityDays.add(dateKey);
+            }
+            
+            // If user has activity days, use that count
+            // Otherwise, fall back to days since account creation (logged-in days)
+            int daysActive;
+            if (uniqueActivityDays.isNotEmpty) {
+              daysActive = uniqueActivityDays.length;
+            } else if (userProfile?.createdAt != null) {
+              daysActive = DateTime.now().difference(userProfile!.createdAt!).inDays + 1;
+            } else {
+              daysActive = 1;
+            }
+            
+            return _buildStatChip('$daysActive', 'Days Active', Icons.eco);
+          },
+          loading: () => _buildStatChip('...', 'Days Active', Icons.eco),
+          error: (_, __) => _buildStatChip('1', 'Days Active', Icons.eco),
+        );
+      },
+      loading: () => _buildStatChip('...', 'Days Active', Icons.eco),
+      error: (_, __) => _buildStatChip('1', 'Days Active', Icons.eco),
+    );
+  }
+
   Widget _buildStatChip(String value, String label, IconData icon) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
         color: Colors.white.withValues(alpha: 0.2),
         borderRadius: BorderRadius.circular(12),
@@ -330,26 +364,30 @@ class _UltraModernHomeScreenState extends ConsumerState<UltraModernHomeScreen>
         mainAxisSize: MainAxisSize.min,
         children: [
           Icon(icon, color: Colors.white, size: 16),
-          const SizedBox(width: 6),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                value,
-                style: GoogleFonts.inter(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 16,
+          const SizedBox(width: 4),
+          Flexible(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  value,
+                  style: GoogleFonts.inter(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    fontSize: AppTheme.fontSizeRegular,
+                  ),
+                  overflow: TextOverflow.ellipsis,
                 ),
-              ),
-              Text(
-                label,
-                style: GoogleFonts.inter(
-                  color: Colors.white.withValues(alpha: 0.8),
-                  fontSize: 12,
+                Text(
+                  label,
+                                      style: GoogleFonts.inter(
+                      color: Colors.white.withValues(alpha: 0.8),
+                      fontSize: AppTheme.fontSizeSmall,
+                    ),
+                  overflow: TextOverflow.ellipsis,
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ],
       ),
@@ -415,7 +453,7 @@ class _UltraModernHomeScreenState extends ConsumerState<UltraModernHomeScreen>
         onTapCancel: () => setState(() {}),
         onTap: action.onTap,
         child: Container(
-          width: MediaQuery.of(context).size.width * 0.22, // Show partial last card
+          width: MediaQuery.of(context).size.width * 0.32, // Even bigger cards for better interaction
           decoration: BoxDecoration(
             color: Theme.of(context).colorScheme.surface,
             borderRadius: BorderRadius.circular(16),
@@ -467,150 +505,155 @@ class _UltraModernHomeScreenState extends ConsumerState<UltraModernHomeScreen>
     );
   }
 
-  Widget _buildImpactSection(
-    BuildContext context,
-    AsyncValue<List<WasteClassification>> classificationsAsync,
-    AsyncValue<GamificationProfile?> profileAsync,
-  ) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Your Impact',
-          style: GoogleFonts.inter(
-            fontSize: 24,
-            fontWeight: FontWeight.bold,
-            color: Theme.of(context).colorScheme.onSurface,
+  Widget _buildActiveChallengeSection(BuildContext context, AsyncValue<GamificationProfile?> profileAsync) {
+    return profileAsync.when(
+      data: (profile) {
+        if (profile?.activeChallenges == null || profile!.activeChallenges.isEmpty) {
+          return const SizedBox.shrink();
+        }
+        
+        // Find active challenges with progress > 0
+        final activeChallenges = profile.activeChallenges.where((challenge) {
+          return challenge.isActive && !challenge.isCompleted && challenge.progress > 0;
+        }).toList();
+        
+        if (activeChallenges.isEmpty) {
+          return const SizedBox.shrink();
+        }
+        
+        // Pick a random active challenge based on day
+        final randomChallenge = activeChallenges[DateTime.now().day % activeChallenges.length];
+        final progressPercentage = (randomChallenge.progress * 100).round();
+        final currentCount = (randomChallenge.progress * (randomChallenge.requirements['count'] ?? 1)).round();
+        final targetCount = randomChallenge.requirements['count'] ?? 1;
+        
+        return GestureDetector(
+          onTap: () => Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const AchievementsScreen()),
           ),
-        ),
-        const SizedBox(height: 16),
-        Row(
-          children: [
-            Expanded(
-              child: classificationsAsync.when(
-                data: (classifications) => _buildImpactCard(
-                  'Total Items',
-                  '${classifications.length}',
-                  Icons.recycling,
-                  const Color(0xFF4CAF50),
-                  () => Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => const HistoryScreen()),
-                  ),
-                ),
-                loading: () => _buildImpactCard(
-                  'Total Items',
-                  '...',
-                  Icons.recycling,
-                  const Color(0xFF4CAF50),
-                  null,
-                ),
-                error: (_, __) => _buildImpactCard(
-                  'Total Items',
-                  '0',
-                  Icons.recycling,
-                  const Color(0xFF4CAF50),
-                  null,
-                ),
+          child: Container(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  randomChallenge.color.withValues(alpha: 0.1),
+                  randomChallenge.color.withValues(alpha: 0.05),
+                ],
+              ),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: randomChallenge.color.withValues(alpha: 0.3),
               ),
             ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: profileAsync.when(
-                data: (profile) => _buildImpactCard(
-                  'Points',
-                  '${profile?.points.total ?? 0}',
-                  Icons.stars,
-                  const Color(0xFFFFC107),
-                  () => Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => const AchievementsScreen()),
-                  ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: randomChallenge.color.withValues(alpha: 0.2),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Icon(
+                        _getChallengeIcon(randomChallenge.iconName),
+                        color: randomChallenge.color,
+                        size: 24,
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            randomChallenge.title,
+                            style: GoogleFonts.inter(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: Theme.of(context).colorScheme.onSurface,
+                            ),
+                          ),
+                          Text(
+                            randomChallenge.description,
+                            style: GoogleFonts.inter(
+                              fontSize: 14,
+                              color: Theme.of(context).colorScheme.onSurfaceVariant,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Text(
+                      '$progressPercentage%',
+                      style: GoogleFonts.inter(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: randomChallenge.color,
+                      ),
+                    ),
+                  ],
                 ),
-                loading: () => _buildImpactCard(
-                  'Points',
-                  '...',
-                  Icons.stars,
-                  const Color(0xFFFFC107),
-                  null,
+                const SizedBox(height: 16),
+                Row(
+                  children: [
+                    Expanded(
+                      child: LinearProgressIndicator(
+                        value: randomChallenge.progress,
+                        backgroundColor: randomChallenge.color.withValues(alpha: 0.2),
+                        valueColor: AlwaysStoppedAnimation<Color>(randomChallenge.color),
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Text(
+                      '$currentCount/$targetCount',
+                      style: GoogleFonts.inter(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ],
                 ),
-                error: (_, __) => _buildImpactCard(
-                  'Points',
-                  '0',
-                  Icons.stars,
-                  const Color(0xFFFFC107),
-                  null,
-                ),
-              ),
+              ],
             ),
-          ],
-        ),
-      ],
+          ),
+        );
+      },
+      loading: () => const SizedBox.shrink(),
+      error: (_, __) => const SizedBox.shrink(),
     );
   }
 
-  Widget _buildImpactCard(String title, String value, IconData icon, Color color, VoidCallback? onTap) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.all(20),
-        decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.surface,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(
-            color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.2),
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.05),
-              blurRadius: 8,
-              offset: const Offset(0, 2),
-            ),
-          ],
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: color.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Icon(icon, color: color, size: 20),
-                ),
-                const Spacer(),
-                if (onTap != null)
-                  Icon(
-                    Icons.arrow_forward_ios,
-                    size: 16,
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            Text(
-              value,
-              style: GoogleFonts.inter(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-                color: Theme.of(context).colorScheme.onSurface,
-              ),
-            ),
-            Text(
-              title,
-              style: GoogleFonts.inter(
-                fontSize: 14,
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
+  IconData _getChallengeIcon(String iconName) {
+    switch (iconName) {
+      case 'shopping_bag':
+        return Icons.shopping_bag;
+      case 'restaurant':
+        return Icons.restaurant;
+      case 'recycling':
+        return Icons.recycling;
+      case 'compost':
+        return Icons.eco;
+      case 'warning':
+        return Icons.warning;
+      case 'local_hospital':
+        return Icons.local_hospital;
+      case 'battery_charging_full':
+        return Icons.battery_charging_full;
+      case 'lightbulb':
+        return Icons.lightbulb;
+      default:
+        return Icons.star;
+    }
   }
+
+
 
   Widget _buildRecentClassifications(BuildContext context, AsyncValue<List<WasteClassification>> classificationsAsync) {
     return classificationsAsync.when(
