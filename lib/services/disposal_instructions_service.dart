@@ -6,7 +6,7 @@ import '../models/waste_classification.dart';
 
 /// Service for fetching LLM-generated disposal instructions
 class DisposalInstructionsService {
-  static const String _functionUrl = 'https://us-central1-waste-segregation-app-df523.cloudfunctions.net/generateDisposal';
+  static const String _functionUrl = 'https://asia-south1-waste-segregation-app-df523.cloudfunctions.net/generateDisposal';
   
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   

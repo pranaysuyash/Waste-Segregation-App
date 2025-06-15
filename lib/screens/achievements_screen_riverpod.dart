@@ -5,7 +5,6 @@ import '../models/gamification.dart';
 import '../providers/gamification_provider.dart';
 import '../utils/constants.dart';
 import '../utils/extensions.dart';
-import '../widgets/profile_summary_card.dart';
 import '../widgets/advanced_ui/achievement_celebration.dart';
 
 /// Improved AchievementsScreen using Riverpod with better architecture

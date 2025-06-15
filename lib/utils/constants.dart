@@ -585,10 +585,6 @@ class GamificationConfig {
 
 // App Exception Classes for better error handling
 abstract class AppException implements Exception {
-  const AppException(this.message, [this.code]);
-  
-  final String message;
-  final String? code;
   
   factory AppException.timeout([String? message]) => 
       TimeoutAppException(message ?? 'Operation timed out');
@@ -601,6 +597,10 @@ abstract class AppException implements Exception {
   
   factory AppException.storage([String? message]) => 
       StorageAppException(message ?? 'Storage error occurred');
+  const AppException(this.message, [this.code]);
+  
+  final String message;
+  final String? code;
   
   @override
   String toString() => 'AppException: $message${code != null ? ' (Code: $code)' : ''}';
@@ -653,10 +653,12 @@ sealed class Result<T, E> {
 
 class Success<T, E> extends Result<T, E> {
   const Success(this.value);
+  @override
   final T value;
 }
 
 class Failure<T, E> extends Result<T, E> {
   const Failure(this.error);
+  @override
   final E error;
 }

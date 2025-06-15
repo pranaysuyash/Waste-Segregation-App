@@ -1,17 +1,33 @@
 import * as functions from 'firebase-functions';
 import * as admin from 'firebase-admin';
 import { OpenAI } from 'openai';
-import * as cors from 'cors';
+import cors from 'cors';
 import * as fs from 'fs';
 import * as path from 'path';
 
 // Initialize Firebase Admin
 admin.initializeApp();
 
-// Initialize OpenAI
-const openai = new OpenAI({
-  apiKey: functions.config().openai.key,
-});
+// Configure region for better performance in Asia
+const asiaSouth1 = functions.region('asia-south1');
+
+// Initialize OpenAI (conditional)
+let openai: OpenAI | null = null;
+try {
+  // Try environment variable first (for local development), then Firebase config (for production)
+  const apiKey = process.env.OPENAI_API_KEY || functions.config()?.openai?.key;
+  
+  if (apiKey) {
+    openai = new OpenAI({
+      apiKey: apiKey,
+    });
+    console.log('OpenAI initialized successfully');
+  } else {
+    console.warn('OpenAI API key not configured - functions will use fallback responses');
+  }
+} catch (error) {
+  console.warn('Failed to initialize OpenAI:', error);
+}
 
 // CORS configuration
 const corsHandler = cors({ origin: true });
@@ -54,7 +70,7 @@ interface DisposalInstructions {
   hasUrgentTimeframe: boolean;
 }
 
-export const generateDisposal = functions.https.onRequest(async (req, res) => {
+export const generateDisposal = asiaSouth1.https.onRequest(async (req, res) => {
   return corsHandler(req, res, async () => {
     try {
       // Validate request method
@@ -95,6 +111,11 @@ export const generateDisposal = functions.https.onRequest(async (req, res) => {
         .replace('$LANG', lang);
 
       console.log(`Generating disposal instructions for: ${materialDescription}`);
+
+      // Check if OpenAI is available
+      if (!openai) {
+        throw new Error('OpenAI not configured - using fallback');
+      }
 
       // Call OpenAI API
       const completion = await openai.chat.completions.create({
@@ -227,6 +248,18 @@ export const generateDisposal = functions.https.onRequest(async (req, res) => {
 });
 
 // Health check endpoint
-export const healthCheck = functions.https.onRequest((req, res) => {
+export const healthCheck = asiaSouth1.https.onRequest((req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
+});
+
+// Test endpoint to verify OpenAI configuration
+export const testOpenAI = asiaSouth1.https.onRequest((req, res) => {
+  const apiKey = process.env.OPENAI_API_KEY || functions.config()?.openai?.key;
+  res.json({ 
+    status: 'ok',
+    openaiConfigured: !!apiKey,
+    keySource: process.env.OPENAI_API_KEY ? 'environment' : 'firebase-config',
+    keyLength: apiKey ? apiKey.length : 0,
+    timestamp: new Date().toISOString()
+  });
 }); 

@@ -83,7 +83,7 @@ class GamificationNotifier extends AsyncNotifier<GamificationProfile> {
       // Refresh to ensure consistency
       await refresh();
 
-    } catch (e, stackTrace) {
+    } catch (e) {
       if (kDebugMode) {
         debugPrint('🔥 Failed to claim reward: $e');
       }
@@ -109,8 +109,8 @@ class GamificationNotifier extends AsyncNotifier<GamificationProfile> {
       final currentStreak = currentProfile.streaks[streakKey];
 
       // Validate streak update timing
-      if (currentStreak != null && currentStreak.lastActivityDate != null) {
-        final daysSinceLastActivity = now.difference(currentStreak.lastActivityDate!).inDays;
+      if (currentStreak != null) {
+        final daysSinceLastActivity = now.difference(currentStreak.lastActivityDate).inDays;
         
         // Prevent multiple updates on same day
         if (daysSinceLastActivity == 0) {
@@ -143,7 +143,7 @@ class GamificationNotifier extends AsyncNotifier<GamificationProfile> {
       await _repository.saveProfile(updatedProfile);
       state = AsyncValue.data(updatedProfile);
 
-    } catch (e, stackTrace) {
+    } catch (e) {
       if (kDebugMode) {
         debugPrint('🔥 Failed to update streak: $e');
       }
@@ -160,7 +160,7 @@ class GamificationNotifier extends AsyncNotifier<GamificationProfile> {
     
     try {
       // Calculate points based on category
-      final points = GamificationConfig.kPointsPerItem;
+      const points = GamificationConfig.kPointsPerItem;
       
       // Update points
       final updatedPoints = currentProfile.points.copyWith(
@@ -183,7 +183,7 @@ class GamificationNotifier extends AsyncNotifier<GamificationProfile> {
       await _repository.saveProfile(updatedProfile);
       state = AsyncValue.data(updatedProfile);
 
-    } catch (e, stackTrace) {
+    } catch (e) {
       if (kDebugMode) {
         debugPrint('🔥 Failed to add classification points: $e');
       }
@@ -203,7 +203,7 @@ class GamificationNotifier extends AsyncNotifier<GamificationProfile> {
     }
 
     final daysSinceLastActivity = currentStreak.lastActivityDate != null
-        ? now.difference(currentStreak.lastActivityDate!).inDays
+        ? now.difference(currentStreak.lastActivityDate).inDays
         : 1;
 
     if (daysSinceLastActivity == 1) {

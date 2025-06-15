@@ -76,7 +76,7 @@ class NewModernHomeScreen extends ConsumerStatefulWidget {
 
 class NewModernHomeScreenState extends ConsumerState<NewModernHomeScreen> 
     with TickerProviderStateMixin, WidgetsBindingObserver {
-  int _selectedIndex = 0;
+  final int _selectedIndex = 0;
   final ImagePicker _picker = ImagePicker();
   TutorialCoachMark? _coachMark;
   List<TargetFocus> _targets = [];
@@ -354,7 +354,7 @@ class NewModernHomeScreenState extends ConsumerState<NewModernHomeScreen>
     debugPrint('📸 Taking photo - manual review mode');
     
     try {
-      final XFile? image = await picker.pickImage(
+      final image = await picker.pickImage(
         source: ImageSource.camera,
         imageQuality: 85,
         maxWidth: 1920,
@@ -362,7 +362,7 @@ class NewModernHomeScreenState extends ConsumerState<NewModernHomeScreen>
       );
       
       if (image != null && mounted) {
-        await _navigateToImageCapture(image, autoAnalyze: false);
+        await _navigateToImageCapture(image);
       }
     } catch (e) {
       debugPrint('Error taking photo: $e');
@@ -386,7 +386,7 @@ class NewModernHomeScreenState extends ConsumerState<NewModernHomeScreen>
     debugPrint('🖼️ Picking image - manual review mode');
     
     try {
-      final XFile? image = await picker.pickImage(
+      final image = await picker.pickImage(
         source: ImageSource.gallery,
         imageQuality: 85,
         maxWidth: 1920,
@@ -394,7 +394,7 @@ class NewModernHomeScreenState extends ConsumerState<NewModernHomeScreen>
       );
       
       if (image != null && mounted) {
-        await _navigateToImageCapture(image, autoAnalyze: false);
+        await _navigateToImageCapture(image);
       }
     } catch (e) {
       debugPrint('Error picking image: $e');
@@ -419,7 +419,7 @@ class NewModernHomeScreenState extends ConsumerState<NewModernHomeScreen>
     debugPrint('📸 Taking photo - instant analysis mode');
     
     try {
-      final XFile? image = await picker.pickImage(
+      final image = await picker.pickImage(
         source: ImageSource.camera,
         imageQuality: 85,
         maxWidth: 1920,
@@ -451,7 +451,7 @@ class NewModernHomeScreenState extends ConsumerState<NewModernHomeScreen>
     debugPrint('🖼️ Picking image - instant analysis mode');
     
     try {
-      final XFile? image = await picker.pickImage(
+      final image = await picker.pickImage(
         source: ImageSource.gallery,
         imageQuality: 85,
         maxWidth: 1920,

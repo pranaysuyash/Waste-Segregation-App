@@ -7,14 +7,14 @@ import 'disposal_instructions_widget.dart';
 
 /// Enhanced widget that fetches LLM-generated disposal instructions
 class EnhancedDisposalInstructionsWidget extends ConsumerWidget {
-  final WasteClassification classification;
-  final Function(String)? onStepCompleted;
 
   const EnhancedDisposalInstructionsWidget({
     super.key,
     required this.classification,
     this.onStepCompleted,
   });
+  final WasteClassification classification;
+  final Function(String)? onStepCompleted;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -23,7 +23,6 @@ class EnhancedDisposalInstructionsWidget extends ConsumerWidget {
       material: _getMaterialDescription(),
       category: classification.category,
       subcategory: classification.subcategory,
-      lang: 'en', // TODO: Get from user preferences
     );
 
     // Watch the disposal instructions provider
@@ -197,14 +196,14 @@ class EnhancedDisposalInstructionsWidget extends ConsumerWidget {
 
 /// Widget to show both AI and fallback instructions for comparison (debug mode)
 class DebugDisposalInstructionsWidget extends ConsumerWidget {
-  final WasteClassification classification;
-  final Function(String)? onStepCompleted;
 
   const DebugDisposalInstructionsWidget({
     super.key,
     required this.classification,
     this.onStepCompleted,
   });
+  final WasteClassification classification;
+  final Function(String)? onStepCompleted;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -212,7 +211,6 @@ class DebugDisposalInstructionsWidget extends ConsumerWidget {
       material: _getMaterialDescription(),
       category: classification.category,
       subcategory: classification.subcategory,
-      lang: 'en',
     );
 
     final disposalInstructionsAsync = ref.watch(disposalInstructionsProvider(request));
