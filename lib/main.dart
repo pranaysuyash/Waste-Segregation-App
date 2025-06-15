@@ -364,6 +364,8 @@ class WasteSegregationApp extends StatelessWidget {
             '/educational': (context) => const GlobalMenuWrapper(child: EducationalContentScreen()),
             '/analytics': (context) => const GlobalMenuWrapper(child: WasteDashboardScreen()),
             '/premium': (context) => const GlobalMenuWrapper(child: PremiumFeaturesScreen()),
+            '/premium-features': (context) => const GlobalMenuWrapper(child: PremiumFeaturesScreen()),
+            '/premium_features': (context) => const GlobalMenuWrapper(child: PremiumFeaturesScreen()),
             '/data-export': (context) => const GlobalMenuWrapper(child: DataExportScreen()),
             '/offline-settings': (context) => const GlobalMenuWrapper(child: OfflineModeSettingsScreen()),
             '/disposal-facilities': (context) => const GlobalMenuWrapper(child: DisposalFacilitiesScreen()),

@@ -13,6 +13,8 @@ class Routes {
   static const String navigationDemo = '/navigation_demo';
   static const String modernUIShowcase = '/modern_ui_showcase';
   static const String premiumFeatures = '/premium_features';
+  static const String premiumFeaturesHyphen = '/premium-features';
+  static const String premium = '/premium';
   static const String wasteDashboard = '/waste_dashboard';
   
   // Legal routes
@@ -42,6 +44,8 @@ class Routes {
     navigationDemo,
     modernUIShowcase,
     premiumFeatures,
+    premiumFeaturesHyphen,
+    premium,
     wasteDashboard,
     privacyPolicy,
     termsOfService,
