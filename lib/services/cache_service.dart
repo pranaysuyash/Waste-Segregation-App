@@ -3,6 +3,7 @@ import 'dart:collection';
 
 import 'package:flutter/foundation.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:waste_segregation_app/models/cached_classification.dart';
 import 'package:waste_segregation_app/models/waste_classification.dart';
 import 'package:waste_segregation_app/utils/constants.dart';
@@ -89,13 +90,16 @@ class ClassificationCacheService {
   /// Get a cached classification by image hash
   /// 
   /// This method checks for both exact matches and similar images when using
-  /// perceptual hashing (phash_) prefixes.
+  /// perceptual hashing (phash_) prefixes. Uses dual-hash verification to prevent
+  /// false positives: perceptual hash for similarity + content hash for verification.
   ///
   /// [imageHash]: The hash of the image to find in cache
-  /// [similarityThreshold]: The maximum number of bits that can differ for similar hashes (default: 10)
+  /// [contentHash]: The content hash for exact verification (required for similarity matching)
+  /// [similarityThreshold]: The maximum number of bits that can differ for similar hashes (default: 6)
   Future<CachedClassification?> getCachedClassification(
     String imageHash, {
-    int similarityThreshold = 10
+    String? contentHash,
+    int similarityThreshold = 6  // LOWERED: from 10 to 6 for stricter matching
   }) async {
     try {
       if (!_isInitialized) await initialize();
@@ -110,6 +114,14 @@ class ClassificationCacheService {
           debugPrint('Cache hit (exact match) for image hash: $imageHash');
           debugPrint('Cache entry created: ${cacheEntry.timestamp}, last accessed: ${cacheEntry.lastAccessed}');
           
+          // Crashlytics breadcrumb for field debugging (safe for testing)
+          try {
+            FirebaseCrashlytics.instance.log('CACHE exact_hit hash=${imageHash.substring(0, 16)}... age=${DateTime.now().difference(cacheEntry.timestamp).inMinutes}min');
+          } catch (e) {
+            // Firebase not initialized (testing environment)
+            debugPrint('Crashlytics not available: $e');
+          }
+          
           // Update LRU tracking
           cacheEntry.markUsed();
           _lruMap.remove(imageHash);
@@ -122,10 +134,14 @@ class ClassificationCacheService {
         }
       }
       
-      // If this is a perceptual hash, check for similar matches
-      if (imageHash.startsWith('phash_')) {
+      // If this is a perceptual hash, check for similar matches with dual-hash verification
+      if (imageHash.startsWith('phash_') && contentHash != null && CacheFeatureFlags.contentHashVerificationEnabled) {
         debugPrint('Looking for similar perceptual hashes to $imageHash with threshold $similarityThreshold');
-        final similarHash = await _findSimilarPerceptualHash(imageHash, similarityThreshold);
+        final similarHash = await _findSimilarPerceptualHashWithVerification(
+          imageHash, 
+          contentHash, 
+          similarityThreshold
+        );
         
         if (similarHash != null) {
           final cacheEntry = _deserializeEntry(similarHash);
@@ -134,8 +150,16 @@ class ClassificationCacheService {
             // Update stats - count as hit but also track similar hits separately
             _statistics['hits']++;
             _statistics['similarHits'] = (_statistics['similarHits'] ?? 0) + 1;
-            debugPrint('Cache hit (similar match) for image hash: original=$imageHash, matched=$similarHash');
+            debugPrint('Cache hit (verified similar match) for image hash: original=$imageHash, matched=$similarHash');
             debugPrint('Similar cache entry created: ${cacheEntry.timestamp}, last accessed: ${cacheEntry.lastAccessed}');
+            
+            // Crashlytics breadcrumb for field debugging (safe for testing)
+            try {
+              FirebaseCrashlytics.instance.log('CACHE verified_similar_hit original=${imageHash.substring(0, 16)}... matched=${similarHash.substring(0, 16)}... age=${DateTime.now().difference(cacheEntry.timestamp).inMinutes}min');
+            } catch (e) {
+              // Firebase not initialized (testing environment)
+              debugPrint('Crashlytics not available: $e');
+            }
             
             // Update LRU tracking
             cacheEntry.markUsed();
@@ -148,14 +172,48 @@ class ClassificationCacheService {
             return cacheEntry;
           }
         } else {
-          debugPrint('No similar hashes found for $imageHash');
+          debugPrint('No verified similar hashes found for $imageHash');
         }
+      } else if (imageHash.startsWith('phash_') && !CacheFeatureFlags.contentHashVerificationEnabled) {
+        debugPrint('🔧 KILL-SWITCH: Content hash verification disabled - falling back to basic perceptual matching');
+        final similarHash = await _findSimilarPerceptualHash(imageHash, similarityThreshold);
+        
+        if (similarHash != null) {
+          final cacheEntry = _deserializeEntry(similarHash);
+          
+          if (cacheEntry != null) {
+            _statistics['hits']++;
+            _statistics['similarHits'] = (_statistics['similarHits'] ?? 0) + 1;
+            debugPrint('Cache hit (basic similarity match) for image hash: original=$imageHash, matched=$similarHash');
+            
+            // Update LRU tracking
+            cacheEntry.markUsed();
+            _lruMap.remove(similarHash);
+            _lruMap[similarHash] = cacheEntry.lastAccessed;
+            
+            // Update the stored entry with new access info
+            await _cacheBox.put(similarHash, cacheEntry.serialize());
+            
+            return cacheEntry;
+          }
+        }
+      } else if (imageHash.startsWith('phash_') && contentHash == null) {
+        debugPrint('⚠️ Perceptual hash provided without content hash - skipping similarity search for safety');
       }
       
       // Cache miss
       _statistics['misses']++;
       debugPrint('Cache miss for image hash: $imageHash');
       debugPrint('Current cache size: ${_cacheBox.length} entries');
+      
+      // Crashlytics breadcrumb for field debugging (safe for testing)
+      try {
+        FirebaseCrashlytics.instance.log('CACHE miss hash=${imageHash.substring(0, 16)}... cache_size=${_cacheBox.length}');
+      } catch (e) {
+        // Firebase not initialized (testing environment)
+        debugPrint('Crashlytics not available: $e');
+      }
+      
       return null;
     } catch (e) {
       debugPrint('Error retrieving from cache: $e');
@@ -165,14 +223,20 @@ class ClassificationCacheService {
     }
   }
   
-  /// Finds a similar perceptual hash in the cache
+  /// Finds a similar perceptual hash in the cache with content hash verification
   /// 
-  /// Two hashes are considered similar if they have a small Hamming distance
-  /// (number of bits that differ between them).
+  /// Two-stage verification process:
+  /// 1. Find perceptual hashes with small Hamming distance (similarity)
+  /// 2. Verify content hash matches exactly (prevents false positives)
   ///
   /// [pHash]: The perceptual hash to compare (must start with 'phash_')
+  /// [contentHash]: The content hash for exact verification
   /// [threshold]: Maximum number of bits that can differ (0-64, where lower is more strict)
-  Future<String?> _findSimilarPerceptualHash(String pHash, int threshold) async {
+  Future<String?> _findSimilarPerceptualHashWithVerification(
+    String pHash, 
+    String contentHash, 
+    int threshold
+  ) async {
     try {
       if (!pHash.startsWith('phash_')) {
         debugPrint('Not a perceptual hash (no phash_ prefix): $pHash');
@@ -193,16 +257,19 @@ class ClassificationCacheService {
         return null;
       }
       
-      debugPrint('Searching for similar hashes to: $pHash (bin: ${binaryHash.substring(0, 16)}...)');
+      debugPrint('🔍 DUAL-HASH: Searching for similar hashes to: $pHash (bin: ${binaryHash.substring(0, 16)}...)');
+      debugPrint('🔍 DUAL-HASH: Content hash for verification: $contentHash');
       
       // Get all perceptual hashes in cache for faster processing
       final pHashKeys = _cacheBox.keys.where((key) => key.startsWith('phash_')).toList();
-      debugPrint('Found ${pHashKeys.length} perceptual hashes in cache to compare');
+      debugPrint('🔍 DUAL-HASH: Found ${pHashKeys.length} perceptual hashes in cache to compare');
       
       // Track best match
       String? bestMatch;
       var bestDistance = threshold + 1; // Initialize with a value greater than threshold
       final allDistances = <int>[]; // Track all distances for debugging
+      var verificationAttempts = 0;
+      var verificationFailures = 0;
       
       // Compare with all perceptual hashes in cache
       for (final String cachedHash in pHashKeys) {
@@ -216,30 +283,64 @@ class ClassificationCacheService {
         final distance = _hammingDistance(binaryHash, cachedBinaryHash);
         
         // Log every distance calculated, even if above threshold
-        debugPrint('Comparing with $cachedHash: distance = $distance (threshold = $threshold)');
+        debugPrint('🔍 DUAL-HASH: Comparing with $cachedHash: distance = $distance (threshold = $threshold)');
         allDistances.add(distance);
         
-        // If distance is within threshold, consider it a match
+        // If distance is within threshold, verify with content hash
         if (distance <= threshold) {
-          // If it's a better match than current best, update it
-          if (distance < bestDistance) {
-            bestDistance = distance;
-            bestMatch = cachedHash;
+          verificationAttempts++;
+          
+          // Get the cached entry to check content hash
+          final cacheEntry = _deserializeEntry(cachedHash);
+          if (cacheEntry != null && cacheEntry.contentHash != null) {
+            debugPrint('🔍 DUAL-HASH: Verifying content hash for similar pHash $cachedHash');
+            debugPrint('🔍 DUAL-HASH: Cached content hash: ${cacheEntry.contentHash}');
+            debugPrint('🔍 DUAL-HASH: Current content hash: $contentHash');
             
-            // If exact match (distance = 0), return immediately
-            if (distance == 0) break;
+            // Content hash must match exactly for verification
+            if (cacheEntry.contentHash == contentHash) {
+              debugPrint('✅ DUAL-HASH: Content hash verification PASSED - same image confirmed');
+              
+              // If it's a better match than current best, update it
+              if (distance < bestDistance) {
+                bestDistance = distance;
+                bestMatch = cachedHash;
+                
+                // If exact match (distance = 0), return immediately
+                if (distance == 0) break;
+              }
+            } else {
+              verificationFailures++;
+              debugPrint('❌ DUAL-HASH: Content hash verification FAILED - different image (pHash distance: $distance)');
+              debugPrint('❌ DUAL-HASH: This prevents false positive cache hit');
+            }
+          } else {
+            debugPrint('⚠️ DUAL-HASH: Cached entry missing content hash - skipping verification');
           }
         }
       }
       
       if (bestMatch != null) {
-        debugPrint('Found similar hash: $bestMatch with distance $bestDistance');
+        debugPrint('✅ DUAL-HASH: Found verified similar hash: $bestMatch with distance $bestDistance');
+        debugPrint('✅ DUAL-HASH: Verification stats - attempts: $verificationAttempts, failures: $verificationFailures');
       } else {
         // More detailed logging for debug purposes
         if (allDistances.isNotEmpty) {
           allDistances.sort(); // Sort distances for better analysis
           final minDistance = allDistances.first;
-          debugPrint('No similar hashes found within threshold $threshold. Closest match had distance $minDistance');
+          debugPrint('❌ DUAL-HASH: No verified similar hashes found within threshold $threshold');
+          debugPrint('❌ DUAL-HASH: Closest pHash distance: $minDistance, verification attempts: $verificationAttempts, failures: $verificationFailures');
+          
+          if (verificationFailures > 0) {
+            debugPrint('🛡️ DUAL-HASH: Prevented $verificationFailures potential false positive(s)');
+            // Crashlytics breadcrumb for false positive prevention tracking (safe for testing)
+            try {
+              FirebaseCrashlytics.instance.log('CACHE prevented_false_positives count=$verificationFailures hash=${pHash.substring(0, 16)}...');
+            } catch (e) {
+              // Firebase not initialized (testing environment)
+              debugPrint('Crashlytics not available: $e');
+            }
+          }
           
           // Log distribution of distances
           final distCounts = <int, int>{};
@@ -247,19 +348,19 @@ class ClassificationCacheService {
             distCounts[d] = (distCounts[d] ?? 0) + 1;
           }
           final keys = distCounts.keys.toList()..sort();
-          final distLog = StringBuffer('Distance distribution: ');
+          final distLog = StringBuffer('🔍 DUAL-HASH: Distance distribution: ');
           for (final k in keys) {
             distLog.write('$k: ${distCounts[k]} hashes, ');
           }
           debugPrint(distLog.toString());
         } else {
-          debugPrint('No similar hashes found within threshold $threshold. No perceptual hashes to compare.');
+          debugPrint('❌ DUAL-HASH: No similar hashes found within threshold $threshold. No perceptual hashes to compare.');
         }
       }
       
       return bestMatch;
     } catch (e) {
-      debugPrint('Error finding similar perceptual hash: $e');
+      debugPrint('❌ DUAL-HASH: Error finding similar perceptual hash: $e');
       return null;
     }
   }
@@ -297,6 +398,7 @@ class ClassificationCacheService {
   Future<void> cacheClassification(
     String imageHash,
     WasteClassification classification, {
+    String? contentHash,
     int? imageSize,
   }) async {
     try {
@@ -315,10 +417,11 @@ class ClassificationCacheService {
         }
       }
       
-      // Create cache entry
+      // Create cache entry with content hash for dual-hash verification
       final cacheEntry = CachedClassification.fromClassification(
         imageHash,
         classification,
+        contentHash: contentHash,
         imageSize: imageSize,
       );
       
@@ -339,6 +442,9 @@ class ClassificationCacheService {
       }
       
       debugPrint('Successfully cached classification for $imageHash (${classification.itemName})');
+      if (contentHash != null) {
+        debugPrint('🔍 DUAL-HASH: Stored with content hash: $contentHash');
+      }
       debugPrint('Current cache size: ${_cacheBox.length} entries');
     } catch (e) {
       debugPrint('ERROR caching classification: $e');
@@ -460,9 +566,108 @@ class ClassificationCacheService {
       return null;
     }
   }
+
+  /// Finds a similar perceptual hash in the cache (basic version without content verification)
+  /// Used as fallback when content hash verification is disabled via kill-switch
+  Future<String?> _findSimilarPerceptualHash(String pHash, int threshold) async {
+    try {
+      if (!pHash.startsWith('phash_')) {
+        debugPrint('Not a perceptual hash (no phash_ prefix): $pHash');
+        return null;
+      }
+      
+      // Extract the hex part
+      final hexHash = pHash.substring(6); // Remove 'phash_' prefix
+      if (hexHash.length != 16) {
+        debugPrint('Invalid perceptual hash length: ${hexHash.length} (expected 16)');
+        return null; // Should be 16 hex chars (64 bits)
+      }
+      
+      // Convert to binary
+      final binaryHash = _hexToBinary(hexHash);
+      if (binaryHash.length != 64) {
+        debugPrint('Invalid binary hash length: ${binaryHash.length} (expected 64)');
+        return null;
+      }
+      
+      debugPrint('🔧 BASIC: Searching for similar hashes to: $pHash (bin: ${binaryHash.substring(0, 16)}...)');
+      
+      // Get all perceptual hashes in cache for faster processing
+      final pHashKeys = _cacheBox.keys.where((key) => key.startsWith('phash_')).toList();
+      debugPrint('🔧 BASIC: Found ${pHashKeys.length} perceptual hashes in cache to compare');
+      
+      // Track best match
+      String? bestMatch;
+      var bestDistance = threshold + 1; // Initialize with a value greater than threshold
+      
+      // Compare with all perceptual hashes in cache
+      for (final String cachedHash in pHashKeys) {
+        final cachedHexHash = cachedHash.substring(6);
+        if (cachedHexHash.length != 16) continue;
+        
+        final cachedBinaryHash = _hexToBinary(cachedHexHash);
+        if (cachedBinaryHash.length != 64) continue;
+        
+        // Calculate Hamming distance (number of bits that differ)
+        final distance = _hammingDistance(binaryHash, cachedBinaryHash);
+        
+        debugPrint('🔧 BASIC: Comparing with $cachedHash: distance = $distance (threshold = $threshold)');
+        
+        // If distance is within threshold, consider it a match
+        if (distance <= threshold) {
+          // If it's a better match than current best, update it
+          if (distance < bestDistance) {
+            bestDistance = distance;
+            bestMatch = cachedHash;
+            
+            // If exact match (distance = 0), return immediately
+            if (distance == 0) break;
+          }
+        }
+      }
+      
+      if (bestMatch != null) {
+        debugPrint('🔧 BASIC: Found similar hash: $bestMatch with distance $bestDistance');
+      } else {
+        debugPrint('🔧 BASIC: No similar hashes found within threshold $threshold');
+      }
+      
+      return bestMatch;
+    } catch (e) {
+      debugPrint('🔧 BASIC: Error finding similar perceptual hash: $e');
+      return null;
+    }
+  }
+
+  /// Get the cache box for testing purposes
+  Box<String> get cacheBox => _cacheBox;
 }
 
 /// Temporary alias to maintain compatibility with older tests that referenced
 /// `CacheService`. This alias maps the old name to the current
 /// `ClassificationCacheService` implementation.
 typedef CacheService = ClassificationCacheService;
+
+/// Feature flags for cache service
+class CacheFeatureFlags {
+  static bool _contentHashVerificationEnabled = true;
+  
+  /// Enable/disable content hash verification (kill-switch for production)
+  static bool get contentHashVerificationEnabled => _contentHashVerificationEnabled;
+  
+  /// Set content hash verification state (for testing or remote config)
+  static void setContentHashVerification(bool enabled) {
+    _contentHashVerificationEnabled = enabled;
+    debugPrint('🔧 FEATURE FLAG: Content hash verification ${enabled ? 'ENABLED' : 'DISABLED'}');
+  }
+  
+  /// Initialize feature flags from remote config (placeholder for future implementation)
+  static Future<void> initialize() async {
+    // TODO: Integrate with Firebase Remote Config
+    // final remoteConfig = FirebaseRemoteConfig.instance;
+    // await remoteConfig.fetchAndActivate();
+    // _contentHashVerificationEnabled = remoteConfig.getBool('content_hash_verification_enabled');
+    
+    debugPrint('🔧 FEATURE FLAGS: Initialized with contentHashVerification=$_contentHashVerificationEnabled');
+  }
+}

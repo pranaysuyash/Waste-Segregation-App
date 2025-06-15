@@ -9,6 +9,7 @@ import 'community_service.dart';
 import 'storage_service.dart';
 import 'cloud_storage_service.dart';
 import 'points_engine.dart';
+import 'hive_manager.dart';
 
 /// Service for managing gamification features
 class GamificationService extends ChangeNotifier {
@@ -60,10 +61,10 @@ class GamificationService extends ChangeNotifier {
     try {
       debugPrint('🚀 Initializing GamificationService...');
       
-      // Ensure Hive box is opened
-      if (!Hive.isBoxOpen(_gamificationBoxName)) {
+      // Ensure Hive box is opened using HiveManager
+      if (!HiveManager.isBoxOpen(_gamificationBoxName)) {
         debugPrint('📦 Opening Hive box: $_gamificationBoxName');
-        await Hive.openBox(_gamificationBoxName);
+        await HiveManager.openDynamicBox(_gamificationBoxName);
       } else {
         debugPrint('📦 Hive box already open: $_gamificationBoxName');
       }
@@ -125,9 +126,9 @@ class GamificationService extends ChangeNotifier {
       }
       
       // Ensure Hive box is open before proceeding
-      if (!Hive.isBoxOpen(_gamificationBoxName)) {
+      if (!HiveManager.isBoxOpen(_gamificationBoxName)) {
         debugPrint('📦 Hive box not open, opening now...');
-        await Hive.openBox(_gamificationBoxName);
+        await HiveManager.openDynamicBox(_gamificationBoxName);
       }
       
       final currentUserProfile = await _storageService.getCurrentUserProfile();

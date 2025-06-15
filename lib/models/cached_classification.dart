@@ -15,6 +15,7 @@ class CachedClassification extends HiveObject {
   CachedClassification({
     required this.imageHash,
     required this.classification,
+    this.contentHash,
     DateTime? timestamp,
     DateTime? lastAccessed,
     this.useCount = 1,
@@ -27,6 +28,7 @@ class CachedClassification extends HiveObject {
     return CachedClassification(
       imageHash: json['imageHash'],
       classification: WasteClassification.fromJson(json['classification']),
+      contentHash: json['contentHash'],
       timestamp: DateTime.parse(json['timestamp']),
       lastAccessed: DateTime.parse(json['lastAccessed']),
       useCount: json['useCount'],
@@ -38,11 +40,13 @@ class CachedClassification extends HiveObject {
   factory CachedClassification.fromClassification(
     String hash,
     WasteClassification classification, {
+    String? contentHash,
     int? imageSize,
   }) {
     return CachedClassification(
       imageHash: hash,
       classification: classification,
+      contentHash: contentHash,
       imageSize: imageSize,
     );
   }
@@ -70,6 +74,11 @@ class CachedClassification extends HiveObject {
   @HiveField(5)
   final int? imageSize;
 
+  /// Content hash (MD5/SHA256) for exact image verification
+  /// Used in dual-hash verification to prevent false positives
+  @HiveField(6)
+  final String? contentHash;
+
   /// Increments the use count and updates last accessed timestamp
   void markUsed() {
     useCount++;
@@ -81,6 +90,7 @@ class CachedClassification extends HiveObject {
     return {
       'imageHash': imageHash,
       'classification': classification.toJson(),
+      'contentHash': contentHash,
       'timestamp': timestamp.toIso8601String(),
       'lastAccessed': lastAccessed.toIso8601String(),
       'useCount': useCount,

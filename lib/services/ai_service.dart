@@ -413,17 +413,25 @@ Output:
     }
 
     try {
-      // Check cache if enabled
+      // Check cache if enabled with dual-hash verification
+      String? contentHash;
       if (cachingEnabled) {
-        imageHash = await ImageUtils.generateImageHash(permanentFile.readAsBytesSync()); // Use sync to prevent async issues here
+        final imageBytes = permanentFile.readAsBytesSync();
+        
+        // Generate both hashes efficiently in isolate to prevent UI lag
+        final hashes = await ImageUtils.generateDualHashes(imageBytes);
+        imageHash = hashes['perceptualHash']!;
+        contentHash = hashes['contentHash']!;
+        
         debugPrint('Generated perceptual hash for mobile image: $imageHash');
+        debugPrint('Generated content hash for mobile image: $contentHash');
 
         final cachedResult = await cacheService.getCachedClassification(
-          imageHash
+          imageHash,
+          contentHash: contentHash,
         );
         if (cachedResult != null) {
-          debugPrint('Cache hit for mobile image hash: $imageHash - returning cached classification');
-          // Ensure the cached classification uses the current session's ID
+          debugPrint('✅ DUAL-HASH: Cache hit for mobile image hash: $imageHash - returning verified cached result');
           return cachedResult.classification.copyWith(id: currentClassificationId);
         }
 
@@ -439,6 +447,7 @@ Output:
           analysisLang,
           imageHash,
           currentClassificationId, // Pass the new ID
+          contentHash: contentHash, // Pass content hash for caching
         );
         return result;
       } on Exception catch (openAiError) {
@@ -456,6 +465,7 @@ Output:
             analysisLang,
             imageHash,
             currentClassificationId, // Pass the new ID
+            contentHash: contentHash, // Pass content hash for caching
           );
           return result;
         }
@@ -536,17 +546,23 @@ Output:
     }
 
     try {
-      // Check cache if enabled
+      // Check cache if enabled with dual-hash verification
+      String? contentHash;
       if (cachingEnabled) {
-        imageHash = await ImageUtils.generateImageHash(imageBytes);
+        // Generate both hashes efficiently in isolate to prevent UI lag
+        final hashes = await ImageUtils.generateDualHashes(imageBytes);
+        imageHash = hashes['perceptualHash']!;
+        contentHash = hashes['contentHash']!;
+        
         debugPrint('Generated perceptual hash for web image: $imageHash');
+        debugPrint('Generated content hash for web image: $contentHash');
 
         final cachedResult = await cacheService.getCachedClassification(
-          imageHash
+          imageHash,
+          contentHash: contentHash,
         );
         if (cachedResult != null) {
-          debugPrint('Cache hit for web image hash: $imageHash - returning cached classification');
-          // Ensure the cached classification uses the current session's ID
+          debugPrint('✅ DUAL-HASH: Cache hit for web image hash: $imageHash - returning verified cached result');
           return cachedResult.classification.copyWith(id: currentClassificationId);
         }
 
@@ -562,6 +578,7 @@ Output:
           analysisLang,
           imageHash,
           currentClassificationId,
+          contentHash: contentHash,
         );
         return result;
       } on Exception catch (openAiError) {
@@ -579,6 +596,7 @@ Output:
             analysisLang,
             imageHash,
             currentClassificationId,
+            contentHash: contentHash,
           );
           return result;
         }
@@ -732,8 +750,9 @@ Output:
     String region,
     String language,
     String? imageHash,
-    String classificationId,
-  ) async {
+    String classificationId, {
+    String? contentHash,
+  }) async {
     // Compress image if needed
     final compressedBytes = await _compressImageForOpenAI(imageBytes);
     final base64Image = _bytesToBase64(compressedBytes);
@@ -803,7 +822,12 @@ Output:
       
       // Cache the result if we have a valid hash
       if (cachingEnabled && imageHash != null) {
-        await cacheService.cacheClassification(imageHash, classification, imageSize: imageBytes.length);
+        await cacheService.cacheClassification(
+          imageHash, 
+          classification, 
+          contentHash: contentHash,
+          imageSize: imageBytes.length,
+        );
       }
       
       return classification;
@@ -909,8 +933,9 @@ Output:
     String region,
     String language,
     String? imageHash,
-    String classificationId,
-  ) async {
+    String classificationId, {
+    String? contentHash,
+  }) async {
     debugPrint('🔄 Using Gemini for analysis...');
     
     // Gemini can handle larger images, but still compress if extremely large
@@ -1002,7 +1027,12 @@ Output:
         
         // Cache the result if we have a valid hash
         if (cachingEnabled && imageHash != null) {
-          await cacheService.cacheClassification(imageHash, classification, imageSize: imageBytes.length);
+          await cacheService.cacheClassification(
+            imageHash, 
+            classification, 
+            contentHash: contentHash,
+            imageSize: imageBytes.length,
+          );
         }
         
         return classification;

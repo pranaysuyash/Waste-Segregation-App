@@ -6,7 +6,7 @@ import 'package:image_picker/image_picker.dart';
 import '../services/premium_service.dart';
 import '../services/ad_service.dart';
 import '../services/navigation_settings_service.dart';
-import '../screens/new_modern_home_screen.dart';
+import '../screens/ultra_modern_home_screen.dart';
 import '../screens/history_screen.dart';
 import '../screens/educational_content_screen.dart';
 import '../screens/achievements_screen.dart';
@@ -76,7 +76,7 @@ class _MainNavigationWrapperState extends State<MainNavigationWrapper> {
 
   List<Widget> _getScreens() {
     return [
-      NewModernHomeScreen(isGuestMode: widget.isGuestMode),
+      UltraModernHomeScreen(isGuestMode: widget.isGuestMode),
       const HistoryScreen(),
       const EducationalContentScreen(),
       const SocialScreen(),
@@ -439,46 +439,67 @@ class _MainNavigationWrapperState extends State<MainNavigationWrapper> {
           );
         }
 
-        // Small screens - bottom navigation
+        // Small screens - Material 3 NavigationBar with FAB
         return Scaffold(
-          body: Stack(
-            children: [
-              PageView(
-                controller: _pageController,
-                onPageChanged: _onPageChanged,
-                children: _getScreens(),
-              ),
-              if (navSettings.bottomNavEnabled)
-                Positioned(
-                  bottom: 0,
-                  left: 0,
-                  right: 0,
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      if (!Provider.of<PremiumService>(context).isPremiumFeature('remove_ads'))
-                        Provider.of<AdService>(context).getBannerAd(),
-                      Container(
-                        margin: const EdgeInsets.all(16),
-                        child: ModernBottomNavigation(
-                          currentIndex: _currentIndex,
-                          onTap: _onTabTapped,
-                          items: _getNavItems(),
-                          style: navStyle,
-                          hasNotch: navSettings.fabEnabled,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-            ],
+          body: PageView(
+            controller: _pageController,
+            onPageChanged: _onPageChanged,
+            children: _getScreens(),
           ),
-          floatingActionButton: navSettings.fabEnabled
-              ? AnimatedFAB(onPressed: () => _showCaptureOptions(context))
+          bottomNavigationBar: navSettings.bottomNavEnabled
+              ? Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (!Provider.of<PremiumService>(context).isPremiumFeature('remove_ads'))
+                      Provider.of<AdService>(context).getBannerAd(),
+                    NavigationBar(
+                      selectedIndex: _currentIndex,
+                      onDestinationSelected: _onTabTapped,
+                      destinations: [
+                        const NavigationDestination(
+                          icon: Icon(Icons.home_outlined),
+                          selectedIcon: Icon(Icons.home),
+                          label: 'Home',
+                        ),
+                        const NavigationDestination(
+                          icon: Icon(Icons.history_outlined),
+                          selectedIcon: Icon(Icons.history),
+                          label: 'History',
+                        ),
+                        const NavigationDestination(
+                          icon: Icon(Icons.school_outlined),
+                          selectedIcon: Icon(Icons.school),
+                          label: 'Learn',
+                        ),
+                        const NavigationDestination(
+                          icon: Icon(Icons.people_outlined),
+                          selectedIcon: Icon(Icons.people),
+                          label: 'Social',
+                        ),
+                        const NavigationDestination(
+                          icon: Icon(Icons.emoji_events_outlined),
+                          selectedIcon: Icon(Icons.emoji_events),
+                          label: 'Rewards',
+                        ),
+                      ],
+                    ),
+                  ],
+                )
               : null,
-          floatingActionButtonLocation: navSettings.fabEnabled && navSettings.bottomNavEnabled
-              ? FloatingActionButtonLocation.centerDocked
-              : FloatingActionButtonLocation.endFloat,
+          floatingActionButton: navSettings.fabEnabled
+              ? FilledButton.icon(
+                  onPressed: () => _showCaptureOptions(context),
+                  icon: const Icon(Icons.camera_alt),
+                  label: const Text('Scan'),
+                  style: FilledButton.styleFrom(
+                    backgroundColor: theme.colorScheme.primary,
+                    foregroundColor: theme.colorScheme.onPrimary,
+                    elevation: 6,
+                    shadowColor: theme.colorScheme.primary.withValues(alpha: 0.4),
+                  ),
+                )
+              : null,
+          floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
         );
       },
     );
@@ -511,7 +532,7 @@ class _AlternativeNavigationWrapperState extends State<AlternativeNavigationWrap
 
   List<Widget> _getScreens() {
     return [
-              NewModernHomeScreen(isGuestMode: widget.isGuestMode),
+              UltraModernHomeScreen(isGuestMode: widget.isGuestMode),
       const HistoryScreen(),
       const EducationalContentScreen(),
       const SocialScreen(),

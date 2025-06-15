@@ -5,16 +5,194 @@ import 'package:mockito/mockito.dart';
 import 'package:crypto/crypto.dart';
 import 'package:waste_segregation_app/services/cache_service.dart';
 import 'package:waste_segregation_app/models/waste_classification.dart';
+import 'package:waste_segregation_app/models/cached_classification.dart';
 
 // Manual mock for testing
 class MockCacheService extends Mock implements CacheService {}
 
 void main() {
   group('CacheService', () {
-    late CacheService cacheService;
+    late ClassificationCacheService cacheService;
 
     setUp(() {
-      cacheService = CacheService();
+      cacheService = ClassificationCacheService();
+    });
+
+    group('Dual-Hash Backward Compatibility', () {
+      test('should handle legacy cache entries without contentHash gracefully', () async {
+        // Create a legacy cache entry without contentHash (simulating old data)
+        final legacyClassification = WasteClassification(
+          id: 'test-id',
+          itemName: 'Legacy Item',
+          category: 'Dry Waste',
+          subcategory: 'Plastic',
+          explanation: 'Legacy test item',
+          disposalInstructions: DisposalInstructions(
+            primaryMethod: 'Recycle',
+            steps: ['Clean', 'Recycle'],
+            hasUrgentTimeframe: false,
+          ),
+          timestamp: DateTime.now(),
+          region: 'Test Region',
+          visualFeatures: ['plastic'],
+          alternatives: [],
+          confidence: 0.9,
+        );
+
+        final legacyEntry = CachedClassification(
+          imageHash: 'phash_legacy123456789abcdef',
+          classification: legacyClassification,
+          // Note: No contentHash provided (simulating legacy data)
+        );
+
+        // Manually serialize and store legacy entry
+        await cacheService.initialize();
+        final box = cacheService.cacheBox;
+        await box.put('phash_legacy123456789abcdef', legacyEntry.serialize());
+
+        // Test 1: Exact match should work for legacy entries
+        final exactMatch = await cacheService.getCachedClassification('phash_legacy123456789abcdef');
+        expect(exactMatch, isNotNull);
+        expect(exactMatch!.classification.itemName, equals('Legacy Item'));
+
+        // Test 2: Similarity search without contentHash should be skipped for safety
+        final similarityResult = await cacheService.getCachedClassification(
+          'phash_legacy123456789abcdff', // Similar but different hash
+          contentHash: 'md5_newcontenthashdifferent',
+        );
+        expect(similarityResult, isNull); // Should not match due to missing contentHash in legacy entry
+      });
+
+      test('should prevent false positives when legacy entries lack contentHash', () async {
+        // Create two different images with similar perceptual hashes
+        final classification1 = _createTestClassification('Red Pen');
+        final classification2 = _createTestClassification('Blue Marker');
+
+        // Store first item as legacy (no contentHash)
+        final legacyEntry = CachedClassification(
+          imageHash: 'phash_000000010f3f7f3f',
+          classification: classification1,
+          // No contentHash - simulating legacy data
+        );
+
+        await cacheService.initialize();
+        final box = cacheService.cacheBox;
+        await box.put('phash_000000010f3f7f3f', legacyEntry.serialize());
+
+        // Try to find similar item with contentHash verification
+        final result = await cacheService.getCachedClassification(
+          'phash_800103032f7f3f0f', // Similar hash (distance = 10)
+          contentHash: 'md5_differentcontenthashdifferent',
+        );
+
+        // Should return null because legacy entry lacks contentHash for verification
+        expect(result, isNull);
+      });
+
+      test('should work correctly with new dual-hash entries', () async {
+        final classification = _createTestClassification('New Item');
+        
+        // Store with both hashes (new system)
+        await cacheService.cacheClassification(
+          'phash_newitem123456789abcdef',
+          classification,
+          contentHash: 'md5_newitemcontenthashabc123',
+          imageSize: 1024,
+        );
+
+        // Test exact match
+        final exactMatch = await cacheService.getCachedClassification('phash_newitem123456789abcdef');
+        expect(exactMatch, isNotNull);
+        expect(exactMatch!.classification.itemName, equals('New Item'));
+
+        // Test similarity match with correct contentHash
+        final similarMatch = await cacheService.getCachedClassification(
+          'phash_newitem123456789abcdee', // 1 bit different
+          contentHash: 'md5_newitemcontenthashabc123', // Same content hash
+        );
+        expect(similarMatch, isNotNull);
+        expect(similarMatch!.classification.itemName, equals('New Item'));
+
+        // Test similarity match with wrong contentHash (should fail verification)
+        final wrongContentMatch = await cacheService.getCachedClassification(
+          'phash_newitem123456789abcdee', // 1 bit different
+          contentHash: 'md5_differentcontenthashdiff', // Different content hash
+        );
+        expect(wrongContentMatch, isNull);
+      });
+
+      test('should maintain cache statistics correctly for dual-hash operations', () async {
+        await cacheService.initialize();
+        
+        final classification = _createTestClassification('Stats Test Item');
+        
+        // Cache with dual-hash
+        await cacheService.cacheClassification(
+          'phash_statstest123456789abc',
+          classification,
+          contentHash: 'md5_statstestcontenthashabc',
+        );
+
+        // Test cache hit
+        final hit = await cacheService.getCachedClassification(
+          'phash_statstest123456789abc',
+          contentHash: 'md5_statstestcontenthashabc',
+        );
+        expect(hit, isNotNull);
+
+        // Test cache miss
+        final miss = await cacheService.getCachedClassification(
+          'phash_nonexistent123456789',
+          contentHash: 'md5_nonexistentcontenthashabc',
+        );
+        expect(miss, isNull);
+
+        final stats = cacheService.getCacheStatistics();
+        expect(stats['hits'], greaterThan(0));
+        expect(stats['misses'], greaterThan(0));
+      });
+
+      test('should handle corrupted legacy cache entries gracefully', () async {
+        await cacheService.initialize();
+        final box = cacheService.cacheBox;
+        
+        // Store corrupted JSON
+        await box.put('phash_corrupted123456789abc', '{"invalid": json}');
+        
+        // Should not crash and return null
+        final result = await cacheService.getCachedClassification('phash_corrupted123456789abc');
+        expect(result, isNull);
+      });
+
+      test('should migrate legacy entries when accessed and updated', () async {
+        // Create legacy entry without contentHash
+        final legacyClassification = _createTestClassification('Migration Test');
+        final legacyEntry = CachedClassification(
+          imageHash: 'phash_migration123456789abc',
+          classification: legacyClassification,
+        );
+
+        await cacheService.initialize();
+        final box = cacheService.cacheBox;
+        await box.put('phash_migration123456789abc', legacyEntry.serialize());
+
+        // Access the legacy entry (should work)
+        final accessed = await cacheService.getCachedClassification('phash_migration123456789abc');
+        expect(accessed, isNotNull);
+        expect(accessed!.contentHash, isNull); // Still no contentHash
+
+        // Now cache the same item with contentHash (simulating re-analysis)
+        await cacheService.cacheClassification(
+          'phash_migration123456789abc',
+          legacyClassification,
+          contentHash: 'md5_migrationcontenthashabc',
+        );
+
+        // Verify it now has contentHash
+        final updated = await cacheService.getCachedClassification('phash_migration123456789abc');
+        expect(updated, isNotNull);
+        expect(updated!.contentHash, equals('md5_migrationcontenthashabc'));
+      });
     });
 
     group('Image Classification Caching', () {
@@ -273,7 +451,7 @@ void main() {
 
         // Simulate app restart by creating new instance
         await cacheService.saveCacheToStorage();
-        final newCacheService = CacheService();
+        final newCacheService = ClassificationCacheService();
         await newCacheService.loadCacheFromStorage();
 
         final result = await newCacheService.getCachedClassification('persist_hash');
@@ -406,12 +584,15 @@ void main() {
 
 // Helper function to create test classifications
 WasteClassification _createTestClassification(String itemName) {
-  return WasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
+  return WasteClassification(
+    id: 'test-${DateTime.now().millisecondsSinceEpoch}',
     itemName: itemName,
-    subcategory: 'Test',
-    explanation: 'Test classification for $itemName',
+    category: 'Dry Waste',
+    subcategory: 'Plastic',
+    explanation: 'Test item: $itemName',
+    disposalInstructions: DisposalInstructions(
       primaryMethod: 'Test disposal',
-      steps: ['Step 1', 'Step 2'],
+      steps: ['Test step'],
       hasUrgentTimeframe: false,
     ),
     timestamp: DateTime.now(),

@@ -27,6 +27,7 @@ import 'services/navigation_settings_service.dart';
 import 'services/haptic_settings_service.dart';
 import 'services/community_service.dart';
 import 'services/dynamic_link_service.dart';
+import 'services/cache_service.dart';
 import 'screens/auth_screen.dart';
 import 'screens/consent_dialog_screen.dart';
 import 'screens/settings_screen.dart';
@@ -152,6 +153,12 @@ void main() async {
   await StorageService.initializeHive();
   if (kDebugMode) {
     debugPrint('After StorageService.initializeHive');
+  }
+
+  // Initialize cache feature flags
+  await CacheFeatureFlags.initialize();
+  if (kDebugMode) {
+    debugPrint('Cache feature flags initialized');
   }
 
   // Initialize Error Handler
@@ -340,6 +347,7 @@ class WasteSegregationApp extends StatelessWidget {
                 return MaterialApp(
                   navigatorKey: navigatorKey,
                   title: AppStrings.appName,
+                  debugShowCheckedModeBanner: false,
                   theme: AppTheme.fromScheme(lightScheme),
                   darkTheme: AppTheme.fromScheme(darkScheme),
                   highContrastTheme: AppTheme.highContrastTheme,

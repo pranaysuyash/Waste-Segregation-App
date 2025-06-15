@@ -66,7 +66,8 @@ class StorageKeys {
 // App Theme Constants
 class AppTheme {
   /// Primary seed color used if dynamic color is not available.
-  static const Color seedColor = Color(0xFF2E7D32);
+  /// Updated to a more vibrant eco-green for modern Material 3 theming
+  static const Color seedColor = Color(0xFF2ECC71);
 
   /// Base text theme using Roboto for consistent typography.
   static TextTheme _roboto(TextTheme base) =>
