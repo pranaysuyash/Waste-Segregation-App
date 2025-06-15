@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/mockito.dart';
 import 'package:mockito/annotations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:provider/provider.dart' as provider;
 import 'package:waste_segregation_app/screens/theme_settings_screen.dart';
 import 'package:waste_segregation_app/screens/premium_features_screen.dart';
 import 'package:waste_segregation_app/services/premium_service.dart';
@@ -24,6 +25,10 @@ void main() {
       // Set up default mock behavior
       when(mockPremiumService.isPremiumFeature('theme_customization'))
           .thenReturn(false);
+      when(mockPremiumService.getComingSoonFeatures())
+          .thenReturn([]);
+      when(mockPremiumService.getPremiumFeatures())
+          .thenReturn([]);
       when(mockThemeProvider.themeMode).thenReturn(ThemeMode.system);
     });
 
@@ -147,7 +152,10 @@ void main() {
               initialRoute: '/',
               routes: {
                 '/': (_) => const ThemeSettingsScreen(),
-                '/premium': (_) => const PremiumFeaturesScreen(),
+                '/premium': (context) => provider.ChangeNotifierProvider<PremiumService>.value(
+                  value: mockPremiumService,
+                  child: const PremiumFeaturesScreen(),
+                ),
               },
             ),
           ),
