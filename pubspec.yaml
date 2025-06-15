@@ -34,7 +34,7 @@ dependencies:
   crypto: ^3.0.3  # For SHA-256 hashing
   image: ^4.0.17  # For image preprocessing
   google_mobile_ads: ^6.0.0  # Updated for iOS compatibility
-  fl_chart: ^1.0.0  # Updated to new major version with new API
+  fl_chart: ^0.68.0  # Compatible with Dart SDK 3.5.0
   # REPLACED: flutter_markdown (discontinued) with markdown_widget
   markdown_widget: ^2.3.2+6  # Community-maintained alternative with rich features
   intl: any  # For internationalization and date formatting (version managed by flutter_localizations)
@@ -115,6 +115,7 @@ dependency_overrides:
   video_player_platform_interface: ^6.2.0  # Ensure compatibility
   google_sign_in: 6.2.0  # Pin to exact version compatible with Dart SDK 3.5.0
   webview_flutter: 4.12.0  # Pin to version compatible with Dart SDK 3.5.0
+  fl_chart: 0.68.0  # Pin to version compatible with Dart SDK 3.5.0
 
 flutter:
   uses-material-design: true
