@@ -509,6 +509,9 @@ class NewModernHomeScreenState extends ConsumerState<NewModernHomeScreen>
         builder: (context) => InstantAnalysisScreen(image: image),
       ),
     );
+
+    // <-- Add this to force-refresh your history
+    ref.invalidate(classificationsProvider);
   }
 
   Future<void> _handleScanResult(WasteClassification result, GamificationProfile oldProfile) async {

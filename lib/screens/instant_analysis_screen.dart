@@ -74,6 +74,7 @@ class _InstantAnalysisScreenState extends State<InstantAnalysisScreen> {
           MaterialPageRoute(
             builder: (context) => ResultScreen(
               classification: result!,
+              autoAnalyze: true,
             ),
           ),
         );

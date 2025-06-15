@@ -162,18 +162,24 @@ class StorageService {
   }
 
   // Classification methods
-  Future<void> saveClassification(WasteClassification classification) async {
+  /// Save a classification. If [force] is true, ignore perceptual-hash duplicates.
+  Future<void> saveClassification(
+    WasteClassification classification, {
+    bool force = false,
+  }) async {
     StoragePerformanceMonitor.startOperation('saveClassification');
     // Create a unique content hash to prevent duplicates
     // Include timestamp hour to allow same object at different times/scales
     final now = DateTime.now();
     final contentHash = '${classification.itemName.toLowerCase().trim()}_${classification.category}_${classification.subcategory}_${classification.userId}_${now.year}${now.month}${now.day}${now.hour}';
     
-    // Check if this exact content was saved recently (within 60 seconds)
-    final recentSaveTime = _recentSaves[contentHash];
-    if (recentSaveTime != null && now.difference(recentSaveTime).inSeconds < 60) {
-      debugPrint('🚫 CONTENT DUPLICATE: Skipping save for ${classification.itemName} (saved ${now.difference(recentSaveTime).inSeconds}s ago)');
-      return;
+    if (!force) {
+      // Check if this exact content was saved recently (within 60 seconds)
+      final recentSaveTime = _recentSaves[contentHash];
+      if (recentSaveTime != null && now.difference(recentSaveTime).inSeconds < 60) {
+        debugPrint('🚫 CONTENT DUPLICATE: Skipping save for ${classification.itemName} (saved ${now.difference(recentSaveTime).inSeconds}s ago)');
+        return;
+      }
     }
     
     // Check if this classification ID is currently being saved
@@ -196,24 +202,26 @@ class StorageService {
       // Ensure the classification has the correct user ID
       final classificationWithUserId = classification.copyWith(userId: currentUserId);
       
-      // O(1) duplicate check using secondary index
-      final existingClassificationId = hashesBox.get(contentHash);
-      if (existingClassificationId != null) {
-        // Check if the existing classification still exists
-        final existingClassification = classificationsBox.get(existingClassificationId);
-        if (existingClassification != null) {
-          debugPrint('🚫 DUPLICATE DETECTED: Skipping save for ${classification.itemName}');
-          debugPrint('🚫 Existing ID: $existingClassificationId');
-          _recentSaves[contentHash] = now;
-          return;
-        } else {
-          // Clean up orphaned hash entry
-          await hashesBox.delete(contentHash);
+      if (!force) {
+        // O(1) duplicate check using secondary index
+        final existingClassificationId = hashesBox.get(contentHash);
+        if (existingClassificationId != null) {
+          // Check if the existing classification still exists
+          final existingClassification = classificationsBox.get(existingClassificationId);
+          if (existingClassification != null) {
+            debugPrint('🚫 DUPLICATE DETECTED: Skipping save for ${classification.itemName}');
+            debugPrint('🚫 Existing ID: $existingClassificationId');
+            _recentSaves[contentHash] = now;
+            return;
+          } else {
+            // Clean up orphaned hash entry
+            await hashesBox.delete(contentHash);
+          }
         }
       }
       
       // Debug logging
-      debugPrint('💾 Saving classification for user: $currentUserId');
+      debugPrint('💾 Saving classification for user: $currentUserId${force ? ' (FORCED)' : ''}');
       debugPrint('💾 Classification: ${classification.itemName}');
       debugPrint('💾 Classification ID: ${classification.id}');
       

@@ -81,20 +81,28 @@ class _PolishedHomeScreenState extends State<PolishedHomeScreen>
       EducationalContent(
         id: '1',
         title: 'Plastic Recycling Guide',
-        content: 'Learn about different types of plastic and how to recycle them properly.',
-        type: EducationalContentType.guide,
+        description: 'Learn about different types of plastic and how to recycle them properly.',
+        type: ContentType.article,
         categories: ['Plastic', 'Recycling'],
         icon: Icons.recycling,
-        estimatedReadTime: 5,
+        thumbnailUrl: 'https://example.com/plastic-guide.jpg',
+        level: ContentLevel.beginner,
+        dateAdded: DateTime.now(),
+        durationMinutes: 5,
+        contentText: 'Learn about different types of plastic and how to recycle them properly.',
       ),
       EducationalContent(
         id: '2',
         title: 'Composting Basics',
-        content: 'Start your own compost bin and reduce food waste.',
-        type: EducationalContentType.tip,
+        description: 'Start your own compost bin and reduce food waste.',
+        type: ContentType.tip,
         categories: ['Organic', 'Composting'],
         icon: Icons.eco,
-        estimatedReadTime: 3,
+        thumbnailUrl: 'https://example.com/composting-guide.jpg',
+        level: ContentLevel.beginner,
+        dateAdded: DateTime.now(),
+        durationMinutes: 3,
+        contentText: 'Start your own compost bin and reduce food waste.',
       ),
     ];
   }
@@ -312,7 +320,7 @@ class _PolishedHomeScreenState extends State<PolishedHomeScreen>
                 child: Column(
                   children: [
                     Text(
-                      'Level ${profile.level}',
+                      'Level ${profile.points.level}',
                       style: const TextStyle(
                         fontSize: 24,
                         fontWeight: FontWeight.bold,
@@ -331,7 +339,7 @@ class _PolishedHomeScreenState extends State<PolishedHomeScreen>
                 child: Column(
                   children: [
                     Text(
-                      '${profile.streakCount}',
+                      '${profile.streaks['daily']?.currentCount ?? 0}',
                       style: const TextStyle(
                         fontSize: 24,
                         fontWeight: FontWeight.bold,
@@ -413,7 +421,7 @@ class _PolishedHomeScreenState extends State<PolishedHomeScreen>
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Text(
-                    '${(classification.confidence * 100).round()}%',
+                    '${((classification.confidence ?? 0.0) * 100).round()}%',
                     style: const TextStyle(
                       color: Colors.green,
                       fontWeight: FontWeight.w600,
@@ -506,7 +514,7 @@ class _PolishedHomeScreenState extends State<PolishedHomeScreen>
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        content.content,
+                        content.description,
                         style: TextStyle(
                           color: Theme.of(context).colorScheme.onSurfaceVariant,
                           fontSize: 14,
@@ -518,7 +526,7 @@ class _PolishedHomeScreenState extends State<PolishedHomeScreen>
                   ),
                 ),
                 Text(
-                  '${content.estimatedReadTime} min',
+                  '${content.durationMinutes} min',
                   style: TextStyle(
                     color: Theme.of(context).colorScheme.onSurfaceVariant,
                     fontSize: 12,

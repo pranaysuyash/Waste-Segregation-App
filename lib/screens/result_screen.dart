@@ -37,9 +37,11 @@ class ResultScreen extends StatefulWidget {
     super.key,
     required this.classification,
     this.showActions = true,
+    this.autoAnalyze = false,
   });
   final WasteClassification classification;
   final bool showActions;
+  final bool autoAnalyze;
 
   @override
   State<ResultScreen> createState() => _ResultScreenState();
@@ -118,7 +120,7 @@ class _ResultScreenState extends State<ResultScreen>
       // Step 2: Save classification locally
       debugPrint('➡️ STEP 1: Saving classification locally...');
       final savedClassification = widget.classification.copyWith(isSaved: true);
-      await storageService.saveClassification(savedClassification);
+      await storageService.saveClassification(savedClassification, force: widget.autoAnalyze);
       debugPrint('✅ STEP 1: Local save complete.');
 
       // Step 3: Process for gamification (points, achievements)
@@ -282,7 +284,7 @@ class _ResultScreenState extends State<ResultScreen>
     try {
       final storageService = Provider.of<StorageService>(context, listen: false);
       final savedClassification = widget.classification.copyWith(isSaved: true);
-      await storageService.saveClassification(savedClassification);
+      await storageService.saveClassification(savedClassification, force: widget.autoAnalyze);
 
       setState(() {
         _isSaved = true;
