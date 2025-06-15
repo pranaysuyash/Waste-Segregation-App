@@ -143,13 +143,68 @@ class CommunityService {
     await addFeedItem(item);
   }
 
-  // Sync user data to community feed
+  // Sync user data to community feed - backfill historical data
   Future<void> syncWithUserData(
     List<WasteClassification> classifications,
     UserProfile? user,
   ) async {
     if (user == null) return;
-    // This could be used to backfill, but for now, new activities are sufficient
-    debugPrint('syncWithUserData now primarily handles new events via record... methods.');
+    
+    debugPrint('🔄 SYNC: Starting community feed sync for user ${user.id}');
+    debugPrint('🔄 SYNC: Found ${classifications.length} classifications to potentially sync');
+    
+    try {
+      // Get existing feed items to avoid duplicates
+      final existingItems = await getFeedItems(limit: 1000);
+      final existingClassificationIds = existingItems
+          .where((item) => item.activityType == CommunityActivityType.classification)
+          .map((item) => item.id)
+          .toSet();
+      
+      debugPrint('🔄 SYNC: Found ${existingClassificationIds.length} existing classification feed items');
+      
+      // Backfill missing classifications
+      int syncedCount = 0;
+      for (final classification in classifications) {
+        if (!existingClassificationIds.contains(classification.id)) {
+          await recordClassification(classification, user);
+          syncedCount++;
+          
+          // Add small delay to avoid overwhelming Firestore
+          if (syncedCount % 10 == 0) {
+            await Future.delayed(const Duration(milliseconds: 100));
+          }
+        }
+      }
+      
+      debugPrint('🔄 SYNC: Backfilled $syncedCount classification activities to community feed');
+      
+      // Sync achievements if user has gamification profile
+      if (user.gamificationProfile != null) {
+        final achievements = user.gamificationProfile!.achievements;
+        final unlockedAchievements = achievements.where((a) => a.isEarned).toList();
+        
+        final existingAchievementIds = existingItems
+            .where((item) => item.activityType == CommunityActivityType.achievement)
+            .map((item) => item.metadata['achievementId'] as String?)
+            .where((id) => id != null)
+            .toSet();
+        
+        int achievementsSynced = 0;
+        for (final achievement in unlockedAchievements) {
+          if (!existingAchievementIds.contains(achievement.id)) {
+            await recordAchievement(achievement, user);
+            achievementsSynced++;
+          }
+        }
+        
+        debugPrint('🔄 SYNC: Backfilled $achievementsSynced achievement activities to community feed');
+      }
+      
+      debugPrint('✅ SYNC: Community feed sync completed successfully');
+      
+    } catch (e) {
+      debugPrint('❌ SYNC ERROR: Failed to sync community feed: $e');
+    }
   }
 }
