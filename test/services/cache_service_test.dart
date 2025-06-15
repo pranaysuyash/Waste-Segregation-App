@@ -24,10 +24,8 @@ void main() {
         
         final classification = WasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
           itemName: 'Plastic Bottle',
-          category: 'Dry Waste',
           subcategory: 'Plastic',
           explanation: 'Recyclable plastic bottle',
-          disposalInstructions: DisposalInstructions(
             primaryMethod: 'Recycle',
             steps: ['Clean', 'Recycle'],
             hasUrgentTimeframe: false,
@@ -99,9 +97,7 @@ void main() {
           final imageHash = 'hash_$i';
           final classification = WasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
             itemName: 'Item $i',
-            category: 'Dry Waste',
             explanation: 'Test item $i',
-            disposalInstructions: DisposalInstructions(
               primaryMethod: 'Test',
               steps: ['Step 1'],
               hasUrgentTimeframe: false,
@@ -412,10 +408,8 @@ void main() {
 WasteClassification _createTestClassification(String itemName) {
   return WasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
     itemName: itemName,
-    category: 'Dry Waste',
     subcategory: 'Test',
     explanation: 'Test classification for $itemName',
-    disposalInstructions: DisposalInstructions(
       primaryMethod: 'Test disposal',
       steps: ['Step 1', 'Step 2'],
       hasUrgentTimeframe: false,

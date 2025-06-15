@@ -152,7 +152,6 @@ void main() {
       test('should sync classification to family', () async {
         final classification = WasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
           itemName: 'Test Item',
-          category: 'Dry Waste',
           subcategory: 'Plastic',
           isRecyclable: true,
           isCompostable: false,

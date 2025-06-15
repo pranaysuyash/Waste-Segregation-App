@@ -36,7 +36,6 @@ void main() {
       // When: User makes their first classification
       final classification = WasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
         itemName: 'Plastic Bottle',
-        category: 'Dry Waste',
         subcategory: 'Recyclable Plastic',
         isRecyclable: true,
         isCompostable: false,
@@ -76,7 +75,6 @@ void main() {
       for (var i = 0; i < 49; i++) {
         final classification = WasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
           itemName: 'Recyclable Item $i',
-          category: 'Dry Waste',
           subcategory: 'Recyclable',
           isRecyclable: true,
           isCompostable: false,
@@ -104,7 +102,6 @@ void main() {
       // When: User classifies their 50th recyclable item
       final finalClassification = WasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
         itemName: 'Final Recyclable',
-        category: 'Dry Waste',
         subcategory: 'Recyclable',
         isRecyclable: true,
         isCompostable: false,
@@ -147,7 +144,6 @@ void main() {
       final classifications = [
         WasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
           itemName: 'Compost',
-          category: 'Wet Waste',
           subcategory: 'Organic',
           isRecyclable: false,
           isCompostable: true,
@@ -171,7 +167,6 @@ void main() {
         ),
         WasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
           itemName: 'Battery',
-          category: 'Hazardous Waste',
           subcategory: 'Electronic Waste',
           isRecyclable: false,
           isCompostable: false,
@@ -211,7 +206,6 @@ void main() {
       // Simulate classifications on consecutive days
       final classification1 = WasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
         itemName: 'Day 1 Item',
-        category: 'Dry Waste',
         subcategory: 'Recyclable',
         isRecyclable: true,
         isCompostable: false,
@@ -235,7 +229,6 @@ void main() {
       );
       final classification2 = WasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
         itemName: 'Day 2 Item',
-        category: 'Dry Waste',
         subcategory: 'Recyclable',
         isRecyclable: true,
         isCompostable: false,
@@ -260,7 +253,6 @@ void main() {
 
       final classification3 = WasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
         itemName: 'Day 3 Item',
-        category: 'Dry Waste',
         subcategory: 'Recyclable',
         isRecyclable: true,
         isCompostable: false,

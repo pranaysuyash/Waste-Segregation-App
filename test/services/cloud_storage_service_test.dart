@@ -59,10 +59,8 @@ void main() {
       // Setup test data
       testClassification = WasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
         itemName: 'Test Plastic Bottle',
-        category: 'Dry Waste',
         subcategory: 'Plastic',
         explanation: 'Test recyclable plastic bottle',
-        disposalInstructions: DisposalInstructions(
           primaryMethod: 'Recycle in blue bin',
           steps: ['Remove cap', 'Rinse clean'],
           hasUrgentTimeframe: false,

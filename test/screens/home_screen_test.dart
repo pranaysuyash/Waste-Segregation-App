@@ -99,10 +99,8 @@ void main() {
         final recentClassifications = [
           WasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
             itemName: 'Plastic Bottle',
-            category: 'Dry Waste',
             subcategory: 'Plastic',
             explanation: 'Recyclable plastic bottle',
-            disposalInstructions: DisposalInstructions(
               primaryMethod: 'Recycle',
               steps: ['Clean', 'Recycle'],
               hasUrgentTimeframe: false,
@@ -115,10 +113,8 @@ void main() {
           ),
           WasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
             itemName: 'Apple Core',
-            category: 'Wet Waste',
             subcategory: 'Food Waste',
             explanation: 'Compostable organic waste',
-            disposalInstructions: DisposalInstructions(
               primaryMethod: 'Compost',
               steps: ['Compost bin'],
               hasUrgentTimeframe: false,
@@ -504,10 +500,8 @@ void main() {
 WasteClassification _createTestClassification(String itemName, String category) {
   return WasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
     itemName: itemName,
-    category: category,
     subcategory: 'Test',
     explanation: 'Test classification',
-    disposalInstructions: DisposalInstructions(
       primaryMethod: 'Test disposal',
       steps: ['Step 1'],
       hasUrgentTimeframe: false,

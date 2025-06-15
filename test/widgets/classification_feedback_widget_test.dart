@@ -27,10 +27,8 @@ void main() {
       testClassification = WasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
         id: 'test-id',
         itemName: 'Test Item',
-        category: 'Dry Waste',
         subcategory: 'Paper',
         explanation: 'This is a test item for classification feedback testing.',
-        disposalInstructions: DisposalInstructions(
           primaryMethod: 'Recycle in paper bin',
           steps: ['Remove any plastic components', 'Place in recycling bin'],
           hasUrgentTimeframe: false,
@@ -682,9 +680,7 @@ void main() {
         final nullFieldsClassification = WasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
           id: 'test_id',
           itemName: 'Test Item',
-          category: 'Unknown',
           explanation: 'Test explanation',
-          disposalInstructions: DisposalInstructions(
             primaryMethod: 'Test disposal',
             steps: ['Test step'],
             hasUrgentTimeframe: false,

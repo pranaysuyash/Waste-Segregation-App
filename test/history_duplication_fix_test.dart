@@ -8,7 +8,6 @@ void main() {
       // Create a test classification
       final classification = WasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
         itemName: 'Test Plastic Bottle',
-        category: 'Dry Waste',
         subcategory: 'Plastic',
         confidence: 0.95,
             region: 'Test Region',
@@ -47,12 +46,10 @@ void main() {
       // Create a test classification
       final original = WasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
         itemName: 'Test Item',
-        category: 'Dry Waste',
         explanation: 'Test explanation',
         region: 'Test Region',
         visualFeatures: ['test'],
         alternatives: [],
-        disposalInstructions: DisposalInstructions(
           primaryMethod: 'Test method',
           steps: ['Step 1'],
           hasUrgentTimeframe: false,

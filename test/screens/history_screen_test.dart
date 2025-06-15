@@ -59,9 +59,7 @@ void main() {
           WasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
             id: 'class_2',
             imageUrl: '/path/to/image2.jpg',
-            category: 'paper',
             confidence: 0.88,
-            disposalInstructions: DisposalInstructions(primaryMethod: 'Recycle in paper bin', steps: ['Test step'], hasUrgentTimeframe: false),
             timestamp: DateTime.now().subtract(const Duration(hours: 2)),
           ),
         ];
@@ -101,9 +99,7 @@ void main() {
         final mockClassification = WasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
           id: 'class_1',
           imageUrl: '/path/to/image1.jpg',
-          category: 'plastic',
           confidence: 0.95,
-          disposalInstructions: DisposalInstructions(primaryMethod: 'Recycle in plastic bin', steps: ['Test step'], hasUrgentTimeframe: false),
           timestamp: DateTime.now(),
         );
 
@@ -141,17 +137,13 @@ void main() {
           WasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
             id: 'class_1',
             imageUrl: '/path/to/image1.jpg',
-            category: 'plastic',
             confidence: 0.95,
-            disposalInstructions: DisposalInstructions(primaryMethod: 'Recycle in plastic bin', steps: ['Test step'], hasUrgentTimeframe: false),
             timestamp: DateTime.now(),
           ),
           WasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
             id: 'class_2',
             imageUrl: '/path/to/image2.jpg',
-            category: 'paper',
             confidence: 0.88,
-            disposalInstructions: DisposalInstructions(primaryMethod: 'Recycle in paper bin', steps: ['Test step'], hasUrgentTimeframe: false),
             timestamp: DateTime.now(),
           ),
         ];
@@ -197,9 +189,7 @@ void main() {
         final mockClassification = WasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
           id: 'class_1',
           imageUrl: '/path/to/image1.jpg',
-          category: 'plastic',
           confidence: 0.95,
-          disposalInstructions: DisposalInstructions(primaryMethod: 'Recycle in plastic bin', steps: ['Test step'], hasUrgentTimeframe: false),
           timestamp: DateTime.now(),
         );
 
@@ -245,12 +235,17 @@ void main() {
 
       testWidgets('should handle pagination for large datasets', (WidgetTester tester) async {
         final largeClassificationList = List.generate(100, (index) => 
-          WasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
+          WasteClassification(
+            itemName: 'Test Item', 
+            explanation: 'Test explanation', 
+            category: 'plastic', 
+            region: 'Test Region', 
+            visualFeatures: ['test feature'], 
+            alternatives: [], 
+            disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false),
             id: 'class_$index',
             imageUrl: '/path/to/image$index.jpg',
-            category: index % 2 == 0 ? 'plastic' : 'paper',
             confidence: 0.8 + (index % 20) * 0.01,
-            disposalInstructions: 'Disposal instructions $index',
             timestamp: DateTime.now().subtract(Duration(hours: index)),
           )
         );
@@ -277,9 +272,7 @@ void main() {
           WasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
             id: 'class_1',
             imageUrl: '/path/to/image1.jpg',
-            category: 'plastic',
             confidence: 0.95,
-            disposalInstructions: DisposalInstructions(primaryMethod: 'Recycle in plastic bin', steps: ['Test step'], hasUrgentTimeframe: false),
             timestamp: DateTime.now(),
           ),
         ];
@@ -342,9 +335,7 @@ void main() {
         final mockClassification = WasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
           id: 'class_1',
           imageUrl: '/path/to/image1.jpg',
-          category: 'plastic',
           confidence: 0.95,
-          disposalInstructions: DisposalInstructions(primaryMethod: 'Recycle in plastic bin', steps: ['Test step'], hasUrgentTimeframe: false),
           timestamp: DateTime.now(),
         );
 
@@ -374,17 +365,13 @@ void main() {
           WasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
             id: 'class_1',
             imageUrl: '/path/to/image1.jpg',
-            category: 'plastic',
             confidence: 0.95,
-            disposalInstructions: DisposalInstructions(primaryMethod: 'Recycle', steps: ['Test step'], hasUrgentTimeframe: false),
             timestamp: DateTime.now().subtract(const Duration(hours: 1)),
           ),
           WasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
             id: 'class_2',
             imageUrl: '/path/to/image2.jpg',
-            category: 'paper',
             confidence: 0.88,
-            disposalInstructions: DisposalInstructions(primaryMethod: 'Recycle', steps: ['Test step'], hasUrgentTimeframe: false),
             timestamp: DateTime.now().subtract(const Duration(hours: 2)),
           ),
         ];
@@ -416,25 +403,19 @@ void main() {
           WasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
             id: 'class_1',
             imageUrl: '/path/to/image1.jpg',
-            category: 'plastic',
             confidence: 0.95,
-            disposalInstructions: DisposalInstructions(primaryMethod: 'Recycle', steps: ['Test step'], hasUrgentTimeframe: false),
             timestamp: DateTime.now(),
           ),
           WasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
             id: 'class_2',
             imageUrl: '/path/to/image2.jpg',
-            category: 'plastic',
             confidence: 0.88,
-            disposalInstructions: DisposalInstructions(primaryMethod: 'Recycle', steps: ['Test step'], hasUrgentTimeframe: false),
             timestamp: DateTime.now(),
           ),
           WasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
             id: 'class_3',
             imageUrl: '/path/to/image3.jpg',
-            category: 'paper',
             confidence: 0.92,
-            disposalInstructions: DisposalInstructions(primaryMethod: 'Recycle', steps: ['Test step'], hasUrgentTimeframe: false),
             timestamp: DateTime.now(),
           ),
         ];
@@ -459,9 +440,7 @@ void main() {
         final mockClassification = WasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
           id: 'class_1',
           imageUrl: '/path/to/image1.jpg',
-          category: 'plastic',
           confidence: 0.95,
-          disposalInstructions: DisposalInstructions(primaryMethod: 'Recycle in plastic bin', steps: ['Test step'], hasUrgentTimeframe: false),
           timestamp: DateTime.now(),
         );
 
@@ -489,17 +468,13 @@ void main() {
           WasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
             id: 'class_1',
             imageUrl: '/path/to/image1.jpg',
-            category: 'plastic',
             confidence: 0.95,
-            disposalInstructions: DisposalInstructions(primaryMethod: 'Recycle', steps: ['Test step'], hasUrgentTimeframe: false),
             timestamp: DateTime.now(),
           ),
           WasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
             id: 'class_2',
             imageUrl: '/path/to/image2.jpg',
-            category: 'paper',
             confidence: 0.88,
-            disposalInstructions: DisposalInstructions(primaryMethod: 'Recycle', steps: ['Test step'], hasUrgentTimeframe: false),
             timestamp: DateTime.now(),
           ),
         ];
@@ -525,9 +500,7 @@ void main() {
           WasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
             id: 'class_$index',
             imageUrl: '/path/to/image$index.jpg',
-            category: 'plastic',
             confidence: 0.9,
-            disposalInstructions: DisposalInstructions(primaryMethod: 'Recycle', steps: ['Test step'], hasUrgentTimeframe: false),
             timestamp: DateTime.now().subtract(Duration(minutes: index)),
           )
         );
@@ -554,9 +527,7 @@ void main() {
           WasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
             id: 'class_$index',
             imageUrl: '/path/to/image$index.jpg',
-            category: 'plastic',
             confidence: 0.9,
-            disposalInstructions: DisposalInstructions(primaryMethod: 'Recycle', steps: ['Test step'], hasUrgentTimeframe: false),
             timestamp: DateTime.now(),
           )
         );

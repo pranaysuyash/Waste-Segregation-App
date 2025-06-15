@@ -27,10 +27,8 @@ class TestHelpers {
   static WasteClassification createBasicClassification([String? itemName]) {
     return WasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
       itemName: itemName ?? 'Test Item',
-      category: 'Dry Waste',
       subcategory: 'Test Subcategory',
       explanation: 'Test explanation for testing purposes',
-      disposalInstructions: DisposalInstructions(
         primaryMethod: 'Test disposal method',
         steps: ['Test step 1', 'Test step 2'],
         hasUrgentTimeframe: false,
@@ -55,10 +53,8 @@ class TestHelpers {
   }) {
     return WasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
       itemName: itemName ?? 'Detailed Test Item',
-      category: category ?? 'Dry Waste',
       subcategory: 'Plastic',
       explanation: 'Comprehensive test item with detailed properties for thorough testing scenarios',
-      disposalInstructions: DisposalInstructions(
         primaryMethod: 'Recycle in designated container',
         steps: [
           'Clean the item thoroughly',
@@ -101,10 +97,8 @@ class TestHelpers {
   static WasteClassification createHazardousClassification() {
     return WasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
       itemName: 'Lithium Battery',
-      category: 'Hazardous Waste',
       subcategory: 'Electronic Waste',
       explanation: 'Lithium-ion battery containing toxic materials requiring special handling',
-      disposalInstructions: DisposalInstructions(
         primaryMethod: 'Take to certified e-waste facility',
         steps: [
           'Do not throw in regular trash',
@@ -151,10 +145,8 @@ class TestHelpers {
       
       return WasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
         itemName: '$item ${index + 1}',
-        category: category,
         subcategory: 'Test Subcategory $index',
         explanation: 'Test explanation for $item ${index + 1}',
-        disposalInstructions: DisposalInstructions(
           primaryMethod: 'Test disposal for $category',
           steps: ['Step 1 for $item', 'Step 2 for $item'],
           hasUrgentTimeframe: category == 'Hazardous Waste',
@@ -513,9 +505,7 @@ class TestHelpers {
   static WasteClassification createInvalidClassification() {
     return WasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
       itemName: '', // Invalid: empty name
-      category: 'Invalid Category', // Invalid category
       explanation: '', // Invalid: empty explanation
-      disposalInstructions: DisposalInstructions(
         primaryMethod: '',
         steps: [], // Invalid: no steps
         hasUrgentTimeframe: false,
@@ -543,9 +533,7 @@ class TestHelpers {
       // Maximum alternatives
       WasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
         itemName: 'Ambiguous Item',
-        category: 'Dry Waste',
         explanation: 'Item with many possible classifications',
-        disposalInstructions: DisposalInstructions(
           primaryMethod: 'Multiple options',
           steps: ['Consider all options'],
           hasUrgentTimeframe: false,

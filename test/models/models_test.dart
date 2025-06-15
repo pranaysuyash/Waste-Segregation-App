@@ -9,10 +9,8 @@ void main() {
     test('should create valid WasteClassification object', () {
       final classification = WasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
         itemName: 'Plastic Water Bottle',
-        category: 'Dry Waste',
         subcategory: 'Plastic',
         explanation: 'Clear plastic bottle, recyclable with PET code 1',
-        disposalInstructions: DisposalInstructions(
           primaryMethod: 'Recycle in blue bin',
           steps: ['Remove cap and label', 'Rinse thoroughly', 'Place in recycling bin'],
           hasUrgentTimeframe: false,
@@ -65,10 +63,8 @@ void main() {
     test('should handle WasteClassification serialization', () {
       final classification = WasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
         itemName: 'Apple Core',
-        category: 'Wet Waste',
         subcategory: 'Food Waste',
         explanation: 'Organic waste suitable for composting',
-        disposalInstructions: DisposalInstructions(
           primaryMethod: 'Compost bin',
           steps: ['Place in brown bin'],
           hasUrgentTimeframe: false,
@@ -388,9 +384,7 @@ void main() {
       // Confidence values should be between 0.0 and 1.0
       final highConfidence = WasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
         itemName: 'Test Item',
-        category: 'Dry Waste',
         explanation: 'Test',
-        disposalInstructions: DisposalInstructions(
           primaryMethod: 'Test',
           steps: ['Step 1'],
           hasUrgentTimeframe: false,
@@ -404,9 +398,7 @@ void main() {
 
       final negativeConfidence = WasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
         itemName: 'Test Item',
-        category: 'Dry Waste',
         explanation: 'Test',
-        disposalInstructions: DisposalInstructions(
           primaryMethod: 'Test',
           steps: ['Step 1'],
           hasUrgentTimeframe: false,
@@ -430,9 +422,7 @@ void main() {
     test('should handle empty and null fields appropriately', () {
       final classification = WasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
         itemName: '', // Empty string
-        category: 'Dry Waste',
         explanation: 'Test',
-        disposalInstructions: DisposalInstructions(
           primaryMethod: 'Test',
           steps: [],  // Empty steps
           hasUrgentTimeframe: false,
@@ -456,9 +446,7 @@ void main() {
       
       final classification = WasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
         itemName: longString,
-        category: 'Dry Waste',
         explanation: longString,
-        disposalInstructions: DisposalInstructions(
           primaryMethod: longString,
           steps: [longString, longString],
           hasUrgentTimeframe: false,
@@ -480,9 +468,7 @@ void main() {
       
       final classification = WasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
         itemName: 'Future Item',
-        category: 'Dry Waste',
         explanation: 'Test',
-        disposalInstructions: DisposalInstructions(
           primaryMethod: 'Test',
           steps: ['Step 1'],
           hasUrgentTimeframe: false,

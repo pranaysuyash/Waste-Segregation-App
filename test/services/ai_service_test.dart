@@ -92,10 +92,8 @@ void main() {
         final mockService = MockAiService();
         final expectedClassification = WasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
           itemName: 'Plastic Bottle',
-          category: 'Dry Waste',
           subcategory: 'Plastic',
           explanation: 'This is a plastic bottle that can be recycled',
-          disposalInstructions: DisposalInstructions(
             primaryMethod: 'Recycle',
             steps: ['Clean the bottle', 'Remove cap', 'Place in recycling bin'],
             hasUrgentTimeframe: false,
@@ -125,10 +123,8 @@ void main() {
       test('WasteClassification should have required fields', () {
         final classification = WasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
           itemName: 'Test Item',
-          category: 'Dry Waste',
           subcategory: 'Plastic',
           explanation: 'Test explanation',
-          disposalInstructions: DisposalInstructions(
             primaryMethod: 'Recycle',
             steps: ['Step 1', 'Step 2'],
             hasUrgentTimeframe: false,
@@ -151,9 +147,7 @@ void main() {
       test('should validate confidence score range', () {
         final highConfidenceClassification = WasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
           itemName: 'Test Item',
-          category: 'Dry Waste',
           explanation: 'Test explanation',
-          disposalInstructions: DisposalInstructions(
             primaryMethod: 'Recycle',
             steps: ['Step 1'],
             hasUrgentTimeframe: false,
@@ -167,9 +161,7 @@ void main() {
 
         final lowConfidenceClassification = WasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
           itemName: 'Test Item',
-          category: 'Dry Waste',
           explanation: 'Test explanation',
-          disposalInstructions: DisposalInstructions(
             primaryMethod: 'Recycle',
             steps: ['Step 1'],
             hasUrgentTimeframe: false,
@@ -199,9 +191,7 @@ void main() {
         for (final category in validCategories) {
           final classification = WasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
             itemName: 'Test Item',
-            category: category,
             explanation: 'Test explanation',
-            disposalInstructions: DisposalInstructions(
               primaryMethod: 'Test method',
               steps: ['Step 1'],
               hasUrgentTimeframe: false,

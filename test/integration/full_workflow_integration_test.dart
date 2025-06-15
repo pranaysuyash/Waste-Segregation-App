@@ -12,10 +12,8 @@ void main() {
         // Test basic classification creation
         final classification = WasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
           itemName: 'Test Item',
-          category: 'Dry Waste',
           subcategory: 'Test',
           explanation: 'Test classification',
-          disposalInstructions: DisposalInstructions(
             primaryMethod: 'Test disposal',
             steps: ['Step 1'],
             hasUrgentTimeframe: false,
@@ -129,10 +127,8 @@ void main() {
       test('should handle classification with confidence score', () async {
         final classification = WasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
           itemName: 'Confident Item',
-          category: 'Wet Waste',
           subcategory: 'Food',
           explanation: 'High confidence classification',
-          disposalInstructions: DisposalInstructions(
             primaryMethod: 'Compost',
             steps: ['Add to compost bin'],
             hasUrgentTimeframe: false,
@@ -162,9 +158,7 @@ void main() {
       test('should handle minimal classification data', () async {
         final minimalClassification = WasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
           itemName: 'Minimal Item',
-          category: 'Unknown',
           explanation: '',
-          disposalInstructions: DisposalInstructions(
             primaryMethod: 'General waste',
             steps: [],
             hasUrgentTimeframe: false,
@@ -339,9 +333,7 @@ void main() {
         
         final longTextClassification = WasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
           itemName: 'Long Text Item',
-          category: 'Test',
           explanation: longText,
-          disposalInstructions: DisposalInstructions(
             primaryMethod: 'Standard disposal',
             steps: [longText],
             hasUrgentTimeframe: false,
@@ -363,9 +355,7 @@ void main() {
         
         final futureDateClassification = WasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
           itemName: 'Future Item',
-          category: 'Test',
           explanation: 'Future dated item',
-          disposalInstructions: DisposalInstructions(
             primaryMethod: 'Future disposal',
             steps: ['Future step'],
             hasUrgentTimeframe: false,
@@ -387,10 +377,8 @@ void main() {
 WasteClassification _createTestClassification(String itemName) {
   return WasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
     itemName: itemName,
-    category: 'Dry Waste',
     subcategory: 'Test',
     explanation: 'Test classification for $itemName',
-    disposalInstructions: DisposalInstructions(
       primaryMethod: 'Test disposal',
       steps: ['Step 1', 'Step 2'],
       hasUrgentTimeframe: false,
