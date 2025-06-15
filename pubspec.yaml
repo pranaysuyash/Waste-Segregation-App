@@ -37,7 +37,7 @@ dependencies:
   fl_chart: ^1.0.0  # Updated to new major version with new API
   # REPLACED: flutter_markdown (discontinued) with markdown_widget
   markdown_widget: ^2.3.2+6  # Community-maintained alternative with rich features
-  intl: ^0.20.2  # For internationalization and date formatting
+  intl: any  # For internationalization and date formatting (version managed by flutter_localizations)
   webview_flutter: ^4.13.0  # Updated to latest
   # Updated Firebase dependencies with web-compatible versions
   firebase_core: ^3.14.0  # Updated to latest
