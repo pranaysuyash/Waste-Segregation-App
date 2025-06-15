@@ -13,6 +13,7 @@ import '../screens/history_screen.dart';
 import '../screens/achievements_screen.dart';
 import '../screens/image_capture_screen.dart';
 import '../screens/instant_analysis_screen.dart';
+import '../widgets/personal_header.dart';
 
 // Profile provider using FutureProvider for better performance
 final profileProvider = FutureProvider<GamificationProfile?>((ref) async {
@@ -126,6 +127,13 @@ class _UltraModernHomeScreenState extends ConsumerState<UltraModernHomeScreen>
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
+                          const SizedBox(height: 24),
+                          
+                          // Personal header with time-of-day awareness
+                          PersonalHeader(
+                            profileAsync: profileAsync,
+                            classificationsAsync: classificationsAsync,
+                          ),
                           const SizedBox(height: 24),
                           
                           // Horizontal scrolling action chips
@@ -574,15 +582,16 @@ class _UltraModernHomeScreenState extends ConsumerState<UltraModernHomeScreen>
           children: [
             Row(
               children: [
-                Text(
-                  'Recent Classifications',
-                  style: GoogleFonts.inter(
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                    color: Theme.of(context).colorScheme.onSurface,
+                Expanded(
+                  child: Text(
+                    'Recent Classifications',
+                    style: GoogleFonts.inter(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                      color: Theme.of(context).colorScheme.onSurface,
+                    ),
                   ),
                 ),
-                const Spacer(),
                 TextButton(
                   onPressed: () => Navigator.push(
                     context,

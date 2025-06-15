@@ -15,6 +15,7 @@ import 'gamification_service.dart';
 import 'cloud_storage_service.dart';
 import 'package:uuid/uuid.dart';
 import 'classification_migration_service.dart';
+import 'hive_manager.dart';
 
 class StorageService {
   static const String _userProfileKey = 'user_profile';
@@ -94,20 +95,20 @@ class StorageService {
       Hive.registerAdapter(ColorAdapter());
     }
 
-    // Open boxes
-    await Hive.openBox(StorageKeys.userBox);
-    await Hive.openBox(StorageKeys.classificationsBox);
-    await Hive.openBox(StorageKeys.settingsBox);
-    await Hive.openBox(StorageKeys.gamificationBox);
-    await Hive.openBox(StorageKeys.familiesBox);
-    await Hive.openBox(StorageKeys.invitationsBox);
-    await Hive.openBox(StorageKeys.classificationFeedbackBox);
+    // Open boxes using HiveManager to prevent duplicate opening errors
+    await HiveManager.openDynamicBox(StorageKeys.userBox);
+    await HiveManager.openDynamicBox(StorageKeys.classificationsBox);
+    await HiveManager.openDynamicBox(StorageKeys.settingsBox);
+    await HiveManager.openDynamicBox(StorageKeys.gamificationBox);
+    await HiveManager.openDynamicBox(StorageKeys.familiesBox);
+    await HiveManager.openDynamicBox(StorageKeys.invitationsBox);
+    await HiveManager.openDynamicBox(StorageKeys.classificationFeedbackBox);
     
     // Open cache box for image classification caching
-    await Hive.openBox<String>(StorageKeys.cacheBox);
+    await HiveManager.openBox<String>(StorageKeys.cacheBox);
     
     // Open secondary index box for hash-based lookups (O(1) duplicate detection)
-    await Hive.openBox<String>('classificationHashesBox');
+    await HiveManager.openBox<String>('classificationHashesBox');
   }
 
   // User methods
