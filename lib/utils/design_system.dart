@@ -220,7 +220,8 @@ class WasteAppDesignSystem {
     
     // Card Theme
     cardTheme: CardThemeData(
-      elevation: elevationS,
+      color: lightColorScheme.surfaceContainerHighest,
+      elevation: 4,
       shadowColor: Colors.black.withValues(alpha:0.1),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(radiusL),

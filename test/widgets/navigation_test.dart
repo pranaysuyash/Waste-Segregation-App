@@ -10,6 +10,7 @@ import '../../lib/screens/new_modern_home_screen.dart';
 import '../../lib/screens/instant_analysis_screen.dart';
 import '../../lib/screens/result_screen.dart';
 import '../../lib/models/waste_classification.dart';
+import '../../lib/models/disposal_instructions.dart';
 
 void main() {
   group('Navigation Tests - Double Navigation Prevention', () {
@@ -27,9 +28,18 @@ void main() {
         id: 'test-id',
         itemName: 'Test Item',
         category: 'Test Category',
+        explanation: 'Test explanation',
+        disposalInstructions: DisposalInstructions(
+          primaryMethod: 'Test method',
+          steps: ['Test step'],
+          hasUrgentTimeframe: false,
+        ),
+        region: 'Test Region',
+        visualFeatures: [],
+        alternatives: [],
         confidence: 0.95,
         timestamp: DateTime.now(),
-        imagePath: '/test/path',
+        imageRelativePath: 'images/test_image.jpg',
         userId: 'test-user',
       );
 

@@ -165,8 +165,9 @@ class StorageService {
   Future<void> saveClassification(WasteClassification classification) async {
     StoragePerformanceMonitor.startOperation('saveClassification');
     // Create a unique content hash to prevent duplicates
-    final contentHash = '${classification.itemName.toLowerCase().trim()}_${classification.category}_${classification.subcategory}_${classification.userId}';
+    // Include timestamp hour to allow same object at different times/scales
     final now = DateTime.now();
+    final contentHash = '${classification.itemName.toLowerCase().trim()}_${classification.category}_${classification.subcategory}_${classification.userId}_${now.year}${now.month}${now.day}${now.hour}';
     
     // Check if this exact content was saved recently (within 60 seconds)
     final recentSaveTime = _recentSaves[contentHash];

@@ -49,7 +49,7 @@ class HistoryListItem extends StatelessWidget {
           onTap: onTap,
           borderRadius: BorderRadius.circular(AppTheme.borderRadiusRegular),
           child: Padding(
-            padding: const EdgeInsets.all(AppTheme.paddingRegular),
+            padding: const EdgeInsets.all(AppTheme.paddingSmall),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -130,7 +130,7 @@ class HistoryListItem extends StatelessWidget {
                     
                     // Thumbnail (if available)
                     if (classification.imageUrl != null) ...[
-                      const SizedBox(width: AppTheme.paddingRegular),
+                      const SizedBox(width: AppTheme.paddingSmall),
                       Semantics(
                         image: true,
                         label: 'Thumbnail image of ${classification.itemName}',
@@ -147,12 +147,12 @@ class HistoryListItem extends StatelessWidget {
                   ],
                 ),
                 
-                const SizedBox(height: 12),
+                const SizedBox(height: 4),
                 
                 // Tags row with proper wrapping
                 _buildTagsSection(categoryColor),
                 
-                const SizedBox(height: 8),
+                const SizedBox(height: 4),
                 
                 // Properties indicators row
                 _buildPropertiesRow(context),

@@ -2,6 +2,56 @@
 
 All notable changes to the Waste Segregation App will be documented in this file.
 
+## [2.3.4] - 2025-06-15
+
+### Fixed
+- **Critical Auto-Analysis Flow Issues**: Fixed multiple critical issues in the auto-analysis pipeline
+  - **JSON Parsing with Comments**: Fixed OpenAI responses containing C/C++ style comments causing "Unidentified Item" in history
+    - Added comment stripping logic to `cleanJsonString()` method in `ai_service.dart`
+    - Strips both single-line (`//`) and multi-line (`/* */`) comments before JSON parsing
+    - Prevents `jsonDecode()` failures when AI includes explanatory comments in responses
+  - **Race Condition Prevention**: Added analysis guards to prevent multiple simultaneous analysis calls
+    - Added `_isAnalyzing` flag in `instant_analysis_screen.dart` and `image_capture_screen.dart`
+    - Prevents camera preview frames from overwriting selected image data
+    - Ensures only one analysis runs at a time per screen
+  - **Animation Restart Fix**: Fixed analysis animation restarting from 1% after ~6 seconds
+    - Added `ValueKey('main_analysis_animation')` to `AnimatedBuilder` in `enhanced_analysis_loader.dart`
+    - Prevents animation controllers from being recreated on widget rebuilds
+    - Maintains smooth animation progress throughout analysis
+  - **Duplicate Detection Enhancement**: Improved duplicate classification detection
+    - Updated content hash in `storage_service.dart` to include timestamp hour
+    - Prevents false duplicates when same object photographed at different times/scales
+    - Allows legitimate re-analysis of same items across different time periods
+  - **Camera Capture Error Handling**: Enhanced error handling for camera capture failures
+    - Added file existence checks and empty data validation
+    - Better error messages for debugging camera issues
+    - Prevents null results from camera capture operations
+
+### Technical Details
+- **Root Cause Analysis**: Issues were caused by:
+  1. OpenAI including inline comments in JSON responses breaking standard JSON parsing
+  2. Race conditions between camera preview and image selection events
+  3. Widget rebuilds causing animation controller recreation
+  4. Overly strict duplicate detection preventing legitimate re-analysis
+  5. Insufficient error handling for camera operations
+- **Testing**: Added comprehensive unit tests for JSON parsing with comments
+- **Performance**: Improved analysis flow reliability and user experience
+
+## [2.3.3] - 2025-06-15
+
+### Fixed
+- **Android Build Compatibility**: Fixed Android Gradle Plugin version mismatch causing camera dependency conflicts
+  - Updated `android/settings.gradle` to use Android Gradle Plugin 8.6.0 (was 8.3.0)
+  - Resolved camera dependencies requiring AGP 8.6.0+ (camera-video, camera-lifecycle, camera-camera2, camera-core)
+  - Synchronized AGP version between `build.gradle` and `settings.gradle` files
+  - Cleared Gradle caches and performed clean build to ensure proper version detection
+  - Fixed build failures preventing APK generation and app deployment
+
+### Technical Details
+- **Root Cause**: `settings.gradle` was still specifying AGP 8.3.0 while `build.gradle` had 8.6.0
+- **Solution**: Updated `settings.gradle` plugin version to match `build.gradle` configuration
+- **Impact**: Restored successful Android builds and resolved camera dependency compatibility issues
+
 ## [2.3.2] - 2025-06-15
 
 ### Fixed

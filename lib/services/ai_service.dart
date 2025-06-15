@@ -1152,7 +1152,7 @@ Output:
   ///
   /// Attempts to parse the JSON content from the AI's response.
   /// Includes logic to remove markdown formatting and extract the JSON object
-  /// if it's embedded in other text. Uses [_cleanJsonString] for preprocessing.
+  /// if it's embedded in other text. Uses [cleanJsonString] for preprocessing.
   /// If direct parsing fails, it attempts a fallback partial extraction via [_createFallbackClassification].
   WasteClassification _processAiResponseData(
     Map<String, dynamic> responseData,
@@ -1168,7 +1168,7 @@ Output:
         if (choice['message'] != null && choice['message']['content'] != null) {
           final String content = choice['message']['content'];
           
-          final jsonString = _cleanJsonString(content);
+          final jsonString = cleanJsonString(content);
 
           Map<String, dynamic> jsonContent;
           try {
@@ -1211,25 +1211,37 @@ Output:
   ///
   /// This handles cases where the AI might embed the JSON within markdown code blocks
   /// (e.g., ```json ... ```) or include extraneous text before or after the JSON.
-  String _cleanJsonString(String rawContent) {
+  /// Also strips C/C++ style comments that can cause JSON parsing to fail.
+  @visibleForTesting
+  String cleanJsonString(String rawContent) {
     // Attempt to find content within a JSON markdown block
     final jsonCodeBlockRegExp = RegExp(r'```json\s*([\s\S]*?)\s*```', multiLine: true);
     final Match? match = jsonCodeBlockRegExp.firstMatch(rawContent);
 
+    String jsonString;
     if (match != null && match.group(1) != null) {
-      return match.group(1)!.trim();
+      jsonString = match.group(1)!.trim();
+    } else {
+      // Fallback: Try to find the first and last curly braces to extract a JSON object
+      final firstCurly = rawContent.indexOf('{');
+      final lastCurly = rawContent.lastIndexOf('}');
+
+      if (firstCurly != -1 && lastCurly != -1 && lastCurly > firstCurly) {
+        jsonString = rawContent.substring(firstCurly, lastCurly + 1).trim();
+      } else {
+        // If no JSON-like structure is found, return the original content (may lead to parsing error)
+        jsonString = rawContent;
+      }
     }
 
-    // Fallback: Try to find the first and last curly braces to extract a JSON object
-    final firstCurly = rawContent.indexOf('{');
-    final lastCurly = rawContent.lastIndexOf('}');
-
-    if (firstCurly != -1 && lastCurly != -1 && lastCurly > firstCurly) {
-      return rawContent.substring(firstCurly, lastCurly + 1).trim();
-    }
-
-    // If no JSON-like structure is found, return the original content (may lead to parsing error)
-    return rawContent;
+    // Strip C/C++ style comments that can cause JSON parsing to fail
+    // Remove single-line comments (// comment)
+    jsonString = jsonString.replaceAll(RegExp(r'//.*'), '');
+    
+    // Remove multi-line comments (/* comment */)
+    jsonString = jsonString.replaceAll(RegExp(r'/\*[\s\S]*?\*/'), '');
+    
+    return jsonString.trim();
   }
 
   /// Parses disposal instructions safely from dynamic input.
@@ -1336,62 +1348,75 @@ Output:
         if (explanation.isNotEmpty) {
           // Look for patterns like "The image shows [item]" or "This is [item]"
           final patterns = [
-            RegExp(r'image shows ([^,]+)', caseSensitive: false),
-            RegExp(r'this is ([^,]+)', caseSensitive: false),
-            RegExp(r'appears to be ([^,]+)', caseSensitive: false),
-            RegExp(r'shows ([^,]+)', caseSensitive: false),
-            RegExp(r'contains ([^,]+)', caseSensitive: false),
+            RegExp(r'(?:shows?|depicts?|contains?|is)\s+(?:an?|the)?\s*([^.]+?)(?:\s+(?:which|that|in|on)|\.|$)', caseSensitive: false),
+            RegExp(r'(?:This|It)\s+(?:appears to be|looks like|is)\s+(?:an?|the)?\s*([^.]+?)(?:\s+(?:which|that|in|on)|\.|$)', caseSensitive: false),
           ];
           
           for (final pattern in patterns) {
             final match = pattern.firstMatch(explanation);
             if (match != null && match.group(1) != null) {
-              itemName = match.group(1)!.trim();
-              debugPrint('🔧 Extracted itemName from explanation: "$itemName"');
-              break;
+              final extractedName = match.group(1)!.trim();
+              if (extractedName.isNotEmpty && extractedName.length < 50) {
+                itemName = extractedName;
+                debugPrint('🔧 Extracted itemName from explanation: "$itemName"');
+                break;
+              }
             }
           }
         }
         
-        // If still empty, use subcategory or category
-        if (itemName.isEmpty) {
-          if (subcategory.isNotEmpty && !subcategory.toLowerCase().contains('waste')) {
-            itemName = subcategory;
-            debugPrint('🔧 Using subcategory as itemName: "$itemName"');
-          } else if (category.isNotEmpty) {
-            // Clean up category name (remove "waste" suffix)
-            itemName = category.replaceAll(RegExp(r'\s*\(.*?\)'), '').replaceAll(' Waste', '').trim();
-            if (itemName.isEmpty) itemName = category;
-            debugPrint('🔧 Using cleaned category as itemName: "$itemName"');
-          }
+        // Fallback to subcategory if still empty
+        if (itemName.isEmpty && subcategory.isNotEmpty) {
+          itemName = subcategory;
+          debugPrint('🔧 Using subcategory as itemName: "$itemName"');
         }
         
-        // Final fallback
+        // Final fallback to category
+        if (itemName.isEmpty && category.isNotEmpty) {
+          itemName = category;
+          debugPrint('🔧 Using category as itemName: "$itemName"');
+        }
+        
+        // Last resort fallback
         if (itemName.isEmpty) {
           itemName = 'Unidentified Item';
-          debugPrint('🔧 Using final fallback itemName: "$itemName"');
+          debugPrint('🔧 Using fallback itemName: "$itemName"');
         }
+      }
+
+      // Extract relative path from absolute image path
+      String? imageRelativePath;
+      if (imagePath.contains('/images/')) {
+        final index = imagePath.indexOf('/images/');
+        imageRelativePath = imagePath.substring(index + 1); // Remove leading slash
+      } else if (imagePath.contains('\\images\\')) {
+        final index = imagePath.indexOf('\\images\\');
+        imageRelativePath = imagePath.substring(index + 1).replaceAll('\\', '/');
+      } else if (imagePath.contains('.jpg') || imagePath.contains('.png') || 
+                 imagePath.contains('.jpeg') || imagePath.contains('.webp')) {
+        final fileName = imagePath.split('/').last.split('\\').last;
+        imageRelativePath = 'images/$fileName';
       }
 
       return WasteClassification(
         id: classificationId,
         itemName: itemName,
-        category: _safeStringParse(jsonContent['category']) ?? 'Dry Waste',
+        category: _safeStringParse(jsonContent['category']) ?? 'Requires Manual Review',
         subcategory: _safeStringParse(jsonContent['subcategory']),
         materialType: _safeStringParse(jsonContent['materialType']),
         recyclingCode: _parseRecyclingCode(jsonContent['recyclingCode']),
-        explanation: _safeStringParse(jsonContent['explanation']) ?? '',
+        explanation: _safeStringParse(jsonContent['explanation']) ?? 'No explanation provided',
         disposalMethod: _safeStringParse(jsonContent['disposalMethod']),
         disposalInstructions: disposalInstructions,
-        region: _safeStringParse(jsonContent['region']) ?? region,
+        region: region,
         localGuidelinesReference: _safeStringParse(jsonContent['localGuidelinesReference']),
         imageUrl: imagePath,
-        imageHash: _safeStringParse(jsonContent['imageHash']),
-        imageMetrics: _parseImageMetrics(jsonContent['imageMetrics']),
+        imageRelativePath: imageRelativePath,
         visualFeatures: _parseStringListSafely(jsonContent['visualFeatures']),
         isRecyclable: _parseBool(jsonContent['isRecyclable']),
         isCompostable: _parseBool(jsonContent['isCompostable']),
         requiresSpecialDisposal: _parseBool(jsonContent['requiresSpecialDisposal']),
+        isSingleUse: _parseBool(jsonContent['isSingleUse']),
         colorCode: _safeStringParse(jsonContent['colorCode']),
         riskLevel: _safeStringParse(jsonContent['riskLevel']),
         requiredPPE: _parseStringListSafely(jsonContent['requiredPPE']),

@@ -1106,7 +1106,9 @@ class HomeTab extends ConsumerWidget {
             }
             
             // show just the last 3
-            final recent = classifications.take(3).toList();
+            final latest = [...classifications]
+              ..sort((a, b) => b.timestamp.compareTo(a.timestamp));
+            final recent = latest.take(3).toList();
             return ListView.separated(
               physics: const NeverScrollableScrollPhysics(),
               shrinkWrap: true,
