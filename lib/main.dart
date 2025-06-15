@@ -9,6 +9,11 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart' show kIsWeb, kDebugMode;
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:firebase_performance/firebase_performance.dart';
+import 'package:hive_flutter/hive_flutter.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 
 import 'firebase_options.dart';
 import 'services/ai_service.dart';
@@ -47,6 +52,10 @@ import 'providers/theme_provider.dart';
 import 'providers/points_engine_provider.dart';
 import 'providers/points_manager.dart';
 import 'services/cloud_storage_service.dart';
+import 'providers/app_providers.dart'; // Import central providers
+import 'services/points_engine.dart';
+import 'screens/new_modern_home_screen.dart';
+import 'utils/routes.dart';
 
 // Global Navigator Key for Error Handling
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
@@ -264,12 +273,12 @@ class WasteSegregationApp extends StatelessWidget {
     required this.storageService,
     required this.aiService,
     required this.analyticsService,
-    required this.googleDriveService,
-    required this.gamificationService,
     required this.educationalContentAnalyticsService,
     required this.educationalContentService,
+    required this.gamificationService,
     required this.premiumService,
     required this.adService,
+    required this.googleDriveService,
     required this.navigationSettingsService,
     required this.hapticSettingsService,
     required this.communityService,
@@ -277,12 +286,12 @@ class WasteSegregationApp extends StatelessWidget {
   final StorageService storageService;
   final AiService aiService;
   final AnalyticsService analyticsService;
-  final GoogleDriveService googleDriveService;
-  final GamificationService gamificationService;
-  final EducationalContentService educationalContentService;
   final EducationalContentAnalyticsService educationalContentAnalyticsService;
+  final EducationalContentService educationalContentService;
+  final GamificationService gamificationService;
   final PremiumService premiumService;
   final AdService adService;
+  final GoogleDriveService googleDriveService;
   final NavigationSettingsService navigationSettingsService;
   final HapticSettingsService hapticSettingsService;
   final CommunityService communityService;
