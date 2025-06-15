@@ -45,6 +45,7 @@ import 'utils/error_handler.dart'; // Correct import for ErrorHandler
 import 'utils/developer_config.dart'; // For developer-only features security
 import 'providers/theme_provider.dart';
 import 'providers/points_engine_provider.dart';
+import 'providers/points_manager.dart';
 import 'services/cloud_storage_service.dart';
 
 // Global Navigator Key for Error Handling
@@ -289,6 +290,11 @@ class WasteSegregationApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return riverpod.ProviderScope(
+      overrides: [
+        // Override service providers for dependency injection
+        storageServiceProvider.overrideWithValue(storageService),
+        cloudStorageServiceProvider.overrideWith((ref) => CloudStorageService(storageService)),
+      ],
       child: MultiProvider(
         providers: [
           // ThemeProvider for dynamic theming

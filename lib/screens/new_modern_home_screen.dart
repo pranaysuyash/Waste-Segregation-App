@@ -11,6 +11,7 @@ import '../models/waste_classification.dart';
 import '../models/gamification.dart';
 import '../models/user_profile.dart';
 import '../providers/points_engine_provider.dart';
+import '../providers/points_manager.dart';
 import '../services/storage_service.dart';
 import '../services/cloud_storage_service.dart';
 import '../services/gamification_service.dart';
@@ -635,7 +636,7 @@ class HomeTab extends ConsumerWidget {
       padding: const EdgeInsets.all(AppTheme.spacingMd),
       children: [
         // Welcome section with user stats
-        _buildWelcomeSection(context, profileAsync),
+        _buildWelcomeSection(context, profileAsync, ref),
         const SizedBox(height: AppTheme.spacingLg),
         
         // Quick actions with beautiful cards
@@ -655,7 +656,7 @@ class HomeTab extends ConsumerWidget {
     );
   }
 
-  Widget _buildWelcomeSection(BuildContext context, AsyncValue<GamificationProfile?> profileAsync) {
+  Widget _buildWelcomeSection(BuildContext context, AsyncValue<GamificationProfile?> profileAsync, WidgetRef ref) {
     return profileAsync.when(
       data: (profile) => ModernCard(
         gradient: LinearGradient(
@@ -709,7 +710,7 @@ class HomeTab extends ConsumerWidget {
             const SizedBox(height: AppTheme.spacingMd),
             Row(
               children: [
-                                 _buildPointsChip(context),
+                                 _buildPointsChip(context, ref),
                  const SizedBox(width: AppTheme.spacingMd),
                  _buildStatChip('${profile?.streaks[StreakType.dailyClassification.toString()]?.currentCount ?? 0}', 'Day Streak', Icons.local_fire_department),
               ],
@@ -726,19 +727,14 @@ class HomeTab extends ConsumerWidget {
     );
   }
 
-  Widget _buildPointsChip(BuildContext context) {
-    // Use Points Engine as the single source of truth
-    final pointsEngineProvider = provider.Provider.of<PointsEngineProvider>(context);
-    final pointsEngine = pointsEngineProvider.pointsEngine;
+  Widget _buildPointsChip(BuildContext context, WidgetRef ref) {
+    // Use new unified PointsManager as the single source of truth
+    final pointsAsync = ref.watch(pointsManagerProvider);
     
-    return FutureBuilder<void>(
-      future: pointsEngine.initialize(),
-      builder: (context, snapshot) {
-        final profile = pointsEngine.currentProfile;
-        final points = profile?.points.total ?? 0;
-        
-        return _buildStatChip('$points', 'Points', Icons.stars);
-      },
+    return pointsAsync.when(
+      data: (points) => _buildStatChip('${points.total}', 'Points', Icons.stars),
+      loading: () => _buildStatChip('...', 'Points', Icons.stars),
+      error: (_, __) => _buildStatChip('0', 'Points', Icons.stars),
     );
   }
 
