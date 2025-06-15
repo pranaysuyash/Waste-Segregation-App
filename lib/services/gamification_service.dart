@@ -8,20 +8,33 @@ import '../utils/constants.dart';
 import 'community_service.dart';
 import 'storage_service.dart';
 import 'cloud_storage_service.dart';
+import 'points_engine.dart';
 
 /// Service for managing gamification features
 class GamificationService extends ChangeNotifier {
 
-  GamificationService(this._storageService, this._cloudStorageService);
+  GamificationService(this._storageService, this._cloudStorageService) {
+    _pointsEngine = PointsEngine(_storageService, _cloudStorageService);
+  }
+  
   // Dependencies
   final StorageService _storageService;
   final CloudStorageService _cloudStorageService;
+  late final PointsEngine _pointsEngine;
 
   GamificationProfile? _cachedProfile;
   bool _isUpdatingStreak = false; // Lock to prevent concurrent streak updates
 
-  /// Latest gamification profile cached in memory.
-  GamificationProfile? get currentProfile => _cachedProfile;
+  /// Latest gamification profile cached in memory - Uses Points Engine as source of truth
+  GamificationProfile? get currentProfile {
+    // Always return from Points Engine if available
+    final engineProfile = _pointsEngine.currentProfile;
+    if (engineProfile != null) {
+      _cachedProfile = engineProfile;
+      return engineProfile;
+    }
+    return _cachedProfile;
+  }
 
   // Hive constants (may be partially deprecated for authenticated users)
   static const String _gamificationBoxName = 'gamificationBox'; // Renamed for clarity
@@ -93,6 +106,18 @@ class GamificationService extends ChangeNotifier {
   Future<GamificationProfile> getProfile({bool forceRefresh = false}) async {
     try {
       debugPrint('🏆 GamificationService.getProfile called (forceRefresh: $forceRefresh)');
+      
+      // Always initialize PointsEngine first
+      await _pointsEngine.initialize();
+      
+      // Check if PointsEngine has a profile and use it as source of truth
+      final engineProfile = _pointsEngine.currentProfile;
+      if (engineProfile != null && !forceRefresh) {
+        debugPrint('🏆 Using PointsEngine profile as source of truth');
+        _cachedProfile = engineProfile;
+        notifyListeners();
+        return engineProfile;
+      }
       
       if (!forceRefresh && _cachedProfile != null) {
         debugPrint('🏆 Returning cached profile for user: ${_cachedProfile!.userId}');
@@ -469,11 +494,29 @@ class GamificationService extends ChangeNotifier {
     }
   }
   
-  // Add points for an action
+  // Add points for an action - Delegates to Points Engine
   Future<UserPoints> addPoints(String action, {String? category, int? customPoints}) async {
-    debugPrint('🎮 [DEBUG] addPoints called: action=$action, category=$category, customPoints=$customPoints');
-    final points = await _addPointsInternal(action, category: category, customPoints: customPoints);
-    debugPrint('🎮 [DEBUG] Points after add: total=${points.total}, categoryPoints=${points.categoryPoints}');
+    debugPrint('🎮 [LEGACY] GamificationService.addPoints delegating to PointsEngine: action=$action, category=$category, customPoints=$customPoints');
+    
+    // Initialize Points Engine if needed
+    await _pointsEngine.initialize();
+    
+    // Delegate to Points Engine
+    final points = await _pointsEngine.addPoints(
+      action,
+      category: category,
+      customPoints: customPoints,
+      metadata: {
+        'source': 'GamificationService',
+        'timestamp': DateTime.now().toIso8601String(),
+      },
+    );
+    
+    // Update cached profile from Points Engine
+    _cachedProfile = _pointsEngine.currentProfile;
+    notifyListeners();
+    
+    debugPrint('🎮 [LEGACY] Points after add: total=${points.total}, categoryPoints=${points.categoryPoints}');
     return points;
   }
   

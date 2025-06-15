@@ -44,6 +44,7 @@ import 'utils/constants.dart'; // For app constants, themes, and strings
 import 'utils/error_handler.dart'; // Correct import for ErrorHandler
 import 'utils/developer_config.dart'; // For developer-only features security
 import 'providers/theme_provider.dart';
+import 'providers/points_engine_provider.dart';
 import 'services/cloud_storage_service.dart';
 
 // Global Navigator Key for Error Handling
@@ -158,6 +159,10 @@ void main() async {
 
   // Create enhanced storage service instance
   final storageService = EnhancedStorageService();
+  
+  // Run image path migration
+  await storageService.migrateImagePathsToRelative();
+  
   final aiService = AiService();
   final analyticsService = AnalyticsService(storageService);
   final educationalContentAnalyticsService = EducationalContentAnalyticsService();
@@ -307,6 +312,14 @@ class WasteSegregationApp extends StatelessWidget {
           // Other providers
           Provider(create: (_) => UserConsentService()),
           Provider(create: (context) => CloudStorageService(context.read<StorageService>())),
+          
+          // Points Engine Provider - Single source of truth for points
+          ChangeNotifierProvider(
+            create: (context) => PointsEngineProvider(
+              context.read<StorageService>(),
+              context.read<CloudStorageService>(),
+            ),
+          ),
         ],
         child: Consumer<ThemeProvider>(
           builder: (context, themeProvider, child) {

@@ -67,13 +67,15 @@ class WasteClassificationAdapter extends TypeAdapter<WasteClassification> {
       pointsAwarded: fields[43] as int?,
       environmentalImpact: fields[44] as String?,
       relatedItems: (fields[45] as List?)?.cast<String>(),
+      imageRelativePath: fields[60] as String?,
+      thumbnailRelativePath: fields[61] as String?,
     );
   }
 
   @override
   void write(BinaryWriter writer, WasteClassification obj) {
     writer
-      ..writeByte(50)
+      ..writeByte(52)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
@@ -100,6 +102,10 @@ class WasteClassificationAdapter extends TypeAdapter<WasteClassification> {
       ..write(obj.localGuidelinesReference)
       ..writeByte(12)
       ..write(obj.imageUrl)
+      ..writeByte(60)
+      ..write(obj.imageRelativePath)
+      ..writeByte(61)
+      ..write(obj.thumbnailRelativePath)
       ..writeByte(13)
       ..write(obj.imageHash)
       ..writeByte(14)

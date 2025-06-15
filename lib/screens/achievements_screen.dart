@@ -7,6 +7,7 @@ import '../services/gamification_service.dart';
 import '../utils/constants.dart';
 import '../widgets/profile_summary_card.dart';
 import '../widgets/advanced_ui/achievement_celebration.dart';
+import '../providers/points_engine_provider.dart';
 
 class AchievementsScreen extends StatefulWidget {
 
@@ -600,29 +601,9 @@ class _AchievementsScreenState extends State<AchievementsScreen>
     // Helper function to handle claiming rewards
     Future<void> claimReward() async {
       try {
-        final profile = await gamificationService.getProfile();
-        final updatedAchievements = List<Achievement>.from(profile.achievements);
-        
-        // Find the achievement by ID and update its claim status
-        for (var i = 0; i < updatedAchievements.length; i++) {
-          if (updatedAchievements[i].id == achievement.id) {
-            updatedAchievements[i] = updatedAchievements[i].copyWith(
-              claimStatus: ClaimStatus.claimed,
-            );
-            break;
-          }
-        }
-        
-        // Update profile with claimed achievement
-        await gamificationService.saveProfile(
-          profile.copyWith(achievements: updatedAchievements)
-        );
-        
-        // Add points for claiming achievement
-        await gamificationService.addPoints(
-          'achievement_claim',
-          customPoints: achievement.pointsReward
-        );
+        // Use PointsEngine for atomic achievement claiming
+        final pointsEngineProvider = Provider.of<PointsEngineProvider>(context, listen: false);
+        await pointsEngineProvider.pointsEngine.claimAchievementReward(achievement.id);
         
         // Refresh the profile data
         if (mounted) {
