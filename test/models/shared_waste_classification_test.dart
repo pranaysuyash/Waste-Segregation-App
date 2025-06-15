@@ -8,7 +8,7 @@ void main() {
       test('should create SharedWasteClassification with all required properties', () {
         final originalClassification = WasteClassification(
           id: 'class_001',
-          imagePath: '/path/to/image.jpg',
+          imageUrl: '/path/to/image.jpg',
           category: 'plastic',
           confidence: 0.95,
           disposalInstructions: 'Place in recycling bin',
@@ -37,7 +37,7 @@ void main() {
       test('should create SharedWasteClassification with optional properties', () {
         final originalClassification = WasteClassification(
           id: 'class_002',
-          imagePath: '/path/to/image2.jpg',
+          imageUrl: '/path/to/image2.jpg',
           category: 'paper',
           confidence: 0.88,
           disposalInstructions: 'Place in paper recycling',
@@ -83,7 +83,7 @@ void main() {
       test('should serialize SharedWasteClassification to JSON correctly', () {
         final originalClassification = WasteClassification(
           id: 'class_003',
-          imagePath: '/path/to/image3.jpg',
+          imageUrl: '/path/to/image3.jpg',
           category: 'glass',
           confidence: 0.92,
           disposalInstructions: 'Place in glass recycling',
@@ -163,7 +163,7 @@ void main() {
         final publicClassification = SharedWasteClassification(
           id: 'shared_public',
           originalClassification: WasteClassification(
-            id: 'class', imagePath: '/path', category: 'plastic',
+            id: 'class', imageUrl: '/path', category: 'plastic',
             confidence: 0.9, disposalInstructions: 'Recycle',
             timestamp: DateTime.now(),
           ),
@@ -176,7 +176,7 @@ void main() {
         final familyClassification = SharedWasteClassification(
           id: 'shared_family',
           originalClassification: WasteClassification(
-            id: 'class', imagePath: '/path', category: 'plastic',
+            id: 'class', imageUrl: '/path', category: 'plastic',
             confidence: 0.9, disposalInstructions: 'Recycle',
             timestamp: DateTime.now(),
           ),
@@ -190,7 +190,7 @@ void main() {
         final privateClassification = SharedWasteClassification(
           id: 'shared_private',
           originalClassification: WasteClassification(
-            id: 'class', imagePath: '/path', category: 'plastic',
+            id: 'class', imageUrl: '/path', category: 'plastic',
             confidence: 0.9, disposalInstructions: 'Recycle',
             timestamp: DateTime.now(),
           ),
@@ -218,7 +218,7 @@ void main() {
         final sharedClassification = SharedWasteClassification(
           id: 'shared_001',
           originalClassification: WasteClassification(
-            id: 'class', imagePath: '/path', category: 'plastic',
+            id: 'class', imageUrl: '/path', category: 'plastic',
             confidence: 0.9, disposalInstructions: 'Recycle',
             timestamp: DateTime.now(),
           ),
@@ -236,7 +236,7 @@ void main() {
         final noLikesClassification = SharedWasteClassification(
           id: 'shared_002',
           originalClassification: WasteClassification(
-            id: 'class', imagePath: '/path', category: 'plastic',
+            id: 'class', imageUrl: '/path', category: 'plastic',
             confidence: 0.9, disposalInstructions: 'Recycle',
             timestamp: DateTime.now(),
           ),
@@ -260,7 +260,7 @@ void main() {
         final sharedClassification = SharedWasteClassification(
           id: 'shared_001',
           originalClassification: WasteClassification(
-            id: 'class', imagePath: '/path', category: 'plastic',
+            id: 'class', imageUrl: '/path', category: 'plastic',
             confidence: 0.9, disposalInstructions: 'Recycle',
             timestamp: DateTime.now(),
           ),
@@ -278,7 +278,7 @@ void main() {
         final noCommentsClassification = SharedWasteClassification(
           id: 'shared_002',
           originalClassification: WasteClassification(
-            id: 'class', imagePath: '/path', category: 'plastic',
+            id: 'class', imageUrl: '/path', category: 'plastic',
             confidence: 0.9, disposalInstructions: 'Recycle',
             timestamp: DateTime.now(),
           ),
@@ -302,7 +302,7 @@ void main() {
         final sharedClassification = SharedWasteClassification(
           id: 'shared_001',
           originalClassification: WasteClassification(
-            id: 'class', imagePath: '/path', category: 'plastic',
+            id: 'class', imageUrl: '/path', category: 'plastic',
             confidence: 0.9, disposalInstructions: 'Recycle',
             timestamp: DateTime.now(),
           ),
@@ -331,7 +331,7 @@ void main() {
         final recentlyShared = SharedWasteClassification(
           id: 'shared_recent',
           originalClassification: WasteClassification(
-            id: 'class', imagePath: '/path', category: 'plastic',
+            id: 'class', imageUrl: '/path', category: 'plastic',
             confidence: 0.9, disposalInstructions: 'Recycle',
             timestamp: DateTime.now(),
           ),
@@ -344,7 +344,7 @@ void main() {
         final oldShared = SharedWasteClassification(
           id: 'shared_old',
           originalClassification: WasteClassification(
-            id: 'class', imagePath: '/path', category: 'plastic',
+            id: 'class', imageUrl: '/path', category: 'plastic',
             confidence: 0.9, disposalInstructions: 'Recycle',
             timestamp: DateTime.now(),
           ),
@@ -362,7 +362,7 @@ void main() {
         final sharedClassification = SharedWasteClassification(
           id: 'shared_001',
           originalClassification: WasteClassification(
-            id: 'class', imagePath: '/path', category: 'plastic',
+            id: 'class', imageUrl: '/path', category: 'plastic',
             confidence: 0.9, disposalInstructions: 'Recycle',
             timestamp: DateTime.now(),
           ),
@@ -563,7 +563,7 @@ void main() {
         expect(() => SharedWasteClassification(
           id: '', // Empty ID
           originalClassification: WasteClassification(
-            id: 'class', imagePath: '/path', category: 'plastic',
+            id: 'class', imageUrl: '/path', category: 'plastic',
             confidence: 0.9, disposalInstructions: 'Recycle',
             timestamp: DateTime.now(),
           ),
@@ -576,7 +576,7 @@ void main() {
         expect(() => SharedWasteClassification(
           id: 'shared_001',
           originalClassification: WasteClassification(
-            id: 'class', imagePath: '/path', category: 'plastic',
+            id: 'class', imageUrl: '/path', category: 'plastic',
             confidence: 0.9, disposalInstructions: 'Recycle',
             timestamp: DateTime.now(),
           ),
@@ -609,7 +609,7 @@ void main() {
         expect(() => SharedWasteClassification(
           id: 'shared_001',
           originalClassification: WasteClassification(
-            id: 'class', imagePath: '/path', category: 'plastic',
+            id: 'class', imageUrl: '/path', category: 'plastic',
             confidence: 0.9, disposalInstructions: 'Recycle',
             timestamp: DateTime.now(),
           ),
@@ -636,7 +636,7 @@ void main() {
         final classification1 = SharedWasteClassification(
           id: 'shared_001',
           originalClassification: WasteClassification(
-            id: 'class', imagePath: '/path', category: 'plastic',
+            id: 'class', imageUrl: '/path', category: 'plastic',
             confidence: 0.9, disposalInstructions: 'Recycle',
             timestamp: DateTime(2024, 1, 15),
           ),
@@ -649,7 +649,7 @@ void main() {
         final classification2 = SharedWasteClassification(
           id: 'shared_001',
           originalClassification: WasteClassification(
-            id: 'class', imagePath: '/path', category: 'plastic',
+            id: 'class', imageUrl: '/path', category: 'plastic',
             confidence: 0.9, disposalInstructions: 'Recycle',
             timestamp: DateTime(2024, 1, 15),
           ),
@@ -662,7 +662,7 @@ void main() {
         final classification3 = SharedWasteClassification(
           id: 'shared_002',
           originalClassification: WasteClassification(
-            id: 'class2', imagePath: '/path2', category: 'paper',
+            id: 'class2', imageUrl: '/path2', category: 'paper',
             confidence: 0.8, disposalInstructions: 'Recycle',
             timestamp: DateTime(2024, 1, 16),
           ),
@@ -682,7 +682,7 @@ void main() {
           SharedWasteClassification(
             id: 'shared_1',
             originalClassification: WasteClassification(
-              id: 'class', imagePath: '/path', category: 'plastic',
+              id: 'class', imageUrl: '/path', category: 'plastic',
               confidence: 0.9, disposalInstructions: 'Recycle',
               timestamp: DateTime.now(),
             ),
@@ -693,7 +693,7 @@ void main() {
           SharedWasteClassification(
             id: 'shared_2',
             originalClassification: WasteClassification(
-              id: 'class', imagePath: '/path', category: 'plastic',
+              id: 'class', imageUrl: '/path', category: 'plastic',
               confidence: 0.9, disposalInstructions: 'Recycle',
               timestamp: DateTime.now(),
             ),

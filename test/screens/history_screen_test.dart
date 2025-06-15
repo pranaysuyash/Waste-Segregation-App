@@ -44,7 +44,7 @@ void main() {
         final mockClassifications = [
           WasteClassification(
             id: 'class_1',
-            imagePath: '/path/to/image1.jpg',
+            imageUrl: '/path/to/image1.jpg',
             category: 'plastic',
             confidence: 0.95,
             disposalInstructions: 'Recycle in plastic bin',
@@ -52,7 +52,7 @@ void main() {
           ),
           WasteClassification(
             id: 'class_2',
-            imagePath: '/path/to/image2.jpg',
+            imageUrl: '/path/to/image2.jpg',
             category: 'paper',
             confidence: 0.88,
             disposalInstructions: 'Recycle in paper bin',
@@ -94,7 +94,7 @@ void main() {
       testWidgets('should navigate to classification details on tap', (WidgetTester tester) async {
         final mockClassification = WasteClassification(
           id: 'class_1',
-          imagePath: '/path/to/image1.jpg',
+          imageUrl: '/path/to/image1.jpg',
           category: 'plastic',
           confidence: 0.95,
           disposalInstructions: 'Recycle in plastic bin',
@@ -134,7 +134,7 @@ void main() {
         final mockClassifications = [
           WasteClassification(
             id: 'class_1',
-            imagePath: '/path/to/image1.jpg',
+            imageUrl: '/path/to/image1.jpg',
             category: 'plastic',
             confidence: 0.95,
             disposalInstructions: 'Recycle in plastic bin',
@@ -142,7 +142,7 @@ void main() {
           ),
           WasteClassification(
             id: 'class_2',
-            imagePath: '/path/to/image2.jpg',
+            imageUrl: '/path/to/image2.jpg',
             category: 'paper',
             confidence: 0.88,
             disposalInstructions: 'Recycle in paper bin',
@@ -191,7 +191,7 @@ void main() {
       testWidgets('should delete classification on swipe', (WidgetTester tester) async {
         final mockClassification = WasteClassification(
           id: 'class_1',
-          imagePath: '/path/to/image1.jpg',
+          imageUrl: '/path/to/image1.jpg',
           category: 'plastic',
           confidence: 0.95,
           disposalInstructions: 'Recycle in plastic bin',
@@ -242,7 +242,7 @@ void main() {
         final largeClassificationList = List.generate(100, (index) => 
           WasteClassification(
             id: 'class_$index',
-            imagePath: '/path/to/image$index.jpg',
+            imageUrl: '/path/to/image$index.jpg',
             category: index % 2 == 0 ? 'plastic' : 'paper',
             confidence: 0.8 + (index % 20) * 0.01,
             disposalInstructions: 'Disposal instructions $index',
@@ -271,7 +271,7 @@ void main() {
         final mockClassifications = [
           WasteClassification(
             id: 'class_1',
-            imagePath: '/path/to/image1.jpg',
+            imageUrl: '/path/to/image1.jpg',
             category: 'plastic',
             confidence: 0.95,
             disposalInstructions: 'Recycle in plastic bin',
@@ -336,7 +336,7 @@ void main() {
       testWidgets('should handle delete operation failure', (WidgetTester tester) async {
         final mockClassification = WasteClassification(
           id: 'class_1',
-          imagePath: '/path/to/image1.jpg',
+          imageUrl: '/path/to/image1.jpg',
           category: 'plastic',
           confidence: 0.95,
           disposalInstructions: 'Recycle in plastic bin',
@@ -368,7 +368,7 @@ void main() {
         final mockClassifications = [
           WasteClassification(
             id: 'class_1',
-            imagePath: '/path/to/image1.jpg',
+            imageUrl: '/path/to/image1.jpg',
             category: 'plastic',
             confidence: 0.95,
             disposalInstructions: 'Recycle',
@@ -376,7 +376,7 @@ void main() {
           ),
           WasteClassification(
             id: 'class_2',
-            imagePath: '/path/to/image2.jpg',
+            imageUrl: '/path/to/image2.jpg',
             category: 'paper',
             confidence: 0.88,
             disposalInstructions: 'Recycle',
@@ -410,7 +410,7 @@ void main() {
         final mockClassifications = [
           WasteClassification(
             id: 'class_1',
-            imagePath: '/path/to/image1.jpg',
+            imageUrl: '/path/to/image1.jpg',
             category: 'plastic',
             confidence: 0.95,
             disposalInstructions: 'Recycle',
@@ -418,7 +418,7 @@ void main() {
           ),
           WasteClassification(
             id: 'class_2',
-            imagePath: '/path/to/image2.jpg',
+            imageUrl: '/path/to/image2.jpg',
             category: 'plastic',
             confidence: 0.88,
             disposalInstructions: 'Recycle',
@@ -426,7 +426,7 @@ void main() {
           ),
           WasteClassification(
             id: 'class_3',
-            imagePath: '/path/to/image3.jpg',
+            imageUrl: '/path/to/image3.jpg',
             category: 'paper',
             confidence: 0.92,
             disposalInstructions: 'Recycle',
@@ -453,7 +453,7 @@ void main() {
       testWidgets('should support screen reader navigation', (WidgetTester tester) async {
         final mockClassification = WasteClassification(
           id: 'class_1',
-          imagePath: '/path/to/image1.jpg',
+          imageUrl: '/path/to/image1.jpg',
           category: 'plastic',
           confidence: 0.95,
           disposalInstructions: 'Recycle in plastic bin',
@@ -483,7 +483,7 @@ void main() {
         final mockClassifications = [
           WasteClassification(
             id: 'class_1',
-            imagePath: '/path/to/image1.jpg',
+            imageUrl: '/path/to/image1.jpg',
             category: 'plastic',
             confidence: 0.95,
             disposalInstructions: 'Recycle',
@@ -491,7 +491,7 @@ void main() {
           ),
           WasteClassification(
             id: 'class_2',
-            imagePath: '/path/to/image2.jpg',
+            imageUrl: '/path/to/image2.jpg',
             category: 'paper',
             confidence: 0.88,
             disposalInstructions: 'Recycle',
@@ -519,7 +519,7 @@ void main() {
         final largeDataset = List.generate(1000, (index) => 
           WasteClassification(
             id: 'class_$index',
-            imagePath: '/path/to/image$index.jpg',
+            imageUrl: '/path/to/image$index.jpg',
             category: 'plastic',
             confidence: 0.9,
             disposalInstructions: 'Recycle',
@@ -548,7 +548,7 @@ void main() {
         final mockClassifications = List.generate(20, (index) => 
           WasteClassification(
             id: 'class_$index',
-            imagePath: '/path/to/image$index.jpg',
+            imageUrl: '/path/to/image$index.jpg',
             category: 'plastic',
             confidence: 0.9,
             disposalInstructions: 'Recycle',

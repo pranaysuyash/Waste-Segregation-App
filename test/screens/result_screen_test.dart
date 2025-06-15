@@ -600,7 +600,7 @@ void main() {
         
         // Add image path to classification
         final classificationWithImage = classification.copyWith(
-          imagePath: 'test_image.jpg',
+          imageUrl: 'test_image.jpg',
         );
 
         await tester.pumpWidget(createResultScreen(classificationWithImage));
