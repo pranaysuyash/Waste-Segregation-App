@@ -81,6 +81,7 @@ class _ResultScreenState extends State<ResultScreen>
       'item_name': widget.classification.itemName,
       'show_actions': widget.showActions,
       'confidence': widget.classification.confidence,
+      'auto_analyze': widget.autoAnalyze,
     });
     
     _animationController = AnimationController(
@@ -89,8 +90,16 @@ class _ResultScreenState extends State<ResultScreen>
     );
     
     // Process the classification for gamification only if it's a new classification
-    if (widget.showActions) {
+    // Skip auto-save processing for autoAnalyze mode since it's already saved in InstantAnalysisScreen
+    if (widget.showActions && !widget.autoAnalyze) {
       _autoSaveAndProcess();
+    } else if (widget.autoAnalyze) {
+      // For autoAnalyze mode, the classification is already saved and processed
+      // Just mark it as saved and show the UI
+      debugPrint('🚀 AUTO-ANALYZE: Classification already saved in InstantAnalysisScreen, skipping auto-save');
+      setState(() {
+        _isSaved = true;
+      });
     } else {
       // 🎮 GAMIFICATION FIX: For existing classifications, check if they need 
       // retroactive gamification processing (fixes the 2/10 classifications but 0 points issue)

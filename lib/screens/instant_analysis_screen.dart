@@ -6,6 +6,7 @@ import 'package:flutter/foundation.dart';
 
 import '../models/waste_classification.dart';
 import '../services/ai_service.dart';
+import '../services/gamification_service.dart';
 import '../widgets/enhanced_analysis_loader.dart';
 import '../screens/result_screen.dart';
 
@@ -66,7 +67,13 @@ class _InstantAnalysisScreenState extends State<InstantAnalysisScreen> {
       }
 
       if (!_isCancelled && mounted) {
-        debugPrint('Navigation to results screen with classification');
+        debugPrint('✅ Analysis complete - saving classification immediately');
+        
+        // Save the classification immediately using gamification service to trigger all hooks
+        final gamificationService = Provider.of<GamificationService>(context, listen: false);
+        await gamificationService.processClassification(result!);
+        
+        debugPrint('✅ Classification saved - navigating to results screen');
         
         // Navigate to results screen and wait for it to complete
         await Navigator.pushReplacement<void, void>(
