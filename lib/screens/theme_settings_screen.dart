@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers.dart';
-import 'premium_features_screen.dart';
+import '../utils/routes.dart';
 
 class ThemeSettingsScreen extends ConsumerWidget {
   const ThemeSettingsScreen({super.key});
@@ -94,12 +94,7 @@ class ThemeSettingsScreen extends ConsumerWidget {
               subtitle: const Text('Unlock advanced theme customization and more'),
               trailing: const Icon(Icons.chevron_right),
               onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const PremiumFeaturesScreen(),
-                  ),
-                );
+                Navigator.pushNamed(context, Routes.premium);
               },
             ),
           ),
@@ -145,13 +140,8 @@ class ThemeSettingsScreen extends ConsumerWidget {
           ElevatedButton(
             onPressed: () {
               Navigator.pop(context);
-              // Navigate to premium features screen
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const PremiumFeaturesScreen(),
-                ),
-              );
+              // Navigate to premium features screen using named route
+              Navigator.pushNamed(context, Routes.premium);
             },
             child: const Text('Upgrade Now'),
           ),
