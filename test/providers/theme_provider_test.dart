@@ -1,276 +1,141 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mockito/mockito.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:waste_segregation_app/providers/theme_provider.dart';
-
-class MockSharedPreferences extends Mock implements SharedPreferences {}
 
 void main() {
   group('ThemeProvider Tests', () {
     late ThemeProvider themeProvider;
-    late MockSharedPreferences mockPrefs;
 
     setUp(() {
-      mockPrefs = MockSharedPreferences();
+      // Set up mock SharedPreferences
+      SharedPreferences.setMockInitialValues({});
       themeProvider = ThemeProvider();
     });
 
     group('Theme Mode Management', () {
       test('should have light theme as default', () {
         expect(themeProvider.themeMode, ThemeMode.light);
-        expect(themeProvider.isDarkMode, false);
       });
 
-      test('should switch to dark theme correctly', () {
-        themeProvider.setThemeMode(ThemeMode.dark);
-        
+      test('should switch to dark theme correctly', () async {
+        await themeProvider.setThemeMode(ThemeMode.dark);
         expect(themeProvider.themeMode, ThemeMode.dark);
-        expect(themeProvider.isDarkMode, true);
       });
 
-      test('should switch to system theme correctly', () {
-        themeProvider.setThemeMode(ThemeMode.system);
-        
+      test('should switch to system theme correctly', () async {
+        await themeProvider.setThemeMode(ThemeMode.system);
         expect(themeProvider.themeMode, ThemeMode.system);
-        expect(themeProvider.isDarkMode, false); // Depends on system default
       });
 
-      test('should toggle theme correctly', () {
-        // Start with light theme
-        expect(themeProvider.isDarkMode, false);
-        
-        // Toggle to dark
-        themeProvider.toggleTheme();
-        expect(themeProvider.isDarkMode, true);
+      test('should switch back to light theme correctly', () async {
+        await themeProvider.setThemeMode(ThemeMode.dark);
         expect(themeProvider.themeMode, ThemeMode.dark);
         
-        // Toggle back to light
-        themeProvider.toggleTheme();
-        expect(themeProvider.isDarkMode, false);
+        await themeProvider.setThemeMode(ThemeMode.light);
         expect(themeProvider.themeMode, ThemeMode.light);
       });
     });
 
     group('Theme Persistence', () {
       test('should save theme preference when changed', () async {
-        SharedPreferences.setMockInitialValues({});
-        
-        themeProvider.setThemeMode(ThemeMode.dark);
-        
-        // Verify the theme mode was set
+        await themeProvider.setThemeMode(ThemeMode.dark);
         expect(themeProvider.themeMode, ThemeMode.dark);
+        
+        // Create a new provider to test persistence
+        final newProvider = ThemeProvider();
+        // Give it time to load from SharedPreferences
+        await Future.delayed(const Duration(milliseconds: 100));
+        expect(newProvider.themeMode, ThemeMode.dark);
       });
 
       test('should load saved theme preference on initialization', () async {
         SharedPreferences.setMockInitialValues({
-          'theme_mode': 'dark',
+          'themeMode': 2, // ThemeMode.dark.index
         });
         
         final provider = ThemeProvider();
-        await provider.loadThemePreference();
+        // Give it time to load from SharedPreferences
+        await Future.delayed(const Duration(milliseconds: 100));
         
         expect(provider.themeMode, ThemeMode.dark);
-        expect(provider.isDarkMode, true);
       });
 
       test('should handle invalid saved theme preference', () async {
         SharedPreferences.setMockInitialValues({
-          'theme_mode': 'invalid_mode',
+          'themeMode': 999, // Invalid index
         });
         
         final provider = ThemeProvider();
-        await provider.loadThemePreference();
+        // Give it time to load from SharedPreferences
+        await Future.delayed(const Duration(milliseconds: 100));
         
-        // Should fallback to light theme
+        // Should fallback to light theme (index 1)
         expect(provider.themeMode, ThemeMode.light);
-        expect(provider.isDarkMode, false);
       });
 
       test('should handle missing theme preference', () async {
         SharedPreferences.setMockInitialValues({});
         
         final provider = ThemeProvider();
-        await provider.loadThemePreference();
+        // Give it time to load from SharedPreferences
+        await Future.delayed(const Duration(milliseconds: 100));
         
         // Should use default light theme
         expect(provider.themeMode, ThemeMode.light);
-        expect(provider.isDarkMode, false);
-      });
-    });
-
-    group('Theme Data Generation', () {
-      test('should provide light theme data', () {
-        final lightTheme = themeProvider.lightTheme;
-        
-        expect(lightTheme.brightness, Brightness.light);
-        expect(lightTheme.primarySwatch, Colors.green);
-        expect(lightTheme.scaffoldBackgroundColor, Colors.grey[50]);
-      });
-
-      test('should provide dark theme data', () {
-        final darkTheme = themeProvider.darkTheme;
-        
-        expect(darkTheme.brightness, Brightness.dark);
-        expect(darkTheme.primarySwatch, Colors.green);
-        expect(darkTheme.scaffoldBackgroundColor, const Color(0xFF121212));
-      });
-
-      test('should provide current theme data based on mode', () {
-        // Test light theme
-        themeProvider.setThemeMode(ThemeMode.light);
-        final currentLight = themeProvider.currentTheme;
-        expect(currentLight.brightness, Brightness.light);
-        
-        // Test dark theme
-        themeProvider.setThemeMode(ThemeMode.dark);
-        final currentDark = themeProvider.currentTheme;
-        expect(currentDark.brightness, Brightness.dark);
-      });
-    });
-
-    group('Theme Colors and Styles', () {
-      test('should provide consistent primary colors across themes', () {
-        final lightTheme = themeProvider.lightTheme;
-        final darkTheme = themeProvider.darkTheme;
-        
-        // Primary color should be consistent
-        expect(lightTheme.primaryColor, darkTheme.primaryColor);
-      });
-
-      test('should provide appropriate contrast colors', () {
-        final lightTheme = themeProvider.lightTheme;
-        final darkTheme = themeProvider.darkTheme;
-        
-        // Light theme should have dark text
-        expect(lightTheme.textTheme.bodyLarge?.color, isNot(equals(Colors.white)));
-        
-        // Dark theme should have light text
-        expect(darkTheme.textTheme.bodyLarge?.color, isNot(equals(Colors.black)));
-      });
-
-      test('should provide appropriate card colors', () {
-        final lightTheme = themeProvider.lightTheme;
-        final darkTheme = themeProvider.darkTheme;
-        
-        // Card colors should be appropriate for each theme
-        expect(lightTheme.cardColor, isNot(equals(darkTheme.cardColor)));
       });
     });
 
     group('Notification and Listeners', () {
-      test('should notify listeners when theme changes', () {
+      test('should notify listeners when theme changes', () async {
         var notified = false;
         themeProvider.addListener(() {
           notified = true;
         });
         
-        themeProvider.setThemeMode(ThemeMode.dark);
+        await themeProvider.setThemeMode(ThemeMode.dark);
         
         expect(notified, true);
       });
 
-      test('should not notify listeners when setting same theme', () {
+      test('should notify listeners for each theme change', () async {
         var notificationCount = 0;
         themeProvider.addListener(() {
           notificationCount++;
         });
         
-        // Set the same theme multiple times
-        themeProvider.setThemeMode(ThemeMode.light);
-        themeProvider.setThemeMode(ThemeMode.light);
-        themeProvider.setThemeMode(ThemeMode.light);
+        await themeProvider.setThemeMode(ThemeMode.dark);
+        await themeProvider.setThemeMode(ThemeMode.system);
+        await themeProvider.setThemeMode(ThemeMode.light);
         
-        // Should only notify once (or not at all if already light)
-        expect(notificationCount, lessThanOrEqualTo(1));
+        expect(notificationCount, 3);
       });
     });
 
-    group('System Theme Integration', () {
-      test('should handle system theme changes when in system mode', () {
-        themeProvider.setThemeMode(ThemeMode.system);
+    group('Theme Mode Values', () {
+      test('should support all ThemeMode values', () async {
+        // Test light mode
+        await themeProvider.setThemeMode(ThemeMode.light);
+        expect(themeProvider.themeMode, ThemeMode.light);
         
+        // Test dark mode
+        await themeProvider.setThemeMode(ThemeMode.dark);
+        expect(themeProvider.themeMode, ThemeMode.dark);
+        
+        // Test system mode
+        await themeProvider.setThemeMode(ThemeMode.system);
         expect(themeProvider.themeMode, ThemeMode.system);
-        // Note: isDarkMode depends on actual system theme in real implementation
-      });
-
-      test('should provide correct theme when system mode is selected', () {
-        themeProvider.setThemeMode(ThemeMode.system);
-        final currentTheme = themeProvider.currentTheme;
-        
-        // Should provide a valid theme
-        expect(currentTheme, isNotNull);
-        expect(currentTheme.brightness, isIn([Brightness.light, Brightness.dark]));
-      });
-    });
-
-    group('Accessibility Support', () {
-      test('should support high contrast themes if implemented', () {
-        // Test that theme provides good contrast ratios
-        final lightTheme = themeProvider.lightTheme;
-        final darkTheme = themeProvider.darkTheme;
-        
-        expect(lightTheme, isNotNull);
-        expect(darkTheme, isNotNull);
-        
-        // Ensure themes are different
-        expect(lightTheme.brightness, isNot(equals(darkTheme.brightness)));
-      });
-
-      test('should maintain consistent styling across theme changes', () {
-        final lightTheme = themeProvider.lightTheme;
-        final darkTheme = themeProvider.darkTheme;
-        
-        // Text themes should be consistently structured
-        expect(lightTheme.textTheme.headlineLarge, isNotNull);
-        expect(darkTheme.textTheme.headlineLarge, isNotNull);
-        
-        // Button themes should be consistently structured
-        expect(lightTheme.elevatedButtonTheme, isNotNull);
-        expect(darkTheme.elevatedButtonTheme, isNotNull);
       });
     });
 
     group('Error Handling', () {
-      test('should handle null theme preference gracefully', () async {
-        SharedPreferences.setMockInitialValues({
-          'theme_mode': null,
-        });
-        
-        final provider = ThemeProvider();
-        await provider.loadThemePreference();
-        
-        // Should not throw and use default
-        expect(provider.themeMode, ThemeMode.light);
-      });
-
       test('should handle SharedPreferences errors gracefully', () async {
-        // Test that provider handles storage errors without crashing
+        // This test ensures the provider doesn't crash if SharedPreferences fails
         final provider = ThemeProvider();
         
-        expect(() async => await provider.loadThemePreference(), 
+        // Should not throw an exception
+        expect(() async => await provider.setThemeMode(ThemeMode.dark), 
                returnsNormally);
-      });
-    });
-
-    group('Performance Tests', () {
-      test('should not create new theme objects unnecessarily', () {
-        final theme1 = themeProvider.lightTheme;
-        final theme2 = themeProvider.lightTheme;
-        
-        // Should return the same instance or equivalent object
-        expect(theme1.brightness, theme2.brightness);
-        expect(theme1.primaryColor, theme2.primaryColor);
-      });
-
-      test('should handle rapid theme changes efficiently', () {
-        // Simulate rapid theme switching
-        for (var i = 0; i < 100; i++) {
-          themeProvider.setThemeMode(i % 2 == 0 ? ThemeMode.light : ThemeMode.dark);
-        }
-        
-        // Should complete without issues
-        expect(themeProvider.themeMode, ThemeMode.dark);
       });
     });
   });

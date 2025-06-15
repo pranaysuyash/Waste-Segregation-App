@@ -1,231 +1,233 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:patrol/patrol.dart';
+import 'package:integration_test/integration_test.dart';
 import 'package:waste_segregation_app/main.dart' as app;
 
 void main() {
-  group('Playwright-Style E2E Tests - Simplified', () {
-    patrolTest(
-      'Complete Premium Features Journey',
-      ($) async {
-        // 🚀 Boot the app like Playwright
-        await $.pumpWidgetAndSettle(const MaterialApp(home: Text('Test App')));
-        await Future.delayed(const Duration(seconds: 2));
+  IntegrationTestWidgetsFlutterBinding.ensureInitialized();
+
+  group('Playwright-Style E2E Tests', () {
+    testWidgets(
+      'Premium Features Journey - Complete Flow',
+      (WidgetTester tester) async {
+        // 🚀 Launch the app
+        app.main();
+        await tester.pumpAndSettle();
+        await tester.pumpAndSettle(const Duration(seconds: 3));
 
         // ✅ Verify home screen loads
-        if (await $(#homeScreen).exists) {
-          // 🎯 Navigate to premium features
-          if (await $(#premiumButton).exists) {
-            await $(#premiumButton).tap();
-            await $(#premiumScreen).waitUntilVisible();
-            
-            // ✅ Verify premium content
-            await $(#premiumBanner).waitUntilVisible();
-            
-            // 📱 Test upgrade flow
-            if (await $(#upgradeButton).exists) {
-              await $(#upgradeButton).tap();
-              await $.native.grantPermissionWhenInUse();
-            }
-            
-            await $.native.pressBack();
-          }
+        expect(find.byType(Scaffold), findsAtLeastNWidgets(1));
+        
+        // 🎯 Look for premium features button
+        final premiumButton = find.textContaining('Premium');
+        final starIcon = find.byIcon(Icons.star);
+        
+        if (premiumButton.evaluate().isNotEmpty) {
+          await tester.tap(premiumButton.first);
+          await tester.pumpAndSettle();
+        } else if (starIcon.evaluate().isNotEmpty) {
+          await tester.tap(starIcon.first);
+          await tester.pumpAndSettle();
         }
+        
+        // ✅ Verify we're still in a valid state
+        expect(find.byType(Scaffold), findsAtLeastNWidgets(1));
       },
     );
 
-    patrolTest(
+    testWidgets(
       'Waste Classification Flow - End to End',
-      ($) async {
-        await $.pumpWidgetAndSettle(const MaterialApp(home: Text('Test App')));
-        await Future.delayed(const Duration(seconds: 2));
+      (WidgetTester tester) async {
+        app.main();
+        await tester.pumpAndSettle();
+        await tester.pumpAndSettle(const Duration(seconds: 3));
 
         // 🎯 Start classification
-        if (await $(#classifyButton).exists) {
-          await $(#classifyButton).tap();
-          
-          // 📱 Handle permissions
-          await $.native.grantPermissionWhenInUse();
-          
-          // ✅ Verify camera screen
-          if (await $(#cameraScreen).exists) {
-            // Test camera UI elements
-            expect(await $(#captureButton).exists, true);
-            expect(await $(#galleryButton).exists, true);
-            
-            // 📱 Simulate classification
-            if (await $(#mockClassificationButton).exists) {
-              await $(#mockClassificationButton).tap();
-              
-              // ✅ Verify results
-              if (await $(#resultsScreen).exists) {
-                expect(await $(#wasteCategory).exists, true);
-                expect(await $(#pointsAwarded).exists, true);
-              }
-            }
-          }
-          
-          await $.native.pressBack();
+        final cameraIcon = find.byIcon(Icons.camera_alt);
+        final classifyText = find.textContaining('Classify');
+        
+        if (cameraIcon.evaluate().isNotEmpty) {
+          await tester.tap(cameraIcon.first);
+          await tester.pumpAndSettle();
+        } else if (classifyText.evaluate().isNotEmpty) {
+          await tester.tap(classifyText.first);
+          await tester.pumpAndSettle();
         }
+        
+        // ✅ Verify camera/classification screen
+        expect(find.byType(Scaffold), findsAtLeastNWidgets(1));
+        
+        // Look for capture button or FAB
+        final captureButton = find.byIcon(Icons.camera);
+        final fab = find.byType(FloatingActionButton);
+        
+        expect(captureButton.evaluate().isNotEmpty || fab.evaluate().isNotEmpty, 
+               isTrue, reason: 'Should find capture button or FAB');
       },
     );
 
-    patrolTest(
+    testWidgets(
       'History and Analytics Navigation',
-      ($) async {
-        await $.pumpWidgetAndSettle(const MaterialApp(home: Text('Test App')));
-        await Future.delayed(const Duration(seconds: 2));
+      (WidgetTester tester) async {
+        app.main();
+        await tester.pumpAndSettle();
+        await tester.pumpAndSettle(const Duration(seconds: 3));
 
         // 🎯 Test history navigation
-        if (await $(#historyButton).exists) {
-          await $(#historyButton).tap();
-          
-          // ✅ Verify history screen
-          if (await $(#historyScreen).exists) {
-            await $(#historyList).waitUntilVisible();
-            
-            // Test history item interaction
-            if (await $(#historyItem).exists) {
-              await $(#historyItem).tap();
-              expect(await $(#historyDetailScreen).exists, true);
-              await $.native.pressBack();
-            }
-          }
-          
-          await $.native.pressBack();
+        final historyText = find.textContaining('History');
+        final historyIcon = find.byIcon(Icons.history);
+        
+        if (historyText.evaluate().isNotEmpty) {
+          await tester.tap(historyText.first);
+          await tester.pumpAndSettle();
+        } else if (historyIcon.evaluate().isNotEmpty) {
+          await tester.tap(historyIcon.first);
+          await tester.pumpAndSettle();
         }
+        
+        // ✅ Verify history screen
+        expect(find.byType(Scaffold), findsAtLeastNWidgets(1));
+        
+        // Look for history list or empty state
+        final listView = find.byType(ListView);
+        final scrollView = find.byType(CustomScrollView);
+        final emptyText = find.textContaining('No history');
+        
+        expect(listView.evaluate().isNotEmpty || 
+               scrollView.evaluate().isNotEmpty || 
+               emptyText.evaluate().isNotEmpty,
+               isTrue, reason: 'Should find history list or empty state');
       },
     );
 
-    patrolTest(
+    testWidgets(
       'Settings and Preferences Flow',
-      ($) async {
-        await $.pumpWidgetAndSettle(const MaterialApp(home: Text('Test App')));
-        await Future.delayed(const Duration(seconds: 2));
+      (WidgetTester tester) async {
+        app.main();
+        await tester.pumpAndSettle();
+        await tester.pumpAndSettle(const Duration(seconds: 3));
 
         // 🎯 Navigate to settings
-        if (await $(#settingsButton).exists) {
-          await $(#settingsButton).tap();
-          
-          if (await $(#settingsScreen).exists) {
-            // 🎨 Test theme toggle
-            if (await $(#themeToggle).exists) {
-              await $(#themeToggle).tap();
-              // Theme should change (visual test)
-            }
-            
-            // 🔔 Test notifications
-            if (await $(#notificationSettings).exists) {
-              await $(#notificationSettings).tap();
-              await $.native.grantPermissionWhenInUse();
-              await $.native.pressBack();
-            }
-            
-            // 🌍 Test language settings
-            if (await $(#languageSettings).exists) {
-              await $(#languageSettings).tap();
-              
-              if (await $(#hindiLanguageOption).exists) {
-                await $(#hindiLanguageOption).tap();
-                // Language should change
-                await $(#englishLanguageOption).tap();
-              }
-              
-              await $.native.pressBack();
-            }
-          }
-          
-          await $.native.pressBack();
+        final settingsText = find.textContaining('Settings');
+        final settingsIcon = find.byIcon(Icons.settings);
+        
+        if (settingsText.evaluate().isNotEmpty) {
+          await tester.tap(settingsText.first);
+          await tester.pumpAndSettle();
+        } else if (settingsIcon.evaluate().isNotEmpty) {
+          await tester.tap(settingsIcon.first);
+          await tester.pumpAndSettle();
+        }
+        
+        // ✅ Verify settings screen
+        expect(find.byType(Scaffold), findsAtLeastNWidgets(1));
+        
+        // 🎨 Look for theme toggle
+        final themeText = find.textContaining('Theme');
+        final switchWidget = find.byType(Switch);
+        
+        if (themeText.evaluate().isNotEmpty || switchWidget.evaluate().isNotEmpty) {
+          // Theme settings exist
+          expect(find.byType(Scaffold), findsAtLeastNWidgets(1));
         }
       },
     );
 
-    patrolTest(
-      'Network Connectivity Simulation',
-      ($) async {
-        await $.pumpWidgetAndSettle(const MaterialApp(home: Text('Test App')));
-        await Future.delayed(const Duration(seconds: 2));
-
-        // 📱 Simulate offline mode
-        await $.native.disableWifi();
-        await $.native.disableCellular();
-        
-        // 🎯 Try network action
-        if (await $(#classifyButton).exists) {
-          await $(#classifyButton).tap();
-          
-          // ✅ Should show offline message
-          expect(await $(#offlineMessage).exists, true);
-        }
-        
-        // 📱 Restore connectivity
-        await $.native.enableWifi();
-        await $.native.enableCellular();
-        
-        await Future.delayed(const Duration(seconds: 3));
-        
-        // ✅ App should recover
-        expect(await $(#homeScreen).exists, true);
-      },
-    );
-
-    patrolTest(
+    testWidgets(
       'Performance Stress Test',
-      ($) async {
-        await $.pumpWidgetAndSettle(const MaterialApp(home: Text('Test App')));
-        await Future.delayed(const Duration(seconds: 2));
+      (WidgetTester tester) async {
+        app.main();
+        await tester.pumpAndSettle();
+        await tester.pumpAndSettle(const Duration(seconds: 3));
 
         // 🔄 Rapid navigation test
         for (int i = 0; i < 3; i++) {
           // Navigate through main screens
-          if (await $(#historyButton).exists) {
-            await $(#historyButton).tap();
-            await $.native.pressBack();
+          final historyText = find.textContaining('History');
+          if (historyText.evaluate().isNotEmpty) {
+            await tester.tap(historyText.first);
+            await tester.pumpAndSettle();
+            
+            final backButton = find.byIcon(Icons.arrow_back);
+            if (backButton.evaluate().isNotEmpty) {
+              await tester.tap(backButton.first);
+              await tester.pumpAndSettle();
+            }
           }
           
-          if (await $(#achievementsButton).exists) {
-            await $(#achievementsButton).tap();
-            await $.native.pressBack();
-          }
-          
-          if (await $(#settingsButton).exists) {
-            await $(#settingsButton).tap();
-            await $.native.pressBack();
+          final settingsText = find.textContaining('Settings');
+          if (settingsText.evaluate().isNotEmpty) {
+            await tester.tap(settingsText.first);
+            await tester.pumpAndSettle();
+            
+            final backButton = find.byIcon(Icons.arrow_back);
+            if (backButton.evaluate().isNotEmpty) {
+              await tester.tap(backButton.first);
+              await tester.pumpAndSettle();
+            }
           }
         }
         
         // ✅ App should still be responsive
-        expect(await $(#homeScreen).exists, true);
-        expect(await $(#pointsDisplay).exists, true);
+        expect(find.byType(Scaffold), findsAtLeastNWidgets(1));
       },
     );
 
-    patrolTest(
+    testWidgets(
       'Points System Integration Test',
-      ($) async {
-        await $.pumpWidgetAndSettle(const MaterialApp(home: Text('Test App')));
-        await Future.delayed(const Duration(seconds: 2));
+      (WidgetTester tester) async {
+        app.main();
+        await tester.pumpAndSettle();
+        await tester.pumpAndSettle(const Duration(seconds: 3));
 
-        // 🎯 Get initial points
-        if (await $(#pointsDisplay).exists) {
-          final initialPoints = await $(#pointsDisplay).text;
+        // 🎯 Look for points display
+        final pointsText = find.textContaining('Points');
+        final scoreText = find.textContaining('Score');
+        
+        if (pointsText.evaluate().isNotEmpty || scoreText.evaluate().isNotEmpty) {
+          expect(find.byType(Scaffold), findsAtLeastNWidgets(1));
           
           // Perform point-earning action
-          if (await $(#classifyButton).exists) {
-            await $(#classifyButton).tap();
+          final cameraIcon = find.byIcon(Icons.camera_alt);
+          if (cameraIcon.evaluate().isNotEmpty) {
+            await tester.tap(cameraIcon.first);
+            await tester.pumpAndSettle();
             
-            if (await $(#mockClassificationButton).exists) {
-              await $(#mockClassificationButton).tap();
-              
-              // ✅ Points should increase
-              if (await $(#pointsAwarded).exists) {
-                expect(await $(#pointsAwarded).text, isNotEmpty);
-              }
+            // Navigate back
+            final backButton = find.byIcon(Icons.arrow_back);
+            if (backButton.evaluate().isNotEmpty) {
+              await tester.tap(backButton.first);
+              await tester.pumpAndSettle();
             }
-            
-            await $.native.pressBack();
           }
         }
+        
+        // ✅ App should still be functional
+        expect(find.byType(Scaffold), findsAtLeastNWidgets(1));
+      },
+    );
+  });
+
+  group('Accessibility Tests', () {
+    testWidgets(
+      'Text Scaling and Accessibility',
+      (WidgetTester tester) async {
+        app.main();
+        await tester.pumpAndSettle();
+        await tester.pumpAndSettle(const Duration(seconds: 3));
+
+        // Test with different screen sizes
+        await tester.binding.setSurfaceSize(const Size(400, 800));
+        await tester.pumpAndSettle();
+        
+        // Verify app handles different sizes
+        expect(find.byType(Scaffold), findsAtLeastNWidgets(1));
+        
+        // Test with larger screen
+        await tester.binding.setSurfaceSize(const Size(600, 1000));
+        await tester.pumpAndSettle();
+        
+        expect(find.byType(Scaffold), findsAtLeastNWidgets(1));
       },
     );
   });

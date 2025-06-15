@@ -120,5 +120,32 @@ class LeaderboardStats {
   final int topScore;
 }
 
-// REMOVED: Duplicate provider declarations that were causing the issue
-// These are now imported from app_providers.dart 
+/// Combined data provider for leaderboard screen
+final leaderboardScreenDataProvider = FutureProvider<LeaderboardScreenData>((ref) async {
+  final topEntries = await ref.watch(leaderboardEntriesProvider.future);
+  final currentUserEntry = await ref.watch(currentUserLeaderboardEntryProvider.future);
+  final currentUserRank = await ref.watch(userLeaderboardPositionProvider.future);
+  
+  return LeaderboardScreenData(
+    topEntries: topEntries,
+    currentUserEntry: currentUserEntry,
+    currentUserRank: currentUserRank,
+  );
+});
+
+/// Alias providers for backward compatibility
+final topLeaderboardEntriesProvider = leaderboardEntriesProvider;
+final currentUserRankProvider = userLeaderboardPositionProvider;
+
+/// Data class for leaderboard screen
+class LeaderboardScreenData {
+  const LeaderboardScreenData({
+    required this.topEntries,
+    required this.currentUserEntry,
+    required this.currentUserRank,
+  });
+
+  final List<LeaderboardEntry> topEntries;
+  final LeaderboardEntry? currentUserEntry;
+  final int? currentUserRank;
+} 
