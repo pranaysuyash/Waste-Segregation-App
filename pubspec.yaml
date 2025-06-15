@@ -38,7 +38,7 @@ dependencies:
   # REPLACED: flutter_markdown (discontinued) with markdown_widget
   markdown_widget: ^2.3.2+6  # Community-maintained alternative with rich features
   intl: any  # For internationalization and date formatting (version managed by flutter_localizations)
-  webview_flutter: ^4.13.0  # Updated to latest
+  webview_flutter: ^4.12.0  # Compatible with Dart SDK 3.5.0
   # Updated Firebase dependencies with web-compatible versions
   firebase_core: ^3.14.0  # Updated to latest
   firebase_auth: ^5.6.0  # Updated to latest
@@ -114,6 +114,7 @@ dependency_overrides:
   path: 1.8.3  # Pin to version required by integration_test from Flutter SDK
   video_player_platform_interface: ^6.2.0  # Ensure compatibility
   google_sign_in: 6.2.0  # Pin to exact version compatible with Dart SDK 3.5.0
+  webview_flutter: 4.12.0  # Pin to version compatible with Dart SDK 3.5.0
 
 flutter:
   uses-material-design: true
