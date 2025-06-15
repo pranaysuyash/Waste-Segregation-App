@@ -340,6 +340,7 @@ class WasteSegregationApp extends StatelessWidget {
                 return MaterialApp(
                   navigatorKey: navigatorKey,
                   title: AppStrings.appName,
+                  debugShowCheckedModeBanner: false,
                   theme: AppTheme.fromScheme(lightScheme),
                   darkTheme: AppTheme.fromScheme(darkScheme),
                   highContrastTheme: AppTheme.highContrastTheme,
