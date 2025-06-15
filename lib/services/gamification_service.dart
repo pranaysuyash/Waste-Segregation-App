@@ -816,10 +816,7 @@ class GamificationService extends ChangeNotifier {
           }
           
           // For auto-claimed achievements, points are already added above
-          if (claimStatus == ClaimStatus.claimed) {
-            // Just award the standard badge_earned points (no custom points)
-            await addPoints('badge_earned');
-          }
+          // No additional points needed for bronze tier achievements
           
           // Check for meta-achievements (achievements for earning other achievements)
           await _checkMetaAchievements(achievements);
