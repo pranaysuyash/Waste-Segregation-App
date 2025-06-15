@@ -1,0 +1,31 @@
+{
+  "name": "waste-segregation-app-storybook",
+  "version": "1.0.0",
+  "description": "Storybook visual testing for Waste Segregation App",
+  "scripts": {
+    "storybook": "storybook dev -p 6006",
+    "build-storybook": "storybook build",
+    "test:storybook": "test-storybook --coverage",
+    "test:storybook:ci": "concurrently -k -s first -n \"SB,TEST\" -c \"magenta,blue\" \"npm run build-storybook -- --quiet\" \"wait-on tcp:6006 && npm run test:storybook\""
+  },
+  "devDependencies": {
+    "@storybook/addon-essentials": "^7.6.0",
+    "@storybook/addon-interactions": "^7.6.0",
+    "@storybook/addon-links": "^7.6.0",
+    "@storybook/blocks": "^7.6.0",
+    "@storybook/test": "^7.6.0",
+    "@storybook/test-runner": "^0.16.0",
+    "@storybook/web-components": "^7.6.0",
+    "@storybook/web-components-vite": "^7.6.0",
+    "concurrently": "^8.2.0",
+    "wait-on": "^7.2.0"
+  },
+  "keywords": [
+    "flutter",
+    "storybook",
+    "visual-testing",
+    "waste-segregation"
+  ],
+  "author": "Waste Segregation App Team",
+  "license": "MIT"
+} 

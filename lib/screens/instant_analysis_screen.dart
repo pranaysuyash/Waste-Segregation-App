@@ -37,7 +37,7 @@ class _InstantAnalysisScreenState extends State<InstantAnalysisScreen> {
   }
 
   Future<void> _startInstantAnalysis() async {
-    if (_isCancelled) return;
+    if (_isCancelled || _isAnalyzing) return;
 
     setState(() {
       _isAnalyzing = true;
@@ -52,10 +52,16 @@ class _InstantAnalysisScreenState extends State<InstantAnalysisScreen> {
       if (kIsWeb) {
         // Web platform
         final bytes = await widget.image.readAsBytes();
+        if (bytes.isEmpty) {
+          throw Exception('Failed to read image data - empty bytes');
+        }
         result = await aiService.analyzeWebImage(bytes, widget.image.name);
       } else {
         // Mobile platform
         final file = File(widget.image.path);
+        if (!await file.exists()) {
+          throw Exception('Image file does not exist: ${widget.image.path}');
+        }
         result = await aiService.analyzeImage(file);
       }
 
@@ -87,6 +93,12 @@ class _InstantAnalysisScreenState extends State<InstantAnalysisScreen> {
           ),
         );
         Navigator.of(context).pop();
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isAnalyzing = false;
+        });
       }
     }
   }

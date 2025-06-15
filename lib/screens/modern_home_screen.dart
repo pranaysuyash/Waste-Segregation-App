@@ -238,11 +238,16 @@ class _ModernHomeScreenState extends State<ModernHomeScreen> with TickerProvider
           : await storageService.getAllClassifications();
 
       if (!mounted) return;
+      
+      // Sort by timestamp (newest first) before taking the first 3
+      final latest = [...classifications]
+        ..sort((a, b) => b.timestamp.compareTo(a.timestamp));
+      
       setState(() {
         _allClassifications = classifications;
-        _recentClassifications = (classifications.length <= 3) 
-            ? classifications 
-            : classifications.sublist(0, 3);
+        _recentClassifications = (latest.length <= 3) 
+            ? latest 
+            : latest.sublist(0, 3);
       });
       
       debugPrint('📊 Loaded ${classifications.length} total classifications (Google sync: $isGoogleSyncEnabled)');
