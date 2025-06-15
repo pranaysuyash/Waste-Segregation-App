@@ -18,8 +18,8 @@ This document details the implementation of critical fixes to resolve major issu
 
 **Solution**: 
 - Wrapped the "Recent Classifications" Text widget in an Expanded widget
-- Removed the Spacer widget to prevent unnecessary space allocation
-- This allows the text to take available space while ensuring the "View All" button remains visible
+- Removed the Spacer widget to prevent overflow
+- This ensures the text takes available space without overflowing
 
 **Files Modified**:
 - `lib/screens/ultra_modern_home_screen.dart` (line 574-588)
@@ -48,20 +48,17 @@ Row(
 
 ### 2. ❌ CRITICAL: Hive Box Conflicts
 
-**Problem**: HiveError "box is already open" occurring when both StorageService and GamificationService tried to open the same 'gamificationBox'
+**Problem**: "HiveError: box 'classificationsbox' is already open" and "HiveError: box 'gamificationBox' is already open"
 
-**Root Cause**: 
-- StorageService.initializeHive() opens `StorageKeys.gamificationBox` 
-- GamificationService.initGamification() also opens `_gamificationBoxName` (same box name)
-- Both services called `Hive.openBox()` without checking if box was already open
+**Root Cause**: Both StorageService and GamificationService were trying to open the same Hive boxes during app initialization, causing conflicts.
 
 **Solution**: 
-- Created `HiveManager` singleton to safely handle all Hive box operations
-- Implemented `isBoxOpen()` checks before opening boxes
-- Updated both services to use HiveManager instead of direct Hive calls
+- Created `HiveManager` singleton class to safely handle all Hive box operations
+- Added `isBoxOpen()` checks before attempting to open boxes
+- Updated both services to use HiveManager instead of direct Hive.openBox() calls
 
 **Files Created**:
-- `lib/services/hive_manager.dart` (new singleton)
+- `lib/services/hive_manager.dart` - Singleton manager for safe Hive operations
 
 **Files Modified**:
 - `lib/services/storage_service.dart` (updated to use HiveManager)
@@ -88,28 +85,57 @@ class HiveManager {
 }
 ```
 
-## Implementation Details
+### 3. ✅ ENHANCEMENT: Personalized Header Integration
 
-### HiveManager Singleton Pattern
+**Problem**: User feedback indicated that the separate PersonalHeader widget was "ugly looking" and should be integrated into the existing hero header.
 
-The HiveManager uses a singleton pattern to ensure consistent box management across the entire application:
+**Solution**: 
+- Removed the separate PersonalHeader widget entirely
+- Enhanced the existing `_buildHeroHeader` method with time-of-day awareness
+- Added personalized greetings and dynamic gradients based on time of day
+- Integrated motivational messages that change throughout the day
+- Added time-aware icons (sun, eco, twilight, moon)
 
-1. **Thread Safety**: Prevents race conditions when multiple services try to open the same box
-2. **Memory Efficiency**: Reuses existing box instances instead of creating duplicates
-3. **Error Prevention**: Eliminates "box already open" errors
-4. **Centralized Management**: Single point of control for all Hive operations
+**Features Added**:
+- **Time-based greetings**: "Good morning", "Good afternoon", "Good evening"
+- **Dynamic gradients**: Different color schemes for morning, afternoon, evening, night
+- **Motivational messages**: Context-aware messages based on time of day
+- **Time-aware icons**: Visual indicators that change with time phases
 
-### Service Updates
+**Code Implementation**:
+```dart
+// Time phase detection
+String _getTimePhase(int hour) {
+  if (hour >= 5 && hour < 12) return 'morning';
+  if (hour >= 12 && hour < 17) return 'afternoon';
+  if (hour >= 17 && hour < 21) return 'evening';
+  return 'night';
+}
 
-**StorageService Changes**:
-- Replaced all `Hive.openBox()` calls with `HiveManager.openDynamicBox()`
-- Replaced typed box calls with `HiveManager.openBox<T>()`
-- Added HiveManager import
+// Dynamic gradients
+List<Color> _getTimeBasedGradient(int hour) {
+  if (hour >= 5 && hour < 12) {
+    return [const Color(0xFF4CAF50), const Color(0xFF8BC34A)]; // Morning
+  } else if (hour >= 12 && hour < 17) {
+    return [const Color(0xFF43A047), const Color(0xFF66BB6A)]; // Afternoon
+  } else if (hour >= 17 && hour < 21) {
+    return [const Color(0xFF388E3C), const Color(0xFF689F38)]; // Evening
+  } else {
+    return [const Color(0xFF2E7D32), const Color(0xFF388E3C)]; // Night
+  }
+}
+```
 
-**GamificationService Changes**:
-- Updated box opening logic to use `HiveManager.openDynamicBox()`
-- Maintained existing functionality while preventing conflicts
-- Added HiveManager import
+## Files Modified
+
+### Core Fixes
+- `lib/screens/ultra_modern_home_screen.dart` - Fixed layout overflow and integrated personalization
+- `lib/services/hive_manager.dart` - New singleton for safe Hive operations
+- `lib/services/storage_service.dart` - Updated to use HiveManager
+- `lib/services/gamification_service.dart` - Updated to use HiveManager
+
+### Cleanup
+- `lib/widgets/personal_header.dart` - Removed (functionality integrated into hero header)
 
 ## Testing Results
 

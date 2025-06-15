@@ -13,7 +13,6 @@ import '../screens/history_screen.dart';
 import '../screens/achievements_screen.dart';
 import '../screens/image_capture_screen.dart';
 import '../screens/instant_analysis_screen.dart';
-import '../widgets/personal_header.dart';
 
 // Profile provider using FutureProvider for better performance
 final profileProvider = FutureProvider<GamificationProfile?>((ref) async {
@@ -129,13 +128,6 @@ class _UltraModernHomeScreenState extends ConsumerState<UltraModernHomeScreen>
                         children: [
                           const SizedBox(height: 24),
                           
-                          // Personal header with time-of-day awareness
-                          PersonalHeader(
-                            profileAsync: profileAsync,
-                            classificationsAsync: classificationsAsync,
-                          ),
-                          const SizedBox(height: 24),
-                          
                           // Horizontal scrolling action chips
                           _buildActionChips(context),
                           const SizedBox(height: 32),
@@ -163,6 +155,11 @@ class _UltraModernHomeScreenState extends ConsumerState<UltraModernHomeScreen>
   }
 
   Widget _buildHeroHeader(BuildContext context, AsyncValue<GamificationProfile?> profileAsync) {
+    final hour = DateTime.now().hour;
+    final timePhase = _getTimePhase(hour);
+    final greeting = _getPersonalizedGreeting(timePhase);
+    final gradientColors = _getTimeBasedGradient(hour);
+    
     return SliverAppBar(
       expandedHeight: 200,
       floating: false,
@@ -170,14 +167,11 @@ class _UltraModernHomeScreenState extends ConsumerState<UltraModernHomeScreen>
       backgroundColor: Colors.transparent,
       flexibleSpace: FlexibleSpaceBar(
         background: Container(
-          decoration: const BoxDecoration(
+          decoration: BoxDecoration(
             gradient: LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
-              colors: [
-                Color(0xFF43A047), // Eco green start
-                Color(0xFF66BB6A), // Eco green end
-              ],
+              colors: gradientColors,
             ),
           ),
           child: Padding(
@@ -193,7 +187,7 @@ class _UltraModernHomeScreenState extends ConsumerState<UltraModernHomeScreen>
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'Welcome back!',
+                            '$greeting, Eco-hero!',
                             style: GoogleFonts.inter(
                               fontSize: 28,
                               fontWeight: FontWeight.bold,
@@ -203,7 +197,7 @@ class _UltraModernHomeScreenState extends ConsumerState<UltraModernHomeScreen>
                           ),
                           const SizedBox(height: 8),
                           Text(
-                            'Ready to make a difference today?',
+                            _getMotivationalMessage(timePhase),
                             style: GoogleFonts.inter(
                               fontSize: 16,
                               color: Colors.white.withValues(alpha: 0.9),
@@ -213,15 +207,15 @@ class _UltraModernHomeScreenState extends ConsumerState<UltraModernHomeScreen>
                         ],
                       ),
                     ),
-                    // Animated eco icon
+                    // Time-aware animated icon
                     Container(
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
                         color: Colors.white.withValues(alpha: 0.2),
                         borderRadius: BorderRadius.circular(16),
                       ),
-                      child: const Icon(
-                        Icons.eco,
+                      child: Icon(
+                        _getTimeBasedIcon(timePhase),
                         color: Colors.white,
                         size: 32,
                       ),
@@ -893,6 +887,75 @@ class _UltraModernHomeScreenState extends ConsumerState<UltraModernHomeScreen>
           builder: (context) => InstantAnalysisScreen(image: image),
         ),
       );
+    }
+  }
+
+  // Time-based personalization helper methods
+  String _getTimePhase(int hour) {
+    if (hour >= 5 && hour < 12) return 'morning';
+    if (hour >= 12 && hour < 17) return 'afternoon';
+    if (hour >= 17 && hour < 21) return 'evening';
+    return 'night';
+  }
+
+  String _getPersonalizedGreeting(String phase) {
+    switch (phase) {
+      case 'morning':
+        return 'Good morning';
+      case 'afternoon':
+        return 'Good afternoon';
+      case 'evening':
+        return 'Good evening';
+      case 'night':
+        return 'Good evening';
+      default:
+        return 'Welcome back';
+    }
+  }
+
+  String _getMotivationalMessage(String phase) {
+    switch (phase) {
+      case 'morning':
+        return 'Start your day with sustainable choices!';
+      case 'afternoon':
+        return 'Keep up the great eco-work!';
+      case 'evening':
+        return 'Wind down with mindful waste sorting';
+      case 'night':
+        return 'Every small action counts for tomorrow';
+      default:
+        return 'Ready to make a difference today?';
+    }
+  }
+
+  List<Color> _getTimeBasedGradient(int hour) {
+    if (hour >= 5 && hour < 12) {
+      // Morning: Fresh green with golden sunrise
+      return [const Color(0xFF4CAF50), const Color(0xFF8BC34A)];
+    } else if (hour >= 12 && hour < 17) {
+      // Afternoon: Bright eco green
+      return [const Color(0xFF43A047), const Color(0xFF66BB6A)];
+    } else if (hour >= 17 && hour < 21) {
+      // Evening: Warm green with orange sunset
+      return [const Color(0xFF388E3C), const Color(0xFF689F38)];
+    } else {
+      // Night: Deep green with blue tones
+      return [const Color(0xFF2E7D32), const Color(0xFF388E3C)];
+    }
+  }
+
+  IconData _getTimeBasedIcon(String phase) {
+    switch (phase) {
+      case 'morning':
+        return Icons.wb_sunny;
+      case 'afternoon':
+        return Icons.eco;
+      case 'evening':
+        return Icons.wb_twilight;
+      case 'night':
+        return Icons.nights_stay;
+      default:
+        return Icons.eco;
     }
   }
 }
