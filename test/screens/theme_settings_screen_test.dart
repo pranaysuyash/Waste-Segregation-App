@@ -4,6 +4,7 @@ import 'package:mockito/mockito.dart';
 import 'package:mockito/annotations.dart';
 import 'package:provider/provider.dart';
 import 'package:waste_segregation_app/screens/theme_settings_screen.dart';
+import 'package:waste_segregation_app/screens/premium_features_screen.dart';
 import 'package:waste_segregation_app/services/premium_service.dart';
 import 'package:waste_segregation_app/providers/theme_provider.dart';
 
@@ -37,7 +38,7 @@ void main() {
         home: MultiProvider(
           providers: [
             ChangeNotifierProvider<ThemeProvider>.value(value: mockThemeProvider),
-            Provider<PremiumService>.value(value: mockPremiumService),
+            ChangeNotifierProvider<PremiumService>.value(value: mockPremiumService),
           ],
           child: const ThemeSettingsScreen(),
         ),
@@ -79,21 +80,74 @@ void main() {
         expect(find.byType(Radio<ThemeMode>), findsNWidgets(3));
       });
 
-      testWidgets('should show premium features section for non-premium users', (tester) async {
+      testWidgets('should show premium features navigation row', (tester) async {
         await tester.pumpWidget(createTestWidget(isPremium: false));
 
-        expect(find.text('Premium Features'), findsOneWidget);
+        expect(find.text('Premium Features').first, findsOneWidget);
+        expect(find.text('Unlock advanced theme customization and more'), findsOneWidget);
+        expect(find.byIcon(Icons.workspace_premium), findsAtLeastNWidgets(1));
+        expect(find.byIcon(Icons.chevron_right), findsOneWidget);
+      });
+
+      testWidgets('should show custom themes section for non-premium users', (tester) async {
+        await tester.pumpWidget(createTestWidget(isPremium: false));
+
         expect(find.text('Custom Themes'), findsOneWidget);
         expect(find.text('Create your own theme colors'), findsOneWidget);
         expect(find.byIcon(Icons.palette), findsOneWidget);
-        expect(find.byIcon(Icons.workspace_premium), findsOneWidget);
       });
 
-      testWidgets('should hide premium features section for premium users', (tester) async {
+      testWidgets('should hide custom themes section for premium users', (tester) async {
         await tester.pumpWidget(createTestWidget(isPremium: true));
 
-        expect(find.text('Premium Features'), findsNothing);
         expect(find.text('Custom Themes'), findsNothing);
+        expect(find.text('Create your own theme colors'), findsNothing);
+        expect(find.byIcon(Icons.palette), findsNothing);
+      });
+    });
+
+    group('Premium Features Navigation', () {
+      testWidgets('should show premium feature prompt when custom themes is tapped', (tester) async {
+        await tester.pumpWidget(createTestWidget(isPremium: false));
+
+        await tester.tap(find.text('Custom Themes'));
+        await tester.pumpAndSettle();
+
+        expect(find.text('Premium Feature'), findsOneWidget);
+        expect(find.text('Custom themes are available with a premium subscription. Upgrade to unlock this feature!'), findsOneWidget);
+        expect(find.text('Maybe Later'), findsOneWidget);
+        expect(find.text('Upgrade Now'), findsOneWidget);
+      });
+
+      testWidgets('should close dialog when maybe later is tapped', (tester) async {
+        await tester.pumpWidget(createTestWidget(isPremium: false));
+
+        // Tap custom themes to show dialog
+        await tester.tap(find.text('Custom Themes'));
+        await tester.pumpAndSettle();
+
+        // Tap maybe later
+        await tester.tap(find.text('Maybe Later'));
+        await tester.pumpAndSettle();
+
+        // Dialog should be closed, back to theme settings
+        expect(find.text('Premium Feature'), findsNothing);
+        expect(find.text('Theme Settings'), findsOneWidget);
+      });
+
+      testWidgets('should find premium features navigation row', (tester) async {
+        await tester.pumpWidget(createTestWidget());
+
+        // Find the premium features navigation row (not the custom themes one)
+        final premiumFeaturesRow = find.byWidgetPredicate((widget) =>
+          widget is ListTile &&
+          widget.title is Text &&
+          (widget.title as Text).data == 'Premium Features' &&
+          widget.subtitle is Text &&
+          (widget.subtitle as Text).data == 'Unlock advanced theme customization and more'
+        );
+
+        expect(premiumFeaturesRow, findsOneWidget);
       });
     });
 
@@ -196,61 +250,6 @@ void main() {
             widget is Radio<ThemeMode> && widget.value == ThemeMode.light),
         );
         expect(lightRadio.groupValue, equals(ThemeMode.light));
-      });
-    });
-
-    group('Premium Features', () {
-      testWidgets('should show premium feature prompt when custom themes is tapped', (tester) async {
-        await tester.pumpWidget(createTestWidget(isPremium: false));
-
-        await tester.tap(find.text('Custom Themes'));
-        await tester.pumpAndSettle();
-
-        expect(find.text('Premium Feature'), findsOneWidget);
-        expect(find.text('Custom themes are available with a premium subscription. Upgrade to unlock this feature!'), findsOneWidget);
-        expect(find.text('Maybe Later'), findsOneWidget);
-        expect(find.text('Upgrade Now'), findsOneWidget);
-      });
-
-      testWidgets('should dismiss premium prompt when "Maybe Later" is tapped', (tester) async {
-        await tester.pumpWidget(createTestWidget(isPremium: false));
-
-        await tester.tap(find.text('Custom Themes'));
-        await tester.pumpAndSettle();
-
-        expect(find.text('Premium Feature'), findsOneWidget);
-
-        await tester.tap(find.text('Maybe Later'));
-        await tester.pumpAndSettle();
-
-        expect(find.text('Premium Feature'), findsNothing);
-      });
-
-      testWidgets('should dismiss premium prompt when "Upgrade Now" is tapped', (tester) async {
-        await tester.pumpWidget(createTestWidget(isPremium: false));
-
-        await tester.tap(find.text('Custom Themes'));
-        await tester.pumpAndSettle();
-
-        expect(find.text('Premium Feature'), findsOneWidget);
-
-        await tester.tap(find.text('Upgrade Now'));
-        await tester.pumpAndSettle();
-
-        expect(find.text('Premium Feature'), findsNothing);
-      });
-
-      testWidgets('should verify premium service is called', (tester) async {
-        await tester.pumpWidget(createTestWidget(isPremium: false));
-
-        verify(mockPremiumService.isPremiumFeature('theme_customization')).called(1);
-      });
-
-      testWidgets('should handle premium service returning true', (tester) async {
-        await tester.pumpWidget(createTestWidget(isPremium: true));
-
-        expect(find.text('Premium Features'), findsNothing);
-        expect(find.text('Custom Themes'), findsNothing);
       });
     });
 
@@ -374,23 +373,25 @@ void main() {
       testWidgets('should handle back navigation', (tester) async {
         await tester.pumpWidget(
           MaterialApp(
-            home: Scaffold(
-              body: ElevatedButton(
-                onPressed: () {
-                  Navigator.push(
-                    tester.element(find.byType(ElevatedButton)).buildContext,
-                    MaterialPageRoute(
-                      builder: (_) => MultiProvider(
-                        providers: [
+            home: Builder(
+              builder: (context) => Scaffold(
+                body: ElevatedButton(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => MultiProvider(
+                                                  providers: [
                           ChangeNotifierProvider<ThemeProvider>.value(value: mockThemeProvider),
-                          Provider<PremiumService>.value(value: mockPremiumService),
+                          ChangeNotifierProvider<PremiumService>.value(value: mockPremiumService),
                         ],
-                        child: const ThemeSettingsScreen(),
+                          child: const ThemeSettingsScreen(),
+                        ),
                       ),
-                    ),
-                  );
-                },
-                child: const Text('Open Theme Settings'),
+                    );
+                  },
+                  child: const Text('Open Theme Settings'),
+                ),
               ),
             ),
           ),

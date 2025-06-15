@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../services/premium_service.dart';
 import '../providers/theme_provider.dart';
+import 'premium_features_screen.dart';
 
 class ThemeSettingsScreen extends StatefulWidget {
   const ThemeSettingsScreen({super.key});
@@ -90,26 +91,61 @@ class _ThemeSettingsScreenState extends State<ThemeSettingsScreen> {
           ),
           const Divider(),
 
-          // Premium Features Section
-          if (!isPremium) ...[
-            const Padding(
-              padding: EdgeInsets.all(16.0),
-              child: Text(
-                'Premium Features',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
+          // Premium Features Navigation
+          const Padding(
+            padding: EdgeInsets.fromLTRB(16, 16, 16, 8),
+            child: Text(
+              'Premium Features',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
               ),
             ),
-            ListTile(
-              leading: const Icon(Icons.palette, color: Colors.amber),
-              title: const Text('Custom Themes'),
-              subtitle: const Text('Create your own theme colors'),
-              trailing: const Icon(Icons.workspace_premium, color: Colors.amber),
+          ),
+          
+          // Premium Features Row - Always visible for easy access
+          Card(
+            margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+            child: ListTile(
+              leading: Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: Colors.amber.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Icon(Icons.workspace_premium, color: Colors.amber),
+              ),
+              title: const Text(
+                'Premium Features',
+                style: TextStyle(fontWeight: FontWeight.w500),
+              ),
+              subtitle: const Text('Unlock advanced theme customization and more'),
+              trailing: const Icon(Icons.chevron_right),
               onTap: () {
-                _showPremiumFeaturePrompt(context);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const PremiumFeaturesScreen(),
+                  ),
+                );
               },
+            ),
+          ),
+
+          // Custom Themes Section (only for non-premium users)
+          if (!isPremium) ...[
+            const SizedBox(height: 8),
+            Card(
+              margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+              child: ListTile(
+                leading: const Icon(Icons.palette, color: Colors.amber),
+                title: const Text('Custom Themes'),
+                subtitle: const Text('Create your own theme colors'),
+                trailing: const Icon(Icons.workspace_premium, color: Colors.amber),
+                onTap: () {
+                  _showPremiumFeaturePrompt(context);
+                },
+              ),
             ),
           ],
         ],
@@ -138,7 +174,13 @@ class _ThemeSettingsScreenState extends State<ThemeSettingsScreen> {
           ElevatedButton(
             onPressed: () {
               Navigator.pop(context);
-              // TODO: Navigate to premium features screen
+              // Navigate to premium features screen
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const PremiumFeaturesScreen(),
+                ),
+              );
             },
             child: const Text('Upgrade Now'),
           ),
