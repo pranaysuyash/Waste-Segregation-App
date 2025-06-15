@@ -1,9 +1,11 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/gamification.dart';
 import '../services/gamification_service.dart';
 import '../services/storage_service.dart';
 import '../services/cloud_storage_service.dart';
 import '../utils/constants.dart';
+import 'app_providers.dart'; // Import central providers
 
 /// Provider for GamificationService
 final gamificationServiceProvider = Provider<GamificationService>((ref) {
@@ -112,40 +114,31 @@ class GamificationNotifier extends AsyncNotifier<GamificationProfile> {
   }
 
   /// Update achievement progress
-  Future<void> updateProgress(String achievementId, double progress) async {
+  Future<void> updateProgress(AchievementType type, int increment) async {
+    final currentState = state;
+    if (currentState is! AsyncData<GamificationProfile>) return;
+
     try {
-      // Update the state optimistically
-      state.whenData((profile) {
-        final updatedAchievements = profile.achievements.map((achievement) {
-          if (achievement.id == achievementId) {
-            return achievement.copyWith(progress: progress);
-          }
-          return achievement;
-        }).toList();
-        
-        final updatedProfile = profile.copyWith(achievements: updatedAchievements);
-        state = AsyncValue.data(updatedProfile);
-        
-        // Save the updated profile
-        final service = ref.read(gamificationServiceProvider);
-        service.saveProfile(updatedProfile).catchError((e) {
-          // If save fails, refresh from source
-          refresh();
-        });
-      });
-    } catch (e) {
-      // If optimistic update fails, refresh from source
+      final service = ref.read(gamificationServiceProvider);
+      await service.updateAchievementProgress(type, increment);
+      
+      // Refresh the profile to get updated achievements
       await refresh();
+    } catch (e) {
+      // Handle error but don't update state to error since this is a background operation
+      if (kDebugMode) {
+        debugPrint('Failed to update achievement progress: $e');
+      }
     }
   }
 }
 
-/// Provider for the gamification profile
+/// Main provider for gamification profile
 final gamificationProvider = AsyncNotifierProvider<GamificationNotifier, GamificationProfile>(() {
   return GamificationNotifier();
 });
 
-/// Provider for filtered achievements by status
+/// Provider for achievements filtered by status
 final achievementsByStatusProvider = Provider.family<List<Achievement>, AchievementStatus>((ref, status) {
   final profileAsync = ref.watch(gamificationProvider);
   
@@ -208,11 +201,11 @@ final achievementStatsProvider = Provider<AchievementStats>((ref) {
 
 /// Enum for achievement filtering
 enum AchievementStatus {
-  all,
   earned,
   claimable,
   inProgress,
   locked,
+  all,
 }
 
 /// Data class for achievement statistics
@@ -230,4 +223,18 @@ class AchievementStats {
   final int total;
   final int totalPoints;
   final int completionPercentage;
-} 
+}
+
+/// Result wrapper for operations that can fail
+class Result<T, E> {
+  const Result.success(this.value) : error = null;
+  const Result.failure(this.error) : value = null;
+
+  final T? value;
+  final E? error;
+
+  bool get isSuccess => value != null;
+  bool get isFailure => error != null;
+}
+
+// REMOVED: Duplicate AppException class - using the one from constants.dart 

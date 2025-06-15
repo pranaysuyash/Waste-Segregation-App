@@ -12,6 +12,7 @@ import '../models/gamification.dart';
 import '../models/user_profile.dart';
 import '../providers/points_engine_provider.dart';
 import '../providers/points_manager.dart';
+import '../providers/app_providers.dart'; // Import central providers
 import '../services/storage_service.dart';
 import '../services/cloud_storage_service.dart';
 import '../services/gamification_service.dart';
@@ -28,19 +29,7 @@ import 'waste_dashboard_screen.dart';
 import 'settings_screen.dart';
 import 'social_screen.dart';
 
-// Riverpod providers
-final storageServiceProvider = Provider<StorageService>((ref) => StorageService());
-
-final cloudStorageServiceProvider = Provider<CloudStorageService>((ref) {
-  final storageService = ref.watch(storageServiceProvider);
-  return CloudStorageService(storageService);
-});
-
-final gamificationServiceProvider = Provider<GamificationService>((ref) {
-  final storageService = ref.watch(storageServiceProvider);
-  final cloudStorageService = ref.watch(cloudStorageServiceProvider);
-  return GamificationService(storageService, cloudStorageService);
-});
+// REMOVED: Duplicate provider declarations - now imported from app_providers.dart
 
 final communityServiceProvider = Provider<CommunityService>((ref) => CommunityService());
 

@@ -1,82 +1,124 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../models/user_profile.dart';
 import '../models/leaderboard.dart';
+import '../services/storage_service.dart';
 import '../services/leaderboard_service.dart';
-import '../services/storage_service.dart'; // For getting current user ID
+import 'app_providers.dart'; // Import central providers
 
-// Provider for LeaderboardService
+/// Provider for LeaderboardService
 final leaderboardServiceProvider = Provider<LeaderboardService>((ref) {
-  return LeaderboardService(); // Assumes LeaderboardService has no complex dependencies yet
+  return LeaderboardService();
 });
 
-// Provider for the list of top N leaderboard entries
-final topLeaderboardEntriesProvider = FutureProvider.autoDispose.family<List<LeaderboardEntry>, int>((ref, limit) async {
+/// Provider for leaderboard data (using LeaderboardEntry model)
+final leaderboardEntriesProvider = FutureProvider<List<LeaderboardEntry>>((ref) async {
   final leaderboardService = ref.watch(leaderboardServiceProvider);
-  return leaderboardService.getTopNEntries(limit);
-});
-
-// Provider for the current user's leaderboard entry (if they exist on the leaderboard)
-final currentUserLeaderboardEntryProvider = FutureProvider.autoDispose<LeaderboardEntry?>((ref) async {
-  final storageService = ref.watch(storageServiceProvider); // Assuming storageServiceProvider exists
-  final userProfile = await storageService.getCurrentUserProfile();
   
-  if (userProfile == null || userProfile.id.isEmpty) {
-    return null; // No logged-in user
+  try {
+    // Get top 100 leaderboard entries
+    final entries = await leaderboardService.getTopNEntries(100);
+    return entries;
+  } catch (e) {
+    // If fails, return empty list
+    return <LeaderboardEntry>[];
   }
-  final leaderboardService = ref.watch(leaderboardServiceProvider);
-  return leaderboardService.getUserEntry(userProfile.id);
 });
 
-// Provider for the current user's rank
-final currentUserRankProvider = FutureProvider.autoDispose<int?>((ref) async {
-  final storageService = ref.watch(storageServiceProvider); // Assuming storageServiceProvider exists
-  final userProfile = await storageService.getCurrentUserProfile();
+/// Provider for user's leaderboard position
+final userLeaderboardPositionProvider = FutureProvider<int?>((ref) async {
+  final storageService = ref.watch(storageServiceProvider);
+  final leaderboardService = ref.watch(leaderboardServiceProvider);
   
-  if (userProfile == null || userProfile.id.isEmpty) {
-    return null; // No logged-in user
+  try {
+    final currentUser = await storageService.getCurrentUserProfile();
+    if (currentUser == null) return null;
+    
+    // Get user's rank directly from leaderboard service
+    final rank = await leaderboardService.getCurrentUserRank(currentUser.id);
+    return rank;
+  } catch (e) {
+    return null;
   }
-  final leaderboardService = ref.watch(leaderboardServiceProvider);
-  return leaderboardService.getCurrentUserRank(userProfile.id);
 });
 
-// A combined state provider if needed for a screen that shows both top entries and user rank
-class LeaderboardScreenData {
+/// Provider for current user's leaderboard entry
+final currentUserLeaderboardEntryProvider = FutureProvider<LeaderboardEntry?>((ref) async {
+  final storageService = ref.watch(storageServiceProvider);
+  final leaderboardService = ref.watch(leaderboardServiceProvider);
+  
+  try {
+    final currentUser = await storageService.getCurrentUserProfile();
+    if (currentUser == null) return null;
+    
+    // Get user's entry from leaderboard service
+    final entry = await leaderboardService.getUserEntry(currentUser.id);
+    return entry;
+  } catch (e) {
+    return null;
+  }
+});
 
-  LeaderboardScreenData({
-    required this.topEntries,
-    this.currentUserEntry,
-    this.currentUserRank,
-  });
-  final List<LeaderboardEntry> topEntries;
-  final LeaderboardEntry? currentUserEntry;
-  final int? currentUserRank;
-}
-
-final leaderboardScreenDataProvider = FutureProvider.autoDispose<LeaderboardScreenData>((ref) async {
-  const topN = 20; // Default number of top entries to show
-  // Fetch in parallel
-  final topEntriesFuture = ref.watch(topLeaderboardEntriesProvider(topN).future);
-  final currentUserEntryFuture = ref.watch(currentUserLeaderboardEntryProvider.future);
-  final currentUserRankFuture = ref.watch(currentUserRankProvider.future);
-
-  final results = await Future.wait([
-    topEntriesFuture,
-    currentUserEntryFuture,
-    currentUserRankFuture,
-  ]);
-
-  return LeaderboardScreenData(
-    topEntries: results[0] as List<LeaderboardEntry>,
-    currentUserEntry: results[1] as LeaderboardEntry?,
-    currentUserRank: results[2] as int?,
+/// Provider for top 3 leaderboard entries
+final topThreeLeaderboardProvider = Provider<List<LeaderboardEntry>>((ref) {
+  final leaderboardAsync = ref.watch(leaderboardEntriesProvider);
+  
+  return leaderboardAsync.when(
+    data: (entries) => entries.take(3).toList(),
+    loading: () => [],
+    error: (_, __) => [],
   );
 });
 
-// Provider for StorageService (if not already defined elsewhere)
-// This is a placeholder - ensure it's correctly defined and provided in your app.
-final storageServiceProvider = Provider<StorageService>((ref) {
-  // This needs to return your actual StorageService instance.
-  // It might be initialized in your main.dart or a similar setup location.
-  // For now, this will cause an error if not properly set up.
-  throw UnimplementedError('storageServiceProvider needs to be implemented and provide a StorageService instance.');
-  // Example: return StorageService(); // if it has a simple constructor and is already initialized (e.g. Hive)
-}); 
+/// Provider for leaderboard statistics
+final leaderboardStatsProvider = Provider<LeaderboardStats>((ref) {
+  final leaderboardAsync = ref.watch(leaderboardEntriesProvider);
+  
+  return leaderboardAsync.when(
+    data: (entries) {
+      if (entries.isEmpty) {
+        return const LeaderboardStats(
+          totalUsers: 0,
+          averagePoints: 0,
+          topScore: 0,
+        );
+      }
+      
+      final totalUsers = entries.length;
+      final totalPoints = entries.fold<int>(0, (sum, entry) => sum + entry.points);
+      final averagePoints = totalPoints / totalUsers;
+      final topScore = entries.first.points;
+      
+      return LeaderboardStats(
+        totalUsers: totalUsers,
+        averagePoints: averagePoints.round(),
+        topScore: topScore,
+      );
+    },
+    loading: () => const LeaderboardStats(
+      totalUsers: 0,
+      averagePoints: 0,
+      topScore: 0,
+    ),
+    error: (_, __) => const LeaderboardStats(
+      totalUsers: 0,
+      averagePoints: 0,
+      topScore: 0,
+    ),
+  );
+});
+
+/// Data class for leaderboard statistics
+class LeaderboardStats {
+  const LeaderboardStats({
+    required this.totalUsers,
+    required this.averagePoints,
+    required this.topScore,
+  });
+
+  final int totalUsers;
+  final int averagePoints;
+  final int topScore;
+}
+
+// REMOVED: Duplicate provider declarations that were causing the issue
+// These are now imported from app_providers.dart 

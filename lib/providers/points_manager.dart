@@ -6,6 +6,7 @@ import '../models/action_points.dart';
 import '../services/storage_service.dart';
 import '../services/cloud_storage_service.dart';
 import '../services/points_engine.dart';
+import 'app_providers.dart'; // Import central providers
 
 /// Single source of truth for all points operations
 /// Eliminates race conditions and ensures consistency across all screens
@@ -234,11 +235,15 @@ final currentLevelProvider = Provider<int>((ref) {
   );
 });
 
-/// Provider dependencies (these should be defined elsewhere in your app)
-final storageServiceProvider = Provider<StorageService>((ref) {
-  throw UnimplementedError('StorageService provider must be overridden');
+/// Convenience provider for category points
+final categoryPointsProvider = Provider<Map<String, int>>((ref) {
+  final pointsAsync = ref.watch(pointsManagerProvider);
+  return pointsAsync.when(
+    data: (points) => points.categoryPoints,
+    loading: () => {},
+    error: (_, __) => {},
+  );
 });
 
-final cloudStorageServiceProvider = Provider<CloudStorageService>((ref) {
-  throw UnimplementedError('CloudStorageService provider must be overridden');
-}); 
+// REMOVED: Duplicate provider declarations that were causing the issue
+// These are now imported from app_providers.dart 
