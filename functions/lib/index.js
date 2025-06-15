@@ -1,0 +1,258 @@
+"use strict";
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+var _a, _b;
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.testOpenAI = exports.healthCheck = exports.generateDisposal = void 0;
+const functions = __importStar(require("firebase-functions"));
+const admin = __importStar(require("firebase-admin"));
+const openai_1 = require("openai");
+const cors_1 = __importDefault(require("cors"));
+const fs = __importStar(require("fs"));
+const path = __importStar(require("path"));
+// Initialize Firebase Admin
+admin.initializeApp();
+// Configure region for better performance in Asia
+const asiaSouth1 = functions.region('asia-south1');
+// Initialize OpenAI (conditional)
+let openai = null;
+try {
+    // Try environment variable first (for local development), then Firebase config (for production)
+    const apiKey = process.env.OPENAI_API_KEY || ((_b = (_a = functions.config()) === null || _a === void 0 ? void 0 : _a.openai) === null || _b === void 0 ? void 0 : _b.key);
+    if (apiKey) {
+        openai = new openai_1.OpenAI({
+            apiKey: apiKey,
+        });
+        console.log('OpenAI initialized successfully');
+    }
+    else {
+        console.warn('OpenAI API key not configured - functions will use fallback responses');
+    }
+}
+catch (error) {
+    console.warn('Failed to initialize OpenAI:', error);
+}
+// CORS configuration
+const corsHandler = (0, cors_1.default)({ origin: true });
+// Load disposal prompt template
+const getDisposalPrompt = () => {
+    try {
+        const promptPath = path.join(__dirname, '../../prompts/disposal.txt');
+        return fs.readFileSync(promptPath, 'utf8');
+    }
+    catch (error) {
+        console.error('Error loading disposal prompt:', error);
+        // Fallback prompt
+        return `You are a waste management expert. Generate disposal instructions for the given material.
+    
+Input: {"material":"$MATERIAL","lang":"$LANG"}
+
+Generate a JSON object with: steps (array), primaryMethod, timeframe, location, warnings (array), tips (array), recyclingInfo, estimatedTime, hasUrgentTimeframe (boolean).
+
+Provide 4-6 specific, actionable steps for proper disposal.`;
+    }
+};
+exports.generateDisposal = asiaSouth1.https.onRequest(async (req, res) => {
+    return corsHandler(req, res, async () => {
+        var _a, _b;
+        try {
+            // Validate request method
+            if (req.method !== 'POST') {
+                res.status(405).json({ error: 'Method not allowed' });
+                return;
+            }
+            // Parse request body
+            const { materialId, material, category, subcategory, lang = 'en' } = req.body;
+            if (!materialId || !material) {
+                res.status(400).json({ error: 'Missing required fields: materialId, material' });
+                return;
+            }
+            // Check if instructions already exist in cache
+            const db = admin.firestore();
+            const cacheRef = db.collection('disposal_instructions').doc(materialId);
+            const cachedDoc = await cacheRef.get();
+            if (cachedDoc.exists) {
+                console.log(`Returning cached disposal instructions for ${materialId}`);
+                res.json(cachedDoc.data());
+                return;
+            }
+            // Prepare material description
+            let materialDescription = material;
+            if (category)
+                materialDescription += ` (${category}`;
+            if (subcategory)
+                materialDescription += ` - ${subcategory}`;
+            if (category)
+                materialDescription += ')';
+            // Load and prepare prompt
+            const promptTemplate = getDisposalPrompt();
+            const prompt = promptTemplate
+                .replace('$MATERIAL', materialDescription)
+                .replace('$LANG', lang);
+            console.log(`Generating disposal instructions for: ${materialDescription}`);
+            // Check if OpenAI is available
+            if (!openai) {
+                throw new Error('OpenAI not configured - using fallback');
+            }
+            // Call OpenAI API
+            const completion = await openai.chat.completions.create({
+                model: 'gpt-4',
+                messages: [
+                    {
+                        role: 'system',
+                        content: prompt
+                    },
+                    {
+                        role: 'user',
+                        content: JSON.stringify({ material: materialDescription, lang })
+                    }
+                ],
+                functions: [
+                    {
+                        name: 'generate_disposal_instructions',
+                        description: 'Generate structured disposal instructions for waste materials',
+                        parameters: {
+                            type: 'object',
+                            properties: {
+                                steps: {
+                                    type: 'array',
+                                    items: { type: 'string' },
+                                    description: 'Array of 4-6 specific disposal steps'
+                                },
+                                primaryMethod: {
+                                    type: 'string',
+                                    description: 'Brief summary of main disposal method'
+                                },
+                                timeframe: {
+                                    type: 'string',
+                                    description: 'When to dispose (e.g., Immediately, Within 24 hours)'
+                                },
+                                location: {
+                                    type: 'string',
+                                    description: 'Where to dispose (bin type, facility)'
+                                },
+                                warnings: {
+                                    type: 'array',
+                                    items: { type: 'string' },
+                                    description: 'Safety or environmental warnings'
+                                },
+                                tips: {
+                                    type: 'array',
+                                    items: { type: 'string' },
+                                    description: 'Helpful disposal tips'
+                                },
+                                recyclingInfo: {
+                                    type: 'string',
+                                    description: 'Additional recycling information'
+                                },
+                                estimatedTime: {
+                                    type: 'string',
+                                    description: 'Time needed for disposal process'
+                                },
+                                hasUrgentTimeframe: {
+                                    type: 'boolean',
+                                    description: 'True for hazardous/medical waste requiring immediate disposal'
+                                }
+                            },
+                            required: ['steps', 'primaryMethod', 'hasUrgentTimeframe']
+                        }
+                    }
+                ],
+                function_call: { name: 'generate_disposal_instructions' },
+                temperature: 0.3,
+                max_tokens: 1000
+            });
+            // Parse the function call response
+            const functionCall = (_b = (_a = completion.choices[0]) === null || _a === void 0 ? void 0 : _a.message) === null || _b === void 0 ? void 0 : _b.function_call;
+            if (!functionCall || !functionCall.arguments) {
+                throw new Error('No function call response from OpenAI');
+            }
+            const disposalInstructions = JSON.parse(functionCall.arguments);
+            // Validate the response
+            if (!disposalInstructions.steps || !Array.isArray(disposalInstructions.steps) || disposalInstructions.steps.length < 3) {
+                throw new Error('Invalid disposal instructions format');
+            }
+            // Add metadata
+            const result = {
+                ...disposalInstructions,
+                materialId,
+                material: materialDescription,
+                language: lang,
+                generatedAt: admin.firestore.FieldValue.serverTimestamp(),
+                modelUsed: 'gpt-4',
+                version: '1.0'
+            };
+            // Cache the result
+            await cacheRef.set(result);
+            console.log(`Generated and cached disposal instructions for ${materialId}`);
+            res.json(result);
+        }
+        catch (error) {
+            console.error('Error generating disposal instructions:', error);
+            // Return fallback instructions
+            const fallbackInstructions = {
+                steps: [
+                    'Identify the correct waste category for this item',
+                    'Clean the item if required (remove food residue, rinse if needed)',
+                    'Place in the appropriate disposal bin or take to designated facility',
+                    'Follow local waste management guidelines for collection'
+                ],
+                primaryMethod: 'Follow local waste guidelines',
+                timeframe: 'As per local collection schedule',
+                location: 'Appropriate waste bin or facility',
+                warnings: ['Check local regulations for specific requirements'],
+                tips: ['When in doubt, contact local waste management authorities'],
+                hasUrgentTimeframe: false,
+                materialId: req.body.materialId,
+                material: req.body.material,
+                language: req.body.lang || 'en',
+                generatedAt: admin.firestore.FieldValue.serverTimestamp(),
+                modelUsed: 'fallback',
+                version: '1.0',
+                error: 'AI generation failed, using fallback instructions'
+            };
+            res.status(200).json(fallbackInstructions);
+        }
+    });
+});
+// Health check endpoint
+exports.healthCheck = asiaSouth1.https.onRequest((req, res) => {
+    res.json({ status: 'ok', timestamp: new Date().toISOString() });
+});
+// Test endpoint to verify OpenAI configuration
+exports.testOpenAI = asiaSouth1.https.onRequest((req, res) => {
+    var _a, _b;
+    const apiKey = process.env.OPENAI_API_KEY || ((_b = (_a = functions.config()) === null || _a === void 0 ? void 0 : _a.openai) === null || _b === void 0 ? void 0 : _b.key);
+    res.json({
+        status: 'ok',
+        openaiConfigured: !!apiKey,
+        keySource: process.env.OPENAI_API_KEY ? 'environment' : 'firebase-config',
+        keyLength: apiKey ? apiKey.length : 0,
+        timestamp: new Date().toISOString()
+    });
+});
+//# sourceMappingURL=index.js.map
