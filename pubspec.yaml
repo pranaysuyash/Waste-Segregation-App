@@ -21,7 +21,7 @@ dependencies:
   path_provider: ^2.1.1
   path: ^1.8.3
   # google_sign_in upgraded in Firebase section to ensure compatibility
-  googleapis: ^14.0.0  # Updated to latest major
+  googleapis: ^13.2.0  # Compatible with Dart SDK 3.5.0
   googleapis_auth: ^1.6.0  # Compatible with Dart SDK 3.5.0
   share_plus: ^7.2.2  # Keep current major for compatibility
   cross_file: ^0.3.3+8  # Required for XFile for share_plus
@@ -118,6 +118,7 @@ dependency_overrides:
   fl_chart: 0.68.0  # Pin to version compatible with Dart SDK 3.5.0
   google_mobile_ads: 5.0.0  # Pin to version compatible with Dart SDK 3.5.0
   googleapis_auth: 1.6.0  # Pin to version compatible with Dart SDK 3.5.0
+  googleapis: 13.2.0  # Pin to version compatible with Dart SDK 3.5.0
 
 flutter:
   uses-material-design: true
