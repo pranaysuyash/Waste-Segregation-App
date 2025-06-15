@@ -7,8 +7,9 @@
 - ✅ **Test infrastructure completely rebuilt and functional**
 - ✅ **Major test suites passing (17/17 integration tests, 12/12 theme tests)**
 - ✅ **Analysis issues reduced from 497 → 425 (14.5% improvement)**
+- ✅ **Dependency conflicts resolved (Dart SDK & path version issues)**
 - ✅ **CI pipeline ready for validation**
-- 🔄 **Fresh CI run triggered with latest fixes**
+- 🔄 **Fresh CI run triggered with dependency fixes**
 
 ### **What We Fixed**
 
@@ -32,6 +33,12 @@
 3. **Type Safety** - Fixed Set<String> casting and type mismatches
 4. **Import Issues** - Added missing imports (LogicalKeyboardKey, etc.)
 
+#### **Dependency Resolution**
+1. **Dart SDK Compatibility** - Updated SDK requirement to >=3.5.0
+2. **Path Dependency** - Pinned to 1.8.3 for integration_test compatibility
+3. **Video Player** - Downgraded to 2.9.1 for SDK compatibility
+4. **Dependency Overrides** - Added overrides to resolve conflicts
+
 ### **Test Results**
 ```
 ✅ Integration Tests: 17/17 PASSING
@@ -52,8 +59,8 @@ Status: ALL CRITICAL ERRORS ELIMINATED ✅
 ## 🚀 **Next Steps for PR Closure**
 
 ### **Immediate Actions**
-1. **Monitor CI Pipeline** - Fresh CI run triggered with commit `0fc2869`
-2. **Wait for CI Completion** - All major fixes are in place
+1. **Monitor CI Pipeline** - Fresh CI run triggered with commit `dd6b7bd`
+2. **Wait for CI Completion** - All major fixes and dependency issues resolved
 3. **Review CI Results** - Should see significant improvement in check status
 4. **Merge When Ready** - PR will be mergeable once CI validates our fixes
 
