@@ -21,7 +21,7 @@ jobs:
         run: |
           flutter analyze --fatal-infos
           # custom script to catch overflow in stats cards
-          dart tool/check_overflows.dart lib/widgets/stats_card.dart
+          dart tool/check_overflows.dart lib/widgets/modern_ui/modern_cards.dart
       - name: Fail if overflow found
         if: failure()
         run: echo "::error::Layout overflow detected in stats cards" && exit 1
