@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:waste_segregation_app/models/user_profile.dart';
 import 'package:waste_segregation_app/models/gamification.dart';
@@ -5,10 +6,10 @@ import 'package:waste_segregation_app/models/gamification.dart';
 void main() {
   group('UserProfile', () {
     test('should create a UserProfile with all fields', () {
-        final profile = UserProfile(
+      final profile = UserProfile(
         id: 'user123',
         displayName: 'John Doe',
-          email: 'john.doe@example.com',
+        email: 'john.doe@example.com',
         photoUrl: 'https://example.com/photo.jpg',
         familyId: 'family456',
         role: UserRole.admin,
@@ -30,7 +31,7 @@ void main() {
 
       expect(profile.id, 'user123');
       expect(profile.displayName, 'John Doe');
-        expect(profile.email, 'john.doe@example.com');
+      expect(profile.email, 'john.doe@example.com');
       expect(profile.photoUrl, 'https://example.com/photo.jpg');
       expect(profile.familyId, 'family456');
       expect(profile.role, UserRole.admin);
@@ -43,7 +44,7 @@ void main() {
     });
 
     test('should create a minimal UserProfile with only required fields', () {
-        final profile = UserProfile(
+      final profile = UserProfile(
         id: 'user123',
       );
 
@@ -60,7 +61,7 @@ void main() {
     });
 
     test('should create UserProfile with admin role', () {
-        final profile = UserProfile(
+      final profile = UserProfile(
         id: 'admin123',
         displayName: 'Admin User',
         role: UserRole.admin,
@@ -73,10 +74,10 @@ void main() {
     });
 
     test('should create a UserProfile from JSON', () {
-        final json = {
+      final json = {
         'id': 'user123',
         'displayName': 'Bob Wilson',
-          'email': 'bob.wilson@example.com',
+        'email': 'bob.wilson@example.com',
         'photoUrl': 'https://example.com/bob.jpg',
         'familyId': 'family789',
         'role': 'member',
@@ -85,14 +86,14 @@ void main() {
         'preferences': {
           'notifications': true,
           'theme': 'light',
-          },
-        };
+        },
+      };
 
-        final profile = UserProfile.fromJson(json);
+      final profile = UserProfile.fromJson(json);
 
       expect(profile.id, 'user123');
       expect(profile.displayName, 'Bob Wilson');
-        expect(profile.email, 'bob.wilson@example.com');
+      expect(profile.email, 'bob.wilson@example.com');
       expect(profile.photoUrl, 'https://example.com/bob.jpg');
       expect(profile.familyId, 'family789');
       expect(profile.role, UserRole.member);
@@ -103,7 +104,7 @@ void main() {
     });
 
     test('should convert UserProfile to JSON', () {
-        final profile = UserProfile(
+      final profile = UserProfile(
         id: 'user123',
         displayName: 'John Doe',
         email: 'john.doe@example.com',
@@ -136,7 +137,7 @@ void main() {
         displayName: 'John Doe',
         email: 'john.doe@example.com',
         role: UserRole.member,
-          createdAt: DateTime.now(),
+        createdAt: DateTime.now(),
         lastActive: DateTime.now(),
       );
 
@@ -201,11 +202,11 @@ void main() {
     });
 
     test('should create UserProfile with child role', () {
-        final profile = UserProfile(
+      final profile = UserProfile(
         id: 'child123',
         displayName: 'Child User',
         role: UserRole.child,
-          createdAt: DateTime.now(),
+        createdAt: DateTime.now(),
         lastActive: DateTime.now(),
       );
 
@@ -259,7 +260,7 @@ void main() {
       const gamificationProfile = GamificationProfile(
         userId: 'user123',
         streaks: {},
-        points: const UserPoints(total: 5000, level: 10),
+        points: UserPoints(total: 5000, level: 10),
         achievements: [],
         activeChallenges: [],
         completedChallenges: [],
@@ -279,27 +280,34 @@ void main() {
     });
 
     test('should handle edge cases for copyWith', () {
-        final original = UserProfile(
+      final original = UserProfile(
         id: 'user123',
         displayName: 'Original Name',
-          createdAt: DateTime.now(),
+        createdAt: DateTime.now(),
         lastActive: DateTime.now(),
-        );
-
-      // Test copying with null values
-        final updated = original.copyWith(
-        
       );
 
-      expect(updated.displayName, isNull);
+      // Test copying with no changes
+      final updated = original.copyWith();
+
+      expect(updated.displayName, 'Original Name');
       expect(updated.id, 'user123'); // Should remain unchanged
+
+      // Test copying with explicit values - copyWith doesn't support setting to null
+      // This is the standard Dart pattern where copyWith preserves existing values
+      final updatedWithNewName = original.copyWith(
+        displayName: 'New Name',
+      );
+
+      expect(updatedWithNewName.displayName, 'New Name');
+      expect(updatedWithNewName.id, 'user123'); // Should remain unchanged
     });
 
     test('should handle JSON serialization roundtrip', () {
       final original = UserProfile(
         id: 'user123',
-          displayName: 'Test User',
-          email: 'test@example.com',
+        displayName: 'Test User',
+        email: 'test@example.com',
         role: UserRole.member,
         createdAt: DateTime(2024, 1, 15, 10, 30),
         lastActive: DateTime(2024, 1, 16, 10, 30),
@@ -316,6 +324,125 @@ void main() {
       expect(restored.createdAt, original.createdAt);
       expect(restored.lastActive, original.lastActive);
       expect(restored.preferences?['theme'], 'dark');
+    });
+
+    test('should handle UserRole enum serialization correctly', () {
+      // Test all UserRole values
+      for (final role in UserRole.values) {
+        final profile = UserProfile(
+          id: 'test_user',
+          role: role,
+        );
+
+        final json = profile.toJson();
+        final restored = UserProfile.fromJson(json);
+
+        expect(restored.role, role);
+      }
+    });
+
+    test('should handle gamification profile with complex data', () {
+      final gamificationProfile = GamificationProfile(
+        userId: 'user123',
+        points: const UserPoints(
+          total: 2500,
+          level: 15,
+          categoryPoints: {
+            'Recyclable': 1000,
+            'Organic': 800,
+            'Hazardous': 700,
+          },
+        ),
+        streaks: {
+          'daily': StreakDetails(
+            type: StreakType.dailyClassification,
+            currentCount: 7,
+            longestCount: 21,
+            lastActivityDate: DateTime.now(),
+          ),
+          'learning': StreakDetails(
+            type: StreakType.dailyLearning,
+            currentCount: 3,
+            longestCount: 10,
+            lastActivityDate: DateTime.now(),
+          ),
+        },
+        achievements: [
+          const Achievement(
+            id: 'eco_warrior',
+            title: 'Eco Warrior',
+            description: 'Classified 100 items',
+            type: AchievementType.ecoWarrior,
+            threshold: 100,
+            iconName: 'eco',
+            color: Colors.green,
+            tier: AchievementTier.gold,
+            pointsReward: 500,
+          ),
+        ],
+        discoveredItemIds: {'item1', 'item2', 'item3'},
+        unlockedHiddenContentIds: {'content1'},
+      );
+
+      final profile = UserProfile(
+        id: 'complex_user',
+        displayName: 'Complex User',
+        gamificationProfile: gamificationProfile,
+      );
+
+      // Test serialization roundtrip
+      final json = profile.toJson();
+      final restored = UserProfile.fromJson(json);
+
+      expect(restored.gamificationProfile?.points.total, 2500);
+      expect(restored.gamificationProfile?.points.level, 15);
+      expect(restored.gamificationProfile?.points.categoryPoints.length, 3);
+      expect(restored.gamificationProfile?.streaks.length, 2);
+      expect(restored.gamificationProfile?.achievements.length, 1);
+      expect(restored.gamificationProfile?.discoveredItemIds.length, 3);
+      expect(restored.gamificationProfile?.unlockedHiddenContentIds.length, 1);
+    });
+
+    test('should validate required fields', () {
+      // ID is required
+      expect(() => UserProfile(id: ''), returnsNormally);
+      
+      // Empty ID should still work
+      final profile = UserProfile(id: '');
+      expect(profile.id, '');
+    });
+
+    test('should handle edge cases in preferences', () {
+      final complexPreferences = {
+        'nested': {
+          'deeply': {
+            'nested': {
+              'value': 'test',
+              'number': 42,
+              'boolean': true,
+              'list': [1, 2, 3],
+            },
+          },
+        },
+        'nullValue': null,
+        'emptyString': '',
+        'emptyList': [],
+        'emptyMap': {},
+      };
+
+      final profile = UserProfile(
+        id: 'complex_prefs_user',
+        preferences: complexPreferences,
+      );
+
+      final json = profile.toJson();
+      final restored = UserProfile.fromJson(json);
+
+      expect(restored.preferences?['nested'], isA<Map>());
+      expect(restored.preferences?['nullValue'], isNull);
+      expect(restored.preferences?['emptyString'], '');
+      expect(restored.preferences?['emptyList'], isEmpty);
+      expect(restored.preferences?['emptyMap'], isEmpty);
     });
   });
 }
