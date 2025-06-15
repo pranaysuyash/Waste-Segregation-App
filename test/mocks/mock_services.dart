@@ -7,17 +7,24 @@ import 'package:waste_segregation_app/services/analytics_service.dart';
 import 'package:waste_segregation_app/services/community_service.dart';
 import 'package:waste_segregation_app/models/waste_classification.dart';
 import 'package:waste_segregation_app/models/user_profile.dart';
-import 'package:waste_segregation_app/models/achievement.dart';
-import 'package:waste_segregation_app/models/challenge.dart';
-import 'package:waste_segregation_app/models/community_post.dart';
+import 'package:waste_segregation_app/models/gamification.dart';
+import 'package:waste_segregation_app/models/community_feed.dart';
 import 'package:waste_segregation_app/models/educational_content.dart';
-import 'package:image_picker/image_picker.dart';
+import 'package:waste_segregation_app/models/recycling_code.dart';
+import 'dart:io';
 import 'dart:typed_data';
 
 // Mock AI Service
 class MockAiService extends Mock implements AiService {
   @override
-  Future<WasteClassification> analyzeImage(XFile imageFile) async {
+  Future<WasteClassification> analyzeImage(
+    File imageFile, {
+    int retryCount = 0,
+    int maxRetries = 3,
+    String? region,
+    String? instructionsLang,
+    String? classificationId,
+  }) async {
     return WasteClassification(
       id: 'mock-id',
       itemName: 'Mock Item',
@@ -26,19 +33,39 @@ class MockAiService extends Mock implements AiService {
       timestamp: DateTime.now(),
       imageRelativePath: 'images/mock_image.jpg',
       userId: 'mock-user',
+      explanation: 'Mock explanation',
+      disposalInstructions: DisposalInstructions(
+        primaryMethod: 'Mock disposal method',
+        steps: ['Mock step 1', 'Mock step 2'],
+        hasUrgentTimeframe: false,
+      ),
     );
   }
 
   @override
-  Future<WasteClassification> analyzeImageFromBytes(Uint8List imageBytes, String fileName) async {
+  Future<WasteClassification> analyzeWebImage(
+    Uint8List imageBytes, 
+    String imageName, {
+    int retryCount = 0,
+    int maxRetries = 3,
+    String? region,
+    String? instructionsLang,
+    String? classificationId,
+  }) async {
     return WasteClassification(
       id: 'mock-id',
       itemName: 'Mock Item',
       category: 'Mock Category',
       confidence: 0.95,
       timestamp: DateTime.now(),
-      imageRelativePath: 'images/$fileName',
+      imageRelativePath: 'images/$imageName',
       userId: 'mock-user',
+      explanation: 'Mock explanation',
+      disposalInstructions: DisposalInstructions(
+        primaryMethod: 'Mock disposal method',
+        steps: ['Mock step 1', 'Mock step 2'],
+        hasUrgentTimeframe: false,
+      ),
     );
   }
 }
@@ -51,7 +78,7 @@ class MockStorageService extends Mock implements StorageService {
   }
 
   @override
-  Future<List<WasteClassification>> getAllClassifications() async {
+  Future<List<WasteClassification>> getAllClassifications({Map<String, dynamic>? filterOptions}) async {
     return [];
   }
 
@@ -69,10 +96,10 @@ class MockStorageService extends Mock implements StorageService {
 // Mock Gamification Service
 class MockGamificationService extends Mock implements GamificationService {
   @override
-  Future<UserProfile?> getProfile() async {
-    return UserProfile(
+  Future<GamificationProfile> getProfile({bool forceRefresh = false}) async {
+    return GamificationProfile(
       userId: 'mock-user',
-      totalPoints: 100,
+      points: UserPoints(total: 100, available: 100),
       level: 1,
       achievements: [],
       challenges: [],
@@ -82,13 +109,13 @@ class MockGamificationService extends Mock implements GamificationService {
   }
 
   @override
-  Future<void> processClassification(WasteClassification classification) async {
-    // Mock implementation
+  Future<List<Challenge>> processClassification(WasteClassification classification) async {
+    return [];
   }
 
   @override
-  Future<void> addPoints(String reason, {int? customPoints}) async {
-    // Mock implementation
+  Future<UserPoints> addPoints(String action, {String? category, int? customPoints}) async {
+    return UserPoints(total: 110, available: 110);
   }
 
   @override

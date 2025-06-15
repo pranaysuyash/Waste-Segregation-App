@@ -10,7 +10,7 @@ import '../../lib/screens/new_modern_home_screen.dart';
 import '../../lib/screens/instant_analysis_screen.dart';
 import '../../lib/screens/result_screen.dart';
 import '../../lib/models/waste_classification.dart';
-import '../../lib/models/disposal_instructions.dart';
+import '../../lib/models/recycling_code.dart';
 
 void main() {
   group('Navigation Tests - Double Navigation Prevention', () {
@@ -44,10 +44,29 @@ void main() {
       );
 
       // Setup default mocks
-      when(mockAiService.analyzeImage(any)).thenAnswer((_) async => mockClassification);
+      when(mockAiService.analyzeImage(
+        any,
+        retryCount: anyNamed('retryCount'),
+        maxRetries: anyNamed('maxRetries'),
+        region: anyNamed('region'),
+        instructionsLang: anyNamed('instructionsLang'),
+        classificationId: anyNamed('classificationId'),
+      )).thenAnswer((_) async => mockClassification);
+      
       when(mockStorageService.saveClassification(any)).thenAnswer((_) async {});
-      when(mockGamificationService.getProfile()).thenAnswer((_) async => null);
-      when(mockGamificationService.processClassification(any)).thenAnswer((_) async {});
+      
+      when(mockGamificationService.getProfile(forceRefresh: anyNamed('forceRefresh')))
+          .thenAnswer((_) async => GamificationProfile(
+            userId: 'test-user',
+            points: UserPoints(total: 100, available: 100),
+            level: 1,
+            achievements: [],
+            challenges: [],
+            streakCount: 1,
+            lastActivityDate: DateTime.now(),
+          ));
+      
+      when(mockGamificationService.processClassification(any)).thenAnswer((_) async => []);
     });
 
     testWidgets('Analysis button should push only one route to Navigator stack', (WidgetTester tester) async {
