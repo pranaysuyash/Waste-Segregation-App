@@ -36,7 +36,7 @@ jobs:
       run: flutter build ios --no-codesign
       
     - name: Upload build artifacts
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: build-artifacts
         path: |
@@ -118,7 +118,7 @@ jobs:
         
     - name: Upload golden test failures
       if: failure()
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: golden-test-failures
         path: test/golden/failures/

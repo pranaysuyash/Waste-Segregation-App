@@ -4,6 +4,7 @@ import '../services/storage_service.dart';
 import '../services/gamification_service.dart';
 import '../models/waste_classification.dart';
 import '../models/educational_content.dart';
+import '../models/gamification.dart';
 import '../utils/app_theme.dart';
 import '../widgets/polished/polished_card.dart';
 import '../widgets/polished/polished_divider.dart';
@@ -339,7 +340,7 @@ class _PolishedHomeScreenState extends State<PolishedHomeScreen>
                 child: Column(
                   children: [
                     Text(
-                      '${profile.streaks['daily']?.currentCount ?? 0}',
+                      '${profile.streaks[StreakType.dailyClassification.toString()]?.currentCount ?? 0}',
                       style: const TextStyle(
                         fontSize: 24,
                         fontWeight: FontWeight.bold,

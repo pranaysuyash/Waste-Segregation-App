@@ -37,7 +37,7 @@ jobs:
       run: flutter build web --release
       
     - name: Archive build artifacts
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: release-builds
         path: |

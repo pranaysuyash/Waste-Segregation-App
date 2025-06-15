@@ -93,7 +93,7 @@ jobs:
         
       - name: Upload golden test failures
         if: failure()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: golden-test-failures
           path: test/golden/failures/
@@ -130,7 +130,7 @@ jobs:
         
       - name: Upload integration test screenshots
         if: always()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: integration-screenshots-${{ matrix.device }}
           path: integration_test/screenshots/
@@ -247,4 +247,19 @@ jobs:
           echo "✅ Golden tests: PASSED"
           echo "✅ Static analysis: PASSED"
           echo ""
-          echo "The code is ready for merge! 🚀" 
+          echo "The code is ready for merge! 🚀"
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: |
+            test-results.xml
+            coverage/
+
+      - name: Upload coverage reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-reports
+          path: coverage/ 
