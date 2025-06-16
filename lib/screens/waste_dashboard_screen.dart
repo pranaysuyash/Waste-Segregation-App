@@ -9,6 +9,7 @@ import '../models/waste_classification.dart';
 import '../services/gamification_service.dart';
 import '../models/gamification.dart';
 import '../widgets/waste_chart_widgets.dart';
+import '../providers/points_engine_provider.dart';
 import 'package:fl_chart/fl_chart.dart';
 
 enum _ChartTimescale { daily, weekly }
@@ -591,56 +592,274 @@ class _WasteDashboardScreenState extends State<WasteDashboardScreen>
   }
 
   Widget _buildRecentClassifications() {
-    final recent = _classifications.reversed.take(5).toList();
+    final recent = _classifications.reversed.take(8).toList();
     
-    return ListView.builder(
+    if (recent.isEmpty) {
+      return Card(
+        child: Padding(
+          padding: const EdgeInsets.all(AppTheme.paddingLarge),
+          child: Column(
+            children: [
+              Icon(
+                Icons.history,
+                size: 48,
+                color: Colors.grey.shade400,
+              ),
+              const SizedBox(height: AppTheme.paddingSmall),
+              Text(
+                'No recent classifications',
+                style: Theme.of(context).textTheme.titleMedium,
+              ),
+              const SizedBox(height: AppTheme.paddingSmall),
+              Text(
+                'Start classifying items to see your recent activity here',
+                style: TextStyle(
+                  color: Colors.grey.shade600,
+                  fontSize: 14,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+    
+    return GridView.builder(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 2,
+        childAspectRatio: 1.2,
+        crossAxisSpacing: AppTheme.paddingSmall,
+        mainAxisSpacing: AppTheme.paddingSmall,
+      ),
       itemCount: recent.length,
       itemBuilder: (context, index) {
         final classification = recent[index];
+        final category = classification.category;
+        final categoryColor = _getCategoryColor(category);
         
         return Card(
-          margin: const EdgeInsets.symmetric(vertical: 4),
-          child: ListTile(
-            leading: SizedBox(
-              width: 50,
-              height: 50,
-              child: (classification.imageUrl?.isNotEmpty == true)
-                  ? ClipRRect(
-                      borderRadius: BorderRadius.circular(AppTheme.borderRadiusSmall),
-                      child: Image.network(
-                        classification.imageUrl!,
-                        fit: BoxFit.cover,
-                        loadingBuilder: (context, child, progress) {
-                          return progress == null
-                              ? child
-                              : const Center(child: CircularProgressIndicator());
-                        },
-                        errorBuilder: (context, error, stackTrace) {
-                          return const Icon(
-                            Icons.image_not_supported,
-                            color: AppTheme.textSecondaryColor,
-                          );
-                        },
-                      ),
-                    )
-                  : const Icon(
-                      Icons.image,
-                      color: AppTheme.textSecondaryColor,
-                    ),
-            ),
-            title: Text(classification.itemName),
-            subtitle: Text(
-              '${classification.category} - ${classification.timestamp.toLocal()}',
-            ),
-            trailing: const Icon(Icons.arrow_forward_ios),
+          clipBehavior: Clip.antiAlias,
+          elevation: 2,
+          child: InkWell(
             onTap: () {
-              // Navigate to a detailed view if available
+              // Navigate to detailed view if available
+              _showClassificationDetails(classification);
             },
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Image section
+                Expanded(
+                  flex: 3,
+                  child: Container(
+                    width: double.infinity,
+                    decoration: BoxDecoration(
+                      color: categoryColor.withValues(alpha: 0.1),
+                    ),
+                    child: (classification.imageUrl?.isNotEmpty == true)
+                        ? Image.network(
+                            classification.imageUrl!,
+                            fit: BoxFit.cover,
+                            loadingBuilder: (context, child, progress) {
+                              return progress == null
+                                  ? child
+                                  : Center(
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                        valueColor: AlwaysStoppedAnimation(categoryColor),
+                                      ),
+                                    );
+                            },
+                            errorBuilder: (context, error, stackTrace) {
+                              return Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(
+                                    Icons.image_not_supported,
+                                    color: categoryColor,
+                                    size: 32,
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    'No Image',
+                                    style: TextStyle(
+                                      color: categoryColor,
+                                      fontSize: 12,
+                                    ),
+                                  ),
+                                ],
+                              );
+                            },
+                          )
+                        : Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              _getCategoryIcon(category),
+                              const SizedBox(height: 4),
+                              Text(
+                                category,
+                                style: TextStyle(
+                                  color: categoryColor,
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                                textAlign: TextAlign.center,
+                              ),
+                            ],
+                          ),
+                  ),
+                ),
+                // Content section
+                Expanded(
+                  flex: 2,
+                  child: Padding(
+                    padding: const EdgeInsets.all(AppTheme.paddingSmall),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          classification.itemName,
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 13,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        const SizedBox(height: 2),
+                        Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 6,
+                                vertical: 2,
+                              ),
+                              decoration: BoxDecoration(
+                                color: categoryColor.withValues(alpha: 0.2),
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                              child: Text(
+                                category,
+                                style: TextStyle(
+                                  color: categoryColor,
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                            const Spacer(),
+                            if (classification.isRecyclable == true)
+                              Icon(
+                                Icons.recycling,
+                                color: Colors.green,
+                                size: 14,
+                              ),
+                          ],
+                        ),
+                        const Spacer(),
+                        Text(
+                          _formatDate(classification.timestamp),
+                          style: TextStyle(
+                            color: Colors.grey.shade600,
+                            fontSize: 11,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
         );
       },
+    );
+  }
+  
+  String _formatDate(DateTime dateTime) {
+    final now = DateTime.now();
+    final difference = now.difference(dateTime);
+    
+    if (difference.inDays == 0) {
+      if (difference.inHours == 0) {
+        return '${difference.inMinutes}m ago';
+      }
+      return '${difference.inHours}h ago';
+    } else if (difference.inDays == 1) {
+      return 'Yesterday';
+    } else if (difference.inDays < 7) {
+      return '${difference.inDays}d ago';
+    } else {
+      return '${dateTime.day}/${dateTime.month}';
+    }
+  }
+  
+  void _showClassificationDetails(WasteClassification classification) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(classification.itemName),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            if (classification.imageUrl?.isNotEmpty == true)
+              ClipRRect(
+                borderRadius: BorderRadius.circular(8),
+                child: Image.network(
+                  classification.imageUrl!,
+                  height: 200,
+                  width: double.infinity,
+                  fit: BoxFit.cover,
+                ),
+              ),
+            const SizedBox(height: AppTheme.paddingRegular),
+            _buildDetailRow('Category', classification.category),
+            if (classification.subcategory?.isNotEmpty == true)
+              _buildDetailRow('Subcategory', classification.subcategory!),
+            _buildDetailRow('Recyclable', classification.isRecyclable == true ? 'Yes' : 'No'),
+            _buildDetailRow('Date', classification.timestamp.toLocal().toString().split('.')[0]),
+            if (classification.confidence != null)
+              _buildDetailRow('Confidence', '${(classification.confidence! * 100).toStringAsFixed(1)}%'),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Close'),
+          ),
+        ],
+      ),
+    );
+  }
+  
+  Widget _buildDetailRow(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: 80,
+            child: Text(
+              '$label:',
+              style: const TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 14,
+              ),
+            ),
+          ),
+          Expanded(
+            child: Text(
+              value,
+              style: const TextStyle(fontSize: 14),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -746,25 +965,21 @@ class _WasteDashboardScreenState extends State<WasteDashboardScreen>
   }
 
   Widget _buildGamificationSection() {
-    return FutureBuilder<GamificationProfile>(
-      future: Provider.of<GamificationService>(context, listen: false).getProfile(),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(child: CircularProgressIndicator());
-        }
-        if (!snapshot.hasData || snapshot.hasError) {
+    return Consumer<PointsEngineProvider>(
+      builder: (context, pointsProvider, child) {
+        final profile = pointsProvider.pointsEngine.currentProfile;
+        
+        if (profile == null) {
           return Card(
             child: Padding(
               padding: const EdgeInsets.all(AppTheme.paddingLarge),
               child: Center(
-                child: Text(snapshot.hasError 
-                    ? 'Error loading gamification data.' 
-                    : 'Gamification data not available.'),
+                child: Text('Gamification data not available.'),
               ),
             ),
           );
         }
-        final profile = snapshot.data!;
+        
         final points = profile.points;
         final dailyStreak = profile.streaks[StreakType.dailyClassification.toString()];
         final streakCurrent = dailyStreak?.currentCount ?? 0;

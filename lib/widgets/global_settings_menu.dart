@@ -12,14 +12,23 @@ class GlobalSettingsMenu extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return PopupMenuButton<String>(
-      icon: Icon(
-        Icons.more_vert,
-        color: theme.colorScheme.onSurface,
+      icon: Container(
+        padding: const EdgeInsets.all(6),
+        decoration: BoxDecoration(
+          color: theme.colorScheme.primaryContainer,
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Icon(
+          Icons.more_vert,
+          color: theme.colorScheme.onPrimaryContainer,
+          size: 18,
+        ),
       ),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
       ),
-      padding: const EdgeInsets.symmetric(horizontal: 8),
+      elevation: 8,
+      padding: EdgeInsets.zero,
       onSelected: (value) {
         switch (value) {
           case 'settings':

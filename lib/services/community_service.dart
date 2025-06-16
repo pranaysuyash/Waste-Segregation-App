@@ -49,17 +49,40 @@ class CommunityService {
     }
   }
 
-  // Get stats from Firestore
+  // Get stats calculated from actual feed data (more accurate than incremental stats)
   Future<CommunityStats> getStats() async {
     try {
-      final doc = await _firestore.collection(_statsCollection).doc(_mainStatsDoc).get();
-      if (doc.exists && doc.data() != null) {
-        return CommunityStats.fromJson(doc.data()!);
-      } else {
-        return const CommunityStats(totalUsers: 0, totalClassifications: 0, totalPoints: 0);
+      // Get all feed items to calculate accurate stats
+      final feedItems = await getFeedItems(limit: 10000); // Get a large number to ensure we get all
+      
+      // Calculate stats from actual feed data
+      var totalClassifications = 0;
+      var totalPoints = 0;
+      final categoryBreakdown = <String, int>{};
+      final userIds = <String>{};
+      
+      for (final item in feedItems) {
+        userIds.add(item.userId);
+        totalPoints += item.points;
+        
+        if (item.activityType == CommunityActivityType.classification) {
+          totalClassifications++;
+          final category = item.metadata['category'] as String?;
+          if (category != null) {
+            categoryBreakdown.update(category, (value) => value + 1, ifAbsent: () => 1);
+          }
+        }
       }
+      
+      return CommunityStats(
+        totalUsers: userIds.length,
+        totalClassifications: totalClassifications,
+        totalPoints: totalPoints,
+        categoryBreakdown: categoryBreakdown,
+        lastUpdated: DateTime.now(),
+      );
     } catch (e) {
-      debugPrint('❌ Error getting Firestore stats: $e');
+      debugPrint('❌ Error calculating community stats: $e');
       return const CommunityStats(totalUsers: 0, totalClassifications: 0, totalPoints: 0);
     }
   }
@@ -97,6 +120,9 @@ class CommunityService {
 
   // Record classification - now writes to Firestore
   Future<void> recordClassification(WasteClassification classification, UserProfile user) async {
+    // Use consistent points from PointsEngine standard (10 per classification)
+    const standardClassificationPoints = 10;
+    
     final item = CommunityFeedItem(
       id: classification.id,
       userId: user.id,
@@ -105,7 +131,7 @@ class CommunityService {
       title: 'New Scan!',
       description: 'Scanned a ${classification.itemName} (${classification.category})',
       timestamp: classification.timestamp,
-      points: classification.pointsAwarded ?? 10,
+      points: classification.pointsAwarded ?? standardClassificationPoints,
       metadata: {'category': classification.category},
     );
     await addFeedItem(item);

@@ -53,8 +53,8 @@ class _AchievementsScreenState extends State<AchievementsScreen>
     try {
       debugPrint('🏆 AchievementsScreen: Loading initial profile...');
       
-      // Add timeout to prevent infinite loading
-      await context.read<GamificationService>().getProfile().timeout(
+      // Add timeout to prevent infinite loading  
+      await context.read<PointsEngineProvider>().pointsEngine.initialize().timeout(
         const Duration(seconds: 10),
         onTimeout: () {
           debugPrint('🔥 AchievementsScreen: Profile loading timed out');
@@ -84,12 +84,12 @@ class _AchievementsScreenState extends State<AchievementsScreen>
       // Try to force a profile creation as last resort
       try {
         debugPrint('🆘 AchievementsScreen: Attempting emergency profile creation...');
-        final gamificationService = context.read<GamificationService>();
+        final pointsEngine = context.read<PointsEngineProvider>().pointsEngine;
         
         // Force create a basic profile if none exists
-        if (gamificationService.currentProfile == null) {
+        if (pointsEngine.currentProfile == null) {
           // This should trigger the emergency fallback in the service
-          await gamificationService.getProfile(forceRefresh: true);
+          await pointsEngine.refresh();
           
           if (mounted) {
             setState(() {
@@ -128,7 +128,7 @@ class _AchievementsScreenState extends State<AchievementsScreen>
         });
       }
       
-      await context.read<GamificationService>().getProfile(forceRefresh: true);
+      await context.read<PointsEngineProvider>().pointsEngine.refresh();
       debugPrint('🏆 AchievementsScreen: Profile refreshed successfully');
     } catch (e) {
       debugPrint('🔥 AchievementsScreen: Error refreshing profile: $e');
@@ -189,8 +189,8 @@ class _AchievementsScreenState extends State<AchievementsScreen>
           children: [
             Builder(
           builder: (context) {
-            final gamificationService = context.watch<GamificationService>();
-            final profile = gamificationService.currentProfile;
+            final pointsProvider = context.watch<PointsEngineProvider>();
+            final profile = pointsProvider.pointsEngine.currentProfile;
 
             debugPrint('🏆 AchievementsScreen: Profile status - ${profile != null ? 'loaded' : 'loading'}');
 
@@ -592,8 +592,6 @@ class _AchievementsScreenState extends State<AchievementsScreen>
   }
 
   void _showAchievementDetails(Achievement achievement, GamificationProfile profile) {
-    final gamificationService = Provider.of<GamificationService>(context, listen: false);
-    
     // Show celebration for earned achievements when viewed
     if (achievement.isEarned && achievement.tier != AchievementTier.bronze) {
       _showAchievementCelebration(achievement);

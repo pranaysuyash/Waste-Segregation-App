@@ -30,6 +30,7 @@ import 'notification_settings_screen.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import '../services/cloud_storage_service.dart';
 import '../services/firebase_cleanup_service.dart';
+import '../widgets/settings/developer_section.dart';
 
 
 class SettingsScreen extends StatefulWidget {
@@ -1106,6 +1107,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ),
           ),
 
+          // Developer Section (only visible in debug mode)
+          DeveloperSection(showDeveloperOptions: _showDeveloperOptions),
+
           const SizedBox(height: 16),
         ],
       ),
@@ -1876,7 +1880,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
           children: [
             Icon(Icons.warning, color: Colors.red),
             SizedBox(width: 8),
-            Text('Clear Firebase Data'),
+            Expanded(
+              child: Text('Clear Firebase Data'),
+            ),
           ],
         ),
         content: const Column(
@@ -1912,18 +1918,28 @@ class _SettingsScreenState extends State<SettingsScreen> {
             onPressed: () async {
               Navigator.pop(context);
               
-              // Show loading dialog
+              // Show loading dialog with cancel button
+              bool isCancelled = false;
               showDialog(
                 context: context,
                 barrierDismissible: false,
-                builder: (context) => const AlertDialog(
-                  content: Row(
+                builder: (context) => AlertDialog(
+                  content: const Row(
                     children: [
                       CircularProgressIndicator(),
                       SizedBox(width: 16),
-                      Text('Clearing Firebase data...'),
+                      Expanded(child: Text('Clearing Firebase data...')),
                     ],
                   ),
+                  actions: [
+                    TextButton(
+                      onPressed: () {
+                        isCancelled = true;
+                        Navigator.pop(context);
+                      },
+                      child: const Text('Cancel'),
+                    ),
+                  ],
                 ),
               );
               
@@ -1931,7 +1947,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 final cleanupService = FirebaseCleanupService();
                 await cleanupService.clearAllDataForFreshInstall();
                 
-                if (context.mounted) {
+                if (context.mounted && !isCancelled) {
                   Navigator.pop(context); // Close loading dialog
                   
                   // Navigate to auth screen for fresh start
@@ -1949,7 +1965,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   );
                 }
               } catch (e) {
-                if (context.mounted) {
+                if (context.mounted && !isCancelled) {
                   Navigator.pop(context); // Close loading dialog
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(

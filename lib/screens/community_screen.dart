@@ -388,12 +388,18 @@ class _CommunityScreenState extends State<CommunityScreen> with TickerProviderSt
                               ),
                             ),
                             const SizedBox(height: 4),
-                            Text(
-                              '63+ activities',
-                              style: const TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 16,
-                              ),
+                            FutureBuilder<int>(
+                              future: _getExpectedActivityCount(),
+                              builder: (context, snapshot) {
+                                final count = snapshot.data ?? 0;
+                                return Text(
+                                  '$count activities',
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 16,
+                                  ),
+                                );
+                              },
                             ),
                           ],
                         ),
@@ -401,7 +407,13 @@ class _CommunityScreenState extends State<CommunityScreen> with TickerProviderSt
                     ),
                   ],
                 ),
-                if (_feedItems.length < 60) ...[
+                FutureBuilder<int>(
+                  future: _getExpectedActivityCount(),
+                  builder: (context, snapshot) {
+                    final expectedCount = snapshot.data ?? 0;
+                    if (_feedItems.length < expectedCount) {
+                      return Column(
+                        children: [
                   const SizedBox(height: 12),
                   Container(
                     padding: const EdgeInsets.all(8),
@@ -426,7 +438,12 @@ class _CommunityScreenState extends State<CommunityScreen> with TickerProviderSt
                       ],
                     ),
                   ),
-                ],
+                        ],
+                      );
+                    }
+                    return const SizedBox.shrink();
+                  },
+                ),
               ],
             ),
           ),
@@ -495,6 +512,19 @@ class _CommunityScreenState extends State<CommunityScreen> with TickerProviderSt
         ],
       ),
     );
+  }
+
+  Future<int> _getExpectedActivityCount() async {
+    try {
+      final storageService = Provider.of<StorageService>(context, listen: false);
+      final classifications = await storageService.getAllClassifications();
+      // Expected activity count should be at least the number of classifications
+      // plus any achievements (rough estimate)
+      return classifications.length;
+    } catch (e) {
+      debugPrint('Error getting expected activity count: $e');
+      return 0;
+    }
   }
 
   Widget _buildMembersTab() {

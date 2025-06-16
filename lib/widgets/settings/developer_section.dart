@@ -44,6 +44,8 @@ class DeveloperSection extends StatelessWidget {
           subtitle: 'Clear all app data',
           onTap: () {},
         ),
+        const SizedBox(height: 16),
+        _buildDangerousActions(context),
       ],
     );
   }
@@ -184,6 +186,17 @@ class DeveloperSection extends StatelessWidget {
           label: 'Clear Firebase Data (Fresh Install)',
           color: SettingsTheme.dangerColor,
           onPressed: () => _showFirebaseCleanupDialog(context),
+        ),
+        
+        const SizedBox(height: 8),
+        
+        // Direct Firebase clear (no dialogs)
+        _buildDangerButton(
+          context,
+          icon: Icons.delete_forever,
+          label: 'Direct Firebase Clear (No Dialogs)',
+          color: Colors.purple,
+          onPressed: () => _performDirectFirebaseCleanup(context),
         ),
         
         const SizedBox(height: 8),
@@ -338,13 +351,13 @@ class DeveloperSection extends StatelessWidget {
   Future<void> _performFirebaseCleanup(BuildContext context) async {
     try {
       final cleanupService = FirebaseCleanupService();
-             // await cleanupService.performComprehensiveCleanup(); // TODO: Check correct method name
+      await cleanupService.clearAllDataForFreshInstall();
       
       if (context.mounted) {
         // TODO(i18n): Localize success message
         SettingsTheme.showSuccessSnackBar(
           context,
-          'Firebase data cleared successfully',
+          'Firebase data cleared successfully - App will behave like fresh install',
         );
       }
     } catch (e) {
@@ -353,6 +366,30 @@ class DeveloperSection extends StatelessWidget {
         SettingsTheme.showErrorSnackBar(
           context,
           'Firebase cleanup failed: ${e.toString()}',
+        );
+      }
+    }
+  }
+
+  Future<void> _performDirectFirebaseCleanup(BuildContext context) async {
+    debugPrint('🔥 Direct Firebase cleanup initiated (no dialogs)');
+    
+    try {
+      final cleanupService = FirebaseCleanupService();
+      await cleanupService.clearAllDataForFreshInstall();
+      
+      if (context.mounted) {
+        SettingsTheme.showSuccessSnackBar(
+          context,
+          'Direct Firebase clear completed - Check logs for details',
+        );
+      }
+    } catch (e) {
+      debugPrint('❌ Direct Firebase cleanup failed: $e');
+      if (context.mounted) {
+        SettingsTheme.showErrorSnackBar(
+          context,
+          'Direct Firebase cleanup failed: ${e.toString()}',
         );
       }
     }
