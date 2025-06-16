@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart'; // Added import
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:waste_segregation_app/models/waste_classification.dart';
 import 'package:waste_segregation_app/models/gamification.dart';
@@ -7,17 +7,18 @@ import 'package:waste_segregation_app/models/user_profile.dart';
 void main() {
   group('WasteClassification Model Tests', () {
     test('should create valid WasteClassification object', () {
-      final classification = WasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
+      final classification = WasteClassification(
         itemName: 'Plastic Water Bottle',
+        category: 'Dry Waste',
         subcategory: 'Plastic',
         explanation: 'Clear plastic bottle, recyclable with PET code 1',
+        disposalInstructions: DisposalInstructions(
           primaryMethod: 'Recycle in blue bin',
           steps: ['Remove cap and label', 'Rinse thoroughly', 'Place in recycling bin'],
           hasUrgentTimeframe: false,
           warnings: ['Ensure bottle is empty'],
           tips: ['Check for recycling code'],
         ),
-        timestamp: DateTime.now(),
         region: 'Test Region',
         visualFeatures: ['plastic', 'bottle', 'clear', 'PET'],
         alternatives: [
@@ -61,10 +62,12 @@ void main() {
     });
 
     test('should handle WasteClassification serialization', () {
-      final classification = WasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
+      final classification = WasteClassification(
         itemName: 'Apple Core',
+        category: 'Wet Waste',
         subcategory: 'Food Waste',
         explanation: 'Organic waste suitable for composting',
+        disposalInstructions: DisposalInstructions(
           primaryMethod: 'Compost bin',
           steps: ['Place in brown bin'],
           hasUrgentTimeframe: false,
@@ -94,7 +97,7 @@ void main() {
     test('should create fallback classification correctly', () {
       final fallback = WasteClassification.fallback('unknown_item.jpg');
       
-      expect(fallback.itemName, contains('Unknown'));
+      expect(fallback.itemName, contains('Unidentified'));
       expect(fallback.category, isNotEmpty);
       expect(fallback.explanation, isNotEmpty);
       expect(fallback.confidence, lessThan(1.0));
@@ -143,11 +146,14 @@ void main() {
             'Hazardous Waste': 30,
           },
         ),
-        streak: Streak(
-          current: 5,
-          longest: 12,
-          lastUsageDate: DateTime.now(),
-        ),
+        streaks: {
+          StreakType.dailyClassification.toString(): StreakDetails(
+            type: StreakType.dailyClassification,
+            currentCount: 5,
+            longestCount: 12,
+            lastActivityDate: DateTime.now(),
+          ),
+        },
         achievements: [
           const Achievement(
             id: 'waste_novice',
@@ -181,8 +187,8 @@ void main() {
       expect(profile.points.total, equals(150));
       expect(profile.points.level, equals(1));
       expect(profile.points.categoryPoints.length, equals(3));
-      expect(profile.streak.current, equals(5));
-      expect(profile.streak.longest, equals(12));
+      expect(profile.streaks[StreakType.dailyClassification.toString()]?.currentCount, equals(5));
+      expect(profile.streaks[StreakType.dailyClassification.toString()]?.longestCount, equals(12));
       expect(profile.achievements.length, equals(1));
       expect(profile.activeChallenges.length, equals(1));
       expect(profile.activeChallenges.first.progress, equals(0.6));
@@ -201,19 +207,20 @@ void main() {
       expect((points4.total / 100).floor(), equals(10));
     });
 
-    test('should handle Streak calculations correctly', () {
+    test('should handle StreakDetails calculations correctly', () {
       final yesterday = DateTime.now().subtract(const Duration(days: 1));
-      final today = DateTime.now();
       
-      final streak = Streak(
-        current: 5,
-        longest: 15,
-        lastUsageDate: yesterday,
+      final streakDetails = StreakDetails(
+        type: StreakType.dailyClassification,
+        currentCount: 5,
+        longestCount: 15,
+        lastActivityDate: yesterday,
       );
 
-      expect(streak.current, equals(5));
-      expect(streak.longest, equals(15));
-      expect(streak.lastUsageDate.day, equals(yesterday.day));
+      expect(streakDetails.currentCount, equals(5));
+      expect(streakDetails.longestCount, equals(15));
+      expect(streakDetails.lastActivityDate.day, equals(yesterday.day));
+      expect(streakDetails.type, equals(StreakType.dailyClassification));
     });
 
     test('should validate Achievement properties', () {
@@ -312,7 +319,14 @@ void main() {
       final gamificationProfile = GamificationProfile(
         userId: 'test_user_123',
         points: const UserPoints(total: 200, level: 2),
-        streak: Streak(current: 3, longest: 8, lastUsageDate: DateTime.now()),
+        streaks: {
+          StreakType.dailyClassification.toString(): StreakDetails(
+            type: StreakType.dailyClassification,
+            currentCount: 3,
+            longestCount: 8,
+            lastActivityDate: DateTime.now(),
+          ),
+        },
         achievements: [],
       );
 
@@ -325,7 +339,7 @@ void main() {
         lastActive: DateTime.now(),
         familyId: 'family_456',
         gamificationProfile: gamificationProfile,
-        preferences: { // Changed from settings
+        preferences: {
           'language': 'en',
           'region': 'US',
           'notifications': true,
@@ -339,7 +353,7 @@ void main() {
       expect(userProfile.gamificationProfile, isNotNull);
       expect(userProfile.gamificationProfile?.points.total, equals(200));
       expect(userProfile.gamificationProfile?.points.level, equals(2));
-      expect(userProfile.preferences?['language'], equals('en')); // Changed from settings
+      expect(userProfile.preferences?['language'], equals('en'));
     });
 
     test('should handle UserProfile serialization', () {
@@ -375,35 +389,37 @@ void main() {
       expect(minimalProfile.photoUrl, isNull);
       expect(minimalProfile.familyId, isNull);
       expect(minimalProfile.gamificationProfile, isNull);
-      expect(minimalProfile.preferences, isNull); // Changed from settings
+      expect(minimalProfile.preferences, isNull);
     });
   });
 
   group('Model Validation and Edge Cases', () {
     test('should handle invalid confidence values gracefully', () {
       // Confidence values should be between 0.0 and 1.0
-      final highConfidence = WasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
+      final highConfidence = WasteClassification(
         itemName: 'Test Item',
+        category: 'Dry Waste',
         explanation: 'Test',
+        disposalInstructions: DisposalInstructions(
           primaryMethod: 'Test',
           steps: ['Step 1'],
           hasUrgentTimeframe: false,
         ),
-        timestamp: DateTime.now(),
         region: 'Test Region',
         visualFeatures: [],
         alternatives: [],
         confidence: 1.5, // Invalid - above 1.0
       );
 
-      final negativeConfidence = WasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
+      final negativeConfidence = WasteClassification(
         itemName: 'Test Item',
+        category: 'Dry Waste',
         explanation: 'Test',
+        disposalInstructions: DisposalInstructions(
           primaryMethod: 'Test',
           steps: ['Step 1'],
           hasUrgentTimeframe: false,
         ),
-        timestamp: DateTime.now(),
         region: 'Test Region',
         visualFeatures: [],
         alternatives: [],
@@ -415,19 +431,20 @@ void main() {
       expect(negativeConfidence.confidence, equals(-0.5));
       
       // In a real app, you might want validation logic
-      expect(highConfidence.confidence! > 1.0, isTrue); // Added !
-      expect(negativeConfidence.confidence! < 0.0, isTrue); // Added !
+      expect(highConfidence.confidence! > 1.0, isTrue);
+      expect(negativeConfidence.confidence! < 0.0, isTrue);
     });
 
     test('should handle empty and null fields appropriately', () {
-      final classification = WasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
+      final classification = WasteClassification(
         itemName: '', // Empty string
+        category: 'Dry Waste',
         explanation: 'Test',
+        disposalInstructions: DisposalInstructions(
           primaryMethod: 'Test',
           steps: [],  // Empty steps
           hasUrgentTimeframe: false,
         ),
-        timestamp: DateTime.now(),
         region: 'Test Region',
         visualFeatures: [], // Empty list
         alternatives: [], // Empty list
@@ -444,14 +461,15 @@ void main() {
     test('should handle very long strings without issues', () {
       final longString = 'A' * 1000; // 1000 character string
       
-      final classification = WasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
+      final classification = WasteClassification(
         itemName: longString,
+        category: 'Dry Waste',
         explanation: longString,
+        disposalInstructions: DisposalInstructions(
           primaryMethod: longString,
           steps: [longString, longString],
           hasUrgentTimeframe: false,
         ),
-        timestamp: DateTime.now(),
         region: 'Test Region',
         visualFeatures: [longString],
         alternatives: [],
@@ -466,9 +484,11 @@ void main() {
     test('should handle future dates appropriately', () {
       final futureDate = DateTime.now().add(const Duration(days: 365));
       
-      final classification = WasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
+      final classification = WasteClassification(
         itemName: 'Future Item',
+        category: 'Dry Waste',
         explanation: 'Test',
+        disposalInstructions: DisposalInstructions(
           primaryMethod: 'Test',
           steps: ['Step 1'],
           hasUrgentTimeframe: false,
@@ -481,6 +501,5 @@ void main() {
 
       expect(classification.timestamp.isAfter(DateTime.now()), isTrue);
     });
-    // Add more tests for other models like EducationalContent, CommunityFeed etc.
   });
 }
