@@ -55,7 +55,6 @@ class DialogHelper {
       barrierDismissible: barrierDismissible,
       builder: (_) => AlertDialog(
         content: Row(
-          mainAxisSize: MainAxisSize.min,
           children: [
             const CircularProgressIndicator(),
             const SizedBox(width: 16),
@@ -67,17 +66,14 @@ class DialogHelper {
       ),
     );
 
-    T result;
     try {
-      result = await task();
+      return await task();
     } finally {
       // Always dismiss the loading dialog
-      if (Navigator.canPop(context)) {
-        Navigator.pop(context);
+      if (Navigator.of(context).canPop()) {
+        Navigator.of(context).pop();
       }
     }
-    
-    return result;
   }
 
   /// Shows an error dialog with the given message

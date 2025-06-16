@@ -1877,7 +1877,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             Icon(Icons.warning, color: Colors.red),
             SizedBox(width: 8),
             Expanded(
-              child: Text('Clear Firebase Data'),
+              child: Text('Clear All User Data'),
             ),
           ],
         ),
@@ -1886,17 +1886,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'This will delete ALL Firebase data to simulate a fresh install:',
+              'This action will permanently delete all your data from the app and the cloud.',
               style: TextStyle(fontWeight: FontWeight.bold),
             ),
-            SizedBox(height: 8),
-            Text('• All user data and classifications'),
-            Text('• Community feed and stats'),
-            Text('• Family data and invitations'),
-            Text('• Analytics and achievements'),
-            SizedBox(height: 8),
+            SizedBox(height: 12),
+            Text('• Your user profile and settings'),
+            Text('• All your classification history'),
+            Text('• All your points and achievements'),
+            SizedBox(height: 12),
             Text(
-              'This action cannot be undone and is only for testing purposes.',
+              'This is intended for development and testing. Are you sure you want to proceed?',
               style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
             ),
           ],
@@ -1912,87 +1911,61 @@ class _SettingsScreenState extends State<SettingsScreen> {
               foregroundColor: Colors.white,
             ),
             onPressed: () async {
-              Navigator.pop(context);
-              
-              // Show loading dialog with cancel button
-              var isCancelled = false;
+              Navigator.pop(context); // Close confirmation dialog
+
               showDialog(
                 context: context,
                 barrierDismissible: false,
-                builder: (context) => AlertDialog(
-                  content: const Row(
+                builder: (context) => const AlertDialog(
+                  content: Row(
                     children: [
                       CircularProgressIndicator(),
                       SizedBox(width: 16),
-                      Expanded(child: Text('Clearing Firebase data...')),
+                      Expanded(child: Text('Clearing all data...')),
                     ],
                   ),
-                  actions: [
-                    TextButton(
-                      onPressed: () {
-                        isCancelled = true;
-                        Navigator.pop(context);
-                      },
-                      child: const Text('Cancel'),
-                    ),
-                  ],
                 ),
               );
               
               try {
                 final cleanupService = FirebaseCleanupService();
-                await cleanupService.ultimateFactoryReset();
+                await cleanupService.clearAllDataForFreshInstall();
                 
-                if (context.mounted && !isCancelled) {
-                  // 1️⃣ Close the loading dialog first
-                  Navigator.pop(context);
+                if (context.mounted) {
+                  Navigator.pop(context); // Close loading dialog
                   
-                  // 2️⃣ Show success message briefly
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
-                      content: Text('✅ Complete reset successful!\n'
-                                   'All data cleared. Redirecting to login...'),
+                      content: Text('✅ All data cleared. Please restart the app for a fresh start.'),
                       backgroundColor: Colors.green,
-                      duration: Duration(seconds: 3),
+                      duration: Duration(seconds: 4),
                     ),
                   );
-                  
-                  // 3️⃣ Wait a moment for user to see the success message
-                  await Future.delayed(const Duration(milliseconds: 2000));
-                  
-                  // 4️⃣ Navigate to auth screen for fresh start (only if still mounted)
+
+                  await Future.delayed(const Duration(seconds: 2));
+
                   if (context.mounted) {
-                    Navigator.of(context).pushAndRemoveUntil(
-                      MaterialPageRoute(builder: (_) => const AuthScreen()),
-                      (Route<dynamic> route) => false,
-                    );
+                      Navigator.of(context).pushAndRemoveUntil(
+                        MaterialPageRoute(builder: (_) => const AuthScreen()),
+                        (Route<dynamic> route) => false,
+                      );
                   }
                 }
               } catch (e) {
-                debugPrint('❌ Firebase cleanup failed: $e');
-                if (context.mounted && !isCancelled) {
-                  // Close loading dialog
+                if (context.mounted) {
                   Navigator.pop(context);
                   
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
-                      content: Text('❌ Reset failed: $e\n\n'
-                                   'Check console logs for details.'),
+                      content: Text('❌ Data clearing failed: $e'),
                       backgroundColor: Colors.red,
                       duration: const Duration(seconds: 6),
-                      action: SnackBarAction(
-                        label: 'Retry',
-                        textColor: Colors.white,
-                        onPressed: () {
-                          _showFirebaseCleanupDialog(context);
-                        },
-                      ),
                     ),
                   );
                 }
               }
             },
-            child: const Text('CLEAR ALL DATA'),
+            child: const Text('DELETE EVERYTHING'),
           ),
         ],
       ),

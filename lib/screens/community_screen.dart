@@ -499,9 +499,15 @@ class _CommunityScreenState extends State<CommunityScreen> with TickerProviderSt
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(label),
+          Expanded(
+            child: Text(
+              label,
+              overflow: TextOverflow.ellipsis,
+              softWrap: false,
+            ),
+          ),
+          const SizedBox(width: 16),
           Text(
             value,
             style: const TextStyle(

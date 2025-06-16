@@ -57,25 +57,14 @@ class AccountSection extends StatelessWidget {
           },
         ),
         
-        // Reset Account
-        SettingTile(
-          icon: Icons.refresh,
-          iconColor: SettingsTheme.dataColor,
-          // TODO(i18n): Localize title and subtitle
-          title: 'Reset Account',
-          subtitle: 'Archive & clear your data, keep login credentials',
-          onTap: () => _confirmReset(context),
-        ),
-        
-        // Delete Account
+        // Simplified Reset
         SettingTile(
           icon: Icons.delete_forever,
           iconColor: SettingsTheme.dangerColor,
           titleColor: SettingsTheme.dangerColor,
-          // TODO(i18n): Localize title and subtitle
-          title: 'Delete Account',
-          subtitle: 'Archive & clear all data, then delete your account',
-          onTap: () => _confirmDelete(context),
+          title: 'Reset App Data',
+          subtitle: 'Clear all local and cloud data for a fresh start',
+          onTap: () => _confirmAndExecuteReset(context),
         ),
       ],
     );
@@ -147,265 +136,47 @@ class AccountSection extends StatelessWidget {
     }
   }
 
-  /// Show confirmation dialog for account reset
-  Future<void> _confirmReset(BuildContext context) async {
-    final shouldReset = await showDialog<bool>(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Row(
-            children: [
-              Icon(Icons.refresh, color: Colors.orange),
-              SizedBox(width: 8),
-              Text('Reset Account?'),
-            ],
-          ),
-          content: const Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'This will archive and clear your data but keep you signed out. You can sign back in with the same credentials.',
-                style: TextStyle(fontWeight: FontWeight.w500),
-              ),
-              SizedBox(height: 12),
-              Text('• All classification history will be archived'),
-              Text('• All gamification progress will be archived'),
-              Text('• All settings and preferences will be archived'),
-              Text('• Local data will be cleared'),
-              Text('• You will be signed out'),
-              SizedBox(height: 12),
-              Text(
-                'You can sign back in anytime with the same account.',
-                style: TextStyle(
-                  color: Colors.green,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(false),
-              child: const Text('Cancel'),
-            ),
-            ElevatedButton(
-              onPressed: () => Navigator.of(context).pop(true),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.orange,
-                foregroundColor: Colors.white,
-              ),
-              child: const Text('Reset Account'),
-            ),
-          ],
-        );
-      },
+  Future<void> _confirmAndExecuteReset(BuildContext context) async {
+    final shouldReset = await DialogHelper.confirm(
+      context,
+      title: 'Reset All App Data?',
+      body: 'This will permanently delete all your classifications, points, and settings from this device and the cloud. This action cannot be undone.',
+      okLabel: 'DELETE EVERYTHING',
+      isDangerous: true,
     );
 
     if (shouldReset == true && context.mounted) {
-      await _performReset(context);
+      await _performFullReset(context);
     }
   }
 
-  /// Show confirmation dialog for account deletion
-  Future<void> _confirmDelete(BuildContext context) async {
-    final shouldDelete = await showDialog<bool>(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Row(
-            children: [
-              Icon(Icons.delete_forever, color: Colors.red),
-              SizedBox(width: 8),
-              Text('Delete Account?'),
-            ],
-          ),
-          content: const Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'This will archive all your data and delete your account permanently.',
-                style: TextStyle(fontWeight: FontWeight.bold),
-              ),
-              SizedBox(height: 12),
-              Text('• All data will be archived for admin purposes'),
-              Text('• Your account will be permanently deleted'),
-              Text('• You will NOT be able to sign in again'),
-              Text('• Local data will be cleared'),
-              SizedBox(height: 12),
-              Text(
-                'This action cannot be undone!',
-                style: TextStyle(
-                  color: Colors.red,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(false),
-              child: const Text('Cancel'),
-            ),
-            ElevatedButton(
-              onPressed: () => Navigator.of(context).pop(true),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.red,
-                foregroundColor: Colors.white,
-              ),
-              child: const Text('Delete Account'),
-            ),
-          ],
-        );
+  Future<void> _performFullReset(BuildContext context) async {
+    await DialogHelper.loading(
+      context,
+      () async {
+        final cleanupService = FirebaseCleanupService();
+        await cleanupService.clearAllDataForFreshInstall();
+        
+        if (context.mounted) {
+          SettingsTheme.showSuccessSnackBar(
+            context,
+            'All data has been cleared. Please restart the app.',
+          );
+
+          await Navigator.of(context).pushNamedAndRemoveUntil(
+            '/',
+            (route) => false,
+          );
+        }
       },
-    );
-
-    if (shouldDelete == true && context.mounted) {
-      await _performDelete(context);
-    }
-  }
-
-  /// Perform account reset
-  Future<void> _performReset(BuildContext context) async {
-    try {
-      // Show loading dialog
-      showDialog(
-        context: context,
-        barrierDismissible: false,
-        builder: (BuildContext context) {
-          return const AlertDialog(
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                CircularProgressIndicator(),
-                SizedBox(height: 16),
-                Text('Resetting account...'),
-              ],
-            ),
-          );
-        },
-      );
-
-      final currentUser = FirebaseAuth.instance.currentUser;
-      if (currentUser == null) {
-        throw Exception('No user signed in');
-      }
-
-      // 1. Clear data using cleanup service
-      final cleanupService = FirebaseCleanupService();
-      await cleanupService.resetAccount(currentUser.uid);
-
-      // 2. Force refresh all providers to clear cached data
+      message: 'Resetting all data...',
+    ).catchError((e) {
       if (context.mounted) {
-        await _refreshAllProviders(context);
-      }
-
-      if (context.mounted) {
-        Navigator.of(context).pop(); // Close loading dialog
-        
-        // Show success message and navigate to auth screen
-        SettingsTheme.showSuccessSnackBar(
-          context,
-          'Account reset successfully. You can sign back in anytime.',
-        );
-
-        // Navigate to auth screen
-        Navigator.of(context).pushNamedAndRemoveUntil(
-          '/',
-          (route) => false,
-        );
-      }
-    } catch (e) {
-      if (context.mounted) {
-        Navigator.of(context).pop(); // Close loading dialog
-        
         SettingsTheme.showErrorSnackBar(
           context,
-          'Error resetting account: ${e.toString()}',
+          'Error resetting data: ${e.toString()}',
         );
       }
-    }
-  }
-
-  /// Perform account deletion
-  Future<void> _performDelete(BuildContext context) async {
-    try {
-      // Show loading dialog
-      showDialog(
-        context: context,
-        barrierDismissible: false,
-        builder: (BuildContext context) {
-          return const AlertDialog(
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                CircularProgressIndicator(),
-                SizedBox(height: 16),
-                Text('Deleting account...'),
-              ],
-            ),
-          );
-        },
-      );
-
-      final currentUser = FirebaseAuth.instance.currentUser;
-      if (currentUser == null) {
-        throw Exception('No user signed in');
-      }
-
-      // 1. Clear data using cleanup service
-      final cleanupService = FirebaseCleanupService();
-      await cleanupService.deleteAccount(currentUser.uid);
-
-      // 2. Force refresh all providers to clear cached data
-      if (context.mounted) {
-        await _refreshAllProviders(context);
-      }
-
-      if (context.mounted) {
-        Navigator.of(context).pop(); // Close loading dialog
-        
-        // Show success message and navigate to welcome screen
-        SettingsTheme.showSuccessSnackBar(
-          context,
-          'Account deleted successfully.',
-        );
-
-        // Navigate to welcome/auth screen
-        Navigator.of(context).pushNamedAndRemoveUntil(
-          '/',
-          (route) => false,
-        );
-      }
-    } catch (e) {
-      if (context.mounted) {
-        Navigator.of(context).pop(); // Close loading dialog
-        
-        SettingsTheme.showErrorSnackBar(
-          context,
-          'Error deleting account: ${e.toString()}',
-        );
-      }
-    }
-  }
-
-  /// Refresh all providers to clear cached data
-  Future<void> _refreshAllProviders(BuildContext context) async {
-    try {
-      debugPrint('🔄 Refreshing providers after account reset/delete...');
-      
-      // Clear the gamification service cache to ensure fresh data
-      final gamificationService = context.read<GamificationService>();
-      gamificationService.clearCache();
-      
-      // Force a small delay to ensure all cleanup operations complete
-      await Future.delayed(const Duration(milliseconds: 500));
-      
-      debugPrint('✅ Providers refreshed successfully');
-    } catch (e) {
-      debugPrint('⚠️ Error refreshing providers: $e');
-      // Don't rethrow - this is cleanup, not critical
-    }
+    });
   }
 } 

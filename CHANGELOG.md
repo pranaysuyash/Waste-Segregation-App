@@ -2,6 +2,29 @@
 
 All notable changes to the Waste Segregation App will be documented in this file.
 
+## [2.5.4] - 2025-06-16
+
+### 🔧 **CRITICAL FIX: Comprehensive Data Reset & UI Fixes**
+- **REFACTORED**: `FirebaseCleanupService` to correctly and completely delete all user data.
+- **FIXED**: `RenderFlex` overflow on the community statistics screen.
+- **SIMPLIFIED**: All data management UI in settings to use the new, robust service.
+- **FIXED**: Critical bug in `DialogHelper.loading` method, improving app-wide stability.
+
+### 🚀 **Improvements**
+- **Data Integrity**: Implemented `Hive.deleteBoxFromDisk()` for complete local data removal, ensuring a true "fresh install" experience.
+- **Cloud Sync**: Corrected Firestore data deletion using a client-side `WriteBatch` for atomic operations.
+- **UI Robustness**: Wrapped long text labels in `Expanded` widgets to prevent layout errors.
+- **Code Quality**: Removed dead code, consolidated redundant widgets, and fixed a critical bug in the app's dialog helper, leading to a cleaner and more stable codebase.
+
+### 📁 **Files Added/Modified**
+- **REFACTORED**: `lib/services/firebase_cleanup_service.dart`
+- **FIXED**: `lib/screens/community_screen.dart`
+- **REFACTORED**: `lib/widgets/settings/account_section.dart`
+- **REFACTORED**: `lib/widgets/settings/developer_section.dart`
+- **UPDATED**: `lib/screens/settings_screen.dart`
+- **FIXED**: `lib/utils/dialog_helper.dart`
+- **NEW**: `COMPREHENSIVE_DATA_RESET_AND_UI_FIX_20250616.md`
+
 ## [2.5.3] - 2025-06-16
 
 ### 🛡️ **MAJOR: Thumbnail Hardening Patches**

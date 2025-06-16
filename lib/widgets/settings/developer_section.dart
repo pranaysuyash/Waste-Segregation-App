@@ -8,6 +8,7 @@ import '../../services/firebase_cleanup_service.dart';
 import '../../utils/developer_config.dart';
 import 'settings_theme.dart';
 import 'setting_tile.dart';
+import '../../utils/dialog_helper.dart';
 
 /// Developer options section for settings screen (debug builds only)
 class DeveloperSection extends StatelessWidget {
@@ -166,37 +167,14 @@ class DeveloperSection extends StatelessWidget {
           ),
         
         const SizedBox(height: 8),
-        
-        // Factory reset button (secure debug only)
-        if (DeveloperConfig.canShowFactoryReset)
-          _buildDangerButton(
-            context,
-            icon: Icons.restore,
-            label: 'Reset Full Data (Factory Reset)',
-            color: SettingsTheme.dataColor,
-            onPressed: () => _showFactoryResetDialog(context),
-          ),
-        
-        const SizedBox(height: 8),
-        
-        // Firebase cleanup button (debug only)
-        _buildDangerButton(
-          context,
-          icon: Icons.cloud_off,
-          label: 'Clear Firebase Data (Fresh Install)',
-          color: SettingsTheme.dangerColor,
-          onPressed: () => _showFirebaseCleanupDialog(context),
-        ),
-        
-        const SizedBox(height: 8),
-        
-        // Direct Firebase clear (no dialogs)
+
+        // Consolidated Data Reset Button
         _buildDangerButton(
           context,
           icon: Icons.delete_forever,
-          label: 'Direct Firebase Clear (No Dialogs)',
-          color: Colors.purple,
-          onPressed: () => _performDirectFirebaseCleanup(context),
+          label: 'Clear All Data (Fresh Install)',
+          color: SettingsTheme.dangerColor,
+          onPressed: () => _confirmAndClearAllData(context),
         ),
         
         const SizedBox(height: 8),
@@ -253,17 +231,14 @@ class DeveloperSection extends StatelessWidget {
     FirebaseCrashlytics.instance.crash();
   }
 
-  void _showFactoryResetDialog(BuildContext context) {
+  void _confirmAndClearAllData(BuildContext context) {
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          // TODO(i18n): Localize dialog content
-          title: const Text('Factory Reset'),
+          title: const Text('Clear All Data?'),
           content: const Text(
-            'This will delete ALL app data including classifications, '
-            'settings, and user preferences. This action cannot be undone.\n\n'
-            'Are you sure you want to continue?',
+            'This will clear all local and cloud data to simulate a fresh install. This action cannot be undone.'
           ),
           actions: [
             TextButton(
@@ -273,12 +248,12 @@ class DeveloperSection extends StatelessWidget {
             TextButton(
               onPressed: () {
                 Navigator.of(context).pop();
-                _performFactoryReset(context);
+                _performFullDataClear(context);
               },
               style: TextButton.styleFrom(
                 foregroundColor: SettingsTheme.dangerColor,
               ),
-              child: const Text('Reset All Data'),
+              child: const Text('Clear All Data'),
             ),
           ],
         );
@@ -286,113 +261,29 @@ class DeveloperSection extends StatelessWidget {
     );
   }
 
-  void _showFirebaseCleanupDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          // TODO(i18n): Localize dialog content
-          title: const Text('Clear Firebase Data'),
-          content: const Text(
-            'This will clear all Firebase data for testing purposes. '
-            'This simulates a fresh install experience.\n\n'
-            'Continue?',
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: const Text('Cancel'),
-            ),
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-                _performFirebaseCleanup(context);
-              },
-              style: TextButton.styleFrom(
-                foregroundColor: SettingsTheme.dangerColor,
-              ),
-              child: const Text('Clear Data'),
-            ),
-          ],
-        );
+  Future<void> _performFullDataClear(BuildContext context) async {
+    await DialogHelper.loading(
+      context,
+      () async {
+        final cleanupService = FirebaseCleanupService();
+        await cleanupService.clearAllDataForFreshInstall();
       },
-    );
-  }
-
-  Future<void> _performFactoryReset(BuildContext context) async {
-    try {
-      final storageService = context.read<StorageService>();
-      final analyticsService = context.read<AnalyticsService>();
-      final premiumService = context.read<PremiumService>();
-      
-             // Perform factory reset
-       // await storageService.clearAllData(); // TODO: Check correct method name
-       // await analyticsService.clearAnalyticsData(); // TODO: Check correct method name
-       await premiumService.resetPremiumFeatures();
-      
-      if (context.mounted) {
-        // TODO(i18n): Localize success message
-        SettingsTheme.showSuccessSnackBar(
-          context,
-          'Factory reset completed successfully',
-        );
-      }
-    } catch (e) {
-      if (context.mounted) {
-        // TODO(i18n): Localize error message
-        SettingsTheme.showErrorSnackBar(
-          context,
-          'Factory reset failed: ${e.toString()}',
-        );
-      }
-    }
-  }
-
-  Future<void> _performFirebaseCleanup(BuildContext context) async {
-    try {
-      final cleanupService = FirebaseCleanupService();
-      await cleanupService.ultimateFactoryReset();
-      
-      if (context.mounted) {
-        // TODO(i18n): Localize success message
-        SettingsTheme.showSuccessSnackBar(
-          context,
-          'Firebase data cleared successfully - App will behave like fresh install',
-        );
-      }
-    } catch (e) {
-      if (context.mounted) {
-        // TODO(i18n): Localize error message
-        SettingsTheme.showErrorSnackBar(
-          context,
-          'Firebase cleanup failed: ${e.toString()}',
-        );
-      }
-    }
-  }
-
-  Future<void> _performDirectFirebaseCleanup(BuildContext context) async {
-    debugPrint('🔥 Direct Firebase cleanup initiated (no dialogs)');
-    
-    try {
-      final cleanupService = FirebaseCleanupService();
-      await cleanupService.ultimateFactoryReset();
-      
+      message: 'Clearing all data...',
+    ).then((_) {
       if (context.mounted) {
         SettingsTheme.showSuccessSnackBar(
           context,
-          'Direct Firebase clear completed - Check logs for details',
+          'All data cleared. Please restart the app.',
         );
       }
-    } catch (e) {
-      debugPrint('❌ Direct Firebase cleanup failed: $e');
+    }).catchError((e) {
       if (context.mounted) {
         SettingsTheme.showErrorSnackBar(
           context,
-          'Direct Firebase cleanup failed: ${e.toString()}',
+          'Data clearing failed: ${e.toString()}',
         );
       }
-    }
+    });
   }
 
   Future<void> _runClassificationMigration(BuildContext context) async {
