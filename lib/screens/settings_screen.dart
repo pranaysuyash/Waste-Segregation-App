@@ -1944,23 +1944,23 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 await cleanupService.clearAllDataForFreshInstall();
                 
                 if (context.mounted && !isCancelled) {
-                  Navigator.pop(context); // Close loading dialog
+                  // 1️⃣ Close the loading dialog first
+                  Navigator.pop(context);
                   
-                  // Show detailed success message
+                  // 2️⃣ Show success message briefly
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
-                      content: Text('✅ Firebase data cleared successfully!\n'
-                                   'Check console logs for detailed verification results.\n'
-                                   'App will restart to fresh state.'),
+                      content: Text('✅ Complete reset successful!\n'
+                                   'All data cleared. Redirecting to login...'),
                       backgroundColor: Colors.green,
-                      duration: Duration(seconds: 5),
+                      duration: Duration(seconds: 3),
                     ),
                   );
                   
-                  // Add a small delay to let user see the message
+                  // 3️⃣ Wait a moment for user to see the success message
                   await Future.delayed(const Duration(milliseconds: 2000));
                   
-                  // Navigate to auth screen for fresh start
+                  // 4️⃣ Navigate to auth screen for fresh start (only if still mounted)
                   if (context.mounted) {
                     Navigator.of(context).pushAndRemoveUntil(
                       MaterialPageRoute(builder: (_) => const AuthScreen()),
@@ -1971,14 +1971,22 @@ class _SettingsScreenState extends State<SettingsScreen> {
               } catch (e) {
                 debugPrint('❌ Firebase cleanup failed: $e');
                 if (context.mounted && !isCancelled) {
-                  Navigator.pop(context); // Close loading dialog
+                  // Close loading dialog
+                  Navigator.pop(context);
+                  
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
-                      content: Text('❌ Error clearing Firebase data:\n$e\n\n'
-                                   'Check console logs for details. '
-                                   'You may need to manually clear app data.'),
+                      content: Text('❌ Reset failed: $e\n\n'
+                                   'Check console logs for details.'),
                       backgroundColor: Colors.red,
-                      duration: const Duration(seconds: 8),
+                      duration: const Duration(seconds: 6),
+                      action: SnackBarAction(
+                        label: 'Retry',
+                        textColor: Colors.white,
+                        onPressed: () {
+                          _showFirebaseCleanupDialog(context);
+                        },
+                      ),
                     ),
                   );
                 }

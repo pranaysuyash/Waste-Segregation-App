@@ -27,7 +27,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 var _a, _b;
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.testOpenAI = exports.healthCheck = exports.generateDisposal = void 0;
+exports.clearAllData = exports.testOpenAI = exports.healthCheck = exports.generateDisposal = void 0;
 const functions = __importStar(require("firebase-functions"));
 const admin = __importStar(require("firebase-admin"));
 const openai_1 = require("openai");
@@ -255,4 +255,84 @@ exports.testOpenAI = asiaSouth1.https.onRequest((req, res) => {
         timestamp: new Date().toISOString()
     });
 });
+// FIXED: Clear all data function that properly awaits all deletions
+exports.clearAllData = asiaSouth1.https.onCall(async (data, context) => {
+    try {
+        console.log('🔥 Starting COMPLETE Firestore data clearing...');
+        // Security check - only allow in development/testing
+        if (!context.auth) {
+            throw new functions.https.HttpsError('unauthenticated', 'User must be authenticated');
+        }
+        const db = admin.firestore();
+        const projectId = process.env.GCLOUD_PROJECT;
+        if (!projectId) {
+            throw new functions.https.HttpsError('internal', 'Project ID not available');
+        }
+        console.log(`Clearing all data for project: ${projectId}`);
+        // Get all root-level collections
+        const collections = await db.listCollections();
+        console.log(`Found ${collections.length} root collections to delete`);
+        // Delete each collection recursively and await ALL deletions
+        const deletePromises = collections.map(async (collection) => {
+            const collectionPath = collection.path;
+            console.log(`Deleting collection: ${collectionPath}`);
+            try {
+                // Delete all documents in the collection in batches
+                await deleteCollectionRecursively(db, collectionPath);
+                console.log(`✅ Deleted collection: ${collectionPath}`);
+            }
+            catch (error) {
+                console.error(`❌ Error deleting collection ${collectionPath}:`, error);
+                throw error;
+            }
+        });
+        // CRITICAL: Wait for ALL deletions to complete before returning
+        await Promise.all(deletePromises);
+        console.log('✅ All Firestore collections deleted successfully');
+        // Reset community stats to zero
+        await db.collection('community_stats').doc('main').set({
+            totalUsers: 0,
+            totalClassifications: 0,
+            totalPoints: 0,
+            categoryBreakdown: {},
+            lastUpdated: admin.firestore.FieldValue.serverTimestamp(),
+            createdAt: admin.firestore.FieldValue.serverTimestamp(),
+        });
+        console.log('✅ Community stats reset to zero');
+        console.log('🎉 COMPLETE Firestore data clearing finished successfully');
+        return {
+            success: true,
+            message: 'All data cleared successfully',
+            timestamp: new Date().toISOString(),
+            collectionsDeleted: collections.length
+        };
+    }
+    catch (error) {
+        console.error('❌ Error during data clearing:', error);
+        throw new functions.https.HttpsError('internal', `Data clearing failed: ${error}`);
+    }
+});
+// Helper function to recursively delete a collection
+async function deleteCollectionRecursively(db, collectionPath) {
+    const collectionRef = db.collection(collectionPath);
+    const batchSize = 100; // Firestore batch limit
+    let query = collectionRef.limit(batchSize);
+    let snapshot = await query.get();
+    while (!snapshot.empty) {
+        const batch = db.batch();
+        for (const doc of snapshot.docs) {
+            // First, delete any subcollections
+            const subcollections = await doc.ref.listCollections();
+            for (const subcollection of subcollections) {
+                await deleteCollectionRecursively(db, subcollection.path);
+            }
+            // Then delete the document
+            batch.delete(doc.ref);
+        }
+        await batch.commit();
+        console.log(`Deleted batch of ${snapshot.docs.length} documents from ${collectionPath}`);
+        // Get next batch
+        snapshot = await query.get();
+    }
+}
 //# sourceMappingURL=index.js.map

@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:cloud_functions/cloud_functions.dart';
 import 'package:flutter/foundation.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:crypto/crypto.dart';
@@ -336,37 +337,68 @@ class FirebaseCleanupService {
       throw Exception('Firebase cleanup is not allowed in release mode');
     }
 
-    debugPrint('🔥 Starting Firebase cleanup for fresh install simulation...');
+    debugPrint('🔥 Starting COMPLETE Firebase cleanup for fresh install simulation...');
     
     try {
-      // 1. Clear current user's data
+      // 1. Disconnect Firestore network & clear its cache (prevents ghost syncs)
+      debugPrint('🔌 Disconnecting Firestore and clearing persistence...');
+      try {
+        // 1️⃣ First, disable network so no writes or reads are in flight
+        await _firestore.disableNetwork();
+        debugPrint('✅ Firestore network disabled');
+        
+        // 2️⃣ Then clear local cache
+        await _firestore.clearPersistence();
+        debugPrint('✅ Firestore persistence cleared');
+      } catch (e) {
+        // Swallow or log, since on a fresh install you don't care if it's already cleared
+        debugPrint('⚠️ Firestore cleanup warning: $e');
+      }
+      
+      // 2. Clear current user's data
       await _clearCurrentUserData();
       
-      // 2. Clear global collections
+      // 3. Clear global collections
       await _clearGlobalCollections();
       
-      // 3. Clear local Hive storage
-      await _clearLocalStorage();
+      // 4. COMPLETELY nuke local Hive storage (deleteBoxFromDisk)
+      await _completelyNukeLocalStorage();
       
-      // 4. Clear all cached data and force fresh state
+      // 5. Clear all cached data and force fresh state
       await _clearCachedData();
       
-      // 5. Reset community stats
+      // 6. Reset community stats
       await _resetCommunityStats();
       
-      // 6. Sign out current user
+      // 7. Sign out current user
       await _signOutCurrentUser();
       
-      // 7. Force a longer delay to ensure all operations complete
-      await Future.delayed(const Duration(milliseconds: 1000));
+      // 8. Re-enable Firestore network
+      debugPrint('🔌 Re-enabling Firestore network...');
+      try {
+        await _firestore.enableNetwork();
+        debugPrint('✅ Firestore network re-enabled');
+      } catch (e) {
+        debugPrint('⚠️ Warning re-enabling Firestore network: $e');
+      }
       
-      // 8. Verify the cleanup was successful
+      // 9. Force a longer delay to ensure all operations complete
+      await Future.delayed(const Duration(milliseconds: 2000));
+      
+      // 10. Verify the cleanup was successful
       await _verifyCleanupSuccess();
       
-      debugPrint('✅ Firebase cleanup completed - app will behave like fresh install');
+      debugPrint('✅ COMPLETE Firebase cleanup completed - app will behave like fresh install');
       
     } catch (e) {
       debugPrint('❌ Error during Firebase cleanup: $e');
+      // 3️⃣ Re-enable network even if cleanup failed (critical for app functionality)
+      try {
+        await _firestore.enableNetwork();
+        debugPrint('✅ Firestore network re-enabled after error');
+      } catch (networkError) {
+        debugPrint('⚠️ Critical: Failed to re-enable Firestore network: $networkError');
+      }
       rethrow;
     }
   }
@@ -397,21 +429,109 @@ class FirebaseCleanupService {
     }
   }
 
-  /// Clear global collections
+  /// Clear global collections using the FIXED Cloud Function
   Future<void> _clearGlobalCollections() async {
-    debugPrint('🗑️ Clearing global collections...');
+    debugPrint('🗑️ Clearing global collections via Cloud Function...');
 
-    for (final collection in _collectionsToDelete) {
-      try {
-        await _deleteCollection(collection);
-        debugPrint('✅ Cleared collection: $collection');
-      } catch (e) {
-        debugPrint('⚠️ Error clearing collection $collection: $e');
+    try {
+      // Call the FIXED Cloud Function that properly awaits all deletions
+      final callable = FirebaseFunctions.instanceFor(region: 'asia-south1').httpsCallable('clearAllData');
+      
+      debugPrint('📞 Calling clearAllData Cloud Function...');
+      final result = await callable.call();
+      
+      if (result.data['success'] == true) {
+        final collectionsDeleted = result.data['collectionsDeleted'] ?? 0;
+        debugPrint('✅ Cloud Function completed successfully - $collectionsDeleted collections deleted');
+      } else {
+        throw Exception('Cloud Function returned failure: ${result.data}');
+      }
+      
+    } catch (e) {
+      debugPrint('⚠️ Cloud Function failed, falling back to manual deletion: $e');
+      
+      // Fallback to manual deletion if Cloud Function fails
+      for (final collection in _collectionsToDelete) {
+        try {
+          await _deleteCollection(collection);
+          debugPrint('✅ Manually cleared collection: $collection');
+        } catch (e) {
+          debugPrint('⚠️ Error manually clearing collection $collection: $e');
+        }
       }
     }
   }
 
-  /// Clear local Hive storage - FIXED to completely delete box files from disk
+  /// COMPLETELY nuke local Hive storage - delete box files from disk for true fresh install
+  Future<void> _completelyNukeLocalStorage() async {
+    debugPrint('💥 COMPLETELY nuking local Hive storage with deleteBoxFromDisk...');
+    
+    try {
+      // Step 1: Close ALL Hive boxes first - CRITICAL for deleteBoxFromDisk to work
+      debugPrint('🔒 Closing all Hive boxes...');
+      await Hive.close();
+      debugPrint('✅ All Hive boxes closed');
+      
+      // Step 2: Delete ALL Hive boxes from disk (not just known ones)
+      var deletedCount = 0;
+      
+      // Delete all known boxes from disk
+      for (final boxName in _hiveBoxesToClear) {
+        try {
+          await Hive.deleteBoxFromDisk(boxName);
+          debugPrint('💥 DELETED box file from disk: $boxName');
+          deletedCount++;
+        } catch (e) {
+          debugPrint('ℹ️ Box file $boxName not found on disk: $e');
+        }
+      }
+      
+      // Also try to delete additional possible boxes
+      final additionalBoxes = [
+        'userSettings',
+        'appData', 
+        'cache',
+        'temp',
+        'backup',
+        'analytics_events',
+        'premium_features',
+        'community_stats',
+        'community_feed',
+        'classificationHashesBox',
+        'gamification_cache',
+      ];
+      
+      for (final boxName in additionalBoxes) {
+        if (!_hiveBoxesToClear.contains(boxName)) {
+          try {
+            await Hive.deleteBoxFromDisk(boxName);
+            debugPrint('💥 DELETED additional box file from disk: $boxName');
+            deletedCount++;
+          } catch (e) {
+            debugPrint('ℹ️ Additional box file $boxName not found: $e');
+          }
+        }
+      }
+      
+      // Step 3: Re-initialize only the most critical boxes for app functionality
+      debugPrint('🔄 Re-initializing essential Hive boxes...');
+      try {
+        // Only re-open the absolute minimum needed for app to function
+        await Hive.openBox(StorageKeys.settingsBox);
+        debugPrint('✅ Re-initialized essential Hive boxes');
+      } catch (e) {
+        debugPrint('⚠️ Error re-initializing Hive boxes: $e');
+      }
+      
+      debugPrint('💥 COMPLETE local storage nuking completed ($deletedCount box files deleted from disk)');
+      
+    } catch (e) {
+      debugPrint('❌ Error during complete local storage nuking: $e');
+      rethrow;
+    }
+  }
+
+  /// Clear local Hive storage - LEGACY METHOD (kept for compatibility)
   Future<void> _clearLocalStorage() async {
     debugPrint('🗑️ Clearing local Hive storage with complete file deletion...');
 
@@ -626,44 +746,17 @@ class FirebaseCleanupService {
     }
   }
 
-  /// Clear relevant SharedPreferences entries
+  /// Clear ALL SharedPreferences entries for complete reset
   Future<void> _clearSharedPreferences() async {
     try {
-      debugPrint('  🧹 Clearing relevant SharedPreferences...');
+      debugPrint('  🧹 Clearing ALL SharedPreferences for complete reset...');
       
       final prefs = await SharedPreferences.getInstance();
-      final keysToRemove = <String>[];
       
-      // Get all keys and identify ones to clear
-      for (final key in prefs.getKeys()) {
-        // Clear user-specific data but preserve app settings like theme
-        if (key.contains('user') || 
-            key.contains('classification') || 
-            key.contains('gamification') ||
-            key.contains('points') ||
-            key.contains('achievement') ||
-            key.contains('streak') ||
-            key.contains('analytics') ||
-            key.contains('onboarding') ||
-            key == StorageKeys.userGamificationProfileKey ||
-            key == StorageKeys.achievementsKey ||
-            key == StorageKeys.streakKey ||
-            key == StorageKeys.pointsKey ||
-            key == StorageKeys.challengesKey ||
-            key == StorageKeys.weeklyStatsKey) {
-          keysToRemove.add(key);
-        }
-      }
+      // For a complete reset, clear everything
+      await prefs.clear();
       
-      // Remove identified keys
-      for (final key in keysToRemove) {
-        await prefs.remove(key);
-      }
-      
-      debugPrint('  ✅ SharedPreferences cleanup completed (${keysToRemove.length} keys removed)');
-      if (keysToRemove.isNotEmpty) {
-        debugPrint('  📋 Removed keys: ${keysToRemove.join(', ')}');
-      }
+      debugPrint('  ✅ ALL SharedPreferences cleared for complete reset');
     } catch (e) {
       debugPrint('  ⚠️ Error clearing SharedPreferences: $e');
     }
