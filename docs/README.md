@@ -1,6 +1,70 @@
-# Documentation
+# 📚 Waste Segregation App Documentation
 
-This directory contains comprehensive documentation for the Waste Segregation App.
+Welcome to the comprehensive documentation for the Waste Segregation App. This directory contains all technical documentation, guides, and specifications.
+
+## 📋 **Quick Navigation**
+
+### **🔧 Technical Documentation**
+- [Technical Architecture](./technical/) - System architecture and design patterns
+- [Data Storage & Management](./technical/data_storage/) - Database and storage strategies
+- [Performance Monitoring](./technical/performance/) - Performance tracking and optimization
+- [Testing Strategy](./technical/testing/) - Testing approaches and guidelines
+
+### **🚀 Project Management**
+- [Project Enhancements](./project/enhancements/) - Feature specifications and roadmaps
+- [Reference Documentation](./reference/) - API references and technical specs
+
+### **🔮 Future Development**
+- [**Future Enhancements TODO**](./technical/TODO_FUTURE_ENHANCEMENTS.md) - Planned optimizations and improvements
+- [Roadmap](./project/roadmap/) - Long-term development plans
+
+### **📊 Current Status**
+- [Thumbnail Hardening Patches](../THUMBNAIL_HARDENING_PATCHES.md) - Latest production improvements (v2.5.3)
+- [Changelog](../CHANGELOG.md) - Version history and release notes
+
+## 🎯 **Documentation Standards**
+
+All documentation follows these standards:
+- **Markdown format** for consistency and readability
+- **Date stamps** for tracking updates
+- **Status indicators** (✅ Complete, 🔄 In Progress, 📋 Planned)
+- **Priority levels** (High, Medium, Low)
+- **Cross-references** between related documents
+
+## 🔍 **Finding Information**
+
+### **For Developers**
+- Start with [Technical Architecture](./technical/) for system overview
+- Check [TODO_FUTURE_ENHANCEMENTS.md](./technical/TODO_FUTURE_ENHANCEMENTS.md) for upcoming work
+- Review [Testing Strategy](./technical/testing/) for development guidelines
+
+### **For Project Managers**
+- Review [Project Enhancements](./project/enhancements/) for feature status
+- Check [Roadmap](./project/roadmap/) for timeline planning
+- Monitor [Changelog](../CHANGELOG.md) for release tracking
+
+### **For DevOps/Infrastructure**
+- Focus on [Performance Monitoring](./technical/performance/) documentation
+- Review [Data Storage](./technical/data_storage/) for infrastructure needs
+- Check deployment guides in technical sections
+
+## 📝 **Contributing to Documentation**
+
+When updating documentation:
+1. **Update timestamps** in document headers
+2. **Maintain cross-references** between related documents
+3. **Use consistent formatting** and status indicators
+4. **Add entries to this index** for new major documents
+
+## 🔄 **Recent Updates**
+
+- **June 16, 2025**: Added comprehensive Future Enhancements TODO
+- **June 16, 2025**: Completed Thumbnail Hardening Patches documentation
+- **June 16, 2025**: Updated changelog with v2.5.3 release notes
+
+---
+
+**Note**: This documentation is actively maintained and reflects the current state of the Waste Segregation App as of the last update date.
 
 ## 📁 Document Organization
 
