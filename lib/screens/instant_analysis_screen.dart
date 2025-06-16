@@ -71,7 +71,7 @@ class _InstantAnalysisScreenState extends State<InstantAnalysisScreen> {
         
         // Save the classification immediately using gamification service to trigger all hooks
         final gamificationService = Provider.of<GamificationService>(context, listen: false);
-        await gamificationService.processClassification(result!);
+        await gamificationService.processClassification(result);
         
         debugPrint('✅ Classification saved - navigating to results screen');
         

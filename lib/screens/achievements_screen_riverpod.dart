@@ -72,7 +72,7 @@ class _AchievementsScreenRiverpodState extends ConsumerState<AchievementsScreenR
     
     return Scaffold(
       appBar: AppBar(
-        title: Text(AppStrings.achievements),
+        title: const Text(AppStrings.achievements),
         bottom: TabBar(
           controller: _tabController,
           tabs: const [

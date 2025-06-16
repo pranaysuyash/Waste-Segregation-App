@@ -11,9 +11,9 @@ extension ColorValues on Color {
         : this.a.toInt();
     return Color.fromARGB(
       a,
-      red ?? this.r.toInt(),
-      green ?? this.g.toInt(),
-      blue ?? this.b.toInt(),
+      red ?? r.toInt(),
+      green ?? g.toInt(),
+      blue ?? b.toInt(),
     );
   }
 }

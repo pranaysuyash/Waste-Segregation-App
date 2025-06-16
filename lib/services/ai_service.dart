@@ -586,7 +586,6 @@ Output:
           imageHash,
           currentClassificationId,
           contentHash: contentHash,
-          thumbnailPath: null, // Web doesn't generate thumbnails yet
         );
         return result;
       } on Exception catch (openAiError) {
@@ -605,7 +604,6 @@ Output:
             imageHash,
             currentClassificationId,
             contentHash: contentHash,
-            thumbnailPath: null, // Web doesn't generate thumbnails yet
           );
           return result;
         }
@@ -1167,7 +1165,6 @@ Output:
           originalClassification.instructionsLang,
           reanalysisModelsTried,
           originalClassification.id,
-          thumbnailPath: null, // Corrections don't generate new thumbnails
         );
         
         // Preserve some original metadata

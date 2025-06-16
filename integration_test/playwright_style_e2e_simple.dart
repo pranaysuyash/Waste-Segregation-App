@@ -141,7 +141,7 @@ void main() {
         await tester.pumpAndSettle(const Duration(seconds: 3));
 
         // 🔄 Rapid navigation test
-        for (int i = 0; i < 3; i++) {
+        for (var i = 0; i < 3; i++) {
           // Navigate through main screens
           final historyText = find.textContaining('History');
           if (historyText.evaluate().isNotEmpty) {

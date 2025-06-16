@@ -182,7 +182,6 @@ class _UltraModernHomeScreenState extends ConsumerState<UltraModernHomeScreen>
     
     return SliverAppBar(
       expandedHeight: 200,
-      floating: false,
       pinned: true,
       backgroundColor: Colors.transparent,
       flexibleSpace: FlexibleSpaceBar(
@@ -683,7 +682,7 @@ class _UltraModernHomeScreenState extends ConsumerState<UltraModernHomeScreen>
                     context,
                     MaterialPageRoute(builder: (context) => const HistoryScreen()),
                   ),
-                  child: Text(AppStrings.viewAll),
+                  child: const Text(AppStrings.viewAll),
                 ),
               ],
             ),
@@ -1053,11 +1052,6 @@ class _UltraModernHomeScreenState extends ConsumerState<UltraModernHomeScreen>
 }
 
 class ActionItem {
-  final String title;
-  final String subtitle;
-  final IconData icon;
-  final Color color;
-  final VoidCallback onTap;
 
   ActionItem({
     required this.title,
@@ -1066,4 +1060,9 @@ class ActionItem {
     required this.color,
     required this.onTap,
   });
+  final String title;
+  final String subtitle;
+  final IconData icon;
+  final Color color;
+  final VoidCallback onTap;
 } 

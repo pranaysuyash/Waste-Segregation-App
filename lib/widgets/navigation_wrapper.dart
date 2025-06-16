@@ -99,7 +99,6 @@ class _MainNavigationWrapperState extends State<MainNavigationWrapper> {
   /// Show points earned popup
   void _showPointsPopup(int delta) {
     final overlay = Overlay.of(context);
-    if (overlay == null) return;
 
     late OverlayEntry entry;
     entry = OverlayEntry(
@@ -124,7 +123,6 @@ class _MainNavigationWrapperState extends State<MainNavigationWrapper> {
   /// Show achievement celebration
   void _showAchievementCelebration(Achievement achievement) {
     final overlay = Overlay.of(context);
-    if (overlay == null) return;
 
     late OverlayEntry entry;
     entry = OverlayEntry(
@@ -533,28 +531,28 @@ class _MainNavigationWrapperState extends State<MainNavigationWrapper> {
                     NavigationBar(
                       selectedIndex: _currentIndex,
                       onDestinationSelected: _onTabTapped,
-                      destinations: [
-                        const NavigationDestination(
+                      destinations: const [
+                        NavigationDestination(
                           icon: Icon(Icons.home_outlined),
                           selectedIcon: Icon(Icons.home),
                           label: 'Home',
                         ),
-                        const NavigationDestination(
+                        NavigationDestination(
                           icon: Icon(Icons.history_outlined),
                           selectedIcon: Icon(Icons.history),
                           label: 'History',
                         ),
-                        const NavigationDestination(
+                        NavigationDestination(
                           icon: Icon(Icons.school_outlined),
                           selectedIcon: Icon(Icons.school),
                           label: 'Learn',
                         ),
-                        const NavigationDestination(
+                        NavigationDestination(
                           icon: Icon(Icons.people_outlined),
                           selectedIcon: Icon(Icons.people),
                           label: 'Social',
                         ),
-                        const NavigationDestination(
+                        NavigationDestination(
                           icon: Icon(Icons.emoji_events_outlined),
                           selectedIcon: Icon(Icons.emoji_events),
                           label: 'Rewards',

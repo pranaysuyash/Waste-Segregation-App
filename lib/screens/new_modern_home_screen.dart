@@ -4,18 +4,11 @@ import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:tutorial_coach_mark/tutorial_coach_mark.dart';
-import 'package:provider/provider.dart' as provider;
 
 import '../utils/constants.dart';
 import '../models/waste_classification.dart';
 import '../models/gamification.dart';
-import '../models/user_profile.dart';
-import '../providers/points_engine_provider.dart';
-import '../providers/points_manager.dart';
 import '../providers/app_providers.dart'; // Import central providers
-import '../services/storage_service.dart';
-import '../services/cloud_storage_service.dart';
-import '../services/gamification_service.dart';
 import '../services/community_service.dart';
 import '../widgets/modern_ui/modern_cards.dart';
 import '../widgets/classification_card.dart';

@@ -21,10 +21,10 @@ void main(List<String> args) {
   final content = file.readAsStringSync();
   final lines = content.split('\n');
   
-  bool hasOverflowIssues = false;
+  var hasOverflowIssues = false;
   final issues = <String>[];
 
-  for (int i = 0; i < lines.length; i++) {
+  for (var i = 0; i < lines.length; i++) {
     final line = lines[i];
     final lineNumber = i + 1;
 
@@ -47,7 +47,7 @@ void main(List<String> args) {
 }
 
 bool _checkForOverflowPatterns(String line, int lineNumber, List<String> issues) {
-  bool foundIssue = false;
+  var foundIssue = false;
 
   // Pattern 1: Fixed width/height without Flexible/Expanded
   if (line.contains(RegExp(r'width:\s*\d+')) && 

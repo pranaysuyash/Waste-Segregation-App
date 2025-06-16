@@ -4,16 +4,6 @@ import '../../utils/app_theme.dart';
 
 /// Enhanced FAB with pulsing animation and modern styling
 class PolishedFAB extends StatefulWidget {
-  final VoidCallback onPressed;
-  final IconData icon;
-  final String? label;
-  final Color? backgroundColor;
-  final Color? foregroundColor;
-  final bool enablePulse;
-  final Duration pulseDuration;
-  final Duration pulseInterval;
-  final bool isExtended;
-  final double? elevation;
 
   const PolishedFAB({
     super.key,
@@ -28,6 +18,16 @@ class PolishedFAB extends StatefulWidget {
     this.isExtended = false,
     this.elevation,
   });
+  final VoidCallback onPressed;
+  final IconData icon;
+  final String? label;
+  final Color? backgroundColor;
+  final Color? foregroundColor;
+  final bool enablePulse;
+  final Duration pulseDuration;
+  final Duration pulseInterval;
+  final bool isExtended;
+  final double? elevation;
 
   @override
   State<PolishedFAB> createState() => _PolishedFABState();
@@ -186,15 +186,6 @@ class _PolishedFABState extends State<PolishedFAB>
 
 /// Enhanced action button with modern styling and micro-interactions
 class PolishedActionButton extends StatefulWidget {
-  final VoidCallback onPressed;
-  final String text;
-  final IconData? icon;
-  final Color? backgroundColor;
-  final Color? foregroundColor;
-  final bool isLoading;
-  final bool isOutlined;
-  final EdgeInsetsGeometry? padding;
-  final BorderRadius? borderRadius;
 
   const PolishedActionButton({
     super.key,
@@ -208,6 +199,15 @@ class PolishedActionButton extends StatefulWidget {
     this.padding,
     this.borderRadius,
   });
+  final VoidCallback onPressed;
+  final String text;
+  final IconData? icon;
+  final Color? backgroundColor;
+  final Color? foregroundColor;
+  final bool isLoading;
+  final bool isOutlined;
+  final EdgeInsetsGeometry? padding;
+  final BorderRadius? borderRadius;
 
   @override
   State<PolishedActionButton> createState() => _PolishedActionButtonState();
