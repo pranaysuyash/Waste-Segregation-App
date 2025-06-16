@@ -404,9 +404,14 @@ Output:
 
     // ✅ OPTIMIZATION: Use singleton instance with error handling
     final File permanentFile;
+    String? thumbnailPath;
     try {
       final permanentPath = await _imageService.saveFilePermanently(imageFile);
       permanentFile = File(permanentPath);
+      
+      // Generate and save thumbnail
+      final imageBytes = await permanentFile.readAsBytes();
+      thumbnailPath = await _imageService.saveThumbnail(imageBytes);
     } catch (e) {
       debugPrint('Failed to save image permanently: $e');
       return WasteClassification.fallback(imageFile.path, id: currentClassificationId);
@@ -448,6 +453,7 @@ Output:
           imageHash,
           currentClassificationId, // Pass the new ID
           contentHash: contentHash, // Pass content hash for caching
+          thumbnailPath: thumbnailPath, // Pass thumbnail path
         );
         return result;
       } on Exception catch (openAiError) {
@@ -466,6 +472,7 @@ Output:
             imageHash,
             currentClassificationId, // Pass the new ID
             contentHash: contentHash, // Pass content hash for caching
+            thumbnailPath: thumbnailPath, // Pass thumbnail path
           );
           return result;
         }
@@ -579,6 +586,7 @@ Output:
           imageHash,
           currentClassificationId,
           contentHash: contentHash,
+          thumbnailPath: null, // Web doesn't generate thumbnails yet
         );
         return result;
       } on Exception catch (openAiError) {
@@ -597,6 +605,7 @@ Output:
             imageHash,
             currentClassificationId,
             contentHash: contentHash,
+            thumbnailPath: null, // Web doesn't generate thumbnails yet
           );
           return result;
         }
@@ -752,6 +761,7 @@ Output:
     String? imageHash,
     String classificationId, {
     String? contentHash,
+    String? thumbnailPath,
   }) async {
     // Compress image if needed
     final compressedBytes = await _compressImageForOpenAI(imageBytes);
@@ -818,6 +828,7 @@ Output:
         language,
         null,
         classificationId,
+        thumbnailPath: thumbnailPath,
       );
       
       // Cache the result if we have a valid hash
@@ -935,6 +946,7 @@ Output:
     String? imageHash,
     String classificationId, {
     String? contentHash,
+    String? thumbnailPath,
   }) async {
     debugPrint('🔄 Using Gemini for analysis...');
     
@@ -1023,6 +1035,7 @@ Output:
           language,
           null,
           classificationId,
+          thumbnailPath: thumbnailPath,
         );
         
         // Cache the result if we have a valid hash
@@ -1154,6 +1167,7 @@ Output:
           originalClassification.instructionsLang,
           reanalysisModelsTried,
           originalClassification.id,
+          thumbnailPath: null, // Corrections don't generate new thumbnails
         );
         
         // Preserve some original metadata
@@ -1190,8 +1204,9 @@ Output:
     String region,
     String? instructionsLang,
     List<String>? reanalysisModelsTried,
-    String? classificationId,
-  ) {
+    String? classificationId, {
+    String? thumbnailPath,
+  }) {
     try {
       if (responseData['choices'] != null && responseData['choices'].isNotEmpty) {
         final choice = responseData['choices'][0];
@@ -1211,6 +1226,7 @@ Output:
               instructionsLang,
               reanalysisModelsTried,
               classificationId,
+              thumbnailPath: thumbnailPath,
             );
           } catch (jsonError) {
             debugPrint('❌ JSON PARSING FAILED: $jsonError');
@@ -1354,8 +1370,9 @@ Output:
     String region,
     String? instructionsLang,
     List<String>? reanalysisModelsTried,
-    String? classificationId,
-  ) {
+    String? classificationId, {
+    String? thumbnailPath,
+  }) {
     try {
       final disposalInstructions = _parseDisposalInstructions(jsonContent['disposalInstructions']);
       final alternatives = _parseAlternatives(jsonContent['alternatives']);
@@ -1428,6 +1445,22 @@ Output:
         imageRelativePath = 'images/$fileName';
       }
 
+      // Extract thumbnail relative path from absolute thumbnail path
+      String? thumbnailRelativePath;
+      if (thumbnailPath != null) {
+        if (thumbnailPath.contains('/thumbnails/')) {
+          final index = thumbnailPath.indexOf('/thumbnails/');
+          thumbnailRelativePath = thumbnailPath.substring(index + 1); // Remove leading slash
+        } else if (thumbnailPath.contains('\\thumbnails\\')) {
+          final index = thumbnailPath.indexOf('\\thumbnails\\');
+          thumbnailRelativePath = thumbnailPath.substring(index + 1).replaceAll('\\', '/');
+        } else if (thumbnailPath.contains('.jpg') || thumbnailPath.contains('.png') || 
+                   thumbnailPath.contains('.jpeg') || thumbnailPath.contains('.webp')) {
+          final fileName = thumbnailPath.split('/').last.split('\\').last;
+          thumbnailRelativePath = 'thumbnails/$fileName';
+        }
+      }
+
       return WasteClassification(
         id: classificationId,
         itemName: itemName,
@@ -1442,6 +1475,7 @@ Output:
         localGuidelinesReference: _safeStringParse(jsonContent['localGuidelinesReference']),
         imageUrl: imagePath,
         imageRelativePath: imageRelativePath,
+        thumbnailRelativePath: thumbnailRelativePath,
         visualFeatures: _parseStringListSafely(jsonContent['visualFeatures']),
         isRecyclable: _parseBool(jsonContent['isRecyclable']),
         isCompostable: _parseBool(jsonContent['isCompostable']),

@@ -4,6 +4,8 @@ import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
+import 'package:image/image.dart' as img;
+import 'package:uuid/uuid.dart';
 
 /// Provides helper methods for saving and loading images across
 /// platforms with basic retry logic for network requests.
@@ -14,6 +16,9 @@ class EnhancedImageService {
 
   /// Directory name for stored images.
   static const _imagesDirName = 'images';
+  
+  /// Directory name for stored thumbnails.
+  static const _thumbnailsDirName = 'thumbnails';
 
   /// Save raw image bytes to a permanent file location and
   /// return the file path. On web platforms, returns a base64 data URL.
@@ -46,7 +51,10 @@ class EnhancedImageService {
     if (!await imagesDir.exists()) {
       await imagesDir.create(recursive: true);
     }
-    final name = fileName ?? '${DateTime.now().millisecondsSinceEpoch}.jpg';
+    // Use UUID for atomic file naming to prevent collisions
+    final id = const Uuid().v4();
+    final extension = fileName != null ? p.extension(fileName) : '.jpg';
+    final name = fileName ?? '$id$extension';
     final file = File(p.join(imagesDir.path, name));
     await file.writeAsBytes(bytes, flush: true);
     return file.path;
@@ -58,6 +66,66 @@ class EnhancedImageService {
     final bytes = await source.readAsBytes();
     final fileName = p.basename(source.path);
     return saveImagePermanently(bytes, fileName: fileName);
+  }
+
+  /// Generate and save a dedicated thumbnail for an image
+  /// 
+  /// This creates a 256px max-edge thumbnail with proper orientation
+  /// and saves it to the thumbnails directory.
+  /// 
+  /// [bytes]: The raw image data
+  /// [baseName]: Optional base name for the thumbnail file
+  /// 
+  /// Returns the absolute path to the saved thumbnail
+  Future<String> saveThumbnail(Uint8List bytes, {String? baseName}) async {
+    if (kIsWeb) {
+      // For web, return a smaller base64 data URL
+      final thumbnailBytes = await _generateThumbnailBytes(bytes);
+      final base64Data = base64Encode(thumbnailBytes);
+      return 'web_thumbnail:data:image/jpeg;base64,$base64Data';
+    }
+
+    final dir = await getApplicationDocumentsDirectory();
+    final thumbnailsDir = Directory(p.join(dir.path, _thumbnailsDirName));
+    if (!await thumbnailsDir.exists()) {
+      await thumbnailsDir.create(recursive: true);
+    }
+
+    // Generate thumbnail bytes
+    final thumbnailBytes = await _generateThumbnailBytes(bytes);
+    
+    // Create unique filename
+    final id = const Uuid().v4();
+    final name = baseName != null 
+        ? '${baseName}_${DateTime.now().millisecondsSinceEpoch}.jpg'
+        : '$id.jpg';
+    
+    final file = File(p.join(thumbnailsDir.path, name));
+    await file.writeAsBytes(thumbnailBytes, flush: true);
+    return file.path;
+  }
+
+  /// Generate thumbnail bytes from image data
+  /// 
+  /// Creates a 256px max-edge thumbnail with proper orientation
+  Future<Uint8List> _generateThumbnailBytes(Uint8List bytes) async {
+    try {
+      final img.Image? raw = img.decodeImage(bytes);
+      if (raw == null) throw Exception('Failed to decode image for thumbnail');
+
+      // Bake orientation to handle EXIF rotation
+      final oriented = img.bakeOrientation(raw);
+      
+      // Keep aspect ratio, max edge = 256px
+      final thumb = img.copyResize(oriented, width: 256);
+      
+      // Encode with good quality for thumbnails
+      return Uint8List.fromList(img.encodeJpg(thumb, quality: 80));
+    } catch (e) {
+      debugPrint('Error generating thumbnail: $e');
+      // Return original bytes if thumbnail generation fails
+      return bytes;
+    }
   }
 
   /// Download a network image with retry logic. Returns the image
