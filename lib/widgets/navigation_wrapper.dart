@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -20,6 +21,9 @@ import '../utils/constants.dart';
 import '../utils/permission_handler.dart';
 import '../models/user_profile.dart';
 import '../models/waste_classification.dart';
+import '../models/gamification.dart';
+import '../widgets/advanced_ui/achievement_celebration.dart';
+import '../providers/points_engine_provider.dart';
 
 /// Main navigation wrapper that manages the bottom navigation and screen switching
 class MainNavigationWrapper extends StatefulWidget {
@@ -42,17 +46,96 @@ class _MainNavigationWrapperState extends State<MainNavigationWrapper> {
   
   // ADD THESE FOR DIRECT CAMERA ACCESS:
   final ImagePicker _imagePicker = ImagePicker();
+  
+  // NEW: Stream subscriptions for points and achievement popups
+  StreamSubscription<int>? _pointsEarnedSub;
+  StreamSubscription<Achievement>? _achievementEarnedSub;
 
   @override
   void initState() {
     super.initState();
     _pageController = PageController(initialPage: _currentIndex);
+    
+    // NEW: Initialize points and achievement listeners
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _initializePopupListeners();
+    });
+  }
+  
+  /// Initialize global popup listeners for points and achievements
+  void _initializePopupListeners() {
+    try {
+      final pointsEngineProvider = Provider.of<PointsEngineProvider>(context, listen: false);
+      final pointsEngine = pointsEngineProvider.pointsEngine;
+      
+      // Listen for points earned events
+      _pointsEarnedSub = pointsEngine.earnedStream.listen((delta) {
+        if (delta > 0 && mounted) {
+          _showPointsPopup(delta);
+        }
+      });
+      
+      // Listen for achievement earned events
+      _achievementEarnedSub = pointsEngine.achievementStream.listen((achievement) {
+        if (mounted) {
+          _showAchievementCelebration(achievement);
+        }
+      });
+      
+      debugPrint('🎮 Global popup listeners initialized');
+    } catch (e) {
+      debugPrint('🔥 Failed to initialize popup listeners: $e');
+    }
   }
 
   @override
   void dispose() {
     _pageController.dispose();
+    _pointsEarnedSub?.cancel();
+    _achievementEarnedSub?.cancel();
     super.dispose();
+  }
+  
+  /// Show points earned popup
+  void _showPointsPopup(int delta) {
+    final overlay = Overlay.of(context);
+    if (overlay == null) return;
+
+    late OverlayEntry entry;
+    entry = OverlayEntry(
+      builder: (_) => Positioned(
+        top: MediaQuery.of(context).padding.top + 50,
+        left: 0,
+        right: 0,
+        child: Center(
+          child: PointsEarnedPopup(
+            points: delta,
+            action: 'scanning waste',
+            onDismiss: () => entry.remove(),
+          ),
+        ),
+      ),
+    );
+
+    overlay.insert(entry);
+    debugPrint('🎮 Showing points popup: +$delta points');
+  }
+  
+  /// Show achievement celebration
+  void _showAchievementCelebration(Achievement achievement) {
+    final overlay = Overlay.of(context);
+    if (overlay == null) return;
+
+    late OverlayEntry entry;
+    entry = OverlayEntry(
+      builder: (_) => AchievementCelebration(
+        achievement: achievement,
+        onDismiss: () => entry.remove(),
+      ),
+    );
+
+    overlay.insert(entry);
+    debugPrint('🏆 Showing achievement celebration: ${achievement.title}');
   }
 
   void _onTabTapped(int index) {
@@ -350,13 +433,8 @@ class _MainNavigationWrapperState extends State<MainNavigationWrapper> {
         adService.showInterstitialAd();
       }
       
-      // Show success message
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Image analyzed successfully!'),
-          backgroundColor: Colors.green,
-        ),
-      );
+      // Success message removed to avoid overlapping with points popup
+      // The points popup will show automatically via the global listener
     }
   }
 

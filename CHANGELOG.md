@@ -1398,6 +1398,40 @@ This release represents a major milestone in app quality, transforming the app i
 
 ## [Unreleased]
 
+### Added
+
+## [2.5.4] - 2025-06-16
+
+### Added
+- **Points and Achievement Popups System**: Comprehensive event-driven popup system for real-time gamification feedback
+  - Global points earned popups ("+X Points!") with smooth animations
+  - Epic achievement celebrations with confetti and 3D badge effects
+  - Event streams in PointsEngine for real-time notifications
+  - Global listeners in MainNavigationWrapper for app-wide coverage
+  - Achievement detection in GamificationService.processClassification()
+  - Riverpod providers for stream access (pointsEarnedProvider, achievementEarnedProvider)
+
+### Fixed
+- **Missing Gamification Feedback**: Users now see immediate visual confirmation when earning points or unlocking achievements
+- **UI Overlap Issues**: Removed competing SnackBar messages to prevent popup conflicts
+- **Achievement Detection Gap**: Newly earned achievements are now detected and celebrated globally
+- **Event Broadcasting**: PointsEngine now properly emits events when points are awarded
+
+### Changed
+- Enhanced PointsEngine with broadcast streams for real-time events
+- Updated MainNavigationWrapper with centralized popup management
+- Improved GamificationService to detect and emit achievement events
+- Streamlined notification system to prevent UI conflicts
+
+### Technical
+- Added StreamController<int> for points earned events
+- Added StreamController<Achievement> for achievement earned events
+- Implemented proper resource cleanup in dispose() methods
+- Added comprehensive error handling for stream operations
+- Maintained backward compatibility with existing Provider pattern
+
+## [2.5.3] - 2025-06-15
+
 ### Fixed
 - **Account Reset/Delete UI Refresh**: Fixed issue where UI still showed old data (points, streaks, history) after account reset/delete operations. Now properly clears cached data and refreshes all providers.
 - **Achievements Page Loading**: Fixed infinite loading issue on achievements page by adding timeout mechanisms, better error handling, and fallback profiles.
