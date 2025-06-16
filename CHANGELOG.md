@@ -2,6 +2,42 @@
 
 All notable changes to the Waste Segregation App will be documented in this file.
 
+## [2.5.3] - 2025-06-16
+
+### 🛡️ **MAJOR: Thumbnail Hardening Patches**
+- **IMPLEMENTED**: Comprehensive thumbnail system hardening for production stability
+- **ADDED**: LRU cache management with 100MB size limit and 4000 file limit
+- **ADDED**: One-shot migration service for existing classifications without thumbnails
+- **ADDED**: Orphaned thumbnail cleanup to reclaim storage space
+- **ENHANCED**: ThumbnailWidget with robust error handling and loading states
+
+### 🔧 **Production Stability Enhancements**
+- **NEW**: Automatic cache maintenance with LRU eviction policy
+- **NEW**: ThumbnailMigrationService for batch thumbnail generation
+- **NEW**: Orphaned file cleanup preventing storage pollution
+- **IMPROVED**: Widget error handling with file existence validation
+- **ADDED**: Progress indicators for network image loading
+
+### 📊 **Cache Management System**
+- **LIMITS**: 100MB maximum thumbnail cache size
+- **LIMITS**: 4000 maximum thumbnail files
+- **POLICY**: LRU eviction maintaining 80% of limits
+- **MAINTENANCE**: Automatic cleanup after each thumbnail save
+- **MONITORING**: Comprehensive logging and statistics
+
+### 🔄 **Migration & Cleanup Integration**
+- **STARTUP**: Thumbnail migration integrated into app initialization
+- **AUTOMATIC**: Cache maintenance triggered after thumbnail creation
+- **MANUAL**: Cleanup methods available for administrative use
+- **BATCH**: Efficient processing of large classification datasets
+
+### 📁 **Files Added/Modified**
+- **NEW**: `lib/services/thumbnail_migration_service.dart` - One-shot migration
+- **UPDATED**: `lib/services/enhanced_image_service.dart` - LRU cache management
+- **UPDATED**: `lib/services/storage_service.dart` - Migration integration
+- **UPDATED**: `lib/widgets/helpers/thumbnail_widget.dart` - Hardened widget
+- **UPDATED**: `lib/main.dart` - Migration startup integration
+
 ## [2.5.2] - 2025-06-16
 
 ### 🖼️ **MAJOR: Thumbnail Cache Improvements & Regression Fixes**

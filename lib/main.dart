@@ -173,6 +173,9 @@ void main() async {
   // Run image path migration
   await storageService.migrateImagePathsToRelative();
   
+  // Migrate existing classifications to generate missing thumbnails
+  await storageService.migrateThumbnails();
+  
   final aiService = AiService();
   final analyticsService = AnalyticsService(storageService);
   final educationalContentAnalyticsService = EducationalContentAnalyticsService();

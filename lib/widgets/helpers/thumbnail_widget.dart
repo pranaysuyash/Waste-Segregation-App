@@ -44,55 +44,97 @@ class ThumbnailWidget extends StatelessWidget {
     // Handle web thumbnail data URLs
     if (path.startsWith('web_thumbnail:')) {
       final dataUrl = path.substring('web_thumbnail:'.length);
-      return Image.network(
-        dataUrl,
-        width: size,
-        height: size,
-        fit: fit,
-        errorBuilder: (context, error, stackTrace) => _buildErrorWidget(context),
-      );
+      return _buildNetworkImage(context, dataUrl);
     }
     
     // Handle web image data URLs
     if (path.startsWith('web_image:')) {
       final dataUrl = path.substring('web_image:'.length);
-      return Image.network(
-        dataUrl,
-        width: size,
-        height: size,
-        fit: fit,
-        errorBuilder: (context, error, stackTrace) => _buildErrorWidget(context),
-      );
+      return _buildNetworkImage(context, dataUrl);
     }
 
     // Handle HTTP/HTTPS URLs
     if (path.startsWith('http://') || path.startsWith('https://')) {
-      return Image.network(
-        path,
-        width: size,
-        height: size,
-        fit: fit,
-        loadingBuilder: (context, child, loadingProgress) {
-          if (loadingProgress == null) return child;
-          return _buildPlaceholder(context);
-        },
-        errorBuilder: (context, error, stackTrace) => _buildErrorWidget(context),
-      );
+      return _buildNetworkImage(context, path);
     }
 
     // Handle local files (mobile platforms)
     if (!kIsWeb) {
-      return Image.file(
-        File(path),
-        width: size,
-        height: size,
-        fit: fit,
-        errorBuilder: (context, error, stackTrace) => _buildErrorWidget(context),
-      );
+      return _buildLocalImage(context, path);
     }
 
     // Fallback for unsupported formats
     return _buildErrorWidget(context);
+  }
+
+  Widget _buildNetworkImage(BuildContext context, String url) {
+    return Image.network(
+      url,
+      width: size,
+      height: size,
+      fit: fit,
+      loadingBuilder: (context, child, loadingProgress) {
+        if (loadingProgress == null) return child;
+        return _buildLoadingWidget(context, loadingProgress);
+      },
+      errorBuilder: (context, error, stackTrace) {
+        debugPrint('Network image error: $error');
+        return _buildErrorWidget(context);
+      },
+    );
+  }
+
+  Widget _buildLocalImage(BuildContext context, String path) {
+    return FutureBuilder<bool>(
+      future: File(path).exists(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return _buildPlaceholder(context);
+        }
+        
+        if (snapshot.hasData && snapshot.data == true) {
+          return Image.file(
+            File(path),
+            width: size,
+            height: size,
+            fit: fit,
+            errorBuilder: (context, error, stackTrace) {
+              debugPrint('Local image error: $error');
+              return _buildErrorWidget(context);
+            },
+          );
+        }
+        
+        // File doesn't exist, show error
+        return _buildErrorWidget(context);
+      },
+    );
+  }
+
+  Widget _buildLoadingWidget(BuildContext context, ImageChunkEvent loadingProgress) {
+    final progress = loadingProgress.expectedTotalBytes != null
+        ? loadingProgress.cumulativeBytesLoaded / loadingProgress.expectedTotalBytes!
+        : null;
+    
+    return Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surfaceVariant,
+        borderRadius: BorderRadius.circular(borderRadius),
+      ),
+      child: Center(
+        child: SizedBox(
+          width: size * 0.3,
+          height: size * 0.3,
+          child: CircularProgressIndicator(
+            value: progress,
+            strokeWidth: 2,
+            color: Theme.of(context).colorScheme.primary,
+          ),
+        ),
+      ),
+    );
   }
 
   Widget _buildPlaceholder(BuildContext context) {
