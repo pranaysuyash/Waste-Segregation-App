@@ -49,6 +49,7 @@ import 'providers/theme_provider.dart';
 import 'providers/points_engine_provider.dart';
 import 'services/cloud_storage_service.dart';
 import 'providers/app_providers.dart'; // Import central providers
+import 'services/firebase_cleanup_service.dart';
 // Removed unused imports: points_manager, points_engine, new_modern_home_screen, routes
 
 // Global Navigator Key for Error Handling
@@ -192,12 +193,18 @@ void main() async {
     if (kDebugMode) {
       debugPrint('Before service initializations');
     }
-    await Future.wait([
-      gamificationService.initGamification(),
-      premiumService.initialize(),
-      adService.initialize(),
-      communityService.initCommunity(),
-    ]);
+    // If a fresh install was just performed, skip the auto-syncing initializations.
+    if (!FirebaseCleanupService.didPerformFreshInstall) {
+      await Future.wait([
+        gamificationService.initGamification(),
+        premiumService.initialize(),
+        adService.initialize(),
+        communityService.initCommunity(),
+      ]);
+    } else {
+      debugPrint('🚫 SKIPPING automatic service initialization due to fresh install.');
+    }
+    
     if (kDebugMode) {
       debugPrint('After service initializations');
     }
