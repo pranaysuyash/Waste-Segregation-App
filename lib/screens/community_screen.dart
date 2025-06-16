@@ -437,7 +437,7 @@ class _CommunityScreenState extends State<CommunityScreen> with TickerProviderSt
                         ),
                       ],
                     ),
-                  );
+                  ),
                         ],
                       );
                     }
