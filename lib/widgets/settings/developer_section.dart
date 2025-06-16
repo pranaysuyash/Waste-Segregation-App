@@ -188,6 +188,17 @@ class DeveloperSection extends StatelessWidget {
         
         const SizedBox(height: 8),
         
+        // Direct Firebase clear (no dialogs)
+        _buildDangerButton(
+          context,
+          icon: Icons.delete_forever,
+          label: 'Direct Firebase Clear (No Dialogs)',
+          color: Colors.purple,
+          onPressed: () => _performDirectFirebaseCleanup(context),
+        ),
+        
+        const SizedBox(height: 8),
+        
         // Migration button for updating old classifications
         _buildDangerButton(
           context,
@@ -353,6 +364,30 @@ class DeveloperSection extends StatelessWidget {
         SettingsTheme.showErrorSnackBar(
           context,
           'Firebase cleanup failed: ${e.toString()}',
+        );
+      }
+    }
+  }
+
+  Future<void> _performDirectFirebaseCleanup(BuildContext context) async {
+    debugPrint('🔥 Direct Firebase cleanup initiated (no dialogs)');
+    
+    try {
+      final cleanupService = FirebaseCleanupService();
+      await cleanupService.clearAllDataForFreshInstall();
+      
+      if (context.mounted) {
+        SettingsTheme.showSuccessSnackBar(
+          context,
+          'Direct Firebase clear completed - Check logs for details',
+        );
+      }
+    } catch (e) {
+      debugPrint('❌ Direct Firebase cleanup failed: $e');
+      if (context.mounted) {
+        SettingsTheme.showErrorSnackBar(
+          context,
+          'Direct Firebase cleanup failed: ${e.toString()}',
         );
       }
     }
