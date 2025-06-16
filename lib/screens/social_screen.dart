@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'dart:io';
 import 'community_screen.dart';
 import 'family_dashboard_screen.dart';
+import '../utils/constants.dart';
 
 class SocialScreen extends StatefulWidget {
   const SocialScreen({super.key});
@@ -45,14 +46,14 @@ class _SocialScreenState extends State<SocialScreen> {
             ? FloatingActionButton.extended(
                 onPressed: () => setState(() => _currentIndex = 1),
                 icon: const Icon(Icons.family_restroom),
-                label: const Text('Family'),
+                label: const Text(AppStrings.family),
                 backgroundColor: Theme.of(context).colorScheme.secondary,
                 elevation: 6,
               ) 
             : FloatingActionButton.extended(
                 onPressed: () => setState(() => _currentIndex = 0),
                 icon: const Icon(Icons.people),
-                label: const Text('Community'),
+                label: const Text(AppStrings.community),
                 backgroundColor: Theme.of(context).colorScheme.secondary,
                 elevation: 6,
               ),
