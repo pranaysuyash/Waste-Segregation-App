@@ -20,6 +20,7 @@ import '../services/community_service.dart';
 import '../widgets/modern_ui/modern_cards.dart';
 import '../widgets/classification_card.dart';
 import '../widgets/advanced_ui/achievement_celebration.dart';
+import '../widgets/home_header.dart';
 import 'image_capture_screen.dart';
 import 'instant_analysis_screen.dart';
 import 'history_screen.dart';
@@ -624,8 +625,8 @@ class HomeTab extends ConsumerWidget {
     return ListView(
       padding: const EdgeInsets.all(AppTheme.spacingMd),
       children: [
-        // Welcome section with user stats
-        _buildWelcomeSection(context, profileAsync, ref),
+        // NEW: Lean header with personalization and micro-interactions
+        const HomeHeader(),
         const SizedBox(height: AppTheme.spacingLg),
         
         // Quick actions with beautiful cards
@@ -645,127 +646,9 @@ class HomeTab extends ConsumerWidget {
     );
   }
 
-  Widget _buildWelcomeSection(BuildContext context, AsyncValue<GamificationProfile?> profileAsync, WidgetRef ref) {
-    return profileAsync.when(
-      data: (profile) => ModernCard(
-        gradient: LinearGradient(
-          colors: [
-            AppTheme.primaryColor.withValues(alpha: 0.8),
-            AppTheme.primaryColor.withValues(alpha: 0.6),
-          ],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Welcome back!',
-                        style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(height: AppTheme.spacingXs),
-                      Text(
-                        'Ready to make a difference today?',
-                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: Colors.white.withValues(alpha: 0.9),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.2),
-                    borderRadius: BorderRadius.circular(AppTheme.borderRadiusMd),
-                  ),
-                  child: const Icon(
-                    Icons.eco,
-                    color: Colors.white,
-                    size: AppTheme.iconSizeLg,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: AppTheme.spacingMd),
-            Row(
-              children: [
-                                 _buildPointsChip(context, ref),
-                 const SizedBox(width: AppTheme.spacingMd),
-                 _buildStatChip('${profile?.streaks[StreakType.dailyClassification.toString()]?.currentCount ?? 0}', 'Day Streak', Icons.local_fire_department),
-              ],
-            ),
-          ],
-        ),
-      ),
-      loading: () => const ModernCard(
-        child: Center(child: CircularProgressIndicator()),
-      ),
-      error: (_, __) => const ModernCard(
-        child: Text('Error loading profile'),
-      ),
-    );
-  }
+  // REMOVED: _buildWelcomeSection - replaced with lean HomeHeader widget
 
-  Widget _buildPointsChip(BuildContext context, WidgetRef ref) {
-    // Use new unified PointsManager as the single source of truth
-    final pointsAsync = ref.watch(pointsManagerProvider);
-    
-    return pointsAsync.when(
-      data: (points) => _buildStatChip('${points.total}', 'Points', Icons.stars),
-      loading: () => _buildStatChip('...', 'Points', Icons.stars),
-      error: (_, __) => _buildStatChip('0', 'Points', Icons.stars),
-    );
-  }
-
-  Widget _buildStatChip(String value, String label, IconData icon) {
-    return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppTheme.spacingMd,
-        vertical: AppTheme.spacingSm,
-      ),
-      decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.2),
-        borderRadius: BorderRadius.circular(AppTheme.borderRadiusSm),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, color: Colors.white, size: 16),
-          const SizedBox(width: AppTheme.spacingXs),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                value,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 16,
-                ),
-              ),
-              Text(
-                label,
-                style: TextStyle(
-                  color: Colors.white.withValues(alpha: 0.8),
-                  fontSize: 12,
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
+  // REMOVED: _buildPointsChip and _buildStatChip - functionality moved to HomeHeader widget
 
   Widget _buildQuickActionsSection(BuildContext context) {
     return Column(
