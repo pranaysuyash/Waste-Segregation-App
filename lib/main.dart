@@ -125,13 +125,7 @@ void main() async {
       // Continue without Firestore - app can still function
     }
     
-    // --- Crashlytics test: Remove after verification ---
-    await FirebaseCrashlytics.instance.recordError(
-      Exception('Test non-fatal error from Flutter!'),
-      StackTrace.current,
-      reason: 'Crashlytics integration test',
-    );
-    // --- End test ---
+    // Crashlytics is ready for error reporting
   } catch (e) {
     if (kDebugMode) {
       debugPrint('Failed to initialize Firebase: $e');
@@ -170,11 +164,17 @@ void main() async {
   // Create enhanced storage service instance
   final storageService = EnhancedStorageService();
   
-  // Run image path migration
-  await storageService.migrateImagePathsToRelative();
-  
-  // Migrate existing classifications to generate missing thumbnails
-  await storageService.migrateThumbnails();
+  // Run migration tasks with error handling
+  try {
+    // Run image path migration
+    await storageService.migrateImagePathsToRelative();
+    
+    // Migrate existing classifications to generate missing thumbnails
+    await storageService.migrateThumbnails();
+  } catch (e) {
+    debugPrint('Migration error (non-critical): $e');
+    // Continue with app initialization even if migrations fail
+  }
   
   final aiService = AiService();
   final analyticsService = AnalyticsService(storageService);
