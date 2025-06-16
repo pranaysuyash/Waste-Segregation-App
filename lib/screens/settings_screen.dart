@@ -1933,23 +1933,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 
                 if (context.mounted) {
                   Navigator.pop(context); // Close loading dialog
-                  
+                  // Immediately navigate to AuthScreen to force full UI reset
+                  Navigator.of(context).pushAndRemoveUntil(
+                    MaterialPageRoute(builder: (_) => const AuthScreen()),
+                    (Route<dynamic> route) => false,
+                  );
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
-                      content: Text('✅ All data cleared. Please restart the app for a fresh start.'),
+                      content: Text('✅ All data cleared. Please sign in or create a new account.'),
                       backgroundColor: Colors.green,
                       duration: Duration(seconds: 4),
                     ),
                   );
-
-                  await Future.delayed(const Duration(seconds: 2));
-
-                  if (context.mounted) {
-                      Navigator.of(context).pushAndRemoveUntil(
-                        MaterialPageRoute(builder: (_) => const AuthScreen()),
-                        (Route<dynamic> route) => false,
-                      );
-                  }
                 }
               } catch (e) {
                 if (context.mounted) {
