@@ -1400,6 +1400,28 @@ This release represents a major milestone in app quality, transforming the app i
 
 ### Added
 
+## [2.0.2] - 2025-06-16
+
+### Fixed
+- **CRITICAL**: Fixed Firebase data clearing functionality that was showing "done" but leaving data intact
+  - Fixed Hive box name mismatches in FirebaseCleanupService (was using wrong box names)
+  - Implemented proper SharedPreferences clearing for user-specific data
+  - Added file system cleanup for temporary files and caches
+  - Added verification system to confirm clearing success
+  - Improved user feedback with detailed success/error messages
+  - Enhanced console logging for debugging clearing issues
+- Points display issue where 805 points remained after clearing (now properly clears gamificationBox)
+- Classification history persistence after clearing (now properly clears classificationsBox)
+- User sign-in state persistence after clearing (now properly signs out)
+
+### Improved
+- Firebase cleanup service now uses StorageKeys constants instead of hardcoded strings
+- Better error handling and reporting for data clearing operations
+- Enhanced verification system checks all storage systems after clearing
+- Preserved app-level settings (theme, language) while clearing user data
+
+### Added
+
 ## [2.5.5] - 2025-06-16
 
 ### Added
