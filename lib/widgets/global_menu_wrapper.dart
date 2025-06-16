@@ -10,11 +10,25 @@ class GlobalMenuWrapper extends StatelessWidget {
     return Stack(
       children: [
         child,
-        const SafeArea(
-          minimum: EdgeInsets.all(8.0),
+        // Position global menu with improved styling to reduce visual conflicts
+        SafeArea(
+          minimum: const EdgeInsets.all(12.0),
           child: Align(
             alignment: Alignment.topRight,
-            child: GlobalSettingsMenu(),
+            child: Container(
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.9),
+                borderRadius: BorderRadius.circular(20),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.1),
+                    blurRadius: 4,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: const GlobalSettingsMenu(),
+            ),
           ),
         ),
       ],
