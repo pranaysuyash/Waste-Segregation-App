@@ -351,7 +351,7 @@ class DeveloperSection extends StatelessWidget {
   Future<void> _performFirebaseCleanup(BuildContext context) async {
     try {
       final cleanupService = FirebaseCleanupService();
-      await cleanupService.clearAllDataForFreshInstall();
+      await cleanupService.ultimateFactoryReset();
       
       if (context.mounted) {
         // TODO(i18n): Localize success message
@@ -376,7 +376,7 @@ class DeveloperSection extends StatelessWidget {
     
     try {
       final cleanupService = FirebaseCleanupService();
-      await cleanupService.clearAllDataForFreshInstall();
+      await cleanupService.ultimateFactoryReset();
       
       if (context.mounted) {
         SettingsTheme.showSuccessSnackBar(
