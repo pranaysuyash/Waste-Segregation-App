@@ -211,7 +211,7 @@ class _UltraModernHomeScreenState extends ConsumerState<UltraModernHomeScreen>
                         children: [
                           userProfileAsync.when(
                             data: (userProfile) {
-                              final firstName = userProfile?.displayName?.split(' ').first ?? 'Eco-hero';
+                              final firstName = userProfile?.displayName?.split(' ').first ?? AppStrings.ecoHero;
                               return Text(
                                 '$greeting, $firstName!',
                                 style: GoogleFonts.inter(
@@ -225,7 +225,7 @@ class _UltraModernHomeScreenState extends ConsumerState<UltraModernHomeScreen>
                               );
                             },
                             loading: () => Text(
-                              '$greeting, Eco-hero!',
+                              '$greeting, ${AppStrings.ecoHero}!',
                               style: GoogleFonts.inter(
                                 fontSize: AppTheme.fontSizeLarge,
                                 fontWeight: FontWeight.bold,
@@ -236,7 +236,7 @@ class _UltraModernHomeScreenState extends ConsumerState<UltraModernHomeScreen>
                               overflow: TextOverflow.ellipsis,
                             ),
                             error: (_, __) => Text(
-                              '$greeting, Eco-hero!',
+                              '$greeting, ${AppStrings.ecoHero}!',
                               style: GoogleFonts.inter(
                                 fontSize: AppTheme.fontSizeLarge,
                                 fontWeight: FontWeight.bold,
@@ -286,11 +286,11 @@ class _UltraModernHomeScreenState extends ConsumerState<UltraModernHomeScreen>
                     profileAsync.when(
                       data: (profile) => _buildStatChip(
                         '${profile?.streaks[StreakType.dailyClassification.toString()]?.currentCount ?? 0}',
-                        'Streak',
+                        AppStrings.streak,
                         Icons.local_fire_department,
                       ),
-                      loading: () => _buildStatChip('...', 'Streak', Icons.local_fire_department),
-                      error: (_, __) => _buildStatChip('0', 'Streak', Icons.local_fire_department),
+                      loading: () => _buildStatChip('...', AppStrings.streak, Icons.local_fire_department),
+                      error: (_, __) => _buildStatChip('0', AppStrings.streak, Icons.local_fire_department),
                     ),
                     const SizedBox(width: 8),
                     Expanded(
@@ -310,9 +310,9 @@ class _UltraModernHomeScreenState extends ConsumerState<UltraModernHomeScreen>
     final pointsAsync = ref.watch(pointsManagerProvider);
     
     return pointsAsync.when(
-      data: (points) => _buildStatChip('${points.total}', 'Points', Icons.stars),
-      loading: () => _buildStatChip('...', 'Points', Icons.stars),
-      error: (_, __) => _buildStatChip('0', 'Points', Icons.stars),
+      data: (points) => _buildStatChip('${points.total}', AppStrings.points, Icons.stars),
+      loading: () => _buildStatChip('...', AppStrings.points, Icons.stars),
+      error: (_, __) => _buildStatChip('0', AppStrings.points, Icons.stars),
     );
   }
 
@@ -413,29 +413,29 @@ class _UltraModernHomeScreenState extends ConsumerState<UltraModernHomeScreen>
   List<ActionItem> _getActionItems() {
     return [
       ActionItem(
-        title: 'Take Photo',
-        subtitle: 'Review & analyze',
+        title: AppStrings.takePhoto,
+        subtitle: AppStrings.reviewAnalyze,
         icon: Icons.camera_alt,
         color: const Color(0xFF2196F3),
         onTap: () => _takePhoto(),
       ),
       ActionItem(
-        title: 'Upload Image',
-        subtitle: 'From gallery',
+        title: AppStrings.uploadImage,
+        subtitle: AppStrings.fromGallery,
         icon: Icons.photo_library,
         color: const Color(0xFF4CAF50),
         onTap: () => _pickImage(),
       ),
       ActionItem(
-        title: 'Instant Camera',
-        subtitle: 'Auto-analyze',
+        title: AppStrings.instantCamera,
+        subtitle: AppStrings.autoAnalyze,
         icon: Icons.flash_on,
         color: const Color(0xFFFF9800),
         onTap: () => _takePhotoInstant(),
       ),
       ActionItem(
-        title: 'Instant Upload',
-        subtitle: 'Auto-analyze',
+        title: AppStrings.instantUpload,
+        subtitle: AppStrings.autoAnalyze,
         icon: Icons.bolt,
         color: const Color(0xFF9C27B0),
         onTap: () => _pickImageInstant(),
@@ -670,7 +670,7 @@ class _UltraModernHomeScreenState extends ConsumerState<UltraModernHomeScreen>
               children: [
                 Expanded(
                   child: Text(
-                    'Recent Classifications',
+                    AppStrings.recentClassifications,
                     style: GoogleFonts.inter(
                       fontSize: 24,
                       fontWeight: FontWeight.bold,
@@ -683,7 +683,7 @@ class _UltraModernHomeScreenState extends ConsumerState<UltraModernHomeScreen>
                     context,
                     MaterialPageRoute(builder: (context) => const HistoryScreen()),
                   ),
-                  child: const Text('View All'),
+                  child: Text(AppStrings.viewAll),
                 ),
               ],
             ),
@@ -783,7 +783,7 @@ class _UltraModernHomeScreenState extends ConsumerState<UltraModernHomeScreen>
           ),
           const SizedBox(height: 16),
           Text(
-            'Start Your Journey',
+            AppStrings.startYourJourney,
             style: GoogleFonts.inter(
               fontSize: 20,
               fontWeight: FontWeight.bold,
@@ -792,7 +792,7 @@ class _UltraModernHomeScreenState extends ConsumerState<UltraModernHomeScreen>
           ),
           const SizedBox(height: 8),
           Text(
-            'Take your first photo to begin making a positive environmental impact!',
+            AppStrings.takeFirstPhoto,
             style: GoogleFonts.inter(
               color: Theme.of(context).colorScheme.onSurfaceVariant,
             ),
@@ -850,10 +850,10 @@ class _UltraModernHomeScreenState extends ConsumerState<UltraModernHomeScreen>
         await _navigateToImageCapture(image);
       }
     } catch (e) {
-      debugPrint('Error taking photo: $e');
+      debugPrint('${AppStrings.errorTakingPhoto}: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error taking photo: $e')),
+          SnackBar(content: Text('${AppStrings.errorTakingPhoto}: $e')),
         );
       }
     } finally {
@@ -877,10 +877,10 @@ class _UltraModernHomeScreenState extends ConsumerState<UltraModernHomeScreen>
         await _navigateToImageCapture(image);
       }
     } catch (e) {
-      debugPrint('Error picking image: $e');
+      debugPrint('${AppStrings.errorPickingImage}: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error picking image: $e')),
+          SnackBar(content: Text('${AppStrings.errorPickingImage}: $e')),
         );
       }
     } finally {
@@ -904,10 +904,10 @@ class _UltraModernHomeScreenState extends ConsumerState<UltraModernHomeScreen>
         await _navigateToInstantAnalysis(image);
       }
     } catch (e) {
-      debugPrint('Error taking photo: $e');
+      debugPrint('${AppStrings.errorTakingPhoto}: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error taking photo: $e')),
+          SnackBar(content: Text('${AppStrings.errorTakingPhoto}: $e')),
         );
       }
     } finally {
@@ -931,10 +931,10 @@ class _UltraModernHomeScreenState extends ConsumerState<UltraModernHomeScreen>
         await _navigateToInstantAnalysis(image);
       }
     } catch (e) {
-      debugPrint('Error picking image: $e');
+      debugPrint('${AppStrings.errorPickingImage}: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error picking image: $e')),
+          SnackBar(content: Text('${AppStrings.errorPickingImage}: $e')),
         );
       }
     } finally {
@@ -993,13 +993,13 @@ class _UltraModernHomeScreenState extends ConsumerState<UltraModernHomeScreen>
   String _getPersonalizedGreeting(String phase) {
     switch (phase) {
       case 'morning':
-        return 'Good morning';
+        return AppStrings.goodMorning;
       case 'afternoon':
-        return 'Good afternoon';
+        return AppStrings.goodAfternoon;
       case 'evening':
-        return 'Good evening';
+        return AppStrings.goodEvening;
       case 'night':
-        return 'Good evening';
+        return AppStrings.goodEvening;
       default:
         return 'Welcome back';
     }
@@ -1008,15 +1008,15 @@ class _UltraModernHomeScreenState extends ConsumerState<UltraModernHomeScreen>
   String _getMotivationalMessage(String phase) {
     switch (phase) {
       case 'morning':
-        return 'Start your day with sustainable choices!';
+        return AppStrings.keepGoingChampion;
       case 'afternoon':
-        return 'Keep up the great eco-work!';
+        return AppStrings.energyToday;
       case 'evening':
-        return 'Wind down with mindful waste sorting';
+        return AppStrings.excellentProgress;
       case 'night':
-        return 'Every small action counts for tomorrow';
+        return AppStrings.nightOwlEco;
       default:
-        return 'Ready to make a difference today?';
+        return AppStrings.makingDifference;
     }
   }
 

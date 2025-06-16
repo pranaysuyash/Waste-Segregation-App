@@ -72,13 +72,13 @@ class _AchievementsScreenRiverpodState extends ConsumerState<AchievementsScreenR
     
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Achievements'), // TODO: Localize
+        title: Text(AppStrings.achievements),
         bottom: TabBar(
           controller: _tabController,
           tabs: const [
-            Tab(text: 'Badges'), // TODO: Localize
-            Tab(text: 'Challenges'), // TODO: Localize
-            Tab(text: 'Stats'), // TODO: Localize
+            Tab(text: AppStrings.badges),
+            Tab(text: AppStrings.challenges),
+            Tab(text: AppStrings.stats),
           ],
         ),
       ),
@@ -163,7 +163,7 @@ class _StatsOverview extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Your Progress', // TODO: Localize
+                AppStrings.progress,
                 style: context.textTheme.titleLarge,
               ),
               const SizedBox(height: AppTheme.spacingSm),
@@ -171,17 +171,17 @@ class _StatsOverview extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: [
                   _StatItem(
-                    label: 'Earned', // TODO: Localize
+                    label: 'Earned',
                     value: '${stats.earned}',
                     color: context.colorScheme.primary,
                   ),
                   _StatItem(
-                    label: 'Claimable', // TODO: Localize
+                    label: 'Claimable',
                     value: '${stats.claimable}',
                     color: context.colorScheme.secondary,
                   ),
                   _StatItem(
-                    label: 'Total Points', // TODO: Localize
+                    label: 'Total ${AppStrings.points}',
                     value: '${stats.totalPoints}',
                     color: context.colorScheme.tertiary,
                   ),
@@ -195,7 +195,7 @@ class _StatsOverview extends StatelessWidget {
               ),
               const SizedBox(height: AppTheme.spacingXs),
               Text(
-                '${stats.completionPercentage}% Complete', // TODO: Localize
+                '${stats.completionPercentage}% ${AppStrings.complete}',
                 style: context.textTheme.bodySmall,
               ),
             ],
@@ -370,7 +370,7 @@ class _AchievementCard extends ConsumerWidget {
                         backgroundColor: context.colorScheme.primary,
                         foregroundColor: context.colorScheme.onPrimary,
                       ),
-                      child: const Text('Claim'), // TODO: Localize
+                      child: const Text('Claim'),
                     ),
                   ),
               ],
@@ -418,7 +418,7 @@ class _ChallengesTab extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return const Center(
-      child: Text('Challenges coming soon!'), // TODO: Implement and localize
+      child: Text('${AppStrings.challenges} coming soon!'),
     );
   }
 }
@@ -428,7 +428,7 @@ class _StatsTab extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return const Center(
-      child: Text('Detailed stats coming soon!'), // TODO: Implement and localize
+      child: Text('Detailed ${AppStrings.stats} coming soon!'),
     );
   }
 }
@@ -447,7 +447,7 @@ class _ErrorView extends StatelessWidget {
   Widget build(BuildContext context) {
     final errorMessage = error is AppException 
         ? (error as AppException).message 
-        : 'An unexpected error occurred'; // TODO: Localize
+        : AppStrings.errorGeneral;
 
     return Center(
       child: Padding(
@@ -462,7 +462,7 @@ class _ErrorView extends StatelessWidget {
             ),
             const SizedBox(height: AppTheme.spacingMd),
             Text(
-              'Failed to load achievements', // TODO: Localize
+              'Failed to load ${AppStrings.achievements}',
               style: context.textTheme.titleLarge,
               textAlign: TextAlign.center,
             ),
@@ -476,7 +476,7 @@ class _ErrorView extends StatelessWidget {
             ElevatedButton.icon(
               onPressed: onRetry,
               icon: const Icon(Icons.refresh),
-              label: const Text('Retry'), // TODO: Localize
+              label: const Text('Retry'),
             ),
           ],
         ),
