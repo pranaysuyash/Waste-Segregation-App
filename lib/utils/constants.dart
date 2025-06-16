@@ -393,6 +393,23 @@ class AppStrings {
   // Error messages
   static const String errorTakingPhoto = 'Error taking photo';
   static const String errorPickingImage = 'Error picking image';
+  
+  // Educational Content Screen
+  static const String articles = 'Articles';
+  static const String videos = 'Videos';
+  static const String infographics = 'Infographics';
+  static const String quizzes = 'Quizzes';
+  static const String tutorials = 'Tutorials';
+  static const String tips = 'Tips';
+  static const String searchContent = 'Search content...';
+  static const String noContentFound = 'No content found';
+  static const String premium = 'Premium';
+  static const String allCategories = 'All';
+  static const String filterByCategory = 'Filter by category';
+  
+  // Social Screen
+  static const String family = 'Family';
+  static const String community = 'Community';
 }
 
 // Material Icons constants

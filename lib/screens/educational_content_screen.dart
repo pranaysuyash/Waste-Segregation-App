@@ -44,7 +44,7 @@ class _EducationalContentScreenState extends State<EducationalContentScreen>
     for (final content in allContent) {
       categorySet.addAll(content.categories);
     }
-    _allCategories = ['All', ...categorySet.toList()..sort()];
+    _allCategories = [AppStrings.allCategories, ...categorySet.toList()..sort()];
 
     if (widget.initialCategory != null) {
       final categoryContent =
@@ -117,12 +117,12 @@ class _EducationalContentScreenState extends State<EducationalContentScreen>
           controller: _tabController,
           isScrollable: true,
           tabs: const [
-            Tab(text: 'Articles', icon: Icon(Icons.article)),
-            Tab(text: 'Videos', icon: Icon(Icons.video_library)),
-            Tab(text: 'Infographics', icon: Icon(Icons.image)),
-            Tab(text: 'Quizzes', icon: Icon(Icons.quiz)),
-            Tab(text: 'Tutorials', icon: Icon(Icons.menu_book)),
-            Tab(text: 'Tips', icon: Icon(Icons.lightbulb_outline)),
+            Tab(text: AppStrings.articles, icon: Icon(Icons.article)),
+            Tab(text: AppStrings.videos, icon: Icon(Icons.video_library)),
+            Tab(text: AppStrings.infographics, icon: Icon(Icons.image)),
+            Tab(text: AppStrings.quizzes, icon: Icon(Icons.quiz)),
+            Tab(text: AppStrings.tutorials, icon: Icon(Icons.menu_book)),
+            Tab(text: AppStrings.tips, icon: Icon(Icons.lightbulb_outline)),
           ],
           onTap: (_) {
             setState(() {});
@@ -190,7 +190,7 @@ class _EducationalContentScreenState extends State<EducationalContentScreen>
                     if (filteredContent.isEmpty) {
                       return const Center(
                         child: ContentDiscoveryWidget(
-                          child: Text('No content found'),
+                          child: Text(AppStrings.noContentFound),
                         ),
                       );
                     }
@@ -302,7 +302,7 @@ class _EducationalContentScreenState extends State<EducationalContentScreen>
                           ),
                           SizedBox(width: 4),
                           Text(
-                            'Premium',
+                            AppStrings.premium,
                             style: TextStyle(
                               color: Colors.white,
                               fontSize: 12,
