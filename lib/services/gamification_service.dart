@@ -552,8 +552,8 @@ class GamificationService extends ChangeNotifier {
     // This will call the new saveProfile, which updates UserProfile and syncs
     await saveProfile(profile.copyWith(points: newPoints)); 
     
-    // Update weekly stats (if this logic is still separate)
-    await _updateWeeklyStats(action, category, pointsToAdd);
+    // NOTE: Weekly stats are now synced via syncWeeklyStatsWithClassifications()
+    // which recalculates from actual classification data, no need for incremental updates
     
     debugPrint('✨ Points added: $pointsToAdd for $action. New total: $newTotal. Level: $newLevel');
     return newPoints;
@@ -1916,8 +1916,11 @@ class GamificationService extends ChangeNotifier {
           );
         }
         
-        // Calculate points (10 points per classification)
-        final pointsEarned = weekClassifications.length * 10;
+        // Calculate points from actual classifications or default to 10 per item
+        var pointsEarned = 0;
+        for (final classification in weekClassifications) {
+          pointsEarned += classification.pointsAwarded ?? 10;
+        }
         
         // Calculate streak for this week (simplified - max consecutive days)
         final weekDays = <DateTime>{};

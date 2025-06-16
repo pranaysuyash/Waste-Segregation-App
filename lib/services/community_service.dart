@@ -97,6 +97,9 @@ class CommunityService {
 
   // Record classification - now writes to Firestore
   Future<void> recordClassification(WasteClassification classification, UserProfile user) async {
+    // Use consistent points from PointsEngine standard (10 per classification)
+    const standardClassificationPoints = 10;
+    
     final item = CommunityFeedItem(
       id: classification.id,
       userId: user.id,
@@ -105,7 +108,7 @@ class CommunityService {
       title: 'New Scan!',
       description: 'Scanned a ${classification.itemName} (${classification.category})',
       timestamp: classification.timestamp,
-      points: classification.pointsAwarded ?? 10,
+      points: classification.pointsAwarded ?? standardClassificationPoints,
       metadata: {'category': classification.category},
     );
     await addFeedItem(item);

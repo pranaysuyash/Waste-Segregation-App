@@ -1499,6 +1499,9 @@ Output:
         processingTimeMs: _parseInt(jsonContent['processingTimeMs']),
         analysisSessionId: _safeStringParse(jsonContent['analysisSessionId']),
         disagreementReason: _safeStringParse(jsonContent['disagreementReason']),
+        pointsAwarded: _parseInt(jsonContent['pointsAwarded']) ?? 10, // Standard points for classification
+        environmentalImpact: _safeStringParse(jsonContent['environmentalImpact']),
+        relatedItems: _parseStringListSafely(jsonContent['relatedItems']),
         source: 'ai_analysis',
         reanalysisModelsTried: reanalysisModelsTried,
       );
