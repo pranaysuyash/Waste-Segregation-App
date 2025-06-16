@@ -12,6 +12,24 @@ class ImageUtils {
   static const int defaultTargetWidth = 300;
   static const int defaultTargetHeight = 300;
 
+  /// Normalizes image bytes by stripping EXIF data and baking orientation
+  /// This ensures consistent hashing regardless of camera orientation
+  static Future<Uint8List> _normalizedBytes(Uint8List bytes) async {
+    try {
+      final img.Image? raw = img.decodeImage(bytes);
+      if (raw == null) return bytes;
+      
+      // Bake orientation to strip EXIF rotation data
+      final img.Image fixed = img.bakeOrientation(raw);
+      
+      // Re-encode with consistent quality
+      return Uint8List.fromList(img.encodeJpg(fixed, quality: 95));
+    } catch (e) {
+      debugPrint('Error normalizing image bytes: $e');
+      return bytes; // Return original if normalization fails
+    }
+  }
+
   /// Generates both perceptual and content hashes efficiently in isolate
   ///
   /// This method computes both hashes in a single isolate call to minimize
@@ -22,15 +40,18 @@ class ImageUtils {
   /// Returns a Map with 'perceptualHash' and 'contentHash' keys
   static Future<Map<String, String>> generateDualHashes(Uint8List imageBytes) async {
     try {
+      // Normalize bytes first for consistent hashing
+      final normalizedBytes = await _normalizedBytes(imageBytes);
+      
       // Use compute for better performance and to avoid blocking UI thread
-      final result = await compute(_generateDualHashesIsolate, imageBytes);
+      final result = await compute(_generateDualHashesIsolate, normalizedBytes);
       return result;
     } catch (e) {
       debugPrint('Error generating dual hashes: $e');
-      // Fallback to individual hash generation
+      // Fallback to individual hash generation with original bytes
       return {
         'perceptualHash': await generateImageHash(imageBytes),
-        'contentHash': generateContentHash(imageBytes),
+        'contentHash': await generateContentHash(imageBytes),
       };
     }
   }
@@ -106,10 +127,11 @@ class ImageUtils {
     }
   }
 
-  /// Generates a perceptual hash of the image data
+  /// Generates a perceptual hash of the normalized image data
   ///
   /// This method creates a consistent identifier for visually similar images,
   /// making it robust to small variations in camera position, lighting, etc.
+  /// Uses normalized bytes to ensure consistent hashing across orientations.
   ///
   /// [imageBytes]: The raw image data as Uint8List
   /// [normalize]: Whether to normalize the image before hashing (recommended)
@@ -120,9 +142,12 @@ class ImageUtils {
     bool normalize = true,
   }) async {
     try {
+      // Normalize bytes first for consistent hashing
+      final normalizedBytes = await _normalizedBytes(imageBytes);
+      
       // Preprocess the image (smaller size and grayscale for consistent hashing)
       final processedBytes = await preprocessImage(
-        imageBytes,
+        normalizedBytes,
         targetWidth: 32, // Much smaller size for perceptual hashing
         targetHeight: 32, // Small square image
         applyStrongerBlur: true, // Apply stronger blur to reduce noise
@@ -157,18 +182,20 @@ class ImageUtils {
     }
   }
 
-  /// Generates a content hash (MD5) of the raw image data
+  /// Generates a content hash (MD5) of the normalized image data
   ///
-  /// This method creates an exact fingerprint of the image bytes,
+  /// This method creates an exact fingerprint of the normalized image bytes,
   /// used for precise duplicate detection in dual-hash verification.
-  /// Unlike perceptual hashes, this will only match identical images.
+  /// Uses normalized bytes to ensure consistent hashing across orientations.
   ///
   /// [imageBytes]: The raw image data as Uint8List
   ///
   /// Returns a String representation of the MD5 hash
-  static String generateContentHash(Uint8List imageBytes) {
+  static Future<String> generateContentHash(Uint8List imageBytes) async {
     try {
-      final digest = md5.convert(imageBytes);
+      // Normalize bytes first for consistent hashing
+      final normalizedBytes = await _normalizedBytes(imageBytes);
+      final digest = md5.convert(normalizedBytes);
       return 'md5_${digest.toString()}';
     } catch (e) {
       debugPrint('Error generating content hash: $e');
