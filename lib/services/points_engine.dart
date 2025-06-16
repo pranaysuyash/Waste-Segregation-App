@@ -19,6 +19,16 @@ class PointsEngine extends ChangeNotifier {
   bool _isUpdating = false;
   final List<Completer<void>> _pendingOperations = [];
 
+  // NEW: Streams for real-time events
+  final _earnedController = StreamController<int>.broadcast();
+  final _achievementController = StreamController<Achievement>.broadcast();
+  
+  Stream<int> get earnedStream => _earnedController.stream;
+  Stream<Achievement> get achievementStream => _achievementController.stream;
+  
+  /// Internal access to achievement controller for GamificationService
+  StreamController<Achievement> get achievementController => _achievementController;
+
   /// Get current profile (cached or fresh)
   GamificationProfile? get currentProfile => _cachedProfile;
 
@@ -74,6 +84,9 @@ class PointsEngine extends ChangeNotifier {
       // Update profile
       final updatedProfile = profile.copyWith(points: newPoints);
       await _saveProfile(updatedProfile);
+      
+      // NEW: Emit earned points event for popups
+      _earnedController.add(pointsToAdd);
       
       // Log the operation
       debugPrint('✨ PointsEngine: Added $pointsToAdd points for $action. New total: ${newPoints.total}');
@@ -363,4 +376,12 @@ class PointsEngine extends ChangeNotifier {
 
   /// Get current level (convenience method)
   int get currentLevel => _cachedProfile?.points.level ?? 1;
+
+  /// Dispose of resources
+  @override
+  void dispose() {
+    _earnedController.close();
+    _achievementController.close();
+    super.dispose();
+  }
 } 

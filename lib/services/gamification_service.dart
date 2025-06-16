@@ -670,11 +670,17 @@ class GamificationService extends ChangeNotifier {
   // Returns a list of completed challenges
   Future<List<Challenge>> processClassification(WasteClassification classification) async {
     debugPrint('🎮 [DEBUG] processClassification called for: \\${classification.itemName}');
+    
+    // Get profile before making changes to detect newly earned achievements
+    final profileBefore = await getProfile();
+    final oldEarnedIds = profileBefore.achievements
+        .where((a) => a.isEarned)
+        .map((a) => a.id)
+        .toSet();
+    
     await addPoints('classification', category: classification.category);
     debugPrint('🎮 [DEBUG] processClassification complete');
     
-    // Get profile before making changes
-    final profileBefore = await getProfile();
     final categoriesBeforeCount = profileBefore.points.categoryPoints.keys.length;
     
     // Update waste identification achievements
@@ -697,6 +703,18 @@ class GamificationService extends ChangeNotifier {
       );
     } else {
       debugPrint('🎮 EXISTING CATEGORY: ${classification.category}');
+    }
+    
+    // NEW: Check for newly earned achievements and emit them
+    final finalProfile = await getProfile();
+    final newlyEarned = finalProfile.achievements
+        .where((a) => a.isEarned && !oldEarnedIds.contains(a.id))
+        .toList();
+    
+    if (newlyEarned.isNotEmpty) {
+      debugPrint('🏆 NEW ACHIEVEMENTS EARNED: ${newlyEarned.map((a) => a.title).join(', ')}');
+      // Emit the first newly earned achievement through PointsEngine
+      _pointsEngine.achievementController.add(newlyEarned.first);
     }
     
     // Update active challenges
