@@ -1400,6 +1400,23 @@ This release represents a major milestone in app quality, transforming the app i
 
 ### Added
 
+## [2.0.3] - 2025-06-16
+
+### Fixed
+- **CRITICAL**: Fixed Firebase data clearing modal dismissal and Firestore precondition errors
+  - Fixed Firestore clearing sequence: disable network → clear persistence → re-enable network
+  - Fixed modal dismissal flow: close dialog → show success → navigate to auth screen
+  - Fixed SharedPreferences clearing to use `prefs.clear()` for complete reset
+  - Fixed Hive box deletion to use proper `Hive.close()` then `deleteBoxFromDisk()` sequence
+  - Added proper error handling for Firestore precondition failures
+  - Enhanced navigation flow with proper context mounting checks
+
+### Improved
+- Loading dialog now properly dismisses after clearing operations complete
+- Success/error messages are more user-friendly and actionable
+- Firestore network is guaranteed to re-enable even if clearing fails
+- Complete reset now truly clears ALL local data (no ghost data remains)
+
 ## [2.0.2] - 2025-06-16
 
 ### Fixed

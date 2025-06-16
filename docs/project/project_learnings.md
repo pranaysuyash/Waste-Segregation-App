@@ -2,11 +2,36 @@
 
 This document captures key technical learnings, issues, and solutions discovered during the development and release process of WasteWise. Updated continuously with the most critical insights for future development.
 
-_Last updated: May 24, 2025_
+_Last updated: June 16, 2025_
 
 ## 🔥 CRITICAL LEARNINGS (Recent)
 
-### 1. **Play Store App Signing & Google Sign-In** ⭐ **NEW**
+### 1. **Firebase Data Clearing & Modal Dismissal** ⭐ **NEW** (June 16, 2025)
+   - **Issue**: Firebase clearing showed "done" but data remained, modal stuck open
+   - **Root Causes**: 
+     - Firestore `clearPersistence()` called while network enabled → `failed-precondition` error
+     - Hive `box.clear()` only clears memory, not disk files → data persists after restart
+     - Modal dismissal flow not properly sequenced → UI stuck in loading state
+   - **Critical Solutions**:
+     ```dart
+     // ✅ CORRECT Firestore clearing sequence
+     await firestore.disableNetwork();     // 1️⃣ Disable first
+     await firestore.clearPersistence();   // 2️⃣ Clear cache
+     await firestore.enableNetwork();      // 3️⃣ Re-enable (in finally)
+     
+     // ✅ CORRECT Hive complete deletion
+     await Hive.close();                   // 1️⃣ Close all boxes
+     await Hive.deleteBoxFromDisk(name);   // 2️⃣ Delete files from disk
+     
+     // ✅ CORRECT modal dismissal flow
+     Navigator.pop(context);               // 1️⃣ Close dialog
+     ScaffoldMessenger.showSnackBar(...);  // 2️⃣ Show success
+     await Future.delayed(...);           // 3️⃣ Wait for user
+     Navigator.pushAndRemoveUntil(...);    // 4️⃣ Navigate
+     ```
+   - **Learning**: **Data clearing requires specific sequences - network state, disk deletion, and UI flow**
+
+### 2. **Play Store App Signing & Google Sign-In** ⭐
    - **Issue**: `PlatformException(sign_in_failed, error code: 10)` when app deployed to Play Store
    - **Root Cause**: Play Store App Signing creates new certificate, SHA-1 not in Firebase
    - **Critical Learning**: **ALWAYS add Play App Signing SHA-1 to Firebase before internal testing**
@@ -15,7 +40,7 @@ _Last updated: May 24, 2025_
    - **Impact**: Affects ALL apps using Google Sign-In on Play Store
    - **Time to fix**: 10 minutes, but CRITICAL for launch
 
-### 2. **State Management During Build Cycles** 
+### 3. **State Management During Build Cycles** 
    - **Issue**: `setState() or markNeedsBuild() called during build` causing cascading crashes
    - **Root Cause**: Direct `notifyListeners()` calls in Provider during widget build
    - **Solution**: Use `WidgetsBinding.instance.addPostFrameCallback()` for state updates
@@ -31,7 +56,7 @@ _Last updated: May 24, 2025_
      ```
    - **Learning**: **Never call state updates directly during build phase**
 
-### 3. **Collection Safety Patterns**
+### 4. **Collection Safety Patterns**
    - **Issue**: `Bad state: No element` exceptions from `.first`, `.last`, `.single`
    - **Root Cause**: Assuming collections always have elements
    - **Solution**: Comprehensive SafeCollectionUtils with extension methods
@@ -48,7 +73,7 @@ _Last updated: May 24, 2025_
      ```
    - **Learning**: **Always assume collections might be empty**
 
-### 4. **Persistent Points Feedback for Gamification**
+### 5. **Persistent Points Feedback for Gamification**
    - **Issue**: Popup-only feedback for points can be missed by users or testers, making validation difficult
    - **Solution**: Add a persistent card/banner on the result screen showing points awarded for each classification, in addition to the popup
    - **Learning**: Always provide both immediate (popup) and persistent (card) feedback for gamification points to maximize transparency, user trust, and ease of QA
