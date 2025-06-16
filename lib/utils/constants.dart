@@ -349,6 +349,50 @@ class AppStrings {
   static const String progress = 'Progress';
   static const String viewAll = 'View All';
   static const String completeChallenge = 'Complete Challenge';
+  
+  // Home Screen specific strings
+  static const String ecoHero = 'Eco-hero';
+  static const String takePhoto = 'Take Photo';
+  static const String reviewAnalyze = 'Review & analyze';
+  static const String fromGallery = 'From gallery';
+  static const String instantCamera = 'Instant Camera';
+  static const String autoAnalyze = 'Auto-analyze';
+  static const String instantUpload = 'Instant Upload';
+  static const String recentClassifications = 'Recent Classifications';
+  static const String startYourJourney = 'Start Your Journey';
+  static const String takeFirstPhoto = 'Take your first photo to begin making a positive environmental impact!';
+  static const String streak = 'Streak';
+  static const String complete = 'Complete';
+  
+  // Time-based greetings
+  static const String goodMorning = 'Good morning';
+  static const String goodAfternoon = 'Good afternoon';
+  static const String goodEvening = 'Good evening';
+  
+  // Motivational messages
+  static const String keepGoingChampion = 'Keep going, champion! 🌍';
+  static const String energyToday = 'Bringing that energy today! ⚡';
+  static const String excellentProgress = 'Excellent progress so far! 🌟';
+  static const String makingDifference = 'You\'re making a difference! 🌱';
+  static const String amazingWork = 'Amazing work today! 🎯';
+  static const String nightOwlEco = 'Night owl eco-warrior! 🦉';
+  
+  // Date strings
+  static const String today = 'Today';
+  static const String yesterday = 'Yesterday';
+  static const String daysAgo = 'days ago';
+  
+  // User placeholders
+  static const String guestUser = 'Guest';
+  static const String defaultUserName = 'Eco-warrior';
+  
+  // Empty states
+  static const String noClassificationsYet = 'No classifications yet';
+  static const String startByCapturingImage = 'Start by capturing an image!';
+  
+  // Error messages
+  static const String errorTakingPhoto = 'Error taking photo';
+  static const String errorPickingImage = 'Error picking image';
 }
 
 // Material Icons constants
