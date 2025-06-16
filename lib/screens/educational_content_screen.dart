@@ -1,14 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/educational_content.dart';
-import '../services/educational_content_service.dart';
-import '../services/ad_service.dart';
+import '../providers/app_providers.dart';
 import '../utils/constants.dart';
 import '../widgets/banner_ad_widget.dart';
 import '../widgets/animations/educational_animations.dart';
 import 'content_detail_screen.dart';
 
-class EducationalContentScreen extends StatefulWidget {
+class EducationalContentScreen extends ConsumerStatefulWidget {
 
   const EducationalContentScreen({
     super.key,
@@ -19,11 +18,11 @@ class EducationalContentScreen extends StatefulWidget {
   final String? initialSubcategory;
 
   @override
-  State<EducationalContentScreen> createState() =>
+  ConsumerState<EducationalContentScreen> createState() =>
       _EducationalContentScreenState();
 }
 
-class _EducationalContentScreenState extends State<EducationalContentScreen>
+class _EducationalContentScreenState extends ConsumerState<EducationalContentScreen>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
   String _searchQuery = '';
@@ -37,8 +36,7 @@ class _EducationalContentScreenState extends State<EducationalContentScreen>
     _tabController = TabController(length: 6, vsync: this);
     _selectedCategory = widget.initialCategory;
 
-    final educationalService =
-        Provider.of<EducationalContentService>(context, listen: false);
+    final educationalService = ref.read(educationalContentServiceProvider);
     final allContent = educationalService.getAllContent();
     final categorySet = <String>{};
     for (final content in allContent) {
@@ -80,7 +78,7 @@ class _EducationalContentScreenState extends State<EducationalContentScreen>
   }
 
   List<EducationalContent> _getFilteredContent(BuildContext context) {
-    final educationalService = Provider.of<EducationalContentService>(context);
+    final educationalService = ref.watch(educationalContentServiceProvider);
     var filteredContent = <EducationalContent>[];
     final contentType = ContentType.values[_tabController.index];
     filteredContent = educationalService.getContentByType(contentType);
@@ -105,7 +103,7 @@ class _EducationalContentScreenState extends State<EducationalContentScreen>
 
   @override
   Widget build(BuildContext context) {
-    final adService = Provider.of<AdService>(context, listen: false);
+    final adService = ref.read(adServiceProvider);
     adService.setInClassificationFlow(false);
     adService.setInEducationalContent(true);
     adService.setInSettings(false);

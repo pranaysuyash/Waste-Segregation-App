@@ -1,17 +1,18 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'dart:io';
 import 'community_screen.dart';
 import 'family_dashboard_screen.dart';
 import '../utils/constants.dart';
 
-class SocialScreen extends StatefulWidget {
+class SocialScreen extends ConsumerStatefulWidget {
   const SocialScreen({super.key});
 
   @override
-  State<SocialScreen> createState() => _SocialScreenState();
+  ConsumerState<SocialScreen> createState() => _SocialScreenState();
 }
 
-class _SocialScreenState extends State<SocialScreen> {
+class _SocialScreenState extends ConsumerState<SocialScreen> {
   int _currentIndex = 0;
   // Offset to keep the FAB above the bottom navigation bar
   static const double _fabBottomOffset = 72.0; // 56 nav bar height + 16 padding
