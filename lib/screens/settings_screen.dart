@@ -1941,7 +1941,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               
               try {
                 final cleanupService = FirebaseCleanupService();
-                await cleanupService.clearAllDataForFreshInstall();
+                await cleanupService.ultimateFactoryReset();
                 
                 if (context.mounted && !isCancelled) {
                   // 1️⃣ Close the loading dialog first

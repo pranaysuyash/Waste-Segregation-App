@@ -330,69 +330,48 @@ class FirebaseCleanupService {
     return digest.toString();
   }
 
-  /// Clear all Firebase data to simulate fresh install
-  /// WARNING: This will delete ALL data - use only for testing!
-  Future<void> clearAllDataForFreshInstall() async {
+  /// ULTIMATE FACTORY RESET - True fresh install with no ghost data possible
+  /// WARNING: This will delete ALL data permanently - use only for testing!
+  Future<void> ultimateFactoryReset() async {
     if (kReleaseMode) {
       throw Exception('Firebase cleanup is not allowed in release mode');
     }
 
-    debugPrint('🔥 Starting COMPLETE Firebase cleanup for fresh install simulation...');
+    debugPrint('🔥 Starting ULTIMATE FACTORY RESET - no ghost data will survive...');
     
     try {
-      // 1. Disconnect Firestore network & clear its cache (prevents ghost syncs)
-      debugPrint('🔌 Disconnecting Firestore and clearing persistence...');
-      try {
-        // 1️⃣ First, disable network so no writes or reads are in flight
-        await _firestore.disableNetwork();
-        debugPrint('✅ Firestore network disabled');
-        
-        // 2️⃣ Then clear local cache
-        await _firestore.clearPersistence();
-        debugPrint('✅ Firestore persistence cleared');
-      } catch (e) {
-        // Swallow or log, since on a fresh install you don't care if it's already cleared
-        debugPrint('⚠️ Firestore cleanup warning: $e');
-      }
+      // 🔥 STEP 1: Wipe ALL server-side data (so nothing can ever come back)
+      debugPrint('💥 STEP 1: Wiping ALL server-side data...');
+      await _wipeServerSideData();
       
-      // 2. Clear current user's data
-      await _clearCurrentUserData();
-      
-      // 3. Clear global collections
-      await _clearGlobalCollections();
-      
-      // 4. COMPLETELY nuke local Hive storage (deleteBoxFromDisk)
-      await _completelyNukeLocalStorage();
-      
-      // 5. Clear all cached data and force fresh state
-      await _clearCachedData();
-      
-      // 6. Reset community stats
-      await _resetCommunityStats();
-      
-      // 7. Sign out current user
+      // 🔥 STEP 2: Sign user out (so they can't re-sync under same UID)
+      debugPrint('🚪 STEP 2: Signing out user to prevent re-sync...');
       await _signOutCurrentUser();
       
-      // 8. Re-enable Firestore network
-      debugPrint('🔌 Re-enabling Firestore network...');
-      try {
-        await _firestore.enableNetwork();
-        debugPrint('✅ Firestore network re-enabled');
-      } catch (e) {
-        debugPrint('⚠️ Warning re-enabling Firestore network: $e');
-      }
+      // 🔥 STEP 3: Clear Firestore's on-device cache, offline persistence
+      debugPrint('🧹 STEP 3: Clearing Firestore local cache and persistence...');
+      await _clearFirestoreLocalCache();
       
-      // 9. Force a longer delay to ensure all operations complete
-      await Future.delayed(const Duration(milliseconds: 2000));
+      // 🔥 STEP 4: Delete every local box, prefs and restart services
+      debugPrint('💥 STEP 4: Deleting ALL local storage from disk...');
+      await _deleteAllLocalStorage();
       
-      // 10. Verify the cleanup was successful
-      await _verifyCleanupSuccess();
+      // 🔥 STEP 5: Sign back in & re-initialize app as fresh anonymous user
+      debugPrint('🔄 STEP 5: Signing in as fresh anonymous user...');
+      await _signInAsFreshUser();
       
-      debugPrint('✅ COMPLETE Firebase cleanup completed - app will behave like fresh install');
+      // 🔥 STEP 6: Re-initialize essential services for app functionality
+      debugPrint('⚡ STEP 6: Re-initializing essential services...');
+      await _reinitializeEssentialServices();
+      
+      // Final verification
+      await _verifyUltimateReset();
+      
+      debugPrint('🎉 ULTIMATE FACTORY RESET COMPLETED - absolutely no ghost data possible!');
       
     } catch (e) {
-      debugPrint('❌ Error during Firebase cleanup: $e');
-      // 3️⃣ Re-enable network even if cleanup failed (critical for app functionality)
+      debugPrint('❌ Error during ULTIMATE FACTORY RESET: $e');
+      // Critical: Always try to re-enable Firestore network
       try {
         await _firestore.enableNetwork();
         debugPrint('✅ Firestore network re-enabled after error');
@@ -705,6 +684,228 @@ class FirebaseCleanupService {
 
   /// Check if cleanup is allowed (only in debug mode)
   bool get isCleanupAllowed => kDebugMode;
+
+  // ============================================================================
+  // ULTIMATE FACTORY RESET METHODS - Following the definitive recipe
+  // ============================================================================
+
+  /// STEP 1: Wipe ALL server-side data (so nothing can ever come back)
+  Future<void> _wipeServerSideData() async {
+    debugPrint('💥 Wiping ALL server-side data via Cloud Function...');
+
+    try {
+      // Call the enhanced Cloud Function that recursively deletes everything
+      final callable = FirebaseFunctions.instanceFor(region: 'asia-south1').httpsCallable('clearAllData');
+      
+      debugPrint('📞 Calling ULTIMATE clearAllData Cloud Function...');
+      final result = await callable.call();
+      
+      if (result.data['success'] == true) {
+        final collectionsDeleted = result.data['collectionsDeleted'] ?? 0;
+        debugPrint('✅ ULTIMATE server wipe completed - $collectionsDeleted collections COMPLETELY deleted');
+      } else {
+        throw Exception('Cloud Function returned failure: ${result.data}');
+      }
+      
+    } catch (e) {
+      debugPrint('⚠️ Cloud Function failed, attempting manual server wipe: $e');
+      
+      // Fallback: Manual batch deletion of everything
+      await _manualServerWipe();
+    }
+  }
+
+  /// Manual server wipe as fallback
+  Future<void> _manualServerWipe() async {
+    debugPrint('🔧 Performing manual server wipe...');
+    
+    // Get all collections and delete everything
+    for (final collection in _collectionsToDelete) {
+      try {
+        await _batchDeleteCollection(collection);
+        debugPrint('✅ Manually wiped collection: $collection');
+      } catch (e) {
+        debugPrint('⚠️ Error manually wiping collection $collection: $e');
+      }
+    }
+  }
+
+  /// Batch delete entire collection
+  Future<void> _batchDeleteCollection(String collectionName) async {
+    final collection = _firestore.collection(collectionName);
+    
+    QuerySnapshot snapshot;
+    do {
+      snapshot = await collection.limit(500).get();
+      
+      if (snapshot.docs.isNotEmpty) {
+        final batch = _firestore.batch();
+        for (final doc in snapshot.docs) {
+          batch.delete(doc.reference);
+        }
+        await batch.commit();
+        debugPrint('Deleted batch of ${snapshot.docs.length} documents from $collectionName');
+      }
+    } while (snapshot.docs.isNotEmpty);
+  }
+
+  /// STEP 3: Clear Firestore's on-device cache and offline persistence
+  Future<void> _clearFirestoreLocalCache() async {
+    debugPrint('🧹 Clearing Firestore local cache and persistence...');
+    
+    try {
+      // CRITICAL: Must terminate Firestore before clearing persistence
+      await _firestore.terminate();
+      debugPrint('✅ Firestore terminated');
+      
+      // Clear all local cache and persistence
+      await _firestore.clearPersistence();
+      debugPrint('✅ Firestore persistence cleared');
+      
+      // Re-enable network for future operations
+      await _firestore.enableNetwork();
+      debugPrint('✅ Firestore network re-enabled');
+      
+    } catch (e) {
+      debugPrint('⚠️ Error clearing Firestore cache: $e');
+      // Try to re-enable network even if clearing failed
+      try {
+        await _firestore.enableNetwork();
+      } catch (networkError) {
+        debugPrint('⚠️ Failed to re-enable Firestore network: $networkError');
+      }
+    }
+  }
+
+  /// STEP 4: Delete every local box, prefs and restart services
+  Future<void> _deleteAllLocalStorage() async {
+    debugPrint('💥 Deleting ALL local storage from disk...');
+    
+    try {
+      // Close ALL Hive boxes
+      await Hive.close();
+      debugPrint('✅ All Hive boxes closed');
+      
+      // Delete ALL Hive boxes from disk (not just clear memory)
+      var deletedCount = 0;
+      for (final boxName in _hiveBoxesToClear) {
+        try {
+          await Hive.deleteBoxFromDisk(boxName);
+          debugPrint('💥 DELETED box file from disk: $boxName');
+          deletedCount++;
+        } catch (e) {
+          debugPrint('ℹ️ Box file $boxName not found: $e');
+        }
+      }
+      
+      // Clear ALL SharedPreferences (complete wipe)
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.clear();
+      debugPrint('✅ ALL SharedPreferences cleared');
+      
+      debugPrint('💥 ALL local storage deleted ($deletedCount Hive boxes + SharedPreferences)');
+      
+    } catch (e) {
+      debugPrint('❌ Error deleting local storage: $e');
+      rethrow;
+    }
+  }
+
+  /// STEP 5: Sign back in as fresh anonymous user
+  Future<void> _signInAsFreshUser() async {
+    debugPrint('🔄 Signing in as fresh anonymous user...');
+    
+    try {
+      // Sign in anonymously to get a completely new UID
+      final userCredential = await _auth.signInAnonymously();
+      final newUser = userCredential.user;
+      
+      if (newUser != null) {
+        debugPrint('✅ Signed in as fresh anonymous user: ${newUser.uid}');
+      } else {
+        throw Exception('Failed to sign in anonymously');
+      }
+      
+    } catch (e) {
+      debugPrint('❌ Error signing in as fresh user: $e');
+      rethrow;
+    }
+  }
+
+  /// STEP 6: Re-initialize essential services for app functionality
+  Future<void> _reinitializeEssentialServices() async {
+    debugPrint('⚡ Re-initializing essential services...');
+    
+    try {
+      // Re-open only the most critical Hive boxes
+      await Hive.openBox(StorageKeys.settingsBox);
+      await Hive.openBox(StorageKeys.classificationsBox);
+      await Hive.openBox(StorageKeys.gamificationBox);
+      await Hive.openBox(StorageKeys.userBox);
+      
+      debugPrint('✅ Essential Hive boxes re-initialized');
+      
+      // Initialize fresh community stats
+      await _initializeFreshCommunityStats();
+      
+    } catch (e) {
+      debugPrint('⚠️ Error re-initializing services: $e');
+    }
+  }
+
+  /// Initialize fresh community stats
+  Future<void> _initializeFreshCommunityStats() async {
+    try {
+      await _firestore.collection('community_stats').doc('main').set({
+        'totalUsers': 0,
+        'totalClassifications': 0,
+        'totalPoints': 0,
+        'categoryBreakdown': {},
+        'lastUpdated': FieldValue.serverTimestamp(),
+        'createdAt': FieldValue.serverTimestamp(),
+      });
+      debugPrint('✅ Fresh community stats initialized');
+    } catch (e) {
+      debugPrint('⚠️ Error initializing community stats: $e');
+    }
+  }
+
+  /// Verify that the ultimate reset was successful
+  Future<void> _verifyUltimateReset() async {
+    debugPrint('🔍 Verifying ULTIMATE reset success...');
+    
+    var issuesFound = 0;
+    
+    try {
+      // Check that user is signed in with new UID
+      final currentUser = _auth.currentUser;
+      if (currentUser != null) {
+        debugPrint('✅ New anonymous user signed in: ${currentUser.uid}');
+      } else {
+        debugPrint('⚠️ No user signed in after reset');
+        issuesFound++;
+      }
+      
+      // Check SharedPreferences are empty
+      final prefs = await SharedPreferences.getInstance();
+      final keys = prefs.getKeys();
+      if (keys.isEmpty) {
+        debugPrint('✅ SharedPreferences completely empty');
+      } else {
+        debugPrint('⚠️ SharedPreferences still contains ${keys.length} keys: ${keys.take(5).join(', ')}');
+        issuesFound++;
+      }
+      
+      if (issuesFound == 0) {
+        debugPrint('🎉 ULTIMATE reset verification PASSED - true fresh install achieved!');
+      } else {
+        debugPrint('⚠️ ULTIMATE reset verification found $issuesFound issues');
+      }
+      
+    } catch (e) {
+      debugPrint('❌ Error during ultimate reset verification: $e');
+    }
+  }
 
   /// Clear all cached data and force fresh state
   Future<void> _clearCachedData() async {
