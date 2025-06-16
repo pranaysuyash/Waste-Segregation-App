@@ -253,6 +253,7 @@ class NewModernHomeScreenState extends ConsumerState<NewModernHomeScreen>
     return Scaffold(
       body: Stack(
         children: [
+          // Main content column
           Column(
             children: [
               // Connectivity banner
@@ -264,8 +265,8 @@ class NewModernHomeScreenState extends ConsumerState<NewModernHomeScreen>
                 error: (_, __) => const SizedBox.shrink(),
               ),
               
-              // Main content
-              Expanded(
+              // Main content - remove Expanded and use Flexible instead
+              Flexible(
                 child: FadeTransition(
                   opacity: _fadeAnimation,
                   child: SlideTransition(

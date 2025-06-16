@@ -180,7 +180,7 @@ class _EducationalContentScreenState extends ConsumerState<EducationalContentScr
                   ],
                 ),
               ),
-              Expanded(
+              Flexible(
                 child: TabBarView(
                   controller: _tabController,
                   children: ContentType.values.map((contentType) {

@@ -338,13 +338,13 @@ class DeveloperSection extends StatelessWidget {
   Future<void> _performFirebaseCleanup(BuildContext context) async {
     try {
       final cleanupService = FirebaseCleanupService();
-             // await cleanupService.performComprehensiveCleanup(); // TODO: Check correct method name
+      await cleanupService.clearAllDataForFreshInstall();
       
       if (context.mounted) {
         // TODO(i18n): Localize success message
         SettingsTheme.showSuccessSnackBar(
           context,
-          'Firebase data cleared successfully',
+          'Firebase data cleared successfully - App will behave like fresh install',
         );
       }
     } catch (e) {
