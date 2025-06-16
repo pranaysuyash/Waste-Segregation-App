@@ -30,7 +30,6 @@ import 'notification_settings_screen.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import '../services/cloud_storage_service.dart';
 import '../services/firebase_cleanup_service.dart';
-import '../widgets/settings/developer_section.dart';
 
 
 class SettingsScreen extends StatefulWidget {
@@ -1106,9 +1105,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
               onTap: () => _rateApp(context),
             ),
           ),
-
-          // Developer Section (only visible in debug mode)
-          DeveloperSection(showDeveloperOptions: _showDeveloperOptions),
 
           const SizedBox(height: 16),
         ],
