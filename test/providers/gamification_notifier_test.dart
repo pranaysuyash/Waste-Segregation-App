@@ -4,12 +4,12 @@ import 'package:mockito/mockito.dart';
 import 'package:mockito/annotations.dart';
 import 'package:flutter/material.dart';
 
-import '../../lib/models/gamification.dart';
-import '../../lib/providers/gamification_notifier.dart';
-import '../../lib/providers/gamification_repository.dart';
-import '../../lib/services/storage_service.dart';
-import '../../lib/services/cloud_storage_service.dart';
-import '../../lib/utils/constants.dart';
+import 'package:waste_segregation_app/models/gamification.dart';
+import 'package:waste_segregation_app/providers/gamification_notifier.dart';
+import 'package:waste_segregation_app/providers/gamification_repository.dart';
+import 'package:waste_segregation_app/services/storage_service.dart';
+import 'package:waste_segregation_app/services/cloud_storage_service.dart';
+import 'package:waste_segregation_app/utils/constants.dart';
 
 // Generate mocks
 @GenerateMocks([
