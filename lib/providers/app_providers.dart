@@ -4,6 +4,8 @@ import '../services/storage_service.dart';
 import '../services/cloud_storage_service.dart';
 import '../services/gamification_service.dart';
 import '../services/points_engine.dart';
+import '../services/educational_content_service.dart';
+import '../services/ad_service.dart';
 import '../models/gamification.dart';
 import '../models/user_profile.dart';
 
@@ -80,4 +82,10 @@ final userProfileProvider = FutureProvider<UserProfile?>((ref) async {
     debugPrint('Error loading user profile: $e');
     return null;
   }
-}); 
+});
+
+/// Educational content service provider - single source of truth
+final educationalContentServiceProvider = Provider<EducationalContentService>((ref) => EducationalContentService());
+
+/// Ad service provider - single source of truth  
+final adServiceProvider = Provider<AdService>((ref) => AdService()); 
