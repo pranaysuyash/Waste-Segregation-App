@@ -9,7 +9,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart' show kIsWeb, kDebugMode;
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:firebase_performance/firebase_performance.dart';
-// Removed unused imports: hive_flutter, shared_preferences, path_provider, connectivity_plus, package_info_plus
+import 'package:shared_preferences/shared_preferences.dart';
+// Removed unused imports: hive_flutter, path_provider, connectivity_plus, package_info_plus
 
 import 'firebase_options.dart';
 import 'services/ai_service.dart';
@@ -193,18 +194,20 @@ void main() async {
     if (kDebugMode) {
       debugPrint('Before service initializations');
     }
-    // If a fresh install was just performed, skip the auto-syncing initializations.
-    if (!FirebaseCleanupService.didPerformFreshInstall) {
+    // Check persistent fresh install flag before any sync/service init
+    final prefs = await SharedPreferences.getInstance();
+    final justDidFreshInstall = prefs.getBool('justDidFreshInstall') ?? false;
+    if (justDidFreshInstall) {
+      debugPrint('🚫 SKIPPING automatic service initialization due to fresh install (persistent flag).');
+      await prefs.setBool('justDidFreshInstall', false); // Reset for next launch
+    } else {
       await Future.wait([
         gamificationService.initGamification(),
         premiumService.initialize(),
         adService.initialize(),
         communityService.initCommunity(),
       ]);
-    } else {
-      debugPrint('🚫 SKIPPING automatic service initialization due to fresh install.');
     }
-    
     if (kDebugMode) {
       debugPrint('After service initializations');
     }

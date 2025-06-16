@@ -74,7 +74,9 @@ class FirebaseCleanupService {
       await user.delete();
       debugPrint('✅ User account deleted from Firebase Auth.');
 
-      // 5. Set flag to prevent immediate re-sync
+      // 5. Set persistent flag to prevent immediate re-sync on next launch
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setBool('justDidFreshInstall', true);
       didPerformFreshInstall = true;
       debugPrint('✅ Fresh install process completed successfully.');
 
