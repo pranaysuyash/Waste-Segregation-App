@@ -16,11 +16,11 @@ class ImageUtils {
   /// This ensures consistent hashing regardless of camera orientation
   static Future<Uint8List> _normalizedBytes(Uint8List bytes) async {
     try {
-      final img.Image? raw = img.decodeImage(bytes);
+      final raw = img.decodeImage(bytes);
       if (raw == null) return bytes;
       
       // Bake orientation to strip EXIF rotation data
-      final img.Image fixed = img.bakeOrientation(raw);
+      final fixed = img.bakeOrientation(raw);
       
       // Re-encode with consistent quality
       return Uint8List.fromList(img.encodeJpg(fixed, quality: 95));

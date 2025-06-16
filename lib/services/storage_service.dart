@@ -1213,9 +1213,9 @@ class StorageService {
       debugPrint('🔄 Starting image path migration...');
       
       final classifications = await getAllClassifications();
-      bool hasChanges = false;
+      var hasChanges = false;
       
-      for (int i = 0; i < classifications.length; i++) {
+      for (var i = 0; i < classifications.length; i++) {
         final classification = classifications[i];
         
         // Skip if already has relative path

@@ -647,6 +647,7 @@ class GamificationConfig {
 
 // App Exception Classes for better error handling
 abstract class AppException implements Exception {
+  const AppException(this.message, [this.code]);
   
   factory AppException.timeout([String? message]) => 
       TimeoutAppException(message ?? 'Operation timed out');
@@ -659,7 +660,6 @@ abstract class AppException implements Exception {
   
   factory AppException.storage([String? message]) => 
       StorageAppException(message ?? 'Storage error occurred');
-  const AppException(this.message, [this.code]);
   
   final String message;
   final String? code;

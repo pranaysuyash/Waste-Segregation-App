@@ -1,7 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../models/user_profile.dart';
 import '../models/leaderboard.dart';
-import '../services/storage_service.dart';
 import '../services/leaderboard_service.dart';
 import 'app_providers.dart'; // Import central providers
 

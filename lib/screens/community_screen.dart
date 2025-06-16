@@ -315,7 +315,7 @@ class _CommunityScreenState extends State<CommunityScreen> with TickerProviderSt
               children: [
                 Row(
                   children: [
-                    Icon(
+                    const Icon(
                       Icons.analytics,
                       color: AppTheme.primaryColor,
                       size: 20,
@@ -349,7 +349,7 @@ class _CommunityScreenState extends State<CommunityScreen> with TickerProviderSt
                         ),
                         child: Column(
                           children: [
-                            Text(
+                            const Text(
                               'Community Feed',
                               style: TextStyle(
                                 fontWeight: FontWeight.bold,
@@ -379,7 +379,7 @@ class _CommunityScreenState extends State<CommunityScreen> with TickerProviderSt
                         ),
                         child: Column(
                           children: [
-                            Text(
+                            const Text(
                               'Expected Total',
                               style: TextStyle(
                                 fontWeight: FontWeight.bold,
@@ -424,7 +424,7 @@ class _CommunityScreenState extends State<CommunityScreen> with TickerProviderSt
                     ),
                     child: Row(
                       children: [
-                        Icon(Icons.warning_amber, color: Colors.orange, size: 16),
+                        const Icon(Icons.warning_amber, color: Colors.orange, size: 16),
                         const SizedBox(width: 8),
                         Expanded(
                           child: Text(

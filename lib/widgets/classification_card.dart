@@ -38,7 +38,6 @@ class ClassificationCard extends StatelessWidget {
                 child: ThumbnailWidget(
                   imagePath: classification.thumbnailRelativePath ?? classification.imageUrl,
                   size: 60,
-                  borderRadius: 12,
                   errorWidget: _fallbackIcon(catColor),
                 ),
               ),

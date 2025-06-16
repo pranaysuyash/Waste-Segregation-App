@@ -5,7 +5,7 @@ import '../services/gamification_service.dart';
 import '../services/storage_service.dart';
 import '../services/cloud_storage_service.dart';
 import '../utils/constants.dart';
-import 'app_providers.dart'; // Import central providers
+// Import central providers
 
 /// Provider for GamificationService
 final gamificationServiceProvider = Provider<GamificationService>((ref) {

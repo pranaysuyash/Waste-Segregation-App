@@ -4,17 +4,6 @@ import '../../utils/app_theme.dart';
 
 /// Enhanced card with modern shadows, micro-interactions, and polish
 class PolishedCard extends StatefulWidget {
-  final Widget child;
-  final VoidCallback? onTap;
-  final EdgeInsetsGeometry? padding;
-  final EdgeInsetsGeometry? margin;
-  final double? elevation;
-  final Color? shadowColor;
-  final BorderRadius? borderRadius;
-  final Color? backgroundColor;
-  final bool enableHapticFeedback;
-  final bool enableScaleAnimation;
-  final Duration animationDuration;
 
   const PolishedCard({
     super.key,
@@ -30,6 +19,17 @@ class PolishedCard extends StatefulWidget {
     this.enableScaleAnimation = true,
     this.animationDuration = const Duration(milliseconds: 150),
   });
+  final Widget child;
+  final VoidCallback? onTap;
+  final EdgeInsetsGeometry? padding;
+  final EdgeInsetsGeometry? margin;
+  final double? elevation;
+  final Color? shadowColor;
+  final BorderRadius? borderRadius;
+  final Color? backgroundColor;
+  final bool enableHapticFeedback;
+  final bool enableScaleAnimation;
+  final Duration animationDuration;
 
   @override
   State<PolishedCard> createState() => _PolishedCardState();
@@ -95,7 +95,7 @@ class _PolishedCardState extends State<PolishedCard>
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     
-    Widget card = Container(
+    final Widget card = Container(
       margin: widget.margin ?? const EdgeInsets.all(8.0),
       child: Material(
         elevation: widget.elevation ?? AppThemePolish.elevationSubtle,

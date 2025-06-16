@@ -120,7 +120,7 @@ class EnhancedImageService {
   /// Creates a 256px max-edge thumbnail with proper orientation
   Future<Uint8List> _generateThumbnailBytes(Uint8List bytes) async {
     try {
-      final img.Image? raw = img.decodeImage(bytes);
+      final raw = img.decodeImage(bytes);
       if (raw == null) throw Exception('Failed to decode image for thumbnail');
 
       // Bake orientation to handle EXIF rotation
@@ -171,7 +171,7 @@ class EnhancedImageService {
       // Check file count limit
       if (files.length <= _maxThumbnailFiles) {
         // Check size limit
-        int totalSize = 0;
+        var totalSize = 0;
         for (final file in files) {
           final stat = await file.stat();
           totalSize += stat.size;
@@ -193,21 +193,21 @@ class EnhancedImageService {
       filesWithStats.sort((a, b) => a.value.compareTo(b.value));
       
       // Remove oldest files until within limits
-      int currentSize = 0;
+      var currentSize = 0;
       for (final entry in filesWithStats) {
         final stat = await entry.key.stat();
         currentSize += stat.size;
       }
       
       final targetFiles = (_maxThumbnailFiles * 0.8).round(); // Keep 80% of max
-      final targetSizeMB = _maxThumbnailCacheMB * 0.8; // Keep 80% of max size
+      const targetSizeMB = _maxThumbnailCacheMB * 0.8; // Keep 80% of max size
       
-      int filesToRemove = files.length - targetFiles;
+      var filesToRemove = files.length - targetFiles;
       if (filesToRemove <= 0) {
         filesToRemove = files.length - (currentSize / (1024 * 1024) / targetSizeMB).round();
       }
       
-      for (int i = 0; i < filesToRemove && i < filesWithStats.length; i++) {
+      for (var i = 0; i < filesToRemove && i < filesWithStats.length; i++) {
         try {
           await filesWithStats[i].key.delete();
           debugPrint('🗑️ Removed old thumbnail: ${p.basename(filesWithStats[i].key.path)}');
@@ -233,7 +233,7 @@ class EnhancedImageService {
       if (!await thumbnailsDir.exists()) return;
       
       final validPaths = validThumbnailPaths.toSet();
-      int orphansRemoved = 0;
+      var orphansRemoved = 0;
       
       await for (final entity in thumbnailsDir.list()) {
         if (entity is File && entity.path.endsWith('.jpg')) {

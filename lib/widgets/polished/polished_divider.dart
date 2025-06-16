@@ -3,12 +3,6 @@ import '../../utils/app_theme.dart';
 
 /// Enhanced divider with modern styling and better visual hierarchy
 class PolishedDivider extends StatelessWidget {
-  final double height;
-  final double thickness;
-  final double indent;
-  final double endIndent;
-  final Color? color;
-  final DividerStyle style;
 
   const PolishedDivider({
     super.key,
@@ -52,6 +46,12 @@ class PolishedDivider extends StatelessWidget {
     this.color,
     this.style = DividerStyle.dotted,
   });
+  final double height;
+  final double thickness;
+  final double indent;
+  final double endIndent;
+  final Color? color;
+  final DividerStyle style;
 
   @override
   Widget build(BuildContext context) {
@@ -114,10 +114,6 @@ enum DividerStyle {
 
 /// Custom painter for dotted lines
 class DottedLinePainter extends CustomPainter {
-  final Color color;
-  final double thickness;
-  final double dotRadius;
-  final double spacing;
 
   DottedLinePainter({
     required this.color,
@@ -125,6 +121,10 @@ class DottedLinePainter extends CustomPainter {
     this.dotRadius = 1.0,
     this.spacing = 4.0,
   });
+  final Color color;
+  final double thickness;
+  final double dotRadius;
+  final double spacing;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -134,7 +134,7 @@ class DottedLinePainter extends CustomPainter {
       ..style = PaintingStyle.fill;
 
     final y = size.height / 2;
-    double x = dotRadius;
+    var x = dotRadius;
 
     while (x < size.width - dotRadius) {
       canvas.drawCircle(Offset(x, y), dotRadius, paint);
@@ -148,10 +148,6 @@ class DottedLinePainter extends CustomPainter {
 
 /// Custom painter for dashed lines
 class DashedLinePainter extends CustomPainter {
-  final Color color;
-  final double thickness;
-  final double dashWidth;
-  final double dashSpace;
 
   DashedLinePainter({
     required this.color,
@@ -159,6 +155,10 @@ class DashedLinePainter extends CustomPainter {
     this.dashWidth = 4.0,
     this.dashSpace = 4.0,
   });
+  final Color color;
+  final double thickness;
+  final double dashWidth;
+  final double dashSpace;
 
   @override
   void paint(Canvas canvas, Size size) {

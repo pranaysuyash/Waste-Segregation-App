@@ -67,7 +67,7 @@ class PointsEngine extends ChangeNotifier {
     int? customPoints,
     Map<String, dynamic>? metadata,
   }) async {
-    return await _executeAtomicOperation(() async {
+    return _executeAtomicOperation(() async {
       await initialize();
       
       final profile = _cachedProfile!;
@@ -102,7 +102,7 @@ class PointsEngine extends ChangeNotifier {
 
   /// Update streak with points calculation
   Future<StreakDetails> updateStreak(StreakType type) async {
-    return await _executeAtomicOperation(() async {
+    return _executeAtomicOperation(() async {
       await initialize();
       
       final profile = _cachedProfile!;
@@ -135,7 +135,7 @@ class PointsEngine extends ChangeNotifier {
 
   /// Claim achievement reward
   Future<Achievement> claimAchievementReward(String achievementId) async {
-    return await _executeAtomicOperation(() async {
+    return _executeAtomicOperation(() async {
       await initialize();
       
       final profile = _cachedProfile!;

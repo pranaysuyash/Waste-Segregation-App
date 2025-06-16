@@ -2,16 +2,16 @@ import 'package:hive_flutter/hive_flutter.dart';
 
 /// Singleton manager for Hive box operations to prevent duplicate box opening errors
 class HiveManager {
-  static final HiveManager _instance = HiveManager._internal();
   factory HiveManager() => _instance;
   HiveManager._internal();
+  static final HiveManager _instance = HiveManager._internal();
 
   /// Safely opens a Hive box, checking if it's already open first
   static Future<Box<T>> openBox<T>(String name) async {
     if (Hive.isBoxOpen(name)) {
       return Hive.box<T>(name);
     }
-    return await Hive.openBox<T>(name);
+    return Hive.openBox<T>(name);
   }
 
   /// Safely opens a regular (dynamic) Hive box
@@ -19,7 +19,7 @@ class HiveManager {
     if (Hive.isBoxOpen(name)) {
       return Hive.box(name);
     }
-    return await Hive.openBox(name);
+    return Hive.openBox(name);
   }
 
   /// Check if a box is already open

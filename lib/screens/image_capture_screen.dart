@@ -225,7 +225,7 @@ class _ImageCaptureScreenState extends State<ImageCaptureScreen> with Restoratio
           }
 
           // Ensure we have bytes before proceeding
-          if (imageBytes == null || imageBytes.isEmpty) {
+          if (imageBytes.isEmpty) {
             throw Exception('Image data is empty or could not be read');
           }
 

@@ -3,11 +3,6 @@ import '../../utils/app_theme.dart';
 
 /// Branded shimmer loading effect for modern loading states
 class ShimmerLoading extends StatefulWidget {
-  final Widget child;
-  final Color? baseColor;
-  final Color? highlightColor;
-  final Duration period;
-  final bool enabled;
 
   const ShimmerLoading({
     super.key,
@@ -17,6 +12,11 @@ class ShimmerLoading extends StatefulWidget {
     this.period = const Duration(milliseconds: 1500),
     this.enabled = true,
   });
+  final Widget child;
+  final Color? baseColor;
+  final Color? highlightColor;
+  final Duration period;
+  final bool enabled;
 
   @override
   State<ShimmerLoading> createState() => _ShimmerLoadingState();
@@ -83,14 +83,13 @@ class _ShimmerLoadingState extends State<ShimmerLoading>
         return ShaderMask(
           shaderCallback: (bounds) {
             return LinearGradient(
-              begin: Alignment.centerLeft,
               end: Alignment.centerRight,
               colors: [
                 baseColor,
                 highlightColor,
                 baseColor,
               ],
-              stops: [
+              stops: const [
                 0.0,
                 0.5,
                 1.0,

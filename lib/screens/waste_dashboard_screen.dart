@@ -752,7 +752,7 @@ class _WasteDashboardScreenState extends State<WasteDashboardScreen>
                             ),
                             const Spacer(),
                             if (classification.isRecyclable == true)
-                              Icon(
+                              const Icon(
                                 Icons.recycling,
                                 color: Colors.green,
                                 size: 14,
@@ -970,9 +970,9 @@ class _WasteDashboardScreenState extends State<WasteDashboardScreen>
         final profile = pointsProvider.pointsEngine.currentProfile;
         
         if (profile == null) {
-          return Card(
+          return const Card(
             child: Padding(
-              padding: const EdgeInsets.all(AppTheme.paddingLarge),
+              padding: EdgeInsets.all(AppTheme.paddingLarge),
               child: Center(
                 child: Text('Gamification data not available.'),
               ),

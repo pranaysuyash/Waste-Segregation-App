@@ -4,18 +4,6 @@ import 'polished_divider.dart';
 
 /// Enhanced section component with modern spacing and visual hierarchy
 class PolishedSection extends StatelessWidget {
-  final String? title;
-  final String? subtitle;
-  final Widget? titleWidget;
-  final Widget child;
-  final EdgeInsetsGeometry? padding;
-  final EdgeInsetsGeometry? margin;
-  final Color? backgroundColor;
-  final bool showDivider;
-  final bool showTopDivider;
-  final VoidCallback? onTitleTap;
-  final Widget? trailing;
-  final CrossAxisAlignment crossAxisAlignment;
 
   const PolishedSection({
     super.key,
@@ -64,6 +52,18 @@ class PolishedSection extends StatelessWidget {
     this.crossAxisAlignment = CrossAxisAlignment.start,
   }) : padding = const EdgeInsets.all(AppThemePolish.spacingLuxurious),
        margin = const EdgeInsets.symmetric(vertical: AppThemePolish.spacingComfortable);
+  final String? title;
+  final String? subtitle;
+  final Widget? titleWidget;
+  final Widget child;
+  final EdgeInsetsGeometry? padding;
+  final EdgeInsetsGeometry? margin;
+  final Color? backgroundColor;
+  final bool showDivider;
+  final bool showTopDivider;
+  final VoidCallback? onTitleTap;
+  final Widget? trailing;
+  final CrossAxisAlignment crossAxisAlignment;
 
   @override
   Widget build(BuildContext context) {
@@ -168,13 +168,6 @@ class PolishedSection extends StatelessWidget {
 
 /// Enhanced section header with modern styling
 class PolishedSectionHeader extends StatelessWidget {
-  final String title;
-  final String? subtitle;
-  final Widget? leading;
-  final Widget? trailing;
-  final VoidCallback? onTap;
-  final bool showUnderline;
-  final Color? underlineColor;
 
   const PolishedSectionHeader({
     super.key,
@@ -186,6 +179,13 @@ class PolishedSectionHeader extends StatelessWidget {
     this.showUnderline = false,
     this.underlineColor,
   });
+  final String title;
+  final String? subtitle;
+  final Widget? leading;
+  final Widget? trailing;
+  final VoidCallback? onTap;
+  final bool showUnderline;
+  final Color? underlineColor;
 
   @override
   Widget build(BuildContext context) {

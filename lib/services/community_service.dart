@@ -190,7 +190,7 @@ class CommunityService {
       debugPrint('🔄 SYNC: Found ${existingClassificationIds.length} existing classification feed items');
       
       // Backfill missing classifications
-      int syncedCount = 0;
+      var syncedCount = 0;
       for (final classification in classifications) {
         if (!existingClassificationIds.contains(classification.id)) {
           await recordClassification(classification, user);
@@ -216,7 +216,7 @@ class CommunityService {
             .where((id) => id != null)
             .toSet();
         
-        int achievementsSynced = 0;
+        var achievementsSynced = 0;
         for (final achievement in unlockedAchievements) {
           if (!existingAchievementIds.contains(achievement.id)) {
             await recordAchievement(achievement, user);

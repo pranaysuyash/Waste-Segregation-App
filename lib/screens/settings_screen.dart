@@ -1915,7 +1915,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               Navigator.pop(context);
               
               // Show loading dialog with cancel button
-              bool isCancelled = false;
+              var isCancelled = false;
               showDialog(
                 context: context,
                 barrierDismissible: false,

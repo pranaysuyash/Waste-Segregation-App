@@ -203,7 +203,6 @@ class _PolishedHomeScreenState extends State<PolishedHomeScreen>
         onPressed: _takePicture,
         icon: Icons.camera_alt,
         backgroundColor: AppThemePolish.accentVibrant,
-        enablePulse: true,
       ),
     );
   }
@@ -239,14 +238,14 @@ class _PolishedHomeScreenState extends State<PolishedHomeScreen>
           child: PolishedCard(
             onTap: _takePicture,
             backgroundColor: AppThemePolish.accentVibrant.withValues(alpha: 0.1),
-            child: Column(
+            child: const Column(
               children: [
                 Icon(
                   Icons.camera_alt,
                   size: 48,
                   color: AppThemePolish.accentVibrant,
                 ),
-                const SizedBox(height: 12),
+                SizedBox(height: 12),
                 Text(
                   'Take Photo',
                   style: TextStyle(
@@ -263,14 +262,14 @@ class _PolishedHomeScreenState extends State<PolishedHomeScreen>
           child: PolishedCard(
             onTap: _pickImage,
             backgroundColor: AppThemePolish.accentWarm.withValues(alpha: 0.1),
-            child: Column(
+            child: const Column(
               children: [
                 Icon(
                   Icons.photo_library,
                   size: 48,
                   color: AppThemePolish.accentWarm,
                 ),
-                const SizedBox(height: 12),
+                SizedBox(height: 12),
                 Text(
                   'Upload Image',
                   style: TextStyle(

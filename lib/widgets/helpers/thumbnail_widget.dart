@@ -120,7 +120,7 @@ class ThumbnailWidget extends StatelessWidget {
       width: size,
       height: size,
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surfaceVariant,
+        color: Theme.of(context).colorScheme.surfaceContainerHighest,
         borderRadius: BorderRadius.circular(borderRadius),
       ),
       child: Center(
@@ -144,7 +144,7 @@ class ThumbnailWidget extends StatelessWidget {
       width: size,
       height: size,
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surfaceVariant,
+        color: Theme.of(context).colorScheme.surfaceContainerHighest,
         borderRadius: BorderRadius.circular(borderRadius),
       ),
       child: Icon(

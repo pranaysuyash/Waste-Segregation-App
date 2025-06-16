@@ -20,10 +20,10 @@ class ThumbnailMigrationService {
   Future<ThumbnailMigrationResult> migrateThumbnails() async {
     debugPrint('🔄 Starting thumbnail migration process...');
     
-    int totalProcessed = 0;
-    int thumbnailsGenerated = 0;
-    int skipped = 0;
-    int errors = 0;
+    var totalProcessed = 0;
+    var thumbnailsGenerated = 0;
+    var skipped = 0;
+    var errors = 0;
     
     try {
       final classifications = await _storageService.getAllClassifications();
@@ -31,7 +31,7 @@ class ThumbnailMigrationService {
       
       debugPrint('📊 Found $totalProcessed classifications to process');
       
-      for (int i = 0; i < classifications.length; i++) {
+      for (var i = 0; i < classifications.length; i++) {
         final classification = classifications[i];
         
         try {
