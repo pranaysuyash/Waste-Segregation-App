@@ -488,9 +488,10 @@ class _AchievementsScreenState extends State<AchievementsScreen>
               ),
             
             // Main content
-            Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
+            Expanded(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
                 // Achievement icon
                 Container(
                   padding: const EdgeInsets.all(AppTheme.paddingSmall),
@@ -573,6 +574,7 @@ class _AchievementsScreenState extends State<AchievementsScreen>
                     ),
                   ),
               ],
+              ),
             ),
           ],
         ),
