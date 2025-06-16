@@ -44,6 +44,8 @@ class DeveloperSection extends StatelessWidget {
           subtitle: 'Clear all app data',
           onTap: () {},
         ),
+        const SizedBox(height: 16),
+        _buildDangerousActions(context),
       ],
     );
   }
