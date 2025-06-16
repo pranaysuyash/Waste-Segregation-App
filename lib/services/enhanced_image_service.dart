@@ -19,6 +19,12 @@ class EnhancedImageService {
   
   /// Directory name for stored thumbnails.
   static const _thumbnailsDirName = 'thumbnails';
+  
+  /// Maximum thumbnail cache size in MB
+  static const _maxThumbnailCacheMB = 100;
+  
+  /// Maximum number of thumbnail files
+  static const _maxThumbnailFiles = 4000;
 
   /// Save raw image bytes to a permanent file location and
   /// return the file path. On web platforms, returns a base64 data URL.
@@ -102,6 +108,10 @@ class EnhancedImageService {
     
     final file = File(p.join(thumbnailsDir.path, name));
     await file.writeAsBytes(thumbnailBytes, flush: true);
+    
+    // Perform LRU cache maintenance
+    await _maintainThumbnailCache(thumbnailsDir);
+    
     return file.path;
   }
 
@@ -144,6 +154,110 @@ class EnhancedImageService {
       await Future.delayed(Duration(milliseconds: 500 * (attempt + 1)));
     }
     return null;
+  }
+
+  /// Maintain thumbnail cache size within limits using LRU eviction
+  Future<void> _maintainThumbnailCache(Directory thumbnailsDir) async {
+    try {
+      if (!await thumbnailsDir.exists()) return;
+      
+      final files = <File>[];
+      await for (final entity in thumbnailsDir.list()) {
+        if (entity is File && entity.path.endsWith('.jpg')) {
+          files.add(entity);
+        }
+      }
+      
+      // Check file count limit
+      if (files.length <= _maxThumbnailFiles) {
+        // Check size limit
+        int totalSize = 0;
+        for (final file in files) {
+          final stat = await file.stat();
+          totalSize += stat.size;
+        }
+        
+        final totalSizeMB = totalSize / (1024 * 1024);
+        if (totalSizeMB <= _maxThumbnailCacheMB) {
+          return; // Within limits
+        }
+      }
+      
+      // Sort by last accessed time (LRU)
+      final filesWithStats = <MapEntry<File, DateTime>>[];
+      for (final file in files) {
+        final stat = await file.stat();
+        filesWithStats.add(MapEntry(file, stat.accessed));
+      }
+      
+      filesWithStats.sort((a, b) => a.value.compareTo(b.value));
+      
+      // Remove oldest files until within limits
+      int currentSize = 0;
+      for (final entry in filesWithStats) {
+        final stat = await entry.key.stat();
+        currentSize += stat.size;
+      }
+      
+      final targetFiles = (_maxThumbnailFiles * 0.8).round(); // Keep 80% of max
+      final targetSizeMB = _maxThumbnailCacheMB * 0.8; // Keep 80% of max size
+      
+      int filesToRemove = files.length - targetFiles;
+      if (filesToRemove <= 0) {
+        filesToRemove = files.length - (currentSize / (1024 * 1024) / targetSizeMB).round();
+      }
+      
+      for (int i = 0; i < filesToRemove && i < filesWithStats.length; i++) {
+        try {
+          await filesWithStats[i].key.delete();
+          debugPrint('🗑️ Removed old thumbnail: ${p.basename(filesWithStats[i].key.path)}');
+        } catch (e) {
+          debugPrint('Error removing thumbnail: $e');
+        }
+      }
+      
+      debugPrint('📊 Thumbnail cache maintenance: removed $filesToRemove files');
+    } catch (e) {
+      debugPrint('Error maintaining thumbnail cache: $e');
+    }
+  }
+
+  /// Clean up orphaned thumbnails that no longer have corresponding classifications
+  Future<void> cleanUpOrphanedThumbnails(List<String> validThumbnailPaths) async {
+    if (kIsWeb) return; // Not applicable for web
+    
+    try {
+      final dir = await getApplicationDocumentsDirectory();
+      final thumbnailsDir = Directory(p.join(dir.path, _thumbnailsDirName));
+      
+      if (!await thumbnailsDir.exists()) return;
+      
+      final validPaths = validThumbnailPaths.toSet();
+      int orphansRemoved = 0;
+      
+      await for (final entity in thumbnailsDir.list()) {
+        if (entity is File && entity.path.endsWith('.jpg')) {
+          final relativePath = 'thumbnails/${p.basename(entity.path)}';
+          
+          // Check if this thumbnail is referenced by any classification
+          if (!validPaths.contains(relativePath) && !validPaths.contains(entity.path)) {
+            try {
+              await entity.delete();
+              orphansRemoved++;
+              debugPrint('🗑️ Removed orphaned thumbnail: ${p.basename(entity.path)}');
+            } catch (e) {
+              debugPrint('Error removing orphaned thumbnail: $e');
+            }
+          }
+        }
+      }
+      
+      if (orphansRemoved > 0) {
+        debugPrint('🧹 Cleaned up $orphansRemoved orphaned thumbnails');
+      }
+    } catch (e) {
+      debugPrint('Error cleaning up orphaned thumbnails: $e');
+    }
   }
 
   /// Remove files from the temporary directory older than the

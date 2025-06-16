@@ -15,6 +15,8 @@ import 'gamification_service.dart';
 import 'cloud_storage_service.dart';
 import 'package:uuid/uuid.dart';
 import 'classification_migration_service.dart';
+import 'enhanced_image_service.dart';
+import 'thumbnail_migration_service.dart';
 import 'hive_manager.dart';
 
 class StorageService {
@@ -1156,6 +1158,52 @@ class StorageService {
       debugPrint('📊 Migration completed: $result');
     } catch (e) {
       debugPrint('❌ Migration failed: $e');
+    }
+  }
+
+  /// Migrate existing classifications to generate missing thumbnails
+  Future<void> migrateThumbnails() async {
+    try {
+      debugPrint('🔄 Starting thumbnail migration process...');
+      
+      // Create image service instance
+      final imageService = EnhancedImageService();
+      
+      // Create thumbnail migration service
+      final migrationService = ThumbnailMigrationService(imageService, this);
+      
+      // Run migration
+      final result = await migrationService.migrateThumbnails();
+      
+      debugPrint('📊 Thumbnail migration completed: $result');
+    } catch (e) {
+      debugPrint('❌ Thumbnail migration failed: $e');
+    }
+  }
+
+  /// Clean up orphaned thumbnails that no longer have corresponding classifications
+  Future<void> cleanUpOrphanedThumbnails() async {
+    try {
+      debugPrint('🧹 Starting orphaned thumbnail cleanup...');
+      
+      // Get all classifications and extract valid thumbnail paths
+      final classifications = await getAllClassifications();
+      final validThumbnailPaths = <String>[];
+      
+      for (final classification in classifications) {
+        if (classification.thumbnailRelativePath != null && 
+            classification.thumbnailRelativePath!.isNotEmpty) {
+          validThumbnailPaths.add(classification.thumbnailRelativePath!);
+        }
+      }
+      
+      // Create image service instance and clean up orphans
+      final imageService = EnhancedImageService();
+      await imageService.cleanUpOrphanedThumbnails(validThumbnailPaths);
+      
+      debugPrint('✅ Orphaned thumbnail cleanup completed');
+    } catch (e) {
+      debugPrint('❌ Orphaned thumbnail cleanup failed: $e');
     }
   }
 
