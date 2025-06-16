@@ -1946,28 +1946,39 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 if (context.mounted && !isCancelled) {
                   Navigator.pop(context); // Close loading dialog
                   
-                  // Navigate to auth screen for fresh start
-                  Navigator.of(context).pushAndRemoveUntil(
-                    MaterialPageRoute(builder: (_) => const AuthScreen()),
-                    (Route<dynamic> route) => false,
-                  );
-                  
+                  // Show detailed success message
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
-                      content: Text('Firebase data cleared - app reset to fresh install state'),
+                      content: Text('✅ Firebase data cleared successfully!\n'
+                                   'Check console logs for detailed verification results.\n'
+                                   'App will restart to fresh state.'),
                       backgroundColor: Colors.green,
-                      duration: Duration(seconds: 3),
+                      duration: Duration(seconds: 5),
                     ),
                   );
+                  
+                  // Add a small delay to let user see the message
+                  await Future.delayed(const Duration(milliseconds: 2000));
+                  
+                  // Navigate to auth screen for fresh start
+                  if (context.mounted) {
+                    Navigator.of(context).pushAndRemoveUntil(
+                      MaterialPageRoute(builder: (_) => const AuthScreen()),
+                      (Route<dynamic> route) => false,
+                    );
+                  }
                 }
               } catch (e) {
+                debugPrint('❌ Firebase cleanup failed: $e');
                 if (context.mounted && !isCancelled) {
                   Navigator.pop(context); // Close loading dialog
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
-                      content: Text('Error clearing Firebase data: $e'),
+                      content: Text('❌ Error clearing Firebase data:\n$e\n\n'
+                                   'Check console logs for details. '
+                                   'You may need to manually clear app data.'),
                       backgroundColor: Colors.red,
-                      duration: const Duration(seconds: 3),
+                      duration: const Duration(seconds: 8),
                     ),
                   );
                 }
