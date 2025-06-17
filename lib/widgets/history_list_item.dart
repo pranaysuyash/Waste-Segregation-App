@@ -8,6 +8,7 @@ import '../models/waste_classification.dart';
 import '../utils/constants.dart';
 import '../services/enhanced_image_service.dart';
 import 'classification_feedback_widget.dart';
+import '../utils/waste_app_logger.dart';
 
 /// A simplified version of ClassificationCard for list views in the history screen
 class HistoryListItem extends StatelessWidget {
@@ -389,12 +390,12 @@ class HistoryListItem extends StatelessWidget {
                     fit: BoxFit.cover,
                     cacheHeight: 90, // Optimize memory usage
                     errorBuilder: (context, error, stackTrace) {
-                      debugPrint('[HistoryListItem] Error rendering relative path image: $error');
+                      WasteAppLogger.severe('Error occurred', null, null, {'service': 'widget', 'file': 'history_list_item'});
                       return _buildImagePlaceholder();
                     },
                   );
                 }
-                debugPrint('[HistoryListItem] Relative path image missing: ${snapshot.data}');
+                WasteAppLogger.info('Operation completed', null, null, {'service': 'widget', 'file': 'history_list_item'});
                 return _buildImagePlaceholder();
               },
             );
@@ -427,9 +428,9 @@ class HistoryListItem extends StatelessWidget {
     
     // Fallback to legacy absolute path logic
     final url = classification.imageUrl;
-    debugPrint('[HistoryListItem] Building image for: $url');
+    WasteAppLogger.info('Operation completed', null, null, {'service': 'widget', 'file': 'history_list_item'});
     if (url == null) {
-      debugPrint('[HistoryListItem] No image URL provided');
+      WasteAppLogger.info('Operation completed', null, null, {'service': 'widget', 'file': 'history_list_item'});
       return _buildImagePlaceholder();
     }
 
@@ -454,15 +455,15 @@ class HistoryListItem extends StatelessWidget {
                 );
               },
               errorBuilder: (context, error, stackTrace) {
-                debugPrint('[HistoryListItem] Error loading web data URL: $error');
+                WasteAppLogger.severe('Error occurred', null, null, {'service': 'widget', 'file': 'history_list_item'});
                 return _buildImagePlaceholder();
               },
             );
           } else {
-            debugPrint('[HistoryListItem] Invalid data URL: $dataUrl');
+            WasteAppLogger.info('Operation completed', null, null, {'service': 'widget', 'file': 'history_list_item'});
           }
         } catch (e) {
-          debugPrint('[HistoryListItem] Data URL processing error: $e');
+          WasteAppLogger.info('Operation completed', null, null, {'service': 'widget', 'file': 'history_list_item'});
         }
         return _buildImagePlaceholder();
       }
@@ -482,7 +483,7 @@ class HistoryListItem extends StatelessWidget {
                 fit: BoxFit.cover,
               );
             }
-            debugPrint('[HistoryListItem] Failed to load network image: $url');
+            WasteAppLogger.severe('Error occurred', null, null, {'service': 'widget', 'file': 'history_list_item'});
             return _buildImagePlaceholder();
           },
         );
@@ -507,12 +508,12 @@ class HistoryListItem extends StatelessWidget {
             fit: BoxFit.cover,
             cacheHeight: 90, // Optimize memory usage
             errorBuilder: (context, error, stackTrace) {
-              debugPrint('[HistoryListItem] Error rendering file image: $error');
+              WasteAppLogger.severe('Error occurred', null, null, {'service': 'widget', 'file': 'history_list_item'});
               return _buildImagePlaceholder();
             },
           );
         }
-        debugPrint('[HistoryListItem] Image file missing: $url');
+        WasteAppLogger.info('Operation completed', null, null, {'service': 'widget', 'file': 'history_list_item'});
         return _buildImagePlaceholder();
       },
     );
@@ -567,7 +568,7 @@ class HistoryListItem extends StatelessWidget {
       final full = await _getFullImagePath(relPath);
       await File(full).writeAsBytes(bytes, flush: true);
     } catch (e) {
-      debugPrint('[HistoryListItem] Failed to persist image: $e');
+      WasteAppLogger.severe('Error occurred', null, null, {'service': 'widget', 'file': 'history_list_item'});
     }
   }
 }

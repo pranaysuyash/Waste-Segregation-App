@@ -9,6 +9,7 @@ import '../services/storage_service.dart';
 import '../services/cloud_storage_service.dart';
 import '../utils/constants.dart';
 import 'gamification_provider.dart';
+import 'package:waste_segregation_app/utils/waste_app_logger.dart';
 
 /// Repository that provides a single source of truth for gamification data
 /// Handles Hive ↔ Firestore sync with conflict resolution
@@ -49,7 +50,7 @@ class GamificationRepository {
         cloudProfile = userProfile.gamificationProfile;
       } catch (e) {
         if (kDebugMode) {
-          debugPrint('🔥 Failed to get cloud profile: $e');
+          WasteAppLogger.severe('🔥 Failed to get cloud profile: $e');
         }
       }
       
@@ -58,7 +59,7 @@ class GamificationRepository {
         localProfile = await _getLocalProfile(userProfile.id);
       } catch (e) {
         if (kDebugMode) {
-          debugPrint('🔥 Failed to get local profile: $e');
+          WasteAppLogger.severe('🔥 Failed to get local profile: $e');
         }
       }
       
@@ -92,7 +93,7 @@ class GamificationRepository {
         await _saveCloudProfile(profile);
       } catch (e) {
         if (kDebugMode) {
-          debugPrint('🔄 Cloud save failed, queueing for later: $e');
+          WasteAppLogger.severe('🔄 Cloud save failed, queueing for later: $e');
         }
         await _queueOfflineOperation('save_profile', profile.toJson());
       }
@@ -163,7 +164,7 @@ class GamificationRepository {
           processedOperations.add(operation);
         } catch (e) {
           if (kDebugMode) {
-            debugPrint('🔄 Failed to process offline operation: $e');
+            WasteAppLogger.severe('🔄 Failed to process offline operation: $e');
           }
           // Keep failed operations in queue for retry
         }
@@ -180,7 +181,7 @@ class GamificationRepository {
       
     } catch (e) {
       if (kDebugMode) {
-        debugPrint('🔥 Error processing offline queue: $e');
+        WasteAppLogger.severe('🔥 Error processing offline queue: $e');
       }
     }
   }
@@ -193,13 +194,13 @@ class GamificationRepository {
       // If there are differences, the cache will be updated automatically
       if (freshProfile != cachedProfile) {
         if (kDebugMode) {
-          debugPrint('🔄 Background sync updated profile');
+          WasteAppLogger.info('🔄 Background sync updated profile');
         }
       }
     } catch (e) {
       // Silent failure for background sync
       if (kDebugMode) {
-        debugPrint('🔄 Background sync failed: $e');
+        WasteAppLogger.severe('🔄 Background sync failed: $e');
       }
     }
   }
@@ -240,7 +241,7 @@ class GamificationRepository {
       return GamificationProfile.fromJson(jsonDecode(profileJson));
     } catch (e) {
       if (kDebugMode) {
-        debugPrint('🔥 Error getting cached profile: $e');
+        WasteAppLogger.severe('🔥 Error getting cached profile: $e');
       }
       return null;
     }
@@ -253,7 +254,7 @@ class GamificationRepository {
       await box.put(_cacheKey, jsonEncode(profile.toJson()));
     } catch (e) {
       if (kDebugMode) {
-        debugPrint('🔥 Error caching profile: $e');
+        WasteAppLogger.severe('🔥 Error caching profile: $e');
       }
     }
   }
@@ -307,7 +308,7 @@ class GamificationRepository {
       await box.put(_offlineQueueKey, jsonEncode(queue));
     } catch (e) {
       if (kDebugMode) {
-        debugPrint('🔥 Error queueing offline operation: $e');
+        WasteAppLogger.severe('🔥 Error queueing offline operation: $e');
       }
     }
   }
@@ -324,7 +325,7 @@ class GamificationRepository {
         break;
       default:
         if (kDebugMode) {
-          debugPrint('🔥 Unknown offline operation type: $type');
+          WasteAppLogger.info('🔥 Unknown offline operation type: $type');
         }
     }
   }

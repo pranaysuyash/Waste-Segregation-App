@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../utils/constants.dart';
 import '../models/gamification.dart';
 import '../utils/animation_helpers.dart';
+import '../utils/waste_app_logger.dart';
 import 'package:provider/provider.dart';
 import '../services/gamification_service.dart';
 
@@ -395,182 +396,221 @@ class _ClassificationFeedbackState extends State<ClassificationFeedback>
   }
 }
 
-/// A widget that displays a popup when points are earned
+/// A popup that displays when a user earns points.
 class PointsEarnedPopup extends StatefulWidget {
-  
   const PointsEarnedPopup({
     super.key,
     required this.points,
     required this.action,
     this.onDismiss,
   });
+
   final int points;
   final String action;
   final VoidCallback? onDismiss;
-  
+
   @override
   State<PointsEarnedPopup> createState() => _PointsEarnedPopupState();
 }
 
 class _PointsEarnedPopupState extends State<PointsEarnedPopup>
     with SingleTickerProviderStateMixin {
-  late AnimationController _animationController;
+  late AnimationController _controller;
   late Animation<double> _scaleAnimation;
-  late Animation<double> _opacityAnimation;
-  
+  late Animation<double> _fadeAnimation;
+
   @override
   void initState() {
     super.initState();
-    _animationController = AnimationController(
+    _controller = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 2000),
+      duration: const Duration(milliseconds: 800),
     );
-    
-    _scaleAnimation = TweenSequence<double>([
-      TweenSequenceItem(
-        tween: Tween<double>(begin: 0.0, end: 1.2)
-            .chain(CurveTween(curve: Curves.easeOutBack)),
-        weight: 30.0,
-      ),
-      TweenSequenceItem(
-        tween: Tween<double>(begin: 1.2, end: 1.0)
-            .chain(CurveTween(curve: Curves.easeInOut)),
-        weight: 20.0,
-      ),
-      TweenSequenceItem(
-        tween: Tween<double>(begin: 1.0, end: 1.0) // Hold
-            .chain(CurveTween(curve: Curves.linear)),
-        weight: 30.0, // Duration of hold
-      ),
-      TweenSequenceItem(
-        tween: Tween<double>(begin: 1.0, end: 0.0)
-            .chain(CurveTween(curve: Curves.easeInBack)),
-        weight: 20.0,
-      ),
-    ]).animate(_animationController);
-    
-    _opacityAnimation = TweenSequence<double>([
-      TweenSequenceItem(
-        tween: Tween<double>(begin: 0.0, end: 1.0)
-            .chain(CurveTween(curve: Curves.easeIn)),
-        weight: 20.0, // Fade in
-      ),
-      TweenSequenceItem(
-        tween: Tween<double>(begin: 1.0, end: 1.0) // Hold
-            .chain(CurveTween(curve: Curves.linear)),
-        weight: 60.0, // Duration of visible hold
-      ),
-      TweenSequenceItem(
-        tween: Tween<double>(begin: 1.0, end: 0.0)
-            .chain(CurveTween(curve: Curves.easeOut)),
-        weight: 20.0, // Fade out
-      ),
-    ]).animate(_animationController);
-    
-    // Auto-dismiss after animation
-    _animationController.addStatusListener((status) {
-      if (status == AnimationStatus.completed && widget.onDismiss != null) {
-        widget.onDismiss!();
-      }
-    });
-    
-    _animationController.forward();
+
+    _scaleAnimation = Tween<double>(begin: 0.5, end: 1.0)
+        .animate(CurvedAnimation(parent: _controller, curve: Curves.elasticOut));
+    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0)
+        .animate(CurvedAnimation(parent: _controller, curve: Curves.easeIn));
+
+    _controller.forward();
+
+    // Auto-dismiss if onDismiss is provided
+    if (widget.onDismiss != null) {
+      Future.delayed(const Duration(seconds: 3), () {
+        if (mounted) {
+          widget.onDismiss!();
+        }
+      });
+    }
   }
-  
+
   @override
   void dispose() {
-    _animationController.dispose();
+    _controller.dispose();
     super.dispose();
   }
-  
+
   @override
   Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: _animationController,
-      builder: (context, child) {
-        if (_opacityAnimation.value == 0) { // Don't build if invisible
-            return const SizedBox.shrink();
-        }
-        return Opacity(
-          opacity: _opacityAnimation.value,
-          child: Transform.scale(
-            scale: _scaleAnimation.value,
-            child: Container(
-              padding: const EdgeInsets.symmetric(
-                horizontal: AppTheme.paddingRegular,
-                vertical: AppTheme.paddingSmall,
-              ),
-              decoration: BoxDecoration(
-                color: Colors.amber.withValues(alpha:0.9),
-                borderRadius: BorderRadius.circular(AppTheme.borderRadiusLarge),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha:0.2),
-                    blurRadius: 10,
-                    spreadRadius: 1,
-                  ),
-                ],
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Icon(
-                    Icons.stars,
+    return FadeTransition(
+      opacity: _fadeAnimation,
+      child: ScaleTransition(
+        scale: _scaleAnimation,
+        child: Material(
+          color: Colors.transparent,
+          child: Container(
+            padding: const EdgeInsets.all(AppTheme.paddingRegular),
+            decoration: BoxDecoration(
+              color: AppTheme.primaryColor.withValues(alpha: 0.9),
+              borderRadius: BorderRadius.circular(AppTheme.borderRadiusLarge),
+              boxShadow: const [
+                BoxShadow(
+                  color: Colors.black26,
+                  blurRadius: 10,
+                  offset: Offset(0, 4),
+                ),
+              ],
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  '+${widget.points} Points',
+                  style: const TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
                     color: Colors.white,
-                    size: 24,
                   ),
-                  const SizedBox(width: AppTheme.paddingSmall),
-                  Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        '+${widget.points} Points',
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                          fontSize: AppTheme.fontSizeMedium,
-                        ),
-                      ),
-                      Text(
-                        _getActionDescription(widget.action),
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: AppTheme.fontSizeSmall,
-                        ),
-                      ),
-                    ],
+                ),
+                const SizedBox(height: AppTheme.paddingSmall),
+                Text(
+                  'For ${widget.action}',
+                  style: const TextStyle(
+                    fontSize: 16,
+                    color: Colors.white70,
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
-        );
-      },
+        ),
+      ),
     );
   }
-  
-  String _getActionDescription(String action) {
-    switch (action) {
-      case 'classification':
-        return 'Item classified successfully!';
-      case 'daily_streak':
-        return 'Daily streak maintained!';
-      case 'challenge_complete':
-        return 'Challenge completed!';
-      case 'badge_earned':
-        return 'Achievement unlocked!';
-      case 'quiz_completed':
-        return 'Quiz completed!';
-      case 'educational_content':
-        return 'Knowledge gained!';
-      case 'perfect_week':
-        return 'Perfect week achieved!';
-      case 'community_challenge':
-        return 'Community challenge participated!';
-      default:
-        return 'Points earned!';
+}
+
+/// A popup that displays when a user completes a challenge.
+class ChallengeCompletedPopup extends StatefulWidget {
+  const ChallengeCompletedPopup({
+    super.key,
+    required this.challenge,
+    this.onDismiss,
+  });
+
+  final Challenge challenge;
+  final VoidCallback? onDismiss;
+
+  @override
+  State<ChallengeCompletedPopup> createState() =>
+      _ChallengeCompletedPopupState();
+}
+
+class _ChallengeCompletedPopupState extends State<ChallengeCompletedPopup>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _scaleAnimation;
+  late Animation<double> _fadeAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 800),
+    );
+
+    _scaleAnimation = Tween<double>(begin: 0.5, end: 1.0)
+        .animate(CurvedAnimation(parent: _controller, curve: Curves.elasticOut));
+    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0)
+        .animate(CurvedAnimation(parent: _controller, curve: Curves.easeIn));
+
+    _controller.forward();
+
+    if (widget.onDismiss != null) {
+      Future.delayed(const Duration(seconds: 4), () {
+        if (mounted) {
+          widget.onDismiss!();
+        }
+      });
     }
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return FadeTransition(
+      opacity: _fadeAnimation,
+      child: ScaleTransition(
+        scale: _scaleAnimation,
+        child: Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(AppTheme.borderRadiusLarge),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(AppTheme.paddingLarge),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  AppIcons.fromString(widget.challenge.iconName),
+                  color: widget.challenge.color,
+                  size: 50,
+                ),
+                const SizedBox(height: AppTheme.paddingRegular),
+                const Text(
+                  'Challenge Completed!',
+                  style: TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: AppTheme.paddingSmall),
+                Text(
+                  widget.challenge.title,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: AppTheme.paddingRegular),
+                Text(
+                  widget.challenge.description,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    color: AppTheme.textSecondaryColor,
+                  ),
+                ),
+                const SizedBox(height: AppTheme.paddingLarge),
+                Chip(
+                  avatar: const Icon(Icons.star, color: Colors.amber),
+                  label: Text(
+                    '+${widget.challenge.pointsReward} Points',
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
   }
 }
 
@@ -1000,7 +1040,12 @@ class EnhancedChallengeCard extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         LayoutBuilder(builder: (context, constraints) { // Added LayoutBuilder
-                          debugPrint('EnhancedChallengeCard Title: "${challenge.title}", Constraints: $constraints');
+                          WasteAppLogger.debug('EnhancedChallengeCard rendering', {
+          'challenge_title': challenge.title,
+          'max_width': constraints.maxWidth,
+          'max_height': constraints.maxHeight,
+          'is_completed': challenge.isCompleted
+        });
                           return Text(
                             challenge.title,
                             style: Theme.of(context).textTheme.titleMedium?.copyWith(

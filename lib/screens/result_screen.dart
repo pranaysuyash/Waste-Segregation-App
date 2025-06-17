@@ -31,6 +31,7 @@ import '../services/analytics_service.dart';
 import '../services/dynamic_link_service.dart';
 import '../screens/image_capture_screen.dart';
 import '../services/haptic_settings_service.dart';
+import '../utils/waste_app_logger.dart';
 
 class ResultScreen extends StatefulWidget {
   const ResultScreen({
@@ -96,7 +97,7 @@ class _ResultScreenState extends State<ResultScreen>
     } else if (widget.autoAnalyze) {
       // For autoAnalyze mode, the classification is already saved and processed
       // Just mark it as saved and show the UI
-      debugPrint('🚀 AUTO-ANALYZE: Classification already saved in InstantAnalysisScreen, skipping auto-save');
+      WasteAppLogger.info('Operation completed', null, null, {'service': 'screen', 'file': 'result_screen'});
       setState(() {
         _isSaved = true;
       });
@@ -113,7 +114,7 @@ class _ResultScreenState extends State<ResultScreen>
 
     final classificationId = widget.classification.id;
     if (_savingClassifications.contains(classificationId)) {
-      debugPrint('🚫 Already processing $classificationId, skipping.');
+      WasteAppLogger.info('Operation completed', null, null, {'service': 'screen', 'file': 'result_screen'});
       return;
     }
 
@@ -127,32 +128,32 @@ class _ResultScreenState extends State<ResultScreen>
       final gamificationService = Provider.of<GamificationService>(context, listen: false);
       
       // Step 2: Save classification locally
-      debugPrint('➡️ STEP 1: Saving classification locally...');
+      WasteAppLogger.info('Operation completed', null, null, {'service': 'screen', 'file': 'result_screen'});
       final savedClassification = widget.classification.copyWith(isSaved: true);
       await storageService.saveClassification(savedClassification, force: widget.autoAnalyze);
-      debugPrint('✅ STEP 1: Local save complete.');
+      WasteAppLogger.info('Operation completed', null, null, {'service': 'screen', 'file': 'result_screen'});
 
       // Step 3: Process for gamification (points, achievements)
-      debugPrint('➡️ STEP 2: Processing for gamification...');
+      WasteAppLogger.info('Operation completed', null, null, {'service': 'screen', 'file': 'result_screen'});
       final oldProfile = await gamificationService.getProfile();
       await gamificationService.processClassification(savedClassification);
       final newProfile = await gamificationService.getProfile(forceRefresh: true);
-      debugPrint('✅ STEP 2: Gamification processing complete.');
+      WasteAppLogger.info('Operation completed', null, null, {'service': 'screen', 'file': 'result_screen'});
 
       // Step 4: Sync to cloud
       final settings = await storageService.getSettings();
       final isGoogleSyncEnabled = settings['isGoogleSyncEnabled'] ?? false;
       if (isGoogleSyncEnabled) {
-        debugPrint('➡️ STEP 3: Syncing classification and profile to cloud...');
+        WasteAppLogger.info('Operation completed', null, null, {'service': 'screen', 'file': 'result_screen'});
         await cloudStorageService.saveClassificationWithSync(
           savedClassification,
           isGoogleSyncEnabled,
           processGamification: false, // Already processed
         );
          await gamificationService.saveProfile(newProfile); // Explicitly save updated profile
-        debugPrint('✅ STEP 3: Cloud sync complete.');
+        WasteAppLogger.info('Operation completed', null, null, {'service': 'screen', 'file': 'result_screen'});
       } else {
-        debugPrint('Skipped cloud sync (disabled).');
+        WasteAppLogger.info('Operation completed', null, null, {'service': 'screen', 'file': 'result_screen'});
       }
 
       // Step 5: Update UI
@@ -185,7 +186,7 @@ class _ResultScreenState extends State<ResultScreen>
           
           // Show points popup
           if (earnedPoints > 0) {
-            debugPrint('🎮 RESULT_SCREEN: Showing points popup for $earnedPoints points');
+            WasteAppLogger.info('Operation completed', null, null, {'service': 'screen', 'file': 'result_screen'});
             _showingPointsPopup = true;
             
             Future.delayed(const Duration(milliseconds: 3000), () {
@@ -196,7 +197,7 @@ class _ResultScreenState extends State<ResultScreen>
               }
             });
           } else {
-            debugPrint('🎮 RESULT_SCREEN: No points to show popup for');
+            WasteAppLogger.info('Operation completed', null, null, {'service': 'screen', 'file': 'result_screen'});
           }
         });
 
@@ -250,7 +251,7 @@ class _ResultScreenState extends State<ResultScreen>
   /// This fixes the issue where users have classifications but 0 points
   Future<void> _checkRetroactiveGamificationProcessing() async {
     try {
-      debugPrint('🎮 RETROACTIVE: Checking if ${widget.classification.itemName} needs gamification processing');
+      WasteAppLogger.info('Operation completed', null, null, {'service': 'screen', 'file': 'result_screen'});
       
       final gamificationService = Provider.of<GamificationService>(context, listen: false);
       
@@ -264,20 +265,20 @@ class _ResultScreenState extends State<ResultScreen>
       
       // If user has classifications but 0 points, they need retroactive processing
       if (allClassifications.isNotEmpty && currentPoints == 0) {
-        debugPrint('🎮 RETROACTIVE: User has ${allClassifications.length} classifications but 0 points - processing retroactively');
+        WasteAppLogger.info('Operation completed', null, null, {'service': 'screen', 'file': 'result_screen'});
         
         // Process all classifications for gamification
         for (final classification in allClassifications) {
           await gamificationService.processClassification(classification);
         }
         
-        debugPrint('🎮 RETROACTIVE: Completed processing ${allClassifications.length} classifications');
+        WasteAppLogger.info('Operation completed', null, null, {'service': 'screen', 'file': 'result_screen'});
       } else {
-        debugPrint('🎮 RETROACTIVE: No retroactive processing needed (${allClassifications.length} classifications, $currentPoints points)');
+        WasteAppLogger.info('Operation completed', null, null, {'service': 'screen', 'file': 'result_screen'});
       }
     } catch (e, stackTrace) {
       ErrorHandler.handleError(e, stackTrace);
-      debugPrint('🎮 RETROACTIVE: Error during retroactive processing: $e');
+      WasteAppLogger.severe('Error occurred', null, null, {'service': 'screen', 'file': 'result_screen'});
     }
   }
 
@@ -970,7 +971,7 @@ class _ResultScreenState extends State<ResultScreen>
       }
     } catch (e, stackTrace) {
       ErrorHandler.handleError(e, stackTrace);
-      debugPrint('Cloud sync failed for feedback, but local save succeeded');
+      WasteAppLogger.info('Operation completed', null, null, {'service': 'screen', 'file': 'result_screen'});
     }
   }
 
@@ -1028,7 +1029,7 @@ class _ResultScreenState extends State<ResultScreen>
       
       return daysDifference <= feedbackTimeframeDays;
     } catch (e) {
-      debugPrint('Error checking recent classification: $e');
+      WasteAppLogger.severe('Error occurred', null, null, {'service': 'screen', 'file': 'result_screen'});
       return false;
     }
   }

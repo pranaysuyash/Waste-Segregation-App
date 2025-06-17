@@ -8,6 +8,7 @@ import '../models/waste_classification.dart';
 import '../utils/constants.dart';
 import 'enhanced_image_service.dart';
 import 'storage_service.dart';
+import '../utils/waste_app_logger.dart';
 
 /// Service to migrate existing classifications by generating missing thumbnails
 class ThumbnailMigrationService {
@@ -18,7 +19,10 @@ class ThumbnailMigrationService {
 
   /// Migrate existing classifications to generate missing thumbnails
   Future<ThumbnailMigrationResult> migrateThumbnails() async {
-    debugPrint('🔄 Starting thumbnail migration process...');
+    WasteAppLogger.info('Starting thumbnail migration process', null, null, {
+      'service': 'thumbnail_migration',
+      'operation': 'migrate_thumbnails'
+    });
     
     var totalProcessed = 0;
     var thumbnailsGenerated = 0;
@@ -29,7 +33,10 @@ class ThumbnailMigrationService {
       final classifications = await _storageService.getAllClassifications();
       totalProcessed = classifications.length;
       
-      debugPrint('📊 Found $totalProcessed classifications to process');
+      WasteAppLogger.info('Found classifications to process', null, null, {
+        'total_classifications': totalProcessed,
+        'service': 'thumbnail_migration'
+      });
       
       for (var i = 0; i < classifications.length; i++) {
         final classification = classifications[i];
@@ -50,26 +57,46 @@ class ThumbnailMigrationService {
             classifications[i] = updatedClassification;
             thumbnailsGenerated++;
             
-            debugPrint('✅ Generated thumbnail for: ${classification.itemName}');
+            WasteAppLogger.info('Generated thumbnail for classification', null, null, {
+              'item_name': classification.itemName,
+              'classification_id': classification.id,
+              'service': 'thumbnail_migration'
+            });
             
             // Progress indicator
             if (thumbnailsGenerated % 10 == 0) {
-              debugPrint('📊 Progress: $thumbnailsGenerated/$totalProcessed thumbnails generated');
+              WasteAppLogger.info('Thumbnail generation progress', null, null, {
+                'thumbnails_generated': thumbnailsGenerated,
+                'total_processed': totalProcessed,
+                'progress_percentage': ((thumbnailsGenerated / totalProcessed) * 100).round()
+              });
             }
           } else {
             skipped++;
-            debugPrint('⏭️ Skipped (no image): ${classification.itemName}');
+            WasteAppLogger.info('Skipped classification (no image)', null, null, {
+              'item_name': classification.itemName,
+              'classification_id': classification.id,
+              'reason': 'no_image_available'
+            });
           }
         } catch (e) {
           errors++;
-          debugPrint('❌ Error processing ${classification.itemName}: $e');
+          WasteAppLogger.severe('Error processing classification for thumbnail', e, null, {
+            'item_name': classification.itemName,
+            'classification_id': classification.id,
+            'service': 'thumbnail_migration'
+          });
         }
       }
       
       // Batch update all classifications if any thumbnails were generated
       if (thumbnailsGenerated > 0) {
         await _batchUpdateClassifications(classifications);
-        debugPrint('💾 Batch updated $thumbnailsGenerated classifications with new thumbnails');
+        WasteAppLogger.info('Batch updated classifications with thumbnails', null, null, {
+          'thumbnails_generated': thumbnailsGenerated,
+          'batch_size': classifications.length,
+          'service': 'thumbnail_migration'
+        });
       }
       
       final result = ThumbnailMigrationResult(
@@ -81,15 +108,22 @@ class ThumbnailMigrationService {
         message: 'Thumbnail migration completed successfully',
       );
       
-      debugPrint('📊 Thumbnail Migration Summary:');
-      debugPrint('📊 Total processed: $totalProcessed');
-      debugPrint('📊 Thumbnails generated: $thumbnailsGenerated');
-      debugPrint('📊 Skipped: $skipped');
-      debugPrint('📊 Errors: $errors');
+      WasteAppLogger.info('Thumbnail migration completed', null, null, {
+        'service': 'thumbnail_migration',
+        'total_processed': totalProcessed,
+        'thumbnails_generated': thumbnailsGenerated,
+        'skipped': skipped,
+        'errors': errors,
+        'success_rate': totalProcessed > 0 ? ((thumbnailsGenerated / totalProcessed) * 100).round() : 0
+      });
       
       return result;
     } catch (e) {
-      debugPrint('❌ Thumbnail migration failed: $e');
+      WasteAppLogger.severe('Thumbnail migration failed', e, null, {
+        'service': 'thumbnail_migration',
+        'total_processed': totalProcessed,
+        'action': 'return_failure_result'
+      });
       return ThumbnailMigrationResult(
         success: false,
         totalProcessed: totalProcessed,
@@ -123,7 +157,7 @@ class ThumbnailMigrationService {
             final base64Data = dataUrl.split(',')[1];
             imageBytes = base64Decode(base64Data);
           } catch (e) {
-            debugPrint('Error decoding web image: $e');
+            WasteAppLogger.severe('Error decoding web image: $e');
             return null;
           }
         }
@@ -174,7 +208,7 @@ class ThumbnailMigrationService {
         thumbnailRelativePath: thumbnailRelativePath,
       );
     } catch (e) {
-      debugPrint('Error generating thumbnail for ${classification.itemName}: $e');
+      WasteAppLogger.severe('Error generating thumbnail for ${classification.itemName}: $e');
       return null;
     }
   }
@@ -188,7 +222,7 @@ class ThumbnailMigrationService {
       final absolutePath = p.join(dir.path, relativePath);
       return absolutePath;
     } catch (e) {
-      debugPrint('Error resolving relative path: $e');
+      WasteAppLogger.severe('Error resolving relative path: $e');
       return null;
     }
   }
@@ -206,9 +240,9 @@ class ThumbnailMigrationService {
         await box.put(key, jsonEncode(classification.toJson()));
       }
       
-      debugPrint('💾 Successfully batch updated ${classifications.length} classifications');
+      WasteAppLogger.info('💾 Successfully batch updated ${classifications.length} classifications');
     } catch (e) {
-      debugPrint('❌ Error batch updating classifications: $e');
+      WasteAppLogger.severe('❌ Error batch updating classifications: $e');
       rethrow;
     }
   }

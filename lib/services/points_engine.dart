@@ -401,8 +401,15 @@ class PointsEngine extends ChangeNotifier {
 
   /// Track analytics for points operations
   void _trackPointsAnalytics(String action, int points, UserPoints newPoints, Map<String, dynamic> metadata) {
-    // This would integrate with your analytics service
-    debugPrint('📊 PointsEngine Analytics: $action +$points pts (total: ${newPoints.total})');
+    WasteAppLogger.performanceLog('points_operation', points, context: {
+      'action': action,
+      'points_added': points,
+      'total_points': newPoints.total,
+      'user_level': newPoints.level,
+      'weekly_points': newPoints.weeklyTotal,
+      'monthly_points': newPoints.monthlyTotal,
+      ...metadata
+    });
   }
 
   /// Clear cache and force reload

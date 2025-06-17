@@ -18,6 +18,7 @@ import 'classification_migration_service.dart';
 import 'enhanced_image_service.dart';
 import 'thumbnail_migration_service.dart';
 import 'hive_manager.dart';
+import '../utils/waste_app_logger.dart';
 
 class StorageService {
   static const String _userProfileKey = 'user_profile';
@@ -135,7 +136,7 @@ class StorageService {
       try {
         return UserProfile.fromJson(jsonDecode(data));
       } catch (e) {
-        debugPrint('Error parsing legacy user profile JSON: $e');
+        WasteAppLogger.severe('Error occurred', null, null, {'service': 'storage', 'file': 'storage_service'});
         return null;
       }
     } else if (data is Map<String, dynamic>) {
@@ -143,7 +144,7 @@ class StorageService {
       try {
         return UserProfile.fromJson(data);
       } catch (e) {
-        debugPrint('Error parsing legacy user profile Map: $e');
+        WasteAppLogger.severe('Error occurred', null, null, {'service': 'storage', 'file': 'storage_service'});
         return null;
       }
     }
@@ -180,14 +181,14 @@ class StorageService {
       // Check if this exact content was saved recently (within 60 seconds)
       final recentSaveTime = _recentSaves[contentHash];
       if (recentSaveTime != null && now.difference(recentSaveTime).inSeconds < 60) {
-        debugPrint('🚫 CONTENT DUPLICATE: Skipping save for ${classification.itemName} (saved ${now.difference(recentSaveTime).inSeconds}s ago)');
+        WasteAppLogger.info('Operation completed', null, null, {'service': 'storage', 'file': 'storage_service'});
         return;
       }
     }
     
     // Check if this classification ID is currently being saved
     if (_activeSaves.contains(classification.id)) {
-      debugPrint('🔒 ACTIVE SAVE: Classification ${classification.id} is currently being saved, skipping');
+      WasteAppLogger.info('Operation completed', null, null, {'service': 'storage', 'file': 'storage_service'});
       return;
     }
     
@@ -212,8 +213,8 @@ class StorageService {
           // Check if the existing classification still exists
           final existingClassification = classificationsBox.get(existingClassificationId);
           if (existingClassification != null) {
-            debugPrint('🚫 DUPLICATE DETECTED: Skipping save for ${classification.itemName}');
-            debugPrint('🚫 Existing ID: $existingClassificationId');
+            WasteAppLogger.info('Operation completed', null, null, {'service': 'storage', 'file': 'storage_service'});
+            WasteAppLogger.info('Operation completed', null, null, {'service': 'storage', 'file': 'storage_service'});
             _recentSaves[contentHash] = now;
             return;
           } else {
@@ -224,9 +225,9 @@ class StorageService {
       }
       
       // Debug logging
-      debugPrint('💾 Saving classification for user: $currentUserId${force ? ' (FORCED)' : ''}');
-      debugPrint('💾 Classification: ${classification.itemName}');
-      debugPrint('💾 Classification ID: ${classification.id}');
+      WasteAppLogger.info('Operation completed', null, null, {'service': 'storage', 'file': 'storage_service'});
+      WasteAppLogger.info('Operation completed', null, null, {'service': 'storage', 'file': 'storage_service'});
+      WasteAppLogger.info('Operation completed', null, null, {'service': 'storage', 'file': 'storage_service'});
       
       // Use Hive transaction to keep both boxes in sync
       await Hive.box(StorageKeys.classificationsBox).put(classification.id, classificationWithUserId);
@@ -244,7 +245,7 @@ class StorageService {
         }
       }
       
-      debugPrint('✅ Classification saved successfully');
+      WasteAppLogger.info('Operation completed', null, null, {'service': 'storage', 'file': 'storage_service'});
       
     } finally {
       // Always remove from active saves
@@ -264,8 +265,8 @@ class StorageService {
     final currentUserId = userProfile?.id ?? 'guest_user';
 
     // Debug logging - REDUCED
-    debugPrint('📖 Loading classifications for user: $currentUserId');
-    debugPrint('📖 Total classifications in storage: ${classificationsBox.keys.length}');
+    WasteAppLogger.info('Operation completed', null, null, {'service': 'storage', 'file': 'storage_service'});
+    WasteAppLogger.info('Operation completed', null, null, {'service': 'storage', 'file': 'storage_service'});
     
     // Counter for different types of classifications
     var totalProcessed = 0;
@@ -308,7 +309,7 @@ class StorageService {
           // Legacy Map format with type conversion
           classification = WasteClassification.fromJson(Map<String, dynamic>.from(data));
         } else {
-          debugPrint('📖 ⚠️ Invalid data format for key: $key (${data.runtimeType}), deleting corrupted entry');
+          WasteAppLogger.warning('Warning occurred', null, null, {'service': 'storage', 'file': 'storage_service'});
           await classificationsBox.delete(key);
           corruptedEntries++;
           continue;
@@ -330,7 +331,7 @@ class StorageService {
           classification = classification.copyWith(id: const Uuid().v4());
           // Always store as JSON string for consistency
           await classificationsBox.put(key, jsonEncode(classification.toJson()));
-          debugPrint('📖 Generated and saved new ID for classification: ${classification.itemName}');
+          WasteAppLogger.info('Operation completed', null, null, {'service': 'storage', 'file': 'storage_service'});
         }
         
         // Include classifications based on user context
@@ -354,27 +355,27 @@ class StorageService {
           excludedDifferentUser++;
         }
       } catch (e) {
-        debugPrint('📖 ❌ Error processing classification with key $key: $e');
+        WasteAppLogger.severe('Error occurred', null, null, {'service': 'storage', 'file': 'storage_service'});
         corruptedEntries++;
         
         // Delete corrupted entry to prevent future errors
         try {
           await classificationsBox.delete(key);
-          debugPrint('📖 🗑️ Deleted corrupted classification entry: $key');
+          WasteAppLogger.info('Operation completed', null, null, {'service': 'storage', 'file': 'storage_service'});
         } catch (deleteError) {
-          debugPrint('📖 ❌ Failed to delete corrupted entry: $deleteError');
+          WasteAppLogger.severe('Error occurred', null, null, {'service': 'storage', 'file': 'storage_service'});
         }
       }
     }
     
     // Final debug summary
-    debugPrint('📊 SUMMARY:');
-    debugPrint('📊 Total entries processed: $totalProcessed');
-    debugPrint('📊 Successfully parsed: $successfullyParsed');
-    debugPrint('📊 Corrupted entries: $corruptedEntries');
-    debugPrint('📊 Classifications included for user: $includedForUser');
-    debugPrint('📊 Classifications excluded (different user): $excludedDifferentUser');
-    debugPrint('📊 Total classifications returned: ${classifications.length}');
+    WasteAppLogger.performanceLog('storage', 0, context: {'service': 'storage', 'file': 'storage_service'});
+    WasteAppLogger.performanceLog('storage', 0, context: {'service': 'storage', 'file': 'storage_service'});
+    WasteAppLogger.performanceLog('storage', 0, context: {'service': 'storage', 'file': 'storage_service'});
+    WasteAppLogger.performanceLog('storage', 0, context: {'service': 'storage', 'file': 'storage_service'});
+    WasteAppLogger.performanceLog('storage', 0, context: {'service': 'storage', 'file': 'storage_service'});
+    WasteAppLogger.performanceLog('storage', 0, context: {'service': 'storage', 'file': 'storage_service'});
+    WasteAppLogger.performanceLog('storage', 0, context: {'service': 'storage', 'file': 'storage_service'});
 
       // Apply filters if provided
       if (filterOptions != null && filterOptions.isNotEmpty) {
@@ -662,7 +663,7 @@ class StorageService {
     // Prevent storing timestamps far in the future which could happen due to
     // clock issues or bad data.
     if (timestamp.isAfter(DateTime.now().add(const Duration(minutes: 1)))) {
-      debugPrint('⚠️ Invalid sync timestamp: $timestamp is in the future');
+      WasteAppLogger.warning('Warning occurred', null, null, {'service': 'storage', 'file': 'storage_service'});
       return;
     }
 
@@ -705,7 +706,7 @@ class StorageService {
       }
       return Map<String, dynamic>.from(settings);
     } catch (e) {
-      debugPrint('Error getting settings: $e');
+      WasteAppLogger.severe('Error occurred', null, null, {'service': 'storage', 'file': 'storage_service'});
       // Return default settings with cloud sync enabled
       return {
         'notifications': true,
@@ -830,7 +831,7 @@ class StorageService {
       await box.clear();
       await box.close();
     } catch (e) {
-      debugPrint('Error clearing classifications: $e');
+      WasteAppLogger.severe('Error occurred', null, null, {'service': 'storage', 'file': 'storage_service'});
       rethrow;
     }
   }
@@ -860,15 +861,15 @@ class StorageService {
         final keyCount = prefs.getKeys().length;
         // Use atomic clear() instead of per-key loop for better performance
         await prefs.clear();
-        debugPrint('✅ SharedPreferences cleared ($keyCount keys processed)');
+        WasteAppLogger.info('Operation completed', null, null, {'service': 'storage', 'file': 'storage_service'});
       } catch (prefsError) {
-        debugPrint('⚠️ Warning: Error clearing SharedPreferences: $prefsError');
+        WasteAppLogger.severe('Error occurred', null, null, {'service': 'storage', 'file': 'storage_service'});
         // Don't rethrow - this shouldn't block the entire factory reset
       }
       
-      debugPrint('✅ All user data cleared successfully');
+      WasteAppLogger.info('Operation completed', null, null, {'service': 'storage', 'file': 'storage_service'});
     } catch (e) {
-      debugPrint('❌ Error clearing user data: $e');
+      WasteAppLogger.severe('Error occurred', null, null, {'service': 'storage', 'file': 'storage_service'});
       rethrow;
     }
   }
@@ -879,9 +880,9 @@ class StorageService {
       final box = await Hive.openBox<String>('analytics_events');
       final eventsJson = events.map((event) => jsonEncode(event.toJson())).toList();
       await box.put('pending_events', jsonEncode(eventsJson));
-      debugPrint('✅ Saved ${events.length} analytics events to local storage');
+      WasteAppLogger.info('Operation completed', null, null, {'service': 'storage', 'file': 'storage_service'});
     } catch (e) {
-      debugPrint('❌ Failed to save analytics events: $e');
+      WasteAppLogger.severe('Error occurred', null, null, {'service': 'storage', 'file': 'storage_service'});
     }
   }
 
@@ -896,7 +897,7 @@ class StorageService {
       }
       return [];
     } catch (e) {
-      debugPrint('❌ Failed to load analytics events: $e');
+      WasteAppLogger.severe('Error occurred', null, null, {'service': 'storage', 'file': 'storage_service'});
       return [];
     }
   }
@@ -933,7 +934,7 @@ class StorageService {
             final classification = WasteClassification.fromJson(json);
             return classification.userId == userProfile.id;
           } catch (e) {
-            debugPrint('Error processing classification during migration count: $e');
+            WasteAppLogger.severe('Error occurred', null, null, {'service': 'storage', 'file': 'storage_service'});
             return false;
           }
         })
@@ -968,7 +969,7 @@ class StorageService {
                    classification.userId == null ||
                    (classification.userId != null && classification.userId!.startsWith('guest_'));
           } catch (e) {
-            debugPrint('Error processing classification during migration count: $e');
+            WasteAppLogger.severe('Error occurred', null, null, {'service': 'storage', 'file': 'storage_service'});
             return false;
           }
         })
@@ -1018,15 +1019,15 @@ class StorageService {
           await classificationsBox.put(key, jsonEncode(migratedClassification.toJson()));
           migratedCount++;
           
-          debugPrint('🔄 Migrated classification: ${classification.itemName} to user ${userProfile.id}');
+          WasteAppLogger.info('Operation completed', null, null, {'service': 'storage', 'file': 'storage_service'});
         }
       } catch (e) {
-        debugPrint('Error migrating classification for key $key: $e');
+        WasteAppLogger.severe('Error occurred', null, null, {'service': 'storage', 'file': 'storage_service'});
         continue;
       }
     }
     
-    debugPrint('✅ Successfully migrated $migratedCount classifications');
+    WasteAppLogger.info('Operation completed', null, null, {'service': 'storage', 'file': 'storage_service'});
     return migratedCount;
   }
 
@@ -1050,7 +1051,7 @@ class StorageService {
     final userProfile = await getCurrentUserProfile();
     final currentUserId = userProfile?.id ?? 'guest_user';
     
-    debugPrint('🧹 Starting duplicate cleanup for user: $currentUserId');
+    WasteAppLogger.info('Operation completed', null, null, {'service': 'storage', 'file': 'storage_service'});
     
     // Load all classifications
     final allKeys = classificationsBox.keys.toList();
@@ -1087,13 +1088,13 @@ class StorageService {
           // This is a duplicate, mark for deletion
           keysToDelete.add(key);
           duplicatesFound++;
-          debugPrint('🧹 Found duplicate: ${classification.itemName} at ${classification.timestamp}');
+          WasteAppLogger.info('Operation completed', null, null, {'service': 'storage', 'file': 'storage_service'});
         } else {
           // First occurrence, keep it
           seenClassifications[contentHash] = key;
         }
       } catch (e) {
-        debugPrint('🧹 Error processing key $key during cleanup: $e');
+        WasteAppLogger.severe('Error occurred', null, null, {'service': 'storage', 'file': 'storage_service'});
         // Corrupted entry, mark for deletion
         keysToDelete.add(key);
       }
@@ -1104,7 +1105,7 @@ class StorageService {
       await classificationsBox.delete(key);
     }
     
-    debugPrint('🧹 Cleanup complete: Removed $duplicatesFound duplicates');
+    WasteAppLogger.info('Operation completed', null, null, {'service': 'storage', 'file': 'storage_service'});
     return duplicatesFound;
   }
 
@@ -1144,7 +1145,7 @@ class StorageService {
   /// Trigger migration of old classifications to update imageUrl fields
   Future<void> migrateOldClassifications() async {
     try {
-      debugPrint('🔄 Starting classification migration process...');
+      WasteAppLogger.info('Operation completed', null, null, {'service': 'storage', 'file': 'storage_service'});
       
       // Create cloud storage service instance
       final cloudStorageService = CloudStorageService(this);
@@ -1155,16 +1156,16 @@ class StorageService {
       // Run migration
       final result = await migrationService.migrateOldClassifications();
       
-      debugPrint('📊 Migration completed: $result');
+      WasteAppLogger.performanceLog('storage', 0, context: {'service': 'storage', 'file': 'storage_service'});
     } catch (e) {
-      debugPrint('❌ Migration failed: $e');
+      WasteAppLogger.severe('Error occurred', null, null, {'service': 'storage', 'file': 'storage_service'});
     }
   }
 
   /// Migrate existing classifications to generate missing thumbnails
   Future<void> migrateThumbnails() async {
     try {
-      debugPrint('🔄 Starting thumbnail migration process...');
+      WasteAppLogger.info('Operation completed', null, null, {'service': 'storage', 'file': 'storage_service'});
       
       // Create image service instance
       final imageService = EnhancedImageService();
@@ -1175,16 +1176,16 @@ class StorageService {
       // Run migration
       final result = await migrationService.migrateThumbnails();
       
-      debugPrint('📊 Thumbnail migration completed: $result');
+      WasteAppLogger.performanceLog('storage', 0, context: {'service': 'storage', 'file': 'storage_service'});
     } catch (e) {
-      debugPrint('❌ Thumbnail migration failed: $e');
+      WasteAppLogger.severe('Error occurred', null, null, {'service': 'storage', 'file': 'storage_service'});
     }
   }
 
   /// Clean up orphaned thumbnails that no longer have corresponding classifications
   Future<void> cleanUpOrphanedThumbnails() async {
     try {
-      debugPrint('🧹 Starting orphaned thumbnail cleanup...');
+      WasteAppLogger.info('Operation completed', null, null, {'service': 'storage', 'file': 'storage_service'});
       
       // Get all classifications and extract valid thumbnail paths
       final classifications = await getAllClassifications();
@@ -1201,16 +1202,16 @@ class StorageService {
       final imageService = EnhancedImageService();
       await imageService.cleanUpOrphanedThumbnails(validThumbnailPaths);
       
-      debugPrint('✅ Orphaned thumbnail cleanup completed');
+      WasteAppLogger.info('Operation completed', null, null, {'service': 'storage', 'file': 'storage_service'});
     } catch (e) {
-      debugPrint('❌ Orphaned thumbnail cleanup failed: $e');
+      WasteAppLogger.severe('Error occurred', null, null, {'service': 'storage', 'file': 'storage_service'});
     }
   }
 
   /// Migrate existing absolute image paths to relative paths
   Future<void> migrateImagePathsToRelative() async {
     try {
-      debugPrint('🔄 Starting image path migration...');
+      WasteAppLogger.info('Operation completed', null, null, {'service': 'storage', 'file': 'storage_service'});
       
       final classifications = await getAllClassifications();
       var hasChanges = false;
@@ -1231,7 +1232,7 @@ class StorageService {
               imageRelativePath: relativePath,
             );
             hasChanges = true;
-            debugPrint('🔄 Migrated: ${classification.imageUrl} -> $relativePath');
+            WasteAppLogger.info('Operation completed', null, null, {'service': 'storage', 'file': 'storage_service'});
           }
         }
       }
@@ -1243,13 +1244,13 @@ class StorageService {
         for (final classification in classifications) {
           await box.add(classification);
         }
-        debugPrint('✅ Image path migration completed. Updated ${classifications.length} classifications.');
+        WasteAppLogger.info('Operation completed', null, null, {'service': 'storage', 'file': 'storage_service'});
       } else {
-        debugPrint('✅ No image path migration needed.');
+        WasteAppLogger.info('Operation completed', null, null, {'service': 'storage', 'file': 'storage_service'});
       }
       
     } catch (e) {
-      debugPrint('🔥 Error during image path migration: $e');
+      WasteAppLogger.severe('Error occurred', null, null, {'service': 'storage', 'file': 'storage_service'});
     }
   }
   
@@ -1276,7 +1277,7 @@ class StorageService {
       
       return null;
     } catch (e) {
-      debugPrint('🔥 Error converting path to relative: $e');
+      WasteAppLogger.severe('Error occurred', null, null, {'service': 'storage', 'file': 'storage_service'});
       return null;
     }
   }

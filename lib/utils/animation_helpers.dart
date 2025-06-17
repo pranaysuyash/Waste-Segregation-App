@@ -1,6 +1,7 @@
 // Added for PathMetrics and PathMetric
 import 'dart:math'; // Added for cos and sin
 import 'package:flutter/material.dart';
+import 'package:waste_segregation_app/utils/waste_app_logger.dart';
 
 /// Animation helpers for providing visual feedback in the app
 class AnimationHelpers {
@@ -130,7 +131,6 @@ class AnimationHelpers {
 
 /// A custom painter that draws a checkmark animation
 class CheckmarkPainter extends CustomPainter {
-
   CheckmarkPainter({
     required this.animation,
     required this.color,
@@ -163,7 +163,7 @@ class CheckmarkPainter extends CustomPainter {
     
     // Guard against empty path metrics
     if (pathMetrics.isEmpty) {
-      debugPrint('Warning: Path metrics is empty, skipping checkmark animation');
+      WasteAppLogger.warning('Warning: Path metrics is empty, skipping checkmark animation');
       return;
     }
     
@@ -187,7 +187,6 @@ class CheckmarkPainter extends CustomPainter {
 
 /// A custom painter that draws a burst of particles
 class ParticlePainter extends CustomPainter {
-
   ParticlePainter({
     required this.animation,
     required this.color,
@@ -233,7 +232,6 @@ class ParticlePainter extends CustomPainter {
 
 /// Helper method to animate the size of a widget
 class ScaleAnimation extends StatefulWidget {
-
   const ScaleAnimation({
     super.key,
     required this.child,
@@ -320,7 +318,6 @@ class _ScaleAnimationState extends State<ScaleAnimation>
 
 /// Helper method to animate the opacity and position of a widget
 class FadeSlideAnimation extends StatefulWidget {
-
   const FadeSlideAnimation({
     super.key,
     required this.child,

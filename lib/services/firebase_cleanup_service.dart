@@ -9,6 +9,7 @@ import 'package:waste_segregation_app/services/community_service.dart';
 import 'package:waste_segregation_app/services/storage_service.dart';
 import 'package:waste_segregation_app/services/enhanced_storage_service.dart';
 import 'package:waste_segregation_app/services/cloud_storage_service.dart';
+import 'package:waste_segregation_app/utils/waste_app_logger.dart';
 
 /// Service to clear Firebase data for testing fresh install experience
 /// This should only be used in development/testing environments
@@ -51,11 +52,11 @@ class FirebaseCleanupService {
   Future<void> clearAllDataForFreshInstall() async {
     final user = _auth.currentUser;
     if (user == null) {
-      debugPrint('No user is signed in. Aborting fresh install.');
+      WasteAppLogger.info('No user is signed in. Aborting fresh install.');
       return;
     }
 
-    debugPrint('🔥 Starting fresh install process for user: ${user.uid}');
+    WasteAppLogger.info('🔥 Starting fresh install process for user: ${user.uid}');
     didPerformFreshInstall = false; // Reset flag at start
 
     try {
@@ -70,17 +71,17 @@ class FirebaseCleanupService {
 
       // 4. Delete user account from Firebase Auth
       await user.delete();
-      debugPrint('✅ User account deleted from Firebase Auth.');
+      WasteAppLogger.info('✅ User account deleted from Firebase Auth.');
 
       // 5. Set persistent flag to prevent immediate re-sync on next launch
       final prefs = await SharedPreferences.getInstance();
       await prefs.setBool('justDidFreshInstall', true);
       didPerformFreshInstall = true;
-      debugPrint('✅ Fresh install process completed successfully.');
+      WasteAppLogger.info('✅ Fresh install process completed successfully.');
 
     } catch (e, s) {
-      debugPrint('❌ Error during fresh install process: $e');
-      debugPrint('Stack trace: $s');
+      WasteAppLogger.severe('❌ Error during fresh install process: $e');
+      WasteAppLogger.info('Stack trace: $s');
       // Even if it fails, try to leave the app in a somewhat clean state
       didPerformFreshInstall = true;
       throw Exception('Failed to complete fresh install. Error: $e');
@@ -88,7 +89,7 @@ class FirebaseCleanupService {
   }
 
   Future<void> _wipeCloudAndFirestoreCache(String uid) async {
-    debugPrint('🔥 Wiping all Firestore documents for user: $uid');
+    WasteAppLogger.info('🔥 Wiping all Firestore documents for user: $uid');
     final batch = _firestore.batch();
 
     // Delete user-specific documents from various collections
@@ -97,39 +98,39 @@ class FirebaseCleanupService {
       for (final doc in snapshot.docs) {
         batch.delete(doc.reference);
       }
-      debugPrint('  - Found and staged ${snapshot.size} docs for deletion in "$collectionName"');
+      WasteAppLogger.info('  - Found and staged ${snapshot.size} docs for deletion in "$collectionName"');
     }
 
     // Delete user from global collections
     for (final collectionName in _globalCollections) {
         final docRef = _firestore.collection(collectionName).doc(uid);
         batch.delete(docRef);
-        debugPrint('  - Staged deletion for doc "$uid" in "$collectionName"');
+        WasteAppLogger.info('  - Staged deletion for doc "$uid" in "$collectionName"');
     }
 
     await batch.commit();
-    debugPrint('✅ Batch delete committed to Firestore.');
+    WasteAppLogger.info('✅ Batch delete committed to Firestore.');
 
     // Crucially, clear the local persistence to prevent re-hydration
     await _firestore.clearPersistence();
-    debugPrint('✅ Firestore local persistence cache cleared.');
+    WasteAppLogger.info('✅ Firestore local persistence cache cleared.');
   }
 
   Future<void> _resetLocalHive() async {
-    debugPrint('🔥 Resetting local Hive storage...');
+    WasteAppLogger.info('🔥 Resetting local Hive storage...');
     await Hive.close();
     for (final boxName in _hiveBoxesToNuke) {
       try {
         await Hive.deleteBoxFromDisk(boxName);
-        debugPrint('  - Deleted box: $boxName');
+        WasteAppLogger.info('  - Deleted box: $boxName');
       } catch (e) {
-        debugPrint('  - Could not delete box $boxName (may not exist): $e');
+        WasteAppLogger.info('  - Could not delete box $boxName (may not exist): $e');
       }
     }
-    debugPrint('✅ All Hive boxes deleted from disk.');
+    WasteAppLogger.info('✅ All Hive boxes deleted from disk.');
 
     // Re-initialize essential services to get the app back into a usable state
-    debugPrint('🔄 Re-initializing core services...');
+    WasteAppLogger.info('🔄 Re-initializing core services...');
     final storageService = EnhancedStorageService();
     final gamificationService = GamificationService(storageService, CloudStorageService(storageService));
     final communityService = CommunityService();
@@ -137,14 +138,14 @@ class FirebaseCleanupService {
     await StorageService.initializeHive();
     await gamificationService.initGamification();
     await communityService.initCommunity();
-    debugPrint('✅ Core services re-initialized.');
+    WasteAppLogger.info('✅ Core services re-initialized.');
   }
 
   Future<void> _clearSharedPrefs() async {
-    debugPrint('🔥 Clearing SharedPreferences...');
+    WasteAppLogger.info('🔥 Clearing SharedPreferences...');
     final prefs = await SharedPreferences.getInstance();
     await prefs.clear();
-    debugPrint('✅ SharedPreferences cleared.');
+    WasteAppLogger.info('✅ SharedPreferences cleared.');
   }
 
   /// [ADMIN-ONLY] Deletes all of a specific user's data from Firestore.
@@ -153,13 +154,13 @@ class FirebaseCleanupService {
   Future<void> adminDeleteUser(String userIdToDelete) async {
     await _verifyCurrentUserIsAdmin();
 
-    debugPrint('🔥 [ADMIN] Deleting all Firestore data for user: $userIdToDelete');
+    WasteAppLogger.info('🔥 [ADMIN] Deleting all Firestore data for user: $userIdToDelete');
     try {
       // Re-using the same Firestore deletion logic, but targeted at a specific user.
       await _wipeCloudAndFirestoreCache(userIdToDelete);
-      debugPrint('✅ [ADMIN] Successfully deleted all Firestore data for user: $userIdToDelete');
+      WasteAppLogger.info('✅ [ADMIN] Successfully deleted all Firestore data for user: $userIdToDelete');
     } catch (e) {
-      debugPrint('❌ [ADMIN] Error deleting data for user $userIdToDelete: $e');
+      WasteAppLogger.severe('❌ [ADMIN] Error deleting data for user $userIdToDelete: $e');
       throw Exception('Failed to delete user data. Error: $e');
     }
   }
@@ -175,6 +176,6 @@ class FirebaseCleanupService {
     if (currentUser.email != adminEmail) {
       throw Exception('Admin action failed: User ${currentUser.email} is not an authorized admin.');
     }
-    debugPrint('🔑 Admin user verified: ${currentUser.email}');
+    WasteAppLogger.info('🔑 Admin user verified: ${currentUser.email}');
   }
 } 

@@ -7,6 +7,7 @@ import '../models/user_profile.dart' as user_profile_models;
 import '../services/firebase_family_service.dart';
 import '../services/storage_service.dart';
 import '../utils/constants.dart';
+import 'package:waste_segregation_app/utils/waste_app_logger.dart';
 
 class FamilyManagementScreen extends StatefulWidget {
 
@@ -664,7 +665,7 @@ class _FamilyManagementScreenState extends State<FamilyManagementScreen>
               (profileRole) => profileRole.toString().split('.').last == newFamilyRoleName
             );
           } catch (e) {
-            debugPrint('Warning: Role "$newFamilyRoleName" from family_models.UserRole not found in user_profile_models.UserRole. Defaulting to member.');
+            WasteAppLogger.warning('Warning: Role "$newFamilyRoleName" from family_models.UserRole not found in user_profile_models.UserRole. Defaulting to member.');
             newProfileRole = user_profile_models.UserRole.member;
           }
       }

@@ -83,31 +83,31 @@ void main() async {
   
   // Environment variables are now loaded via --dart-define-from-file=.env
   if (kDebugMode) {
-    debugPrint('Environment variables loaded via --dart-define-from-file');
+    WasteAppLogger.info('Environment variables loaded via --dart-define-from-file');
   }
 
   if (!kIsWeb) {
     if (kDebugMode) {
-      debugPrint('Before setPreferredOrientations');
+      WasteAppLogger.info('Before setPreferredOrientations');
     }
     await SystemChrome.setPreferredOrientations([
       DeviceOrientation.portraitUp,
       DeviceOrientation.portraitDown,
     ]);
     if (kDebugMode) {
-      debugPrint('After setPreferredOrientations');
+      WasteAppLogger.info('After setPreferredOrientations');
     }
   }
 
   if (kDebugMode) {
-    debugPrint('Before Firebase.initializeApp');
+    WasteAppLogger.info('Before Firebase.initializeApp');
   }
   try {
     await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,
     );
     if (kDebugMode) {
-      debugPrint('Firebase initialized successfully');
+      WasteAppLogger.info('Firebase initialized successfully');
     }
     
     // Test Firestore connection and enable API if needed
@@ -115,18 +115,18 @@ void main() async {
       final firestore = FirebaseFirestore.instance;
       await firestore.enableNetwork();
       if (kDebugMode) {
-        debugPrint('Firestore network enabled successfully');
+        WasteAppLogger.info('Firestore network enabled successfully');
       }
       
       // Test basic Firestore operation
       await firestore.collection('test').limit(1).get();
       if (kDebugMode) {
-        debugPrint('Firestore API is accessible');
+        WasteAppLogger.info('Firestore API is accessible');
       }
     } catch (firestoreError) {
       if (kDebugMode) {
-        debugPrint('Firestore API error: $firestoreError');
-        debugPrint('Please enable Firestore API at: https://console.developers.google.com/apis/api/firestore.googleapis.com/overview?project=waste-segregation-app-df523');
+        WasteAppLogger.severe('Firestore API error: $firestoreError');
+        WasteAppLogger.info('Please enable Firestore API at: https://console.developers.google.com/apis/api/firestore.googleapis.com/overview?project=waste-segregation-app-df523');
       }
       // Continue without Firestore - app can still function
     }
@@ -134,7 +134,7 @@ void main() async {
     // Crashlytics is ready for error reporting
   } catch (e) {
     if (kDebugMode) {
-      debugPrint('Failed to initialize Firebase: $e');
+      WasteAppLogger.severe('Failed to initialize Firebase: $e');
     }
     // Continue with app initialization even if Firebase fails
   }
@@ -144,21 +144,21 @@ void main() async {
     startupTrace = FirebasePerformance.instance.newTrace('app_startup');
     await startupTrace.start();
   } catch (e) {
-    debugPrint('Failed to start performance trace: $e');
+    WasteAppLogger.severe('Failed to start performance trace: $e');
   }
 
   if (kDebugMode) {
-    debugPrint('Before StorageService.initializeHive');
+    WasteAppLogger.info('Before StorageService.initializeHive');
   }
   await StorageService.initializeHive();
   if (kDebugMode) {
-    debugPrint('After StorageService.initializeHive');
+    WasteAppLogger.info('After StorageService.initializeHive');
   }
 
   // Initialize cache feature flags
   await CacheFeatureFlags.initialize();
   if (kDebugMode) {
-    debugPrint('Cache feature flags initialized');
+    WasteAppLogger.info('Cache feature flags initialized');
   }
 
   // Initialize Error Handler
@@ -178,7 +178,7 @@ void main() async {
     // Migrate existing classifications to generate missing thumbnails
     await storageService.migrateThumbnails();
   } catch (e) {
-    debugPrint('Migration error (non-critical): $e');
+    WasteAppLogger.severe('Migration error (non-critical): $e');
     // Continue with app initialization even if migrations fail
   }
   
@@ -196,13 +196,13 @@ void main() async {
 
   try {
     if (kDebugMode) {
-      debugPrint('Before service initializations');
+      WasteAppLogger.info('Before service initializations');
     }
     // Check persistent fresh install flag before any sync/service init
     final prefs = await SharedPreferences.getInstance();
     final justDidFreshInstall = prefs.getBool('justDidFreshInstall') ?? false;
     if (justDidFreshInstall) {
-      debugPrint('🚫 SKIPPING automatic service initialization due to fresh install (persistent flag).');
+      WasteAppLogger.info('🚫 SKIPPING automatic service initialization due to fresh install (persistent flag).');
       await prefs.setBool('justDidFreshInstall', false); // Reset for next launch
     } else {
       await Future.wait([
@@ -213,11 +213,11 @@ void main() async {
       ]);
     }
     if (kDebugMode) {
-      debugPrint('After service initializations');
+      WasteAppLogger.info('After service initializations');
     }
 
     if (kDebugMode) {
-      debugPrint('Before runApp');
+      WasteAppLogger.info('Before runApp');
     }
     runApp(WasteSegregationApp(
       storageService: storageService,
@@ -240,14 +240,14 @@ void main() async {
       }
     });
     if (kDebugMode) {
-      debugPrint('After runApp');
+      WasteAppLogger.info('After runApp');
     }
   } finally {
     if (startupTrace != null) {
       try {
         await startupTrace.stop();
       } catch (e) {
-        debugPrint('Failed to stop performance trace: $e');
+        WasteAppLogger.severe('Failed to stop performance trace: $e');
       }
     }
   }
@@ -259,8 +259,8 @@ void _setupErrorHandling() {
     // Log to console in debug mode
     if (kDebugMode) {
       FlutterError.presentError(details);
-      debugPrint('🚨 Flutter Error Captured: ${details.exception}');
-      debugPrint('📍 Stack: ${details.stack}');
+      WasteAppLogger.severe('🚨 Flutter Error Captured: ${details.exception}');
+      WasteAppLogger.info('📍 Stack: ${details.stack}');
     }
     
     // Send to Crashlytics in release mode
@@ -272,8 +272,8 @@ void _setupErrorHandling() {
   // Capture errors outside of Flutter framework
   PlatformDispatcher.instance.onError = (error, stack) {
     if (kDebugMode) {
-      debugPrint('🚨 Platform Error Captured: $error');
-      debugPrint('📍 Stack: $stack');
+      WasteAppLogger.severe('🚨 Platform Error Captured: $error');
+      WasteAppLogger.info('📍 Stack: $stack');
     }
     
     if (!kDebugMode) {

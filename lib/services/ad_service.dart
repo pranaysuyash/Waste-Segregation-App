@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
+import 'package:waste_segregation_app/utils/waste_app_logger.dart';
 
 class AdService extends ChangeNotifier {
   // static const String _removeAdsFeatureId = 'remove_ads'; // Unused field removed
@@ -123,7 +124,7 @@ class AdService extends ChangeNotifier {
         }
       });
     } catch (e) {
-      debugPrint('Error initializing ads: $e');
+      WasteAppLogger.severe('Error initializing ads: $e');
       // TODO: Implement proper error tracking/analytics
     } finally {
       _isInitializing = false;
@@ -151,7 +152,7 @@ class AdService extends ChangeNotifier {
           ),
           listener: BannerAdListener(
             onAdLoaded: (ad) {
-              debugPrint('Banner ad loaded successfully');
+              WasteAppLogger.info('Banner ad loaded successfully');
               if (!_disposed) {
                 // Schedule UI update after current frame to prevent jank
                 WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -169,7 +170,7 @@ class AdService extends ChangeNotifier {
               }
             },
             onAdFailedToLoad: (ad, error) {
-              debugPrint('Banner ad failed to load: $error');
+              WasteAppLogger.severe('Banner ad failed to load: $error');
               ad.dispose();
               
               // Schedule cleanup after current frame
@@ -185,11 +186,11 @@ class AdService extends ChangeNotifier {
               });
             },
             onAdImpression: (ad) {
-              debugPrint('Banner ad impression');
+              WasteAppLogger.info('Banner ad impression');
               // Track ad impression analytics here
             },
             onAdClicked: (ad) {
-              debugPrint('Banner ad clicked');
+              WasteAppLogger.info('Banner ad clicked');
               // Track ad click analytics here
             },
           ),
@@ -198,7 +199,7 @@ class AdService extends ChangeNotifier {
         // Load ad asynchronously to prevent main thread blocking
         await newBannerAd.load();
       } catch (e) {
-        debugPrint('Error creating banner ad: $e');
+        WasteAppLogger.severe('Error creating banner ad: $e');
         // Schedule retry after error
         if (!_disposed) {
           _retryBannerAdLoad();
@@ -265,7 +266,7 @@ class AdService extends ChangeNotifier {
                       }
                     },
                     onAdFailedToShowFullScreenContent: (ad, error) {
-                      debugPrint('Failed to show interstitial ad: $error');
+                      WasteAppLogger.severe('Failed to show interstitial ad: $error');
                       ad.dispose();
                       _interstitialAd = null;
                       if (!_disposed) {
@@ -273,11 +274,11 @@ class AdService extends ChangeNotifier {
                       }
                     },
                     onAdImpression: (ad) {
-                      debugPrint('Interstitial ad impression');
+                      WasteAppLogger.info('Interstitial ad impression');
                       // Track ad impression analytics here
                     },
                     onAdClicked: (ad) {
-                      debugPrint('Interstitial ad clicked');
+                      WasteAppLogger.info('Interstitial ad clicked');
                       // Track ad click analytics here
                     },
                   );
@@ -289,7 +290,7 @@ class AdService extends ChangeNotifier {
               });
             },
             onAdFailedToLoad: (error) {
-              debugPrint('Failed to load interstitial ad: $error');
+              WasteAppLogger.severe('Failed to load interstitial ad: $error');
               // Schedule retry after current frame
               WidgetsBinding.instance.addPostFrameCallback((_) {
                 _isInterstitialAdLoading = false;
@@ -301,7 +302,7 @@ class AdService extends ChangeNotifier {
           ),
         );
       } catch (e) {
-        debugPrint('Error loading interstitial ad: $e');
+        WasteAppLogger.severe('Error loading interstitial ad: $e');
         _isInterstitialAdLoading = false;
         if (!_disposed) {
           _retryInterstitialAdLoad();
@@ -428,7 +429,7 @@ class AdService extends ChangeNotifier {
       _classificationsSinceLastAd = 0;
       return true;
     } catch (e) {
-      debugPrint('Error showing interstitial ad: $e');
+      WasteAppLogger.severe('Error showing interstitial ad: $e');
       return false;
     }
   }

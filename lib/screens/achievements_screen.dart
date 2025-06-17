@@ -8,6 +8,7 @@ import '../utils/constants.dart';
 import '../widgets/profile_summary_card.dart';
 import '../widgets/advanced_ui/achievement_celebration.dart';
 import '../providers/points_engine_provider.dart';
+import '../utils/waste_app_logger.dart';
 
 class AchievementsScreen extends StatefulWidget {
 
@@ -51,18 +52,18 @@ class _AchievementsScreenState extends State<AchievementsScreen>
     }
     
     try {
-      debugPrint('🏆 AchievementsScreen: Loading initial profile...');
+      WasteAppLogger.info('Operation completed', null, null, {'service': 'screen', 'file': 'achievements_screen'});
       
       // Add timeout to prevent infinite loading  
       await context.read<PointsEngineProvider>().pointsEngine.initialize().timeout(
         const Duration(seconds: 10),
         onTimeout: () {
-          debugPrint('🔥 AchievementsScreen: Profile loading timed out');
+          WasteAppLogger.severe('Error occurred', null, null, {'service': 'screen', 'file': 'achievements_screen'});
           throw TimeoutException('Profile loading timed out', const Duration(seconds: 10));
         },
       );
       
-      debugPrint('🏆 AchievementsScreen: Initial profile loaded successfully');
+      WasteAppLogger.info('Operation completed', null, null, {'service': 'screen', 'file': 'achievements_screen'});
       
       if (mounted) {
         setState(() {
@@ -72,7 +73,7 @@ class _AchievementsScreenState extends State<AchievementsScreen>
       }
       // The profile should now be available and the widget will rebuild due to Provider
     } catch (e) {
-      debugPrint('🔥 AchievementsScreen: Error loading initial profile: $e');
+      WasteAppLogger.severe('Error occurred', null, null, {'service': 'screen', 'file': 'achievements_screen'});
       
       if (mounted) {
         setState(() {
@@ -83,7 +84,7 @@ class _AchievementsScreenState extends State<AchievementsScreen>
       
       // Try to force a profile creation as last resort
       try {
-        debugPrint('🆘 AchievementsScreen: Attempting emergency profile creation...');
+        WasteAppLogger.info('Operation completed', null, null, {'service': 'screen', 'file': 'achievements_screen'});
         final pointsEngine = context.read<PointsEngineProvider>().pointsEngine;
         
         // Force create a basic profile if none exists
@@ -98,7 +99,7 @@ class _AchievementsScreenState extends State<AchievementsScreen>
           }
         }
       } catch (emergencyError) {
-        debugPrint('🔥 AchievementsScreen: Emergency profile creation failed: $emergencyError');
+        WasteAppLogger.severe('Error occurred', null, null, {'service': 'screen', 'file': 'achievements_screen'});
       }
       
       // Even if there's an error, the service should provide a fallback profile
@@ -120,7 +121,7 @@ class _AchievementsScreenState extends State<AchievementsScreen>
 
   Future<void> _refreshProfile() async {
     try {
-      debugPrint('🏆 AchievementsScreen: Refreshing profile...');
+      WasteAppLogger.info('Operation completed', null, null, {'service': 'screen', 'file': 'achievements_screen'});
       
       if (mounted) {
         setState(() {
@@ -129,9 +130,9 @@ class _AchievementsScreenState extends State<AchievementsScreen>
       }
       
       await context.read<PointsEngineProvider>().pointsEngine.refresh();
-      debugPrint('🏆 AchievementsScreen: Profile refreshed successfully');
+      WasteAppLogger.info('Operation completed', null, null, {'service': 'screen', 'file': 'achievements_screen'});
     } catch (e) {
-      debugPrint('🔥 AchievementsScreen: Error refreshing profile: $e');
+      WasteAppLogger.severe('Error occurred', null, null, {'service': 'screen', 'file': 'achievements_screen'});
       
       final scaffoldMessenger = ScaffoldMessenger.of(context);
       if (mounted) {
@@ -192,11 +193,11 @@ class _AchievementsScreenState extends State<AchievementsScreen>
             final pointsProvider = context.watch<PointsEngineProvider>();
             final profile = pointsProvider.pointsEngine.currentProfile;
 
-            debugPrint('🏆 AchievementsScreen: Profile status - ${profile != null ? 'loaded' : 'loading'}');
+            WasteAppLogger.info('Operation completed', null, null, {'service': 'screen', 'file': 'achievements_screen'});
 
             // Show loading state
             if (profile == null && _isLoadingProfile) {
-              debugPrint('🏆 AchievementsScreen: Profile is null, showing loading indicator');
+              WasteAppLogger.info('Operation completed', null, null, {'service': 'screen', 'file': 'achievements_screen'});
               return const Center(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -264,7 +265,7 @@ class _AchievementsScreenState extends State<AchievementsScreen>
               );
             }
 
-            debugPrint('🏆 AchievementsScreen: Profile loaded with ${profile.achievements.length} achievements');
+            WasteAppLogger.info('Operation completed', null, null, {'service': 'screen', 'file': 'achievements_screen'});
 
             return TabBarView(
               controller: _tabController,
@@ -427,13 +428,13 @@ class _AchievementsScreenState extends State<AchievementsScreen>
     
     // DEBUGGING: Log achievement state for "Waste Apprentice"
     if (achievement.id == 'waste_apprentice') {
-      debugPrint('🎯 UI DEBUG - Waste Apprentice Display:');
-      debugPrint('  - User level: ${profile.points.level}');
-      debugPrint('  - Unlocks at level: ${achievement.unlocksAtLevel}');
-      debugPrint('  - Is locked: $isLocked');
-      debugPrint('  - Is earned: $isEarned');
-      debugPrint('  - Progress: ${(achievement.progress * 100).round()}%');
-      debugPrint('  - Threshold: ${achievement.threshold}');
+      WasteAppLogger.info('Operation completed', null, null, {'service': 'screen', 'file': 'achievements_screen'});
+      WasteAppLogger.info('Operation completed', null, null, {'service': 'screen', 'file': 'achievements_screen'});
+      WasteAppLogger.info('Operation completed', null, null, {'service': 'screen', 'file': 'achievements_screen'});
+      WasteAppLogger.info('Operation completed', null, null, {'service': 'screen', 'file': 'achievements_screen'});
+      WasteAppLogger.info('Operation completed', null, null, {'service': 'screen', 'file': 'achievements_screen'});
+      WasteAppLogger.info('Operation completed', null, null, {'service': 'screen', 'file': 'achievements_screen'});
+      WasteAppLogger.info('Operation completed', null, null, {'service': 'screen', 'file': 'achievements_screen'});
     }
 
     return Card(

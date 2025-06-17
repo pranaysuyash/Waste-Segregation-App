@@ -11,6 +11,7 @@ import '../widgets/capture_button.dart';
 import '../widgets/enhanced_analysis_loader.dart';
 import '../widgets/premium_segmentation_toggle.dart';
 import 'result_screen.dart';
+import '../utils/waste_app_logger.dart';
 
 class ImageCaptureScreen extends StatefulWidget {
 
@@ -102,7 +103,7 @@ class _ImageCaptureScreenState extends State<ImageCaptureScreen> with Restoratio
       
       // Auto-analyze if enabled and image is available
       if (widget.autoAnalyze && (_imageFile != null || _xFile != null || _webImageBytes != null)) {
-        debugPrint('🚀 Auto-analyze enabled - starting analysis immediately');
+        WasteAppLogger.info('Auto-analyzing image on init.', null, null, {'service': 'screen', 'file': 'image_capture_screen'});
         _analyzeImage();
       }
     });
@@ -208,7 +209,7 @@ class _ImageCaptureScreenState extends State<ImageCaptureScreen> with Restoratio
 
               // Check if cancelled during image reading
               if (_isCancelled) {
-                debugPrint('Analysis cancelled during image reading');
+                WasteAppLogger.info('Analysis cancelled during image reading.', null, null, {'service': 'screen', 'file': 'image_capture_screen'});
                 return;
               }
 
@@ -218,8 +219,8 @@ class _ImageCaptureScreenState extends State<ImageCaptureScreen> with Restoratio
                   _webImageBytes = imageBytes;
                 });
               }
-            } catch (bytesError) {
-              debugPrint('Error reading web image bytes: $bytesError');
+            } catch (bytesError, s) {
+              WasteAppLogger.severe('Failed to read image data for web analysis', bytesError, s, {'service': 'screen', 'file': 'image_capture_screen'});
               throw Exception('Failed to read image data: $bytesError');
             }
           }
@@ -231,13 +232,12 @@ class _ImageCaptureScreenState extends State<ImageCaptureScreen> with Restoratio
 
           // Check if cancelled before starting analysis
           if (_isCancelled) {
-            debugPrint('Analysis cancelled before starting web analysis');
+            WasteAppLogger.info('Analysis cancelled before starting.', null, null, {'service': 'screen', 'file': 'image_capture_screen'});
             return;
           }
 
           // Log the image size for debugging
-          debugPrint(
-              'Analyzing web image: ${_xFile!.name}, size: ${imageBytes.length} bytes');
+          WasteAppLogger.info('Analyzing web image: ${_xFile!.name}, size: ${imageBytes.length} bytes', null, null, {'service': 'screen', 'file': 'image_capture_screen'});
 
           if (_useSegmentation && _selectedSegments.isNotEmpty) {
             // Already using our custom Rect type from segmentImage()
@@ -254,17 +254,16 @@ class _ImageCaptureScreenState extends State<ImageCaptureScreen> with Restoratio
           }
 
           // Log success for debugging
-          debugPrint('Web image analysis complete: ${classification.itemName}');
+          WasteAppLogger.info('Web image analysis complete: ${classification.itemName}', null, null, {'service': 'screen', 'file': 'image_capture_screen'});
         } else if (_webImageBytes != null) {
           // Check if cancelled before starting analysis
           if (_isCancelled) {
-            debugPrint('Analysis cancelled before starting web bytes analysis');
+            WasteAppLogger.info('Analysis cancelled before starting.', null, null, {'service': 'screen', 'file': 'image_capture_screen'});
             return;
           }
 
           // We were provided with the image bytes directly
-          debugPrint(
-              'Analyzing web image from bytes, size: ${_webImageBytes!.length} bytes');
+          WasteAppLogger.info('Analyzing web image from bytes, size: ${_webImageBytes!.length} bytes', null, null, {'service': 'screen', 'file': 'image_capture_screen'});
 
           if (_useSegmentation && _selectedSegments.isNotEmpty) {
             // Using our custom Rect class from segmentImage()
@@ -281,8 +280,7 @@ class _ImageCaptureScreenState extends State<ImageCaptureScreen> with Restoratio
           }
 
           // Log success for debugging
-          debugPrint(
-              'Web image bytes analysis complete: ${classification.itemName}');
+          WasteAppLogger.info('Web image bytes analysis complete: ${classification.itemName}', null, null, {'service': 'screen', 'file': 'image_capture_screen'});
         } else {
           throw Exception('No image provided for analysis');
         }
@@ -291,14 +289,14 @@ class _ImageCaptureScreenState extends State<ImageCaptureScreen> with Restoratio
         if (_imageFile != null) {
           // Check if cancelled before starting analysis
           if (_isCancelled) {
-            debugPrint('Analysis cancelled before starting mobile analysis');
+            WasteAppLogger.info('Analysis cancelled before starting.', null, null, {'service': 'screen', 'file': 'image_capture_screen'});
             setState(() {
               _isAnalyzing = false;
             });
             return;
           }
 
-          debugPrint('Analyzing mobile image file: ${_imageFile!.path}');
+          WasteAppLogger.info('Analyzing mobile image: ${_imageFile!.path}', null, null, {'service': 'screen', 'file': 'image_capture_screen'});
 
           // Check if file exists and is readable
           if (await _imageFile!.exists()) {
@@ -311,8 +309,7 @@ class _ImageCaptureScreenState extends State<ImageCaptureScreen> with Restoratio
             } else {
               classification = await aiService.analyzeImage(_imageFile!);
             }
-            debugPrint(
-                'Mobile image analysis complete: ${classification.itemName}');
+            WasteAppLogger.info('Mobile image analysis complete: ${classification.itemName}', null, null, {'service': 'screen', 'file': 'image_capture_screen'});
           } else {
             throw Exception('Image file does not exist or could not be read');
           }
@@ -323,7 +320,7 @@ class _ImageCaptureScreenState extends State<ImageCaptureScreen> with Restoratio
 
       // Check if cancelled after analysis completes but before navigation
       if (_isCancelled) {
-        debugPrint('Analysis cancelled after completion, not navigating to results');
+        WasteAppLogger.info('Analysis cancelled after completion, not navigating.', null, null, {'service': 'screen', 'file': 'image_capture_screen'});
         setState(() {
           _isAnalyzing = false;
         });
@@ -331,7 +328,7 @@ class _ImageCaptureScreenState extends State<ImageCaptureScreen> with Restoratio
       }
 
       if (mounted && !_isCancelled) {
-        debugPrint('Navigation to results screen with classification');
+        WasteAppLogger.info('Analysis complete, navigating to ResultScreen.', null, null, {'service': 'screen', 'file': 'image_capture_screen'});
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
@@ -348,8 +345,8 @@ class _ImageCaptureScreenState extends State<ImageCaptureScreen> with Restoratio
           }
         });
       }
-    } catch (e) {
-      debugPrint('Analysis error: $e');
+    } catch (e, s) {
+      WasteAppLogger.severe('Analysis failed', e, s, {'service': 'screen', 'file': 'image_capture_screen'});
       if (mounted && !_isCancelled) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -403,7 +400,7 @@ class _ImageCaptureScreenState extends State<ImageCaptureScreen> with Restoratio
                   _isCancelled = true;
                   _isAnalyzing = false;
                 });
-                debugPrint('Analysis cancelled by user');
+                WasteAppLogger.info('Analysis cancelled by user.', null, null, {'service': 'screen', 'file': 'image_capture_screen'});
                 
                 // Show cancellation feedback
                 if (mounted) {
@@ -449,7 +446,7 @@ class _ImageCaptureScreenState extends State<ImageCaptureScreen> with Restoratio
                   _isCancelled = true;
                   _isAnalyzing = false;
                 });
-                debugPrint('Analysis cancelled by user');
+                WasteAppLogger.info('Analysis cancelled by user.', null, null, {'service': 'screen', 'file': 'image_capture_screen'});
                 
                 // Show cancellation feedback
                 if (mounted) {
@@ -572,7 +569,7 @@ class _ImageCaptureScreenState extends State<ImageCaptureScreen> with Restoratio
                         try {
                           await _runSegmentation();
                         } catch (e) {
-                          debugPrint('Segmentation error: $e');
+                          WasteAppLogger.severe('Segmentation failed', e, null, {'service': 'screen', 'file': 'image_capture_screen'});
                           if (mounted) {
                             scaffoldMessenger.showSnackBar(
                               SnackBar(

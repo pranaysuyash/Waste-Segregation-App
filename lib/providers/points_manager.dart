@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/gamification.dart';
 import '../models/action_points.dart';
@@ -7,6 +6,7 @@ import '../services/storage_service.dart';
 import '../services/cloud_storage_service.dart';
 import '../services/points_engine.dart';
 import 'app_providers.dart'; // Import central providers
+import '../utils/waste_app_logger.dart';
 
 /// Single source of truth for all points operations
 /// Eliminates race conditions and ensures consistency across all screens
@@ -51,7 +51,7 @@ class PointsManager extends AsyncNotifier<UserPoints> {
     try {
       // Validate custom points usage
       if (customPoints != null && !action.supportsCustomPoints) {
-        debugPrint('⚠️ PointsManager: Custom points not supported for ${action.key}');
+        WasteAppLogger.warning('Warning occurred', null, null, {'service': 'points_manager', 'file': 'points_manager'});
       }
       
       final newPoints = await _pointsEngine.addPoints(
@@ -74,7 +74,7 @@ class PointsManager extends AsyncNotifier<UserPoints> {
       
       return newPoints;
     } catch (e, stackTrace) {
-      debugPrint('🔥 PointsManager: Failed to add points: $e');
+      WasteAppLogger.severe('Error occurred', null, null, {'service': 'points_manager', 'file': 'points_manager'});
       state = AsyncValue.error(e, stackTrace);
       rethrow;
     }
@@ -114,7 +114,7 @@ class PointsManager extends AsyncNotifier<UserPoints> {
       
       return newStreak;
     } catch (e, stackTrace) {
-      debugPrint('🔥 PointsManager: Failed to update streak: $e');
+      WasteAppLogger.severe('Error occurred', null, null, {'service': 'points_manager', 'file': 'points_manager'});
       state = AsyncValue.error(e, stackTrace);
       rethrow;
     }
@@ -133,7 +133,7 @@ class PointsManager extends AsyncNotifier<UserPoints> {
       
       return achievement;
     } catch (e, stackTrace) {
-      debugPrint('🔥 PointsManager: Failed to claim achievement: $e');
+      WasteAppLogger.severe('Error occurred', null, null, {'service': 'points_manager', 'file': 'points_manager'});
       state = AsyncValue.error(e, stackTrace);
       rethrow;
     }
@@ -150,7 +150,7 @@ class PointsManager extends AsyncNotifier<UserPoints> {
         state = AsyncValue.data(profile.points);
       }
     } catch (e, stackTrace) {
-      debugPrint('🔥 PointsManager: Failed to sync with classifications: $e');
+      WasteAppLogger.severe('Error occurred', null, null, {'service': 'points_manager', 'file': 'points_manager'});
       state = AsyncValue.error(e, stackTrace);
       rethrow;
     }
@@ -168,7 +168,7 @@ class PointsManager extends AsyncNotifier<UserPoints> {
         state = const AsyncValue.data(UserPoints());
       }
     } catch (e, stackTrace) {
-      debugPrint('🔥 PointsManager: Failed to refresh: $e');
+      WasteAppLogger.severe('Error occurred', null, null, {'service': 'points_manager', 'file': 'points_manager'});
       state = AsyncValue.error(e, stackTrace);
     }
   }
@@ -187,16 +187,16 @@ class PointsManager extends AsyncNotifier<UserPoints> {
       final difference = (points.total - categorySum).abs();
       
       if (difference > tolerance) {
-        debugPrint('⚠️ PointsManager: Points inconsistency detected!');
-        debugPrint('   Total: ${points.total}');
-        debugPrint('   Category sum: $categorySum');
-        debugPrint('   Difference: $difference');
+        WasteAppLogger.warning('Warning occurred', null, null, {'service': 'points_manager', 'file': 'points_manager'});
+        WasteAppLogger.info('Operation completed', null, null, {'service': 'points_manager', 'file': 'points_manager'});
+        WasteAppLogger.info('Operation completed', null, null, {'service': 'points_manager', 'file': 'points_manager'});
+        WasteAppLogger.info('Operation completed', null, null, {'service': 'points_manager', 'file': 'points_manager'});
         
         // Log for analytics but don't fail the operation
         // In production, this could trigger a background sync
       }
     } catch (e) {
-      debugPrint('🔥 PointsManager: Error validating points consistency: $e');
+      WasteAppLogger.severe('Error occurred', null, null, {'service': 'points_manager', 'file': 'points_manager'});
     }
   }
 

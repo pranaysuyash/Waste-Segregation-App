@@ -4,10 +4,10 @@ import 'package:uuid/uuid.dart';
 // import 'package:firebase_auth/firebase_auth.dart'; // Unused import
 import '../models/gamification.dart';
 import '../services/storage_service.dart';
+import 'package:waste_segregation_app/utils/waste_app_logger.dart';
 
 /// Service for tracking and analyzing user behavior and app usage.
 class AnalyticsService extends ChangeNotifier {
-  
   AnalyticsService(this._storageService) {
     _initializeSession();
     _initializeFirestore();
@@ -50,7 +50,7 @@ class AnalyticsService extends ChangeNotifier {
     _sessionParameters = {};
     _pendingEvents.clear();
     _sessionEvents.clear();
-    debugPrint('✅ Analytics data cleared');
+    WasteAppLogger.info('✅ Analytics data cleared');
   }
 
   /// Tracks the start of a user session.
@@ -114,7 +114,7 @@ class AnalyticsService extends ChangeNotifier {
       
       notifyListeners();
     } catch (e) {
-      debugPrint('Analytics: Failed to track event $eventName: $e');
+      WasteAppLogger.severe('Analytics: Failed to track event $eventName: $e');
     }
   }
 
@@ -227,7 +227,7 @@ class AnalyticsService extends ChangeNotifier {
   ) async {
     try {
       if (!_isFirestoreAvailable) {
-        debugPrint('Analytics: Firestore not available for user analytics query');
+        WasteAppLogger.info('Analytics: Firestore not available for user analytics query');
         return {'error': 'Analytics service unavailable'};
       }
       
@@ -244,7 +244,7 @@ class AnalyticsService extends ChangeNotifier {
 
       return _aggregateUserAnalytics(events);
     } catch (e) {
-      debugPrint('Analytics: Error getting user analytics: $e');
+      WasteAppLogger.severe('Analytics: Error getting user analytics: $e');
       _isFirestoreAvailable = false;
       return {'error': 'Failed to fetch analytics data'};
     }
@@ -257,7 +257,7 @@ class AnalyticsService extends ChangeNotifier {
   ) async {
     try {
       if (!_isFirestoreAvailable) {
-        debugPrint('Analytics: Firestore not available for system analytics query');
+        WasteAppLogger.info('Analytics: Firestore not available for system analytics query');
         return {'error': 'Analytics service unavailable'};
       }
       
@@ -273,7 +273,7 @@ class AnalyticsService extends ChangeNotifier {
 
       return _aggregateSystemAnalytics(events);
     } catch (e) {
-      debugPrint('Analytics: Error getting system analytics: $e');
+      WasteAppLogger.severe('Analytics: Error getting system analytics: $e');
       _isFirestoreAvailable = false;
       return {'error': 'Failed to fetch system analytics data'};
     }
@@ -283,7 +283,7 @@ class AnalyticsService extends ChangeNotifier {
   Future<List<Map<String, dynamic>>> getPopularContent(int limit) async {
     try {
       if (!_isFirestoreAvailable) {
-        debugPrint('Analytics: Firestore not available for popular content query');
+        WasteAppLogger.info('Analytics: Firestore not available for popular content query');
         return [];
       }
       
@@ -300,7 +300,7 @@ class AnalyticsService extends ChangeNotifier {
 
       return _aggregateContentAnalytics(events, limit);
     } catch (e) {
-      debugPrint('Analytics: Error getting popular content: $e');
+      WasteAppLogger.severe('Analytics: Error getting popular content: $e');
       _isFirestoreAvailable = false;
       return [];
     }
@@ -395,7 +395,7 @@ class AnalyticsService extends ChangeNotifier {
     try {
       // Check if Firestore is available
       if (!_isFirestoreAvailable) {
-        debugPrint('Analytics: Firestore not available, storing event locally');
+        WasteAppLogger.info('Analytics: Firestore not available, storing event locally');
         _pendingEvents.add(event);
         return;
       }
@@ -404,9 +404,9 @@ class AnalyticsService extends ChangeNotifier {
           .collection('analytics_events')
           .doc(event.id)
           .set(event.toJson());
-      debugPrint('Analytics: Event saved to Firestore successfully');
+      WasteAppLogger.info('Analytics: Event saved to Firestore successfully');
     } catch (e) {
-      debugPrint('Analytics: Failed to save event to Firestore: $e');
+      WasteAppLogger.severe('Analytics: Failed to save event to Firestore: $e');
       
       // If Firestore fails, mark as unavailable and store locally
       _isFirestoreAvailable = false;
@@ -423,7 +423,7 @@ class AnalyticsService extends ChangeNotifier {
       return;
     }
     
-    debugPrint('Analytics: Processing ${_pendingEvents.length} pending events');
+    WasteAppLogger.info('Analytics: Processing ${_pendingEvents.length} pending events');
     
     final eventsToProcess = List<AnalyticsEvent>.from(_pendingEvents);
     _pendingEvents.clear();
@@ -435,7 +435,7 @@ class AnalyticsService extends ChangeNotifier {
             .doc(event.id)
             .set(event.toJson());
       } catch (e) {
-        debugPrint('Analytics: Failed to process pending event: $e');
+        WasteAppLogger.severe('Analytics: Failed to process pending event: $e');
         // Add back to pending if still failing
         _pendingEvents.add(event);
         _isFirestoreAvailable = false;
@@ -444,7 +444,7 @@ class AnalyticsService extends ChangeNotifier {
     }
     
     if (_pendingEvents.isEmpty) {
-      debugPrint('✅ All pending analytics events processed successfully');
+      WasteAppLogger.info('✅ All pending analytics events processed successfully');
     }
   }
   
@@ -635,31 +635,31 @@ class AnalyticsService extends ChangeNotifier {
       await _firestore.collection('test').limit(1).get();
       
       _isFirestoreAvailable = true;
-      debugPrint('✅ Firestore connection established');
+      WasteAppLogger.info('✅ Firestore connection established');
       
       // Sync any pending events
       await _syncPendingEvents();
     } catch (e) {
       _isFirestoreAvailable = false;
-      debugPrint('❌ Firestore unavailable: $e');
-      debugPrint('📱 Analytics will use local storage only');
+      WasteAppLogger.info('❌ Firestore unavailable: $e');
+      WasteAppLogger.info('📱 Analytics will use local storage only');
       
       // Check if it's a permission error and provide helpful message
       if (e.toString().contains('PERMISSION_DENIED') || 
           e.toString().contains('has not been used') ||
           e.toString().contains('disabled')) {
-        debugPrint('🔧 To fix: Enable Firestore API at https://console.developers.google.com/apis/api/firestore.googleapis.com/overview?project=waste-segregation-app-df523');
+        WasteAppLogger.info('🔧 To fix: Enable Firestore API at https://console.developers.google.com/apis/api/firestore.googleapis.com/overview?project=waste-segregation-app-df523');
       }
     }
   }
   
   /// Store analytics events locally when Firestore is unavailable
   void _storeEventsLocally() {
-    debugPrint('Analytics: Storing ${_pendingEvents.length} events locally');
+    WasteAppLogger.info('Analytics: Storing ${_pendingEvents.length} events locally');
     // You could implement local storage here using Hive or SharedPreferences
     // For now, we'll just log the events for debugging
     for (final event in _pendingEvents) {
-      debugPrint('Analytics Event: ${event.eventName} - ${event.eventType}');
+      WasteAppLogger.info('Analytics Event: ${event.eventName} - ${event.eventType}');
     }
   }
 
@@ -678,13 +678,13 @@ class AnalyticsService extends ChangeNotifier {
       }
       
       await batch.commit();
-      debugPrint('✅ Synced ${_pendingEvents.length} pending analytics events');
+      WasteAppLogger.info('✅ Synced ${_pendingEvents.length} pending analytics events');
       _pendingEvents.clear();
       
       // Save cleared pending events to local storage
       await _storageService.saveAnalyticsEvents(_pendingEvents);
     } catch (e) {
-      debugPrint('❌ Failed to sync pending events: $e');
+      WasteAppLogger.severe('❌ Failed to sync pending events: $e');
     }
   }
 
@@ -699,6 +699,6 @@ class AnalyticsService extends ChangeNotifier {
     
     // Save to local storage
     _storageService.saveAnalyticsEvents(_pendingEvents);
-    debugPrint('📱 Stored analytics event locally (${_pendingEvents.length} pending)');
+    WasteAppLogger.info('📱 Stored analytics event locally (${_pendingEvents.length} pending)');
   }
 } 

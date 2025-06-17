@@ -1,12 +1,13 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter/foundation.dart';
 import '../models/waste_classification.dart';
 import '../models/user_profile.dart';
 import '../models/classification_feedback.dart';
 import 'storage_service.dart';
 import 'gamification_service.dart';
+import 'fresh_start_service.dart';
 import 'dart:convert';
 import 'package:crypto/crypto.dart';
+import '../utils/waste_app_logger.dart';
 
 /// Service for syncing classifications to Firestore cloud storage
 /// Also handles admin data collection for ML training and data recovery
@@ -24,24 +25,24 @@ class CloudStorageService {
   /// Saves or updates the user's profile in Firestore and updates the all-time leaderboard.
   Future<void> saveUserProfileToFirestore(UserProfile userProfile) async {
     if (userProfile.id.isEmpty) {
-      debugPrint('🚫 Cannot save user profile to Firestore: User ID is empty');
+      WasteAppLogger.info('User profile ID is empty, skipping Firestore save.');
       return;
     }
 
     try {
-      debugPrint('☁️ Saving user profile to Firestore for user: ${userProfile.id}');
+      WasteAppLogger.info('Saving user profile to Firestore for user ${userProfile.id}');
       await _firestore
           .collection('users')
           .doc(userProfile.id)
           .set(userProfile.toJson(), SetOptions(merge: true));
-      debugPrint('☁️ ✅ Successfully saved user profile to Firestore: ${userProfile.id}');
+      WasteAppLogger.info('Successfully saved user profile to Firestore.');
 
       // After successfully saving the profile, update the leaderboard
       if (userProfile.gamificationProfile != null) {
         await _updateLeaderboardEntry(userProfile);
       }
-    } catch (e) {
-      debugPrint('☁️ ❌ Failed to save user profile to Firestore: $e');
+    } catch (e, s) {
+      WasteAppLogger.severe('Error saving user profile to Firestore', e, s);
       rethrow; // Rethrow to allow calling code to handle
     }
   }
@@ -54,10 +55,10 @@ class CloudStorageService {
     final points = userProfile.gamificationProfile!.points.total;
     final displayName = userProfile.displayName ?? 'Anonymous User';
     final photoUrl = userProfile.photoUrl;
-    // Category breakdown can be added if needed, from userProfile.gamificationProfile.points.categoryPoints
+    // Category breakdown can be added if needed, from userProfile.gamificationProfile!.points.categoryPoints
 
     try {
-      debugPrint('🏆 Updating leaderboard for user: $userId with $points points');
+      WasteAppLogger.info('Updating leaderboard for user $userId');
       await _firestore.collection('leaderboard_allTime').doc(userId).set({
         'userId': userId,
         'displayName': displayName,
@@ -66,9 +67,9 @@ class CloudStorageService {
         // 'categoryBreakdown': userProfile.gamificationProfile!.points.categoryPoints,
         'lastUpdated': FieldValue.serverTimestamp(),
       }, SetOptions(merge: true));
-      debugPrint('🏆 ✅ Successfully updated leaderboard for user: $userId');
-    } catch (e) {
-      debugPrint('🏆 ❌ Failed to update leaderboard for user $userId: $e');
+      WasteAppLogger.info('Successfully updated leaderboard for user $userId');
+    } catch (e, s) {
+      WasteAppLogger.severe('Error updating leaderboard', e, s);
       // Not rethrowing, as primary operation (profile save) succeeded.
       // Consider a more robust error handling/retry mechanism for leaderboard updates if critical.
     }
@@ -84,6 +85,13 @@ class CloudStorageService {
     // Always save locally first
     await _localStorageService.saveClassification(classification);
     
+    // Check if we should prevent sync due to fresh start mode
+    final shouldPreventSync = await FreshStartService.shouldPreventAutoSync();
+    if (shouldPreventSync) {
+      WasteAppLogger.info('Auto-sync prevented by Fresh Start service.');
+      return;
+    }
+    
     // If Google sync is enabled and user is signed in, also save to cloud
     if (isGoogleSyncEnabled) {
       await _syncClassificationToCloud(classification);
@@ -98,21 +106,21 @@ class CloudStorageService {
         final shouldProcessGamification = await _shouldProcessGamification(classification);
         
         if (shouldProcessGamification) {
-          debugPrint('🎮 Processing gamification for classification: ${classification.itemName}');
+          WasteAppLogger.info('Processing gamification for classification ${classification.id}');
           
           // ✅ OPTIMIZATION: Use the singleton instance with error handling
           try {
             await _gamificationService.processClassification(classification);
-            debugPrint('🎮 ✅ Gamification processed successfully');
-          } catch (e) {
-            debugPrint('🎮 ❌ Failed to process gamification: $e');
+            WasteAppLogger.info('Successfully processed gamification for classification ${classification.id}');
+          } catch (e, s) {
+            WasteAppLogger.severe('Error processing gamification', e, s);
             // Don't rethrow - classification save was successful
           }
         } else {
-          debugPrint('🎮 ⏭️ Skipping gamification (already processed)');
+          WasteAppLogger.info('Skipping gamification for already processed classification ${classification.id}');
         }
-      } catch (e) {
-        debugPrint('🎮 ❌ Gamification processing failed: $e');
+      } catch (e, s) {
+        WasteAppLogger.severe('Error checking if gamification should be processed', e, s);
         // Don't rethrow - classification save was successful
       }
     }
@@ -123,11 +131,11 @@ class CloudStorageService {
     try {
       final userProfile = await _localStorageService.getCurrentUserProfile();
       if (userProfile == null || userProfile.id.isEmpty) {
-        debugPrint('🚫 Cannot update cloud classification: User not signed in');
+        WasteAppLogger.info('No user profile found, skipping cloud update.');
         return;
       }
 
-      debugPrint('☁️ Updating classification in cloud for user: ${userProfile.id}');
+      WasteAppLogger.info('Updating classification ${classification.id} in cloud for user ${userProfile.id}');
       
       // Use the local classification ID so we update the existing document
       final docId = classification.id;
@@ -148,13 +156,13 @@ class CloudStorageService {
         'updatedAt': FieldValue.serverTimestamp(),
       });
 
-      debugPrint('☁️ ✅ Successfully updated classification in cloud: ${classification.itemName}');
+      WasteAppLogger.info('Successfully updated classification ${classification.id} in cloud.');
 
       // Also update the admin collection for consistency
       await _saveToAdminCollection(cloudClassification);
 
-    } catch (e) {
-      debugPrint('☁️ ❌ Failed to update classification in cloud: $e');
+    } catch (e, s) {
+      WasteAppLogger.severe('Error updating classification in cloud', e, s);
       // Don't throw error - this is a best-effort update
     }
   }
@@ -164,16 +172,16 @@ class CloudStorageService {
     try {
       final userProfile = await _localStorageService.getCurrentUserProfile();
       if (userProfile == null || userProfile.id.isEmpty) {
-        debugPrint('🚫 Cannot batch update cloud classifications: User not signed in');
+        WasteAppLogger.info('No user profile found, skipping batch cloud update.');
         return 0;
       }
 
       if (classifications.isEmpty) {
-        debugPrint('☁️ No classifications to update in cloud');
+        WasteAppLogger.info('No classifications to update, skipping batch cloud update.');
         return 0;
       }
 
-      debugPrint('☁️ Batch updating ${classifications.length} classifications in cloud for user: ${userProfile.id}');
+      WasteAppLogger.info('Batch updating ${classifications.length} classifications in cloud for user ${userProfile.id}');
       
       var updatedCount = 0;
       var batch = _firestore.batch();
@@ -203,24 +211,24 @@ class CloudStorageService {
             await batch.commit();
             batch = _firestore.batch();
             operationCount = 0;
-            debugPrint('☁️ Committed batch of 450 operations, continuing...');
+            WasteAppLogger.info('Committed a batch of $operationCount updates.');
           }
-        } catch (e) {
-          debugPrint('☁️ ❌ Failed to add classification ${classification.itemName} to batch: $e');
+        } catch (e, s) {
+          WasteAppLogger.severe('Error updating classification ${classification.id} in batch', e, s);
         }
       }
 
       // Commit remaining operations
       if (operationCount > 0) {
         await batch.commit();
-        debugPrint('☁️ Committed final batch of $operationCount operations');
+        WasteAppLogger.info('Committed final batch of $operationCount updates.');
       }
 
-      debugPrint('☁️ ✅ Successfully batch updated $updatedCount classifications in cloud');
+      WasteAppLogger.info('Successfully updated $updatedCount classifications in cloud.');
       return updatedCount;
 
-    } catch (e) {
-      debugPrint('☁️ ❌ Failed to batch update classifications in cloud: $e');
+    } catch (e, s) {
+      WasteAppLogger.severe('Error in batch update of classifications', e, s);
       return 0;
     }
   }
@@ -230,11 +238,11 @@ class CloudStorageService {
     try {
       final userProfile = await _localStorageService.getCurrentUserProfile();
       if (userProfile == null || userProfile.id.isEmpty) {
-        debugPrint('🚫 Cannot sync to cloud: User not signed in');
+        WasteAppLogger.info('No user profile found, skipping cloud sync.');
         return;
       }
 
-      debugPrint('☁️ Syncing classification to cloud for user: ${userProfile.id}');
+      WasteAppLogger.info('Syncing classification ${classification.id} to cloud for user ${userProfile.id}');
       
       // Use the local classification ID so repeated syncs overwrite existing docs
       final docId = classification.id;
@@ -257,7 +265,7 @@ class CloudStorageService {
         'createdAt': FieldValue.serverTimestamp(),
       }, SetOptions(merge: true));
 
-      debugPrint('☁️ ✅ Successfully synced classification: ${classification.itemName}');
+      WasteAppLogger.info('Successfully synced classification ${classification.id} to user collection.');
 
       // 2. Save anonymized version to admin collection for ML training and data recovery
       await _saveToAdminCollection(cloudClassification);
@@ -265,13 +273,13 @@ class CloudStorageService {
       // Record successful sync time locally
       try {
         await _localStorageService.updateLastCloudSync(DateTime.now());
-      } catch (e) {
-        debugPrint('⚠️ Failed to update last sync time: $e');
+      } catch (e, s) {
+        WasteAppLogger.severe('Error updating last cloud sync time', e, s);
         // Don't rethrow - main sync operation was successful
       }
 
-    } catch (e) {
-      debugPrint('☁️ ❌ Failed to sync classification to cloud: $e');
+    } catch (e, s) {
+      WasteAppLogger.severe('Error syncing classification to cloud', e, s);
       // Don't throw error - local save was successful
     }
   }
@@ -280,7 +288,7 @@ class CloudStorageService {
   Future<void> _saveToAdminCollection(WasteClassification classification) async {
     try {
       if (classification.userId == null || classification.userId!.isEmpty) {
-        debugPrint('🚫 Cannot save to admin collection: No user ID');
+        WasteAppLogger.info('User ID is null or empty, skipping save to admin collection.');
         return;
       }
 
@@ -311,13 +319,13 @@ class CloudStorageService {
           .doc('${hashedUserId}_${classification.id}')
           .set(adminData, SetOptions(merge: true));
 
-      debugPrint('🔬 ✅ Admin data collection: Classification saved for ML training');
+      WasteAppLogger.info('Successfully saved anonymized classification to admin collection.');
 
       // Also update recovery metadata
       await _updateRecoveryMetadata(classification.userId!);
 
-    } catch (e) {
-      debugPrint('🔬 ❌ Admin data collection failed: $e');
+    } catch (e, s) {
+      WasteAppLogger.severe('Error saving to admin collection', e, s);
       // Don't throw error - user experience not affected
     }
   }
@@ -336,9 +344,9 @@ class CloudStorageService {
         'appVersion': '0.1.6+98',
       }, SetOptions(merge: true));
 
-      debugPrint('🔄 ✅ Recovery metadata updated for user');
-    } catch (e) {
-      debugPrint('🔄 ❌ Recovery metadata update failed: $e');
+      WasteAppLogger.info('Successfully updated recovery metadata for user $userId');
+    } catch (e, s) {
+      WasteAppLogger.severe('Error updating recovery metadata', e, s);
     }
   }
 
@@ -365,15 +373,15 @@ class CloudStorageService {
       // Don't process if classification is older than 24 hours (likely already processed)
       // This prevents retroactive processing of old data while allowing recent classifications
       if (now.difference(classificationTime).inHours > 24) {
-        debugPrint('🎮 Classification is older than 24 hours, skipping gamification');
+        WasteAppLogger.info('Skipping gamification for old classification ${classification.id}');
         return false;
       }
       
       // Process if classification is recent (within 24 hours)
-      debugPrint('🎮 Classification is recent (${now.difference(classificationTime).inHours} hours old), processing gamification');
+      WasteAppLogger.info('Proceeding with gamification for recent classification ${classification.id}');
       return true;
-    } catch (e) {
-      debugPrint('🎮 Error checking gamification eligibility: $e');
+    } catch (e, s) {
+      WasteAppLogger.severe('Error checking if gamification should be processed', e, s);
       // On error, default to processing to ensure points aren't missed
       return true;
     }
@@ -387,18 +395,18 @@ class CloudStorageService {
     final localClassifications = await _localStorageService.getAllClassifications();
     
     if (!isGoogleSyncEnabled) {
-      debugPrint('🔄 Google sync disabled, returning local classifications only');
+      WasteAppLogger.info('Google sync is disabled, returning local classifications only.');
       return localClassifications;
     }
 
     try {
       final userProfile = await _localStorageService.getCurrentUserProfile();
       if (userProfile == null || userProfile.id.isEmpty) {
-        debugPrint('🔄 User not signed in, returning local classifications only');
+        WasteAppLogger.info('No user profile found, returning local classifications only.');
         return localClassifications;
       }
 
-      debugPrint('🔄 Loading classifications from cloud for user: ${userProfile.id}');
+      WasteAppLogger.info('Fetching classifications from cloud for user ${userProfile.id}');
       
       // Get cloud classifications
       final cloudSnapshot = await _firestore
@@ -413,8 +421,8 @@ class CloudStorageService {
             try {
               final data = doc.data();
               return WasteClassification.fromJson(data);
-            } catch (e) {
-              debugPrint('🔄 ❌ Error parsing cloud classification: $e');
+            } catch (e, s) {
+              WasteAppLogger.severe('Error parsing classification from cloud', e, s);
               return null;
             }
           })
@@ -422,7 +430,7 @@ class CloudStorageService {
           .cast<WasteClassification>()
           .toList();
 
-      debugPrint('🔄 ✅ Loaded ${cloudClassifications.length} classifications from cloud');
+      WasteAppLogger.info('Found ${cloudClassifications.length} classifications in cloud.');
       
       // Merge and deduplicate (cloud takes precedence for same timestamps)
       final merged = _mergeClassifications(localClassifications, cloudClassifications);
@@ -436,14 +444,14 @@ class CloudStorageService {
       if (downloadedCount > 0) {
         try {
           await _localStorageService.updateLastCloudSync(DateTime.now());
-        } catch (e) {
-          debugPrint('⚠️ Failed to update last sync time: $e');
+        } catch (e, s) {
+          WasteAppLogger.severe('Error updating last cloud sync time', e, s);
         }
       }
 
       return merged;
-    } catch (e) {
-      debugPrint('🔄 ❌ Failed to load from cloud, returning local only: $e');
+    } catch (e, s) {
+      WasteAppLogger.severe('Error getting classifications from cloud', e, s);
       return localClassifications;
     }
   }
@@ -471,7 +479,7 @@ class CloudStorageService {
     final result = mergedMap.values.toList();
     result.sort((a, b) => b.timestamp.compareTo(a.timestamp));
     
-    debugPrint('🔄 Merged ${local.length} local + ${cloud.length} cloud = ${result.length} total classifications');
+    WasteAppLogger.info('Merged ${local.length} local and ${cloud.length} cloud classifications into ${result.length} unique items.');
     return result;
   }
 
@@ -489,17 +497,17 @@ class CloudStorageService {
       }).toList();
 
       if (newCloudClassifications.isNotEmpty) {
-        debugPrint('🔄 Syncing ${newCloudClassifications.length} new cloud classifications to local storage');
+        WasteAppLogger.info('Syncing ${newCloudClassifications.length} new cloud classifications to local storage.');
 
         for (final classification in newCloudClassifications) {
           await _localStorageService.saveClassification(classification);
         }
 
-        debugPrint('🔄 ✅ Successfully synced new cloud classifications locally');
+        WasteAppLogger.info('Successfully synced new cloud classifications.');
       }
       return newCloudClassifications.length;
-    } catch (e) {
-      debugPrint('🔄 ❌ Failed to sync cloud classifications locally: $e');
+    } catch (e, s) {
+      WasteAppLogger.severe('Error syncing new cloud classifications to local storage', e, s);
       return 0;
     }
   }
@@ -507,17 +515,23 @@ class CloudStorageService {
   /// Sync all local classifications to cloud (one-time sync)
   Future<int> syncAllLocalClassificationsToCloud() async {
     try {
+      // Check if we should prevent sync due to fresh start mode
+      final shouldPreventSync = await FreshStartService.shouldPreventAutoSync();
+      if (shouldPreventSync) {
+        WasteAppLogger.info('Auto-sync prevented by Fresh Start service.');
+        return 0;
+      }
+      
       final userProfile = await _localStorageService.getCurrentUserProfile();
       if (userProfile == null || userProfile.id.isEmpty) {
-        debugPrint('🚫 Cannot sync to cloud: User not signed in');
+        WasteAppLogger.info('No user profile found, skipping full cloud sync.');
         return 0;
       }
 
       final localClassifications =
           await _localStorageService.getAllClassifications();
 
-      debugPrint(
-          '🔄 Starting full sync of ${localClassifications.length} local classifications to cloud');
+      WasteAppLogger.info('🔄 Starting full sync of ${localClassifications.length} local classifications to cloud');
 
       var syncedCount = 0;
       var opCount = 0;
@@ -551,13 +565,12 @@ class CloudStorageService {
 
           try {
             await _saveToAdminCollection(cloudClassification);
-          } catch (e) {
-            debugPrint('⚠️ Failed to save admin data: $e');
+          } catch (e, s) {
+            WasteAppLogger.severe('Error saving to admin collection during full sync', e, s);
             // Don't block user data sync
           }
         } catch (e) {
-          debugPrint(
-              '🔄 ❌ Failed to queue classification ${classification.itemName}: $e');
+          WasteAppLogger.info('🔄 ❌ Failed to queue classification ${classification.itemName}: $e');
         }
       }
 
@@ -565,21 +578,20 @@ class CloudStorageService {
         await batch.commit();
       }
 
-      debugPrint(
-          '🔄 ✅ Successfully synced $syncedCount/${localClassifications.length} classifications to cloud');
+      WasteAppLogger.info('🔄 ✅ Successfully synced $syncedCount/${localClassifications.length} classifications to cloud');
 
       if (syncedCount > 0) {
         try {
           await _localStorageService.updateLastCloudSync(DateTime.now());
-        } catch (e) {
-          debugPrint('⚠️ Failed to update last sync time: $e');
+        } catch (e, s) {
+          WasteAppLogger.severe('Error updating last cloud sync time', e, s);
           // Don't rethrow - main sync operation was successful
         }
       }
 
       return syncedCount;
-    } catch (e) {
-      debugPrint('🔄 ❌ Failed to sync local classifications to cloud: $e');
+    } catch (e, s) {
+      WasteAppLogger.severe('Error syncing all local classifications to cloud', e, s);
       return 0;
     }
   }
@@ -588,9 +600,16 @@ class CloudStorageService {
   /// Returns the number of new items downloaded.
   Future<int> syncCloudToLocal() async {
     try {
+      // Check if we should prevent sync due to fresh start mode
+      final shouldPreventSync = await FreshStartService.shouldPreventAutoSync();
+      if (shouldPreventSync) {
+        WasteAppLogger.info('Auto-sync prevented by Fresh Start service.');
+        return 0;
+      }
+      
       final userProfile = await _localStorageService.getCurrentUserProfile();
       if (userProfile == null || userProfile.id.isEmpty) {
-        debugPrint('🚫 Cannot sync from cloud: User not signed in');
+        WasteAppLogger.info('No user profile found, skipping cloud to local sync.');
         return 0;
       }
 
@@ -608,8 +627,8 @@ class CloudStorageService {
           .map((doc) {
             try {
               return WasteClassification.fromJson(doc.data());
-            } catch (e) {
-              debugPrint('🔄 ❌ Error parsing cloud classification: $e');
+            } catch (e, s) {
+              WasteAppLogger.severe('Error parsing classification from cloud', e, s);
               return null;
             }
           })
@@ -623,8 +642,8 @@ class CloudStorageService {
       );
 
       return downloadedCount;
-    } catch (e) {
-      debugPrint('🔄 ❌ Failed to download from cloud: $e');
+    } catch (e, s) {
+      WasteAppLogger.severe('Error syncing cloud to local', e, s);
       return 0;
     }
   }
@@ -634,11 +653,11 @@ class CloudStorageService {
     try {
       final userProfile = await _localStorageService.getCurrentUserProfile();
       if (userProfile == null || userProfile.id.isEmpty) {
-        debugPrint('🚫 Cannot clear cloud data: User not signed in');
+        WasteAppLogger.info('No user profile found, skipping cloud data clear.');
         return;
       }
 
-      debugPrint('🗑️ Clearing cloud data for user: ${userProfile.id}');
+      WasteAppLogger.info('Clearing all cloud data for user ${userProfile.id}');
       
       // Delete all classifications for this user
       final classificationsQuery = await _firestore
@@ -654,9 +673,9 @@ class CloudStorageService {
       
       await batch.commit();
       
-      debugPrint('🗑️ ✅ Successfully cleared ${classificationsQuery.docs.length} cloud classifications');
-    } catch (e) {
-      debugPrint('🗑️ ❌ Failed to clear cloud data: $e');
+      WasteAppLogger.info('Successfully cleared all cloud data for user ${userProfile.id}');
+    } catch (e, s) {
+      WasteAppLogger.severe('Error clearing cloud data', e, s);
       rethrow;
     }
   }
@@ -668,7 +687,7 @@ class CloudStorageService {
           .doc(feedback.id)
           .set(feedback.toJson(), SetOptions(merge: true));
     } catch (e) {
-      debugPrint('Feedback cloud save failed: $e');
+      WasteAppLogger.info('Failed to save classification feedback to cloud', e);
       rethrow;
     }
   }

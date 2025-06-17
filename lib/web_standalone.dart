@@ -5,6 +5,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'services/storage_service.dart';
 import 'providers/theme_provider.dart';
 import 'utils/constants.dart';
+import 'utils/waste_app_logger.dart';
 import 'widgets/responsive_text.dart';
 
 /// Entry point specifically for the web version
@@ -13,7 +14,10 @@ void main() async {
   
   try {
     if (kDebugMode) {
-      debugPrint('🌐 Initializing Web Standalone Mode...');
+      WasteAppLogger.info('Initializing Web Standalone Mode', null, null, {
+    'platform': 'web',
+    'mode': 'standalone'
+  });
     }
     
     // Initialize Hive for web
@@ -26,7 +30,10 @@ void main() async {
     await Hive.openBox<String>(StorageKeys.settingsBox);
     
     if (kDebugMode) {
-      debugPrint('✅ Hive initialized successfully');
+      WasteAppLogger.info('Hive initialized successfully', null, null, {
+        'platform': 'web',
+        'boxes_opened': ['userBox', 'classificationsBox', 'gamificationBox', 'settingsBox']
+      });
     }
     
     // Initialize storage service
@@ -44,7 +51,10 @@ void main() async {
     );
   } catch (e) {
     if (kDebugMode) {
-      debugPrint('❌ Error initializing web app: $e');
+      WasteAppLogger.severe('Error initializing web app', e, null, {
+        'platform': 'web',
+        'mode': 'standalone'
+      });
     }
     // Use the Flutter runApp function
     runApp(

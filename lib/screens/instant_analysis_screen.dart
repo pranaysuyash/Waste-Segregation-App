@@ -9,11 +9,11 @@ import '../services/ai_service.dart';
 import '../services/gamification_service.dart';
 import '../widgets/enhanced_analysis_loader.dart';
 import '../screens/result_screen.dart';
+import 'package:waste_segregation_app/utils/waste_app_logger.dart';
 
 /// Screen that performs instant analysis without showing review screen
 /// Provides the most streamlined experience: capture → analyze → results
 class InstantAnalysisScreen extends StatefulWidget {
-
   const InstantAnalysisScreen({
     super.key,
     required this.image,
@@ -45,7 +45,7 @@ class _InstantAnalysisScreenState extends State<InstantAnalysisScreen> {
     });
 
     try {
-      debugPrint('🚀 Auto-analyze enabled - starting analysis immediately');
+      WasteAppLogger.info('🚀 Auto-analyze enabled - starting analysis immediately');
       
       final aiService = Provider.of<AiService>(context, listen: false);
       WasteClassification? result;
@@ -67,13 +67,13 @@ class _InstantAnalysisScreenState extends State<InstantAnalysisScreen> {
       }
 
       if (!_isCancelled && mounted) {
-        debugPrint('✅ Analysis complete - saving classification immediately');
+        WasteAppLogger.info('✅ Analysis complete - saving classification immediately');
         
         // Save the classification immediately using gamification service to trigger all hooks
         final gamificationService = Provider.of<GamificationService>(context, listen: false);
         await gamificationService.processClassification(result);
         
-        debugPrint('✅ Classification saved - navigating to results screen');
+        WasteAppLogger.info('✅ Classification saved - navigating to results screen');
         
         // Navigate to results screen and wait for it to complete
         await Navigator.pushReplacement<void, void>(
@@ -93,7 +93,7 @@ class _InstantAnalysisScreenState extends State<InstantAnalysisScreen> {
       }
     } catch (e) {
       if (!_isCancelled && mounted) {
-        debugPrint('Error during instant analysis: $e');
+        WasteAppLogger.severe('Error during instant analysis: $e');
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Analysis failed: $e'),
@@ -120,7 +120,7 @@ class _InstantAnalysisScreenState extends State<InstantAnalysisScreen> {
       _isCancelled = true;
       _isAnalyzing = false;
     });
-    debugPrint('Analysis cancelled by user');
+    WasteAppLogger.info('Analysis cancelled by user');
     
     // Show cancellation feedback
     if (mounted) {

@@ -5,6 +5,7 @@ import '../models/community_feed.dart';
 import '../models/waste_classification.dart';
 import '../models/user_profile.dart';
 import '../models/gamification.dart';
+import 'package:waste_segregation_app/utils/waste_app_logger.dart';
 
 /// Service for managing community feed and social features
 class CommunityService {
@@ -17,7 +18,7 @@ class CommunityService {
   Future<void> initCommunity() async {
     // No more Hive initialization needed
     // The stats document will be created on-the-fly if it doesn't exist
-    debugPrint('CommunityService initialized with Firestore.');
+    WasteAppLogger.info('CommunityService initialized with Firestore.');
   }
 
   // Add a feed item to Firestore
@@ -25,9 +26,9 @@ class CommunityService {
     try {
       await _firestore.collection(_feedCollection).add(item.toJson());
       await _updateCommunityStatsOnActivity(item);
-      debugPrint('🌍 Firestore: Community feed item added: ${item.title}');
+      WasteAppLogger.info('🌍 Firestore: Community feed item added: ${item.title}');
     } catch (e) {
-      debugPrint('❌ Error adding Firestore feed item: $e');
+      WasteAppLogger.severe('❌ Error adding Firestore feed item: $e');
     }
   }
 
@@ -44,7 +45,7 @@ class CommunityService {
           .map((doc) => CommunityFeedItem.fromJson(doc.data()))
           .toList();
     } catch (e) {
-      debugPrint('❌ Error getting Firestore feed: $e');
+      WasteAppLogger.severe('❌ Error getting Firestore feed: $e');
       return [];
     }
   }
@@ -82,7 +83,7 @@ class CommunityService {
         lastUpdated: DateTime.now(),
       );
     } catch (e) {
-      debugPrint('❌ Error calculating community stats: $e');
+      WasteAppLogger.severe('❌ Error calculating community stats: $e');
       return const CommunityStats(totalUsers: 0, totalClassifications: 0, totalPoints: 0);
     }
   }
@@ -176,8 +177,8 @@ class CommunityService {
   ) async {
     if (user == null) return;
     
-    debugPrint('🔄 SYNC: Starting community feed sync for user ${user.id}');
-    debugPrint('🔄 SYNC: Found ${classifications.length} classifications to potentially sync');
+    WasteAppLogger.info('🔄 SYNC: Starting community feed sync for user ${user.id}');
+    WasteAppLogger.info('🔄 SYNC: Found ${classifications.length} classifications to potentially sync');
     
     try {
       // Get existing feed items to avoid duplicates
@@ -187,7 +188,7 @@ class CommunityService {
           .map((item) => item.id)
           .toSet();
       
-      debugPrint('🔄 SYNC: Found ${existingClassificationIds.length} existing classification feed items');
+      WasteAppLogger.info('🔄 SYNC: Found ${existingClassificationIds.length} existing classification feed items');
       
       // Backfill missing classifications
       var syncedCount = 0;
@@ -203,7 +204,7 @@ class CommunityService {
         }
       }
       
-      debugPrint('🔄 SYNC: Backfilled $syncedCount classification activities to community feed');
+      WasteAppLogger.info('🔄 SYNC: Backfilled $syncedCount classification activities to community feed');
       
       // Sync achievements if user has gamification profile
       if (user.gamificationProfile != null) {
@@ -224,13 +225,13 @@ class CommunityService {
           }
         }
         
-        debugPrint('🔄 SYNC: Backfilled $achievementsSynced achievement activities to community feed');
+        WasteAppLogger.info('🔄 SYNC: Backfilled $achievementsSynced achievement activities to community feed');
       }
       
-      debugPrint('✅ SYNC: Community feed sync completed successfully');
+      WasteAppLogger.info('✅ SYNC: Community feed sync completed successfully');
       
     } catch (e) {
-      debugPrint('❌ SYNC ERROR: Failed to sync community feed: $e');
+      WasteAppLogger.severe('❌ SYNC ERROR: Failed to sync community feed: $e');
     }
   }
 }

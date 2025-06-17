@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/gamification.dart';
 import '../models/user_profile.dart';
 import '../providers/app_providers.dart';
-import '../screens/new_modern_home_screen.dart';
 
 /// Lean, personalized home header with micro-interactions
 /// Replaces the verbose welcome section with essential data chips only
@@ -72,54 +71,131 @@ class HomeHeaderState extends ConsumerState<HomeHeader>
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       child: Padding(
         padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Row 1: avatar + greeting + points + bell
-            Row(
-              children: [
-                CircleAvatar(
-                  radius: 28,
-                  child: _buildAvatar(userProfile),
-                ),
-                const SizedBox(width: 16),
-                Expanded(child: _buildGreeting(context, userProfile)),
-                _PointsPill(points: pts, pulse: _pulse),
-                const SizedBox(width: 12),
-                _Bell(unread: unread),
-              ],
-            ),
-            const SizedBox(height: 20),
-            // Row 2: streak + goal
-            Row(
-              children: [
-                _SmallPill(
-                  icon: Icons.local_fire_department,
-                  label: '${_getCurrentStreak(profile)}-day streak',
-                  bg: const Color(0xFFFFF2E5), // peach
-                ),
-                const Spacer(),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.end,
+        child: IntrinsicHeight(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+            // Row 1: avatar + greeting + points + bell (responsive)
+            LayoutBuilder(
+              builder: (context, constraints) {
+                final isVerySmallScreen = constraints.maxWidth < 300;
+                
+                return Row(
                   children: [
-                    Text(
-                      "TODAY'S GOAL",
-                      style: Theme.of(context).textTheme.labelSmall!.copyWith(
-                        letterSpacing: 1.2,
-                        color: Colors.grey[600],
+                    Semantics(
+                      label: 'User avatar for ${userProfile?.displayName ?? 'User'}',
+                      child: CircleAvatar(
+                        radius: isVerySmallScreen ? 20 : 28,
+                        child: _buildAvatar(userProfile),
                       ),
                     ),
-                    Text(
-                      '$done/$total items',
-                      style: Theme.of(context).textTheme.headlineSmall,
+                    SizedBox(width: isVerySmallScreen ? 8 : 16),
+                    Expanded(
+                      flex: 3,
+                      child: _buildGreeting(context, userProfile),
+                    ),
+                    if (!isVerySmallScreen) ...[
+                      Semantics(
+                        label: 'Current points: $pts',
+                        child: _PointsPill(points: pts, pulse: _pulse),
+                      ),
+                      const SizedBox(width: 12),
+                    ],
+                    Semantics(
+                      label: unread > 0 ? '$unread unread notifications' : 'No unread notifications',
+                      button: true,
+                      child: _Bell(unread: unread),
                     ),
                   ],
-                ),
-              ],
+                );
+              },
+            ),
+            const SizedBox(height: 20),
+            // Row 2: streak + goal (responsive)
+            LayoutBuilder(
+              builder: (context, constraints) {
+                final isSmallScreen = constraints.maxWidth < 350;
+                
+                if (isSmallScreen) {
+                  // Stack vertically on small screens
+                  return Column(
+                    children: [
+                      Semantics(
+                        label: 'Current streak: ${_getCurrentStreak(profile)} days',
+                        child: _SmallPill(
+                          icon: Icons.local_fire_department,
+                          label: '${_getCurrentStreak(profile)}-day streak',
+                          bg: const Color(0xFFFFF2E5), // peach
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      Semantics(
+                        label: 'Today\'s goal progress: $done out of $total items completed',
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            Text(
+                              "TODAY'S GOAL",
+                              style: Theme.of(context).textTheme.labelSmall!.copyWith(
+                                letterSpacing: 1.2,
+                                color: Theme.of(context).colorScheme.onSurfaceVariant,
+                              ),
+                            ),
+                            Text(
+                              '$done/$total items',
+                              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                                color: Theme.of(context).colorScheme.onSurface,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  );
+                } else {
+                  // Horizontal layout for larger screens
+                  return Row(
+                    children: [
+                      Semantics(
+                        label: 'Current streak: ${_getCurrentStreak(profile)} days',
+                        child: _SmallPill(
+                          icon: Icons.local_fire_department,
+                          label: '${_getCurrentStreak(profile)}-day streak',
+                          bg: const Color(0xFFFFF2E5), // peach
+                        ),
+                      ),
+                      const Spacer(),
+                      Semantics(
+                        label: 'Today\'s goal progress: $done out of $total items completed',
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: [
+                            Text(
+                              "TODAY'S GOAL",
+                              style: Theme.of(context).textTheme.labelSmall!.copyWith(
+                                letterSpacing: 1.2,
+                                color: Theme.of(context).colorScheme.onSurfaceVariant,
+                              ),
+                            ),
+                            Text(
+                              '$done/$total items',
+                              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                                color: Theme.of(context).colorScheme.onSurface,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  );
+                }
+              },
             ),
           ],
         ),
       ),
+    ),
     );
   }
 
@@ -253,26 +329,39 @@ class _BellState extends State<_Bell> with SingleTickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
-    return RotationTransition(
-      turns: _wiggle,
-      child: Stack(
-        clipBehavior: Clip.none,
-        children: [
-          const Icon(Icons.notifications_outlined, size: 28),
-          if (widget.unread > 0)
-            Positioned(
-              right: -2,
-              top: -2,
-              child: Container(
-                width: 10,
-                height: 10,
-                decoration: const BoxDecoration(
-                  color: Colors.red,
-                  shape: BoxShape.circle,
+    return SizedBox(
+      width: 44, // Minimum touch target size
+      height: 44, // Minimum touch target size
+      child: RotationTransition(
+        turns: _wiggle,
+        child: Stack(
+          clipBehavior: Clip.none,
+          alignment: Alignment.center,
+          children: [
+            Icon(
+              Icons.notifications_outlined, 
+              size: 28,
+              color: Theme.of(context).colorScheme.onSurface,
+            ),
+            if (widget.unread > 0)
+              Positioned(
+                right: 8,
+                top: 8,
+                child: Container(
+                  width: 12,
+                  height: 12,
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.error,
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: Theme.of(context).colorScheme.surface,
+                      width: 2,
+                    ),
+                  ),
                 ),
               ),
-            ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -292,6 +381,10 @@ class _SmallPill extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final textColor = Theme.of(context).brightness == Brightness.dark 
+        ? Theme.of(context).colorScheme.onSurfaceVariant
+        : Colors.grey[700]!;
+        
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
@@ -301,14 +394,18 @@ class _SmallPill extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 16, color: Colors.grey[700]),
+          Icon(
+            icon, 
+            size: 16, 
+            color: textColor,
+          ),
           const SizedBox(width: 6),
           Text(
             label,
             style: TextStyle(
               fontSize: 12,
               fontWeight: FontWeight.w600,
-              color: Colors.grey[700],
+              color: textColor,
             ),
           ),
         ],

@@ -1,8 +1,8 @@
 import 'dart:convert';
-import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/waste_classification.dart';
+import '../utils/waste_app_logger.dart';
 
 /// Service for fetching LLM-generated disposal instructions
 class DisposalInstructionsService {
@@ -33,7 +33,15 @@ class DisposalInstructionsService {
       
       // Check local cache first
       if (_cache.containsKey(materialId)) {
-        debugPrint('Returning cached disposal instructions for $materialId');
+        WasteAppLogger.cacheEvent('cache_hit', 'disposal_instructions', 
+          hit: true, 
+          key: materialId,
+          context: {
+            'material': material,
+            'category': category,
+            'subcategory': subcategory
+          }
+        );
         return _cache[materialId]!;
       }
       
@@ -44,14 +52,31 @@ class DisposalInstructionsService {
           .get();
       
       if (cachedDoc.exists) {
-        debugPrint('Found cached disposal instructions in Firestore for $materialId');
+        WasteAppLogger.cacheEvent('cache_hit', 'disposal_instructions_firestore', 
+          hit: true, 
+          key: materialId,
+          context: {
+            'material': material,
+            'category': category,
+            'subcategory': subcategory,
+            'source': 'firestore'
+          }
+        );
         final instructions = _parseFirestoreData(cachedDoc.data()!);
         _cache[materialId] = instructions;
         return instructions;
       }
       
       // Generate new instructions via Cloud Function
-      debugPrint('Generating new disposal instructions for $materialId');
+      WasteAppLogger.aiEvent('disposal_instructions_generation_started', 
+        context: {
+          'material_id': materialId,
+          'material': material,
+          'category': category,
+          'subcategory': subcategory,
+          'language': lang
+        }
+      );
       final instructions = await _generateViaCloudFunction(
         materialId: materialId,
         material: material,
@@ -64,7 +89,13 @@ class DisposalInstructionsService {
       return instructions;
       
     } catch (e) {
-      debugPrint('Error fetching disposal instructions: $e');
+      WasteAppLogger.severe('Error fetching disposal instructions', e, null, {
+        'material': material,
+        'category': category,
+        'subcategory': subcategory,
+        'language': lang,
+        'action': 'fallback_to_default_instructions'
+      });
       return _getFallbackInstructions(material, category);
     }
   }
@@ -259,7 +290,10 @@ class DisposalInstructionsService {
           category: item['category'],
         );
       } catch (e) {
-        debugPrint('Failed to preload ${item['material']}: $e');
+        WasteAppLogger.warning('Failed to preload disposal instructions', e, null, {
+          'material': item['material'],
+          'action': 'continue_preloading'
+        });
       }
     }
   }

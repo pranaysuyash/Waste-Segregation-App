@@ -5,10 +5,10 @@ import 'package:path_provider/path_provider.dart';
 import '../models/waste_classification.dart';
 import 'storage_service.dart';
 import 'cloud_storage_service.dart';
+import 'package:waste_segregation_app/utils/waste_app_logger.dart';
 
 /// Service to migrate old classification records and update them with existing images
 class ClassificationMigrationService {
-
   ClassificationMigrationService(this._localStorageService, this._cloudStorageService);
   final StorageService _localStorageService;
   final CloudStorageService _cloudStorageService;
@@ -17,11 +17,11 @@ class ClassificationMigrationService {
   /// Migrate old classifications by updating imageUrl if images exist locally
   Future<MigrationResult> migrateOldClassifications() async {
     try {
-      debugPrint('🔄 Starting classification migration...');
+      WasteAppLogger.info('🔄 Starting classification migration...');
       
       final userProfile = await _localStorageService.getCurrentUserProfile();
       if (userProfile == null || userProfile.id.isEmpty) {
-        debugPrint('🚫 Cannot migrate: User not signed in');
+        WasteAppLogger.info('🚫 Cannot migrate: User not signed in');
         return MigrationResult(
           success: false,
           totalProcessed: 0,
@@ -35,7 +35,7 @@ class ClassificationMigrationService {
 
       // Get all local classifications
       final localClassifications = await _localStorageService.getAllClassifications();
-      debugPrint('📊 Found ${localClassifications.length} local classifications');
+      WasteAppLogger.info('📊 Found ${localClassifications.length} local classifications');
 
       var totalProcessed = 0;
       var updated = 0;
@@ -74,14 +74,14 @@ class ClassificationMigrationService {
             updatedClassifications.add(updatedClassification);
             
             updated++;
-            debugPrint('✅ Updated classification: ${classification.itemName}');
+            WasteAppLogger.info('✅ Updated classification: ${classification.itemName}');
           } else {
             skipped++;
-            debugPrint('⏭️ No image found for: ${classification.itemName}');
+            WasteAppLogger.info('⏭️ No image found for: ${classification.itemName}');
           }
         } catch (e) {
           errors++;
-          debugPrint('❌ Error processing ${classification.itemName}: $e');
+          WasteAppLogger.severe('❌ Error processing ${classification.itemName}: $e');
         }
       }
 
@@ -90,9 +90,9 @@ class ClassificationMigrationService {
       if (updatedClassifications.isNotEmpty) {
         final isGoogleSyncEnabled = await _isGoogleSyncEnabled();
         if (isGoogleSyncEnabled) {
-          debugPrint('☁️ Batch updating ${updatedClassifications.length} classifications in cloud...');
+          WasteAppLogger.info('☁️ Batch updating ${updatedClassifications.length} classifications in cloud...');
           cloudUpdated = await _cloudStorageService.batchUpdateClassificationsInCloud(updatedClassifications);
-          debugPrint('☁️ Successfully updated $cloudUpdated classifications in cloud');
+          WasteAppLogger.info('☁️ Successfully updated $cloudUpdated classifications in cloud');
         }
       }
 
@@ -106,16 +106,16 @@ class ClassificationMigrationService {
         message: 'Migration completed successfully',
       );
 
-      debugPrint('📊 Migration Summary:');
-      debugPrint('📊 Total processed: $totalProcessed');
-      debugPrint('📊 Updated locally: $updated');
-      debugPrint('📊 Updated in cloud: $cloudUpdated');
-      debugPrint('📊 Skipped: $skipped');
-      debugPrint('📊 Errors: $errors');
+      WasteAppLogger.info('📊 Migration Summary:');
+      WasteAppLogger.info('📊 Total processed: $totalProcessed');
+      WasteAppLogger.info('📊 Updated locally: $updated');
+      WasteAppLogger.info('📊 Updated in cloud: $cloudUpdated');
+      WasteAppLogger.info('📊 Skipped: $skipped');
+      WasteAppLogger.severe('📊 Errors: $errors');
 
       return result;
     } catch (e) {
-      debugPrint('❌ Migration failed: $e');
+      WasteAppLogger.severe('❌ Migration failed: $e');
       return MigrationResult(
         success: false,
         totalProcessed: 0,
@@ -169,7 +169,7 @@ class ClassificationMigrationService {
         }
       }
     } catch (e) {
-      debugPrint('Error searching by classification ID: $e');
+      WasteAppLogger.severe('Error searching by classification ID: $e');
     }
     
     return null;
@@ -201,7 +201,7 @@ class ClassificationMigrationService {
         }
       }
     } catch (e) {
-      debugPrint('Error searching by timestamp: $e');
+      WasteAppLogger.severe('Error searching by timestamp: $e');
     }
     
     return null;
@@ -230,7 +230,7 @@ class ClassificationMigrationService {
         }
       }
     } catch (e) {
-      debugPrint('Error searching by item name: $e');
+      WasteAppLogger.severe('Error searching by item name: $e');
     }
     
     return null;
@@ -251,7 +251,7 @@ class ClassificationMigrationService {
       final tempDir = await getTemporaryDirectory();
       paths.add(tempDir.path);
     } catch (e) {
-      debugPrint('Error getting search paths: $e');
+      WasteAppLogger.severe('Error getting search paths: $e');
     }
     
     return paths;
@@ -272,7 +272,6 @@ class ClassificationMigrationService {
 
 /// Result of the migration operation
 class MigrationResult {
-
   MigrationResult({
     required this.success,
     required this.totalProcessed,

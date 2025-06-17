@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:collection';
 
-import 'package:flutter/foundation.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:waste_segregation_app/models/cached_classification.dart';
@@ -80,7 +79,10 @@ class ClassificationCacheService {
           _lruMap[hash] = cacheEntry.lastAccessed;
         }
       } catch (e) {
-        debugPrint('Error loading cache entry $hash: $e');
+        WasteAppLogger.warning('Error loading cache entry', e, null, {
+          'hash': hash.substring(0, 16),
+          'action': 'skip_corrupted_entry'
+        });
         // Skip corrupted entries
       }
     }
@@ -134,7 +136,7 @@ class ClassificationCacheService {
             FirebaseCrashlytics.instance.log('CACHE exact_hit hash=${imageHash.substring(0, 16)}... age=${DateTime.now().difference(cacheEntry.timestamp).inMinutes}min');
           } catch (e) {
             // Firebase not initialized (testing environment)
-            debugPrint('Crashlytics not available: $e');
+            WasteAppLogger.debug('Crashlytics not available in testing environment', {'error': e.toString()});
           }
           
           // Update LRU tracking
@@ -151,7 +153,13 @@ class ClassificationCacheService {
       
       // If this is a perceptual hash, check for similar matches with dual-hash verification
       if (imageHash.startsWith('phash_') && contentHash != null && CacheFeatureFlags.contentHashVerificationEnabled) {
-        debugPrint('Looking for similar perceptual hashes to $imageHash with threshold $similarityThreshold');
+        WasteAppLogger.cacheEvent('similarity_search_started', 'classification', 
+          key: imageHash.substring(0, 16), 
+          context: {
+            'similarity_threshold': similarityThreshold,
+            'has_content_hash': contentHash != null
+          }
+        );
         final similarHash = await _findSimilarPerceptualHashWithVerification(
           imageHash, 
           contentHash, 
@@ -165,15 +173,25 @@ class ClassificationCacheService {
             // Update stats - count as hit but also track similar hits separately
             _statistics['hits']++;
             _statistics['similarHits'] = (_statistics['similarHits'] ?? 0) + 1;
-            debugPrint('Cache hit (verified similar match) for image hash: original=$imageHash, matched=$similarHash');
-            debugPrint('Similar cache entry created: ${cacheEntry.timestamp}, last accessed: ${cacheEntry.lastAccessed}');
+            WasteAppLogger.cacheEvent('cache_hit', 'classification', 
+              hit: true, 
+              key: imageHash.substring(0, 16),
+              context: {
+                'match_type': 'verified_similar',
+                'matched_hash': similarHash.substring(0, 16),
+                'cache_age_minutes': DateTime.now().difference(cacheEntry.timestamp).inMinutes,
+                'item_name': cacheEntry.classification.itemName,
+                'created': cacheEntry.timestamp.toIso8601String(),
+                'last_accessed': cacheEntry.lastAccessed.toIso8601String()
+              }
+            );
             
             // Crashlytics breadcrumb for field debugging (safe for testing)
             try {
               FirebaseCrashlytics.instance.log('CACHE verified_similar_hit original=${imageHash.substring(0, 16)}... matched=${similarHash.substring(0, 16)}... age=${DateTime.now().difference(cacheEntry.timestamp).inMinutes}min');
             } catch (e) {
               // Firebase not initialized (testing environment)
-              debugPrint('Crashlytics not available: $e');
+              WasteAppLogger.debug('Crashlytics not available in testing environment', {'error': e.toString()});
             }
             
             // Update LRU tracking
@@ -187,10 +205,23 @@ class ClassificationCacheService {
             return cacheEntry;
           }
         } else {
-          debugPrint('No verified similar hashes found for $imageHash');
+          WasteAppLogger.cacheEvent('cache_miss', 'classification', 
+            hit: false, 
+            key: imageHash.substring(0, 16),
+            context: {
+              'match_type': 'no_verified_similar',
+              'similarity_threshold': similarityThreshold
+            }
+          );
         }
       } else if (imageHash.startsWith('phash_') && !CacheFeatureFlags.contentHashVerificationEnabled) {
-        debugPrint('🔧 KILL-SWITCH: Content hash verification disabled - falling back to basic perceptual matching');
+        WasteAppLogger.cacheEvent('fallback_to_basic_matching', 'classification', 
+          key: imageHash.substring(0, 16),
+          context: {
+            'reason': 'content_hash_verification_disabled',
+            'similarity_threshold': similarityThreshold
+          }
+        );
         final similarHash = await _findSimilarPerceptualHash(imageHash, similarityThreshold);
         
         if (similarHash != null) {
@@ -199,7 +230,16 @@ class ClassificationCacheService {
           if (cacheEntry != null) {
             _statistics['hits']++;
             _statistics['similarHits'] = (_statistics['similarHits'] ?? 0) + 1;
-            debugPrint('Cache hit (basic similarity match) for image hash: original=$imageHash, matched=$similarHash');
+            WasteAppLogger.cacheEvent('cache_hit', 'classification', 
+              hit: true, 
+              key: imageHash.substring(0, 16),
+              context: {
+                'match_type': 'basic_similarity',
+                'matched_hash': similarHash.substring(0, 16),
+                'cache_age_minutes': DateTime.now().difference(cacheEntry.timestamp).inMinutes,
+                'item_name': cacheEntry.classification.itemName
+              }
+            );
             
             // Update LRU tracking
             cacheEntry.markUsed();
@@ -213,25 +253,38 @@ class ClassificationCacheService {
           }
         }
       } else if (imageHash.startsWith('phash_') && contentHash == null) {
-        debugPrint('⚠️ Perceptual hash provided without content hash - skipping similarity search for safety');
+        WasteAppLogger.warning('Perceptual hash provided without content hash - skipping similarity search', null, null, {
+          'hash': imageHash.substring(0, 16),
+          'reason': 'missing_content_hash_for_verification'
+        });
       }
       
       // Cache miss
       _statistics['misses']++;
-      debugPrint('Cache miss for image hash: $imageHash');
-      debugPrint('Current cache size: ${_cacheBox.length} entries');
+      WasteAppLogger.cacheEvent('cache_miss', 'classification', 
+        hit: false, 
+        key: imageHash.substring(0, 16),
+        context: {
+          'match_type': 'no_match',
+          'cache_size': _cacheBox.length,
+          'is_perceptual_hash': imageHash.startsWith('phash_')
+        }
+      );
       
       // Crashlytics breadcrumb for field debugging (safe for testing)
       try {
         FirebaseCrashlytics.instance.log('CACHE miss hash=${imageHash.substring(0, 16)}... cache_size=${_cacheBox.length}');
       } catch (e) {
         // Firebase not initialized (testing environment)
-        debugPrint('Crashlytics not available: $e');
+        WasteAppLogger.debug('Crashlytics not available in testing environment', {'error': e.toString()});
       }
       
       return null;
     } catch (e) {
-      debugPrint('Error retrieving from cache: $e');
+      WasteAppLogger.severe('Error retrieving from cache', e, null, {
+        'hash': imageHash.substring(0, 16),
+        'action': 'treat_as_cache_miss'
+      });
       // If there's any error, treat it as a cache miss
       _statistics['misses']++;
       return null;
@@ -254,30 +307,52 @@ class ClassificationCacheService {
   ) async {
     try {
       if (!pHash.startsWith('phash_')) {
-        debugPrint('Not a perceptual hash (no phash_ prefix): $pHash');
+        WasteAppLogger.warning('Invalid perceptual hash format', null, null, {
+          'hash': pHash.substring(0, 16),
+          'reason': 'missing_phash_prefix'
+        });
         return null;
       }
       
       // Extract the hex part
       final hexHash = pHash.substring(6); // Remove 'phash_' prefix
       if (hexHash.length != 16) {
-        debugPrint('Invalid perceptual hash length: ${hexHash.length} (expected 16)');
+        WasteAppLogger.warning('Invalid perceptual hash length', null, null, {
+          'hash': pHash.substring(0, 16),
+          'actual_length': hexHash.length,
+          'expected_length': 16
+        });
         return null; // Should be 16 hex chars (64 bits)
       }
       
       // Convert to binary
       final binaryHash = _hexToBinary(hexHash);
       if (binaryHash.length != 64) {
-        debugPrint('Invalid binary hash length: ${binaryHash.length} (expected 64)');
+        WasteAppLogger.warning('Invalid binary hash length', null, null, {
+          'hash': pHash.substring(0, 16),
+          'actual_length': binaryHash.length,
+          'expected_length': 64
+        });
         return null;
       }
       
-      debugPrint('🔍 DUAL-HASH: Searching for similar hashes to: $pHash (bin: ${binaryHash.substring(0, 16)}...)');
-      debugPrint('🔍 DUAL-HASH: Content hash for verification: $contentHash');
+      WasteAppLogger.cacheEvent('dual_hash_search_started', 'classification', 
+        key: pHash.substring(0, 16),
+        context: {
+          'binary_hash_preview': binaryHash.substring(0, 16),
+          'content_hash': contentHash.substring(0, 16),
+          'threshold': threshold
+        }
+      );
       
       // Get all perceptual hashes in cache for faster processing
       final pHashKeys = _cacheBox.keys.where((key) => key.startsWith('phash_')).toList();
-      debugPrint('🔍 DUAL-HASH: Found ${pHashKeys.length} perceptual hashes in cache to compare');
+      WasteAppLogger.cacheEvent('dual_hash_comparison_started', 'classification', 
+        context: {
+          'phash_keys_count': pHashKeys.length,
+          'search_threshold': threshold
+        }
+      );
       
       // Track best match
       String? bestMatch;
@@ -298,7 +373,7 @@ class ClassificationCacheService {
         final distance = _hammingDistance(binaryHash, cachedBinaryHash);
         
         // Log every distance calculated, even if above threshold
-        debugPrint('🔍 DUAL-HASH: Comparing with $cachedHash: distance = $distance (threshold = $threshold)');
+        WasteAppLogger.cacheEvent('cache_operation', 'classification', context: {'service': 'cache', 'file': 'cache_service'});
         allDistances.add(distance);
         
         // If distance is within threshold, verify with content hash
@@ -308,13 +383,13 @@ class ClassificationCacheService {
           // Get the cached entry to check content hash
           final cacheEntry = _deserializeEntry(cachedHash);
           if (cacheEntry != null && cacheEntry.contentHash != null) {
-            debugPrint('🔍 DUAL-HASH: Verifying content hash for similar pHash $cachedHash');
-            debugPrint('🔍 DUAL-HASH: Cached content hash: ${cacheEntry.contentHash}');
-            debugPrint('🔍 DUAL-HASH: Current content hash: $contentHash');
+            WasteAppLogger.cacheEvent('cache_operation', 'classification', context: {'service': 'cache', 'file': 'cache_service'});
+            WasteAppLogger.cacheEvent('cache_operation', 'classification', context: {'service': 'cache', 'file': 'cache_service'});
+            WasteAppLogger.cacheEvent('cache_operation', 'classification', context: {'service': 'cache', 'file': 'cache_service'});
             
             // Content hash must match exactly for verification
             if (cacheEntry.contentHash == contentHash) {
-              debugPrint('✅ DUAL-HASH: Content hash verification PASSED - same image confirmed');
+              WasteAppLogger.info('Operation completed', null, null, {'service': 'cache', 'file': 'cache_service'});
               
               // If it's a better match than current best, update it
               if (distance < bestDistance) {
@@ -326,34 +401,34 @@ class ClassificationCacheService {
               }
             } else {
               verificationFailures++;
-              debugPrint('❌ DUAL-HASH: Content hash verification FAILED - different image (pHash distance: $distance)');
-              debugPrint('❌ DUAL-HASH: This prevents false positive cache hit');
+              WasteAppLogger.severe('Error occurred', null, null, {'service': 'cache', 'file': 'cache_service'});
+              WasteAppLogger.severe('Error occurred', null, null, {'service': 'cache', 'file': 'cache_service'});
             }
           } else {
-            debugPrint('⚠️ DUAL-HASH: Cached entry missing content hash - skipping verification');
+            WasteAppLogger.warning('Warning occurred', null, null, {'service': 'cache', 'file': 'cache_service'});
           }
         }
       }
       
       if (bestMatch != null) {
-        debugPrint('✅ DUAL-HASH: Found verified similar hash: $bestMatch with distance $bestDistance');
-        debugPrint('✅ DUAL-HASH: Verification stats - attempts: $verificationAttempts, failures: $verificationFailures');
+        WasteAppLogger.info('Operation completed', null, null, {'service': 'cache', 'file': 'cache_service'});
+        WasteAppLogger.info('Operation completed', null, null, {'service': 'cache', 'file': 'cache_service'});
       } else {
         // More detailed logging for debug purposes
         if (allDistances.isNotEmpty) {
           allDistances.sort(); // Sort distances for better analysis
           final minDistance = allDistances.first;
-          debugPrint('❌ DUAL-HASH: No verified similar hashes found within threshold $threshold');
-          debugPrint('❌ DUAL-HASH: Closest pHash distance: $minDistance, verification attempts: $verificationAttempts, failures: $verificationFailures');
+          WasteAppLogger.severe('Error occurred', null, null, {'service': 'cache', 'file': 'cache_service'});
+          WasteAppLogger.severe('Error occurred', null, null, {'service': 'cache', 'file': 'cache_service'});
           
           if (verificationFailures > 0) {
-            debugPrint('🛡️ DUAL-HASH: Prevented $verificationFailures potential false positive(s)');
+            WasteAppLogger.info('Operation completed', null, null, {'service': 'cache', 'file': 'cache_service'});
             // Crashlytics breadcrumb for false positive prevention tracking (safe for testing)
             try {
               FirebaseCrashlytics.instance.log('CACHE prevented_false_positives count=$verificationFailures hash=${pHash.substring(0, 16)}...');
             } catch (e) {
               // Firebase not initialized (testing environment)
-              debugPrint('Crashlytics not available: $e');
+              WasteAppLogger.info('Operation completed', null, null, {'service': 'cache', 'file': 'cache_service'});
             }
           }
           
@@ -367,15 +442,15 @@ class ClassificationCacheService {
           for (final k in keys) {
             distLog.write('$k: ${distCounts[k]} hashes, ');
           }
-          debugPrint(distLog.toString());
+          WasteAppLogger.info('Operation completed', null, null, {'service': 'cache', 'file': 'cache_service'});
         } else {
-          debugPrint('❌ DUAL-HASH: No similar hashes found within threshold $threshold. No perceptual hashes to compare.');
+          WasteAppLogger.severe('Error occurred', null, null, {'service': 'cache', 'file': 'cache_service'});
         }
       }
       
       return bestMatch;
     } catch (e) {
-      debugPrint('❌ DUAL-HASH: Error finding similar perceptual hash: $e');
+      WasteAppLogger.severe('Error occurred', null, null, {'service': 'cache', 'file': 'cache_service'});
       return null;
     }
   }
@@ -418,18 +493,21 @@ class ClassificationCacheService {
   }) async {
     try {
       if (!_isInitialized) {
-        debugPrint('Cache not initialized, initializing now...');
+        WasteAppLogger.warning('Cache not initialized, initializing now', null, null, {
+          'action': 'auto_initialize_cache'
+        });
         await initialize();
       }
       
       // Check if this hash already exists (shouldn't happen due to prior check, but just in case)
       if (_cacheBox.containsKey(imageHash)) {
-        debugPrint('Warning: Hash already exists in cache: $imageHash. Updating existing entry.');
-        // Get the existing entry
         final existingEntry = _deserializeEntry(imageHash);
-        if (existingEntry != null) {
-          debugPrint('Existing entry found for $imageHash, created at ${existingEntry.timestamp}');
-        }
+        WasteAppLogger.warning('Hash already exists in cache, updating existing entry', null, null, {
+          'hash': imageHash.substring(0, 16),
+          'existing_timestamp': existingEntry?.timestamp.toIso8601String(),
+          'existing_item': existingEntry?.classification.itemName,
+          'new_item': classification.itemName
+        });
       }
       
       // Create cache entry with content hash for dual-hash verification
@@ -456,13 +534,22 @@ class ClassificationCacheService {
         _statistics['bytesSaved'] = (_statistics['bytesSaved'] ?? 0) + imageSize;
       }
       
-      debugPrint('Successfully cached classification for $imageHash (${classification.itemName})');
-      if (contentHash != null) {
-        debugPrint('🔍 DUAL-HASH: Stored with content hash: $contentHash');
-      }
-      debugPrint('Current cache size: ${_cacheBox.length} entries');
+      WasteAppLogger.cacheEvent('cache_store', 'classification', 
+        key: imageHash.substring(0, 16),
+        context: {
+          'item_name': classification.itemName,
+          'has_content_hash': contentHash != null,
+          'content_hash': contentHash?.substring(0, 16),
+          'cache_size': _cacheBox.length,
+          'image_size_bytes': imageSize
+        }
+      );
     } catch (e) {
-      debugPrint('ERROR caching classification: $e');
+      WasteAppLogger.severe('Error caching classification', e, null, {
+        'hash': imageHash.substring(0, 16),
+        'item_name': classification.itemName,
+        'action': 'continue_without_caching'
+      });
       // Errors during caching shouldn't break the app flow
     }
   }
@@ -489,7 +576,14 @@ class ClassificationCacheService {
       _lruMap.remove(key);
     }
     
-    debugPrint('Removed ${keysToRemove.length} least recently used cache entries');
+    WasteAppLogger.cacheEvent('cache_eviction', 'classification', 
+      context: {
+        'entries_removed': keysToRemove.length,
+        'cache_size_after': _cacheBox.length,
+        'max_cache_size': _maxCacheSize,
+        'eviction_percentage': (entriesToRemove / _maxCacheSize * 100).toStringAsFixed(1)
+      }
+    );
   }
 
   /// Clear the entire cache
@@ -507,9 +601,16 @@ class ClassificationCacheService {
       _statistics['bytesSaved'] = 0;
       _statistics['createdAt'] = DateTime.now();
       
-      debugPrint('Classification cache cleared');
+      WasteAppLogger.cacheEvent('cache_cleared', 'classification', 
+        context: {
+          'previous_size': _cacheBox.length,
+          'statistics_reset': true
+        }
+      );
     } catch (e) {
-      debugPrint('Error clearing classification cache: $e');
+      WasteAppLogger.severe('Error clearing classification cache', e, null, {
+        'cache_size': _cacheBox.length
+      });
       rethrow;
     }
   }
@@ -577,7 +678,7 @@ class ClassificationCacheService {
       
       return CachedClassification.deserialize(jsonString);
     } catch (e) {
-      debugPrint('Error deserializing cache entry: $e');
+      WasteAppLogger.severe('Error occurred', null, null, {'service': 'cache', 'file': 'cache_service'});
       return null;
     }
   }
@@ -587,29 +688,29 @@ class ClassificationCacheService {
   Future<String?> _findSimilarPerceptualHash(String pHash, int threshold) async {
     try {
       if (!pHash.startsWith('phash_')) {
-        debugPrint('Not a perceptual hash (no phash_ prefix): $pHash');
+        WasteAppLogger.info('Operation completed', null, null, {'service': 'cache', 'file': 'cache_service'});
         return null;
       }
       
       // Extract the hex part
       final hexHash = pHash.substring(6); // Remove 'phash_' prefix
       if (hexHash.length != 16) {
-        debugPrint('Invalid perceptual hash length: ${hexHash.length} (expected 16)');
+        WasteAppLogger.info('Operation completed', null, null, {'service': 'cache', 'file': 'cache_service'});
         return null; // Should be 16 hex chars (64 bits)
       }
       
       // Convert to binary
       final binaryHash = _hexToBinary(hexHash);
       if (binaryHash.length != 64) {
-        debugPrint('Invalid binary hash length: ${binaryHash.length} (expected 64)');
+        WasteAppLogger.info('Operation completed', null, null, {'service': 'cache', 'file': 'cache_service'});
         return null;
       }
       
-      debugPrint('🔧 BASIC: Searching for similar hashes to: $pHash (bin: ${binaryHash.substring(0, 16)}...)');
+      WasteAppLogger.info('Operation completed', null, null, {'service': 'cache', 'file': 'cache_service'});
       
       // Get all perceptual hashes in cache for faster processing
       final pHashKeys = _cacheBox.keys.where((key) => key.startsWith('phash_')).toList();
-      debugPrint('🔧 BASIC: Found ${pHashKeys.length} perceptual hashes in cache to compare');
+      WasteAppLogger.info('Operation completed', null, null, {'service': 'cache', 'file': 'cache_service'});
       
       // Track best match
       String? bestMatch;
@@ -626,7 +727,7 @@ class ClassificationCacheService {
         // Calculate Hamming distance (number of bits that differ)
         final distance = _hammingDistance(binaryHash, cachedBinaryHash);
         
-        debugPrint('🔧 BASIC: Comparing with $cachedHash: distance = $distance (threshold = $threshold)');
+        WasteAppLogger.info('Operation completed', null, null, {'service': 'cache', 'file': 'cache_service'});
         
         // If distance is within threshold, consider it a match
         if (distance <= threshold) {
@@ -642,14 +743,14 @@ class ClassificationCacheService {
       }
       
       if (bestMatch != null) {
-        debugPrint('🔧 BASIC: Found similar hash: $bestMatch with distance $bestDistance');
+        WasteAppLogger.info('Operation completed', null, null, {'service': 'cache', 'file': 'cache_service'});
       } else {
-        debugPrint('🔧 BASIC: No similar hashes found within threshold $threshold');
+        WasteAppLogger.info('Operation completed', null, null, {'service': 'cache', 'file': 'cache_service'});
       }
       
       return bestMatch;
     } catch (e) {
-      debugPrint('🔧 BASIC: Error finding similar perceptual hash: $e');
+      WasteAppLogger.severe('Error occurred', null, null, {'service': 'cache', 'file': 'cache_service'});
       return null;
     }
   }
@@ -673,7 +774,7 @@ class CacheFeatureFlags {
   /// Set content hash verification state (for testing or remote config)
   static void setContentHashVerification(bool enabled) {
     _contentHashVerificationEnabled = enabled;
-    debugPrint('🔧 FEATURE FLAG: Content hash verification ${enabled ? 'ENABLED' : 'DISABLED'}');
+    WasteAppLogger.info('Operation completed', null, null, {'service': 'cache', 'file': 'cache_service'});
   }
   
   /// Initialize feature flags from remote config (placeholder for future implementation)
@@ -683,6 +784,6 @@ class CacheFeatureFlags {
     // await remoteConfig.fetchAndActivate();
     // _contentHashVerificationEnabled = remoteConfig.getBool('content_hash_verification_enabled');
     
-    debugPrint('🔧 FEATURE FLAGS: Initialized with contentHashVerification=$_contentHashVerificationEnabled');
+    WasteAppLogger.info('Operation completed', null, null, {'service': 'cache', 'file': 'cache_service'});
   }
 }

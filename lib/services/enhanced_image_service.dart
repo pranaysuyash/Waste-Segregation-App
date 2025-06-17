@@ -6,6 +6,7 @@ import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 import 'package:image/image.dart' as img;
 import 'package:uuid/uuid.dart';
+import 'package:waste_segregation_app/utils/waste_app_logger.dart';
 
 /// Provides helper methods for saving and loading images across
 /// platforms with basic retry logic for network requests.
@@ -132,7 +133,7 @@ class EnhancedImageService {
       // Encode with good quality for thumbnails
       return Uint8List.fromList(img.encodeJpg(thumb, quality: 80));
     } catch (e) {
-      debugPrint('Error generating thumbnail: $e');
+      WasteAppLogger.severe('Error generating thumbnail: $e');
       // Return original bytes if thumbnail generation fails
       return bytes;
     }
@@ -147,9 +148,9 @@ class EnhancedImageService {
         if (response.statusCode == 200) {
           return response.bodyBytes;
         }
-        debugPrint('Image download failed with status ${response.statusCode}');
+        WasteAppLogger.severe('Image download failed with status ${response.statusCode}');
       } catch (e) {
-        debugPrint('Image download error on attempt ${attempt + 1}: $e');
+        WasteAppLogger.severe('Image download error on attempt ${attempt + 1}: $e');
       }
       await Future.delayed(Duration(milliseconds: 500 * (attempt + 1)));
     }
@@ -210,15 +211,15 @@ class EnhancedImageService {
       for (var i = 0; i < filesToRemove && i < filesWithStats.length; i++) {
         try {
           await filesWithStats[i].key.delete();
-          debugPrint('🗑️ Removed old thumbnail: ${p.basename(filesWithStats[i].key.path)}');
+          WasteAppLogger.info('🗑️ Removed old thumbnail: ${p.basename(filesWithStats[i].key.path)}');
         } catch (e) {
-          debugPrint('Error removing thumbnail: $e');
+          WasteAppLogger.severe('Error removing thumbnail: $e');
         }
       }
       
-      debugPrint('📊 Thumbnail cache maintenance: removed $filesToRemove files');
+      WasteAppLogger.info('📊 Thumbnail cache maintenance: removed $filesToRemove files');
     } catch (e) {
-      debugPrint('Error maintaining thumbnail cache: $e');
+      WasteAppLogger.severe('Error maintaining thumbnail cache: $e');
     }
   }
 
@@ -244,19 +245,19 @@ class EnhancedImageService {
             try {
               await entity.delete();
               orphansRemoved++;
-              debugPrint('🗑️ Removed orphaned thumbnail: ${p.basename(entity.path)}');
+              WasteAppLogger.info('🗑️ Removed orphaned thumbnail: ${p.basename(entity.path)}');
             } catch (e) {
-              debugPrint('Error removing orphaned thumbnail: $e');
+              WasteAppLogger.severe('Error removing orphaned thumbnail: $e');
             }
           }
         }
       }
       
       if (orphansRemoved > 0) {
-        debugPrint('🧹 Cleaned up $orphansRemoved orphaned thumbnails');
+        WasteAppLogger.info('🧹 Cleaned up $orphansRemoved orphaned thumbnails');
       }
     } catch (e) {
-      debugPrint('Error cleaning up orphaned thumbnails: $e');
+      WasteAppLogger.severe('Error cleaning up orphaned thumbnails: $e');
     }
   }
 
@@ -278,3 +279,4 @@ class EnhancedImageService {
     }
   }
 }
+

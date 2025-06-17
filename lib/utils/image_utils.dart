@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:image/image.dart' as img;
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:waste_segregation_app/utils/waste_app_logger.dart';
 
 /// Utility class for image manipulation and hashing
 class ImageUtils {
@@ -25,7 +26,7 @@ class ImageUtils {
       // Re-encode with consistent quality
       return Uint8List.fromList(img.encodeJpg(fixed, quality: 95));
     } catch (e) {
-      debugPrint('Error normalizing image bytes: $e');
+      WasteAppLogger.severe('Error normalizing image bytes: $e');
       return bytes; // Return original if normalization fails
     }
   }
@@ -47,7 +48,7 @@ class ImageUtils {
       final result = await compute(_generateDualHashesIsolate, normalizedBytes);
       return result;
     } catch (e) {
-      debugPrint('Error generating dual hashes: $e');
+      WasteAppLogger.severe('Error generating dual hashes: $e');
       // Fallback to individual hash generation with original bytes
       return {
         'perceptualHash': await generateImageHash(imageBytes),
@@ -108,7 +109,7 @@ class ImageUtils {
 
         perceptualHash = 'phash_$hexHash';
       } catch (e) {
-        debugPrint('Error in perceptual hash calculation: $e');
+        WasteAppLogger.severe('Error in perceptual hash calculation: $e');
         perceptualHash = 'error_hash_${DateTime.now().millisecondsSinceEpoch}';
       }
 
@@ -117,7 +118,7 @@ class ImageUtils {
         'contentHash': 'md5_$contentHash',
       };
     } catch (e) {
-      debugPrint('Error in dual hash generation: $e');
+      WasteAppLogger.severe('Error in dual hash generation: $e');
       // Return error hashes that won't match anything
       final timestamp = DateTime.now().millisecondsSinceEpoch;
       return {
@@ -159,7 +160,7 @@ class ImageUtils {
 
       return pHash;
     } catch (e) {
-      debugPrint('Error generating perceptual image hash: $e');
+      WasteAppLogger.severe('Error generating perceptual image hash: $e');
 
       // Fallback to a simpler hash if perceptual hashing fails
       try {
@@ -172,7 +173,7 @@ class ImageUtils {
         return 'fallback_${digest.toString()}';
       } catch (e2) {
         // Last resort fallback
-        debugPrint('Error in fallback hash generation: $e2');
+        WasteAppLogger.severe('Error in fallback hash generation: $e2');
         final simpleHash = imageBytes.length.toString() +
             imageBytes[0].toString() +
             imageBytes[imageBytes.length ~/ 2].toString() +
@@ -198,7 +199,7 @@ class ImageUtils {
       final digest = md5.convert(normalizedBytes);
       return 'md5_${digest.toString()}';
     } catch (e) {
-      debugPrint('Error generating content hash: $e');
+      WasteAppLogger.severe('Error generating content hash: $e');
       // Return a unique fallback that won't match anything
       return 'content_error_${DateTime.now().millisecondsSinceEpoch}';
     }
@@ -257,7 +258,7 @@ class ImageUtils {
 
       return 'phash_$hexHash';
     } catch (e) {
-      debugPrint('Error in perceptual hash calculation: $e');
+      WasteAppLogger.severe('Error in perceptual hash calculation: $e');
       // Return a consistent error string that won't match actual hashes
       return 'error_hash_${DateTime.now().millisecondsSinceEpoch}';
     }
@@ -327,7 +328,7 @@ class ImageUtils {
       // Encode back to PNG format for consistent results
       return Uint8List.fromList(img.encodePng(finalImage));
     } catch (e) {
-      debugPrint('Error preprocessing image: $e');
+      WasteAppLogger.severe('Error preprocessing image: $e');
       // Return original bytes if preprocessing fails
       return args.imageBytes;
     }
@@ -381,7 +382,7 @@ class ImageUtils {
       // Encode back to PNG format
       return Uint8List.fromList(img.encodePng(croppedImage));
     } catch (e) {
-      debugPrint('Error cropping image: $e');
+      WasteAppLogger.severe('Error cropping image: $e');
       return null;
     }
   }
@@ -397,7 +398,7 @@ class ImageUtils {
         }
       }
     } catch (e) {
-      debugPrint('Error converting data URL to bytes: $e');
+      WasteAppLogger.severe('Error converting data URL to bytes: $e');
     }
     return null;
   }
@@ -533,7 +534,7 @@ class ImageUtils {
         onBackgroundImageError: backgroundImage != null 
           ? (exception, stackTrace) {
               // Handle image loading error silently
-              debugPrint('Avatar image failed to load: $exception');
+              WasteAppLogger.severe('Avatar image failed to load: $exception');
             }
           : null,
         child: backgroundImage == null ? child : null,
@@ -595,7 +596,6 @@ class ImageUtils {
 
 /// Arguments for preprocessing image in isolate
 class _PreprocessImageArgs {
-
   _PreprocessImageArgs({
     required this.imageBytes,
     required this.targetWidth,
@@ -612,7 +612,6 @@ class _PreprocessImageArgs {
 
 /// Rectangle class for defining crop regions
 class Rect {
-
   const Rect({
     required this.left,
     required this.top,

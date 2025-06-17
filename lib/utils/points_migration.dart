@@ -3,6 +3,7 @@ import '../services/points_engine.dart';
 import '../services/gamification_service.dart';
 import '../services/storage_service.dart';
 import '../services/cloud_storage_service.dart';
+import 'package:waste_segregation_app/utils/waste_app_logger.dart';
 
 /// Migration utility to transition from legacy GamificationService to Points Engine
 class PointsMigration {
@@ -14,7 +15,7 @@ class PointsMigration {
   /// Migrate from legacy system to Points Engine
   Future<void> migrateToPointsEngine() async {
     try {
-      debugPrint('🔄 Starting Points Engine migration...');
+      WasteAppLogger.info('🔄 Starting Points Engine migration...');
       
       // Create Points Engine instance
       final pointsEngine = PointsEngine(_storageService, _cloudStorageService);
@@ -29,7 +30,7 @@ class PointsMigration {
       final engineProfile = pointsEngine.currentProfile;
       
       if (engineProfile == null) {
-        debugPrint('⚠️ Points Engine profile is null, skipping migration');
+        WasteAppLogger.info('⚠️ Points Engine profile is null, skipping migration');
         return;
       }
       
@@ -37,18 +38,18 @@ class PointsMigration {
       final needsSync = _compareProfiles(legacyProfile, engineProfile);
       
       if (needsSync) {
-        debugPrint('🔄 Profiles differ, syncing to Points Engine...');
+        WasteAppLogger.info('🔄 Profiles differ, syncing to Points Engine...');
         await _syncProfiles(legacyProfile, pointsEngine);
-        debugPrint('✅ Migration completed successfully');
+        WasteAppLogger.info('✅ Migration completed successfully');
       } else {
-        debugPrint('✅ Profiles already in sync, no migration needed');
+        WasteAppLogger.info('✅ Profiles already in sync, no migration needed');
       }
       
       // Validate the migration
       await _validateMigration(legacyProfile, pointsEngine);
       
     } catch (e) {
-      debugPrint('🔥 Points Engine migration failed: $e');
+      WasteAppLogger.severe('🔥 Points Engine migration failed: $e');
       rethrow;
     }
   }
@@ -69,9 +70,9 @@ class PointsMigration {
     final legacyAchievements = legacyProfile.achievements?.length ?? 0;
     final engineAchievements = engineProfile.achievements?.length ?? 0;
     
-    debugPrint('📊 Profile comparison:');
-    debugPrint('   Legacy: $legacyPoints pts, level $legacyLevel, $legacyAchievements achievements');
-    debugPrint('   Engine: $enginePoints pts, level $engineLevel, $engineAchievements achievements');
+    WasteAppLogger.info('📊 Profile comparison:');
+    WasteAppLogger.info('   Legacy: $legacyPoints pts, level $legacyLevel, $legacyAchievements achievements');
+    WasteAppLogger.info('   Engine: $enginePoints pts, level $engineLevel, $engineAchievements achievements');
     
     // Need sync if there are significant differences
     return legacyPoints != enginePoints || 
@@ -90,7 +91,7 @@ class PointsMigration {
       
       if (legacyPoints > enginePoints) {
         final pointsDiff = legacyPoints - enginePoints;
-        debugPrint('🔄 Syncing $pointsDiff missing points...');
+        WasteAppLogger.info('🔄 Syncing $pointsDiff missing points...');
         
         await pointsEngine.addPoints(
           'migration_sync',
@@ -117,14 +118,14 @@ class PointsMigration {
         ).toList();
         
         if (missingAchievements.isNotEmpty) {
-          debugPrint('🏆 Found ${missingAchievements.length} missing achievements');
+          WasteAppLogger.info('🏆 Found ${missingAchievements.length} missing achievements');
           // Note: Achievement sync would require more complex logic
           // For now, we'll just log this for manual review
         }
       }
       
     } catch (e) {
-      debugPrint('🔥 Error syncing profiles: $e');
+      WasteAppLogger.severe('🔥 Error syncing profiles: $e');
       rethrow;
     }
   }
@@ -142,16 +143,16 @@ class PointsMigration {
       final enginePoints = engineProfile.points.total;
       
       if (enginePoints < legacyPoints) {
-        debugPrint('⚠️ Warning: Engine points ($enginePoints) less than legacy ($legacyPoints)');
+        WasteAppLogger.warning('⚠️ Warning: Engine points ($enginePoints) less than legacy ($legacyPoints)');
       }
       
-      debugPrint('✅ Migration validation passed');
-      debugPrint('   Final points: $enginePoints');
-      debugPrint('   Final level: ${engineProfile.points.level}');
-      debugPrint('   Achievements: ${engineProfile.achievements.length}');
+      WasteAppLogger.info('✅ Migration validation passed');
+      WasteAppLogger.info('   Final points: $enginePoints');
+      WasteAppLogger.info('   Final level: ${engineProfile.points.level}');
+      WasteAppLogger.info('   Achievements: ${engineProfile.achievements.length}');
       
     } catch (e) {
-      debugPrint('🔥 Migration validation failed: $e');
+      WasteAppLogger.severe('🔥 Migration validation failed: $e');
       rethrow;
     }
   }
@@ -174,7 +175,7 @@ class PointsMigration {
       return legacyPoints > 0;
       
     } catch (e) {
-      debugPrint('🔥 Error checking migration status: $e');
+      WasteAppLogger.severe('🔥 Error checking migration status: $e');
       return false;
     }
   }

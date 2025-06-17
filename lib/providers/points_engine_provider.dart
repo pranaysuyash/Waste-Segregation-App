@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../services/points_engine.dart';
 import '../services/storage_service.dart';
 import '../services/cloud_storage_service.dart';
+import 'package:waste_segregation_app/utils/waste_app_logger.dart';
 
 /// Provider for the centralized Points Engine
 class PointsEngineProvider extends ChangeNotifier {
@@ -25,7 +26,7 @@ class PointsEngineProvider extends ChangeNotifier {
       await _pointsEngine.initialize();
       notifyListeners();
     } catch (e) {
-      debugPrint('🔥 PointsEngineProvider: Failed to initialize: $e');
+      WasteAppLogger.severe('🔥 PointsEngineProvider: Failed to initialize: $e');
     }
   }
 

@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import '../utils/waste_app_logger.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 
 class ErrorBoundary extends StatefulWidget {
@@ -40,7 +41,11 @@ class _ErrorBoundaryState extends State<ErrorBoundary> {
       // Log error
       if (kDebugMode) {
         // Only log to console in debug mode
-        debugPrint('🚨 Error Boundary Caught: ${details.exception}');
+        WasteAppLogger.severe('Error Boundary caught exception', details.exception, details.stack, {
+      'widget': 'error_boundary',
+      'error_type': details.exception.runtimeType.toString(),
+      'action': 'display_error_widget'
+    });
       } else {
         FirebaseCrashlytics.instance.recordFlutterFatalError(details);
       }

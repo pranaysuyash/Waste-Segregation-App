@@ -1,12 +1,13 @@
 #!/usr/bin/env dart
 
 import 'dart:io';
+import 'package:waste_segregation_app/utils/waste_app_logger.dart';
 
 /// Custom overflow detection tool for Flutter widgets
 /// Scans for common overflow patterns in widget files
 void main(List<String> args) {
   if (args.isEmpty) {
-    print('Usage: dart tool/check_overflows.dart <file_path>');
+    WasteAppLogger.info('Usage: dart tool/check_overflows.dart <file_path>');
     exit(1);
   }
 
@@ -14,7 +15,7 @@ void main(List<String> args) {
   final file = File(filePath);
 
   if (!file.existsSync()) {
-    print('File not found: $filePath');
+    WasteAppLogger.severe('File not found: $filePath');
     exit(1);
   }
 
@@ -35,13 +36,13 @@ void main(List<String> args) {
   }
 
   if (hasOverflowIssues) {
-    print('🚨 Layout overflow issues detected in $filePath:');
+    WasteAppLogger.info('🚨 Layout overflow issues detected in $filePath:');
     for (final issue in issues) {
-      print('  $issue');
+      WasteAppLogger.info('  $issue');
     }
     exit(1);
   } else {
-    print('✅ No overflow issues detected in $filePath');
+    WasteAppLogger.info('✅ No overflow issues detected in $filePath');
     exit(0);
   }
 }

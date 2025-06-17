@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../utils/share_service.dart';
+import '../utils/waste_app_logger.dart';
 
 /// A reusable share button widget that can be added to any screen
 class ShareButton extends StatelessWidget {
@@ -55,12 +56,12 @@ class ShareButton extends StatelessWidget {
               context: context,
             );
           } catch (e) {
-            debugPrint('Share error: $e');
+            WasteAppLogger.info('Operation completed', null, null, {'service': 'widget', 'file': 'share_button'});
           }
         } else {
           // Use callback for custom notification
           ShareService.onShareComplete = (message) {
-            debugPrint('Share complete: $message');
+            WasteAppLogger.info('Operation completed', null, null, {'service': 'widget', 'file': 'share_button'});
             // No visual notification
           };
           
@@ -127,12 +128,12 @@ class ShareFloatingActionButton extends StatelessWidget {
               context: context,
             );
           } catch (e) {
-            debugPrint('Share error: $e');
+            WasteAppLogger.info('Operation completed', null, null, {'service': 'widget', 'file': 'share_button'});
           }
         } else {
           // Use callback for custom notification
           ShareService.onShareComplete = (message) {
-            debugPrint('Share complete: $message');
+            WasteAppLogger.info('Operation completed', null, null, {'service': 'widget', 'file': 'share_button'});
             // No visual notification
           };
           

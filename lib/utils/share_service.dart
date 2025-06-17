@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:waste_segregation_app/utils/waste_app_logger.dart';
 
 // Create a simple platform-conditional sharing implementation that doesn't rely on context
 class ShareService {
@@ -20,7 +21,7 @@ class ShareService {
         onShareComplete!('Shared');
       }
     } catch (e) {
-      debugPrint('Error in ShareService.share: $e');
+      WasteAppLogger.severe('Error in ShareService.share: $e');
       if (onShareComplete != null) {
         onShareComplete!('Error: $e');
       }

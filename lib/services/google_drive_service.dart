@@ -8,6 +8,7 @@ import 'package:http/http.dart' as http;
 import 'package:path_provider/path_provider.dart';
 import 'storage_service.dart';
 import '../models/user_profile.dart';
+import '../utils/waste_app_logger.dart';
 
 class GoogleDriveService {
 
@@ -29,10 +30,17 @@ class GoogleDriveService {
       if (docSnapshot.exists && docSnapshot.data() != null) {
         return UserProfile.fromJson(docSnapshot.data()!);
       }
-      debugPrint('No user profile found in Firestore for user ID: $userId');
+      WasteAppLogger.info('No user profile found in Firestore', null, null, {
+        'user_id': userId.substring(0, 16),
+        'service': 'google_drive',
+        'action': 'return_null_for_new_user'
+      });
       return null;
     } catch (e) {
-      debugPrint('Error fetching user profile $userId from Firestore: $e');
+      WasteAppLogger.severe('Error fetching user profile from Firestore', e, null, {
+        'user_id': userId.substring(0, 16),
+        'service': 'google_drive'
+      });
       return null; 
     }
   }
@@ -47,7 +55,12 @@ class GoogleDriveService {
 
         if (userProfile == null) {
           // Truly new user, or Firestore fetch failed. Create a new UserProfile.
-          debugPrint('Creating new UserProfile for user ID: $userId');
+          WasteAppLogger.info('Creating new UserProfile for user', null, null, {
+            'user_id': userId.substring(0, 16),
+            'email': account.email,
+            'service': 'google_drive',
+            'action': 'create_new_profile'
+          });
           userProfile = UserProfile(
             id: userId,
             email: account.email,
@@ -59,7 +72,12 @@ class GoogleDriveService {
           );
         } else {
           // Existing user, update relevant fields
-          debugPrint('Found existing UserProfile for user ID: $userId. Updating fields.');
+          WasteAppLogger.info('Found existing UserProfile, updating fields', null, null, {
+            'user_id': userId.substring(0, 16),
+            'email': account.email,
+            'service': 'google_drive',
+            'action': 'update_existing_profile'
+          });
           userProfile = userProfile.copyWith(
             lastActive: DateTime.now(),
             displayName: account.displayName ?? userProfile.displayName,
@@ -70,7 +88,11 @@ class GoogleDriveService {
         
         // Save the fetched/updated or newly created UserProfile to local storage
         await _storageService.saveUserProfile(userProfile);
-        debugPrint('UserProfile for $userId saved locally after sign-in.');
+        WasteAppLogger.info('UserProfile saved locally after sign-in', null, null, {
+          'user_id': userId.substring(0, 16),
+          'service': 'google_drive',
+          'action': 'local_save_complete'
+        });
 
         // Optional: If it was a new user, explicitly save to Firestore now.
         // Otherwise, CloudStorageService.saveUserProfileToFirestore will be called 
@@ -82,15 +104,19 @@ class GoogleDriveService {
                    .collection('users')
                    .doc(userProfile.id)
                    .set(userProfile.toJson(), SetOptions(merge: true));
-                debugPrint('New UserProfile for $userId also synced to Firestore.');
+                WasteAppLogger.info('New UserProfile synced to Firestore', null, null, {
+                  'user_id': userId.substring(0, 16),
+                  'service': 'google_drive',
+                  'action': 'firestore_sync_complete'
+                });
              } catch (e) {
-                debugPrint('Error syncing new UserProfile $userId to Firestore immediately: $e');
+                WasteAppLogger.severe('Error syncing new UserProfile $userId to Firestore immediately: $e');
              }
         }
       }
       return account;
     } catch (e) {
-      debugPrint('Error signing in with Google: $e');
+      WasteAppLogger.severe('Error signing in with Google: $e');
       rethrow;
     }
   }
@@ -101,7 +127,7 @@ class GoogleDriveService {
       await _googleSignIn.signOut();
       await _storageService.clearUserInfo();
     } catch (e) {
-      debugPrint('Error signing out from Google: $e');
+      WasteAppLogger.severe('Error signing out from Google: $e');
       rethrow;
     }
   }
@@ -163,7 +189,7 @@ class GoogleDriveService {
 
       return uploadedFile.id!;
     } catch (e) {
-      debugPrint('Error uploading to Drive: $e');
+      WasteAppLogger.severe('Error uploading to Drive: $e');
       rethrow;
     }
   }
@@ -188,7 +214,7 @@ class GoogleDriveService {
 
       return utf8.decode(dataStore);
     } catch (e) {
-      debugPrint('Error downloading from Drive: $e');
+      WasteAppLogger.severe('Error downloading from Drive: $e');
       rethrow;
     }
   }
@@ -206,7 +232,7 @@ class GoogleDriveService {
       final createdFolder = await driveApi.files.create(folder);
       return createdFolder.id!;
     } catch (e) {
-      debugPrint('Error creating folder in Drive: $e');
+      WasteAppLogger.severe('Error creating folder in Drive: $e');
       rethrow;
     }
   }
@@ -227,7 +253,7 @@ class GoogleDriveService {
       }
       return null;
     } catch (e) {
-      debugPrint('Error finding file/folder in Drive: $e');
+      WasteAppLogger.severe('Error finding file/folder in Drive: $e');
       rethrow;
     }
   }
@@ -256,7 +282,7 @@ class GoogleDriveService {
         folderId: folderId,
       );
     } catch (e) {
-      debugPrint('Error backing up user data: $e');
+      WasteAppLogger.severe('Error backing up user data: $e');
       rethrow;
     }
   }
@@ -267,7 +293,7 @@ class GoogleDriveService {
       final userData = await downloadFromDrive(fileId);
       await _storageService.importUserData(userData);
     } catch (e) {
-      debugPrint('Error restoring user data: $e');
+      WasteAppLogger.severe('Error restoring user data: $e');
       rethrow;
     }
   }
@@ -304,7 +330,7 @@ class GoogleDriveService {
         };
       }).toList();
     } catch (e) {
-      debugPrint('Error listing backup files: $e');
+      WasteAppLogger.severe('Error listing backup files: $e');
       rethrow;
     }
   }

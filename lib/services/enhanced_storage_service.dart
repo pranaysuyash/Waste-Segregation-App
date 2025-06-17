@@ -4,6 +4,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 import '../services/storage_service.dart';
 import '../utils/constants.dart';
 import '../models/user_profile.dart';
+import 'package:waste_segregation_app/utils/waste_app_logger.dart';
 
 /// Enhanced Storage Service with Smart Caching
 /// Extends the base storage service with LRU cache and performance optimizations
@@ -77,7 +78,7 @@ class EnhancedStorageService extends StorageService {
       
       return box.get(key) as T?;
     } catch (e) {
-      debugPrint('Error getting value from Hive for key $key: $e');
+      WasteAppLogger.severe('Error getting value from Hive for key $key: $e');
       return null;
     }
   }
@@ -107,7 +108,7 @@ class EnhancedStorageService extends StorageService {
       
       await box.put(key, value);
     } catch (e) {
-      debugPrint('Error storing value in Hive for key $key: $e');
+      WasteAppLogger.severe('Error storing value in Hive for key $key: $e');
       rethrow;
     }
   }
@@ -135,7 +136,7 @@ class EnhancedStorageService extends StorageService {
         getAllClassifications().then((data) => addToCache('all_classifications', data)),
       ]);
     } catch (e) {
-      debugPrint('Error preloading critical data: $e');
+      WasteAppLogger.severe('Error preloading critical data: $e');
     }
   }
   
@@ -219,7 +220,6 @@ class EnhancedStorageService extends StorageService {
 }
 
 class CacheEntry {
-  
   CacheEntry({
     required this.value,
     required this.timestamp,

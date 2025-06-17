@@ -6,6 +6,7 @@ import 'package:googleapis/drive/v3.dart' as drive;
 import 'package:http/http.dart' as http;
 import 'package:path_provider/path_provider.dart';
 import 'storage_service.dart';
+import 'package:waste_segregation_app/utils/waste_app_logger.dart';
 
 class GoogleDriveService {
   final GoogleSignIn _googleSignIn = GoogleSignIn(
@@ -24,7 +25,7 @@ class GoogleDriveService {
     try {
       // TEMPORARY: Skip actual Google Sign-In to avoid the crash
       // Create a mock account for testing
-      debugPrint('BYPASSING GOOGLE SIGN-IN FOR TESTING');
+      WasteAppLogger.info('BYPASSING GOOGLE SIGN-IN FOR TESTING');
       
       // Save mock user info to local storage
       await _storageService.saveUserInfo(
@@ -50,7 +51,7 @@ class GoogleDriveService {
       return account;
       */
     } catch (e) {
-      debugPrint('Error signing in with Google: $e');
+      WasteAppLogger.severe('Error signing in with Google: $e');
       rethrow;
     }
   }

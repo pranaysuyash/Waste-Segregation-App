@@ -5,6 +5,7 @@ import '../services/community_service.dart';
 import '../services/storage_service.dart';
 import '../utils/constants.dart';
 import '../widgets/modern_ui/modern_cards.dart';
+import 'package:waste_segregation_app/utils/waste_app_logger.dart';
 
 class CommunityScreen extends StatefulWidget {
 
@@ -57,7 +58,7 @@ class _CommunityScreenState extends State<CommunityScreen> with TickerProviderSt
         });
       }
     } catch (e) {
-      debugPrint('Error loading community data: $e');
+      WasteAppLogger.severe('Error loading community data: $e');
       if (mounted) {
         setState(() {
           _isLoading = false;
@@ -81,7 +82,7 @@ class _CommunityScreenState extends State<CommunityScreen> with TickerProviderSt
       if (userProfile != null) {
         // Force sync all historical data
         final userClassifications = await storageService.getAllClassifications();
-        debugPrint('🔄 FORCE SYNC: Starting with ${userClassifications.length} classifications');
+        WasteAppLogger.info('🔄 FORCE SYNC: Starting with ${userClassifications.length} classifications');
         
         await communityService.syncWithUserData(userClassifications, userProfile);
         
@@ -106,7 +107,7 @@ class _CommunityScreenState extends State<CommunityScreen> with TickerProviderSt
         }
       }
     } catch (e) {
-      debugPrint('❌ Error force syncing community data: $e');
+      WasteAppLogger.severe('❌ Error force syncing community data: $e');
       if (mounted) {
         setState(() {
           _isLoading = false;
@@ -528,7 +529,7 @@ class _CommunityScreenState extends State<CommunityScreen> with TickerProviderSt
       // plus any achievements (rough estimate)
       return classifications.length;
     } catch (e) {
-      debugPrint('Error getting expected activity count: $e');
+      WasteAppLogger.severe('Error getting expected activity count: $e');
       return 0;
     }
   }

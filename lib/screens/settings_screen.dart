@@ -30,6 +30,7 @@ import 'notification_settings_screen.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import '../services/cloud_storage_service.dart';
 import '../services/firebase_cleanup_service.dart';
+import 'package:waste_segregation_app/utils/waste_app_logger.dart';
 
 
 class SettingsScreen extends StatefulWidget {
@@ -1588,7 +1589,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 success = false;
                 snackBarMessage = 'Error during factory reset: ${e.toString()}';
                 snackBarBackgroundColor = Colors.red;
-                debugPrint('Factory Reset Error: $e');
+                WasteAppLogger.severe('Factory Reset Error: $e');
               } finally {
                 // Pop the loading dialog. Uses currentCapturedContext's navigator.
                 // This should happen regardless of success or failure of the try block.
@@ -1598,7 +1599,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   // If the original context is unmounted, a root navigator pop might be needed
                   // For now, we assume the auth state change might have already rebuilt the tree.
                   // If the dialog is still stuck, a GlobalKey for the Navigator would be the next step.
-                  debugPrint('SettingsScreen context was unmounted before trying to pop loading dialog.');
+                  WasteAppLogger.info('SettingsScreen context was unmounted before trying to pop loading dialog.');
                 }
 
                 if (snackBarMessage != null) {
@@ -1612,7 +1613,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       ),
                     );
                   } else {
-                     debugPrint('SettingsScreen context unmounted, cannot show SnackBar: $snackBarMessage');
+                     WasteAppLogger.info('SettingsScreen context unmounted, cannot show SnackBar: $snackBarMessage');
                   }
                 }
                 
@@ -1625,10 +1626,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   );
                 } else if (!success && currentCapturedContext.mounted) {
                   // Stay on settings or current screen if reset failed and screen is still mounted
-                  debugPrint('Factory reset failed, staying on current screen.');
+                  WasteAppLogger.severe('Factory reset failed, staying on current screen.');
                 } else if (!currentCapturedContext.mounted) {
                   // If not mounted, assume an auth state listener has already handled navigation
-                  debugPrint('SettingsScreen context unmounted, assuming navigation handled by auth listener.');
+                  WasteAppLogger.info('SettingsScreen context unmounted, assuming navigation handled by auth listener.');
                 }
               }
             },
@@ -1649,7 +1650,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         _lastCloudSync = lastSync;
       });
     } catch (e) {
-      debugPrint('Error loading Google sync setting: $e');
+      WasteAppLogger.severe('Error loading Google sync setting: $e');
     }
   }
 
