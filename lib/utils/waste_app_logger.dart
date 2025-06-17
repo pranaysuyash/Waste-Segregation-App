@@ -3,10 +3,9 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:logging/logging.dart';
 import 'package:package_info_plus/package_info_plus.dart';
-import 'package:waste_segregation_app/utils/waste_app_logger.dart';
 
 class WasteAppLogger {
-  static late IOSink _logSink;
+  static IOSink? _logSink; // Made nullable for web compatibility
   static String _sessionId = '';
   static String _appVersion = '';
   static String _currentAction = 'unknown';
@@ -26,9 +25,17 @@ class WasteAppLogger {
         _appVersion = 'unknown';
       }
 
-      // Create or append to JSONL log file in project root
-      final logFile = File('waste_app_logs.jsonl');
-      _logSink = logFile.openWrite(mode: FileMode.append);
+      // Only initialize file logging on non-web platforms
+      if (!kIsWeb) {
+        try {
+          // Create or append to JSONL log file in project root
+          final logFile = File('waste_app_logs.jsonl');
+          _logSink = logFile.openWrite(mode: FileMode.append);
+        } catch (e) {
+          // Continue without file logging if it fails
+          debugPrint('Failed to initialize file logging: $e');
+        }
+      }
 
       // Setup the Dart logging package
       Logger.root.level = Level.ALL;
@@ -47,9 +54,9 @@ class WasteAppLogger {
           'user_context': _userContext,
         };
 
-        // Write JSONL line
-        _logSink.writeln(jsonEncode(entry));
-        _logSink.flush(); // Ensure immediate write
+        // Write JSONL line (only on non-web platforms)
+        _logSink?.writeln(jsonEncode(entry));
+        _logSink?.flush(); // Ensure immediate write
 
         // Mirror to console for development
         if (kDebugMode) {
@@ -68,7 +75,7 @@ class WasteAppLogger {
   static void dispose() {
     try {
       info('WasteAppLogger disposing');
-      _logSink.close();
+      _logSink?.close();
     } catch (e) {
       WasteAppLogger.severe('WasteAppLogger dispose error: $e');
     }
