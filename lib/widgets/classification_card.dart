@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/waste_classification.dart';
 import '../screens/history_screen.dart';
-import 'package:waste_segregation_app/utils/image_utils.dart';
 import 'helpers/thumbnail_widget.dart';
 
 /// The new beautified classification card with modern Material Design

@@ -46,11 +46,11 @@ import 'widgets/navigation_wrapper.dart';
 import 'utils/constants.dart'; // For app constants, themes, and strings
 import 'utils/error_handler.dart'; // Correct import for ErrorHandler
 import 'utils/developer_config.dart'; // For developer-only features security
+import 'utils/waste_app_logger.dart';
 import 'providers/theme_provider.dart';
 import 'providers/points_engine_provider.dart';
 import 'services/cloud_storage_service.dart';
 import 'providers/app_providers.dart'; // Import central providers
-import 'services/firebase_cleanup_service.dart';
 // Removed unused imports: points_manager, points_engine, new_modern_home_screen, routes
 
 // Global Navigator Key for Error Handling
@@ -73,6 +73,10 @@ Required packages:
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  
+  // Initialize structured logging
+  await WasteAppLogger.initialize();
+  WasteAppLogger.info('App startup initiated');
   
   // Set up error handling
   _setupErrorHandling();

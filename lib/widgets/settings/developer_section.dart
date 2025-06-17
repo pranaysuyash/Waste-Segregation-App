@@ -3,7 +3,6 @@ import 'package:provider/provider.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import '../../services/premium_service.dart';
 import '../../services/storage_service.dart';
-import '../../services/analytics_service.dart';
 import '../../services/firebase_cleanup_service.dart';
 import '../../utils/developer_config.dart';
 import 'settings_theme.dart';

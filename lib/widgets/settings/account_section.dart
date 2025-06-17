@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import '../../services/google_drive_service.dart';
 import '../../services/firebase_cleanup_service.dart';
-import '../../services/gamification_service.dart';
 import '../../utils/dialog_helper.dart';
 import 'setting_tile.dart';
 import 'settings_theme.dart';

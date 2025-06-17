@@ -1942,7 +1942,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     const SnackBar(
                       content: Text('✅ All data cleared. Please sign in or create a new account.'),
                       backgroundColor: Colors.green,
-                      duration: Duration(seconds: 4),
                     ),
                   );
                 }

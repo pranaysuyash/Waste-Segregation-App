@@ -63,4 +63,32 @@ A syntax error in the `loading` method within `lib/utils/dialog_helper.dart` was
 
 ## 4. Final Status
 
-All reported issues are considered **resolved**. The codebase is now cleaner, more robust, and free of the critical bugs that were affecting development and testing. 
+All reported issues are considered **resolved**. The codebase is now cleaner, more robust, and free of the critical bugs that were affecting development and testing.
+
+## [2025-06-16] UI Refresh and Community Feed Reset Policy
+
+### Immediate UI Refresh After Fresh Install
+- After a successful "fresh install" (data wipe), the app now **automatically navigates to the AuthScreen (landing screen)**.
+- This ensures the home screen and all app state are immediately cleared, and the user sees a clean state without needing to manually pull-to-refresh.
+- This is implemented by calling `Navigator.of(context).pushAndRemoveUntil(...)` after the reset completes.
+
+### Community Feed: Why It Is Not Erased by Default
+- The **community feed** is designed to be a global, public feed showing all users' activity (not just the current user's data).
+- **By default, a fresh install only wipes the current user's private data** (classifications, profile, points, etc.), not the global feed.
+- **Why not erase the community feed?**
+  - Erasing the global feed would remove valuable shared content for all users, not just the one performing the reset.
+  - Most users expect the community feed to persist across installs and resets, as it reflects the broader app community.
+- **When might you want to erase it?**
+  - If you want to remove only the *current user's* posts from the feed, you can extend the reset logic to delete those documents (see code comments in the main branch).
+  - If you want a truly blank feed for all users (rare), you would need an admin-level operation to clear the entire collection, which is not recommended for normal app resets.
+
+### Summary Table
+| Area                | Current State         | What's Needed                        |
+|---------------------|----------------------|--------------------------------------|
+| User Data           | ✅ Fully wiped        |                                      |
+| Home Screen UI      | ✅ Auto-refreshes     |                                      |
+| Community Feed      | ✅ Not erased         | Only erase user's posts if desired   |
+
+---
+
+**This design ensures a true "fresh install" experience for the user, while preserving the integrity and value of the global community feed.** 
