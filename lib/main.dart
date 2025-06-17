@@ -170,16 +170,20 @@ void main() async {
   // Create enhanced storage service instance
   final storageService = EnhancedStorageService();
   
-  // Run migration tasks with error handling
-  try {
-    // Run image path migration
-    await storageService.migrateImagePathsToRelative();
-    
-    // Migrate existing classifications to generate missing thumbnails
-    await storageService.migrateThumbnails();
-  } catch (e) {
-    WasteAppLogger.severe('Migration error (non-critical): $e');
-    // Continue with app initialization even if migrations fail
+  // Run migration tasks with error handling (skip on web)
+  if (!kIsWeb) {
+    try {
+      // Run image path migration
+      await storageService.migrateImagePathsToRelative();
+      
+      // Migrate existing classifications to generate missing thumbnails
+      await storageService.migrateThumbnails();
+    } catch (e) {
+      WasteAppLogger.severe('Migration error (non-critical): $e');
+      // Continue with app initialization even if migrations fail
+    }
+  } else {
+    WasteAppLogger.info('⏭️ Skipping migrations on web platform');
   }
   
   final aiService = AiService();
@@ -205,12 +209,31 @@ void main() async {
       WasteAppLogger.info('🚫 SKIPPING automatic service initialization due to fresh install (persistent flag).');
       await prefs.setBool('justDidFreshInstall', false); // Reset for next launch
     } else {
-      await Future.wait([
-        gamificationService.initGamification(),
-        premiumService.initialize(),
-        adService.initialize(),
-        communityService.initCommunity(),
-      ]);
+      if (kIsWeb) {
+        // Initialize only web-compatible services
+        WasteAppLogger.info('🌐 Initializing web-compatible services only');
+        try {
+          await gamificationService.initGamification();
+          WasteAppLogger.info('✅ Gamification service initialized');
+        } catch (e) {
+          WasteAppLogger.severe('❌ Gamification service failed: $e');
+        }
+        
+        try {
+          await premiumService.initialize();
+          WasteAppLogger.info('✅ Premium service initialized');
+        } catch (e) {
+          WasteAppLogger.severe('❌ Premium service failed: $e');
+        }
+      } else {
+        // Initialize all services on mobile
+        await Future.wait([
+          gamificationService.initGamification(),
+          premiumService.initialize(),
+          adService.initialize(),
+          communityService.initCommunity(),
+        ]);
+      }
     }
     if (kDebugMode) {
       WasteAppLogger.info('After service initializations');
