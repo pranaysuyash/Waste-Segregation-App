@@ -11,7 +11,6 @@ import '../widgets/polished/polished_divider.dart';
 import '../widgets/polished/polished_section.dart';
 import '../widgets/polished/polished_fab.dart';
 import '../widgets/polished/shimmer_loading.dart';
-import '../widgets/capture_button.dart';
 import '../screens/history_screen.dart';
 import '../screens/educational_content_screen.dart';
 

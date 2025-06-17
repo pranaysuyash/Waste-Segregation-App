@@ -7,6 +7,7 @@ import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:waste_segregation_app/models/cached_classification.dart';
 import 'package:waste_segregation_app/models/waste_classification.dart';
 import 'package:waste_segregation_app/utils/constants.dart';
+import 'package:waste_segregation_app/utils/waste_app_logger.dart';
 
 /// Service for caching image classifications
 ///
@@ -56,9 +57,16 @@ class ClassificationCacheService {
       _statistics['size'] = _cacheBox.length;
 
       _isInitialized = true;
-      debugPrint('Classification cache initialized with ${_cacheBox.length} entries');
+      WasteAppLogger.cacheEvent('cache_initialized', 'classification', 
+        context: {
+          'cache_size': _cacheBox.length,
+          'max_cache_size': _maxCacheSize
+        }
+      );
     } catch (e) {
-      debugPrint('Error initializing classification cache: $e');
+      WasteAppLogger.severe('Classification cache initialization failed', e, null, {
+        'max_cache_size': _maxCacheSize
+      });
       rethrow;
     }
   }
@@ -111,8 +119,15 @@ class ClassificationCacheService {
         if (cacheEntry != null) {
           // Update stats
           _statistics['hits']++;
-          debugPrint('Cache hit (exact match) for image hash: $imageHash');
-          debugPrint('Cache entry created: ${cacheEntry.timestamp}, last accessed: ${cacheEntry.lastAccessed}');
+          WasteAppLogger.cacheEvent('cache_hit', 'classification', 
+            hit: true, 
+            key: imageHash.substring(0, 16),
+            context: {
+              'match_type': 'exact',
+              'cache_age_minutes': DateTime.now().difference(cacheEntry.timestamp).inMinutes,
+              'item_name': cacheEntry.classification.itemName
+            }
+          );
           
           // Crashlytics breadcrumb for field debugging (safe for testing)
           try {

@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import '../models/gamification.dart';
 import '../services/storage_service.dart';
 import '../services/cloud_storage_service.dart';
+import '../utils/waste_app_logger.dart';
 
 /// Centralized Points Engine - Single Source of Truth for all point operations
 /// Eliminates race conditions and inconsistencies between multiple providers
@@ -39,7 +40,10 @@ class PointsEngine extends ChangeNotifier {
     try {
       await _loadProfile();
     } catch (e) {
-      debugPrint('🔥 PointsEngine: Failed to initialize: $e');
+      WasteAppLogger.severe('PointsEngine initialization failed', e, null, {
+        'component': 'points_engine',
+        'operation': 'initialize'
+      });
       // Create emergency fallback profile
       _cachedProfile = _createEmergencyProfile();
     }
@@ -74,7 +78,11 @@ class PointsEngine extends ChangeNotifier {
       final pointsToAdd = customPoints ?? _getPointsForAction(action);
       
       if (pointsToAdd <= 0) {
-        debugPrint('⚠️ PointsEngine: No points to add for action: $action');
+        WasteAppLogger.warning('No points to add for action', null, null, {
+          'component': 'points_engine',
+          'action': action,
+          'points_to_add': pointsToAdd
+        });
         return profile.points;
       }
 
@@ -89,7 +97,16 @@ class PointsEngine extends ChangeNotifier {
       _earnedController.add(pointsToAdd);
       
       // Log the operation
-      debugPrint('✨ PointsEngine: Added $pointsToAdd points for $action. New total: ${newPoints.total}');
+      WasteAppLogger.gamificationEvent('points_earned', 
+        pointsEarned: pointsToAdd, 
+        context: {
+          'action': action,
+          'category': category,
+          'total_points': newPoints.total,
+          'user_level': newPoints.level,
+          'metadata': metadata
+        }
+      );
       
       // Track analytics if metadata provided
       if (metadata != null) {
@@ -125,7 +142,15 @@ class PointsEngine extends ChangeNotifier {
       if (streakPoints > 0) {
         final newPoints = _calculateNewPoints(profile.points, streakPoints, 'streak');
         updatedProfile = updatedProfile.copyWith(points: newPoints);
-        debugPrint('🔥 PointsEngine: Streak bonus! +$streakPoints points');
+        WasteAppLogger.gamificationEvent('streak_bonus', 
+          pointsEarned: streakPoints,
+          context: {
+            'streak_type': type.toString(),
+            'streak_current': newStreak.currentCount,
+            'streak_longest': newStreak.longestCount,
+            'total_points': newPoints.total
+          }
+        );
       }
       
       await _saveProfile(updatedProfile);
@@ -174,7 +199,14 @@ class PointsEngine extends ChangeNotifier {
       
       await _saveProfile(updatedProfile);
       
-      debugPrint('🏆 PointsEngine: Claimed ${achievement.title} for ${achievement.pointsReward} points');
+      WasteAppLogger.gamificationEvent('achievement_claimed', 
+        pointsEarned: achievement.pointsReward,
+        achievementId: achievement.id,
+        context: {
+          'achievement_title': achievement.title,
+          'total_points': newPoints.total
+        }
+      );
       return updatedAchievement;
     });
   }
@@ -190,7 +222,15 @@ class PointsEngine extends ChangeNotifier {
       final profile = _cachedProfile!;
       if (profile.points.total < expectedPoints) {
         final missingPoints = expectedPoints - profile.points.total;
-        debugPrint('🔄 PointsEngine: Syncing $missingPoints missing points');
+        WasteAppLogger.gamificationEvent('points_sync', 
+          pointsEarned: missingPoints,
+          context: {
+            'expected_points': expectedPoints,
+            'current_points': profile.points.total,
+            'missing_points': missingPoints,
+            'total_classifications': classifications.length
+          }
+        );
         
         final newPoints = _calculateNewPoints(profile.points, missingPoints, 'sync');
         final updatedProfile = profile.copyWith(points: newPoints);

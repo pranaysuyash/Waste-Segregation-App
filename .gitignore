@@ -95,3 +95,7 @@ coverage/
 # Logs
 logs/
 *.log
+
+# Structured logging files
+waste_app_logs.jsonl
+waste_app_logs_*.jsonl
