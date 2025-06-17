@@ -6,6 +6,7 @@ import '../models/waste_classification.dart';
 import '../models/educational_content.dart';
 import '../models/gamification.dart';
 import '../utils/app_theme.dart';
+import '../utils/waste_app_logger.dart';
 import '../widgets/polished/polished_card.dart';
 import '../widgets/polished/polished_divider.dart';
 import '../widgets/polished/polished_section.dart';
@@ -110,12 +111,12 @@ class _PolishedHomeScreenState extends State<PolishedHomeScreen>
 
   void _takePicture() {
     // Implementation would go here
-    print('Taking picture...');
+    WasteAppLogger.info('Taking picture...');
   }
 
   void _pickImage() {
     // Implementation would go here
-    print('Picking image...');
+    WasteAppLogger.info('Picking image...');
   }
 
   @override
