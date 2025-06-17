@@ -24,6 +24,7 @@ import '../models/waste_classification.dart';
 import '../models/gamification.dart';
 import '../widgets/advanced_ui/achievement_celebration.dart';
 import '../providers/points_engine_provider.dart';
+import '../utils/waste_app_logger.dart';
 
 /// Main navigation wrapper that manages the bottom navigation and screen switching
 class MainNavigationWrapper extends StatefulWidget {
@@ -82,9 +83,15 @@ class _MainNavigationWrapperState extends State<MainNavigationWrapper> {
         }
       });
       
-      debugPrint('🎮 Global popup listeners initialized');
+      WasteAppLogger.info('Global popup listeners initialized', null, null, {
+        'service': 'navigation_wrapper',
+        'listeners': ['points_earned', 'achievement_earned']
+      });
     } catch (e) {
-      debugPrint('🔥 Failed to initialize popup listeners: $e');
+      WasteAppLogger.severe('Failed to initialize popup listeners', e, null, {
+        'service': 'navigation_wrapper',
+        'action': 'continue_without_popups'
+      });
     }
   }
 
@@ -117,7 +124,11 @@ class _MainNavigationWrapperState extends State<MainNavigationWrapper> {
     );
 
     overlay.insert(entry);
-    debugPrint('🎮 Showing points popup: +$delta points');
+    WasteAppLogger.userAction('Showing points popup', context: {
+      'points_delta': delta,
+      'action': 'scanning_waste',
+      'ui_element': 'points_popup'
+    });
   }
   
   /// Show achievement celebration
@@ -133,7 +144,11 @@ class _MainNavigationWrapperState extends State<MainNavigationWrapper> {
     );
 
     overlay.insert(entry);
-    debugPrint('🏆 Showing achievement celebration: ${achievement.title}');
+    WasteAppLogger.userAction('Showing achievement celebration', context: {
+      'achievement_title': achievement.title,
+      'achievement_id': achievement.id,
+      'ui_element': 'achievement_popup'
+    });
   }
 
   void _onTabTapped(int index) {
@@ -285,7 +300,7 @@ class _MainNavigationWrapperState extends State<MainNavigationWrapper> {
   // FIXED: Direct camera implementation
   Future<void> _takePictureDirectly() async {
     try {
-      debugPrint('Taking picture directly from navigation...');
+      WasteAppLogger.info('Taking picture directly from navigation...');
       
       // Check camera permission first (mobile only)
       if (!kIsWeb) {
@@ -325,7 +340,7 @@ class _MainNavigationWrapperState extends State<MainNavigationWrapper> {
         _navigateToImageCapture(image);
       }
     } catch (e) {
-      debugPrint('Error taking picture: $e');
+      WasteAppLogger.severe('Error taking picture: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Camera error: ${e.toString()}')),
@@ -337,7 +352,7 @@ class _MainNavigationWrapperState extends State<MainNavigationWrapper> {
   // FIXED: Direct gallery implementation
   Future<void> _pickImageDirectly() async {
     try {
-      debugPrint('Picking image directly from navigation...');
+      WasteAppLogger.info('Picking image directly from navigation...');
       
       // For modern Android (13+), image_picker handles permissions internally
       // Only check permissions for older Android versions
@@ -345,12 +360,12 @@ class _MainNavigationWrapperState extends State<MainNavigationWrapper> {
         try {
           // Try to check permission, but don't block if it fails
           final hasPermission = await PermissionHandler.checkStoragePermission();
-          debugPrint('Storage/Photos permission check result: $hasPermission');
+          WasteAppLogger.info('Storage/Photos permission check result: $hasPermission');
           
           // Don't block the flow - let image_picker handle it
           // Modern Android versions handle this automatically
         } catch (e) {
-          debugPrint('Permission check failed, proceeding anyway: $e');
+          WasteAppLogger.severe('Permission check failed, proceeding anyway: $e');
           // Continue - image_picker will handle permissions
         }
       }
@@ -366,7 +381,7 @@ class _MainNavigationWrapperState extends State<MainNavigationWrapper> {
         _navigateToImageCapture(image);
       }
     } catch (e) {
-      debugPrint('Error picking image: $e');
+      WasteAppLogger.severe('Error picking image: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Gallery error: ${e.toString()}')),
@@ -411,7 +426,7 @@ class _MainNavigationWrapperState extends State<MainNavigationWrapper> {
         }
       }
     } catch (e) {
-      debugPrint('Error navigating to image capture: $e');
+      WasteAppLogger.severe('Error navigating to image capture: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Error processing image: ${e.toString()}')),

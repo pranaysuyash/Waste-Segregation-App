@@ -39,7 +39,9 @@ import '../models/community_feed.dart';
 import '../services/google_drive_service.dart';
 
 import '../widgets/gen_z_microinteractions.dart';
+import '../widgets/home_header_wrapper.dart';
 import 'auth_screen.dart';
+import 'package:waste_segregation_app/utils/waste_app_logger.dart';
 
 class ModernHomeScreen extends StatefulWidget {
 
@@ -84,7 +86,7 @@ class _ModernHomeScreenState extends State<ModernHomeScreen> with TickerProvider
     // Register the refresh callback
     ModernHomeScreen._refreshCallback = () {
       if (mounted) {
-        debugPrint('ModernHomeScreen: Static refresh triggered');
+        WasteAppLogger.info('ModernHomeScreen: Static refresh triggered');
         _refreshDataWithTimestamp();
       }
     };
@@ -121,7 +123,7 @@ class _ModernHomeScreenState extends State<ModernHomeScreen> with TickerProvider
       // to avoid excessive refreshing when switching between apps
       final now = DateTime.now();
       if (_lastRefresh == null || now.difference(_lastRefresh!).inSeconds > 30) {
-        debugPrint('App resumed - refreshing data (last refresh: $_lastRefresh)');
+        WasteAppLogger.info('App resumed - refreshing data (last refresh: $_lastRefresh)');
         _refreshDataWithTimestamp();
       }
     }
@@ -173,9 +175,9 @@ class _ModernHomeScreenState extends State<ModernHomeScreen> with TickerProvider
       // Load active challenges (for future use)
       await gamificationService.getActiveChallenges();
       
-      debugPrint('✅ Gamification data loaded - Points: ${gamificationService.currentProfile?.points.total ?? 0}');
+      WasteAppLogger.info('✅ Gamification data loaded - Points: ${gamificationService.currentProfile?.points.total ?? 0}');
     } catch (e) {
-      debugPrint('Error loading gamification data: $e');
+      WasteAppLogger.severe('Error loading gamification data: $e');
     } finally {
       if (!mounted) return;
       setState(() {
@@ -225,7 +227,7 @@ class _ModernHomeScreenState extends State<ModernHomeScreen> with TickerProvider
       // One-time cleanup of duplicates (will only run if needed)
       final duplicatesRemoved = await storageService.cleanupDuplicateClassifications();
       if (duplicatesRemoved > 0) {
-        debugPrint('🧹 Removed $duplicatesRemoved duplicate classifications');
+        WasteAppLogger.info('🧹 Removed $duplicatesRemoved duplicate classifications');
       }
       
       // Get Google sync setting
@@ -250,9 +252,9 @@ class _ModernHomeScreenState extends State<ModernHomeScreen> with TickerProvider
             : latest.sublist(0, 3);
       });
       
-      debugPrint('📊 Loaded ${classifications.length} total classifications (Google sync: $isGoogleSyncEnabled)');
+      WasteAppLogger.info('📊 Loaded ${classifications.length} total classifications (Google sync: $isGoogleSyncEnabled)');
     } catch (e) {
-      debugPrint('Error loading recent classifications: $e');
+      WasteAppLogger.severe('Error loading recent classifications: $e');
       // Don't show SnackBar during initialization - it will be handled by the UI
       if (mounted) {
         // Schedule the SnackBar to show after the widget is fully built
@@ -275,7 +277,7 @@ class _ModernHomeScreenState extends State<ModernHomeScreen> with TickerProvider
   // Made public for access from the navigation wrapper
   Future<void> takePicture() async {
     try {
-      debugPrint('Starting camera capture process...');
+      WasteAppLogger.info('Starting camera capture process...');
       
       // Show loading indicator
       if (mounted) {
@@ -324,7 +326,7 @@ class _ModernHomeScreenState extends State<ModernHomeScreen> with TickerProvider
               throw Exception('Failed to read image data');
             }
           } catch (webError) {
-            debugPrint('Web image processing error: $webError');
+            WasteAppLogger.severe('Web image processing error: $webError');
             if (mounted) {
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(
@@ -341,10 +343,10 @@ class _ModernHomeScreenState extends State<ModernHomeScreen> with TickerProvider
       if (capturedXFile != null && mounted) {
         _navigateToImageCapture(File(capturedXFile.path)); 
       } else if (mounted) {
-        debugPrint('Mobile camera capture cancelled or failed.');
+        WasteAppLogger.info('Mobile camera capture cancelled or failed.');
       }
     } catch (e) {
-      debugPrint('Error taking picture: $e');
+      WasteAppLogger.severe('Error taking picture: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Camera error: ${e.toString()}')),
@@ -380,12 +382,12 @@ class _ModernHomeScreenState extends State<ModernHomeScreen> with TickerProvider
         try {
           // Try to check permission, but don't block if it fails
           final hasPermission = await PermissionHandler.checkStoragePermission();
-          debugPrint('Storage/Photos permission check result: $hasPermission');
+          WasteAppLogger.info('Storage/Photos permission check result: $hasPermission');
           
           // Don't block the flow - let image_picker handle it
           // Modern Android versions handle this automatically
         } catch (e) {
-          debugPrint('Permission check failed, proceeding anyway: $e');
+          WasteAppLogger.info('Permission check failed, proceeding anyway: $e');
           // Continue - image_picker will handle permissions
         }
       }
@@ -409,7 +411,7 @@ class _ModernHomeScreenState extends State<ModernHomeScreen> with TickerProvider
               throw Exception('Failed to read web image data');
             }
           } catch (webError) {
-            debugPrint('Web gallery image processing error: $webError');
+            WasteAppLogger.severe('Web gallery image processing error: $webError');
             if (mounted) {
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(
@@ -432,7 +434,7 @@ class _ModernHomeScreenState extends State<ModernHomeScreen> with TickerProvider
         }
       }
     } catch (e) {
-      debugPrint('Error picking image: $e');
+      WasteAppLogger.severe('Error picking image: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Gallery error: ${e.toString()}')),
@@ -451,7 +453,7 @@ class _ModernHomeScreenState extends State<ModernHomeScreen> with TickerProvider
     
     // Force refresh data after returning from image capture flow
     if (mounted) {
-      debugPrint('Returned from ImageCaptureScreen - forcing data refresh');
+      WasteAppLogger.info('Returned from ImageCaptureScreen - forcing data refresh');
       await _refreshDataWithTimestamp();
     }
   }
@@ -466,7 +468,7 @@ class _ModernHomeScreenState extends State<ModernHomeScreen> with TickerProvider
     
     // Force refresh data after returning from image capture flow
     if (mounted) {
-      debugPrint('Returned from WebImageCaptureScreen - forcing data refresh');
+      WasteAppLogger.info('Returned from WebImageCaptureScreen - forcing data refresh');
       await _refreshDataWithTimestamp();
     }
   }
@@ -476,9 +478,9 @@ class _ModernHomeScreenState extends State<ModernHomeScreen> with TickerProvider
   Future<void> _ensureCameraAccess() async {
     try {
       final setupSuccess = await PlatformCamera.setup();
-      debugPrint('Camera setup completed. Success: $setupSuccess');
+      WasteAppLogger.info('Camera setup completed. Success: $setupSuccess');
     } catch (e) {
-      debugPrint('Error ensuring camera access: $e');
+      WasteAppLogger.severe('Error ensuring camera access: $e');
     }
   }
 
@@ -652,7 +654,7 @@ class _ModernHomeScreenState extends State<ModernHomeScreen> with TickerProvider
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     // Primary section: Welcome + Camera actions (40% of screen focus)
-                    _buildWelcomeSection(theme),
+                    const HomeHeaderWrapper(),
                     const SizedBox(height: AppTheme.spacingLg),
                     
                     // Secondary section: Today's progress (prominent but not overwhelming)
@@ -1207,14 +1209,14 @@ class _ModernHomeScreenState extends State<ModernHomeScreen> with TickerProvider
         .toList();
     
     // Debug logging
-    debugPrint('=== Today\'s Impact Debug ===');
-    debugPrint('Current date: ${now.year}-${now.month}-${now.day}');
-    debugPrint('Total classifications: ${_allClassifications.length}');
-    debugPrint('Today\'s classifications: ${todayClassifications.length}');
+    WasteAppLogger.info("=== Today's Impact Debug ===");
+    WasteAppLogger.info('Current date: \\${now.year}-\\${now.month}-\\${now.day}');
+    WasteAppLogger.info('Total classifications: \\${_allClassifications.length}');
+    WasteAppLogger.info("Today's classifications: \\${todayClassifications.length}");
     for (final classification in todayClassifications) {
-      debugPrint('  - ${classification.itemName} at ${classification.timestamp}');
+      WasteAppLogger.info('  - \\${classification.itemName} at \\${classification.timestamp}');
     }
-    debugPrint('========================');
+    WasteAppLogger.info('========================');
 
     return TodaysImpactGoal(
       currentClassifications: todayClassifications.length,
@@ -1234,7 +1236,7 @@ class _ModernHomeScreenState extends State<ModernHomeScreen> with TickerProvider
     final today = DateTime(now.year, now.month, now.day);
     final checkDate = DateTime(date.year, date.month, date.day);
     
-    debugPrint('Checking if $date is today ($today): ${today == checkDate}');
+    WasteAppLogger.info('Checking if $date is today ($today): ${today == checkDate}');
     
     return today == checkDate;
   }
@@ -1324,7 +1326,7 @@ class _ModernHomeScreenState extends State<ModernHomeScreen> with TickerProvider
         // Refresh data after potential migration
         await _loadRecentClassifications();
       } catch (e) {
-        debugPrint('Error checking data migration: $e');
+        WasteAppLogger.severe('Error checking data migration: $e');
       }
     }
   }

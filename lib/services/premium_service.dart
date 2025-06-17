@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import '../utils/waste_app_logger.dart';
 import 'package:hive/hive.dart';
 import '../models/premium_feature.dart';
 
@@ -39,7 +40,10 @@ class PremiumService extends ChangeNotifier {
       
       notifyListeners();
     } catch (e) {
-      debugPrint('Error initializing premium service: $e');
+      WasteAppLogger.severe('Error initializing premium service', e, null, {
+        'service': 'premium',
+        'action': 'attempt_recovery'
+      });
       // Try to recover by creating the box
       try {
         if (!Hive.isBoxOpen(_premiumBoxName)) {
@@ -51,7 +55,10 @@ class PremiumService extends ChangeNotifier {
         _isInitialized = true;
         notifyListeners();
       } catch (e) {
-        debugPrint('Failed to recover from premium service initialization error: $e');
+        WasteAppLogger.severe('Failed to recover from premium service initialization error', e, null, {
+          'service': 'premium',
+          'action': 'continue_without_premium_features'
+        });
       }
     } finally {
       _isInitializing = false;

@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
+import 'package:waste_segregation_app/utils/waste_app_logger.dart';
 
 /// Comprehensive Error Management System for Waste Segregation App
 /// Provides standardized error types, handling, and user feedback
 
 /// Base class for all application-specific exceptions
 abstract class WasteAppException implements Exception {
-  
   WasteAppException._(this.message, this.code, this.metadata) 
     : timestamp = DateTime.now();
   final String message;
@@ -71,8 +71,8 @@ class ErrorHandler {
     Map<String, dynamic>? context,
   }) {
     // Log to console
-    debugPrint('Error: $error');
-    debugPrint('StackTrace: $stackTrace');
+    WasteAppLogger.severe('Error: $error');
+    WasteAppLogger.info('StackTrace: $stackTrace');
     
     // Report to Crashlytics
     _crashlytics.recordError(error, stackTrace, fatal: fatal);

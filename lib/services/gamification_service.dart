@@ -10,6 +10,7 @@ import 'storage_service.dart';
 import 'cloud_storage_service.dart';
 import 'points_engine.dart';
 import 'hive_manager.dart';
+import '../utils/waste_app_logger.dart';
 
 /// Service for managing gamification features
 class GamificationService extends ChangeNotifier {
@@ -59,45 +60,45 @@ class GamificationService extends ChangeNotifier {
   // Initialize Hive box (primarily for challenges, weekly stats if still used this way)
   Future<void> initGamification() async {
     try {
-      debugPrint('🚀 Initializing GamificationService...');
+      WasteAppLogger.info('Operation completed', null, null, {'service': 'gamification', 'file': 'gamification_service'});
       
       // Ensure Hive box is opened using HiveManager
       if (!HiveManager.isBoxOpen(_gamificationBoxName)) {
-        debugPrint('📦 Opening Hive box: $_gamificationBoxName');
+        WasteAppLogger.info('Operation completed', null, null, {'service': 'gamification', 'file': 'gamification_service'});
         await HiveManager.openDynamicBox(_gamificationBoxName);
       } else {
-        debugPrint('📦 Hive box already open: $_gamificationBoxName');
+        WasteAppLogger.info('Operation completed', null, null, {'service': 'gamification', 'file': 'gamification_service'});
       }
       
       final box = Hive.box(_gamificationBoxName);
-      debugPrint('📦 Hive box obtained successfully');
+      WasteAppLogger.info('Operation completed', null, null, {'service': 'gamification', 'file': 'gamification_service'});
       
       // Initialize default challenges if they don't exist
       final challengesJson = box.get(_defaultChallengesKey);
-      debugPrint('🔧 Existing challenges in box: $challengesJson (type: ${challengesJson.runtimeType})');
+      WasteAppLogger.info('Operation completed', null, null, {'service': 'gamification', 'file': 'gamification_service'});
       
       if (challengesJson == null || challengesJson is! String || challengesJson.isEmpty) {
-        debugPrint('🔧 Initializing default challenges...');
+        WasteAppLogger.info('Operation completed', null, null, {'service': 'gamification', 'file': 'gamification_service'});
         try {
           final defaultChallenges = _getDefaultChallenges();
           final encodedChallenges = jsonEncode(defaultChallenges);
           await box.put(_defaultChallengesKey, encodedChallenges);
-          debugPrint('✅ Default challenges initialized successfully');
+          WasteAppLogger.info('Operation completed', null, null, {'service': 'gamification', 'file': 'gamification_service'});
           
           // Verify the data was stored correctly
           final verifyData = box.get(_defaultChallengesKey);
-          debugPrint('🔍 Verification - stored data type: ${verifyData.runtimeType}');
+          WasteAppLogger.cacheEvent('cache_operation', 'classification', context: {'service': 'gamification', 'file': 'gamification_service'});
         } catch (e) {
-          debugPrint('🔥 Error initializing default challenges: $e');
+          WasteAppLogger.severe('Error occurred', null, null, {'service': 'gamification', 'file': 'gamification_service'});
         }
       } else {
-        debugPrint('✅ Default challenges already exist in Hive');
+        WasteAppLogger.info('Operation completed', null, null, {'service': 'gamification', 'file': 'gamification_service'});
       }
       
-      debugPrint('✅ GamificationService initialization complete');
+      WasteAppLogger.info('Operation completed', null, null, {'service': 'gamification', 'file': 'gamification_service'});
     } catch (e) {
-      debugPrint('🔥 Error during GamificationService initialization: $e');
-      debugPrint('🔧 Stack trace: ${StackTrace.current}');
+      WasteAppLogger.severe('Error occurred', null, null, {'service': 'gamification', 'file': 'gamification_service'});
+      WasteAppLogger.info('Operation completed', null, null, {'service': 'gamification', 'file': 'gamification_service'});
       // Don't rethrow - we want the app to continue even if gamification fails
     }
     // Note: Legacy default profile creation is removed from here.
@@ -106,7 +107,7 @@ class GamificationService extends ChangeNotifier {
   
   Future<GamificationProfile> getProfile({bool forceRefresh = false}) async {
     try {
-      debugPrint('🏆 GamificationService.getProfile called (forceRefresh: $forceRefresh)');
+      WasteAppLogger.info('Operation completed', null, null, {'service': 'gamification', 'file': 'gamification_service'});
       
       // Always initialize PointsEngine first
       await _pointsEngine.initialize();
@@ -114,28 +115,28 @@ class GamificationService extends ChangeNotifier {
       // Check if PointsEngine has a profile and use it as source of truth
       final engineProfile = _pointsEngine.currentProfile;
       if (engineProfile != null && !forceRefresh) {
-        debugPrint('🏆 Using PointsEngine profile as source of truth');
+        WasteAppLogger.info('Operation completed', null, null, {'service': 'gamification', 'file': 'gamification_service'});
         _cachedProfile = engineProfile;
         notifyListeners();
         return engineProfile;
       }
       
       if (!forceRefresh && _cachedProfile != null) {
-        debugPrint('🏆 Returning cached profile for user: ${_cachedProfile!.userId}');
+        WasteAppLogger.info('Operation completed', null, null, {'service': 'gamification', 'file': 'gamification_service'});
         return _cachedProfile!;
       }
       
       // Ensure Hive box is open before proceeding
       if (!HiveManager.isBoxOpen(_gamificationBoxName)) {
-        debugPrint('📦 Hive box not open, opening now...');
+        WasteAppLogger.info('Operation completed', null, null, {'service': 'gamification', 'file': 'gamification_service'});
         await HiveManager.openDynamicBox(_gamificationBoxName);
       }
       
       final currentUserProfile = await _storageService.getCurrentUserProfile();
-      debugPrint('🏆 Current user profile: ${currentUserProfile?.id ?? 'null'}');
+      WasteAppLogger.info('Operation completed', null, null, {'service': 'gamification', 'file': 'gamification_service'});
 
       if (currentUserProfile == null || currentUserProfile.id.isEmpty) {
-        debugPrint('⚠️ GamificationService: No authenticated user profile found. Falling back to legacy local profile (if any).');
+        WasteAppLogger.warning('Warning occurred', null, null, {'service': 'gamification', 'file': 'gamification_service'});
         // Fallback for guest or unauthenticated state (reads from old Hive key)
         // This part might need further refinement based on how guests are handled.
         final box = Hive.box(_gamificationBoxName);
@@ -143,15 +144,15 @@ class GamificationService extends ChangeNotifier {
         if (legacyProfileJson != null) {
           try {
             _cachedProfile = GamificationProfile.fromJson(jsonDecode(legacyProfileJson));
-            debugPrint('🏆 Loaded legacy profile for guest user');
+            WasteAppLogger.info('Operation completed', null, null, {'service': 'gamification', 'file': 'gamification_service'});
             notifyListeners(); // Notify listeners when profile is loaded
             return _cachedProfile!;
           } catch (e) {
-            debugPrint('🔥 Error decoding legacy gamification profile: $e. Creating a temporary guest profile.');
+            WasteAppLogger.severe('Error occurred', null, null, {'service': 'gamification', 'file': 'gamification_service'});
           }
         }
         // Return a very basic, non-savable guest profile if no legacy one
-        debugPrint('🏆 Creating new guest profile');
+        WasteAppLogger.info('Operation completed', null, null, {'service': 'gamification', 'file': 'gamification_service'});
         _cachedProfile = GamificationProfile(
           userId: 'guest_user_${DateTime.now().millisecondsSinceEpoch}',
           streaks: {
@@ -172,22 +173,22 @@ class GamificationService extends ChangeNotifier {
       }
 
       if (currentUserProfile.gamificationProfile != null) {
-        debugPrint('✅ GamificationService: Found existing gamification profile for user ${currentUserProfile.id}');
+        WasteAppLogger.info('Operation completed', null, null, {'service': 'gamification', 'file': 'gamification_service'});
         _cachedProfile = currentUserProfile.gamificationProfile!;
         notifyListeners(); // Notify listeners when profile is loaded
         return _cachedProfile!;
       } else {
         // Logged-in user, but no gamification profile exists yet. Create one.
-        debugPrint('✨ GamificationService: No gamification profile found for user ${currentUserProfile.id}. Creating a new one.');
+        WasteAppLogger.info('Operation completed', null, null, {'service': 'gamification', 'file': 'gamification_service'});
         
         // Load default challenges safely
         var activeChallenges = <Challenge>[];
         try {
           activeChallenges = await _loadDefaultChallengesFromHive();
-          debugPrint('🎯 Loaded ${activeChallenges.length} active challenges for new profile');
+          WasteAppLogger.info('Operation completed', null, null, {'service': 'gamification', 'file': 'gamification_service'});
         } catch (e) {
-          debugPrint('🔥 Failed to load challenges for new profile: $e');
-          debugPrint('🔧 Creating profile without active challenges');
+          WasteAppLogger.severe('Error occurred', null, null, {'service': 'gamification', 'file': 'gamification_service'});
+          WasteAppLogger.info('Operation completed', null, null, {'service': 'gamification', 'file': 'gamification_service'});
           // Continue with empty challenges list
         }
         
@@ -209,10 +210,10 @@ class GamificationService extends ChangeNotifier {
         // Save this new gamification profile as part of the UserProfile
         try {
           await saveProfile(newGamificationProfile); // This will save UserProfile locally and to Firestore
-          debugPrint('💾 New gamification profile saved successfully');
-          debugPrint('📊 Profile initialized with ${newGamificationProfile.achievements.length} achievements and ${newGamificationProfile.activeChallenges.length} challenges');
+          WasteAppLogger.info('Operation completed', null, null, {'service': 'gamification', 'file': 'gamification_service'});
+          WasteAppLogger.performanceLog('gamification', 0, context: {'service': 'gamification', 'file': 'gamification_service'});
         } catch (e) {
-          debugPrint('🔥 Failed to save new gamification profile: $e');
+          WasteAppLogger.severe('Error occurred', null, null, {'service': 'gamification', 'file': 'gamification_service'});
           // Return the profile anyway, even if saving failed
         }
         
@@ -220,12 +221,12 @@ class GamificationService extends ChangeNotifier {
         notifyListeners(); // Notify listeners when profile is created
         return _cachedProfile!;
       }
-    } catch (e, stackTrace) {
-      debugPrint('🔥 Critical error in GamificationService.getProfile: $e');
-      debugPrint('🔧 Stack trace: $stackTrace');
+    } catch (e) {
+      WasteAppLogger.severe('Error occurred', null, null, {'service': 'gamification', 'file': 'gamification_service'});
+      WasteAppLogger.info('Operation completed', null, null, {'service': 'gamification', 'file': 'gamification_service'});
       
       // Create a fallback profile to prevent the app from hanging
-      debugPrint('🆘 Creating emergency fallback profile');
+      WasteAppLogger.info('Operation completed', null, null, {'service': 'gamification', 'file': 'gamification_service'});
       _cachedProfile = GamificationProfile(
         userId: 'emergency_user_${DateTime.now().millisecondsSinceEpoch}',
         streaks: {
@@ -246,49 +247,49 @@ class GamificationService extends ChangeNotifier {
   
   Future<List<Challenge>> _loadDefaultChallengesFromHive() async {
     try {
-      debugPrint('🔧 Loading default challenges from Hive...');
+      WasteAppLogger.info('Operation completed', null, null, {'service': 'gamification', 'file': 'gamification_service'});
       final box = Hive.box(_gamificationBoxName);
       final challengesJson = box.get(_defaultChallengesKey);
       
-      debugPrint('🔧 Retrieved challenges data: $challengesJson (type: ${challengesJson.runtimeType})');
+      WasteAppLogger.info('Operation completed', null, null, {'service': 'gamification', 'file': 'gamification_service'});
       
       if (challengesJson != null && challengesJson is String && challengesJson.isNotEmpty) {
         try {
-          debugPrint('🔧 Attempting to decode JSON...');
+          WasteAppLogger.info('Operation completed', null, null, {'service': 'gamification', 'file': 'gamification_service'});
           final List<dynamic> decoded = jsonDecode(challengesJson);
-          debugPrint('🔧 JSON decoded successfully, creating Challenge objects...');
+          WasteAppLogger.info('Operation completed', null, null, {'service': 'gamification', 'file': 'gamification_service'});
           final challenges = decoded.map((data) => Challenge.fromJson(Map<String, dynamic>.from(data))).toList();
-          debugPrint('✅ Successfully loaded ${challenges.length} challenges from Hive');
+          WasteAppLogger.info('Operation completed', null, null, {'service': 'gamification', 'file': 'gamification_service'});
           return challenges;
         } catch (decodeError) {
-          debugPrint('🔥 Error decoding challenges JSON: $decodeError');
-          debugPrint('🔧 Reinitializing challenges with fresh data...');
+          WasteAppLogger.severe('Error occurred', null, null, {'service': 'gamification', 'file': 'gamification_service'});
+          WasteAppLogger.info('Operation completed', null, null, {'service': 'gamification', 'file': 'gamification_service'});
           await box.put(_defaultChallengesKey, jsonEncode(_getDefaultChallenges()));
-          debugPrint('✅ Challenges reinitialized');
+          WasteAppLogger.info('Operation completed', null, null, {'service': 'gamification', 'file': 'gamification_service'});
         }
       } else {
-        debugPrint('🔧 Challenges not found or invalid in Hive (${challengesJson?.runtimeType}), initializing...');
+        WasteAppLogger.info('Operation completed', null, null, {'service': 'gamification', 'file': 'gamification_service'});
         // Initialize challenges if they don't exist or are invalid
         try {
           await box.put(_defaultChallengesKey, jsonEncode(_getDefaultChallenges()));
-          debugPrint('✅ Challenges initialized successfully');
+          WasteAppLogger.info('Operation completed', null, null, {'service': 'gamification', 'file': 'gamification_service'});
         } catch (putError) {
-          debugPrint('🔥 Error putting challenges to Hive: $putError');
+          WasteAppLogger.severe('Error occurred', null, null, {'service': 'gamification', 'file': 'gamification_service'});
         }
       }
     } catch (e) {
-      debugPrint('🔥 Error in _loadDefaultChallengesFromHive: $e');
-      debugPrint('🔧 Stack trace: ${StackTrace.current}');
+      WasteAppLogger.severe('Error occurred', null, null, {'service': 'gamification', 'file': 'gamification_service'});
+      WasteAppLogger.info('Operation completed', null, null, {'service': 'gamification', 'file': 'gamification_service'});
     }
     
     // Always return a fallback list using the fresh challenge templates
-    debugPrint('🔧 Returning fallback challenge list...');
+    WasteAppLogger.info('Operation completed', null, null, {'service': 'gamification', 'file': 'gamification_service'});
     try {
       final fallbackChallenges = _getDefaultChallenges().map((c) => Challenge.fromJson(c)).toList();
-      debugPrint('✅ Created ${fallbackChallenges.length} fallback challenges');
+      WasteAppLogger.info('Operation completed', null, null, {'service': 'gamification', 'file': 'gamification_service'});
       return fallbackChallenges;
     } catch (fallbackError) {
-      debugPrint('🔥 Error creating fallback challenges: $fallbackError');
+      WasteAppLogger.severe('Error occurred', null, null, {'service': 'gamification', 'file': 'gamification_service'});
       // Return empty list as absolute last resort
       return [];
     }
@@ -298,11 +299,11 @@ class GamificationService extends ChangeNotifier {
     final currentUserProfile = await _storageService.getCurrentUserProfile();
 
     if (currentUserProfile == null || currentUserProfile.id.isEmpty) {
-      debugPrint('🚫 GamificationService: No authenticated user profile found. Saving to legacy Hive for guest session.');
+      WasteAppLogger.info('Operation completed', null, null, {'service': 'gamification', 'file': 'gamification_service'});
       // Save to legacy Hive for guest state
       final box = Hive.box(_gamificationBoxName);
       await box.put(_legacyProfileKey, jsonEncode(gamificationProfileToSave.toJson()));
-      debugPrint('✅ Saved gamification profile to legacy local storage for guest session.');
+      WasteAppLogger.info('Operation completed', null, null, {'service': 'gamification', 'file': 'gamification_service'});
       _cachedProfile = gamificationProfileToSave;
       notifyListeners();
       return;
@@ -310,7 +311,7 @@ class GamificationService extends ChangeNotifier {
 
     // Ensure the gamification profile's user ID matches the current user's ID
     if (gamificationProfileToSave.userId != currentUserProfile.id) {
-      debugPrint('⚠️ GamificationService: Mismatched user IDs. GP UserID: ${gamificationProfileToSave.userId} vs UserProfile ID: ${currentUserProfile.id}. Correcting GP userId.');
+      WasteAppLogger.warning('Warning occurred', null, null, {'service': 'gamification', 'file': 'gamification_service'});
       gamificationProfileToSave = gamificationProfileToSave.copyWith(userId: currentUserProfile.id);
     }
     
@@ -321,16 +322,16 @@ class GamificationService extends ChangeNotifier {
 
     try {
       await _storageService.saveUserProfile(updatedUserProfile);
-      debugPrint('💾 GamificationService: UserProfile with updated gamification data saved locally.');
-      debugPrint('📊 Updated profile - Points: ${gamificationProfileToSave.points.total}, Level: ${gamificationProfileToSave.points.level}, Achievements: ${gamificationProfileToSave.achievements.where((a) => a.isEarned).length}/${gamificationProfileToSave.achievements.length}');
+      WasteAppLogger.info('Operation completed', null, null, {'service': 'gamification', 'file': 'gamification_service'});
+      WasteAppLogger.performanceLog('gamification', 0, context: {'service': 'gamification', 'file': 'gamification_service'});
 
       await _cloudStorageService.saveUserProfileToFirestore(updatedUserProfile);
-      debugPrint('☁️ GamificationService: UserProfile with updated gamification data synced to Firestore (triggers leaderboard update).');
+      WasteAppLogger.info('Operation completed', null, null, {'service': 'gamification', 'file': 'gamification_service'});
       _cachedProfile = gamificationProfileToSave;
       notifyListeners();
     } catch (e) {
-      debugPrint('🔥 GamificationService: Error saving user profile (local or cloud): $e');
-      debugPrint('🔧 Stack trace: ${StackTrace.current}');
+      WasteAppLogger.severe('Error occurred', null, null, {'service': 'gamification', 'file': 'gamification_service'});
+      WasteAppLogger.info('Operation completed', null, null, {'service': 'gamification', 'file': 'gamification_service'});
       // Decide on error handling strategy. For now, just logging.
       rethrow;
     }
@@ -339,7 +340,7 @@ class GamificationService extends ChangeNotifier {
   // Update streak when the app is used
   Future<Streak> updateStreak() async {
     if (_isUpdatingStreak) {
-      debugPrint('🔄 Streak update in progress. Returning current streak.');
+      WasteAppLogger.info('Operation completed', null, null, {'service': 'gamification', 'file': 'gamification_service'});
       final profile = await getProfile();
       final dailyStreakKey = StreakType.dailyClassification.toString();
       final currentStreak = profile.streaks[dailyStreakKey];
@@ -389,11 +390,11 @@ class GamificationService extends ChangeNotifier {
       final yesterday = DateTime(now.year, now.month, now.day).subtract(const Duration(days: 1));
       final lastUsageDay = DateTime(lastUsage.year, lastUsage.month, lastUsage.day);
       
-      debugPrint('🔥 STREAK DEBUG:');
-      debugPrint('  - Today: $today');
-      debugPrint('  - Yesterday: $yesterday');
-      debugPrint('  - Last usage day: $lastUsageDay');
-      debugPrint('  - Current streak: ${currentStreak.currentCount}');
+      WasteAppLogger.severe('Error occurred', null, null, {'service': 'gamification', 'file': 'gamification_service'});
+      WasteAppLogger.info('Operation completed', null, null, {'service': 'gamification', 'file': 'gamification_service'});
+      WasteAppLogger.info('Operation completed', null, null, {'service': 'gamification', 'file': 'gamification_service'});
+      WasteAppLogger.info('Operation completed', null, null, {'service': 'gamification', 'file': 'gamification_service'});
+      WasteAppLogger.info('Operation completed', null, null, {'service': 'gamification', 'file': 'gamification_service'});
       
       var newCurrent = currentStreak.currentCount;
       var shouldSave = false;
@@ -403,9 +404,9 @@ class GamificationService extends ChangeNotifier {
         if (currentStreak.currentCount == 0) {
           newCurrent = 1;
           shouldSave = true;
-          debugPrint('  - First use today, setting streak to 1');
+          WasteAppLogger.info('Operation completed', null, null, {'service': 'gamification', 'file': 'gamification_service'});
         } else {
-          debugPrint('  - Already used today, keeping streak: ${currentStreak.currentCount}');
+          WasteAppLogger.info('Operation completed', null, null, {'service': 'gamification', 'file': 'gamification_service'});
           // Return legacy Streak format for compatibility
           return Streak(
             current: currentStreak.currentCount,
@@ -417,12 +418,12 @@ class GamificationService extends ChangeNotifier {
         // Last used yesterday, increment streak
         newCurrent = currentStreak.currentCount + 1;
         shouldSave = true;
-        debugPrint('  - Used yesterday, incrementing streak to: $newCurrent');
+        WasteAppLogger.info('Operation completed', null, null, {'service': 'gamification', 'file': 'gamification_service'});
       } else {
         // Last used before yesterday or never, start new streak
         newCurrent = 1;
         shouldSave = true;
-        debugPrint('  - Starting new streak: $newCurrent');
+        WasteAppLogger.info('Operation completed', null, null, {'service': 'gamification', 'file': 'gamification_service'});
       }
       
       if (!shouldSave) {
@@ -450,12 +451,12 @@ class GamificationService extends ChangeNotifier {
       
       await saveProfile(profile.copyWith(streaks: updatedStreaks));
       
-      debugPrint('  - New streak saved: current=$newCurrent, longest=$newLongest');
+      WasteAppLogger.info('Operation completed', null, null, {'service': 'gamification', 'file': 'gamification_service'});
       
       // Award points for streak (only if streak increased)
       if (newCurrent > currentStreak.currentCount) {
         await addPoints('daily_streak');
-        debugPrint('  - Awarded daily streak points');
+        WasteAppLogger.info('Operation completed', null, null, {'service': 'gamification', 'file': 'gamification_service'});
         
         // Record streak activity in community feed
         try {
@@ -464,24 +465,24 @@ class GamificationService extends ChangeNotifier {
           final userProfile = await _storageService.getCurrentUserProfile();
           if (userProfile != null) {
             await communityService.recordStreak(newCurrent, userProfile);
-            debugPrint('🌍 COMMUNITY: Recorded streak activity');
+            WasteAppLogger.info('Operation completed', null, null, {'service': 'gamification', 'file': 'gamification_service'});
           }
         } catch (e) {
-          debugPrint('🌍 COMMUNITY ERROR: Failed to record streak: $e');
+          WasteAppLogger.severe('Error occurred', null, null, {'service': 'gamification', 'file': 'gamification_service'});
         }
       }
       
       // Check for streak achievements
       if (newCurrent >= 3) {
         await updateAchievementProgress(AchievementType.streakMaintained, newCurrent);
-        debugPrint('  - Updated streak achievements for $newCurrent days');
+        WasteAppLogger.info('Operation completed', null, null, {'service': 'gamification', 'file': 'gamification_service'});
       }
       
       // Check for perfect week
       if (newCurrent % 7 == 0 && newCurrent > 0) {
         await updateAchievementProgress(AchievementType.perfectWeek, newCurrent ~/ 7);
         await addPoints('perfect_week');
-        debugPrint('  - Perfect week achieved! ${newCurrent ~/ 7} weeks');
+        WasteAppLogger.info('Operation completed', null, null, {'service': 'gamification', 'file': 'gamification_service'});
       }
       
       // Return legacy Streak format for compatibility
@@ -497,7 +498,7 @@ class GamificationService extends ChangeNotifier {
   
   // Add points for an action - Delegates to Points Engine
   Future<UserPoints> addPoints(String action, {String? category, int? customPoints}) async {
-    debugPrint('🎮 [LEGACY] GamificationService.addPoints delegating to PointsEngine: action=$action, category=$category, customPoints=$customPoints');
+    WasteAppLogger.info('Operation completed', null, null, {'service': 'gamification', 'file': 'gamification_service'});
     
     // Initialize Points Engine if needed
     await _pointsEngine.initialize();
@@ -517,7 +518,7 @@ class GamificationService extends ChangeNotifier {
     _cachedProfile = _pointsEngine.currentProfile;
     notifyListeners();
     
-    debugPrint('🎮 [LEGACY] Points after add: total=${points.total}, categoryPoints=${points.categoryPoints}');
+    WasteAppLogger.info('Operation completed', null, null, {'service': 'gamification', 'file': 'gamification_service'});
     return points;
   }
   
@@ -527,7 +528,7 @@ class GamificationService extends ChangeNotifier {
     
     final pointsToAdd = customPoints ?? _pointValues[action] ?? 0;
     if (pointsToAdd == 0 && customPoints == null) {
-       debugPrint("⚠️ GamificationService: Attempted to add 0 points for action '$action' and no custom points provided.");
+       WasteAppLogger.warning('Warning occurred', null, null, {'service': 'gamification', 'file': 'gamification_service'});
       return points; // Return early if no points to add
      }
     
@@ -555,7 +556,7 @@ class GamificationService extends ChangeNotifier {
     // NOTE: Weekly stats are now synced via syncWeeklyStatsWithClassifications()
     // which recalculates from actual classification data, no need for incremental updates
     
-    debugPrint('✨ Points added: $pointsToAdd for $action. New total: $newTotal. Level: $newLevel');
+    WasteAppLogger.info('Operation completed', null, null, {'service': 'gamification', 'file': 'gamification_service'});
     return newPoints;
   }
 
@@ -570,11 +571,11 @@ class GamificationService extends ChangeNotifier {
       final profile = await getProfile();
       if (profile.points.total < expected) {
         final diff = expected - profile.points.total;
-        debugPrint('🎮 SYNC: awarding $diff retroactive points');
+        WasteAppLogger.info('Operation completed', null, null, {'service': 'gamification', 'file': 'gamification_service'});
         await _addPointsInternal('classification_sync', customPoints: diff);
       }
     } catch (e) {
-      debugPrint('🔥 SYNC ERROR: $e');
+      WasteAppLogger.severe('Error occurred', null, null, {'service': 'gamification', 'file': 'gamification_service'});
     }
   }
 
@@ -582,21 +583,21 @@ class GamificationService extends ChangeNotifier {
   /// Useful when classifications were imported or processed offline.
   Future<void> syncAchievementProgressFromClassifications() async {
     try {
-      debugPrint('🏆 SYNC: Starting achievement sync from classifications...');
+      WasteAppLogger.info('Operation completed', null, null, {'service': 'gamification', 'file': 'gamification_service'});
       
       final classifications = await _storageService.getAllClassifications();
       final profile = await getProfile();
 
-      debugPrint('🏆 SYNC: Found ${classifications.length} total classifications');
-      debugPrint('🏆 SYNC: User level: ${profile.points.level}');
+      WasteAppLogger.info('Operation completed', null, null, {'service': 'gamification', 'file': 'gamification_service'});
+      WasteAppLogger.info('Operation completed', null, null, {'service': 'gamification', 'file': 'gamification_service'});
 
       // Calculate total classifications and unique categories
       final total = classifications.length;
       final categories = classifications.map((c) => c.category).toSet();
       final categoriesCount = categories.length;
       
-      debugPrint('🏆 SYNC: Total items: $total, Unique categories: $categoriesCount');
-      debugPrint('🏆 SYNC: Categories found: ${categories.toList()}');
+      WasteAppLogger.info('Operation completed', null, null, {'service': 'gamification', 'file': 'gamification_service'});
+      WasteAppLogger.info('Operation completed', null, null, {'service': 'gamification', 'file': 'gamification_service'});
 
       final updatedAchievements = profile.achievements.map((achievement) {
         var wasUpdated = false;
@@ -607,8 +608,8 @@ class GamificationService extends ChangeNotifier {
           final isLevelUnlocked = achievement.unlocksAtLevel == null || 
                                  profile.points.level >= achievement.unlocksAtLevel!;
           
-          debugPrint('🏆 SYNC: ${achievement.id} - progress: $total/${achievement.threshold} = ${(progress * 100).round()}%');
-          debugPrint('🏆 SYNC: ${achievement.id} - level unlocked: $isLevelUnlocked (requires ${achievement.unlocksAtLevel}, have ${profile.points.level})');
+          WasteAppLogger.info('Operation completed', null, null, {'service': 'gamification', 'file': 'gamification_service'});
+          WasteAppLogger.info('Operation completed', null, null, {'service': 'gamification', 'file': 'gamification_service'});
           
           if (progress >= 1.0 && isLevelUnlocked && !achievement.isEarned) {
             final claimStatus = achievement.tier == AchievementTier.bronze
@@ -620,18 +621,18 @@ class GamificationService extends ChangeNotifier {
               claimStatus: claimStatus,
             );
             wasUpdated = true;
-            debugPrint('🏆 SYNC: ✅ EARNED ${achievement.id}!');
+            WasteAppLogger.info('Operation completed', null, null, {'service': 'gamification', 'file': 'gamification_service'});
           } else if (achievement.progress != progress) {
             newAchievement = achievement.copyWith(progress: progress);
             wasUpdated = true;
-            debugPrint('🏆 SYNC: Updated ${achievement.id} progress to ${(progress * 100).round()}%');
+            WasteAppLogger.info('Operation completed', null, null, {'service': 'gamification', 'file': 'gamification_service'});
           }
         } else if (achievement.type == AchievementType.categoriesIdentified) {
           final progress = (categoriesCount / achievement.threshold).clamp(0.0, 1.0);
           final isLevelUnlocked = achievement.unlocksAtLevel == null || 
                                  profile.points.level >= achievement.unlocksAtLevel!;
           
-          debugPrint('🏆 SYNC: ${achievement.id} - categories progress: $categoriesCount/${achievement.threshold} = ${(progress * 100).round()}%');
+          WasteAppLogger.info('Operation completed', null, null, {'service': 'gamification', 'file': 'gamification_service'});
           
           if (progress >= 1.0 && isLevelUnlocked && !achievement.isEarned) {
             final claimStatus = achievement.tier == AchievementTier.bronze
@@ -643,11 +644,11 @@ class GamificationService extends ChangeNotifier {
               claimStatus: claimStatus,
             );
             wasUpdated = true;
-            debugPrint('🏆 SYNC: ✅ EARNED ${achievement.id}!');
+            WasteAppLogger.info('Operation completed', null, null, {'service': 'gamification', 'file': 'gamification_service'});
           } else if (achievement.progress != progress) {
             newAchievement = achievement.copyWith(progress: progress);
             wasUpdated = true;
-            debugPrint('🏆 SYNC: Updated ${achievement.id} categories progress to ${(progress * 100).round()}%');
+            WasteAppLogger.info('Operation completed', null, null, {'service': 'gamification', 'file': 'gamification_service'});
           }
         }
         
@@ -657,11 +658,11 @@ class GamificationService extends ChangeNotifier {
       await saveProfile(profile.copyWith(achievements: updatedAchievements));
       
       final earnedCount = updatedAchievements.where((a) => a.isEarned).length;
-      debugPrint('🏆 SYNC: Completed. Total earned achievements: $earnedCount/${updatedAchievements.length}');
+      WasteAppLogger.info('Operation completed', null, null, {'service': 'gamification', 'file': 'gamification_service'});
       
     } catch (e) {
-      debugPrint('🔥 SYNC ACHIEVEMENTS ERROR: $e');
-      debugPrint('🔧 Stack trace: ${StackTrace.current}');
+      WasteAppLogger.severe('Error occurred', null, null, {'service': 'gamification', 'file': 'gamification_service'});
+      WasteAppLogger.info('Operation completed', null, null, {'service': 'gamification', 'file': 'gamification_service'});
       rethrow;
     }
   }
@@ -669,7 +670,7 @@ class GamificationService extends ChangeNotifier {
   // Process a waste classification for gamification
   // Returns a list of completed challenges
   Future<List<Challenge>> processClassification(WasteClassification classification) async {
-    debugPrint('🎮 [DEBUG] processClassification called for: \\${classification.itemName}');
+    WasteAppLogger.info('Operation completed', null, null, {'service': 'gamification', 'file': 'gamification_service'});
     
     // Get profile before making changes to detect newly earned achievements
     final profileBefore = await getProfile();
@@ -679,7 +680,7 @@ class GamificationService extends ChangeNotifier {
         .toSet();
     
     await addPoints('classification', category: classification.category);
-    debugPrint('🎮 [DEBUG] processClassification complete');
+    WasteAppLogger.info('Operation completed', null, null, {'service': 'gamification', 'file': 'gamification_service'});
     
     final categoriesBeforeCount = profileBefore.points.categoryPoints.keys.length;
     
@@ -690,19 +691,19 @@ class GamificationService extends ChangeNotifier {
     final profileAfter = await getProfile();
     final categoriesAfterCount = profileAfter.points.categoryPoints.keys.length;
     
-    debugPrint('🎮 CATEGORIES: Before=$categoriesBeforeCount, After=$categoriesAfterCount');
-    debugPrint('🎮 CATEGORIES: ${profileAfter.points.categoryPoints.keys.toList()}');
+    WasteAppLogger.info('Operation completed', null, null, {'service': 'gamification', 'file': 'gamification_service'});
+    WasteAppLogger.info('Operation completed', null, null, {'service': 'gamification', 'file': 'gamification_service'});
     
     // Check if this is a new category
     if (categoriesAfterCount > categoriesBeforeCount) {
       // This is a new category! Update categories achievement
-      debugPrint('🎮 NEW CATEGORY DETECTED! Updating categoriesIdentified achievement');
+      WasteAppLogger.info('Operation completed', null, null, {'service': 'gamification', 'file': 'gamification_service'});
       await updateAchievementProgress(
         AchievementType.categoriesIdentified, 
         categoriesAfterCount
       );
     } else {
-      debugPrint('🎮 EXISTING CATEGORY: ${classification.category}');
+      WasteAppLogger.info('Operation completed', null, null, {'service': 'gamification', 'file': 'gamification_service'});
     }
     
     // NEW: Check for newly earned achievements and emit them
@@ -712,7 +713,7 @@ class GamificationService extends ChangeNotifier {
         .toList();
     
     if (newlyEarned.isNotEmpty) {
-      debugPrint('🏆 NEW ACHIEVEMENTS EARNED: ${newlyEarned.map((a) => a.title).join(', ')}');
+      WasteAppLogger.info('Operation completed', null, null, {'service': 'gamification', 'file': 'gamification_service'});
       // Emit the first newly earned achievement through PointsEngine
       _pointsEngine.achievementController.add(newlyEarned.first);
     }
@@ -727,10 +728,10 @@ class GamificationService extends ChangeNotifier {
       final userProfile = await _storageService.getCurrentUserProfile();
       if (userProfile != null) {
         await communityService.recordClassification(classification, userProfile);
-        debugPrint('🌍 COMMUNITY: Recorded classification activity');
+        WasteAppLogger.info('Operation completed', null, null, {'service': 'gamification', 'file': 'gamification_service'});
       }
     } catch (e) {
-      debugPrint('🌍 COMMUNITY ERROR: Failed to record classification: $e');
+      WasteAppLogger.severe('Error occurred', null, null, {'service': 'gamification', 'file': 'gamification_service'});
     }
     
     return completedChallenges;
@@ -773,13 +774,13 @@ class GamificationService extends ChangeNotifier {
         if (achievement.type == AchievementType.categoriesIdentified) {
           // For categories, use the actual count as progress
           newProgress = increment / achievement.threshold;
-          debugPrint('🏆 CATEGORY ACHIEVEMENT: ${achievement.id} - progress: $increment/${achievement.threshold} = ${(newProgress * 100).round()}%');
+          WasteAppLogger.info('Operation completed', null, null, {'service': 'gamification', 'file': 'gamification_service'});
         } else {
           // For other achievements, use incremental progress
           final currentProgress = achievement.progress * achievement.threshold;
           final newRawProgress = currentProgress + increment;
           newProgress = newRawProgress / achievement.threshold;
-          debugPrint('🏆 ACHIEVEMENT: ${achievement.id} - progress: $newRawProgress/${achievement.threshold} = ${(newProgress * 100).round()}%');
+          WasteAppLogger.info('Operation completed', null, null, {'service': 'gamification', 'file': 'gamification_service'});
         }
         
         // Check if achievement is now earned (requires both progress AND level unlock)
@@ -787,14 +788,14 @@ class GamificationService extends ChangeNotifier {
         
         // DEBUGGING: Log achievement progress for "Waste Apprentice"
         if (achievement.id == 'waste_apprentice') {
-          debugPrint('🔍 ACHIEVEMENT DEBUG - Waste Apprentice:');
-          debugPrint('  - Current progress: ${(achievement.progress * 100).round()}%');
-          debugPrint('  - New progress: ${(newProgress * 100).round()}%');
-          debugPrint('  - User level: ${profile.points.level}');
-          debugPrint('  - Unlocks at level: ${achievement.unlocksAtLevel}');
-          debugPrint('  - Is level unlocked: $isLevelUnlocked');
-          debugPrint('  - Is earned: ${achievement.isEarned}');
-          debugPrint('  - Progress >= 1.0: ${newProgress >= 1.0}');
+          WasteAppLogger.cacheEvent('cache_operation', 'classification', context: {'service': 'gamification', 'file': 'gamification_service'});
+          WasteAppLogger.info('Operation completed', null, null, {'service': 'gamification', 'file': 'gamification_service'});
+          WasteAppLogger.info('Operation completed', null, null, {'service': 'gamification', 'file': 'gamification_service'});
+          WasteAppLogger.info('Operation completed', null, null, {'service': 'gamification', 'file': 'gamification_service'});
+          WasteAppLogger.info('Operation completed', null, null, {'service': 'gamification', 'file': 'gamification_service'});
+          WasteAppLogger.info('Operation completed', null, null, {'service': 'gamification', 'file': 'gamification_service'});
+          WasteAppLogger.info('Operation completed', null, null, {'service': 'gamification', 'file': 'gamification_service'});
+          WasteAppLogger.info('Operation completed', null, null, {'service': 'gamification', 'file': 'gamification_service'});
         }
         
         if (newProgress >= 1.0 && isLevelUnlocked) {
@@ -828,10 +829,10 @@ class GamificationService extends ChangeNotifier {
             final userProfile = await _storageService.getCurrentUserProfile();
             if (userProfile != null) {
               await communityService.recordAchievement(achievement, userProfile);
-              debugPrint('🌍 COMMUNITY: Recorded achievement activity');
+              WasteAppLogger.info('Operation completed', null, null, {'service': 'gamification', 'file': 'gamification_service'});
             }
           } catch (e) {
-            debugPrint('🌍 COMMUNITY ERROR: Failed to record achievement: $e');
+            WasteAppLogger.severe('Error occurred', null, null, {'service': 'gamification', 'file': 'gamification_service'});
           }
           
           // For auto-claimed achievements, points are already added above
@@ -1646,9 +1647,9 @@ class GamificationService extends ChangeNotifier {
       // Reset default challenges
       await box.put(_defaultChallengesKey, jsonEncode(_getDefaultChallenges()));
       
-      debugPrint('✅ Gamification data cleared and reset successfully with points archived');
+      WasteAppLogger.info('Operation completed', null, null, {'service': 'gamification', 'file': 'gamification_service'});
     } catch (e) {
-      debugPrint('❌ Error clearing gamification data: $e');
+      WasteAppLogger.severe('Error occurred', null, null, {'service': 'gamification', 'file': 'gamification_service'});
       rethrow;
     }
   }
@@ -1672,9 +1673,9 @@ class GamificationService extends ChangeNotifier {
       
       await box.put('archived_points_list', archivesList);
       
-      debugPrint('📦 Archived ${points.total} points from previous session');
+      WasteAppLogger.info('Operation completed', null, null, {'service': 'gamification', 'file': 'gamification_service'});
     } catch (e) {
-      debugPrint('❌ Error archiving points: $e');
+      WasteAppLogger.severe('Error occurred', null, null, {'service': 'gamification', 'file': 'gamification_service'});
       // Don't rethrow - archiving failure shouldn't block data clearing
     }
   }
@@ -1693,13 +1694,13 @@ class GamificationService extends ChangeNotifier {
           final archived = jsonDecode(archivedJson);
           totalLifetime += archived['totalLifetimePoints'] as int? ?? 0;
         } catch (e) {
-          debugPrint('Error parsing archived points: $e');
+          WasteAppLogger.severe('Error occurred', null, null, {'service': 'gamification', 'file': 'gamification_service'});
         }
       }
       
       return totalLifetime;
     } catch (e) {
-      debugPrint('Error calculating lifetime points: $e');
+      WasteAppLogger.severe('Error occurred', null, null, {'service': 'gamification', 'file': 'gamification_service'});
       final profile = await getProfile();
       return profile.points.total; // Fallback to current points only
     }
@@ -1717,7 +1718,7 @@ class GamificationService extends ChangeNotifier {
           final archived = jsonDecode(archivedJson);
           history.add(archived);
         } catch (e) {
-          debugPrint('Error parsing archived entry: $e');
+          WasteAppLogger.severe('Error occurred', null, null, {'service': 'gamification', 'file': 'gamification_service'});
         }
       }
       
@@ -1730,7 +1731,7 @@ class GamificationService extends ChangeNotifier {
       
       return history;
     } catch (e) {
-      debugPrint('Error getting archived points history: $e');
+      WasteAppLogger.severe('Error occurred', null, null, {'service': 'gamification', 'file': 'gamification_service'});
       return [];
     }
   }
@@ -1753,23 +1754,23 @@ class GamificationService extends ChangeNotifier {
         updatedStreaks[dailyStreakKey] = updatedStreak;
         
         await saveProfile(profile.copyWith(streaks: updatedStreaks));
-        debugPrint('🔄 Streak reset to yesterday for testing');
+        WasteAppLogger.info('Operation completed', null, null, {'service': 'gamification', 'file': 'gamification_service'});
       }
     } catch (e) {
-      debugPrint('❌ Error resetting streak: $e');
+      WasteAppLogger.severe('Error occurred', null, null, {'service': 'gamification', 'file': 'gamification_service'});
     }
   }
 
   /// Force refresh gamification profile from storage
   Future<GamificationProfile> forceRefreshProfile() async {
     try {
-      debugPrint('🔄 Force refreshing gamification profile...');
+      WasteAppLogger.info('Operation completed', null, null, {'service': 'gamification', 'file': 'gamification_service'});
       
       // Clear any cached data and reload from storage
       final currentUserProfile = await _storageService.getCurrentUserProfile();
       
       if (currentUserProfile == null || currentUserProfile.id.isEmpty) {
-        debugPrint('⚠️ No user profile found during force refresh');
+        WasteAppLogger.warning('Warning occurred', null, null, {'service': 'gamification', 'file': 'gamification_service'});
         return await getProfile(); // Fallback to regular getProfile
       }
       
@@ -1777,19 +1778,19 @@ class GamificationService extends ChangeNotifier {
       try {
         final refreshedProfile = await _storageService.getCurrentUserProfile();
         if (refreshedProfile != null && refreshedProfile.gamificationProfile != null) {
-          debugPrint('💾 Loaded refreshed gamification profile from local storage');
+          WasteAppLogger.info('Operation completed', null, null, {'service': 'gamification', 'file': 'gamification_service'});
           return refreshedProfile.gamificationProfile!;
         }
       } catch (e) {
-        debugPrint('⚠️ Failed to refresh from local storage: $e');
+        WasteAppLogger.severe('Error occurred', null, null, {'service': 'gamification', 'file': 'gamification_service'});
       }
       
       // Fallback to creating new profile if none exists
-      debugPrint('🆕 Creating new gamification profile during force refresh');
+      WasteAppLogger.info('Operation completed', null, null, {'service': 'gamification', 'file': 'gamification_service'});
       return await getProfile();
       
     } catch (e) {
-      debugPrint('🔥 Error during force refresh: $e');
+      WasteAppLogger.severe('Error occurred', null, null, {'service': 'gamification', 'file': 'gamification_service'});
       return getProfile(); // Fallback to regular getProfile
     }
   }
@@ -1797,38 +1798,38 @@ class GamificationService extends ChangeNotifier {
   /// Force a complete gamification data refresh and sync
   Future<void> forceCompleteSyncAndRefresh() async {
     try {
-      debugPrint('🔄 FORCE SYNC: Starting complete gamification refresh...');
+      WasteAppLogger.info('Operation completed', null, null, {'service': 'gamification', 'file': 'gamification_service'});
       
       // 1. Sync classification points
       await syncClassificationPoints();
-      debugPrint('🔄 FORCE SYNC: ✅ Classification points synced');
+      WasteAppLogger.info('Operation completed', null, null, {'service': 'gamification', 'file': 'gamification_service'});
       
       // 2. Sync achievement progress
       await syncAchievementProgressFromClassifications();
-      debugPrint('🔄 FORCE SYNC: ✅ Achievement progress synced');
+      WasteAppLogger.info('Operation completed', null, null, {'service': 'gamification', 'file': 'gamification_service'});
       
       // 3. Update streak for today
       await updateStreak();
-      debugPrint('🔄 FORCE SYNC: ✅ Streak updated');
+      WasteAppLogger.info('Operation completed', null, null, {'service': 'gamification', 'file': 'gamification_service'});
       
       // 4. Initialize community service
       final communityService = CommunityService();
       await communityService.initCommunity();
-      debugPrint('🔄 FORCE SYNC: ✅ Community service initialized');
+      WasteAppLogger.info('Operation completed', null, null, {'service': 'gamification', 'file': 'gamification_service'});
       
       // 5. Force refresh profile
       final profile = await forceRefreshProfile();
-      debugPrint('🔄 FORCE SYNC: ✅ Profile refreshed');
-      debugPrint('🔄 FORCE SYNC: Final stats - Level: ${profile.points.level}, Points: ${profile.points.total}');
+      WasteAppLogger.info('Operation completed', null, null, {'service': 'gamification', 'file': 'gamification_service'});
+      WasteAppLogger.info('Operation completed', null, null, {'service': 'gamification', 'file': 'gamification_service'});
       
       // 6. Log final achievement status
       final earnedAchievements = profile.achievements.where((a) => a.isEarned).toList();
-      debugPrint('🔄 FORCE SYNC: Earned achievements: ${earnedAchievements.map((a) => a.id).join(", ")}');
+      WasteAppLogger.info('Operation completed', null, null, {'service': 'gamification', 'file': 'gamification_service'});
       
-      debugPrint('🔄 FORCE SYNC: ✅ Complete sync finished successfully');
+      WasteAppLogger.info('Operation completed', null, null, {'service': 'gamification', 'file': 'gamification_service'});
       
     } catch (e) {
-      debugPrint('🔥 FORCE SYNC ERROR: $e');
+      WasteAppLogger.severe('Error occurred', null, null, {'service': 'gamification', 'file': 'gamification_service'});
       rethrow;
     }
   }
@@ -1836,7 +1837,7 @@ class GamificationService extends ChangeNotifier {
   /// Sync gamification data across all app components
   Future<void> syncGamificationData() async {
     try {
-      debugPrint('🔄 Syncing gamification data across app components...');
+      WasteAppLogger.info('Operation completed', null, null, {'service': 'gamification', 'file': 'gamification_service'});
 
       // Ensure points accurately reflect all stored classifications
       await syncClassificationPoints();
@@ -1849,7 +1850,7 @@ class GamificationService extends ChangeNotifier {
 
       // Ensure achievements are properly initialized
       if (profile.achievements.isEmpty) {
-        debugPrint('🏆 Initializing default achievements');
+        WasteAppLogger.info('Operation completed', null, null, {'service': 'gamification', 'file': 'gamification_service'});
         final updatedProfile = profile.copyWith(achievements: getDefaultAchievements());
         await saveProfile(updatedProfile);
       }
@@ -1859,7 +1860,7 @@ class GamificationService extends ChangeNotifier {
       
       // Ensure challenges are loaded
       if (profile.activeChallenges.isEmpty) {
-        debugPrint('🎯 Loading default challenges');
+        WasteAppLogger.info('Operation completed', null, null, {'service': 'gamification', 'file': 'gamification_service'});
         final challenges = await _loadDefaultChallengesFromHive();
         if (challenges.isNotEmpty) {
           final updatedProfile = profile.copyWith(activeChallenges: challenges);
@@ -1867,10 +1868,10 @@ class GamificationService extends ChangeNotifier {
         }
       }
       
-      debugPrint('✅ Gamification data sync completed');
+      WasteAppLogger.info('Operation completed', null, null, {'service': 'gamification', 'file': 'gamification_service'});
       
     } catch (e) {
-      debugPrint('🔥 Error syncing gamification data: $e');
+      WasteAppLogger.severe('Error occurred', null, null, {'service': 'gamification', 'file': 'gamification_service'});
     }
   }
 
@@ -1878,12 +1879,12 @@ class GamificationService extends ChangeNotifier {
   /// This fixes the mismatch between weekly progress and daily analytics
   Future<void> syncWeeklyStatsWithClassifications() async {
     try {
-      debugPrint('📊 Syncing weekly stats with classification data...');
+      WasteAppLogger.performanceLog('gamification', 0, context: {'service': 'gamification', 'file': 'gamification_service'});
       
       // Get all classifications from storage service
       final classifications = await _storageService.getAllClassifications();
       if (classifications.isEmpty) {
-        debugPrint('📊 No classifications found, skipping weekly stats sync');
+        WasteAppLogger.performanceLog('gamification', 0, context: {'service': 'gamification', 'file': 'gamification_service'});
         return;
       }
       
@@ -1953,19 +1954,19 @@ class GamificationService extends ChangeNotifier {
       
       await saveProfile(updatedProfile);
       
-      debugPrint('📊 ✅ Weekly stats synced successfully');
-      debugPrint('📊 Generated ${updatedWeeklyStats.length} weekly stat entries');
-      debugPrint('📊 Total classifications processed: ${classifications.length}');
+      WasteAppLogger.performanceLog('gamification', 0, context: {'service': 'gamification', 'file': 'gamification_service'});
+      WasteAppLogger.performanceLog('gamification', 0, context: {'service': 'gamification', 'file': 'gamification_service'});
+      WasteAppLogger.performanceLog('gamification', 0, context: {'service': 'gamification', 'file': 'gamification_service'});
       
-    } catch (e, stackTrace) {
-      debugPrint('📊 ❌ Error syncing weekly stats: $e');
-      debugPrint('📊 Stack trace: $stackTrace');
+    } catch (e) {
+      WasteAppLogger.severe('Error occurred', null, null, {'service': 'gamification', 'file': 'gamification_service'});
+      WasteAppLogger.performanceLog('gamification', 0, context: {'service': 'gamification', 'file': 'gamification_service'});
     }
   }
 
   /// Clear cached profile (useful for logout/reset scenarios)
   void clearCache() {
-    debugPrint('🧹 GamificationService: Clearing cached profile');
+    WasteAppLogger.info('Operation completed', null, null, {'service': 'gamification', 'file': 'gamification_service'});
     _cachedProfile = null;
     notifyListeners();
   }

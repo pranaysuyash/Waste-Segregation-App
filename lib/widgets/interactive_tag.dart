@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
+import '../utils/waste_app_logger.dart';
 import '../utils/constants.dart';
 import '../screens/educational_content_screen.dart';
 import '../screens/history_screen.dart';
@@ -395,7 +396,11 @@ class InteractiveTag extends StatelessWidget {
     if (await canLaunchUrl(url)) {
       await launchUrl(url, mode: LaunchMode.externalApplication);
     } else {
-      debugPrint('Could not launch maps for $query');
+              WasteAppLogger.warning('Could not launch maps for query', null, null, {
+          'query': query,
+          'widget': 'interactive_tag',
+          'action': 'maps_launch_failed'
+        });
     }
   }
 

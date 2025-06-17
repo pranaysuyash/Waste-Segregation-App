@@ -16,10 +16,10 @@ import '../l10n/app_localizations.dart';
 import '../widgets/history_list_item.dart';
 import '../widgets/animations/enhanced_loading_states.dart';
 import '../services/analytics_service.dart';
+import 'package:waste_segregation_app/utils/waste_app_logger.dart';
 
 /// A screen that displays the complete history of waste classifications with filtering and searching
 class HistoryScreen extends StatefulWidget {
-  
   const HistoryScreen({
     super.key,
     this.filterCategory,
@@ -196,7 +196,7 @@ class _HistoryScreenState extends State<HistoryScreen> with RestorationMixin {
         }
       }
       
-      debugPrint('📊 History: Loaded ${pageClassifications.length} classifications (Google sync: $isGoogleSyncEnabled)');
+      WasteAppLogger.info('📊 History: Loaded ${pageClassifications.length} classifications (Google sync: $isGoogleSyncEnabled)');
     } catch (e) {
       if (mounted) {
         _showErrorSnackBar('Failed to load classifications: $e');
@@ -864,7 +864,6 @@ class _HistoryScreenState extends State<HistoryScreen> with RestorationMixin {
 }
 
 class EmptyStateWidget extends StatelessWidget {
-
   const EmptyStateWidget({
     super.key,
     required this.title,

@@ -5,6 +5,7 @@ import '../services/gamification_service.dart';
 import '../services/storage_service.dart';
 import '../services/cloud_storage_service.dart';
 import '../utils/constants.dart';
+import '../utils/waste_app_logger.dart';
 // Import central providers
 
 /// Provider for GamificationService
@@ -127,7 +128,7 @@ class GamificationNotifier extends AsyncNotifier<GamificationProfile> {
     } catch (e) {
       // Handle error but don't update state to error since this is a background operation
       if (kDebugMode) {
-        debugPrint('Failed to update achievement progress: $e');
+        WasteAppLogger.severe('Error occurred', null, null, {'service': 'gamification', 'file': 'gamification_provider'});
       }
     }
   }

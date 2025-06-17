@@ -15,6 +15,7 @@ import '../screens/achievements_screen.dart';
 import '../screens/image_capture_screen.dart';
 import '../screens/instant_analysis_screen.dart';
 import '../utils/constants.dart';
+import 'package:waste_segregation_app/utils/waste_app_logger.dart';
 
 // Profile provider using FutureProvider for better performance
 final profileProvider = FutureProvider<GamificationProfile?>((ref) async {
@@ -22,7 +23,7 @@ final profileProvider = FutureProvider<GamificationProfile?>((ref) async {
   try {
     return await gamificationService.getProfile();
   } catch (e) {
-    debugPrint('Error loading profile: $e');
+    WasteAppLogger.severe('Error loading profile: $e');
     return null;
   }
 });
@@ -33,7 +34,7 @@ final userProfileProvider = FutureProvider<UserProfile?>((ref) async {
   try {
     return await storageService.getCurrentUserProfile();
   } catch (e) {
-    debugPrint('Error loading user profile: $e');
+    WasteAppLogger.severe('Error loading user profile: $e');
     return null;
   }
 });
@@ -652,8 +653,6 @@ class _UltraModernHomeScreenState extends ConsumerState<UltraModernHomeScreen>
     }
   }
 
-
-
   Widget _buildRecentClassifications(BuildContext context, AsyncValue<List<WasteClassification>> classificationsAsync) {
     return classificationsAsync.when(
       data: (classifications) {
@@ -849,7 +848,7 @@ class _UltraModernHomeScreenState extends ConsumerState<UltraModernHomeScreen>
         await _navigateToImageCapture(image);
       }
     } catch (e) {
-      debugPrint('${AppStrings.errorTakingPhoto}: $e');
+      WasteAppLogger.severe('${AppStrings.errorTakingPhoto}: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('${AppStrings.errorTakingPhoto}: $e')),
@@ -876,7 +875,7 @@ class _UltraModernHomeScreenState extends ConsumerState<UltraModernHomeScreen>
         await _navigateToImageCapture(image);
       }
     } catch (e) {
-      debugPrint('${AppStrings.errorPickingImage}: $e');
+      WasteAppLogger.severe('${AppStrings.errorPickingImage}: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('${AppStrings.errorPickingImage}: $e')),
@@ -903,7 +902,7 @@ class _UltraModernHomeScreenState extends ConsumerState<UltraModernHomeScreen>
         await _navigateToInstantAnalysis(image);
       }
     } catch (e) {
-      debugPrint('${AppStrings.errorTakingPhoto}: $e');
+      WasteAppLogger.severe('${AppStrings.errorTakingPhoto}: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('${AppStrings.errorTakingPhoto}: $e')),
@@ -930,7 +929,7 @@ class _UltraModernHomeScreenState extends ConsumerState<UltraModernHomeScreen>
         await _navigateToInstantAnalysis(image);
       }
     } catch (e) {
-      debugPrint('${AppStrings.errorPickingImage}: $e');
+      WasteAppLogger.severe('${AppStrings.errorPickingImage}: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('${AppStrings.errorPickingImage}: $e')),
@@ -1052,7 +1051,6 @@ class _UltraModernHomeScreenState extends ConsumerState<UltraModernHomeScreen>
 }
 
 class ActionItem {
-
   ActionItem({
     required this.title,
     required this.subtitle,

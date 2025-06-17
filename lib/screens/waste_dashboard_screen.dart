@@ -11,6 +11,7 @@ import '../models/gamification.dart';
 import '../widgets/waste_chart_widgets.dart';
 import '../providers/points_engine_provider.dart';
 import 'package:fl_chart/fl_chart.dart';
+import 'package:waste_segregation_app/utils/waste_app_logger.dart';
 
 enum _ChartTimescale { daily, weekly }
 
@@ -72,7 +73,7 @@ class _WasteDashboardScreenState extends State<WasteDashboardScreen>
         await gamificationService.syncGamificationData();
         await gamificationService.syncWeeklyStatsWithClassifications();
       } catch (e, s) {
-        debugPrint('Gamification sync failed: $e\n$s');
+        WasteAppLogger.severe('Gamification sync failed: $e\n$s');
       }
 
       // Get the real data from storage service
@@ -92,7 +93,7 @@ class _WasteDashboardScreenState extends State<WasteDashboardScreen>
         }
       });
     } catch (e) {
-      debugPrint('Error loading analytics data: $e');
+      WasteAppLogger.severe('Error loading analytics data: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Failed to load data: $e')),
@@ -1125,8 +1126,7 @@ class _WasteDashboardScreenState extends State<WasteDashboardScreen>
 }
 
 // Revert EmptyStateWidget to its simpler, original form (StatelessWidget)
-class EmptyStateWidget extends StatelessWidget { // Optional icon if it had one originally
-
+class EmptyStateWidget extends StatelessWidget {
   const EmptyStateWidget({
     super.key,
     required this.title,
@@ -1185,7 +1185,6 @@ class EmptyStateWidget extends StatelessWidget { // Optional icon if it had one 
 }
 
 class WebChartWidget extends StatefulWidget {
-  
   const WebChartWidget({
     super.key,
     required this.data,
@@ -1224,7 +1223,7 @@ class _WebChartWidgetState extends State<WebChartWidget> {
               _hasError = true;
               _isLoading = false;
             });
-            debugPrint('WebView error: ${error.description}');
+            WasteAppLogger.severe('WebView error: ${error.description}');
           },
         ),
       )
@@ -1410,7 +1409,6 @@ class _WebChartWidgetState extends State<WebChartWidget> {
 }
 
 class WebPieChartWidget extends StatefulWidget {
-  
   const WebPieChartWidget({
     super.key,
     required this.data,
@@ -1447,7 +1445,7 @@ class _WebPieChartWidgetState extends State<WebPieChartWidget> {
               _hasError = true;
               _isLoading = false;
             });
-            debugPrint('WebView error: ${error.description}');
+            WasteAppLogger.severe('WebView error: ${error.description}');
           },
         ),
       )
@@ -1589,8 +1587,7 @@ class _WebPieChartWidgetState extends State<WebPieChartWidget> {
 }
 
 // Gamification summary card for individual stats
-class GamificationSummaryCard extends StatelessWidget { // e.g., "+12%"
-
+class GamificationSummaryCard extends StatelessWidget {
   const GamificationSummaryCard({
     super.key,
     required this.title,

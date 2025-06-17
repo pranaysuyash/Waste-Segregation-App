@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../../utils/app_theme.dart';
 
 /// Branded shimmer loading effect for modern loading states
 class ShimmerLoading extends StatefulWidget {

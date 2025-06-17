@@ -11,6 +11,7 @@ import '../widgets/polished/polished_divider.dart';
 import '../widgets/polished/polished_section.dart';
 import '../widgets/polished/polished_fab.dart';
 import '../widgets/polished/shimmer_loading.dart';
+import '../widgets/home_header_wrapper.dart';
 import '../screens/history_screen.dart';
 import '../screens/educational_content_screen.dart';
 
@@ -133,11 +134,11 @@ class _PolishedHomeScreenState extends State<PolishedHomeScreen>
               padding: const EdgeInsets.all(AppThemePolish.spacingGenerous),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Hero welcome section with luxurious spacing
-                  PolishedSection.luxurious(
-                    child: _buildWelcomeSection(theme),
-                  ),
+                                  children: [
+                    // Hero welcome section with luxurious spacing
+                    const PolishedSection.luxurious(
+                      child: HomeHeaderWrapper(),
+                    ),
 
                   // Action buttons section with generous spacing
                   PolishedSection.generous(

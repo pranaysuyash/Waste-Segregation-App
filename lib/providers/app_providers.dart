@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../services/storage_service.dart';
 import '../services/cloud_storage_service.dart';
@@ -8,6 +7,8 @@ import '../services/educational_content_service.dart';
 import '../services/ad_service.dart';
 import '../models/gamification.dart';
 import '../models/user_profile.dart';
+import '../services/remote_config_service.dart';
+import '../utils/waste_app_logger.dart';
 
 /// Central provider declarations for all services
 /// This eliminates duplicate provider declarations across the app
@@ -79,7 +80,9 @@ final userProfileProvider = FutureProvider<UserProfile?>((ref) async {
   try {
     return await storageService.getCurrentUserProfile();
   } catch (e) {
-    debugPrint('Error loading user profile: $e');
+          WasteAppLogger.severe('Error loading user profile', e, null, {
+        'action': 'return_default_profile'
+      });
     return null;
   }
 });
@@ -88,4 +91,26 @@ final userProfileProvider = FutureProvider<UserProfile?>((ref) async {
 final educationalContentServiceProvider = Provider<EducationalContentService>((ref) => EducationalContentService());
 
 /// Ad service provider - single source of truth  
-final adServiceProvider = Provider<AdService>((ref) => AdService()); 
+final adServiceProvider = Provider<AdService>((ref) => AdService());
+
+/// Gamification profile provider - for accessing current user's gamification data
+final profileProvider = FutureProvider<GamificationProfile?>((ref) async {
+  final gamificationService = ref.watch(gamificationServiceProvider);
+  try {
+    return await gamificationService.getProfile();
+  } catch (e) {
+    WasteAppLogger.severe('Error loading gamification profile', e, null, {
+      'action': 'return_null_profile'
+    });
+    return null;
+  }
+});
+
+/// Remote config provider for A/B testing
+final remoteConfigProvider = Provider<RemoteConfigService>((ref) => RemoteConfigService());
+
+/// Home header v2 feature flag provider for A/B testing
+final homeHeaderV2EnabledProvider = FutureProvider<bool>((ref) async {
+  final remoteConfig = ref.watch(remoteConfigProvider);
+  return remoteConfig.getBool('home_header_v2_enabled', defaultValue: true);
+}); 

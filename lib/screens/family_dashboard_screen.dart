@@ -11,9 +11,9 @@ import 'family_management_screen.dart';
 import 'family_invite_screen.dart';
 import 'family_creation_screen.dart';
 import 'classification_details_screen.dart'; // Import the new screen
+import 'package:waste_segregation_app/utils/waste_app_logger.dart';
 
 class FamilyDashboardScreen extends StatefulWidget {
-
   const FamilyDashboardScreen({super.key, this.showAppBar = true});
   final bool showAppBar;
 
@@ -89,7 +89,7 @@ class _FamilyDashboardScreenState extends State<FamilyDashboardScreen> {
       }
     } catch (e) {
       if (mounted) {
-        debugPrint('Error loading family stats: $e');
+        WasteAppLogger.severe('Error loading family stats: $e');
         setState(() {
            _error = '${_error ?? ''}\nFailed to load family statistics.';
           _isStatsLoading = false;
@@ -109,7 +109,7 @@ class _FamilyDashboardScreenState extends State<FamilyDashboardScreen> {
       }
     } catch (e) {
       if (mounted) {
-        debugPrint('Error loading family members: $e');
+        WasteAppLogger.severe('Error loading family members: $e');
       }
     }
   }
@@ -162,33 +162,33 @@ class _FamilyDashboardScreenState extends State<FamilyDashboardScreen> {
   }
 
   Widget _buildBodyContent(AsyncSnapshot<family_models.Family?> familySnapshot, family_models.Family? family, family_models.FamilyStats? statsFromState) {
-    debugPrint('🏠 FAMILY: Building body content - family: ${family?.name}, hasError: ${familySnapshot.hasError}');
+    WasteAppLogger.severe('🏠 FAMILY: Building body content - family: ${family?.name}, hasError: ${familySnapshot.hasError}');
     
     if (familySnapshot.connectionState == ConnectionState.waiting && family == null && !_isStatsLoading) {
-      debugPrint('🏠 FAMILY: Showing loading (waiting for family)');
+      WasteAppLogger.info('🏠 FAMILY: Showing loading (waiting for family)');
       return const Center(child: CircularProgressIndicator());
     }
 
     if (familySnapshot.hasError && _error == null) {
-      debugPrint('🏠 FAMILY: Showing error state: ${familySnapshot.error}');
+      WasteAppLogger.severe('🏠 FAMILY: Showing error state: ${familySnapshot.error}');
       return _buildErrorState('Error loading family details: ${familySnapshot.error}');
     }
 
     if (_error != null && family == null) { 
-      debugPrint('🏠 FAMILY: Showing error state: $_error');
+      WasteAppLogger.severe('🏠 FAMILY: Showing error state: $_error');
       return _buildErrorState(_error!);
     }
 
     if (family == null ){
         if(familySnapshot.connectionState == ConnectionState.waiting || _isInitialLoading || _isStatsLoading) {
-             debugPrint('🏠 FAMILY: Showing loading (no family, still loading)');
+             WasteAppLogger.info('🏠 FAMILY: Showing loading (no family, still loading)');
              return const Center(child: CircularProgressIndicator());
         }
-        debugPrint('🏠 FAMILY: Showing no family state');
+        WasteAppLogger.info('🏠 FAMILY: Showing no family state');
         return _buildNoFamilyState();
     }
 
-    debugPrint('🏠 FAMILY: Building normal family content for: ${family.name}');
+    WasteAppLogger.info('🏠 FAMILY: Building normal family content for: ${family.name}');
     const bottomPadding = AppTheme.paddingRegular + 56.0;
 
     return RefreshIndicator(
@@ -227,7 +227,7 @@ class _FamilyDashboardScreenState extends State<FamilyDashboardScreen> {
                             icon: const Icon(Icons.person_add_alt_1),
                             label: const Text('Invite Members'),
                             onPressed: () {
-                              debugPrint('🏠 FAMILY: Invite button pressed');
+                              WasteAppLogger.info('🏠 FAMILY: Invite button pressed');
                               _navigateToInvite(family);
                             },
                           ),
@@ -238,7 +238,7 @@ class _FamilyDashboardScreenState extends State<FamilyDashboardScreen> {
                             icon: const Icon(Icons.manage_accounts),
                             label: const Text('Manage'),
                             onPressed: () {
-                              debugPrint('🏠 FAMILY: Manage button pressed');
+                              WasteAppLogger.info('🏠 FAMILY: Manage button pressed');
                               _navigateToManagement(family);
                             },
                           ),

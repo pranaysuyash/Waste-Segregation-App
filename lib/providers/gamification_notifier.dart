@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/gamification.dart';
 import '../utils/constants.dart';
 import 'gamification_repository.dart';
+import 'package:waste_segregation_app/utils/waste_app_logger.dart';
 
 /// Modern Riverpod-based gamification state management
 /// Eliminates mounted checks, provides proper error handling, and uses repository pattern
@@ -16,8 +17,8 @@ class GamificationNotifier extends AsyncNotifier<GamificationProfile> {
       return await _repository.getProfile();
     } catch (e, stackTrace) {
       if (kDebugMode) {
-        debugPrint('🔥 Failed to load gamification profile: $e');
-        debugPrint('Stack trace: $stackTrace');
+        WasteAppLogger.severe('🔥 Failed to load gamification profile: $e');
+        WasteAppLogger.info('Stack trace: $stackTrace');
       }
       throw AppException.storage('Failed to load gamification profile: $e');
     }
@@ -31,7 +32,7 @@ class GamificationNotifier extends AsyncNotifier<GamificationProfile> {
       state = AsyncValue.data(profile);
     } catch (e, stackTrace) {
       if (kDebugMode) {
-        debugPrint('🔥 Failed to refresh gamification profile: $e');
+        WasteAppLogger.severe('🔥 Failed to refresh gamification profile: $e');
       }
       state = AsyncValue.error(e, stackTrace);
     }
@@ -85,7 +86,7 @@ class GamificationNotifier extends AsyncNotifier<GamificationProfile> {
 
     } catch (e) {
       if (kDebugMode) {
-        debugPrint('🔥 Failed to claim reward: $e');
+        WasteAppLogger.severe('🔥 Failed to claim reward: $e');
       }
       
       // Revert optimistic update on error
@@ -115,7 +116,7 @@ class GamificationNotifier extends AsyncNotifier<GamificationProfile> {
         // Prevent multiple updates on same day
         if (daysSinceLastActivity == 0) {
           if (kDebugMode) {
-            debugPrint('🔄 Streak already updated today for $type');
+            WasteAppLogger.info('🔄 Streak already updated today for $type');
           }
           return;
         }
@@ -145,7 +146,7 @@ class GamificationNotifier extends AsyncNotifier<GamificationProfile> {
 
     } catch (e) {
       if (kDebugMode) {
-        debugPrint('🔥 Failed to update streak: $e');
+        WasteAppLogger.severe('🔥 Failed to update streak: $e');
       }
       throw AppException.storage('Failed to update streak: $e');
     }
@@ -185,7 +186,7 @@ class GamificationNotifier extends AsyncNotifier<GamificationProfile> {
 
     } catch (e) {
       if (kDebugMode) {
-        debugPrint('🔥 Failed to add classification points: $e');
+        WasteAppLogger.severe('🔥 Failed to add classification points: $e');
       }
       throw AppException.storage('Failed to add classification points: $e');
     }

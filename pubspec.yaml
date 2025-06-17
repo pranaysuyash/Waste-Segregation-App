@@ -47,6 +47,7 @@ dependencies:
   firebase_crashlytics: ^4.3.7  # Updated to latest
   firebase_performance: ^0.10.1+7  # Updated to latest
   firebase_messaging: ^15.2.7  # Updated to latest
+  firebase_remote_config: ^5.1.7  # For A/B testing and feature flags
   cloud_firestore: ^5.6.9  # Updated to latest
   cloud_functions: ^5.2.7  # For calling Cloud Functions
   # REPLACED: firebase_dynamic_links (discontinued Aug 25, 2025) with app_links

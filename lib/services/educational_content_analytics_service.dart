@@ -1,9 +1,9 @@
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:waste_segregation_app/utils/waste_app_logger.dart';
 
 /// Service to track educational content engagement and analytics
 class EducationalContentAnalyticsService extends ChangeNotifier {
-
   EducationalContentAnalyticsService() {
     _loadAnalytics();
   }
@@ -176,7 +176,7 @@ class EducationalContentAnalyticsService extends ChangeNotifier {
       await _saveAnalytics();
       notifyListeners();
     } catch (e) {
-      debugPrint('Error tracking content view: $e');
+      WasteAppLogger.severe('Error tracking content view: $e');
     }
   }
 
@@ -208,7 +208,7 @@ class EducationalContentAnalyticsService extends ChangeNotifier {
       await _saveAnalytics();
       notifyListeners();
     } catch (e) {
-      debugPrint('Error ending content session: $e');
+      WasteAppLogger.severe('Error ending content session: $e');
     } finally {
       _currentContentId = null;
       _sessionStartTime = null;
@@ -243,7 +243,7 @@ class EducationalContentAnalyticsService extends ChangeNotifier {
       await _saveAnalytics();
       notifyListeners();
     } catch (e) {
-      debugPrint('Error tracking content interaction: $e');
+      WasteAppLogger.severe('Error tracking content interaction: $e');
     }
   }
 
@@ -257,7 +257,7 @@ class EducationalContentAnalyticsService extends ChangeNotifier {
 
       await _saveAnalytics();
     } catch (e) {
-      debugPrint('Error tracking search query: $e');
+      WasteAppLogger.severe('Error tracking search query: $e');
     }
   }
 
@@ -328,7 +328,7 @@ class EducationalContentAnalyticsService extends ChangeNotifier {
 
       notifyListeners();
     } catch (e) {
-      debugPrint('Error loading analytics: $e');
+      WasteAppLogger.severe('Error loading analytics: $e');
     }
   }
 
@@ -349,7 +349,7 @@ class EducationalContentAnalyticsService extends ChangeNotifier {
       await prefs.setStringList(_favoritesKey, _favoriteContent);
       
     } catch (e) {
-      debugPrint('Error saving analytics: $e');
+      WasteAppLogger.severe('Error saving analytics: $e');
     }
   }
 
@@ -376,7 +376,7 @@ class EducationalContentAnalyticsService extends ChangeNotifier {
 
       notifyListeners();
     } catch (e) {
-      debugPrint('Error clearing analytics: $e');
+      WasteAppLogger.severe('Error clearing analytics: $e');
     }
   }
 
@@ -411,7 +411,6 @@ class EducationalContentAnalyticsService extends ChangeNotifier {
 
 /// Analytics data for individual content
 class ContentAnalytics {
-
   const ContentAnalytics({
     required this.contentId,
     required this.views,
@@ -471,7 +470,6 @@ class ContentAnalytics {
 
 /// Overall engagement metrics
 class EngagementMetrics {
-
   const EngagementMetrics({
     required this.totalViews,
     required this.totalTimeSpent,
@@ -513,7 +511,6 @@ enum ContentInteractionType {
 
 /// Simple educational content model for analytics
 class EducationalContent {
-
   const EducationalContent({
     required this.id,
     required this.title,

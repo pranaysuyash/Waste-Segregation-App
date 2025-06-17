@@ -112,7 +112,9 @@ class PlatformCamera {
   static Future<void> cleanup() async {
     // Currently a no-op on all platforms
     // Could be extended for platform-specific cleanup
-    debugPrint('Camera cleanup completed');
+            WasteAppLogger.info('Camera cleanup completed', null, null, {
+          'cleanup_type': 'dispose'
+        });
   }
 
   /// Checks if camera is available on the device
@@ -129,7 +131,10 @@ class PlatformCamera {
         return status.isGranted || status.isDenied; // Available if not permanently denied
       }
     } catch (e) {
-      debugPrint('Error checking camera availability: $e');
+      WasteAppLogger.severe('Error checking camera availability', e, null, {
+        'platform': 'unknown',
+        'action': 'return_false'
+      });
     }
 
     return false;

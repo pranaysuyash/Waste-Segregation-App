@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
 import '../models/leaderboard.dart'; // Assuming this is where LeaderboardEntry is defined
+import 'package:waste_segregation_app/utils/waste_app_logger.dart';
 
 class LeaderboardService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -26,7 +27,7 @@ class LeaderboardService {
           data['userId'] = doc.id; 
           return LeaderboardEntry.fromJson(data);
         } catch (e) {
-          debugPrint('Error parsing leaderboard entry with id ${doc.id}: $e');
+          WasteAppLogger.severe('Error parsing leaderboard entry with id ${doc.id}: $e');
           return null; // Skip entries that fail to parse
         }
       }).where((entry) => entry != null).cast<LeaderboardEntry>().toList();
@@ -38,7 +39,7 @@ class LeaderboardService {
       
       return entries;
     } catch (e) {
-      debugPrint('Error fetching top N leaderboard entries: $e');
+      WasteAppLogger.severe('Error fetching top N leaderboard entries: $e');
       return []; // Return empty list on error
     }
   }
@@ -64,7 +65,7 @@ class LeaderboardService {
       }
       return null;
     } catch (e) {
-      debugPrint('Error fetching user leaderboard entry for $userId: $e');
+      WasteAppLogger.severe('Error fetching user leaderboard entry for $userId: $e');
       return null;
     }
   }
@@ -79,7 +80,7 @@ class LeaderboardService {
       // Get the user's points first
       final userDoc = await _firestore.collection(_leaderboardCollection).doc(userId).get();
       if (!userDoc.exists || userDoc.data() == null) {
-        debugPrint('User $userId not found in leaderboard_allTime.');
+        WasteAppLogger.info('User $userId not found in leaderboard_allTime.');
         return null; // User not on the leaderboard
       }
       final userPoints = userDoc.data()!['points'] as int? ?? 0;
@@ -96,7 +97,7 @@ class LeaderboardService {
       return rank;
 
     } catch (e) {
-      debugPrint('Error fetching current user rank for $userId: $e');
+      WasteAppLogger.severe('Error fetching current user rank for $userId: $e');
       return null;
     }
   }

@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
+import 'package:waste_segregation_app/utils/waste_app_logger.dart';
 
 /// Performance monitoring system for settings screen
 class SettingsPerformanceMonitor {
@@ -21,7 +22,7 @@ class SettingsPerformanceMonitor {
     
     if (kDebugMode) {
       SchedulerBinding.instance.addTimingsCallback(_onFrameTiming);
-      debugPrint('🔍 Settings Performance Monitor: Started');
+      WasteAppLogger.info('🔍 Settings Performance Monitor: Started');
     }
   }
 
@@ -34,7 +35,7 @@ class SettingsPerformanceMonitor {
     if (kDebugMode) {
       SchedulerBinding.instance.removeTimingsCallback(_onFrameTiming);
       _printPerformanceReport();
-      debugPrint('🔍 Settings Performance Monitor: Stopped');
+      WasteAppLogger.info('🔍 Settings Performance Monitor: Stopped');
     }
   }
 
@@ -50,7 +51,7 @@ class SettingsPerformanceMonitor {
     metrics.incrementRebuild();
     
     if (kDebugMode && metrics.rebuildCount % 10 == 0) {
-      debugPrint('⚠️ Widget $widgetName has rebuilt ${metrics.rebuildCount} times');
+      WasteAppLogger.info('⚠️ Widget $widgetName has rebuilt ${metrics.rebuildCount} times');
     }
   }
 
@@ -73,7 +74,7 @@ class SettingsPerformanceMonitor {
     // Note: This is a simplified memory tracking
     // In production, you might want to use more sophisticated tools
     final runtimeType = context.runtimeType.toString();
-    debugPrint('💾 Memory context: $runtimeType');
+    WasteAppLogger.info('💾 Memory context: $runtimeType');
   }
 
   /// Handle frame timing callback
@@ -97,7 +98,7 @@ class SettingsPerformanceMonitor {
       
       // Warn about slow frames
       if (timing.totalSpan.inMilliseconds > 16) {
-        debugPrint('🐌 Slow frame detected: ${timing.totalSpan.inMilliseconds}ms');
+        WasteAppLogger.info('🐌 Slow frame detected: ${timing.totalSpan.inMilliseconds}ms');
       }
     }
   }
@@ -106,43 +107,43 @@ class SettingsPerformanceMonitor {
   void _printPerformanceReport() {
     if (!kDebugMode) return;
     
-    debugPrint('\n📊 Settings Performance Report');
-    debugPrint('=' * 50);
+    WasteAppLogger.info('\n📊 Settings Performance Report');
+    WasteAppLogger.info('=' * 50);
     
     // Widget rebuild statistics
-    debugPrint('\n🔄 Widget Rebuilds:');
+    WasteAppLogger.info('\n🔄 Widget Rebuilds:');
     for (final metrics in _metrics.values) {
       if (metrics.rebuildCount > 0) {
-        debugPrint('  ${metrics.name}: ${metrics.rebuildCount} rebuilds');
+        WasteAppLogger.info('  ${metrics.name}: ${metrics.rebuildCount} rebuilds');
       }
     }
     
     // Animation performance
-    debugPrint('\n🎬 Animation Performance:');
+    WasteAppLogger.info('\n🎬 Animation Performance:');
     for (final metrics in _metrics.values) {
       if (metrics.animationDurations.isNotEmpty) {
         final avgDuration = metrics.averageAnimationDuration;
-        debugPrint('  ${metrics.name}: ${avgDuration.inMilliseconds}ms avg');
+        WasteAppLogger.info('  ${metrics.name}: ${avgDuration.inMilliseconds}ms avg');
       }
     }
     
     // Frame timing statistics
     if (_frameTimings.isNotEmpty) {
-      debugPrint('\n🖼️ Frame Timing Statistics:');
+      WasteAppLogger.info('\n🖼️ Frame Timing Statistics:');
       final avgBuild = _calculateAverageFrameTime((f) => f.buildDuration);
       final avgRaster = _calculateAverageFrameTime((f) => f.rasterDuration);
       final avgTotal = _calculateAverageFrameTime((f) => f.totalSpan);
       
-      debugPrint('  Average build time: ${avgBuild.inMilliseconds}ms');
-      debugPrint('  Average raster time: ${avgRaster.inMilliseconds}ms');
-      debugPrint('  Average total time: ${avgTotal.inMilliseconds}ms');
+      WasteAppLogger.info('  Average build time: ${avgBuild.inMilliseconds}ms');
+      WasteAppLogger.info('  Average raster time: ${avgRaster.inMilliseconds}ms');
+      WasteAppLogger.info('  Average total time: ${avgTotal.inMilliseconds}ms');
       
       final slowFrames = _frameTimings.where((f) => f.totalSpan.inMilliseconds > 16).length;
       final frameRate = slowFrames / _frameTimings.length * 100;
-      debugPrint('  Slow frames: $slowFrames/${_frameTimings.length} (${frameRate.toStringAsFixed(1)}%)');
+      WasteAppLogger.info('  Slow frames: $slowFrames/${_frameTimings.length} (${frameRate.toStringAsFixed(1)}%)');
     }
     
-    debugPrint('=' * 50);
+    WasteAppLogger.info('=' * 50);
   }
 
   Duration _calculateAverageFrameTime(Duration Function(FrameTimingInfo) selector) {

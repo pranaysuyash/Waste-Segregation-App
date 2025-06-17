@@ -6,6 +6,7 @@ import '../services/community_service.dart';
 import '../models/gamification.dart';
 import '../models/waste_classification.dart';
 import '../models/community_feed.dart';
+import '../utils/waste_app_logger.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// Enhanced provider that ensures all screens show consistent data
@@ -62,7 +63,10 @@ class DataSyncProvider extends ChangeNotifier {
   /// MAIN SYNC METHOD - This resolves all points inconsistency issues
   Future<void> forceSyncAllData() async {
     if (_isSyncing || _isUpdating) {
-      debugPrint('📊 SYNC: Already syncing, skipping duplicate request');
+      WasteAppLogger.debug('Data sync already in progress, skipping duplicate request', {
+        'is_syncing': _isSyncing,
+        'is_updating': _isUpdating
+      });
       return;
     }
     
@@ -71,38 +75,55 @@ class DataSyncProvider extends ChangeNotifier {
     notifyListeners();
     
     try {
-      debugPrint('📊 SYNC: Starting comprehensive data sync...');
+      WasteAppLogger.info('Starting comprehensive data sync', null, null, {
+        'sync_type': 'full_data_sync',
+        'cached_classifications_count': _cachedClassificationCount,
+        'cached_points': _cachedPoints?.total
+      });
       
       // 1. Force complete gamification sync first (this fixes points issues)
       await _gamificationService.syncGamificationData();
-      debugPrint('📊 SYNC: ✅ Gamification sync complete');
+      WasteAppLogger.info('Gamification sync complete', null, null, {'sync_step': 1});
       
       // 2. Refresh cached classifications
       _cachedClassifications = await _storageService.getAllClassifications();
       _cachedClassificationCount = _cachedClassifications?.length ?? 0;
-      debugPrint('📊 SYNC: ✅ Classifications refreshed: $_cachedClassificationCount items');
+      WasteAppLogger.info('Classifications refreshed', null, null, {
+        'sync_step': 2,
+        'classifications_count': _cachedClassificationCount
+      });
       
       // 3. Get latest profile and points (now guaranteed to be consistent)
       _cachedProfile = await _gamificationService.getProfile(forceRefresh: true);
       _cachedPoints = _cachedProfile?.points;
-      debugPrint('📊 SYNC: ✅ Profile refreshed - Points: ${_cachedPoints?.total}');
+      WasteAppLogger.info('Profile refreshed', null, null, {
+        'sync_step': 3,
+        'total_points': _cachedPoints?.total
+      });
       
       // 4. Sync community data to remove stale entries
       await _syncCommunityData();
-      debugPrint('📊 SYNC: ✅ Community data synced');
+      WasteAppLogger.info('Community data synced', null, null, {'sync_step': 4});
       
       // 5. Refresh images if needed (daily check)
       await _checkAndRefreshImages();
-      debugPrint('📊 SYNC: ✅ Image refresh checked');
+      WasteAppLogger.info('Image refresh checked', null, null, {'sync_step': 5});
       
       // 6. Update last sync time
       _lastSyncTime = DateTime.now();
       
-      debugPrint('📊 SYNC: ✅ Complete - Final Points: ${_cachedPoints?.total}, Classifications: $_cachedClassificationCount');
+      WasteAppLogger.info('Data sync complete', null, null, {
+        'final_points': _cachedPoints?.total,
+        'final_classifications_count': _cachedClassificationCount,
+        'sync_duration_ms': DateTime.now().difference(_lastSyncTime!).inMilliseconds
+      });
       
     } catch (e, stackTrace) {
-      debugPrint('📊 SYNC ERROR: $e');
-      debugPrint('📊 SYNC STACK: $stackTrace');
+      WasteAppLogger.severe('Data sync failed', e, stackTrace, {
+        'sync_type': 'full_data_sync',
+        'cached_classifications_count': _cachedClassificationCount,
+        'cached_points': _cachedPoints?.total
+      });
       // Don't rethrow - we want the app to continue working even if sync fails
     } finally {
       _isSyncing = false;
@@ -126,13 +147,21 @@ class DataSyncProvider extends ChangeNotifier {
       _cachedCommunityFeed = await _communityService.getFeedItems();
       
     } catch (e) {
-      debugPrint('📊 Community sync error: $e');
+      WasteAppLogger.warning('Community sync error', e, null, {
+        'classifications_count': _cachedClassifications?.length,
+        'community_feed_count': _cachedCommunityFeed?.length
+      });
     }
   }
   
   /// Get live data for a specific screen with automatic refresh
   Future<Map<String, dynamic>> getScreenData(String screenName) async {
-    debugPrint('📊 Getting screen data for: $screenName');
+    WasteAppLogger.debug('Getting screen data', {
+      'screen_name': screenName,
+      'has_cached_points': _cachedPoints != null,
+      'has_cached_profile': _cachedProfile != null,
+      'last_sync_minutes_ago': _lastSyncTime != null ? DateTime.now().difference(_lastSyncTime!).inMinutes : null
+    });
     
     // Force sync if data is stale (more than 1 minute old) or if no data exists
     final now = DateTime.now();
@@ -142,7 +171,12 @@ class DataSyncProvider extends ChangeNotifier {
                      _cachedProfile == null;
     
     if (needsSync) {
-      debugPrint('📊 Data is stale for $screenName, forcing sync...');
+      WasteAppLogger.info('Data is stale, forcing sync', null, null, {
+        'screen_name': screenName,
+        'last_sync_minutes_ago': _lastSyncTime != null ? DateTime.now().difference(_lastSyncTime!).inMinutes : null,
+        'has_cached_points': _cachedPoints != null,
+        'has_cached_profile': _cachedProfile != null
+      });
       await forceSyncAllData();
     }
     
@@ -166,7 +200,9 @@ class DataSyncProvider extends ChangeNotifier {
       _cachedPoints = _cachedProfile?.points;
       notifyListeners();
     } catch (e) {
-      debugPrint('📊 Quick refresh error: $e');
+      WasteAppLogger.warning('Quick refresh error', e, null, {
+        'action': 'quick_refresh_profile_points'
+      });
     }
   }
   
@@ -205,14 +241,19 @@ class DataSyncProvider extends ChangeNotifier {
       
       notifyListeners();
     } catch (e) {
-      debugPrint('📊 Cache refresh error: $e');
+      WasteAppLogger.severe('Cache refresh error', e, null, {
+        'operation': 'cache_refresh',
+        'action': 'continue_with_existing_cache'
+      });
     }
   }
   
   /// Force refresh community feeds
   Future<void> refreshCommunityFeeds() async {
     try {
-      debugPrint('🌍 Refreshing community feeds...');
+      WasteAppLogger.info('Refreshing community feeds', null, null, {
+        'operation': 'community_feeds_refresh'
+      });
       await _communityService.initCommunity();
       
       if (_cachedClassifications != null) {
@@ -224,9 +265,9 @@ class DataSyncProvider extends ChangeNotifier {
       _cachedCommunityFeed = await _communityService.getFeedItems();
       notifyListeners();
       
-      debugPrint('🌍 Community feeds refreshed successfully');
+      WasteAppLogger.info('🌍 Community feeds refreshed successfully');
     } catch (e) {
-      debugPrint('🌍 Error refreshing community feeds: $e');
+      WasteAppLogger.severe('🌍 Error refreshing community feeds: $e');
     }
   }
   
@@ -268,19 +309,19 @@ class DataSyncProvider extends ChangeNotifier {
       _lastImageRefresh = now;
       
     } catch (e) {
-      debugPrint('🖼️ Image refresh error: $e');
+      WasteAppLogger.severe('🖼️ Image refresh error: $e');
     }
   }
   
   /// Manual force refresh of all images
   Future<void> forceRefreshAllImages() async {
     try {
-      debugPrint('🖼️ Force refreshing all images...');
+      WasteAppLogger.info('🖼️ Force refreshing all images...');
       _lastImageRefresh = null; // Reset to force refresh
       await _checkAndRefreshImages();
       notifyListeners();
     } catch (e) {
-      debugPrint('🖼️ Error force refreshing images: $e');
+      WasteAppLogger.severe('🖼️ Error force refreshing images: $e');
     }
   }
   

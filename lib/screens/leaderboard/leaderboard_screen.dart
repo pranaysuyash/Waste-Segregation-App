@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../providers/leaderboard_provider.dart';
 import '../../models/leaderboard.dart';
 import '../../widgets/production_error_handler.dart';
+import 'package:waste_segregation_app/utils/waste_app_logger.dart';
 
 class LeaderboardScreen extends ConsumerWidget {
   const LeaderboardScreen({super.key});
@@ -70,7 +71,7 @@ class LeaderboardScreen extends ConsumerWidget {
         },
         loading: () => const Center(child: LoadingStateHandler(showShimmer: false)),
         error: (error, stackTrace) {
-          debugPrint('Error loading leaderboard screen: $error\n$stackTrace');
+          WasteAppLogger.severe('Error loading leaderboard screen: $error\n$stackTrace');
           return Center(
             child: EmptyStateHandler(
                 title: 'Leaderboard Error',

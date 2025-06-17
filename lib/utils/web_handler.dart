@@ -1,15 +1,16 @@
 import 'package:flutter/foundation.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:waste_segregation_app/utils/waste_app_logger.dart';
 
 /// A utility class for handling web-specific image operations
 class WebImageHandler {
   /// Converts a blob URL XFile to image data
   static Future<Uint8List?> xFileToBytes(XFile xFile) async {
     try {
-      debugPrint('Converting XFile to bytes: ${xFile.path}');
+      WasteAppLogger.info('Converting XFile to bytes: ${xFile.path}');
       return await xFile.readAsBytes();
     } catch (e) {
-      debugPrint('Error converting XFile to bytes: $e');
+      WasteAppLogger.severe('Error converting XFile to bytes: $e');
       return null;
     }
   }
@@ -41,7 +42,7 @@ class WebImageHandler {
       final bytes = await file.readAsBytes();
       return bytes.isNotEmpty;
     } catch (e) {
-      debugPrint('Web image validation failed: $e');
+      WasteAppLogger.severe('Web image validation failed: $e');
       return false;
     }
   }

@@ -22,6 +22,7 @@ import 'educational_content_screen.dart';
 import 'waste_dashboard_screen.dart';
 import 'settings_screen.dart';
 import 'social_screen.dart';
+import 'package:waste_segregation_app/utils/waste_app_logger.dart';
 
 // REMOVED: Duplicate provider declarations - now imported from app_providers.dart
 
@@ -39,7 +40,7 @@ final profileProvider = FutureProvider<GamificationProfile?>((ref) async {
   try {
     return await gamificationService.getProfile();
   } catch (e) {
-    debugPrint('Error loading profile: $e');
+    WasteAppLogger.severe('Error loading profile: $e');
     return null;
   }
 });
@@ -54,8 +55,9 @@ final classificationsProvider = FutureProvider<List<WasteClassification>>((ref) 
 final _navIndexProvider = StateProvider<int>((ref) => 0);
 
 class NewModernHomeScreen extends ConsumerStatefulWidget {
-  const NewModernHomeScreen({super.key, this.isGuestMode = false});
   final bool isGuestMode;
+
+  const NewModernHomeScreen({super.key, this.isGuestMode = false});
 
   @override
   NewModernHomeScreenState createState() => NewModernHomeScreenState();
@@ -150,7 +152,7 @@ class NewModernHomeScreenState extends ConsumerState<NewModernHomeScreen>
         });
       }
     } catch (e) {
-      debugPrint('Error loading first run flag: $e');
+      WasteAppLogger.severe('Error loading first run flag: $e');
     }
   }
 
@@ -225,16 +227,16 @@ class NewModernHomeScreenState extends ConsumerState<NewModernHomeScreen>
       _coachMark = TutorialCoachMark(
         targets: _targets,
         onFinish: () {
-          debugPrint('Tutorial finished');
+          WasteAppLogger.info('Tutorial finished');
         },
         onSkip: () {
-          debugPrint('Tutorial skipped');
+          WasteAppLogger.info('Tutorial skipped');
           return true;
         },
       );
       _coachMark?.show(context: context);
     } catch (e) {
-      debugPrint('Error showing coach mark: $e');
+      WasteAppLogger.severe('Error showing coach mark: $e');
     }
   }
 
@@ -334,12 +336,12 @@ class NewModernHomeScreenState extends ConsumerState<NewModernHomeScreen>
   // Photo capture methods
   Future<void> _takePhoto(ImagePicker picker, BuildContext context) async {
     if (_isNavigating) {
-      debugPrint('🚫 Navigation already in progress, ignoring tap');
+      WasteAppLogger.info('🚫 Navigation already in progress, ignoring tap');
       return;
     }
     
     _isNavigating = true;
-    debugPrint('📸 Taking photo - manual review mode');
+    WasteAppLogger.info('📸 Taking photo - manual review mode');
     
     try {
       final image = await picker.pickImage(
@@ -353,7 +355,7 @@ class NewModernHomeScreenState extends ConsumerState<NewModernHomeScreen>
         await _navigateToImageCapture(image);
       }
     } catch (e) {
-      debugPrint('Error taking photo: $e');
+      WasteAppLogger.severe('Error taking photo: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Error taking photo: $e')),
@@ -366,12 +368,12 @@ class NewModernHomeScreenState extends ConsumerState<NewModernHomeScreen>
 
   Future<void> _pickImage(ImagePicker picker, BuildContext context) async {
     if (_isNavigating) {
-      debugPrint('🚫 Navigation already in progress, ignoring tap');
+      WasteAppLogger.info('🚫 Navigation already in progress, ignoring tap');
       return;
     }
     
     _isNavigating = true;
-    debugPrint('🖼️ Picking image - manual review mode');
+    WasteAppLogger.info('🖼️ Picking image - manual review mode');
     
     try {
       final image = await picker.pickImage(
@@ -385,7 +387,7 @@ class NewModernHomeScreenState extends ConsumerState<NewModernHomeScreen>
         await _navigateToImageCapture(image);
       }
     } catch (e) {
-      debugPrint('Error picking image: $e');
+      WasteAppLogger.severe('Error picking image: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Error picking image: $e')),
@@ -399,12 +401,12 @@ class NewModernHomeScreenState extends ConsumerState<NewModernHomeScreen>
   // Instant analyze methods
   Future<void> _takePhotoInstant(ImagePicker picker, BuildContext context) async {
     if (_isNavigating) {
-      debugPrint('🚫 Navigation already in progress, ignoring tap');
+      WasteAppLogger.info('🚫 Navigation already in progress, ignoring tap');
       return;
     }
     
     _isNavigating = true;
-    debugPrint('📸 Taking photo - instant analysis mode');
+    WasteAppLogger.info('📸 Taking photo - instant analysis mode');
     
     try {
       final image = await picker.pickImage(
@@ -418,7 +420,7 @@ class NewModernHomeScreenState extends ConsumerState<NewModernHomeScreen>
         await _navigateToImageCapture(image, autoAnalyze: true);
       }
     } catch (e) {
-      debugPrint('Error taking photo: $e');
+      WasteAppLogger.severe('Error taking photo: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Error taking photo: $e')),
@@ -431,12 +433,12 @@ class NewModernHomeScreenState extends ConsumerState<NewModernHomeScreen>
 
   Future<void> _pickImageInstant(ImagePicker picker, BuildContext context) async {
     if (_isNavigating) {
-      debugPrint('🚫 Navigation already in progress, ignoring tap');
+      WasteAppLogger.info('🚫 Navigation already in progress, ignoring tap');
       return;
     }
     
     _isNavigating = true;
-    debugPrint('🖼️ Picking image - instant analysis mode');
+    WasteAppLogger.info('🖼️ Picking image - instant analysis mode');
     
     try {
       final image = await picker.pickImage(
@@ -450,7 +452,7 @@ class NewModernHomeScreenState extends ConsumerState<NewModernHomeScreen>
         await _navigateToImageCapture(image, autoAnalyze: true);
       }
     } catch (e) {
-      debugPrint('Error picking image: $e');
+      WasteAppLogger.severe('Error picking image: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Error picking image: $e')),
@@ -516,7 +518,7 @@ class NewModernHomeScreenState extends ConsumerState<NewModernHomeScreen>
       await _checkNewlyEarnedAchievements(oldProfile, newProfile);
       
     } catch (e) {
-      debugPrint('Error handling scan result: $e');
+      WasteAppLogger.severe('Error handling scan result: $e');
     }
   }
 
@@ -639,10 +641,6 @@ class HomeTab extends ConsumerWidget {
       ],
     );
   }
-
-  // REMOVED: _buildWelcomeSection - replaced with lean HomeHeader widget
-
-  // REMOVED: _buildPointsChip and _buildStatChip - functionality moved to HomeHeader widget
 
   Widget _buildQuickActionsSection(BuildContext context) {
     return Column(

@@ -4,6 +4,7 @@ import '../models/user_contribution.dart';
 import '../utils/constants.dart';
 import '../services/storage_service.dart';
 import 'package:provider/provider.dart';
+import 'package:waste_segregation_app/utils/waste_app_logger.dart';
 
 class ContributionHistoryScreen extends StatefulWidget {
   const ContributionHistoryScreen({super.key});
@@ -32,7 +33,7 @@ class _ContributionHistoryScreenState extends State<ContributionHistoryScreen> {
         _currentUserId = profile?.id ?? 'guest_user';
       });
     } catch (e) {
-      debugPrint('Error loading current user id: $e');
+      WasteAppLogger.severe('Error loading current user id: $e');
       if (!mounted) {
         _currentUserId = 'guest_user';
         return;

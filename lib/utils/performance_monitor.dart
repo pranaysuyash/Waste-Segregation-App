@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'dart:collection';
 import 'dart:async';
+import 'package:waste_segregation_app/utils/waste_app_logger.dart';
 
 /// Performance Monitoring and Optimization Utilities
 /// Tracks app performance metrics and provides optimization recommendations
@@ -16,14 +17,14 @@ class PerformanceMonitor {
   /// Start performance tracking for an operation
   static void startTimer(String operationName) {
     _performanceMarkers[operationName] = DateTime.now();
-    debugPrint('⏱️ Performance: Started tracking "$operationName"');
+    WasteAppLogger.info('⏱️ Performance: Started tracking "$operationName"');
   }
   
   /// End performance tracking and log results
   static Duration endTimer(String operationName) {
     final startTime = _performanceMarkers[operationName];
     if (startTime == null) {
-      debugPrint('⚠️ Performance: No start marker found for "$operationName"');
+      WasteAppLogger.info('⚠️ Performance: No start marker found for "$operationName"');
       return Duration.zero;
     }
     
@@ -51,7 +52,7 @@ class PerformanceMonitor {
       return result;
     } catch (error) {
       endTimer(operationName);
-      debugPrint('❌ Performance: Operation "$operationName" failed: $error');
+      WasteAppLogger.severe('❌ Performance: Operation "$operationName" failed: $error');
       rethrow;
     }
   }
@@ -164,7 +165,7 @@ class PerformanceMonitor {
   static void clearPerformanceLog() {
     _performanceLog.clear();
     _performanceMarkers.clear();
-    debugPrint('🧹 Performance: Cleared all performance logs');
+    WasteAppLogger.info('🧹 Performance: Cleared all performance logs');
   }
   
   // Private helper methods
@@ -186,11 +187,11 @@ class PerformanceMonitor {
     final milliseconds = duration.inMilliseconds;
     
     if (milliseconds >= _criticalThreshold) {
-      debugPrint('🔴 Performance: "$operationName" took ${milliseconds}ms (CRITICAL - over 2s)');
+      WasteAppLogger.info('🔴 Performance: "$operationName" took ${milliseconds}ms (CRITICAL - over 2s)');
     } else if (milliseconds >= _warningThreshold) {
-      debugPrint('🟡 Performance: "$operationName" took ${milliseconds}ms (WARNING - over 1s)');
+      WasteAppLogger.warning('🟡 Performance: "$operationName" took ${milliseconds}ms (WARNING - over 1s)');
     } else {
-      debugPrint('✅ Performance: "$operationName" completed in ${milliseconds}ms');
+      WasteAppLogger.info('✅ Performance: "$operationName" completed in ${milliseconds}ms');
     }
   }
   
@@ -304,11 +305,11 @@ class StoragePerformanceMonitor {
         // Log performance
         final ms = duration.inMilliseconds;
         if (ms > 1000) {
-          debugPrint('🐌 SLOW OPERATION: $operationName took ${ms}ms');
+          WasteAppLogger.info('🐌 SLOW OPERATION: $operationName took ${ms}ms');
         } else if (ms > 500) {
-          debugPrint('⚠️ MODERATE: $operationName took ${ms}ms');
+          WasteAppLogger.info('⚠️ MODERATE: $operationName took ${ms}ms');
         } else {
-          debugPrint('⚡ FAST: $operationName took ${ms}ms');
+          WasteAppLogger.info('⚡ FAST: $operationName took ${ms}ms');
         }
       }
     }
@@ -369,11 +370,11 @@ class StoragePerformanceMonitor {
   static void logSummary() {
     if (!kDebugMode) return;
     
-    debugPrint('📊 PERFORMANCE SUMMARY:');
+    WasteAppLogger.info('📊 PERFORMANCE SUMMARY:');
     final allStats = getAllStats();
     
     if (allStats.isEmpty) {
-      debugPrint('   No performance data available');
+      WasteAppLogger.info('   No performance data available');
       return;
     }
 
@@ -384,7 +385,7 @@ class StoragePerformanceMonitor {
     for (final entry in sortedOperations) {
       final name = entry.key;
       final stats = entry.value;
-      debugPrint('   $name: avg=${stats['average_ms']}ms, count=${stats['count']}, max=${stats['max_ms']}ms');
+      WasteAppLogger.info('   $name: avg=${stats['average_ms']}ms, count=${stats['count']}, max=${stats['max_ms']}ms');
     }
   }
 }

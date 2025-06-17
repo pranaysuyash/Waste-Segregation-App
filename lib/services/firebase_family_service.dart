@@ -7,6 +7,7 @@ import '../models/user_profile.dart' as user_profile_models;
 import '../models/waste_classification.dart';
 import '../models/gamification.dart' show FamilyReaction, FamilyComment, FamilyReactionType, ClassificationLocation;
 import '../models/shared_waste_classification.dart' show SharedWasteClassification;
+import 'package:waste_segregation_app/utils/waste_app_logger.dart';
 
 /// Service for managing family-related data in Firebase Firestore.
 class FirebaseFamilyService {
@@ -138,7 +139,7 @@ class FirebaseFamilyService {
       return family_models.Family.fromJson(doc.data()!);
     }).handleError((error) {
       // Log error or handle appropriately
-      debugPrint('Error in getFamilyStream: $error');
+      WasteAppLogger.severe('Error in getFamilyStream: $error');
       throw Exception('Failed to stream family data: $error');
     });
   }
@@ -315,7 +316,7 @@ class FirebaseFamilyService {
       }
       return memberProfiles;
     }).handleError((error) {
-      debugPrint('Error in getFamilyMembersStream: $error');
+      WasteAppLogger.severe('Error in getFamilyMembersStream: $error');
       throw Exception('Failed to stream family members: $error');
     });
   }
@@ -337,7 +338,7 @@ class FirebaseFamilyService {
         return _recalculateAndSaveFamilyStats(familyId);
       }
     } catch (e) {
-      debugPrint('Error getting family stats, attempting recalculation: $e');
+      WasteAppLogger.severe('Error getting family stats, attempting recalculation: $e');
       // Fallback to recalculation if there's an error
       return _recalculateAndSaveFamilyStats(familyId);
     }
@@ -468,7 +469,7 @@ class FirebaseFamilyService {
           .map((doc) => WasteClassification.fromJson(doc.data()))
           .toList();
     } catch (e) {
-      debugPrint('Error getting user classifications for $userId: $e');
+      WasteAppLogger.severe('Error getting user classifications for $userId: $e');
       return [];
     }
   }
@@ -525,7 +526,7 @@ class FirebaseFamilyService {
           .toList();
     }).handleError((error) {
       // Log error or handle appropriately
-      debugPrint('Error in getFamilyClassificationsStream: $error');
+      WasteAppLogger.severe('Error in getFamilyClassificationsStream: $error');
       throw Exception('Failed to stream family classifications: $error');
     });
   }
@@ -726,7 +727,7 @@ class FirebaseFamilyService {
           .update(updatedInvitation.toJson());
     } catch (e) {
       // Log original error for debugging while showing user-friendly message
-      debugPrint('Invitation acceptance failed: $e');
+      WasteAppLogger.severe('Invitation acceptance failed: $e');
       throw Exception('Unable to join family. Please try again later.');
     }
   }
@@ -822,7 +823,7 @@ class FirebaseFamilyService {
           .map((doc) => invitation_models.FamilyInvitation.fromJson(doc.data()))
           .toList();
     }).handleError((error) {
-      debugPrint('Error in getInvitationsStream: $error');
+      WasteAppLogger.severe('Error in getInvitationsStream: $error');
       throw Exception('Failed to stream invitations: $error');
     });
   }
@@ -839,7 +840,7 @@ class FirebaseFamilyService {
       await _firestore.collection(_usersCollection).doc(userId).update(data);
     } catch (e) {
       // Log the error but don't re-throw, as this is a helper function and the main operation might still succeed
-      debugPrint('Error updating user familyId: $e');
+      WasteAppLogger.severe('Error updating user familyId: $e');
     }
   }
 

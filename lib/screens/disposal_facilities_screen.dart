@@ -6,6 +6,7 @@ import 'facility_detail_screen.dart';
 import 'contribution_submission_screen.dart';
 import 'contribution_history_screen.dart';
 import '../models/user_contribution.dart';
+import 'package:waste_segregation_app/utils/waste_app_logger.dart';
 
 class DisposalFacilitiesScreen extends StatefulWidget {
   const DisposalFacilitiesScreen({super.key});
@@ -319,7 +320,7 @@ class _DisposalFacilitiesScreenState extends State<DisposalFacilitiesScreen> {
       return query;
     } catch (e) {
       // Fallback to simpler query if indexing fails
-      debugPrint('Complex query failed, using fallback: $e');
+      WasteAppLogger.severe('Complex query failed, using fallback: $e');
       return FirebaseFirestore.instance
           .collection('disposal_locations')
           .orderBy('name');

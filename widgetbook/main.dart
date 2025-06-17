@@ -28,7 +28,7 @@ class WidgetbookApp extends StatelessWidget {
                       builder: (context) => Container(
                         padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
-                          color: Colors.blue.withOpacity(0.1),
+                          color: Colors.blue.withAlpha((0.1 * 255).toInt()),
                           borderRadius: BorderRadius.circular(8),
                           border: Border.all(color: Colors.blue),
                         ),
@@ -47,7 +47,7 @@ class WidgetbookApp extends StatelessWidget {
                       builder: (context) => Container(
                         padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
-                          color: Colors.green.withOpacity(0.1),
+                          color: Colors.green.withAlpha((0.1 * 255).toInt()),
                           borderRadius: BorderRadius.circular(8),
                           border: Border.all(color: Colors.green),
                         ),
@@ -120,7 +120,8 @@ class WidgetbookApp extends StatelessWidget {
           ],
         ),
         TextScaleAddon(
-          scales: [0.8, 1.0, 1.2, 1.5],
+          min: 0.8,
+          max: 1.5,
         ),
         ThemeAddon(
           themes: [

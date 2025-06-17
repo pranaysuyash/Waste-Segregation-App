@@ -11,6 +11,7 @@ import '../utils/image_utils.dart';
 import '../services/cache_service.dart';
 import 'enhanced_image_service.dart';
 import 'package:uuid/uuid.dart';
+import '../utils/waste_app_logger.dart';
 
 /// Service for analyzing waste items using AI models (OpenAI and Gemini).
 ///
@@ -98,7 +99,7 @@ class AiService {
   void prepareCancelToken() {
     _cancelToken?.cancel('New analysis started');
     _cancelToken = CancelToken();
-    debugPrint('🔄 New cancel token prepared for analysis');
+    WasteAppLogger.info('New analysis prepared, cancel token reset.');
   }
 
   /// Cancels any ongoing analysis operation.
@@ -106,7 +107,7 @@ class AiService {
   void cancelAnalysis() {
     if (_cancelToken != null && !_cancelToken!.isCancelled) {
       _cancelToken!.cancel('User requested cancellation');
-      debugPrint('❌ Analysis cancelled by user');
+      WasteAppLogger.warning('Analysis cancelled by user.');
     }
   }
 
@@ -296,51 +297,42 @@ Output:
     const maxSizeBytes = 20 * 1024 * 1024; // 20MB OpenAI limit
     const preferredSizeBytes = 5 * 1024 * 1024; // 5MB preferred
     
-    debugPrint('Original image size: ${imageBytes.length} bytes (${(imageBytes.length / 1024 / 1024).toStringAsFixed(2)} MB)');
+    WasteAppLogger.info('Original image size: ${(imageBytes.length / 1024 / 1024).toStringAsFixed(2)} MB');
     
-    // If image is within preferred size, return as-is
-    if (imageBytes.length <= preferredSizeBytes) {
-      debugPrint('✅ Image size acceptable for OpenAI');
+    // If image is already smaller than preferred size, return as is
+    if (imageBytes.length < preferredSizeBytes) {
+      WasteAppLogger.info('Image is smaller than preferred size, no compression needed.');
       return imageBytes;
     }
 
-    // Try to compress aggressively if over max size, moderately if over preferred
-    var quality = 90; // Starting quality
-    var scale = 1.0;
-    var image = img.decodeImage(imageBytes);
-
-    if (image == null) {
-      throw Exception('Could not decode image for compression.');
-    }
-
-    // Aggressive compression for very large images
-    if (imageBytes.length > maxSizeBytes) {
-      debugPrint('⚠️ Image size exceeds OpenAI max, attempting aggressive compression.');
-      quality = 60; // Lower quality
-      scale = 0.5; // Scale down
-    } else if (imageBytes.length > preferredSizeBytes) {
-      debugPrint('⚠️ Image size exceeds OpenAI preferred, attempting moderate compression.');
-      quality = 75; // Moderate quality
-      scale = 0.75; // Moderate scale down
-    }
-
-    if (scale < 1.0) {
-      image = img.copyResize(
-        image,
-        width: (image.width * scale).round(),
-        height: (image.height * scale).round(),
-      );
-    }
-
-    // Encode to JPEG
-    final List<int> compressedBytes = img.encodeJpg(image, quality: quality);
-    debugPrint('Compressed image size: ${compressedBytes.length} bytes (${(compressedBytes.length / 1024 / 1024).toStringAsFixed(2)} MB)');
-
-    if (compressedBytes.length > maxSizeBytes) {
-      throw Exception('Image still too large after compression (${(compressedBytes.length / 1024 / 1024).toStringAsFixed(2)} MB). Max allowed is ${maxSizeBytes / 1024 / 1024} MB.');
+    // Iteratively compress image until it's under the preferred size
+    var quality = 95;
+    var compressedBytes = imageBytes;
+    while (compressedBytes.length > preferredSizeBytes && quality > 10) {
+      try {
+        final image = img.decodeImage(compressedBytes);
+        if (image == null) {
+          WasteAppLogger.severe('Failed to decode image for compression.');
+          return compressedBytes; // Return original if decoding fails
+        }
+        
+        compressedBytes = Uint8List.fromList(img.encodeJpg(image, quality: quality));
+        WasteAppLogger.info('Compressed image to ${(compressedBytes.length / 1024 / 1024).toStringAsFixed(2)} MB with quality $quality');
+        
+        quality -= 5;
+      } catch (e, s) {
+        WasteAppLogger.severe('Error during image compression', e, s);
+        break; // Exit loop on error
+      }
     }
     
-    return Uint8List.fromList(compressedBytes);
+    // Final check against OpenAI's hard limit
+    if (compressedBytes.length > maxSizeBytes) {
+      WasteAppLogger.warning('Image size after compression still exceeds 20MB limit. Further reduction needed.');
+      // Consider resizing the image here as a fallback
+    }
+
+    return compressedBytes;
   }
 
   /// Compresses image [Uint8List] data for Gemini API if it's excessively large.
@@ -352,7 +344,7 @@ Output:
       return imageBytes; // No compression needed
     }
 
-    debugPrint('⚠️ Image size exceeds Gemini max, attempting light compression.');
+    WasteAppLogger.warning('Image exceeds Gemini max size, applying compression.');
     var image = img.decodeImage(imageBytes);
 
     if (image == null) {
@@ -368,7 +360,7 @@ Output:
     );
 
     final List<int> compressedBytes = img.encodeJpg(image, quality: 80); // Maintain good quality
-    debugPrint('Compressed image size for Gemini: ${compressedBytes.length} bytes (${(compressedBytes.length / 1024 / 1024).toStringAsFixed(2)} MB)');
+    WasteAppLogger.info('Compressed image size for Gemini: ${(compressedBytes.length / 1024 / 1024).toStringAsFixed(2)} MB');
 
     if (compressedBytes.length > maxSizeBytes) {
       throw Exception('Image still too large after Gemini compression (${(compressedBytes.length / 1024 / 1024).toStringAsFixed(2)} MB). Max allowed is ${maxSizeBytes / 1024 / 1024} MB.');
@@ -412,8 +404,8 @@ Output:
       // Generate and save thumbnail
       final imageBytes = await permanentFile.readAsBytes();
       thumbnailPath = await _imageService.saveThumbnail(imageBytes);
-    } catch (e) {
-      debugPrint('Failed to save image permanently: $e');
+    } catch (e, s) {
+      WasteAppLogger.severe('Error saving image permanently', e, s);
       return WasteClassification.fallback(imageFile.path, id: currentClassificationId);
     }
 
@@ -428,19 +420,19 @@ Output:
         imageHash = hashes['perceptualHash']!;
         contentHash = hashes['contentHash']!;
         
-        debugPrint('Generated perceptual hash for mobile image: $imageHash');
-        debugPrint('Generated content hash for mobile image: $contentHash');
+        WasteAppLogger.info('Generated perceptual hash: $imageHash');
+        WasteAppLogger.info('Generated content hash: $contentHash');
 
         final cachedResult = await cacheService.getCachedClassification(
           imageHash,
           contentHash: contentHash,
         );
         if (cachedResult != null) {
-          debugPrint('✅ DUAL-HASH: Cache hit for mobile image hash: $imageHash - returning verified cached result');
+          WasteAppLogger.cacheEvent('cache_operation', 'classification', context: {'service': 'ai', 'file': 'ai_service'});
           return cachedResult.classification.copyWith(id: currentClassificationId);
         }
 
-        debugPrint('Cache miss for mobile image hash: $imageHash - will call API and save result');
+        WasteAppLogger.cacheEvent('cache_operation', 'classification', context: {'service': 'ai', 'file': 'ai_service'});
       }
 
       // Try OpenAI first with compression
@@ -456,14 +448,14 @@ Output:
           thumbnailPath: thumbnailPath, // Pass thumbnail path
         );
         return result;
-      } on Exception catch (openAiError) {
-        debugPrint('OpenAI analysis failed: $openAiError');
+      } on Exception catch (openAiError, s) {
+        WasteAppLogger.severe('OpenAI analysis failed', openAiError, s);
 
         // If it's an image size issue or OpenAI fails, try Gemini
         if (openAiError.toString().contains('too large') ||
             openAiError.toString().contains('compression failed') ||
             retryCount >= maxRetries) {
-          debugPrint('🔄 Switching to Gemini due to image size or OpenAI failure');
+          WasteAppLogger.info('Falling back to Gemini analysis.');
           final result = await _analyzeWithGemini(
             await permanentFile.readAsBytes(), // Read bytes here
             permanentFile.path, // Use permanent path
@@ -493,8 +485,8 @@ Output:
 
         rethrow;
       }
-    } catch (e) {
-      debugPrint('❌ All analysis methods failed: $e');
+    } catch (e, s) {
+      WasteAppLogger.severe('Top-level analysis failed', e, s);
       // Ensure fallback also uses the consistent ID
       return WasteClassification.fallback(
         permanentFile.path,
@@ -530,7 +522,7 @@ Output:
 
     // Early exit for empty image data to prevent processing errors and unnecessary API calls
     if (imageBytes.isEmpty) {
-      debugPrint('analyzeWebImage: Received empty imageBytes for imageName: $imageName. Returning fallback classification.');
+      WasteAppLogger.warning('analyzeWebImage called with empty image data.');
       // Ensure WasteClassification.fallback sets clarificationNeeded = true and handles an optional reason.
       // If WasteClassification.fallback doesn't support a 'reason' parameter, it might need adjustment,
       // or this call simplified. For now, assuming it can take it or ignore it.
@@ -547,8 +539,8 @@ Output:
     final String savedImagePath;
     try {
       savedImagePath = await _imageService.saveImagePermanently(imageBytes, fileName: imageName);
-    } catch (e) {
-      debugPrint('Failed to save image permanently: $e');
+    } catch (e, s) {
+      WasteAppLogger.severe('Error saving web image permanently', e, s);
       return WasteClassification.fallback(imageName, id: currentClassificationId);
     }
 
@@ -561,19 +553,19 @@ Output:
         imageHash = hashes['perceptualHash']!;
         contentHash = hashes['contentHash']!;
         
-        debugPrint('Generated perceptual hash for web image: $imageHash');
-        debugPrint('Generated content hash for web image: $contentHash');
+        WasteAppLogger.info('Generated perceptual hash for web image: $imageHash');
+        WasteAppLogger.info('Generated content hash for web image: $contentHash');
 
         final cachedResult = await cacheService.getCachedClassification(
           imageHash,
           contentHash: contentHash,
         );
         if (cachedResult != null) {
-          debugPrint('✅ DUAL-HASH: Cache hit for web image hash: $imageHash - returning verified cached result');
+          WasteAppLogger.cacheEvent('cache_operation', 'classification', context: {'service': 'ai', 'file': 'ai_service'});
           return cachedResult.classification.copyWith(id: currentClassificationId);
         }
 
-        debugPrint('Cache miss for web image hash: $imageHash - will call API and save result');
+        WasteAppLogger.cacheEvent('cache_operation', 'classification', context: {'service': 'ai', 'file': 'ai_service'});
       }
 
       // Try OpenAI first with compression
@@ -588,14 +580,14 @@ Output:
           contentHash: contentHash,
         );
         return result;
-      } on Exception catch (openAiError) {
-        debugPrint('OpenAI analysis failed: $openAiError');
+      } on Exception catch (openAiError, s) {
+        WasteAppLogger.severe('OpenAI analysis failed for web image', openAiError, s);
 
         // If it's an image size issue or OpenAI fails, try Gemini
         if (openAiError.toString().contains('too large') ||
             openAiError.toString().contains('compression failed') ||
             retryCount >= maxRetries) {
-          debugPrint('🔄 Switching to Gemini due to image size or OpenAI failure');
+          WasteAppLogger.info('Falling back to Gemini analysis for web image.');
           final result = await _analyzeWithGemini(
             imageBytes,
             savedImagePath,
@@ -626,7 +618,7 @@ Output:
         rethrow;
       }
     } catch (e) {
-      debugPrint('❌ All analysis methods failed: $e');
+      WasteAppLogger.severe('Top-level web analysis failed', e, null);
       // Ensure fallback also uses the consistent ID
       return WasteClassification.fallback(
         imageName,
@@ -715,8 +707,8 @@ Output:
         currentClassificationId,
       );
       return classification;
-    } on Exception catch (e) {
-      debugPrint('OpenAI segment analysis failed: $e');
+    } on Exception {
+      WasteAppLogger.aiEvent('AI operation', context: {'service': 'ai', 'file': 'ai_service'});
 
       // Fallback for segment analysis failures
       if (retryCount < maxRetries) {
@@ -735,7 +727,7 @@ Output:
       }
 
       // If all segment analysis retries fail, fall back to non-segmented analysis
-      debugPrint('❌ Segment analysis failed after retries, falling back to full image analysis.');
+      WasteAppLogger.severe('Error occurred');
       return analyzeWebImage(
         imageBytes,
         imageName,
@@ -766,11 +758,11 @@ Output:
     final base64Image = _bytesToBase64(compressedBytes);
     final mimeType = _detectImageMimeType(compressedBytes);
     
-    debugPrint('🔄 Making OpenAI API request...');
-    debugPrint('🔄 Model: ${ApiConfig.primaryModel}');
-    debugPrint('🔄 Image size: ${compressedBytes.length} bytes');
-    debugPrint('🔄 MIME type: $mimeType');
-    debugPrint('🔄 Base64 size: ${base64Image.length} characters');
+    WasteAppLogger.info('Sending image to OpenAI for analysis.');
+    WasteAppLogger.info('Image size: ${(compressedBytes.length / 1024).toStringAsFixed(2)} KB');
+    WasteAppLogger.info('MIME type: $mimeType');
+    WasteAppLogger.info('Region: $region');
+    WasteAppLogger.info('Language: $language');
 
     final requestBody = <String, dynamic>{
       'model': ApiConfig.primaryModel,
@@ -817,7 +809,7 @@ Output:
 
     // Enhanced error handling with detailed logging
     if (response.statusCode == 200) {
-      debugPrint('✅ OpenAI API Success');
+      WasteAppLogger.info('Received successful response from OpenAI.');
       final Map<String, dynamic> responseData = response.data;
       final classification = _processAiResponseData(
         responseData,
@@ -842,22 +834,22 @@ Output:
       return classification;
     } else {
       // ENHANCED ERROR LOGGING
-      debugPrint('❌ OpenAI API Error - Status: ${response.statusCode}');
-      debugPrint('❌ Response Headers: ${response.headers}');
-      debugPrint('❌ Response Data: ${response.data}');
+      WasteAppLogger.severe('OpenAI API request failed.');
+      WasteAppLogger.severe('Status code: ${response.statusCode}');
+      WasteAppLogger.severe('Response body: ${response.data}');
       
       // Parse error details if available
       try {
         final errorData = response.data;
         if (errorData['error'] != null) {
-          debugPrint('❌ OpenAI Error Type: ${errorData['error']['type']}');
-          debugPrint('❌ OpenAI Error Message: ${errorData['error']['message']}');
+          WasteAppLogger.severe('Error message: ${errorData['error']['message']}');
+          WasteAppLogger.severe('Error type: ${errorData['error']['type']}');
           if (errorData['error']['code'] != null) {
-            debugPrint('❌ OpenAI Error Code: ${errorData['error']['code']}');
+            WasteAppLogger.severe('Error code: ${errorData['error']['code']}');
           }
         }
-      } catch (e) {
-        debugPrint('❌ Could not parse error response: $e');
+      } catch (e, s) {
+        WasteAppLogger.severe('Failed to parse OpenAI error response.', e, s);
       }
       
       // Handle specific error codes
@@ -925,8 +917,8 @@ Output:
 
     final croppedImageBytes = Uint8List.fromList(img.encodeJpg(croppedImage));
 
-    debugPrint('🔄 Analyzing first segment with OpenAI...');
-    debugPrint('🔄 Segment bounds: x=$clampedX, y=$clampedY, w=$clampedWidth, h=$clampedHeight');
+    WasteAppLogger.info('Analyzing cropped segment.');
+    WasteAppLogger.info('Cropped image size: ${(croppedImageBytes.length / 1024).toStringAsFixed(2)} KB');
     return _analyzeWithOpenAI(croppedImageBytes, imageName, region, language, null, classificationId);
   }
 
@@ -946,21 +938,21 @@ Output:
     String? contentHash,
     String? thumbnailPath,
   }) async {
-    debugPrint('🔄 Using Gemini for analysis...');
+    WasteAppLogger.info('Falling back to Gemini for analysis.');
     
     // Gemini can handle larger images, but still compress if extremely large
     var processedBytes = imageBytes;
     const geminiMaxSize = 50 * 1024 * 1024; // 50MB for Gemini (more generous)
     
     if (imageBytes.length > geminiMaxSize) {
-      debugPrint('⚠️ Image too large even for Gemini, applying light compression');
+      WasteAppLogger.warning('Image exceeds Gemini max size, applying compression.');
       processedBytes = await _compressImageForGemini(imageBytes);
     }
     
     final base64Image = _bytesToBase64(processedBytes);
     final mimeType = _detectImageMimeType(processedBytes);
     
-    debugPrint('🔄 Gemini request - Image size: ${processedBytes.length} bytes, MIME: $mimeType');
+    WasteAppLogger.info('Sending image to Gemini. Size: ${(processedBytes.length / 1024).toStringAsFixed(2)} KB');
     
     final requestBody = <String, dynamic>{
       'contents': [
@@ -1003,7 +995,7 @@ Output:
     }
 
     if (response.statusCode == 200) {
-      debugPrint('✅ Gemini API Success');
+      WasteAppLogger.info('Received successful response from Gemini.');
       final Map<String, dynamic> responseData = response.data;
       
       // Extract content from Gemini response format
@@ -1051,9 +1043,7 @@ Output:
         throw Exception('Invalid Gemini response format');
       }
     } else {
-      debugPrint('❌ Gemini API Error - Status: ${response.statusCode}');
-      debugPrint('❌ Response Headers: ${response.headers}');
-      debugPrint('❌ Response Data: ${response.data}');
+      WasteAppLogger.severe('Error occurred');
       throw Exception('Gemini API Error ${response.statusCode}: ${response.data}');
     }
   }
@@ -1071,7 +1061,7 @@ Output:
     String? model,
     List<String>? reanalysisModelsTried,
   }) async {
-    debugPrint('🔄 Processing user correction...');
+    WasteAppLogger.info('Operation completed', null, null, {'service': 'ai', 'file': 'ai_service'});
 
     // Determine which model to use for re-analysis
     final modelToUse = model ?? 
@@ -1097,12 +1087,12 @@ Output:
         if (response.statusCode == 200) {
           imageBytes = response.bodyBytes;
         } else {
-          debugPrint('Failed to fetch image from URL for re-analysis: ${response.statusCode}');
+          WasteAppLogger.severe('Error occurred');
         }
       }
 
       if (imageBytes == null) {
-        debugPrint('Could not retrieve image bytes for correction. Proceeding without image.');
+        WasteAppLogger.info('Operation completed', null, null, {'service': 'ai', 'file': 'ai_service'});
       }
       
       final base64Image = imageBytes != null ? _bytesToBase64(imageBytes) : '';
@@ -1175,11 +1165,11 @@ Output:
           userCorrection: userCorrection,
         );
       } else {
-        debugPrint('Error in correction request: ${response.data}');
+        WasteAppLogger.severe('Error occurred');
         throw Exception('Failed to process correction: ${response.statusCode}');
       }
     } catch (e) {
-      debugPrint('Error handling user correction: $e');
+      WasteAppLogger.severe('Error occurred');
       // Return original classification with user correction noted
       return originalClassification.copyWith(
         userCorrection: userCorrection,
@@ -1226,8 +1216,7 @@ Output:
               thumbnailPath: thumbnailPath,
             );
           } catch (jsonError) {
-            debugPrint('❌ JSON PARSING FAILED: $jsonError');
-            debugPrint('❌ Problematic content (first 500 chars): ${content.length > 500 ? "${content.substring(0, 500)}..." : content}');
+            WasteAppLogger.severe('Error occurred');
 
             // Try to extract basic info even if full parsing fails
             return _createFallbackClassification(
@@ -1240,13 +1229,13 @@ Output:
         }
       }
     } catch (e) {
-      debugPrint('❌ Error processing AI response data: $e');
+      WasteAppLogger.severe('Error occurred');
       // Ensure fallback also uses the consistent ID
       return WasteClassification.fallback(imagePath, id: classificationId);
     }
 
     // Fallback for unexpected response structure
-    debugPrint('❌ Unexpected response structure, using fallback');
+    WasteAppLogger.severe('Error occurred');
     return WasteClassification.fallback(imagePath, id: classificationId);
   }
 
@@ -1302,7 +1291,7 @@ Output:
       try {
         return DisposalInstructions.fromJson(Map<String, dynamic>.from(jsonDisposalInstructions));
       } catch (e) {
-        debugPrint('Error parsing DisposalInstructions from Map: $e');
+        WasteAppLogger.severe('Error occurred');
         // Fallback to basic instructions if map parsing fails
         return DisposalInstructions(
           primaryMethod: jsonDisposalInstructions['primaryMethod']?.toString() ?? 'Review required',
@@ -1345,7 +1334,7 @@ Output:
             try {
               return AlternativeClassification.fromJson(alt as Map<String, dynamic>);
             } catch (e) {
-              debugPrint('Error parsing individual AlternativeClassification: $e');
+              WasteAppLogger.severe('Error occurred');
               return null; // Return null for invalid entries
             }
           })
@@ -1383,10 +1372,10 @@ Output:
         final subcategory = _safeStringParse(jsonContent['subcategory']) ?? '';
         final category = _safeStringParse(jsonContent['category']) ?? '';
         
-        debugPrint('🔧 ItemName was null/empty, attempting to extract from context');
-        debugPrint('🔧 Explanation: $explanation');
-        debugPrint('🔧 Subcategory: $subcategory');
-        debugPrint('🔧 Category: $category');
+        WasteAppLogger.info('Operation completed', null, null, {'service': 'ai', 'file': 'ai_service'});
+        WasteAppLogger.info('Operation completed', null, null, {'service': 'ai', 'file': 'ai_service'});
+        WasteAppLogger.info('Operation completed', null, null, {'service': 'ai', 'file': 'ai_service'});
+        WasteAppLogger.info('Operation completed', null, null, {'service': 'ai', 'file': 'ai_service'});
         
         // Try to extract from explanation first
         if (explanation.isNotEmpty) {
@@ -1402,7 +1391,7 @@ Output:
               final extractedName = match.group(1)!.trim();
               if (extractedName.isNotEmpty && extractedName.length < 50) {
                 itemName = extractedName;
-                debugPrint('🔧 Extracted itemName from explanation: "$itemName"');
+                WasteAppLogger.info('Operation completed', null, null, {'service': 'ai', 'file': 'ai_service'});
                 break;
               }
             }
@@ -1412,19 +1401,19 @@ Output:
         // Fallback to subcategory if still empty
         if (itemName.isEmpty && subcategory.isNotEmpty) {
           itemName = subcategory;
-          debugPrint('🔧 Using subcategory as itemName: "$itemName"');
+          WasteAppLogger.info('Operation completed', null, null, {'service': 'ai', 'file': 'ai_service'});
         }
         
         // Final fallback to category
         if (itemName.isEmpty && category.isNotEmpty) {
           itemName = category;
-          debugPrint('🔧 Using category as itemName: "$itemName"');
+          WasteAppLogger.info('Operation completed', null, null, {'service': 'ai', 'file': 'ai_service'});
         }
         
         // Last resort fallback
         if (itemName.isEmpty) {
           itemName = 'Unidentified Item';
-          debugPrint('🔧 Using fallback itemName: "$itemName"');
+          WasteAppLogger.info('Operation completed', null, null, {'service': 'ai', 'file': 'ai_service'});
         }
       }
 
@@ -1504,7 +1493,7 @@ Output:
       );
       
     } catch (e) {
-      debugPrint('Error creating classification from JSON: $e');
+      WasteAppLogger.severe('Error occurred');
       return _createFallbackClassification(jsonContent.toString(), imagePath, region, classificationId: classificationId);
     }
   }
@@ -1661,7 +1650,7 @@ Output:
   /// from the raw content string using simple keyword matching and regex.
   /// Assigns moderate confidence and marks clarification as needed.
   WasteClassification _createFallbackClassification(String content, String imagePath, String region, {String? classificationId}) {
-    debugPrint('Creating fallback classification from partial content');
+    WasteAppLogger.info('Operation completed', null, null, {'service': 'ai', 'file': 'ai_service'});
     
     // Try to extract basic information from the text
     var itemName = 'Unknown Item';
@@ -1731,7 +1720,7 @@ Output:
         throw Exception('Failed to decode image for segmentation');
       }
 
-      debugPrint('🔍 Segmenting image of size ${image.width}x${image.height}');
+      WasteAppLogger.cacheEvent('cache_operation', 'classification', context: {'service': 'ai', 'file': 'ai_service'});
 
       // Create a simple grid-based segmentation (3x3 grid)
       final segments = <Map<String, dynamic>>[];
@@ -1760,10 +1749,10 @@ Output:
         }
       }
 
-      debugPrint('🔍 Generated ${segments.length} segments');
+      WasteAppLogger.cacheEvent('cache_operation', 'classification', context: {'service': 'ai', 'file': 'ai_service'});
       return segments;
     } catch (e) {
-      debugPrint('❌ Error in image segmentation: $e');
+      WasteAppLogger.severe('Error occurred');
       rethrow;
     }
   }

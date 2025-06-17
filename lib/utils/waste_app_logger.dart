@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:logging/logging.dart';
 import 'package:package_info_plus/package_info_plus.dart';
+import 'package:waste_segregation_app/utils/waste_app_logger.dart';
 
 class WasteAppLogger {
   static late IOSink _logSink;
@@ -52,7 +53,7 @@ class WasteAppLogger {
 
         // Mirror to console for development
         if (kDebugMode) {
-          debugPrint('WasteAppLogger: ${jsonEncode(entry)}');
+          WasteAppLogger.info('WasteAppLogger: ${jsonEncode(entry)}');
         }
       });
 
@@ -60,7 +61,7 @@ class WasteAppLogger {
       info('WasteAppLogger initialized', null, null, {'session_id': _sessionId, 'app_version': _appVersion});
     } catch (e) {
       // Fallback to debug print if logger initialization fails
-      debugPrint('WasteAppLogger initialization failed: $e');
+      WasteAppLogger.severe('WasteAppLogger initialization failed: $e');
     }
   }
 
@@ -69,7 +70,7 @@ class WasteAppLogger {
       info('WasteAppLogger disposing');
       _logSink.close();
     } catch (e) {
-      debugPrint('WasteAppLogger dispose error: $e');
+      WasteAppLogger.severe('WasteAppLogger dispose error: $e');
     }
   }
 

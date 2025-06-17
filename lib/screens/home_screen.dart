@@ -33,6 +33,7 @@ import 'result_screen.dart';
 import 'educational_content_screen.dart';
 import 'content_detail_screen.dart';
 import 'achievements_screen.dart';
+import '../utils/waste_app_logger.dart';
 // import 'settings_screen.dart';
 
 // import '../services/premium_service.dart';
@@ -103,7 +104,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         _activeChallenges = challenges;
       });
     } catch (e) {
-      debugPrint('Error loading gamification data: $e');
+      WasteAppLogger.severe('Error occurred', null, null, {'service': 'screen', 'file': 'home_screen'});
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -174,14 +175,14 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
 
   Future<void> _takePicture() async {
     // Track camera button interaction
-    _analyticsService.trackButtonClick('take_picture', screenName: 'HomeScreen');
+    _analyticsService.trackUserAction('take_picture', parameters: {'screen': 'HomeScreen'});
     
     try {
-      debugPrint('Starting camera capture process...');
+      WasteAppLogger.info('Operation completed', null, null, {'service': 'screen', 'file': 'home_screen'});
 
       // Web platform handling
       if (kIsWeb) {
-        debugPrint('Web platform detected, using image_picker directly');
+        WasteAppLogger.info('Operation completed', null, null, {'service': 'screen', 'file': 'home_screen'});
 
         // For web, we'll use the standard image_picker
         final image = await _imagePicker.pickImage(
@@ -191,11 +192,10 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
           imageQuality: 85,
         );
 
-        debugPrint(
-            'Camera picker result: ${image != null ? 'Image captured' : 'No image'}');
+        WasteAppLogger.info('Camera picker result: ${image != null ? 'Image captured' : 'No image'}', null, null, {'service': 'screen', 'file': 'home_screen'});
 
         if (image != null && mounted) {
-          debugPrint('Web image captured: ${image.path}');
+          WasteAppLogger.info('Image captured successfully from web', null, null, {'service': 'screen', 'file': 'home_screen'});
 
           // For web, we need to handle XFile differently
           try {
@@ -210,7 +210,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
               throw Exception('Failed to read image data');
             }
           } catch (webError) {
-            debugPrint('Web image processing error: $webError');
+            WasteAppLogger.severe('Error processing web image', webError, null, {'service': 'screen', 'file': 'home_screen'});
             if (mounted) {
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(
@@ -220,7 +220,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
           }
         } else if (mounted) {
           // No image returned - user canceled or error
-          debugPrint('No web image captured or user canceled');
+          WasteAppLogger.info('No image captured from web.', null, null, {'service': 'screen', 'file': 'home_screen'});
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
               content: Text(
@@ -236,7 +236,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       // Check if running on emulator using our enhanced detection
       // Camera setup successful, proceed
       if (mounted) {
-        debugPrint('Camera setup completed successfully');
+        WasteAppLogger.info('Running on emulator, showing limited camera support snackbar.', null, null, {'service': 'screen', 'file': 'home_screen'});
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text(
@@ -248,25 +248,23 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
 
       // Setup camera if needed
       final cameraSetupSuccess = await PlatformCamera.setup();
-      debugPrint('Camera setup result: $cameraSetupSuccess');
+      WasteAppLogger.info('Platform camera setup finished.', null, null, {'service': 'screen', 'file': 'home_screen'});
 
       // Try using our enhanced platform camera implementation
-      debugPrint('Opening camera picker...');
+      WasteAppLogger.info('Attempting to take picture with platform camera.', null, null, {'service': 'screen', 'file': 'home_screen'});
       final image = await PlatformCamera.takePicture();
 
-      debugPrint(
-          'Camera picker result: ${image != null ? 'Image captured' : 'No image'}');
+      WasteAppLogger.info('Camera picker result: ${image != null ? 'Image captured' : 'No image'}', null, null, {'service': 'screen', 'file': 'home_screen'});
 
       if (image != null && mounted) {
-        debugPrint(
-            'Navigating to image capture screen with image: ${image.path}');
+        WasteAppLogger.info('Navigating to image capture screen with image: ${image.path}', null, null, {'service': 'screen', 'file': 'home_screen'});
         // For iOS/Android, make sure we're using File properly
         final imageFile = File(image.path);
         // Check if file exists before proceeding
         if (imageFile.existsSync()) {
           _navigateToImageCapture(imageFile);
         } else {
-          debugPrint('Image file does not exist: ${image.path}');
+          WasteAppLogger.warning('Captured image file does not exist at path: ${image.path}', null, null, {'service': 'screen', 'file': 'home_screen'});
           if (!mounted) return;
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
@@ -276,8 +274,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         }
       } else if (mounted) {
         // No image returned - on emulator, this usually means the camera is not supported
-        debugPrint(
-            'No image returned from camera picker - likely not supported on this device/emulator');
+        WasteAppLogger.warning('No image returned from camera picker - likely not supported on this device/emulator', null, null, {'service': 'screen', 'file': 'home_screen'});
 
         // Ask if user wants to try gallery instead
         if (mounted) {
@@ -308,9 +305,9 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
           ));
         }
       }
-    } catch (e) {
+    } catch (e, s) {
       // Log the specific error for debugging
-      debugPrint('Error taking picture: $e');
+      WasteAppLogger.severe('Error in _takePicture', e, s, {'service': 'screen', 'file': 'home_screen'});
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Camera error: ${e.toString()}')),
@@ -321,7 +318,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
 
   Future<void> _pickImage() async {
     // Track gallery button interaction
-    _analyticsService.trackButtonClick('pick_image_gallery', screenName: 'HomeScreen');
+    _analyticsService.trackUserAction('pick_image_gallery', parameters: {'screen': 'HomeScreen'});
     
     try {
       // Show loading indicator while initializing
@@ -334,7 +331,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         );
       }
 
-      debugPrint('Opening gallery picker...');
+      WasteAppLogger.info('Opening gallery to pick image.', null, null, {'service': 'screen', 'file': 'home_screen'});
       final image = await _imagePicker.pickImage(
         source: ImageSource.gallery,
         maxWidth: 1200,
@@ -342,15 +339,14 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         imageQuality: 85,
       );
 
-      debugPrint(
-          'Gallery picker result: ${image != null ? 'Image selected' : 'No image'}');
+      WasteAppLogger.info('Gallery picker result: ${image != null ? 'Image selected' : 'No image'}', null, null, {'service': 'screen', 'file': 'home_screen'});
 
       if (image != null && mounted) {
-        debugPrint('Image selected: ${image.path}');
+        WasteAppLogger.info('Image selected from gallery, proceeding.', null, null, {'service': 'screen', 'file': 'home_screen'});
 
         // Handle differently for web vs mobile
         if (kIsWeb) {
-          debugPrint('Processing web image from gallery');
+          WasteAppLogger.info('Handling selected gallery image for web.', null, null, {'service': 'screen', 'file': 'home_screen'});
 
           try {
             // For web, convert XFile to bytes
@@ -358,15 +354,14 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                 await WebImageHandler.xFileToBytes(image);
 
             if (imageBytes != null && imageBytes.isNotEmpty) {
-              debugPrint(
-                  'Web image bytes loaded successfully, size: ${imageBytes.length}');
+              WasteAppLogger.info('Web image bytes loaded successfully, size: ${imageBytes.length}', null, null, {'service': 'screen', 'file': 'home_screen'});
               // Navigate with bytes instead of File for web
               _navigateToWebImageCapture(image, imageBytes);
             } else {
               throw Exception('Failed to read web image data');
             }
           } catch (webError) {
-            debugPrint('Web gallery image processing error: $webError');
+            WasteAppLogger.severe('Error processing web image from gallery', webError, null, {'service': 'screen', 'file': 'home_screen'});
             if (mounted) {
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(
@@ -376,7 +371,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
           }
         } else {
           // For mobile platforms
-          debugPrint('Processing mobile image from gallery');
+          WasteAppLogger.info('Handling selected gallery image for mobile.', null, null, {'service': 'screen', 'file': 'home_screen'});
 
           try {
             // For iOS/Android, create file handle and verify
@@ -387,7 +382,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
               // Check file can be read
               try {
                 final fileLength = await imageFile.length();
-                debugPrint('Selected image file size: $fileLength bytes');
+                WasteAppLogger.info('Selected file length: $fileLength', null, null, {'service': 'screen', 'file': 'home_screen'});
 
                 if (fileLength > 0) {
                   // Proceed with the valid image file
@@ -396,7 +391,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                   throw Exception('Selected image file is empty (0 bytes)');
                 }
               } catch (fileError) {
-                debugPrint('Error reading image file: $fileError');
+                WasteAppLogger.severe('Error reading selected image file', fileError, null, {'service': 'screen', 'file': 'home_screen'});
                 if (mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
@@ -406,7 +401,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                 }
               }
             } else {
-              debugPrint('Image file does not exist: ${image.path}');
+              WasteAppLogger.warning('Selected image file does not exist at path: ${image.path}', null, null, {'service': 'screen', 'file': 'home_screen'});
               if (mounted) {
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(
@@ -416,7 +411,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
               }
             }
           } catch (fileError) {
-            debugPrint('File error: $fileError');
+            WasteAppLogger.severe('Error processing selected file', fileError, null, {'service': 'screen', 'file': 'home_screen'});
             if (mounted) {
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(
@@ -428,11 +423,11 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         }
       } else if (mounted) {
         // User canceled or no image was selected
-        debugPrint('No image selected from gallery');
+        WasteAppLogger.info('No image selected from gallery.', null, null, {'service': 'screen', 'file': 'home_screen'});
       }
-    } catch (e) {
+    } catch (e, s) {
       // Log the specific error for debugging
-      debugPrint('Error picking image: $e');
+      WasteAppLogger.severe('Error in _pickImage', e, s, {'service': 'screen', 'file': 'home_screen'});
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Gallery error: ${e.toString()}')),
@@ -441,136 +436,35 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     }
   }
 
-  // Navigate to image capture for mobile platforms with a File
   void _navigateToImageCapture(File imageFile) {
+    _analyticsService.trackUserAction('navigate_to_image_capture', parameters: {'screen': 'HomeScreen', 'platform': 'mobile'});
+    WasteAppLogger.info('Navigating to ImageCaptureScreen', null, null, {'service': 'screen', 'file': 'home_screen'});
     Navigator.push(
       context,
       MaterialPageRoute(
         builder: (context) => ImageCaptureScreen(imageFile: imageFile),
       ),
-    ).then((result) async {
-      // Ensure all classifications are loaded in the recents list
-      await _loadRecentClassifications();
-
-      // Process classification for gamification if available
-      if (result != null && result is WasteClassification) {
-      // Track classification completion for ad frequency
-      if (!mounted) return;
-      final adService = Provider.of<AdService>(context, listen: false);
-      adService.trackClassificationCompleted();
-      
-      // Check if we should show an interstitial ad
-      if (adService.shouldShowInterstitial()) {
-      unawaited(adService.showInterstitialAd());
-      }
-      
-      // Process classification with improved feedback
-      if (!mounted) return;
-      final gamificationService = Provider.of<GamificationService>(context, listen: false);
-      
-      // Get previous profile for comparison
-      final oldProfile = await gamificationService.getProfile();
-      if (!mounted) return;
-      
-        // Process the classification
-        final completedChallenges = await gamificationService.processClassification(result);
-        if (!mounted) return;
-        
-        // Get updated profile
-        final newProfile = await gamificationService.getProfile();
-        if (!mounted) return;
-        
-        // Calculate points difference
-        final pointsEarned = newProfile.points.total - oldProfile.points.total;
-        
-        // Show points earned popup if any
-        if (pointsEarned > 0) {
-          _showPointsEarnedPopup(pointsEarned, 'classification');
-        }
-        
-        // Show completed challenge notification if any
-        if (completedChallenges.isNotEmpty) {
-          _showChallengeCompletedPopup(completedChallenges.first);
-        }
-        
-        // Check for new achievements
-        final oldAchievementIds = oldProfile.achievements
-            .where((a) => a.isEarned)
-            .map((a) => a.id)
-            .toSet();
-            
-        final newlyEarnedAchievements = newProfile.achievements
-            .where((a) => a.isEarned && !oldAchievementIds.contains(a.id))
-            .toList();
-            
-        // Show achievement notifications
-        for (final achievement in newlyEarnedAchievements) {
-          _showAchievementNotification(achievement);
-        }
-        
-        // Refresh gamification data
-        await _loadGamificationData();
-      }
+    ).then((_) {
+      _loadRecentClassifications();
+      _loadGamificationData();
     });
   }
 
-  // Navigate to image capture for web platforms with XFile and bytes
-  void _navigateToWebImageCapture(XFile xFile, Uint8List imageBytes) {
-    debugPrint(
-        'Navigating to web image capture screen with ${imageBytes.length} bytes');
-
+  void _navigateToWebImageCapture(XFile imageFile, Uint8List imageBytes) {
+    _analyticsService.trackUserAction('navigate_to_web_image_capture', parameters: {'screen': 'HomeScreen', 'platform': 'web'});
+    WasteAppLogger.info('Navigating to ImageCaptureScreen for web', null, null, {'service': 'screen', 'file': 'home_screen'});
     Navigator.push(
       context,
       MaterialPageRoute(
         builder: (context) => ImageCaptureScreen(
-          xFile: xFile,
+          xFile: imageFile,
           webImage: imageBytes,
         ),
       ),
-    ).then((result) async {
-      // Ensure all classifications are loaded in the recents list
-      await _loadRecentClassifications();
-
-      // Process classification for gamification if available
-      if (result != null && result is WasteClassification) {
-        // Track classification completion for ad frequency
-        if (!mounted) return;
-        final adService = Provider.of<AdService>(context, listen: false);
-        adService.trackClassificationCompleted();
-        
-        // Check if we should show an interstitial ad
-        if (adService.shouldShowInterstitial()) {
-          unawaited(adService.showInterstitialAd());
-        }
-        
-        unawaited(_processClassificationForGamification(result).then((newAchievements) {
-          if (!mounted) return;
-          // Show achievement notifications
-          for (final achievement in newAchievements) {
-            _showAchievementNotification(achievement);
-          }
-        }));
-      }
+    ).then((_) {
+      _loadRecentClassifications();
+      _loadGamificationData();
     });
-  }
-
-  // Show an achievement notification
-  void _showAchievementNotification(Achievement achievement) {
-    unawaited(showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return Dialog(
-          backgroundColor: Colors.transparent,
-          elevation: 0,
-          child: EnhancedAchievementNotification(
-            achievement: achievement,
-            onDismiss: () {
-              Navigator.of(context).pop();
-            },
-          ),
-        );
-      },
-    ));
   }
 
   void _showClassificationDetails(WasteClassification classification) {
@@ -620,7 +514,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
 
       return newlyEarned;
     } catch (e) {
-      debugPrint('Error processing gamification: $e');
+      WasteAppLogger.severe('Error occurred', null, null, {'service': 'screen', 'file': 'home_screen'});
       return [];
     }
   }
@@ -687,8 +581,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
           // Log the length of the daily tip title and content
           FutureBuilder(
             future: Future.microtask(() { // Ensure it runs after build
-              debugPrint('Daily Tip Title Length: ${dailyTip.title.length}');
-              debugPrint('Daily Tip Content Length: ${dailyTip.content.length}');
+              WasteAppLogger.info('Operation completed', null, null, {'service': 'screen', 'file': 'home_screen'});
+              WasteAppLogger.info('Operation completed', null, null, {'service': 'screen', 'file': 'home_screen'});
             }),
             builder: (_, __) => const SizedBox.shrink(), // No UI impact
           ),
@@ -794,7 +688,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
             TextButton(
               onPressed: () {
                 // Track view all educational content
-                _analyticsService.trackButtonClick('view_all_educational_content', screenName: 'HomeScreen');
+                _analyticsService.trackUserAction('view_all_educational_content', parameters: {'screen': 'HomeScreen'});
                 
                 Navigator.push(
                   context,
@@ -1453,10 +1347,10 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                                 itemBuilder: (context, index) {
                                   final classification = _recentClassifications[index];
                                   // Log lengths for recent identification fields
-                                  debugPrint('Recent Item: ${classification.itemName}, Length: ${classification.itemName.length}');
-                                  debugPrint('Recent Category: ${classification.category}, Length: ${classification.category.length}');
+                                  WasteAppLogger.info('Operation completed', null, null, {'service': 'screen', 'file': 'home_screen'});
+                                  WasteAppLogger.info('Operation completed', null, null, {'service': 'screen', 'file': 'home_screen'});
                                   if (classification.subcategory != null) {
-                                    debugPrint('Recent Subcategory: ${classification.subcategory}, Length: ${classification.subcategory!.length}');
+                                    WasteAppLogger.info('Operation completed', null, null, {'service': 'screen', 'file': 'home_screen'});
                                   }
                                   return Padding(
                                     padding: const EdgeInsets.only(
@@ -1694,28 +1588,13 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
 
   // Platform-agnostic camera access method
   Future<void> _ensureCameraAccess() async {
+    // A simple check, can be expanded with permissions handling
     try {
-      // Use our enhanced platform camera implementation
-      final cameraSetupSuccess = await PlatformCamera.setup();
-      debugPrint('Camera setup completed. Success: $cameraSetupSuccess');
-
-      // If setup failed on a real device (not emulator), show error message
-              if (!cameraSetupSuccess && mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text(
-                'Camera initialization failed. You may need to grant camera permissions.'),
-            duration: Duration(seconds: 5),
-          ),
-        );
+      if (!kIsWeb) {
+        await PlatformCamera.setup();
       }
     } catch (e) {
-      debugPrint('Error ensuring camera access: $e');
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Camera setup error: ${e.toString()}')),
-        );
-      }
+      WasteAppLogger.warning('Could not setup camera on init: $e', null, null, {'service': 'screen', 'file': 'home_screen'});
     }
   }
   
@@ -1751,7 +1630,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
               },
               // Handle errors better
               errorBuilder: (context, error, stackTrace) {
-                debugPrint('Error loading web image: $error');
+                WasteAppLogger.severe('Error occurred', null, null, {'service': 'screen', 'file': 'home_screen'});
                 return _buildImagePlaceholder();
               },
               // Cache images for better performance
@@ -1760,7 +1639,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
             );
           }
         } catch (e) {
-          debugPrint('Error processing web image data: $e');
+          WasteAppLogger.severe('Error occurred', null, null, {'service': 'screen', 'file': 'home_screen'});
           return _buildImagePlaceholder();
         }
       }
@@ -1781,7 +1660,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
             );
           },
           errorBuilder: (context, error, stackTrace) {
-            debugPrint('Error loading network image: $error');
+            WasteAppLogger.severe('Error occurred', null, null, {'service': 'screen', 'file': 'home_screen'});
             return _buildImagePlaceholder();
           },
           cacheWidth: 120,
@@ -1799,7 +1678,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
 
         // Use FutureBuilder to check if the file exists before rendering
         return FutureBuilder<bool>(
-          future: _checkImageExists(file),
+          future: _checkImageExists(classification.imageUrl!),
         builder: (context, snapshot) {
           // Show placeholder while checking
           if (snapshot.connectionState == ConnectionState.waiting) {
@@ -1812,7 +1691,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
               file,
               fit: BoxFit.cover,
               errorBuilder: (context, error, stackTrace) {
-                debugPrint('Error rendering image file: $error');
+                WasteAppLogger.severe('Error occurred', null, null, {'service': 'screen', 'file': 'home_screen'});
                 return _buildImagePlaceholder();
               },
               cacheWidth: 120,
@@ -1825,29 +1704,26 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         },
       );
     } catch (e) {
-      debugPrint('Error handling image file: $e');
+      WasteAppLogger.severe('Error occurred', null, null, {'service': 'screen', 'file': 'home_screen'});
       return _buildImagePlaceholder();
     }
   }
 
   /// Checks if the given image file exists safely
-  Future<bool> _checkImageExists(File file) async {
-    final path = file.path;
+  Future<bool> _checkImageExists(String path) async {
+    if (kIsWeb) {
+      // For web, assume image exists if path is a URL. This is a simplification.
+      return Uri.tryParse(path)?.isAbsolute ?? false;
+    }
     if (_imageExistenceCache.containsKey(path)) {
       return _imageExistenceCache[path]!;
     }
-
-    try {
-      final exists = await file.exists();
-      if (_imageExistenceCache.length >= _imageCacheMaxEntries) {
-        _imageExistenceCache.remove(_imageExistenceCache.keys.first);
-      }
-      _imageExistenceCache[path] = exists;
-      return exists;
-    } catch (e) {
-      debugPrint('Error checking image file existence: $e');
-      return false;
+    final exists = await File(path).exists();
+    if (_imageExistenceCache.length > _imageCacheMaxEntries) {
+      _imageExistenceCache.remove(_imageExistenceCache.keys.first);
     }
+    _imageExistenceCache[path] = exists;
+    return exists;
   }
   
   /// Builds a loading placeholder while checking file existence
@@ -1882,141 +1758,39 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   }
 
   // Show a points earned popup
-  void _showPointsEarnedPopup(int points, String action) {
-    // Create an overlay entry
-    final overlayState = Overlay.of(context);
-    late OverlayEntry overlayEntry;
-
-    overlayEntry = OverlayEntry(
-      builder: (context) => Positioned(
-        top: MediaQuery.of(context).padding.top + 50,
-        left: 0,
-        right: 0,
-        child: Center(
+  void _showPointsEarnedPopup(int points, String source) {
+    _analyticsService.trackUserAction('show_points_earned_popup', parameters: {'points': points, 'source': source});
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return Dialog(
+          backgroundColor: Colors.transparent,
+          elevation: 0,
           child: PointsEarnedPopup(
             points: points,
-            action: action,
-            onDismiss: () {
-              overlayEntry.remove();
-            },
+            action: source,
+            onDismiss: () => Navigator.of(context).pop(),
           ),
-        ),
-      ),
+        );
+      },
     );
-
-    overlayState.insert(overlayEntry);
-
-    // Auto-dismiss after a delay
-    Future.delayed(const Duration(seconds: 3), () {
-      if (mounted) {
-        try {
-          overlayEntry.remove();
-        } catch (e) {
-          // Overlay may have already been removed
-        }
-      }
-    });
   }
 
   // Show a challenge completed popup
   void _showChallengeCompletedPopup(Challenge challenge) {
-    // Display an overlay notification
+    _analyticsService.trackUserAction('show_challenge_completed_popup', parameters: {'challenge_id': challenge.id});
     showDialog(
       context: context,
-      builder: (context) => Dialog(
-        backgroundColor: Colors.transparent,
-        child: Card(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(AppTheme.borderRadiusRegular),
+      builder: (BuildContext context) {
+        return Dialog(
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          child: ChallengeCompletedPopup(
+            challenge: challenge,
+            onDismiss: () => Navigator.of(context).pop(),
           ),
-          child: Padding(
-            padding: const EdgeInsets.all(AppTheme.paddingRegular),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Row(
-                  children: [
-                    Icon(
-                      AppIcons.fromString(challenge.iconName),
-                      color: challenge.color,
-                      size: 28,
-                    ),
-                    const SizedBox(width: AppTheme.paddingSmall),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text(
-                            'Challenge Completed!',
-                            style: TextStyle(
-                              fontSize: AppTheme.fontSizeMedium,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.amber,
-                            ),
-                          ),
-                          Text(
-                            challenge.title,
-                            style: const TextStyle(
-                              fontSize: AppTheme.fontSizeRegular,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: AppTheme.paddingRegular),
-                Text(
-                  challenge.description,
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: AppTheme.paddingRegular),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: AppTheme.paddingRegular,
-                    vertical: AppTheme.paddingSmall,
-                  ),
-                  decoration: BoxDecoration(
-                    color: Colors.amber.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(AppTheme.borderRadiusRegular),
-                    border: Border.all(color: Colors.amber.withValues(alpha: 0.5)),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Icon(
-                        Icons.stars,
-                        color: Colors.amber,
-                        size: 20,
-                      ),
-                      const SizedBox(width: 8),
-                      Text(
-                        '+${challenge.pointsReward} Points', // Ensure Challenge model has pointsReward
-                        style: const TextStyle(
-                          fontSize: AppTheme.fontSizeRegular,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: AppTheme.paddingRegular),
-                ElevatedButton(
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: challenge.color,
-                    foregroundColor: Colors.white,
-                  ),
-                  child: const Text('Great!'),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
+        );
+      },
     );
   }
 

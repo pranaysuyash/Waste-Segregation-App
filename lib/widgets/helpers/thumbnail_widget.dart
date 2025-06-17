@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import '../../utils/waste_app_logger.dart';
 
 /// Unified thumbnail widget that handles both local files and network URLs
 /// with proper error handling, caching, and orientation support
@@ -78,7 +79,10 @@ class ThumbnailWidget extends StatelessWidget {
         return _buildLoadingWidget(context, loadingProgress);
       },
       errorBuilder: (context, error, stackTrace) {
-        debugPrint('Network image error: $error');
+                    WasteAppLogger.warning('Network image error', error, null, {
+              'image_url': url.substring(0, 50),
+              'widget_type': 'thumbnail'
+            });
         return _buildErrorWidget(context);
       },
     );
@@ -99,7 +103,10 @@ class ThumbnailWidget extends StatelessWidget {
             height: size,
             fit: fit,
             errorBuilder: (context, error, stackTrace) {
-              debugPrint('Local image error: $error');
+              WasteAppLogger.warning('Local image error', error, null, {
+                'image_path': path.substring(0, 50),
+                'widget_type': 'thumbnail'
+              });
               return _buildErrorWidget(context);
             },
           );

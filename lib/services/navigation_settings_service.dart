@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../utils/waste_app_logger.dart';
 
 class NavigationSettingsService extends ChangeNotifier {
   
@@ -26,7 +27,9 @@ class NavigationSettingsService extends ChangeNotifier {
       _navigationStyle = prefs.getString(_navigationStyleKey) ?? 'glassmorphism';
       notifyListeners();
     } catch (e) {
-      debugPrint('Error loading navigation settings: $e');
+      WasteAppLogger.severe('Error loading navigation settings', e, null, {
+        'action': 'use_default_settings'
+      });
     }
   }
   
@@ -37,7 +40,10 @@ class NavigationSettingsService extends ChangeNotifier {
       _bottomNavEnabled = enabled;
       notifyListeners();
     } catch (e) {
-      debugPrint('Error saving bottom nav setting: $e');
+      WasteAppLogger.severe('Error saving bottom nav setting', e, null, {
+        'setting': 'bottom_nav_enabled',
+        'value': enabled
+      });
     }
   }
   
@@ -48,7 +54,10 @@ class NavigationSettingsService extends ChangeNotifier {
       _fabEnabled = enabled;
       notifyListeners();
     } catch (e) {
-      debugPrint('Error saving FAB setting: $e');
+      WasteAppLogger.severe('Error saving FAB setting', e, null, {
+        'setting': 'fab_enabled',
+        'value': enabled
+      });
     }
   }
   
@@ -59,7 +68,10 @@ class NavigationSettingsService extends ChangeNotifier {
       _navigationStyle = style;
       notifyListeners();
     } catch (e) {
-      debugPrint('Error saving navigation style: $e');
+      WasteAppLogger.severe('Error saving navigation style', e, null, {
+        'setting': 'navigation_style',
+        'value': style
+      });
     }
   }
   
@@ -75,7 +87,9 @@ class NavigationSettingsService extends ChangeNotifier {
       _navigationStyle = 'glassmorphism';
       notifyListeners();
     } catch (e) {
-      debugPrint('Error resetting navigation settings: $e');
+      WasteAppLogger.severe('Error resetting navigation settings', e, null, {
+        'action': 'reset_to_defaults'
+      });
     }
   }
 } 

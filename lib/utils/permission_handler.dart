@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:permission_handler/permission_handler.dart';
 import 'constants.dart';
+import 'package:waste_segregation_app/utils/waste_app_logger.dart';
 
 class PermissionHandler {
   /// Check and request camera permission
@@ -22,7 +23,7 @@ class PermissionHandler {
       
       return false;
     } catch (e) {
-      debugPrint('Error checking camera permission: $e');
+      WasteAppLogger.severe('Error checking camera permission: $e');
       return false;
     }
   }
@@ -42,21 +43,21 @@ class PermissionHandler {
         final status = await permission.status;
         
         if (status.isGranted) {
-          debugPrint('Photos permission already granted');
+          WasteAppLogger.info('Photos permission already granted');
           return true;
         } else if (status.isDenied) {
-          debugPrint('Photos permission denied, requesting...');
+          WasteAppLogger.info('Photos permission denied, requesting...');
           final result = await permission.request();
           if (result.isGranted) {
-            debugPrint('Photos permission granted after request');
+            WasteAppLogger.info('Photos permission granted after request');
             return true;
           }
         } else if (status.isPermanentlyDenied) {
-          debugPrint('Photos permission permanently denied');
+          WasteAppLogger.info('Photos permission permanently denied');
           return false;
         }
       } catch (e) {
-        debugPrint('Photos permission not available, trying storage: $e');
+        WasteAppLogger.info('Photos permission not available, trying storage: $e');
       }
       
       // Fallback to storage permission for older Android versions
@@ -65,26 +66,26 @@ class PermissionHandler {
         final status = await permission.status;
         
         if (status.isGranted) {
-          debugPrint('Storage permission already granted');
+          WasteAppLogger.info('Storage permission already granted');
           return true;
         } else if (status.isDenied) {
-          debugPrint('Storage permission denied, requesting...');
+          WasteAppLogger.info('Storage permission denied, requesting...');
           final result = await permission.request();
           if (result.isGranted) {
-            debugPrint('Storage permission granted after request');
+            WasteAppLogger.info('Storage permission granted after request');
             return true;
           }
         } else if (status.isPermanentlyDenied) {
-          debugPrint('Storage permission permanently denied');
+          WasteAppLogger.info('Storage permission permanently denied');
           return false;
         }
       } catch (e) {
-        debugPrint('Storage permission check failed: $e');
+        WasteAppLogger.severe('Storage permission check failed: $e');
       }
       
       return false;
     } catch (e) {
-      debugPrint('Error checking storage/photos permission: $e');
+      WasteAppLogger.severe('Error checking storage/photos permission: $e');
       return false;
     }
   }

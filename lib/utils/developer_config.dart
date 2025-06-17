@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'package:waste_segregation_app/utils/waste_app_logger.dart';
 
 /// Configuration for developer-only features with multiple safety checks
 /// 
@@ -94,9 +95,9 @@ class DeveloperConfig {
     
     // Log the current state for verification (only in debug)
     if (kDebugMode) {
-      debugPrint('🔒 Developer Config Security Check Passed');
-      debugPrint('📊 Developer Mode Enabled: $isDeveloperModeEnabled');
-      debugPrint('🏗️ Build Mode: ${kDebugMode ? 'DEBUG' : kReleaseMode ? 'RELEASE' : 'PROFILE'}');
+      WasteAppLogger.info('🔒 Developer Config Security Check Passed');
+      WasteAppLogger.info('📊 Developer Mode Enabled: $isDeveloperModeEnabled');
+      WasteAppLogger.info('🏗️ Build Mode: ${kDebugMode ? 'DEBUG' : kReleaseMode ? 'RELEASE' : 'PROFILE'}');
     }
   }
   
