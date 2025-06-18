@@ -36,16 +36,19 @@ This document outlines the comprehensive testing strategy implemented for the Wa
 **Purpose**: Pixel-perfect regression testing for UI components
 
 **Features**:
+
 - Device-specific golden files (phone, tablet, different screen sizes)
 - Text scale testing (0.8x to 2.0x)
 - Theme variations (light, dark, high contrast)
 - Network image mocking for consistent results
 
 **Key Files**:
+
 - `test/golden/golden_tests.dart` - Main golden test suite
 - `test/golden/goldens/` - Generated golden image files
 
 **Usage**:
+
 ```bash
 # Update golden files
 flutter test test/golden/ --update-goldens
@@ -59,6 +62,7 @@ flutter test test/golden/
 **Purpose**: Playwright-style testing with real device interaction
 
 **Features**:
+
 - Native system dialog handling
 - Network connectivity testing
 - Permission management
@@ -66,10 +70,12 @@ flutter test test/golden/
 - Screenshot capture and comparison
 
 **Key Files**:
+
 - `integration_test/patrol_test.dart` - Main E2E test suite
 - `integration_test/app_test.dart` - Standard integration tests
 
 **Usage**:
+
 ```bash
 # Install Patrol CLI
 dart pub global activate patrol_cli
@@ -86,6 +92,7 @@ patrol test --device "iPhone 14"
 **Purpose**: Visual component library for design system consistency
 
 **Features**:
+
 - All component states cataloged
 - Device frame testing
 - Theme switching
@@ -93,9 +100,11 @@ patrol test --device "iPhone 14"
 - Accessibility testing
 
 **Key Files**:
+
 - `widgetbook/main.dart` - Component catalog definition
 
 **Usage**:
+
 ```bash
 # Run Widgetbook locally
 flutter run -t widgetbook/main.dart -d chrome
@@ -107,12 +116,14 @@ flutter build web --target=widgetbook/main.dart
 ### 4. Visual Regression Pipeline
 
 **Percy Integration**:
+
 - Automated screenshot capture
 - AI-powered visual diffing
 - PR-based visual review workflow
 - Cross-browser testing
 
 **GitHub Actions Workflow**:
+
 - Automatic golden test validation
 - Percy screenshot upload
 - Visual change detection in PRs
@@ -123,6 +134,7 @@ flutter build web --target=widgetbook/main.dart
 ### Local Development
 
 **Quick Test Run**:
+
 ```bash
 # Run all tests
 ./scripts/run_all_tests.sh
@@ -135,6 +147,7 @@ patrol test                          # E2E tests
 ```
 
 **IDE Integration**:
+
 - VS Code: Use Flutter extension test runner
 - Android Studio: Built-in test runner
 - Custom run configurations for different test types
@@ -142,6 +155,7 @@ patrol test                          # E2E tests
 ### CI/CD Pipeline
 
 **GitHub Actions Workflows**:
+
 1. **Unit & Widget Tests** - Fast feedback on every commit
 2. **Golden Tests** - Visual regression detection
 3. **Integration Tests** - iOS and Android device testing
@@ -149,6 +163,7 @@ patrol test                          # E2E tests
 5. **Performance Tests** - App performance monitoring
 
 **Branch Protection**:
+
 - All tests must pass before merge
 - Visual regression approval required
 - Code coverage thresholds enforced
@@ -158,11 +173,13 @@ patrol test                          # E2E tests
 ### Mock Data Strategy
 
 **Test Fixtures**:
+
 - `test/fixtures/` - Sample data for tests
 - `test/mocks/` - Mock service implementations
 - Network image mocking for consistent golden tests
 
 **Test Isolation**:
+
 - Each test runs in isolation
 - Clean state between tests
 - Deterministic test data
@@ -170,6 +187,7 @@ patrol test                          # E2E tests
 ### Environment Configuration
 
 **Test Environments**:
+
 - Local development
 - CI/CD pipeline
 - Staging environment testing
@@ -180,6 +198,7 @@ patrol test                          # E2E tests
 ### Golden Test Strategy
 
 **Coverage Areas**:
+
 - Classification cards (all states)
 - Points display widgets
 - Achievement cards
@@ -188,6 +207,7 @@ patrol test                          # E2E tests
 - Error states and empty states
 
 **Best Practices**:
+
 - Stable test data
 - Consistent image assets
 - Deterministic animations
@@ -196,6 +216,7 @@ patrol test                          # E2E tests
 ### Percy Visual Diffing
 
 **Features**:
+
 - Smart visual diffing with AI
 - Ignore dynamic content
 - Responsive design testing
@@ -203,6 +224,7 @@ patrol test                          # E2E tests
 - Historical visual timeline
 
 **Workflow**:
+
 1. Widgetbook builds generate screenshots
 2. Percy compares with baseline
 3. Visual changes flagged in PR
@@ -214,12 +236,14 @@ patrol test                          # E2E tests
 ### Test Categories
 
 **Widget Performance**:
+
 - Render time measurement
 - Memory usage tracking
 - Frame rate monitoring
 - Scroll performance
 
 **App Performance**:
+
 - Startup time
 - Navigation performance
 - Image loading optimization
@@ -228,12 +252,14 @@ patrol test                          # E2E tests
 ### Monitoring
 
 **Metrics Tracked**:
+
 - Test execution time
 - Coverage percentages
 - Visual regression count
 - Performance benchmarks
 
 **Alerts**:
+
 - Test failure notifications
 - Coverage drop alerts
 - Performance regression warnings
@@ -244,12 +270,14 @@ patrol test                          # E2E tests
 ### Golden Test Maintenance
 
 **Regular Tasks**:
+
 - Update golden files for intentional UI changes
 - Review and approve visual changes
 - Clean up obsolete golden files
 - Update test data for new features
 
 **Guidelines**:
+
 - Keep golden tests focused and minimal
 - Use descriptive test names
 - Document expected visual behavior
@@ -258,12 +286,14 @@ patrol test                          # E2E tests
 ### E2E Test Maintenance
 
 **Stability Practices**:
+
 - Use stable selectors (semantic IDs)
 - Implement proper wait strategies
 - Handle flaky network conditions
 - Regular test data refresh
 
 **Debugging**:
+
 - Screenshot capture on failure
 - Video recording for complex flows
 - Detailed logging and error reporting
@@ -274,6 +304,7 @@ patrol test                          # E2E tests
 ### Setup for New Developers
 
 1. **Install Dependencies**:
+
    ```bash
    flutter pub get
    dart pub global activate patrol_cli
@@ -281,11 +312,13 @@ patrol test                          # E2E tests
    ```
 
 2. **Run Initial Tests**:
+
    ```bash
    ./scripts/run_all_tests.sh
    ```
 
 3. **Generate Golden Files**:
+
    ```bash
    flutter test test/golden/ --update-goldens
    ```
@@ -298,24 +331,28 @@ patrol test                          # E2E tests
 ### Writing New Tests
 
 **Unit Tests**:
+
 - Follow AAA pattern (Arrange, Act, Assert)
 - Use descriptive test names
 - Mock external dependencies
 - Test edge cases and error conditions
 
 **Widget Tests**:
+
 - Test user interactions
 - Verify widget state changes
 - Use `pumpWidget` and `pumpAndSettle`
 - Test accessibility features
 
 **Golden Tests**:
+
 - Focus on visual components
 - Test multiple device sizes
 - Include theme variations
 - Use stable test data
 
 **E2E Tests**:
+
 - Test complete user journeys
 - Use semantic selectors
 - Handle system dialogs
@@ -326,18 +363,21 @@ patrol test                          # E2E tests
 ### Common Issues
 
 **Golden Test Failures**:
+
 - Check for font rendering differences
 - Verify image asset consistency
 - Review theme changes
 - Update golden files if changes are intentional
 
 **E2E Test Flakiness**:
+
 - Add proper wait conditions
 - Use stable element selectors
 - Handle network timeouts
 - Implement retry mechanisms
 
 **CI/CD Failures**:
+
 - Check environment differences
 - Verify dependency versions
 - Review test data consistency
@@ -369,4 +409,4 @@ patrol test                          # E2E tests
 
 ---
 
-This comprehensive testing strategy ensures high-quality, visually consistent, and reliable user experiences across all platforms and devices. 
+This comprehensive testing strategy ensures high-quality, visually consistent, and reliable user experiences across all platforms and devices.

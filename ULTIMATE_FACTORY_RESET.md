@@ -11,36 +11,43 @@ This document details the complete journey and implementation of the **Ultimate 
 ## 🚨 The Problem Evolution
 
 ### Initial Problem Report
+
 User reported that Firebase data clearing functionality was showing "done" but data still remained. The clearing process appeared to complete successfully but didn't actually remove all data.
 
 ### Problems Discovered Through Investigation
 
 #### 1. **Server-Side Data Resurrection**
+
 - Data deleted locally but still on server could re-sync
 - Cloud Function was returning "done" before deletions completed
 - Firestore operations weren't properly awaited
 
-#### 2. **Firestore Offline Cache Persistence** 
+#### 2. **Firestore Offline Cache Persistence**
+
 - Local cache could survive clearing attempts
 - `clearPersistence()` was called while network was still enabled
 - Caused `failed-precondition` errors
 
 #### 3. **UID-Based Re-Sync Issues**
+
 - Same user UID could pull back deleted data
 - User remained signed in during reset process
 - Fresh data would sync back from server
 
 #### 4. **Incomplete Storage Clearing**
+
 - `box.clear()` only cleared in-memory data, not disk files
 - Hive box name mismatches (hardcoded vs StorageKeys constants)
 - SharedPreferences only selectively cleared
 
 #### 5. **Race Conditions & Sequence Dependencies**
+
 - Async operations completing out of order
 - Modal dismissal issues due to incorrect navigation flow
 - Network state management conflicts
 
 #### 6. **Modal Dismissal & Navigation Issues** *(Added June 16, 2025)*
+
 - Loading dialogs getting stuck open after operations complete
 - Navigation occurring before dialogs were properly dismissed
 - Context mounting issues during async operations
@@ -53,6 +60,7 @@ This section documents EVERY attempt, test, and iteration in our journey to solv
 ### 🔄 Iteration 1: Basic Firebase Clearing (FAILED)
 
 **What We Tried:**
+
 ```dart
 // Simple collection clearing
 final collections = ['users', 'classifications', 'community'];
@@ -66,13 +74,15 @@ for (final collection in collections) {
 ```
 
 **What We Expected:** Complete data removal from Firebase
-**What Actually Happened:** 
+**What Actually Happened:**
+
 - Data appeared gone initially
 - Ghost data returned after app restart
 - Points still showed (805 instead of 0)
 - History still populated (80 classifications)
 
 **Why It Failed:**
+
 - Only cleared server data, not local cache
 - User remained signed in with same UID
 - Data could re-sync from offline cache
@@ -85,6 +95,7 @@ for (final collection in collections) {
 ### 🔄 Iteration 2: Added Firestore Termination (FAILED)
 
 **What We Tried:**
+
 ```dart
 // Added Firestore termination to clear cache
 await FirebaseFirestore.instance.terminate();
@@ -94,12 +105,14 @@ await FirebaseFirestore.instance.waitForPendingWrites();
 
 **What We Expected:** Local cache would be cleared
 **What Actually Happened:**
+
 - App crashed frequently
 - Firestore became unusable
 - Data still persisted in Hive
 - User still had same UID
 
 **Why It Failed:**
+
 - `terminate()` is too aggressive - breaks Firestore permanently
 - No mechanism to restart Firestore properly
 - Local storage (Hive/SharedPreferences) untouched
@@ -112,6 +125,7 @@ await FirebaseFirestore.instance.waitForPendingWrites();
 ### 🔄 Iteration 3: Firestore clearPersistence() Attempt (FAILED)
 
 **What We Tried:**
+
 ```dart
 // Direct clearPersistence call
 await FirebaseFirestore.instance.clearPersistence();
@@ -120,6 +134,7 @@ await clearServerData();
 
 **What We Expected:** Offline cache cleared properly
 **What Actually Happened:**
+
 ```
 PlatformException(failed-precondition, 
 The client has already been initialized. You cannot call clearPersistence() after that., 
@@ -127,6 +142,7 @@ null, null)
 ```
 
 **Why It Failed:**
+
 - Firestore was already initialized and network was active
 - Must disable network before calling clearPersistence()
 - Still didn't address local storage or user identity
@@ -138,6 +154,7 @@ null, null)
 ### 🔄 Iteration 4: Network Disable Sequence (PARTIAL SUCCESS)
 
 **What We Tried:**
+
 ```dart
 // Proper network disable sequence
 await FirebaseFirestore.instance.disableNetwork();
@@ -148,6 +165,7 @@ await clearServerData();
 
 **What We Expected:** Firestore cache properly cleared
 **What Actually Happened:**
+
 - No more precondition errors ✅
 - Firestore cache properly cleared ✅
 - But Hive data still persisted ❌
@@ -155,6 +173,7 @@ await clearServerData();
 - Points and history still showing ❌
 
 **Why It Failed:**
+
 - Local Hive storage not addressed
 - User identity unchanged
 - SharedPreferences untouched
@@ -166,6 +185,7 @@ await clearServerData();
 ### 🔄 Iteration 5: Added Basic Hive Clearing (FAILED)
 
 **What We Tried:**
+
 ```dart
 // Added Hive box clearing
 await Hive.box('classifications').clear();
@@ -176,12 +196,14 @@ await firebaseSteps();
 
 **What We Expected:** Local storage cleared
 **What Actually Happened:**
+
 - Some data cleared but inconsistent results
 - App restart brought back some data
 - Wrong box names used
 - Data still on disk
 
 **Why It Failed:**
+
 - Hardcoded box names didn't match StorageKeys constants
 - `box.clear()` only clears memory, not disk files
 - Boxes could be reopened with old data
@@ -194,6 +216,7 @@ await firebaseSteps();
 ### 🔄 Iteration 6: Fixed Hive Box Names (PARTIAL SUCCESS)
 
 **What We Tried:**
+
 ```dart
 // Using proper StorageKeys constants
 await Hive.box(StorageKeys.classificationsBox).clear();
@@ -204,11 +227,13 @@ await Hive.box(StorageKeys.gamificationBox).clear();
 
 **What We Expected:** Proper box clearing
 **What Actually Happened:**
+
 - Correct boxes cleared ✅
 - But data still persisted after restart ❌
 - Memory cleared but disk files remained ❌
 
 **Why It Failed:**
+
 - Still using `clear()` instead of disk deletion
 - Hive boxes were just emptied, not deleted
 - Files remained on device storage
@@ -220,6 +245,7 @@ await Hive.box(StorageKeys.gamificationBox).clear();
 ### 🔄 Iteration 7: Disk-Level Hive Deletion (MAJOR IMPROVEMENT)
 
 **What We Tried:**
+
 ```dart
 // True disk deletion
 await Hive.close();
@@ -236,12 +262,14 @@ for (final boxName in boxesToDelete) {
 
 **What We Expected:** Complete local storage clearing
 **What Actually Happened:**
+
 - Local storage properly cleared ✅
 - No data resurrection after restart ✅
 - But user could still re-sync old data ❌
 - Same UID allowed server re-sync ❌
 
 **Why It Failed:**
+
 - User identity unchanged
 - Same UID could pull back deleted server data
 - SharedPreferences not cleared
@@ -253,6 +281,7 @@ for (final boxName in boxesToDelete) {
 ### 🔄 Iteration 8: Added User Signout (SIGNIFICANT PROGRESS)
 
 **What We Tried:**
+
 ```dart
 // Sign out current user
 await FirebaseAuth.instance.signOut();
@@ -262,12 +291,14 @@ await FirebaseAuth.instance.signInAnonymously();
 
 **What We Expected:** Fresh user identity
 **What Actually Happened:**
+
 - New UID created ✅
 - Could not re-sync old data ✅
 - Most ghost data eliminated ✅
 - But some preferences still persisted ❌
 
 **Why It Failed:**
+
 - SharedPreferences not cleared
 - Some app state still cached
 - Sequence might allow data re-sync
@@ -279,6 +310,7 @@ await FirebaseAuth.instance.signInAnonymously();
 ### 🔄 Iteration 9: Added SharedPreferences Clearing (NEAR SUCCESS)
 
 **What We Tried:**
+
 ```dart
 // Complete preferences clearing
 final prefs = await SharedPreferences.getInstance();
@@ -288,6 +320,7 @@ await prefs.clear();
 
 **What We Expected:** All local state cleared
 **What Actually Happened:**
+
 - Complete local clearing ✅
 - Fresh user identity ✅
 - No data re-sync ✅
@@ -295,6 +328,7 @@ await prefs.clear();
 - Loading dialogs stuck ❌
 
 **Why It Failed:**
+
 - Modal dismissal sequence wrong
 - Navigation happening before dialogs closed
 - No proper error handling
@@ -306,6 +340,7 @@ await prefs.clear();
 ### 🔄 Iteration 10: Modal Dismissal Fix (SUCCESS!)
 
 **What We Tried:**
+
 ```dart
 // Proper modal flow
 Navigator.pop(context);                    // Close dialog first
@@ -316,12 +351,14 @@ Navigator.pushAndRemoveUntil(...);         // Then navigate
 
 **What We Expected:** Smooth UI flow
 **What Actually Happened:**
+
 - Perfect dialog dismissal ✅
 - Smooth navigation ✅
 - Proper user feedback ✅
 - Complete data clearing ✅
 
 **Why It Worked:**
+
 - Proper async sequence
 - Dialog closed before navigation
 - User feedback provided
@@ -334,6 +371,7 @@ Navigator.pushAndRemoveUntil(...);         // Then navigate
 ### 🔄 Final Solution: Ultimate Factory Reset (COMPLETE SUCCESS!)
 
 **What We Implemented:**
+
 ```dart
 // The complete 6-step process
 await _wipeServerSideData();           // 1. Server complete wipe
@@ -346,12 +384,14 @@ await _reinitializeEssentialServices(); // 6. Service restart
 
 **What We Expected:** True fresh install behavior
 **What Actually Happened:**
+
 - Perfect fresh install simulation ✅
 - Zero ghost data possible ✅
 - Smooth UI experience ✅
 - Complete system reset ✅
 
 **Why It Worked:**
+
 - Complete system coverage
 - Proper sequence dependencies
 - Both server and local clearing
@@ -368,6 +408,7 @@ Our debugging approach was systematic and comprehensive. Here's how we tested ea
 For every iteration, we followed this rigorous testing protocol:
 
 #### 1. **Pre-Test State Setup**
+
 ```bash
 # Create consistent testing environment
 flutter clean
@@ -382,23 +423,27 @@ flutter pub get
 #### 2. **Primary Test Scenarios**
 
 **Scenario A: Points Persistence Test**
+
 - Navigate to Home screen
 - Record displayed points (target: should be 0)
 - Restart app
 - Verify points remain 0
 
 **Scenario B: History Persistence Test**  
+
 - Navigate to History screen
 - Count classification entries (target: should be 0)
 - Check for any ghost entries
 - Restart app and re-verify
 
 **Scenario C: Community Data Test**
+
 - Check community feed
 - Verify no old posts visible
 - Ensure fresh user state
 
 **Scenario D: App Restart Test**
+
 - Close app completely
 - Restart from cold boot
 - Verify no data resurrection
@@ -407,6 +452,7 @@ flutter pub get
 #### 3. **Technical Verification Steps**
 
 **Database Verification:**
+
 ```dart
 // Check Hive boxes are truly empty
 final classBox = await Hive.openBox(StorageKeys.classificationsBox);
@@ -421,6 +467,7 @@ print('Prefs keys: ${prefs.getKeys()}'); // Should be empty
 ```
 
 **Firebase Verification:**
+
 ```dart
 // Check Firestore is empty for user
 final collections = ['users', 'classifications', 'community'];
@@ -440,6 +487,7 @@ print('New UID: $currentUid'); // Should be different
 #### 4. **Console Debugging Protocol**
 
 We used extensive console logging to track each step:
+
 ```dart
 debugPrint('🔥 TESTING: Starting factory reset test...');
 debugPrint('📊 PRE-RESET: Points=${currentPoints}, History=${historyCount}');
@@ -471,6 +519,7 @@ For each iteration, we tracked these critical metrics:
 Through systematic testing, we identified these recurring error patterns:
 
 #### Pattern 1: Silent Failures
+
 ```dart
 // What appeared to work but didn't
 await collection.doc(docId).delete(); // Appeared successful
@@ -478,6 +527,7 @@ await collection.doc(docId).delete(); // Appeared successful
 ```
 
 #### Pattern 2: Sequence-Dependent Errors
+
 ```dart
 // Wrong sequence caused failures
 await clearPersistence(); // Failed - network still active
@@ -489,6 +539,7 @@ await clearPersistence(); // Then clear
 ```
 
 #### Pattern 3: State Resurrection
+
 ```dart
 // Memory cleared but disk persisted
 await box.clear(); // Only memory
@@ -496,6 +547,7 @@ await box.clear(); // Only memory
 ```
 
 #### Pattern 4: Identity-Based Re-sync
+
 ```dart
 // Same UID allowed data resurrection  
 await deleteUserData(currentUid); // Cleared
@@ -526,6 +578,7 @@ ls -la /path/to/hive/files # Verify files deleted
 We defined clear success criteria for each test:
 
 **✅ PASS Criteria:**
+
 - Points display: 0 (not 805)
 - History count: 0 (not 80)  
 - Home screen: "Start Your Journey" message
@@ -535,6 +588,7 @@ We defined clear success criteria for each test:
 - New user UID generated
 
 **❌ FAIL Criteria:**
+
 - Any old points showing
 - Any history entries remaining
 - Old user UID unchanged
@@ -548,7 +602,8 @@ This systematic approach ensured we could precisely identify what worked and wha
 
 ### Technical Root Causes Identified
 
-1. **Cloud Function Issue**: 
+1. **Cloud Function Issue**:
+
    ```typescript
    // WRONG - Returns before deletions complete
    collections.map(async (collection) => {
@@ -558,6 +613,7 @@ This systematic approach ensured we could precisely identify what worked and wha
    ```
 
 2. **Firestore Precondition Error**:
+
    ```dart
    // WRONG - Network still enabled
    await firestore.clearPersistence(); // Fails with precondition error
@@ -569,6 +625,7 @@ This systematic approach ensured we could precisely identify what worked and wha
    ```
 
 3. **Hive Box Name Mismatch**:
+
    ```dart
    // WRONG - Hardcoded box names
    await Hive.box('classifications').clear();
@@ -578,6 +635,7 @@ This systematic approach ensured we could precisely identify what worked and wha
    ```
 
 4. **Incomplete Disk Deletion**:
+
    ```dart
    // WRONG - Only clears memory
    await box.clear();
@@ -588,6 +646,7 @@ This systematic approach ensured we could precisely identify what worked and wha
    ```
 
 5. **Modal Dismissal Flow Issues** *(Added June 16, 2025)*:
+
    ```dart
    // WRONG - Modal gets stuck
    await operation();
@@ -605,26 +664,32 @@ This systematic approach ensured we could precisely identify what worked and wha
 ### Previous Attempts and Their Limitations
 
 #### Attempt 1: Basic Data Clearing
+
 - Only cleared Firestore collections
 - **Problem**: Local cache persisted, data re-synced
 
 #### Attempt 2: Added Local Cache Clearing  
+
 - Added `clearPersistence()` call
 - **Problem**: Precondition errors, incomplete clearing
 
 #### Attempt 3: Fixed Sequence Dependencies
+
 - Proper network disable/enable sequence
 - **Problem**: Hive data still persisted on disk
 
 #### Attempt 4: Enhanced Hive Clearing
+
 - Added `deleteBoxFromDisk()` calls
 - **Problem**: User could still re-sync deleted data
 
 #### Attempt 5: Complete Firebase Cleanup
+
 - Comprehensive server + local clearing
 - **Problem**: Still some edge cases with user identity
 
 #### Attempt 6: Modal Dismissal & Navigation Fixes *(Added June 16, 2025)*
+
 - Fixed loading dialog dismissal sequence
 - Added proper Firestore network state management  
 - Enhanced error handling and user feedback
@@ -637,16 +702,20 @@ Our ultimate factory reset has evolved through multiple critical fixes to become
 Following the definitive factory reset recipe, we implemented a **6-step process** that ensures no ghost data can ever survive:
 
 #### 🔥 STEP 1: Wipe ALL Server-Side Data
+
 ```dart
 await _wipeServerSideData();
 ```
+
 **Implementation:**
+
 - Calls enhanced Cloud Function with recursive deletion
 - Deletes EVERY collection and subcollection on server
 - Uses batch operations with proper awaiting
 - Fallback to manual deletion if Cloud Function fails
 
 **Enhanced Cloud Function:**
+
 ```typescript
 // ULTIMATE: True factory reset with recursive deletion
 export const clearAllData = asiaSouth1.https.onCall(async (data, context) => {
@@ -664,19 +733,25 @@ export const clearAllData = asiaSouth1.https.onCall(async (data, context) => {
 ```
 
 #### 🔥 STEP 2: Sign User Out
+
 ```dart
 await _signOutCurrentUser();
 ```
+
 **Why Critical:**
+
 - Signs out current user to prevent re-sync under same UID
 - Breaks connection to existing user data
 - Forces fresh anonymous user creation
 
 #### 🔥 STEP 3: Clear Firestore Local Cache
+
 ```dart
 await _clearFirestoreLocalCache();
 ```
+
 **Implementation:** *(Updated June 16, 2025 - Fixed precondition errors)*
+
 ```dart
 // CRITICAL: Must disable network before clearing persistence
 try {
@@ -686,16 +761,21 @@ try {
   await _firestore.enableNetwork();   // 3️⃣ Always re-enable
 }
 ```
+
 **Why the Change:**
+
 - Original `terminate()` approach caused app crashes
 - Network must be disabled before clearing persistence
 - `finally` block ensures network is always re-enabled
 
 #### 🔥 STEP 4: Delete ALL Local Storage
+
 ```dart
 await _deleteAllLocalStorage();
 ```
+
 **Implementation:**
+
 ```dart
 // Close ALL Hive boxes
 await Hive.close();
@@ -711,10 +791,13 @@ await prefs.clear();
 ```
 
 #### 🔥 STEP 5: Sign In as Fresh User
+
 ```dart
 await _signInAsFreshUser();
 ```
+
 **Implementation:**
+
 ```dart
 // Sign in anonymously to get a completely new UID
 final userCredential = await _auth.signInAnonymously();
@@ -722,10 +805,13 @@ final userCredential = await _auth.signInAnonymously();
 ```
 
 #### 🔥 STEP 6: Re-initialize Services
+
 ```dart
 await _reinitializeEssentialServices();
 ```
+
 **Implementation:**
+
 ```dart
 // Re-open only the most critical Hive boxes
 await Hive.openBox(StorageKeys.settingsBox);
@@ -740,6 +826,7 @@ await _initializeFreshCommunityStats();
 ## 🛠️ Technical Implementation Details
 
 ### Critical Sequence Dependencies *(Updated June 16, 2025)*
+
 1. **Server wipe BEFORE user signout** - Prevents re-sync during transition
 2. **Firestore network disable BEFORE clearPersistence** - Fixed precondition errors
 3. **User signout BEFORE local clearing** - Prevents auth state conflicts
@@ -748,6 +835,7 @@ await _initializeFreshCommunityStats();
 6. **Modal dismissal BEFORE navigation** - Prevents stuck loading dialogs
 
 ### Storage Systems Cleared
+
 - ✅ **Firestore Collections** - All server-side data recursively deleted
 - ✅ **Firestore Local Cache** - Offline persistence completely cleared
 - ✅ **Hive Boxes** - All local database files deleted from disk
@@ -756,6 +844,7 @@ await _initializeFreshCommunityStats();
 - ✅ **Community Stats** - Reset to zero state
 
 ### Error Handling & Safety Features
+
 - **Debug Mode Only** - Cannot run in release builds
 - **Comprehensive Error Handling** - Always re-enables Firestore network
 - **Graceful Fallbacks** - Manual deletion if Cloud Function fails
@@ -765,7 +854,9 @@ await _initializeFreshCommunityStats();
 ## 📁 Files Modified
 
 ### Core Service Enhancement
+
 **`lib/services/firebase_cleanup_service.dart`**
+
 - Added `ultimateFactoryReset()` method replacing `clearAllDataForFreshInstall()`
 - Implemented complete 6-step ultimate reset sequence
 - Added comprehensive verification system with `_verifyUltimateReset()`
@@ -777,14 +868,18 @@ await _initializeFreshCommunityStats();
   - `_reinitializeEssentialServices()` - Service reinitialization
 
 ### Cloud Function Enhancement
+
 **`functions/src/index.ts`**
+
 - Enhanced `clearAllData` with recursive deletion capability
 - Added `deleteCollectionRecursively()` helper function
 - Improved batch processing and proper awaiting
 - Enhanced error handling and detailed logging
 
 ### UI Integration Updates *(Enhanced June 16, 2025)*
+
 **`lib/screens/settings_screen.dart`**
+
 - Updated factory reset button to call `ultimateFactoryReset()`
 - **FIXED**: Proper modal dismissal sequence with `Navigator.pop(context)`
 - **ENHANCED**: Better error handling with retry options
@@ -792,6 +887,7 @@ await _initializeFreshCommunityStats();
 - **ADDED**: Context mounting checks before navigation
 
 **Key Modal Dismissal Fix:**
+
 ```dart
 // Firebase cleanup in settings now properly:
 // 1️⃣ Closes loading dialog first
@@ -809,6 +905,7 @@ if (context.mounted) {
 ## 🎯 Results Achieved
 
 ### Before Ultimate Reset
+
 - ❌ Ghost points still showing on Home screen (805 points persisting)
 - ❌ History entries persisting after "clear" operation (80 classifications remaining)
 - ❌ Community feed data remaining visible
@@ -818,6 +915,7 @@ if (context.mounted) {
 - ❌ Firestore `failed-precondition` errors preventing clearing
 
 ### After Ultimate Reset *(Verified June 16, 2025)*
+
 - ✅ **True fresh install behavior** - No ghost data possible
 - ✅ **Home screen shows "Start Your Journey"** - Zero points displayed  
 - ✅ **Empty History** - No classification entries remain (0 classifications)
@@ -830,20 +928,25 @@ if (context.mounted) {
 ## 🚀 Usage
 
 ### From Settings Screen
+
 Users can trigger the ultimate factory reset from:
+
 - **Settings → Advanced → "Reset All Data"**
 - **Settings → Advanced → "Clear Firebase Data"**
 
 Both buttons now use the ultimate factory reset implementation.
 
 ### Programmatic Usage
+
 ```dart
 final cleanupService = FirebaseCleanupService();
 await cleanupService.ultimateFactoryReset();
 ```
 
 ### Migration from Previous Implementation
+
 The ultimate factory reset is a drop-in replacement:
+
 ```dart
 // OLD
 await cleanupService.clearAllDataForFreshInstall();
@@ -897,6 +1000,7 @@ Our systematic debugging approach employed multiple techniques and tools to iden
 ### 🔍 Primary Debugging Techniques
 
 #### 1. **Progressive Isolation Testing**
+
 ```dart
 // Test each component independently
 await testServerClearing();      // ❌ Passed but incomplete
@@ -907,6 +1011,7 @@ await testCompleteSequence();    // ✅ Final success
 ```
 
 #### 2. **State Inspection Before/After**
+
 ```dart
 // Comprehensive state logging
 void logSystemState(String phase) {
@@ -921,6 +1026,7 @@ void logSystemState(String phase) {
 ```
 
 #### 3. **Async Operation Tracing**
+
 ```dart
 // Track async operation completion
 debugPrint('🔥 Starting server wipe...');
@@ -933,7 +1039,9 @@ debugPrint('✅ Cache clear completed');
 ```
 
 #### 4. **Error Pattern Analysis**
+
 We systematically categorized errors:
+
 - **Silent Failures**: Operations that appeared successful but didn't work
 - **Sequence Errors**: Operations that failed due to wrong order
 - **State Conflicts**: Multiple systems fighting over same data
@@ -942,6 +1050,7 @@ We systematically categorized errors:
 ### 🔧 Essential Debugging Tools
 
 #### Firebase Console Investigation
+
 ```bash
 # Firebase Tools CLI commands used
 firebase auth:export users.json    # Backup user data before testing
@@ -950,6 +1059,7 @@ firebase functions:log --only clearAllData   # Monitor Cloud Function
 ```
 
 #### Flutter/Dart Debugging
+
 ```dart
 // Custom debug utilities created
 class DebugUtils {
@@ -973,6 +1083,7 @@ class DebugUtils {
 ```
 
 #### Device File System Inspection
+
 ```bash
 # iOS Simulator debugging
 cd ~/Library/Developer/CoreSimulator/Devices/[DEVICE_ID]/data/Containers/Data/Application/[APP_ID]
@@ -987,6 +1098,7 @@ adb shell run-as com.wasteseg.app rm -rf /data/data/com.wasteseg.app/databases/
 ### 📊 Monitoring and Metrics
 
 #### Performance Tracking
+
 ```dart
 // Track operation timing
 final stopwatch = Stopwatch()..start();
@@ -996,6 +1108,7 @@ debugPrint('⏱️ Reset took: ${stopwatch.elapsedMilliseconds}ms');
 ```
 
 #### Memory Usage Analysis
+
 ```dart
 // Monitor memory before/after reset
 import 'dart:developer';
@@ -1005,6 +1118,7 @@ Timeline.finishSync();
 ```
 
 #### Network Request Monitoring
+
 ```dart
 // Track Firebase operations
 FirebaseFirestore.instance.enableNetwork();
@@ -1015,6 +1129,7 @@ FirebaseFirestore.instance.enableNetwork();
 ### 🐛 Specific Error Investigation Techniques
 
 #### Error 1: Firestore Precondition Failures
+
 ```dart
 // Investigation approach
 try {
@@ -1032,6 +1147,7 @@ await FirebaseFirestore.instance.enableNetwork();
 ```
 
 #### Error 2: Modal Dismissal Issues
+
 ```dart
 // Problem identification
 Navigator.pushReplacement(context, ...); // Modal stuck open
@@ -1046,6 +1162,7 @@ Navigator.pushAndRemoveUntil(context, ...);
 ```
 
 #### Error 3: Data Resurrection Tracking
+
 ```dart
 // Track data lifecycle
 void trackDataLifecycle() {
@@ -1066,6 +1183,7 @@ void trackDataLifecycle() {
 ### 🔬 Root Cause Discovery Process
 
 #### Step 1: Reproduction
+
 ```dart
 // Create minimal reproduction case
 await addTestData();           // Add known data set
@@ -1076,6 +1194,7 @@ await checkForGhostData();     // Look for resurrection
 ```
 
 #### Step 2: Component Isolation
+
 ```dart
 // Test each storage system independently
 await testFirestoreOnly();     // Server + cache
@@ -1085,6 +1204,7 @@ await testUserAuthOnly();      // Identity management
 ```
 
 #### Step 3: Sequence Analysis
+
 ```dart
 // Test different operation orders
 await sequence1(); // Server → Local → User
@@ -1098,24 +1218,28 @@ await sequence3(); // Local → User → Server
 For future debugging sessions, we created this systematic checklist:
 
 **✅ Pre-Debug Setup**
+
 - [ ] Enable verbose Flutter logging
 - [ ] Clear previous test data completely  
 - [ ] Take Firebase Console screenshot
 - [ ] Record current system state
 
 **✅ During Testing**
+
 - [ ] Log every operation with timestamps
 - [ ] Verify each step completion before next
 - [ ] Monitor console for unexpected outputs
 - [ ] Take screenshots of UI state changes
 
 **✅ Post-Operation Verification**
+
 - [ ] Check all storage systems independently
 - [ ] Restart app and re-verify (critical!)
 - [ ] Monitor for delayed data resurrection
 - [ ] Document exact outcomes and timings
 
 **✅ Failure Analysis**
+
 - [ ] Identify exact failure point
 - [ ] Categorize error type (silent, sequence, state, timing)
 - [ ] Test minimal reproduction case
@@ -1128,6 +1252,7 @@ This systematic approach was crucial to finally identifying that we needed the c
 Our debugging journey revealed critical insights that apply to any complex data management system. These learnings will guide future development and debugging efforts:
 
 ### 🔑 1. Sequence Dependencies Are Non-Negotiable
+
 **What We Learned:** Operation order determines success or failure.
 **Why It Matters:** Async systems have hidden dependencies that only surface under specific conditions.
 **Actionable Insight:** Always map out operation dependencies before implementation.
@@ -1148,6 +1273,7 @@ await createFreshUser();   // 4. Establish new identity
 **Future Application:** Always design operations with dependency graphs, not arbitrary sequences.
 
 ### 🔑 2. Memory vs Disk Operations Are Fundamentally Different
+
 **What We Learned:** `clear()` ≠ `delete()` - memory operations don't affect persistent storage.
 **Why It Matters:** Data can resurrect from disk even after memory clearing.
 **Actionable Insight:** Always understand the persistence layer of your storage systems.
@@ -1166,6 +1292,7 @@ await Hive.deleteBoxFromDisk(boxName); // 2. Delete physical files
 **Future Application:** For any persistent storage, always verify what level (memory/disk/network) your operations affect.
 
 ### 🔑 3. User Identity Controls Data Scope
+
 **What We Learned:** Same UID = data can re-sync from anywhere in the system.
 **Why It Matters:** Data clearing is meaningless if the user identity remains unchanged.
 **Actionable Insight:** Identity management is as important as data management.
@@ -1185,6 +1312,7 @@ await signInAnonymously();           // New UID = no old data access
 **Future Application:** Always consider identity scope when designing data clearing operations.
 
 ### 🔑 4. System Completeness Beats Component Perfection
+
 **What We Learned:** Perfect component clearing fails if any other component is missed.
 **Why It Matters:** Ghost data finds the weakest link in your clearing strategy.
 **Actionable Insight:** Design holistic solutions, not component-specific ones.
@@ -1203,6 +1331,7 @@ await coordinatedSystemReset(); // All systems cleared in coordinated fashion
 **Future Application:** Always design cross-system solutions for cross-system problems.
 
 ### 🔑 5. Error Handling Must Preserve System Stability  
+
 **What We Learned:** Aggressive operations like `terminate()` can break systems permanently.
 **Why It Matters:** Recovery from bad error handling can be impossible.
 **Actionable Insight:** Design error handling that maintains system integrity.
@@ -1223,6 +1352,7 @@ try {
 **Future Application:** Design all operations with graceful failure modes and system recovery.
 
 ### 🔑 6. UI Flow Complexity Equals Data Flow Complexity
+
 **What We Learned:** Complex data operations require equally complex UI state management.
 **Why It Matters:** Users perceive stuck UIs as broken features, regardless of backend success.
 **Actionable Insight:** UI state management must match async operation complexity.
@@ -1243,6 +1373,7 @@ if (context.mounted) {                     // 4. Check context validity
 **Future Application:** Design UI flows that match the complexity of underlying operations.
 
 ### 🔑 7. Network State Is Foundational, Not Optional
+
 **What We Learned:** Network state affects all other operations in Firebase systems.
 **Why It Matters:** Wrong network state causes cascading failures across multiple systems.
 **Actionable Insight:** Always manage network state as a first-class concern.
@@ -1260,6 +1391,7 @@ await enableNetwork();    // 3. Restore state
 **Future Application:** Treat network state management as critical infrastructure, not an implementation detail.
 
 ### 🔑 8. Progressive Testing Reveals Hidden Dependencies  
+
 **What We Learned:** Testing individual components in isolation misses system-level interactions.
 **Why It Matters:** Integration failures only appear when multiple systems interact.
 **Actionable Insight:** Design testing strategies that reveal system-level interactions.
@@ -1280,6 +1412,7 @@ testCompleteSystemInteraction();    // Reveals sequence dependencies
 **Future Application:** Always test system interactions, not just component functionality.
 
 ### 🔑 9. Documentation Must Match Implementation Reality
+
 **What We Learned:** Official documentation doesn't always reflect real-world behavior.
 **Why It Matters:** Following documentation blindly can lead to subtle bugs.
 **Actionable Insight:** Verify documentation claims through empirical testing.
@@ -1298,6 +1431,7 @@ await enableNetwork();
 **Future Application:** Always verify critical operations through hands-on testing, not just documentation review.
 
 ### 🔑 10. Ghost Data Is a System-Level Phenomenon
+
 **What We Learned:** Ghost data isn't a bug in a single component - it's emergent behavior from system interactions.
 **Why It Matters:** Component-level solutions can't solve system-level problems.
 **Actionable Insight:** Design solutions that address the system, not the symptoms.
@@ -1338,6 +1472,7 @@ This section provides concrete code examples showing the evolution from failed a
 ### 🚫 Attempt 1: Basic Firebase Clearing (FAILED)
 
 **What We Tried:**
+
 ```dart
 // lib/services/firebase_cleanup_service.dart - Early Version
 class FirebaseCleanupService {
@@ -1365,6 +1500,7 @@ class FirebaseCleanupService {
 ```
 
 **Why It Failed:**
+
 - No local cache clearing
 - No Hive storage clearing  
 - No user identity management
@@ -1375,6 +1511,7 @@ class FirebaseCleanupService {
 ### 🚫 Attempt 5: Hive Clearing with Wrong Approach (FAILED)
 
 **What We Tried:**
+
 ```dart
 // Wrong box names and memory-only clearing
 Future<void> _clearLocalStorage() async {
@@ -1393,6 +1530,7 @@ Future<void> _clearLocalStorage() async {
 ```
 
 **Why It Failed:**
+
 - Hardcoded box names didn't match actual constants
 - `clear()` only empties memory, disk files remain
 - Data resurrected on app restart
@@ -1402,6 +1540,7 @@ Future<void> _clearLocalStorage() async {
 ### 🚫 Attempt 7: Disk Deletion but Wrong Sequence (FAILED)
 
 **What We Tried:**
+
 ```dart
 // Better Hive clearing but wrong overall sequence
 Future<void> ultimateFactoryReset() async {
@@ -1435,6 +1574,7 @@ Future<void> _deleteAllLocalStorage() async {
 ```
 
 **Why It Failed:**
+
 - Wrong sequence allowed data re-sync during clearing
 - User remained signed in with same UID
 - Server data could re-populate local storage
@@ -1444,6 +1584,7 @@ Future<void> _deleteAllLocalStorage() async {
 ### 🚫 Attempt 9: Complete Data Clearing but UI Issues (NEAR SUCCESS)
 
 **What We Tried:**
+
 ```dart
 // settings_screen.dart - Modal handling attempt
 void _showClearDataDialog() {
@@ -1482,6 +1623,7 @@ void _showClearDataDialog() {
 ```
 
 **Why It Failed:**
+
 - Loading dialog remained open during navigation
 - No user feedback about success/failure
 - Navigation occurred before dialog cleanup
@@ -1493,6 +1635,7 @@ void _showClearDataDialog() {
 **What Finally Worked:**
 
 #### 1. Complete Service Implementation
+
 ```dart
 // lib/services/firebase_cleanup_service.dart - Final Version
 class FirebaseCleanupService {
@@ -1577,6 +1720,7 @@ class FirebaseCleanupService {
 ```
 
 #### 2. Enhanced Cloud Function  
+
 ```typescript
 // functions/src/index.ts - Final Version
 export const clearAllData = asiaSouth1.https.onCall(async (data, context) => {
@@ -1629,6 +1773,7 @@ async function deleteCollectionRecursively(
 ```
 
 #### 3. Perfect UI Flow Implementation
+
 ```dart
 // lib/screens/settings_screen.dart - Final Version  
 void _showClearDataDialog() {
@@ -1752,6 +1897,7 @@ This chronological timeline documents our complete debugging journey, including 
 ### 📆 Phase 1: Initial Problem Discovery (Early June 2025)
 
 **June 8-10, 2025: Problem First Reported**
+
 - **Issue**: User reported Firebase data clearing showing "done" but data persisting
 - **Initial Symptoms**: 805 points still showing, 80+ history entries remaining
 - **First Response**: Assumed simple clearing logic issue
@@ -1760,6 +1906,7 @@ This chronological timeline documents our complete debugging journey, including 
 ### 📆 Phase 2: Basic Firebase Attempts (June 10-11, 2025)
 
 **June 10, 2025 - Morning: Iteration 1**
+
 - **Approach**: Basic collection clearing with sequential document deletion
 - **Testing Time**: ~2 hours implementation + testing
 - **Result**: ❌ Data appeared gone, returned after app restart
@@ -1767,6 +1914,7 @@ This chronological timeline documents our complete debugging journey, including 
 - **Insight**: Server clearing alone is insufficient
 
 **June 10, 2025 - Afternoon: Iteration 2**  
+
 - **Approach**: Added `FirebaseFirestore.instance.terminate()`
 - **Testing Time**: ~1 hour implementation, app crashed frequently
 - **Result**: ❌ App became unusable, Firestore permanently broken
@@ -1774,6 +1922,7 @@ This chronological timeline documents our complete debugging journey, including 
 - **Insight**: Don't use aggressive operations without recovery plan
 
 **June 11, 2025 - Morning: Iteration 3**
+
 - **Approach**: Direct `clearPersistence()` call
 - **Testing Time**: ~30 minutes, failed immediately
 - **Result**: ❌ `PlatformException(failed-precondition)` error
@@ -1783,6 +1932,7 @@ This chronological timeline documents our complete debugging journey, including 
 ### 📆 Phase 3: Network State Management (June 11, 2025)
 
 **June 11, 2025 - Afternoon: Iteration 4**
+
 - **Approach**: Proper network disable → clear → enable sequence
 - **Testing Time**: ~3 hours testing different sequences
 - **Result**: ⚠️ Firestore cache clearing worked, but data still persisted
@@ -1792,6 +1942,7 @@ This chronological timeline documents our complete debugging journey, including 
 ### 📆 Phase 4: Local Storage Attempts (June 12-13, 2025)
 
 **June 12, 2025 - Morning: Iteration 5**
+
 - **Approach**: Added basic Hive box clearing with hardcoded names
 - **Testing Time**: ~4 hours debugging box name mismatches
 - **Result**: ❌ Some data cleared inconsistently, restart brought back data
@@ -1799,6 +1950,7 @@ This chronological timeline documents our complete debugging journey, including 
 - **Insight**: Must use correct constants and understand memory vs disk
 
 **June 12, 2025 - Afternoon: Iteration 6**
+
 - **Approach**: Fixed box names using StorageKeys constants
 - **Testing Time**: ~2 hours implementation + verification
 - **Result**: ⚠️ Correct boxes cleared but data still persisted after restart
@@ -1806,6 +1958,7 @@ This chronological timeline documents our complete debugging journey, including 
 - **Insight**: `clear()` is insufficient - need `deleteBoxFromDisk()`
 
 **June 13, 2025 - Morning: Iteration 7**
+
 - **Approach**: True disk deletion with `deleteBoxFromDisk()`
 - **Testing Time**: ~5 hours testing different deletion approaches
 - **Result**: ⚠️ Local storage properly cleared, but user could re-sync data
@@ -1815,6 +1968,7 @@ This chronological timeline documents our complete debugging journey, including 
 ### 📆 Phase 5: User Identity Management (June 13-14, 2025)
 
 **June 13, 2025 - Afternoon: Iteration 8**
+
 - **Approach**: Added user signout and fresh anonymous signin
 - **Testing Time**: ~6 hours testing different user identity scenarios
 - **Result**: ⚠️ New UID created, most ghost data eliminated, but some preferences persisted
@@ -1822,6 +1976,7 @@ This chronological timeline documents our complete debugging journey, including 
 - **Insight**: Need complete preferences clearing and proper sequence
 
 **June 14, 2025 - Morning: Iteration 9**
+
 - **Approach**: Added complete SharedPreferences clearing
 - **Testing Time**: ~3 hours implementation + comprehensive testing
 - **Result**: ⚠️ Complete data clearing achieved, but UI flow broken
@@ -1831,6 +1986,7 @@ This chronological timeline documents our complete debugging journey, including 
 ### 📆 Phase 6: UI Flow Perfection (June 14-15, 2025)
 
 **June 14, 2025 - Afternoon: Iteration 10**
+
 - **Approach**: Fixed modal dismissal sequence and navigation flow
 - **Testing Time**: ~4 hours perfecting async UI sequences
 - **Result**: ✅ Perfect UI flow, but still needed integration testing
@@ -1838,6 +1994,7 @@ This chronological timeline documents our complete debugging journey, including 
 - **Insight**: UI sequence is as important as data clearing sequence
 
 **June 15, 2025 - All Day: Integration and Testing**
+
 - **Focus**: End-to-end integration testing of complete solution
 - **Testing Time**: ~8 hours comprehensive system testing
 - **Result**: ✅ Individual components worked, needed final integration
@@ -1847,6 +2004,7 @@ This chronological timeline documents our complete debugging journey, including 
 ### 📆 Phase 7: Ultimate Solution Development (June 15-16, 2025)
 
 **June 15, 2025 - Evening: Ultimate Solution Design**
+
 - **Approach**: Designed 6-step ultimate factory reset process
 - **Design Time**: ~3 hours architecture and dependency mapping
 - **Result**: ✅ Complete system design addressing all discovered issues
@@ -1854,6 +2012,7 @@ This chronological timeline documents our complete debugging journey, including 
 - **Insight**: System-level solutions require dependency-aware design
 
 **June 16, 2025 - Morning: Implementation**
+
 - **Approach**: Implemented complete 6-step ultimate factory reset
 - **Implementation Time**: ~4 hours coding + Cloud Function enhancement
 - **Result**: ✅ Complete implementation with verification system
@@ -1861,6 +2020,7 @@ This chronological timeline documents our complete debugging journey, including 
 - **Insight**: Always verify success, don't assume operations worked
 
 **June 16, 2025 - Afternoon: Final Testing and Verification**
+
 - **Approach**: Comprehensive testing of complete system
 - **Testing Time**: ~6 hours exhaustive testing scenarios
 - **Result**: ✅ Perfect fresh install behavior achieved
@@ -1873,6 +2033,7 @@ This chronological timeline documents our complete debugging journey, including 
 **Number of Iterations**: 10 major iterations
 **Files Modified**: 3 core files (service, Cloud Function, UI)
 **Systems Addressed**: 6 storage/state systems
+
 - Firestore server data
 - Firestore local cache  
 - Hive local database
@@ -1881,6 +2042,7 @@ This chronological timeline documents our complete debugging journey, including 
 - UI state management
 
 **Key Milestone Dates**:
+
 - **June 10**: Problem scope understood (not simple clearing)
 - **June 11**: Network state management mastered
 - **June 12**: Local storage clearing solved
@@ -1903,15 +2065,18 @@ This chronological timeline documents our complete debugging journey, including 
 ### 💡 Time Investment Insights
 
 **Most Time-Consuming Phases**:
+
 1. **Local Storage (June 12-13)**: ~11 hours - Understanding Hive disk vs memory
 2. **User Identity (June 13-14)**: ~9 hours - Discovering UID re-sync issues  
 3. **System Integration (June 15-16)**: ~10 hours - Coordinating all systems
 
 **Fastest Solutions**:
+
 1. **Network State (June 11)**: ~3 hours - Once pattern understood
 2. **UI Flow (June 14)**: ~4 hours - Applying async best practices
 
 **Most Valuable Discoveries**:
+
 1. **Sequence Dependencies**: Server → User → Local → Fresh User
 2. **Disk vs Memory**: `clear()` ≠ `deleteBoxFromDisk()`
 3. **Identity Scope**: Same UID = data resurrection possible
@@ -1919,6 +2084,7 @@ This chronological timeline documents our complete debugging journey, including 
 
 **Future Time Savings**:
 This documentation represents ~10 hours of additional documentation work but will save dozens of hours on any future similar problems by providing:
+
 - Complete solution template
 - Debugging methodology
 - Common pitfall avoidance
@@ -1943,6 +2109,7 @@ Our debugging journey provided valuable insights into performance characteristic
 ### 📊 Performance Metrics Discovered
 
 #### Operation Timing Analysis
+
 Through extensive testing, we measured the performance impact of each approach:
 
 ```dart
@@ -1965,17 +2132,20 @@ debugPrint('⏱️ Reset took: ${stopwatch.elapsedMilliseconds}ms');
 #### Component Performance Breakdown
 
 **Server-Side Operations (Cloud Function):**
+
 - **Iteration 1**: 2-3 seconds (sequential deletion)
 - **Final Solution**: 3-5 seconds (parallel recursive deletion)
 - **Improvement**: More thorough, slightly slower but comprehensive
 
 **Local Storage Operations:**
+
 - **Memory clearing (`box.clear()`)**: ~100-200ms per box
 - **Disk deletion (`deleteBoxFromDisk()`)**: ~500-1000ms per box  
 - **Network cache clearing**: ~500-1500ms (with proper sequence)
 - **SharedPreferences clearing**: ~50-100ms
 
 **User Identity Operations:**
+
 - **Signout**: ~200-500ms
 - **Anonymous signin**: ~1-2 seconds
 - **UID verification**: ~100ms
@@ -1985,6 +2155,7 @@ debugPrint('⏱️ Reset took: ${stopwatch.elapsedMilliseconds}ms');
 #### 1. Parallel vs Sequential Operations
 
 **What We Learned:**
+
 ```dart
 // ❌ SLOW: Sequential operations
 await clearCollection1();  // 2s
@@ -2002,6 +2173,7 @@ await Promise.all([
 ```
 
 **Applied in Cloud Function:**
+
 ```typescript
 // Parallel deletion with Promise.all
 const deletionPromises = collections.map(async (collection) => {
@@ -2054,11 +2226,13 @@ await Future.wait(boxNames.map((name) =>
 #### Memory Usage Patterns
 
 **Before Ultimate Reset:**
+
 - **Memory Growth**: Linear increase during operation
 - **Peak Usage**: ~50MB additional during large deletions
 - **Memory Recovery**: Immediate after completion
 
 **Memory Optimization Insights:**
+
 ```dart
 // Memory-efficient approach discovered
 await Hive.close(); // Releases all box memory first
@@ -2071,6 +2245,7 @@ for (final boxName in boxesToDelete) {
 #### Network Usage Optimization
 
 **Data Transfer Analysis:**
+
 - **Basic approach**: Download all data, then delete (~10MB transfer)
 - **Optimized approach**: Server-side deletion only (~1KB transfer)
 
@@ -2156,6 +2331,7 @@ if (kDebugMode) {
 ### 🔧 Performance Monitoring Implementation
 
 **Real-time Performance Tracking:**
+
 ```dart
 class PerformanceMonitor {
   static final Map<String, Stopwatch> _timers = {};
@@ -2182,11 +2358,13 @@ PerformanceMonitor.endTimer('ServerWipe');
 ### 📊 Performance Recommendations for Future
 
 #### 1. Progressive Enhancement
+
 - Start with basic fast operations
 - Add comprehensive operations incrementally
 - Always maintain user feedback
 
 #### 2. Adaptive Performance
+
 ```dart
 // Adapt based on data volume
 final dataVolume = await estimateDataVolume();
@@ -2198,6 +2376,7 @@ if (dataVolume > threshold) {
 ```
 
 #### 3. Background Processing
+
 ```dart
 // Move expensive operations to background
 unawaited(backgroundCleanup()); // Don't block UI
@@ -2205,6 +2384,7 @@ showSuccessMessage();           // Immediate user feedback
 ```
 
 #### 4. Caching Strategy
+
 ```dart
 // Cache expensive computations
 static List<String>? _boxNames;
@@ -2221,7 +2401,7 @@ List<String> get boxNames => _boxNames ??= Hive.boxNames.toList();
 | Comprehensive | ❌ Slow | ✅ Complete | ⚠️ Long wait | ⚠️ With progress |
 | **Ultimate Solution** | ⚠️ Balanced | ✅ Complete | ✅ Smooth | ✅ **Optimal** |
 
-**Final Performance Philosophy**: 
+**Final Performance Philosophy**:
 > "Make it work, make it right, make it fast" - but in complex systems, sometimes you need all three from the start.
 
 The Ultimate Factory Reset achieves the optimal balance: comprehensive enough to eliminate all ghost data, fast enough for good user experience, and smooth enough to feel professional.
@@ -2233,6 +2413,7 @@ The Ultimate Factory Reset implementation provides the definitive solution to gh
 This implementation represents the culmination of our data clearing efforts, incorporating learnings from multiple failed attempts, and provides users with a reliable, comprehensive reset capability that works every time.
 
 The journey from basic data clearing to this ultimate solution demonstrates the importance of:
+
 - Thorough root cause analysis
 - Understanding system interdependencies  
 - Comprehensive testing of edge cases
@@ -2257,6 +2438,7 @@ The journey from basic data clearing to this ultimate solution demonstrates the 
 ## 📋 Complete Implementation Checklist
 
 ### Core Functionality
+
 - ✅ Server-side complete data deletion via Cloud Function
 - ✅ Firestore local cache clearing with proper network state management
 - ✅ Complete Hive box deletion from disk using `deleteBoxFromDisk()`
@@ -2265,6 +2447,7 @@ The journey from basic data clearing to this ultimate solution demonstrates the 
 - ✅ Essential services re-initialization
 
 ### UI/UX Experience  
+
 - ✅ Loading dialog dismissal sequence fixed
 - ✅ Success/error feedback via SnackBars
 - ✅ Proper navigation flow after operations
@@ -2272,12 +2455,14 @@ The journey from basic data clearing to this ultimate solution demonstrates the 
 - ✅ Retry functionality for failed operations
 
 ### Error Handling
+
 - ✅ Firestore network always re-enabled in finally blocks
 - ✅ Graceful fallback to manual deletion if Cloud Function fails
 - ✅ Comprehensive error logging for debugging
 - ✅ User-friendly error messages with actionable guidance
 
 ### Testing & Verification
+
 - ✅ Verification system confirms complete data removal
 - ✅ Console logging for debugging and monitoring
 - ✅ Manual testing confirmed true fresh install behavior

@@ -121,6 +121,7 @@ jq -r '.session_id' waste_app_logs.jsonl | sort | uniq -c
 The logger includes specialized methods for different event types:
 
 ### User Actions
+
 ```dart
 WasteAppLogger.userAction('camera_capture_started', context: {
   'platform': 'android'
@@ -128,6 +129,7 @@ WasteAppLogger.userAction('camera_capture_started', context: {
 ```
 
 ### Waste Processing Events
+
 ```dart
 WasteAppLogger.wasteEvent('classification_completed', 'plastic_bottle', context: {
   'confidence': 0.95,
@@ -136,6 +138,7 @@ WasteAppLogger.wasteEvent('classification_completed', 'plastic_bottle', context:
 ```
 
 ### Performance Monitoring
+
 ```dart
 WasteAppLogger.performanceLog('image_processing', 1500, context: {
   'image_size_mb': 2.3,
@@ -144,6 +147,7 @@ WasteAppLogger.performanceLog('image_processing', 1500, context: {
 ```
 
 ### AI Processing
+
 ```dart
 WasteAppLogger.aiEvent('classification_request', 
   model: 'gpt-4-vision',
@@ -153,6 +157,7 @@ WasteAppLogger.aiEvent('classification_request',
 ```
 
 ### Cache Operations
+
 ```dart
 WasteAppLogger.cacheEvent('cache_hit', 'classification',
   hit: true,
@@ -162,6 +167,7 @@ WasteAppLogger.cacheEvent('cache_hit', 'classification',
 ```
 
 ### Navigation Events
+
 ```dart
 WasteAppLogger.navigationEvent('screen_change', 'home', 'camera', context: {
   'navigation_method': 'bottom_nav'
@@ -169,6 +175,7 @@ WasteAppLogger.navigationEvent('screen_change', 'home', 'camera', context: {
 ```
 
 ### Gamification Events
+
 ```dart
 WasteAppLogger.gamificationEvent('points_earned',
   pointsEarned: 10,
@@ -203,11 +210,13 @@ WasteAppLogger.setCurrentAction('taking_photo');
 ### Error Investigation
 
 1. **Extract recent errors:**
+
    ```bash
    jq 'select(.level == "SEVERE" and (.timestamp | fromdateiso8601) > (now - 3600))' waste_app_logs.jsonl > recent_errors.jsonl
    ```
 
 2. **Get error context:**
+
    ```bash
    jq 'select(.level == "SEVERE") | {message, error, stackTrace, user_context}' waste_app_logs.jsonl
    ```
@@ -215,11 +224,13 @@ WasteAppLogger.setCurrentAction('taking_photo');
 ### Performance Analysis
 
 1. **Slow operations:**
+
    ```bash
    jq 'select(.user_context.event_type == "performance" and .user_context.duration_ms > 2000)' waste_app_logs.jsonl
    ```
 
 2. **Cache performance:**
+
    ```bash
    jq 'select(.user_context.event_type == "cache_operation") | .user_context.cache_hit' waste_app_logs.jsonl | jq -s 'group_by(.) | map({hit: .[0], count: length})'
    ```
@@ -227,11 +238,13 @@ WasteAppLogger.setCurrentAction('taking_photo');
 ### User Behavior Analysis
 
 1. **User journey mapping:**
+
    ```bash
    jq 'select(.user_context.event_type == "user_interaction" or .user_context.event_type == "navigation") | {timestamp, message, current_screen}' waste_app_logs.jsonl
    ```
 
 2. **Feature usage:**
+
    ```bash
    jq 'select(.user_context.event_type == "user_interaction") | .message' waste_app_logs.jsonl | sort | uniq -c | sort -nr
    ```
@@ -325,4 +338,4 @@ try {
 {"timestamp":"2025-01-16T10:30:12.000Z","level":"INFO","message":"Gamification event: points_earned","user_context":{"event_type":"gamification","points_earned":10,"total_points":160}}
 ```
 
-This structured approach enables powerful analysis and debugging capabilities while maintaining performance and security. 
+This structured approach enables powerful analysis and debugging capabilities while maintaining performance and security.

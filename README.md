@@ -20,6 +20,7 @@ This major update focuses on improving the developer experience, ensuring docume
 ## 🚨 Latest: Polished UI & Enhanced System Robustness v2.2.4 (December 2024)
 
 **Version 2.2.4 with Polished UI and Enhanced System Robustness is now live!**  
+
 - ✅ **Beautiful Classification Details Screen**: Enhanced with animated bookmark toggle, consistent avatar colors, improved reaction pills, and comment dividers
 - ✅ **Robust AI Discovery Content**: Improved null-safety, better documentation, enhanced error handling, and optimized performance
 - ✅ **Smooth Animations**: Added elastic bookmark animations and smooth state transitions
@@ -27,6 +28,7 @@ This major update focuses on improving the developer experience, ensuring docume
 - ✅ **Comprehensive Documentation**: Added detailed inline documentation for all complex methods
 
 **Previous Version 0.1.6+99 Features:**  
+
 - ✅ **Enhanced AI Analysis**: Upgraded from 8-field to comprehensive 21-field classification system
 - ✅ **Critical Memory Leaks Fixed**: Resolved setState() after dispose() crashes in Family Dashboard
 - ✅ **Community Feed Sync**: Fixed data synchronization issues across all app screens
@@ -40,6 +42,7 @@ This major update focuses on improving the developer experience, ensuring docume
 ## 🚨 Polished UI & Enhanced System Robustness v2.2.4 - Production Ready (2024-12-19)
 
 **Version 2.2.4 is now live!**  
+
 - ✅ **Beautiful Classification Details Screen**: Enhanced with animated bookmark toggle, consistent avatar colors, improved reaction pills, and comment dividers
 - ✅ **Robust AI Discovery Content**: Improved null-safety, better documentation, enhanced error handling, and optimized performance
 - ✅ **Smooth Animations**: Added elastic bookmark animations and smooth state transitions
@@ -47,6 +50,7 @@ This major update focuses on improving the developer experience, ensuring docume
 - ✅ **Comprehensive Documentation**: Added detailed inline documentation for all complex methods
 
 **Previous Version 2.2.2 Features:**  
+
 - ✅ **Modernized Classification Details**: Beautiful redesign with ModernCard components and consistent styling
 - ✅ **Enhanced Visual Hierarchy**: Section headers with icons, proper typography, and improved spacing
 - ✅ **Horizontal Reaction Summary**: Avatar display with color-coded reaction badges and smart overflow handling
@@ -70,6 +74,7 @@ This major update focuses on improving the developer experience, ensuring docume
 ## 🚨 Major System Overhaul & UI/UX Improvements (2025-01-08)
 
 **Version 2.0.2 is now live!**  
+
 - ✅ **Auth Screen Redesign**: Fixed card text visibility, removed scrolling, cleaned redundant content
 - ✅ **Enhanced Firebase Cleanup**: Comprehensive data clearing including local Hive storage for true fresh install simulation
 - ✅ **RenderFlex Overflow Fixes**: Resolved button text overflow issues in modern UI components
@@ -94,6 +99,7 @@ This major update focuses on improving the developer experience, ensuring docume
 **🎯 Status**: ✅ **ALL CRITICAL ISSUES RESOLVED** - Production Ready
 
 ### **🚀 Version 2.0.1 - Critical Bug Fixes & Code Quality Improvements**
+
 - ✅ **Critical Runtime Fixes**: Resolved opacity assertion errors causing app crashes
 - ✅ **Gamification Fixes**: Fixed streak reset issue (1→0→1 pattern) with proper date handling
 - ✅ **Code Quality**: Reduced lint issues from 218 to 116 (47% improvement)
@@ -101,6 +107,7 @@ This major update focuses on improving the developer experience, ensuring docume
 - ✅ **Deprecated API Updates**: Fixed Color.value and withOpacity usage for Flutter compatibility
 
 ### **🚀 Version 2.0.0 - Comprehensive System Overhaul**
+
 - ✅ **Educational Content Service**: Completely fixed and enhanced with 23 unique content items
 - ✅ **Family System**: Fully implemented with email invitations, QR codes, and real-time dashboard  
 - ✅ **Firebase Firestore**: Optimized with proper indexes (80-95% performance improvement)
@@ -110,6 +117,7 @@ This major update focuses on improving the developer experience, ensuring docume
 **📋 [View Comprehensive Fixes Summary](docs/COMPREHENSIVE_FIXES_SUMMARY.md)**
 
 ### **✅ Recent Achievements (January 6, 2025)**
+
 - **100% Issue Resolution**: All identified critical problems fixed
 - **90% Performance Improvement**: Significant speed gains in database queries
 - **Zero Critical Bugs**: Robust error handling implemented throughout
@@ -117,6 +125,7 @@ This major update focuses on improving the developer experience, ensuring docume
 - **Firebase Indexes Deployed**: Live in production environment
 
 ### **🎯 Previous Status: Code Quality Improvements (June 5, 2025)**
+
 - **Issues Status**: 126 remaining (down from 168 original) - 25% improvement achieved
 - **Print Statement Fixes**: 22 production logging issues resolved with debugPrint
 - **Code Quality**: 12 additional issues fixed (unused variables, null assertions, await statements)
@@ -125,12 +134,14 @@ This major update focuses on improving the developer experience, ensuring docume
 - **Documentation**: Comprehensive tracking in `docs/technical/fixes/`
 
 ### **🔧 Latest Fixes (June 5, 2025)**
+
 - ✅ Removed unused variables in UI showcase and premium features screens
 - ✅ Fixed unnecessary non-null assertion in profile screen
 - ✅ Improved navigation await handling in authentication
 - ✅ Cleaned up temporary analysis files and improved organization
 
 ### **🎯 Next Priorities**
+
 - **Missing Await Statements**: 15 issues (async operation safety)
 - **BuildContext Issues**: 10 issues (widget lifecycle safety)  
 - **Unused Code Cleanup**: 60 issues (maintenance optimization)
@@ -150,6 +161,7 @@ This major update focuses on improving the developer experience, ensuring docume
 **🎯 Current Status**: 126 issues remaining (down from 168 original) - 25% improvement achieved
 
 ### **📚 Major Documentation Reorganization (June 6, 2025)**
+
 - ✅ **Complete Documentation Restructure**: 40+ files properly organized into 13 logical categories
 - ✅ **Scripts Organization**: 13 shell scripts categorized into build, development, fixes, and testing
 - ✅ **Professional Structure**: Clean root directory with comprehensive docs and scripts folders
@@ -159,12 +171,14 @@ This major update focuses on improving the developer experience, ensuring docume
 - ✅ **Improved Maintainability**: Clear structure supports future documentation and tooling growth
 
 ### **📊 Code Quality Progress (June 5, 2025)**
+
 - ✅ **Print Statement Fixes**: 22 production logging issues resolved
 - ✅ **Code Quality**: 12 additional issues fixed (unused variables, null assertions, await statements)
 - ✅ **Build Status**: ✅ Compiling successfully with no breaking changes
 - ✅ **Documentation**: Comprehensive tracking and status updates
 
 ### **🔧 Latest Technical Fixes**
+
 - ✅ **Complete Project Reorganization**: All files properly organized with professional structure
 - ✅ **Scripts Organization**: 13 shell scripts categorized into 4 logical directories
 - ✅ **Storage Management**: Local storage and debug files moved to dedicated folders
@@ -175,6 +189,7 @@ This major update focuses on improving the developer experience, ensuring docume
 - ✅ **Cleaned up temporary analysis files** and improved code organization
 
 ### **🎯 Key Benefits of Complete Reorganization**
+
 - **Professional Structure**: Clean root directory with only essential files (README.md, CHANGELOG.md)
 - **Team Efficiency**: Role-based navigation guides for developers, QA, and project managers
 - **Scalable Organization**: Structure supports future documentation and tooling growth
@@ -187,27 +202,32 @@ This major update focuses on improving the developer experience, ensuring docume
 **🎯 Major Improvements**: Successfully resolved all critical development issues and enhanced user experience with comprehensive fixes.
 
 ### **🔧 Service Optimization & Performance**
+
 - ✅ **Service Instantiation Optimization**: Replaced repeated service instantiations with efficient singleton patterns
 - ✅ **Enhanced Error Handling**: Added comprehensive try-catch blocks for image saving operations
 - ✅ **Memory Efficiency**: Optimized `CloudStorageService` and `AiService` for better resource management
 
 ### **🤖 AI Analysis Improvements**
+
 - ✅ **"Unknown Item" Issue Resolved**: Fixed AI response parsing to extract meaningful item names from explanation text
 - ✅ **Enhanced JSON Processing**: Improved itemName extraction with regex patterns and intelligent fallbacks
 - ✅ **Better Classification Accuracy**: Now shows proper item names like "Plant debris" instead of generic "Unknown Item"
 
 ### **🎨 UI/UX Enhancements**
+
 - ✅ **RenderFlex Overflow Fixed**: Resolved all layout overflow issues in disposal instructions widget
 - ✅ **Responsive Design**: Added proper constraints for narrow screens and long content
 - ✅ **Simplified Feedback Interface**: Changed redundant "Yes, correct"/"No, incorrect" to clean "Yes"/"No" options
 - ✅ **Comprehensive Testing**: Added 41+ UI consistency tests ensuring professional design standards
 
 ### **🧪 Testing Infrastructure**
+
 - ✅ **Overflow Prevention**: Comprehensive tests for narrow screens and constrained layouts
 - ✅ **Edge Case Coverage**: Tests handle extreme scenarios with very long text content
 - ✅ **Accessibility Compliance**: WCAG AA standards met with proper contrast ratios and touch targets
 
 ### **📚 Documentation & Deployment**
+
 - ✅ **Environment Setup Guide**: Complete troubleshooting documentation for development setup
 - ✅ **Issue Tracking**: Detailed resolution documentation with commit references
 - ✅ **Remote Sync**: All improvements pushed to GitHub repository
@@ -217,6 +237,7 @@ This major update focuses on improving the developer experience, ensuring docume
 ## Overview
 
 This cross-platform app allows users to capture or upload images, then uses an AI model (primarily `gpt-4.1-nano` via OpenAI, with a 4-tier fallback system including other OpenAI models and ultimately Google's `gemini-2.0-flash`) to identify items and classify them into waste categories:
+
 - Wet Waste (organic, compostable)
 - Dry Waste (recyclable)
 - Hazardous Waste (requires special handling)
@@ -275,11 +296,13 @@ The app provides educational content about each category, stores classification 
 **🏆 Achievement**: Implemented comprehensive UI consistency testing and achieved 100% compliance across all design patterns.
 
 ### **Comprehensive Testing Infrastructure**
+
 - **41 automated UI consistency tests** covering button styles, text hierarchy, color contrast, and accessibility
 - **Real-time design pattern validation** ensuring consistent user experience
 - **Accessibility compliance testing** for WCAG AA standards
 
 ### **Design System Improvements**
+
 - ✅ **Button Consistency**: Standardized padding (24dp×16dp), consistent styling, proper state feedback
 - ✅ **Typography Hierarchy**: Systematic font sizing (24→20→18→16→14→12px) with proper weight distribution
 - ✅ **Color Accessibility**: WCAG AA compliant contrast ratios (4.5:1+) for all text/background combinations
@@ -287,12 +310,14 @@ The app provides educational content about each category, stores classification 
 - ✅ **Font Family Consistency**: Standardized Roboto usage with proper fallbacks
 
 ### **Accessibility Features**
+
 - **Text Scaling Support**: Proper adaptation to system accessibility settings
 - **Color-Blind Friendly**: High contrast color combinations that work for various color vision deficiencies
 - **Keyboard Navigation**: Focus indicators for accessible navigation
 - **Screen Reader Support**: Semantic labels and proper widget structure
 
 ### **Quality Metrics**
+
 - **100% UI Consistency Test Coverage**: All 41 tests passing
 - **WCAG AA Compliance**: Exceeds accessibility standards
 - **Cross-Platform Consistency**: Unified experience across devices
@@ -301,6 +326,7 @@ The app provides educational content about each category, stores classification 
 This ensures a **professional, accessible, and consistently designed app** that provides an excellent user experience for all users, including those with accessibility needs.
 
 ## Accessibility & Color Contrast
+
 - All screens have been updated for improved color contrast and text visibility.
 - The app now meets accessibility standards for color contrast in both light and dark themes.
 
@@ -326,17 +352,20 @@ This ensures a **professional, accessible, and consistently designed app** that 
 ### Setup
 
 1. Clone the repository:
+
    ```bash
    git clone https://github.com/pranaysuyash/Waste-Segregation-App.git
    cd waste_segregation_app
    ```
 
 2. Install dependencies:
+
    ```bash
    flutter pub get
    ```
 
 3. Generate model code:
+
    ```bash
    flutter pub run build_runner build
    ```
@@ -344,6 +373,7 @@ This ensures a **professional, accessible, and consistently designed app** that 
 4. Configure API keys:
    - Create a file named `.env` in the project root.
    - Add your API keys and other environment-specific configurations to this file. Example:
+
      ```env
      OPENAI_API_KEY=your_openai_api_key_here
      GEMINI_API_KEY=your_gemini_api_key_here
@@ -356,9 +386,11 @@ This ensures a **professional, accessible, and consistently designed app** that 
      # FIREBASE_PROJECT_ID=your_firebase_project_id
      # FIREBASE_API_KEY=your_firebase_api_key 
      ```
+
    - The application loads these variables at runtime. API authentication uses the standard Bearer token format, handled by the `AIService`.
 
 5. Run the app:
+
    ```bash
    flutter run --dart-define-from-file=.env
    ```
@@ -366,6 +398,7 @@ This ensures a **professional, accessible, and consistently designed app** that 
 ### Utility Scripts
 
 The project root contains several utility shell scripts for development and maintenance tasks, including:
+
 - `build_production.sh`: Helps create production builds for different platforms (APK, App Bundle, iOS).
 - `run_with_env.sh`: Validates the `.env` file and runs the app with error checking.
 - `fix_kotlin_build_issue.sh`: (Purpose to be documented if known, likely for specific Kotlin-related build problems).
@@ -377,6 +410,7 @@ Refer to the scripts themselves for their specific functionalities.
 ## Project Structure
 
 The `lib/` directory contains the core Dart code for the application, organized into subdirectories for:
+
 - `models/`: Data structures and classes.
 - `providers/`: State management using the Provider package.
 - `screens/`: UI for different application screens.
@@ -397,6 +431,7 @@ For a detailed view of the current file structure, please explore the `lib/` dir
 - ❌ Apple App Store submission (not started)
 
 ### Implemented Features
+
 - AI integration with Gemini Vision API
 - Waste classification with detailed categories
 - Basic image capture and upload functionality
@@ -418,6 +453,7 @@ For a detailed view of the current file structure, please explore the `lib/` dir
 - Basic social sharing (e.g., sharing classification results from history)
 
 ### In Progress / Pending
+
 - Leaderboard implementation
 - Enhanced camera features
 - Social sharing capabilities (further enhancements and broader integration)
@@ -441,6 +477,7 @@ For comprehensive documentation including setup guides, technical details, and p
 - **[❓ Troubleshooting](docs/reference/troubleshooting.md)** - Common issues and solutions
 
 ### 📋 **Current Status Documents (Updated June 2025)**
+
 - **[🚨 Issues Summary](docs/status/ISSUES_SUMMARY_2025-06-02.md)** - Comprehensive tracking of all known issues
 - **[🧪 Test Status](docs/testing/TEST_STATUS_SUMMARY.md)** - Critical test infrastructure failure analysis
 - **[📋 PR Status](docs/status/PR_STATUS_SUMMARY.md)** - Pull request handling and remaining work
@@ -454,18 +491,21 @@ For comprehensive documentation including setup guides, technical details, and p
 **Latest Changes:** Complete documentation reorganization with 40+ files properly categorized. Code quality improvements with 126 issues remaining (25% improvement achieved).
 
 ### 🚨 **CRITICAL RELEASE BLOCKERS**
+
 - **Test Infrastructure Failure**: 0% test success rate across all 21 test categories
 - **All Tests Timing Out**: Unit, widget, integration, and performance tests all failing
 - **Code Coverage**: Unable to generate coverage reports
 - **Impact**: Cannot release with failing test infrastructure
 
 ### 📊 **Current Issues Summary**
+
 - **Linter Issues**: 342 deprecation warnings (mostly `withOpacity` usage)
 - **Test Status**: 0/21 test categories passing
 - **Documentation**: ✅ Recently updated with comprehensive tracking
 - **Main App**: ✅ Compiles and runs successfully
 
 ### Recent Critical Fixes ✅
+
 - **History Duplication Fix:** Fixed issue where scanning one item created two history entries due to duplicate save operations in result screen
 - **User Data Isolation:** Fixed privacy issue where guest and Google account data was shared on same device
 - **ViewAllButton Styling:** Fixed invisible text in "View All" button for recent classifications
@@ -475,6 +515,7 @@ For comprehensive documentation including setup guides, technical details, and p
 - **Modal Responsiveness:** Added height constraints and scrolling for better UX on small screens
 
 ### Build Status
+
 - **Android App Bundle:** Ready for Play Store deployment
 - **Play Store Version:** 0.1.6+98 reserved for Google Play Store submission
 - **Version Code:** Dynamically managed from pubspec.yaml
@@ -510,6 +551,7 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 - All contributors to the open-source packages used in this project
 
 ## Versioning and Play Store Issue (May 2025)
+
 - The app now uses 0.1.x versioning for public/internal releases. Latest: 0.1.6+98.
 - Google Play App Signing SHA-1 is now added to Firebase for internal testing compatibility.
 - See CHANGELOG.md and docs/current_issues.md for details.
@@ -521,30 +563,35 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 Choose the method that works best for you:
 
 #### Option 1: Simple Development Run
+
 ```bash
 # Loads your .env file automatically
 flutter run --dart-define-from-file=.env
 ```
 
 #### Option 2: Validated Run (Recommended)
+
 ```bash
 # Validates .env file and runs with error checking
 ./run_with_env.sh
 ```
 
 #### Option 3: Plain Flutter Run
+
 ```bash
 # Uses default placeholder API keys (will show "incorrect API key" errors)
 flutter run
 ```
 
 #### Option 4: VS Code
+
 - Press `F5` or use Run & Debug panel
 - Automatically loads `.env` file
 
 ### Production Builds
 
 #### Android APK
+
 ```bash
 # Set production environment variables first
 export PROD_OPENAI_API_KEY="your_production_key"
@@ -555,11 +602,13 @@ export PROD_GEMINI_API_KEY="your_production_key"
 ```
 
 #### Android App Bundle (Play Store)
+
 ```bash
 ./build_production.sh aab
 ```
 
 #### iOS (App Store)
+
 ```bash
 ./build_production.sh ios
 ```
@@ -568,6 +617,7 @@ export PROD_GEMINI_API_KEY="your_production_key"
 
 1. **Flutter SDK** (3.0.0 or higher)
 2. **API Keys** in `.env` file:
+
    ```bash
    OPENAI_API_KEY=your_openai_api_key_here
    GEMINI_API_KEY=your_gemini_api_key_here
@@ -576,17 +626,20 @@ export PROD_GEMINI_API_KEY="your_production_key"
    OPENAI_API_MODEL_TERTIARY=gpt-4.1-mini
    GEMINI_API_MODEL=gemini-2.0-flash
    ```
+
 3. **Firebase Project** with Firestore enabled
 
 ## 🔧 Setup
 
 1. **Clone the repository**
+
    ```bash
    git clone <repository-url>
    cd waste_segregation_app
    ```
 
 2. **Install dependencies**
+
    ```bash
    flutter pub get
    ```
@@ -598,6 +651,7 @@ export PROD_GEMINI_API_KEY="your_production_key"
    - Enable Cloud Firestore API for your project
 
 5. **Run the app**
+
    ```bash
    ./run_with_env.sh
    ```
@@ -622,6 +676,7 @@ export PROD_GEMINI_API_KEY="your_production_key"
 ## 🏗️ Architecture
 
 The app follows a clean architecture pattern with:
+
 - **Provider** for state management
 - **Hive** for local storage
 - **Firebase** for cloud sync and analytics
@@ -630,11 +685,13 @@ The app follows a clean architecture pattern with:
 ## 🧪 Testing
 
 Run tests with:
+
 ```bash
 flutter test
 ```
 
 For widget tests with golden files:
+
 ```bash
 flutter test --update-goldens
 ```
@@ -660,6 +717,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## 🆘 Support
 
 For support and questions:
+
 - Check the [documentation](docs/)
 - Open an issue on GitHub
 - Contact the development team
@@ -671,6 +729,7 @@ For support and questions:
 ## 🎯 Current Version: v2.2.4 - Polished UI and Enhanced System Robustness
 
 ### Latest Updates (v2.2.4)
+
 - **🎨 Beautiful Classification Details Screen**: Enhanced with animated bookmark toggle, consistent avatar colors, improved reaction pills, and comment dividers
 - **🔧 Robust AI Discovery Content**: Improved null-safety, better documentation, enhanced error handling, and optimized performance
 - **✨ Smooth Animations**: Added elastic bookmark animations and smooth state transitions
@@ -682,27 +741,32 @@ For support and questions:
 **🎯 Major Improvements**: Successfully resolved all critical development issues and enhanced user experience with comprehensive fixes.
 
 ### **🔧 Service Optimization & Performance**
+
 - ✅ **Service Instantiation Optimization**: Replaced repeated service instantiations with efficient singleton patterns
 - ✅ **Enhanced Error Handling**: Added comprehensive try-catch blocks for image saving operations
 - ✅ **Memory Efficiency**: Optimized `CloudStorageService` and `AiService` for better resource management
 
 ### **🤖 AI Analysis Improvements**
+
 - ✅ **"Unknown Item" Issue Resolved**: Fixed AI response parsing to extract meaningful item names from explanation text
 - ✅ **Enhanced JSON Processing**: Improved itemName extraction with regex patterns and intelligent fallbacks
 - ✅ **Better Classification Accuracy**: Now shows proper item names like "Plant debris" instead of generic "Unknown Item"
 
 ### **🎨 UI/UX Enhancements**
+
 - ✅ **RenderFlex Overflow Fixed**: Resolved all layout overflow issues in disposal instructions widget
 - ✅ **Responsive Design**: Added proper constraints for narrow screens and long content
 - ✅ **Simplified Feedback Interface**: Changed redundant "Yes, correct"/"No, incorrect" to clean "Yes"/"No" options
 - ✅ **Comprehensive Testing**: Added 41+ UI consistency tests ensuring professional design standards
 
 ### **🧪 Testing Infrastructure**
+
 - ✅ **Overflow Prevention**: Comprehensive tests for narrow screens and constrained layouts
 - ✅ **Edge Case Coverage**: Tests handle extreme scenarios with very long text content
 - ✅ **Accessibility Compliance**: WCAG AA standards met with proper contrast ratios and touch targets
 
 ### **📚 Documentation & Deployment**
+
 - ✅ **Environment Setup Guide**: Complete troubleshooting documentation for development setup
 - ✅ **Issue Tracking**: Detailed resolution documentation with commit references
 - ✅ **Remote Sync**: All improvements pushed to GitHub repository
@@ -712,6 +776,7 @@ For support and questions:
 ## Overview
 
 This cross-platform app allows users to capture or upload images, then uses an AI model (primarily `gpt-4.1-nano` via OpenAI, with a 4-tier fallback system including other OpenAI models and ultimately Google's `gemini-2.0-flash`) to identify items and classify them into waste categories:
+
 - Wet Waste (organic, compostable)
 - Dry Waste (recyclable)
 - Hazardous Waste (requires special handling)
@@ -770,11 +835,13 @@ The app provides educational content about each category, stores classification 
 **🏆 Achievement**: Implemented comprehensive UI consistency testing and achieved 100% compliance across all design patterns.
 
 ### **Comprehensive Testing Infrastructure**
+
 - **41 automated UI consistency tests** covering button styles, text hierarchy, color contrast, and accessibility
 - **Real-time design pattern validation** ensuring consistent user experience
 - **Accessibility compliance testing** for WCAG AA standards
 
 ### **Design System Improvements**
+
 - ✅ **Button Consistency**: Standardized padding (24dp×16dp), consistent styling, proper state feedback
 - ✅ **Typography Hierarchy**: Systematic font sizing (24→20→18→16→14→12px) with proper weight distribution
 - ✅ **Color Accessibility**: WCAG AA compliant contrast ratios (4.5:1+) for all text/background combinations
@@ -782,12 +849,14 @@ The app provides educational content about each category, stores classification 
 - ✅ **Font Family Consistency**: Standardized Roboto usage with proper fallbacks
 
 ### **Accessibility Features**
+
 - **Text Scaling Support**: Proper adaptation to system accessibility settings
 - **Color-Blind Friendly**: High contrast color combinations that work for various color vision deficiencies
 - **Keyboard Navigation**: Focus indicators for accessible navigation
 - **Screen Reader Support**: Semantic labels and proper widget structure
 
 ### **Quality Metrics**
+
 - **100% UI Consistency Test Coverage**: All 41 tests passing
 - **WCAG AA Compliance**: Exceeds accessibility standards
 - **Cross-Platform Consistency**: Unified experience across devices
@@ -796,6 +865,7 @@ The app provides educational content about each category, stores classification 
 This ensures a **professional, accessible, and consistently designed app** that provides an excellent user experience for all users, including those with accessibility needs.
 
 ## Accessibility & Color Contrast
+
 - All screens have been updated for improved color contrast and text visibility.
 - The app now meets accessibility standards for color contrast in both light and dark themes.
 
@@ -821,17 +891,20 @@ This ensures a **professional, accessible, and consistently designed app** that 
 ### Setup
 
 1. Clone the repository:
+
    ```bash
    git clone https://github.com/pranaysuyash/Waste-Segregation-App.git
    cd waste_segregation_app
    ```
 
 2. Install dependencies:
+
    ```bash
    flutter pub get
    ```
 
 3. Generate model code:
+
    ```bash
    flutter pub run build_runner build
    ```
@@ -839,6 +912,7 @@ This ensures a **professional, accessible, and consistently designed app** that 
 4. Configure API keys:
    - Create a file named `.env` in the project root.
    - Add your API keys and other environment-specific configurations to this file. Example:
+
      ```env
      OPENAI_API_KEY=your_openai_api_key_here
      GEMINI_API_KEY=your_gemini_api_key_here
@@ -851,9 +925,11 @@ This ensures a **professional, accessible, and consistently designed app** that 
      # FIREBASE_PROJECT_ID=your_firebase_project_id
      # FIREBASE_API_KEY=your_firebase_api_key 
      ```
+
    - The application loads these variables at runtime. API authentication uses the standard Bearer token format, handled by the `AIService`.
 
 5. Run the app:
+
    ```bash
    flutter run --dart-define-from-file=.env
    ```
@@ -861,6 +937,7 @@ This ensures a **professional, accessible, and consistently designed app** that 
 ### Utility Scripts
 
 The project root contains several utility shell scripts for development and maintenance tasks, including:
+
 - `build_production.sh`: Helps create production builds for different platforms (APK, App Bundle, iOS).
 - `run_with_env.sh`: Validates the `.env` file and runs the app with error checking.
 - `fix_kotlin_build_issue.sh`: (Purpose to be documented if known, likely for specific Kotlin-related build problems).
@@ -872,6 +949,7 @@ Refer to the scripts themselves for their specific functionalities.
 ## Project Structure
 
 The `lib/` directory contains the core Dart code for the application, organized into subdirectories for:
+
 - `models/`: Data structures and classes.
 - `providers/`: State management using the Provider package.
 - `screens/`: UI for different application screens.
@@ -892,6 +970,7 @@ For a detailed view of the current file structure, please explore the `lib/` dir
 - ❌ Apple App Store submission (not started)
 
 ### Implemented Features
+
 - AI integration with Gemini Vision API
 - Waste classification with detailed categories
 - Basic image capture and upload functionality
@@ -913,6 +992,7 @@ For a detailed view of the current file structure, please explore the `lib/` dir
 - Basic social sharing (e.g., sharing classification results from history)
 
 ### In Progress / Pending
+
 - Leaderboard implementation
 - Enhanced camera features
 - Social sharing capabilities (further enhancements and broader integration)
@@ -936,6 +1016,7 @@ For comprehensive documentation including setup guides, technical details, and p
 - **[❓ Troubleshooting](docs/reference/troubleshooting.md)** - Common issues and solutions
 
 ### 📋 **Current Status Documents (Updated June 2025)**
+
 - **[🚨 Issues Summary](docs/status/ISSUES_SUMMARY_2025-06-02.md)** - Comprehensive tracking of all known issues
 - **[🧪 Test Status](docs/testing/TEST_STATUS_SUMMARY.md)** - Critical test infrastructure failure analysis
 - **[📋 PR Status](docs/status/PR_STATUS_SUMMARY.md)** - Pull request handling and remaining work
@@ -949,18 +1030,21 @@ For comprehensive documentation including setup guides, technical details, and p
 **Latest Changes:** Complete documentation reorganization with 40+ files properly categorized. Code quality improvements with 126 issues remaining (25% improvement achieved).
 
 ### 🚨 **CRITICAL RELEASE BLOCKERS**
+
 - **Test Infrastructure Failure**: 0% test success rate across all 21 test categories
 - **All Tests Timing Out**: Unit, widget, integration, and performance tests all failing
 - **Code Coverage**: Unable to generate coverage reports
 - **Impact**: Cannot release with failing test infrastructure
 
 ### 📊 **Current Issues Summary**
+
 - **Linter Issues**: 342 deprecation warnings (mostly `withOpacity` usage)
 - **Test Status**: 0/21 test categories passing
 - **Documentation**: ✅ Recently updated with comprehensive tracking
 - **Main App**: ✅ Compiles and runs successfully
 
 ### Recent Critical Fixes ✅
+
 - **History Duplication Fix:** Fixed issue where scanning one item created two history entries due to duplicate save operations in result screen
 - **User Data Isolation:** Fixed privacy issue where guest and Google account data was shared on same device
 - **ViewAllButton Styling:** Fixed invisible text in "View All" button for recent classifications
@@ -970,6 +1054,7 @@ For comprehensive documentation including setup guides, technical details, and p
 - **Modal Responsiveness:** Added height constraints and scrolling for better UX on small screens
 
 ### Build Status
+
 - **Android App Bundle:** Ready for Play Store deployment
 - **Play Store Version:** 0.1.6+98 reserved for Google Play Store submission
 - **Version Code:** Dynamically managed from pubspec.yaml
@@ -1005,6 +1090,7 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 - All contributors to the open-source packages used in this project
 
 ## Versioning and Play Store Issue (May 2025)
+
 - The app now uses 0.1.x versioning for public/internal releases. Latest: 0.1.6+98.
 - Google Play App Signing SHA-1 is now added to Firebase for internal testing compatibility.
 - See CHANGELOG.md and docs/current_issues.md for details.
@@ -1016,30 +1102,35 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 Choose the method that works best for you:
 
 #### Option 1: Simple Development Run
+
 ```bash
 # Loads your .env file automatically
 flutter run --dart-define-from-file=.env
 ```
 
 #### Option 2: Validated Run (Recommended)
+
 ```bash
 # Validates .env file and runs with error checking
 ./run_with_env.sh
 ```
 
 #### Option 3: Plain Flutter Run
+
 ```bash
 # Uses default placeholder API keys (will show "incorrect API key" errors)
 flutter run
 ```
 
 #### Option 4: VS Code
+
 - Press `F5` or use Run & Debug panel
 - Automatically loads `.env` file
 
 ### Production Builds
 
 #### Android APK
+
 ```bash
 # Set production environment variables first
 export PROD_OPENAI_API_KEY="your_production_key"
@@ -1050,11 +1141,13 @@ export PROD_GEMINI_API_KEY="your_production_key"
 ```
 
 #### Android App Bundle (Play Store)
+
 ```bash
 ./build_production.sh aab
 ```
 
 #### iOS (App Store)
+
 ```bash
 ./build_production.sh ios
 ```
@@ -1063,6 +1156,7 @@ export PROD_GEMINI_API_KEY="your_production_key"
 
 1. **Flutter SDK** (3.0.0 or higher)
 2. **API Keys** in `.env` file:
+
    ```bash
    OPENAI_API_KEY=your_openai_api_key_here
    GEMINI_API_KEY=your_gemini_api_key_here
@@ -1071,17 +1165,20 @@ export PROD_GEMINI_API_KEY="your_production_key"
    OPENAI_API_MODEL_TERTIARY=gpt-4.1-mini
    GEMINI_API_MODEL=gemini-2.0-flash
    ```
+
 3. **Firebase Project** with Firestore enabled
 
 ## 🔧 Setup
 
 1. **Clone the repository**
+
    ```bash
    git clone <repository-url>
    cd waste_segregation_app
    ```
 
 2. **Install dependencies**
+
    ```bash
    flutter pub get
    ```
@@ -1093,6 +1190,7 @@ export PROD_GEMINI_API_KEY="your_production_key"
    - Enable Cloud Firestore API for your project
 
 5. **Run the app**
+
    ```bash
    ./run_with_env.sh
    ```
@@ -1117,6 +1215,7 @@ export PROD_GEMINI_API_KEY="your_production_key"
 ## 🏗️ Architecture
 
 The app follows a clean architecture pattern with:
+
 - **Provider** for state management
 - **Hive** for local storage
 - **Firebase** for cloud sync and analytics
@@ -1125,11 +1224,13 @@ The app follows a clean architecture pattern with:
 ## 🧪 Testing
 
 Run tests with:
+
 ```bash
 flutter test
 ```
 
 For widget tests with golden files:
+
 ```bash
 flutter test --update-goldens
 ```
@@ -1155,6 +1256,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## 🆘 Support
 
 For support and questions:
+
 - Check the [documentation](docs/)
 - Open an issue on GitHub
 - Contact the development team

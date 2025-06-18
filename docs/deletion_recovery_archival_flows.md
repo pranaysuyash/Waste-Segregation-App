@@ -19,6 +19,7 @@
 #### **🗑️ Guest Data Deletion Flow**
 
 **Current User Experience:**
+
 ```
 Settings → Developer Options → Clear Firebase Data
 ├── User sees "Clear Data" confirmation
@@ -29,6 +30,7 @@ Settings → Developer Options → Clear Firebase Data
 ```
 
 **🤖 Behind-the-Scenes ML Data Collection:**
+
 ```
 Every Guest Classification (Invisible to User):
 1. User saves classification locally
@@ -47,6 +49,7 @@ Every Guest Classification (Invisible to User):
 ```
 
 **Enhanced Guest Deletion Flow:**
+
 ```
 Settings → "Clear My Data"
 ├── Warning: "This will remove all your classifications and progress"
@@ -59,6 +62,7 @@ Settings → "Clear My Data"
 ```
 
 #### **🔄 Guest Data Reset Flow**
+
 ```
 Guest Reset = Guest Deletion (same process)
 ├── All data is local to device
@@ -71,6 +75,7 @@ Guest Reset = Guest Deletion (same process)
 #### **📦 Guest Archival Flow**
 
 **User Perspective:**
+
 ```
 ❌ No user-accessible archival
 ├── Guest mode = temporary usage model
@@ -80,6 +85,7 @@ Guest Reset = Guest Deletion (same process)
 ```
 
 **Admin/ML Perspective:**
+
 ```
 ✅ Automatic anonymous archival
 ├── Every guest classification automatically archived
@@ -93,6 +99,7 @@ Guest Reset = Guest Deletion (same process)
 #### **🔄 Guest Recovery Flow**
 
 **User Recovery:**
+
 ```
 ❌ No recovery possible for guest users
 ├── No cloud backup exists for users
@@ -102,6 +109,7 @@ Guest Reset = Guest Deletion (same process)
 ```
 
 **Admin Recovery:**
+
 ```
 ✅ Admin can access all guest data
 ├── Anonymous classification data available
@@ -114,6 +122,7 @@ Guest Reset = Guest Deletion (same process)
 ### **📱 Different Mobile Device**
 
 #### **🗑️ Guest Deletion on New Device**
+
 ```
 User Perspective:
 ❌ No data to delete (fresh install on new device)
@@ -130,6 +139,7 @@ Admin/ML Perspective:
 ```
 
 #### **🔄 Guest Recovery on New Device**
+
 ```
 User Perspective:
 ❌ No recovery possible
@@ -154,6 +164,7 @@ Admin/ML Perspective:
 #### **🗑️ Account Reset Flow (Keep Account, Clear Data)**
 
 **Current User Experience:**
+
 ```
 Settings → Developer Options → "Clear Firebase Data"
 ├── Confirmation dialog with impact explanation
@@ -165,6 +176,7 @@ Settings → Developer Options → "Clear Firebase Data"
 ```
 
 **Enhanced Reset Options:**
+
 ```
 Settings → "Data Management" → "Reset Options"
 ├── "Archive & Fresh Start" (Recommended)
@@ -195,6 +207,7 @@ Settings → "Data Management" → "Reset Options"
 #### **🗑️ Complete Account Deletion Flow**
 
 **Enhanced Account Deletion Process:**
+
 ```
 Settings → "Account Settings" → "Delete Account"
 ├── Pre-deletion Education
@@ -225,6 +238,7 @@ Settings → "Account Settings" → "Delete Account"
 ```
 
 **ML Training Data Preservation During Deletion:**
+
 ```
 What Gets Deleted (Personal):
 ❌ User profile and preferences
@@ -246,6 +260,7 @@ What Gets Preserved (Anonymous):
 #### **📦 Archive Creation Flow**
 
 **User Archive Management:**
+
 ```
 Settings → "Data Management" → "Create Archive"
 ├── Archive Scope Selection
@@ -278,6 +293,7 @@ Settings → "Data Management" → "Create Archive"
 ```
 
 **Archive Browsing & Management:**
+
 ```
 Settings → "View My Archives"
 ├── Archive List
@@ -304,6 +320,7 @@ Settings → "View My Archives"
 #### **🔄 Data Recovery Flow**
 
 **Self-Service Recovery Options:**
+
 ```
 Auth Screen → "Recover My Data" → Recovery Methods:
 
@@ -339,6 +356,7 @@ Auth Screen → "Recover My Data" → Recovery Methods:
 ```
 
 **Recovery Status Tracking:**
+
 ```
 Recovery Dashboard:
 ├── Active Recovery Requests
@@ -363,6 +381,7 @@ Recovery Dashboard:
 ### **📱 Different Mobile Device**
 
 #### **🗑️ Cross-Device Deletion Flow**
+
 ```
 Account Deletion Impact Across Devices:
 ├── Deletion initiated on Device A
@@ -377,6 +396,7 @@ Account Deletion Impact Across Devices:
 #### **🔄 Cross-Device Recovery Flow**
 
 **Enhanced New Device Experience:**
+
 ```
 App Installation → Sign In → Welcome Back Flow:
 ├── Device Recognition: "Welcome back to Waste Segregation!"
@@ -389,6 +409,7 @@ App Installation → Sign In → Welcome Back Flow:
 ```
 
 **Advanced Cross-Device Recovery:**
+
 ```
 Recovery Options for New Device:
 ├── "This replaces my lost device"
@@ -425,6 +446,7 @@ Recovery Options for New Device:
 #### **All User Data Administration:**
 
 **Admin Dashboard User Management:**
+
 ```
 Admin Dashboard → User Management → Data Operations:
 
@@ -463,6 +485,7 @@ Admin Dashboard → User Management → Data Operations:
 #### **Admin Delete User Flow:**
 
 **Individual User Deletion Process:**
+
 ```
 Admin Dashboard → User Search → Deletion Options:
 
@@ -496,6 +519,7 @@ Admin Dashboard → User Search → Deletion Options:
 ```
 
 **Bulk User Operations:**
+
 ```
 Admin Dashboard → Bulk Operations → User Management:
 
@@ -526,6 +550,7 @@ Admin Dashboard → Bulk Operations → User Management:
 #### **Privacy-Preserving User Recovery:**
 
 **Admin Recovery Dashboard:**
+
 ```
 Admin Dashboard → Data Recovery → Recovery Operations:
 
@@ -560,6 +585,7 @@ Admin Dashboard → Data Recovery → Recovery Operations:
 ```
 
 **Privacy-Preserving User Lookup Process:**
+
 ```
 Admin Recovery Workflow:
 ├── Step 1: User Identity Verification
@@ -596,6 +622,7 @@ Admin Recovery Workflow:
 #### **System-Wide Archive Operations:**
 
 **Comprehensive Archive Management:**
+
 ```
 Admin Dashboard → Archive Management → System Operations:
 
@@ -629,6 +656,7 @@ Admin Dashboard → Archive Management → System Operations:
 ```
 
 **Archive Quality & Integrity Management:**
+
 ```
 Archive Operations Dashboard:
 ├── "Archive Health Monitoring"
@@ -662,6 +690,7 @@ Archive Operations Dashboard:
 #### **Universal Data Collection (All Users):**
 
 **Guest User ML Data Collection:**
+
 ```
 Every Guest Classification Triggers:
 ├── Anonymous Classification Data Preservation
@@ -688,6 +717,7 @@ Every Guest Classification Triggers:
 ```
 
 **Signed-In User ML Data Collection:**
+
 ```
 Enhanced Data Collection for Account Users:
 ├── Everything from Guest Collection (anonymized)
@@ -716,6 +746,7 @@ Enhanced Data Collection for Account Users:
 #### **ML Data Preservation During All Deletion Types:**
 
 **Data Preservation Matrix:**
+
 ```
 What Always Gets Preserved for ML Training:
 ✅ Classification accuracy and confidence data
@@ -744,6 +775,7 @@ What Gets Anonymized or Removed:
 #### **Comprehensive Data Quality Pipeline:**
 
 **Automated Quality Management:**
+
 ```
 ML Data Quality Assurance Flow:
 ├── "Real-Time Data Validation"
@@ -776,6 +808,7 @@ ML Data Quality Assurance Flow:
 ```
 
 **ML Data Retention and Lifecycle:**
+
 ```
 ML Training Data Lifecycle Stages:
 ├── "Active Training Data" (0-1 year)
@@ -816,6 +849,7 @@ ML Training Data Lifecycle Stages:
 #### **Comprehensive Data Rights Management:**
 
 **Enhanced Data Subject Rights:**
+
 ```
 Settings → "Privacy & Data Rights" → Options:
 
@@ -858,6 +892,7 @@ Settings → "Privacy & Data Rights" → Options:
 ```
 
 **ML Training Data Transparency:**
+
 ```
 ML Data Transparency Dashboard:
 ├── "How Your Data Helps Improve the App"
@@ -887,6 +922,7 @@ ML Data Transparency Dashboard:
 #### **Granular Consent Management:**
 
 **Advanced Consent Framework:**
+
 ```
 Privacy Settings → "Consent Management" → Detailed Controls:
 
@@ -928,6 +964,7 @@ Privacy Settings → "Consent Management" → Detailed Controls:
 #### **Admin Access to All User Data:**
 
 **Comprehensive Admin Data Access:**
+
 ```
 Admin Dashboard → Universal Data Access → All User Types:
 
@@ -967,6 +1004,7 @@ Admin Dashboard → Universal Data Access → All User Types:
 #### **Data Recovery Across All User Types:**
 
 **Universal Recovery Capabilities:**
+
 ```
 Admin Recovery Operations → All User Types:
 
@@ -1005,6 +1043,7 @@ Admin Recovery Operations → All User Types:
 #### **Deletion Impact on ML Training Data:**
 
 **ML Data Preservation Strategy:**
+
 ```
 All Deletion Scenarios → ML Impact Management:
 
@@ -1057,6 +1096,7 @@ All Deletion Scenarios → ML Impact Management:
 ### **🚨 Critical Implementation Priorities**
 
 #### **Phase 1: Universal ML Data Collection (2-3 weeks)**
+
 1. **Guest User ML Data Collection**
    - Implement anonymous classification data preservation for guest users
    - Create device-based anonymous identification system
@@ -1076,6 +1116,7 @@ All Deletion Scenarios → ML Impact Management:
    - Add audit logging for all admin data access
 
 #### **Phase 2: Enhanced User Experience (3-4 weeks)**
+
 1. **Comprehensive Archive & Recovery System**
    - Convert script-based archival to full user interface
    - Implement self-service recovery options
@@ -1095,6 +1136,7 @@ All Deletion Scenarios → ML Impact Management:
    - Add system monitoring and health dashboards
 
 #### **Phase 3: Advanced Features & Optimization (2-3 weeks)**
+
 1. **ML Data Quality & Analytics**
    - Build ML training data quality monitoring
    - Implement automated data lifecycle management
@@ -1118,18 +1160,21 @@ All Deletion Scenarios → ML Impact Management:
 ## 🎯 **SUCCESS METRICS & VALIDATION**
 
 ### **Universal Data Collection Metrics**
+
 - **ML Data Collection Rate**: Target 100% of all classifications (guest + signed-in)
 - **Privacy Compliance**: Target 0 personal data leaks in ML dataset
 - **Data Quality**: Target >95% usable data for training
 - **Admin Data Access**: Target 100% coverage of all user data types
 
 ### **User Experience Metrics**
+
 - **Deletion Success Rate**: Target 100% successful deletions with ML preservation
 - **Recovery Success Rate**: Target >95% successful data recovery
 - **User Satisfaction**: Target >4.5★ rating for data management
 - **Privacy Transparency**: Target >80% user understanding of ML data use
 
 ### **Admin Efficiency Metrics**
+
 - **Admin Data Access Time**: Target <5 minutes for any user data lookup
 - **Recovery Processing Time**: Target <30 minutes for complex recoveries
 - **ML Data Management**: Target real-time access to all training data
@@ -1142,12 +1187,14 @@ All Deletion Scenarios → ML Impact Management:
 This comprehensive analysis reveals a deletion/recovery/archival system designed for **universal data preservation** for ML training while maintaining **world-class privacy protection**. The key insight is that **ALL user data** (guest and signed-in) can be preserved for ML training through proper anonymization, while still respecting user privacy and deletion rights.
 
 ### **Critical Success Factors:**
+
 1. **Universal ML Data Collection** - Preserve anonymous training data from all users
 2. **Privacy-First Admin Access** - Enable admin access to all data without privacy violations
 3. **GDPR-Compliant Deletion** - Respect user rights while preserving valuable training data
 4. **Comprehensive Recovery** - Support all user types with appropriate recovery options
 
 ### **Immediate Implementation Priority:**
+
 **Implement guest user ML data collection** - This unlocks the largest source of training data while maintaining user privacy through anonymization.
 
 The system design ensures that **every classification from every user** contributes to model improvement while maintaining complete privacy compliance and user trust.

@@ -39,6 +39,7 @@ await gamificationService.processClassification(result!);
 ```
 
 **Why `processClassification()` instead of `saveClassification()`?**
+
 - Triggers all gamification hooks (points, achievements, streaks)
 - Handles both storage and gamification processing in one call
 - Maintains consistency with the manual flow
@@ -64,6 +65,7 @@ if (widget.showActions && !widget.autoAnalyze) {
 ```
 
 **Key Changes:**
+
 - Skip duplicate save processing when `autoAnalyze: true`
 - Mark classification as saved for correct UI state
 - Prevent double-processing of gamification hooks
@@ -81,18 +83,21 @@ This helps distinguish between manual and instant analysis flows in analytics.
 ## Technical Implementation Details
 
 ### Import Addition
+
 ```dart
 import '../services/gamification_service.dart';
 ```
 
 ### Flow Sequence (Fixed)
+
 1. **AI Analysis**: InstantAnalysisScreen gets classification result
-2. **Immediate Save**: `gamificationService.processClassification(result!)` 
+2. **Immediate Save**: `gamificationService.processClassification(result!)`
 3. **Navigation**: Navigate to `ResultScreen(autoAnalyze: true)`
 4. **UI State**: ResultScreen marks as saved, skips duplicate processing
 5. **History Refresh**: `ref.invalidate(classificationsProvider)` in parent screen
 
 ### Backward Compatibility
+
 - ✅ No breaking changes to existing manual flow
 - ✅ All existing functionality preserved
 - ✅ AutoAnalyze parameter defaults to `false`
@@ -101,6 +106,7 @@ import '../services/gamification_service.dart';
 ## Testing & Verification
 
 ### Before Fix
+
 ```
 1. Take photo with instant analysis
 2. See classification result
@@ -110,6 +116,7 @@ import '../services/gamification_service.dart';
 ```
 
 ### After Fix
+
 ```
 1. Take photo with instant analysis
 2. See classification result  
@@ -122,10 +129,12 @@ import '../services/gamification_service.dart';
 ## Files Modified
 
 ### Core Changes
+
 - ✅ `lib/screens/instant_analysis_screen.dart` - Added immediate save logic
 - ✅ `lib/screens/result_screen.dart` - Skip duplicate processing for autoAnalyze
 
 ### Dependencies
+
 - ✅ Uses existing `GamificationService.processClassification()`
 - ✅ Leverages existing `ref.invalidate(classificationsProvider)` pattern
 - ✅ Maintains existing error handling and analytics
@@ -147,4 +156,4 @@ import '../services/gamification_service.dart';
 
 This fix ensures that instant analysis classifications are properly persisted and processed, providing a consistent user experience across all analysis flows while maintaining the streamlined UX that instant analysis was designed to provide.
 
-**Result**: Instant analysis now properly saves classifications, triggers gamification hooks, and maintains history - fixing the critical gap in the user experience. 
+**Result**: Instant analysis now properly saves classifications, triggers gamification hooks, and maintains history - fixing the critical gap in the user experience.

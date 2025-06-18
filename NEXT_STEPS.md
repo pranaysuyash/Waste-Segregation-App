@@ -7,12 +7,14 @@
 ## 🎯 **Single Action Required**
 
 ### **Step 1: Upgrade Firebase Billing Plan**
-1. **Navigate to**: https://console.firebase.google.com/project/waste-segregation-app-df523/usage/details
+
+1. **Navigate to**: <https://console.firebase.google.com/project/waste-segregation-app-df523/usage/details>
 2. **Click**: "Upgrade to Blaze Plan"
 3. **Follow**: Billing setup wizard
 4. **Time**: ~5 minutes
 
 ### **Step 2: Deploy Cloud Functions**
+
 ```bash
 # After billing upgrade
 cd functions
@@ -21,6 +23,7 @@ firebase deploy --only functions
 ```
 
 ### **Step 3: Verify Deployment**
+
 ```bash
 # Test health check endpoint
 curl https://asia-south1-waste-segregation-app-df523.cloudfunctions.net/healthCheck
@@ -43,6 +46,7 @@ curl -X POST https://asia-south1-waste-segregation-app-df523.cloudfunctions.net/
 ## 🎉 **After Completion**
 
 Once the Cloud Functions are deployed, the app will be:
+
 - **100% Feature Complete**
 - **Ready for Maintenance Mode**
 - **Enterprise-Grade Quality**
@@ -51,9 +55,10 @@ Once the Cloud Functions are deployed, the app will be:
 ## 📞 **Support**
 
 If you encounter any issues during the billing upgrade or deployment:
+
 1. Check Firebase Console for error messages
 2. Verify OpenAI API key is configured: `firebase functions:config:get`
 3. Monitor function logs: `firebase functions:log --only generateDisposal`
 
 **Estimated Total Time**: 30 minutes  
-**Complexity**: Low (standard Firebase billing upgrade) 
+**Complexity**: Low (standard Firebase billing upgrade)

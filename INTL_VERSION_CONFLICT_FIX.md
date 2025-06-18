@@ -9,6 +9,7 @@
 The Waste Segregation App was experiencing CI/CD build failures due to a dependency version conflict between the explicit `intl` package constraint and the Flutter SDK's `flutter_localizations` package.
 
 ### Error Message
+
 ```
 Note: intl is pinned to version 0.19.0 by flutter_localizations from the flutter SDK.
 See https://dart.dev/go/sdk-version-pinning for details.
@@ -20,6 +21,7 @@ Error: Process completed with exit code 1.
 ## Root Cause Analysis
 
 ### The Conflict
+
 The issue arose from conflicting version constraints:
 
 1. **App's pubspec.yaml**: Explicitly declared `intl: ^0.20.2`
@@ -27,6 +29,7 @@ The issue arose from conflicting version constraints:
 3. **Version Solver**: Could not resolve a version that satisfies both constraints
 
 ### Flutter SDK Version Pinning
+
 Flutter SDK packages like `flutter_localizations` are pinned to specific versions of their dependencies to ensure compatibility and stability. This means:
 
 - The Flutter SDK controls which version of `intl` is used
@@ -36,6 +39,7 @@ Flutter SDK packages like `flutter_localizations` are pinned to specific version
 ## Investigation Process
 
 ### Initial Approach (Failed)
+
 1. **Attempted downgrade**: Changed `intl: ^0.20.2` to `intl: ^0.19.0`
    - **Result**: Still failed because the actual SDK requirement was different
    - **Learning**: The error message version might not reflect the current SDK requirement
@@ -45,7 +49,9 @@ Flutter SDK packages like `flutter_localizations` are pinned to specific version
    - **Issue**: Multiple files import `intl` directly for date formatting functionality
 
 ### Files Using Intl Package
+
 The following files directly import and use the `intl` package:
+
 - `lib/screens/data_export_screen.dart` - DateFormat for export timestamps
 - `lib/screens/classification_details_screen.dart` - Date formatting
 - `lib/screens/waste_dashboard_screen.dart` - Dashboard date displays
@@ -55,14 +61,17 @@ The following files directly import and use the `intl` package:
 ## Solution Implemented
 
 ### Final Approach (Successful)
+
 Changed the `intl` dependency constraint to use `any` version:
 
 **Before:**
+
 ```yaml
 intl: ^0.20.2  # For internationalization and date formatting
 ```
 
 **After:**
+
 ```yaml
 intl: any  # For internationalization and date formatting (version managed by flutter_localizations)
 ```
@@ -77,14 +86,18 @@ intl: any  # For internationalization and date formatting (version managed by fl
 ## Technical Details
 
 ### Dependency Resolution
+
 With `intl: any`, the pub dependency resolver:
+
 1. Checks `flutter_localizations` requirements first (higher priority)
 2. Selects the `intl` version required by `flutter_localizations`
 3. Makes that version available to the app
 4. Satisfies all import statements without conflicts
 
 ### Flutter SDK Version Compatibility
+
 This approach ensures compatibility across different Flutter SDK versions:
+
 - **Flutter 3.32.2**: Works with whatever `intl` version the SDK requires
 - **Future versions**: Will automatically use the correct `intl` version
 - **No manual updates**: No need to manually track SDK dependency changes
@@ -92,32 +105,40 @@ This approach ensures compatibility across different Flutter SDK versions:
 ## Testing & Verification
 
 ### Dependency Resolution Test
+
 ```bash
 flutter pub get
 ```
+
 **Result**: ✅ Success - No version solving conflicts
 
 ### Import Resolution Test
+
 ```bash
 flutter analyze lib/screens/data_export_screen.dart lib/screens/classification_details_screen.dart lib/screens/waste_dashboard_screen.dart lib/screens/settings_screen.dart
 ```
+
 **Result**: ✅ Success - No "depend_on_referenced_packages" warnings
 
 ### Build Test
+
 ```bash
 flutter analyze --no-fatal-infos
 ```
+
 **Result**: ✅ Success - No critical compilation errors
 
 ## Impact & Benefits
 
 ### Immediate Benefits
+
 1. **CI/CD Stability**: Eliminates build failures caused by version conflicts
 2. **Development Workflow**: Developers can run `flutter pub get` without issues
 3. **Functionality Preservation**: All date formatting and internationalization features work
 4. **Analyzer Compliance**: No dependency-related warnings
 
 ### Long-term Benefits
+
 1. **Maintenance Reduction**: No need to manually update `intl` versions
 2. **Flutter SDK Compatibility**: Automatic compatibility with SDK updates
 3. **Dependency Management**: Simplified dependency management strategy
@@ -126,12 +147,14 @@ flutter analyze --no-fatal-infos
 ## Best Practices Learned
 
 ### Dependency Management Strategy
+
 1. **SDK Package Dependencies**: Let Flutter SDK packages control their dependencies
 2. **Version Constraints**: Use `any` for packages managed by SDK dependencies
 3. **Direct Usage**: Only specify explicit versions for packages you directly control
 4. **Testing**: Always test dependency changes with `flutter pub get` and `flutter analyze`
 
 ### Flutter SDK Integration
+
 1. **Trust SDK Pinning**: Flutter SDK version pinning is done for good reasons
 2. **Avoid Overrides**: Don't override SDK-managed package versions unless absolutely necessary
 3. **Monitor Updates**: Be aware that SDK updates may change dependency requirements
@@ -140,9 +163,11 @@ flutter analyze --no-fatal-infos
 ## Files Modified
 
 ### Configuration Files
+
 - `pubspec.yaml` - Changed `intl` constraint from `^0.20.2` to `any`
 
 ### No Code Changes Required
+
 - All existing `intl` imports continue to work
 - No changes needed in application code
 - No migration or refactoring required
@@ -155,12 +180,14 @@ flutter analyze --no-fatal-infos
 ## Future Recommendations
 
 ### Dependency Management Guidelines
+
 1. **Research First**: Check if a package is managed by Flutter SDK before adding explicit constraints
 2. **Use `any` Wisely**: Use `any` constraint for SDK-managed dependencies
 3. **Document Decisions**: Document why specific constraint strategies are used
 4. **Regular Testing**: Regularly test dependency resolution after Flutter SDK updates
 
 ### Monitoring & Maintenance
+
 1. **CI/CD Monitoring**: Monitor build logs for new dependency conflicts
 2. **Flutter Updates**: Test dependency resolution after Flutter SDK updates
 3. **Team Communication**: Communicate dependency management strategies to the team
@@ -169,10 +196,12 @@ flutter analyze --no-fatal-infos
 ## Related Issues & References
 
 ### Flutter Documentation
+
 - [Dart SDK Version Pinning](https://dart.dev/go/sdk-version-pinning)
 - [Flutter Package Dependencies](https://docs.flutter.dev/development/packages-and-plugins/using-packages)
 
 ### Common Patterns
+
 - Using `any` for SDK-managed dependencies
 - Letting `flutter_localizations` control `intl` version
 - Avoiding explicit constraints for transitive dependencies
@@ -182,4 +211,4 @@ flutter analyze --no-fatal-infos
 **Status:** ✅ **COMPLETED**  
 **Merged:** June 15, 2025  
 **PR:** #143  
-**Impact:** Critical CI/CD stability fix 
+**Impact:** Critical CI/CD stability fix

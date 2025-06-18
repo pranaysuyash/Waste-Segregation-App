@@ -11,6 +11,7 @@ This document describes the implementation of a unified `PointsManager` using Ri
 ## Problem Statement
 
 ### Before Implementation
+
 - Multiple UI components (results, leaderboard, profile, streak banner) read their own copy of points
 - Race conditions were causing point discrepancies (e.g., -10 pts in logs)
 - Hard-coded action strings scattered across codebase leading to mismatches
@@ -18,7 +19,9 @@ This document describes the implementation of a unified `PointsManager` using Ri
 - Points Engine existed but wasn't consistently used across all screens
 
 ### Root Cause
+
 The app had multiple ways to access and modify points:
+
 1. Direct `GamificationService` calls
 2. `PointsEngine` through `PointsEngineProvider` (Provider pattern)
 3. Various Riverpod providers with different caching strategies
@@ -27,11 +30,13 @@ The app had multiple ways to access and modify points:
 ## Solution Architecture
 
 ### 1. Unified PointsManager (AsyncNotifier)
+
 ```dart
 class PointsManager extends AsyncNotifier<UserPoints>
 ```
 
 **Key Features:**
+
 - Single source of truth for all points operations
 - Atomic operations with proper locking mechanisms
 - Automatic state updates across all consumers
@@ -39,6 +44,7 @@ class PointsManager extends AsyncNotifier<UserPoints>
 - Integration with existing PointsEngine for business logic
 
 ### 2. Golden Source Action Enum
+
 ```dart
 enum PointableAction {
   classification('classification', 10),
@@ -48,12 +54,14 @@ enum PointableAction {
 ```
 
 **Benefits:**
+
 - Eliminates hard-coded strings
 - Ensures consistency between UI and backend
 - Type-safe action handling
 - Centralized point value definitions
 
 ### 3. Riverpod Provider Integration
+
 ```dart
 final pointsManagerProvider = AsyncNotifierProvider<PointsManager, UserPoints>(() {
   return PointsManager();
@@ -74,6 +82,7 @@ final currentPointsProvider = Provider<int>((ref) {
 ### Files Created/Modified
 
 #### New Files
+
 1. **`lib/providers/points_manager.dart`**
    - `PointsManager` class (AsyncNotifier)
    - Provider definitions
@@ -90,6 +99,7 @@ final currentPointsProvider = Provider<int>((ref) {
    - Consistency checks
 
 #### Modified Files
+
 1. **`lib/main.dart`**
    - Added Riverpod provider overrides
    - Integrated service dependencies
@@ -101,6 +111,7 @@ final currentPointsProvider = Provider<int>((ref) {
 ### Key Implementation Patterns
 
 #### 1. Atomic Operations
+
 ```dart
 Future<UserPoints> addPoints(PointableAction action, {
   String? category,
@@ -120,6 +131,7 @@ Future<UserPoints> addPoints(PointableAction action, {
 ```
 
 #### 2. Points Consistency Validation
+
 ```dart
 Future<void> _validatePointsConsistency() async {
   final points = currentState.value!;
@@ -135,6 +147,7 @@ Future<void> _validatePointsConsistency() async {
 ```
 
 #### 3. UI Integration Pattern
+
 ```dart
 Widget _buildPointsChip(BuildContext context, WidgetRef ref) {
   final pointsAsync = ref.watch(pointsManagerProvider);
@@ -150,26 +163,31 @@ Widget _buildPointsChip(BuildContext context, WidgetRef ref) {
 ## Benefits Achieved
 
 ### 1. Eliminates Race Conditions
+
 - All points operations go through single atomic manager
 - Proper state synchronization across all UI components
 - No more conflicting point updates
 
 ### 2. Ensures Consistency
+
 - Built-in validation of total vs category points
 - Automatic detection of inconsistencies with tolerance
 - Single source of truth prevents divergent states
 
 ### 3. Type Safety
+
 - `PointableAction` enum prevents typos in action strings
 - Compile-time validation of supported actions
 - Clear categorization of different point types
 
 ### 4. Better Performance
+
 - Riverpod's efficient state management
 - Automatic UI updates only when points change
 - Reduced unnecessary rebuilds
 
 ### 5. Maintainability
+
 - Centralized point logic
 - Clear separation of concerns
 - Easy to add new pointable actions
@@ -177,6 +195,7 @@ Widget _buildPointsChip(BuildContext context, WidgetRef ref) {
 ## Migration Strategy
 
 ### Phase 1: Foundation (✅ Completed)
+
 - [x] Create PointsManager and PointableAction enum
 - [x] Integrate with existing PointsEngine
 - [x] Add Riverpod provider setup
@@ -184,12 +203,14 @@ Widget _buildPointsChip(BuildContext context, WidgetRef ref) {
 - [x] Update one screen as example (NewModernHomeScreen)
 
 ### Phase 2: Gradual Migration (Next Steps)
+
 - [ ] Update all remaining screens to use PointsManager
 - [ ] Replace direct GamificationService calls
 - [ ] Update achievement claiming to use new pattern
 - [ ] Migrate streak updates to use PointsManager
 
 ### Phase 3: Cleanup (Future)
+
 - [ ] Remove old Provider-based PointsEngineProvider
 - [ ] Deprecate direct GamificationService point methods
 - [ ] Add analytics for points consistency monitoring
@@ -197,12 +218,14 @@ Widget _buildPointsChip(BuildContext context, WidgetRef ref) {
 ## Testing Strategy
 
 ### Unit Tests
+
 - ✅ PointableAction enum validation
 - ✅ Action key consistency checks
 - ✅ Point value validation
 - ✅ Category assignment verification
 
 ### Integration Tests (Planned)
+
 - [ ] Points consistency across operations
 - [ ] Race condition prevention
 - [ ] Error handling and recovery
@@ -211,6 +234,7 @@ Widget _buildPointsChip(BuildContext context, WidgetRef ref) {
 ## Usage Examples
 
 ### Adding Points (New Pattern)
+
 ```dart
 // Type-safe with enum
 final pointsManager = ref.read(pointsManagerProvider.notifier);
@@ -225,6 +249,7 @@ await pointsManager.addPointsLegacy('classification');
 ```
 
 ### Displaying Points (New Pattern)
+
 ```dart
 Widget build(BuildContext context, WidgetRef ref) {
   final pointsAsync = ref.watch(pointsManagerProvider);
@@ -238,6 +263,7 @@ Widget build(BuildContext context, WidgetRef ref) {
 ```
 
 ### Convenience Providers
+
 ```dart
 // Just the current points value
 final currentPoints = ref.watch(currentPointsProvider);
@@ -249,16 +275,19 @@ final currentLevel = ref.watch(currentLevelProvider);
 ## Performance Considerations
 
 ### Memory Usage
+
 - Single cached UserPoints instance
 - Efficient Riverpod state management
 - Automatic disposal of unused providers
 
 ### Network Efficiency
+
 - Maintains existing PointsEngine cloud sync
 - Optimistic updates for immediate UI feedback
 - Background consistency validation
 
 ### UI Responsiveness
+
 - Immediate state updates on operations
 - Loading states for async operations
 - Error boundaries for graceful degradation
@@ -266,17 +295,20 @@ final currentLevel = ref.watch(currentLevelProvider);
 ## Monitoring and Analytics
 
 ### Built-in Logging
+
 ```dart
 debugPrint('✨ PointsManager: Added $pointsToAdd points for $action. New total: ${newPoints.total}');
 debugPrint('⚠️ PointsManager: Points inconsistency detected!');
 ```
 
 ### Consistency Validation
+
 - Automatic detection of total vs category sum mismatches
 - Tolerance-based validation (10 point tolerance for legacy data)
 - Non-blocking validation (logs but doesn't fail operations)
 
 ### Metadata Tracking
+
 ```dart
 metadata: {
   'source': 'PointsManager',
@@ -342,6 +374,7 @@ The implementation maintains backwards compatibility while providing a clear mig
 ---
 
 ## Related Documentation
+
 - [Battle Plan](./battle-plan.md) - Overall roadmap
 - [PointsEngine Documentation](./POINTS_ENGINE.md) - Underlying business logic
-- [Riverpod Migration Guide](./RIVERPOD_MIGRATION.md) - State management patterns 
+- [Riverpod Migration Guide](./RIVERPOD_MIGRATION.md) - State management patterns

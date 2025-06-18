@@ -3,11 +3,13 @@
 ## 📋 Analysis Framework
 
 ### **Data Sources:**
+
 - ✅ **Codebase Implementation** - What actually exists
 - 📚 **Documentation** - What's planned/documented  
 - 🎯 **Best Practices** - What should be there
 
 ### **User Types:**
+
 - 👤 **Guest Users** (Anonymous/Not signed in)
 - 🔐 **Signed-in Users** (Google account)
 - 👑 **Admin Users** (Special privileges)
@@ -19,6 +21,7 @@
 ### **🆕 Fresh Install Flow**
 
 #### **Current Implementation (Codebase):**
+
 ```
 1. App Launch
    ├── Splash Screen (animated)
@@ -30,6 +33,7 @@
 ```
 
 #### **Documented Features:**
+
 ```
 - Privacy consent collection
 - Terms of service acceptance
@@ -38,6 +42,7 @@
 ```
 
 #### **🎯 Ideal Flow (Recommendations):**
+
 ```
 1. App Launch
    ├── Enhanced Splash (app intro/features)
@@ -53,6 +58,7 @@
 ### **🔄 Guest User App Usage Flow**
 
 #### **Current Implementation:**
+
 ```
 1. Main Navigation
    ├── Home Screen (classification camera)
@@ -70,6 +76,7 @@
 ```
 
 #### **Documented Features:**
+
 ```
 - Full app functionality for guests
 - Local data storage via Hive
@@ -78,6 +85,7 @@
 ```
 
 #### **🎯 Ideal Flow (Missing Features):**
+
 ```
 1. Enhanced Guest Experience
    ├── Guest data sync warning ("Sign in to backup")
@@ -95,11 +103,13 @@
 ### **📱 Guest Account Upgrade Flow**
 
 #### **Current Implementation:**
+
 ```
 Settings → Sign In → Google OAuth → Data Migration (automatic)
 ```
 
 #### **Documented Features:**
+
 ```
 - Google OAuth integration
 - Automatic data migration
@@ -107,6 +117,7 @@ Settings → Sign In → Google OAuth → Data Migration (automatic)
 ```
 
 #### **🎯 Ideal Flow (Enhanced):**
+
 ```
 1. Upgrade Trigger
    ├── User-initiated (settings)
@@ -134,6 +145,7 @@ Settings → Sign In → Google OAuth → Data Migration (automatic)
 ### **🆕 First-Time Sign-In Flow**
 
 #### **Current Implementation:**
+
 ```
 1. OAuth Flow
    ├── Google sign-in
@@ -149,6 +161,7 @@ Settings → Sign In → Google OAuth → Data Migration (automatic)
 ```
 
 #### **Documented Features:**
+
 ```
 - Google OAuth integration
 - Profile creation
@@ -157,6 +170,7 @@ Settings → Sign In → Google OAuth → Data Migration (automatic)
 ```
 
 #### **🎯 Ideal Flow (Missing Elements):**
+
 ```
 1. Enhanced Onboarding
    ├── Profile customization
@@ -176,6 +190,7 @@ Settings → Sign In → Google OAuth → Data Migration (automatic)
 ### **🔄 Returning User Flow**
 
 #### **Current Implementation:**
+
 ```
 1. App Launch
    ├── Splash screen
@@ -193,6 +208,7 @@ Settings → Sign In → Google OAuth → Data Migration (automatic)
 ```
 
 #### **Documented Features:**
+
 ```
 - Automatic sign-in
 - Background data sync
@@ -201,6 +217,7 @@ Settings → Sign In → Google OAuth → Data Migration (automatic)
 ```
 
 #### **🎯 Ideal Flow (Optimizations):**
+
 ```
 1. Smart Loading
    ├── Progressive service loading
@@ -220,6 +237,7 @@ Settings → Sign In → Google OAuth → Data Migration (automatic)
 ### **🔄 Data Sync & Backup Flow**
 
 #### **Current Implementation:**
+
 ```
 1. Automatic Sync (if enabled)
    ├── Classification save triggers cloud sync
@@ -234,6 +252,7 @@ Settings → Sign In → Google OAuth → Data Migration (automatic)
 ```
 
 #### **Documented Features:**
+
 ```
 - Automatic background sync
 - Manual sync controls
@@ -242,6 +261,7 @@ Settings → Sign In → Google OAuth → Data Migration (automatic)
 ```
 
 #### **🎯 Ideal Flow (Enhanced):**
+
 ```
 1. Intelligent Sync
    ├── WiFi-only options
@@ -261,6 +281,7 @@ Settings → Sign In → Google OAuth → Data Migration (automatic)
 ### **🗑️ Account Reset Flow**
 
 #### **Current Implementation:**
+
 ```
 Settings → Developer Options → Clear Firebase Data
 ├── Confirmation dialog
@@ -271,6 +292,7 @@ Settings → Developer Options → Clear Firebase Data
 ```
 
 #### **Documented Features:**
+
 ```
 - Ultimate factory reset
 - Data archival option
@@ -279,6 +301,7 @@ Settings → Developer Options → Clear Firebase Data
 ```
 
 #### **🎯 Ideal Flow (Production Ready):**
+
 ```
 1. Reset Type Selection
    ├── "Archive & Fresh Start" (safe)
@@ -308,6 +331,7 @@ Settings → Developer Options → Clear Firebase Data
 ### **🔧 Admin Access Flow**
 
 #### **Current Implementation:**
+
 ```
 Settings → Developer Mode Toggle (if canShowDeveloperOptions)
 ├── Premium feature testing
@@ -318,6 +342,7 @@ Settings → Developer Mode Toggle (if canShowDeveloperOptions)
 ```
 
 #### **Documented Features:**
+
 ```
 - Developer mode security
 - Admin-only features
@@ -326,6 +351,7 @@ Settings → Developer Mode Toggle (if canShowDeveloperOptions)
 ```
 
 #### **🎯 Ideal Flow (Admin Dashboard):**
+
 ```
 1. Admin Authentication
    ├── Admin email verification
@@ -344,11 +370,13 @@ Settings → Developer Mode Toggle (if canShowDeveloperOptions)
 ### **🔄 Data Recovery Flow (Admin)**
 
 #### **Current Implementation:**
+
 ```
 Manual process via Firebase console and hashed user lookup
 ```
 
 #### **Documented Features:**
+
 ```
 - Privacy-preserving user lookup
 - Hashed user ID correlation
@@ -357,6 +385,7 @@ Manual process via Firebase console and hashed user lookup
 ```
 
 #### **🎯 Ideal Flow (Complete System):**
+
 ```
 1. Recovery Request Processing
    ├── User identity verification
@@ -383,11 +412,13 @@ Manual process via Firebase console and hashed user lookup
 ### **📊 System Management Flow (Admin)**
 
 #### **Current Implementation:**
+
 ```
 Limited to developer tools and Firebase console access
 ```
 
 #### **Documented Features:**
+
 ```
 - Archive metadata tracking
 - System health monitoring
@@ -396,6 +427,7 @@ Limited to developer tools and Firebase console access
 ```
 
 #### **🎯 Ideal Flow (Complete Admin System):**
+
 ```
 1. System Dashboard
    ├── User metrics overview
@@ -428,11 +460,13 @@ Limited to developer tools and Firebase console access
 #### **Guest → Signed-In Transition**
 
 **Current Implementation:**
+
 ```
 AuthScreen → Google OAuth → Profile Creation → Data Migration
 ```
 
 **🎯 Ideal Enhanced Flow:**
+
 ```
 1. Transition Trigger
    ├── Feature limitation encounter
@@ -464,11 +498,13 @@ AuthScreen → Google OAuth → Profile Creation → Data Migration
 #### **Signed-In → Account Recovery**
 
 **Current Implementation:**
+
 ```
 Manual admin process via support
 ```
 
 **🎯 Ideal Self-Service Flow:**
+
 ```
 1. Recovery Initiation
    ├── Account access issue
@@ -496,6 +532,7 @@ Manual admin process via support
 #### **Archive & Recovery Flow**
 
 **Current Implementation:**
+
 ```
 Script-based archival:
 ├── archive_and_fresh_start.dart
@@ -504,6 +541,7 @@ Script-based archival:
 ```
 
 **🎯 Ideal UI-Integrated Flow:**
+
 ```
 1. Archive Creation
    ├── User-initiated request
@@ -532,6 +570,7 @@ Script-based archival:
 #### **Data Loss Prevention**
 
 **Current Implementation:**
+
 ```
 - Fresh start service protection
 - Automatic backup to admin collections
@@ -539,6 +578,7 @@ Script-based archival:
 ```
 
 **🎯 Ideal Comprehensive Protection:**
+
 ```
 1. Prevention Measures
    ├── Automatic backup verification
@@ -582,16 +622,19 @@ Script-based archival:
 ### **Priority Recommendations:**
 
 #### **🚨 High Priority (Production Blockers)**
+
 1. **Admin Dashboard Implementation** - Convert documented admin recovery to UI
 2. **Account Reset UI Integration** - Move from developer tools to user-facing
 3. **Enhanced Error Handling** - Better user communication during failures
 
 #### **🎯 Medium Priority (UX Improvements)**
+
 1. **Enhanced Onboarding** - Personalized setup flows
 2. **Self-Service Recovery** - Reduce admin intervention needs
 3. **Data Lifecycle UI** - Archive browsing and management
 
 #### **💡 Low Priority (Nice-to-Have)**
+
 1. **Advanced Sync Controls** - Granular user control
 2. **Predictive Features** - Proactive user assistance
 3. **Advanced Analytics** - Detailed user insights
@@ -601,18 +644,21 @@ Script-based archival:
 ## 🎯 **KEY INSIGHTS**
 
 ### **🏆 Strengths:**
+
 - **Comprehensive backend architecture** - All flows have solid foundation
 - **Privacy-first design** - GDPR compliance built-in
 - **Multiple user types supported** - Flexible architecture
 - **Safety-focused** - Excellent data protection measures
 
 ### **🔧 Gaps:**
+
 - **Admin UI missing** - All admin flows are manual/script-based
 - **Limited user control** - Advanced features buried in developer tools
 - **Onboarding could be richer** - Basic flows lack personalization
 - **Self-service recovery lacking** - Too dependent on admin intervention
 
 ### **🚀 Opportunities:**
+
 - **Convert scripts to UI** - Make powerful features user-accessible
 - **Add personalization** - Tailor experience to user needs
 - **Improve user education** - Better feature discovery and explanation
