@@ -8,7 +8,7 @@ import 'package:waste_segregation_app/utils/waste_app_logger.dart';
 /// Provider for the centralized Points Engine
 class PointsEngineProvider extends ChangeNotifier {
   PointsEngineProvider(this._storageService, this._cloudStorageService) {
-    _pointsEngine = PointsEngine(_storageService, _cloudStorageService);
+    _pointsEngine = PointsEngine.getInstance(_storageService, _cloudStorageService);
     _pointsEngine.addListener(_onPointsEngineChanged);
     _initialize();
   }

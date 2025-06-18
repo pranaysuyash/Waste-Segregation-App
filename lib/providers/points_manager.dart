@@ -21,8 +21,8 @@ class PointsManager extends AsyncNotifier<UserPoints> {
     _storageService = ref.read(storageServiceProvider);
     _cloudStorageService = ref.read(cloudStorageServiceProvider);
     
-    // Initialize Points Engine
-    _pointsEngine = PointsEngine(_storageService, _cloudStorageService);
+    // Initialize Points Engine (singleton)
+    _pointsEngine = PointsEngine.getInstance(_storageService, _cloudStorageService);
     await _pointsEngine.initialize();
     
     // Listen to Points Engine changes

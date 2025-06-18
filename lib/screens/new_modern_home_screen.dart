@@ -511,6 +511,10 @@ class NewModernHomeScreenState extends ConsumerState<NewModernHomeScreen>
       // Get updated profile
       final newProfile = await gamificationService.getProfile();
       
+      // RACE CONDITION FIX: Invalidate providers to refresh UI with new points
+      ref.invalidate(profileProvider);
+      ref.invalidate(classificationsProvider);
+      
       // Check for daily goal achievement
       await _checkDailyGoalAchievement(oldProfile, newProfile);
       

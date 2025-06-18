@@ -17,7 +17,7 @@ class PointsMigration {
       WasteAppLogger.info('🔄 Starting Points Engine migration...');
       
       // Create Points Engine instance
-      final pointsEngine = PointsEngine(_storageService, _cloudStorageService);
+      final pointsEngine = PointsEngine.getInstance(_storageService, _cloudStorageService);
       await pointsEngine.initialize();
       
       // Create legacy GamificationService for comparison
@@ -182,7 +182,7 @@ class PointsMigration {
   /// Perform a dry run of the migration (for testing)
   Future<Map<String, dynamic>> dryRunMigration() async {
     try {
-      final pointsEngine = PointsEngine(_storageService, _cloudStorageService);
+      final pointsEngine = PointsEngine.getInstance(_storageService, _cloudStorageService);
       await pointsEngine.initialize();
       
       final legacyService = GamificationService(_storageService, _cloudStorageService);
