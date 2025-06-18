@@ -80,7 +80,7 @@ class HistoryListItem extends StatelessWidget {
                           
                           const SizedBox(height: 4),
                           
-                          // Date and confidence row
+                          // Date and confidence row with better overflow handling
                           Row(
                             children: [
                               const Icon(
@@ -100,26 +100,28 @@ class HistoryListItem extends StatelessWidget {
                                   maxLines: 1,
                                 ),
                               ),
-                              const SizedBox(width: 8),
-                              // Confidence badge
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 6,
-                                  vertical: 2,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: _getConfidenceColor().withValues(alpha:0.2),
-                                  borderRadius: BorderRadius.circular(AppTheme.borderRadiusSmall),
-                                  border: Border.all(
-                                    color: _getConfidenceColor(),
+                              const SizedBox(width: 4), // Reduced spacing
+                              // Confidence badge with flexible sizing
+                              Flexible(
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 6,
+                                    vertical: 2,
                                   ),
-                                ),
-                                child: Text(
-                                  '${((classification.confidence ?? 0.0) * 100).round()}%',
-                                  style: TextStyle(
-                                    color: _getConfidenceColor(),
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.bold,
+                                  decoration: BoxDecoration(
+                                    color: _getConfidenceColor().withValues(alpha:0.2),
+                                    borderRadius: BorderRadius.circular(AppTheme.borderRadiusSmall),
+                                    border: Border.all(
+                                      color: _getConfidenceColor(),
+                                    ),
+                                  ),
+                                  child: Text(
+                                    '${((classification.confidence ?? 0.0) * 100).round()}%',
+                                    style: TextStyle(
+                                      color: _getConfidenceColor(),
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.bold,
+                                    ),
                                   ),
                                 ),
                               ),
@@ -243,7 +245,7 @@ class HistoryListItem extends StatelessWidget {
     );
   }
   
-  /// Builds the properties indicators row
+  /// Builds the properties indicators row with overflow handling
   Widget _buildPropertiesRow(BuildContext context) {
     final indicators = <Widget>[];
     
@@ -291,21 +293,36 @@ class HistoryListItem extends StatelessWidget {
     
     return Row(
       children: [
-        ...indicators.map((indicator) => Padding(
-          padding: const EdgeInsets.only(right: 8),
-          child: indicator,
-        )),
-        const Spacer(),
-        if (showFeedbackButton)
-          FeedbackButton(
-            classification: classification,
-            onFeedbackSubmitted: onFeedbackSubmitted,
+        // Use Flexible to allow indicators to shrink if needed
+        Flexible(
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: indicators.map((indicator) => Padding(
+              padding: const EdgeInsets.only(right: 8),
+              child: indicator,
+            )).toList(),
           ),
-        const Icon(
-          Icons.chevron_right,
-          size: 18,
-          color: AppTheme.textSecondaryColor,
-          semanticLabel: 'View details',
+        ),
+        const Spacer(),
+        // Wrap feedback button and chevron in a row with intrinsic width
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (showFeedbackButton) ...[
+              // Use a more compact feedback button for list items
+              _CompactFeedbackButton(
+                classification: classification,
+                onFeedbackSubmitted: onFeedbackSubmitted,
+              ),
+              const SizedBox(width: 4),
+            ],
+            const Icon(
+              Icons.chevron_right,
+              size: 18,
+              color: AppTheme.textSecondaryColor,
+              semanticLabel: 'View details',
+            ),
+          ],
         ),
       ],
     );
@@ -570,5 +587,106 @@ class HistoryListItem extends StatelessWidget {
     } catch (e) {
       WasteAppLogger.severe('Error occurred', null, null, {'service': 'widget', 'file': 'history_list_item'});
     }
+  }
+}
+
+/// Compact feedback button specifically for list items to save space
+class _CompactFeedbackButton extends StatelessWidget {
+  const _CompactFeedbackButton({
+    required this.classification,
+    required this.onFeedbackSubmitted,
+  });
+
+  final WasteClassification classification;
+  final Function(WasteClassification) onFeedbackSubmitted;
+
+  @override
+  Widget build(BuildContext context) {
+    final hasExistingFeedback = classification.userConfirmed != null;
+    
+    return IconButton(
+      onPressed: () => _showFeedbackDialog(context),
+      icon: Icon(
+        hasExistingFeedback ? Icons.feedback : Icons.feedback_outlined,
+        size: 16,
+        color: hasExistingFeedback ? Colors.green.shade600 : AppTheme.primaryColor,
+      ),
+      iconSize: 16,
+      padding: EdgeInsets.zero,
+      constraints: const BoxConstraints(
+        minWidth: 24,
+        minHeight: 24,
+      ),
+      tooltip: hasExistingFeedback ? 'Feedback given' : 'Give feedback',
+    );
+  }
+
+  void _showFeedbackDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => Dialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(AppTheme.borderRadiusLarge),
+        ),
+        child: Container(
+          constraints: BoxConstraints(
+            maxWidth: 500,
+            maxHeight: MediaQuery.of(context).size.height * 0.85,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Fixed header
+              Container(
+                padding: const EdgeInsets.all(AppTheme.paddingLarge),
+                decoration: BoxDecoration(
+                  color: AppTheme.primaryColor.withValues(alpha:0.1),
+                  borderRadius: const BorderRadius.only(
+                    topLeft: Radius.circular(AppTheme.borderRadiusLarge),
+                    topRight: Radius.circular(AppTheme.borderRadiusLarge),
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(
+                      Icons.feedback,
+                      color: AppTheme.primaryColor,
+                      size: 24,
+                    ),
+                    const SizedBox(width: 8),
+                    const Expanded(
+                      child: Text(
+                        'Help us improve classification',
+                        style: TextStyle(
+                          fontSize: AppTheme.fontSizeLarge,
+                          fontWeight: FontWeight.bold,
+                          color: AppTheme.textPrimaryColor,
+                        ),
+                      ),
+                    ),
+                    IconButton(
+                      onPressed: () => Navigator.of(context).pop(),
+                      icon: const Icon(Icons.close),
+                      iconSize: 20,
+                      tooltip: 'Close feedback dialog',
+                    ),
+                  ],
+                ),
+              ),
+              // Scrollable content
+              Flexible(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.all(AppTheme.paddingLarge),
+                  child: ClassificationFeedbackWidget(
+                    classification: classification,
+                    onFeedbackSubmitted: onFeedbackSubmitted,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 }

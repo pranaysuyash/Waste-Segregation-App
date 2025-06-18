@@ -55,9 +55,9 @@ final classificationsProvider = FutureProvider<List<WasteClassification>>((ref) 
 final _navIndexProvider = StateProvider<int>((ref) => 0);
 
 class NewModernHomeScreen extends ConsumerStatefulWidget {
-  final bool isGuestMode;
 
   const NewModernHomeScreen({super.key, this.isGuestMode = false});
+  final bool isGuestMode;
 
   @override
   NewModernHomeScreenState createState() => NewModernHomeScreenState();

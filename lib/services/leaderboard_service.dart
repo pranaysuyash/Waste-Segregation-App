@@ -1,5 +1,4 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter/foundation.dart';
 import '../models/leaderboard.dart'; // Assuming this is where LeaderboardEntry is defined
 import 'package:waste_segregation_app/utils/waste_app_logger.dart';
 

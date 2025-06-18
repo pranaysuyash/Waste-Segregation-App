@@ -133,7 +133,6 @@ class HomeHeaderState extends ConsumerState<HomeHeader>
                       Semantics(
                         label: 'Today\'s goal progress: $done out of $total items completed',
                         child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
                             Text(
                               "TODAY'S GOAL",

@@ -9,10 +9,12 @@ void main() {
   group('UI Overflow Fixes Tests', () {
     testWidgets('Classification feedback chips handle overflow correctly', (WidgetTester tester) async {
       // Create a test classification
-      final classification = WasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
+      final classification = WasteClassification(
         itemName: 'Very Long Item Name That Could Cause Overflow Issues',
         subcategory: 'Very Long Subcategory Name',
         explanation: 'Test explanation',
+        category: 'plastic',
+        disposalInstructions: DisposalInstructions(
           primaryMethod: 'Test method',
           steps: ['Test step'],
           hasUrgentTimeframe: false,
@@ -54,10 +56,12 @@ void main() {
     });
 
     testWidgets('History list item handles long category names', (WidgetTester tester) async {
-      final classification = WasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
+      final classification = WasteClassification(
         itemName: 'Very Long Item Name That Could Cause Overflow',
         subcategory: 'Very Long Subcategory Name',
         explanation: 'Test explanation',
+        category: 'plastic',
+        disposalInstructions: DisposalInstructions(
           primaryMethod: 'Test method',
           steps: ['Test step'],
           hasUrgentTimeframe: false,
@@ -79,6 +83,7 @@ void main() {
               child: HistoryListItem(
                 classification: classification,
                 onTap: () {},
+                onFeedbackSubmitted: (updatedClassification) {},
               ),
             ),
           ),
@@ -125,9 +130,11 @@ void main() {
     });
 
     testWidgets('Modal dialogs have proper height constraints', (WidgetTester tester) async {
-      final classification = WasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
+      final classification = WasteClassification(
         itemName: 'Test Item',
         explanation: 'Test explanation',
+        category: 'plastic',
+        disposalInstructions: DisposalInstructions(
           primaryMethod: 'Test method',
           steps: ['Test step'],
           hasUrgentTimeframe: false,

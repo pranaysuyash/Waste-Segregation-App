@@ -65,9 +65,9 @@ class TestHomePage extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 10),
-            Text(
+            const Text(
               kIsWeb ? 'Running on Web Platform' : 'Running on Mobile Platform',
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 16,
                 color: Colors.grey,
               ),
