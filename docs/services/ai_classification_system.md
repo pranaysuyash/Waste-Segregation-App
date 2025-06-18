@@ -48,7 +48,7 @@ Classification Hierarchy & Instructions:
    - requiredPPE: ["gloves", "mask"], if needed
 
 8. Booleans:
-   - isRecyclable, isCompostable, requiresSpecialDisposal
+   - isRecyclable, isCompostable, requiresSpecialDisposal, isSingleUse
 
 9. Brand/product/barcode: If present/visible
 10. Region/locale: City/country string (e.g., "Bangalore, IN")
@@ -61,12 +61,18 @@ Classification Hierarchy & Instructions:
 15. Confidence: 0.0–1.0, with a brief note if confidence < 0.7
 16. clarificationNeeded: Boolean if confidence < 0.7 or item ambiguous
 17. Alternatives: Up to 2 alternative category/subcategory suggestions, each with confidence and reason
-18. Model info:
+
+18. Gamification & Engagement:
+    - environmentalImpact: Brief summary of the environmental impact (positive/negative).
+    - relatedItems: Suggest up to 3 related items and their disposal methods.
+
+19. Model info:
     - modelVersion, modelSource, processingTimeMs, analysisSessionId (set to null if not provided)
 
-19. Multilingual support:
+20. Multilingual support:
     - If instructionsLang provided, output translated disposal instructions as translatedInstructions for ["hi", "kn"] as well as "en".
-20. User fields:
+
+21. User fields:
     - Set isSaved, userConfirmed, userCorrection, disagreementReason, userNotes, viewCount to null unless provided in input context.
 
 Rules:
@@ -108,6 +114,7 @@ Output:
 
 ```dart
 class WasteClassification {
+  final String id;
   final String itemName;
   final String category;
   final String? subcategory;
@@ -116,11 +123,12 @@ class WasteClassification {
   final String explanation;
   final String? disposalMethod;
   final DisposalInstructions disposalInstructions;
-
+  final String? userId;
   final String region;
   final String? localGuidelinesReference;
-
   final String? imageUrl;
+  final String? imageRelativePath;
+  final String? thumbnailRelativePath;
   final String? imageHash;
   final Map<String, double>? imageMetrics;
   final List<String> visualFeatures;
@@ -128,6 +136,7 @@ class WasteClassification {
   final bool? isRecyclable;
   final bool? isCompostable;
   final bool? requiresSpecialDisposal;
+  final bool? isSingleUse;
   final String? colorCode;
   final String? riskLevel;
   final List<String>? requiredPPE;
@@ -154,6 +163,14 @@ class WasteClassification {
   final bool? hasUrgentTimeframe;
   final String? instructionsLang;
   final Map<String, String>? translatedInstructions;
+  
+  final String? source;
+  final DateTime timestamp;
+  final List<String>? reanalysisModelsTried;
+  final String? confirmedByModel;
+  final int? pointsAwarded;
+  final String? environmentalImpact;
+  final List<String>? relatedItems;
 
   // Constructor and methods...
 }
@@ -219,6 +236,7 @@ class DisposalInstructions {
     "isRecyclable": { "type": ["boolean", "null"] },
     "isCompostable": { "type": ["boolean", "null"] },
     "requiresSpecialDisposal": { "type": ["boolean", "null"] },
+    "isSingleUse": { "type": ["boolean", "null"] },
     "colorCode": { "type": ["string", "null"] },
     "riskLevel": { "type": ["string", "null"] },
     "requiredPPE": { "type": "array", "items": { "type": "string" } },
@@ -237,6 +255,11 @@ class DisposalInstructions {
     "processingTimeMs": { "type": ["integer", "null"] },
     "modelSource": { "type": ["string", "null"] },
     "analysisSessionId": { "type": ["string", "null"] },
+    "environmentalImpact": { "type": ["string", "null"] },
+    "relatedItems": {
+      "type": ["array", "null"],
+      "items": { "type": "string" }
+    },
     "alternatives": {
       "type": "array",
       "items": {

@@ -10,9 +10,9 @@ The Waste Segregation App utilizes a `.env` file to manage sensitive information
 - **Security**: This file **must not** be committed to version control. It is included in the `.gitignore` file to prevent accidental commits.
 - **Purpose**: To store API keys, model names, and other configuration variables that might change between environments or should be kept secret.
 
-### Example `.env` File Structure (`.env.example`)
+### .env File Template
 
-An example file, typically named `.env.example`, should be committed to the repository to show the required variables. Users will copy this to `.env` and fill in their actual values.
+Create a `.env` file in the project root. Use the template below to structure your file, filling in your actual secret values.
 
 ```env
 # API Keys for Waste Segregation App
@@ -36,7 +36,7 @@ DEBUG_MODE=true # or false
 # ... other app-specific flags
 ```
 
-**(Note: The example above shows placeholder values. The actual `.env` file will contain real keys.)**
+**(Note: The template above shows placeholder values. Your actual `.env` file must contain real keys.)**
 
 ## Accessing Environment Variables in Code
 
@@ -85,18 +85,15 @@ class ApiConfig {
 
 ## Setup for New Developers
 
-1.  **Copy `.env.example`**: If `.env.example` exists, copy it to a new file named `.env` in the project root.
-    ```bash
-    cp .env.example .env
-    ```
-    If `.env.example` does not exist, create `.env` manually based on the required structure.
-2.  **Fill in Values**: Open `.env` and replace the placeholder values with actual API keys and desired configurations.
-3.  **Build/Run with Defines (Recommended for Production/CI)**: When building for release or in CI/CD pipelines, pass the variables using `--dart-define`:
+1.  **Create `.env` file**: Create a file named `.env` in the project root.
+2.  **Copy Template**: Copy the template provided in the ".env File Template" section of this document into your new `.env` file.
+3.  **Fill in Values**: Open `.env` and replace the placeholder values with actual API keys and desired configurations.
+4.  **Build/Run with Defines (Recommended for Production/CI)**: When building for release or in CI/CD pipelines, pass the variables using `--dart-define`:
     ```bash
     flutter build apk --dart-define=OPENAI_API_KEY=YOUR_ACTUAL_KEY --dart-define=GEMINI_API_KEY=YOUR_ACTUAL_GEMINI_KEY --dart-define=OPENAI_API_MODEL_PRIMARY=gpt-4.1-nano --dart-define=OPENAI_API_MODEL_SECONDARY=gpt-4o-mini --dart-define=OPENAI_API_MODEL_TERTIARY=gpt-4.1-mini --dart-define=GEMINI_API_MODEL=gemini-2.0-flash
     # Add other --dart-define flags as needed for all variables in .env
     ```
-4.  **Local Development**: For local development, ensure your `.env` file is populated. The application uses `String.fromEnvironment` with default values as fallbacks if no `--dart-define` flags are provided. To use the values from your `.env` file during local development runs, you must pass them as `--dart-define` flags (e.g., `flutter run --dart-define-from-file=.env` if your Flutter version supports it, or by configuring your IDE's launch settings to include these defines).
+5.  **Local Development**: For local development, ensure your `.env` file is populated. The application uses `String.fromEnvironment` with default values as fallbacks if no `--dart-define` flags are provided. To use the values from your `.env` file during local development runs, you must pass them as `--dart-define` flags (e.g., `flutter run --dart-define-from-file=.env` if your Flutter version supports it, or by configuring your IDE's launch settings to include these defines).
     
     *Self-correction during generation: The current setup with `String.fromEnvironment` and a `.env` file implies that either a build tool 
     processes the `.env` into `--dart-define` flags, or developers manually provide these flags or rely on defaults. For true `.env` 

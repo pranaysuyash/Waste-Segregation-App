@@ -2,6 +2,21 @@
 
 A comprehensive Flutter application for proper waste identification, segregation guidance, and environmental education, enhanced with world-class recycling research and AI-powered material recognition.
 
+## 🚀 Latest: v2.3.0 - Documentation & Architecture Overhaul (June 18, 2025)
+
+This major update focuses on improving the developer experience, ensuring documentation is synchronized with the codebase, and solidifying the app's architecture.
+
+- ✅ **Documentation Sync:** Recursively reviewed and updated all documentation to match the current codebase.
+- ✅ **Architecture Documentation:** Enhanced technical documentation with accurate model definitions and service descriptions.
+- ✅ **Riverpod Migration Guide:** Updated to reflect the completed migration to pure Riverpod architecture.
+- ✅ **Environment Setup:** Improved developer onboarding with accurate environment configuration guides.
+- ✅ **Historical Preservation:** Maintained all historical updates and achievements in organized archive structure.
+- ✅ **Clean and Consistent Codebase:** Previous work resolved critical bugs, memory leaks, and UI inconsistencies, leading to a more robust and production-ready application.
+
+> For a detailed log of previous updates, please see the [README Updates History](docs/archive/README_UPDATES_HISTORY.md). For a complete list of all changes, refer to the `CHANGELOG.md`.
+
+---
+
 ## 🚨 Latest: Polished UI & Enhanced System Robustness v2.2.4 (December 2024)
 
 **Version 2.2.4 with Polished UI and Enhanced System Robustness is now live!**  
