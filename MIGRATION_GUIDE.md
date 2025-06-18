@@ -1,4 +1,5 @@
 # Migration Guide: Updated File Organization
+
 ## Quick Reference for Team Members
 
 *Updated: June 6, 2025*
@@ -21,6 +22,7 @@ The project has been completely reorganized for better efficiency and maintainab
 | `./apply_fixes.sh` | `./scripts/fixes/apply_fixes.sh` | General fixes |
 
 ### **Script Categories**
+
 - **Build**: `./scripts/build/` - Production builds and deployment
 - **Development**: `./scripts/development/` - Daily development workflow
 - **Fixes**: `./scripts/fixes/` - Problem resolution tools
@@ -33,6 +35,7 @@ The project has been completely reorganized for better efficiency and maintainab
 ### **Quick Access by Role**
 
 #### **For Developers**
+
 ```bash
 # Technical documentation
 open docs/technical/
@@ -45,6 +48,7 @@ open docs/guides/
 ```
 
 #### **For QA/Testing**
+
 ```bash
 # Testing documentation
 open docs/testing/
@@ -57,6 +61,7 @@ open docs/testing/QA_CHECKLIST.md
 ```
 
 #### **For Project Managers**
+
 ```bash
 # Project planning
 open docs/planning/
@@ -69,6 +74,7 @@ open docs/planning/SPRINT_PLANNING.md
 ```
 
 #### **For Everyone**
+
 ```bash
 # Start here - complete navigation guide
 open docs/DOCUMENTATION_INDEX.md
@@ -105,6 +111,7 @@ open docs/project/PROJECT_STATUS_COMPREHENSIVE.md
 ## ⚡ **DAILY WORKFLOW UPDATES**
 
 ### **Development Workflow**
+
 ```bash
 # 1. Navigate to project
 cd waste_segregation_app
@@ -120,6 +127,7 @@ open docs/DOCUMENTATION_INDEX.md
 ```
 
 ### **Build & Release Workflow**
+
 ```bash
 # 1. Apply fixes (NEW PATH)
 ./scripts/fixes/apply_final_fixes.sh
@@ -136,12 +144,14 @@ open docs/DOCUMENTATION_INDEX.md
 ## 🎯 **BENEFITS YOU'LL NOTICE**
 
 ### **Improved Efficiency**
+
 - ✅ **Faster file discovery** with logical categorization
 - ✅ **Cleaner workspace** with organized root directory
 - ✅ **Better navigation** with comprehensive indexes
 - ✅ **Role-based access** to relevant documentation
 
 ### **Better Collaboration**
+
 - ✅ **Team alignment** on file locations and structure
 - ✅ **Reduced confusion** with clear organization
 - ✅ **Easier onboarding** for new team members

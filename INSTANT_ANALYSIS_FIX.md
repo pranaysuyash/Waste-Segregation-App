@@ -16,7 +16,9 @@ This resulted in users seeing the same cached classification result (e.g., "Red 
 ## Root Cause Analysis
 
 ### Issue 1: Aggressive Duplicate Detection
+
 The `StorageService.saveClassification()` method used content-based hashing to prevent duplicates:
+
 ```dart
 final contentHash = '${classification.itemName.toLowerCase().trim()}_${classification.category}_${classification.subcategory}_${classification.userId}_${now.year}${now.month}${now.day}${now.hour}';
 ```
@@ -24,6 +26,7 @@ final contentHash = '${classification.itemName.toLowerCase().trim()}_${classific
 This was designed to prevent accidental duplicate saves, but it was too aggressive for instant analysis where users might legitimately want to re-analyze the same item multiple times.
 
 ### Issue 2: Missing History Refresh
+
 The `_navigateToInstantAnalysis()` method in `NewModernHomeScreen` didn't invalidate the Riverpod `classificationsProvider` after returning from instant analysis, so the UI never refreshed to show new classifications.
 
 ## Solution Implementation
@@ -31,6 +34,7 @@ The `_navigateToInstantAnalysis()` method in `NewModernHomeScreen` didn't invali
 ### 1. Bypass Duplicate Detection in AutoAnalyze Mode
 
 **File:** `lib/services/storage_service.dart`
+
 - Added optional `force` parameter to `saveClassification()` method
 - When `force: true`, skips both time-based and hash-based duplicate checks
 - Maintains backward compatibility with `force: false` as default
@@ -51,15 +55,18 @@ Future<void> saveClassification(
 ### 2. Identify Instant Analysis Mode
 
 **File:** `lib/screens/result_screen.dart`
+
 - Added `autoAnalyze` parameter to `ResultScreen` constructor
 - Updated `_autoSaveAndProcess()` and `_saveResult()` to use `force: widget.autoAnalyze`
 
 **File:** `lib/screens/instant_analysis_screen.dart`
+
 - Updated navigation to `ResultScreen` to pass `autoAnalyze: true`
 
 ### 3. Refresh History List
 
 **File:** `lib/screens/new_modern_home_screen.dart`
+
 - Added `ref.invalidate(classificationsProvider)` after instant analysis completes
 - Forces Riverpod to refresh the classifications list in the UI
 
@@ -119,4 +126,4 @@ With these changes, the instant analysis flow will:
 ---
 
 **Implementation completed:** June 15, 2025  
-**Status:** Ready for testing and deployment 
+**Status:** Ready for testing and deployment

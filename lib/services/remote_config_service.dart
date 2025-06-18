@@ -21,6 +21,7 @@ class RemoteConfigService {
       // Set default values for feature flags
       await _remoteConfig!.setDefaults({
         'home_header_v2_enabled': true,  // Default to new header
+        'results_v2_enabled': false,     // Default to legacy result screen
         'golden_test_mode': false,
         'accessibility_enhanced': true,
         'micro_animations_enabled': true,

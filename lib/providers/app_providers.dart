@@ -5,6 +5,7 @@ import '../services/gamification_service.dart';
 import '../services/points_engine.dart';
 import '../services/educational_content_service.dart';
 import '../services/ad_service.dart';
+import '../services/analytics_service.dart';
 import '../models/gamification.dart';
 import '../models/user_profile.dart';
 import '../services/remote_config_service.dart';
@@ -92,6 +93,12 @@ final educationalContentServiceProvider = Provider<EducationalContentService>((r
 
 /// Ad service provider - single source of truth  
 final adServiceProvider = Provider<AdService>((ref) => AdService());
+
+/// Analytics service provider - single source of truth
+final analyticsServiceProvider = Provider<AnalyticsService>((ref) {
+  final storageService = ref.read(storageServiceProvider);
+  return AnalyticsService(storageService);
+});
 
 /// Gamification profile provider - for accessing current user's gamification data
 final profileProvider = FutureProvider<GamificationProfile?>((ref) async {

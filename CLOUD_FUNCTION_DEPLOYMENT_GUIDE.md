@@ -6,12 +6,14 @@
 ## 🎯 **Quick Deployment Steps**
 
 ### **Step 1: Upgrade Firebase Billing Plan**
-1. **Navigate to**: https://console.firebase.google.com/project/waste-segregation-app-df523/usage/details
-2. **Click**: "Upgrade to Blaze Plan" 
+
+1. **Navigate to**: <https://console.firebase.google.com/project/waste-segregation-app-df523/usage/details>
+2. **Click**: "Upgrade to Blaze Plan"
 3. **Complete**: Billing setup (requires credit card)
 4. **Time**: ~5 minutes
 
 ### **Step 2: Deploy Functions**
+
 ```bash
 # Ensure you're in the project root
 cd /Users/pranay/Projects/LLM/image/waste_seg/waste_segregation_app
@@ -24,6 +26,7 @@ firebase deploy --only functions
 ```
 
 ### **Step 3: Verify Deployment**
+
 ```bash
 # Test health check endpoint
 curl https://asia-south1-waste-segregation-app-df523.cloudfunctions.net/healthCheck
@@ -34,6 +37,7 @@ curl https://asia-south1-waste-segregation-app-df523.cloudfunctions.net/healthCh
 ## 🔧 **Function Configuration**
 
 ### **Environment Variables Required**
+
 ```bash
 # Set OpenAI API key (if not already set)
 firebase functions:config:set openai.key="your-openai-api-key"
@@ -43,6 +47,7 @@ firebase functions:config:get
 ```
 
 ### **Function Details**
+
 - **generateDisposal**: Main disposal instructions endpoint
 - **healthCheck**: Health monitoring endpoint
 - **Region**: asia-south1 (optimized for your location)
@@ -53,11 +58,13 @@ firebase functions:config:get
 ## 🧪 **Testing the Deployed Function**
 
 ### **Health Check Test**
+
 ```bash
 curl https://asia-south1-waste-segregation-app-df523.cloudfunctions.net/healthCheck
 ```
 
 ### **Disposal Instructions Test**
+
 ```bash
 curl -X POST https://asia-south1-waste-segregation-app-df523.cloudfunctions.net/generateDisposal \
   -H "Content-Type: application/json" \
@@ -70,6 +77,7 @@ curl -X POST https://asia-south1-waste-segregation-app-df523.cloudfunctions.net/
 ```
 
 ### **Expected Response Structure**
+
 ```json
 {
   "steps": [
@@ -96,6 +104,7 @@ curl -X POST https://asia-south1-waste-segregation-app-df523.cloudfunctions.net/
 ## 🚨 **Troubleshooting Common Issues**
 
 ### **404 Error After Deployment**
+
 ```bash
 # Check function logs
 firebase functions:log --only generateDisposal
@@ -108,6 +117,7 @@ firebase functions:config:get
 ```
 
 ### **Function Timeout or Memory Issues**
+
 ```bash
 # Update function configuration
 firebase functions:config:set functions.timeout=120
@@ -118,6 +128,7 @@ firebase deploy --only functions
 ```
 
 ### **OpenAI API Issues**
+
 ```bash
 # Verify API key is set
 firebase functions:config:get openai
@@ -130,6 +141,7 @@ curl https://api.openai.com/v1/models \
 ## 📊 **Monitoring & Logs**
 
 ### **View Function Logs**
+
 ```bash
 # Real-time logs
 firebase functions:log --only generateDisposal --follow
@@ -139,19 +151,22 @@ firebase functions:log --only generateDisposal --lines 50
 ```
 
 ### **Firebase Console Monitoring**
-1. **Navigate to**: https://console.firebase.google.com/project/waste-segregation-app-df523/functions
+
+1. **Navigate to**: <https://console.firebase.google.com/project/waste-segregation-app-df523/functions>
 2. **Check**: Function health, invocations, and errors
 3. **Monitor**: Response times and memory usage
 
 ## 🔒 **Security Considerations**
 
 ### **API Key Protection**
+
 - ✅ OpenAI API key stored in Firebase Functions config (encrypted)
 - ✅ CORS enabled for your domain only
 - ✅ Function requires authentication context
 - ✅ Rate limiting through Firebase quotas
 
 ### **Input Validation**
+
 - ✅ Required fields validation (materialId, material)
 - ✅ Content length limits
 - ✅ Sanitized input processing
@@ -160,11 +175,13 @@ firebase functions:log --only generateDisposal --lines 50
 ## 📈 **Performance Optimization**
 
 ### **Caching Strategy**
+
 - ✅ Firestore caching for generated instructions
 - ✅ Reduces OpenAI API calls for duplicate requests
 - ✅ Improves response times for common materials
 
 ### **Cold Start Optimization**
+
 - ✅ Minimal dependencies loaded
 - ✅ Efficient function initialization
 - ✅ Health check endpoint for warming
@@ -172,12 +189,15 @@ firebase functions:log --only generateDisposal --lines 50
 ## 🔄 **Integration with Flutter App**
 
 ### **Service Implementation**
+
 The Flutter app already has the complete client service:
+
 - **File**: `lib/services/disposal_instructions_service.dart`
 - **Features**: HTTP client, error handling, caching
 - **Integration**: Ready to use once functions are deployed
 
 ### **Usage in App**
+
 ```dart
 final service = DisposalInstructionsService();
 final instructions = await service.getDisposalInstructions(
@@ -201,6 +221,7 @@ final instructions = await service.getDisposalInstructions(
 ## 🎯 **Success Criteria**
 
 Once deployed, the functions should:
+
 - ✅ Respond to health checks within 200ms
 - ✅ Generate disposal instructions within 3-5 seconds
 - ✅ Cache results in Firestore for faster subsequent requests
@@ -211,4 +232,4 @@ Once deployed, the functions should:
 
 **Deployment Time**: ~10 minutes after billing upgrade  
 **Testing Time**: ~5 minutes  
-**Total Time to 100% Completion**: ~15 minutes 
+**Total Time to 100% Completion**: ~15 minutes

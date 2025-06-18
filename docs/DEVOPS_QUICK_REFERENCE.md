@@ -5,6 +5,7 @@
 ## 🚀 **Daily Development Workflow**
 
 ### Starting New Work
+
 ```bash
 # Always start from develop
 git checkout develop
@@ -15,6 +16,7 @@ git checkout -b feat/new-feature-name
 ```
 
 ### Before Committing
+
 ```bash
 # Format code
 dart format .
@@ -30,6 +32,7 @@ flutter test --coverage --exclude-tags=golden
 ```
 
 ### Committing Changes
+
 ```bash
 # Use conventional commits
 git add .
@@ -44,6 +47,7 @@ git push origin feat/new-feature-name
 ## 🧪 **Testing Commands**
 
 ### Unit Tests
+
 ```bash
 # Run all unit tests with coverage
 flutter test --coverage
@@ -56,6 +60,7 @@ flutter test --exclude-tags=golden
 ```
 
 ### Golden Tests (Visual Regression)
+
 ```bash
 # Run golden tests
 flutter test test/golden/
@@ -68,6 +73,7 @@ open test/golden/failures/
 ```
 
 ### Integration Tests
+
 ```bash
 # Run integration tests
 flutter test integration_test/
@@ -81,6 +87,7 @@ flutter test integration_test/ --profile
 ## 🔒 **Security Operations**
 
 ### Manual Security Scans
+
 ```bash
 # Check for secrets locally
 grep -r "api_key\|password\|secret" . --exclude-dir=.git --exclude-dir=build
@@ -93,6 +100,7 @@ flutter pub deps --json
 ```
 
 ### Reviewing Security Alerts
+
 1. Go to **Security** tab in GitHub
 2. Review **Dependabot alerts**
 3. Check **Code scanning alerts**
@@ -103,6 +111,7 @@ flutter pub deps --json
 ## 📦 **Dependency Management**
 
 ### Manual Dependency Updates
+
 ```bash
 # Check for outdated packages
 flutter pub outdated
@@ -115,14 +124,17 @@ flutter pub upgrade
 ```
 
 ### Dependabot PR Review Process
+
 1. **Review Dependabot PRs weekly**
 2. **Check change logs** for breaking changes
 3. **Test locally** before merging:
+
    ```bash
    git checkout dependabot/pub/package_name
    flutter test
    flutter build apk --debug
    ```
+
 4. **Merge if tests pass**
 
 ---
@@ -130,6 +142,7 @@ flutter pub upgrade
 ## 🚀 **Release Management**
 
 ### Creating a Release
+
 ```bash
 # 1. Update version in pubspec.yaml
 # 2. Update CHANGELOG.md with new version
@@ -146,6 +159,7 @@ git push origin v2.2.5
 ```
 
 ### Emergency Hotfix Release
+
 ```bash
 # Create hotfix branch from main
 git checkout main
@@ -164,6 +178,7 @@ git push origin v2.2.6
 ## 📊 **Performance Monitoring**
 
 ### Local Performance Testing
+
 ```bash
 # Build with size analysis
 flutter build apk --release --analyze-size
@@ -176,6 +191,7 @@ flutter test integration_test/ --profile
 ```
 
 ### Monitoring CI Performance
+
 1. Check **Actions** tab for performance workflow
 2. Download **performance-analysis** artifacts
 3. Review performance trends over time
@@ -186,6 +202,7 @@ flutter test integration_test/ --profile
 ## 🎨 **UI/UX Development**
 
 ### Golden Test Workflow
+
 ```bash
 # 1. Make UI changes
 # 2. Run golden tests to see differences
@@ -199,6 +216,7 @@ flutter test test/golden/
 ```
 
 ### Dark Mode Testing
+
 ```bash
 # Test in both themes
 flutter test test/golden/ --tags=theme-light
@@ -206,6 +224,7 @@ flutter test test/golden/ --tags=theme-dark
 ```
 
 ### Accessibility Testing
+
 ```bash
 # Run accessibility tests
 flutter test test/accessibility/
@@ -221,6 +240,7 @@ flutter test --tags=accessibility
 ### CI Pipeline Failures
 
 #### Build Job Fails
+
 ```bash
 # Common solutions:
 flutter clean
@@ -230,6 +250,7 @@ flutter analyze --fatal-infos
 ```
 
 #### Golden Tests Fail
+
 ```bash
 # If changes are intentional:
 ./scripts/testing/golden_test_manager.sh update
@@ -242,12 +263,14 @@ git commit -m "test: update golden files for UI changes"
 ```
 
 #### Security Scan Fails
+
 1. Review security tab in GitHub
 2. Address vulnerabilities in dependencies
 3. Fix any exposed secrets
 4. Re-run security workflow
 
 #### Performance Issues
+
 1. Check performance artifacts
 2. Review build size and timing
 3. Optimize based on recommendations
@@ -256,12 +279,14 @@ git commit -m "test: update golden files for UI changes"
 ### Local Development Issues
 
 #### Flutter Doctor Issues
+
 ```bash
 flutter doctor -v
 # Fix any issues shown
 ```
 
 #### Dependency Conflicts
+
 ```bash
 flutter pub deps
 flutter pub cache repair
@@ -270,6 +295,7 @@ flutter pub get
 ```
 
 #### Git Workflow Issues
+
 ```bash
 # Reset to clean state
 git reset --hard origin/develop
@@ -287,18 +313,21 @@ git commit
 ## 📋 **Weekly Maintenance Checklist**
 
 ### Monday Morning Review
+
 - [ ] Review Dependabot PRs
 - [ ] Check security alerts
 - [ ] Review performance trends
 - [ ] Triage new issues
 
 ### Development Quality Checks
+
 - [ ] Review code coverage trends
 - [ ] Check for outdated documentation
 - [ ] Validate CI pipeline health
 - [ ] Monitor build performance
 
 ### Release Planning
+
 - [ ] Review changelog completeness
 - [ ] Plan next release timeline
 - [ ] Check for breaking changes
@@ -309,6 +338,7 @@ git commit
 ## 🎯 **Emergency Procedures**
 
 ### Critical Bug in Production
+
 1. **Create hotfix branch** from `main`
 2. **Make minimal fix** with tests
 3. **Fast-track PR review**
@@ -316,6 +346,7 @@ git commit
 5. **Monitor release deployment**
 
 ### Security Vulnerability
+
 1. **Assess severity** (Critical/High/Medium)
 2. **Create private branch** if needed
 3. **Fix vulnerability** with tests
@@ -323,6 +354,7 @@ git commit
 5. **Coordinate disclosure** if external
 
 ### CI Pipeline Down
+
 1. **Check GitHub Status** page
 2. **Run tests locally** before merge
 3. **Use manual verification** temporarily

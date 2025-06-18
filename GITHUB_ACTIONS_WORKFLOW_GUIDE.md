@@ -1,4 +1,5 @@
 # GitHub Actions Workflow Guide
+
 ## Waste Segregation App Development Process
 
 **Created**: June 15, 2025  
@@ -310,6 +311,7 @@ Fixes #[issue-number]" \
 ### Automatic Checks on PR Creation
 
 1. **Build Validation**
+
    ```bash
    flutter pub get
    flutter analyze
@@ -317,12 +319,14 @@ Fixes #[issue-number]" \
    ```
 
 2. **Visual Regression Testing**
+
    ```bash
    flutter test --update-goldens  # Generate golden files
    flutter test integration_test/  # Run visual tests
    ```
 
 3. **Security Scanning**
+
    ```bash
    # Dependency vulnerability scanning
    # Code security analysis
@@ -330,6 +334,7 @@ Fixes #[issue-number]" \
    ```
 
 4. **Performance Testing**
+
    ```bash
    # Memory usage analysis
    # Build time optimization
@@ -390,6 +395,7 @@ git push origin main
 ### CI Check Failures
 
 1. **Golden Test Failures**
+
    ```bash
    # Update golden files locally
    flutter test --update-goldens
@@ -399,6 +405,7 @@ git push origin main
    ```
 
 2. **Build Failures**
+
    ```bash
    # Clean and rebuild
    flutter clean
@@ -408,6 +415,7 @@ git push origin main
    ```
 
 3. **Branch Protection Bypass**
+
    ```bash
    # Only for critical production fixes
    gh pr merge [PR-NUMBER] --squash --delete-branch --admin
@@ -488,4 +496,4 @@ gh run rerun [RUN-ID]
 
 ---
 
-This workflow ensures consistent, high-quality development with proper testing, documentation, and deployment processes for the Waste Segregation App. 
+This workflow ensures consistent, high-quality development with proper testing, documentation, and deployment processes for the Waste Segregation App.

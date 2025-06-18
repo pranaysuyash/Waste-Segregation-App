@@ -23,11 +23,13 @@ graph TD
 **Purpose**: Catch layout overflow issues and static analysis problems
 
 **Key Features**:
+
 - Runs `flutter analyze --fatal-infos` to catch all warnings as errors
 - Executes custom overflow detection tool on stats cards
 - Fails if any layout overflow patterns are detected
 
 **Overflow Detection Patterns**:
+
 - Fixed width/height without Flexible/Expanded wrappers
 - Large padding values (>24px) that may cause overflow
 - Row widgets without proper child wrapping
@@ -39,12 +41,14 @@ graph TD
 **Purpose**: Run comprehensive test suite with Firebase emulator support
 
 **Key Features**:
+
 - Uses Firebase emulator for proper initialization during tests
 - Generates `test/firebase_config.dart` with emulator configuration
 - Runs tests with randomized ordering to catch flaky tests
 - Includes coverage reporting
 
 **Firebase Configuration**:
+
 ```dart
 // Generated during CI
 const bool useFirebaseEmulator = true;
@@ -61,12 +65,14 @@ if (useFirebaseEmulator) {
 **Purpose**: Ensure visual consistency and catch UI regressions
 
 **Key Features**:
+
 - Automatically adds `golden_toolkit` dependency if missing
 - Runs all tests tagged with `@Tags(['golden'])`
 - Compares rendered widgets against baseline images
 - Fails if visual differences exceed threshold
 
 **Usage in Tests**:
+
 ```dart
 @Tags(['golden'])
 testGoldens('StatsCard golden test', (tester) async {
@@ -83,12 +89,14 @@ testGoldens('StatsCard golden test', (tester) async {
 **Purpose**: Cross-browser visual regression testing
 
 **Key Features**:
+
 - Builds Storybook with component stories
 - Runs visual diff tests across multiple viewports
 - Detects layout overflow in browser environment
 - Captures screenshots for comparison
 
 **Story Configuration**:
+
 ```javascript
 export default {
   title: 'Components/StatsCard',
@@ -106,6 +114,7 @@ export default {
 **Purpose**: Automatically merge PRs when all quality gates pass
 
 **Key Features**:
+
 - Only runs on pull requests to main branch
 - Requires all previous jobs to succeed
 - Uses squash merge to maintain clean history
@@ -117,7 +126,8 @@ export default {
 
 **Problem**: Stats cards have layout overflow causing visual issues
 
-**Solution**: 
+**Solution**:
+
 - Custom overflow detection tool scans widget files
 - Storybook test runner checks for runtime overflow
 - Both static and dynamic detection ensure comprehensive coverage
@@ -127,6 +137,7 @@ export default {
 **Problem**: Tests fail due to Firebase initialization issues
 
 **Solution**:
+
 - Firebase emulator service in CI provides real Firebase instance
 - `test/firebase_config.dart` configures emulator connection
 - Tests can use real Firebase APIs without external dependencies
@@ -136,6 +147,7 @@ export default {
 **Problem**: Golden tests fail due to missing dependency
 
 **Solution**:
+
 - CI automatically detects missing `golden_toolkit`
 - Adds dependency if not present in `pubspec.yaml`
 - Ensures golden tests can run without manual intervention
@@ -145,6 +157,7 @@ export default {
 **Problem**: Mock services have complex argument matching that fails
 
 **Solution**:
+
 - Randomized test ordering catches flaky mocks
 - Firebase emulator reduces need for complex mocking
 - Branch protection ensures all tests pass before merge
@@ -231,6 +244,7 @@ echo "✅ Pre-commit checks passed"
 ### Troubleshooting Common Issues
 
 **Golden Test Failures**:
+
 ```bash
 # Update golden files locally
 flutter test --update-goldens --tags=golden
@@ -239,6 +253,7 @@ git commit -m "Update golden baselines"
 ```
 
 **Storybook Visual Diffs**:
+
 ```bash
 # Review visual differences
 npm run storybook
@@ -246,6 +261,7 @@ npm run storybook
 ```
 
 **Overflow Detection False Positives**:
+
 ```bash
 # Update overflow detection rules in tool/check_overflows.dart
 # Add exceptions for legitimate patterns
@@ -268,4 +284,4 @@ npm run storybook
 ---
 
 *Last updated: June 15, 2025*
-*Pipeline version: 1.0.0* 
+*Pipeline version: 1.0.0*

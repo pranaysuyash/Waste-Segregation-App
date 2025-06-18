@@ -1,0 +1,76 @@
+name: Markdown Lint
+
+on:
+  push:
+    branches: [ main, develop ]
+    paths: [ '**.md' ]
+  pull_request:
+    branches: [ main, develop ]
+    paths: [ '**.md' ]
+
+jobs:
+  markdown-lint:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        
+    - name: Install markdownlint-cli
+      run: npm install -g markdownlint-cli
+      
+    - name: Run markdown lint
+      run: |
+        echo "🔍 Running Markdown Lint..."
+        
+        # Count initial issues
+        initial_issues=$(markdownlint docs/*.md *.md 2>/dev/null | wc -l || echo "0")
+        echo "Initial markdown issues found: $initial_issues"
+        
+        # Run auto-fix
+        echo "🔧 Running auto-fix..."
+        markdownlint --fix docs/*.md *.md 2>/dev/null || true
+        
+        # Count remaining issues
+        remaining_issues=$(markdownlint docs/*.md *.md 2>/dev/null | wc -l || echo "0")
+        echo "Remaining markdown issues: $remaining_issues"
+        
+        if [ "$remaining_issues" -eq 0 ]; then
+          echo "✅ All markdown files are lint-free!"
+          exit 0
+        else
+          echo "❌ Markdown lint issues found:"
+          markdownlint docs/*.md *.md 2>/dev/null || true
+          exit 1
+        fi
+        
+    - name: Check for changes
+      id: verify-changed-files
+      run: |
+        if [ -n "$(git status --porcelain)" ]; then
+          echo "changed=true" >> $GITHUB_OUTPUT
+          echo "📝 Markdown files were auto-fixed"
+        else
+          echo "changed=false" >> $GITHUB_OUTPUT
+          echo "✅ No markdown changes needed"
+        fi
+        
+    - name: Commit auto-fixes
+      if: steps.verify-changed-files.outputs.changed == 'true'
+      run: |
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        git add -A
+        git commit -m "🔧 Auto-fix markdown lint issues [skip ci]" || exit 0
+        
+    - name: Push changes
+      if: steps.verify-changed-files.outputs.changed == 'true'
+      uses: ad-m/github-push-action@master
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        branch: ${{ github.ref }} 

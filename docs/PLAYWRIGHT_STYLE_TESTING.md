@@ -7,6 +7,7 @@ This implementation gives your Flutter app **Playwright/Puppeteer-style** automa
 ## 🚀 What You Get
 
 ### Playwright-Style Features
+
 - **🤖 Automated App Launch**: Boots your Flutter app automatically
 - **📱 Cross-Platform Testing**: Android, iOS, Web, Desktop
 - **🎯 Element Interaction**: Tap, scroll, type, wait for elements
@@ -17,6 +18,7 @@ This implementation gives your Flutter app **Playwright/Puppeteer-style** automa
 - **🎨 Accessibility Testing**: Text scaling, semantic labels
 
 ### Test Coverage
+
 - ✅ **Premium Features Flow**: Navigation, upgrade process, payment dialogs
 - ✅ **Waste Classification**: Camera permissions, image analysis, results
 - ✅ **History & Analytics**: Data display, item interaction, charts
@@ -45,6 +47,7 @@ This implementation gives your Flutter app **Playwright/Puppeteer-style** automa
 ### 2. View Results
 
 The script automatically:
+
 - 📊 Generates HTML test report
 - 📸 Captures screenshots
 - 🌐 Opens report in browser (macOS)
@@ -71,6 +74,7 @@ test_results/
 ## 🎯 Test Examples
 
 ### Premium Features Flow
+
 ```dart
 patrolTest('Complete Premium Features Journey', ($) async {
   // 🚀 Boot the app like Playwright
@@ -94,6 +98,7 @@ patrolTest('Complete Premium Features Journey', ($) async {
 ```
 
 ### Network Connectivity Simulation
+
 ```dart
 patrolTest('Network Connectivity Simulation', ($) async {
   // 📱 Simulate offline mode (like Playwright network throttling)
@@ -117,6 +122,7 @@ patrolTest('Network Connectivity Simulation', ($) async {
 ## 🔧 Configuration
 
 ### Device Selection
+
 The test runner supports multiple device types:
 
 | Device Type | Command | Description |
@@ -128,7 +134,9 @@ The test runner supports multiple device types:
 | `auto` | `./scripts/run_e2e_tests.sh` | Auto-detect best device |
 
 ### Test Configuration
+
 Modify `integration_test/playwright_style_e2e_simple.dart` to:
+
 - Add new test scenarios
 - Adjust timeouts and delays
 - Customize element selectors
@@ -137,6 +145,7 @@ Modify `integration_test/playwright_style_e2e_simple.dart` to:
 ## 📊 CI/CD Integration
 
 ### GitHub Actions
+
 Add to your workflow:
 
 ```yaml
@@ -157,6 +166,7 @@ Add to your workflow:
 ```
 
 ### Local Development
+
 ```bash
 # Run tests before committing
 ./scripts/run_e2e_tests.sh
@@ -168,7 +178,9 @@ Add to your workflow:
 ## 🎨 Visual Regression Testing
 
 ### Screenshot Comparison
+
 The tests capture screenshots at key points:
+
 - App launch state
 - Navigation transitions
 - Feature interactions
@@ -176,6 +188,7 @@ The tests capture screenshots at key points:
 - Theme changes
 
 ### Golden Tests Integration
+
 Combine with Flutter's golden tests:
 
 ```bash
@@ -192,6 +205,7 @@ diff test_results/screenshots/ test/golden/
 ## 🚀 Advanced Features
 
 ### Performance Testing
+
 ```dart
 // 🔄 Stress test navigation
 for (int i = 0; i < 5; i++) {
@@ -207,6 +221,7 @@ expect(await $(#homeScreen).exists, true);
 ```
 
 ### Accessibility Testing
+
 ```dart
 // 📱 Test with different text scales
 final binding = TestWidgetsFlutterBinding.ensureInitialized();
@@ -218,6 +233,7 @@ await $(#homeScreen).waitUntilVisible();
 ```
 
 ### Permission Testing
+
 ```dart
 // 📱 Handle camera permissions
 await $.native.grantPermissionWhenInUse();
@@ -229,12 +245,14 @@ await $.native.grantPermissionWhenInUse();
 ## 🔍 Debugging
 
 ### Test Failures
+
 1. **Check Screenshots**: `test_results/screenshots/`
 2. **Review Logs**: Console output shows detailed steps
 3. **Element Selectors**: Verify `#elementId` exists in UI
 4. **Timing Issues**: Adjust `waitUntilVisible()` timeouts
 
 ### Common Issues
+
 | Issue | Solution |
 |-------|----------|
 | Element not found | Add `waitUntilVisible()` before interaction |
@@ -245,6 +263,7 @@ await $.native.grantPermissionWhenInUse();
 ## 📈 Metrics & Reporting
 
 ### Test Report Features
+
 - ✅ **Test Suite Status**: Pass/fail for each test group
 - 📊 **Coverage Summary**: Features tested vs. total features
 - 📸 **Visual Evidence**: Screenshots of key interactions
@@ -252,6 +271,7 @@ await $.native.grantPermissionWhenInUse();
 - 🎯 **Platform Coverage**: Results across devices
 
 ### Integration with Tools
+
 - **Codecov**: Test coverage reporting
 - **Applitools**: Visual regression testing
 - **Percy**: Screenshot comparison
@@ -260,6 +280,7 @@ await $.native.grantPermissionWhenInUse();
 ## 🎯 Best Practices
 
 ### ✅ DO:
+
 - Use semantic element IDs (`#buttonId`)
 - Add proper wait conditions
 - Test across multiple platforms
@@ -268,6 +289,7 @@ await $.native.grantPermissionWhenInUse();
 - Capture screenshots at key points
 
 ### ❌ DON'T:
+
 - Rely on fixed delays (`sleep()`)
 - Skip permission handling
 - Ignore platform differences
@@ -277,6 +299,7 @@ await $.native.grantPermissionWhenInUse();
 ## 🚀 Next Steps
 
 ### Enhance Your Tests
+
 1. **Add Visual Regression**: Integrate with Percy/Applitools
 2. **Expand Coverage**: Add more user journeys
 3. **Performance Monitoring**: Add memory/CPU tracking
@@ -284,6 +307,7 @@ await $.native.grantPermissionWhenInUse();
 5. **API Mocking**: Mock backend responses for consistent testing
 
 ### Scale Your Testing
+
 1. **Parallel Execution**: Run tests on multiple devices simultaneously
 2. **Test Data Management**: Create test fixtures and data sets
 3. **Reporting Dashboard**: Build comprehensive test analytics
@@ -293,9 +317,9 @@ await $.native.grantPermissionWhenInUse();
 
 - **Documentation**: This guide covers all features
 - **Examples**: Check `integration_test/` for test patterns
-- **Patrol Docs**: https://patrol.leancode.pl
-- **Flutter Testing**: https://docs.flutter.dev/testing
+- **Patrol Docs**: <https://patrol.leancode.pl>
+- **Flutter Testing**: <https://docs.flutter.dev/testing>
 
 ---
 
-🎉 **Your Flutter app now has Playwright-style automated testing!** The bot can open `/premium-features`, tap buttons, scroll lists, and fail the build if anything breaks - completely unattended and fully automatable from your IDE/CI. 
+🎉 **Your Flutter app now has Playwright-style automated testing!** The bot can open `/premium-features`, tap buttons, scroll lists, and fail the build if anything breaks - completely unattended and fully automatable from your IDE/CI.
