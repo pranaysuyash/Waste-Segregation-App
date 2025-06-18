@@ -6,7 +6,11 @@ import '../services/gamification_service.dart';
 import '../services/cloud_storage_service.dart';
 import '../services/community_service.dart';
 import '../services/ad_service.dart';
+import '../services/analytics_service.dart';
+import '../services/dynamic_link_service.dart';
+import '../utils/share_service.dart';
 import '../utils/waste_app_logger.dart';
+import '../utils/error_handler.dart';
 import '../providers/app_providers.dart';
 
 /// Pipeline state for tracking the result processing
@@ -54,6 +58,7 @@ class ResultPipeline extends StateNotifier<ResultPipelineState> {
   final CloudStorageService _cloudStorageService;
   final CommunityService _communityService;
   final AdService _adService;
+  final AnalyticsService _analyticsService;
   final Ref _ref;
 
   // Track classifications being processed to prevent duplicates
@@ -66,6 +71,7 @@ class ResultPipeline extends StateNotifier<ResultPipelineState> {
     this._cloudStorageService,
     this._communityService,
     this._adService,
+    this._analyticsService,
   ) : super(const ResultPipelineState());
 
   /// Main pipeline execution - processes classification through all stages
@@ -212,6 +218,129 @@ class ResultPipeline extends StateNotifier<ResultPipelineState> {
     }
   }
 
+  /// Track analytics events for result screen
+  Future<void> trackScreenView(WasteClassification classification) async {
+    try {
+      await _analyticsService.trackScreenView('ResultScreen', parameters: {
+        'classification_id': classification.id,
+        'category': classification.category,
+        'item_name': classification.itemName,
+        'confidence': classification.confidence,
+      });
+    } catch (e) {
+      WasteAppLogger.warning('Failed to track screen view', e, null, {
+        'service': 'ResultPipeline',
+      });
+    }
+  }
+
+  /// Track user action analytics
+  Future<void> trackUserAction(String action, WasteClassification classification) async {
+    try {
+      await _analyticsService.trackUserAction(action, parameters: {
+        'category': classification.category,
+        'item': classification.itemName,
+      });
+    } catch (e) {
+      WasteAppLogger.warning('Failed to track user action', e, null, {
+        'action': action,
+        'service': 'ResultPipeline',
+      });
+    }
+  }
+
+  /// Share classification result with dynamic link
+  Future<String> shareClassification(WasteClassification classification) async {
+    try {
+      await trackUserAction('classification_share', classification);
+      
+      final link = DynamicLinkService.createResultLink(classification);
+      final shareText = 'I identified ${classification.itemName} as ${classification.category} waste using the Waste Segregation app!\n$link';
+      
+      await ShareService.share(
+        text: shareText,
+        subject: 'Waste Classification Result',
+      );
+      
+      return shareText;
+    } catch (e, stackTrace) {
+      final error = 'Error sharing: ${ErrorHandler.getUserFriendlyMessage(e)}';
+      WasteAppLogger.severe('Failed to share classification', e, stackTrace, {
+        'classificationId': classification.id,
+        'service': 'ResultPipeline',
+      });
+      throw Exception(error);
+    }
+  }
+
+  /// Save classification without full processing (for manual save)
+  Future<void> saveClassificationOnly(WasteClassification classification, {bool force = false}) async {
+    try {
+      await trackUserAction('classification_save', classification);
+      
+      final savedClassification = classification.copyWith(isSaved: true);
+      await _storageService.saveClassification(savedClassification, force: force);
+      
+      state = state.copyWith(isSaved: true);
+      
+      WasteAppLogger.info('Classification saved manually', null, null, {
+        'classificationId': classification.id,
+        'service': 'ResultPipeline',
+      });
+    } catch (e, stackTrace) {
+      final error = 'Error saving: ${ErrorHandler.getUserFriendlyMessage(e)}';
+      WasteAppLogger.severe('Failed to save classification', e, stackTrace, {
+        'classificationId': classification.id,
+        'service': 'ResultPipeline',
+      });
+      state = state.copyWith(error: error);
+      throw Exception(error);
+    }
+  }
+
+  /// Check and process retroactive gamification for existing classifications
+  Future<void> processRetroactiveGamification() async {
+    try {
+      WasteAppLogger.info('Checking retroactive gamification processing', null, null, {
+        'service': 'ResultPipeline',
+      });
+      
+      // Get current profile
+      final profile = await _gamificationService.getProfile();
+      final currentPoints = profile.points.total;
+      
+      // Get all classifications
+      final allClassifications = await _storageService.getAllClassifications();
+      
+      // If user has classifications but 0 points, they need retroactive processing
+      if (allClassifications.isNotEmpty && currentPoints == 0) {
+        WasteAppLogger.info('Processing retroactive gamification for ${allClassifications.length} classifications', null, null, {
+          'service': 'ResultPipeline',
+        });
+        
+        // Process all classifications for gamification
+        for (final classification in allClassifications) {
+          await _gamificationService.processClassification(classification);
+        }
+        
+        WasteAppLogger.info('Retroactive gamification processing completed', null, null, {
+          'classificationsProcessed': allClassifications.length,
+          'service': 'ResultPipeline',
+        });
+      } else {
+        WasteAppLogger.info('No retroactive processing needed', null, null, {
+          'classifications': allClassifications.length,
+          'currentPoints': currentPoints,
+          'service': 'ResultPipeline',
+        });
+      }
+    } catch (e, stackTrace) {
+      WasteAppLogger.severe('Retroactive gamification processing failed', e, stackTrace, {
+        'service': 'ResultPipeline',
+      });
+    }
+  }
+
   /// Reset the pipeline state
   void reset() {
     state = const ResultPipelineState();
@@ -228,6 +357,7 @@ final resultPipelineProvider = StateNotifierProvider<ResultPipeline, ResultPipel
   final cloudStorageService = ref.read(cloudStorageServiceProvider);
   final communityService = ref.read(communityServiceProvider);
   final adService = ref.read(adServiceProvider);
+  final analyticsService = ref.read(analyticsServiceProvider);
 
   return ResultPipeline(
     ref,
@@ -236,6 +366,7 @@ final resultPipelineProvider = StateNotifierProvider<ResultPipeline, ResultPipel
     cloudStorageService,
     communityService,
     adService,
+    analyticsService,
   );
 });
 
