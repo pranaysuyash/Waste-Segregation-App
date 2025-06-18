@@ -4,8 +4,11 @@ import '../models/gamification.dart';
 import '../services/gamification_service.dart';
 import '../services/storage_service.dart';
 import '../services/cloud_storage_service.dart';
+import '../services/points_engine.dart';
 import '../utils/constants.dart';
 import '../utils/waste_app_logger.dart';
+import 'app_providers.dart'; // Import for profileProvider
+import 'points_manager.dart'; // Import for pointsManagerProvider
 // Import central providers
 
 /// Provider for GamificationService
@@ -61,51 +64,41 @@ class GamificationNotifier extends AsyncNotifier<GamificationProfile> {
     }
   }
 
-  /// Claim an achievement reward
+  /// Claim an achievement reward using atomic PointsEngine operations
   Future<Result<bool, AppException>> claimReward(String achievementId) async {
     try {
-      // For now, we'll implement the claim logic here since the service doesn't have this method yet
+      // Check current state
       final currentState = state;
       if (currentState is! AsyncData<GamificationProfile>) {
         return Result.failure(AppException.storage('Profile not loaded'));
       }
       
       final profile = currentState.value;
-      final achievementIndex = profile.achievements.indexWhere((a) => a.id == achievementId);
+      final achievement = profile.achievements.firstWhere(
+        (a) => a.id == achievementId,
+        orElse: () => throw AppException.storage('Achievement not found'),
+      );
       
-      if (achievementIndex == -1) {
-        return Result.failure(AppException.storage('Achievement not found'));
-      }
-      
-      final achievement = profile.achievements[achievementIndex];
       if (!achievement.isClaimable) {
         return Result.failure(AppException.storage('Achievement is not claimable'));
       }
       
-      // Update the achievement to claimed status
-      final updatedAchievement = achievement.copyWith(
-        claimStatus: ClaimStatus.claimed,
+      // RACE CONDITION FIX: Use atomic PointsEngine operation
+      final pointsEngine = PointsEngine.getInstance(
+        ref.read(storageServiceProvider),
+        ref.read(cloudStorageServiceProvider),
       );
       
-      final updatedAchievements = List<Achievement>.from(profile.achievements);
-      updatedAchievements[achievementIndex] = updatedAchievement;
+      // Perform atomic claim operation
+      await pointsEngine.claimAchievementReward(achievementId);
       
-      // Update points
-      final updatedPoints = profile.points.copyWith(
-        total: profile.points.total + achievement.pointsReward,
-      );
+      // RACE CONDITION FIX: Invalidate all related providers to refresh UI
+      ref.invalidate(gamificationServiceProvider);
+      ref.invalidate(profileProvider);
+      ref.invalidate(pointsManagerProvider);
       
-      final updatedProfile = profile.copyWith(
-        achievements: updatedAchievements,
-        points: updatedPoints,
-      );
-      
-      // Save the updated profile
-      final service = ref.read(gamificationServiceProvider);
-      await service.saveProfile(updatedProfile);
-      
-      // Update the state
-      state = AsyncValue.data(updatedProfile);
+      // Refresh the profile to get updated data from PointsEngine
+      await refresh();
       
       return Result.success(true);
     } catch (e) {
