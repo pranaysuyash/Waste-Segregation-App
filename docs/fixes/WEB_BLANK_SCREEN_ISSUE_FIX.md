@@ -44,6 +44,34 @@ The issue was identified in the `UserConsentService` class where `SharedPreferen
 
 Added comprehensive error handling to all SharedPreferences operations:
 
+**File**: `lib/main.dart`
+
+Added timeout protection to prevent indefinite hanging:
+
+```dart
+Future<Map<String, bool>> _checkInitialConditions() async {
+  // Wait a bit to show splash screen
+  await Future.delayed(const Duration(seconds: 1));
+
+  try {
+    // Check user consent status with timeout for web compatibility
+    final userConsentService = UserConsentService();
+    final hasConsent = await userConsentService.hasAllRequiredConsents()
+        .timeout(const Duration(seconds: 3));
+    
+    return {
+      'hasConsent': hasConsent,
+    };
+  } catch (e) {
+    // If consent check fails (e.g., on web), assume no consent
+    // This allows the app to continue and show the consent dialog
+    return {
+      'hasConsent': false,
+    };
+  }
+}
+```
+
 ```dart
 // Check if user has consented to privacy policy
 Future<bool> hasPrivacyPolicyConsent() async {
