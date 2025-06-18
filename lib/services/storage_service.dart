@@ -181,14 +181,14 @@ class StorageService {
       // Check if this exact content was saved recently (within 60 seconds)
       final recentSaveTime = _recentSaves[contentHash];
       if (recentSaveTime != null && now.difference(recentSaveTime).inSeconds < 60) {
-        WasteAppLogger.info('Operation completed', null, null, {'service': 'storage', 'file': 'storage_service'});
+        // Skip logging for recent duplicate saves to reduce spam
         return;
       }
     }
     
     // Check if this classification ID is currently being saved
     if (_activeSaves.contains(classification.id)) {
-      WasteAppLogger.info('Operation completed', null, null, {'service': 'storage', 'file': 'storage_service'});
+      // Skip logging for concurrent saves to reduce spam
       return;
     }
     
@@ -213,8 +213,16 @@ class StorageService {
           // Check if the existing classification still exists
           final existingClassification = classificationsBox.get(existingClassificationId);
           if (existingClassification != null) {
-            WasteAppLogger.info('Operation completed', null, null, {'service': 'storage', 'file': 'storage_service'});
-            WasteAppLogger.info('Operation completed', null, null, {'service': 'storage', 'file': 'storage_service'});
+            // Duplicate found - only log occasionally to reduce spam
+            if (DateTime.now().millisecondsSinceEpoch % 10 == 0) {
+              WasteAppLogger.debug('Duplicate classification skipped', {
+                'service': 'storage', 
+                'file': 'storage_service',
+                'item': classification.itemName,
+                'category': classification.category,
+                'contentHash': contentHash
+              });
+            }
             _recentSaves[contentHash] = now;
             return;
           } else {
@@ -223,11 +231,6 @@ class StorageService {
           }
         }
       }
-      
-      // Debug logging
-      WasteAppLogger.info('Operation completed', null, null, {'service': 'storage', 'file': 'storage_service'});
-      WasteAppLogger.info('Operation completed', null, null, {'service': 'storage', 'file': 'storage_service'});
-      WasteAppLogger.info('Operation completed', null, null, {'service': 'storage', 'file': 'storage_service'});
       
       // Use Hive transaction to keep both boxes in sync
       await Hive.box(StorageKeys.classificationsBox).put(classification.id, classificationWithUserId);
@@ -245,7 +248,15 @@ class StorageService {
         }
       }
       
-      WasteAppLogger.info('Operation completed', null, null, {'service': 'storage', 'file': 'storage_service'});
+      // Classification saved successfully - only log occasionally
+      if (DateTime.now().millisecondsSinceEpoch % 25 == 0) {
+        WasteAppLogger.debug('Classification saved successfully', {
+          'service': 'storage', 
+          'file': 'storage_service',
+          'item': classification.itemName,
+          'category': classification.category
+        });
+      }
       
     } finally {
       // Always remove from active saves
@@ -264,9 +275,14 @@ class StorageService {
     final userProfile = await getCurrentUserProfile();
     final currentUserId = userProfile?.id ?? 'guest_user';
 
-    // Debug logging - REDUCED
-    WasteAppLogger.info('Operation completed', null, null, {'service': 'storage', 'file': 'storage_service'});
-    WasteAppLogger.info('Operation completed', null, null, {'service': 'storage', 'file': 'storage_service'});
+    // Debug logging - REDUCED (only log occasionally)
+    if (DateTime.now().millisecondsSinceEpoch % 100 == 0) {
+      WasteAppLogger.debug('Loading classifications for user', {
+        'service': 'storage', 
+        'file': 'storage_service',
+        'user_id': currentUserId
+      });
+    }
     
     // Counter for different types of classifications
     var totalProcessed = 0;
@@ -331,7 +347,14 @@ class StorageService {
           classification = classification.copyWith(id: const Uuid().v4());
           // Always store as JSON string for consistency
           await classificationsBox.put(key, jsonEncode(classification.toJson()));
-          WasteAppLogger.info('Operation completed', null, null, {'service': 'storage', 'file': 'storage_service'});
+          // Only log ID assignment occasionally
+          if (DateTime.now().millisecondsSinceEpoch % 20 == 0) {
+            WasteAppLogger.debug('Assigned new ID to legacy classification', {
+              'service': 'storage', 
+              'file': 'storage_service',
+              'item': classification.itemName
+            });
+          }
         }
         
         // Include classifications based on user context
@@ -361,21 +384,36 @@ class StorageService {
         // Delete corrupted entry to prevent future errors
         try {
           await classificationsBox.delete(key);
-          WasteAppLogger.info('Operation completed', null, null, {'service': 'storage', 'file': 'storage_service'});
+          WasteAppLogger.debug('Deleted corrupted classification entry', {
+            'service': 'storage', 
+            'file': 'storage_service',
+            'key': key.toString()
+          });
         } catch (deleteError) {
-          WasteAppLogger.severe('Error occurred', null, null, {'service': 'storage', 'file': 'storage_service'});
+          WasteAppLogger.severe('Failed to delete corrupted entry', deleteError, null, {
+            'service': 'storage', 
+            'file': 'storage_service',
+            'key': key.toString()
+          });
         }
       }
     }
     
-    // Final debug summary
-    WasteAppLogger.performanceLog('storage', 0, context: {'service': 'storage', 'file': 'storage_service'});
-    WasteAppLogger.performanceLog('storage', 0, context: {'service': 'storage', 'file': 'storage_service'});
-    WasteAppLogger.performanceLog('storage', 0, context: {'service': 'storage', 'file': 'storage_service'});
-    WasteAppLogger.performanceLog('storage', 0, context: {'service': 'storage', 'file': 'storage_service'});
-    WasteAppLogger.performanceLog('storage', 0, context: {'service': 'storage', 'file': 'storage_service'});
-    WasteAppLogger.performanceLog('storage', 0, context: {'service': 'storage', 'file': 'storage_service'});
-    WasteAppLogger.performanceLog('storage', 0, context: {'service': 'storage', 'file': 'storage_service'});
+    // Final debug summary (only log occasionally to reduce spam)
+    if (DateTime.now().millisecondsSinceEpoch % 50 == 0) {
+      WasteAppLogger.performanceLog('getAllClassifications', 0, context: {
+        'service': 'storage', 
+        'file': 'storage_service',
+        'total_processed': totalProcessed,
+        'successfully_parsed': successfullyParsed,
+        'included_for_user': includedForUser,
+        'excluded_different_user': excludedDifferentUser,
+        'corrupted_entries': corruptedEntries,
+        'guest_entries': guestEntries,
+        'signed_in_user_entries': signedInUserEntries,
+        'null_user_id_entries': nullUserIdEntries
+      });
+    }
 
       // Apply filters if provided
       if (filterOptions != null && filterOptions.isNotEmpty) {
