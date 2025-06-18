@@ -6,7 +6,10 @@
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build",
     "test:storybook": "test-storybook --coverage",
-    "test:storybook:ci": "concurrently -k -s first -n \"SB,TEST\" -c \"magenta,blue\" \"npm run build-storybook -- --quiet\" \"wait-on tcp:6006 && npm run test:storybook\""
+    "test:storybook:ci": "concurrently -k -s first -n \"SB,TEST\" -c \"magenta,blue\" \"npm run build-storybook -- --quiet\" \"wait-on tcp:6006 && npm run test:storybook\"",
+    "lint:md": "markdownlint docs/*.md *.md",
+    "lint:md:fix": "markdownlint --fix docs/*.md *.md",
+    "lint:md:ci": "./scripts/lint_markdown.sh"
   },
   "devDependencies": {
     "@storybook/addon-essentials": "^7.6.0",
@@ -18,13 +21,15 @@
     "@storybook/web-components": "^7.6.0",
     "@storybook/web-components-vite": "^7.6.0",
     "concurrently": "^8.2.0",
+    "markdownlint-cli": "^0.45.0",
     "wait-on": "^7.2.0"
   },
   "keywords": [
     "flutter",
     "storybook",
     "visual-testing",
-    "waste-segregation"
+    "waste-segregation",
+    "markdown-lint"
   ],
   "author": "Waste Segregation App Team",
   "license": "MIT"
