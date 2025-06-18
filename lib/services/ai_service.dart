@@ -618,7 +618,7 @@ Output:
         rethrow;
       }
     } catch (e) {
-      WasteAppLogger.severe('Top-level web analysis failed', e, null);
+      WasteAppLogger.severe('Top-level web analysis failed', e);
       // Ensure fallback also uses the consistent ID
       return WasteClassification.fallback(
         imageName,

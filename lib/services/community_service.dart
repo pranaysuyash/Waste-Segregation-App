@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter/foundation.dart';
 import '../models/community_feed.dart';
 import '../models/waste_classification.dart';
 import '../models/user_profile.dart';
