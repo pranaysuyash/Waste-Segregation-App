@@ -71,6 +71,7 @@ This document provides a comprehensive index to all project documentation, now p
 
 ### `/docs/services/` - Service Documentation
 - **ai_classification_system.md** - AI classification system documentation
+- **navigation_settings_service.md** - Navigation settings service documentation
 
 ### `/docs/status/` - Project Status & Issue Tracking
 - **CURRENT_ISSUES_SUMMARY.md** - Current known issues and priorities
@@ -110,6 +111,15 @@ This document provides a comprehensive index to all project documentation, now p
 - **TEST_STATUS_SUMMARY.md** - Current test status and progress
 - **QA_CHECKLIST.md** - Quality assurance checklist
 
+### `/docs/implementation/` - Implementation Guides
+- **master_implementation_guide.md** - ML Training Data Collection System master guide
+- **step_1_ml_training_data_collection_service.md** - Core ML data collection implementation
+- **step_2_enhanced_firebase_cleanup_service.md** - GDPR-compliant deletion with ML preservation
+- **step_3_privacy_preserving_admin_recovery_service.md** - Privacy-preserving admin data recovery
+- **step_4_enable_guest_user_ml_data_collection.md** - Anonymous guest data collection
+- **step_5_create_basic_admin_dashboard_ui.md** - Comprehensive admin interface
+- **implementation_quick_reference.md** - Quick reference for implementation teams
+
 ---
 
 ## 🎯 **QUICK NAVIGATION**
@@ -119,6 +129,11 @@ This document provides a comprehensive index to all project documentation, now p
 2. Read **END_USER_README.md** for comprehensive project understanding
 3. Check **DESIGN_DECISIONS.md** for architecture rationale
 4. Review **CURRENT_ISSUES_SUMMARY.md** for current priorities
+
+### **For ML Implementation Team**
+1. **implementation_quick_reference.md** - Quick start guide (START HERE)
+2. **master_implementation_guide.md** - Complete implementation overview
+3. **step_1_ml_training_data_collection_service.md** through **step_5_create_basic_admin_dashboard_ui.md** - Detailed implementation steps
 
 ### **For Development**
 1. **DEVOPS_QUICK_REFERENCE.md** - Daily commands and procedures (START HERE)
@@ -175,6 +190,9 @@ UI/UX design documentation and feature specifications.
 ### **Archive** (2 files)
 Historical documentation and release notes.
 
+### **Implementation** (7 files)
+Detailed implementation guides for ML training data collection system.
+
 ---
 
 ## 🔧 **MAINTENANCE GUIDELINES**
@@ -183,11 +201,12 @@ Historical documentation and release notes.
 1. **Status documents** → `/docs/status/`
 2. **Technical guides** → `/docs/technical/development/`
 3. **Architecture docs** → `/docs/technical/architecture/`
-4. **Technical feature docs** -> `/docs/technical/features/`
+4. **Technical feature docs** → `/docs/technical/features/`
 5. **Test documentation** → `/docs/testing/`
 6. **Process guides** → `/docs/processes/`
 7. **User documentation** → `/docs/reference/`
 8. **Fix summaries** → `/docs/fixes/`
+9. **Implementation guides** → `/docs/implementation/`
 
 ### **Naming Conventions:**
 - Use UPPERCASE for important status documents

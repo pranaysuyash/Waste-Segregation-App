@@ -467,13 +467,22 @@ class WasteSegregationApp extends StatelessWidget {
     // Wait a bit to show splash screen
     await Future.delayed(const Duration(seconds: 1));
 
-    // Check user consent status
-    final userConsentService = UserConsentService();
-    final hasConsent = await userConsentService.hasAllRequiredConsents();
-    
-    return {
-      'hasConsent': hasConsent,
-    };
+    try {
+      // Check user consent status with timeout for web compatibility
+      final userConsentService = UserConsentService();
+      final hasConsent = await userConsentService.hasAllRequiredConsents()
+          .timeout(const Duration(seconds: 3));
+      
+      return {
+        'hasConsent': hasConsent,
+      };
+    } catch (e) {
+      // If consent check fails (e.g., on web), assume no consent
+      // This allows the app to continue and show the consent dialog
+      return {
+        'hasConsent': false,
+      };
+    }
   }
 }
 
