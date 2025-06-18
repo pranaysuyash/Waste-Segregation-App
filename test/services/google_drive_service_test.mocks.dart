@@ -39,9 +39,8 @@ class _FakeAboutResource_0 extends _i1.SmartFake implements _i2.AboutResource {
         );
 }
 
-class _FakeAccessproposalsResource_1 extends _i1.SmartFake
-    implements _i2.AccessproposalsResource {
-  _FakeAccessproposalsResource_1(
+class _FakeAppsResource_1 extends _i1.SmartFake implements _i2.AppsResource {
+  _FakeAppsResource_1(
     Object parent,
     Invocation parentInvocation,
   ) : super(
@@ -50,19 +49,9 @@ class _FakeAccessproposalsResource_1 extends _i1.SmartFake
         );
 }
 
-class _FakeAppsResource_2 extends _i1.SmartFake implements _i2.AppsResource {
-  _FakeAppsResource_2(
-    Object parent,
-    Invocation parentInvocation,
-  ) : super(
-          parent,
-          parentInvocation,
-        );
-}
-
-class _FakeChangesResource_3 extends _i1.SmartFake
+class _FakeChangesResource_2 extends _i1.SmartFake
     implements _i2.ChangesResource {
-  _FakeChangesResource_3(
+  _FakeChangesResource_2(
     Object parent,
     Invocation parentInvocation,
   ) : super(
@@ -71,9 +60,9 @@ class _FakeChangesResource_3 extends _i1.SmartFake
         );
 }
 
-class _FakeChannelsResource_4 extends _i1.SmartFake
+class _FakeChannelsResource_3 extends _i1.SmartFake
     implements _i2.ChannelsResource {
-  _FakeChannelsResource_4(
+  _FakeChannelsResource_3(
     Object parent,
     Invocation parentInvocation,
   ) : super(
@@ -82,9 +71,9 @@ class _FakeChannelsResource_4 extends _i1.SmartFake
         );
 }
 
-class _FakeCommentsResource_5 extends _i1.SmartFake
+class _FakeCommentsResource_4 extends _i1.SmartFake
     implements _i2.CommentsResource {
-  _FakeCommentsResource_5(
+  _FakeCommentsResource_4(
     Object parent,
     Invocation parentInvocation,
   ) : super(
@@ -93,9 +82,9 @@ class _FakeCommentsResource_5 extends _i1.SmartFake
         );
 }
 
-class _FakeDrivesResource_6 extends _i1.SmartFake
+class _FakeDrivesResource_5 extends _i1.SmartFake
     implements _i2.DrivesResource {
-  _FakeDrivesResource_6(
+  _FakeDrivesResource_5(
     Object parent,
     Invocation parentInvocation,
   ) : super(
@@ -104,8 +93,8 @@ class _FakeDrivesResource_6 extends _i1.SmartFake
         );
 }
 
-class _FakeFilesResource_7 extends _i1.SmartFake implements _i2.FilesResource {
-  _FakeFilesResource_7(
+class _FakeFilesResource_6 extends _i1.SmartFake implements _i2.FilesResource {
+  _FakeFilesResource_6(
     Object parent,
     Invocation parentInvocation,
   ) : super(
@@ -114,20 +103,9 @@ class _FakeFilesResource_7 extends _i1.SmartFake implements _i2.FilesResource {
         );
 }
 
-class _FakeOperationsResource_8 extends _i1.SmartFake
-    implements _i2.OperationsResource {
-  _FakeOperationsResource_8(
-    Object parent,
-    Invocation parentInvocation,
-  ) : super(
-          parent,
-          parentInvocation,
-        );
-}
-
-class _FakePermissionsResource_9 extends _i1.SmartFake
+class _FakePermissionsResource_7 extends _i1.SmartFake
     implements _i2.PermissionsResource {
-  _FakePermissionsResource_9(
+  _FakePermissionsResource_7(
     Object parent,
     Invocation parentInvocation,
   ) : super(
@@ -136,9 +114,9 @@ class _FakePermissionsResource_9 extends _i1.SmartFake
         );
 }
 
-class _FakeRepliesResource_10 extends _i1.SmartFake
+class _FakeRepliesResource_8 extends _i1.SmartFake
     implements _i2.RepliesResource {
-  _FakeRepliesResource_10(
+  _FakeRepliesResource_8(
     Object parent,
     Invocation parentInvocation,
   ) : super(
@@ -147,9 +125,9 @@ class _FakeRepliesResource_10 extends _i1.SmartFake
         );
 }
 
-class _FakeRevisionsResource_11 extends _i1.SmartFake
+class _FakeRevisionsResource_9 extends _i1.SmartFake
     implements _i2.RevisionsResource {
-  _FakeRevisionsResource_11(
+  _FakeRevisionsResource_9(
     Object parent,
     Invocation parentInvocation,
   ) : super(
@@ -158,9 +136,9 @@ class _FakeRevisionsResource_11 extends _i1.SmartFake
         );
 }
 
-class _FakeTeamdrivesResource_12 extends _i1.SmartFake
+class _FakeTeamdrivesResource_10 extends _i1.SmartFake
     implements _i2.TeamdrivesResource {
-  _FakeTeamdrivesResource_12(
+  _FakeTeamdrivesResource_10(
     Object parent,
     Invocation parentInvocation,
   ) : super(
@@ -169,8 +147,8 @@ class _FakeTeamdrivesResource_12 extends _i1.SmartFake
         );
 }
 
-class _FakeFile_13 extends _i1.SmartFake implements _i2.File {
-  _FakeFile_13(
+class _FakeFile_11 extends _i1.SmartFake implements _i2.File {
+  _FakeFile_11(
     Object parent,
     Invocation parentInvocation,
   ) : super(
@@ -179,8 +157,8 @@ class _FakeFile_13 extends _i1.SmartFake implements _i2.File {
         );
 }
 
-class _FakeOperation_14 extends _i1.SmartFake implements _i2.Operation {
-  _FakeOperation_14(
+class _FakeGeneratedIds_12 extends _i1.SmartFake implements _i2.GeneratedIds {
+  _FakeGeneratedIds_12(
     Object parent,
     Invocation parentInvocation,
   ) : super(
@@ -189,8 +167,8 @@ class _FakeOperation_14 extends _i1.SmartFake implements _i2.Operation {
         );
 }
 
-class _FakeGeneratedIds_15 extends _i1.SmartFake implements _i2.GeneratedIds {
-  _FakeGeneratedIds_15(
+class _FakeObject_13 extends _i1.SmartFake implements Object {
+  _FakeObject_13(
     Object parent,
     Invocation parentInvocation,
   ) : super(
@@ -199,8 +177,8 @@ class _FakeGeneratedIds_15 extends _i1.SmartFake implements _i2.GeneratedIds {
         );
 }
 
-class _FakeObject_16 extends _i1.SmartFake implements Object {
-  _FakeObject_16(
+class _FakeFileList_14 extends _i1.SmartFake implements _i2.FileList {
+  _FakeFileList_14(
     Object parent,
     Invocation parentInvocation,
   ) : super(
@@ -209,8 +187,8 @@ class _FakeObject_16 extends _i1.SmartFake implements Object {
         );
 }
 
-class _FakeFileList_17 extends _i1.SmartFake implements _i2.FileList {
-  _FakeFileList_17(
+class _FakeLabelList_15 extends _i1.SmartFake implements _i2.LabelList {
+  _FakeLabelList_15(
     Object parent,
     Invocation parentInvocation,
   ) : super(
@@ -219,19 +197,9 @@ class _FakeFileList_17 extends _i1.SmartFake implements _i2.FileList {
         );
 }
 
-class _FakeLabelList_18 extends _i1.SmartFake implements _i2.LabelList {
-  _FakeLabelList_18(
-    Object parent,
-    Invocation parentInvocation,
-  ) : super(
-          parent,
-          parentInvocation,
-        );
-}
-
-class _FakeModifyLabelsResponse_19 extends _i1.SmartFake
+class _FakeModifyLabelsResponse_16 extends _i1.SmartFake
     implements _i2.ModifyLabelsResponse {
-  _FakeModifyLabelsResponse_19(
+  _FakeModifyLabelsResponse_16(
     Object parent,
     Invocation parentInvocation,
   ) : super(
@@ -240,8 +208,8 @@ class _FakeModifyLabelsResponse_19 extends _i1.SmartFake
         );
 }
 
-class _Fake$Channel01_20 extends _i1.SmartFake implements _i3.$Channel01 {
-  _Fake$Channel01_20(
+class _Fake$Channel01_17 extends _i1.SmartFake implements _i3.$Channel01 {
+  _Fake$Channel01_17(
     Object parent,
     Invocation parentInvocation,
   ) : super(
@@ -250,9 +218,9 @@ class _Fake$Channel01_20 extends _i1.SmartFake implements _i3.$Channel01 {
         );
 }
 
-class _FakeAccessCredentials_21 extends _i1.SmartFake
+class _FakeAccessCredentials_18 extends _i1.SmartFake
     implements _i4.AccessCredentials {
-  _FakeAccessCredentials_21(
+  _FakeAccessCredentials_18(
     Object parent,
     Invocation parentInvocation,
   ) : super(
@@ -261,8 +229,8 @@ class _FakeAccessCredentials_21 extends _i1.SmartFake
         );
 }
 
-class _FakeResponse_22 extends _i1.SmartFake implements _i5.Response {
-  _FakeResponse_22(
+class _FakeResponse_19 extends _i1.SmartFake implements _i5.Response {
+  _FakeResponse_19(
     Object parent,
     Invocation parentInvocation,
   ) : super(
@@ -271,9 +239,9 @@ class _FakeResponse_22 extends _i1.SmartFake implements _i5.Response {
         );
 }
 
-class _FakeStreamedResponse_23 extends _i1.SmartFake
+class _FakeStreamedResponse_20 extends _i1.SmartFake
     implements _i5.StreamedResponse {
-  _FakeStreamedResponse_23(
+  _FakeStreamedResponse_20(
     Object parent,
     Invocation parentInvocation,
   ) : super(
@@ -300,18 +268,9 @@ class MockDriveApi extends _i1.Mock implements _i2.DriveApi {
       ) as _i2.AboutResource);
 
   @override
-  _i2.AccessproposalsResource get accessproposals => (super.noSuchMethod(
-        Invocation.getter(#accessproposals),
-        returnValue: _FakeAccessproposalsResource_1(
-          this,
-          Invocation.getter(#accessproposals),
-        ),
-      ) as _i2.AccessproposalsResource);
-
-  @override
   _i2.AppsResource get apps => (super.noSuchMethod(
         Invocation.getter(#apps),
-        returnValue: _FakeAppsResource_2(
+        returnValue: _FakeAppsResource_1(
           this,
           Invocation.getter(#apps),
         ),
@@ -320,7 +279,7 @@ class MockDriveApi extends _i1.Mock implements _i2.DriveApi {
   @override
   _i2.ChangesResource get changes => (super.noSuchMethod(
         Invocation.getter(#changes),
-        returnValue: _FakeChangesResource_3(
+        returnValue: _FakeChangesResource_2(
           this,
           Invocation.getter(#changes),
         ),
@@ -329,7 +288,7 @@ class MockDriveApi extends _i1.Mock implements _i2.DriveApi {
   @override
   _i2.ChannelsResource get channels => (super.noSuchMethod(
         Invocation.getter(#channels),
-        returnValue: _FakeChannelsResource_4(
+        returnValue: _FakeChannelsResource_3(
           this,
           Invocation.getter(#channels),
         ),
@@ -338,7 +297,7 @@ class MockDriveApi extends _i1.Mock implements _i2.DriveApi {
   @override
   _i2.CommentsResource get comments => (super.noSuchMethod(
         Invocation.getter(#comments),
-        returnValue: _FakeCommentsResource_5(
+        returnValue: _FakeCommentsResource_4(
           this,
           Invocation.getter(#comments),
         ),
@@ -347,7 +306,7 @@ class MockDriveApi extends _i1.Mock implements _i2.DriveApi {
   @override
   _i2.DrivesResource get drives => (super.noSuchMethod(
         Invocation.getter(#drives),
-        returnValue: _FakeDrivesResource_6(
+        returnValue: _FakeDrivesResource_5(
           this,
           Invocation.getter(#drives),
         ),
@@ -356,25 +315,16 @@ class MockDriveApi extends _i1.Mock implements _i2.DriveApi {
   @override
   _i2.FilesResource get files => (super.noSuchMethod(
         Invocation.getter(#files),
-        returnValue: _FakeFilesResource_7(
+        returnValue: _FakeFilesResource_6(
           this,
           Invocation.getter(#files),
         ),
       ) as _i2.FilesResource);
 
   @override
-  _i2.OperationsResource get operations => (super.noSuchMethod(
-        Invocation.getter(#operations),
-        returnValue: _FakeOperationsResource_8(
-          this,
-          Invocation.getter(#operations),
-        ),
-      ) as _i2.OperationsResource);
-
-  @override
   _i2.PermissionsResource get permissions => (super.noSuchMethod(
         Invocation.getter(#permissions),
-        returnValue: _FakePermissionsResource_9(
+        returnValue: _FakePermissionsResource_7(
           this,
           Invocation.getter(#permissions),
         ),
@@ -383,7 +333,7 @@ class MockDriveApi extends _i1.Mock implements _i2.DriveApi {
   @override
   _i2.RepliesResource get replies => (super.noSuchMethod(
         Invocation.getter(#replies),
-        returnValue: _FakeRepliesResource_10(
+        returnValue: _FakeRepliesResource_8(
           this,
           Invocation.getter(#replies),
         ),
@@ -392,7 +342,7 @@ class MockDriveApi extends _i1.Mock implements _i2.DriveApi {
   @override
   _i2.RevisionsResource get revisions => (super.noSuchMethod(
         Invocation.getter(#revisions),
-        returnValue: _FakeRevisionsResource_11(
+        returnValue: _FakeRevisionsResource_9(
           this,
           Invocation.getter(#revisions),
         ),
@@ -401,7 +351,7 @@ class MockDriveApi extends _i1.Mock implements _i2.DriveApi {
   @override
   _i2.TeamdrivesResource get teamdrives => (super.noSuchMethod(
         Invocation.getter(#teamdrives),
-        returnValue: _FakeTeamdrivesResource_12(
+        returnValue: _FakeTeamdrivesResource_10(
           this,
           Invocation.getter(#teamdrives),
         ),
@@ -449,7 +399,7 @@ class MockFilesResource extends _i1.Mock implements _i2.FilesResource {
             #$fields: $fields,
           },
         ),
-        returnValue: _i6.Future<_i2.File>.value(_FakeFile_13(
+        returnValue: _i6.Future<_i2.File>.value(_FakeFile_11(
           this,
           Invocation.method(
             #copy,
@@ -507,7 +457,7 @@ class MockFilesResource extends _i1.Mock implements _i2.FilesResource {
             #uploadMedia: uploadMedia,
           },
         ),
-        returnValue: _i6.Future<_i2.File>.value(_FakeFile_13(
+        returnValue: _i6.Future<_i2.File>.value(_FakeFile_11(
           this,
           Invocation.method(
             #create,
@@ -552,37 +502,6 @@ class MockFilesResource extends _i1.Mock implements _i2.FilesResource {
         returnValue: _i6.Future<void>.value(),
         returnValueForMissingStub: _i6.Future<void>.value(),
       ) as _i6.Future<void>);
-
-  @override
-  _i6.Future<_i2.Operation> download(
-    String? fileId, {
-    String? mimeType,
-    String? revisionId,
-    String? $fields,
-  }) =>
-      (super.noSuchMethod(
-        Invocation.method(
-          #download,
-          [fileId],
-          {
-            #mimeType: mimeType,
-            #revisionId: revisionId,
-            #$fields: $fields,
-          },
-        ),
-        returnValue: _i6.Future<_i2.Operation>.value(_FakeOperation_14(
-          this,
-          Invocation.method(
-            #download,
-            [fileId],
-            {
-              #mimeType: mimeType,
-              #revisionId: revisionId,
-              #$fields: $fields,
-            },
-          ),
-        )),
-      ) as _i6.Future<_i2.Operation>);
 
   @override
   _i6.Future<void> emptyTrash({
@@ -644,7 +563,7 @@ class MockFilesResource extends _i1.Mock implements _i2.FilesResource {
             #$fields: $fields,
           },
         ),
-        returnValue: _i6.Future<_i2.GeneratedIds>.value(_FakeGeneratedIds_15(
+        returnValue: _i6.Future<_i2.GeneratedIds>.value(_FakeGeneratedIds_12(
           this,
           Invocation.method(
             #generateIds,
@@ -684,7 +603,7 @@ class MockFilesResource extends _i1.Mock implements _i2.FilesResource {
             #downloadOptions: downloadOptions,
           },
         ),
-        returnValue: _i6.Future<Object>.value(_FakeObject_16(
+        returnValue: _i6.Future<Object>.value(_FakeObject_13(
           this,
           Invocation.method(
             #get,
@@ -744,7 +663,7 @@ class MockFilesResource extends _i1.Mock implements _i2.FilesResource {
             #$fields: $fields,
           },
         ),
-        returnValue: _i6.Future<_i2.FileList>.value(_FakeFileList_17(
+        returnValue: _i6.Future<_i2.FileList>.value(_FakeFileList_14(
           this,
           Invocation.method(
             #list,
@@ -788,7 +707,7 @@ class MockFilesResource extends _i1.Mock implements _i2.FilesResource {
             #$fields: $fields,
           },
         ),
-        returnValue: _i6.Future<_i2.LabelList>.value(_FakeLabelList_18(
+        returnValue: _i6.Future<_i2.LabelList>.value(_FakeLabelList_15(
           this,
           Invocation.method(
             #listLabels,
@@ -818,7 +737,7 @@ class MockFilesResource extends _i1.Mock implements _i2.FilesResource {
           {#$fields: $fields},
         ),
         returnValue: _i6.Future<_i2.ModifyLabelsResponse>.value(
-            _FakeModifyLabelsResponse_19(
+            _FakeModifyLabelsResponse_16(
           this,
           Invocation.method(
             #modifyLabels,
@@ -872,7 +791,7 @@ class MockFilesResource extends _i1.Mock implements _i2.FilesResource {
             #uploadMedia: uploadMedia,
           },
         ),
-        returnValue: _i6.Future<_i2.File>.value(_FakeFile_13(
+        returnValue: _i6.Future<_i2.File>.value(_FakeFile_11(
           this,
           Invocation.method(
             #update,
@@ -926,7 +845,7 @@ class MockFilesResource extends _i1.Mock implements _i2.FilesResource {
             #$fields: $fields,
           },
         ),
-        returnValue: _i6.Future<_i3.$Channel01>.value(_Fake$Channel01_20(
+        returnValue: _i6.Future<_i3.$Channel01>.value(_Fake$Channel01_17(
           this,
           Invocation.method(
             #watch,
@@ -958,7 +877,7 @@ class MockAuthClient extends _i1.Mock implements _i8.AuthClient {
   @override
   _i4.AccessCredentials get credentials => (super.noSuchMethod(
         Invocation.getter(#credentials),
-        returnValue: _FakeAccessCredentials_21(
+        returnValue: _FakeAccessCredentials_18(
           this,
           Invocation.getter(#credentials),
         ),
@@ -975,7 +894,7 @@ class MockAuthClient extends _i1.Mock implements _i8.AuthClient {
           [url],
           {#headers: headers},
         ),
-        returnValue: _i6.Future<_i5.Response>.value(_FakeResponse_22(
+        returnValue: _i6.Future<_i5.Response>.value(_FakeResponse_19(
           this,
           Invocation.method(
             #head,
@@ -996,7 +915,7 @@ class MockAuthClient extends _i1.Mock implements _i8.AuthClient {
           [url],
           {#headers: headers},
         ),
-        returnValue: _i6.Future<_i5.Response>.value(_FakeResponse_22(
+        returnValue: _i6.Future<_i5.Response>.value(_FakeResponse_19(
           this,
           Invocation.method(
             #get,
@@ -1023,7 +942,7 @@ class MockAuthClient extends _i1.Mock implements _i8.AuthClient {
             #encoding: encoding,
           },
         ),
-        returnValue: _i6.Future<_i5.Response>.value(_FakeResponse_22(
+        returnValue: _i6.Future<_i5.Response>.value(_FakeResponse_19(
           this,
           Invocation.method(
             #post,
@@ -1054,7 +973,7 @@ class MockAuthClient extends _i1.Mock implements _i8.AuthClient {
             #encoding: encoding,
           },
         ),
-        returnValue: _i6.Future<_i5.Response>.value(_FakeResponse_22(
+        returnValue: _i6.Future<_i5.Response>.value(_FakeResponse_19(
           this,
           Invocation.method(
             #put,
@@ -1085,7 +1004,7 @@ class MockAuthClient extends _i1.Mock implements _i8.AuthClient {
             #encoding: encoding,
           },
         ),
-        returnValue: _i6.Future<_i5.Response>.value(_FakeResponse_22(
+        returnValue: _i6.Future<_i5.Response>.value(_FakeResponse_19(
           this,
           Invocation.method(
             #patch,
@@ -1116,7 +1035,7 @@ class MockAuthClient extends _i1.Mock implements _i8.AuthClient {
             #encoding: encoding,
           },
         ),
-        returnValue: _i6.Future<_i5.Response>.value(_FakeResponse_22(
+        returnValue: _i6.Future<_i5.Response>.value(_FakeResponse_19(
           this,
           Invocation.method(
             #delete,
@@ -1173,7 +1092,7 @@ class MockAuthClient extends _i1.Mock implements _i8.AuthClient {
           [request],
         ),
         returnValue:
-            _i6.Future<_i5.StreamedResponse>.value(_FakeStreamedResponse_23(
+            _i6.Future<_i5.StreamedResponse>.value(_FakeStreamedResponse_20(
           this,
           Invocation.method(
             #send,

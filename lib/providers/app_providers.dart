@@ -34,7 +34,7 @@ final gamificationServiceProvider = Provider<GamificationService>((ref) {
 final pointsEngineProvider = Provider<PointsEngine>((ref) {
   final storageService = ref.read(storageServiceProvider);
   final cloudStorageService = ref.read(cloudStorageServiceProvider);
-  return PointsEngine(storageService, cloudStorageService);
+  return PointsEngine.getInstance(storageService, cloudStorageService);
 });
 
 /// Points earned stream provider - for real-time popup events

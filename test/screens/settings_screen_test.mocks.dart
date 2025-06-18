@@ -554,6 +554,26 @@ class MockStorageService extends _i1.Mock implements _i7.StorageService {
       ) as _i4.Future<void>);
 
   @override
+  _i4.Future<void> migrateThumbnails() => (super.noSuchMethod(
+        Invocation.method(
+          #migrateThumbnails,
+          [],
+        ),
+        returnValue: _i4.Future<void>.value(),
+        returnValueForMissingStub: _i4.Future<void>.value(),
+      ) as _i4.Future<void>);
+
+  @override
+  _i4.Future<void> cleanUpOrphanedThumbnails() => (super.noSuchMethod(
+        Invocation.method(
+          #cleanUpOrphanedThumbnails,
+          [],
+        ),
+        returnValue: _i4.Future<void>.value(),
+        returnValueForMissingStub: _i4.Future<void>.value(),
+      ) as _i4.Future<void>);
+
+  @override
   _i4.Future<void> migrateImagePathsToRelative() => (super.noSuchMethod(
         Invocation.method(
           #migrateImagePathsToRelative,

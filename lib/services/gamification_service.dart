@@ -16,7 +16,7 @@ import '../utils/waste_app_logger.dart';
 class GamificationService extends ChangeNotifier {
 
   GamificationService(this._storageService, this._cloudStorageService) {
-    _pointsEngine = PointsEngine(_storageService, _cloudStorageService);
+    _pointsEngine = PointsEngine.getInstance(_storageService, _cloudStorageService);
   }
   
   // Dependencies

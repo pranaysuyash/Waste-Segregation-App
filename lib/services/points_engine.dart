@@ -7,8 +7,23 @@ import '../utils/waste_app_logger.dart';
 
 /// Centralized Points Engine - Single Source of Truth for all point operations
 /// Eliminates race conditions and inconsistencies between multiple providers
+/// SINGLETON: Ensures all services share the same instance for proper listener notifications
 class PointsEngine extends ChangeNotifier {
-  PointsEngine(this._storageService, this._cloudStorageService);
+  PointsEngine._internal(this._storageService, this._cloudStorageService);
+  
+  static PointsEngine? _instance;
+  
+  /// Get singleton instance of PointsEngine
+  static PointsEngine getInstance(StorageService storageService, CloudStorageService cloudStorageService) {
+    _instance ??= PointsEngine._internal(storageService, cloudStorageService);
+    return _instance!;
+  }
+  
+  /// Reset singleton instance (for testing)
+  static void resetInstance() {
+    _instance?.dispose();
+    _instance = null;
+  }
 
   final StorageService _storageService;
   final CloudStorageService _cloudStorageService;

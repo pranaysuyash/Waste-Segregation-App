@@ -19,6 +19,7 @@ class CachedClassificationAdapter extends TypeAdapter<CachedClassification> {
     return CachedClassification(
       imageHash: fields[0] as String,
       classification: fields[1] as WasteClassification,
+      contentHash: fields[6] as String?,
       timestamp: fields[2] as DateTime?,
       lastAccessed: fields[3] as DateTime?,
       useCount: fields[4] as int,
@@ -29,7 +30,7 @@ class CachedClassificationAdapter extends TypeAdapter<CachedClassification> {
   @override
   void write(BinaryWriter writer, CachedClassification obj) {
     writer
-      ..writeByte(6)
+      ..writeByte(7)
       ..writeByte(0)
       ..write(obj.imageHash)
       ..writeByte(1)
@@ -41,7 +42,9 @@ class CachedClassificationAdapter extends TypeAdapter<CachedClassification> {
       ..writeByte(4)
       ..write(obj.useCount)
       ..writeByte(5)
-      ..write(obj.imageSize);
+      ..write(obj.imageSize)
+      ..writeByte(6)
+      ..write(obj.contentHash);
   }
 
   @override
