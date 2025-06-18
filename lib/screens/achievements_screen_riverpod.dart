@@ -278,7 +278,7 @@ class _AchievementGrid extends ConsumerWidget {
 }
 
 /// Individual achievement card with accessibility and proper contrast
-class _AchievementCard extends ConsumerWidget {
+class _AchievementCard extends ConsumerStatefulWidget {
   const _AchievementCard({
     required this.achievement,
     required this.onCelebration,
@@ -288,8 +288,16 @@ class _AchievementCard extends ConsumerWidget {
   final void Function(Achievement) onCelebration;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final isClaimable = achievement.isClaimable;
+  ConsumerState<_AchievementCard> createState() => _AchievementCardState();
+}
+
+class _AchievementCardState extends ConsumerState<_AchievementCard> {
+  bool _isClaiming = false; // RACE CONDITION FIX: Prevent double claims
+
+  @override
+  Widget build(BuildContext context) {
+    final achievement = widget.achievement;
+    final isClaimable = achievement.isClaimable && !_isClaiming; // Disable during claim
     final backgroundColor = achievement.getTierBackgroundColor();
     final textColor = achievement.getContrastSafeTextColor(context);
 
@@ -300,7 +308,7 @@ class _AchievementCard extends ConsumerWidget {
         color: backgroundColor,
         elevation: achievement.isEarned ? AppTheme.elevationMd : AppTheme.elevationSm,
         child: InkWell(
-          onTap: isClaimable ? () => _claimReward(ref, achievement) : null,
+          onTap: isClaimable ? () => _claimReward(achievement) : null,
           borderRadius: BorderRadius.circular(AppTheme.borderRadiusMd),
           child: Padding(
             padding: const EdgeInsets.all(AppTheme.spacingMd),
@@ -326,6 +334,15 @@ class _AchievementCard extends ConsumerWidget {
                         Icons.card_giftcard,
                         color: context.colorScheme.secondary,
                         size: AppTheme.iconSizeMd,
+                      ),
+                    if (_isClaiming)
+                      SizedBox(
+                        width: AppTheme.iconSizeMd,
+                        height: AppTheme.iconSizeMd,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          valueColor: AlwaysStoppedAnimation(context.colorScheme.primary),
+                        ),
                       ),
                   ],
                 ),
@@ -359,18 +376,24 @@ class _AchievementCard extends ConsumerWidget {
                     style: context.textTheme.bodySmall?.copyWith(color: textColor),
                   ),
                 ],
-                if (isClaimable)
+                if (achievement.isClaimable)
                   Container(
                     width: double.infinity,
                     height: AppTheme.buttonHeightSm,
                     margin: const EdgeInsets.only(top: AppTheme.spacingXs),
                     child: ElevatedButton(
-                      onPressed: () => _claimReward(ref, achievement),
+                      onPressed: _isClaiming ? null : () => _claimReward(achievement),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: context.colorScheme.primary,
                         foregroundColor: context.colorScheme.onPrimary,
                       ),
-                      child: const Text('Claim'),
+                      child: _isClaiming
+                          ? const SizedBox(
+                              width: 16,
+                              height: 16,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            )
+                          : const Text('Claim'),
                     ),
                   ),
               ],
@@ -381,17 +404,51 @@ class _AchievementCard extends ConsumerWidget {
     );
   }
 
-  Future<void> _claimReward(WidgetRef ref, Achievement achievement) async {
-    final notifier = ref.read(gamificationProvider.notifier);
-    final result = await notifier.claimReward(achievement.id);
+  Future<void> _claimReward(Achievement achievement) async {
+    if (_isClaiming) return; // RACE CONDITION FIX: Prevent double claims
     
-    result.when(
-      success: (_) => onCelebration(achievement),
-      failure: (error) {
-        // Show error snackbar
-        // TODO: Use proper context and localization
-      },
-    );
+    setState(() {
+      _isClaiming = true;
+    });
+
+    try {
+      final notifier = ref.read(gamificationProvider.notifier);
+      final result = await notifier.claimReward(achievement.id);
+      
+      result.when(
+        success: (_) {
+          widget.onCelebration(achievement);
+          // Show success feedback
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('${achievement.pointsReward} points claimed!'),
+                backgroundColor: Colors.green,
+                duration: const Duration(seconds: 2),
+              ),
+            );
+          }
+        },
+        failure: (error) {
+          // Show error feedback
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('Failed to claim reward: ${error.message}'),
+                backgroundColor: Colors.red,
+                duration: const Duration(seconds: 3),
+              ),
+            );
+          }
+        },
+      );
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isClaiming = false;
+        });
+      }
+    }
   }
 
   IconData _getIconData(String iconName) {
