@@ -12,24 +12,37 @@ class UserConsentService {
   
   // Check if user has consented to privacy policy
   Future<bool> hasPrivacyPolicyConsent() async {
-    final prefs = await SharedPreferences.getInstance();
-    return prefs.getBool(_privacyPolicyConsentKey) ?? false;
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      return prefs.getBool(_privacyPolicyConsentKey) ?? false;
+    } catch (e) {
+      return false;
+    }
   }
   
   // Check if user has consented to terms of service
   Future<bool> hasTermsOfServiceConsent() async {
-    final prefs = await SharedPreferences.getInstance();
-    return prefs.getBool(_termsOfServiceConsentKey) ?? false;
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      return prefs.getBool(_termsOfServiceConsentKey) ?? false;
+    } catch (e) {
+      return false;
+    }
   }
   
   // Check if user needs to re-consent due to version changes
   Future<bool> needsReconsent() async {
-    final prefs = await SharedPreferences.getInstance();
-    final savedPrivacyVersion = prefs.getString(_privacyPolicyVersionKey) ?? '';
-    final savedTermsVersion = prefs.getString(_termsOfServiceVersionKey) ?? '';
-    
-    return (savedPrivacyVersion != currentPrivacyPolicyVersion) || 
-           (savedTermsVersion != currentTermsOfServiceVersion);
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final savedPrivacyVersion = prefs.getString(_privacyPolicyVersionKey) ?? '';
+      final savedTermsVersion = prefs.getString(_termsOfServiceVersionKey) ?? '';
+      
+      return (savedPrivacyVersion != currentPrivacyPolicyVersion) || 
+             (savedTermsVersion != currentTermsOfServiceVersion);
+    } catch (e) {
+      // If we can't check versions, assume reconsent is needed
+      return true;
+    }
   }
   
   // Record user consent for privacy policy
@@ -54,10 +67,16 @@ class UserConsentService {
   
   // Check if user has given all required consents
   Future<bool> hasAllRequiredConsents() async {
-    final hasPrivacy = await hasPrivacyPolicyConsent();
-    final hasTerms = await hasTermsOfServiceConsent();
-    final needsNew = await needsReconsent();
-    
-    return hasPrivacy && hasTerms && !needsNew;
+    try {
+      final hasPrivacy = await hasPrivacyPolicyConsent();
+      final hasTerms = await hasTermsOfServiceConsent();
+      final needsNew = await needsReconsent();
+      
+      return hasPrivacy && hasTerms && !needsNew;
+    } catch (e) {
+      // On web or if SharedPreferences fails, assume no consent
+      // This allows the app to continue and show the consent dialog
+      return false;
+    }
   }
 }
