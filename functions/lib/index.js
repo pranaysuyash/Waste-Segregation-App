@@ -27,13 +27,14 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 var _a, _b;
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.clearAllData = exports.testOpenAI = exports.healthCheck = exports.generateDisposal = void 0;
+exports.getBatchStats = exports.processBatchJobs = exports.clearAllData = exports.testOpenAI = exports.healthCheck = exports.generateDisposal = void 0;
 const functions = __importStar(require("firebase-functions"));
 const admin = __importStar(require("firebase-admin"));
 const openai_1 = require("openai");
 const cors_1 = __importDefault(require("cors"));
 const fs = __importStar(require("fs"));
 const path = __importStar(require("path"));
+const axios_1 = __importDefault(require("axios"));
 // Initialize Firebase Admin
 admin.initializeApp();
 // Configure region for better performance in Asia
@@ -335,4 +336,259 @@ async function deleteCollectionRecursively(db, collectionPath) {
         snapshot = await query.get();
     }
 }
+/**
+ * Cloud Function to process OpenAI batch jobs
+ * Scheduled to run every 10 minutes
+ */
+exports.processBatchJobs = asiaSouth1.pubsub
+    .schedule('*/10 * * * *') // Run every 10 minutes
+    .timeZone('UTC')
+    .onRun(async (context) => {
+    const logger = functions.logger;
+    try {
+        logger.info('Starting batch job processing');
+        // Get all active batch jobs from Firestore
+        const db = admin.firestore();
+        const activeJobs = await db.collection('ai_jobs')
+            .where('status', 'in', ['queued', 'processing'])
+            .get();
+        if (activeJobs.empty) {
+            logger.info('No active batch jobs found');
+            return null;
+        }
+        logger.info(`Found ${activeJobs.size} active batch jobs`);
+        // Process each job
+        const processingPromises = activeJobs.docs.map(async (jobDoc) => {
+            const jobData = jobDoc.data();
+            const jobId = jobDoc.id;
+            const openAIBatchId = jobData.openAIBatchId;
+            if (!openAIBatchId) {
+                logger.warn(`Job ${jobId} missing OpenAI batch ID`);
+                return;
+            }
+            try {
+                // Check OpenAI batch status
+                const batchStatus = await checkOpenAIBatchStatus(openAIBatchId);
+                if (batchStatus.status !== jobData.status) {
+                    await updateJobStatus(jobId, batchStatus, jobData);
+                }
+                // If completed, process results
+                if (batchStatus.status === 'completed' && batchStatus.output_file_id) {
+                    await processCompletedJob(jobId, batchStatus.output_file_id, jobData);
+                }
+                // If failed, update with error
+                if (batchStatus.status === 'failed') {
+                    await updateJobWithError(jobId, batchStatus.errors || 'Batch job failed');
+                }
+            }
+            catch (error) {
+                logger.error(`Error processing job ${jobId}:`, error);
+                await updateJobWithError(jobId, error.message);
+            }
+        });
+        await Promise.all(processingPromises);
+        logger.info('Batch job processing completed');
+        return null;
+    }
+    catch (error) {
+        logger.error('Error in batch job processing:', error);
+        throw error;
+    }
+});
+/**
+ * Checks the status of an OpenAI batch job
+ */
+async function checkOpenAIBatchStatus(batchId) {
+    var _a;
+    const openaiApiKey = (_a = functions.config().openai) === null || _a === void 0 ? void 0 : _a.key;
+    if (!openaiApiKey) {
+        throw new Error('OpenAI API key not configured');
+    }
+    const response = await axios_1.default.get(`https://api.openai.com/v1/batches/${batchId}`, {
+        headers: {
+            'Authorization': `Bearer ${openaiApiKey}`,
+            'Content-Type': 'application/json',
+        },
+    });
+    return response.data;
+}
+/**
+ * Downloads and processes results from completed OpenAI batch job
+ */
+async function processCompletedJob(jobId, outputFileId, jobData) {
+    const logger = functions.logger;
+    try {
+        // Download results from OpenAI
+        const results = await downloadOpenAIResults(outputFileId);
+        // Parse the JSONL results
+        const resultLines = results.split('\n').filter((line) => line.trim());
+        for (const line of resultLines) {
+            const result = JSON.parse(line);
+            if (result.custom_id === `job-${jobId}`) {
+                // Extract classification result
+                const classification = parseClassificationResult(result);
+                // Update Firestore with results
+                const db = admin.firestore();
+                await db.collection('ai_jobs').doc(jobId).update({
+                    status: 'completed',
+                    result: classification,
+                    completedAt: admin.firestore.FieldValue.serverTimestamp(),
+                    updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+                });
+                // Add to user's classification history
+                await addToClassificationHistory(jobData.userId, classification, jobData);
+                // Trigger notification
+                await triggerJobCompletionNotification(jobId, jobData.userId, classification);
+                logger.info(`Successfully processed completed job ${jobId}`);
+                break;
+            }
+        }
+    }
+    catch (error) {
+        logger.error(`Error processing completed job ${jobId}:`, error);
+        await updateJobWithError(jobId, `Failed to process results: ${error.message}`);
+    }
+}
+/**
+ * Downloads results from OpenAI Files API
+ */
+async function downloadOpenAIResults(fileId) {
+    var _a;
+    const openaiApiKey = (_a = functions.config().openai) === null || _a === void 0 ? void 0 : _a.key;
+    const response = await axios_1.default.get(`https://api.openai.com/v1/files/${fileId}/content`, {
+        headers: {
+            'Authorization': `Bearer ${openaiApiKey}`,
+        },
+    });
+    return response.data;
+}
+/**
+ * Parses OpenAI response into WasteClassification format
+ */
+function parseClassificationResult(openaiResult) {
+    try {
+        const response = openaiResult.response.body.choices[0].message.content;
+        const parsed = JSON.parse(response);
+        return {
+            itemName: parsed.itemName || 'Unknown Item',
+            category: parsed.category || 'general',
+            confidence: parsed.confidence || 0.5,
+            disposalInstructions: parsed.disposalInstructions || 'Dispose according to local guidelines',
+            environmentalImpact: parsed.environmentalImpact || 'Environmental impact information not available',
+            tips: parsed.tips || [],
+            timestamp: admin.firestore.FieldValue.serverTimestamp(),
+            analysisMethod: 'batch_ai',
+            processingTime: 0, // Batch processing time is handled differently
+        };
+    }
+    catch (error) {
+        functions.logger.error('Error parsing classification result:', error);
+        // Return fallback classification
+        return {
+            itemName: 'Classification Error',
+            category: 'general',
+            confidence: 0.1,
+            disposalInstructions: 'Unable to classify item. Please dispose according to local guidelines.',
+            environmentalImpact: 'Classification failed - environmental impact unknown',
+            tips: ['Contact local waste management for guidance'],
+            timestamp: admin.firestore.FieldValue.serverTimestamp(),
+            analysisMethod: 'batch_ai_fallback',
+            processingTime: 0,
+        };
+    }
+}
+/**
+ * Updates job status in Firestore
+ */
+async function updateJobStatus(jobId, batchStatus, currentJobData) {
+    const db = admin.firestore();
+    await db.collection('ai_jobs').doc(jobId).update({
+        status: batchStatus.status,
+        updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+        ...(batchStatus.status === 'processing' && !currentJobData.processingStartedAt && {
+            processingStartedAt: admin.firestore.FieldValue.serverTimestamp()
+        })
+    });
+    functions.logger.info(`Updated job ${jobId} status to ${batchStatus.status}`);
+}
+/**
+ * Updates job with error information
+ */
+async function updateJobWithError(jobId, errorMessage) {
+    const db = admin.firestore();
+    await db.collection('ai_jobs').doc(jobId).update({
+        status: 'failed',
+        error: errorMessage,
+        failedAt: admin.firestore.FieldValue.serverTimestamp(),
+        updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+    });
+    functions.logger.error(`Job ${jobId} failed: ${errorMessage}`);
+}
+/**
+ * Adds classification to user's history
+ */
+async function addToClassificationHistory(userId, classification, jobData) {
+    const db = admin.firestore();
+    const historyEntry = {
+        ...classification,
+        userId,
+        imagePath: jobData.imagePath,
+        thumbnailPath: jobData.thumbnailPath,
+        createdAt: admin.firestore.FieldValue.serverTimestamp(),
+        source: 'batch_processing',
+        jobId: jobData.id,
+    };
+    await db.collection('classifications').add(historyEntry);
+    functions.logger.info(`Added classification to history for user ${userId}`);
+}
+/**
+ * Triggers notification for job completion
+ */
+async function triggerJobCompletionNotification(jobId, userId, classification) {
+    const db = admin.firestore();
+    const notification = {
+        userId,
+        type: 'batch_job_completed',
+        title: 'Analysis Complete!',
+        message: `Your ${classification.itemName} has been analyzed`,
+        data: {
+            jobId,
+            classification,
+        },
+        createdAt: admin.firestore.FieldValue.serverTimestamp(),
+        read: false,
+    };
+    await db.collection('notifications').add(notification);
+    functions.logger.info(`Created notification for user ${userId} - job ${jobId}`);
+}
+/**
+ * HTTP endpoint to get batch processing statistics
+ */
+exports.getBatchStats = asiaSouth1.https.onRequest(async (req, res) => {
+    return corsHandler(req, res, async () => {
+        try {
+            const db = admin.firestore();
+            // Get job counts by status
+            const [queuedJobs, processingJobs, completedJobs, failedJobs] = await Promise.all([
+                db.collection('ai_jobs').where('status', '==', 'queued').get(),
+                db.collection('ai_jobs').where('status', '==', 'processing').get(),
+                db.collection('ai_jobs').where('status', '==', 'completed').get(),
+                db.collection('ai_jobs').where('status', '==', 'failed').get(),
+            ]);
+            const stats = {
+                queued: queuedJobs.size,
+                processing: processingJobs.size,
+                completed: completedJobs.size,
+                failed: failedJobs.size,
+                total: queuedJobs.size + processingJobs.size + completedJobs.size + failedJobs.size,
+                timestamp: new Date().toISOString(),
+            };
+            res.json(stats);
+        }
+        catch (error) {
+            console.error('Error getting batch stats:', error);
+            res.status(500).json({ error: 'Failed to get batch statistics' });
+        }
+    });
+});
 //# sourceMappingURL=index.js.map

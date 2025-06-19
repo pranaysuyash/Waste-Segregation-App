@@ -5,6 +5,20 @@
   "firestore": {
     "indexes": "firestore.indexes.json"
   },
+  "hosting": {
+    "public": "web_hosting",
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "**/node_modules/**"
+    ],
+    "rewrites": [
+      {
+        "source": "**",
+        "destination": "/index.html"
+      }
+    ]
+  },
   "flutter": {
     "platforms": {
       "android": {
