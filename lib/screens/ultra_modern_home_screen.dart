@@ -10,6 +10,7 @@ import '../models/gamification.dart';
 import '../models/user_profile.dart';
 import '../providers/app_providers.dart';
 import '../providers/points_manager.dart';
+import '../providers/token_providers.dart';
 import '../screens/history_screen.dart';
 import '../screens/achievements_screen.dart';
 import '../screens/image_capture_screen.dart';
@@ -342,6 +343,8 @@ class _UltraModernHomeScreenState extends ConsumerState<UltraModernHomeScreen>
                   children: [
                     _buildPointsChip(context),
                     const SizedBox(width: 8),
+                    _buildTokensChip(context),
+                    const SizedBox(width: 8),
                     profileAsync.when(
                       data: (profile) => _buildStatChip(
                         '${profile?.streaks[StreakType.dailyClassification.toString()]?.currentCount ?? 0}',
@@ -372,6 +375,16 @@ class _UltraModernHomeScreenState extends ConsumerState<UltraModernHomeScreen>
       data: (points) => _buildStatChip('${points.total}', AppStrings.points, Icons.stars),
       loading: () => _buildStatChip('...', AppStrings.points, Icons.stars),
       error: (_, __) => _buildStatChip('0', AppStrings.points, Icons.stars),
+    );
+  }
+
+  Widget _buildTokensChip(BuildContext context) {
+    final walletAsync = ref.watch(tokenWalletProvider);
+    
+    return walletAsync.when(
+      data: (wallet) => _buildStatChip('${wallet?.balance ?? 0}', 'Tokens', Icons.bolt),
+      loading: () => _buildStatChip('...', 'Tokens', Icons.bolt),
+      error: (_, __) => _buildStatChip('0', 'Tokens', Icons.bolt),
     );
   }
 

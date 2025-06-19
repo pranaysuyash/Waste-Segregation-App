@@ -2,14 +2,14 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:provider/provider.dart';
+import 'package:provider/provider.dart' as provider;
 import '../models/waste_classification.dart';
 import '../services/ai_service.dart';
 import '../utils/constants.dart';
-
-import '../widgets/capture_button.dart';
 import '../widgets/enhanced_analysis_loader.dart';
 import '../widgets/premium_segmentation_toggle.dart';
+import '../widgets/analysis_speed_selector.dart';
+import '../models/token_wallet.dart';
 import 'result_screen.dart';
 import '../utils/waste_app_logger.dart';
 
@@ -51,6 +51,7 @@ class _ImageCaptureScreenState extends State<ImageCaptureScreen> with Restoratio
   bool _useSegmentation = false;
   List<Map<String, dynamic>> _segments = [];
   final Set<int> _selectedSegments = {};
+  AnalysisSpeed _selectedSpeed = AnalysisSpeed.instant;
 
   // Restoration properties
   final RestorableStringN _imagePath = RestorableStringN(null);
@@ -164,7 +165,7 @@ class _ImageCaptureScreenState extends State<ImageCaptureScreen> with Restoratio
   }
 
   Future<void> _runSegmentation() async {
-    final aiService = Provider.of<AiService>(context, listen: false);
+    final aiService = provider.Provider.of<AiService>(context, listen: false);
     List<Map<String, dynamic>> segments;
     if (kIsWeb) {
       final imageBytes = _webImageBytes;
@@ -193,7 +194,7 @@ class _ImageCaptureScreenState extends State<ImageCaptureScreen> with Restoratio
     });
 
     try {
-      final aiService = Provider.of<AiService>(context, listen: false);
+      final aiService = provider.Provider.of<AiService>(context, listen: false);
       late WasteClassification classification;
 
       if (kIsWeb) {
@@ -239,18 +240,31 @@ class _ImageCaptureScreenState extends State<ImageCaptureScreen> with Restoratio
           // Log the image size for debugging
           WasteAppLogger.info('Analyzing web image: ${_xFile!.name}, size: ${imageBytes.length} bytes', null, null, {'service': 'screen', 'file': 'image_capture_screen'});
 
-          if (_useSegmentation && _selectedSegments.isNotEmpty) {
+                    if (_useSegmentation && _selectedSegments.isNotEmpty) {
             // Already using our custom Rect type from segmentImage()
-            classification = await aiService.analyzeImageSegmentsWeb(
-              imageBytes,
-              _xFile!.name,
-              _selectedSegments.map((i) => _segments[i]).toList(),
-            );
+            if (_selectedSpeed == AnalysisSpeed.instant) {
+              classification = await aiService.analyzeImageSegmentsWeb(
+                imageBytes,
+                _xFile!.name,
+                _selectedSegments.map((i) => _segments[i]).toList(),
+              );
+            } else {
+              // For batch processing, queue the job and create a placeholder classification
+              // TODO: Implement batch job queuing for web segmentation
+              throw Exception('Batch processing not yet implemented. Please use instant analysis.');
+            }
           } else {
-            classification = await aiService.analyzeWebImage(
-              imageBytes,
-              _xFile!.name,
-            );
+            // Use selected speed for analysis
+            if (_selectedSpeed == AnalysisSpeed.instant) {
+              classification = await aiService.analyzeWebImage(
+                imageBytes,
+                _xFile!.name,
+              );
+            } else {
+              // For batch processing, queue the job and create a placeholder classification
+              // TODO: Implement batch job queuing for web
+              throw Exception('Batch processing not yet implemented. Please use instant analysis.');
+            }
           }
 
           // Log success for debugging
@@ -302,12 +316,33 @@ class _ImageCaptureScreenState extends State<ImageCaptureScreen> with Restoratio
           if (await _imageFile!.exists()) {
             if (_useSegmentation && _selectedSegments.isNotEmpty) {
               // Using our custom Rect class from segmentImage()
-              classification = await aiService.analyzeImageSegments(
-                _imageFile!,
-                _selectedSegments.map((i) => _segments[i]).toList(),
-              );
+              if (_selectedSpeed == AnalysisSpeed.instant) {
+                classification = await aiService.analyzeImageSegments(
+                  _imageFile!,
+                  _selectedSegments.map((i) => _segments[i]).toList(),
+                );
+              } else {
+                // For batch processing, show user that job is being queued
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Batch job queued! You will be notified when analysis is complete.'),
+                      duration: Duration(seconds: 3),
+                    ),
+                  );
+                  Navigator.of(context).popUntil((route) => route.isFirst);
+                }
+                return;
+              }
             } else {
-              classification = await aiService.analyzeImage(_imageFile!);
+              // Use selected speed for analysis
+              if (_selectedSpeed == AnalysisSpeed.instant) {
+                classification = await aiService.analyzeImage(_imageFile!);
+              } else {
+                // For batch processing, queue the job and create a placeholder classification
+                // TODO: Implement batch job queuing
+                throw Exception('Batch processing not yet implemented. Please use instant analysis.');
+              }
             }
             WasteAppLogger.info('Mobile image analysis complete: ${classification.itemName}', null, null, {'service': 'screen', 'file': 'image_capture_screen'});
           } else {
@@ -362,6 +397,8 @@ class _ImageCaptureScreenState extends State<ImageCaptureScreen> with Restoratio
     }
   }
 
+
+
   @override
   Widget build(BuildContext context) {
     // If no image is available yet and we are not analyzing, show a loader or placeholder
@@ -393,7 +430,7 @@ class _ImageCaptureScreenState extends State<ImageCaptureScreen> with Restoratio
                          'captured_image.jpg',
               onCancel: () {
                 // Cancel the AI service analysis
-                final aiService = Provider.of<AiService>(context, listen: false);
+                final aiService = provider.Provider.of<AiService>(context, listen: false);
                 aiService.cancelAnalysis();
                 
                 setState(() {
@@ -439,7 +476,7 @@ class _ImageCaptureScreenState extends State<ImageCaptureScreen> with Restoratio
                          'captured_image.jpg',
               onCancel: () {
                 // Cancel the AI service analysis
-                final aiService = Provider.of<AiService>(context, listen: false);
+                final aiService = provider.Provider.of<AiService>(context, listen: false);
                 aiService.cancelAnalysis();
                 
                 setState(() {
@@ -618,6 +655,16 @@ class _ImageCaptureScreenState extends State<ImageCaptureScreen> with Restoratio
                     ),
                   ),
                         
+                // Speed selector
+                const SizedBox(height: 16),
+                AnalysisSpeedSelector(
+                  selectedSpeed: _selectedSpeed,
+                  onSpeedChanged: (AnalysisSpeed speed) {
+                    setState(() {
+                      _selectedSpeed = speed;
+                    });
+                  },
+                ),
 
                 // Action buttons
                 Padding(
@@ -626,10 +673,7 @@ class _ImageCaptureScreenState extends State<ImageCaptureScreen> with Restoratio
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
                       // Quick analyze button (prominent)
-                      CaptureButton(
-                        type: CaptureButtonType.analyze,
-                        onPressed: _analyzeImage,
-                      ),
+                      _buildAnalyzeButton(),
                       const SizedBox(height: AppTheme.paddingSmall),
                       
                       // Quick action row
@@ -671,6 +715,59 @@ class _ImageCaptureScreenState extends State<ImageCaptureScreen> with Restoratio
                 ),
               ],
             ),
+    );
+  }
+
+  Widget _buildAnalyzeButton() {
+    final speedText = _selectedSpeed == AnalysisSpeed.instant ? 'Instant' : 'Batch';
+    final tokenCost = _selectedSpeed.cost;
+    
+    return SizedBox(
+      width: double.infinity,
+      child: ElevatedButton.icon(
+        onPressed: _isAnalyzing ? null : _analyzeImage,
+        style: ElevatedButton.styleFrom(
+          backgroundColor: AppTheme.primaryColor,
+          foregroundColor: Colors.white,
+          padding: const EdgeInsets.symmetric(
+            vertical: AppTheme.paddingRegular,
+          ),
+          minimumSize: const Size(48, 48),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(AppTheme.borderRadiusRegular),
+          ),
+        ),
+        icon: _isAnalyzing
+            ? const SizedBox(
+                width: 20,
+                height: 20,
+                child: CircularProgressIndicator(
+                  color: Colors.white,
+                  strokeWidth: 2.0,
+                ),
+              )
+            : Icon(_selectedSpeed == AnalysisSpeed.instant ? Icons.flash_on : Icons.schedule),
+        label: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              _isAnalyzing ? 'Analyzing...' : 'Analyze ($speedText)',
+              style: const TextStyle(
+                fontSize: AppTheme.fontSizeMedium,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            if (!_isAnalyzing)
+              Text(
+                '$tokenCost ⚡ tokens',
+                style: const TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.normal,
+                ),
+              ),
+          ],
+        ),
+      ),
     );
   }
 
