@@ -16,6 +16,9 @@ import '../screens/image_capture_screen.dart';
 import '../screens/instant_analysis_screen.dart';
 import '../utils/constants.dart';
 import 'package:waste_segregation_app/utils/waste_app_logger.dart';
+import '../models/gamification_result.dart';
+import '../widgets/enhanced_gamification_widgets.dart' as widgets;
+import '../widgets/advanced_ui/achievement_celebration.dart';
 
 // Profile provider using FutureProvider for better performance
 final profileProvider = FutureProvider<GamificationProfile?>((ref) async {
@@ -109,6 +112,62 @@ class _UltraModernHomeScreenState extends ConsumerState<UltraModernHomeScreen>
     // Start animations
     _fadeController.forward();
     _slideController.forward();
+  }
+
+  /// Show points popup overlay on home screen after classification
+  void _showPointsPopup(GamificationResult result) {
+    final overlay = Overlay.of(context);
+    
+    late OverlayEntry entry;
+    entry = OverlayEntry(
+      builder: (_) => Positioned(
+        top: MediaQuery.of(context).padding.top + 50,
+        left: 0,
+        right: 0,
+        child: Center(
+          child: widgets.PointsEarnedPopup(
+            points: result.pointsEarned,
+            action: result.action,
+            onDismiss: () => entry.remove(),
+          ),
+        ),
+      ),
+    );
+
+    overlay.insert(entry);
+    WasteAppLogger.userAction('🎯 POPUP FIX: Showing points popup on home screen', context: {
+      'points_earned': result.pointsEarned,
+      'achievements_count': result.newlyEarnedAchievements.length,
+      'action': result.action,
+      'ui_element': 'points_popup_home_overlay'
+    });
+    
+    // Show achievement celebrations if any
+    if (result.newlyEarnedAchievements.isNotEmpty) {
+      Future.delayed(const Duration(milliseconds: 1500), () {
+        _showAchievementCelebration(result.newlyEarnedAchievements.first);
+      });
+    }
+  }
+
+  /// Show achievement celebration overlay
+  void _showAchievementCelebration(Achievement achievement) {
+    final overlay = Overlay.of(context);
+
+    late OverlayEntry entry;
+    entry = OverlayEntry(
+      builder: (_) => AchievementCelebration(
+        achievement: achievement,
+        onDismiss: () => entry.remove(),
+      ),
+    );
+
+    overlay.insert(entry);
+    WasteAppLogger.userAction('🎯 POPUP FIX: Showing achievement celebration on home screen', context: {
+      'achievement_title': achievement.title,
+      'achievement_id': achievement.id,
+      'ui_element': 'achievement_popup_home_overlay'
+    });
   }
 
   @override
@@ -944,7 +1003,7 @@ class _UltraModernHomeScreenState extends ConsumerState<UltraModernHomeScreen>
     if (kIsWeb) {
       final bytes = await image.readAsBytes();
       if (mounted) {
-        Navigator.push(
+        final result = await Navigator.push<GamificationResult>(
           context,
           MaterialPageRoute(
             builder: (context) => ImageCaptureScreen(
@@ -953,11 +1012,16 @@ class _UltraModernHomeScreenState extends ConsumerState<UltraModernHomeScreen>
             ),
           ),
         );
+        
+        // Show popup if gamification results are returned
+        if (result != null && result.hasRewards && mounted) {
+          _showPointsPopup(result);
+        }
       }
     } else {
       final file = File(image.path);
       if (await file.exists() && mounted) {
-        Navigator.push(
+        final result = await Navigator.push<GamificationResult>(
           context,
           MaterialPageRoute(
             builder: (context) => ImageCaptureScreen(
@@ -965,6 +1029,11 @@ class _UltraModernHomeScreenState extends ConsumerState<UltraModernHomeScreen>
             ),
           ),
         );
+        
+        // Show popup if gamification results are returned
+        if (result != null && result.hasRewards && mounted) {
+          _showPointsPopup(result);
+        }
       }
     }
   }
