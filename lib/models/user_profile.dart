@@ -1,4 +1,5 @@
 import './gamification.dart';
+import './token_wallet.dart';
 import 'package:hive/hive.dart';
 
 part 'user_profile.g.dart';
@@ -39,6 +40,8 @@ class UserProfile {
     this.lastActive,
     this.preferences,
     this.gamificationProfile,
+    this.tokenWallet,
+    this.tokenTransactions,
   });
 
   /// Creates a UserProfile instance from a JSON map.
@@ -64,6 +67,14 @@ class UserProfile {
       preferences: json['preferences'] as Map<String, dynamic>?,
       gamificationProfile: json['gamificationProfile'] != null
           ? GamificationProfile.fromJson(json['gamificationProfile'] as Map<String, dynamic>)
+          : null,
+      tokenWallet: json['tokenWallet'] != null
+          ? TokenWallet.fromJson(json['tokenWallet'] as Map<String, dynamic>)
+          : null,
+      tokenTransactions: json['tokenTransactions'] != null
+          ? (json['tokenTransactions'] as List)
+              .map((e) => TokenTransaction.fromJson(e as Map<String, dynamic>))
+              .toList()
           : null,
     );
   }
@@ -107,6 +118,14 @@ class UserProfile {
   @HiveField(9)
   final GamificationProfile? gamificationProfile;
 
+  /// User's token wallet for AI micro-economy.
+  @HiveField(10)
+  final TokenWallet? tokenWallet;
+
+  /// User's token transaction history.
+  @HiveField(11)
+  final List<TokenTransaction>? tokenTransactions;
+
   /// Creates a copy of this UserProfile but with the given fields replaced.
   UserProfile copyWith({
     String? id,
@@ -119,6 +138,8 @@ class UserProfile {
     DateTime? lastActive,
     Map<String, dynamic>? preferences,
     GamificationProfile? gamificationProfile,
+    TokenWallet? tokenWallet,
+    List<TokenTransaction>? tokenTransactions,
   }) {
     return UserProfile(
       id: id ?? this.id,
@@ -131,6 +152,8 @@ class UserProfile {
       lastActive: lastActive ?? this.lastActive,
       preferences: preferences ?? this.preferences,
       gamificationProfile: gamificationProfile ?? this.gamificationProfile,
+      tokenWallet: tokenWallet ?? this.tokenWallet,
+      tokenTransactions: tokenTransactions ?? this.tokenTransactions,
     );
   }
 
@@ -147,6 +170,8 @@ class UserProfile {
       'lastActive': lastActive?.toIso8601String(),
       'preferences': preferences,
       'gamificationProfile': gamificationProfile?.toJson(),
+      'tokenWallet': tokenWallet?.toJson(),
+      'tokenTransactions': tokenTransactions?.map((e) => e.toJson()).toList(),
     };
   }
 } 
