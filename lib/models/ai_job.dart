@@ -15,6 +15,9 @@ class AiJob {
     this.priority = false,
     this.tokensSpent = 0,
     this.metadata,
+    // Enhanced fields for better UX
+    this.queuePosition,
+    this.estimatedCompletion,
   });
 
   final String id;
@@ -29,12 +32,16 @@ class AiJob {
   final bool priority;           // Priority queue for premium users
   final int tokensSpent;         // Tokens deducted for this job
   final Map<String, dynamic>? metadata;
+  
+  // Enhanced fields for better UX
+  final int? queuePosition;           // Position in queue (1-based)
+  final DateTime? estimatedCompletion; // Estimated completion time
 
   /// Check if job is still processing
   bool get isProcessing => status == AiJobStatus.queued || status == AiJobStatus.processing;
 
   /// Check if job is completed (success or failure)
-  bool get isCompleted => status == AiJobStatus.completed || status == AiJobStatus.failed;
+  bool get isCompleted => status == AiJobStatus.completed || status == AiJobStatus.failed || status == AiJobStatus.cancelled;
 
   /// Get estimated completion time based on queue position
   Duration? getEstimatedCompletion(int queuePosition) {
@@ -53,9 +60,12 @@ class AiJob {
   String get statusDescription {
     switch (status) {
       case AiJobStatus.queued:
-        return 'Waiting in queue';
+        if (queuePosition != null) {
+          return 'Queued (position $queuePosition)';
+        }
+        return 'Queued for processing';
       case AiJobStatus.processing:
-        return 'Analyzing image...';
+        return 'Processing your image...';
       case AiJobStatus.completed:
         return 'Analysis complete';
       case AiJobStatus.failed:
@@ -63,6 +73,30 @@ class AiJob {
       case AiJobStatus.cancelled:
         return 'Cancelled';
     }
+  }
+
+  /// Get estimated completion time string
+  String get estimatedCompletionString {
+    if (estimatedCompletion == null) return 'Unknown';
+    final now = DateTime.now();
+    if (estimatedCompletion!.isBefore(now)) return 'Processing...';
+    
+    final diff = estimatedCompletion!.difference(now);
+    if (diff.inMinutes < 5) return 'Less than 5 minutes';
+    if (diff.inMinutes < 60) return '${diff.inMinutes} minutes';
+    if (diff.inHours < 24) return '${diff.inHours} hours';
+    return '${diff.inDays} days';
+  }
+
+  /// Check if job is actively processing
+  bool get isActive {
+    return status == AiJobStatus.queued || status == AiJobStatus.processing;
+  }
+
+  /// Get processing duration if completed
+  Duration? get processingDuration {
+    if (completedAt == null) return null;
+    return completedAt!.difference(createdAt);
   }
 
   AiJob copyWith({
@@ -78,6 +112,8 @@ class AiJob {
     bool? priority,
     int? tokensSpent,
     Map<String, dynamic>? metadata,
+    int? queuePosition,
+    DateTime? estimatedCompletion,
   }) {
     return AiJob(
       id: id ?? this.id,
@@ -92,6 +128,8 @@ class AiJob {
       priority: priority ?? this.priority,
       tokensSpent: tokensSpent ?? this.tokensSpent,
       metadata: metadata ?? this.metadata,
+      queuePosition: queuePosition ?? this.queuePosition,
+      estimatedCompletion: estimatedCompletion ?? this.estimatedCompletion,
     );
   }
 
@@ -109,6 +147,8 @@ class AiJob {
       'priority': priority,
       'tokensSpent': tokensSpent,
       'metadata': metadata,
+      'queuePosition': queuePosition,
+      'estimatedCompletion': estimatedCompletion?.toIso8601String(),
     };
   }
 
@@ -132,6 +172,10 @@ class AiJob {
       priority: json['priority'] ?? false,
       tokensSpent: json['tokensSpent'] ?? 0,
       metadata: json['metadata']?.cast<String, dynamic>(),
+      queuePosition: json['queuePosition'],
+      estimatedCompletion: json['estimatedCompletion'] != null
+          ? DateTime.parse(json['estimatedCompletion'])
+          : null,
     );
   }
 
@@ -181,6 +225,12 @@ class QueueStats {
     required this.failedToday,
     required this.averageWaitTime,
     required this.lastUpdated,
+    // Enhanced fields for better monitoring and UX
+    required this.averageProcessingTime,
+    required this.estimatedWaitTime,
+    required this.successRate,
+    required this.failureRate,
+    required this.pendingJobs,
   });
 
   final int totalJobs;
@@ -190,6 +240,13 @@ class QueueStats {
   final int failedToday;
   final Duration averageWaitTime;
   final DateTime lastUpdated;
+  
+  // Enhanced monitoring fields
+  final Duration averageProcessingTime;  // How long each job takes to process
+  final Duration estimatedWaitTime;      // Estimated wait time for new jobs
+  final double successRate;              // Success rate (0.0 - 1.0)
+  final double failureRate;              // Failure rate (0.0 - 1.0)
+  final int pendingJobs;                 // Alias for queuedJobs for clarity
 
   /// Get queue health status
   QueueHealth get health {
@@ -201,11 +258,39 @@ class QueueStats {
 
   /// Get user-friendly wait time estimate
   String get waitTimeEstimate {
-    final minutes = averageWaitTime.inMinutes;
+    final minutes = estimatedWaitTime.inMinutes;
     if (minutes < 5) return 'Less than 5 minutes';
     if (minutes < 30) return '$minutes minutes';
     if (minutes < 120) return '${(minutes / 60).round()} hour';
     return '${(minutes / 60).round()} hours';
+  }
+
+  /// Get user-friendly processing time
+  String get processingTimeEstimate {
+    final seconds = averageProcessingTime.inSeconds;
+    if (seconds < 60) return '$seconds seconds';
+    final minutes = averageProcessingTime.inMinutes;
+    return '$minutes minutes';
+  }
+
+  /// Get success rate as percentage string
+  String get successRatePercentage {
+    return '${(successRate * 100).toStringAsFixed(1)}%';
+  }
+
+  /// Get failure rate as percentage string
+  String get failureRatePercentage {
+    return '${(failureRate * 100).toStringAsFixed(1)}%';
+  }
+
+  /// Calculate estimated completion time for a new job
+  DateTime get estimatedCompletionTime {
+    return DateTime.now().add(estimatedWaitTime).add(averageProcessingTime);
+  }
+
+  /// Get queue position estimate for new jobs
+  int get queuePositionForNewJob {
+    return pendingJobs + 1;
   }
 
   Map<String, dynamic> toJson() {
@@ -217,6 +302,12 @@ class QueueStats {
       'failedToday': failedToday,
       'averageWaitTimeMs': averageWaitTime.inMilliseconds,
       'lastUpdated': lastUpdated.toIso8601String(),
+      // Enhanced fields
+      'averageProcessingTimeMs': averageProcessingTime.inMilliseconds,
+      'estimatedWaitTimeMs': estimatedWaitTime.inMilliseconds,
+      'successRate': successRate,
+      'failureRate': failureRate,
+      'pendingJobs': pendingJobs,
     };
   }
 
@@ -229,6 +320,30 @@ class QueueStats {
       failedToday: json['failedToday'],
       averageWaitTime: Duration(milliseconds: json['averageWaitTimeMs']),
       lastUpdated: DateTime.parse(json['lastUpdated']),
+      // Enhanced fields with fallbacks for backward compatibility
+      averageProcessingTime: Duration(milliseconds: json['averageProcessingTimeMs'] ?? 30000), // 30s default
+      estimatedWaitTime: Duration(milliseconds: json['estimatedWaitTimeMs'] ?? json['averageWaitTimeMs']),
+      successRate: (json['successRate'] ?? 0.95).toDouble(), // 95% default
+      failureRate: (json['failureRate'] ?? 0.05).toDouble(), // 5% default
+      pendingJobs: json['pendingJobs'] ?? json['queuedJobs'], // Use queuedJobs as fallback
+    );
+  }
+
+  /// Create empty stats for initialization
+  factory QueueStats.empty() {
+    return QueueStats(
+      totalJobs: 0,
+      queuedJobs: 0,
+      processingJobs: 0,
+      completedToday: 0,
+      failedToday: 0,
+      averageWaitTime: Duration.zero,
+      lastUpdated: DateTime.now(),
+      averageProcessingTime: const Duration(seconds: 30),
+      estimatedWaitTime: Duration.zero,
+      successRate: 1.0,
+      failureRate: 0.0,
+      pendingJobs: 0,
     );
   }
 }

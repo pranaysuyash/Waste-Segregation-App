@@ -72,16 +72,8 @@ final aiJobQueueProvider = FutureProvider<List<AiJob>>((ref) async {
 /// Provider for queue statistics (stub for now)
 final queueStatsProvider = FutureProvider<QueueStats>((ref) async {
   // TODO: Implement with Firestore aggregation
-  // For now, return healthy queue
-  return QueueStats(
-    totalJobs: 0,
-    queuedJobs: 0,
-    processingJobs: 0,
-    completedToday: 0,
-    failedToday: 0,
-    averageWaitTime: const Duration(minutes: 5),
-    lastUpdated: DateTime.now(),
-  );
+  // For now, return healthy queue using the empty factory
+  return QueueStats.empty();
 });
 
 /// Provider for user's pending jobs

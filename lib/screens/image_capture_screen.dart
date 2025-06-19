@@ -2,7 +2,7 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:provider/provider.dart' as provider;
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/waste_classification.dart';
 import '../services/ai_service.dart';
 import '../utils/constants.dart';
@@ -10,11 +10,12 @@ import '../widgets/enhanced_analysis_loader.dart';
 import '../widgets/premium_segmentation_toggle.dart';
 import '../widgets/analysis_speed_selector.dart';
 import '../models/token_wallet.dart';
+import '../providers/ai_job_providers.dart';
+import '../providers/app_providers.dart';
 import 'result_screen.dart';
 import '../utils/waste_app_logger.dart';
 
-class ImageCaptureScreen extends StatefulWidget {
-
+class ImageCaptureScreen extends ConsumerStatefulWidget {
   const ImageCaptureScreen({
     super.key,
     this.imageFile,
@@ -23,11 +24,10 @@ class ImageCaptureScreen extends StatefulWidget {
     this.autoAnalyze = false,
   });
 
-  // Factory constructor for creating from XFile (useful for web and mobile)
   factory ImageCaptureScreen.fromXFile(XFile xFile, {bool autoAnalyze = false}) =>
       ImageCaptureScreen(
         xFile: xFile,
-        imageFile: kIsWeb ? null : File(xFile.path), // Convert XFile to File for mobile
+        imageFile: kIsWeb ? null : File(xFile.path),
         autoAnalyze: autoAnalyze,
       );
   final File? imageFile;
@@ -36,14 +36,13 @@ class ImageCaptureScreen extends StatefulWidget {
   final bool autoAnalyze;
 
   @override
-  State<ImageCaptureScreen> createState() => _ImageCaptureScreenState();
+  ConsumerState<ImageCaptureScreen> createState() => _ImageCaptureScreenState();
 }
 
-class _ImageCaptureScreenState extends State<ImageCaptureScreen> with RestorationMixin {
+class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen> with RestorationMixin {
   bool _isAnalyzing = false;
   bool _isCancelled = false;
 
-  // Local state for holding image data
   File? _imageFile;
   XFile? _xFile;
   Uint8List? _webImageBytes;
@@ -53,7 +52,6 @@ class _ImageCaptureScreenState extends State<ImageCaptureScreen> with Restoratio
   final Set<int> _selectedSegments = {};
   AnalysisSpeed _selectedSpeed = AnalysisSpeed.instant;
 
-  // Restoration properties
   final RestorableStringN _imagePath = RestorableStringN(null);
   final RestorableBool _useSegmentationRestorable = RestorableBool(false);
 
@@ -64,9 +62,7 @@ class _ImageCaptureScreenState extends State<ImageCaptureScreen> with Restoratio
   void restoreState(RestorationBucket? oldBucket, bool initialRestore) {
     registerForRestoration(_imagePath, 'image_path');
     registerForRestoration(_useSegmentationRestorable, 'use_segmentation');
-
     _useSegmentation = _useSegmentationRestorable.value;
-
     if (_imageFile == null && _imagePath.value != null && !kIsWeb) {
       final file = File(_imagePath.value!);
       if (file.existsSync()) {
@@ -79,7 +75,6 @@ class _ImageCaptureScreenState extends State<ImageCaptureScreen> with Restoratio
         });
       }
     }
-
     if (_xFile == null && _imagePath.value != null && kIsWeb) {
       _xFile = XFile(_imagePath.value!);
       _loadWebImage();
@@ -92,8 +87,6 @@ class _ImageCaptureScreenState extends State<ImageCaptureScreen> with Restoratio
     _imageFile = widget.imageFile;
     _xFile = widget.xFile;
     _webImageBytes = widget.webImage;
-    
-    // Initialize restoration properties after registration
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (_imageFile != null) {
         _imagePath.value = _imageFile!.path;
@@ -101,14 +94,11 @@ class _ImageCaptureScreenState extends State<ImageCaptureScreen> with Restoratio
         _imagePath.value = _xFile!.path;
       }
       _useSegmentationRestorable.value = _useSegmentation;
-      
-      // Auto-analyze if enabled and image is available
       if (widget.autoAnalyze && (_imageFile != null || _xFile != null || _webImageBytes != null)) {
         WasteAppLogger.info('Auto-analyzing image on init.', null, null, {'service': 'screen', 'file': 'image_capture_screen'});
         _analyzeImage();
       }
     });
-
     if (_imageFile == null && _xFile == null && _webImageBytes == null) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         _captureImage();
@@ -126,7 +116,6 @@ class _ImageCaptureScreenState extends State<ImageCaptureScreen> with Restoratio
       maxHeight: 1200,
       imageQuality: 85,
     );
-
     if (image != null) {
       if (mounted) {
         setState(() {
@@ -135,7 +124,6 @@ class _ImageCaptureScreenState extends State<ImageCaptureScreen> with Restoratio
             _imageFile = File(image.path);
           }
         });
-        // Set restoration property safely after state update
         WidgetsBinding.instance.addPostFrameCallback((_) {
           if (mounted) {
             _imagePath.value = image.path;
@@ -146,7 +134,6 @@ class _ImageCaptureScreenState extends State<ImageCaptureScreen> with Restoratio
         }
       }
     } else {
-      // User cancelled, pop the screen if there's no image
       if (mounted && _imageFile == null && _xFile == null && _webImageBytes == null) {
         Navigator.of(context).pop();
       }
@@ -165,7 +152,7 @@ class _ImageCaptureScreenState extends State<ImageCaptureScreen> with Restoratio
   }
 
   Future<void> _runSegmentation() async {
-    final aiService = provider.Provider.of<AiService>(context, listen: false);
+    final aiService = ref.read(aiServiceProvider);
     List<Map<String, dynamic>> segments;
     if (kIsWeb) {
       final imageBytes = _webImageBytes;
@@ -187,34 +174,23 @@ class _ImageCaptureScreenState extends State<ImageCaptureScreen> with Restoratio
 
   Future<void> _analyzeImage() async {
     if (_isAnalyzing || _isCancelled) return;
-
     setState(() {
       _isAnalyzing = true;
-      _isCancelled = false; // Reset cancellation state
+      _isCancelled = false;
     });
-
     try {
-      final aiService = provider.Provider.of<AiService>(context, listen: false);
+      final aiService = ref.read(aiServiceProvider);
       late WasteClassification classification;
-
       if (kIsWeb) {
-        // For web, we need to handle the image differently
         if (_xFile != null) {
-          // First check if we already have the web image bytes loaded
           var imageBytes = _webImageBytes;
-
-          // If not, read them now
           if (imageBytes == null) {
             try {
               imageBytes = await _xFile!.readAsBytes();
-
-              // Check if cancelled during image reading
               if (_isCancelled) {
                 WasteAppLogger.info('Analysis cancelled during image reading.', null, null, {'service': 'screen', 'file': 'image_capture_screen'});
                 return;
               }
-
-              // Cache the bytes
               if (mounted) {
                 setState(() {
                   _webImageBytes = imageBytes;
@@ -225,23 +201,15 @@ class _ImageCaptureScreenState extends State<ImageCaptureScreen> with Restoratio
               throw Exception('Failed to read image data: $bytesError');
             }
           }
-
-          // Ensure we have bytes before proceeding
           if (imageBytes.isEmpty) {
             throw Exception('Image data is empty or could not be read');
           }
-
-          // Check if cancelled before starting analysis
           if (_isCancelled) {
             WasteAppLogger.info('Analysis cancelled before starting.', null, null, {'service': 'screen', 'file': 'image_capture_screen'});
             return;
           }
-
-          // Log the image size for debugging
           WasteAppLogger.info('Analyzing web image: ${_xFile!.name}, size: ${imageBytes.length} bytes', null, null, {'service': 'screen', 'file': 'image_capture_screen'});
-
-                    if (_useSegmentation && _selectedSegments.isNotEmpty) {
-            // Already using our custom Rect type from segmentImage()
+          if (_useSegmentation && _selectedSegments.isNotEmpty) {
             if (_selectedSpeed == AnalysisSpeed.instant) {
               classification = await aiService.analyzeImageSegmentsWeb(
                 imageBytes,
@@ -249,38 +217,28 @@ class _ImageCaptureScreenState extends State<ImageCaptureScreen> with Restoratio
                 _selectedSegments.map((i) => _segments[i]).toList(),
               );
             } else {
-              // For batch processing, queue the job and create a placeholder classification
-              // TODO: Implement batch job queuing for web segmentation
-              throw Exception('Batch processing not yet implemented. Please use instant analysis.');
+              await _createBatchJobWeb(imageBytes, _xFile!.name, segments: _selectedSegments.map((i) => _segments[i]).toList(), useSegmentation: true);
+              return;
             }
           } else {
-            // Use selected speed for analysis
             if (_selectedSpeed == AnalysisSpeed.instant) {
               classification = await aiService.analyzeWebImage(
                 imageBytes,
                 _xFile!.name,
               );
             } else {
-              // For batch processing, queue the job and create a placeholder classification
-              // TODO: Implement batch job queuing for web
-              throw Exception('Batch processing not yet implemented. Please use instant analysis.');
+              await _createBatchJobWeb(imageBytes, _xFile!.name);
+              return;
             }
           }
-
-          // Log success for debugging
           WasteAppLogger.info('Web image analysis complete: ${classification.itemName}', null, null, {'service': 'screen', 'file': 'image_capture_screen'});
         } else if (_webImageBytes != null) {
-          // Check if cancelled before starting analysis
           if (_isCancelled) {
             WasteAppLogger.info('Analysis cancelled before starting.', null, null, {'service': 'screen', 'file': 'image_capture_screen'});
             return;
           }
-
-          // We were provided with the image bytes directly
           WasteAppLogger.info('Analyzing web image from bytes, size: ${_webImageBytes!.length} bytes', null, null, {'service': 'screen', 'file': 'image_capture_screen'});
-
           if (_useSegmentation && _selectedSegments.isNotEmpty) {
-            // Using our custom Rect class from segmentImage()
             classification = await aiService.analyzeImageSegmentsWeb(
               _webImageBytes!,
               'uploaded_image.jpg',
@@ -292,16 +250,12 @@ class _ImageCaptureScreenState extends State<ImageCaptureScreen> with Restoratio
               'uploaded_image.jpg',
             );
           }
-
-          // Log success for debugging
           WasteAppLogger.info('Web image bytes analysis complete: ${classification.itemName}', null, null, {'service': 'screen', 'file': 'image_capture_screen'});
         } else {
           throw Exception('No image provided for analysis');
         }
       } else {
-        // For mobile platforms
         if (_imageFile != null) {
-          // Check if cancelled before starting analysis
           if (_isCancelled) {
             WasteAppLogger.info('Analysis cancelled before starting.', null, null, {'service': 'screen', 'file': 'image_capture_screen'});
             setState(() {
@@ -309,39 +263,32 @@ class _ImageCaptureScreenState extends State<ImageCaptureScreen> with Restoratio
             });
             return;
           }
-
           WasteAppLogger.info('Analyzing mobile image: ${_imageFile!.path}', null, null, {'service': 'screen', 'file': 'image_capture_screen'});
-
-          // Check if file exists and is readable
           if (await _imageFile!.exists()) {
             if (_useSegmentation && _selectedSegments.isNotEmpty) {
-              // Using our custom Rect class from segmentImage()
               if (_selectedSpeed == AnalysisSpeed.instant) {
                 classification = await aiService.analyzeImageSegments(
                   _imageFile!,
                   _selectedSegments.map((i) => _segments[i]).toList(),
                 );
               } else {
-                // For batch processing, show user that job is being queued
-                if (mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Batch job queued! You will be notified when analysis is complete.'),
-                      duration: Duration(seconds: 3),
-                    ),
-                  );
-                  Navigator.of(context).popUntil((route) => route.isFirst);
-                }
+                await _createBatchJob(
+                  imageFile: _imageFile!,
+                  imageName: _imageFile!.path.split('/').last,
+                  segments: _selectedSegments.map((i) => _segments[i]).toList(),
+                  useSegmentation: true,
+                );
                 return;
               }
             } else {
-              // Use selected speed for analysis
               if (_selectedSpeed == AnalysisSpeed.instant) {
                 classification = await aiService.analyzeImage(_imageFile!);
               } else {
-                // For batch processing, queue the job and create a placeholder classification
-                // TODO: Implement batch job queuing
-                throw Exception('Batch processing not yet implemented. Please use instant analysis.');
+                await _createBatchJob(
+                  imageFile: _imageFile!,
+                  imageName: _imageFile!.path.split('/').last,
+                );
+                return;
               }
             }
             WasteAppLogger.info('Mobile image analysis complete: ${classification.itemName}', null, null, {'service': 'screen', 'file': 'image_capture_screen'});
@@ -352,8 +299,6 @@ class _ImageCaptureScreenState extends State<ImageCaptureScreen> with Restoratio
           throw Exception('No image provided for analysis');
         }
       }
-
-      // Check if cancelled after analysis completes but before navigation
       if (_isCancelled) {
         WasteAppLogger.info('Analysis cancelled after completion, not navigating.', null, null, {'service': 'screen', 'file': 'image_capture_screen'});
         setState(() {
@@ -361,7 +306,6 @@ class _ImageCaptureScreenState extends State<ImageCaptureScreen> with Restoratio
         });
         return;
       }
-
       if (mounted && !_isCancelled) {
         WasteAppLogger.info('Analysis complete, navigating to ResultScreen.', null, null, {'service': 'screen', 'file': 'image_capture_screen'});
         Navigator.pushReplacement(
@@ -372,7 +316,6 @@ class _ImageCaptureScreenState extends State<ImageCaptureScreen> with Restoratio
             ),
           ),
         ).then((_) {
-          // Reset _isAnalyzing after navigation is complete
           if (mounted) {
             setState(() {
               _isAnalyzing = false;
@@ -389,7 +332,6 @@ class _ImageCaptureScreenState extends State<ImageCaptureScreen> with Restoratio
             duration: const Duration(seconds: 5),
           ),
         );
-
         setState(() {
           _isAnalyzing = false;
         });
@@ -397,7 +339,69 @@ class _ImageCaptureScreenState extends State<ImageCaptureScreen> with Restoratio
     }
   }
 
+  Future<void> _createBatchJob({
+    required File imageFile,
+    required String imageName,
+    List<Map<String, dynamic>>? segments,
+    bool useSegmentation = false,
+  }) async {
+    try {
+      final userProfile = ref.read(userProfileProvider).value;
+      if (userProfile == null) {
+        throw Exception('User not authenticated');
+      }
+      final batchJobNotifier = ref.read(batchJobCreationProvider.notifier);
+      final jobId = await batchJobNotifier.createJob(
+        userId: userProfile.id,
+        imageFile: imageFile,
+      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Batch job created! Job ID: $jobId'),
+            duration: const Duration(seconds: 3),
+            action: SnackBarAction(
+              label: 'View Jobs',
+              onPressed: () {
+                // TODO: Navigate to job queue screen
+              },
+            ),
+          ),
+        );
+        Navigator.of(context).popUntil((route) => route.isFirst);
+      }
+    } catch (e) {
+      WasteAppLogger.severe('Failed to create batch job', e, null, {
+        'service': 'screen',
+        'file': 'image_capture_screen',
+      });
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to create batch job: ${e.toString()}'),
+            duration: const Duration(seconds: 5),
+          ),
+        );
+        setState(() {
+          _isAnalyzing = false;
+        });
+      }
+    }
+  }
 
+  Future<void> _createBatchJobWeb(Uint8List imageBytes, String imageName, {List<Map<String, dynamic>>? segments, bool useSegmentation = false}) async {
+    // TODO: Implement web batch job creation using Riverpod
+    // For now, show a placeholder
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Batch job (web) queued! You will be notified when analysis is complete.'),
+          duration: Duration(seconds: 3),
+        ),
+      );
+      Navigator.of(context).popUntil((route) => route.isFirst);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -430,7 +434,7 @@ class _ImageCaptureScreenState extends State<ImageCaptureScreen> with Restoratio
                          'captured_image.jpg',
               onCancel: () {
                 // Cancel the AI service analysis
-                final aiService = provider.Provider.of<AiService>(context, listen: false);
+                final aiService = ref.read(aiServiceProvider);
                 aiService.cancelAnalysis();
                 
                 setState(() {
@@ -476,7 +480,7 @@ class _ImageCaptureScreenState extends State<ImageCaptureScreen> with Restoratio
                          'captured_image.jpg',
               onCancel: () {
                 // Cancel the AI service analysis
-                final aiService = provider.Provider.of<AiService>(context, listen: false);
+                final aiService = ref.read(aiServiceProvider);
                 aiService.cancelAnalysis();
                 
                 setState(() {

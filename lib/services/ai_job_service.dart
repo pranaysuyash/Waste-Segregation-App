@@ -25,8 +25,8 @@ class AiJobService {
     TokenService? tokenService,
     StorageService? storageService,
   }) : _firestore = firestore ?? FirebaseFirestore.instance,
-       _tokenService = tokenService ?? TokenService(StorageService(), CloudStorageService()),
-       _storageService = storageService ?? StorageService();
+       _storageService = storageService ?? StorageService(),
+       _tokenService = tokenService ?? TokenService(storageService ?? StorageService(), CloudStorageService(storageService ?? StorageService()));
 
   final FirebaseFirestore _firestore;
   final TokenService _tokenService;
@@ -46,17 +46,12 @@ class AiJobService {
   Future<String> createBatchJob({
     required String userId,
     required File imageFile,
-    required String imageName,
-    List<Map<String, dynamic>>? segments,
-    bool useSegmentation = false,
   }) async {
     try {
       WasteAppLogger.info('Creating batch job for user: $userId', null, null, {
         'service': 'ai_job_service',
         'method': 'createBatchJob',
         'userId': userId,
-        'imageName': imageName,
-        'useSegmentation': useSegmentation,
       });
 
       // 1. Check and deduct tokens
@@ -71,10 +66,11 @@ class AiJobService {
         throw Exception('Insufficient tokens for batch analysis: $e');
       }
 
-      // 2. Upload image to storage
-      final imageUrl = await _storageService.uploadImage(
+      // 2. Upload image to Cloud Storage
+      final cloudStorageService = CloudStorageService(_storageService);
+      final imagePath = await cloudStorageService.uploadImageForBatchProcessing(
         imageFile,
-        'batch_jobs/$userId/${DateTime.now().millisecondsSinceEpoch}_$imageName',
+        userId,
       );
 
       // 3. Create job document
@@ -82,34 +78,35 @@ class AiJobService {
       final job = AiJob(
         id: jobId,
         userId: userId,
-        imageUrl: imageUrl,
-        imageName: imageName,
-        segments: segments,
-        useSegmentation: useSegmentation,
-        status: AiJobStatus.pending,
+        imagePath: imagePath,
+        speed: AnalysisSpeed.batch,
+        status: AiJobStatus.queued,
         createdAt: DateTime.now(),
-        tokenCost: tokenCost,
+        tokensSpent: tokenCost,
       );
 
       // 4. Create OpenAI batch request
       final batchFileId = await _createOpenAIBatchFile(job);
+      
+      // 5. Submit batch job to OpenAI
       final openAIBatchId = await _submitOpenAIBatchJob(batchFileId);
-
-      // 5. Update job with OpenAI batch ID
+      
+      // 6. Update job with OpenAI batch ID
       final updatedJob = job.copyWith(
-        openAIBatchId: openAIBatchId,
-        openAIFileId: batchFileId,
-        status: AiJobStatus.queued,
+        metadata: {
+          'openAIBatchId': openAIBatchId,
+          'batchFileId': batchFileId,
+        },
       );
 
-      // 6. Save to Firestore
+      // 7. Save to Firestore
       await _firestore.collection(_jobsCollection).doc(jobId).set(updatedJob.toJson());
 
       WasteAppLogger.info('Batch job created successfully', null, null, {
         'service': 'ai_job_service',
         'jobId': jobId,
-        'openAIBatchId': openAIBatchId,
         'tokenCost': tokenCost,
+        'openAIBatchId': openAIBatchId,
       });
 
       return jobId;
@@ -117,8 +114,23 @@ class AiJobService {
       WasteAppLogger.severe('Failed to create batch job', e, null, {
         'service': 'ai_job_service',
         'userId': userId,
-        'imageName': imageName,
       });
+      
+      // Refund tokens on failure
+      try {
+        await _tokenService.earnTokens(
+          AnalysisSpeed.batch.cost,
+          TokenTransactionType.refund,
+          'Batch job creation failed - token refund',
+          reference: 'batch_job_refund',
+        );
+      } catch (refundError) {
+        WasteAppLogger.severe('Failed to refund tokens after batch job failure', refundError, null, {
+          'service': 'ai_job_service',
+          'userId': userId,
+        });
+      }
+      
       rethrow;
     }
   }
@@ -132,33 +144,31 @@ class AiJobService {
         'method': 'POST',
         'url': '/v1/chat/completions',
         'body': {
-          'model': 'gpt-4o-mini', // Using cost-effective model for batch processing
+          'model': 'gpt-4o-mini',
           'messages': [
             {
               'role': 'system',
-              'content': _getSystemPrompt(job.useSegmentation),
+              'content': _getSystemPrompt(false),
             },
             {
               'role': 'user',
               'content': [
                 {
                   'type': 'text',
-                  'text': job.useSegmentation 
-                    ? 'Analyze the selected segments of this waste image for classification.'
-                    : 'Classify this waste item for proper disposal.',
+                  'text': 'Classify this waste item for proper disposal.',
                 },
                 {
                   'type': 'image_url',
                   'image_url': {
-                    'url': job.imageUrl,
-                    'detail': 'high', // High detail for better classification
+                    'url': job.imagePath,
+                    'detail': 'high',
                   },
                 },
               ],
             },
           ],
           'max_tokens': 1000,
-          'temperature': 0.1, // Low temperature for consistent classification
+          'temperature': 0.1,
           'response_format': {
             'type': 'json_object',
           },
@@ -303,56 +313,101 @@ class AiJobService {
             .toList());
   }
 
-  /// Gets queue statistics
+  /// Get queue statistics
   Future<QueueStats> getQueueStats() async {
     try {
+      final now = DateTime.now();
+      final oneDayAgo = now.subtract(const Duration(days: 1));
+
       final snapshot = await _firestore
           .collection(_jobsCollection)
-          .where('status', whereIn: [
-            AiJobStatus.pending.name,
-            AiJobStatus.queued.name,
-            AiJobStatus.processing.name,
-          ])
+          .where('createdAt', isGreaterThan: Timestamp.fromDate(oneDayAgo))
           .get();
 
-      final pendingJobs = snapshot.docs.length;
-      
+      if (snapshot.docs.isEmpty) {
+        return QueueStats(
+          totalJobs: 0,
+          queuedJobs: 0,
+          processingJobs: 0,
+          completedToday: 0,
+          failedToday: 0,
+          averageWaitTime: Duration.zero,
+          lastUpdated: DateTime.now(),
+          averageProcessingTime: const Duration(seconds: 30),
+          estimatedWaitTime: Duration.zero,
+          successRate: 1.0,
+          failureRate: 0.0,
+          pendingJobs: 0,
+        );
+      }
+
+      final jobs = snapshot.docs.map((doc) => doc.data()).toList();
+      final totalJobs = jobs.length;
+      final queuedJobs = jobs.where((job) => job['status'] == AiJobStatus.queued.name).length;
+      final processingJobs = jobs.where((job) => job['status'] == AiJobStatus.processing.name).length;
+      final completedJobs = jobs.where((job) => job['status'] == AiJobStatus.completed.name).length;
+      final failedJobs = jobs.where((job) => job['status'] == AiJobStatus.failed.name).length;
+
       // Calculate average processing time from completed jobs
-      final completedSnapshot = await _firestore
-          .collection(_jobsCollection)
-          .where('status', isEqualTo: AiJobStatus.completed.name)
-          .orderBy('completedAt', descending: true)
-          .limit(100)
-          .get();
+      final completedJobsWithTimes = jobs.where((job) => 
+        job['status'] == AiJobStatus.completed.name && 
+        job['completedAt'] != null &&
+        job['createdAt'] != null
+      ).toList();
 
-      double averageProcessingTime = 0;
-      if (completedSnapshot.docs.isNotEmpty) {
-        final processingTimes = completedSnapshot.docs
-            .map((doc) {
-              final data = doc.data();
-              final created = (data['createdAt'] as Timestamp).toDate();
-              final completed = (data['completedAt'] as Timestamp).toDate();
-              return completed.difference(created).inMinutes.toDouble();
-            })
-            .toList();
+      Duration averageProcessingTime = const Duration(seconds: 30); // Default
+      if (completedJobsWithTimes.isNotEmpty) {
+        final totalProcessingTime = completedJobsWithTimes.fold<int>(0, (sum, job) {
+          final createdAt = (job['createdAt'] as Timestamp).toDate();
+          final completedAt = (job['completedAt'] as Timestamp).toDate();
+          return sum + completedAt.difference(createdAt).inMilliseconds;
+        });
+        averageProcessingTime = Duration(milliseconds: totalProcessingTime ~/ completedJobsWithTimes.length);
+      }
 
-        averageProcessingTime = processingTimes.reduce((a, b) => a + b) / processingTimes.length;
+      // Calculate success and failure rates
+      final totalProcessedJobs = completedJobs + failedJobs;
+      final successRate = totalProcessedJobs > 0 ? completedJobs / totalProcessedJobs : 1.0;
+      final failureRate = totalProcessedJobs > 0 ? failedJobs / totalProcessedJobs : 0.0;
+
+      // Estimate wait time based on queue length and processing time
+      final estimatedWaitTime = Duration(
+        milliseconds: queuedJobs * averageProcessingTime.inMilliseconds,
+      );
+
+      // Calculate average wait time from recently completed jobs
+      Duration averageWaitTime = Duration.zero;
+      if (completedJobsWithTimes.isNotEmpty) {
+        final totalWaitTime = completedJobsWithTimes.fold<int>(0, (sum, job) {
+          final createdAt = (job['createdAt'] as Timestamp).toDate();
+          final completedAt = (job['completedAt'] as Timestamp).toDate();
+          return sum + completedAt.difference(createdAt).inMilliseconds;
+        });
+        averageWaitTime = Duration(milliseconds: totalWaitTime ~/ completedJobsWithTimes.length);
       }
 
       return QueueStats(
-        pendingJobs: pendingJobs,
+        totalJobs: totalJobs,
+        queuedJobs: queuedJobs,
+        processingJobs: processingJobs,
+        completedToday: completedJobs,
+        failedToday: failedJobs,
+        averageWaitTime: averageWaitTime,
+        lastUpdated: DateTime.now(),
         averageProcessingTime: averageProcessingTime,
-        estimatedWaitTime: pendingJobs * (averageProcessingTime / 60), // Convert to hours
+        estimatedWaitTime: estimatedWaitTime,
+        successRate: successRate,
+        failureRate: failureRate,
+        pendingJobs: queuedJobs, // Same as queuedJobs
       );
     } catch (e) {
       WasteAppLogger.severe('Failed to get queue stats', e, null, {
         'service': 'ai_job_service',
+        'method': 'getQueueStats',
       });
-      return QueueStats(
-        pendingJobs: 0,
-        averageProcessingTime: 0,
-        estimatedWaitTime: 0,
-      );
+      
+      // Return empty stats on error
+      return QueueStats.empty();
     }
   }
 
@@ -371,76 +426,53 @@ class AiJobService {
       final totalJobs = jobs.length;
       final completedJobs = jobs.where((job) => job['status'] == AiJobStatus.completed.name).length;
       final failedJobs = jobs.where((job) => job['status'] == AiJobStatus.failed.name).length;
+      final queuedJobs = jobs.where((job) => job['status'] == AiJobStatus.queued.name).length;
 
-      final successRate = totalJobs > 0 ? (completedJobs / totalJobs) * 100 : 100.0;
-      final failureRate = totalJobs > 0 ? (failedJobs / totalJobs) * 100 : 0.0;
-
-      return QueueHealth(
-        successRate: successRate,
-        failureRate: failureRate,
-        pendingJobs: jobs.where((job) => 
-          job['status'] == AiJobStatus.pending.name ||
-          job['status'] == AiJobStatus.queued.name ||
-          job['status'] == AiJobStatus.processing.name
-        ).length,
-      );
+      // Use the same logic as QueueHealth.get health
+      if (queuedJobs > 1000) return QueueHealth.overloaded;
+      if (queuedJobs > 500) return QueueHealth.busy;
+      if (queuedJobs > 100) return QueueHealth.moderate;
+      return QueueHealth.healthy;
     } catch (e) {
       WasteAppLogger.severe('Failed to get queue health', e, null, {
         'service': 'ai_job_service',
       });
-      return QueueHealth(
-        successRate: 0,
-        failureRate: 100,
-        pendingJobs: 0,
-      );
+      return QueueHealth.healthy;
     }
   }
 
-  /// Gets system prompt for AI analysis
+  /// Get the system prompt for waste classification
   String _getSystemPrompt(bool useSegmentation) {
-    if (useSegmentation) {
-      return '''
-You are an expert waste classification AI. Analyze the selected segments of the waste image and provide detailed classification information.
+    return '''You are an expert waste classification AI. Analyze the provided image and classify the waste item for proper disposal.
 
-Respond with a JSON object containing:
+IMPORTANT: Your response must be valid JSON with the following structure:
 {
-  "itemName": "specific name of the waste item",
-  "category": "recyclable|organic|hazardous|general",
-  "confidence": 0.95,
-  "disposalInstructions": "specific disposal instructions",
-  "environmentalImpact": "brief environmental impact description",
-  "tips": ["tip1", "tip2", "tip3"]
+  "itemName": "string - name of the waste item",
+  "category": "string - waste category (recyclable, organic, hazardous, general)",
+  "confidence": number - confidence score 0-1,
+  "disposalInstructions": "string - how to dispose of this item",
+  "environmentalImpact": "string - environmental impact if disposed incorrectly",
+  "alternativeUses": "string - potential reuse or recycling options",
+  "location": "string - where to dispose (recycling center, compost, etc.)"
 }
 
-Focus on the segmented areas and provide accurate classification based on the visible waste materials.
-''';
-    } else {
-      return '''
-You are an expert waste classification AI. Analyze the waste image and provide detailed classification information.
-
-Respond with a JSON object containing:
-{
-  "itemName": "specific name of the waste item",
-  "category": "recyclable|organic|hazardous|general",
-  "confidence": 0.95,
-  "disposalInstructions": "specific disposal instructions",
-  "environmentalImpact": "brief environmental impact description",
-  "tips": ["tip1", "tip2", "tip3"]
-}
-
-Provide accurate classification based on the visible waste materials and their characteristics.
-''';
-    }
+Focus on accuracy and provide clear, actionable disposal instructions. Consider local waste management practices and environmental impact.''';
   }
 
-  /// Gets OpenAI API key from environment or secure storage
+  /// Get the OpenAI API key from environment or configuration
   String _getOpenAIApiKey() {
-    // TODO: Replace with secure key management
-    // In production, this should come from:
-    // - Environment variables
-    // - Firebase Remote Config
-    // - Secure key management service
-    return const String.fromEnvironment('OPENAI_API_KEY', 
-      defaultValue: 'your-openai-api-key-here');
+    // In production, this would come from secure environment variables
+    // For now, return a placeholder that indicates missing configuration
+    const apiKey = String.fromEnvironment('OPENAI_API_KEY');
+    
+    if (apiKey.isEmpty) {
+      WasteAppLogger.severe('OpenAI API key not configured', null, null, {
+        'service': 'ai_job_service',
+        'method': '_getOpenAIApiKey',
+      });
+      throw Exception('OpenAI API key not configured. Please set OPENAI_API_KEY environment variable.');
+    }
+    
+    return apiKey;
   }
 }

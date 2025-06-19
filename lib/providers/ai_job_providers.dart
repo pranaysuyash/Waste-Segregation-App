@@ -40,9 +40,6 @@ class BatchJobCreationNotifier extends StateNotifier<AsyncValue<String?>> {
   Future<String> createJob({
     required String userId,
     required dynamic imageFile, // File for mobile, Uint8List for web
-    required String imageName,
-    List<Map<String, dynamic>>? segments,
-    bool useSegmentation = false,
   }) async {
     state = const AsyncValue.loading();
     
@@ -50,9 +47,6 @@ class BatchJobCreationNotifier extends StateNotifier<AsyncValue<String?>> {
       final jobId = await _aiJobService.createBatchJob(
         userId: userId,
         imageFile: imageFile,
-        imageName: imageName,
-        segments: segments,
-        useSegmentation: useSegmentation,
       );
       
       state = AsyncValue.data(jobId);
