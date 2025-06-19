@@ -158,6 +158,29 @@ class WasteAppLogger {
       if (context != null) ...context,
     };
     info('Performance: $operation took ${durationMs}ms', null, null, perfContext);
+    
+    // If duration is high, also track as slow resource for analytics
+    if (durationMs > 250) {
+      _trackSlowResource(operation, durationMs, context);
+    }
+  }
+
+  /// Track slow resource for analytics (internal method)
+  static void _trackSlowResource(String operation, int durationMs, Map<String, dynamic>? context) {
+    try {
+      // This would ideally be injected, but for now we'll log it for potential analytics pickup
+      final resourceType = context?['resource_type'] ?? 'unknown';
+      severe('Slow resource detected', null, null, {
+        'analytics_event': 'slow_resource',
+        'operation_name': operation,
+        'duration_ms': durationMs,
+        'resource_type': resourceType,
+        ...?context,
+      });
+    } catch (e) {
+      // Don't let analytics tracking break the logger
+      debug('Failed to track slow resource: $e');
+    }
   }
 
   static void aiEvent(String event, {String? model, int? tokensUsed, Object? error, Map<String, dynamic>? context}) {

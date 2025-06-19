@@ -6,6 +6,8 @@ import '../services/points_engine.dart';
 import '../services/educational_content_service.dart';
 import '../services/ad_service.dart';
 import '../services/analytics_service.dart';
+import '../services/analytics_consent_manager.dart';
+import '../services/analytics_schema_validator.dart';
 import '../models/gamification.dart';
 import '../models/user_profile.dart';
 import '../services/remote_config_service.dart';
@@ -100,6 +102,12 @@ final analyticsServiceProvider = Provider<AnalyticsService>((ref) {
   final storageService = ref.read(storageServiceProvider);
   return AnalyticsService(storageService);
 });
+
+/// Analytics consent manager provider - for GDPR/CCPA compliance
+final analyticsConsentManagerProvider = Provider<AnalyticsConsentManager>((ref) => AnalyticsConsentManager());
+
+/// Analytics schema validator provider - for event validation
+final analyticsSchemaValidatorProvider = Provider<AnalyticsSchemaValidator>((ref) => AnalyticsSchemaValidator());
 
 /// Gamification profile provider - for accessing current user's gamification data
 final profileProvider = FutureProvider<GamificationProfile?>((ref) async {

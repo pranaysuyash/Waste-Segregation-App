@@ -4,6 +4,8 @@ import 'package:uuid/uuid.dart';
 // import 'package:firebase_auth/firebase_auth.dart'; // Unused import
 import '../models/gamification.dart';
 import '../services/storage_service.dart';
+import '../services/analytics_consent_manager.dart';
+import '../services/analytics_schema_validator.dart';
 import 'package:waste_segregation_app/utils/waste_app_logger.dart';
 
 /// Service for tracking and analyzing user behavior and app usage.
@@ -17,6 +19,8 @@ class AnalyticsService extends ChangeNotifier {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final StorageService _storageService;
   final Uuid _uuid = const Uuid();
+  final AnalyticsConsentManager _consentManager = AnalyticsConsentManager();
+  final AnalyticsSchemaValidator _validator = AnalyticsSchemaValidator();
   
   String? _currentSessionId;
   DateTime? _sessionStartTime;
@@ -62,8 +66,8 @@ class AnalyticsService extends ChangeNotifier {
     );
   }
 
-  /// Tracks the end of a user session.
-  void trackSessionEnd() {
+  /// Tracks the end of a user session (legacy method - use enhanced version).
+  void trackSessionEndLegacy() {
     if (_sessionStartTime != null) {
       final sessionDuration = DateTime.now().difference(_sessionStartTime!).inMinutes;
       
@@ -81,31 +85,57 @@ class AnalyticsService extends ChangeNotifier {
 
   // ================ EVENT TRACKING ================
 
-  /// Tracks a generic analytics event.
+  /// Tracks a generic analytics event with consent and validation.
   Future<void> trackEvent({
     required String eventType,
     required String eventName,
     Map<String, dynamic> parameters = const {},
   }) async {
     try {
-      final userProfile = await _storageService.getCurrentUserProfile();
-      if (userProfile == null) {
-        // Track anonymous events differently or skip
+      // Check consent before tracking
+      if (!await _consentManager.shouldTrackEvent(eventType)) {
+        WasteAppLogger.info('Event not tracked due to consent settings', null, null, {
+          'event_name': eventName,
+          'event_type': eventType,
+          'service': 'AnalyticsService'
+        });
         return;
       }
 
+      // Get user ID or anonymous ID
+      final userProfile = await _storageService.getCurrentUserProfile();
+      final userId = userProfile?.id ?? await _consentManager.getAnonymousId();
+
+      // Add consent metadata and enhanced parameters
+      final consentMetadata = await _consentManager.getConsentMetadata();
+      final enhancedParameters = {
+        ...parameters,
+        'app_version': '0.1.4+96', // TODO: Get from package info
+        'platform': defaultTargetPlatform.name,
+        'session_id': _currentSessionId,
+        'consent_metadata': consentMetadata,
+        'timestamp': DateTime.now().toIso8601String(),
+      };
+
       final event = AnalyticsEvent.create(
-        userId: userProfile.id,
+        userId: userId,
         eventType: eventType,
         eventName: eventName,
-        parameters: {
-          ...parameters,
-          'timestamp': DateTime.now().toIso8601String(),
-          'session_id': _currentSessionId,
-        },
+        parameters: enhancedParameters,
         sessionId: _currentSessionId,
         deviceInfo: _getDeviceInfo(),
       );
+
+      // Validate event before processing
+      final validationResult = await _validator.validateEvent(event);
+      if (!validationResult.isValid) {
+        WasteAppLogger.warning('Event validation failed, not tracking', null, null, {
+          'event_name': eventName,
+          'validation_errors': validationResult.errors,
+          'service': 'AnalyticsService'
+        });
+        return;
+      }
 
       _pendingEvents.add(event);
       
@@ -212,6 +242,293 @@ class AnalyticsService extends ChangeNotifier {
       parameters: {
         'error_message': errorMessage,
         'stack_trace': stackTrace,
+        ...?additionalData,
+      },
+    );
+  }
+
+  // ================ ENHANCED TRACKING METHODS ================
+
+  /// Tracks session start with comprehensive metadata
+  Future<void> trackSessionStart() async {
+    await trackEvent(
+      eventType: AnalyticsEventTypes.session,
+      eventName: AnalyticsEventNames.sessionStart,
+      parameters: {
+        'device_type': defaultTargetPlatform.name,
+        'app_version': '0.1.4+96', // TODO: Get from package info
+        'platform': defaultTargetPlatform.name,
+        'user_segment': 'standard', // TODO: Determine user segment
+        ..._sessionParameters,
+      },
+    );
+  }
+
+  /// Tracks session end with session metrics
+  Future<void> trackSessionEnd() async {
+    if (_sessionStartTime != null) {
+      final sessionDuration = DateTime.now().difference(_sessionStartTime!);
+      
+      await trackEvent(
+        eventType: AnalyticsEventTypes.session,
+        eventName: AnalyticsEventNames.sessionEnd,
+        parameters: {
+          'session_duration_ms': sessionDuration.inMilliseconds,
+          'events_in_session': _sessionEvents.length,
+          'classifications_count': _getSessionClassificationsCount(),
+          ..._sessionParameters,
+        },
+      );
+    }
+  }
+
+  /// Tracks page/screen view with navigation context
+  Future<void> trackPageView(
+    String screenName, {
+    String? previousScreen,
+    String? navigationMethod,
+    int? timeOnPreviousScreen,
+  }) async {
+    await trackEvent(
+      eventType: AnalyticsEventTypes.pageView,
+      eventName: AnalyticsEventNames.pageView,
+      parameters: {
+        'screen_name': screenName,
+        'previous_screen': previousScreen,
+        'navigation_method': navigationMethod ?? 'unknown',
+        'time_on_previous_screen_ms': timeOnPreviousScreen,
+      },
+    );
+  }
+
+  /// Tracks click interactions with detailed context
+  Future<void> trackClick({
+    required String elementId,
+    required String screenName,
+    required String elementType,
+    String? userIntent,
+    Map<String, dynamic>? additionalData,
+  }) async {
+    await trackEvent(
+      eventType: AnalyticsEventTypes.interaction,
+      eventName: AnalyticsEventNames.click,
+      parameters: {
+        'element_id': elementId,
+        'screen_name': screenName,
+        'element_type': elementType,
+        'user_intent': userIntent,
+        ...?additionalData,
+      },
+    );
+  }
+
+  /// Tracks rage clicks (multiple taps on same element)
+  Future<void> trackRageClick({
+    required String elementId,
+    required String screenName,
+    required int tapCount,
+    Map<String, dynamic>? additionalData,
+  }) async {
+    await trackEvent(
+      eventType: AnalyticsEventTypes.interaction,
+      eventName: AnalyticsEventNames.rageClick,
+      parameters: {
+        'element_id': elementId,
+        'screen_name': screenName,
+        'tap_count': tapCount,
+        ...?additionalData,
+      },
+    );
+  }
+
+  /// Tracks scroll depth for content engagement
+  Future<void> trackScrollDepth({
+    required int depthPercent,
+    required String screenName,
+    String? contentType,
+    Map<String, dynamic>? additionalData,
+  }) async {
+    await trackEvent(
+      eventType: AnalyticsEventTypes.engagement,
+      eventName: AnalyticsEventNames.scrollDepth,
+      parameters: {
+        'depth_percent': depthPercent,
+        'screen_name': screenName,
+        'content_type': contentType,
+        ...?additionalData,
+      },
+    );
+  }
+
+  /// Tracks comprehensive file classification events
+  Future<void> trackFileClassified({
+    required String classificationId,
+    required String category,
+    required double confidenceScore,
+    required int processingDuration,
+    required String modelVersion,
+    String? method,
+    bool? resultAccuracy,
+    Map<String, dynamic>? additionalData,
+  }) async {
+    await trackEvent(
+      eventType: AnalyticsEventTypes.classification,
+      eventName: AnalyticsEventNames.fileClassified,
+      parameters: {
+        'classification_id': classificationId,
+        'category': category,
+        'confidence_score': confidenceScore,
+        'processing_duration_ms': processingDuration,
+        'model_version': modelVersion,
+        'method': method ?? 'standard',
+        'result_accuracy': resultAccuracy,
+        ...?additionalData,
+      },
+    );
+  }
+
+  /// Tracks classification retry attempts
+  Future<void> trackClassificationRetried({
+    required String classificationId,
+    required double originalConfidence,
+    required String retryReason,
+    required int attemptNumber,
+    Map<String, dynamic>? additionalData,
+  }) async {
+    await trackEvent(
+      eventType: AnalyticsEventTypes.classification,
+      eventName: AnalyticsEventNames.classificationRetried,
+      parameters: {
+        'classification_id': classificationId,
+        'original_confidence': originalConfidence,
+        'retry_reason': retryReason,
+        'attempt_number': attemptNumber,
+        ...?additionalData,
+      },
+    );
+  }
+
+  /// Tracks performance issues and slow operations
+  Future<void> trackSlowResource({
+    required String operationName,
+    required int durationMs,
+    required String resourceType,
+    Map<String, dynamic>? additionalData,
+  }) async {
+    await trackEvent(
+      eventType: AnalyticsEventTypes.performance,
+      eventName: AnalyticsEventNames.slowResource,
+      parameters: {
+        'operation_name': operationName,
+        'duration_ms': durationMs,
+        'resource_type': resourceType,
+        ...?additionalData,
+      },
+    );
+  }
+
+  /// Tracks API errors with detailed context
+  Future<void> trackApiError({
+    required String endpoint,
+    required int statusCode,
+    required int latencyMs,
+    int? retryCount,
+    String? errorMessage,
+    Map<String, dynamic>? additionalData,
+  }) async {
+    await trackEvent(
+      eventType: AnalyticsEventTypes.performance,
+      eventName: AnalyticsEventNames.apiError,
+      parameters: {
+        'endpoint': endpoint,
+        'status_code': statusCode,
+        'latency_ms': latencyMs,
+        'retry_count': retryCount ?? 0,
+        'error_message': errorMessage,
+        ...?additionalData,
+      },
+    );
+  }
+
+  /// Tracks client-side errors
+  Future<void> trackClientError({
+    required String errorMessage,
+    required String screenName,
+    String? stackTrace,
+    String? userAction,
+    Map<String, dynamic>? additionalData,
+  }) async {
+    await trackEvent(
+      eventType: AnalyticsEventTypes.errorDetailed,
+      eventName: AnalyticsEventNames.clientError,
+      parameters: {
+        'error_message': errorMessage,
+        'screen_name': screenName,
+        'stack_trace': stackTrace,
+        'user_action': userAction,
+        ...?additionalData,
+      },
+    );
+  }
+
+  /// Tracks points earned events
+  Future<void> trackPointsEarned({
+    required int pointsAmount,
+    required String sourceAction,
+    required int totalPoints,
+    String? category,
+    Map<String, dynamic>? additionalData,
+  }) async {
+    await trackEvent(
+      eventType: AnalyticsEventTypes.gamification,
+      eventName: AnalyticsEventNames.pointsEarned,
+      parameters: {
+        'points_amount': pointsAmount,
+        'source_action': sourceAction,
+        'total_points': totalPoints,
+        'category': category,
+        ...?additionalData,
+      },
+    );
+  }
+
+  /// Tracks educational content engagement
+  Future<void> trackContentViewed({
+    required String contentId,
+    required String contentType,
+    String? source,
+    int? userLevel,
+    Map<String, dynamic>? additionalData,
+  }) async {
+    await trackEvent(
+      eventType: AnalyticsEventTypes.content,
+      eventName: AnalyticsEventNames.contentViewed,
+      parameters: {
+        'content_id': contentId,
+        'content_type': contentType,
+        'source': source,
+        'user_level': userLevel,
+        ...?additionalData,
+      },
+    );
+  }
+
+  /// Tracks content completion
+  Future<void> trackContentCompleted({
+    required String contentId,
+    required int timeSpentMs,
+    double? completionRate,
+    int? quizScore,
+    Map<String, dynamic>? additionalData,
+  }) async {
+    await trackEvent(
+      eventType: AnalyticsEventTypes.content,
+      eventName: AnalyticsEventNames.contentCompleted,
+      parameters: {
+        'content_id': contentId,
+        'time_spent_ms': timeSpentMs,
+        'completion_rate': completionRate,
+        'quiz_score': quizScore,
         ...?additionalData,
       },
     );
@@ -457,6 +774,14 @@ class AnalyticsService extends ChangeNotifier {
   /// Gets basic device information for analytics.
   String _getDeviceInfo() {
     return '${defaultTargetPlatform.toString()}_${DateTime.now().millisecondsSinceEpoch}';
+  }
+
+  /// Gets count of classifications in current session
+  int _getSessionClassificationsCount() {
+    return _sessionEvents.where((event) => 
+      event.eventType == AnalyticsEventTypes.classification ||
+      event.eventName.contains('classification')
+    ).length;
   }
 
   /// Calculates analytics metrics for a user.

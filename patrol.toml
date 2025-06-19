@@ -1,0 +1,72 @@
+# Patrol configuration for Waste Segregation App
+# https://github.com/leancodepl/patrol
+
+[app]
+package_name = "com.wasteapp.waste_segregation_app"
+bundle_id = "com.wasteapp.wasteSegregationApp"
+
+[test]
+# Test timeout in seconds
+timeout = 300
+
+# Screenshot configuration
+screenshots = true
+screenshot_dir = "screenshots"
+
+# Device configuration for testing
+[android]
+# Android specific configuration
+use_emulator = true
+emulator_name = "Pixel_4_API_30"
+wait_for_emulator = true
+
+[ios]
+# iOS specific configuration  
+use_simulator = true
+simulator_name = "iPhone 14"
+
+# Testing environment
+[env]
+test_mode = true
+skip_onboarding = false
+mock_data = false
+
+# Performance testing
+[performance]
+enable_profiling = true
+track_memory = true
+track_cpu = true
+
+# Accessibility testing
+[accessibility]
+enable_checks = true
+check_contrast = true
+check_focus = true
+
+# Network testing
+[network]
+test_offline = true
+simulate_slow_network = false
+
+# Features to test
+[features]
+test_camera = true
+test_gallery = true
+test_permissions = true
+test_notifications = true
+test_deep_links = false  # App links disabled
+test_biometrics = false  # Not implemented
+test_payments = false   # Not implemented
+
+# Test data
+[data]
+cleanup_after_test = true
+preserve_test_data = false
+mock_classifications = true
+
+# Reporting
+[reporting]
+generate_html_report = true
+include_logs = true
+include_screenshots = true
+report_dir = "test_reports"

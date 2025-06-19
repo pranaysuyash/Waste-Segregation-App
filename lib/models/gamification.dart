@@ -1093,44 +1093,91 @@ class AnalyticsEvent {
 
 /// Common analytics event types.
 class AnalyticsEventTypes {
+  // Core lifecycle
+  static const String session = 'session';
+  static const String pageView = 'page_view';
+  
+  // Existing types
   static const String userAction = 'user_action';
   static const String screenView = 'screen_view';
   static const String classification = 'classification';
   static const String social = 'social';
   static const String achievement = 'achievement';
   static const String error = 'error';
+  
+  // New comprehensive types
+  static const String interaction = 'interaction';
+  static const String performance = 'performance';
+  static const String errorDetailed = 'error_detailed';
+  static const String engagement = 'engagement';
+  static const String gamification = 'gamification';
+  static const String content = 'content';
+  static const String navigation = 'navigation';
 }
 
 /// Common analytics event names.
 class AnalyticsEventNames {
-  // User Actions
+  // Session lifecycle
+  static const String sessionStart = 'session_start';
+  static const String sessionEnd = 'session_end';
+  static const String pageView = 'page_view';
+  
+  // Core interactions
+  static const String click = 'click';
+  static const String linkClick = 'link_click';
+  static const String rageClick = 'rage_click';
+  static const String scrollDepth = 'scroll_depth';
+  static const String longPress = 'long_press';
+  
+  // User Actions (existing)
   static const String buttonClick = 'button_click';
   static const String screenSwipe = 'screen_swipe';
   static const String searchPerformed = 'search_performed';
   
-  // Screen Views
+  // Screen Views (existing)
   static const String homeScreenView = 'home_screen_view';
   static const String cameraScreenView = 'camera_screen_view';
   static const String resultsScreenView = 'results_screen_view';
   static const String familyScreenView = 'family_screen_view';
   
-  // Classifications
+  // Waste classification events
+  static const String fileClassified = 'file_classified';
   static const String classificationStarted = 'classification_started';
   static const String classificationCompleted = 'classification_completed';
+  static const String classificationRetried = 'classification_retried';
   static const String classificationShared = 'classification_shared';
+  static const String disposalGuidanceViewed = 'disposal_guidance_viewed';
   
-  // Social
+  // Gamification events
+  static const String pointsEarned = 'points_earned';
+  static const String streakUpdated = 'streak_updated';
+  static const String challengeCompleted = 'challenge_completed';
+  
+  // Achievements (existing - maintain compatibility)
+  static const String achievementUnlocked = 'achievement_unlocked';
+  static const String levelUp = 'level_up';
+  
+  // Educational content events
+  static const String contentViewed = 'content_viewed';
+  static const String contentCompleted = 'content_completed';
+  static const String bookmarkAdded = 'bookmark_added';
+  
+  // Performance & error events
+  static const String clientError = 'client_error';
+  static const String apiError = 'api_error';
+  static const String slowResource = 'slow_resource';
+  static const String networkFailure = 'network_failure';
+  
+  // Social events (existing)
   static const String familyCreated = 'family_created';
   static const String familyJoined = 'family_joined';
   static const String invitationSent = 'invitation_sent';
   static const String reactionAdded = 'reaction_added';
   static const String commentAdded = 'comment_added';
+  static const String classificationReacted = 'classification_reacted';
+  static const String leaderboardViewed = 'leaderboard_viewed';
   
-  // Achievements
-  static const String achievementUnlocked = 'achievement_unlocked';
-  static const String levelUp = 'level_up';
-  
-  // Errors
+  // Legacy error events (maintain compatibility)
   static const String classificationError = 'classification_error';
   static const String networkError = 'network_error';
   static const String authError = 'auth_error';
