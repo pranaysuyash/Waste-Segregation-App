@@ -1,24 +1,28 @@
 {
-    "name": "waste_segregation_app",
-    "short_name": "waste_segregation_app",
+    "name": "Waste Segregation App",
+    "short_name": "WasteApp",
     "start_url": ".",
     "display": "standalone",
-    "background_color": "#0175C2",
-    "theme_color": "#0175C2",
-    "description": "An educational app that teaches waste segregation to both kids and adults using AI",
+    "background_color": "#4CAF50",
+    "theme_color": "#2196F3",
+    "description": "AI-Powered Waste Classification - Learn proper waste segregation with advanced machine learning",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
-    "permissions": ["camera"],
+    "scope": "./",
+    "categories": ["education", "utilities", "lifestyle"],
+    "lang": "en-US",
     "icons": [
         {
             "src": "icons/Icon-192.png",
             "sizes": "192x192",
-            "type": "image/png"
+            "type": "image/png",
+            "purpose": "any"
         },
         {
             "src": "icons/Icon-512.png",
             "sizes": "512x512",
-            "type": "image/png"
+            "type": "image/png",
+            "purpose": "any"
         },
         {
             "src": "icons/Icon-maskable-192.png",
@@ -31,6 +35,15 @@
             "sizes": "512x512",
             "type": "image/png",
             "purpose": "maskable"
+        },
+        {
+            "src": "favicon.png",
+            "sizes": "16x16",
+            "type": "image/png",
+            "purpose": "any"
         }
-    ]
+    ],
+    "screenshots": [],
+    "related_applications": [],
+    "prefer_related_applications": false
 }

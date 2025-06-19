@@ -5,9 +5,11 @@ import '../models/classification_feedback.dart';
 import 'storage_service.dart';
 import 'gamification_service.dart';
 import 'fresh_start_service.dart';
+import 'enhanced_image_service.dart';
 import 'dart:convert';
 import 'package:crypto/crypto.dart';
 import '../utils/waste_app_logger.dart';
+import 'dart:io';
 
 /// Service for syncing classifications to Firestore cloud storage
 /// Also handles admin data collection for ML training and data recovery
@@ -691,4 +693,64 @@ class CloudStorageService {
       rethrow;
     }
   }
+
+  /// Uploads an image file for batch processing and returns a publicly accessible URL
+  /// 
+  /// This method:
+  /// 1. Saves the image permanently using EnhancedImageService
+  /// 2. For production: Would upload to Firebase Storage or similar cloud service
+  /// 3. Returns a URL that OpenAI Batch API can access
+  Future<String> uploadImageForBatchProcessing(File imageFile, String userId) async {
+    try {
+      WasteAppLogger.info('Uploading image for batch processing', null, null, {
+        'service': 'cloud_storage_service',
+        'userId': userId,
+      });
+
+      // Use EnhancedImageService to save image permanently
+      final imageService = EnhancedImageService();
+      final imageBytes = await imageFile.readAsBytes();
+      final permanentPath = await imageService.saveImagePermanently(imageBytes);
+      
+      // TODO: In production, upload to Firebase Storage and return public URL
+      // final firebaseUrl = await _uploadToFirebaseStorage(imageBytes, userId);
+      // return firebaseUrl;
+      
+      // For development/testing, return the local path
+      // Note: This won't work with OpenAI Batch API as it needs a public URL
+      WasteAppLogger.warning('Using local path for batch processing - this needs a public URL for production', null, null, {
+        'service': 'cloud_storage_service',
+        'localPath': permanentPath,
+      });
+      
+      return permanentPath;
+    } catch (e) {
+      WasteAppLogger.severe('Failed to upload image for batch processing', e, null, {
+        'service': 'cloud_storage_service',
+        'userId': userId,
+      });
+      rethrow;
+    }
+  }
+
+  /// TODO: Implement Firebase Storage upload for production
+  /// 
+  /// This method would:
+  /// 1. Upload image to Firebase Storage
+  /// 2. Set proper permissions for public access
+  /// 3. Return the public download URL
+  /// 
+  /// Example implementation:
+  /// ```dart
+  /// Future<String> _uploadToFirebaseStorage(Uint8List imageBytes, String userId) async {
+  ///   final storage = FirebaseStorage.instance;
+  ///   final timestamp = DateTime.now().millisecondsSinceEpoch;
+  ///   final path = 'batch_images/$userId/$timestamp.jpg';
+  ///   
+  ///   final ref = storage.ref().child(path);
+  ///   await ref.putData(imageBytes);
+  ///   
+  ///   return await ref.getDownloadURL();
+  /// }
+  /// ```
 } 

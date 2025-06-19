@@ -32,6 +32,8 @@ import '../services/dynamic_link_service.dart';
 import '../screens/image_capture_screen.dart';
 import '../services/haptic_settings_service.dart';
 import '../utils/waste_app_logger.dart';
+import '../models/gamification_result.dart';
+import '../providers/points_engine_provider.dart';
 
 class ResultScreen extends StatefulWidget {
   const ResultScreen({
@@ -53,7 +55,6 @@ class _ResultScreenState extends State<ResultScreen>
   bool _isSaved = false;
   bool _isAutoSaving = false;
   bool _showingClassificationFeedback = false;
-  bool _showingPointsPopup = false;
   final bool _isEducationalFactExpanded = false;
   
   List<Achievement> _newlyEarnedAchievements = [];
@@ -96,11 +97,8 @@ class _ResultScreenState extends State<ResultScreen>
       _autoSaveAndProcess();
     } else if (widget.autoAnalyze) {
       // For autoAnalyze mode, the classification is already saved and processed
-      // Just mark it as saved and show the UI
-      WasteAppLogger.info('Operation completed', null, null, {'service': 'screen', 'file': 'result_screen'});
-      setState(() {
-        _isSaved = true;
-      });
+      // But we need to show the points popup, so calculate the points earned
+      _showPointsForAutoAnalyze();
     } else {
       // 🎮 GAMIFICATION FIX: For existing classifications, check if they need 
       // retroactive gamification processing (fixes the 2/10 classifications but 0 points issue)
@@ -184,21 +182,9 @@ class _ResultScreenState extends State<ResultScreen>
             _showAchievementCelebration(majorAchievement);
           }
           
-          // Show points popup
-          if (earnedPoints > 0) {
-            WasteAppLogger.info('Operation completed', null, null, {'service': 'screen', 'file': 'result_screen'});
-            _showingPointsPopup = true;
-            
-            Future.delayed(const Duration(milliseconds: 3000), () {
-              if (mounted) {
-                setState(() {
-                  _showingPointsPopup = false;
-                });
-              }
-            });
-          } else {
-            WasteAppLogger.info('Operation completed', null, null, {'service': 'screen', 'file': 'result_screen'});
-          }
+          // Points earned will be shown on home screen via navigation result
+          WasteAppLogger.info('Points earned: $earnedPoints, Achievements: ${newlyEarnedAchievements.length}', 
+            null, null, {'service': 'screen', 'file': 'result_screen'});
         });
 
         // Show feedback
@@ -245,6 +231,56 @@ class _ResultScreenState extends State<ResultScreen>
       _showCelebration = false;
       _celebrationAchievement = null;
     });
+  }
+
+  /// Return gamification results when navigating back to home screen
+  void _navigateBackWithResults() {
+    final result = GamificationResult(
+      pointsEarned: _pointsEarned,
+      newlyEarnedAchievements: _newlyEarnedAchievements,
+      completedChallenge: _completedChallenge,
+      action: 'classification',
+    );
+    
+    Navigator.of(context).pop(result);
+  }
+  
+  /// Show points popup for autoAnalyze mode
+  /// The classification is already saved and processed, we just need to trigger the popup
+  Future<void> _showPointsForAutoAnalyze() async {
+    try {
+      WasteAppLogger.info('🎯 POPUP FIX: Triggering points popup for autoAnalyze mode');
+      
+      // Get the PointsEngine to trigger the global popup system
+      final pointsEngineProvider = Provider.of<PointsEngineProvider>(context, listen: false);
+      final pointsEngine = pointsEngineProvider.pointsEngine;
+      
+      // Trigger the points earned event which will show the popup via navigation wrapper
+      // Use standard classification points (consistent with GamificationService._pointValues)
+      const pointsPerClassification = 10;
+      await pointsEngine.addPoints('classification', metadata: {
+        'source': 'instant_analysis',
+        'classification_id': widget.classification.id,
+        'category': widget.classification.category,
+      });
+      
+      setState(() {
+        _isSaved = true;
+        _pointsEarned = pointsPerClassification;
+      });
+      
+      WasteAppLogger.info('🎯 POPUP FIX: Points popup triggered via PointsEngine - ${pointsPerClassification} points');
+      
+    } catch (e, stackTrace) {
+      ErrorHandler.handleError(e, stackTrace);
+      WasteAppLogger.severe('🎯 POPUP FIX: Error triggering points popup: $e');
+      
+      // Fallback to standard points if PointsEngine fails
+      setState(() {
+        _isSaved = true;
+        _pointsEarned = 10; // Standard classification points
+      });
+    }
   }
   
   /// Check if this existing classification needs retroactive gamification processing
@@ -600,6 +636,10 @@ class _ResultScreenState extends State<ResultScreen>
         backgroundColor: AppTheme.primaryColor,
         foregroundColor: Colors.white,
         elevation: 2,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: _navigateBackWithResults,
+        ),
         actions: [
           IconButton(
             icon: const Icon(Icons.bar_chart, color: Colors.white),
@@ -710,8 +750,7 @@ class _ResultScreenState extends State<ResultScreen>
                           text: 'Back to Home',
                           icon: Icons.home,
                           style: ModernButtonStyle.outlined,
-                          onPressed: () =>
-                              Navigator.popUntil(context, (r) => r.isFirst),
+                          onPressed: _navigateBackWithResults,
                         ),
                         const SizedBox(height: 24),
                         ModernButton(
@@ -786,27 +825,9 @@ class _ResultScreenState extends State<ResultScreen>
                 ),
               ),
             ),
-          if (_showingPointsPopup)
-            Positioned(
-              top: MediaQuery.of(context).padding.top + 50,
-              left: 0,
-              right: 0,
-              child: Center(
-                child: widgets.PointsEarnedPopup(
-                  points: _pointsEarned,
-                  action: 'classification',
-                  onDismiss: () {
-                    setState(() {
-                      _showingPointsPopup = false;
-                    });
-                  },
-                ),
-              ),
-            ),
           if (_newlyEarnedAchievements.isNotEmpty)
             Positioned(
-              top: MediaQuery.of(context).padding.top +
-                  (_showingPointsPopup ? 120 : 50),
+              top: MediaQuery.of(context).padding.top + 50,
               right: 16,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.end,

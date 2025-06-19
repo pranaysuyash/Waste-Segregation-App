@@ -1,15 +1,27 @@
 <!DOCTYPE html>
 <html>
 <head>
+  <!--
+    If you are serving your web app in a path other than the root, change the
+    href value below to reflect the base path you are serving from.
+
+    The path provided below has to start and end with a slash "/" in order for
+    it to work correctly.
+
+    For more details:
+    * https://developer.mozilla.org/en-US/docs/Web/HTML/Element/base
+
+    This is a placeholder for base href that will be replaced by the value of
+    the `--base-href` argument provided to `flutter build`.
+  -->
   <base href="$FLUTTER_BASE_HREF">
 
   <meta charset="UTF-8">
   <meta content="IE=Edge" http-equiv="X-UA-Compatible">
-  <meta name="description" content="A waste segregation app">
+  <meta name="description" content="AI-Powered Waste Classification App">
 
   <!-- iOS meta tags & icons -->
   <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black">
   <meta name="apple-mobile-web-app-title" content="Waste Segregation">
   <link rel="apple-touch-icon" href="icons/Icon-192.png">
@@ -20,21 +32,76 @@
   <title>Waste Segregation App</title>
   <link rel="manifest" href="manifest.json">
 
-  <script>
-    // The value below is injected by flutter build, do not touch.
-    var serviceWorkerVersion = '{{flutter_service_worker_version}}';
-  </script>
-  
-  <!-- This script adds the flutter initialization JS code -->
-  <script src="flutter.js" defer></script>
-  
-  <!-- Firebase Core JS SDK -->
+  <style>
+    /* Loading styles */
+    .loading {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      background: linear-gradient(135deg, #4caf50, #2196f3);
+      color: white;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    }
+
+    .loading-logo {
+      width: 80px;
+      height: 80px;
+      background: white;
+      border-radius: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 20px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+    }
+
+    .loading-spinner {
+      width: 40px;
+      height: 40px;
+      border: 4px solid rgba(255,255,255,0.3);
+      border-radius: 50%;
+      border-top-color: white;
+      animation: spin 1s ease-in-out infinite;
+      margin-top: 20px;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .loading-text {
+      font-size: 24px;
+      font-weight: bold;
+      margin-bottom: 10px;
+    }
+
+    .loading-subtitle {
+      font-size: 16px;
+      opacity: 0.9;
+    }
+  </style>
+</head>
+<body>
+  <!-- Loading screen -->
+  <div id="loading" class="loading">
+    <div class="loading-logo">
+      <span style="font-size: 40px; color: #4caf50;">♻️</span>
+    </div>
+    <div class="loading-text">Waste Segregation App</div>
+    <div class="loading-subtitle">AI-Powered Waste Classification</div>
+    <div class="loading-spinner"></div>
+  </div>
+
+  <!-- Firebase SDK -->
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-  
-  <!-- Firebase Auth JS SDK -->
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
-  
-  <!-- Initialize Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-performance-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-crashlytics-compat.js"></script>
+
+  <!-- Firebase Configuration -->
   <script>
     // Firebase configuration
     const firebaseConfig = {
@@ -45,12 +112,49 @@
       messagingSenderId: "123456789012",
       appId: "1:123456789012:web:1234567890abcdef123456"
     };
-    // Do not initialize here; FlutterFire will handle it.
+
+    // Initialize Firebase
+    try {
+      firebase.initializeApp(firebaseConfig);
+      console.log('Firebase initialized successfully');
+    } catch (error) {
+      console.error('Firebase initialization error:', error);
+    }
   </script>
-</head>
-<body>
-  <!-- Create a container for Flutter app rendering -->
-  <div id="flutter_app" style="width: 100%; height: 100vh;"></div>
-  <!-- The Flutter loader will handle app initialization -->
+
+  <!-- Flutter Web Service Worker and initialization -->
+  <script>
+    // The value below is injected by flutter build, do not touch.
+    var serviceWorkerVersion = null;
+  </script>
+  <!-- This script adds the flutter initialization JS code -->
+  <script src="flutter.js" defer></script>
+
+  <!-- Flutter initialization -->
+  <script>
+    window.addEventListener('load', function(ev) {
+      // Hide loading screen when Flutter app loads
+      function hideLoading() {
+        const loading = document.getElementById('loading');
+        if (loading) {
+          loading.style.display = 'none';
+        }
+      }
+
+      // Download main.dart.js
+      _flutter.loader.loadEntrypoint({
+        serviceWorker: {
+          serviceWorkerVersion: serviceWorkerVersion,
+        },
+        onEntrypointLoaded: function(engineInitializer) {
+          engineInitializer.initializeEngine().then(function(appRunner) {
+            // Hide loading screen before starting the app
+            hideLoading();
+            appRunner.runApp();
+          });
+        }
+      });
+    });
+  </script>
 </body>
 </html>

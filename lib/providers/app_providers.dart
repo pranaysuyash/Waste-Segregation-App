@@ -10,6 +10,7 @@ import '../models/gamification.dart';
 import '../models/user_profile.dart';
 import '../services/remote_config_service.dart';
 import '../utils/waste_app_logger.dart';
+import '../services/ai_service.dart';
 
 /// Central provider declarations for all services
 /// This eliminates duplicate provider declarations across the app
@@ -120,4 +121,7 @@ final remoteConfigProvider = Provider<RemoteConfigService>((ref) => RemoteConfig
 final homeHeaderV2EnabledProvider = FutureProvider<bool>((ref) async {
   final remoteConfig = ref.watch(remoteConfigProvider);
   return remoteConfig.getBool('home_header_v2_enabled', defaultValue: true);
-}); 
+});
+
+/// Ai service provider - single source of truth
+final aiServiceProvider = Provider<AiService>((ref) => AiService()); 
