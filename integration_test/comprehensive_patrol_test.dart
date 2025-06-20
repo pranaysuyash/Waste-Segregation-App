@@ -216,19 +216,19 @@ Future<void> _handleConsentFlow(PatrolTester $) async {
     // Look for consent dialog with more comprehensive patterns
     await Future.delayed(const Duration(seconds: 1));
     
-    if ($(Text('Privacy Policy')).exists || 
-        $(Text('Terms of Service')).exists ||
-        $(Text('Accept')).exists ||
-        $(Text('I Accept')).exists ||
-        $(Text('Agree')).exists) {
+    if ($(const Text('Privacy Policy')).exists || 
+        $(const Text('Terms of Service')).exists ||
+        $(const Text('Accept')).exists ||
+        $(const Text('I Accept')).exists ||
+        $(const Text('Agree')).exists) {
       
       // Try different accept button patterns
-      if ($(Text('Accept')).exists) {
-        await $(Text('Accept')).tap();
-      } else if ($(Text('I Accept')).exists) {
-        await $(Text('I Accept')).tap();
-      } else if ($(Text('Agree')).exists) {
-        await $(Text('Agree')).tap();
+      if ($(const Text('Accept')).exists) {
+        await $(const Text('Accept')).tap();
+      } else if ($(const Text('I Accept')).exists) {
+        await $(const Text('I Accept')).tap();
+      } else if ($(const Text('Agree')).exists) {
+        await $(const Text('Agree')).tap();
       } else if ($(ElevatedButton).exists) {
         await $(ElevatedButton).first.tap();
       } else if ($(FilledButton).exists) {
@@ -248,14 +248,14 @@ Future<void> _handleAuthFlow(PatrolTester $) async {
     // Handle authentication screen - choose guest mode for testing
     await Future.delayed(const Duration(seconds: 2));
     
-    if ($(Text('Continue as Guest')).exists) {
-      await $(Text('Continue as Guest')).tap();
-    } else if ($(Text('Guest Mode')).exists) {
-      await $(Text('Guest Mode')).tap();
-    } else if ($(Text('Try as Guest')).exists) {
-      await $(Text('Try as Guest')).tap();
-    } else if ($(Text('Skip Sign In')).exists) {
-      await $(Text('Skip Sign In')).tap();
+    if ($(const Text('Continue as Guest')).exists) {
+      await $(const Text('Continue as Guest')).tap();
+    } else if ($(const Text('Guest Mode')).exists) {
+      await $(const Text('Guest Mode')).tap();
+    } else if ($(const Text('Try as Guest')).exists) {
+      await $(const Text('Try as Guest')).tap();
+    } else if ($(const Text('Skip Sign In')).exists) {
+      await $(const Text('Skip Sign In')).tap();
     } else {
       // Look for InkWell or MaterialButton that might be guest mode
       final inkWells = $(InkWell);
@@ -280,14 +280,14 @@ Future<void> _verifyHomeScreen(PatrolTester $) async {
   
   // Look for home screen indicators
   expect(
-    $(Text('Waste Segregation')).exists || 
+    $(const Text('Waste Segregation')).exists || 
     $(FloatingActionButton).exists || 
-    $(Text('Scan')).exists ||
-    $(Text('Home')).exists ||
+    $(const Text('Scan')).exists ||
+    $(const Text('Home')).exists ||
     $(Icons.camera_alt).exists ||
     $(NavigationBar).exists ||
-    $(Text('Hello')).exists ||
-    $(Text('Eco-Warriors')).exists,
+    $(const Text('Hello')).exists ||
+    $(const Text('Eco-Warriors')).exists,
     isTrue,
     reason: 'Should find at least one home screen element'
   );
@@ -357,8 +357,8 @@ Future<void> _testCameraClassification(PatrolTester $) async {
     // Test camera flow
     if ($(FloatingActionButton).exists) {
       await $(FloatingActionButton).tap();
-    } else if ($(Text('Scan')).exists) {
-      await $(Text('Scan')).tap();
+    } else if ($(const Text('Scan')).exists) {
+      await $(const Text('Scan')).tap();
     } else if ($(FilledButton).exists) {
       await $(FilledButton).first.tap();
     }
@@ -367,10 +367,10 @@ Future<void> _testCameraClassification(PatrolTester $) async {
     await Future.delayed(const Duration(seconds: 1));
 
     // Handle camera options if modal appears
-    if ($(Text('Take Photo')).exists) {
-      await $(Text('Take Photo')).tap();
-    } else if ($(Text('Camera')).exists) {
-      await $(Text('Camera')).tap();
+    if ($(const Text('Take Photo')).exists) {
+      await $(const Text('Take Photo')).tap();
+    } else if ($(const Text('Camera')).exists) {
+      await $(const Text('Camera')).tap();
     }
 
     // Handle camera permission
@@ -395,20 +395,20 @@ Future<void> _testGalleryClassification(PatrolTester $) async {
     // Test gallery flow
     if ($(FloatingActionButton).exists) {
       await $(FloatingActionButton).tap();
-    } else if ($(Text('Scan')).exists) {
-      await $(Text('Scan')).tap();
+    } else if ($(const Text('Scan')).exists) {
+      await $(const Text('Scan')).tap();
     }
 
     await $.pumpAndSettle();
     await Future.delayed(const Duration(seconds: 1));
 
     // Look for gallery option
-    if ($(Text('Upload Image')).exists) {
-      await $(Text('Upload Image')).tap();
-    } else if ($(Text('Gallery')).exists) {
-      await $(Text('Gallery')).tap();
-    } else if ($(Text('Choose from gallery')).exists) {
-      await $(Text('Choose from gallery')).tap();
+    if ($(const Text('Upload Image')).exists) {
+      await $(const Text('Upload Image')).tap();
+    } else if ($(const Text('Gallery')).exists) {
+      await $(const Text('Gallery')).tap();
+    } else if ($(const Text('Choose from gallery')).exists) {
+      await $(const Text('Choose from gallery')).tap();
     }
 
     await Future.delayed(const Duration(seconds: 2));
@@ -427,8 +427,8 @@ Future<void> _verifyClassificationInHistory(PatrolTester $) async {
       if (destinations.exists && destinations.evaluate().length > 1) {
         await destinations.at(1).tap();
       }
-    } else if ($(Text('History')).exists) {
-      await $(Text('History')).tap();
+    } else if ($(const Text('History')).exists) {
+      await $(const Text('History')).tap();
     }
     
     await $.pumpAndSettle();
@@ -436,11 +436,11 @@ Future<void> _verifyClassificationInHistory(PatrolTester $) async {
     
     // Verify history screen loaded
     expect(
-      $(Text('History')).exists || 
-      $(Text('Classification History')).exists ||
+      $(const Text('History')).exists || 
+      $(const Text('Classification History')).exists ||
       $(ListView).exists ||
-      $(Text('No classifications')).exists ||
-      $(Text('Empty')).exists,
+      $(const Text('No classifications')).exists ||
+      $(const Text('Empty')).exists,
       isTrue,
       reason: 'Should be on history screen'
     );
@@ -451,10 +451,10 @@ Future<void> _verifyClassificationInHistory(PatrolTester $) async {
 
 Future<String?> _getPointsDisplay(PatrolTester $) async {
   try {
-    if ($(Text('Points')).exists) {
-      return $(Text('Points')).text;
-    } else if ($(Text('Score')).exists) {
-      return $(Text('Score')).text;
+    if ($(const Text('Points')).exists) {
+      return $(const Text('Points')).text;
+    } else if ($(const Text('Score')).exists) {
+      return $(const Text('Score')).text;
     }
     return null;
   } catch (e) {
@@ -481,8 +481,8 @@ Future<void> _verifyPointsIncreased(PatrolTester $, String? initialPoints) async
   await Future.delayed(const Duration(seconds: 1));
   try {
     if (initialPoints != null) {
-      if ($(Text('Points')).exists) {
-        final newPoints = $(Text('Points')).text;
+      if ($(const Text('Points')).exists) {
+        final newPoints = $(const Text('Points')).text;
         expect(newPoints, isNotNull);
       }
     }
@@ -499,10 +499,10 @@ Future<void> _testAchievementsScreen(PatrolTester $) async {
       if (destinations.exists && destinations.evaluate().length > 4) {
         await destinations.at(4).tap();
       }
-    } else if ($(Text('Achievements')).exists) {
-      await $(Text('Achievements')).tap();
-    } else if ($(Text('Rewards')).exists) {
-      await $(Text('Rewards')).tap();
+    } else if ($(const Text('Achievements')).exists) {
+      await $(const Text('Achievements')).tap();
+    } else if ($(const Text('Rewards')).exists) {
+      await $(const Text('Rewards')).tap();
     }
     
     await $.pumpAndSettle();
@@ -510,8 +510,8 @@ Future<void> _testAchievementsScreen(PatrolTester $) async {
     
     // Verify achievements screen
     expect(
-      $(Text('Achievements')).exists || 
-      $(Text('Rewards')).exists ||
+      $(const Text('Achievements')).exists || 
+      $(const Text('Rewards')).exists ||
       $(ListView).exists,
       isTrue,
       reason: 'Should be on achievements screen'
@@ -524,8 +524,8 @@ Future<void> _testAchievementsScreen(PatrolTester $) async {
 Future<void> _testSettingsNavigation(PatrolTester $) async {
   try {
     // Try to find settings
-    if ($(Text('Settings')).exists) {
-      await $(Text('Settings')).tap();
+    if ($(const Text('Settings')).exists) {
+      await $(const Text('Settings')).tap();
     } else if ($(Icons.settings).exists) {
       await $(Icons.settings).tap();
     } else {
@@ -533,8 +533,8 @@ Future<void> _testSettingsNavigation(PatrolTester $) async {
       if ($(Icons.menu).exists) {
         await $(Icons.menu).tap();
         await $.pumpAndSettle();
-        if ($(Text('Settings')).exists) {
-          await $(Text('Settings')).tap();
+        if ($(const Text('Settings')).exists) {
+          await $(const Text('Settings')).tap();
         }
       }
     }
@@ -548,14 +548,14 @@ Future<void> _testSettingsNavigation(PatrolTester $) async {
 
 Future<void> _testThemeSettings(PatrolTester $) async {
   try {
-    if ($(Text('Theme')).exists) {
-      await $(Text('Theme')).tap();
+    if ($(const Text('Theme')).exists) {
+      await $(const Text('Theme')).tap();
       await $.pumpAndSettle();
       await Future.delayed(const Duration(seconds: 1));
       await $.native.pressBack();
       await $.pumpAndSettle();
-    } else if ($(Text('Appearance')).exists) {
-      await $(Text('Appearance')).tap();
+    } else if ($(const Text('Appearance')).exists) {
+      await $(const Text('Appearance')).tap();
       await $.pumpAndSettle();
       await Future.delayed(const Duration(seconds: 1));
       await $.native.pressBack();
@@ -568,8 +568,8 @@ Future<void> _testThemeSettings(PatrolTester $) async {
 
 Future<void> _testNotificationSettings(PatrolTester $) async {
   try {
-    if ($(Text('Notifications')).exists) {
-      await $(Text('Notifications')).tap();
+    if ($(const Text('Notifications')).exists) {
+      await $(const Text('Notifications')).tap();
       await $.pumpAndSettle();
       try {
         await $.native.grantPermissionWhenInUse();
@@ -587,14 +587,14 @@ Future<void> _testNotificationSettings(PatrolTester $) async {
 
 Future<void> _testPremiumFeatures(PatrolTester $) async {
   try {
-    if ($(Text('Premium')).exists) {
-      await $(Text('Premium')).tap();
+    if ($(const Text('Premium')).exists) {
+      await $(const Text('Premium')).tap();
       await $.pumpAndSettle();
       await Future.delayed(const Duration(seconds: 1));
       await $.native.pressBack();
       await $.pumpAndSettle();
-    } else if ($(Text('Upgrade')).exists) {
-      await $(Text('Upgrade')).tap();
+    } else if ($(const Text('Upgrade')).exists) {
+      await $(const Text('Upgrade')).tap();
       await $.pumpAndSettle();
       await Future.delayed(const Duration(seconds: 1));
       await $.native.pressBack();
@@ -628,7 +628,7 @@ Future<void> _testConnectivityRecovery(PatrolTester $) async {
     
     // App should recover gracefully
     expect(
-      $(Text('Waste Segregation')).exists || 
+      $(const Text('Waste Segregation')).exists || 
       $(FloatingActionButton).exists ||
       $(NavigationBar).exists,
       isTrue,
@@ -647,18 +647,18 @@ Future<void> _testEducationalContent(PatrolTester $) async {
       if (destinations.exists && destinations.evaluate().length > 2) {
         await destinations.at(2).tap();
       }
-    } else if ($(Text('Learn')).exists) {
-      await $(Text('Learn')).tap();
-    } else if ($(Text('Education')).exists) {
-      await $(Text('Education')).tap();
+    } else if ($(const Text('Learn')).exists) {
+      await $(const Text('Learn')).tap();
+    } else if ($(const Text('Education')).exists) {
+      await $(const Text('Education')).tap();
     }
     
     await $.pumpAndSettle();
     await Future.delayed(const Duration(seconds: 1));
     
     // Look for educational content
-    if ($(Text('Learn More')).exists) {
-      await $(Text('Learn More')).tap();
+    if ($(const Text('Learn More')).exists) {
+      await $(const Text('Learn More')).tap();
       await $.pumpAndSettle();
       await Future.delayed(const Duration(seconds: 1));
       await $.native.pressBack();
@@ -672,9 +672,9 @@ Future<void> _testEducationalContent(PatrolTester $) async {
 Future<void> _testDailyTips(PatrolTester $) async {
   try {
     // Look for daily tips
-    if ($(Text('Daily Tip')).exists || $(Text('DAILY TIP')).exists) {
+    if ($(const Text('Daily Tip')).exists || $(const Text('DAILY TIP')).exists) {
       expect(
-        $(Text('Daily Tip')).exists || $(Text('DAILY TIP')).exists,
+        $(const Text('Daily Tip')).exists || $(const Text('DAILY TIP')).exists,
         isTrue,
         reason: 'Daily tip should be visible'
       );
@@ -712,7 +712,7 @@ Future<void> _testRapidNavigation(PatrolTester $) async {
       if (destinations.exists) {
         final count = destinations.evaluate().length;
         
-        for (int i = 0; i < count && i < 5; i++) {
+        for (var i = 0; i < count && i < 5; i++) {
           await destinations.at(i).tap();
           await $.pumpAndSettle();
           await Future.delayed(const Duration(milliseconds: 300));
@@ -735,14 +735,14 @@ Future<void> _testScrollPerformance(PatrolTester $) async {
         
         // Test scrolling if content exists
         if ($(ListView).exists) {
-          await $(ListView).scroll(Offset(0, -200));
+          await $(ListView).scroll(const Offset(0, -200));
           await Future.delayed(const Duration(milliseconds: 300));
-          await $(ListView).scroll(Offset(0, 200));
+          await $(ListView).scroll(const Offset(0, 200));
           await Future.delayed(const Duration(milliseconds: 300));
         } else if ($(SingleChildScrollView).exists) {
-          await $(SingleChildScrollView).scroll(Offset(0, -200));
+          await $(SingleChildScrollView).scroll(const Offset(0, -200));
           await Future.delayed(const Duration(milliseconds: 300));
-          await $(SingleChildScrollView).scroll(Offset(0, 200));
+          await $(SingleChildScrollView).scroll(const Offset(0, 200));
         }
       }
     }
@@ -774,7 +774,7 @@ Future<void> _testResponsiveDesign(PatrolTester $) async {
     expect(
       $(NavigationBar).exists || 
       $(FloatingActionButton).exists ||
-      $(Text('Waste Segregation')).exists,
+      $(const Text('Waste Segregation')).exists,
       isTrue,
       reason: 'App should work in landscape mode'
     );

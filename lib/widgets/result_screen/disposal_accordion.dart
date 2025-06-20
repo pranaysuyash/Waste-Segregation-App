@@ -73,7 +73,6 @@ class _DisposalAccordionState extends ConsumerState<DisposalAccordion>
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
           color: colorScheme.outline.withValues(alpha: 0.2),
-          width: 1,
         ),
         boxShadow: [
           BoxShadow(
@@ -93,7 +92,7 @@ class _DisposalAccordionState extends ConsumerState<DisposalAccordion>
   }
 
   Widget _buildHeader(BuildContext context, ColorScheme colorScheme) {
-    final disposalSteps = widget.classification.disposalInstructions?.steps ?? [];
+    final disposalSteps = widget.classification.disposalInstructions.steps ?? [];
     final stepCount = disposalSteps.length;
     
     return InkWell(
@@ -172,7 +171,6 @@ class _DisposalAccordionState extends ConsumerState<DisposalAccordion>
           border: Border(
             top: BorderSide(
               color: colorScheme.outline.withValues(alpha: 0.1),
-              width: 1,
             ),
           ),
         ),
@@ -185,7 +183,7 @@ class _DisposalAccordionState extends ConsumerState<DisposalAccordion>
   }
 
   Widget _buildStaggeredSteps(BuildContext context, ColorScheme colorScheme) {
-    final disposalSteps = widget.classification.disposalInstructions?.steps ?? [];
+    final disposalSteps = widget.classification.disposalInstructions.steps ?? [];
     
     if (disposalSteps.isEmpty) {
       return _buildNoStepsMessage(context, colorScheme);
@@ -220,11 +218,11 @@ class _DisposalAccordionState extends ConsumerState<DisposalAccordion>
               );
             },
           );
-        }).toList(),
+        }),
         
                  // Additional info if available
-         if (widget.classification.disposalInstructions?.tips != null && 
-             widget.classification.disposalInstructions!.tips!.isNotEmpty) ...[
+         if (widget.classification.disposalInstructions.tips != null && 
+             widget.classification.disposalInstructions.tips!.isNotEmpty) ...[
            const SizedBox(height: 16),
            _buildAdditionalInfo(context, colorScheme),
          ],
@@ -276,7 +274,7 @@ class _DisposalAccordionState extends ConsumerState<DisposalAccordion>
   }
 
   Widget _buildAdditionalInfo(BuildContext context, ColorScheme colorScheme) {
-    final tips = widget.classification.disposalInstructions?.tips;
+    final tips = widget.classification.disposalInstructions.tips;
     if (tips == null || tips.isEmpty) return const SizedBox.shrink();
     
     return Container(
@@ -315,7 +313,7 @@ class _DisposalAccordionState extends ConsumerState<DisposalAccordion>
                 height: 1.3,
               ),
             ),
-          )).toList(),
+          )),
         ],
       ),
     );
@@ -347,7 +345,7 @@ class _DisposalAccordionState extends ConsumerState<DisposalAccordion>
   }
 
   String _getPreviewText() {
-    final disposalSteps = widget.classification.disposalInstructions?.steps ?? [];
+    final disposalSteps = widget.classification.disposalInstructions.steps ?? [];
     if (disposalSteps.isEmpty) {
       return 'Tap to view disposal guidelines';
     }

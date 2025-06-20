@@ -355,7 +355,7 @@ class AiJobService {
         job['createdAt'] != null
       ).toList();
 
-      Duration averageProcessingTime = const Duration(seconds: 30); // Default
+      var averageProcessingTime = const Duration(seconds: 30); // Default
       if (completedJobsWithTimes.isNotEmpty) {
         final totalProcessingTime = completedJobsWithTimes.fold<int>(0, (sum, job) {
           final createdAt = (job['createdAt'] as Timestamp).toDate();
@@ -376,7 +376,7 @@ class AiJobService {
       );
 
       // Calculate average wait time from recently completed jobs
-      Duration averageWaitTime = Duration.zero;
+      var averageWaitTime = Duration.zero;
       if (completedJobsWithTimes.isNotEmpty) {
         final totalWaitTime = completedJobsWithTimes.fold<int>(0, (sum, job) {
           final createdAt = (job['createdAt'] as Timestamp).toDate();

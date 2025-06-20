@@ -108,15 +108,15 @@ void main() {
 Future<void> _handleConsentFlow(PatrolTester $) async {
   try {
     // Look for various consent dialog patterns
-    if ($(Text('Privacy Policy')).exists || 
-        $(Text('Terms of Service')).exists ||
-        $(Text('Accept')).exists) {
+    if ($(const Text('Privacy Policy')).exists || 
+        $(const Text('Terms of Service')).exists ||
+        $(const Text('Accept')).exists) {
       
       // Try different accept button patterns
-      if ($(Text('Accept')).exists) {
-        await $(Text('Accept')).tap();
-      } else if ($(Text('I Accept')).exists) {
-        await $(Text('I Accept')).tap();
+      if ($(const Text('Accept')).exists) {
+        await $(const Text('Accept')).tap();
+      } else if ($(const Text('I Accept')).exists) {
+        await $(const Text('I Accept')).tap();
       } else if ($(ElevatedButton).exists) {
         await $(ElevatedButton).first.tap();
       } else if ($(FilledButton).exists) {
@@ -136,14 +136,14 @@ Future<void> _handleAuthFlow(PatrolTester $) async {
     await Future.delayed(const Duration(seconds: 2));
     
     // Look for guest mode button with various text patterns
-    if ($(Text('Continue as Guest')).exists) {
-      await $(Text('Continue as Guest')).tap();
-    } else if ($(Text('Guest Mode')).exists) {
-      await $(Text('Guest Mode')).tap();
-    } else if ($(Text('Try as Guest')).exists) {
-      await $(Text('Try as Guest')).tap();
-    } else if ($(Text('Skip Sign In')).exists) {
-      await $(Text('Skip Sign In')).tap();
+    if ($(const Text('Continue as Guest')).exists) {
+      await $(const Text('Continue as Guest')).tap();
+    } else if ($(const Text('Guest Mode')).exists) {
+      await $(const Text('Guest Mode')).tap();
+    } else if ($(const Text('Try as Guest')).exists) {
+      await $(const Text('Try as Guest')).tap();
+    } else if ($(const Text('Skip Sign In')).exists) {
+      await $(const Text('Skip Sign In')).tap();
     } else {
       // Look for any button that might be guest mode
       final buttons = $(InkWell);
@@ -170,10 +170,10 @@ Future<void> _verifyHomeScreen(PatrolTester $) async {
   
   // Look for common home screen elements
   expect(
-    $(Text('Waste Segregation')).exists || 
+    $(const Text('Waste Segregation')).exists || 
     $(FloatingActionButton).exists ||
-    $(Text('Scan')).exists ||
-    $(Text('Home')).exists ||
+    $(const Text('Scan')).exists ||
+    $(const Text('Home')).exists ||
     $(Icons.camera_alt).exists ||
     $(NavigationBar).exists ||
     $(BottomNavigationBar).exists,
@@ -232,8 +232,8 @@ Future<void> _testClassificationFlow(PatrolTester $) async {
     // Look for classification/scan button
     if ($(FloatingActionButton).exists) {
       await $(FloatingActionButton).tap();
-    } else if ($(Text('Scan')).exists) {
-      await $(Text('Scan')).tap();
+    } else if ($(const Text('Scan')).exists) {
+      await $(const Text('Scan')).tap();
     } else if ($(Icons.camera_alt).exists) {
       await $(Icons.camera_alt).tap();
     } else if ($(FilledButton).exists) {
@@ -263,21 +263,21 @@ Future<void> _testClassificationFlow(PatrolTester $) async {
 Future<void> _testPointsSystem(PatrolTester $) async {
   try {
     // Look for points display
-    if ($(Text('Points')).exists || 
-        $(Text('Score')).exists ||
+    if ($(const Text('Points')).exists || 
+        $(const Text('Score')).exists ||
         $(Icons.star).exists) {
       
       // Points system exists, verify it's displayed
       expect(
-        $(Text('Points')).exists || $(Text('Score')).exists,
+        $(const Text('Points')).exists || $(const Text('Score')).exists,
         isTrue,
         reason: 'Points system should be visible'
       );
     }
     
     // Try to navigate to achievements if possible
-    if ($(Text('Achievements')).exists || $(Text('Rewards')).exists) {
-      await $(Text('Achievements')).tap();
+    if ($(const Text('Achievements')).exists || $(const Text('Rewards')).exists) {
+      await $(const Text('Achievements')).tap();
       await $.pumpAndSettle();
       await Future.delayed(const Duration(seconds: 1));
       
@@ -293,8 +293,8 @@ Future<void> _testPointsSystem(PatrolTester $) async {
 Future<void> _testSettingsFlow(PatrolTester $) async {
   try {
     // Look for settings access
-    if ($(Text('Settings')).exists) {
-      await $(Text('Settings')).tap();
+    if ($(const Text('Settings')).exists) {
+      await $(const Text('Settings')).tap();
     } else if ($(Icons.settings).exists) {
       await $(Icons.settings).tap();
     } else {
@@ -310,16 +310,16 @@ Future<void> _testSettingsFlow(PatrolTester $) async {
     
     // Verify we're in settings
     expect(
-      $(Text('Settings')).exists ||
-      $(Text('Preferences')).exists ||
-      $(Text('Theme')).exists,
+      $(const Text('Settings')).exists ||
+      $(const Text('Preferences')).exists ||
+      $(const Text('Theme')).exists,
       isTrue,
       reason: 'Should be in settings screen'
     );
     
     // Test theme toggle if available
-    if ($(Text('Theme')).exists) {
-      await $(Text('Theme')).tap();
+    if ($(const Text('Theme')).exists) {
+      await $(const Text('Theme')).tap();
       await $.pumpAndSettle();
       await Future.delayed(const Duration(seconds: 1));
       await $.native.pressBack();

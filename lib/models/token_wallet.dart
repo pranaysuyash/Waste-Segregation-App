@@ -1,5 +1,28 @@
 /// Token wallet model for AI micro-economy
 class TokenWallet {
+
+  factory TokenWallet.fromJson(Map<String, dynamic> json) {
+    return TokenWallet(
+      balance: json['balance'] ?? 0,
+      totalEarned: json['totalEarned'] ?? 0,
+      totalSpent: json['totalSpent'] ?? 0,
+      lastUpdated: DateTime.parse(json['lastUpdated']),
+      dailyConversionsUsed: json['dailyConversionsUsed'] ?? 0,
+      lastConversionDate: json['lastConversionDate'] != null 
+          ? DateTime.parse(json['lastConversionDate']) 
+          : null,
+    );
+  }
+
+  /// Create a default wallet for new users
+  factory TokenWallet.newUser() {
+    return TokenWallet(
+      balance: 10,  // Welcome bonus: 10 tokens for new users
+      totalEarned: 10,
+      totalSpent: 0,
+      lastUpdated: DateTime.now(),
+    );
+  }
   const TokenWallet({
     required this.balance,
     required this.totalEarned,
@@ -83,29 +106,6 @@ class TokenWallet {
     };
   }
 
-  factory TokenWallet.fromJson(Map<String, dynamic> json) {
-    return TokenWallet(
-      balance: json['balance'] ?? 0,
-      totalEarned: json['totalEarned'] ?? 0,
-      totalSpent: json['totalSpent'] ?? 0,
-      lastUpdated: DateTime.parse(json['lastUpdated']),
-      dailyConversionsUsed: json['dailyConversionsUsed'] ?? 0,
-      lastConversionDate: json['lastConversionDate'] != null 
-          ? DateTime.parse(json['lastConversionDate']) 
-          : null,
-    );
-  }
-
-  /// Create a default wallet for new users
-  factory TokenWallet.newUser() {
-    return TokenWallet(
-      balance: 10,  // Welcome bonus: 10 tokens for new users
-      totalEarned: 10,
-      totalSpent: 0,
-      lastUpdated: DateTime.now(),
-    );
-  }
-
   @override
   String toString() {
     return 'TokenWallet(balance: $balance, earned: $totalEarned, spent: $totalSpent)';
@@ -114,6 +114,20 @@ class TokenWallet {
 
 /// Token transaction history entry
 class TokenTransaction {
+
+  factory TokenTransaction.fromJson(Map<String, dynamic> json) {
+    return TokenTransaction(
+      id: json['id'],
+      delta: json['delta'],
+      type: TokenTransactionType.values.firstWhere(
+        (e) => e.toString() == json['type'],
+      ),
+      timestamp: DateTime.parse(json['timestamp']),
+      description: json['description'],
+      reference: json['reference'],
+      metadata: json['metadata']?.cast<String, dynamic>(),
+    );
+  }
   const TokenTransaction({
     required this.id,
     required this.delta,
@@ -142,20 +156,6 @@ class TokenTransaction {
       'reference': reference,
       'metadata': metadata,
     };
-  }
-
-  factory TokenTransaction.fromJson(Map<String, dynamic> json) {
-    return TokenTransaction(
-      id: json['id'],
-      delta: json['delta'],
-      type: TokenTransactionType.values.firstWhere(
-        (e) => e.toString() == json['type'],
-      ),
-      timestamp: DateTime.parse(json['timestamp']),
-      description: json['description'],
-      reference: json['reference'],
-      metadata: json['metadata']?.cast<String, dynamic>(),
-    );
   }
 }
 
