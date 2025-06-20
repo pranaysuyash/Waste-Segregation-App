@@ -1,29 +1,46 @@
-# Task 5: BigQuery Integration & Admin Dashboards
+# Task 5: Cost-Effective Analytics Dashboard Strategy
 
-**Priority:** MEDIUM  
-**Effort:** 4 hours  
+**Priority:** HIGH (Updated based on cost analysis)  
+**Effort:** 2-3 hours  
 **Status:** 🔴 Not Started  
 **Branch:** `feature/analytics-architecture-improvements`
 
 ## Problem Statement
 
-We need to enable advanced analytics and admin dashboards by integrating Firebase Analytics with BigQuery export and creating visualization dashboards for business insights.
+We need admin dashboards and analytics insights without breaking the budget. Analysis shows BigQuery is actually FREE for our current scale (up to 10GB storage + 1TB queries/month), making it the most cost-effective choice.
+
+## Cost Analysis Summary
+
+| Approach | Monthly Cost | Maintenance | Scale Limit |
+|----------|-------------|-------------|-------------|
+| **BigQuery Sandbox** | **$0** | **None** | **10GB + 1TB queries** |
+| PostHog OSS | $20-30 | Medium | 200M events |
+| ClickHouse + Metabase | $30+ | High | Unlimited |
+| Self-built | $30+ | Very High | Custom |
+
+**Recommendation:** Start with BigQuery sandbox, migrate only when costs exceed $50/month consistently.
+
+## Revised Implementation Plan
+
+### Phase 1: Free BigQuery + Flutter Web Dashboard (Current Priority)
+- [x] Firebase Analytics already integrated
+- [ ] Enable BigQuery export (free daily sync)
+- [ ] Create Flutter Web admin dashboard
+- [ ] Build custom analytics widgets
+- [ ] Set up billing alerts at $25/month
+
+### Phase 2: Monitoring & Backup Plan (Future)
+- [ ] Test PostHog OSS in staging environment  
+- [ ] Create migration scripts for data export
+- [ ] Document scale-based decision criteria
 
 ## Acceptance Criteria
 
-- [ ] Enable Firebase Analytics BigQuery export
-- [ ] Create BigQuery dataset and tables
-- [ ] Set up data pipeline for analytics events
-- [ ] Create admin dashboard with key metrics
-- [ ] Implement data visualization components
-- [ ] Add real-time analytics monitoring
-- [ ] Create automated reports
-
-## Implementation Plan
-
-### Step 1: BigQuery Setup
-- Enable BigQuery export in Firebase Console
-- Create dedicated dataset for analytics
+- [ ] BigQuery export enabled with zero cost
+- [ ] Flutter Web admin dashboard deployed
+- [ ] Key metrics visualized (DAU, classifications, errors)
+- [ ] Billing alerts configured
+- [ ] Migration plan documented for future scale for analytics
 - Set up data retention policies
 - Configure access permissions
 
