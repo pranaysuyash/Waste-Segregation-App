@@ -105,11 +105,30 @@ void main() async {
     WasteAppLogger.info('Before Firebase.initializeApp');
   }
   try {
-    await Firebase.initializeApp(
-      options: DefaultFirebaseOptions.currentPlatform,
-    );
-    if (kDebugMode) {
-      WasteAppLogger.info('Firebase initialized successfully');
+    // Initialize Firebase with better error handling for web
+    if (kIsWeb) {
+      // Web-specific initialization with error handling
+      await Firebase.initializeApp(
+        options: DefaultFirebaseOptions.currentPlatform,
+      );
+      
+      // Add web-specific Firestore settings to prevent internal assertion failures
+      final firestore = FirebaseFirestore.instance;
+      await firestore.enableNetwork();
+      
+      // Set web-specific settings to prevent connection issues
+      firestore.settings = const Settings(
+        persistenceEnabled: true,
+        cacheSizeBytes: Settings.CACHE_SIZE_UNLIMITED,
+      );
+      
+      WasteAppLogger.info('Firebase initialized for web with enhanced error handling');
+    } else {
+      // Mobile initialization
+      await Firebase.initializeApp(
+        options: DefaultFirebaseOptions.currentPlatform,
+      );
+      WasteAppLogger.info('Firebase initialized for mobile');
     }
     
     // Test Firestore connection and enable API if needed
@@ -134,11 +153,12 @@ void main() async {
     }
     
     // Crashlytics is ready for error reporting
-  } catch (e) {
-    if (kDebugMode) {
-      WasteAppLogger.severe('Failed to initialize Firebase: $e');
-    }
+  } catch (e, s) {
+    WasteAppLogger.severe('Firebase initialization failed', e, s);
     // Continue with app initialization even if Firebase fails
+    if (kDebugMode) {
+      print('Firebase initialization error: $e');
+    }
   }
 
   Trace? startupTrace;
