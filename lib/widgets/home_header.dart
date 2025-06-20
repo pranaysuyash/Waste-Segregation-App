@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/gamification.dart';
 import '../models/user_profile.dart';
 import '../providers/app_providers.dart';
+import '../providers/token_providers.dart';
 
 /// Lean, personalized home header with micro-interactions
 /// Replaces the verbose welcome section with essential data chips only
@@ -58,6 +59,9 @@ class HomeHeaderState extends ConsumerState<HomeHeader>
     final unread = unreadAsync.valueOrNull ?? 0;
     final (done, total) = todayGoalAsync.valueOrNull ?? (0, 10);
     final userProfile = userProfileAsync.valueOrNull;
+    
+    // Get token wallet for token display
+    final tokenWalletAsync = ref.watch(tokenWalletProvider);
 
     // Points pulse trigger
     if (_prevPts != null && pts > _prevPts!) {
@@ -99,6 +103,16 @@ class HomeHeaderState extends ConsumerState<HomeHeader>
                       Semantics(
                         label: 'Current points: $pts',
                         child: _PointsPill(points: pts, pulse: _pulse),
+                      ),
+                      const SizedBox(width: 8),
+                      // Token display
+                      tokenWalletAsync.when(
+                        data: (wallet) => Semantics(
+                          label: 'AI tokens: ${wallet?.balance ?? 0}',
+                          child: _TokenPill(tokens: wallet?.balance ?? 0),
+                        ),
+                        loading: () => const SizedBox.shrink(),
+                        error: (_, __) => const SizedBox.shrink(),
                       ),
                       const SizedBox(width: 12),
                     ],
@@ -275,6 +289,31 @@ class _PointsPill extends StatelessWidget {
         label: _formatNumber(points),
         bg: const Color(0xFFE6F7EC), // mint green
       ),
+    );
+  }
+
+  String _formatNumber(int number) {
+    if (number >= 1000000) {
+      return '${(number / 1000000).toStringAsFixed(1)}M';
+    } else if (number >= 1000) {
+      return '${(number / 1000).toStringAsFixed(1)}K';
+    }
+    return number.toString();
+  }
+}
+
+/// Token pill showing AI token balance
+class _TokenPill extends StatelessWidget {
+  const _TokenPill({required this.tokens});
+  
+  final int tokens;
+
+  @override
+  Widget build(BuildContext context) {
+    return _SmallPill(
+      icon: Icons.bolt,
+      label: _formatNumber(tokens),
+      bg: const Color(0xFFE3F2FD), // light blue
     );
   }
 
