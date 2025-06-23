@@ -58,26 +58,34 @@ class WasteAppLogger {
         _logSink?.writeln(jsonEncode(entry));
         _logSink?.flush(); // Ensure immediate write
 
-        // Mirror to console for development
+        // Mirror to console for development (use print to avoid recursion)
         if (kDebugMode) {
-          WasteAppLogger.info('WasteAppLogger: ${jsonEncode(entry)}');
+          print('WasteAppLogger: ${jsonEncode(entry)}');
         }
       });
 
-      // Log initialization
-      info('WasteAppLogger initialized', null, null, {'session_id': _sessionId, 'app_version': _appVersion});
+      // Log initialization (use print to avoid recursion during setup)
+      if (kDebugMode) {
+        print('WasteAppLogger initialized - session: $_sessionId, version: $_appVersion');
+      }
     } catch (e) {
-      // Fallback to debug print if logger initialization fails
-      WasteAppLogger.severe('WasteAppLogger initialization failed: $e');
+      // Fallback to debug print if logger initialization fails (avoid recursion)
+      if (kDebugMode) {
+        print('WasteAppLogger initialization failed: $e');
+      }
     }
   }
 
   static void dispose() {
     try {
-      info('WasteAppLogger disposing');
+      if (kDebugMode) {
+        print('WasteAppLogger disposing');
+      }
       _logSink?.close();
     } catch (e) {
-      WasteAppLogger.severe('WasteAppLogger dispose error: $e');
+      if (kDebugMode) {
+        print('WasteAppLogger dispose error: $e');
+      }
     }
   }
 

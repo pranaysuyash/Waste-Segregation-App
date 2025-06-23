@@ -8,7 +8,7 @@ import 'package:waste_segregation_app/models/waste_classification.dart';
   type: ResultHeader,
 )
 Widget resultHeaderUseCase(BuildContext context) {
-  return _ResultHeaderDemo();
+  return const _ResultHeaderDemo();
 }
 
 @widgetbook.UseCase(
@@ -16,8 +16,7 @@ Widget resultHeaderUseCase(BuildContext context) {
   type: ResultHeader,
 )
 Widget resultHeaderHighConfidenceUseCase(BuildContext context) {
-  return _ResultHeaderDemo(
-    category: 'Recyclable',
+  return const _ResultHeaderDemo(
     confidence: 0.95,
     pointsEarned: 25,
   );
@@ -28,7 +27,7 @@ Widget resultHeaderHighConfidenceUseCase(BuildContext context) {
   type: ResultHeader,
 )
 Widget resultHeaderLowConfidenceUseCase(BuildContext context) {
-  return _ResultHeaderDemo(
+  return const _ResultHeaderDemo(
     category: 'Hazardous',
     confidence: 0.65,
     pointsEarned: 5,
@@ -38,10 +37,8 @@ Widget resultHeaderLowConfidenceUseCase(BuildContext context) {
 class _ResultHeaderDemo extends StatelessWidget {
   const _ResultHeaderDemo({
     this.category = 'Recyclable',
-    this.itemName = 'Aluminum Can',
     this.confidence = 0.92,
     this.pointsEarned = 15,
-    this.hasImage = true,
   });
 
   final String category;

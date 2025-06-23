@@ -50,6 +50,7 @@ dependencies:
   firebase_remote_config: ^5.1.7  # For A/B testing and feature flags
   cloud_firestore: ^5.6.9  # Updated to latest
   cloud_functions: ^5.2.7  # For calling Cloud Functions
+  firebase_storage: ^12.3.7  # For Firebase Storage operations
   # REPLACED: firebase_dynamic_links (discontinued Aug 25, 2025) with app_links
   app_links: ^6.3.2  # Official replacement for uni_links and deep linking
   qr_flutter: ^4.1.0  # For QR code generation
@@ -111,7 +112,6 @@ dev_dependencies:
   network_image_mock: ^2.1.1  # For mocking network images in tests
   
   share_plus_platform_interface: ^3.4.0  # Keep compatible with share_plus
-  firebase_storage: any
 dependency_overrides:
   web: ^1.1.1  # Override to resolve Firebase and package_info_plus conflicts
   path: 1.8.3  # Pin to version required by integration_test from Flutter SDK

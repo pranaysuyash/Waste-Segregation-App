@@ -112,7 +112,6 @@ class ResultHeader extends ConsumerWidget {
             borderRadius: BorderRadius.circular(20),
             border: Border.all(
               color: _getCategoryColor(category).withOpacity(0.3),
-              width: 1,
             ),
           ),
           child: Row(
@@ -157,7 +156,7 @@ class ResultHeader extends ConsumerWidget {
                 height: 6,
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(3),
-                  color: colorScheme.surfaceVariant,
+                  color: colorScheme.surfaceContainerHighest,
                 ),
                                  child: FractionallySizedBox(
                    alignment: Alignment.centerLeft,
@@ -238,7 +237,6 @@ class ResultHeader extends ConsumerWidget {
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
           color: color.withOpacity(0.2),
-          width: 1,
         ),
       ),
       child: Column(

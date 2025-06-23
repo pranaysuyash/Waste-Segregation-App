@@ -34,7 +34,7 @@ class AnalyticsConsentManager {
       }
       
       // Check specific analytics consent
-      return prefs.getBool('${_consentKeyPrefix}$analyticsConsent') ?? false;
+      return prefs.getBool('$_consentKeyPrefix$analyticsConsent') ?? false;
     } catch (e) {
       WasteAppLogger.severe('Error checking analytics consent', e, null, {
         'service': 'AnalyticsConsentManager'
@@ -47,7 +47,7 @@ class AnalyticsConsentManager {
   Future<bool> hasPerformanceConsent() async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      return prefs.getBool('${_consentKeyPrefix}$performanceConsent') ?? false;
+      return prefs.getBool('$_consentKeyPrefix$performanceConsent') ?? false;
     } catch (e) {
       WasteAppLogger.severe('Error checking performance consent', e, null, {
         'service': 'AnalyticsConsentManager'
@@ -60,7 +60,7 @@ class AnalyticsConsentManager {
   Future<bool> hasMarketingConsent() async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      return prefs.getBool('${_consentKeyPrefix}$marketingConsent') ?? false;
+      return prefs.getBool('$_consentKeyPrefix$marketingConsent') ?? false;
     } catch (e) {
       WasteAppLogger.severe('Error checking marketing consent', e, null, {
         'service': 'AnalyticsConsentManager'
@@ -82,7 +82,7 @@ class AnalyticsConsentManager {
     try {
       final prefs = await SharedPreferences.getInstance();
       
-      await prefs.setBool('${_consentKeyPrefix}$consentType', granted);
+      await prefs.setBool('$_consentKeyPrefix$consentType', granted);
       await prefs.setInt(_consentVersionKey, currentConsentVersion);
       await prefs.setString(_consentTimestampKey, DateTime.now().toIso8601String());
       
@@ -110,9 +110,9 @@ class AnalyticsConsentManager {
     try {
       final prefs = await SharedPreferences.getInstance();
       
-      await prefs.setBool('${_consentKeyPrefix}$analyticsConsent', analytics);
-      await prefs.setBool('${_consentKeyPrefix}$performanceConsent', performance);
-      await prefs.setBool('${_consentKeyPrefix}$marketingConsent', marketing);
+      await prefs.setBool('$_consentKeyPrefix$analyticsConsent', analytics);
+      await prefs.setBool('$_consentKeyPrefix$performanceConsent', performance);
+      await prefs.setBool('$_consentKeyPrefix$marketingConsent', marketing);
       await prefs.setInt(_consentVersionKey, currentConsentVersion);
       await prefs.setString(_consentTimestampKey, DateTime.now().toIso8601String());
       
@@ -152,11 +152,11 @@ class AnalyticsConsentManager {
   Future<String> getAnonymousId() async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      String? anonymousId = prefs.getString(_anonymousIdKey);
+      var anonymousId = prefs.getString(_anonymousIdKey);
       
       if (anonymousId == null) {
         // Generate new anonymous ID
-        anonymousId = 'anon_${DateTime.now().millisecondsSinceEpoch}_${(DateTime.now().microsecond % 10000)}';
+        anonymousId = 'anon_${DateTime.now().millisecondsSinceEpoch}_${DateTime.now().microsecond % 10000}';
         await prefs.setString(_anonymousIdKey, anonymousId);
         
         WasteAppLogger.info('Generated new anonymous ID', null, null, {
@@ -219,9 +219,9 @@ class AnalyticsConsentManager {
       final prefs = await SharedPreferences.getInstance();
       
       // Remove all consent keys
-      await prefs.remove('${_consentKeyPrefix}$analyticsConsent');
-      await prefs.remove('${_consentKeyPrefix}$performanceConsent');
-      await prefs.remove('${_consentKeyPrefix}$marketingConsent');
+      await prefs.remove('$_consentKeyPrefix$analyticsConsent');
+      await prefs.remove('$_consentKeyPrefix$performanceConsent');
+      await prefs.remove('$_consentKeyPrefix$marketingConsent');
       await prefs.remove(_consentVersionKey);
       await prefs.remove(_consentTimestampKey);
       await prefs.remove(_anonymousIdKey);

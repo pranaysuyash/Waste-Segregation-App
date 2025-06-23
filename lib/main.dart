@@ -47,6 +47,8 @@ import 'utils/constants.dart'; // For app constants, themes, and strings
 import 'utils/error_handler.dart'; // Correct import for ErrorHandler
 import 'utils/developer_config.dart'; // For developer-only features security
 import 'utils/waste_app_logger.dart';
+import 'utils/analytics_route_observer.dart';
+import 'utils/frame_performance_monitor.dart';
 import 'providers/theme_provider.dart';
 import 'providers/points_engine_provider.dart';
 import 'services/cloud_storage_service.dart';
@@ -103,11 +105,30 @@ void main() async {
     WasteAppLogger.info('Before Firebase.initializeApp');
   }
   try {
-    await Firebase.initializeApp(
-      options: DefaultFirebaseOptions.currentPlatform,
-    );
-    if (kDebugMode) {
-      WasteAppLogger.info('Firebase initialized successfully');
+    // Initialize Firebase with better error handling for web
+    if (kIsWeb) {
+      // Web-specific initialization with error handling
+      await Firebase.initializeApp(
+        options: DefaultFirebaseOptions.currentPlatform,
+      );
+      
+      // Add web-specific Firestore settings to prevent internal assertion failures
+      final firestore = FirebaseFirestore.instance;
+      await firestore.enableNetwork();
+      
+      // Set web-specific settings to prevent connection issues
+      firestore.settings = const Settings(
+        persistenceEnabled: true,
+        cacheSizeBytes: Settings.CACHE_SIZE_UNLIMITED,
+      );
+      
+      WasteAppLogger.info('Firebase initialized for web with enhanced error handling');
+    } else {
+      // Mobile initialization
+      await Firebase.initializeApp(
+        options: DefaultFirebaseOptions.currentPlatform,
+      );
+      WasteAppLogger.info('Firebase initialized for mobile');
     }
     
     // Test Firestore connection and enable API if needed
@@ -132,11 +153,12 @@ void main() async {
     }
     
     // Crashlytics is ready for error reporting
-  } catch (e) {
-    if (kDebugMode) {
-      WasteAppLogger.severe('Failed to initialize Firebase: $e');
-    }
+  } catch (e, s) {
+    WasteAppLogger.severe('Firebase initialization failed', e, s);
     // Continue with app initialization even if Firebase fails
+    if (kDebugMode) {
+      print('Firebase initialization error: $e');
+    }
   }
 
   Trace? startupTrace;
@@ -189,6 +211,13 @@ void main() async {
   final aiService = AiService();
   final analyticsService = AnalyticsService(storageService);
   final educationalContentAnalyticsService = EducationalContentAnalyticsService();
+  
+  // Initialize frame performance monitoring
+  FramePerformanceMonitor.initialize(analyticsService);
+  if (kDebugMode) {
+    FramePerformanceMonitor.startMonitoring();
+    WasteAppLogger.info('Frame performance monitoring started for debug builds');
+  }
   final educationalContentService = EducationalContentService(educationalContentAnalyticsService);
   final gamificationService = GamificationService(storageService, CloudStorageService(storageService));
   final premiumService = PremiumService();
@@ -395,6 +424,10 @@ class WasteSegregationApp extends StatelessWidget {
                   themeMode: themeProvider.themeMode,
                   localizationsDelegates: AppLocalizations.localizationsDelegates,
                   supportedLocales: AppLocalizations.supportedLocales,
+                  // Add RouteObserver for automatic analytics tracking
+                  navigatorObservers: [
+                    analyticsRouteObserver,
+                  ],
                   builder: (context, child) {
                     final mediaQuery = MediaQuery.of(context);
                     final currentScale = mediaQuery.textScaler.scale(1.0);

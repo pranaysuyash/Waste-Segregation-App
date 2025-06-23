@@ -239,7 +239,6 @@ class _ResultScreenState extends State<ResultScreen>
       pointsEarned: _pointsEarned,
       newlyEarnedAchievements: _newlyEarnedAchievements,
       completedChallenge: _completedChallenge,
-      action: 'classification',
     );
     
     Navigator.of(context).pop(result);
@@ -269,7 +268,7 @@ class _ResultScreenState extends State<ResultScreen>
         _pointsEarned = pointsPerClassification;
       });
       
-      WasteAppLogger.info('🎯 POPUP FIX: Points popup triggered via PointsEngine - ${pointsPerClassification} points');
+      WasteAppLogger.info('🎯 POPUP FIX: Points popup triggered via PointsEngine - $pointsPerClassification points');
       
     } catch (e, stackTrace) {
       ErrorHandler.handleError(e, stackTrace);

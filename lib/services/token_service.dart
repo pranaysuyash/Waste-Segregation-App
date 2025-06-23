@@ -3,7 +3,6 @@ import 'package:flutter/foundation.dart';
 import 'package:uuid/uuid.dart';
 
 import '../models/token_wallet.dart';
-import '../models/gamification.dart';
 import '../utils/waste_app_logger.dart';
 import 'storage_service.dart';
 import 'cloud_storage_service.dart';

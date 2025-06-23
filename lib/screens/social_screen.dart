@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'dart:io';
+import 'package:flutter/foundation.dart' show kIsWeb;
+import 'dart:io' show Platform;
 import 'community_screen.dart';
 import 'family_dashboard_screen.dart';
 import '../utils/constants.dart';
@@ -21,7 +22,7 @@ class _SocialScreenState extends ConsumerState<SocialScreen> {
   Widget build(BuildContext context) {
     // Calculate safe bottom padding for FAB
     final bottomPadding = MediaQuery.of(context).padding.bottom;
-    final isIOS = Platform.isIOS;
+    final isIOS = !kIsWeb && Platform.isIOS;
     
     return Scaffold(
       body: IndexedStack(

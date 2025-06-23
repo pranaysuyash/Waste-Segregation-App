@@ -154,7 +154,7 @@ class _AnalyticsTrackingWrapperState extends ConsumerState<AnalyticsTrackingWrap
 
   @override
   Widget build(BuildContext context) {
-    Widget child = widget.child;
+    var child = widget.child;
     
     // Wrap with scroll tracking if enabled
     if (widget.trackScrollDepth && widget.child is! Scrollable) {

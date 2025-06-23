@@ -90,7 +90,6 @@ class ActionRow extends ConsumerWidget {
                   color: isPrimary 
                       ? colorScheme.primary.withValues(alpha: 0.3)
                       : colorScheme.outline.withValues(alpha: 0.2),
-                  width: 1,
                 ),
               ),
               child: Material(
@@ -99,7 +98,7 @@ class ActionRow extends ConsumerWidget {
                   onTap: onPressed != null 
                       ? () {
                           HapticFeedback.lightImpact();
-                          onPressed!();
+                          onPressed();
                         }
                       : null,
                   borderRadius: BorderRadius.circular(24),

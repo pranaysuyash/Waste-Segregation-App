@@ -15,12 +15,6 @@ import '../providers/app_providers.dart';
 
 /// Pipeline state for tracking the result processing
 class ResultPipelineState {
-  final bool isProcessing;
-  final String? error;
-  final int pointsEarned;
-  final List<Achievement> newAchievements;
-  final Challenge? completedChallenge;
-  final bool isSaved;
 
   const ResultPipelineState({
     this.isProcessing = false,
@@ -30,6 +24,12 @@ class ResultPipelineState {
     this.completedChallenge,
     this.isSaved = false,
   });
+  final bool isProcessing;
+  final String? error;
+  final int pointsEarned;
+  final List<Achievement> newAchievements;
+  final Challenge? completedChallenge;
+  final bool isSaved;
 
   ResultPipelineState copyWith({
     bool? isProcessing,
@@ -53,16 +53,6 @@ class ResultPipelineState {
 /// ResultPipeline handles all business logic for processing waste classifications
 /// This separates concerns from the UI and makes the system more testable
 class ResultPipeline extends StateNotifier<ResultPipelineState> {
-  final StorageService _storageService;
-  final GamificationService _gamificationService;
-  final CloudStorageService _cloudStorageService;
-  final CommunityService _communityService;
-  final AdService _adService;
-  final AnalyticsService _analyticsService;
-  final Ref _ref;
-
-  // Track classifications being processed to prevent duplicates
-  static final Set<String> _processingClassifications = <String>{};
 
   ResultPipeline(
     this._ref,
@@ -73,6 +63,16 @@ class ResultPipeline extends StateNotifier<ResultPipelineState> {
     this._adService,
     this._analyticsService,
   ) : super(const ResultPipelineState());
+  final StorageService _storageService;
+  final GamificationService _gamificationService;
+  final CloudStorageService _cloudStorageService;
+  final CommunityService _communityService;
+  final AdService _adService;
+  final AnalyticsService _analyticsService;
+  final Ref _ref;
+
+  // Track classifications being processed to prevent duplicates
+  static final Set<String> _processingClassifications = <String>{};
 
   /// Main pipeline execution - processes classification through all stages
   Future<void> processClassification(
@@ -92,7 +92,7 @@ class ResultPipeline extends StateNotifier<ResultPipelineState> {
     }
 
     _processingClassifications.add(classificationId);
-    state = state.copyWith(isProcessing: true, error: null);
+    state = state.copyWith(isProcessing: true);
 
     try {
       // Stage 1: Save classification locally

@@ -20,6 +20,54 @@ class AiJob {
     this.estimatedCompletion,
   });
 
+  factory AiJob.fromJson(Map<String, dynamic> json) {
+    return AiJob(
+      id: json['id'],
+      userId: json['userId'],
+      imagePath: json['imagePath'],
+      speed: AnalysisSpeed.values.firstWhere(
+        (e) => e.toString() == json['speed'],
+      ),
+      status: AiJobStatus.values.firstWhere(
+        (e) => e.toString() == json['status'],
+      ),
+      createdAt: DateTime.parse(json['createdAt']),
+      result: json['result']?.cast<String, dynamic>(),
+      completedAt: json['completedAt'] != null 
+          ? DateTime.parse(json['completedAt']) 
+          : null,
+      errorMessage: json['errorMessage'],
+      priority: json['priority'] ?? false,
+      tokensSpent: json['tokensSpent'] ?? 0,
+      metadata: json['metadata']?.cast<String, dynamic>(),
+      queuePosition: json['queuePosition'],
+      estimatedCompletion: json['estimatedCompletion'] != null
+          ? DateTime.parse(json['estimatedCompletion'])
+          : null,
+    );
+  }
+
+  /// Create a new job for the queue
+  factory AiJob.create({
+    required String userId,
+    required String imagePath,
+    required AnalysisSpeed speed,
+    bool priority = false,
+    Map<String, dynamic>? metadata,
+  }) {
+    return AiJob(
+      id: 'job_${DateTime.now().millisecondsSinceEpoch}_${userId.substring(0, 8)}',
+      userId: userId,
+      imagePath: imagePath,
+      speed: speed,
+      status: AiJobStatus.queued,
+      createdAt: DateTime.now(),
+      priority: priority,
+      tokensSpent: speed.cost,
+      metadata: metadata,
+    );
+  }
+
   final String id;
   final String userId;
   final String imagePath;        // Storage path (gs://bucket/path)
@@ -152,54 +200,6 @@ class AiJob {
     };
   }
 
-  factory AiJob.fromJson(Map<String, dynamic> json) {
-    return AiJob(
-      id: json['id'],
-      userId: json['userId'],
-      imagePath: json['imagePath'],
-      speed: AnalysisSpeed.values.firstWhere(
-        (e) => e.toString() == json['speed'],
-      ),
-      status: AiJobStatus.values.firstWhere(
-        (e) => e.toString() == json['status'],
-      ),
-      createdAt: DateTime.parse(json['createdAt']),
-      result: json['result']?.cast<String, dynamic>(),
-      completedAt: json['completedAt'] != null 
-          ? DateTime.parse(json['completedAt']) 
-          : null,
-      errorMessage: json['errorMessage'],
-      priority: json['priority'] ?? false,
-      tokensSpent: json['tokensSpent'] ?? 0,
-      metadata: json['metadata']?.cast<String, dynamic>(),
-      queuePosition: json['queuePosition'],
-      estimatedCompletion: json['estimatedCompletion'] != null
-          ? DateTime.parse(json['estimatedCompletion'])
-          : null,
-    );
-  }
-
-  /// Create a new job for the queue
-  factory AiJob.create({
-    required String userId,
-    required String imagePath,
-    required AnalysisSpeed speed,
-    bool priority = false,
-    Map<String, dynamic>? metadata,
-  }) {
-    return AiJob(
-      id: 'job_${DateTime.now().millisecondsSinceEpoch}_${userId.substring(0, 8)}',
-      userId: userId,
-      imagePath: imagePath,
-      speed: speed,
-      status: AiJobStatus.queued,
-      createdAt: DateTime.now(),
-      priority: priority,
-      tokensSpent: speed.cost,
-      metadata: metadata,
-    );
-  }
-
   @override
   String toString() {
     return 'AiJob(id: $id, status: $status, speed: $speed, tokens: $tokensSpent)';
@@ -232,6 +232,42 @@ class QueueStats {
     required this.failureRate,
     required this.pendingJobs,
   });
+
+  factory QueueStats.fromJson(Map<String, dynamic> json) {
+    return QueueStats(
+      totalJobs: json['totalJobs'],
+      queuedJobs: json['queuedJobs'],
+      processingJobs: json['processingJobs'],
+      completedToday: json['completedToday'],
+      failedToday: json['failedToday'],
+      averageWaitTime: Duration(milliseconds: json['averageWaitTimeMs']),
+      lastUpdated: DateTime.parse(json['lastUpdated']),
+      // Enhanced fields with fallbacks for backward compatibility
+      averageProcessingTime: Duration(milliseconds: json['averageProcessingTimeMs'] ?? 30000), // 30s default
+      estimatedWaitTime: Duration(milliseconds: json['estimatedWaitTimeMs'] ?? json['averageWaitTimeMs']),
+      successRate: (json['successRate'] ?? 0.95).toDouble(), // 95% default
+      failureRate: (json['failureRate'] ?? 0.05).toDouble(), // 5% default
+      pendingJobs: json['pendingJobs'] ?? json['queuedJobs'], // Use queuedJobs as fallback
+    );
+  }
+
+  /// Create empty stats for initialization
+  factory QueueStats.empty() {
+    return QueueStats(
+      totalJobs: 0,
+      queuedJobs: 0,
+      processingJobs: 0,
+      completedToday: 0,
+      failedToday: 0,
+      averageWaitTime: Duration.zero,
+      lastUpdated: DateTime.now(),
+      averageProcessingTime: const Duration(seconds: 30),
+      estimatedWaitTime: Duration.zero,
+      successRate: 1.0,
+      failureRate: 0.0,
+      pendingJobs: 0,
+    );
+  }
 
   final int totalJobs;
   final int queuedJobs;
@@ -309,42 +345,6 @@ class QueueStats {
       'failureRate': failureRate,
       'pendingJobs': pendingJobs,
     };
-  }
-
-  factory QueueStats.fromJson(Map<String, dynamic> json) {
-    return QueueStats(
-      totalJobs: json['totalJobs'],
-      queuedJobs: json['queuedJobs'],
-      processingJobs: json['processingJobs'],
-      completedToday: json['completedToday'],
-      failedToday: json['failedToday'],
-      averageWaitTime: Duration(milliseconds: json['averageWaitTimeMs']),
-      lastUpdated: DateTime.parse(json['lastUpdated']),
-      // Enhanced fields with fallbacks for backward compatibility
-      averageProcessingTime: Duration(milliseconds: json['averageProcessingTimeMs'] ?? 30000), // 30s default
-      estimatedWaitTime: Duration(milliseconds: json['estimatedWaitTimeMs'] ?? json['averageWaitTimeMs']),
-      successRate: (json['successRate'] ?? 0.95).toDouble(), // 95% default
-      failureRate: (json['failureRate'] ?? 0.05).toDouble(), // 5% default
-      pendingJobs: json['pendingJobs'] ?? json['queuedJobs'], // Use queuedJobs as fallback
-    );
-  }
-
-  /// Create empty stats for initialization
-  factory QueueStats.empty() {
-    return QueueStats(
-      totalJobs: 0,
-      queuedJobs: 0,
-      processingJobs: 0,
-      completedToday: 0,
-      failedToday: 0,
-      averageWaitTime: Duration.zero,
-      lastUpdated: DateTime.now(),
-      averageProcessingTime: const Duration(seconds: 30),
-      estimatedWaitTime: Duration.zero,
-      successRate: 1.0,
-      failureRate: 0.0,
-      pendingJobs: 0,
-    );
   }
 }
 

@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/waste_classification.dart';
-import '../services/ai_service.dart';
 import '../utils/constants.dart';
 import '../widgets/enhanced_analysis_loader.dart';
 import '../widgets/premium_segmentation_toggle.dart';
