@@ -7,7 +7,6 @@ import '../models/classification_feedback.dart';
 import 'storage_service.dart';
 import 'gamification_service.dart';
 import 'fresh_start_service.dart';
-import 'enhanced_image_service.dart';
 import 'dart:convert';
 import 'package:crypto/crypto.dart';
 import '../utils/waste_app_logger.dart';
@@ -735,7 +734,7 @@ class CloudStorageService {
     try {
       final storage = FirebaseStorage.instance;
       final timestamp = DateTime.now().millisecondsSinceEpoch;
-      final fileName = 'batch_image_${timestamp}.jpg';
+      final fileName = 'batch_image_$timestamp.jpg';
       final path = 'batch_images/$userId/$fileName';
       
       WasteAppLogger.info('Uploading to Firebase Storage', null, null, {

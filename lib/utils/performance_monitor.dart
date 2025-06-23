@@ -2,10 +2,6 @@ import 'package:flutter/foundation.dart';
 import 'dart:collection';
 import 'dart:async';
 import 'package:waste_segregation_app/utils/waste_app_logger.dart';
-import 'dart:ui';
-import 'package:flutter/scheduler.dart';
-import 'package:flutter/widgets.dart';
-import '../services/analytics_service.dart';
 
 /// Performance Monitoring and Optimization Utilities
 /// Tracks app performance metrics and provides optimization recommendations

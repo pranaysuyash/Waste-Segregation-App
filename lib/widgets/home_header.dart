@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/gamification.dart';
 import '../models/user_profile.dart';
-import '../models/token_wallet.dart';
 import '../providers/app_providers.dart';
 import '../providers/token_providers.dart';
 

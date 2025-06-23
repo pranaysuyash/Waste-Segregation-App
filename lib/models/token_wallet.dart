@@ -1,5 +1,13 @@
 /// Token wallet model for AI micro-economy
 class TokenWallet {
+  const TokenWallet({
+    required this.balance,
+    required this.totalEarned,
+    required this.totalSpent,
+    required this.lastUpdated,
+    this.dailyConversionsUsed = 0,
+    this.lastConversionDate,
+  });
 
   factory TokenWallet.fromJson(Map<String, dynamic> json) {
     return TokenWallet(
@@ -23,14 +31,6 @@ class TokenWallet {
       lastUpdated: DateTime.now(),
     );
   }
-  const TokenWallet({
-    required this.balance,
-    required this.totalEarned,
-    required this.totalSpent,
-    required this.lastUpdated,
-    this.dailyConversionsUsed = 0,
-    this.lastConversionDate,
-  });
 
   final int balance;           // Current spendable tokens
   final int totalEarned;       // Lifetime tokens earned
@@ -114,6 +114,15 @@ class TokenWallet {
 
 /// Token transaction history entry
 class TokenTransaction {
+  const TokenTransaction({
+    required this.id,
+    required this.delta,
+    required this.type,
+    required this.timestamp,
+    required this.description,
+    this.reference,
+    this.metadata,
+  });
 
   factory TokenTransaction.fromJson(Map<String, dynamic> json) {
     return TokenTransaction(
@@ -128,15 +137,6 @@ class TokenTransaction {
       metadata: json['metadata']?.cast<String, dynamic>(),
     );
   }
-  const TokenTransaction({
-    required this.id,
-    required this.delta,
-    required this.type,
-    required this.timestamp,
-    required this.description,
-    this.reference,
-    this.metadata,
-  });
 
   final String id;
   final int delta;              // Positive for earn, negative for spend

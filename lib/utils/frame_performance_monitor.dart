@@ -194,8 +194,8 @@ class FramePerformanceMonitor {
   static void _logPerformanceStatistics() {
     if (_totalFrames == 0) return;
     
-    final slowFramePercentage = (_slowFrames / _totalFrames * 100);
-    final jankFramePercentage = (_jankFrames / _totalFrames * 100);
+    final slowFramePercentage = _slowFrames / _totalFrames * 100;
+    final jankFramePercentage = _jankFrames / _totalFrames * 100;
     
     WasteAppLogger.info('📊 Frame Performance Stats', null, null, {
       'total_frames': _totalFrames,

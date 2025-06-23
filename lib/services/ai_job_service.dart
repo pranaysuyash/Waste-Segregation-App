@@ -1,8 +1,6 @@
 import 'dart:io';
-import 'dart:typed_data';
 import 'dart:convert';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import '../models/ai_job.dart';
 import '../models/token_wallet.dart';

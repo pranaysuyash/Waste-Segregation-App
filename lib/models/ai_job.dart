@@ -2,6 +2,23 @@ import 'token_wallet.dart';
 
 /// AI processing job for batch queue system
 class AiJob {
+  const AiJob({
+    required this.id,
+    required this.userId,
+    required this.imagePath,
+    required this.speed,
+    required this.status,
+    required this.createdAt,
+    this.result,
+    this.completedAt,
+    this.errorMessage,
+    this.priority = false,
+    this.tokensSpent = 0,
+    this.metadata,
+    // Enhanced fields for better UX
+    this.queuePosition,
+    this.estimatedCompletion,
+  });
 
   factory AiJob.fromJson(Map<String, dynamic> json) {
     return AiJob(
@@ -50,23 +67,6 @@ class AiJob {
       metadata: metadata,
     );
   }
-  const AiJob({
-    required this.id,
-    required this.userId,
-    required this.imagePath,
-    required this.speed,
-    required this.status,
-    required this.createdAt,
-    this.result,
-    this.completedAt,
-    this.errorMessage,
-    this.priority = false,
-    this.tokensSpent = 0,
-    this.metadata,
-    // Enhanced fields for better UX
-    this.queuePosition,
-    this.estimatedCompletion,
-  });
 
   final String id;
   final String userId;
@@ -217,6 +217,21 @@ enum AiJobStatus {
 
 /// Queue statistics for monitoring
 class QueueStats {
+  const QueueStats({
+    required this.totalJobs,
+    required this.queuedJobs,
+    required this.processingJobs,
+    required this.completedToday,
+    required this.failedToday,
+    required this.averageWaitTime,
+    required this.lastUpdated,
+    // Enhanced fields for better monitoring and UX
+    required this.averageProcessingTime,
+    required this.estimatedWaitTime,
+    required this.successRate,
+    required this.failureRate,
+    required this.pendingJobs,
+  });
 
   factory QueueStats.fromJson(Map<String, dynamic> json) {
     return QueueStats(
@@ -253,21 +268,6 @@ class QueueStats {
       pendingJobs: 0,
     );
   }
-  const QueueStats({
-    required this.totalJobs,
-    required this.queuedJobs,
-    required this.processingJobs,
-    required this.completedToday,
-    required this.failedToday,
-    required this.averageWaitTime,
-    required this.lastUpdated,
-    // Enhanced fields for better monitoring and UX
-    required this.averageProcessingTime,
-    required this.estimatedWaitTime,
-    required this.successRate,
-    required this.failureRate,
-    required this.pendingJobs,
-  });
 
   final int totalJobs;
   final int queuedJobs;

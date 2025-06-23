@@ -160,10 +160,10 @@ class _AnalyticsRouteAwareState extends ConsumerState<AnalyticsRouteAware>
 
 /// Enhanced analytics route observer that can track additional metrics
 class EnhancedAnalyticsRouteObserver extends RouteObserver<PageRoute> {
-  final AnalyticsService analyticsService;
-  final Map<Route, DateTime> _routeStartTimes = {};
   
   EnhancedAnalyticsRouteObserver(this.analyticsService);
+  final AnalyticsService analyticsService;
+  final Map<Route, DateTime> _routeStartTimes = {};
 
   @override
   void didPush(Route<dynamic> route, Route<dynamic>? previousRoute) {
