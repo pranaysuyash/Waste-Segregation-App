@@ -29,7 +29,7 @@ void main() {
         await _testBottomNavigation($);
 
         // Take final screenshot
-        await $.takeScreenshot('01-complete-navigation-flow');
+        await $.native.takeScreenshot('01-complete-navigation-flow');
       },
     );
 
@@ -52,7 +52,7 @@ void main() {
         // Verify classification appears in history
         await _verifyClassificationInHistory($);
 
-        await $.takeScreenshot('02-classification-journey');
+        await $.native.takeScreenshot('02-classification-journey');
       },
     );
 
@@ -78,7 +78,7 @@ void main() {
         // Test achievements screen
         await _testAchievementsScreen($);
 
-        await $.takeScreenshot('03-points-achievements');
+        await $.native.takeScreenshot('03-points-achievements');
       },
     );
 
@@ -104,7 +104,7 @@ void main() {
         // Test premium features
         await _testPremiumFeatures($);
 
-        await $.takeScreenshot('04-settings-flow');
+        await $.native.takeScreenshot('04-settings-flow');
       },
     );
 
@@ -132,7 +132,7 @@ void main() {
         // Test recovery
         await _testConnectivityRecovery($);
 
-        await $.takeScreenshot('05-offline-handling');
+        await $.native.takeScreenshot('05-offline-handling');
       },
     );
 
@@ -155,7 +155,7 @@ void main() {
         // Test waste categories learning
         await _testWasteCategories($);
 
-        await $.takeScreenshot('06-educational-flow');
+        await $.native.takeScreenshot('06-educational-flow');
       },
     );
 
@@ -182,7 +182,7 @@ void main() {
         // Test scroll performance
         await _testScrollPerformance($);
 
-        await $.takeScreenshot('07-performance-testing');
+        await $.native.takeScreenshot('07-performance-testing');
       },
     );
 
@@ -202,7 +202,7 @@ void main() {
         // Test responsive design
         await _testResponsiveDesign($);
 
-        await $.takeScreenshot('08-platform-compatibility');
+        await $.native.takeScreenshot('08-platform-compatibility');
       },
     );
 
@@ -211,7 +211,7 @@ void main() {
 
 // Helper Functions
 
-Future<void> _handleConsentFlow(PatrolTester $) async {
+Future<void> _handleConsentFlow(PatrolIntegrationTester $) async {
   try {
     // Look for consent dialog with more comprehensive patterns
     await Future.delayed(const Duration(seconds: 1));
@@ -243,7 +243,7 @@ Future<void> _handleConsentFlow(PatrolTester $) async {
   }
 }
 
-Future<void> _handleAuthFlow(PatrolTester $) async {
+Future<void> _handleAuthFlow(PatrolIntegrationTester $) async {
   try {
     // Handle authentication screen - choose guest mode for testing
     await Future.delayed(const Duration(seconds: 2));
@@ -274,7 +274,7 @@ Future<void> _handleAuthFlow(PatrolTester $) async {
   }
 }
 
-Future<void> _verifyHomeScreen(PatrolTester $) async {
+Future<void> _verifyHomeScreen(PatrolIntegrationTester $) async {
   // Wait for home screen to load
   await Future.delayed(const Duration(seconds: 3));
   
@@ -293,7 +293,7 @@ Future<void> _verifyHomeScreen(PatrolTester $) async {
   );
 }
 
-Future<void> _testBottomNavigation(PatrolTester $) async {
+Future<void> _testBottomNavigation(PatrolIntegrationTester $) async {
   try {
     // Test bottom navigation
     if ($(NavigationBar).exists) {
@@ -352,7 +352,7 @@ Future<void> _testBottomNavigation(PatrolTester $) async {
   }
 }
 
-Future<void> _testCameraClassification(PatrolTester $) async {
+Future<void> _testCameraClassification(PatrolIntegrationTester $) async {
   try {
     // Test camera flow
     if ($(FloatingActionButton).exists) {
@@ -390,7 +390,7 @@ Future<void> _testCameraClassification(PatrolTester $) async {
   }
 }
 
-Future<void> _testGalleryClassification(PatrolTester $) async {
+Future<void> _testGalleryClassification(PatrolIntegrationTester $) async {
   try {
     // Test gallery flow
     if ($(FloatingActionButton).exists) {
@@ -419,7 +419,7 @@ Future<void> _testGalleryClassification(PatrolTester $) async {
   }
 }
 
-Future<void> _verifyClassificationInHistory(PatrolTester $) async {
+Future<void> _verifyClassificationInHistory(PatrolIntegrationTester $) async {
   try {
     // Navigate to history
     if ($(NavigationBar).exists) {
@@ -449,7 +449,7 @@ Future<void> _verifyClassificationInHistory(PatrolTester $) async {
   }
 }
 
-Future<String?> _getPointsDisplay(PatrolTester $) async {
+Future<String?> _getPointsDisplay(PatrolIntegrationTester $) async {
   try {
     if ($(const Text('Points')).exists) {
       return $(const Text('Points')).text;
@@ -462,7 +462,7 @@ Future<String?> _getPointsDisplay(PatrolTester $) async {
   }
 }
 
-Future<void> _performMockClassification(PatrolTester $) async {
+Future<void> _performMockClassification(PatrolIntegrationTester $) async {
   try {
     // Simulate a classification action
     if ($(FloatingActionButton).exists) {
@@ -477,7 +477,7 @@ Future<void> _performMockClassification(PatrolTester $) async {
   }
 }
 
-Future<void> _verifyPointsIncreased(PatrolTester $, String? initialPoints) async {
+Future<void> _verifyPointsIncreased(PatrolIntegrationTester $, String? initialPoints) async {
   await Future.delayed(const Duration(seconds: 1));
   try {
     if (initialPoints != null) {
@@ -491,7 +491,7 @@ Future<void> _verifyPointsIncreased(PatrolTester $, String? initialPoints) async
   }
 }
 
-Future<void> _testAchievementsScreen(PatrolTester $) async {
+Future<void> _testAchievementsScreen(PatrolIntegrationTester $) async {
   try {
     // Navigate to achievements
     if ($(NavigationBar).exists) {
@@ -521,7 +521,7 @@ Future<void> _testAchievementsScreen(PatrolTester $) async {
   }
 }
 
-Future<void> _testSettingsNavigation(PatrolTester $) async {
+Future<void> _testSettingsNavigation(PatrolIntegrationTester $) async {
   try {
     // Try to find settings
     if ($(const Text('Settings')).exists) {
@@ -546,7 +546,7 @@ Future<void> _testSettingsNavigation(PatrolTester $) async {
   }
 }
 
-Future<void> _testThemeSettings(PatrolTester $) async {
+Future<void> _testThemeSettings(PatrolIntegrationTester $) async {
   try {
     if ($(const Text('Theme')).exists) {
       await $(const Text('Theme')).tap();
@@ -566,7 +566,7 @@ Future<void> _testThemeSettings(PatrolTester $) async {
   }
 }
 
-Future<void> _testNotificationSettings(PatrolTester $) async {
+Future<void> _testNotificationSettings(PatrolIntegrationTester $) async {
   try {
     if ($(const Text('Notifications')).exists) {
       await $(const Text('Notifications')).tap();
@@ -585,7 +585,7 @@ Future<void> _testNotificationSettings(PatrolTester $) async {
   }
 }
 
-Future<void> _testPremiumFeatures(PatrolTester $) async {
+Future<void> _testPremiumFeatures(PatrolIntegrationTester $) async {
   try {
     if ($(const Text('Premium')).exists) {
       await $(const Text('Premium')).tap();
@@ -605,7 +605,7 @@ Future<void> _testPremiumFeatures(PatrolTester $) async {
   }
 }
 
-Future<void> _testOfflineBehavior(PatrolTester $) async {
+Future<void> _testOfflineBehavior(PatrolIntegrationTester $) async {
   try {
     // Try to perform actions while offline
     if ($(FloatingActionButton).exists) {
@@ -622,7 +622,7 @@ Future<void> _testOfflineBehavior(PatrolTester $) async {
   }
 }
 
-Future<void> _testConnectivityRecovery(PatrolTester $) async {
+Future<void> _testConnectivityRecovery(PatrolIntegrationTester $) async {
   try {
     await Future.delayed(const Duration(seconds: 3));
     
@@ -639,7 +639,7 @@ Future<void> _testConnectivityRecovery(PatrolTester $) async {
   }
 }
 
-Future<void> _testEducationalContent(PatrolTester $) async {
+Future<void> _testEducationalContent(PatrolIntegrationTester $) async {
   try {
     // Navigate to educational content
     if ($(NavigationBar).exists) {
@@ -669,7 +669,7 @@ Future<void> _testEducationalContent(PatrolTester $) async {
   }
 }
 
-Future<void> _testDailyTips(PatrolTester $) async {
+Future<void> _testDailyTips(PatrolIntegrationTester $) async {
   try {
     // Look for daily tips
     if ($(const Text('Daily Tip')).exists || $(const Text('DAILY TIP')).exists) {
@@ -684,7 +684,7 @@ Future<void> _testDailyTips(PatrolTester $) async {
   }
 }
 
-Future<void> _testWasteCategories(PatrolTester $) async {
+Future<void> _testWasteCategories(PatrolIntegrationTester $) async {
   try {
     // Test waste category interaction
     final categories = ['Wet Waste', 'Dry Waste', 'Hazardous', 'Recyclable'];
@@ -704,7 +704,7 @@ Future<void> _testWasteCategories(PatrolTester $) async {
   }
 }
 
-Future<void> _testRapidNavigation(PatrolTester $) async {
+Future<void> _testRapidNavigation(PatrolIntegrationTester $) async {
   try {
     // Test rapid navigation between tabs
     if ($(NavigationBar).exists) {
@@ -724,7 +724,7 @@ Future<void> _testRapidNavigation(PatrolTester $) async {
   }
 }
 
-Future<void> _testScrollPerformance(PatrolTester $) async {
+Future<void> _testScrollPerformance(PatrolIntegrationTester $) async {
   try {
     // Navigate to history for scroll testing
     if ($(NavigationBar).exists) {
@@ -751,7 +751,7 @@ Future<void> _testScrollPerformance(PatrolTester $) async {
   }
 }
 
-Future<void> _testPlatformFeatures(PatrolTester $) async {
+Future<void> _testPlatformFeatures(PatrolIntegrationTester $) async {
   try {
     // Test platform-specific features
     await $.native.pressBack();
@@ -764,7 +764,7 @@ Future<void> _testPlatformFeatures(PatrolTester $) async {
   }
 }
 
-Future<void> _testResponsiveDesign(PatrolTester $) async {
+Future<void> _testResponsiveDesign(PatrolIntegrationTester $) async {
   try {
     // Test different orientations if supported
     await $.native.setOrientation(Orientation.landscape);

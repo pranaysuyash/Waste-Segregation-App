@@ -77,7 +77,7 @@ class DebugHomePage extends StatelessWidget {
               width: 200,
               height: 100,
               decoration: BoxDecoration(
-                color: Colors.blue.withOpacity(0.3),
+                color: Colors.blue.withValues(alpha: 0.3),
                 borderRadius: BorderRadius.circular(10),
                 border: Border.all(color: Colors.blue),
               ),

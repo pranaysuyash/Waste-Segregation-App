@@ -75,7 +75,7 @@ class ResultHeader extends ConsumerWidget {
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.1),
+              color: Colors.black.withValues(alpha: 0.1),
               blurRadius: 8,
               offset: const Offset(0, 2),
             ),
@@ -108,10 +108,10 @@ class ResultHeader extends ConsumerWidget {
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
           decoration: BoxDecoration(
-            color: _getCategoryColor(category).withOpacity(0.1),
+            color: _getCategoryColor(category).withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(20),
             border: Border.all(
-              color: _getCategoryColor(category).withOpacity(0.3),
+              color: _getCategoryColor(category).withValues(alpha: 0.3),
             ),
           ),
           child: Row(
@@ -167,7 +167,7 @@ class ResultHeader extends ConsumerWidget {
                        gradient: LinearGradient(
                          colors: [
                            _getConfidenceColor(confidence ?? 0.0),
-                           _getConfidenceColor(confidence ?? 0.0).withOpacity(0.8),
+                           _getConfidenceColor(confidence ?? 0.0).withValues(alpha: 0.8),
                          ],
                        ),
                      ),
@@ -233,10 +233,10 @@ class ResultHeader extends ConsumerWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
+        color: color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: color.withOpacity(0.2),
+          color: color.withValues(alpha: 0.2),
         ),
       ),
       child: Column(

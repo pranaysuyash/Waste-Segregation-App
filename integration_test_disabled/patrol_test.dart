@@ -29,7 +29,7 @@ void main() {
         await _testBasicNavigation($);
 
         // Take screenshot for verification
-        await $.takeScreenshot('basic-app-launch');
+        await $.native.takeScreenshot('basic-app-launch');
       },
     );
 
@@ -46,7 +46,7 @@ void main() {
         // Test camera/classification flow
         await _testClassificationFlow($);
 
-        await $.takeScreenshot('classification-flow');
+        await $.native.takeScreenshot('classification-flow');
       },
     );
 
@@ -63,7 +63,7 @@ void main() {
         // Test points display and functionality
         await _testPointsSystem($);
 
-        await $.takeScreenshot('points-system');
+        await $.native.takeScreenshot('points-system');
       },
     );
 
@@ -80,7 +80,7 @@ void main() {
         // Test settings navigation and basic features
         await _testSettingsFlow($);
 
-        await $.takeScreenshot('settings-flow');
+        await $.native.takeScreenshot('settings-flow');
       },
     );
 
@@ -97,7 +97,7 @@ void main() {
         // Test app behavior when offline
         await _testOfflineMode($);
 
-        await $.takeScreenshot('offline-mode');
+        await $.native.takeScreenshot('offline-mode');
       },
     );
   });
@@ -105,7 +105,7 @@ void main() {
 
 // Helper Functions
 
-Future<void> _handleConsentFlow(PatrolTester $) async {
+Future<void> _handleConsentFlow(PatrolIntegrationTester $) async {
   try {
     // Look for various consent dialog patterns
     if ($(const Text('Privacy Policy')).exists || 
@@ -130,7 +130,7 @@ Future<void> _handleConsentFlow(PatrolTester $) async {
   }
 }
 
-Future<void> _handleAuthFlow(PatrolTester $) async {
+Future<void> _handleAuthFlow(PatrolIntegrationTester $) async {
   try {
     // Look for auth screen and choose guest mode for testing
     await Future.delayed(const Duration(seconds: 2));
@@ -164,7 +164,7 @@ Future<void> _handleAuthFlow(PatrolTester $) async {
   }
 }
 
-Future<void> _verifyHomeScreen(PatrolTester $) async {
+Future<void> _verifyHomeScreen(PatrolIntegrationTester $) async {
   // Wait a bit more for home screen to load
   await Future.delayed(const Duration(seconds: 3));
   
@@ -182,7 +182,7 @@ Future<void> _verifyHomeScreen(PatrolTester $) async {
   );
 }
 
-Future<void> _testBasicNavigation(PatrolTester $) async {
+Future<void> _testBasicNavigation(PatrolIntegrationTester $) async {
   try {
     // Test bottom navigation if it exists
     if ($(NavigationBar).exists) {
@@ -227,7 +227,7 @@ Future<void> _testBasicNavigation(PatrolTester $) async {
   }
 }
 
-Future<void> _testClassificationFlow(PatrolTester $) async {
+Future<void> _testClassificationFlow(PatrolIntegrationTester $) async {
   try {
     // Look for classification/scan button
     if ($(FloatingActionButton).exists) {
@@ -260,7 +260,7 @@ Future<void> _testClassificationFlow(PatrolTester $) async {
   }
 }
 
-Future<void> _testPointsSystem(PatrolTester $) async {
+Future<void> _testPointsSystem(PatrolIntegrationTester $) async {
   try {
     // Look for points display
     if ($(const Text('Points')).exists || 
@@ -290,7 +290,7 @@ Future<void> _testPointsSystem(PatrolTester $) async {
   }
 }
 
-Future<void> _testSettingsFlow(PatrolTester $) async {
+Future<void> _testSettingsFlow(PatrolIntegrationTester $) async {
   try {
     // Look for settings access
     if ($(const Text('Settings')).exists) {
@@ -330,7 +330,7 @@ Future<void> _testSettingsFlow(PatrolTester $) async {
   }
 }
 
-Future<void> _testOfflineMode(PatrolTester $) async {
+Future<void> _testOfflineMode(PatrolIntegrationTester $) async {
   try {
     // Disable network
     await $.native.disableWifi();

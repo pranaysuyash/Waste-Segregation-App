@@ -203,9 +203,7 @@ class GamificationNotifier extends AsyncNotifier<GamificationProfile> {
       );
     }
 
-    final daysSinceLastActivity = currentStreak.lastActivityDate != null
-        ? now.difference(currentStreak.lastActivityDate).inDays
-        : 1;
+    final daysSinceLastActivity = now.difference(currentStreak.lastActivityDate).inDays;
 
     if (daysSinceLastActivity == 1) {
       // Continue streak
