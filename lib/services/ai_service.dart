@@ -417,8 +417,13 @@ Output:
         
         // Generate both hashes efficiently in isolate to prevent UI lag
         final hashes = await ImageUtils.generateDualHashes(imageBytes);
-        imageHash = hashes['perceptualHash']!;
-        contentHash = hashes['contentHash']!;
+        imageHash = hashes['perceptualHash'];
+        contentHash = hashes['contentHash'];
+        
+        if (imageHash == null || contentHash == null) {
+          WasteAppLogger.severe('Failed to generate image hashes', null, null, {'hashes': hashes});
+          throw Exception('Failed to generate required image hashes');
+        }
         
         WasteAppLogger.info('Generated perceptual hash: $imageHash');
         WasteAppLogger.info('Generated content hash: $contentHash');
@@ -550,8 +555,13 @@ Output:
       if (cachingEnabled) {
         // Generate both hashes efficiently in isolate to prevent UI lag
         final hashes = await ImageUtils.generateDualHashes(imageBytes);
-        imageHash = hashes['perceptualHash']!;
-        contentHash = hashes['contentHash']!;
+        imageHash = hashes['perceptualHash'];
+        contentHash = hashes['contentHash'];
+        
+        if (imageHash == null || contentHash == null) {
+          WasteAppLogger.severe('Failed to generate web image hashes', null, null, {'hashes': hashes});
+          throw Exception('Failed to generate required image hashes for web image');
+        }
         
         WasteAppLogger.info('Generated perceptual hash for web image: $imageHash');
         WasteAppLogger.info('Generated content hash for web image: $contentHash');

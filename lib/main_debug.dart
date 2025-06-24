@@ -1,11 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart' show kIsWeb, kDebugMode;
+import 'utils/waste_app_logger.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   
   if (kDebugMode) {
-    print('🌐 Starting simplified web debug mode');
+    await WasteAppLogger.initialize();
+    WasteAppLogger.info('🌐 Starting simplified web debug mode', null, null, {
+      'platform': kIsWeb ? 'web' : 'mobile',
+      'mode': 'debug'
+    });
   }
   
   runApp(const DebugWasteApp());
@@ -65,7 +70,10 @@ class DebugHomePage extends StatelessWidget {
             const SizedBox(height: 20),
             ElevatedButton(
               onPressed: () {
-                print('Debug button pressed');
+                WasteAppLogger.userAction('debug_button_pressed', context: {
+                  'screen': 'debug_home',
+                  'test_type': 'rendering'
+                });
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(content: Text('Debug test successful!')),
                 );

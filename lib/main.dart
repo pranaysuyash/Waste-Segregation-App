@@ -157,7 +157,7 @@ void main() async {
     WasteAppLogger.severe('Firebase initialization failed', e, s);
     // Continue with app initialization even if Firebase fails
     if (kDebugMode) {
-      print('Firebase initialization error: $e');
+      WasteAppLogger.severe('Firebase initialization error', e);
     }
   }
 

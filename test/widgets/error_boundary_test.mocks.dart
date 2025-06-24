@@ -58,9 +58,9 @@ class MockAnalyticsService extends _i1.Mock implements _i2.AnalyticsService {
       );
 
   @override
-  void trackSessionEnd() => super.noSuchMethod(
+  void trackSessionEndLegacy() => super.noSuchMethod(
         Invocation.method(
-          #trackSessionEnd,
+          #trackSessionEndLegacy,
           [],
         ),
         returnValueForMissingStub: null,
@@ -201,6 +201,313 @@ class MockAnalyticsService extends _i1.Mock implements _i2.AnalyticsService {
             #errorType: errorType,
             #errorMessage: errorMessage,
             #stackTrace: stackTrace,
+            #additionalData: additionalData,
+          },
+        ),
+        returnValue: _i3.Future<void>.value(),
+        returnValueForMissingStub: _i3.Future<void>.value(),
+      ) as _i3.Future<void>);
+
+  @override
+  _i3.Future<void> trackSessionStart() => (super.noSuchMethod(
+        Invocation.method(
+          #trackSessionStart,
+          [],
+        ),
+        returnValue: _i3.Future<void>.value(),
+        returnValueForMissingStub: _i3.Future<void>.value(),
+      ) as _i3.Future<void>);
+
+  @override
+  _i3.Future<void> trackSessionEnd() => (super.noSuchMethod(
+        Invocation.method(
+          #trackSessionEnd,
+          [],
+        ),
+        returnValue: _i3.Future<void>.value(),
+        returnValueForMissingStub: _i3.Future<void>.value(),
+      ) as _i3.Future<void>);
+
+  @override
+  _i3.Future<void> trackPageView(
+    String? screenName, {
+    String? previousScreen,
+    String? navigationMethod,
+    int? timeOnPreviousScreen,
+  }) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #trackPageView,
+          [screenName],
+          {
+            #previousScreen: previousScreen,
+            #navigationMethod: navigationMethod,
+            #timeOnPreviousScreen: timeOnPreviousScreen,
+          },
+        ),
+        returnValue: _i3.Future<void>.value(),
+        returnValueForMissingStub: _i3.Future<void>.value(),
+      ) as _i3.Future<void>);
+
+  @override
+  _i3.Future<void> trackClick({
+    required String? elementId,
+    required String? screenName,
+    required String? elementType,
+    String? userIntent,
+    Map<String, dynamic>? additionalData,
+  }) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #trackClick,
+          [],
+          {
+            #elementId: elementId,
+            #screenName: screenName,
+            #elementType: elementType,
+            #userIntent: userIntent,
+            #additionalData: additionalData,
+          },
+        ),
+        returnValue: _i3.Future<void>.value(),
+        returnValueForMissingStub: _i3.Future<void>.value(),
+      ) as _i3.Future<void>);
+
+  @override
+  _i3.Future<void> trackRageClick({
+    required String? elementId,
+    required String? screenName,
+    required int? tapCount,
+    Map<String, dynamic>? additionalData,
+  }) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #trackRageClick,
+          [],
+          {
+            #elementId: elementId,
+            #screenName: screenName,
+            #tapCount: tapCount,
+            #additionalData: additionalData,
+          },
+        ),
+        returnValue: _i3.Future<void>.value(),
+        returnValueForMissingStub: _i3.Future<void>.value(),
+      ) as _i3.Future<void>);
+
+  @override
+  _i3.Future<void> trackScrollDepth({
+    required int? depthPercent,
+    required String? screenName,
+    String? contentType,
+    Map<String, dynamic>? additionalData,
+  }) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #trackScrollDepth,
+          [],
+          {
+            #depthPercent: depthPercent,
+            #screenName: screenName,
+            #contentType: contentType,
+            #additionalData: additionalData,
+          },
+        ),
+        returnValue: _i3.Future<void>.value(),
+        returnValueForMissingStub: _i3.Future<void>.value(),
+      ) as _i3.Future<void>);
+
+  @override
+  _i3.Future<void> trackFileClassified({
+    required String? classificationId,
+    required String? category,
+    required double? confidenceScore,
+    required int? processingDuration,
+    required String? modelVersion,
+    String? method,
+    bool? resultAccuracy,
+    Map<String, dynamic>? additionalData,
+  }) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #trackFileClassified,
+          [],
+          {
+            #classificationId: classificationId,
+            #category: category,
+            #confidenceScore: confidenceScore,
+            #processingDuration: processingDuration,
+            #modelVersion: modelVersion,
+            #method: method,
+            #resultAccuracy: resultAccuracy,
+            #additionalData: additionalData,
+          },
+        ),
+        returnValue: _i3.Future<void>.value(),
+        returnValueForMissingStub: _i3.Future<void>.value(),
+      ) as _i3.Future<void>);
+
+  @override
+  _i3.Future<void> trackClassificationRetried({
+    required String? classificationId,
+    required double? originalConfidence,
+    required String? retryReason,
+    required int? attemptNumber,
+    Map<String, dynamic>? additionalData,
+  }) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #trackClassificationRetried,
+          [],
+          {
+            #classificationId: classificationId,
+            #originalConfidence: originalConfidence,
+            #retryReason: retryReason,
+            #attemptNumber: attemptNumber,
+            #additionalData: additionalData,
+          },
+        ),
+        returnValue: _i3.Future<void>.value(),
+        returnValueForMissingStub: _i3.Future<void>.value(),
+      ) as _i3.Future<void>);
+
+  @override
+  _i3.Future<void> trackSlowResource({
+    required String? operationName,
+    required int? durationMs,
+    required String? resourceType,
+    Map<String, dynamic>? additionalData,
+  }) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #trackSlowResource,
+          [],
+          {
+            #operationName: operationName,
+            #durationMs: durationMs,
+            #resourceType: resourceType,
+            #additionalData: additionalData,
+          },
+        ),
+        returnValue: _i3.Future<void>.value(),
+        returnValueForMissingStub: _i3.Future<void>.value(),
+      ) as _i3.Future<void>);
+
+  @override
+  _i3.Future<void> trackApiError({
+    required String? endpoint,
+    required int? statusCode,
+    required int? latencyMs,
+    int? retryCount,
+    String? errorMessage,
+    Map<String, dynamic>? additionalData,
+  }) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #trackApiError,
+          [],
+          {
+            #endpoint: endpoint,
+            #statusCode: statusCode,
+            #latencyMs: latencyMs,
+            #retryCount: retryCount,
+            #errorMessage: errorMessage,
+            #additionalData: additionalData,
+          },
+        ),
+        returnValue: _i3.Future<void>.value(),
+        returnValueForMissingStub: _i3.Future<void>.value(),
+      ) as _i3.Future<void>);
+
+  @override
+  _i3.Future<void> trackClientError({
+    required String? errorMessage,
+    required String? screenName,
+    String? stackTrace,
+    String? userAction,
+    Map<String, dynamic>? additionalData,
+  }) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #trackClientError,
+          [],
+          {
+            #errorMessage: errorMessage,
+            #screenName: screenName,
+            #stackTrace: stackTrace,
+            #userAction: userAction,
+            #additionalData: additionalData,
+          },
+        ),
+        returnValue: _i3.Future<void>.value(),
+        returnValueForMissingStub: _i3.Future<void>.value(),
+      ) as _i3.Future<void>);
+
+  @override
+  _i3.Future<void> trackPointsEarned({
+    required int? pointsAmount,
+    required String? sourceAction,
+    required int? totalPoints,
+    String? category,
+    Map<String, dynamic>? additionalData,
+  }) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #trackPointsEarned,
+          [],
+          {
+            #pointsAmount: pointsAmount,
+            #sourceAction: sourceAction,
+            #totalPoints: totalPoints,
+            #category: category,
+            #additionalData: additionalData,
+          },
+        ),
+        returnValue: _i3.Future<void>.value(),
+        returnValueForMissingStub: _i3.Future<void>.value(),
+      ) as _i3.Future<void>);
+
+  @override
+  _i3.Future<void> trackContentViewed({
+    required String? contentId,
+    required String? contentType,
+    String? source,
+    int? userLevel,
+    Map<String, dynamic>? additionalData,
+  }) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #trackContentViewed,
+          [],
+          {
+            #contentId: contentId,
+            #contentType: contentType,
+            #source: source,
+            #userLevel: userLevel,
+            #additionalData: additionalData,
+          },
+        ),
+        returnValue: _i3.Future<void>.value(),
+        returnValueForMissingStub: _i3.Future<void>.value(),
+      ) as _i3.Future<void>);
+
+  @override
+  _i3.Future<void> trackContentCompleted({
+    required String? contentId,
+    required int? timeSpentMs,
+    double? completionRate,
+    int? quizScore,
+    Map<String, dynamic>? additionalData,
+  }) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #trackContentCompleted,
+          [],
+          {
+            #contentId: contentId,
+            #timeSpentMs: timeSpentMs,
+            #completionRate: completionRate,
+            #quizScore: quizScore,
             #additionalData: additionalData,
           },
         ),

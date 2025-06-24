@@ -4,6 +4,7 @@
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
 import 'dart:async' as _i3;
+import 'dart:io' as _i10;
 
 import 'package:mockito/mockito.dart' as _i1;
 import 'package:mockito/src/dummies.dart' as _i7;
@@ -570,4 +571,29 @@ class MockCloudStorageService extends _i1.Mock
         returnValue: _i3.Future<void>.value(),
         returnValueForMissingStub: _i3.Future<void>.value(),
       ) as _i3.Future<void>);
+
+  @override
+  _i3.Future<String> uploadImageForBatchProcessing(
+    _i10.File? imageFile,
+    String? userId,
+  ) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #uploadImageForBatchProcessing,
+          [
+            imageFile,
+            userId,
+          ],
+        ),
+        returnValue: _i3.Future<String>.value(_i7.dummyValue<String>(
+          this,
+          Invocation.method(
+            #uploadImageForBatchProcessing,
+            [
+              imageFile,
+              userId,
+            ],
+          ),
+        )),
+      ) as _i3.Future<String>);
 }
