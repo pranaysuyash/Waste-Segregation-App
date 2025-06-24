@@ -99,7 +99,8 @@ class MockClassificationCacheService extends Mock implements ClassificationCache
   @override
   Future<CachedClassification?> getCachedClassification(
     String imageHash, {
-    int similarityThreshold = 10,
+    String? contentHash,
+    int similarityThreshold = 6,
   }) async {
     return _mockCache[imageHash];
   }
@@ -108,6 +109,7 @@ class MockClassificationCacheService extends Mock implements ClassificationCache
   Future<void> cacheClassification(
     String imageHash,
     WasteClassification classification, {
+    String? contentHash,
     int? imageSize,
   }) async {
     _mockCache[imageHash] = CachedClassification.fromClassification(

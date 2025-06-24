@@ -200,18 +200,20 @@ void main() {
         final imageData = Uint8List.fromList([1, 2, 3, 4, 5]);
         final imageHash = sha256.convert(imageData).toString();
         
-        final classification = WasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
+        final classification = WasteClassification(
           itemName: 'Plastic Bottle',
+          category: 'plastic',
           subcategory: 'Plastic',
           explanation: 'Recyclable plastic bottle',
+          region: 'Test Region',
+          visualFeatures: const ['plastic', 'bottle'],
+          alternatives: const [],
+          disposalInstructions: DisposalInstructions(
             primaryMethod: 'Recycle',
-            steps: ['Clean', 'Recycle'],
+            steps: const ['Clean', 'Recycle'],
             hasUrgentTimeframe: false,
           ),
           timestamp: DateTime.now(),
-          region: 'Test Region',
-          visualFeatures: ['plastic', 'bottle'],
-          alternatives: [],
           confidence: 0.95,
         );
 
@@ -222,9 +224,9 @@ void main() {
         final cachedResult = await cacheService.getCachedClassification(imageHash);
 
         expect(cachedResult, isNotNull);
-        expect(cachedResult!.itemName, equals('Plastic Bottle'));
-        expect(cachedResult.category, equals('Dry Waste'));
-        expect(cachedResult.confidence, equals(0.95));
+        expect(cachedResult!.classification.itemName, equals('Plastic Bottle'));
+        expect(cachedResult.classification.category, equals('plastic'));
+        expect(cachedResult.classification.confidence, equals(0.95));
       });
 
       test('should return null for non-existent cache entries', () async {
@@ -273,17 +275,19 @@ void main() {
         // Add items beyond the limit
         for (var i = 0; i < maxCacheSize + 5; i++) {
           final imageHash = 'hash_$i';
-          final classification = WasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
+          final classification = WasteClassification(
             itemName: 'Item $i',
+            category: 'plastic',
             explanation: 'Test item $i',
+            region: 'Test Region',
+            visualFeatures: const [],
+            alternatives: const [],
+            disposalInstructions: DisposalInstructions(
               primaryMethod: 'Test',
-              steps: ['Step 1'],
+              steps: const ['Step 1'],
               hasUrgentTimeframe: false,
             ),
             timestamp: DateTime.now(),
-            region: 'Test Region',
-            visualFeatures: [],
-            alternatives: [],
           );
           
           await cacheService.cacheClassification(imageHash, classification);
@@ -398,9 +402,9 @@ void main() {
         await cacheService.getCachedClassification('hash_2');
 
         final stats = cacheService.getCacheStatistics();
-        expect(stats.hits, equals(1));
-        expect(stats.misses, equals(1));
-        expect(stats.hitRate, equals(0.5));
+        expect(stats['hits'], equals(1));
+        expect(stats['misses'], equals(1));
+        expect(stats['hitRate'], equals('50.0%'));
       });
 
       test('should track cache operations performance', () async {
@@ -415,8 +419,8 @@ void main() {
         final retrieveTime = stopwatch.elapsedMicroseconds;
 
         final stats = cacheService.getCacheStatistics();
-        expect(stats.averageCacheTime, greaterThan(0));
-        expect(stats.averageRetrieveTime, greaterThan(0));
+        expect(stats['averageCacheTime'], greaterThan(0));
+        expect(stats['averageRetrieveTime'], greaterThan(0));
         expect(retrieveTime, lessThan(cacheTime)); // Retrieval should be faster
       });
 
@@ -438,9 +442,9 @@ void main() {
         }
 
         final stats = cacheService.getCacheStatistics();
-        expect(stats.totalEntries, equals(10));
-        expect(stats.mostAccessedEntry, equals('hash_0'));
-        expect(stats.leastAccessedEntry, equals('hash_9'));
+        expect(stats['totalEntries'], equals(10));
+        expect(stats['mostAccessedEntry'], equals('hash_0'));
+        expect(stats['leastAccessedEntry'], equals('hash_9'));
       });
     });
 
@@ -456,7 +460,7 @@ void main() {
 
         final result = await newCacheService.getCachedClassification('persist_hash');
         expect(result, isNotNull);
-        expect(result!.itemName, equals('Persistent Item'));
+        expect(result!.classification.itemName, equals('Persistent Item'));
       });
 
       test('should handle corrupted cache data gracefully', () async {
@@ -489,7 +493,7 @@ void main() {
 
         // Verify data integrity
         final restoredItem = await cacheService.getCachedClassification('backup_hash_0');
-        expect(restoredItem!.itemName, equals('Backup Item 0'));
+        expect(restoredItem!.classification.itemName, equals('Backup Item 0'));
       });
     });
 
@@ -548,7 +552,7 @@ void main() {
         // Should have only one version (last writer wins or proper locking)
         final result = await cacheService.getCachedClassification('race_hash');
         expect(result, isNotNull);
-        expect(result!.itemName, anyOf('Version 1', 'Version 2'));
+        expect(result!.classification.itemName, anyOf('Version 1', 'Version 2'));
       });
     });
 
@@ -639,17 +643,17 @@ extension CacheServiceTestExtension on CacheService {
     // Mock implementation
   }
   
-  Future<CacheStatistics> getCacheStatistics() async {
-    return CacheStatistics(
-      hits: 1,
-      misses: 1,
-      totalEntries: 2,
-      hitRate: 0.5,
-      averageCacheTime: 100,
-      averageRetrieveTime: 50,
-      mostAccessedEntry: 'hash_0',
-      leastAccessedEntry: 'hash_9',
-    );
+  Map<String, dynamic> getCacheStatistics() {
+    return {
+      'hits': 1,
+      'misses': 1,
+      'totalEntries': 2,
+      'hitRate': '50.0%',
+      'averageCacheTime': 100,
+      'averageRetrieveTime': 50,
+      'mostAccessedEntry': 'hash_0',
+      'leastAccessedEntry': 'hash_9',
+    };
   }
   
   Future<void> saveCacheToStorage() async {
