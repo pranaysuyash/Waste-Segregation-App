@@ -16,8 +16,12 @@ class ColorAdapter extends TypeAdapter<Color> {
 
   @override
   void write(BinaryWriter writer, Color obj) {
-    // Use toARGB32() instead of deprecated value property
-    writer.writeUint32(obj.toARGB32());
+    // Use proper color serialization without deprecated methods
+    final alpha = (obj.a * 255).round();
+    final red = (obj.r * 255).round();
+    final green = (obj.g * 255).round();
+    final blue = (obj.b * 255).round();
+    writer.writeUint32((alpha << 24) | (red << 16) | (green << 8) | blue);
   }
 }
 
@@ -233,7 +237,7 @@ class Achievement {   // For meta-achievements
       'type': type.toString().split('.').last,
       'threshold': threshold,
       'iconName': iconName,
-      'color': color.toARGB32(),
+      'color': ((color.a * 255).round() << 24) | ((color.r * 255).round() << 16) | ((color.g * 255).round() << 8) | (color.b * 255).round(),
       'isSecret': isSecret,
       'earnedOn': earnedOn?.toIso8601String(),
       'progress': progress,
@@ -424,7 +428,7 @@ class Challenge { // For team challenges
       'endDate': endDate.toIso8601String(),
       'pointsReward': pointsReward,
       'iconName': iconName,
-      'color': color.toARGB32(),
+      'color': ((color.a * 255).round() << 24) | ((color.r * 255).round() << 16) | ((color.g * 255).round() << 8) | (color.b * 255).round(),
       'requirements': requirements,
       'isCompleted': isCompleted,
       'progress': progress,
