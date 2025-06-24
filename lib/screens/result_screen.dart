@@ -55,7 +55,6 @@ class _ResultScreenState extends State<ResultScreen>
   bool _isSaved = false;
   bool _isAutoSaving = false;
   bool _showingClassificationFeedback = false;
-  final bool _isEducationalFactExpanded = false;
   
   List<Achievement> _newlyEarnedAchievements = [];
   int _pointsEarned = 0;

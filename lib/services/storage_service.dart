@@ -21,14 +21,9 @@ import 'hive_manager.dart';
 import '../utils/waste_app_logger.dart';
 
 class StorageService {
-  static const String _userProfileKey = 'user_profile';
-  
   // Global lock mechanism to prevent concurrent saves across all code paths
   static final Map<String, DateTime> _recentSaves = <String, DateTime>{};
   static final Set<String> _activeSaves = <String>{};
-  
-  // Constants for batch operations
-  static const int _maxOpsPerBatch = 450; // Firestore limit is 500, leave buffer
 
   // Initialize Hive database
   static Future<void> initializeHive() async {

@@ -55,7 +55,6 @@ class ResultPipelineState {
 class ResultPipeline extends StateNotifier<ResultPipelineState> {
 
   ResultPipeline(
-    this._ref,
     this._storageService,
     this._gamificationService,
     this._cloudStorageService,
@@ -69,7 +68,6 @@ class ResultPipeline extends StateNotifier<ResultPipelineState> {
   final CommunityService _communityService;
   final AdService _adService;
   final AnalyticsService _analyticsService;
-  final Ref _ref;
 
   // Track classifications being processed to prevent duplicates
   static final Set<String> _processingClassifications = <String>{};
@@ -360,7 +358,6 @@ final resultPipelineProvider = StateNotifierProvider<ResultPipeline, ResultPipel
   final analyticsService = ref.read(analyticsServiceProvider);
 
   return ResultPipeline(
-    ref,
     storageService,
     gamificationService,
     cloudStorageService,

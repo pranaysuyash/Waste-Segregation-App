@@ -1,6 +1,5 @@
 import 'dart:io';
 import 'package:flutter/foundation.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:path_provider/path_provider.dart';
 import '../models/waste_classification.dart';
 import 'storage_service.dart';
@@ -12,7 +11,6 @@ class ClassificationMigrationService {
   ClassificationMigrationService(this._localStorageService, this._cloudStorageService);
   final StorageService _localStorageService;
   final CloudStorageService _cloudStorageService;
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   /// Migrate old classifications by updating imageUrl if images exist locally
   Future<MigrationResult> migrateOldClassifications() async {
