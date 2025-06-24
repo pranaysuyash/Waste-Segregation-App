@@ -273,7 +273,9 @@ class EnhancedImageService {
         if (now.difference(stat.modified) > olderThan) {
           try {
             await entity.delete();
-          } catch (_) {}
+          } catch (e) {
+            WasteAppLogger.severe('Failed to delete temporary file: ${entity.path}', e);
+          }
         }
       }
     }
