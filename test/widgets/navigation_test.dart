@@ -3,13 +3,15 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mockito/mockito.dart';
 import 'package:image_picker/image_picker.dart';
+import 'dart:io';
 
 import '../test_config/test_app_wrapper.dart';
 import '../mocks/mock_services.dart';
 import '../../lib/screens/new_modern_home_screen.dart';
 import '../../lib/screens/instant_analysis_screen.dart';
+import 'package:waste_segregation_app/models/gamification.dart';
 import '../../lib/screens/result_screen.dart';
-import '../../lib/models/waste_classification.dart';
+import 'package:waste_segregation_app/models/waste_classification.dart';
 import '../../lib/models/recycling_code.dart';
 
 void main() {
@@ -24,17 +26,19 @@ void main() {
       mockStorageService = MockStorageService();
       mockGamificationService = MockGamificationService();
       
-      mockClassification = WasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
+      mockClassification = WasteClassification(
         id: 'test-id',
         itemName: 'Test Item',
+        category: 'plastic',
         explanation: 'Test explanation',
+        region: 'Test Region',
+        visualFeatures: const ['test feature'],
+        alternatives: const [],
+        disposalInstructions: DisposalInstructions(
           primaryMethod: 'Test method',
-          steps: ['Test step'],
+          steps: const ['Test step'],
           hasUrgentTimeframe: false,
         ),
-        region: 'Test Region',
-        visualFeatures: [],
-        alternatives: [],
         confidence: 0.95,
         timestamp: DateTime.now(),
         imageRelativePath: 'images/test_image.jpg',
@@ -43,28 +47,26 @@ void main() {
 
       // Setup default mocks
       when(mockAiService.analyzeImage(
-        any,
-        retryCount: anyNamed('retryCount'),
-        maxRetries: anyNamed('maxRetries'),
-        region: anyNamed('region'),
-        instructionsLang: anyNamed('instructionsLang'),
-        classificationId: anyNamed('classificationId'),
+        File('test.jpg'),
+        retryCount: 0,
+        maxRetries: 3,
+        region: 'US',
+        instructionsLang: 'en',
+        classificationId: null,
       )).thenAnswer((_) async => mockClassification);
       
-      when(mockStorageService.saveClassification(any)).thenAnswer((_) async {});
+      when(mockStorageService.saveClassification(mockClassification, force: false)).thenAnswer((_) async {});
       
-      when(mockGamificationService.getProfile(forceRefresh: anyNamed('forceRefresh')))
+      when(mockGamificationService.getProfile(forceRefresh: false))
           .thenAnswer((_) async => GamificationProfile(
             userId: 'test-user',
-            points: UserPoints(total: 100, available: 100),
-            level: 1,
-            achievements: [],
-            challenges: [],
-            streakCount: 1,
-            lastActivityDate: DateTime.now(),
+            points: const UserPoints(total: 100),
+            streaks: const {},
+            achievements: const [],
+            activeChallenges: const [],
           ));
       
-      when(mockGamificationService.processClassification(any)).thenAnswer((_) async => []);
+      when(mockGamificationService.processClassification(mockClassification)).thenAnswer((_) async => []);
     });
 
     testWidgets('Analysis button should push only one route to Navigator stack', (WidgetTester tester) async {

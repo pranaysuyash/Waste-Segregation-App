@@ -11,6 +11,7 @@ import 'package:waste_segregation_app/models/gamification.dart';
 import 'package:waste_segregation_app/models/community_feed.dart';
 import 'package:waste_segregation_app/models/educational_content.dart';
 import 'package:waste_segregation_app/models/recycling_code.dart';
+import 'package:waste_segregation_app/models/filter_options.dart';
 import 'dart:io';
 import 'dart:typed_data';
 
@@ -79,12 +80,15 @@ class MockAiService extends Mock implements AiService {
 // Mock Storage Service
 class MockStorageService extends Mock implements StorageService {
   @override
-  Future<void> saveClassification(WasteClassification classification) async {
+  Future<void> saveClassification(
+    WasteClassification classification, {
+    bool force = false,
+  }) async {
     // Mock implementation
   }
 
   @override
-  Future<List<WasteClassification>> getAllClassifications({Map<String, dynamic>? filterOptions}) async {
+  Future<List<WasteClassification>> getAllClassifications({FilterOptions? filterOptions}) async {
     return [];
   }
 
@@ -103,14 +107,12 @@ class MockStorageService extends Mock implements StorageService {
 class MockGamificationService extends Mock implements GamificationService {
   @override
   Future<GamificationProfile> getProfile({bool forceRefresh = false}) async {
-    return GamificationProfile(
+    return const GamificationProfile(
       userId: 'mock-user',
-      points: UserPoints(total: 100, available: 100),
-      level: 1,
+      points: UserPoints(total: 100),
+      streaks: {},
       achievements: [],
-      challenges: [],
-      streakCount: 1,
-      lastActivityDate: DateTime.now(),
+      activeChallenges: [],
     );
   }
 
@@ -121,7 +123,7 @@ class MockGamificationService extends Mock implements GamificationService {
 
   @override
   Future<UserPoints> addPoints(String action, {String? category, int? customPoints}) async {
-    return UserPoints(total: 110, available: 110);
+    return UserPoints(total: 110, weeklyTotal: 10);
   }
 
   @override
