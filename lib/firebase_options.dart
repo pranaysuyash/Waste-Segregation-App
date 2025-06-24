@@ -1,3 +1,9 @@
+// SECURITY NOTICE: API keys have been regenerated due to public exposure
+// Replace ALL placeholder keys below with new keys from Google Cloud Console
+
+// SECURITY: Firebase configuration now reads from environment variables
+// Run with: flutter run --dart-define-from-file=.env
+
 import 'package:firebase_core/firebase_core.dart' show FirebaseOptions;
 import 'package:flutter/foundation.dart' show defaultTargetPlatform, kIsWeb, TargetPlatform;
 
@@ -17,55 +23,57 @@ class DefaultFirebaseOptions {
         return macos;
       default:
         throw UnsupportedError(
-          'DefaultFirebaseOptions are not available for this platform.',
+          'DefaultFirebaseOptions have not been configured for platform '
+          '"${defaultTargetPlatform.name}" - '
+          'you may need to run the FlutterFire CLI again.',
         );
     }
   }
 
   static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'AIzaSyCvMKQNvA00QZHTg6BQ4mOaKtRXgKNqbpo',
-    appId: '1:1093372542184:android:160b71eb63bc7004355d5d',
-    messagingSenderId: '1093372542184',
-    projectId: 'waste-segregation-app-df523',
-    storageBucket: 'waste-segregation-app-df523.firebasestorage.app',
+    apiKey: String.fromEnvironment('FIREBASE_ANDROID_API_KEY'),
+    appId: String.fromEnvironment('FIREBASE_ANDROID_APP_ID'),
+    messagingSenderId: String.fromEnvironment('FIREBASE_MESSAGING_SENDER_ID'),
+    projectId: String.fromEnvironment('FIREBASE_PROJECT_ID'),
+    storageBucket: String.fromEnvironment('FIREBASE_STORAGE_BUCKET'),
   );
 
   // Firebase configuration settings for Android
 
   static const FirebaseOptions ios = FirebaseOptions(
-    apiKey: 'AIzaSyB6r1DqZvXQtMEEYtJTZ8dxlXWU_26_1Hk',
-    appId: '1:1093372542184:ios:90435500e0965a1c355d5d',
-    messagingSenderId: '1093372542184',
-    projectId: 'waste-segregation-app-df523',
-    storageBucket: 'waste-segregation-app-df523.firebasestorage.app',
-    androidClientId: '1093372542184-vt0daid8t327soohu1um5hf5lpmkqg92.apps.googleusercontent.com',
-    iosClientId: '1093372542184-ce0c41hlrj11il6tnrisugjud0l5u3j7.apps.googleusercontent.com',
-    iosBundleId: 'com.example.wasteSegregationApp',
+    apiKey: String.fromEnvironment('FIREBASE_IOS_API_KEY'),
+    appId: String.fromEnvironment('FIREBASE_IOS_APP_ID'),
+    messagingSenderId: String.fromEnvironment('FIREBASE_MESSAGING_SENDER_ID'),
+    projectId: String.fromEnvironment('FIREBASE_PROJECT_ID'),
+    storageBucket: String.fromEnvironment('FIREBASE_STORAGE_BUCKET'),
+    androidClientId: String.fromEnvironment('FIREBASE_ANDROID_CLIENT_ID'),
+    iosClientId: String.fromEnvironment('FIREBASE_IOS_CLIENT_ID'),
+    iosBundleId: String.fromEnvironment('FIREBASE_IOS_BUNDLE_ID'),
   );
 
   // Firebase configuration settings for iOS
 
   static const FirebaseOptions macos = FirebaseOptions(
-    apiKey: 'AIzaSyB6r1DqZvXQtMEEYtJTZ8dxlXWU_26_1Hk',
-    appId: '1:1093372542184:ios:90435500e0965a1c355d5d',
-    messagingSenderId: '1093372542184',
-    projectId: 'waste-segregation-app-df523',
-    storageBucket: 'waste-segregation-app-df523.firebasestorage.app',
-    androidClientId: '1093372542184-vt0daid8t327soohu1um5hf5lpmkqg92.apps.googleusercontent.com',
-    iosClientId: '1093372542184-ce0c41hlrj11il6tnrisugjud0l5u3j7.apps.googleusercontent.com',
-    iosBundleId: 'com.example.wasteSegregationApp',
+    apiKey: String.fromEnvironment('FIREBASE_IOS_API_KEY'), // Same as iOS
+    appId: String.fromEnvironment('FIREBASE_IOS_APP_ID'), // Same as iOS
+    messagingSenderId: String.fromEnvironment('FIREBASE_MESSAGING_SENDER_ID'),
+    projectId: String.fromEnvironment('FIREBASE_PROJECT_ID'),
+    storageBucket: String.fromEnvironment('FIREBASE_STORAGE_BUCKET'),
+    androidClientId: String.fromEnvironment('FIREBASE_ANDROID_CLIENT_ID'),
+    iosClientId: String.fromEnvironment('FIREBASE_IOS_CLIENT_ID'),
+    iosBundleId: String.fromEnvironment('FIREBASE_IOS_BUNDLE_ID'),
   );
 
   // Firebase configuration settings for macOS
 
   static const FirebaseOptions web = FirebaseOptions(
-    apiKey: 'AIzaSyBKU5b43AxbK4S_SHotfT8vYTabNVGyWOk',
-    appId: '1:1093372542184:web:f6d7c0170b4a16a6355d5d',
-    messagingSenderId: '1093372542184',
-    projectId: 'waste-segregation-app-df523',
-    authDomain: 'waste-segregation-app-df523.firebaseapp.com',
-    storageBucket: 'waste-segregation-app-df523.firebasestorage.app',
-    measurementId: 'G-4NHHDPWNYJ',
+    apiKey: String.fromEnvironment('FIREBASE_WEB_API_KEY'),
+    appId: String.fromEnvironment('FIREBASE_WEB_APP_ID'),
+    messagingSenderId: String.fromEnvironment('FIREBASE_MESSAGING_SENDER_ID'),
+    projectId: String.fromEnvironment('FIREBASE_PROJECT_ID'),
+    authDomain: String.fromEnvironment('FIREBASE_AUTH_DOMAIN'),
+    storageBucket: String.fromEnvironment('FIREBASE_STORAGE_BUCKET'),
+    measurementId: String.fromEnvironment('FIREBASE_MEASUREMENT_ID'),
   );
 
   // Firebase configuration settings for Web
