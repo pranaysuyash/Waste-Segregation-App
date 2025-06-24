@@ -9,7 +9,6 @@ void main() {
   final testFiles = ['file1.txt', 'file2.jpg'];
 
   group('ShareButton Tests', () {
-
     Widget createTestWidget({
       String text = testText,
       String? subject,
@@ -250,7 +249,7 @@ void main() {
 
         final iconButton = find.byType(IconButton);
         final buttonSize = tester.getSize(iconButton);
-        
+
         // IconButton should have minimum 48x48 touch target
         expect(buttonSize.width, greaterThanOrEqualTo(48.0));
         expect(buttonSize.height, greaterThanOrEqualTo(48.0));
@@ -348,10 +347,10 @@ void main() {
 
       testWidgets('should handle widget disposal properly', (tester) async {
         await tester.pumpWidget(createTestWidget());
-        
+
         // Navigate away to trigger disposal
         await tester.pumpWidget(const MaterialApp(home: Text('Different Widget')));
-        
+
         expect(find.text('Different Widget'), findsOneWidget);
         expect(find.byType(ShareButton), findsNothing);
       });
@@ -475,7 +474,7 @@ void main() {
 
         final fab = find.byType(FloatingActionButton);
         final fabSize = tester.getSize(fab);
-        
+
         // FAB should be at least 56x56 (standard FAB size)
         expect(fabSize.width, greaterThanOrEqualTo(56.0));
         expect(fabSize.height, greaterThanOrEqualTo(56.0));
@@ -591,7 +590,7 @@ void main() {
       // Test both buttons
       await tester.tap(find.byType(IconButton));
       await tester.pumpAndSettle();
-      
+
       await tester.tap(find.byType(FloatingActionButton));
       await tester.pumpAndSettle();
 

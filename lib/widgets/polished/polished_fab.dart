@@ -4,7 +4,6 @@ import '../../utils/app_theme.dart';
 
 /// Enhanced FAB with pulsing animation and modern styling
 class PolishedFAB extends StatefulWidget {
-
   const PolishedFAB({
     super.key,
     required this.onPressed,
@@ -33,8 +32,7 @@ class PolishedFAB extends StatefulWidget {
   State<PolishedFAB> createState() => _PolishedFABState();
 }
 
-class _PolishedFABState extends State<PolishedFAB>
-    with TickerProviderStateMixin {
+class _PolishedFABState extends State<PolishedFAB> with TickerProviderStateMixin {
   late AnimationController _pulseController;
   late AnimationController _pressController;
   late Animation<double> _pulseAnimation;
@@ -43,13 +41,13 @@ class _PolishedFABState extends State<PolishedFAB>
   @override
   void initState() {
     super.initState();
-    
+
     // Pulse animation controller
     _pulseController = AnimationController(
       duration: widget.pulseDuration,
       vsync: this,
     );
-    
+
     // Press animation controller
     _pressController = AnimationController(
       duration: AppThemePolish.animationFast,
@@ -119,16 +117,14 @@ class _PolishedFABState extends State<PolishedFAB>
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final backgroundColor = widget.backgroundColor ?? 
-        AppThemePolish.accentVibrant;
-    final foregroundColor = widget.foregroundColor ?? 
-        Colors.white;
+    final backgroundColor = widget.backgroundColor ?? AppThemePolish.accentVibrant;
+    final foregroundColor = widget.foregroundColor ?? Colors.white;
 
     return AnimatedBuilder(
       animation: Listenable.merge([_pulseAnimation, _scaleAnimation]),
       builder: (context, child) {
         final combinedScale = _pulseAnimation.value * _scaleAnimation.value;
-        
+
         return Transform.scale(
           scale: combinedScale,
           child: widget.isExtended
@@ -186,7 +182,6 @@ class _PolishedFABState extends State<PolishedFAB>
 
 /// Enhanced action button with modern styling and micro-interactions
 class PolishedActionButton extends StatefulWidget {
-
   const PolishedActionButton({
     super.key,
     required this.onPressed,
@@ -213,8 +208,7 @@ class PolishedActionButton extends StatefulWidget {
   State<PolishedActionButton> createState() => _PolishedActionButtonState();
 }
 
-class _PolishedActionButtonState extends State<PolishedActionButton>
-    with SingleTickerProviderStateMixin {
+class _PolishedActionButtonState extends State<PolishedActionButton> with SingleTickerProviderStateMixin {
   late AnimationController _animationController;
   late Animation<double> _scaleAnimation;
 
@@ -260,7 +254,7 @@ class _PolishedActionButtonState extends State<PolishedActionButton>
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    
+
     return AnimatedBuilder(
       animation: _scaleAnimation,
       builder: (context, child) {
@@ -270,9 +264,7 @@ class _PolishedActionButtonState extends State<PolishedActionButton>
             onTapDown: _handleTapDown,
             onTapUp: _handleTapUp,
             onTapCancel: _handleTapCancel,
-            child: widget.isOutlined
-                ? _buildOutlinedButton(theme)
-                : _buildFilledButton(theme),
+            child: widget.isOutlined ? _buildOutlinedButton(theme) : _buildFilledButton(theme),
           ),
         );
       },
@@ -285,10 +277,11 @@ class _PolishedActionButtonState extends State<PolishedActionButton>
       style: ElevatedButton.styleFrom(
         backgroundColor: widget.backgroundColor ?? theme.colorScheme.primary,
         foregroundColor: widget.foregroundColor ?? theme.colorScheme.onPrimary,
-        padding: widget.padding ?? const EdgeInsets.symmetric(
-          horizontal: 24,
-          vertical: 16,
-        ),
+        padding: widget.padding ??
+            const EdgeInsets.symmetric(
+              horizontal: 24,
+              vertical: 16,
+            ),
         shape: RoundedRectangleBorder(
           borderRadius: widget.borderRadius ?? BorderRadius.circular(12),
         ),
@@ -303,10 +296,11 @@ class _PolishedActionButtonState extends State<PolishedActionButton>
       onPressed: widget.isLoading ? null : _handleTap,
       style: OutlinedButton.styleFrom(
         foregroundColor: widget.foregroundColor ?? theme.colorScheme.primary,
-        padding: widget.padding ?? const EdgeInsets.symmetric(
-          horizontal: 24,
-          vertical: 16,
-        ),
+        padding: widget.padding ??
+            const EdgeInsets.symmetric(
+              horizontal: 24,
+              vertical: 16,
+            ),
         shape: RoundedRectangleBorder(
           borderRadius: widget.borderRadius ?? BorderRadius.circular(12),
         ),
@@ -353,4 +347,4 @@ class _PolishedActionButtonState extends State<PolishedActionButton>
       ),
     );
   }
-} 
+}

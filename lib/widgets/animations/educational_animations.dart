@@ -27,8 +27,7 @@ class DailyTipRevealWidget extends StatefulWidget {
   State<DailyTipRevealWidget> createState() => _DailyTipRevealWidgetState();
 }
 
-class _DailyTipRevealWidgetState extends State<DailyTipRevealWidget>
-    with SingleTickerProviderStateMixin {
+class _DailyTipRevealWidgetState extends State<DailyTipRevealWidget> with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _opacity;
 

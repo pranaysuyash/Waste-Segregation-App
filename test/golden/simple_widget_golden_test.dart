@@ -37,9 +37,9 @@ void main() {
           theme: ThemeData.light(),
         ),
       );
-      
+
       await tester.pumpAndSettle();
-      
+
       await expectLater(
         find.byType(Scaffold),
         matchesGoldenFile('simple_widgets/buttons_light.png'),
@@ -75,9 +75,9 @@ void main() {
           theme: ThemeData.dark(),
         ),
       );
-      
+
       await tester.pumpAndSettle();
-      
+
       await expectLater(
         find.byType(Scaffold),
         matchesGoldenFile('simple_widgets/buttons_dark.png'),
@@ -153,13 +153,13 @@ void main() {
           ),
         ),
       );
-      
+
       await tester.pumpAndSettle();
-      
+
       await expectLater(
         find.byType(Scaffold),
         matchesGoldenFile('simple_widgets/cards_layout.png'),
       );
     });
   });
-} 
+}

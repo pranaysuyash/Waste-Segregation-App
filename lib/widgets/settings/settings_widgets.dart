@@ -11,4 +11,4 @@ export 'navigation_section.dart';
 export 'legal_support_section.dart';
 export 'developer_section.dart';
 export 'settings_section_header.dart';
-export 'settings_section_spacer.dart'; 
+export 'settings_section_spacer.dart';

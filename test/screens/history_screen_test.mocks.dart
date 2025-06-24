@@ -7,8 +7,7 @@ import 'dart:async' as _i3;
 
 import 'package:mockito/mockito.dart' as _i1;
 import 'package:mockito/src/dummies.dart' as _i7;
-import 'package:waste_segregation_app/models/classification_feedback.dart'
-    as _i8;
+import 'package:waste_segregation_app/models/classification_feedback.dart' as _i8;
 import 'package:waste_segregation_app/models/filter_options.dart' as _i6;
 import 'package:waste_segregation_app/models/user_profile.dart' as _i4;
 import 'package:waste_segregation_app/models/waste_classification.dart' as _i5;
@@ -36,8 +35,7 @@ class MockStorageService extends _i1.Mock implements _i2.StorageService {
   }
 
   @override
-  _i3.Future<void> saveUserProfile(_i4.UserProfile? userProfile) =>
-      (super.noSuchMethod(
+  _i3.Future<void> saveUserProfile(_i4.UserProfile? userProfile) => (super.noSuchMethod(
         Invocation.method(
           #saveUserProfile,
           [userProfile],
@@ -90,16 +88,14 @@ class MockStorageService extends _i1.Mock implements _i2.StorageService {
       ) as _i3.Future<void>);
 
   @override
-  _i3.Future<List<_i5.WasteClassification>> getAllClassifications(
-          {_i6.FilterOptions? filterOptions}) =>
+  _i3.Future<List<_i5.WasteClassification>> getAllClassifications({_i6.FilterOptions? filterOptions}) =>
       (super.noSuchMethod(
         Invocation.method(
           #getAllClassifications,
           [],
           {#filterOptions: filterOptions},
         ),
-        returnValue: _i3.Future<List<_i5.WasteClassification>>.value(
-            <_i5.WasteClassification>[]),
+        returnValue: _i3.Future<List<_i5.WasteClassification>>.value(<_i5.WasteClassification>[]),
       ) as _i3.Future<List<_i5.WasteClassification>>);
 
   @override
@@ -118,13 +114,11 @@ class MockStorageService extends _i1.Mock implements _i2.StorageService {
             #page: page,
           },
         ),
-        returnValue: _i3.Future<List<_i5.WasteClassification>>.value(
-            <_i5.WasteClassification>[]),
+        returnValue: _i3.Future<List<_i5.WasteClassification>>.value(<_i5.WasteClassification>[]),
       ) as _i3.Future<List<_i5.WasteClassification>>);
 
   @override
-  _i3.Future<int> getClassificationsCount({_i6.FilterOptions? filterOptions}) =>
-      (super.noSuchMethod(
+  _i3.Future<int> getClassificationsCount({_i6.FilterOptions? filterOptions}) => (super.noSuchMethod(
         Invocation.method(
           #getClassificationsCount,
           [],
@@ -134,9 +128,7 @@ class MockStorageService extends _i1.Mock implements _i2.StorageService {
       ) as _i3.Future<int>);
 
   @override
-  _i3.Future<String> exportClassificationsToCSV(
-          {_i6.FilterOptions? filterOptions}) =>
-      (super.noSuchMethod(
+  _i3.Future<String> exportClassificationsToCSV({_i6.FilterOptions? filterOptions}) => (super.noSuchMethod(
         Invocation.method(
           #exportClassificationsToCSV,
           [],
@@ -205,8 +197,7 @@ class MockStorageService extends _i1.Mock implements _i2.StorageService {
       ) as _i3.Future<void>);
 
   @override
-  _i3.Future<void> updateLastCloudSync(DateTime? timestamp) =>
-      (super.noSuchMethod(
+  _i3.Future<void> updateLastCloudSync(DateTime? timestamp) => (super.noSuchMethod(
         Invocation.method(
           #updateLastCloudSync,
           [timestamp],
@@ -230,13 +221,11 @@ class MockStorageService extends _i1.Mock implements _i2.StorageService {
           #getSettings,
           [],
         ),
-        returnValue:
-            _i3.Future<Map<String, dynamic>>.value(<String, dynamic>{}),
+        returnValue: _i3.Future<Map<String, dynamic>>.value(<String, dynamic>{}),
       ) as _i3.Future<Map<String, dynamic>>);
 
   @override
-  _i3.Future<_i5.WasteClassification?> getCachedClassification(String? hash) =>
-      (super.noSuchMethod(
+  _i3.Future<_i5.WasteClassification?> getCachedClassification(String? hash) => (super.noSuchMethod(
         Invocation.method(
           #getCachedClassification,
           [hash],
@@ -307,8 +296,7 @@ class MockStorageService extends _i1.Mock implements _i2.StorageService {
       ) as _i3.Future<void>);
 
   @override
-  _i3.Future<void> saveAnalyticsEvents(List<dynamic>? events) =>
-      (super.noSuchMethod(
+  _i3.Future<void> saveAnalyticsEvents(List<dynamic>? events) => (super.noSuchMethod(
         Invocation.method(
           #saveAnalyticsEvents,
           [events],
@@ -318,14 +306,12 @@ class MockStorageService extends _i1.Mock implements _i2.StorageService {
       ) as _i3.Future<void>);
 
   @override
-  _i3.Future<List<Map<String, dynamic>>> loadAnalyticsEvents() =>
-      (super.noSuchMethod(
+  _i3.Future<List<Map<String, dynamic>>> loadAnalyticsEvents() => (super.noSuchMethod(
         Invocation.method(
           #loadAnalyticsEvents,
           [],
         ),
-        returnValue: _i3.Future<List<Map<String, dynamic>>>.value(
-            <Map<String, dynamic>>[]),
+        returnValue: _i3.Future<List<Map<String, dynamic>>>.value(<Map<String, dynamic>>[]),
       ) as _i3.Future<List<Map<String, dynamic>>>);
 
   @override
@@ -372,9 +358,7 @@ class MockStorageService extends _i1.Mock implements _i2.StorageService {
       ) as _i3.Future<int>);
 
   @override
-  _i3.Future<void> saveClassificationFeedback(
-          _i8.ClassificationFeedback? feedback) =>
-      (super.noSuchMethod(
+  _i3.Future<void> saveClassificationFeedback(_i8.ClassificationFeedback? feedback) => (super.noSuchMethod(
         Invocation.method(
           #saveClassificationFeedback,
           [feedback],
@@ -384,14 +368,12 @@ class MockStorageService extends _i1.Mock implements _i2.StorageService {
       ) as _i3.Future<void>);
 
   @override
-  _i3.Future<List<_i8.ClassificationFeedback>> getAllClassificationFeedback() =>
-      (super.noSuchMethod(
+  _i3.Future<List<_i8.ClassificationFeedback>> getAllClassificationFeedback() => (super.noSuchMethod(
         Invocation.method(
           #getAllClassificationFeedback,
           [],
         ),
-        returnValue: _i3.Future<List<_i8.ClassificationFeedback>>.value(
-            <_i8.ClassificationFeedback>[]),
+        returnValue: _i3.Future<List<_i8.ClassificationFeedback>>.value(<_i8.ClassificationFeedback>[]),
       ) as _i3.Future<List<_i8.ClassificationFeedback>>);
 
   @override

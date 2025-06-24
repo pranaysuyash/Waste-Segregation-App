@@ -5,14 +5,19 @@ import 'user_profile.dart';
 enum InvitationStatus {
   /// Invitation has been sent but not yet accepted.
   pending,
+
   /// Invitation has been accepted by the recipient.
   accepted,
+
   /// Invitation has been declined by the recipient.
   declined,
+
   /// Invitation has expired.
   expired,
+
   /// Invitation has been revoked by the sender.
   revoked,
+
   /// Invitation has been cancelled by the inviter.
   cancelled,
 }
@@ -28,7 +33,6 @@ enum InvitationMethod {
 
 /// Represents an invitation to join a family.
 class FamilyInvitation {
-
   FamilyInvitation({
     String? id,
     required this.familyId,
@@ -71,11 +75,10 @@ class FamilyInvitation {
       ),
       createdAt: DateTime.parse(json['createdAt'] as String),
       expiresAt: DateTime.parse(json['expiresAt'] as String),
-      respondedAt: json['respondedAt'] != null
-          ? DateTime.parse(json['respondedAt'] as String)
-          : null,
+      respondedAt: json['respondedAt'] != null ? DateTime.parse(json['respondedAt'] as String) : null,
     );
   }
+
   /// The unique identifier for the invitation.
   final String id;
 
@@ -170,9 +173,9 @@ class FamilyInvitation {
 
   /// Checks if the invitation is still valid.
   bool get isValid {
-    return status == InvitationStatus.pending && 
-           DateTime.now().isBefore(expiresAt) &&
-           (invitedUserId == null || invitedUserId!.isNotEmpty);
+    return status == InvitationStatus.pending &&
+        DateTime.now().isBefore(expiresAt) &&
+        (invitedUserId == null || invitedUserId!.isNotEmpty);
   }
 
   /// Checks if the invitation has expired.
@@ -254,7 +257,6 @@ class FamilyInvitation {
 
 /// Represents a batch invitation for multiple email addresses.
 class BatchInvitation {
-
   BatchInvitation({
     required this.id,
     required this.familyId,
@@ -289,6 +291,7 @@ class BatchInvitation {
       status: BatchInvitationStatus.fromJson(json['status'] as Map<String, dynamic>),
     );
   }
+
   /// The unique identifier for the batch.
   final String id;
 
@@ -338,7 +341,6 @@ class BatchInvitation {
 
 /// Status summary for a batch invitation.
 class BatchInvitationStatus {
-
   BatchInvitationStatus({
     required this.totalSent,
     this.accepted = 0,
@@ -357,6 +359,7 @@ class BatchInvitationStatus {
       expired: json['expired'] as int? ?? 0,
     );
   }
+
   /// Total number of invitations sent.
   final int totalSent;
 

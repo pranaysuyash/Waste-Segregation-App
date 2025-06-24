@@ -33,7 +33,7 @@ void main() {
 
     testWidgets('RecentClassificationCard handles long item names without overflow', (WidgetTester tester) async {
       const longItemName = 'Very Long Item Name That Should Not Cause Overflow Issues In The Layout';
-      
+
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
@@ -52,7 +52,7 @@ void main() {
 
       expect(find.byType(RecentClassificationCard), findsOneWidget);
       expect(find.textContaining('Very Long'), findsOneWidget);
-      
+
       // Should not throw overflow errors
       await tester.pumpAndSettle();
     });
@@ -81,7 +81,7 @@ void main() {
       expect(find.byType(RecentClassificationCard), findsOneWidget);
       expect(find.text('Test Item'), findsOneWidget);
       expect(find.text('Hazardous Waste'), findsOneWidget);
-      
+
       // Should handle narrow width gracefully
       await tester.pumpAndSettle();
     });
@@ -111,14 +111,14 @@ void main() {
       expect(find.byType(RecentClassificationCard), findsOneWidget);
       expect(find.text('Test Item'), findsOneWidget);
       expect(find.text('Medical Waste'), findsOneWidget);
-      
+
       // Should handle very narrow width gracefully
       await tester.pumpAndSettle();
     });
 
     testWidgets('RecentClassificationCard handles tap events correctly', (WidgetTester tester) async {
       var tapped = false;
-      
+
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
@@ -281,9 +281,10 @@ void main() {
     });
 
     testWidgets('RecentClassificationCard handles extremely long text gracefully', (WidgetTester tester) async {
-      const extremelyLongItemName = 'This is an extremely long item name that should definitely cause overflow issues if not handled properly by the responsive text system';
+      const extremelyLongItemName =
+          'This is an extremely long item name that should definitely cause overflow issues if not handled properly by the responsive text system';
       const extremelyLongSubcategory = 'Very Long Subcategory Name That Should Not Break Layout';
-      
+
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
@@ -305,7 +306,7 @@ void main() {
       );
 
       expect(find.byType(RecentClassificationCard), findsOneWidget);
-      
+
       // Should not throw overflow errors
       await tester.pumpAndSettle();
     });
@@ -332,7 +333,7 @@ void main() {
       expect(find.text('Wet Waste'), findsOneWidget);
       expect(find.text('Food'), findsOneWidget);
       expect(find.text('Today'), findsOneWidget);
-      
+
       // Should be tappable
       await tester.tap(find.byType(RecentClassificationCard));
       await tester.pumpAndSettle();
@@ -473,7 +474,7 @@ void main() {
       expect(find.text('Narrow Item'), findsOneWidget);
       expect(find.text('Hazardous Waste'), findsOneWidget);
       expect(find.byIcon(Icons.warning_amber), findsOneWidget);
-      
+
       // Should handle vertical layout gracefully
       await tester.pumpAndSettle();
     });
@@ -547,4 +548,4 @@ void main() {
       }
     });
   });
-} 
+}

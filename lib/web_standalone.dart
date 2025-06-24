@@ -11,34 +11,31 @@ import 'widgets/responsive_text.dart';
 /// Entry point specifically for the web version
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
+
   try {
     if (kDebugMode) {
-      WasteAppLogger.info('Initializing Web Standalone Mode', null, null, {
-    'platform': 'web',
-    'mode': 'standalone'
-  });
+      WasteAppLogger.info('Initializing Web Standalone Mode', null, null, {'platform': 'web', 'mode': 'standalone'});
     }
-    
+
     // Initialize Hive for web
     await Hive.initFlutter();
-    
+
     // Open required boxes
     await Hive.openBox<String>(StorageKeys.userBox);
     await Hive.openBox<String>(StorageKeys.classificationsBox);
     await Hive.openBox<String>(StorageKeys.gamificationBox);
     await Hive.openBox<String>(StorageKeys.settingsBox);
-    
+
     if (kDebugMode) {
       WasteAppLogger.info('Hive initialized successfully', null, null, {
         'platform': 'web',
         'boxes_opened': ['userBox', 'classificationsBox', 'gamificationBox', 'settingsBox']
       });
     }
-    
+
     // Initialize storage service
     final storageService = StorageService();
-    
+
     // Use the Flutter runApp function
     runApp(
       MultiProvider(
@@ -51,10 +48,7 @@ void main() async {
     );
   } catch (e) {
     if (kDebugMode) {
-      WasteAppLogger.severe('Error initializing web app', e, null, {
-        'platform': 'web',
-        'mode': 'standalone'
-      });
+      WasteAppLogger.severe('Error initializing web app', e, null, {'platform': 'web', 'mode': 'standalone'});
     }
     // Use the Flutter runApp function
     runApp(
@@ -159,9 +153,9 @@ class HomeTab extends StatelessWidget {
               ),
             ),
           ),
-          
+
           const SizedBox(height: 24),
-          
+
           // App introduction
           const Text(
             'Welcome to Waste Segregation App',
@@ -170,16 +164,16 @@ class HomeTab extends StatelessWidget {
               fontWeight: FontWeight.bold,
             ),
           ),
-          
+
           const SizedBox(height: 16),
-          
+
           const Text(
             'This application helps you properly segregate waste using AI image recognition.',
             style: TextStyle(fontSize: 16),
           ),
-          
+
           const SizedBox(height: 24),
-          
+
           // Features section
           const Text(
             'Key Features',
@@ -188,9 +182,9 @@ class HomeTab extends StatelessWidget {
               fontWeight: FontWeight.bold,
             ),
           ),
-          
+
           const SizedBox(height: 12),
-          
+
           // Feature cards
           FeatureCard(
             icon: Icons.camera_alt,
@@ -198,27 +192,27 @@ class HomeTab extends StatelessWidget {
             description: 'Take a photo of an item to identify its waste category',
             color: Colors.blue.shade100,
           ),
-          
+
           const SizedBox(height: 12),
-          
+
           FeatureCard(
             icon: Icons.category,
             title: 'Waste Categories',
             description: 'Learn about different waste types and how to dispose of them properly',
             color: Colors.orange.shade100,
           ),
-          
+
           const SizedBox(height: 12),
-          
+
           FeatureCard(
             icon: Icons.bar_chart,
             title: 'Waste Analytics',
             description: 'Track your waste disposal habits and see your impact',
             color: Colors.purple.shade100,
           ),
-          
+
           const SizedBox(height: 24),
-          
+
           // Download section
           const Text(
             'Get the Full Experience',
@@ -227,16 +221,16 @@ class HomeTab extends StatelessWidget {
               fontWeight: FontWeight.bold,
             ),
           ),
-          
+
           const SizedBox(height: 12),
-          
+
           const Text(
             'For the best experience with all features including AI image recognition, download the mobile app.',
             style: TextStyle(fontSize: 16),
           ),
-          
+
           const SizedBox(height: 16),
-          
+
           // Download buttons
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -248,9 +242,7 @@ class HomeTab extends StatelessWidget {
                   _showComingSoonDialog(context);
                 },
               ),
-              
               const SizedBox(width: 12),
-              
               OutlinedButton.icon(
                 icon: const Icon(Icons.apple),
                 label: const Text('iOS App'),
@@ -264,7 +256,7 @@ class HomeTab extends StatelessWidget {
       ),
     );
   }
-  
+
   void _showComingSoonDialog(BuildContext context) {
     showDialog(
       context: context,
@@ -300,16 +292,16 @@ class LearnTab extends StatelessWidget {
               fontWeight: FontWeight.bold,
             ),
           ),
-          
+
           const SizedBox(height: 16),
-          
+
           const Text(
             'Learn about different types of waste and how to properly dispose of them.',
             style: TextStyle(fontSize: 16),
           ),
-          
+
           const SizedBox(height: 24),
-          
+
           // Waste categories
           WasteCategoryCard(
             title: 'Wet Waste',
@@ -318,9 +310,9 @@ class LearnTab extends StatelessWidget {
             color: Colors.green.shade100,
             iconData: Icons.eco,
           ),
-          
+
           const SizedBox(height: 16),
-          
+
           WasteCategoryCard(
             title: 'Dry Waste',
             description: 'Non-biodegradable waste that can often be recycled',
@@ -328,9 +320,9 @@ class LearnTab extends StatelessWidget {
             color: Colors.blue.shade100,
             iconData: Icons.delete_outline,
           ),
-          
+
           const SizedBox(height: 16),
-          
+
           WasteCategoryCard(
             title: 'Hazardous Waste',
             description: 'Waste that poses substantial or potential threats to public health or the environment',
@@ -338,9 +330,9 @@ class LearnTab extends StatelessWidget {
             color: Colors.red.shade100,
             iconData: Icons.warning,
           ),
-          
+
           const SizedBox(height: 16),
-          
+
           WasteCategoryCard(
             title: 'Medical Waste',
             description: 'Waste generated from healthcare facilities',
@@ -348,9 +340,9 @@ class LearnTab extends StatelessWidget {
             color: Colors.purple.shade100,
             iconData: Icons.medical_services,
           ),
-          
+
           const SizedBox(height: 16),
-          
+
           WasteCategoryCard(
             title: 'Non-Waste',
             description: 'Items that should not be discarded',
@@ -382,16 +374,16 @@ class AboutTab extends StatelessWidget {
               fontWeight: FontWeight.bold,
             ),
           ),
-          
+
           const SizedBox(height: 16),
-          
+
           const Text(
             'The Waste Segregation App is designed to help users properly classify and dispose of waste using AI technology.',
             style: TextStyle(fontSize: 16),
           ),
-          
+
           const SizedBox(height: 24),
-          
+
           // Mission section
           const Text(
             'Our Mission',
@@ -400,16 +392,16 @@ class AboutTab extends StatelessWidget {
               fontWeight: FontWeight.bold,
             ),
           ),
-          
+
           const SizedBox(height: 12),
-          
+
           const Text(
             'To reduce waste going to landfills by educating people about proper waste segregation and making it easy to identify how to dispose of items correctly.',
             style: TextStyle(fontSize: 16),
           ),
-          
+
           const SizedBox(height: 24),
-          
+
           // Impact section
           const Text(
             'Environmental Impact',
@@ -418,9 +410,9 @@ class AboutTab extends StatelessWidget {
               fontWeight: FontWeight.bold,
             ),
           ),
-          
+
           const SizedBox(height: 12),
-          
+
           // Environmental impact stats
           Row(
             children: [
@@ -441,9 +433,9 @@ class AboutTab extends StatelessWidget {
               ),
             ],
           ),
-          
+
           const SizedBox(height: 12),
-          
+
           Row(
             children: [
               Expanded(
@@ -463,9 +455,9 @@ class AboutTab extends StatelessWidget {
               ),
             ],
           ),
-          
+
           const SizedBox(height: 24),
-          
+
           // Technology section
           const Text(
             'Technology',
@@ -474,16 +466,16 @@ class AboutTab extends StatelessWidget {
               fontWeight: FontWeight.bold,
             ),
           ),
-          
+
           const SizedBox(height: 12),
-          
+
           const Text(
             'Our app uses advanced AI powered by Google Gemini to identify items from images and classify them into the appropriate waste category.',
             style: TextStyle(fontSize: 16),
           ),
-          
+
           const SizedBox(height: 24),
-          
+
           // Clipboard sharing section
           const Text(
             'Share This App',
@@ -492,9 +484,9 @@ class AboutTab extends StatelessWidget {
               fontWeight: FontWeight.bold,
             ),
           ),
-          
+
           const SizedBox(height: 12),
-          
+
           ElevatedButton.icon(
             icon: const Icon(Icons.share),
             label: const Text('Copy Share Link'),
@@ -502,9 +494,9 @@ class AboutTab extends StatelessWidget {
               _copyToClipboard(context);
             },
           ),
-          
+
           const SizedBox(height: 40),
-          
+
           // Footer
           const Center(
             child: Text(
@@ -519,19 +511,20 @@ class AboutTab extends StatelessWidget {
       ),
     );
   }
-  
+
   void _copyToClipboard(BuildContext context) {
     // This would normally use our ShareService, but we're keeping it simple
     // for this standalone web version
     final controller = TextEditingController();
-    controller.text = 'Check out the Waste Segregation App! It helps you properly sort your waste using AI: https://waste-segregation-app.web.app';
-    
+    controller.text =
+        'Check out the Waste Segregation App! It helps you properly sort your waste using AI: https://waste-segregation-app.web.app';
+
     // Copy to clipboard (normally you'd use Clipboard.setData)
     controller.selection = TextSelection(
       baseOffset: 0,
       extentOffset: controller.text.length,
     );
-    
+
     // Show feedback
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
@@ -545,7 +538,6 @@ class AboutTab extends StatelessWidget {
 // Reusable widgets
 
 class FeatureCard extends StatelessWidget {
-
   const FeatureCard({
     super.key,
     required this.icon,
@@ -593,7 +585,6 @@ class FeatureCard extends StatelessWidget {
 }
 
 class WasteCategoryCard extends StatelessWidget {
-
   const WasteCategoryCard({
     super.key,
     required this.title,
@@ -655,7 +646,6 @@ class WasteCategoryCard extends StatelessWidget {
 }
 
 class ImpactCard extends StatelessWidget {
-
   const ImpactCard({
     super.key,
     required this.title,

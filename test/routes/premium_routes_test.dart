@@ -26,12 +26,11 @@ void main() {
 
     test('All premium route variants should be in _allRoutes list', () {
       // This test ensures that our route additions are properly included
-      expect(Routes.isValidRoute(Routes.premium), isTrue, 
-        reason: 'Routes.premium should be in _allRoutes');
-      expect(Routes.isValidRoute(Routes.premiumFeatures), isTrue, 
-        reason: 'Routes.premiumFeatures should be in _allRoutes');
-      expect(Routes.isValidRoute(Routes.premiumFeaturesHyphen), isTrue, 
-        reason: 'Routes.premiumFeaturesHyphen should be in _allRoutes');
+      expect(Routes.isValidRoute(Routes.premium), isTrue, reason: 'Routes.premium should be in _allRoutes');
+      expect(Routes.isValidRoute(Routes.premiumFeatures), isTrue,
+          reason: 'Routes.premiumFeatures should be in _allRoutes');
+      expect(Routes.isValidRoute(Routes.premiumFeaturesHyphen), isTrue,
+          reason: 'Routes.premiumFeaturesHyphen should be in _allRoutes');
     });
 
     test('Premium route constants should not be null or empty', () {
@@ -43,4 +42,4 @@ void main() {
       expect(Routes.premiumFeaturesHyphen, isNotEmpty);
     });
   });
-} 
+}

@@ -19,9 +19,9 @@ void main() {
       mockDriveApi = MockDriveApi();
       mockFilesResource = MockFilesResource();
       mockAuthClient = MockAuthClient();
-      
+
       when(mockDriveApi.files).thenReturn(mockFilesResource);
-      
+
       googleDriveService = GoogleDriveService();
       // Inject mocked dependencies
       googleDriveService.setDriveApi(mockDriveApi);
@@ -87,7 +87,7 @@ void main() {
       test('should upload file to Google Drive successfully', () async {
         const testData = 'test file content';
         const testFileName = 'test_backup.json';
-        
+
         final mockFile = drive.File();
         mockFile.id = 'file_123';
         mockFile.name = testFileName;
@@ -181,7 +181,7 @@ void main() {
       test('should update existing file successfully', () async {
         const fileId = 'file_123';
         const newData = 'updated content';
-        
+
         final mockFile = drive.File();
         mockFile.id = fileId;
         mockFile.name = 'updated_file.json';
@@ -212,8 +212,14 @@ void main() {
       test('should list files in Google Drive successfully', () async {
         final mockFileList = drive.FileList();
         final mockFiles = [
-          drive.File()..id = 'file_1'..name = 'backup_1.json'..size = '1024',
-          drive.File()..id = 'file_2'..name = 'backup_2.json'..size = '2048',
+          drive.File()
+            ..id = 'file_1'
+            ..name = 'backup_1.json'
+            ..size = '1024',
+          drive.File()
+            ..id = 'file_2'
+            ..name = 'backup_2.json'
+            ..size = '2048',
         ];
         mockFileList.files = mockFiles;
 
@@ -240,7 +246,10 @@ void main() {
         const searchQuery = 'backup';
         final mockFileList = drive.FileList();
         final mockFiles = [
-          drive.File()..id = 'file_1'..name = 'backup_data.json'..size = '1024',
+          drive.File()
+            ..id = 'file_1'
+            ..name = 'backup_data.json'
+            ..size = '1024',
         ];
         mockFileList.files = mockFiles;
 
@@ -266,7 +275,10 @@ void main() {
         const mimeType = 'application/json';
         final mockFileList = drive.FileList();
         final mockFiles = [
-          drive.File()..id = 'file_1'..name = 'data.json'..mimeType = mimeType,
+          drive.File()
+            ..id = 'file_1'
+            ..name = 'data.json'
+            ..mimeType = mimeType,
         ];
         mockFileList.files = mockFiles;
 
@@ -599,8 +611,7 @@ void main() {
       });
 
       test('should handle insufficient permissions', () async {
-        when(mockFilesResource.delete(any))
-            .thenThrow(Exception('Insufficient permissions'));
+        when(mockFilesResource.delete(any)).thenThrow(Exception('Insufficient permissions'));
 
         final result = await googleDriveService.deleteFile('file_123');
 
@@ -656,12 +667,11 @@ void main() {
         final mockAbout = drive.About();
         mockAbout.storageQuota = drive.AboutStorageQuota()
           ..limit = '15000000000' // 15GB
-          ..usage = '5000000000'  // 5GB
+          ..usage = '5000000000' // 5GB
           ..usageInDrive = '3000000000'; // 3GB
 
         when(mockDriveApi.about).thenReturn(MockAboutResource());
-        when(mockDriveApi.about.get(fields: 'storageQuota'))
-            .thenAnswer((_) async => mockAbout);
+        when(mockDriveApi.about.get(fields: 'storageQuota')).thenAnswer((_) async => mockAbout);
 
         final result = await googleDriveService.getStorageInfo();
 
@@ -678,8 +688,7 @@ void main() {
           ..usage = '5000000000'; // 5GB
 
         when(mockDriveApi.about).thenReturn(MockAboutResource());
-        when(mockDriveApi.about.get(fields: 'storageQuota'))
-            .thenAnswer((_) async => mockAbout);
+        when(mockDriveApi.about.get(fields: 'storageQuota')).thenAnswer((_) async => mockAbout);
 
         final hasSpace = await googleDriveService.hasEnoughSpace(1000000); // 1MB
 
@@ -693,8 +702,7 @@ void main() {
           ..usage = '14500000000'; // 14.5GB
 
         when(mockDriveApi.about).thenReturn(MockAboutResource());
-        when(mockDriveApi.about.get(fields: 'storageQuota'))
-            .thenAnswer((_) async => mockAbout);
+        when(mockDriveApi.about.get(fields: 'storageQuota')).thenAnswer((_) async => mockAbout);
 
         final hasSpace = await googleDriveService.hasEnoughSpace(1000000000); // 1GB
 
@@ -705,7 +713,7 @@ void main() {
     group('Performance and Optimization', () {
       test('should handle multiple concurrent uploads', () async {
         final futures = <Future<drive.File?>>[];
-        
+
         for (var i = 0; i < 5; i++) {
           final mockFile = drive.File();
           mockFile.id = 'file_$i';
@@ -741,7 +749,7 @@ void main() {
           if (attempts < 3) {
             throw Exception('Temporary failure');
           }
-          
+
           final mockFile = drive.File();
           mockFile.id = 'retry_success';
           mockFile.name = 'retry_test.json';
@@ -776,7 +784,7 @@ void main() {
 
         // First call should hit the API
         final result1 = await googleDriveService.listFiles();
-        
+
         // Second call should use cached result
         final result2 = await googleDriveService.listFiles();
 

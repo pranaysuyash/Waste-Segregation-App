@@ -59,7 +59,8 @@ void main() {
                     width: 300,
                     child: ActiveChallengeCard(
                       title: 'Very Long Challenge Title That Should Not Overflow',
-                      description: 'Very long challenge description that explains in detail what the user needs to do to complete this challenge successfully',
+                      description:
+                          'Very long challenge description that explains in detail what the user needs to do to complete this challenge successfully',
                       progress: 0.45,
                       icon: Icons.emoji_events,
                       timeRemaining: 'Very long time remaining text',
@@ -280,4 +281,4 @@ void main() {
       );
     });
   });
-} 
+}

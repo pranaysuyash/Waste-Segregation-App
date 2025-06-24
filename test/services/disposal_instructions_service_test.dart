@@ -13,10 +13,9 @@ void main() {
     test('should generate material ID correctly', () {
       // Test the private method through public interface
       final service = DisposalInstructionsService();
-      
+
       // This will call _generateMaterialId internally
-      expect(() => service.getDisposalInstructions(material: 'plastic bottle'), 
-             returnsNormally);
+      expect(() => service.getDisposalInstructions(material: 'plastic bottle'), returnsNormally);
     });
 
     test('should return fallback instructions for wet waste', () async {
@@ -55,14 +54,14 @@ void main() {
 
     test('should return different instructions for different categories', () async {
       final service = DisposalInstructionsService();
-      
+
       // Test with dry waste
       final instructions1 = await service.getDisposalInstructions(
         material: 'test item',
         category: 'Dry Waste',
       );
       expect(instructions1.steps.length, greaterThan(2));
-      
+
       // Test with wet waste
       final instructions2 = await service.getDisposalInstructions(
         material: 'test item',
@@ -119,4 +118,4 @@ void main() {
       expect(instructions.estimatedTime, '5 minutes');
     });
   });
-} 
+}

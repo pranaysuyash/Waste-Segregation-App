@@ -489,96 +489,110 @@ void main() {
 
     group('Validation', () {
       test('should validate contribution content', () {
-        expect(() => UserContribution(
-          id: '', // Empty ID
-          userId: 'user123',
-          userName: 'John Doe',
-          type: ContributionType.classification,
-          title: 'Valid Title',
-          description: 'Valid description',
-          points: 50,
-          timestamp: DateTime.now(),
-          status: ContributionStatus.pending,
-        ), throwsArgumentError);
+        expect(
+            () => UserContribution(
+                  id: '', // Empty ID
+                  userId: 'user123',
+                  userName: 'John Doe',
+                  type: ContributionType.classification,
+                  title: 'Valid Title',
+                  description: 'Valid description',
+                  points: 50,
+                  timestamp: DateTime.now(),
+                  status: ContributionStatus.pending,
+                ),
+            throwsArgumentError);
 
-        expect(() => UserContribution(
-          id: 'valid_id',
-          userId: 'user123',
-          userName: 'John Doe',
-          type: ContributionType.classification,
-          title: '', // Empty title
-          description: 'Valid description',
-          points: 50,
-          timestamp: DateTime.now(),
-          status: ContributionStatus.pending,
-        ), throwsArgumentError);
+        expect(
+            () => UserContribution(
+                  id: 'valid_id',
+                  userId: 'user123',
+                  userName: 'John Doe',
+                  type: ContributionType.classification,
+                  title: '', // Empty title
+                  description: 'Valid description',
+                  points: 50,
+                  timestamp: DateTime.now(),
+                  status: ContributionStatus.pending,
+                ),
+            throwsArgumentError);
 
-        expect(() => UserContribution(
-          id: 'valid_id',
-          userId: 'user123',
-          userName: 'John Doe',
-          type: ContributionType.classification,
-          title: 'Valid Title',
-          description: '', // Empty description
-          points: 50,
-          timestamp: DateTime.now(),
-          status: ContributionStatus.pending,
-        ), throwsArgumentError);
+        expect(
+            () => UserContribution(
+                  id: 'valid_id',
+                  userId: 'user123',
+                  userName: 'John Doe',
+                  type: ContributionType.classification,
+                  title: 'Valid Title',
+                  description: '', // Empty description
+                  points: 50,
+                  timestamp: DateTime.now(),
+                  status: ContributionStatus.pending,
+                ),
+            throwsArgumentError);
       });
 
       test('should validate point values', () {
-        expect(() => UserContribution(
-          id: 'valid_id',
-          userId: 'user123',
-          userName: 'John Doe',
-          type: ContributionType.classification,
-          title: 'Valid Title',
-          description: 'Valid description',
-          points: -10, // Negative points
-          timestamp: DateTime.now(),
-          status: ContributionStatus.pending,
-        ), throwsArgumentError);
+        expect(
+            () => UserContribution(
+                  id: 'valid_id',
+                  userId: 'user123',
+                  userName: 'John Doe',
+                  type: ContributionType.classification,
+                  title: 'Valid Title',
+                  description: 'Valid description',
+                  points: -10, // Negative points
+                  timestamp: DateTime.now(),
+                  status: ContributionStatus.pending,
+                ),
+            throwsArgumentError);
       });
 
       test('should validate vote counts', () {
-        expect(() => UserContribution(
-          id: 'valid_id',
-          userId: 'user123',
-          userName: 'John Doe',
-          type: ContributionType.classification,
-          title: 'Valid Title',
-          description: 'Valid description',
-          points: 50,
-          timestamp: DateTime.now(),
-          status: ContributionStatus.pending,
-          upvotes: -5, // Negative upvotes
-        ), throwsArgumentError);
+        expect(
+            () => UserContribution(
+                  id: 'valid_id',
+                  userId: 'user123',
+                  userName: 'John Doe',
+                  type: ContributionType.classification,
+                  title: 'Valid Title',
+                  description: 'Valid description',
+                  points: 50,
+                  timestamp: DateTime.now(),
+                  status: ContributionStatus.pending,
+                  upvotes: -5, // Negative upvotes
+                ),
+            throwsArgumentError);
 
-        expect(() => UserContribution(
-          id: 'valid_id',
-          userId: 'user123',
-          userName: 'John Doe',
-          type: ContributionType.classification,
-          title: 'Valid Title',
-          description: 'Valid description',
-          points: 50,
-          timestamp: DateTime.now(),
-          status: ContributionStatus.pending,
-          downvotes: -3, // Negative downvotes
-        ), throwsArgumentError);
+        expect(
+            () => UserContribution(
+                  id: 'valid_id',
+                  userId: 'user123',
+                  userName: 'John Doe',
+                  type: ContributionType.classification,
+                  title: 'Valid Title',
+                  description: 'Valid description',
+                  points: 50,
+                  timestamp: DateTime.now(),
+                  status: ContributionStatus.pending,
+                  downvotes: -3, // Negative downvotes
+                ),
+            throwsArgumentError);
 
-        expect(() => UserContribution(
-          id: 'valid_id',
-          userId: 'user123',
-          userName: 'John Doe',
-          type: ContributionType.classification,
-          title: 'Valid Title',
-          description: 'Valid description',
-          points: 50,
-          timestamp: DateTime.now(),
-          status: ContributionStatus.pending,
-          reportCount: -1, // Negative report count
-        ), throwsArgumentError);
+        expect(
+            () => UserContribution(
+                  id: 'valid_id',
+                  userId: 'user123',
+                  userName: 'John Doe',
+                  type: ContributionType.classification,
+                  title: 'Valid Title',
+                  description: 'Valid description',
+                  points: 50,
+                  timestamp: DateTime.now(),
+                  status: ContributionStatus.pending,
+                  reportCount: -1, // Negative report count
+                ),
+            throwsArgumentError);
       });
     });
 
@@ -660,21 +674,36 @@ void main() {
       test('should sort contributions by points', () {
         final contributions = [
           UserContribution(
-            id: 'contrib_1', userId: 'user1', userName: 'User1',
-            type: ContributionType.classification, title: 'Low Points',
-            description: 'Description', points: 25, timestamp: DateTime.now(),
+            id: 'contrib_1',
+            userId: 'user1',
+            userName: 'User1',
+            type: ContributionType.classification,
+            title: 'Low Points',
+            description: 'Description',
+            points: 25,
+            timestamp: DateTime.now(),
             status: ContributionStatus.approved,
           ),
           UserContribution(
-            id: 'contrib_2', userId: 'user2', userName: 'User2',
-            type: ContributionType.educational_content, title: 'High Points',
-            description: 'Description', points: 100, timestamp: DateTime.now(),
+            id: 'contrib_2',
+            userId: 'user2',
+            userName: 'User2',
+            type: ContributionType.educational_content,
+            title: 'High Points',
+            description: 'Description',
+            points: 100,
+            timestamp: DateTime.now(),
             status: ContributionStatus.approved,
           ),
           UserContribution(
-            id: 'contrib_3', userId: 'user3', userName: 'User3',
-            type: ContributionType.disposal_location, title: 'Medium Points',
-            description: 'Description', points: 50, timestamp: DateTime.now(),
+            id: 'contrib_3',
+            userId: 'user3',
+            userName: 'User3',
+            type: ContributionType.disposal_location,
+            title: 'Medium Points',
+            description: 'Description',
+            points: 50,
+            timestamp: DateTime.now(),
             status: ContributionStatus.approved,
           ),
         ];

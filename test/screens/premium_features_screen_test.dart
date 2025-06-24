@@ -21,7 +21,7 @@ void main() {
 
     setUp(() {
       mockPremiumService = MockPremiumService();
-      
+
       testAvailableFeatures = [
         PremiumFeature(
           id: 'ad_free',
@@ -296,7 +296,8 @@ void main() {
 
         // In debug mode, should show developer message
         if (kDebugMode) {
-          expect(find.text('In-app purchase flow would launch here. Use developer mode to test features.'), findsOneWidget);
+          expect(find.text('In-app purchase flow would launch here. Use developer mode to test features.'),
+              findsOneWidget);
         } else {
           expect(find.text('Premium features coming soon!'), findsOneWidget);
         }
@@ -342,13 +343,15 @@ void main() {
       });
 
       testWidgets('should handle large number of features', (tester) async {
-        final manyFeatures = List.generate(20, (index) => PremiumFeature(
-          id: 'feature_$index',
-          title: 'Feature $index',
-          description: 'Description for feature $index',
-          icon: Icons.star,
-          category: PremiumFeatureCategory.values[index % PremiumFeatureCategory.values.length],
-        ));
+        final manyFeatures = List.generate(
+            20,
+            (index) => PremiumFeature(
+                  id: 'feature_$index',
+                  title: 'Feature $index',
+                  description: 'Description for feature $index',
+                  icon: Icons.star,
+                  category: PremiumFeatureCategory.values[index % PremiumFeatureCategory.values.length],
+                ));
 
         when(mockPremiumService.getComingSoonFeatures()).thenReturn(manyFeatures);
         when(mockPremiumService.getPremiumFeatures()).thenReturn([]);
@@ -373,7 +376,8 @@ void main() {
           PremiumFeature(
             id: 'long_feature',
             title: 'This is a very long feature title that might cause overflow issues in the UI',
-            description: 'This is a very long description that explains in great detail what this premium feature does and why users should purchase it',
+            description:
+                'This is a very long description that explains in great detail what this premium feature does and why users should purchase it',
             icon: Icons.text_fields,
             category: PremiumFeatureCategory.userExperience,
           ),
@@ -500,7 +504,7 @@ void main() {
             of: developerToggle,
             matching: find.byType(IconButton),
           );
-          
+
           final widget = tester.widget<IconButton>(iconButton);
           expect(widget.tooltip, equals('Toggle Developer Mode'));
         }

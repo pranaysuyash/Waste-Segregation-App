@@ -2,7 +2,6 @@ import 'package:uuid/uuid.dart';
 
 /// Enhanced Family model for Firebase Firestore with social features.
 class Family {
-
   const Family({
     required this.id,
     required this.name,
@@ -128,7 +127,6 @@ class Family {
 
 /// Represents a member of a family with their role and stats.
 class FamilyMember {
-
   const FamilyMember({
     required this.userId,
     required this.role,
@@ -191,7 +189,6 @@ class FamilyMember {
 
 /// Settings and preferences for a family.
 class FamilySettings {
-
   const FamilySettings({
     this.isPublic = false,
     this.allowChildInvites = false,
@@ -215,9 +212,7 @@ class FamilySettings {
       notifications: json['notifications'] != null
           ? NotificationSettings.fromJson(json['notifications'] as Map<String, dynamic>)
           : null,
-      privacy: json['privacy'] != null
-          ? PrivacySettings.fromJson(json['privacy'] as Map<String, dynamic>)
-          : null,
+      privacy: json['privacy'] != null ? PrivacySettings.fromJson(json['privacy'] as Map<String, dynamic>) : null,
       customSettings: json['customSettings'] as Map<String, dynamic>? ?? {},
       shareClassificationsPublicly: json['shareClassificationsPublicly'] as bool? ?? true,
       showMemberActivityInFeed: json['showMemberActivityInFeed'] as bool? ?? true,
@@ -240,9 +235,7 @@ class FamilySettings {
 
   /// Creates default family settings.
   static FamilySettings defaultSettings() {
-    return const FamilySettings(
-      
-    );
+    return const FamilySettings();
   }
 
   /// Creates a copy of these settings with updated fields.
@@ -291,7 +284,6 @@ class FamilySettings {
 
 /// Notification settings for a family.
 class NotificationSettings {
-
   const NotificationSettings({
     required this.newMemberJoined,
     required this.classificationShared,
@@ -341,7 +333,6 @@ class NotificationSettings {
 
 /// Privacy settings for a family.
 class PrivacySettings {
-
   const PrivacySettings({
     required this.showLastSeen,
     required this.showActivityStatus,
@@ -364,10 +355,7 @@ class PrivacySettings {
       showLastSeen: json['showLastSeen'] as bool? ?? true,
       showActivityStatus: json['showActivityStatus'] as bool? ?? true,
       allowSearchByName: json['allowSearchByName'] as bool? ?? true,
-      blockedUsers: (json['blockedUsers'] as List<dynamic>?)
-              ?.map((e) => e as String)
-              .toList() ??
-          [],
+      blockedUsers: (json['blockedUsers'] as List<dynamic>?)?.map((e) => e as String).toList() ?? [],
     );
   }
   final bool showLastSeen;
@@ -388,7 +376,6 @@ class PrivacySettings {
 
 /// Aggregated statistics for a family.
 class FamilyStats {
-
   const FamilyStats({
     this.totalClassifications = 0,
     this.totalPoints = 0,
@@ -409,9 +396,7 @@ class FamilyStats {
       totalPoints: json['totalPoints'] as int? ?? 0,
       currentStreak: json['currentStreak'] as int? ?? 0,
       memberCount: json['memberCount'] as int? ?? 0,
-      categoryCounts: json['categoryCounts'] != null
-          ? Map<String, int>.from(json['categoryCounts'] as Map)
-          : const {},
+      categoryCounts: json['categoryCounts'] != null ? Map<String, int>.from(json['categoryCounts'] as Map) : const {},
     );
   }
 
@@ -420,7 +405,6 @@ class FamilyStats {
   final int currentStreak;
   final int memberCount;
   final Map<String, int> categoryCounts;
-
 
   /// Creates a copy of these stats with updated fields.
   FamilyStats copyWith({
@@ -453,7 +437,6 @@ class FamilyStats {
 
 /// Individual user statistics within a family.
 class UserStats {
-
   const UserStats({
     required this.totalPoints,
     required this.totalClassifications,
@@ -485,10 +468,7 @@ class UserStats {
       currentStreak: json['currentStreak'] as int? ?? 0,
       bestStreak: json['bestStreak'] as int? ?? 0,
       categoryBreakdown: Map<String, int>.from(json['categoryBreakdown'] as Map? ?? {}),
-      achievements: (json['achievements'] as List<dynamic>?)
-              ?.map((a) => a as String)
-              .toList() ??
-          [],
+      achievements: (json['achievements'] as List<dynamic>?)?.map((a) => a as String).toList() ?? [],
       lastActive: DateTime.parse(json['lastActive'] as String),
     );
   }
@@ -537,7 +517,6 @@ class UserStats {
 
 /// Environmental impact metrics for tracking eco-friendly achievements.
 class EnvironmentalImpact {
-
   const EnvironmentalImpact({
     required this.co2Saved,
     required this.treesEquivalent,
@@ -582,7 +561,6 @@ class EnvironmentalImpact {
 
 /// Weekly progress tracking for family activities.
 class WeeklyProgress {
-
   const WeeklyProgress({
     required this.weekStart,
     required this.weekEnd,
@@ -623,4 +601,4 @@ enum UserRole { admin, moderator, member }
 
 enum InvitationStatus { pending, accepted, declined, expired }
 
-enum FamilyLeaderboardVisibility { public, membersOnly, adminsOnly } 
+enum FamilyLeaderboardVisibility { public, membersOnly, adminsOnly }

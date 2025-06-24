@@ -4,7 +4,6 @@ import '../utils/performance_optimizer.dart';
 
 /// Gen Z-focused microinteractions for modern app feel
 class GenZMicrointeractions {
-  
   /// Bouncy success animation
   static Widget buildSuccessAnimation({
     required Widget child,
@@ -237,7 +236,7 @@ class GenZMicrointeractions {
           ...List.generate(particleCount, (index) {
             final angle = (index * 360 / particleCount) * (3.14159 / 180);
             const distance = 50.0;
-            
+
             return AnimatedPositioned(
               duration: duration,
               curve: Curves.easeOut,
@@ -323,4 +322,4 @@ class GenZMicrointeractions {
       child: child,
     );
   }
-} 
+}

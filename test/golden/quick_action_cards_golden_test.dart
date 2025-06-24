@@ -54,7 +54,8 @@ void main() {
                     child: FeatureCard(
                       icon: Icons.analytics,
                       title: 'Very Long Analytics Dashboard Title That Should Not Overflow',
-                      subtitle: 'Very long subtitle that describes detailed insights and statistics with comprehensive data analysis and reporting features',
+                      subtitle:
+                          'Very long subtitle that describes detailed insights and statistics with comprehensive data analysis and reporting features',
                       iconColor: AppTheme.infoColor,
                       onTap: () {},
                     ),
@@ -133,4 +134,4 @@ void main() {
       );
     });
   });
-} 
+}

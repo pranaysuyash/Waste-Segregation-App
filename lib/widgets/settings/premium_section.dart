@@ -13,7 +13,7 @@ class PremiumSection extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         // Section header is handled by parent
-        
+
         SettingTile(
           icon: Icons.workspace_premium,
           iconColor: SettingsTheme.premiumColor,
@@ -34,4 +34,4 @@ class PremiumSection extends StatelessWidget {
       ),
     );
   }
-} 
+}

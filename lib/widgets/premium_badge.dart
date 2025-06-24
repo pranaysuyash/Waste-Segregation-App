@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
 class PremiumBadge extends StatelessWidget {
-  
   const PremiumBadge({
     super.key,
     this.label = 'Coming Soon',
@@ -32,4 +31,4 @@ class PremiumBadge extends StatelessWidget {
       ),
     );
   }
-} 
+}

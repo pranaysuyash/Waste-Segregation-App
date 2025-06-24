@@ -49,8 +49,7 @@ class _FakeAppsResource_1 extends _i1.SmartFake implements _i2.AppsResource {
         );
 }
 
-class _FakeChangesResource_2 extends _i1.SmartFake
-    implements _i2.ChangesResource {
+class _FakeChangesResource_2 extends _i1.SmartFake implements _i2.ChangesResource {
   _FakeChangesResource_2(
     Object parent,
     Invocation parentInvocation,
@@ -60,8 +59,7 @@ class _FakeChangesResource_2 extends _i1.SmartFake
         );
 }
 
-class _FakeChannelsResource_3 extends _i1.SmartFake
-    implements _i2.ChannelsResource {
+class _FakeChannelsResource_3 extends _i1.SmartFake implements _i2.ChannelsResource {
   _FakeChannelsResource_3(
     Object parent,
     Invocation parentInvocation,
@@ -71,8 +69,7 @@ class _FakeChannelsResource_3 extends _i1.SmartFake
         );
 }
 
-class _FakeCommentsResource_4 extends _i1.SmartFake
-    implements _i2.CommentsResource {
+class _FakeCommentsResource_4 extends _i1.SmartFake implements _i2.CommentsResource {
   _FakeCommentsResource_4(
     Object parent,
     Invocation parentInvocation,
@@ -82,8 +79,7 @@ class _FakeCommentsResource_4 extends _i1.SmartFake
         );
 }
 
-class _FakeDrivesResource_5 extends _i1.SmartFake
-    implements _i2.DrivesResource {
+class _FakeDrivesResource_5 extends _i1.SmartFake implements _i2.DrivesResource {
   _FakeDrivesResource_5(
     Object parent,
     Invocation parentInvocation,
@@ -103,8 +99,7 @@ class _FakeFilesResource_6 extends _i1.SmartFake implements _i2.FilesResource {
         );
 }
 
-class _FakePermissionsResource_7 extends _i1.SmartFake
-    implements _i2.PermissionsResource {
+class _FakePermissionsResource_7 extends _i1.SmartFake implements _i2.PermissionsResource {
   _FakePermissionsResource_7(
     Object parent,
     Invocation parentInvocation,
@@ -114,8 +109,7 @@ class _FakePermissionsResource_7 extends _i1.SmartFake
         );
 }
 
-class _FakeRepliesResource_8 extends _i1.SmartFake
-    implements _i2.RepliesResource {
+class _FakeRepliesResource_8 extends _i1.SmartFake implements _i2.RepliesResource {
   _FakeRepliesResource_8(
     Object parent,
     Invocation parentInvocation,
@@ -125,8 +119,7 @@ class _FakeRepliesResource_8 extends _i1.SmartFake
         );
 }
 
-class _FakeRevisionsResource_9 extends _i1.SmartFake
-    implements _i2.RevisionsResource {
+class _FakeRevisionsResource_9 extends _i1.SmartFake implements _i2.RevisionsResource {
   _FakeRevisionsResource_9(
     Object parent,
     Invocation parentInvocation,
@@ -136,8 +129,7 @@ class _FakeRevisionsResource_9 extends _i1.SmartFake
         );
 }
 
-class _FakeTeamdrivesResource_10 extends _i1.SmartFake
-    implements _i2.TeamdrivesResource {
+class _FakeTeamdrivesResource_10 extends _i1.SmartFake implements _i2.TeamdrivesResource {
   _FakeTeamdrivesResource_10(
     Object parent,
     Invocation parentInvocation,
@@ -197,8 +189,7 @@ class _FakeLabelList_15 extends _i1.SmartFake implements _i2.LabelList {
         );
 }
 
-class _FakeModifyLabelsResponse_16 extends _i1.SmartFake
-    implements _i2.ModifyLabelsResponse {
+class _FakeModifyLabelsResponse_16 extends _i1.SmartFake implements _i2.ModifyLabelsResponse {
   _FakeModifyLabelsResponse_16(
     Object parent,
     Invocation parentInvocation,
@@ -218,8 +209,7 @@ class _Fake$Channel01_17 extends _i1.SmartFake implements _i3.$Channel01 {
         );
 }
 
-class _FakeAccessCredentials_18 extends _i1.SmartFake
-    implements _i4.AccessCredentials {
+class _FakeAccessCredentials_18 extends _i1.SmartFake implements _i4.AccessCredentials {
   _FakeAccessCredentials_18(
     Object parent,
     Invocation parentInvocation,
@@ -239,8 +229,7 @@ class _FakeResponse_19 extends _i1.SmartFake implements _i5.Response {
         );
 }
 
-class _FakeStreamedResponse_20 extends _i1.SmartFake
-    implements _i5.StreamedResponse {
+class _FakeStreamedResponse_20 extends _i1.SmartFake implements _i5.StreamedResponse {
   _FakeStreamedResponse_20(
     Object parent,
     Invocation parentInvocation,
@@ -736,8 +725,7 @@ class MockFilesResource extends _i1.Mock implements _i2.FilesResource {
           ],
           {#$fields: $fields},
         ),
-        returnValue: _i6.Future<_i2.ModifyLabelsResponse>.value(
-            _FakeModifyLabelsResponse_16(
+        returnValue: _i6.Future<_i2.ModifyLabelsResponse>.value(_FakeModifyLabelsResponse_16(
           this,
           Invocation.method(
             #modifyLabels,
@@ -1085,14 +1073,12 @@ class MockAuthClient extends _i1.Mock implements _i8.AuthClient {
       ) as _i6.Future<_i11.Uint8List>);
 
   @override
-  _i6.Future<_i5.StreamedResponse> send(_i5.BaseRequest? request) =>
-      (super.noSuchMethod(
+  _i6.Future<_i5.StreamedResponse> send(_i5.BaseRequest? request) => (super.noSuchMethod(
         Invocation.method(
           #send,
           [request],
         ),
-        returnValue:
-            _i6.Future<_i5.StreamedResponse>.value(_FakeStreamedResponse_20(
+        returnValue: _i6.Future<_i5.StreamedResponse>.value(_FakeStreamedResponse_20(
           this,
           Invocation.method(
             #send,

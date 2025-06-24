@@ -7,7 +7,7 @@ void main() {
   group('Bottom Navigation Tests', () {
     testWidgets('ModernBottomNavigation displays all items correctly', (WidgetTester tester) async {
       var selectedIndex = 0;
-      
+
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
@@ -46,7 +46,7 @@ void main() {
 
     testWidgets('ModernBottomNavigation handles tap events correctly', (WidgetTester tester) async {
       var selectedIndex = 0;
-      
+
       await tester.pumpWidget(
         StatefulBuilder(
           builder: (context, setState) {
@@ -290,7 +290,7 @@ void main() {
 
     testWidgets('ModernBottomNavigation animation test', (WidgetTester tester) async {
       var selectedIndex = 0;
-      
+
       await tester.pumpWidget(
         StatefulBuilder(
           builder: (context, setState) {
@@ -370,7 +370,7 @@ void main() {
 
     testWidgets('ModernFAB handles tap events correctly', (WidgetTester tester) async {
       var tapped = false;
-      
+
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
@@ -423,7 +423,7 @@ void main() {
       // Test tap down animation
       await tester.press(find.byType(ModernFAB));
       await tester.pump(const Duration(milliseconds: 100));
-      
+
       // Test tap up animation
       await tester.pumpAndSettle();
 
@@ -590,10 +590,10 @@ void main() {
       // Should be accessible by text
       expect(find.text('Home'), findsOneWidget);
       expect(find.text('History'), findsOneWidget);
-      
+
       // Should be tappable
       await tester.tap(find.text('History'));
       await tester.pumpAndSettle();
     });
   });
-} 
+}

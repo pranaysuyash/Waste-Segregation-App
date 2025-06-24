@@ -1,6 +1,4 @@
-
 class RecyclingCode {
-
   const RecyclingCode({
     required this.id,
     required this.name,
@@ -11,4 +9,4 @@ class RecyclingCode {
   final String name;
   final String examples;
   final String recyclable;
-} 
+}

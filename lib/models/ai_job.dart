@@ -33,17 +33,13 @@ class AiJob {
       ),
       createdAt: DateTime.parse(json['createdAt']),
       result: json['result']?.cast<String, dynamic>(),
-      completedAt: json['completedAt'] != null 
-          ? DateTime.parse(json['completedAt']) 
-          : null,
+      completedAt: json['completedAt'] != null ? DateTime.parse(json['completedAt']) : null,
       errorMessage: json['errorMessage'],
       priority: json['priority'] ?? false,
       tokensSpent: json['tokensSpent'] ?? 0,
       metadata: json['metadata']?.cast<String, dynamic>(),
       queuePosition: json['queuePosition'],
-      estimatedCompletion: json['estimatedCompletion'] != null
-          ? DateTime.parse(json['estimatedCompletion'])
-          : null,
+      estimatedCompletion: json['estimatedCompletion'] != null ? DateTime.parse(json['estimatedCompletion']) : null,
     );
   }
 
@@ -70,31 +66,32 @@ class AiJob {
 
   final String id;
   final String userId;
-  final String imagePath;        // Storage path (gs://bucket/path)
+  final String imagePath; // Storage path (gs://bucket/path)
   final AnalysisSpeed speed;
   final AiJobStatus status;
   final DateTime createdAt;
-  final Map<String, dynamic>? result;  // Classification result
+  final Map<String, dynamic>? result; // Classification result
   final DateTime? completedAt;
   final String? errorMessage;
-  final bool priority;           // Priority queue for premium users
-  final int tokensSpent;         // Tokens deducted for this job
+  final bool priority; // Priority queue for premium users
+  final int tokensSpent; // Tokens deducted for this job
   final Map<String, dynamic>? metadata;
-  
+
   // Enhanced fields for better UX
-  final int? queuePosition;           // Position in queue (1-based)
+  final int? queuePosition; // Position in queue (1-based)
   final DateTime? estimatedCompletion; // Estimated completion time
 
   /// Check if job is still processing
   bool get isProcessing => status == AiJobStatus.queued || status == AiJobStatus.processing;
 
   /// Check if job is completed (success or failure)
-  bool get isCompleted => status == AiJobStatus.completed || status == AiJobStatus.failed || status == AiJobStatus.cancelled;
+  bool get isCompleted =>
+      status == AiJobStatus.completed || status == AiJobStatus.failed || status == AiJobStatus.cancelled;
 
   /// Get estimated completion time based on queue position
   Duration? getEstimatedCompletion(int queuePosition) {
     if (isCompleted) return null;
-    
+
     switch (speed) {
       case AnalysisSpeed.instant:
         return const Duration(seconds: 30); // Real-time processing
@@ -128,7 +125,7 @@ class AiJob {
     if (estimatedCompletion == null) return 'Unknown';
     final now = DateTime.now();
     if (estimatedCompletion!.isBefore(now)) return 'Processing...';
-    
+
     final diff = estimatedCompletion!.difference(now);
     if (diff.inMinutes < 5) return 'Less than 5 minutes';
     if (diff.inMinutes < 60) return '${diff.inMinutes} minutes';
@@ -208,11 +205,11 @@ class AiJob {
 
 /// Status of an AI processing job
 enum AiJobStatus {
-  queued,      // Waiting in queue
-  processing,  // Currently being processed
-  completed,   // Successfully completed
-  failed,      // Failed with error
-  cancelled,   // Cancelled by user or system
+  queued, // Waiting in queue
+  processing, // Currently being processed
+  completed, // Successfully completed
+  failed, // Failed with error
+  cancelled, // Cancelled by user or system
 }
 
 /// Queue statistics for monitoring
@@ -276,13 +273,13 @@ class QueueStats {
   final int failedToday;
   final Duration averageWaitTime;
   final DateTime lastUpdated;
-  
+
   // Enhanced monitoring fields
-  final Duration averageProcessingTime;  // How long each job takes to process
-  final Duration estimatedWaitTime;      // Estimated wait time for new jobs
-  final double successRate;              // Success rate (0.0 - 1.0)
-  final double failureRate;              // Failure rate (0.0 - 1.0)
-  final int pendingJobs;                 // Alias for queuedJobs for clarity
+  final Duration averageProcessingTime; // How long each job takes to process
+  final Duration estimatedWaitTime; // Estimated wait time for new jobs
+  final double successRate; // Success rate (0.0 - 1.0)
+  final double failureRate; // Failure rate (0.0 - 1.0)
+  final int pendingJobs; // Alias for queuedJobs for clarity
 
   /// Get queue health status
   QueueHealth get health {
@@ -350,10 +347,10 @@ class QueueStats {
 
 /// Queue health indicators
 enum QueueHealth {
-  healthy,     // < 100 jobs
-  moderate,    // 100-500 jobs
-  busy,        // 500-1000 jobs
-  overloaded,  // > 1000 jobs
+  healthy, // < 100 jobs
+  moderate, // 100-500 jobs
+  busy, // 500-1000 jobs
+  overloaded, // > 1000 jobs
 }
 
 extension QueueHealthExtension on QueueHealth {
@@ -373,13 +370,13 @@ extension QueueHealthExtension on QueueHealth {
   String get colorHex {
     switch (this) {
       case QueueHealth.healthy:
-        return '#4CAF50';  // Green
+        return '#4CAF50'; // Green
       case QueueHealth.moderate:
-        return '#FF9800';  // Orange
+        return '#FF9800'; // Orange
       case QueueHealth.busy:
-        return '#F44336';  // Red
+        return '#F44336'; // Red
       case QueueHealth.overloaded:
-        return '#9C27B0';  // Purple
+        return '#9C27B0'; // Purple
     }
   }
-} 
+}

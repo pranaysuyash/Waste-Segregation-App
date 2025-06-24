@@ -9,17 +9,17 @@ import 'dart:convert';
 class MockAiService {
   WasteClassification? _mockResult;
   Exception? _mockException;
-  
+
   void setMockResult(WasteClassification result) {
     _mockResult = result;
     _mockException = null;
   }
-  
+
   void setMockException(Exception exception) {
     _mockException = exception;
     _mockResult = null;
   }
-  
+
   Future<WasteClassification> analyzeWebImage(Uint8List imageData, String filename) async {
     if (_mockException != null) {
       throw _mockException!;
@@ -109,10 +109,7 @@ void main() {
 
         mockService.setMockResult(expectedClassification);
 
-        final result = await mockService.analyzeWebImage(
-          Uint8List.fromList([1, 2, 3, 4]), 
-          'test.jpg'
-        );
+        final result = await mockService.analyzeWebImage(Uint8List.fromList([1, 2, 3, 4]), 'test.jpg');
 
         expect(result, isA<WasteClassification>());
         expect(result.itemName, equals('Plastic Bottle'));
@@ -190,13 +187,7 @@ void main() {
 
     group('Category Validation', () {
       test('should recognize valid waste categories', () {
-        const validCategories = [
-          'Dry Waste',
-          'Wet Waste',
-          'Hazardous Waste',
-          'Medical Waste',
-          'Non-Waste'
-        ];
+        const validCategories = ['Dry Waste', 'Wet Waste', 'Hazardous Waste', 'Medical Waste', 'Non-Waste'];
 
         for (final category in validCategories) {
           final classification = WasteClassification(
@@ -250,14 +241,11 @@ void main() {
 
       test('should handle mock API errors', () async {
         final mockService = MockAiService();
-        
+
         mockService.setMockException(Exception('Mock API Error'));
 
         expect(
-          () async => mockService.analyzeWebImage(
-            Uint8List.fromList([1, 2, 3, 4]), 
-            'test.jpg'
-          ),
+          () async => mockService.analyzeWebImage(Uint8List.fromList([1, 2, 3, 4]), 'test.jpg'),
           throwsA(isA<Exception>()),
         );
       });
@@ -294,12 +282,12 @@ void main() {
           "subcategory": "Plastic", // Made of plastic material
           "explanation": "A red plastic pen used for writing"
         }''';
-        
+
         final aiService = AiService();
         final cleanedJson = aiService.cleanJsonString(jsonWithComments);
-        
+
         expect(() => jsonDecode(cleanedJson), returnsNormally);
-        
+
         final parsed = jsonDecode(cleanedJson);
         expect(parsed['itemName'], equals('Red Pen'));
         expect(parsed['category'], equals('Dry Waste'));
@@ -315,12 +303,12 @@ void main() {
           "category": "Dry Waste",
           "explanation": "A blue plastic bottle"
         }''';
-        
+
         final aiService = AiService();
         final cleanedJson = aiService.cleanJsonString(jsonWithComments);
-        
+
         expect(() => jsonDecode(cleanedJson), returnsNormally);
-        
+
         final parsed = jsonDecode(cleanedJson);
         expect(parsed['itemName'], equals('Blue Bottle'));
         expect(parsed['category'], equals('Dry Waste'));
@@ -333,12 +321,12 @@ void main() {
           "category": "Dry Waste",
           "subcategory": "Metal"
         }''';
-        
+
         final aiService = AiService();
         final cleanedJson = aiService.cleanJsonString(normalJson);
-        
+
         expect(() => jsonDecode(cleanedJson), returnsNormally);
-        
+
         final parsed = jsonDecode(cleanedJson);
         expect(parsed['itemName'], equals('Green Can'));
         expect(parsed['category'], equals('Dry Waste'));
@@ -346,4 +334,4 @@ void main() {
       });
     });
   });
-} 
+}

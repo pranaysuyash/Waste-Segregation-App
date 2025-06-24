@@ -20,7 +20,7 @@ class _DisposalFacilitiesScreenState extends State<DisposalFacilitiesScreen> {
   String _selectedMaterialFilter = 'All';
   String _selectedSourceFilter = 'All';
   bool _activeOnlyFilter = false;
-  
+
   final List<String> _materialOptions = [
     'All',
     'Plastic',
@@ -130,7 +130,7 @@ class _DisposalFacilitiesScreenState extends State<DisposalFacilitiesScreen> {
             onChanged: (value) => setState(() {}),
           ),
           const SizedBox(height: AppTheme.paddingRegular),
-          
+
           // Filters
           SingleChildScrollView(
             scrollDirection: Axis.horizontal,
@@ -142,14 +142,14 @@ class _DisposalFacilitiesScreenState extends State<DisposalFacilitiesScreen> {
                   () => _showMaterialFilter(),
                 ),
                 const SizedBox(width: 8),
-                
+
                 // Source filter
                 _buildFilterChip(
                   'Source: $_selectedSourceFilter',
                   () => _showSourceFilter(),
                 ),
                 const SizedBox(width: 8),
-                
+
                 // Active only filter
                 FilterChip(
                   label: const Text('Active Only'),
@@ -163,7 +163,7 @@ class _DisposalFacilitiesScreenState extends State<DisposalFacilitiesScreen> {
                   checkmarkColor: AppTheme.primaryColor,
                 ),
                 const SizedBox(width: 8),
-                
+
                 // Clear filters
                 if (_hasActiveFilters())
                   ActionChip(
@@ -222,10 +222,10 @@ class _DisposalFacilitiesScreenState extends State<DisposalFacilitiesScreen> {
         if (snapshot.hasError) {
           // Check if it's a Firestore indexing error
           final errorMessage = snapshot.error.toString();
-          final isIndexingError = errorMessage.contains('failed-precondition') || 
-                                     errorMessage.contains('index') ||
-                                     errorMessage.contains('composite');
-          
+          final isIndexingError = errorMessage.contains('failed-precondition') ||
+              errorMessage.contains('index') ||
+              errorMessage.contains('composite');
+
           return Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -242,12 +242,12 @@ class _DisposalFacilitiesScreenState extends State<DisposalFacilitiesScreen> {
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  isIndexingError 
-                    ? 'The database needs indexing for advanced filters. Using simplified view...'
-                    : errorMessage,
+                  isIndexingError
+                      ? 'The database needs indexing for advanced filters. Using simplified view...'
+                      : errorMessage,
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: Colors.grey[600],
-                  ),
+                        color: Colors.grey[600],
+                      ),
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 16),
@@ -296,17 +296,17 @@ class _DisposalFacilitiesScreenState extends State<DisposalFacilitiesScreen> {
   Query _buildQuery() {
     try {
       Query query = FirebaseFirestore.instance.collection('disposal_locations');
-      
+
       // First apply the most selective filters
       if (_selectedSourceFilter != 'All') {
         final sourceValue = _getSourceValue(_selectedSourceFilter);
         query = query.where('source', isEqualTo: sourceValue);
-        
+
         // If we have a source filter, we can add isActive filter and orderBy
         if (_activeOnlyFilter) {
           query = query.where('isActive', isEqualTo: true);
         }
-        
+
         // Only add orderBy if we have a simple enough query
         query = query.orderBy('name');
       } else if (_activeOnlyFilter) {
@@ -316,14 +316,12 @@ class _DisposalFacilitiesScreenState extends State<DisposalFacilitiesScreen> {
         // No filters, just order by name
         query = query.orderBy('name');
       }
-      
+
       return query;
     } catch (e) {
       // Fallback to simpler query if indexing fails
       WasteAppLogger.severe('Complex query failed, using fallback: $e');
-      return FirebaseFirestore.instance
-          .collection('disposal_locations')
-          .orderBy('name');
+      return FirebaseFirestore.instance.collection('disposal_locations').orderBy('name');
     }
   }
 
@@ -333,7 +331,7 @@ class _DisposalFacilitiesScreenState extends State<DisposalFacilitiesScreen> {
       final name = data['name']?.toString().toLowerCase() ?? '';
       final address = data['address']?.toString().toLowerCase() ?? '';
       final acceptedMaterials = List<String>.from(data['acceptedMaterials'] ?? []);
-      
+
       // Search filter
       if (_searchController.text.isNotEmpty) {
         final searchQuery = _searchController.text.toLowerCase();
@@ -341,16 +339,16 @@ class _DisposalFacilitiesScreenState extends State<DisposalFacilitiesScreen> {
           return false;
         }
       }
-      
+
       // Material filter
       if (_selectedMaterialFilter != 'All') {
-        final materialFound = acceptedMaterials.any((material) =>
-            material.toLowerCase().contains(_selectedMaterialFilter.toLowerCase()));
+        final materialFound =
+            acceptedMaterials.any((material) => material.toLowerCase().contains(_selectedMaterialFilter.toLowerCase()));
         if (!materialFound) {
           return false;
         }
       }
-      
+
       return true;
     }).toList();
   }
@@ -398,22 +396,25 @@ class _DisposalFacilitiesScreenState extends State<DisposalFacilitiesScreen> {
             Wrap(
               spacing: 4,
               runSpacing: 4,
-              children: facility.acceptedMaterials.take(3).map((material) => 
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                  decoration: BoxDecoration(
-                    color: AppTheme.primaryColor.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(AppTheme.borderRadiusSmall),
-                  ),
-                  child: Text(
-                    material,
-                    style: const TextStyle(
-                      fontSize: AppTheme.fontSizeSmall - 1,
-                      color: AppTheme.primaryColor,
+              children: facility.acceptedMaterials
+                  .take(3)
+                  .map(
+                    (material) => Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: AppTheme.primaryColor.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(AppTheme.borderRadiusSmall),
+                      ),
+                      child: Text(
+                        material,
+                        style: const TextStyle(
+                          fontSize: AppTheme.fontSizeSmall - 1,
+                          color: AppTheme.primaryColor,
+                        ),
+                      ),
                     ),
-                  ),
-                ),
-              ).toList(),
+                  )
+                  .toList(),
             ),
             if (facility.acceptedMaterials.length > 3) ...[
               const SizedBox(height: 4),
@@ -490,8 +491,8 @@ class _DisposalFacilitiesScreenState extends State<DisposalFacilitiesScreen> {
             Text(
               'No Facilities Found',
               style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                color: Colors.grey[600],
-              ),
+                    color: Colors.grey[600],
+                  ),
             ),
             const SizedBox(height: 16),
             Text(
@@ -499,8 +500,8 @@ class _DisposalFacilitiesScreenState extends State<DisposalFacilitiesScreen> {
                   ? 'Try adjusting your search criteria or filters.'
                   : 'Be the first to add a disposal facility in your area!',
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: Colors.grey[600],
-              ),
+                    color: Colors.grey[600],
+                  ),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 32),
@@ -553,22 +554,22 @@ class _DisposalFacilitiesScreenState extends State<DisposalFacilitiesScreen> {
             Text(
               'Filter by Material',
               style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
+                    fontWeight: FontWeight.bold,
+                  ),
             ),
             const SizedBox(height: AppTheme.paddingRegular),
             ...(_materialOptions.map((material) => ListTile(
-              title: Text(material),
-              trailing: _selectedMaterialFilter == material
-                  ? const Icon(Icons.check, color: AppTheme.primaryColor)
-                  : null,
-              onTap: () {
-                setState(() {
-                  _selectedMaterialFilter = material;
-                });
-                Navigator.pop(context);
-              },
-            ))),
+                  title: Text(material),
+                  trailing: _selectedMaterialFilter == material
+                      ? const Icon(Icons.check, color: AppTheme.primaryColor)
+                      : null,
+                  onTap: () {
+                    setState(() {
+                      _selectedMaterialFilter = material;
+                    });
+                    Navigator.pop(context);
+                  },
+                ))),
           ],
         ),
       ),
@@ -598,15 +599,13 @@ class _DisposalFacilitiesScreenState extends State<DisposalFacilitiesScreen> {
             Text(
               'Filter by Source',
               style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
+                    fontWeight: FontWeight.bold,
+                  ),
             ),
             const SizedBox(height: AppTheme.paddingRegular),
             ListTile(
               title: const Text('All'),
-              trailing: _selectedSourceFilter == 'All'
-                  ? const Icon(Icons.check, color: AppTheme.primaryColor)
-                  : null,
+              trailing: _selectedSourceFilter == 'All' ? const Icon(Icons.check, color: AppTheme.primaryColor) : null,
               onTap: () {
                 setState(() {
                   _selectedSourceFilter = 'All';
@@ -658,9 +657,9 @@ class _DisposalFacilitiesScreenState extends State<DisposalFacilitiesScreen> {
 
   bool _hasActiveFilters() {
     return _selectedMaterialFilter != 'All' ||
-           _selectedSourceFilter != 'All' ||
-           _activeOnlyFilter ||
-           _searchController.text.isNotEmpty;
+        _selectedSourceFilter != 'All' ||
+        _activeOnlyFilter ||
+        _searchController.text.isNotEmpty;
   }
 
   void _clearFilters() {
@@ -706,4 +705,4 @@ class _DisposalFacilitiesScreenState extends State<DisposalFacilitiesScreen> {
         return 'Imported';
     }
   }
-} 
+}

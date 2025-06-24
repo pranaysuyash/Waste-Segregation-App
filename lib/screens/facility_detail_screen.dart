@@ -6,7 +6,6 @@ import '../utils/constants.dart';
 import 'contribution_submission_screen.dart';
 
 class FacilityDetailScreen extends StatefulWidget {
-
   const FacilityDetailScreen({
     super.key,
     required this.facility,
@@ -83,9 +82,9 @@ class _FacilityDetailScreenState extends State<FacilityDetailScreen> {
                   child: Text(
                     widget.facility.name,
                     style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                      fontWeight: FontWeight.bold,
-                      color: AppTheme.primaryColor,
-                    ),
+                          fontWeight: FontWeight.bold,
+                          color: AppTheme.primaryColor,
+                        ),
                   ),
                 ),
               ],
@@ -103,8 +102,8 @@ class _FacilityDetailScreenState extends State<FacilityDetailScreen> {
                   child: Text(
                     widget.facility.address,
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: Colors.grey[700],
-                    ),
+                          color: Colors.grey[700],
+                        ),
                   ),
                 ),
               ],
@@ -121,9 +120,9 @@ class _FacilityDetailScreenState extends State<FacilityDetailScreen> {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   decoration: BoxDecoration(
-                    color: _getFacilitySourceColor().withValues(alpha:0.1),
+                    color: _getFacilitySourceColor().withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(AppTheme.borderRadiusSmall),
-                    border: Border.all(color: _getFacilitySourceColor().withValues(alpha:0.3)),
+                    border: Border.all(color: _getFacilitySourceColor().withValues(alpha: 0.3)),
                   ),
                   child: Text(
                     _getFacilitySourceLabel(),
@@ -138,7 +137,9 @@ class _FacilityDetailScreenState extends State<FacilityDetailScreen> {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   decoration: BoxDecoration(
-                    color: widget.facility.isActive ? Colors.green.withValues(alpha:0.1) : Colors.red.withValues(alpha:0.1),
+                    color: widget.facility.isActive
+                        ? Colors.green.withValues(alpha: 0.1)
+                        : Colors.red.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(AppTheme.borderRadiusSmall),
                   ),
                   child: Text(
@@ -180,8 +181,8 @@ class _FacilityDetailScreenState extends State<FacilityDetailScreen> {
                 Text(
                   'Contact Information',
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
+                        fontWeight: FontWeight.bold,
+                      ),
                 ),
                 const Spacer(),
                 IconButton(
@@ -194,29 +195,29 @@ class _FacilityDetailScreenState extends State<FacilityDetailScreen> {
             const Divider(),
             if (widget.facility.contactInfo.isNotEmpty) ...[
               ...widget.facility.contactInfo.entries.map((entry) => Padding(
-                padding: const EdgeInsets.symmetric(vertical: 4),
-                child: Row(
-                  children: [
-                    Icon(
-                      _getContactIcon(entry.key),
-                      color: Colors.grey[600],
-                      size: 18,
+                    padding: const EdgeInsets.symmetric(vertical: 4),
+                    child: Row(
+                      children: [
+                        Icon(
+                          _getContactIcon(entry.key),
+                          color: Colors.grey[600],
+                          size: 18,
+                        ),
+                        const SizedBox(width: 12),
+                        Text(
+                          '${_getContactLabel(entry.key)}:',
+                          style: const TextStyle(fontWeight: FontWeight.w500),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            entry.value,
+                            style: TextStyle(color: Colors.grey[700]),
+                          ),
+                        ),
+                      ],
                     ),
-                    const SizedBox(width: 12),
-                    Text(
-                      '${_getContactLabel(entry.key)}:',
-                      style: const TextStyle(fontWeight: FontWeight.w500),
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        entry.value,
-                        style: TextStyle(color: Colors.grey[700]),
-                      ),
-                    ),
-                  ],
-                ),
-              )),
+                  )),
             ] else ...[
               Text(
                 'No contact information available',
@@ -254,8 +255,8 @@ class _FacilityDetailScreenState extends State<FacilityDetailScreen> {
                 Text(
                   'Operating Hours',
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
+                        fontWeight: FontWeight.bold,
+                      ),
                 ),
                 const Spacer(),
                 IconButton(
@@ -268,23 +269,23 @@ class _FacilityDetailScreenState extends State<FacilityDetailScreen> {
             const Divider(),
             if (widget.facility.operatingHours.isNotEmpty) ...[
               ...widget.facility.operatingHours.entries.map((entry) => Padding(
-                padding: const EdgeInsets.symmetric(vertical: 4),
-                child: Row(
-                  children: [
-                    SizedBox(
-                      width: 80,
-                      child: Text(
-                        _capitalizeFirstLetter(entry.key),
-                        style: const TextStyle(fontWeight: FontWeight.w500),
-                      ),
+                    padding: const EdgeInsets.symmetric(vertical: 4),
+                    child: Row(
+                      children: [
+                        SizedBox(
+                          width: 80,
+                          child: Text(
+                            _capitalizeFirstLetter(entry.key),
+                            style: const TextStyle(fontWeight: FontWeight.w500),
+                          ),
+                        ),
+                        Text(
+                          entry.value,
+                          style: TextStyle(color: Colors.grey[700]),
+                        ),
+                      ],
                     ),
-                    Text(
-                      entry.value,
-                      style: TextStyle(color: Colors.grey[700]),
-                    ),
-                  ],
-                ),
-              )),
+                  )),
             ] else ...[
               Text(
                 'Operating hours not available',
@@ -322,8 +323,8 @@ class _FacilityDetailScreenState extends State<FacilityDetailScreen> {
                 Text(
                   'Accepted Materials',
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
+                        fontWeight: FontWeight.bold,
+                      ),
                 ),
                 const Spacer(),
                 IconButton(
@@ -338,22 +339,24 @@ class _FacilityDetailScreenState extends State<FacilityDetailScreen> {
               Wrap(
                 spacing: 8,
                 runSpacing: 8,
-                children: widget.facility.acceptedMaterials.map((material) => Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                  decoration: BoxDecoration(
-                    color: AppTheme.primaryColor.withValues(alpha:0.1),
-                    borderRadius: BorderRadius.circular(AppTheme.borderRadiusSmall),
-                    border: Border.all(color: AppTheme.primaryColor.withValues(alpha:0.3)),
-                  ),
-                  child: Text(
-                    material,
-                    style: const TextStyle(
-                      color: AppTheme.primaryColor,
-                      fontWeight: FontWeight.w500,
-                      fontSize: AppTheme.fontSizeSmall,
-                    ),
-                  ),
-                )).toList(),
+                children: widget.facility.acceptedMaterials
+                    .map((material) => Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                          decoration: BoxDecoration(
+                            color: AppTheme.primaryColor.withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(AppTheme.borderRadiusSmall),
+                            border: Border.all(color: AppTheme.primaryColor.withValues(alpha: 0.3)),
+                          ),
+                          child: Text(
+                            material,
+                            style: const TextStyle(
+                              color: AppTheme.primaryColor,
+                              fontWeight: FontWeight.w500,
+                              fontSize: AppTheme.fontSizeSmall,
+                            ),
+                          ),
+                        ))
+                    .toList(),
               ),
             ] else ...[
               Text(
@@ -392,8 +395,8 @@ class _FacilityDetailScreenState extends State<FacilityDetailScreen> {
                 Text(
                   'Photos',
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
+                        fontWeight: FontWeight.bold,
+                      ),
                 ),
                 const Spacer(),
                 IconButton(
@@ -457,8 +460,8 @@ class _FacilityDetailScreenState extends State<FacilityDetailScreen> {
                 Text(
                   'Facility Information',
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
+                        fontWeight: FontWeight.bold,
+                      ),
                 ),
               ],
             ),
@@ -561,8 +564,8 @@ class _FacilityDetailScreenState extends State<FacilityDetailScreen> {
             Text(
               'How would you like to contribute?',
               style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
+                    fontWeight: FontWeight.bold,
+                  ),
             ),
             const SizedBox(height: AppTheme.paddingRegular),
             _buildContributionOption(
@@ -636,7 +639,7 @@ class _FacilityDetailScreenState extends State<FacilityDetailScreen> {
       leading: Container(
         padding: const EdgeInsets.all(8),
         decoration: BoxDecoration(
-          color: AppTheme.primaryColor.withValues(alpha:0.1),
+          color: AppTheme.primaryColor.withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(8),
         ),
         child: Icon(icon, color: AppTheme.primaryColor),
@@ -721,4 +724,4 @@ class _FacilityDetailScreenState extends State<FacilityDetailScreen> {
     final date = timestamp.toDate();
     return '${date.day}/${date.month}/${date.year}';
   }
-} 
+}

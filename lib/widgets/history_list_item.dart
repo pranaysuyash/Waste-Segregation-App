@@ -12,7 +12,6 @@ import '../utils/waste_app_logger.dart';
 
 /// A simplified version of ClassificationCard for list views in the history screen
 class HistoryListItem extends StatelessWidget {
-  
   const HistoryListItem({
     super.key,
     required this.classification,
@@ -25,11 +24,11 @@ class HistoryListItem extends StatelessWidget {
   final VoidCallback onTap;
   final Function(WasteClassification) onFeedbackSubmitted;
   final bool showFeedbackButton;
-  
+
   @override
   Widget build(BuildContext context) {
     final categoryColor = _getCategoryColor();
-    
+
     return Semantics(
       button: true,
       label: 'Classification result for ${classification.itemName}, ${classification.category}',
@@ -37,13 +36,10 @@ class HistoryListItem extends StatelessWidget {
       child: Card(
         color: Theme.of(context).colorScheme.surfaceContainerHighest,
         elevation: 2,
-        margin: const EdgeInsets.symmetric(
-          vertical: AppTheme.paddingSmall, 
-          horizontal: AppTheme.paddingRegular
-        ),
+        margin: const EdgeInsets.symmetric(vertical: AppTheme.paddingSmall, horizontal: AppTheme.paddingRegular),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(AppTheme.borderRadiusRegular),
-          side: BorderSide(color: categoryColor.withValues(alpha:0.3)),
+          side: BorderSide(color: categoryColor.withValues(alpha: 0.3)),
         ),
         clipBehavior: Clip.antiAlias,
         child: InkWell(
@@ -77,9 +73,9 @@ class HistoryListItem extends StatelessWidget {
                               overflow: TextOverflow.ellipsis,
                             ),
                           ),
-                          
+
                           const SizedBox(height: 4),
-                          
+
                           // Date and confidence row with better overflow handling
                           Row(
                             children: [
@@ -109,7 +105,7 @@ class HistoryListItem extends StatelessWidget {
                                     vertical: 2,
                                   ),
                                   decoration: BoxDecoration(
-                                    color: _getConfidenceColor().withValues(alpha:0.2),
+                                    color: _getConfidenceColor().withValues(alpha: 0.2),
                                     borderRadius: BorderRadius.circular(AppTheme.borderRadiusSmall),
                                     border: Border.all(
                                       color: _getConfidenceColor(),
@@ -130,7 +126,7 @@ class HistoryListItem extends StatelessWidget {
                         ],
                       ),
                     ),
-                    
+
                     // Thumbnail (if available)
                     if (classification.imageUrl != null) ...[
                       const SizedBox(width: AppTheme.paddingSmall),
@@ -149,14 +145,14 @@ class HistoryListItem extends StatelessWidget {
                     ],
                   ],
                 ),
-                
+
                 const SizedBox(height: 4),
-                
+
                 // Tags row with proper wrapping
                 _buildTagsSection(categoryColor),
-                
+
                 const SizedBox(height: 4),
-                
+
                 // Properties indicators row
                 _buildPropertiesRow(context),
               ],
@@ -166,11 +162,11 @@ class HistoryListItem extends StatelessWidget {
       ),
     );
   }
-  
+
   /// Builds the tags section with proper wrapping to prevent overflow
   Widget _buildTagsSection(Color categoryColor) {
     final tags = <Widget>[];
-    
+
     // Main category tag
     tags.add(
       Container(
@@ -189,17 +185,17 @@ class HistoryListItem extends StatelessWidget {
         ),
       ),
     );
-    
+
     // Subcategory tag if available
     if (classification.subcategory != null) {
       tags.add(
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
           decoration: BoxDecoration(
-            color: Colors.black.withValues(alpha:0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             borderRadius: BorderRadius.circular(AppTheme.borderRadiusSmall),
             border: Border.all(
-              color: categoryColor.withValues(alpha:0.5),
+              color: categoryColor.withValues(alpha: 0.5),
             ),
           ),
           child: Text(
@@ -213,7 +209,7 @@ class HistoryListItem extends StatelessWidget {
         ),
       );
     }
-    
+
     // Material type tag if available
     if (classification.materialType != null) {
       tags.add(
@@ -237,18 +233,18 @@ class HistoryListItem extends StatelessWidget {
         ),
       );
     }
-    
+
     return Wrap(
       spacing: 6,
       runSpacing: 4,
       children: tags,
     );
   }
-  
+
   /// Builds the properties indicators row with overflow handling
   Widget _buildPropertiesRow(BuildContext context) {
     final indicators = <Widget>[];
-    
+
     if (classification.isRecyclable == true) {
       indicators.add(
         const Tooltip(
@@ -262,7 +258,7 @@ class HistoryListItem extends StatelessWidget {
         ),
       );
     }
-    
+
     if (classification.isCompostable == true) {
       indicators.add(
         const Tooltip(
@@ -276,7 +272,7 @@ class HistoryListItem extends StatelessWidget {
         ),
       );
     }
-    
+
     if (classification.requiresSpecialDisposal == true) {
       indicators.add(
         const Tooltip(
@@ -290,17 +286,19 @@ class HistoryListItem extends StatelessWidget {
         ),
       );
     }
-    
+
     return Row(
       children: [
         // Use Flexible to allow indicators to shrink if needed
         Flexible(
           child: Row(
             mainAxisSize: MainAxisSize.min,
-            children: indicators.map((indicator) => Padding(
-              padding: const EdgeInsets.only(right: 8),
-              child: indicator,
-            )).toList(),
+            children: indicators
+                .map((indicator) => Padding(
+                      padding: const EdgeInsets.only(right: 8),
+                      child: indicator,
+                    ))
+                .toList(),
           ),
         ),
         const Spacer(),
@@ -327,7 +325,7 @@ class HistoryListItem extends StatelessWidget {
       ],
     );
   }
-  
+
   /// Gets the category color for styling
   Color _getCategoryColor() {
     switch (classification.category.toLowerCase()) {
@@ -347,7 +345,7 @@ class HistoryListItem extends StatelessWidget {
         return AppTheme.secondaryColor;
     }
   }
-  
+
   /// Gets the confidence color based on confidence level
   Color _getConfidenceColor() {
     final confidence = classification.confidence ?? 0.0;
@@ -359,14 +357,14 @@ class HistoryListItem extends StatelessWidget {
       return Colors.red;
     }
   }
-  
+
   /// Formats the date for display
   String _formatDateForDisplay(DateTime date) {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
     final yesterday = DateTime(now.year, now.month, now.day - 1);
     final dateToCheck = DateTime(date.year, date.month, date.day);
-    
+
     if (dateToCheck == today) {
       return 'Today, ${_formatTime(date)}';
     } else if (dateToCheck == yesterday) {
@@ -375,12 +373,12 @@ class HistoryListItem extends StatelessWidget {
       return '${date.day}/${date.month}/${date.year}';
     }
   }
-  
+
   /// Formats time as HH:MM
   String _formatTime(DateTime date) {
     return '${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}';
   }
-  
+
   /// Builds the image widget based on platform with improved error handling
   Widget _buildImage() {
     // Try relative path first (new approach)
@@ -407,12 +405,14 @@ class HistoryListItem extends StatelessWidget {
                     fit: BoxFit.cover,
                     cacheHeight: 90, // Optimize memory usage
                     errorBuilder: (context, error, stackTrace) {
-                      WasteAppLogger.severe('Error occurred', null, null, {'service': 'widget', 'file': 'history_list_item'});
+                      WasteAppLogger.severe(
+                          'Error occurred', null, null, {'service': 'widget', 'file': 'history_list_item'});
                       return _buildImagePlaceholder();
                     },
                   );
                 }
-                WasteAppLogger.info('Operation completed', null, null, {'service': 'widget', 'file': 'history_list_item'});
+                WasteAppLogger.info(
+                    'Operation completed', null, null, {'service': 'widget', 'file': 'history_list_item'});
                 return _buildImagePlaceholder();
               },
             );
@@ -421,15 +421,14 @@ class HistoryListItem extends StatelessWidget {
         },
       );
     }
-    
+
     // ---------- NEW fallback ----------
     // If local file missing but Firestore doc has imageUrl (remote URL)
     if (classification.imageRelativePath != null &&
         classification.imageUrl != null &&
         classification.imageUrl!.startsWith('http')) {
       return FutureBuilder<Uint8List?>(
-        future: EnhancedImageService()
-            .fetchImageWithRetry(classification.imageUrl!),
+        future: EnhancedImageService().fetchImageWithRetry(classification.imageUrl!),
         builder: (context, snap) {
           if (!snap.hasData) return _buildImagePlaceholder();
           // Persist to disk so next cold start is instant
@@ -442,7 +441,7 @@ class HistoryListItem extends StatelessWidget {
       );
     }
     // -------- END new code ---------
-    
+
     // Fallback to legacy absolute path logic
     final url = classification.imageUrl;
     WasteAppLogger.info('Operation completed', null, null, {'service': 'widget', 'file': 'history_list_item'});
@@ -535,7 +534,7 @@ class HistoryListItem extends StatelessWidget {
       },
     );
   }
-  
+
   /// Builds a placeholder when image is not available
   Widget _buildImagePlaceholder() {
     return Container(
@@ -603,7 +602,7 @@ class _CompactFeedbackButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final hasExistingFeedback = classification.userConfirmed != null;
-    
+
     return IconButton(
       onPressed: () => _showFeedbackDialog(context),
       icon: Icon(
@@ -640,7 +639,7 @@ class _CompactFeedbackButton extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(AppTheme.paddingLarge),
                 decoration: BoxDecoration(
-                  color: AppTheme.primaryColor.withValues(alpha:0.1),
+                  color: AppTheme.primaryColor.withValues(alpha: 0.1),
                   borderRadius: const BorderRadius.only(
                     topLeft: Radius.circular(AppTheme.borderRadiusLarge),
                     topRight: Radius.circular(AppTheme.borderRadiusLarge),

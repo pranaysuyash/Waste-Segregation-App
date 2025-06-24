@@ -29,4 +29,4 @@ class DebugNavigatorObserver extends NavigatorObserver {
     super.didRemove(route, previousRoute);
     WasteAppLogger.info('🧭 NAVIGATION REMOVE: ${route.settings.name ?? route.runtimeType}');
   }
-} 
+}

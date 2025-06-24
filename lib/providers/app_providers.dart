@@ -20,7 +20,7 @@ import '../services/ai_service.dart';
 /// Storage service provider - single source of truth
 final storageServiceProvider = Provider<StorageService>((ref) => StorageService());
 
-/// Cloud storage service provider - single source of truth  
+/// Cloud storage service provider - single source of truth
 final cloudStorageServiceProvider = Provider<CloudStorageService>((ref) {
   final storageService = ref.read(storageServiceProvider);
   return CloudStorageService(storageService);
@@ -56,18 +56,16 @@ final achievementEarnedProvider = StreamProvider<Achievement>((ref) {
 final todayGoalProvider = FutureProvider<(int, int)>((ref) async {
   final storageService = ref.watch(storageServiceProvider);
   final classifications = await storageService.getAllClassifications();
-  
+
   // Count today's classifications
   final today = DateTime.now();
   final todayClassifications = classifications.where((c) {
-    return c.timestamp.year == today.year &&
-           c.timestamp.month == today.month &&
-           c.timestamp.day == today.day;
+    return c.timestamp.year == today.year && c.timestamp.month == today.month && c.timestamp.day == today.day;
   }).length;
-  
+
   // Default daily goal is 10 items
   const dailyGoal = 10;
-  
+
   return (todayClassifications, dailyGoal);
 });
 
@@ -84,9 +82,7 @@ final userProfileProvider = FutureProvider<UserProfile?>((ref) async {
   try {
     return await storageService.getCurrentUserProfile();
   } catch (e) {
-          WasteAppLogger.severe('Error loading user profile', e, null, {
-        'action': 'return_default_profile'
-      });
+    WasteAppLogger.severe('Error loading user profile', e, null, {'action': 'return_default_profile'});
     return null;
   }
 });
@@ -94,7 +90,7 @@ final userProfileProvider = FutureProvider<UserProfile?>((ref) async {
 /// Educational content service provider - single source of truth
 final educationalContentServiceProvider = Provider<EducationalContentService>((ref) => EducationalContentService());
 
-/// Ad service provider - single source of truth  
+/// Ad service provider - single source of truth
 final adServiceProvider = Provider<AdService>((ref) => AdService());
 
 /// Analytics service provider - single source of truth
@@ -115,9 +111,7 @@ final profileProvider = FutureProvider<GamificationProfile?>((ref) async {
   try {
     return await gamificationService.getProfile();
   } catch (e) {
-    WasteAppLogger.severe('Error loading gamification profile', e, null, {
-      'action': 'return_null_profile'
-    });
+    WasteAppLogger.severe('Error loading gamification profile', e, null, {'action': 'return_null_profile'});
     return null;
   }
 });
@@ -132,4 +126,4 @@ final homeHeaderV2EnabledProvider = FutureProvider<bool>((ref) async {
 });
 
 /// Ai service provider - single source of truth
-final aiServiceProvider = Provider<AiService>((ref) => AiService()); 
+final aiServiceProvider = Provider<AiService>((ref) => AiService());

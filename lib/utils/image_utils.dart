@@ -19,10 +19,10 @@ class ImageUtils {
     try {
       final raw = img.decodeImage(bytes);
       if (raw == null) return bytes;
-      
+
       // Bake orientation to strip EXIF rotation data
       final fixed = img.bakeOrientation(raw);
-      
+
       // Re-encode with consistent quality
       return Uint8List.fromList(img.encodeJpg(fixed, quality: 95));
     } catch (e) {
@@ -43,7 +43,7 @@ class ImageUtils {
     try {
       // Normalize bytes first for consistent hashing
       final normalizedBytes = await _normalizedBytes(imageBytes);
-      
+
       // Use compute for better performance and to avoid blocking UI thread
       final result = await compute(_generateDualHashesIsolate, normalizedBytes);
       return result;
@@ -62,7 +62,7 @@ class ImageUtils {
     try {
       // Generate content hash first (fastest)
       final contentHash = md5.convert(imageBytes).toString();
-      
+
       // Generate perceptual hash
       String perceptualHash;
       try {
@@ -145,7 +145,7 @@ class ImageUtils {
     try {
       // Normalize bytes first for consistent hashing
       final normalizedBytes = await _normalizedBytes(imageBytes);
-      
+
       // Preprocess the image (smaller size and grayscale for consistent hashing)
       final processedBytes = await preprocessImage(
         normalizedBytes,
@@ -165,8 +165,7 @@ class ImageUtils {
       // Fallback to a simpler hash if perceptual hashing fails
       try {
         // Generate a simple average hash as fallback
-        final bytesToHash = await preprocessImage(imageBytes,
-            targetWidth: 16, targetHeight: 16);
+        final bytesToHash = await preprocessImage(imageBytes, targetWidth: 16, targetHeight: 16);
 
         // Use SHA-256 on the preprocessed image
         final digest = sha256.convert(bytesToHash);
@@ -298,8 +297,7 @@ class ImageUtils {
   }
 
   /// Helper method to run image preprocessing in an isolate
-  static Future<Uint8List> _preprocessImageIsolate(
-      _PreprocessImageArgs args) async {
+  static Future<Uint8List> _preprocessImageIsolate(_PreprocessImageArgs args) async {
     try {
       // Decode the image
       final image = img.decodeImage(args.imageBytes);
@@ -316,8 +314,7 @@ class ImageUtils {
       );
 
       // Convert to grayscale if requested
-      final processedImage =
-          args.convertToGrayscale ? img.grayscale(resizedImage) : resizedImage;
+      final processedImage = args.convertToGrayscale ? img.grayscale(resizedImage) : resizedImage;
 
       // Apply blur to reduce noise sensitivity
       // Use stronger blur for perceptual hashing to be more robust to small changes
@@ -361,12 +358,7 @@ class ImageUtils {
       final height = (rect.height * image.height).round();
 
       // Ensure coordinates are valid
-      if (x < 0 ||
-          y < 0 ||
-          width <= 0 ||
-          height <= 0 ||
-          x + width > image.width ||
-          y + height > image.height) {
+      if (x < 0 || y < 0 || width <= 0 || height <= 0 || x + width > image.width || y + height > image.height) {
         return null;
       }
 
@@ -404,12 +396,12 @@ class ImageUtils {
   }
 
   /// Creates the appropriate Image widget based on the image URL/path
-  /// 
+  ///
   /// Automatically detects whether the source is:
   /// - A local file path (file:// URI or absolute path)
   /// - A network URL (http:// or https://)
   /// - An asset path (assets/)
-  /// 
+  ///
   /// Returns the appropriate Image widget with error handling
   static Widget buildImage({
     required String imageSource,
@@ -462,7 +454,7 @@ class ImageUtils {
           errorBuilder: (context, error, stackTrace) => errorWidget!,
         );
       }
-      
+
       // Check if it's an asset
       if (imageSource.startsWith('assets/')) {
         return Image.asset(
@@ -473,13 +465,13 @@ class ImageUtils {
           errorBuilder: (context, error, stackTrace) => errorWidget!,
         );
       }
-      
+
       // Handle file:// URI or local file path
       var filePath = imageSource;
       if (imageSource.startsWith('file://')) {
         filePath = imageSource.substring(7); // Remove 'file://' prefix
       }
-      
+
       final file = File(filePath);
       if (file.existsSync()) {
         return Image.file(
@@ -508,7 +500,7 @@ class ImageUtils {
   }) {
     try {
       ImageProvider? backgroundImage;
-      
+
       // Check if it's a network URL
       if (imageSource.startsWith('http://') || imageSource.startsWith('https://')) {
         backgroundImage = NetworkImage(imageSource);
@@ -520,23 +512,23 @@ class ImageUtils {
         if (imageSource.startsWith('file://')) {
           filePath = imageSource.substring(7);
         }
-        
+
         final file = File(filePath);
         if (file.existsSync()) {
           backgroundImage = FileImage(file);
         }
       }
-      
+
       return CircleAvatar(
         radius: radius,
         backgroundColor: backgroundColor,
         backgroundImage: backgroundImage,
-        onBackgroundImageError: backgroundImage != null 
-          ? (exception, stackTrace) {
-              // Handle image loading error silently
-              WasteAppLogger.severe('Avatar image failed to load: $exception');
-            }
-          : null,
+        onBackgroundImageError: backgroundImage != null
+            ? (exception, stackTrace) {
+                // Handle image loading error silently
+                WasteAppLogger.severe('Avatar image failed to load: $exception');
+              }
+            : null,
         child: backgroundImage == null ? child : null,
       );
     } catch (e) {
@@ -565,7 +557,7 @@ class ImageUtils {
         if (imageSource.startsWith('file://')) {
           filePath = imageSource.substring(7);
         }
-        
+
         final file = File(filePath);
         return file.existsSync();
       }

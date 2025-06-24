@@ -125,7 +125,7 @@ void main() {
         'item_type': 'bottle',
         'era': '1990s',
       };
-      
+
       final result = TemplateInterpolator.instantiate(template, values);
       expect(result, equals('Find the Plastic bottle from 1990s'));
     });
@@ -133,7 +133,7 @@ void main() {
     test('should keep placeholders when values missing', () {
       const template = 'Find the {material} {item_type}';
       final values = {'material': 'Plastic'};
-      
+
       final result = TemplateInterpolator.instantiate(template, values);
       expect(result, equals('Find the Plastic {item_type}'));
     });
@@ -141,7 +141,7 @@ void main() {
     test('should extract placeholders correctly', () {
       const template = 'Quest for {material} and {category} items from {era}';
       final placeholders = TemplateInterpolator.extractPlaceholders(template);
-      
+
       expect(placeholders, hasLength(3));
       expect(placeholders, contains('material'));
       expect(placeholders, contains('category'));
@@ -152,7 +152,7 @@ void main() {
       const template = 'Find {item} in {location}';
       final validValues = {'item': 'bottle', 'location': 'park'};
       final invalidValues = {'item': 'bottle'}; // missing location
-      
+
       expect(TemplateInterpolator.validateTemplate(template, validValues), isTrue);
       expect(TemplateInterpolator.validateTemplate(template, invalidValues), isFalse);
     });
@@ -186,7 +186,7 @@ void main() {
         type: HiddenContentTriggerType.specificItemDiscovery,
         parameters: {'itemId': 'valid_item'},
       );
-      
+
       const invalidCondition = TriggerCondition(
         type: HiddenContentTriggerType.specificItemDiscovery,
         parameters: {'itemId': ''}, // empty itemId

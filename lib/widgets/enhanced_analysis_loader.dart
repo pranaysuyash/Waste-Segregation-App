@@ -8,7 +8,6 @@ import 'gen_z_microinteractions.dart';
 /// Enhanced analysis loader that makes 14-20 second waits engaging
 /// Provides multi-step progress, educational content, and smooth animations
 class EnhancedAnalysisLoader extends StatefulWidget {
-  
   const EnhancedAnalysisLoader({
     super.key,
     this.imageName,
@@ -25,23 +24,21 @@ class EnhancedAnalysisLoader extends StatefulWidget {
   State<EnhancedAnalysisLoader> createState() => _EnhancedAnalysisLoaderState();
 }
 
-class _EnhancedAnalysisLoaderState extends State<EnhancedAnalysisLoader>
-    with TickerProviderStateMixin {
-  
+class _EnhancedAnalysisLoaderState extends State<EnhancedAnalysisLoader> with TickerProviderStateMixin {
   late AnimationController _progressController;
   late AnimationController _pulseController;
   late AnimationController _particleController;
-  
+
   late Animation<double> _progressAnimation;
   late Animation<double> _pulseAnimation;
-  
+
   Timer? _stepTimer;
   Timer? _tipTimer;
-  
+
   int _currentStep = 0;
   int _currentTipIndex = 0;
   double _estimatedProgress = 0.0;
-  
+
   final List<AnalysisStep> _analysisSteps = [
     const AnalysisStep(
       title: 'Uploading Image',
@@ -72,7 +69,7 @@ class _EnhancedAnalysisLoaderState extends State<EnhancedAnalysisLoader>
       color: Colors.green,
     ),
   ];
-  
+
   final List<String> _educationalTips = [
     '💡 Did you know? Recycling one aluminum can saves enough energy to power a TV for 3 hours!',
     '🌱 Composting food waste can reduce methane emissions by up to 50%',
@@ -96,17 +93,17 @@ class _EnhancedAnalysisLoaderState extends State<EnhancedAnalysisLoader>
       duration: widget.estimatedDuration,
       vsync: this,
     );
-    
+
     _pulseController = AnimationController(
       duration: const Duration(milliseconds: 1500),
       vsync: this,
     );
-    
+
     _particleController = AnimationController(
       duration: const Duration(seconds: 3),
       vsync: this,
     );
-    
+
     _progressAnimation = Tween<double>(
       begin: 0.0,
       end: 1.0,
@@ -114,7 +111,7 @@ class _EnhancedAnalysisLoaderState extends State<EnhancedAnalysisLoader>
       parent: _progressController,
       curve: Curves.easeInOut,
     ));
-    
+
     _pulseAnimation = Tween<double>(
       begin: 0.8,
       end: 1.2,
@@ -122,7 +119,7 @@ class _EnhancedAnalysisLoaderState extends State<EnhancedAnalysisLoader>
       parent: _pulseController,
       curve: Curves.easeInOut,
     ));
-    
+
     // Start animations
     _progressController.forward();
     _pulseController.repeat(reverse: true);
@@ -142,7 +139,7 @@ class _EnhancedAnalysisLoaderState extends State<EnhancedAnalysisLoader>
       });
       totalDuration += _analysisSteps[i].duration.inSeconds;
     }
-    
+
     // Update progress estimation every 500ms
     _stepTimer = Timer.periodic(const Duration(milliseconds: 500), (timer) {
       if (mounted) {
@@ -151,7 +148,7 @@ class _EnhancedAnalysisLoaderState extends State<EnhancedAnalysisLoader>
         });
       }
     });
-    
+
     // Rotate educational tips every 4 seconds
     if (widget.showEducationalTips) {
       _tipTimer = Timer.periodic(const Duration(seconds: 4), (timer) {
@@ -183,28 +180,26 @@ class _EnhancedAnalysisLoaderState extends State<EnhancedAnalysisLoader>
         children: [
           // Main analysis animation
           _buildMainAnalysisAnimation(),
-          
+
           const SizedBox(height: AppTheme.paddingLarge),
-          
+
           // Current step indicator
           _buildCurrentStepIndicator(),
-          
+
           const SizedBox(height: AppTheme.paddingLarge),
-          
+
           // Progress bar with steps
           _buildStepProgressBar(),
-          
+
           const SizedBox(height: AppTheme.paddingLarge),
-          
+
           // Educational tip (if enabled)
-          if (widget.showEducationalTips)
-            _buildEducationalTip(),
-          
+          if (widget.showEducationalTips) _buildEducationalTip(),
+
           const SizedBox(height: AppTheme.paddingLarge),
-          
+
           // Cancel button (if provided)
-          if (widget.onCancel != null)
-            _buildCancelButton(),
+          if (widget.onCancel != null) _buildCancelButton(),
         ],
       ),
     );
@@ -226,7 +221,7 @@ class _EnhancedAnalysisLoaderState extends State<EnhancedAnalysisLoader>
                 color: _getCurrentStepColor(),
               ),
             ),
-            
+
             // Pulsing main circle
             Transform.scale(
               scale: _pulseAnimation.value,
@@ -237,8 +232,8 @@ class _EnhancedAnalysisLoaderState extends State<EnhancedAnalysisLoader>
                   shape: BoxShape.circle,
                   gradient: RadialGradient(
                     colors: [
-                      _getCurrentStepColor().withValues(alpha:0.3),
-                      _getCurrentStepColor().withValues(alpha:0.1),
+                      _getCurrentStepColor().withValues(alpha: 0.3),
+                      _getCurrentStepColor().withValues(alpha: 0.1),
                       Colors.transparent,
                     ],
                   ),
@@ -250,7 +245,7 @@ class _EnhancedAnalysisLoaderState extends State<EnhancedAnalysisLoader>
                     color: _getCurrentStepColor(),
                     boxShadow: [
                       BoxShadow(
-                        color: _getCurrentStepColor().withValues(alpha:0.4),
+                        color: _getCurrentStepColor().withValues(alpha: 0.4),
                         blurRadius: 20,
                         spreadRadius: 5,
                       ),
@@ -272,7 +267,7 @@ class _EnhancedAnalysisLoaderState extends State<EnhancedAnalysisLoader>
 
   Widget _buildCurrentStepIndicator() {
     final currentStep = _getCurrentStep();
-    
+
     return GenZMicrointeractions.buildSuccessAnimation(
       isVisible: true,
       child: Column(
@@ -280,19 +275,17 @@ class _EnhancedAnalysisLoaderState extends State<EnhancedAnalysisLoader>
           Text(
             currentStep.title,
             style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-              fontWeight: FontWeight.bold,
-              color: currentStep.color,
-            ),
+                  fontWeight: FontWeight.bold,
+                  color: currentStep.color,
+                ),
             textAlign: TextAlign.center,
           ),
-          
           const SizedBox(height: AppTheme.paddingSmall),
-          
           Text(
             currentStep.description,
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              color: Colors.grey.shade600,
-            ),
+                  color: Colors.grey.shade600,
+                ),
             textAlign: TextAlign.center,
           ),
         ],
@@ -331,31 +324,27 @@ class _EnhancedAnalysisLoaderState extends State<EnhancedAnalysisLoader>
             },
           ),
         ),
-        
+
         const SizedBox(height: AppTheme.paddingSmall),
-        
+
         // Step indicators
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: List.generate(_analysisSteps.length, (index) {
             final isCompleted = index < _currentStep;
             final isCurrent = index == _currentStep;
-            
+
             return Container(
               width: 12,
               height: 12,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: isCompleted || isCurrent
-                    ? _analysisSteps[index].color
-                    : Colors.grey.shade300,
-                border: isCurrent
-                    ? Border.all(color: Colors.white, width: 2)
-                    : null,
+                color: isCompleted || isCurrent ? _analysisSteps[index].color : Colors.grey.shade300,
+                border: isCurrent ? Border.all(color: Colors.white, width: 2) : null,
                 boxShadow: isCurrent
                     ? [
                         BoxShadow(
-                          color: _analysisSteps[index].color.withValues(alpha:0.5),
+                          color: _analysisSteps[index].color.withValues(alpha: 0.5),
                           blurRadius: 8,
                           spreadRadius: 2,
                         ),
@@ -365,15 +354,15 @@ class _EnhancedAnalysisLoaderState extends State<EnhancedAnalysisLoader>
             );
           }),
         ),
-        
+
         const SizedBox(height: AppTheme.paddingSmall),
-        
+
         // Time estimate
         Text(
           '${(_estimatedProgress * 100).round()}% Complete • ${_getRemainingTime()}',
           style: Theme.of(context).textTheme.bodySmall?.copyWith(
-            color: Colors.grey.shade500,
-          ),
+                color: Colors.grey.shade500,
+              ),
         ),
       ],
     );
@@ -385,10 +374,10 @@ class _EnhancedAnalysisLoaderState extends State<EnhancedAnalysisLoader>
       child: Container(
         padding: const EdgeInsets.all(AppTheme.paddingRegular),
         decoration: BoxDecoration(
-          color: AppTheme.primaryColor.withValues(alpha:0.1),
+          color: AppTheme.primaryColor.withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(AppTheme.borderRadiusRegular),
           border: Border.all(
-            color: AppTheme.primaryColor.withValues(alpha:0.3),
+            color: AppTheme.primaryColor.withValues(alpha: 0.3),
           ),
         ),
         child: Row(
@@ -403,9 +392,9 @@ class _EnhancedAnalysisLoaderState extends State<EnhancedAnalysisLoader>
               child: Text(
                 _educationalTips[_currentTipIndex],
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: AppTheme.primaryColor,
-                  fontWeight: FontWeight.w500,
-                ),
+                      color: AppTheme.primaryColor,
+                      fontWeight: FontWeight.w500,
+                    ),
               ),
             ),
           ],
@@ -463,7 +452,6 @@ class _EnhancedAnalysisLoaderState extends State<EnhancedAnalysisLoader>
 
 /// Data class for analysis steps
 class AnalysisStep {
-
   const AnalysisStep({
     required this.title,
     required this.description,
@@ -480,7 +468,6 @@ class AnalysisStep {
 
 /// Custom painter for floating particles around the analysis animation
 class AnalysisParticlePainter extends CustomPainter {
-  
   AnalysisParticlePainter({
     required this.animationValue,
     required this.color,
@@ -491,7 +478,7 @@ class AnalysisParticlePainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
-      ..color = color.withValues(alpha:0.3)
+      ..color = color.withValues(alpha: 0.3)
       ..style = PaintingStyle.fill;
 
     final center = Offset(size.width / 2, size.height / 2);
@@ -502,19 +489,18 @@ class AnalysisParticlePainter extends CustomPainter {
       final angle = (i * math.pi * 2 / 8) + (animationValue * math.pi * 2);
       final particleRadius = radius * 0.7;
       final particleSize = 3.0 + (math.sin(animationValue * math.pi * 4 + i) * 2);
-      
+
       final particleCenter = Offset(
         center.dx + math.cos(angle) * particleRadius,
         center.dy + math.sin(angle) * particleRadius,
       );
-      
+
       canvas.drawCircle(particleCenter, particleSize, paint);
     }
   }
 
   @override
   bool shouldRepaint(AnalysisParticlePainter oldDelegate) {
-    return oldDelegate.animationValue != animationValue ||
-           oldDelegate.color != color;
+    return oldDelegate.animationValue != animationValue || oldDelegate.color != color;
   }
-} 
+}

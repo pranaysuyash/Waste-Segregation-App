@@ -31,7 +31,7 @@ void main() {
 
     testWidgets('AnimatedSettingTile handles tap', (WidgetTester tester) async {
       bool tapped = false;
-      
+
       await tester.pumpWidget(
         createTestWidget(
           AnimatedSettingTile(
@@ -79,7 +79,7 @@ void main() {
       // Set tablet size
       tester.view.physicalSize = const Size(800, 1200);
       tester.view.devicePixelRatio = 1.0;
-      
+
       await tester.pumpWidget(
         createTestWidget(
           ResponsiveSettingsLayout(
@@ -101,7 +101,7 @@ void main() {
       expect(find.text('Tablet Section 1'), findsOneWidget);
       expect(find.text('Tablet Section 2'), findsOneWidget);
       expect(find.byType(CustomScrollView), findsOneWidget);
-      
+
       // Reset view size
       addTearDown(() {
         tester.view.resetPhysicalSize();
@@ -155,4 +155,4 @@ void main() {
       expect(find.text('Expandable Section'), findsOneWidget);
     });
   });
-} 
+}

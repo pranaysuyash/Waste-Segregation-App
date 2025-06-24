@@ -18,12 +18,13 @@ void main() {
         // Test primary color contrast with white text
         final primaryContrast = _calculateContrast(Colors.white, AppTheme.primaryColor);
         expect(primaryContrast, greaterThan(4.5),
-               reason: 'Primary color should have 4.5:1 contrast with white text - got ${primaryContrast.toStringAsFixed(2)}:1');
+            reason:
+                'Primary color should have 4.5:1 contrast with white text - got ${primaryContrast.toStringAsFixed(2)}:1');
 
         // Test secondary color contrast
         final secondaryContrast = _calculateContrast(Colors.white, AppTheme.secondaryColor);
         expect(secondaryContrast, greaterThan(3.0),
-               reason: 'Secondary color should have readable contrast - got ${secondaryContrast.toStringAsFixed(2)}:1');
+            reason: 'Secondary color should have readable contrast - got ${secondaryContrast.toStringAsFixed(2)}:1');
       });
 
       testWidgets('Text colors have sufficient contrast', (WidgetTester tester) async {
@@ -45,7 +46,8 @@ void main() {
         for (final pair in colorPairs) {
           final contrast = _calculateContrast(pair[0], pair[1]);
           expect(contrast, greaterThan(3.0),
-                 reason: 'Color pair ${pair[0]} on ${pair[1]} should have minimum readable contrast - got ${contrast.toStringAsFixed(2)}:1');
+              reason:
+                  'Color pair ${pair[0]} on ${pair[1]} should have minimum readable contrast - got ${contrast.toStringAsFixed(2)}:1');
         }
       });
     });
@@ -71,7 +73,7 @@ void main() {
           colorScheme.primary,
         );
         expect(primaryContrast, greaterThan(4.5),
-               reason: 'Primary color contrast should meet WCAG AA (4.5:1) - got ${primaryContrast.toStringAsFixed(2)}:1');
+            reason: 'Primary color contrast should meet WCAG AA (4.5:1) - got ${primaryContrast.toStringAsFixed(2)}:1');
 
         // Test secondary color combinations
         final secondaryContrast = _calculateContrast(
@@ -79,7 +81,8 @@ void main() {
           colorScheme.secondary,
         );
         expect(secondaryContrast, greaterThan(4.5),
-               reason: 'Secondary color contrast should meet WCAG AA (4.5:1) - got ${secondaryContrast.toStringAsFixed(2)}:1');
+            reason:
+                'Secondary color contrast should meet WCAG AA (4.5:1) - got ${secondaryContrast.toStringAsFixed(2)}:1');
 
         // Test surface color combinations
         final surfaceContrast = _calculateContrast(
@@ -87,7 +90,7 @@ void main() {
           colorScheme.surface,
         );
         expect(surfaceContrast, greaterThan(4.5),
-               reason: 'Surface color contrast should meet WCAG AA (4.5:1) - got ${surfaceContrast.toStringAsFixed(2)}:1');
+            reason: 'Surface color contrast should meet WCAG AA (4.5:1) - got ${surfaceContrast.toStringAsFixed(2)}:1');
       });
 
       testWidgets('Error and warning colors have sufficient contrast', (WidgetTester tester) async {
@@ -109,7 +112,7 @@ void main() {
           colorScheme.error,
         );
         expect(errorContrast, greaterThan(4.5),
-               reason: 'Error color contrast should meet WCAG AA (4.5:1) - got ${errorContrast.toStringAsFixed(2)}:1');
+            reason: 'Error color contrast should meet WCAG AA (4.5:1) - got ${errorContrast.toStringAsFixed(2)}:1');
 
         // Test error container contrast
         final errorContainerContrast = _calculateContrast(
@@ -117,7 +120,8 @@ void main() {
           colorScheme.errorContainer,
         );
         expect(errorContainerContrast, greaterThan(3.0),
-               reason: 'Error container should have minimum readable contrast - got ${errorContainerContrast.toStringAsFixed(2)}:1');
+            reason:
+                'Error container should have minimum readable contrast - got ${errorContainerContrast.toStringAsFixed(2)}:1');
       });
 
       testWidgets('App-specific color constants meet contrast requirements', (WidgetTester tester) async {
@@ -132,7 +136,8 @@ void main() {
         for (final pair in colorPairs) {
           final contrast = _calculateContrast(pair[0], pair[1]);
           expect(contrast, greaterThan(3.0),
-                 reason: 'Color pair ${pair[0]} on ${pair[1]} should have minimum readable contrast - got ${contrast.toStringAsFixed(2)}:1');
+              reason:
+                  'Color pair ${pair[0]} on ${pair[1]} should have minimum readable contrast - got ${contrast.toStringAsFixed(2)}:1');
         }
       });
     });
@@ -156,7 +161,7 @@ void main() {
           colorScheme.primary,
         );
         expect(primaryContrast, greaterThan(3.0),
-               reason: 'Dark theme primary contrast should be readable - got ${primaryContrast.toStringAsFixed(2)}:1');
+            reason: 'Dark theme primary contrast should be readable - got ${primaryContrast.toStringAsFixed(2)}:1');
 
         // Test dark theme surface colors
         final surfaceContrast = _calculateContrast(
@@ -164,7 +169,7 @@ void main() {
           colorScheme.surface,
         );
         expect(surfaceContrast, greaterThan(4.5),
-               reason: 'Dark theme surface contrast should meet WCAG AA - got ${surfaceContrast.toStringAsFixed(2)}:1');
+            reason: 'Dark theme surface contrast should meet WCAG AA - got ${surfaceContrast.toStringAsFixed(2)}:1');
       });
 
       testWidgets('High contrast mode support', (WidgetTester tester) async {
@@ -186,7 +191,7 @@ void main() {
           colorScheme.primary,
         );
         expect(primaryContrast, greaterThan(7.0),
-               reason: 'High contrast theme should exceed WCAG AAA (7:1) - got ${primaryContrast.toStringAsFixed(2)}:1');
+            reason: 'High contrast theme should exceed WCAG AAA (7:1) - got ${primaryContrast.toStringAsFixed(2)}:1');
       });
     });
 
@@ -194,7 +199,7 @@ void main() {
     group('Text Readability and Sizing', () {
       testWidgets('Text maintains readability at different sizes', (WidgetTester tester) async {
         final testSizes = [12.0, 14.0, 16.0, 18.0, 20.0, 24.0];
-        
+
         for (final fontSize in testSizes) {
           await tester.pumpWidget(
             MaterialApp(
@@ -219,14 +224,14 @@ void main() {
           if (fontSize < 14.0) {
             final contrast = _calculateContrast(Colors.black, Colors.white);
             expect(contrast, greaterThan(7.0),
-                   reason: 'Small text (${fontSize}px) should have enhanced contrast (7:1)');
+                reason: 'Small text (${fontSize}px) should have enhanced contrast (7:1)');
           }
         }
       });
 
       testWidgets('Text scales properly with accessibility settings', (WidgetTester tester) async {
         final scaleFactors = [0.8, 1.0, 1.2, 1.5, 2.0, 3.0];
-        
+
         for (final scaleFactor in scaleFactors) {
           await tester.pumpWidget(
             MediaQuery(
@@ -253,16 +258,16 @@ void main() {
             final finder = find.byWidget(textWidget);
             if (tester.any(finder)) {
               final size = tester.getSize(finder);
-              expect(size.width, greaterThan(0),
-                     reason: 'Text should render properly at scale factor $scaleFactor');
+              expect(size.width, greaterThan(0), reason: 'Text should render properly at scale factor $scaleFactor');
             }
           }
         }
       });
 
       testWidgets('Long text handles overflow gracefully', (WidgetTester tester) async {
-        const longText = 'This is a very long text that should test how the application handles text overflow when the content is too long to fit in the available space and should wrap or truncate appropriately.';
-        
+        const longText =
+            'This is a very long text that should test how the application handles text overflow when the content is too long to fit in the available space and should wrap or truncate appropriately.';
+
         await tester.pumpWidget(
           const MaterialApp(
             home: Scaffold(
@@ -337,7 +342,7 @@ void main() {
       testWidgets('Color combinations work for common color blindness types', (WidgetTester tester) async {
         // FIXED: Test more realistic color combinations with better contrast
         final colorBlindFriendlyPairs = [
-          [Colors.black, Colors.white],    // High contrast
+          [Colors.black, Colors.white], // High contrast
           [Colors.blue.shade800, Colors.yellow.shade200], // FIXED: Darker blue, lighter yellow for better contrast
           [AppTheme.primaryColor, Colors.white], // Our app's primary color
         ];
@@ -345,7 +350,8 @@ void main() {
         for (final pair in colorBlindFriendlyPairs) {
           final contrast = _calculateContrast(pair[0], pair[1]);
           expect(contrast, greaterThan(3.0),
-                 reason: 'Color blind friendly pair ${pair[0]} on ${pair[1]} should have good contrast - got ${contrast.toStringAsFixed(2)}:1');
+              reason:
+                  'Color blind friendly pair ${pair[0]} on ${pair[1]} should have good contrast - got ${contrast.toStringAsFixed(2)}:1');
         }
       });
     });
@@ -382,12 +388,12 @@ void main() {
         for (final finder in interactiveElements) {
           if (tester.any(finder)) {
             final size = tester.getSize(finder);
-            
+
             // Material Design minimum touch target is 48x48dp
             expect(size.width, greaterThanOrEqualTo(48.0),
-                   reason: 'Interactive element should meet minimum width of 48dp');
+                reason: 'Interactive element should meet minimum width of 48dp');
             expect(size.height, greaterThanOrEqualTo(48.0),
-                   reason: 'Interactive element should meet minimum height of 48dp');
+                reason: 'Interactive element should meet minimum height of 48dp');
           }
         }
       });
@@ -469,11 +475,10 @@ void main() {
         // Error state should be clearly visible and informative
         expect(find.byIcon(Icons.error), findsOneWidget);
         expect(find.text('An error occurred. Please try again.'), findsOneWidget);
-        
+
         // Error container should have sufficient contrast
         final errorContrast = _calculateContrast(Colors.red, Colors.red.shade100);
-        expect(errorContrast, greaterThan(2.0),
-               reason: 'Error state should have visible contrast');
+        expect(errorContrast, greaterThan(2.0), reason: 'Error state should have visible contrast');
       });
     });
   });
@@ -484,10 +489,10 @@ void main() {
 double _calculateContrast(Color color1, Color color2) {
   final luminance1 = color1.computeLuminance();
   final luminance2 = color2.computeLuminance();
-  
+
   final lighter = luminance1 > luminance2 ? luminance1 : luminance2;
   final darker = luminance1 > luminance2 ? luminance2 : luminance1;
-  
+
   return (lighter + 0.05) / (darker + 0.05);
 }
 
@@ -513,4 +518,4 @@ Color _simulateDeuteranopia(Color original) {
     original.blue,
   );
 }
-*/ 
+*/

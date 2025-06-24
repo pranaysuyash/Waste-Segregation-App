@@ -98,23 +98,23 @@ class _ClassificationDetailsScreenState extends State<ClassificationDetailsScree
                   Text(
                     originalClassification.itemName,
                     style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
+                          fontWeight: FontWeight.bold,
+                        ),
                   ),
                   const SizedBox(height: AppTheme.spacingSm),
                   Text(
                     'Category: ${originalClassification.category}',
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: AppTheme.textSecondaryColor,
-                    ),
+                          color: AppTheme.textSecondaryColor,
+                        ),
                   ),
                   if (originalClassification.subcategory != null) ...[
                     const SizedBox(height: AppTheme.spacingXs),
                     Text(
                       'Subcategory: ${originalClassification.subcategory}',
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: AppTheme.textSecondaryColor,
-                      ),
+                            color: AppTheme.textSecondaryColor,
+                          ),
                     ),
                   ],
                   if (originalClassification.imageUrl != null && originalClassification.imageUrl!.isNotEmpty) ...[
@@ -143,8 +143,8 @@ class _ClassificationDetailsScreenState extends State<ClassificationDetailsScree
                                 borderRadius: BorderRadius.circular(AppTheme.borderRadiusMd),
                               ),
                               child: const Icon(
-                                Icons.image_not_supported, 
-                                size: 100, 
+                                Icons.image_not_supported,
+                                size: 100,
                                 color: AppTheme.textDisabledColor,
                               ),
                             ),
@@ -161,8 +161,8 @@ class _ClassificationDetailsScreenState extends State<ClassificationDetailsScree
                       Text(
                         'Shared by ${widget.classification.sharedByDisplayName}',
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          fontStyle: FontStyle.italic,
-                        ),
+                              fontStyle: FontStyle.italic,
+                            ),
                       ),
                     ],
                   ),
@@ -174,8 +174,8 @@ class _ClassificationDetailsScreenState extends State<ClassificationDetailsScree
                       Text(
                         _formatDateWithIntl(widget.classification.sharedAt),
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          fontStyle: FontStyle.italic,
-                        ),
+                              fontStyle: FontStyle.italic,
+                            ),
                       ),
                     ],
                   ),
@@ -211,8 +211,8 @@ class _ClassificationDetailsScreenState extends State<ClassificationDetailsScree
                 Text(
                   'Reactions',
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
+                        fontWeight: FontWeight.bold,
+                      ),
                 ),
               ],
             ),
@@ -244,9 +244,9 @@ class _ClassificationDetailsScreenState extends State<ClassificationDetailsScree
                         child: Text(
                           '+${widget.classification.reactions.length - 5} more',
                           style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: AppTheme.primaryColor,
-                            fontWeight: FontWeight.w600,
-                          ),
+                                color: AppTheme.primaryColor,
+                                fontWeight: FontWeight.w600,
+                              ),
                         ),
                       ),
                     );
@@ -254,28 +254,31 @@ class _ClassificationDetailsScreenState extends State<ClassificationDetailsScree
                   final reaction = widget.classification.reactions[i];
                   return Column(
                     children: [
-                      if (reaction.photoUrl != null && reaction.photoUrl!.isNotEmpty) ImageUtils.buildCircularAvatar(
-                            imageSource: reaction.photoUrl!,
-                            radius: 20,
-                            backgroundColor: _getAvatarColor(reaction.displayName),
-                            child: Text(
-                              reaction.displayName.substring(0, 1).toUpperCase(),
-                              style: const TextStyle(
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white,
-                              ),
-                            ),
-                          ) else CircleAvatar(
-                            radius: 20,
-                            backgroundColor: _getAvatarColor(reaction.displayName),
-                            child: Text(
-                              reaction.displayName.substring(0, 1).toUpperCase(),
-                              style: const TextStyle(
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white,
-                              ),
+                      if (reaction.photoUrl != null && reaction.photoUrl!.isNotEmpty)
+                        ImageUtils.buildCircularAvatar(
+                          imageSource: reaction.photoUrl!,
+                          radius: 20,
+                          backgroundColor: _getAvatarColor(reaction.displayName),
+                          child: Text(
+                            reaction.displayName.substring(0, 1).toUpperCase(),
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
                             ),
                           ),
+                        )
+                      else
+                        CircleAvatar(
+                          radius: 20,
+                          backgroundColor: _getAvatarColor(reaction.displayName),
+                          child: Text(
+                            reaction.displayName.substring(0, 1).toUpperCase(),
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
                       const SizedBox(height: AppTheme.spacingXs),
                       Text(
                         _getReactionEmoji(reaction.type),
@@ -301,8 +304,8 @@ class _ClassificationDetailsScreenState extends State<ClassificationDetailsScree
                     Text(
                       'No reactions yet',
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: AppTheme.textSecondaryColor,
-                      ),
+                            color: AppTheme.textSecondaryColor,
+                          ),
                     ),
                   ],
                 ),
@@ -315,73 +318,76 @@ class _ClassificationDetailsScreenState extends State<ClassificationDetailsScree
             const Divider(),
             const SizedBox(height: AppTheme.spacingSm),
             ...widget.classification.reactions.map((reaction) => Padding(
-              padding: const EdgeInsets.symmetric(vertical: AppTheme.spacingXs),
-              child: Row(
-                children: [
-                  if (reaction.photoUrl != null && reaction.photoUrl!.isNotEmpty) ImageUtils.buildCircularAvatar(
-                        imageSource: reaction.photoUrl!,
-                        radius: 16,
-                        backgroundColor: _getAvatarColor(reaction.displayName),
-                        child: Text(
-                          reaction.displayName.substring(0, 1).toUpperCase(),
-                          style: const TextStyle(
-                            fontSize: 12, 
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: AppTheme.spacingXs),
+                  child: Row(
+                    children: [
+                      if (reaction.photoUrl != null && reaction.photoUrl!.isNotEmpty)
+                        ImageUtils.buildCircularAvatar(
+                          imageSource: reaction.photoUrl!,
+                          radius: 16,
+                          backgroundColor: _getAvatarColor(reaction.displayName),
+                          child: Text(
+                            reaction.displayName.substring(0, 1).toUpperCase(),
+                            style: const TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
+                          ),
+                        )
+                      else
+                        CircleAvatar(
+                          radius: 16,
+                          backgroundColor: _getAvatarColor(reaction.displayName),
+                          child: Text(
+                            reaction.displayName.substring(0, 1).toUpperCase(),
+                            style: const TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
                           ),
                         ),
-                      ) else CircleAvatar(
-                        radius: 16,
-                        backgroundColor: _getAvatarColor(reaction.displayName),
+                      const SizedBox(width: AppTheme.spacingSm),
+                      Expanded(
                         child: Text(
-                          reaction.displayName.substring(0, 1).toUpperCase(),
-                          style: const TextStyle(
-                            fontSize: 12, 
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                          ),
+                          reaction.displayName,
+                          style: Theme.of(context).textTheme.bodyMedium,
                         ),
                       ),
-                  const SizedBox(width: AppTheme.spacingSm),
-                  Expanded(
-                    child: Text(
-                      reaction.displayName,
-                      style: Theme.of(context).textTheme.bodyMedium,
-                    ),
-                  ),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: AppTheme.spacingSm,
-                      vertical: AppTheme.spacingXs,
-                    ),
-                    decoration: BoxDecoration(
-                      color: _getReactionColor(reaction.type).withValues(alpha: 0.1),
-                      border: Border.all(
-                        color: _getReactionColor(reaction.type).withValues(alpha: 0.3),
-                      ),
-                      borderRadius: BorderRadius.circular(AppTheme.borderRadiusSm),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          _getReactionEmoji(reaction.type),
-                          style: const TextStyle(fontSize: 14),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: AppTheme.spacingSm,
+                          vertical: AppTheme.spacingXs,
                         ),
-                        const SizedBox(width: AppTheme.spacingXs),
-                        Text(
-                          reaction.type.toString().split('.').last,
-                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: _getReactionColor(reaction.type),
-                            fontWeight: FontWeight.w600,
+                        decoration: BoxDecoration(
+                          color: _getReactionColor(reaction.type).withValues(alpha: 0.1),
+                          border: Border.all(
+                            color: _getReactionColor(reaction.type).withValues(alpha: 0.3),
                           ),
+                          borderRadius: BorderRadius.circular(AppTheme.borderRadiusSm),
                         ),
-                      ],
-                    ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              _getReactionEmoji(reaction.type),
+                              style: const TextStyle(fontSize: 14),
+                            ),
+                            const SizedBox(width: AppTheme.spacingXs),
+                            Text(
+                              reaction.type.toString().split('.').last,
+                              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                    color: _getReactionColor(reaction.type),
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
                   ),
-                ],
-              ),
-            )),
+                )),
           ],
         ],
       ),
@@ -403,8 +409,8 @@ class _ClassificationDetailsScreenState extends State<ClassificationDetailsScree
                 Text(
                   'Comments',
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
+                        fontWeight: FontWeight.bold,
+                      ),
                 ),
               ],
             ),
@@ -416,42 +422,43 @@ class _ClassificationDetailsScreenState extends State<ClassificationDetailsScree
                 final index = entry.key;
                 final comment = entry.value;
                 final isLast = index == widget.classification.comments.length - 1;
-                
+
                 return Column(
                   children: [
                     Container(
                       padding: const EdgeInsets.symmetric(vertical: AppTheme.spacingSm),
                       decoration: BoxDecoration(
-                        color: index.isEven 
-                          ? Colors.transparent 
-                          : AppTheme.primaryColor.withValues(alpha: 0.02),
+                        color: index.isEven ? Colors.transparent : AppTheme.primaryColor.withValues(alpha: 0.02),
                         borderRadius: BorderRadius.circular(AppTheme.borderRadiusSm),
                       ),
                       child: Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          if (comment.photoUrl != null && comment.photoUrl!.isNotEmpty) ImageUtils.buildCircularAvatar(
-                                imageSource: comment.photoUrl!,
-                                radius: 18,
-                                backgroundColor: _getAvatarColor(comment.displayName),
-                                child: Text(
-                                  comment.displayName.substring(0, 1).toUpperCase(),
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.white,
-                                  ),
-                                ),
-                              ) else CircleAvatar(
-                                radius: 18,
-                                backgroundColor: _getAvatarColor(comment.displayName),
-                                child: Text(
-                                  comment.displayName.substring(0, 1).toUpperCase(),
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.white,
-                                  ),
+                          if (comment.photoUrl != null && comment.photoUrl!.isNotEmpty)
+                            ImageUtils.buildCircularAvatar(
+                              imageSource: comment.photoUrl!,
+                              radius: 18,
+                              backgroundColor: _getAvatarColor(comment.displayName),
+                              child: Text(
+                                comment.displayName.substring(0, 1).toUpperCase(),
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white,
                                 ),
                               ),
+                            )
+                          else
+                            CircleAvatar(
+                              radius: 18,
+                              backgroundColor: _getAvatarColor(comment.displayName),
+                              child: Text(
+                                comment.displayName.substring(0, 1).toUpperCase(),
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ),
                           const SizedBox(width: AppTheme.spacingSm),
                           Expanded(
                             child: Column(
@@ -462,15 +469,15 @@ class _ClassificationDetailsScreenState extends State<ClassificationDetailsScree
                                     Text(
                                       comment.displayName,
                                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                        fontWeight: FontWeight.w600,
-                                      ),
+                                            fontWeight: FontWeight.w600,
+                                          ),
                                     ),
                                     const Spacer(),
                                     Text(
                                       _formatDateWithIntl(comment.timestamp),
                                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                        color: AppTheme.textSecondaryColor,
-                                      ),
+                                            color: AppTheme.textSecondaryColor,
+                                          ),
                                     ),
                                   ],
                                 ),
@@ -485,7 +492,7 @@ class _ClassificationDetailsScreenState extends State<ClassificationDetailsScree
                         ],
                       ),
                     ),
-                    if (!isLast) 
+                    if (!isLast)
                       Divider(
                         height: 1,
                         color: AppTheme.textDisabledColor.withValues(alpha: 0.2),
@@ -509,8 +516,8 @@ class _ClassificationDetailsScreenState extends State<ClassificationDetailsScree
                     Text(
                       'No comments yet',
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: AppTheme.textSecondaryColor,
-                      ),
+                            color: AppTheme.textSecondaryColor,
+                          ),
                     ),
                   ],
                 ),
@@ -525,12 +532,12 @@ class _ClassificationDetailsScreenState extends State<ClassificationDetailsScree
     setState(() {
       _isBookmarked = !_isBookmarked;
     });
-    
+
     // Trigger animation
     _bookmarkAnimationController.forward().then((_) {
       _bookmarkAnimationController.reverse();
     });
-    
+
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(_isBookmarked ? 'Added to bookmarks!' : 'Removed from bookmarks'),

@@ -41,13 +41,13 @@ class ThumbnailWidget extends StatelessWidget {
 
   Widget _buildImageWidget(BuildContext context) {
     final path = imagePath!;
-    
+
     // Handle web thumbnail data URLs
     if (path.startsWith('web_thumbnail:')) {
       final dataUrl = path.substring('web_thumbnail:'.length);
       return _buildNetworkImage(context, dataUrl);
     }
-    
+
     // Handle web image data URLs
     if (path.startsWith('web_image:')) {
       final dataUrl = path.substring('web_image:'.length);
@@ -79,10 +79,8 @@ class ThumbnailWidget extends StatelessWidget {
         return _buildLoadingWidget(context, loadingProgress);
       },
       errorBuilder: (context, error, stackTrace) {
-                    WasteAppLogger.warning('Network image error', error, null, {
-              'image_url': url.substring(0, 50),
-              'widget_type': 'thumbnail'
-            });
+        WasteAppLogger.warning(
+            'Network image error', error, null, {'image_url': url.substring(0, 50), 'widget_type': 'thumbnail'});
         return _buildErrorWidget(context);
       },
     );
@@ -95,7 +93,7 @@ class ThumbnailWidget extends StatelessWidget {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return _buildPlaceholder(context);
         }
-        
+
         if (snapshot.hasData && snapshot.data == true) {
           return Image.file(
             File(path),
@@ -103,15 +101,13 @@ class ThumbnailWidget extends StatelessWidget {
             height: size,
             fit: fit,
             errorBuilder: (context, error, stackTrace) {
-              WasteAppLogger.warning('Local image error', error, null, {
-                'image_path': path.substring(0, 50),
-                'widget_type': 'thumbnail'
-              });
+              WasteAppLogger.warning(
+                  'Local image error', error, null, {'image_path': path.substring(0, 50), 'widget_type': 'thumbnail'});
               return _buildErrorWidget(context);
             },
           );
         }
-        
+
         // File doesn't exist, show error
         return _buildErrorWidget(context);
       },
@@ -122,7 +118,7 @@ class ThumbnailWidget extends StatelessWidget {
     final progress = loadingProgress.expectedTotalBytes != null
         ? loadingProgress.cumulativeBytesLoaded / loadingProgress.expectedTotalBytes!
         : null;
-    
+
     return Container(
       width: size,
       height: size,
@@ -146,7 +142,7 @@ class ThumbnailWidget extends StatelessWidget {
 
   Widget _buildPlaceholder(BuildContext context) {
     if (placeholder != null) return placeholder!;
-    
+
     return Container(
       width: size,
       height: size,
@@ -164,7 +160,7 @@ class ThumbnailWidget extends StatelessWidget {
 
   Widget _buildErrorWidget(BuildContext context) {
     if (errorWidget != null) return errorWidget!;
-    
+
     return Container(
       width: size,
       height: size,
@@ -188,4 +184,4 @@ Widget buildThumbnail(String? path, {double size = 64, double borderRadius = 12}
     size: size,
     borderRadius: borderRadius,
   );
-} 
+}

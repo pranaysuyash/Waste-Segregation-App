@@ -188,13 +188,10 @@ class WasteClassificationAdapter extends TypeAdapter<WasteClassification> {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      other is WasteClassificationAdapter &&
-          runtimeType == other.runtimeType &&
-          typeId == other.typeId;
+      other is WasteClassificationAdapter && runtimeType == other.runtimeType && typeId == other.typeId;
 }
 
-class AlternativeClassificationAdapter
-    extends TypeAdapter<AlternativeClassification> {
+class AlternativeClassificationAdapter extends TypeAdapter<AlternativeClassification> {
   @override
   final int typeId = 1;
 
@@ -232,9 +229,7 @@ class AlternativeClassificationAdapter
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      other is AlternativeClassificationAdapter &&
-          runtimeType == other.runtimeType &&
-          typeId == other.typeId;
+      other is AlternativeClassificationAdapter && runtimeType == other.runtimeType && typeId == other.typeId;
 }
 
 class DisposalInstructionsAdapter extends TypeAdapter<DisposalInstructions> {
@@ -290,7 +285,5 @@ class DisposalInstructionsAdapter extends TypeAdapter<DisposalInstructions> {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      other is DisposalInstructionsAdapter &&
-          runtimeType == other.runtimeType &&
-          typeId == other.typeId;
+      other is DisposalInstructionsAdapter && runtimeType == other.runtimeType && typeId == other.typeId;
 }

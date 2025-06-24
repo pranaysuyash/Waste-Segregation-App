@@ -229,7 +229,7 @@ void main() {
     group('Basic Analytics Tracking', () {
       test('should start with empty analytics', () {
         final analytics = service.getContentAnalytics('nonexistent');
-        
+
         expect(analytics.contentId, equals('nonexistent'));
         expect(analytics.views, equals(0));
         expect(analytics.totalTimeSpent, equals(Duration.zero));
@@ -257,7 +257,7 @@ void main() {
         await service.trackContentView('content_3', 'Health');
 
         final recentlyViewed = service.getRecentlyViewed();
-        
+
         expect(recentlyViewed, hasLength(3));
         expect(recentlyViewed[0], equals('content_3')); // Most recent first
         expect(recentlyViewed[1], equals('content_2'));
@@ -281,7 +281,7 @@ void main() {
         await service.trackContentView('content_4', 'Environment');
 
         final popularCategories = service.getPopularCategories();
-        
+
         expect(popularCategories, hasLength(2));
         expect(popularCategories[0].key, equals('Environment'));
         expect(popularCategories[0].value, equals(3));
@@ -293,10 +293,10 @@ void main() {
     group('Session Management', () {
       test('should track session time correctly', () async {
         service.startContentSession('content_1');
-        
+
         // Simulate some time passing
         await Future.delayed(const Duration(milliseconds: 100));
-        
+
         await service.endContentSession(wasCompleted: true);
 
         final analytics = service.getContentAnalytics('content_1');
@@ -317,10 +317,10 @@ void main() {
       test('should end previous session when starting new one', () async {
         service.startContentSession('content_1');
         await Future.delayed(const Duration(milliseconds: 50));
-        
+
         service.startContentSession('content_2');
         await Future.delayed(const Duration(milliseconds: 50));
-        
+
         await service.endContentSession(wasCompleted: true);
 
         final content1Analytics = service.getContentAnalytics('content_1');
@@ -334,7 +334,7 @@ void main() {
       test('should handle ending session without starting', () async {
         // Should not throw an error
         await service.endContentSession(wasCompleted: true);
-        
+
         final analytics = service.getContentAnalytics('content_1');
         expect(analytics.totalTimeSpent, equals(Duration.zero));
         expect(analytics.completions, equals(0));
@@ -344,7 +344,7 @@ void main() {
     group('Content Interactions', () {
       test('should track favorite interactions', () async {
         await service.trackContentInteraction('content_1', ContentInteractionType.favorite);
-        
+
         final analytics = service.getContentAnalytics('content_1');
         final favorites = service.getFavoriteContent();
 
@@ -358,7 +358,7 @@ void main() {
         await service.trackContentInteraction('content_1', ContentInteractionType.favorite);
         // Then unfavorite it
         await service.trackContentInteraction('content_1', ContentInteractionType.unfavorite);
-        
+
         final analytics = service.getContentAnalytics('content_1');
         final favorites = service.getFavoriteContent();
 
@@ -371,7 +371,7 @@ void main() {
         await service.trackContentInteraction('content_1', ContentInteractionType.share);
         await service.trackContentInteraction('content_1', ContentInteractionType.bookmark);
         await service.trackContentInteraction('content_1', ContentInteractionType.like);
-        
+
         final analytics = service.getContentAnalytics('content_1');
         expect(analytics.interactions, equals(3));
       });
@@ -379,7 +379,7 @@ void main() {
       test('should not duplicate favorites', () async {
         await service.trackContentInteraction('content_1', ContentInteractionType.favorite);
         await service.trackContentInteraction('content_1', ContentInteractionType.favorite);
-        
+
         final favorites = service.getFavoriteContent();
         expect(favorites.where((id) => id == 'content_1'), hasLength(1));
       });
@@ -392,7 +392,7 @@ void main() {
         await service.trackSearchQuery('recycling tips', resultsCount: 7);
 
         final popularQueries = service.getPopularSearchQueries();
-        
+
         expect(popularQueries, hasLength(2));
         expect(popularQueries[0].key, equals('recycling tips'));
         expect(popularQueries[0].value, equals(2));
@@ -406,7 +406,7 @@ void main() {
         await service.trackSearchQuery('recycling tips');
 
         final popularQueries = service.getPopularSearchQueries();
-        
+
         expect(popularQueries, hasLength(1));
         expect(popularQueries[0].key, equals('recycling tips'));
         expect(popularQueries[0].value, equals(3));
@@ -418,7 +418,7 @@ void main() {
         await service.trackSearchQuery('valid query');
 
         final popularQueries = service.getPopularSearchQueries();
-        
+
         expect(popularQueries, hasLength(1));
         expect(popularQueries[0].key, equals('valid query'));
       });
@@ -443,7 +443,7 @@ void main() {
         await service.trackContentView('content_3', 'Cat3');
 
         final mostViewed = service.getMostViewedContent(limit: 2);
-        
+
         expect(mostViewed, hasLength(2));
         expect(mostViewed[0], equals('content_1'));
         expect(mostViewed[1], equals('content_2'));
@@ -453,16 +453,16 @@ void main() {
         // Set up some analytics data
         await service.trackContentView('content_1', 'Environment');
         await service.trackContentView('content_2', 'Science');
-        
+
         service.startContentSession('content_1');
         await Future.delayed(const Duration(milliseconds: 100));
         await service.endContentSession(wasCompleted: true);
-        
+
         await service.trackContentInteraction('content_1', ContentInteractionType.favorite);
         await service.trackContentInteraction('content_2', ContentInteractionType.share);
 
         final metrics = service.getTotalEngagementMetrics();
-        
+
         expect(metrics.totalViews, equals(2));
         expect(metrics.totalCompletions, equals(1));
         expect(metrics.totalInteractions, equals(2));
@@ -473,11 +473,11 @@ void main() {
 
       test('should calculate learning streak correctly', () async {
         final now = DateTime.now();
-        
+
         // Create a service and manually set last viewed dates for testing
         await service.trackContentView('content_today', 'Category');
         await service.trackContentView('content_yesterday', 'Category');
-        
+
         // The service tracks views with current timestamp, so streak should be 1
         // (we can't easily mock DateTime.now() in this test setup)
         final streak = service.getLearningStreak();
@@ -552,7 +552,7 @@ void main() {
         await service.trackContentView('content_2', 'Science');
         await service.trackContentInteraction('content_1', ContentInteractionType.favorite);
         await service.trackSearchQuery('recycling');
-        
+
         service.startContentSession('content_1');
         await Future.delayed(const Duration(milliseconds: 100));
         await service.endContentSession(wasCompleted: true);
@@ -580,16 +580,16 @@ void main() {
         for (var i = 0; i < 10; i++) {
           futures.add(service.trackContentView('content_1', 'Environment'));
         }
-        
+
         await Future.wait(futures);
-        
+
         final analytics = service.getContentAnalytics('content_1');
         expect(analytics.views, equals(10));
       });
 
       test('should handle very long session times', () async {
         service.startContentSession('content_1');
-        
+
         // Simulate a very long session (simulate by direct calculation)
         await Future.delayed(const Duration(milliseconds: 50));
         await service.endContentSession(wasCompleted: true);
@@ -601,7 +601,7 @@ void main() {
 
       test('should handle special characters in content IDs', () async {
         const specialId = 'content-with-special_chars.123!@#';
-        
+
         await service.trackContentView(specialId, 'Environment');
         await service.trackContentInteraction(specialId, ContentInteractionType.favorite);
 
@@ -633,7 +633,7 @@ void main() {
         // These should not throw errors
         await service.trackSearchQuery('');
         await service.trackSearchQuery('   ');
-        
+
         final analytics = service.getContentAnalytics('');
         expect(analytics.contentId, equals(''));
         expect(analytics.views, equals(0));
@@ -649,14 +649,14 @@ void main() {
     group('Notification and State Management', () {
       test('should notify listeners on data changes', () async {
         var notificationCount = 0;
-        
+
         service.addListener(() {
           notificationCount++;
         });
 
         await service.trackContentView('content_1', 'Environment');
         await service.trackContentInteraction('content_1', ContentInteractionType.favorite);
-        
+
         service.startContentSession('content_2');
         await service.endContentSession(wasCompleted: true);
 
@@ -702,7 +702,7 @@ void main() {
       test('should clear analytics data correctly', () async {
         await service.trackContentView('clear_test', 'CategoryClear');
         await service.clearAnalyticsData();
-        
+
         final analytics = service.getContentAnalytics('clear_test');
         expect(analytics.views, equals(0));
 
@@ -737,7 +737,7 @@ void main() {
         expect(analytics2.views, equals(1));
         expect(analytics2.totalTimeSpent, equals(const Duration(minutes: 2)));
         expect(analytics2.interactions, equals(1));
-        
+
         newService.dispose();
       });
 
@@ -753,7 +753,6 @@ void main() {
         await service.trackContentInteraction('content_B', ContentInteractionType.share);
         await service.trackContentInteraction('content_B', ContentInteractionType.like);
 
-
         await service.trackContentView('content_A', 'CategoryX'); // Second view for content_A
 
         final overallMetrics = service.getOverallEngagementMetrics();
@@ -764,9 +763,10 @@ void main() {
         expect(overallMetrics.totalInteractions, equals(3)); // 1 for A, 2 for B
         expect(overallMetrics.uniqueContentViewed, equals(2)); // A and B
         expect(overallMetrics.favoriteCount, equals(1)); // Only A favorited
-        
-        expect(overallMetrics.averageTimePerContent, equals(const Duration(minutes: 7, seconds: 30))); // 15 min / 2 unique contents
-        expect(overallMetrics.completionRate, closeTo(1/3, 0.01)); // 1 completion / 3 views
+
+        expect(overallMetrics.averageTimePerContent,
+            equals(const Duration(minutes: 7, seconds: 30))); // 15 min / 2 unique contents
+        expect(overallMetrics.completionRate, closeTo(1 / 3, 0.01)); // 1 completion / 3 views
       });
     });
   });

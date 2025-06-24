@@ -137,7 +137,7 @@ void main() {
 
     testWidgets('StatsCard handles tap events', (WidgetTester tester) async {
       var tapped = false;
-      
+
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
@@ -293,4 +293,4 @@ void main() {
       expect(find.text('-5%'), findsOneWidget);
     });
   });
-} 
+}

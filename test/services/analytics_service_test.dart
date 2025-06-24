@@ -8,7 +8,7 @@ import '../test_config/plugin_mock_setup.dart'; // Import Firebase mocks
 // Simple manual mock for testing - only implements methods used by AnalyticsService
 class MockStorageService extends StorageService {
   UserProfile? _mockUserProfile;
-  
+
   void setMockUserProfile(UserProfile? profile) {
     _mockUserProfile = profile;
   }
@@ -42,7 +42,7 @@ void main() {
 
     setUp(() {
       mockStorageService = MockStorageService();
-      
+
       // Set up a mock user profile
       mockStorageService.setMockUserProfile(UserProfile(
         id: 'test_user_123',
@@ -50,7 +50,7 @@ void main() {
         displayName: 'Test User',
         createdAt: DateTime.now(),
       ));
-      
+
       analyticsService = AnalyticsService(mockStorageService);
     });
 
@@ -105,7 +105,7 @@ void main() {
           familyId: 'family_789',
           additionalData: {'invitation_method': 'email'},
         );
-        
+
         expect(analyticsService.pendingEventsCount, greaterThanOrEqualTo(0));
       });
 
@@ -127,7 +127,7 @@ void main() {
           stackTrace: 'Stack trace here...',
           additionalData: {'error_code': 'IMG_001'},
         );
-        
+
         expect(analyticsService.pendingEventsCount, greaterThanOrEqualTo(0));
       });
     });
@@ -191,9 +191,9 @@ void main() {
       test('should handle null user profile gracefully', () async {
         // Set up mock to return null user profile
         mockStorageService.setMockUserProfile(null);
-        
+
         final newAnalyticsService = AnalyticsService(mockStorageService);
-        
+
         // Should not throw when user profile is null
         await newAnalyticsService.trackEvent(
           eventType: AnalyticsEventTypes.userAction,
@@ -208,12 +208,14 @@ void main() {
         final errorMockStorageService = ErrorThrowingMockStorageService();
 
         final newAnalyticsService = AnalyticsService(errorMockStorageService);
-        
+
         // Should not throw when storage service fails
-        expect(() async => newAnalyticsService.trackEvent(
-          eventType: AnalyticsEventTypes.userAction,
-          eventName: 'test_event',
-        ), returnsNormally);
+        expect(
+            () async => newAnalyticsService.trackEvent(
+                  eventType: AnalyticsEventTypes.userAction,
+                  eventName: 'test_event',
+                ),
+            returnsNormally);
       });
     });
   });
@@ -237,7 +239,7 @@ void main() {
       expect(event.sessionId, equals('session_456'));
       expect(event.deviceInfo, equals('iOS 15.0'));
       expect(event.timestamp, isNotNull);
-      });
+    });
 
     test('should serialize to and from JSON correctly', () {
       final event = AnalyticsEvent.create(
@@ -247,7 +249,7 @@ void main() {
         parameters: {'button': 'capture', 'screen': 'home'},
         sessionId: 'session123',
         deviceInfo: 'iOS 15.0',
-        );
+      );
 
       final json = event.toJson();
       final fromJson = AnalyticsEvent.fromJson(json);
@@ -259,8 +261,8 @@ void main() {
       expect(fromJson.parameters, equals(event.parameters));
       expect(fromJson.sessionId, equals(event.sessionId));
       expect(fromJson.deviceInfo, equals(event.deviceInfo));
-      });
     });
+  });
 
   group('AnalyticsEventTypes Constants', () {
     test('should have correct event type constants', () {
@@ -271,7 +273,7 @@ void main() {
       expect(AnalyticsEventTypes.achievement, equals('achievement'));
       expect(AnalyticsEventTypes.error, equals('error'));
     });
-      });
+  });
 
   group('AnalyticsEventNames Constants', () {
     test('should have correct event name constants', () {
@@ -289,7 +291,7 @@ class ErrorThrowingMockStorageService extends StorageService {
   Future<UserProfile?> getCurrentUserProfile() async {
     throw Exception('Storage error');
   }
-  
+
   @override
   Future<void> saveAnalyticsEvents(List<dynamic> events) async {
     throw Exception('Storage error');

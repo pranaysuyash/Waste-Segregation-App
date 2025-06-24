@@ -7,7 +7,6 @@ enum Trend { up, down, flat }
 
 /// Modern card widget with glassmorphism effect and customizable appearance
 class ModernCard extends StatelessWidget {
-
   const ModernCard({
     super.key,
     required this.child,
@@ -42,9 +41,9 @@ class ModernCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    
+
     final effectiveRadius = borderRadius ?? AppTheme.borderRadiusLg;
-    
+
     final Widget cardContent = Material(
       elevation: elevation ?? AppTheme.elevationMd,
       color: enableGlassmorphism
@@ -55,8 +54,7 @@ class ModernCard extends StatelessWidget {
         margin: margin ?? const EdgeInsets.all(AppTheme.spacingSm),
         padding: padding ?? const EdgeInsets.all(AppTheme.spacingMd),
         decoration: BoxDecoration(
-          border: border ??
-              (enableGlassmorphism ? Border.all(color: Colors.white.withValues(alpha: 0.2)) : null),
+          border: border ?? (enableGlassmorphism ? Border.all(color: Colors.white.withValues(alpha: 0.2)) : null),
           gradient: gradient,
         ),
         child: child,
@@ -81,7 +79,6 @@ class ModernCard extends StatelessWidget {
 
 /// Glassmorphism card with blur effect
 class GlassmorphismCard extends StatelessWidget {
-
   const GlassmorphismCard({
     super.key,
     required this.child,
@@ -120,7 +117,6 @@ class GlassmorphismCard extends StatelessWidget {
 
 /// Feature card with icon and content - inspired by modern app designs
 class FeatureCard extends StatelessWidget {
-
   const FeatureCard({
     super.key,
     required this.icon,
@@ -150,16 +146,17 @@ class FeatureCard extends StatelessWidget {
     final theme = Theme.of(context);
     final effectiveIconColor = iconColor ?? theme.colorScheme.primary;
     final effectiveIconSize = iconSize ?? AppTheme.iconSizeLg;
-    
+
     return LayoutBuilder(
       builder: (context, constraints) {
         // Responsive padding based on available width
-        final effectivePadding = padding ?? EdgeInsets.all(
-          constraints.maxWidth < 300 
-              ? AppTheme.spacingSm  // Smaller padding for narrow screens
-              : AppTheme.spacingMd, // Standard padding for normal screens
-        );
-        
+        final effectivePadding = padding ??
+            EdgeInsets.all(
+              constraints.maxWidth < 300
+                  ? AppTheme.spacingSm // Smaller padding for narrow screens
+                  : AppTheme.spacingMd, // Standard padding for normal screens
+            );
+
         return ModernCard(
           onTap: onTap,
           backgroundColor: backgroundColor,
@@ -179,9 +176,9 @@ class FeatureCard extends StatelessWidget {
                   size: effectiveIconSize,
                 ),
               ),
-              
+
               const SizedBox(width: AppTheme.spacingMd),
-              
+
               // Content with overflow protection
               Expanded(
                 child: Column(
@@ -227,7 +224,6 @@ class FeatureCard extends StatelessWidget {
 
 /// Stats card with modern number display and overflow protection
 class StatsCard extends StatelessWidget {
-
   const StatsCard({
     super.key,
     required this.title,
@@ -347,7 +343,6 @@ class _TrendIcon extends StatelessWidget {
 
 /// Action card with gradient background and modern styling
 class ActionCard extends StatelessWidget {
-
   const ActionCard({
     super.key,
     required this.title,
@@ -370,16 +365,17 @@ class ActionCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final effectiveColor = color ?? theme.colorScheme.primary;
-    
-    final effectiveGradient = gradient ?? LinearGradient(
-      begin: Alignment.topLeft,
-      end: Alignment.bottomRight,
-      colors: [
-        effectiveColor,
-        effectiveColor.withValues(alpha: 0.8),
-      ],
-    );
-    
+
+    final effectiveGradient = gradient ??
+        LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            effectiveColor,
+            effectiveColor.withValues(alpha: 0.8),
+          ],
+        );
+
     return ModernCard(
       onTap: onTap,
       gradient: effectiveGradient,
@@ -393,9 +389,7 @@ class ActionCard extends StatelessWidget {
                 color: Colors.white,
                 size: AppTheme.iconSizeXl,
               ),
-              
               const SizedBox(height: AppTheme.spacingMd),
-              
               Text(
                 title,
                 style: theme.textTheme.titleLarge?.copyWith(
@@ -403,7 +397,6 @@ class ActionCard extends StatelessWidget {
                   fontWeight: FontWeight.bold,
                 ),
               ),
-              
               if (subtitle != null) ...[
                 const SizedBox(height: AppTheme.spacingXs),
                 Text(
@@ -415,7 +408,6 @@ class ActionCard extends StatelessWidget {
               ],
             ],
           ),
-          
           if (badge != null)
             Positioned(
               top: 0,
@@ -430,7 +422,6 @@ class ActionCard extends StatelessWidget {
 
 /// Enhanced Active Challenge Card with overflow protection and responsive layout
 class ActiveChallengeCard extends StatelessWidget {
-
   const ActiveChallengeCard({
     super.key,
     required this.title,
@@ -458,14 +449,14 @@ class ActiveChallengeCard extends StatelessWidget {
     final theme = Theme.of(context);
     final effectiveColor = challengeColor ?? theme.colorScheme.primary;
     final clampedProgress = progress.clamp(0.0, 1.0);
-    
+
     return ModernCard(
       onTap: onTap,
       child: LayoutBuilder(
         builder: (context, constraints) {
           // Determine layout based on available width
           final isNarrow = constraints.maxWidth < 300;
-          
+
           return Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -524,9 +515,9 @@ class ActiveChallengeCard extends StatelessWidget {
                   ),
                 ],
               ),
-              
+
               const SizedBox(height: AppTheme.spacingSm),
-              
+
               // Description
               Text(
                 description,
@@ -537,9 +528,9 @@ class ActiveChallengeCard extends StatelessWidget {
                 overflow: TextOverflow.ellipsis,
                 maxLines: isNarrow ? 1 : 2,
               ),
-              
+
               const SizedBox(height: AppTheme.spacingSm),
-              
+
               // Progress bar and reward
               Row(
                 children: [
@@ -601,7 +592,6 @@ class ActiveChallengeCard extends StatelessWidget {
 
 /// Enhanced Recent Classification Card with overflow protection and responsive layout
 class RecentClassificationCard extends StatelessWidget {
-
   const RecentClassificationCard({
     super.key,
     required this.itemName,
@@ -634,7 +624,7 @@ class RecentClassificationCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final effectiveCategoryColor = categoryColor ?? _getDefaultCategoryColor(category);
-    
+
     return ModernCard(
       onTap: onTap,
       margin: const EdgeInsets.symmetric(
@@ -649,7 +639,7 @@ class RecentClassificationCard extends StatelessWidget {
           // Determine layout based on available width
           final isNarrow = constraints.maxWidth < 350;
           final isVeryNarrow = constraints.maxWidth < 280;
-          
+
           return Row(
             children: [
               // Thumbnail (if available and enabled)
@@ -665,7 +655,7 @@ class RecentClassificationCard extends StatelessWidget {
                 ),
                 SizedBox(width: isNarrow ? AppTheme.spacingSm : AppTheme.spacingMd),
               ],
-              
+
               // Content
               Expanded(
                 child: Column(
@@ -687,9 +677,9 @@ class RecentClassificationCard extends StatelessWidget {
                             overflow: TextOverflow.ellipsis,
                           ),
                         ),
-                        
+
                         const SizedBox(width: AppTheme.spacingXs),
-                        
+
                         // Date
                         Flexible(
                           child: Text(
@@ -704,9 +694,9 @@ class RecentClassificationCard extends StatelessWidget {
                         ),
                       ],
                     ),
-                    
+
                     SizedBox(height: isNarrow ? 6 : 8),
-                    
+
                     // Categories and indicators row
                     LayoutBuilder(
                       builder: (context, badgeConstraints) {
@@ -722,7 +712,7 @@ class RecentClassificationCard extends StatelessWidget {
                   ],
                 ),
               ),
-              
+
               // Navigation arrow
               Icon(
                 Icons.chevron_right,
@@ -735,7 +725,7 @@ class RecentClassificationCard extends StatelessWidget {
       ),
     );
   }
-  
+
   Widget _buildBadgesAndIndicators(
     BuildContext context,
     Color categoryColor,
@@ -744,7 +734,7 @@ class RecentClassificationCard extends StatelessWidget {
     bool isVeryNarrow,
   ) {
     final theme = Theme.of(context);
-    
+
     // Calculate space needed for property indicators
     var indicatorCount = 0;
     if (showPropertyIndicators) {
@@ -752,14 +742,14 @@ class RecentClassificationCard extends StatelessWidget {
       if (isCompostable == true) indicatorCount++;
       if (requiresSpecialDisposal == true) indicatorCount++;
     }
-    
+
     // Reserve space for indicators and arrow
     final indicatorSpace = indicatorCount * (isNarrow ? 18 : 20) + (indicatorCount > 0 ? AppTheme.spacingXs : 0);
     final availableForBadges = availableWidth - indicatorSpace - 24; // 24 for arrow
-    
+
     // Determine if we need to stack badges vertically
     final shouldStackVertically = isVeryNarrow || availableForBadges < 120;
-    
+
     if (shouldStackVertically) {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -784,7 +774,7 @@ class RecentClassificationCard extends StatelessWidget {
         ],
       );
     }
-    
+
     // Horizontal layout for wider screens
     return Row(
       children: [
@@ -799,7 +789,7 @@ class RecentClassificationCard extends StatelessWidget {
       ],
     );
   }
-  
+
   Widget _buildCategoryBadges(Color categoryColor, bool isNarrow, bool isVeryNarrow) {
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -829,7 +819,7 @@ class RecentClassificationCard extends StatelessWidget {
                 ),
               ),
             ),
-            
+
             // Subcategory badge if available and space permits
             if (subcategory != null && !isVeryNarrow && constraints.maxWidth > 100) ...[
               const SizedBox(width: 4),
@@ -864,11 +854,11 @@ class RecentClassificationCard extends StatelessWidget {
       },
     );
   }
-  
+
   List<Widget> _buildPropertyIndicators(bool isNarrow) {
     final indicators = <Widget>[];
     final iconSize = isNarrow ? 14.0 : 16.0;
-    
+
     if (isRecyclable == true) {
       indicators.add(
         Tooltip(
@@ -881,7 +871,7 @@ class RecentClassificationCard extends StatelessWidget {
         ),
       );
     }
-    
+
     if (isCompostable == true) {
       indicators.add(
         Tooltip(
@@ -894,7 +884,7 @@ class RecentClassificationCard extends StatelessWidget {
         ),
       );
     }
-    
+
     if (requiresSpecialDisposal == true) {
       indicators.add(
         Tooltip(
@@ -907,7 +897,7 @@ class RecentClassificationCard extends StatelessWidget {
         ),
       );
     }
-    
+
     // Add spacing between indicators
     final spacedIndicators = <Widget>[];
     for (var i = 0; i < indicators.length; i++) {
@@ -916,10 +906,10 @@ class RecentClassificationCard extends StatelessWidget {
         spacedIndicators.add(const SizedBox(width: 2));
       }
     }
-    
+
     return spacedIndicators;
   }
-  
+
   Widget _buildImageWidget(double size) {
     if (imageUrl == null) {
       return Icon(
@@ -928,7 +918,7 @@ class RecentClassificationCard extends StatelessWidget {
         color: Colors.grey,
       );
     }
-    
+
     // For now, return a placeholder - in real implementation, this would handle
     // the actual image loading with proper error handling
     return Container(
@@ -945,7 +935,7 @@ class RecentClassificationCard extends StatelessWidget {
       ),
     );
   }
-  
+
   Color _getDefaultCategoryColor(String category) {
     switch (category.toLowerCase()) {
       case 'wet waste':
@@ -962,7 +952,7 @@ class RecentClassificationCard extends StatelessWidget {
         return AppTheme.neutralColor;
     }
   }
-  
+
   String _formatDate(DateTime date) {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);

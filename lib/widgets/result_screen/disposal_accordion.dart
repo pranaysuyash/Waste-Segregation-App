@@ -18,8 +18,7 @@ class DisposalAccordion extends ConsumerStatefulWidget {
   ConsumerState<DisposalAccordion> createState() => _DisposalAccordionState();
 }
 
-class _DisposalAccordionState extends ConsumerState<DisposalAccordion>
-    with TickerProviderStateMixin {
+class _DisposalAccordionState extends ConsumerState<DisposalAccordion> with TickerProviderStateMixin {
   late AnimationController _expansionController;
   late Animation<double> _expansionAnimation;
   bool _isExpanded = false;
@@ -28,12 +27,12 @@ class _DisposalAccordionState extends ConsumerState<DisposalAccordion>
   void initState() {
     super.initState();
     _isExpanded = widget.initiallyExpanded;
-    
+
     _expansionController = AnimationController(
       duration: const Duration(milliseconds: 300),
       vsync: this,
     );
-    
+
     _expansionAnimation = CurvedAnimation(
       parent: _expansionController,
       curve: Curves.easeInOut,
@@ -65,7 +64,7 @@ class _DisposalAccordionState extends ConsumerState<DisposalAccordion>
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    
+
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       decoration: BoxDecoration(
@@ -94,7 +93,7 @@ class _DisposalAccordionState extends ConsumerState<DisposalAccordion>
   Widget _buildHeader(BuildContext context, ColorScheme colorScheme) {
     final disposalSteps = widget.classification.disposalInstructions.steps ?? [];
     final stepCount = disposalSteps.length;
-    
+
     return InkWell(
       onTap: _toggleExpansion,
       borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
@@ -115,38 +114,36 @@ class _DisposalAccordionState extends ConsumerState<DisposalAccordion>
                 size: 20,
               ),
             ),
-            
+
             const SizedBox(width: 12),
-            
+
             // Title and preview
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                                     Text(
-                     'Disposal Steps',
-                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                       fontWeight: FontWeight.w600,
-                       color: colorScheme.onSurface,
-                     ),
-                   ),
-                   const SizedBox(height: 2),
-                   Text(
-                     _isExpanded 
-                         ? '$stepCount steps to dispose correctly'
-                         : _getPreviewText(),
-                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                       color: colorScheme.onSurfaceVariant,
-                     ),
-                     maxLines: _isExpanded ? null : 1,
-                     overflow: _isExpanded ? null : TextOverflow.ellipsis,
-                   ),
+                  Text(
+                    'Disposal Steps',
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.w600,
+                          color: colorScheme.onSurface,
+                        ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    _isExpanded ? '$stepCount steps to dispose correctly' : _getPreviewText(),
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: colorScheme.onSurfaceVariant,
+                        ),
+                    maxLines: _isExpanded ? null : 1,
+                    overflow: _isExpanded ? null : TextOverflow.ellipsis,
+                  ),
                 ],
               ),
             ),
-            
+
             const SizedBox(width: 8),
-            
+
             // Expansion indicator
             AnimatedRotation(
               turns: _isExpanded ? 0.5 : 0.0,
@@ -184,7 +181,7 @@ class _DisposalAccordionState extends ConsumerState<DisposalAccordion>
 
   Widget _buildStaggeredSteps(BuildContext context, ColorScheme colorScheme) {
     final disposalSteps = widget.classification.disposalInstructions.steps ?? [];
-    
+
     if (disposalSteps.isEmpty) {
       return _buildNoStepsMessage(context, colorScheme);
     }
@@ -196,14 +193,14 @@ class _DisposalAccordionState extends ConsumerState<DisposalAccordion>
         ...disposalSteps.asMap().entries.map((entry) {
           final index = entry.key;
           final step = entry.value;
-          
+
           return AnimatedBuilder(
             animation: _expansionAnimation,
             builder: (context, child) {
               // Staggered delay for each step
               final delay = index * 0.1;
               final progress = (_expansionAnimation.value - delay).clamp(0.0, 1.0);
-              
+
               return Transform.translate(
                 offset: Offset(0, (1 - progress) * 20),
                 child: Opacity(
@@ -219,13 +216,13 @@ class _DisposalAccordionState extends ConsumerState<DisposalAccordion>
             },
           );
         }),
-        
-                 // Additional info if available
-         if (widget.classification.disposalInstructions.tips != null && 
-             widget.classification.disposalInstructions.tips!.isNotEmpty) ...[
-           const SizedBox(height: 16),
-           _buildAdditionalInfo(context, colorScheme),
-         ],
+
+        // Additional info if available
+        if (widget.classification.disposalInstructions.tips != null &&
+            widget.classification.disposalInstructions.tips!.isNotEmpty) ...[
+          const SizedBox(height: 16),
+          _buildAdditionalInfo(context, colorScheme),
+        ],
       ],
     );
   }
@@ -255,17 +252,17 @@ class _DisposalAccordionState extends ConsumerState<DisposalAccordion>
               ),
             ),
           ),
-          
+
           const SizedBox(width: 12),
-          
+
           // Step content
           Expanded(
             child: Text(
               step,
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: colorScheme.onSurface,
-                height: 1.4,
-              ),
+                    color: colorScheme.onSurface,
+                    height: 1.4,
+                  ),
             ),
           ),
         ],
@@ -276,7 +273,7 @@ class _DisposalAccordionState extends ConsumerState<DisposalAccordion>
   Widget _buildAdditionalInfo(BuildContext context, ColorScheme colorScheme) {
     final tips = widget.classification.disposalInstructions.tips;
     if (tips == null || tips.isEmpty) return const SizedBox.shrink();
-    
+
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
@@ -297,23 +294,23 @@ class _DisposalAccordionState extends ConsumerState<DisposalAccordion>
               Text(
                 'Tips',
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: colorScheme.onSurface,
-                  fontWeight: FontWeight.w600,
-                ),
+                      color: colorScheme.onSurface,
+                      fontWeight: FontWeight.w600,
+                    ),
               ),
             ],
           ),
           const SizedBox(height: 8),
           ...tips.map((tip) => Padding(
-            padding: const EdgeInsets.only(bottom: 4),
-            child: Text(
-              '• $tip',
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: colorScheme.onSurface,
-                height: 1.3,
-              ),
-            ),
-          )),
+                padding: const EdgeInsets.only(bottom: 4),
+                child: Text(
+                  '• $tip',
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: colorScheme.onSurface,
+                        height: 1.3,
+                      ),
+                ),
+              )),
         ],
       ),
     );
@@ -334,9 +331,9 @@ class _DisposalAccordionState extends ConsumerState<DisposalAccordion>
             child: Text(
               'No specific disposal instructions available for this item.',
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: colorScheme.onSurfaceVariant,
-                fontStyle: FontStyle.italic,
-              ),
+                    color: colorScheme.onSurfaceVariant,
+                    fontStyle: FontStyle.italic,
+                  ),
             ),
           ),
         ],
@@ -349,15 +346,15 @@ class _DisposalAccordionState extends ConsumerState<DisposalAccordion>
     if (disposalSteps.isEmpty) {
       return 'Tap to view disposal guidelines';
     }
-    
+
     // Show first step as preview
     final firstStep = disposalSteps.first;
     const maxLength = 60;
-    
+
     if (firstStep.length <= maxLength) {
       return firstStep;
     }
-    
+
     return '${firstStep.substring(0, maxLength)}...';
   }
-} 
+}

@@ -11,7 +11,7 @@ final leaderboardServiceProvider = Provider<LeaderboardService>((ref) {
 /// Provider for leaderboard data (using LeaderboardEntry model)
 final leaderboardEntriesProvider = FutureProvider<List<LeaderboardEntry>>((ref) async {
   final leaderboardService = ref.watch(leaderboardServiceProvider);
-  
+
   try {
     // Get top 100 leaderboard entries
     final entries = await leaderboardService.getTopNEntries(100);
@@ -26,11 +26,11 @@ final leaderboardEntriesProvider = FutureProvider<List<LeaderboardEntry>>((ref) 
 final userLeaderboardPositionProvider = FutureProvider<int?>((ref) async {
   final storageService = ref.watch(storageServiceProvider);
   final leaderboardService = ref.watch(leaderboardServiceProvider);
-  
+
   try {
     final currentUser = await storageService.getCurrentUserProfile();
     if (currentUser == null) return null;
-    
+
     // Get user's rank directly from leaderboard service
     final rank = await leaderboardService.getCurrentUserRank(currentUser.id);
     return rank;
@@ -43,11 +43,11 @@ final userLeaderboardPositionProvider = FutureProvider<int?>((ref) async {
 final currentUserLeaderboardEntryProvider = FutureProvider<LeaderboardEntry?>((ref) async {
   final storageService = ref.watch(storageServiceProvider);
   final leaderboardService = ref.watch(leaderboardServiceProvider);
-  
+
   try {
     final currentUser = await storageService.getCurrentUserProfile();
     if (currentUser == null) return null;
-    
+
     // Get user's entry from leaderboard service
     final entry = await leaderboardService.getUserEntry(currentUser.id);
     return entry;
@@ -59,7 +59,7 @@ final currentUserLeaderboardEntryProvider = FutureProvider<LeaderboardEntry?>((r
 /// Provider for top 3 leaderboard entries
 final topThreeLeaderboardProvider = Provider<List<LeaderboardEntry>>((ref) {
   final leaderboardAsync = ref.watch(leaderboardEntriesProvider);
-  
+
   return leaderboardAsync.when(
     data: (entries) => entries.take(3).toList(),
     loading: () => [],
@@ -70,7 +70,7 @@ final topThreeLeaderboardProvider = Provider<List<LeaderboardEntry>>((ref) {
 /// Provider for leaderboard statistics
 final leaderboardStatsProvider = Provider<LeaderboardStats>((ref) {
   final leaderboardAsync = ref.watch(leaderboardEntriesProvider);
-  
+
   return leaderboardAsync.when(
     data: (entries) {
       if (entries.isEmpty) {
@@ -80,12 +80,12 @@ final leaderboardStatsProvider = Provider<LeaderboardStats>((ref) {
           topScore: 0,
         );
       }
-      
+
       final totalUsers = entries.length;
       final totalPoints = entries.fold<int>(0, (sum, entry) => sum + entry.points);
       final averagePoints = totalPoints / totalUsers;
       final topScore = entries.first.points;
-      
+
       return LeaderboardStats(
         totalUsers: totalUsers,
         averagePoints: averagePoints.round(),
@@ -123,7 +123,7 @@ final leaderboardScreenDataProvider = FutureProvider<LeaderboardScreenData>((ref
   final topEntries = await ref.watch(leaderboardEntriesProvider.future);
   final currentUserEntry = await ref.watch(currentUserLeaderboardEntryProvider.future);
   final currentUserRank = await ref.watch(userLeaderboardPositionProvider.future);
-  
+
   return LeaderboardScreenData(
     topEntries: topEntries,
     currentUserEntry: currentUserEntry,
@@ -146,4 +146,4 @@ class LeaderboardScreenData {
   final List<LeaderboardEntry> topEntries;
   final LeaderboardEntry? currentUserEntry;
   final int? currentUserRank;
-} 
+}

@@ -56,4 +56,4 @@ bool get hasClipboardSupport {
 @JS('File')
 external JSObject? get _file;
 
-bool get hasFileSupport => _file != null; 
+bool get hasFileSupport => _file != null;

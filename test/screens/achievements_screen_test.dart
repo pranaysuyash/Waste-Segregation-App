@@ -18,7 +18,7 @@ void main() {
 
     setUp(() {
       mockGamificationService = MockGamificationService();
-      
+
       // Create test profile with sample data
       testProfile = GamificationProfile(
         userId: 'test_user',
@@ -303,8 +303,7 @@ void main() {
       testWidgets('should handle claiming rewards', (tester) async {
         when(mockGamificationService.getProfile()).thenAnswer((_) async => testProfile);
         when(mockGamificationService.saveProfile(any)).thenAnswer((_) async {});
-        when(mockGamificationService.addPoints(any, customPoints: anyNamed('customPoints')))
-            .thenAnswer((_) async {});
+        when(mockGamificationService.addPoints(any, customPoints: anyNamed('customPoints'))).thenAnswer((_) async {});
 
         await tester.pumpWidget(createTestWidget());
         await tester.pump();
@@ -456,19 +455,21 @@ void main() {
       testWidgets('should show view all completed challenges dialog', (tester) async {
         // Create profile with more than 5 completed challenges
         final profileWithManyChallenges = testProfile.copyWith(
-          completedChallenges: List.generate(8, (index) => Challenge(
-            id: 'challenge_$index',
-            title: 'Challenge $index',
-            description: 'Description $index',
-            startDate: DateTime.now().subtract(Duration(days: 10 + index)),
-            endDate: DateTime.now().subtract(Duration(days: 3 + index)),
-            pointsReward: 50 + (index * 10),
-            iconName: 'challenge',
-            color: Colors.blue,
-            requirements: {},
-            isCompleted: true,
-            progress: 1.0,
-          )),
+          completedChallenges: List.generate(
+              8,
+              (index) => Challenge(
+                    id: 'challenge_$index',
+                    title: 'Challenge $index',
+                    description: 'Description $index',
+                    startDate: DateTime.now().subtract(Duration(days: 10 + index)),
+                    endDate: DateTime.now().subtract(Duration(days: 3 + index)),
+                    pointsReward: 50 + (index * 10),
+                    iconName: 'challenge',
+                    color: Colors.blue,
+                    requirements: {},
+                    isCompleted: true,
+                    progress: 1.0,
+                  )),
         );
 
         when(mockGamificationService.getProfile()).thenAnswer((_) async => profileWithManyChallenges);

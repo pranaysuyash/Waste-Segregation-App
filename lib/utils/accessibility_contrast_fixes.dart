@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 /// Accessibility contrast fixes for WCAG AA compliance
 /// Addresses critical contrast issues with white text on yellow/blue backgrounds
 class AccessibilityContrastFixes {
-  
   /// WCAG AA compliant color combinations for different contexts
   static const Map<String, ContrastColorPair> _contrastPairs = {
     'dry_waste_chip': ContrastColorPair(
@@ -60,11 +59,12 @@ class AccessibilityContrastFixes {
 
   /// Get WCAG AA compliant colors for a specific context
   static ContrastColorPair getContrastColors(String context) {
-    return _contrastPairs[context] ?? const ContrastColorPair(
-      backgroundColor: Color(0xFF212121),
-      textColor: Colors.white,
-      borderColor: Color(0xFF424242),
-    );
+    return _contrastPairs[context] ??
+        const ContrastColorPair(
+          backgroundColor: Color(0xFF212121),
+          textColor: Colors.white,
+          borderColor: Color(0xFF424242),
+        );
   }
 
   /// Check if a color combination meets WCAG AA contrast requirements
@@ -78,10 +78,10 @@ class AccessibilityContrastFixes {
   static double calculateContrastRatio(Color foreground, Color background) {
     final foregroundLuminance = _calculateLuminance(foreground);
     final backgroundLuminance = _calculateLuminance(background);
-    
+
     final lighter = foregroundLuminance > backgroundLuminance ? foregroundLuminance : backgroundLuminance;
     final darker = foregroundLuminance > backgroundLuminance ? backgroundLuminance : foregroundLuminance;
-    
+
     return (lighter + 0.05) / (darker + 0.05);
   }
 
@@ -90,15 +90,13 @@ class AccessibilityContrastFixes {
     final r = _getLinearRGBComponent(color.r / 255.0);
     final g = _getLinearRGBComponent(color.g / 255.0);
     final b = _getLinearRGBComponent(color.b / 255.0);
-    
+
     return 0.2126 * r + 0.7152 * g + 0.0722 * b;
   }
 
   /// Convert sRGB component to linear RGB
   static double _getLinearRGBComponent(double colorComponent) {
-    return colorComponent <= 0.03928
-        ? colorComponent / 12.92
-        : _pow((colorComponent + 0.055) / 1.055, 2.4);
+    return colorComponent <= 0.03928 ? colorComponent / 12.92 : _pow((colorComponent + 0.055) / 1.055, 2.4);
   }
 
   /// Power function implementation
@@ -113,7 +111,7 @@ class AccessibilityContrastFixes {
   /// Get accessible chip styling for waste categories
   static ChipThemeData getAccessibleChipTheme(String category) {
     final colors = getContrastColors('${category.toLowerCase()}_chip');
-    
+
     return ChipThemeData(
       backgroundColor: colors.backgroundColor,
       selectedColor: colors.backgroundColor,
@@ -131,7 +129,7 @@ class AccessibilityContrastFixes {
   /// Get accessible toast styling
   static SnackBarThemeData getAccessibleToastTheme(String type) {
     final colors = getContrastColors('${type}_toast');
-    
+
     return SnackBarThemeData(
       backgroundColor: colors.backgroundColor,
       contentTextStyle: TextStyle(
@@ -148,7 +146,7 @@ class AccessibilityContrastFixes {
   /// Get accessible info box decoration
   static BoxDecoration getAccessibleInfoBoxDecoration(String type) {
     final colors = getContrastColors('${type}_info_box');
-    
+
     return BoxDecoration(
       color: colors.backgroundColor,
       borderRadius: BorderRadius.circular(8),
@@ -159,7 +157,7 @@ class AccessibilityContrastFixes {
   /// Get accessible text style for info boxes
   static TextStyle getAccessibleInfoBoxTextStyle(String type) {
     final colors = getContrastColors('${type}_info_box');
-    
+
     return TextStyle(
       color: colors.textColor,
       fontWeight: FontWeight.w500,
@@ -169,7 +167,6 @@ class AccessibilityContrastFixes {
 
 /// Data class for contrast color combinations
 class ContrastColorPair {
-
   const ContrastColorPair({
     required this.backgroundColor,
     required this.textColor,
@@ -185,7 +182,7 @@ extension AccessibleColors on Widget {
   /// Apply accessible chip colors based on category
   Widget withAccessibleChipColors(String category) {
     final colors = AccessibilityContrastFixes.getContrastColors('${category.toLowerCase()}_chip');
-    
+
     if (this is Chip) {
       final chip = this as Chip;
       return Chip(
@@ -201,7 +198,7 @@ extension AccessibleColors on Widget {
         ),
       );
     }
-    
+
     return this;
   }
 
@@ -210,7 +207,7 @@ extension AccessibleColors on Widget {
     if (this is SnackBar) {
       final snackBar = this as SnackBar;
       final colors = AccessibilityContrastFixes.getContrastColors('${type}_toast');
-      
+
       return SnackBar(
         content: snackBar.content,
         backgroundColor: colors.backgroundColor,
@@ -220,7 +217,7 @@ extension AccessibleColors on Widget {
         ),
       );
     }
-    
+
     return this;
   }
-} 
+}

@@ -39,31 +39,31 @@ class _ModernUIShowcaseScreenState extends State<ModernUIShowcaseScreen> {
           children: [
             _buildSectionTitle('Modern Cards'),
             const SizedBox(height: AppTheme.spacingMd),
-            
+
             // Card examples
             _buildCardExamples(),
-            
+
             const SizedBox(height: AppTheme.spacingXl),
             _buildSectionTitle('Modern Buttons'),
             const SizedBox(height: AppTheme.spacingMd),
-            
+
             // Button examples
             _buildButtonExamples(),
-            
+
             const SizedBox(height: AppTheme.spacingXl),
             _buildSectionTitle('Modern Badges & Chips'),
             const SizedBox(height: AppTheme.spacingMd),
-            
+
             // Badge and chip examples
             _buildBadgeExamples(),
-            
+
             const SizedBox(height: AppTheme.spacingXl),
             _buildSectionTitle('Interactive Components'),
             const SizedBox(height: AppTheme.spacingMd),
-            
+
             // Interactive examples
             _buildInteractiveExamples(),
-            
+
             const SizedBox(height: AppTheme.spacingXxl),
           ],
         ),
@@ -75,8 +75,8 @@ class _ModernUIShowcaseScreenState extends State<ModernUIShowcaseScreen> {
     return Text(
       title,
       style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-        fontWeight: FontWeight.bold,
-      ),
+            fontWeight: FontWeight.bold,
+          ),
     );
   }
 
@@ -95,9 +95,9 @@ class _ModernUIShowcaseScreenState extends State<ModernUIShowcaseScreen> {
             );
           },
         ),
-        
+
         const SizedBox(height: AppTheme.spacingMd),
-        
+
         // Stats Card Row
         const Row(
           children: [
@@ -124,9 +124,9 @@ class _ModernUIShowcaseScreenState extends State<ModernUIShowcaseScreen> {
             ),
           ],
         ),
-        
+
         const SizedBox(height: AppTheme.spacingMd),
-        
+
         // Glassmorphism Card
         GlassmorphismCard(
           child: Column(
@@ -140,23 +140,23 @@ class _ModernUIShowcaseScreenState extends State<ModernUIShowcaseScreen> {
               Text(
                 'Glassmorphism Effect',
                 style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
+                      fontWeight: FontWeight.bold,
+                    ),
               ),
               const SizedBox(height: AppTheme.spacingXs),
               Text(
                 'Modern translucent design with blur effect',
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
-                ),
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
                 textAlign: TextAlign.center,
               ),
             ],
           ),
         ),
-        
+
         const SizedBox(height: AppTheme.spacingMd),
-        
+
         // Action Cards Row
         Row(
           children: [
@@ -222,21 +222,21 @@ class _ModernUIShowcaseScreenState extends State<ModernUIShowcaseScreen> {
             ),
           ],
         ),
-        
+
         const SizedBox(height: AppTheme.spacingMd),
-        
+
         // Loading button
         ModernButton(
           text: 'Processing...',
           isLoading: _isLoading,
           isExpanded: true,
-          onPressed: _isLoading 
-              ? null 
+          onPressed: _isLoading
+              ? null
               : () {
                   setState(() {
                     _isLoading = true;
                   });
-                  
+
                   Future.delayed(const Duration(seconds: 2), () {
                     if (mounted) {
                       setState(() {
@@ -246,9 +246,9 @@ class _ModernUIShowcaseScreenState extends State<ModernUIShowcaseScreen> {
                   });
                 },
         ),
-        
+
         const SizedBox(height: AppTheme.spacingMd),
-        
+
         // Button sizes
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -269,9 +269,9 @@ class _ModernUIShowcaseScreenState extends State<ModernUIShowcaseScreen> {
             ),
           ],
         ),
-        
+
         const SizedBox(height: AppTheme.spacingMd),
-        
+
         // Glassmorphism button
         ModernButton(
           text: 'Glassmorphism Style',
@@ -318,9 +318,9 @@ class _ModernUIShowcaseScreenState extends State<ModernUIShowcaseScreen> {
             ),
           ],
         ),
-        
+
         const SizedBox(height: AppTheme.spacingLg),
-        
+
         // Status badges
         const Wrap(
           spacing: AppTheme.spacingSm,
@@ -332,9 +332,9 @@ class _ModernUIShowcaseScreenState extends State<ModernUIShowcaseScreen> {
             StatusBadge(status: 'New'),
           ],
         ),
-        
+
         const SizedBox(height: AppTheme.spacingLg),
-        
+
         // Modern badges with different styles
         const Row(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -358,9 +358,9 @@ class _ModernUIShowcaseScreenState extends State<ModernUIShowcaseScreen> {
             ),
           ],
         ),
-        
+
         const SizedBox(height: AppTheme.spacingLg),
-        
+
         // Progress badge
         const Row(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -401,16 +401,16 @@ class _ModernUIShowcaseScreenState extends State<ModernUIShowcaseScreen> {
               setState(() {
                 _selectedChipIndex = _chipOptions.indexOf(selected.first);
               });
-              
+
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(content: Text('Selected: ${selected.first}')),
               );
             }
           },
         ),
-        
+
         const SizedBox(height: AppTheme.spacingLg),
-        
+
         // Search bar
         ModernSearchBar(
           hint: 'Search waste items...',
@@ -418,9 +418,9 @@ class _ModernUIShowcaseScreenState extends State<ModernUIShowcaseScreen> {
             // Handle search
           },
         ),
-        
+
         const SizedBox(height: AppTheme.spacingLg),
-        
+
         // Modern FAB
         Center(
           child: ModernFAB(
@@ -440,5 +440,3 @@ class _ModernUIShowcaseScreenState extends State<ModernUIShowcaseScreen> {
     );
   }
 }
-
-

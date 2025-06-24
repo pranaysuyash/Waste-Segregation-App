@@ -6,8 +6,7 @@ class PageTransitionBuilder {
     return PageRouteBuilder<T>(
       pageBuilder: (_, __, ___) => page,
       transitionsBuilder: (_, animation, __, child) {
-        final offset = Tween(begin: const Offset(1, 0), end: Offset.zero)
-            .animate(animation);
+        final offset = Tween(begin: const Offset(1, 0), end: Offset.zero).animate(animation);
         return SlideTransition(position: offset, child: child);
       },
     );
@@ -38,8 +37,7 @@ class AnimatedTabController extends StatefulWidget {
   State<AnimatedTabController> createState() => _AnimatedTabControllerState();
 }
 
-class _AnimatedTabControllerState extends State<AnimatedTabController>
-    with TickerProviderStateMixin {
+class _AnimatedTabControllerState extends State<AnimatedTabController> with TickerProviderStateMixin {
   late TabController _controller;
 
   @override

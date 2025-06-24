@@ -27,7 +27,7 @@ void main() {
 
     testWidgets('FeatureCard handles long titles without overflow', (WidgetTester tester) async {
       const longTitle = 'Very Long Analytics Dashboard Title That Should Not Overflow';
-      
+
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
@@ -46,14 +46,15 @@ void main() {
 
       expect(find.byType(FeatureCard), findsOneWidget);
       expect(find.textContaining('Very Long'), findsOneWidget);
-      
+
       // Should not throw overflow errors
       await tester.pumpAndSettle();
     });
 
     testWidgets('FeatureCard handles long subtitles without overflow', (WidgetTester tester) async {
-      const longSubtitle = 'Very long subtitle that describes detailed insights and statistics with comprehensive data analysis and reporting features';
-      
+      const longSubtitle =
+          'Very long subtitle that describes detailed insights and statistics with comprehensive data analysis and reporting features';
+
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
@@ -73,7 +74,7 @@ void main() {
       expect(find.byType(FeatureCard), findsOneWidget);
       expect(find.text('Learn About Waste'), findsOneWidget);
       expect(find.textContaining('Very long subtitle'), findsOneWidget);
-      
+
       // Should not throw overflow errors
       await tester.pumpAndSettle();
     });
@@ -98,14 +99,14 @@ void main() {
       expect(find.byType(FeatureCard), findsOneWidget);
       expect(find.text('Analytics Dashboard'), findsOneWidget);
       expect(find.text('View detailed insights'), findsOneWidget);
-      
+
       // Should handle narrow width gracefully
       await tester.pumpAndSettle();
     });
 
     testWidgets('FeatureCard handles tap events correctly', (WidgetTester tester) async {
       var tapped = false;
-      
+
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
@@ -125,7 +126,7 @@ void main() {
 
     testWidgets('FeatureCard shows custom trailing widget when provided', (WidgetTester tester) async {
       const customTrailing = Icon(Icons.star, key: Key('custom_trailing'));
-      
+
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
@@ -141,7 +142,8 @@ void main() {
       );
 
       expect(find.byKey(const Key('custom_trailing')), findsOneWidget);
-      expect(find.byIcon(Icons.chevron_right), findsNothing); // Should not show chevron when custom trailing is provided
+      expect(
+          find.byIcon(Icons.chevron_right), findsNothing); // Should not show chevron when custom trailing is provided
     });
 
     testWidgets('FeatureCard hides chevron when showChevron is false', (WidgetTester tester) async {
@@ -261,9 +263,11 @@ void main() {
     });
 
     testWidgets('FeatureCard handles extremely long text gracefully', (WidgetTester tester) async {
-      const extremelyLongTitle = 'This is an extremely long title that should definitely cause overflow issues if not handled properly by the responsive text system';
-      const extremelyLongSubtitle = 'This is an extremely long subtitle that contains a lot of detailed information about the feature and should also be handled gracefully without causing any layout issues or overflow problems';
-      
+      const extremelyLongTitle =
+          'This is an extremely long title that should definitely cause overflow issues if not handled properly by the responsive text system';
+      const extremelyLongSubtitle =
+          'This is an extremely long subtitle that contains a lot of detailed information about the feature and should also be handled gracefully without causing any layout issues or overflow problems';
+
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
@@ -281,7 +285,7 @@ void main() {
       );
 
       expect(find.byType(FeatureCard), findsOneWidget);
-      
+
       // Should not throw overflow errors
       await tester.pumpAndSettle();
     });
@@ -303,7 +307,7 @@ void main() {
       // Should be accessible by text content
       expect(find.text('Analytics Dashboard'), findsOneWidget);
       expect(find.text('View detailed insights and statistics'), findsOneWidget);
-      
+
       // Should be tappable
       await tester.tap(find.byType(FeatureCard));
       await tester.pumpAndSettle();
@@ -340,7 +344,7 @@ void main() {
   group('Quick-action Cards Navigation Tests', () {
     testWidgets('Analytics card navigation test', (WidgetTester tester) async {
       var navigatedToAnalytics = false;
-      
+
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
@@ -360,7 +364,7 @@ void main() {
 
     testWidgets('Learn About Waste card navigation test', (WidgetTester tester) async {
       var navigatedToEducation = false;
-      
+
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
@@ -380,7 +384,7 @@ void main() {
 
     testWidgets('Quick-action cards tap area coverage test', (WidgetTester tester) async {
       var tapped = false;
-      
+
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
@@ -397,16 +401,16 @@ void main() {
       // Test tapping on different parts of the card
       final cardFinder = find.byType(FeatureCard);
       expect(cardFinder, findsOneWidget);
-      
+
       // Tap on the card
       await tester.tap(cardFinder);
       expect(tapped, isTrue);
-      
+
       // Reset and test tapping on the icon area
       tapped = false;
       await tester.tap(find.byIcon(Icons.analytics));
       expect(tapped, isTrue);
-      
+
       // Reset and test tapping on the text area
       tapped = false;
       await tester.tap(find.text('Analytics Dashboard'));
@@ -479,13 +483,13 @@ void main() {
       );
 
       expect(find.byType(FeatureCard), findsNWidgets(2));
-      
+
       // Verify icons use the specified colors
       final analyticsIcon = tester.widget<Icon>(find.byIcon(Icons.analytics));
       expect(analyticsIcon.color, AppTheme.infoColor);
-      
+
       final schoolIcon = tester.widget<Icon>(find.byIcon(Icons.school));
       expect(schoolIcon.color, AppTheme.successColor);
     });
   });
-} 
+}

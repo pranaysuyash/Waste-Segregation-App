@@ -19,7 +19,6 @@ enum ContentLevel {
 
 /// Represents an educational content item in the app
 class EducationalContent {
-  
   /// Constructor for educational content
   const EducationalContent({
     required this.id,
@@ -40,7 +39,7 @@ class EducationalContent {
     this.tags = const [],
     this.isPremium = false,
   });
-  
+
   /// Factory method to create article content
   factory EducationalContent.article({
     required String id,
@@ -70,7 +69,7 @@ class EducationalContent {
       icon: Icons.article,
     );
   }
-  
+
   /// Factory method to create video content
   factory EducationalContent.video({
     required String id,
@@ -100,7 +99,7 @@ class EducationalContent {
       icon: Icons.video_library,
     );
   }
-  
+
   /// Factory method to create infographic content
   factory EducationalContent.infographic({
     required String id,
@@ -132,7 +131,7 @@ class EducationalContent {
       icon: Icons.image,
     );
   }
-  
+
   /// Factory method to create quiz content
   factory EducationalContent.quiz({
     required String id,
@@ -162,7 +161,7 @@ class EducationalContent {
       icon: Icons.quiz,
     );
   }
-  
+
   /// Factory method to create tutorial content
   factory EducationalContent.tutorial({
     required String id,
@@ -192,7 +191,7 @@ class EducationalContent {
       icon: Icons.menu_book,
     );
   }
-  
+
   /// Factory method to create tip content
   factory EducationalContent.tip({
     required String id,
@@ -235,16 +234,16 @@ class EducationalContent {
   final bool isPremium;
   final int durationMinutes;
   final IconData icon;
-  
+
   /// For infographics: the image URL
   final String? imageUrl;
-  
+
   /// For quizzes: list of questions and answers
   final List<QuizQuestion>? questions;
-  
+
   /// For tutorials: list of steps
   final List<TutorialStep>? steps;
-  
+
   /// Get color based on content type
   Color getTypeColor() {
     switch (type) {
@@ -262,7 +261,7 @@ class EducationalContent {
         return Colors.teal;
     }
   }
-  
+
   /// Get level text
   String getLevelText() {
     switch (level) {
@@ -274,7 +273,7 @@ class EducationalContent {
         return 'Advanced';
     }
   }
-  
+
   /// Get formatted duration text
   String getFormattedDuration() {
     if (durationMinutes < 1) {
@@ -297,7 +296,6 @@ class EducationalContent {
 
 /// Represents a quiz question in the educational content
 class QuizQuestion {
-  
   const QuizQuestion({
     required this.question,
     required this.options,
@@ -312,7 +310,6 @@ class QuizQuestion {
 
 /// Represents a tutorial step in the educational content
 class TutorialStep {
-  
   const TutorialStep({
     required this.title,
     required this.description,
@@ -325,7 +322,6 @@ class TutorialStep {
 
 /// Represents a daily tip for the home screen
 class DailyTip {
-  
   const DailyTip({
     required this.id,
     required this.title,

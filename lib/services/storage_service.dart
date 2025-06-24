@@ -57,7 +57,7 @@ class StorageService {
     if (!Hive.isAdapterRegistered(4)) {
       Hive.registerAdapter(UserProfileAdapter());
     }
-    
+
     // Register gamification TypeAdapters
     if (!Hive.isAdapterRegistered(5)) {
       Hive.registerAdapter(AchievementTypeAdapter());
@@ -101,10 +101,10 @@ class StorageService {
     await HiveManager.openDynamicBox(StorageKeys.familiesBox);
     await HiveManager.openDynamicBox(StorageKeys.invitationsBox);
     await HiveManager.openDynamicBox(StorageKeys.classificationFeedbackBox);
-    
+
     // Open cache box for image classification caching
     await HiveManager.openBox<String>(StorageKeys.cacheBox);
-    
+
     // Open secondary index box for hash-based lookups (O(1) duplicate detection)
     await HiveManager.openBox<String>('classificationHashesBox');
   }
@@ -119,9 +119,9 @@ class StorageService {
   Future<UserProfile?> getCurrentUserProfile() async {
     final userBox = Hive.box(StorageKeys.userBox);
     final data = userBox.get(StorageKeys.userProfileKey);
-    
+
     if (data == null) return null;
-    
+
     // Handle both TypeAdapter and legacy JSON formats
     if (data is UserProfile) {
       // New TypeAdapter format - direct binary storage
@@ -143,13 +143,13 @@ class StorageService {
         return null;
       }
     }
-    
+
     return null;
   }
 
   Future<void> clearUserInfo() async {
     final userBox = Hive.box(StorageKeys.userBox);
-    // Clear the new userProfileKey 
+    // Clear the new userProfileKey
     await userBox.delete(StorageKeys.userProfileKey);
     // Note: Old individual keys (userIdKey, userEmailKey, userDisplayNameKey) were removed
     // during UserProfile refactoring and are no longer needed
@@ -170,8 +170,9 @@ class StorageService {
     // Create a unique content hash to prevent duplicates
     // Include timestamp hour to allow same object at different times/scales
     final now = DateTime.now();
-    final contentHash = '${classification.itemName.toLowerCase().trim()}_${classification.category}_${classification.subcategory}_${classification.userId}_${now.year}${now.month}${now.day}${now.hour}';
-    
+    final contentHash =
+        '${classification.itemName.toLowerCase().trim()}_${classification.category}_${classification.subcategory}_${classification.userId}_${now.year}${now.month}${now.day}${now.hour}';
+
     if (!force) {
       // Check if this exact content was saved recently (within 60 seconds)
       final recentSaveTime = _recentSaves[contentHash];
@@ -180,27 +181,27 @@ class StorageService {
         return;
       }
     }
-    
+
     // Check if this classification ID is currently being saved
     if (_activeSaves.contains(classification.id)) {
       // Skip logging for concurrent saves to reduce spam
       return;
     }
-    
+
     // Add to active saves to prevent concurrent processing
     _activeSaves.add(classification.id);
-    
+
     try {
       final classificationsBox = Hive.box(StorageKeys.classificationsBox);
       final hashesBox = Hive.box<String>('classificationHashesBox');
-      
+
       // Get current user ID
       final userProfile = await getCurrentUserProfile();
       final currentUserId = userProfile?.id ?? 'guest_user';
-      
+
       // Ensure the classification has the correct user ID
       final classificationWithUserId = classification.copyWith(userId: currentUserId);
-      
+
       if (!force) {
         // O(1) duplicate check using secondary index
         final existingClassificationId = hashesBox.get(contentHash);
@@ -211,7 +212,7 @@ class StorageService {
             // Duplicate found - only log occasionally to reduce spam
             if (DateTime.now().millisecondsSinceEpoch % 10 == 0) {
               WasteAppLogger.debug('Duplicate classification skipped', {
-                'service': 'storage', 
+                'service': 'storage',
                 'file': 'storage_service',
                 'item': classification.itemName,
                 'category': classification.category,
@@ -226,33 +227,31 @@ class StorageService {
           }
         }
       }
-      
+
       // Use Hive transaction to keep both boxes in sync
       await Hive.box(StorageKeys.classificationsBox).put(classification.id, classificationWithUserId);
       await hashesBox.put(contentHash, classification.id);
-      
+
       // Record this save to prevent immediate duplicates
       _recentSaves[contentHash] = now;
-      
+
       // Clean up old entries (keep only last 50 entries)
       if (_recentSaves.length > 50) {
-        final oldestEntries = _recentSaves.entries.toList()
-          ..sort((a, b) => a.value.compareTo(b.value));
+        final oldestEntries = _recentSaves.entries.toList()..sort((a, b) => a.value.compareTo(b.value));
         for (var i = 0; i < 10; i++) {
           _recentSaves.remove(oldestEntries[i].key);
         }
       }
-      
+
       // Classification saved successfully - only log occasionally
       if (DateTime.now().millisecondsSinceEpoch % 25 == 0) {
         WasteAppLogger.debug('Classification saved successfully', {
-          'service': 'storage', 
+          'service': 'storage',
           'file': 'storage_service',
           'item': classification.itemName,
           'category': classification.category
         });
       }
-      
     } finally {
       // Always remove from active saves
       _activeSaves.remove(classification.id);
@@ -266,149 +265,136 @@ class StorageService {
       final classificationsBox = Hive.box(StorageKeys.classificationsBox);
       final classifications = <WasteClassification>[];
 
-    // Get current user ID
-    final userProfile = await getCurrentUserProfile();
-    final currentUserId = userProfile?.id ?? 'guest_user';
+      // Get current user ID
+      final userProfile = await getCurrentUserProfile();
+      final currentUserId = userProfile?.id ?? 'guest_user';
 
-    // Debug logging - REDUCED (only log occasionally)
-    if (DateTime.now().millisecondsSinceEpoch % 100 == 0) {
-      WasteAppLogger.debug('Loading classifications for user', {
-        'service': 'storage', 
-        'file': 'storage_service',
-        'user_id': currentUserId
-      });
-    }
-    
-    // Counter for different types of classifications
-    var totalProcessed = 0;
-    var successfullyParsed = 0;
-    var includedForUser = 0;
-    var excludedDifferentUser = 0;
-    var corruptedEntries = 0;
-    var guestEntries = 0;
-    var signedInUserEntries = 0;
-    var nullUserIdEntries = 0;
-    
-    // Process classifications for the current user (main filtering loop)
-    for (final key in classificationsBox.keys) {
-      totalProcessed++;
-      try {
-        final data = classificationsBox.get(key);
-        if (data == null) {
-          corruptedEntries++;
-          continue;
-        }
-        
-        WasteClassification classification;
-        
-        // Handle both TypeAdapter and legacy JSON formats
-        if (data is WasteClassification) {
-          // New TypeAdapter format - direct binary storage
-          classification = data;
-        } else if (data is String) {
-          // Legacy JSON string format
-          if (data.isEmpty) {
+      // Debug logging - REDUCED (only log occasionally)
+      if (DateTime.now().millisecondsSinceEpoch % 100 == 0) {
+        WasteAppLogger.debug('Loading classifications for user',
+            {'service': 'storage', 'file': 'storage_service', 'user_id': currentUserId});
+      }
+
+      // Counter for different types of classifications
+      var totalProcessed = 0;
+      var successfullyParsed = 0;
+      var includedForUser = 0;
+      var excludedDifferentUser = 0;
+      var corruptedEntries = 0;
+      var guestEntries = 0;
+      var signedInUserEntries = 0;
+      var nullUserIdEntries = 0;
+
+      // Process classifications for the current user (main filtering loop)
+      for (final key in classificationsBox.keys) {
+        totalProcessed++;
+        try {
+          final data = classificationsBox.get(key);
+          if (data == null) {
             corruptedEntries++;
             continue;
           }
-          final json = jsonDecode(data);
-          classification = WasteClassification.fromJson(json);
-        } else if (data is Map<String, dynamic>) {
-          // Legacy Map format
-          classification = WasteClassification.fromJson(data);
-        } else if (data is Map) {
-          // Legacy Map format with type conversion
-          classification = WasteClassification.fromJson(Map<String, dynamic>.from(data));
-        } else {
-          WasteAppLogger.warning('Warning occurred', null, null, {'service': 'storage', 'file': 'storage_service'});
-          await classificationsBox.delete(key);
+
+          WasteClassification classification;
+
+          // Handle both TypeAdapter and legacy JSON formats
+          if (data is WasteClassification) {
+            // New TypeAdapter format - direct binary storage
+            classification = data;
+          } else if (data is String) {
+            // Legacy JSON string format
+            if (data.isEmpty) {
+              corruptedEntries++;
+              continue;
+            }
+            final json = jsonDecode(data);
+            classification = WasteClassification.fromJson(json);
+          } else if (data is Map<String, dynamic>) {
+            // Legacy Map format
+            classification = WasteClassification.fromJson(data);
+          } else if (data is Map) {
+            // Legacy Map format with type conversion
+            classification = WasteClassification.fromJson(Map<String, dynamic>.from(data));
+          } else {
+            WasteAppLogger.warning('Warning occurred', null, null, {'service': 'storage', 'file': 'storage_service'});
+            await classificationsBox.delete(key);
+            corruptedEntries++;
+            continue;
+          }
+
+          successfullyParsed++;
+
+          // Count user ID types
+          if (classification.userId == null) {
+            nullUserIdEntries++;
+          } else if (classification.userId == 'guest_user' || classification.userId!.startsWith('guest_')) {
+            guestEntries++;
+          } else {
+            signedInUserEntries++;
+          }
+
+          // Assign a new ID if it's missing (for older entries) and save back
+          if (classification.id.isEmpty) {
+            classification = classification.copyWith(id: const Uuid().v4());
+            // Always store as JSON string for consistency
+            await classificationsBox.put(key, jsonEncode(classification.toJson()));
+            // Only log ID assignment occasionally
+            if (DateTime.now().millisecondsSinceEpoch % 20 == 0) {
+              WasteAppLogger.debug('Assigned new ID to legacy classification',
+                  {'service': 'storage', 'file': 'storage_service', 'item': classification.itemName});
+            }
+          }
+
+          // Include classifications based on user context
+          var shouldInclude = false;
+
+          if (currentUserId == 'guest_user') {
+            // For guest users, include guest classifications and legacy null userId
+            shouldInclude = classification.userId == 'guest_user' ||
+                classification.userId == null ||
+                (classification.userId != null && classification.userId!.startsWith('guest_'));
+          } else {
+            // For signed-in users, only include their own classifications
+            shouldInclude = classification.userId == currentUserId;
+          }
+
+          if (shouldInclude) {
+            classifications.add(classification);
+            includedForUser++;
+          } else {
+            excludedDifferentUser++;
+          }
+        } catch (e) {
+          WasteAppLogger.severe('Error occurred', null, null, {'service': 'storage', 'file': 'storage_service'});
           corruptedEntries++;
-          continue;
-        }
-        
-        successfullyParsed++;
-        
-        // Count user ID types
-        if (classification.userId == null) {
-          nullUserIdEntries++;
-        } else if (classification.userId == 'guest_user' || classification.userId!.startsWith('guest_')) {
-          guestEntries++;
-        } else {
-          signedInUserEntries++;
-        }
-        
-        // Assign a new ID if it's missing (for older entries) and save back
-        if (classification.id.isEmpty) {
-          classification = classification.copyWith(id: const Uuid().v4());
-          // Always store as JSON string for consistency
-          await classificationsBox.put(key, jsonEncode(classification.toJson()));
-          // Only log ID assignment occasionally
-          if (DateTime.now().millisecondsSinceEpoch % 20 == 0) {
-            WasteAppLogger.debug('Assigned new ID to legacy classification', {
-              'service': 'storage', 
-              'file': 'storage_service',
-              'item': classification.itemName
-            });
+
+          // Delete corrupted entry to prevent future errors
+          try {
+            await classificationsBox.delete(key);
+            WasteAppLogger.debug('Deleted corrupted classification entry',
+                {'service': 'storage', 'file': 'storage_service', 'key': key.toString()});
+          } catch (deleteError) {
+            WasteAppLogger.severe('Failed to delete corrupted entry', deleteError, null,
+                {'service': 'storage', 'file': 'storage_service', 'key': key.toString()});
           }
         }
-        
-        // Include classifications based on user context
-        var shouldInclude = false;
-        
-        if (currentUserId == 'guest_user') {
-          // For guest users, include guest classifications and legacy null userId
-          shouldInclude = classification.userId == 'guest_user' || 
-                         classification.userId == null ||
-                         (classification.userId != null && 
-                          classification.userId!.startsWith('guest_'));
-        } else {
-          // For signed-in users, only include their own classifications
-          shouldInclude = classification.userId == currentUserId;
-        }
-        
-        if (shouldInclude) {
-          classifications.add(classification);
-          includedForUser++;
-        } else {
-          excludedDifferentUser++;
-        }
-      } catch (e) {
-        WasteAppLogger.severe('Error occurred', null, null, {'service': 'storage', 'file': 'storage_service'});
-        corruptedEntries++;
-        
-        // Delete corrupted entry to prevent future errors
-        try {
-          await classificationsBox.delete(key);
-          WasteAppLogger.debug('Deleted corrupted classification entry', {
-            'service': 'storage', 
-            'file': 'storage_service',
-            'key': key.toString()
-          });
-        } catch (deleteError) {
-          WasteAppLogger.severe('Failed to delete corrupted entry', deleteError, null, {
-            'service': 'storage', 
-            'file': 'storage_service',
-            'key': key.toString()
-          });
-        }
       }
-    }
-    
-    // Final debug summary (only log occasionally to reduce spam)
-    if (DateTime.now().millisecondsSinceEpoch % 50 == 0) {
-      WasteAppLogger.performanceLog('getAllClassifications', 0, context: {
-        'service': 'storage', 
-        'file': 'storage_service',
-        'total_processed': totalProcessed,
-        'successfully_parsed': successfullyParsed,
-        'included_for_user': includedForUser,
-        'excluded_different_user': excludedDifferentUser,
-        'corrupted_entries': corruptedEntries,
-        'guest_entries': guestEntries,
-        'signed_in_user_entries': signedInUserEntries,
-        'null_user_id_entries': nullUserIdEntries
-      });
-    }
+
+      // Final debug summary (only log occasionally to reduce spam)
+      if (DateTime.now().millisecondsSinceEpoch % 50 == 0) {
+        WasteAppLogger.performanceLog('getAllClassifications', 0, context: {
+          'service': 'storage',
+          'file': 'storage_service',
+          'total_processed': totalProcessed,
+          'successfully_parsed': successfullyParsed,
+          'included_for_user': includedForUser,
+          'excluded_different_user': excludedDifferentUser,
+          'corrupted_entries': corruptedEntries,
+          'guest_entries': guestEntries,
+          'signed_in_user_entries': signedInUserEntries,
+          'null_user_id_entries': nullUserIdEntries
+        });
+      }
 
       // Apply filters if provided
       if (filterOptions != null && filterOptions.isNotEmpty) {
@@ -423,75 +409,73 @@ class StorageService {
       StoragePerformanceMonitor.endOperation('getAllClassifications');
     }
   }
-  
+
   /// Applies filters to the list of classifications
-  List<WasteClassification> _applyFilters(
-    List<WasteClassification> classifications, 
-    FilterOptions filterOptions
-  ) {
+  List<WasteClassification> _applyFilters(List<WasteClassification> classifications, FilterOptions filterOptions) {
     // Create a filtered list
     var filteredClassifications = List<WasteClassification>.from(classifications);
-    
+
     // Filter by search text (case-insensitive)
     if (filterOptions.searchText != null && filterOptions.searchText!.isNotEmpty) {
       final searchText = filterOptions.searchText!.toLowerCase();
       filteredClassifications = filteredClassifications.where((classification) {
         return classification.itemName.toLowerCase().contains(searchText) ||
-          (classification.subcategory != null && 
-           classification.subcategory!.toLowerCase().contains(searchText)) ||
-          (classification.materialType != null && 
-           classification.materialType!.toLowerCase().contains(searchText)) ||
-          classification.category.toLowerCase().contains(searchText);
+            (classification.subcategory != null && classification.subcategory!.toLowerCase().contains(searchText)) ||
+            (classification.materialType != null && classification.materialType!.toLowerCase().contains(searchText)) ||
+            classification.category.toLowerCase().contains(searchText);
       }).toList();
     }
-    
+
     // Filter by categories
     if (filterOptions.categories != null && filterOptions.categories!.isNotEmpty) {
       filteredClassifications = filteredClassifications.where((classification) {
         // Case-insensitive category comparison
-        return filterOptions.categories!.any((category) => 
-          classification.category.toLowerCase() == category.toLowerCase());
+        return filterOptions.categories!
+            .any((category) => classification.category.toLowerCase() == category.toLowerCase());
       }).toList();
     }
-    
+
     // Filter by subcategories
     if (filterOptions.subcategories != null && filterOptions.subcategories!.isNotEmpty) {
       filteredClassifications = filteredClassifications.where((classification) {
         if (classification.subcategory == null) return false;
         // Case-insensitive subcategory comparison
-        return filterOptions.subcategories!.any((subcategory) => 
-          classification.subcategory!.toLowerCase() == subcategory.toLowerCase());
+        return filterOptions.subcategories!
+            .any((subcategory) => classification.subcategory!.toLowerCase() == subcategory.toLowerCase());
       }).toList();
     }
-    
+
     // Filter by material types
     if (filterOptions.materialTypes != null && filterOptions.materialTypes!.isNotEmpty) {
       filteredClassifications = filteredClassifications.where((classification) {
         if (classification.materialType == null) return false;
         // Case-insensitive material type comparison
-        return filterOptions.materialTypes!.any((materialType) => 
-          classification.materialType!.toLowerCase() == materialType.toLowerCase());
+        return filterOptions.materialTypes!
+            .any((materialType) => classification.materialType!.toLowerCase() == materialType.toLowerCase());
       }).toList();
     }
-    
+
     // Filter by recyclable status
     if (filterOptions.isRecyclable != null) {
-      filteredClassifications = filteredClassifications.where((classification) =>
-        classification.isRecyclable == filterOptions.isRecyclable).toList();
+      filteredClassifications = filteredClassifications
+          .where((classification) => classification.isRecyclable == filterOptions.isRecyclable)
+          .toList();
     }
-    
+
     // Filter by compostable status
     if (filterOptions.isCompostable != null) {
-      filteredClassifications = filteredClassifications.where((classification) =>
-        classification.isCompostable == filterOptions.isCompostable).toList();
+      filteredClassifications = filteredClassifications
+          .where((classification) => classification.isCompostable == filterOptions.isCompostable)
+          .toList();
     }
-    
+
     // Filter by special disposal requirement
     if (filterOptions.requiresSpecialDisposal != null) {
-      filteredClassifications = filteredClassifications.where((classification) =>
-        classification.requiresSpecialDisposal == filterOptions.requiresSpecialDisposal).toList();
+      filteredClassifications = filteredClassifications
+          .where((classification) => classification.requiresSpecialDisposal == filterOptions.requiresSpecialDisposal)
+          .toList();
     }
-    
+
     // Filter by date range
     if (filterOptions.startDate != null) {
       final startDate = DateTime(
@@ -499,18 +483,17 @@ class StorageService {
         filterOptions.startDate!.month,
         filterOptions.startDate!.day,
       );
-      
+
       filteredClassifications = filteredClassifications.where((classification) {
         final classificationDate = DateTime(
           classification.timestamp.year,
           classification.timestamp.month,
           classification.timestamp.day,
         );
-        return classificationDate.isAtSameMomentAs(startDate) || 
-               classificationDate.isAfter(startDate);
+        return classificationDate.isAtSameMomentAs(startDate) || classificationDate.isAfter(startDate);
       }).toList();
     }
-    
+
     if (filterOptions.endDate != null) {
       final endDate = DateTime(
         filterOptions.endDate!.year,
@@ -518,13 +501,12 @@ class StorageService {
         filterOptions.endDate!.day,
         23, 59, 59, 999, // End of day
       );
-      
+
       filteredClassifications = filteredClassifications.where((classification) {
-        return classification.timestamp.isBefore(endDate) || 
-               classification.timestamp.isAtSameMomentAs(endDate);
+        return classification.timestamp.isBefore(endDate) || classification.timestamp.isAtSameMomentAs(endDate);
       }).toList();
     }
-    
+
     // Apply sorting
     switch (filterOptions.sortBy) {
       case SortField.date:
@@ -551,10 +533,10 @@ class StorageService {
         }
         break;
     }
-    
+
     return filteredClassifications;
   }
-  
+
   /// Get classifications with pagination support
   Future<List<WasteClassification>> getClassificationsWithPagination({
     FilterOptions? filterOptions,
@@ -562,36 +544,34 @@ class StorageService {
     int page = 0,
   }) async {
     final allClassifications = await getAllClassifications(filterOptions: filterOptions);
-    
+
     // Calculate start and end indexes for pagination
     final startIndex = page * pageSize;
     final endIndex = (page + 1) * pageSize;
-    
+
     // Return the specified page of classifications
     if (startIndex >= allClassifications.length) {
       return []; // No more items
     }
-    
-    final actualEndIndex = endIndex > allClassifications.length 
-      ? allClassifications.length 
-      : endIndex;
-      
+
+    final actualEndIndex = endIndex > allClassifications.length ? allClassifications.length : endIndex;
+
     return allClassifications.sublist(startIndex, actualEndIndex);
   }
-  
+
   /// Get the total count of classifications matching the filter
   Future<int> getClassificationsCount({FilterOptions? filterOptions}) async {
     final allClassifications = await getAllClassifications(filterOptions: filterOptions);
     return allClassifications.length;
   }
-  
+
   /// Export classifications to a CSV file format as a string
   Future<String> exportClassificationsToCSV({FilterOptions? filterOptions}) async {
     final classifications = await getAllClassifications(filterOptions: filterOptions);
-    
+
     // Create CSV data using proper CSV library for RFC 4180 compliance
     final csvData = <List<String>>[];
-    
+
     // Add header row
     csvData.add([
       'Item Name',
@@ -605,7 +585,7 @@ class StorageService {
       'Recycling Code',
       'Date'
     ]);
-    
+
     // Add each classification as a row
     for (final classification in classifications) {
       csvData.add([
@@ -615,17 +595,22 @@ class StorageService {
         classification.materialType ?? '',
         if (classification.isRecyclable == true) 'Yes' else if (classification.isRecyclable == false) 'No' else '',
         if (classification.isCompostable == true) 'Yes' else if (classification.isCompostable == false) 'No' else '',
-        if (classification.requiresSpecialDisposal == true) 'Yes' else if (classification.requiresSpecialDisposal == false) 'No' else '',
+        if (classification.requiresSpecialDisposal == true)
+          'Yes'
+        else if (classification.requiresSpecialDisposal == false)
+          'No'
+        else
+          '',
         classification.disposalMethod ?? '',
         classification.recyclingCode?.toString() ?? '',
         _formatDateForCsv(classification.timestamp)
       ]);
     }
-    
+
     // Use proper CSV library for RFC 4180 compliant output
     return const ListToCsvConverter().convert(csvData);
   }
-  
+
   /// Helper method to format dates for CSV
   String _formatDateForCsv(DateTime date) {
     return '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
@@ -654,14 +639,14 @@ class StorageService {
     bool? reminderNotifications,
   }) async {
     final settings = await getSettings();
-    
+
     // Update the settings with new values
     settings['isDarkMode'] = isDarkMode;
     settings['isGoogleSyncEnabled'] = isGoogleSyncEnabled;
     if (lastCloudSync != null) {
       settings['lastCloudSync'] = lastCloudSync.toIso8601String();
     }
-    
+
     // Update feedback settings if provided
     if (allowHistoryFeedback != null) {
       settings['allowHistoryFeedback'] = allowHistoryFeedback;
@@ -681,11 +666,11 @@ class StorageService {
     if (reminderNotifications != null) {
       settings['reminderNotifications'] = reminderNotifications;
     }
-    
+
     // Save the updated settings
     final settingsBox = Hive.box(StorageKeys.settingsBox);
     await settingsBox.put('settings', settings);
-    
+
     // Also save to the old format for backward compatibility
     await settingsBox.put(StorageKeys.isDarkModeKey, isDarkMode);
     await settingsBox.put(StorageKeys.isGoogleSyncEnabledKey, isGoogleSyncEnabled);
@@ -787,7 +772,7 @@ class StorageService {
     final userProfile = await getCurrentUserProfile();
     final exportData = {
       // Store UserProfile if available, otherwise store old user info for backward compatibility
-      'userProfileData': userProfile?.toJson(), 
+      'userProfileData': userProfile?.toJson(),
       'settings': await getSettings(),
       'classifications': await getAllClassifications().then(
         (list) => list.map((item) => item.toJson()).toList(),
@@ -814,7 +799,7 @@ class StorageService {
       if (importData.containsKey('userProfileData') && importData['userProfileData'] != null) {
         final userProfile = UserProfile.fromJson(importData['userProfileData']);
         await saveUserProfile(userProfile);
-      } 
+      }
       // Else, try to import old format userData if present
       else if (importData.containsKey('userData')) {
         final oldUserData = importData['userData'];
@@ -845,12 +830,9 @@ class StorageService {
         final classificationsBox = Hive.box(StorageKeys.classificationsBox);
 
         for (var i = 0; i < classifications.length; i++) {
-          final classification =
-              WasteClassification.fromJson(classifications[i]);
-          final key =
-              'classification_${classification.timestamp.millisecondsSinceEpoch}';
-          await classificationsBox.put(
-              key, jsonEncode(classification.toJson()));
+          final classification = WasteClassification.fromJson(classifications[i]);
+          final key = 'classification_${classification.timestamp.millisecondsSinceEpoch}';
+          await classificationsBox.put(key, jsonEncode(classification.toJson()));
         }
       }
     } catch (e) {
@@ -877,17 +859,17 @@ class StorageService {
       await clearAllClassifications();
       final settingsBox = Hive.box(StorageKeys.settingsBox);
       await settingsBox.clear();
-      
+
       // Import GamificationService to ensure proper clearing
       // Create a temporary instance with minimal dependencies for clearing
       final storageService = this;
       final cloudStorageService = CloudStorageService(storageService);
       final gamificationService = GamificationService(storageService, cloudStorageService);
       await gamificationService.clearGamificationData(); // Use the proper clear method
-      
+
       final cacheBox = Hive.box<String>(StorageKeys.cacheBox);
       await cacheBox.clear();
-      
+
       // Clear SharedPreferences (theme, user consent, etc.) with proper error handling
       try {
         final prefs = await SharedPreferences.getInstance();
@@ -899,7 +881,7 @@ class StorageService {
         WasteAppLogger.severe('Error occurred', null, null, {'service': 'storage', 'file': 'storage_service'});
         // Don't rethrow - this shouldn't block the entire factory reset
       }
-      
+
       WasteAppLogger.info('Operation completed', null, null, {'service': 'storage', 'file': 'storage_service'});
     } catch (e) {
       WasteAppLogger.severe('Error occurred', null, null, {'service': 'storage', 'file': 'storage_service'});
@@ -939,95 +921,91 @@ class StorageService {
   Future<int> getGuestDataMigrationCount() async {
     final classificationsBox = Hive.box(StorageKeys.classificationsBox);
     final userProfile = await getCurrentUserProfile();
-    
+
     // Only check for migration if user is signed in
     if (userProfile == null || userProfile.id.isEmpty || userProfile.id == 'guest_user') {
       return 0;
     }
-    
+
     // Check if user has any existing classifications
-    final existingUserClassifications = classificationsBox.keys
-        .where((key) {
-          try {
-            final data = classificationsBox.get(key);
-            if (data == null) return false;
-            
-            Map<String, dynamic> json;
-            if (data is String) {
-              if (data.isEmpty) return false;
-              json = jsonDecode(data);
-            } else if (data is Map<String, dynamic>) {
-              json = data;
-            } else if (data is Map) {
-              json = Map<String, dynamic>.from(data);
-            } else {
-              return false;
-            }
-            
-            final classification = WasteClassification.fromJson(json);
-            return classification.userId == userProfile.id;
-          } catch (e) {
-            WasteAppLogger.severe('Error occurred', null, null, {'service': 'storage', 'file': 'storage_service'});
-            return false;
-          }
-        })
-        .toList();
-    
+    final existingUserClassifications = classificationsBox.keys.where((key) {
+      try {
+        final data = classificationsBox.get(key);
+        if (data == null) return false;
+
+        Map<String, dynamic> json;
+        if (data is String) {
+          if (data.isEmpty) return false;
+          json = jsonDecode(data);
+        } else if (data is Map<String, dynamic>) {
+          json = data;
+        } else if (data is Map) {
+          json = Map<String, dynamic>.from(data);
+        } else {
+          return false;
+        }
+
+        final classification = WasteClassification.fromJson(json);
+        return classification.userId == userProfile.id;
+      } catch (e) {
+        WasteAppLogger.severe('Error occurred', null, null, {'service': 'storage', 'file': 'storage_service'});
+        return false;
+      }
+    }).toList();
+
     // If user has existing data, don't offer migration
     if (existingUserClassifications.isNotEmpty) {
       return 0;
     }
-    
+
     // Count guest classifications available for migration
-    final guestClassifications = classificationsBox.keys
-        .where((key) {
-          try {
-            final data = classificationsBox.get(key);
-            if (data == null) return false;
-            
-            Map<String, dynamic> json;
-            if (data is String) {
-              if (data.isEmpty) return false;
-              json = jsonDecode(data);
-            } else if (data is Map<String, dynamic>) {
-              json = data;
-            } else if (data is Map) {
-              json = Map<String, dynamic>.from(data);
-            } else {
-              return false;
-            }
-            
-            final classification = WasteClassification.fromJson(json);
-            return classification.userId == 'guest_user' || 
-                   classification.userId == null ||
-                   (classification.userId != null && classification.userId!.startsWith('guest_'));
-          } catch (e) {
-            WasteAppLogger.severe('Error occurred', null, null, {'service': 'storage', 'file': 'storage_service'});
-            return false;
-          }
-        })
-        .toList();
-    
+    final guestClassifications = classificationsBox.keys.where((key) {
+      try {
+        final data = classificationsBox.get(key);
+        if (data == null) return false;
+
+        Map<String, dynamic> json;
+        if (data is String) {
+          if (data.isEmpty) return false;
+          json = jsonDecode(data);
+        } else if (data is Map<String, dynamic>) {
+          json = data;
+        } else if (data is Map) {
+          json = Map<String, dynamic>.from(data);
+        } else {
+          return false;
+        }
+
+        final classification = WasteClassification.fromJson(json);
+        return classification.userId == 'guest_user' ||
+            classification.userId == null ||
+            (classification.userId != null && classification.userId!.startsWith('guest_'));
+      } catch (e) {
+        WasteAppLogger.severe('Error occurred', null, null, {'service': 'storage', 'file': 'storage_service'});
+        return false;
+      }
+    }).toList();
+
     return guestClassifications.length;
   }
-  
+
   /// Migrate guest data to the current signed-in user
   Future<int> migrateGuestDataToCurrentUser() async {
     final classificationsBox = Hive.box(StorageKeys.classificationsBox);
     final userProfile = await getCurrentUserProfile();
-    
+
     if (userProfile == null || userProfile.id.isEmpty || userProfile.id == 'guest_user') {
       return 0;
     }
-    
+
     var migratedCount = 0;
-    
+
     // Find all guest classifications
     for (final key in classificationsBox.keys) {
       try {
         final data = classificationsBox.get(key);
         if (data == null) continue;
-        
+
         Map<String, dynamic> json;
         if (data is String) {
           if (data.isEmpty) continue;
@@ -1039,19 +1017,18 @@ class StorageService {
         } else {
           continue;
         }
-        
+
         final classification = WasteClassification.fromJson(json);
-        
+
         // Check if this is guest data
-        if (classification.userId == 'guest_user' || 
+        if (classification.userId == 'guest_user' ||
             classification.userId == null ||
             (classification.userId != null && classification.userId!.startsWith('guest_'))) {
-          
           // Migrate to current user
           final migratedClassification = classification.copyWith(userId: userProfile.id);
           await classificationsBox.put(key, jsonEncode(migratedClassification.toJson()));
           migratedCount++;
-          
+
           WasteAppLogger.info('Operation completed', null, null, {'service': 'storage', 'file': 'storage_service'});
         }
       } catch (e) {
@@ -1059,7 +1036,7 @@ class StorageService {
         continue;
       }
     }
-    
+
     WasteAppLogger.info('Operation completed', null, null, {'service': 'storage', 'file': 'storage_service'});
     return migratedCount;
   }
@@ -1074,7 +1051,7 @@ class StorageService {
       classifications.sort((a, b) => b.timestamp.compareTo(a.timestamp));
       return classifications;
     }
-    
+
     return _applyFilters(classifications, filterOptions);
   }
 
@@ -1083,20 +1060,20 @@ class StorageService {
     final classificationsBox = Hive.box(StorageKeys.classificationsBox);
     final userProfile = await getCurrentUserProfile();
     final currentUserId = userProfile?.id ?? 'guest_user';
-    
+
     WasteAppLogger.info('Operation completed', null, null, {'service': 'storage', 'file': 'storage_service'});
-    
+
     // Load all classifications
     final allKeys = classificationsBox.keys.toList();
     final seenClassifications = <String, String>{}; // content hash -> key
     final keysToDelete = <String>[];
     var duplicatesFound = 0;
-    
+
     for (final key in allKeys) {
       try {
         final data = classificationsBox.get(key);
         if (data == null) continue;
-        
+
         Map<String, dynamic> json;
         if (data is String) {
           if (data.isEmpty) continue;
@@ -1108,15 +1085,16 @@ class StorageService {
         } else {
           continue;
         }
-        
+
         final classification = WasteClassification.fromJson(json);
-        
+
         // Only process classifications for current user
         if (classification.userId != currentUserId) continue;
-        
+
         // Create a unique identifier for this classification
-        final contentHash = '${classification.itemName}|${classification.category}|${classification.subcategory}|${classification.timestamp.millisecondsSinceEpoch}';
-        
+        final contentHash =
+            '${classification.itemName}|${classification.category}|${classification.subcategory}|${classification.timestamp.millisecondsSinceEpoch}';
+
         if (seenClassifications.containsKey(contentHash)) {
           // This is a duplicate, mark for deletion
           keysToDelete.add(key);
@@ -1132,12 +1110,12 @@ class StorageService {
         keysToDelete.add(key);
       }
     }
-    
+
     // Delete all duplicates
     for (final key in keysToDelete) {
       await classificationsBox.delete(key);
     }
-    
+
     WasteAppLogger.info('Operation completed', null, null, {'service': 'storage', 'file': 'storage_service'});
     return duplicatesFound;
   }
@@ -1179,16 +1157,16 @@ class StorageService {
   Future<void> migrateOldClassifications() async {
     try {
       WasteAppLogger.info('Operation completed', null, null, {'service': 'storage', 'file': 'storage_service'});
-      
+
       // Create cloud storage service instance
       final cloudStorageService = CloudStorageService(this);
-      
+
       // Create migration service
       final migrationService = ClassificationMigrationService(this, cloudStorageService);
-      
+
       // Run migration
       final result = await migrationService.migrateOldClassifications();
-      
+
       WasteAppLogger.performanceLog('storage', 0, context: {'service': 'storage', 'file': 'storage_service'});
     } catch (e) {
       WasteAppLogger.severe('Error occurred', null, null, {'service': 'storage', 'file': 'storage_service'});
@@ -1199,16 +1177,16 @@ class StorageService {
   Future<void> migrateThumbnails() async {
     try {
       WasteAppLogger.info('Operation completed', null, null, {'service': 'storage', 'file': 'storage_service'});
-      
+
       // Create image service instance
       final imageService = EnhancedImageService();
-      
+
       // Create thumbnail migration service
       final migrationService = ThumbnailMigrationService(imageService, this);
-      
+
       // Run migration
       final result = await migrationService.migrateThumbnails();
-      
+
       WasteAppLogger.performanceLog('storage', 0, context: {'service': 'storage', 'file': 'storage_service'});
     } catch (e) {
       WasteAppLogger.severe('Error occurred', null, null, {'service': 'storage', 'file': 'storage_service'});
@@ -1219,22 +1197,21 @@ class StorageService {
   Future<void> cleanUpOrphanedThumbnails() async {
     try {
       WasteAppLogger.info('Operation completed', null, null, {'service': 'storage', 'file': 'storage_service'});
-      
+
       // Get all classifications and extract valid thumbnail paths
       final classifications = await getAllClassifications();
       final validThumbnailPaths = <String>[];
-      
+
       for (final classification in classifications) {
-        if (classification.thumbnailRelativePath != null && 
-            classification.thumbnailRelativePath!.isNotEmpty) {
+        if (classification.thumbnailRelativePath != null && classification.thumbnailRelativePath!.isNotEmpty) {
           validThumbnailPaths.add(classification.thumbnailRelativePath!);
         }
       }
-      
+
       // Create image service instance and clean up orphans
       final imageService = EnhancedImageService();
       await imageService.cleanUpOrphanedThumbnails(validThumbnailPaths);
-      
+
       WasteAppLogger.info('Operation completed', null, null, {'service': 'storage', 'file': 'storage_service'});
     } catch (e) {
       WasteAppLogger.severe('Error occurred', null, null, {'service': 'storage', 'file': 'storage_service'});
@@ -1245,18 +1222,18 @@ class StorageService {
   Future<void> migrateImagePathsToRelative() async {
     try {
       WasteAppLogger.info('Operation completed', null, null, {'service': 'storage', 'file': 'storage_service'});
-      
+
       final classifications = await getAllClassifications();
       var hasChanges = false;
-      
+
       for (var i = 0; i < classifications.length; i++) {
         final classification = classifications[i];
-        
+
         // Skip if already has relative path
         if (classification.imageRelativePath != null) {
           continue;
         }
-        
+
         // Convert absolute path to relative path
         if (classification.imageUrl != null && classification.imageUrl!.isNotEmpty) {
           final relativePath = _convertToRelativePath(classification.imageUrl!);
@@ -1269,7 +1246,7 @@ class StorageService {
           }
         }
       }
-      
+
       if (hasChanges) {
         // Use the existing box instead of opening a new one
         final box = Hive.box<WasteClassification>(StorageKeys.classificationsBox);
@@ -1281,12 +1258,11 @@ class StorageService {
       } else {
         WasteAppLogger.info('Operation completed', null, null, {'service': 'storage', 'file': 'storage_service'});
       }
-      
     } catch (e) {
       WasteAppLogger.severe('Error occurred', null, null, {'service': 'storage', 'file': 'storage_service'});
     }
   }
-  
+
   /// Convert absolute path to relative path
   String? _convertToRelativePath(String absolutePath) {
     try {
@@ -1295,24 +1271,25 @@ class StorageService {
         final index = absolutePath.indexOf('/images/');
         return absolutePath.substring(index + 1); // Remove leading slash
       }
-      
+
       if (absolutePath.contains('\\images\\')) {
         final index = absolutePath.indexOf('\\images\\');
         return absolutePath.substring(index + 1).replaceAll('\\', '/');
       }
-      
+
       // If path ends with a filename that looks like an image
-      if (absolutePath.contains('.jpg') || absolutePath.contains('.png') || 
-          absolutePath.contains('.jpeg') || absolutePath.contains('.webp')) {
+      if (absolutePath.contains('.jpg') ||
+          absolutePath.contains('.png') ||
+          absolutePath.contains('.jpeg') ||
+          absolutePath.contains('.webp')) {
         final fileName = absolutePath.split('/').last.split('\\').last;
         return 'images/$fileName';
       }
-      
+
       return null;
     } catch (e) {
       WasteAppLogger.severe('Error occurred', null, null, {'service': 'storage', 'file': 'storage_service'});
       return null;
     }
   }
-
 }

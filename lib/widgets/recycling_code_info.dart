@@ -99,8 +99,7 @@ class _RecyclingCodeInfoCardState extends State<RecyclingCodeInfoCard> {
               Expanded(
                 child: Text(
                   'Unknown recycling code: ${widget.code}',
-                  style: theme.textTheme.bodyMedium
-                      ?.copyWith(color: colorScheme.onErrorContainer),
+                  style: theme.textTheme.bodyMedium?.copyWith(color: colorScheme.onErrorContainer),
                 ),
               ),
             ],
@@ -132,8 +131,7 @@ class _RecyclingCodeInfoCardState extends State<RecyclingCodeInfoCard> {
                       // TODO(i18n): Localize plastic name
                       Text(
                         codeInfo.name,
-                        style: theme.textTheme.titleMedium
-                            ?.copyWith(fontWeight: FontWeight.bold),
+                        style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                       ),
@@ -174,8 +172,7 @@ class _RecyclingCodeInfoCardState extends State<RecyclingCodeInfoCard> {
               duration: const Duration(milliseconds: 300),
               curve: Curves.easeInOut,
               child: ConstrainedBox(
-                constraints:
-                    _isExpanded ? const BoxConstraints() : const BoxConstraints(maxHeight: 0),
+                constraints: _isExpanded ? const BoxConstraints() : const BoxConstraints(maxHeight: 0),
                 child: Padding(
                   padding: const EdgeInsets.only(top: AppTheme.paddingRegular),
                   child: Column(
@@ -191,8 +188,7 @@ class _RecyclingCodeInfoCardState extends State<RecyclingCodeInfoCard> {
                             ),
                           );
                         },
-                        child:
-                            InfoRow(label: 'Examples', text: codeInfo.examples),
+                        child: InfoRow(label: 'Examples', text: codeInfo.examples),
                       ),
                       const SizedBox(height: 8),
                       InfoRow(
@@ -214,8 +210,7 @@ class _RecyclingCodeInfoCardState extends State<RecyclingCodeInfoCard> {
 
 // 2. Extracted Sub-widgets
 class CodeCircle extends StatelessWidget {
-  const CodeCircle(
-      {super.key, required this.code, required this.borderColor});
+  const CodeCircle({super.key, required this.code, required this.borderColor});
   final String code;
   final Color borderColor;
 

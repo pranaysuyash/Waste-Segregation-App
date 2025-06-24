@@ -30,9 +30,9 @@ void main() {
       mockCollection = MockCollectionReference<Map<String, dynamic>>();
       mockQuery = MockQuery<Map<String, dynamic>>();
       mockQuerySnapshot = MockQuerySnapshot<Map<String, dynamic>>();
-      
+
       when(mockFirestore.collection('leaderboard')).thenReturn(mockCollection);
-      
+
       leaderboardService = LeaderboardService(mockFirestore);
     });
 
@@ -61,10 +61,8 @@ void main() {
           }),
         ];
 
-        when(mockCollection.where('period', isEqualTo: 'thisWeek'))
-            .thenReturn(mockQuery);
-        when(mockQuery.orderBy('score', descending: true))
-            .thenReturn(mockQuery);
+        when(mockCollection.where('period', isEqualTo: 'thisWeek')).thenReturn(mockQuery);
+        when(mockQuery.orderBy('score', descending: true)).thenReturn(mockQuery);
         when(mockQuery.limit(50)).thenReturn(mockQuery);
         when(mockQuery.get()).thenAnswer((_) async => mockQuerySnapshot);
         when(mockQuerySnapshot.docs).thenReturn(mockDocs);
@@ -80,17 +78,15 @@ void main() {
         expect(result[0].rank, 1);
         expect(result[1].userId, 'user2');
         expect(result[1].score, 1200);
-        
+
         verify(mockCollection.where('period', isEqualTo: 'thisWeek')).called(1);
         verify(mockQuery.orderBy('score', descending: true)).called(1);
         verify(mockQuery.limit(50)).called(1);
       });
 
       test('should handle empty global leaderboard', () async {
-        when(mockCollection.where('period', isEqualTo: 'thisMonth'))
-            .thenReturn(mockQuery);
-        when(mockQuery.orderBy('score', descending: true))
-            .thenReturn(mockQuery);
+        when(mockCollection.where('period', isEqualTo: 'thisMonth')).thenReturn(mockQuery);
+        when(mockQuery.orderBy('score', descending: true)).thenReturn(mockQuery);
         when(mockQuery.limit(50)).thenReturn(mockQuery);
         when(mockQuery.get()).thenAnswer((_) async => mockQuerySnapshot);
         when(mockQuerySnapshot.docs).thenReturn([]);
@@ -103,10 +99,8 @@ void main() {
       });
 
       test('should handle global leaderboard fetch error', () async {
-        when(mockCollection.where('period', isEqualTo: 'thisWeek'))
-            .thenReturn(mockQuery);
-        when(mockQuery.orderBy('score', descending: true))
-            .thenReturn(mockQuery);
+        when(mockCollection.where('period', isEqualTo: 'thisWeek')).thenReturn(mockQuery);
+        when(mockQuery.orderBy('score', descending: true)).thenReturn(mockQuery);
         when(mockQuery.limit(50)).thenReturn(mockQuery);
         when(mockQuery.get()).thenThrow(Exception('Firestore error'));
 
@@ -117,21 +111,19 @@ void main() {
       });
 
       test('should fetch global leaderboard with pagination', () async {
-        final mockDocs = List.generate(25, (index) => 
-          _createMockDoc('user_$index', {
-            'userId': 'user_$index',
-            'userName': 'User $index',
-            'score': 1000 - index * 10,
-            'rank': index + 1,
-            'avatar': 'avatar_$index.jpg',
-            'classificationsCount': 100 - index,
-          })
-        );
+        final mockDocs = List.generate(
+            25,
+            (index) => _createMockDoc('user_$index', {
+                  'userId': 'user_$index',
+                  'userName': 'User $index',
+                  'score': 1000 - index * 10,
+                  'rank': index + 1,
+                  'avatar': 'avatar_$index.jpg',
+                  'classificationsCount': 100 - index,
+                }));
 
-        when(mockCollection.where('period', isEqualTo: 'thisWeek'))
-            .thenReturn(mockQuery);
-        when(mockQuery.orderBy('score', descending: true))
-            .thenReturn(mockQuery);
+        when(mockCollection.where('period', isEqualTo: 'thisWeek')).thenReturn(mockQuery);
+        when(mockQuery.orderBy('score', descending: true)).thenReturn(mockQuery);
         when(mockQuery.limit(25)).thenReturn(mockQuery);
         when(mockQuery.get()).thenAnswer((_) async => mockQuerySnapshot);
         when(mockQuerySnapshot.docs).thenReturn(mockDocs);
@@ -172,12 +164,9 @@ void main() {
           }),
         ];
 
-        when(mockCollection.where('familyId', isEqualTo: familyId))
-            .thenReturn(mockQuery);
-        when(mockQuery.where('period', isEqualTo: 'thisWeek'))
-            .thenReturn(mockQuery);
-        when(mockQuery.orderBy('score', descending: true))
-            .thenReturn(mockQuery);
+        when(mockCollection.where('familyId', isEqualTo: familyId)).thenReturn(mockQuery);
+        when(mockQuery.where('period', isEqualTo: 'thisWeek')).thenReturn(mockQuery);
+        when(mockQuery.orderBy('score', descending: true)).thenReturn(mockQuery);
         when(mockQuery.get()).thenAnswer((_) async => mockQuerySnapshot);
         when(mockQuerySnapshot.docs).thenReturn(mockDocs);
 
@@ -191,7 +180,7 @@ void main() {
         expect(result[0].score, 800);
         expect(result[1].userName, 'Mom');
         expect(result[1].score, 750);
-        
+
         verify(mockCollection.where('familyId', isEqualTo: familyId)).called(1);
         verify(mockQuery.where('period', isEqualTo: 'thisWeek')).called(1);
       });
@@ -199,12 +188,9 @@ void main() {
       test('should handle empty family leaderboard', () async {
         const familyId = 'empty_family';
 
-        when(mockCollection.where('familyId', isEqualTo: familyId))
-            .thenReturn(mockQuery);
-        when(mockQuery.where('period', isEqualTo: 'thisWeek'))
-            .thenReturn(mockQuery);
-        when(mockQuery.orderBy('score', descending: true))
-            .thenReturn(mockQuery);
+        when(mockCollection.where('familyId', isEqualTo: familyId)).thenReturn(mockQuery);
+        when(mockQuery.where('period', isEqualTo: 'thisWeek')).thenReturn(mockQuery);
+        when(mockQuery.orderBy('score', descending: true)).thenReturn(mockQuery);
         when(mockQuery.get()).thenAnswer((_) async => mockQuerySnapshot);
         when(mockQuerySnapshot.docs).thenReturn([]);
 
@@ -248,8 +234,7 @@ void main() {
         });
 
         when(mockCollection.doc(userId)).thenReturn(MockDocumentReference());
-        when(mockCollection.doc(userId).get())
-            .thenAnswer((_) async => mockDoc);
+        when(mockCollection.doc(userId).get()).thenAnswer((_) async => mockDoc);
         when(mockDoc.exists).thenReturn(true);
 
         final result = await leaderboardService.getUserRank(
@@ -264,7 +249,7 @@ void main() {
         expect(result.score, 950);
         expect(result.classificationsCount, 95);
         expect(result.rankTrend, RankTrend.up);
-        
+
         verify(mockCollection.doc(userId)).called(1);
       });
 
@@ -273,8 +258,7 @@ void main() {
         final mockDoc = _createMockDocumentSnapshot(userId, {});
 
         when(mockCollection.doc(userId)).thenReturn(MockDocumentReference());
-        when(mockCollection.doc(userId).get())
-            .thenAnswer((_) async => mockDoc);
+        when(mockCollection.doc(userId).get()).thenAnswer((_) async => mockDoc);
         when(mockDoc.exists).thenReturn(false);
 
         final result = await leaderboardService.getUserRank(
@@ -305,8 +289,7 @@ void main() {
         const classificationsCount = 110;
 
         when(mockCollection.doc(userId)).thenReturn(MockDocumentReference());
-        when(mockCollection.doc(userId).set(any, any))
-            .thenAnswer((_) async => null);
+        when(mockCollection.doc(userId).set(any, any)).thenAnswer((_) async => null);
 
         await leaderboardService.updateUserScore(
           userId,
@@ -317,13 +300,13 @@ void main() {
 
         verify(mockCollection.doc(userId)).called(1);
         verify(mockCollection.doc(userId).set(
-          argThat(allOf([
-            containsPair('userId', userId),
-            containsPair('score', newScore),
-            containsPair('classificationsCount', classificationsCount),
-          ])),
-          any,
-        )).called(1);
+              argThat(allOf([
+                containsPair('userId', userId),
+                containsPair('score', newScore),
+                containsPair('classificationsCount', classificationsCount),
+              ])),
+              any,
+            )).called(1);
       });
 
       test('should handle negative score update', () async {
@@ -349,7 +332,7 @@ void main() {
         ];
 
         when(mockFirestore.batch()).thenReturn(MockWriteBatch());
-        
+
         final mockBatch = MockWriteBatch();
         when(mockFirestore.batch()).thenReturn(mockBatch);
         when(mockBatch.commit()).thenAnswer((_) async {});
@@ -382,10 +365,8 @@ void main() {
           }),
         ];
 
-        when(mockCollection.where('period', isEqualTo: 'thisWeek'))
-            .thenReturn(mockQuery);
-        when(mockQuery.orderBy('score', descending: true))
-            .thenReturn(mockQuery);
+        when(mockCollection.where('period', isEqualTo: 'thisWeek')).thenReturn(mockQuery);
+        when(mockQuery.orderBy('score', descending: true)).thenReturn(mockQuery);
         when(mockQuery.get()).thenAnswer((_) async => mockQuerySnapshot);
         when(mockQuerySnapshot.docs).thenReturn(mockDocs);
 
@@ -403,17 +384,16 @@ void main() {
 
     group('Leaderboard Statistics', () {
       test('should get leaderboard statistics successfully', () async {
-        final mockDocs = List.generate(100, (index) => 
-          _createMockDoc('user_$index', {
-            'userId': 'user_$index',
-            'score': 1000 - index * 5,
-            'classificationsCount': 100 - index,
-            'accuracyRate': 0.9 - (index * 0.001),
-          })
-        );
+        final mockDocs = List.generate(
+            100,
+            (index) => _createMockDoc('user_$index', {
+                  'userId': 'user_$index',
+                  'score': 1000 - index * 5,
+                  'classificationsCount': 100 - index,
+                  'accuracyRate': 0.9 - (index * 0.001),
+                }));
 
-        when(mockCollection.where('period', isEqualTo: 'thisWeek'))
-            .thenReturn(mockQuery);
+        when(mockCollection.where('period', isEqualTo: 'thisWeek')).thenReturn(mockQuery);
         when(mockQuery.get()).thenAnswer((_) async => mockQuerySnapshot);
         when(mockQuerySnapshot.docs).thenReturn(mockDocs);
 
@@ -430,17 +410,15 @@ void main() {
 
       test('should get user position in leaderboard', () async {
         const userId = 'user_42';
-        final mockDocs = List.generate(100, (index) => 
-          _createMockDoc('user_$index', {
-            'userId': 'user_$index',
-            'score': 1000 - index * 10,
-          })
-        );
+        final mockDocs = List.generate(
+            100,
+            (index) => _createMockDoc('user_$index', {
+                  'userId': 'user_$index',
+                  'score': 1000 - index * 10,
+                }));
 
-        when(mockCollection.where('period', isEqualTo: 'thisWeek'))
-            .thenReturn(mockQuery);
-        when(mockQuery.orderBy('score', descending: true))
-            .thenReturn(mockQuery);
+        when(mockCollection.where('period', isEqualTo: 'thisWeek')).thenReturn(mockQuery);
+        when(mockQuery.orderBy('score', descending: true)).thenReturn(mockQuery);
         when(mockQuery.get()).thenAnswer((_) async => mockQuerySnapshot);
         when(mockQuerySnapshot.docs).thenReturn(mockDocs);
 
@@ -454,21 +432,18 @@ void main() {
 
       test('should get users around specific rank', () async {
         const targetRank = 25;
-        final mockDocs = List.generate(10, (index) => 
-          _createMockDoc('user_${20 + index}', {
-            'userId': 'user_${20 + index}',
-            'userName': 'User ${20 + index}',
-            'score': 800 - index * 10,
-            'rank': 20 + index + 1,
-          })
-        );
+        final mockDocs = List.generate(
+            10,
+            (index) => _createMockDoc('user_${20 + index}', {
+                  'userId': 'user_${20 + index}',
+                  'userName': 'User ${20 + index}',
+                  'score': 800 - index * 10,
+                  'rank': 20 + index + 1,
+                }));
 
-        when(mockCollection.where('period', isEqualTo: 'thisWeek'))
-            .thenReturn(mockQuery);
-        when(mockQuery.where('rank', isGreaterThanOrEqualTo: 20))
-            .thenReturn(mockQuery);
-        when(mockQuery.where('rank', isLessThanOrEqualTo: 30))
-            .thenReturn(mockQuery);
+        when(mockCollection.where('period', isEqualTo: 'thisWeek')).thenReturn(mockQuery);
+        when(mockQuery.where('rank', isGreaterThanOrEqualTo: 20)).thenReturn(mockQuery);
+        when(mockQuery.where('rank', isLessThanOrEqualTo: 30)).thenReturn(mockQuery);
         when(mockQuery.orderBy('rank')).thenReturn(mockQuery);
         when(mockQuery.get()).thenAnswer((_) async => mockQuerySnapshot);
         when(mockQuerySnapshot.docs).thenReturn(mockDocs);
@@ -488,10 +463,8 @@ void main() {
     group('Leaderboard Periods', () {
       test('should handle all leaderboard periods', () async {
         for (final period in LeaderboardPeriod.values) {
-          when(mockCollection.where('period', isEqualTo: period.name))
-              .thenReturn(mockQuery);
-          when(mockQuery.orderBy('score', descending: true))
-              .thenReturn(mockQuery);
+          when(mockCollection.where('period', isEqualTo: period.name)).thenReturn(mockQuery);
+          when(mockQuery.orderBy('score', descending: true)).thenReturn(mockQuery);
           when(mockQuery.limit(50)).thenReturn(mockQuery);
           when(mockQuery.get()).thenAnswer((_) async => mockQuerySnapshot);
           when(mockQuerySnapshot.docs).thenReturn([]);
@@ -558,10 +531,8 @@ void main() {
 
     group('Error Handling and Edge Cases', () {
       test('should handle Firestore connection timeout', () async {
-        when(mockCollection.where('period', isEqualTo: 'thisWeek'))
-            .thenReturn(mockQuery);
-        when(mockQuery.orderBy('score', descending: true))
-            .thenReturn(mockQuery);
+        when(mockCollection.where('period', isEqualTo: 'thisWeek')).thenReturn(mockQuery);
+        when(mockQuery.orderBy('score', descending: true)).thenReturn(mockQuery);
         when(mockQuery.limit(50)).thenReturn(mockQuery);
         when(mockQuery.get()).thenThrow(
           TimeoutException('Connection timeout', const Duration(seconds: 30)),
@@ -580,10 +551,8 @@ void main() {
           'rank': null,
         });
 
-        when(mockCollection.where('period', isEqualTo: 'thisWeek'))
-            .thenReturn(mockQuery);
-        when(mockQuery.orderBy('score', descending: true))
-            .thenReturn(mockQuery);
+        when(mockCollection.where('period', isEqualTo: 'thisWeek')).thenReturn(mockQuery);
+        when(mockQuery.orderBy('score', descending: true)).thenReturn(mockQuery);
         when(mockQuery.limit(50)).thenReturn(mockQuery);
         when(mockQuery.get()).thenAnswer((_) async => mockQuerySnapshot);
         when(mockQuerySnapshot.docs).thenReturn([malformedDoc]);
@@ -598,16 +567,16 @@ void main() {
 
       test('should handle concurrent rank updates', () async {
         const userId = 'concurrent_user';
-        
+
         // Simulate concurrent updates
-        final futures = List.generate(5, (index) => 
-          leaderboardService.updateUserScore(
-            userId,
-            1000 + index * 10,
-            100 + index * 10,
-            LeaderboardPeriod.thisWeek,
-          )
-        );
+        final futures = List.generate(
+            5,
+            (index) => leaderboardService.updateUserScore(
+                  userId,
+                  1000 + index * 10,
+                  100 + index * 10,
+                  LeaderboardPeriod.thisWeek,
+                ));
 
         await Future.wait(futures);
 
@@ -616,15 +585,13 @@ void main() {
       });
 
       test('should cleanup old leaderboard data', () async {
-        final oldDocs = List.generate(10, (index) => 
-          _createMockDoc('old_user_$index', {
-            'userId': 'old_user_$index',
-            'period': 'thisWeek',
-            'lastUpdated': DateTime.now()
-                .subtract(const Duration(days: 14))
-                .toIso8601String(),
-          })
-        );
+        final oldDocs = List.generate(
+            10,
+            (index) => _createMockDoc('old_user_$index', {
+                  'userId': 'old_user_$index',
+                  'period': 'thisWeek',
+                  'lastUpdated': DateTime.now().subtract(const Duration(days: 14)).toIso8601String(),
+                }));
 
         when(mockCollection.where(
           'lastUpdated',
@@ -658,10 +625,8 @@ void main() {
           }),
         ];
 
-        when(mockCollection.where('period', isEqualTo: 'thisWeek'))
-            .thenReturn(mockQuery);
-        when(mockQuery.orderBy('score', descending: true))
-            .thenReturn(mockQuery);
+        when(mockCollection.where('period', isEqualTo: 'thisWeek')).thenReturn(mockQuery);
+        when(mockQuery.orderBy('score', descending: true)).thenReturn(mockQuery);
         when(mockQuery.limit(50)).thenReturn(mockQuery);
         when(mockQuery.get()).thenAnswer((_) async => mockQuerySnapshot);
         when(mockQuerySnapshot.docs).thenReturn(mockDocs);
@@ -682,19 +647,17 @@ void main() {
       });
 
       test('should handle large leaderboard efficiently', () async {
-        final largeLeaderboard = List.generate(1000, (index) => 
-          _createMockDoc('user_$index', {
-            'userId': 'user_$index',
-            'userName': 'User $index',
-            'score': 10000 - index,
-            'rank': index + 1,
-          })
-        );
+        final largeLeaderboard = List.generate(
+            1000,
+            (index) => _createMockDoc('user_$index', {
+                  'userId': 'user_$index',
+                  'userName': 'User $index',
+                  'score': 10000 - index,
+                  'rank': index + 1,
+                }));
 
-        when(mockCollection.where('period', isEqualTo: 'allTime'))
-            .thenReturn(mockQuery);
-        when(mockQuery.orderBy('score', descending: true))
-            .thenReturn(mockQuery);
+        when(mockCollection.where('period', isEqualTo: 'allTime')).thenReturn(mockQuery);
+        when(mockQuery.orderBy('score', descending: true)).thenReturn(mockQuery);
         when(mockQuery.limit(1000)).thenReturn(mockQuery);
         when(mockQuery.get()).thenAnswer((_) async => mockQuerySnapshot);
         when(mockQuerySnapshot.docs).thenReturn(largeLeaderboard);
@@ -737,13 +700,13 @@ MockDocumentSnapshot<Map<String, dynamic>> _createMockDocumentSnapshot(
 
 // Additional mock classes
 class MockWriteBatch extends Mock implements WriteBatch {}
+
 class MockAchievementCallback extends Mock {
   void call(String achievementId);
 }
 
 // Helper class for batch updates
 class LeaderboardUpdate {
-
   LeaderboardUpdate(this.userId, this.score, this.classificationsCount);
   final String userId;
   final int score;

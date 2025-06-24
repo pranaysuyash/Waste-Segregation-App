@@ -16,28 +16,26 @@ class TokenWallet {
       totalSpent: json['totalSpent'] ?? 0,
       lastUpdated: DateTime.parse(json['lastUpdated']),
       dailyConversionsUsed: json['dailyConversionsUsed'] ?? 0,
-      lastConversionDate: json['lastConversionDate'] != null 
-          ? DateTime.parse(json['lastConversionDate']) 
-          : null,
+      lastConversionDate: json['lastConversionDate'] != null ? DateTime.parse(json['lastConversionDate']) : null,
     );
   }
 
   /// Create a default wallet for new users
   factory TokenWallet.newUser() {
     return TokenWallet(
-      balance: 10,  // Welcome bonus: 10 tokens for new users
+      balance: 10, // Welcome bonus: 10 tokens for new users
       totalEarned: 10,
       totalSpent: 0,
       lastUpdated: DateTime.now(),
     );
   }
 
-  final int balance;           // Current spendable tokens
-  final int totalEarned;       // Lifetime tokens earned
-  final int totalSpent;        // Lifetime tokens spent
-  final DateTime lastUpdated;  // Last balance update
-  final int dailyConversionsUsed;  // Points-to-tokens conversions today
-  final DateTime? lastConversionDate;  // Last conversion date
+  final int balance; // Current spendable tokens
+  final int totalEarned; // Lifetime tokens earned
+  final int totalSpent; // Lifetime tokens spent
+  final DateTime lastUpdated; // Last balance update
+  final int dailyConversionsUsed; // Points-to-tokens conversions today
+  final DateTime? lastConversionDate; // Last conversion date
 
   /// Check if user can afford a purchase
   bool canAfford(int cost) => balance >= cost;
@@ -45,35 +43,33 @@ class TokenWallet {
   /// Check if user can convert points today
   bool canConvertToday(int maxPerDay) {
     if (lastConversionDate == null) return true;
-    
+
     final today = DateTime.now();
     final lastConversion = lastConversionDate!;
-    
+
     // Reset daily count if it's a new day
-    if (today.day != lastConversion.day || 
-        today.month != lastConversion.month || 
-        today.year != lastConversion.year) {
+    if (today.day != lastConversion.day || today.month != lastConversion.month || today.year != lastConversion.year) {
       return true;
     }
-    
+
     return dailyConversionsUsed < maxPerDay;
   }
 
   /// Get remaining conversions for today
   int remainingConversions(int maxPerDay) {
     if (!canConvertToday(maxPerDay)) return 0;
-    
+
     final today = DateTime.now();
     final lastConversion = lastConversionDate;
-    
+
     // If it's a new day or no previous conversions, return full limit
-    if (lastConversion == null || 
-        today.day != lastConversion.day || 
-        today.month != lastConversion.month || 
+    if (lastConversion == null ||
+        today.day != lastConversion.day ||
+        today.month != lastConversion.month ||
         today.year != lastConversion.year) {
       return maxPerDay;
     }
-    
+
     return maxPerDay - dailyConversionsUsed;
   }
 
@@ -139,12 +135,12 @@ class TokenTransaction {
   }
 
   final String id;
-  final int delta;              // Positive for earn, negative for spend
+  final int delta; // Positive for earn, negative for spend
   final TokenTransactionType type;
   final DateTime timestamp;
-  final String description;     // Human-readable description
-  final String? reference;      // Job ID, classification ID, etc.
-  final Map<String, dynamic>? metadata;  // Additional context
+  final String description; // Human-readable description
+  final String? reference; // Job ID, classification ID, etc.
+  final Map<String, dynamic>? metadata; // Additional context
 
   Map<String, dynamic> toJson() {
     return {
@@ -161,17 +157,17 @@ class TokenTransaction {
 
 /// Types of token transactions
 enum TokenTransactionType {
-  earn,           // Earned tokens (daily login, achievements, etc.)
-  spend,          // Spent tokens (AI analysis)
-  convert,        // Converted from points
-  bonus,          // Special bonuses/promotions
-  refund,         // Refunded for failed operations
+  earn, // Earned tokens (daily login, achievements, etc.)
+  spend, // Spent tokens (AI analysis)
+  convert, // Converted from points
+  bonus, // Special bonuses/promotions
+  refund, // Refunded for failed operations
 }
 
 /// Speed options for AI analysis
 enum AnalysisSpeed {
-  batch,    // Slower, cheaper (1 token)
-  instant,  // Faster, expensive (5 tokens)
+  batch, // Slower, cheaper (1 token)
+  instant, // Faster, expensive (5 tokens)
 }
 
 extension AnalysisSpeedExtension on AnalysisSpeed {
@@ -201,4 +197,4 @@ extension AnalysisSpeedExtension on AnalysisSpeed {
         return 'Real-time analysis - results immediately';
     }
   }
-} 
+}

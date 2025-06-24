@@ -7,8 +7,7 @@ import 'package:waste_segregation_app/utils/waste_app_logger.dart';
 
 /// Base class for all application-specific exceptions
 abstract class WasteAppException implements Exception {
-  WasteAppException._(this.message, this.code, this.metadata) 
-    : timestamp = DateTime.now();
+  WasteAppException._(this.message, this.code, this.metadata) : timestamp = DateTime.now();
   final String message;
   final String code;
   final Map<String, dynamic>? metadata;
@@ -16,13 +15,13 @@ abstract class WasteAppException implements Exception {
 
   @override
   String toString() => 'WasteAppException($code): $message';
-  
+
   Map<String, dynamic> toMap() => {
-    'code': code,
-    'message': message,
-    'metadata': metadata,
-    'timestamp': timestamp.toIso8601String(),
-  };
+        'code': code,
+        'message': message,
+        'metadata': metadata,
+        'timestamp': timestamp.toIso8601String(),
+      };
 }
 
 /// Classification-related exceptions
@@ -33,37 +32,33 @@ class ClassificationException extends WasteAppException {
 
 /// Network connectivity exceptions
 class NetworkException extends WasteAppException {
-  NetworkException(String message, [Map<String, dynamic>? metadata])
-      : super._(message, 'NETWORK_ERROR', metadata);
+  NetworkException(String message, [Map<String, dynamic>? metadata]) : super._(message, 'NETWORK_ERROR', metadata);
 }
 
 /// Storage and data persistence exceptions
 class StorageException extends WasteAppException {
-  StorageException(String message, [Map<String, dynamic>? metadata])
-      : super._(message, 'STORAGE_ERROR', metadata);
+  StorageException(String message, [Map<String, dynamic>? metadata]) : super._(message, 'STORAGE_ERROR', metadata);
 }
 
 /// Camera and image processing exceptions
 class CameraException extends WasteAppException {
-  CameraException(String message, [Map<String, dynamic>? metadata])
-      : super._(message, 'CAMERA_ERROR', metadata);
+  CameraException(String message, [Map<String, dynamic>? metadata]) : super._(message, 'CAMERA_ERROR', metadata);
 }
 
 /// Authentication and authorization exceptions
 class AuthException extends WasteAppException {
-  AuthException(String message, [Map<String, dynamic>? metadata])
-      : super._(message, 'AUTH_ERROR', metadata);
+  AuthException(String message, [Map<String, dynamic>? metadata]) : super._(message, 'AUTH_ERROR', metadata);
 }
 
 /// Global error handler
 class ErrorHandler {
   static final FirebaseCrashlytics _crashlytics = FirebaseCrashlytics.instance;
   static GlobalKey<NavigatorState>? navigatorKey;
-  
+
   static void initialize(GlobalKey<NavigatorState> navKey) {
     navigatorKey = navKey;
   }
-  
+
   static void handleError(
     dynamic error,
     StackTrace stackTrace, {
@@ -73,22 +68,22 @@ class ErrorHandler {
     // Log to console
     WasteAppLogger.severe('Error: $error');
     WasteAppLogger.info('StackTrace: $stackTrace');
-    
+
     // Report to Crashlytics
     _crashlytics.recordError(error, stackTrace, fatal: fatal);
-    
+
     // Show user message
     _showUserFriendlyError(error);
   }
-  
+
   static void _showUserFriendlyError(dynamic error) {
     final context = navigatorKey?.currentContext;
     if (context == null) return;
-    
+
     var message = 'An error occurred. Please try again.';
     var icon = Icons.error_outline;
     Color color = Colors.red;
-    
+
     if (error is ClassificationException) {
       message = 'Unable to analyze image. Try a clearer photo.';
       icon = Icons.image_not_supported;
@@ -102,7 +97,7 @@ class ErrorHandler {
       icon = Icons.camera_alt_outlined;
       color = Colors.amber;
     }
-    
+
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Row(
@@ -119,7 +114,7 @@ class ErrorHandler {
       ),
     );
   }
-  
+
   /// Get a user-friendly error message from an exception
   static String getUserFriendlyMessage(dynamic error) {
     if (error is WasteAppException) {

@@ -7,8 +7,7 @@ import 'dart:async' as _i3;
 
 import 'package:mockito/mockito.dart' as _i1;
 import 'package:mockito/src/dummies.dart' as _i9;
-import 'package:waste_segregation_app/models/classification_feedback.dart'
-    as _i10;
+import 'package:waste_segregation_app/models/classification_feedback.dart' as _i10;
 import 'package:waste_segregation_app/models/filter_options.dart' as _i8;
 import 'package:waste_segregation_app/models/leaderboard.dart' as _i4;
 import 'package:waste_segregation_app/models/user_profile.dart' as _i6;
@@ -32,26 +31,22 @@ import 'package:waste_segregation_app/services/storage_service.dart' as _i5;
 /// A class which mocks [LeaderboardService].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockLeaderboardService extends _i1.Mock
-    implements _i2.LeaderboardService {
+class MockLeaderboardService extends _i1.Mock implements _i2.LeaderboardService {
   MockLeaderboardService() {
     _i1.throwOnMissingStub(this);
   }
 
   @override
-  _i3.Future<List<_i4.LeaderboardEntry>> getTopNEntries(int? limit) =>
-      (super.noSuchMethod(
+  _i3.Future<List<_i4.LeaderboardEntry>> getTopNEntries(int? limit) => (super.noSuchMethod(
         Invocation.method(
           #getTopNEntries,
           [limit],
         ),
-        returnValue: _i3.Future<List<_i4.LeaderboardEntry>>.value(
-            <_i4.LeaderboardEntry>[]),
+        returnValue: _i3.Future<List<_i4.LeaderboardEntry>>.value(<_i4.LeaderboardEntry>[]),
       ) as _i3.Future<List<_i4.LeaderboardEntry>>);
 
   @override
-  _i3.Future<_i4.LeaderboardEntry?> getUserEntry(String? userId) =>
-      (super.noSuchMethod(
+  _i3.Future<_i4.LeaderboardEntry?> getUserEntry(String? userId) => (super.noSuchMethod(
         Invocation.method(
           #getUserEntry,
           [userId],
@@ -78,8 +73,7 @@ class MockStorageService extends _i1.Mock implements _i5.StorageService {
   }
 
   @override
-  _i3.Future<void> saveUserProfile(_i6.UserProfile? userProfile) =>
-      (super.noSuchMethod(
+  _i3.Future<void> saveUserProfile(_i6.UserProfile? userProfile) => (super.noSuchMethod(
         Invocation.method(
           #saveUserProfile,
           [userProfile],
@@ -132,16 +126,14 @@ class MockStorageService extends _i1.Mock implements _i5.StorageService {
       ) as _i3.Future<void>);
 
   @override
-  _i3.Future<List<_i7.WasteClassification>> getAllClassifications(
-          {_i8.FilterOptions? filterOptions}) =>
+  _i3.Future<List<_i7.WasteClassification>> getAllClassifications({_i8.FilterOptions? filterOptions}) =>
       (super.noSuchMethod(
         Invocation.method(
           #getAllClassifications,
           [],
           {#filterOptions: filterOptions},
         ),
-        returnValue: _i3.Future<List<_i7.WasteClassification>>.value(
-            <_i7.WasteClassification>[]),
+        returnValue: _i3.Future<List<_i7.WasteClassification>>.value(<_i7.WasteClassification>[]),
       ) as _i3.Future<List<_i7.WasteClassification>>);
 
   @override
@@ -160,13 +152,11 @@ class MockStorageService extends _i1.Mock implements _i5.StorageService {
             #page: page,
           },
         ),
-        returnValue: _i3.Future<List<_i7.WasteClassification>>.value(
-            <_i7.WasteClassification>[]),
+        returnValue: _i3.Future<List<_i7.WasteClassification>>.value(<_i7.WasteClassification>[]),
       ) as _i3.Future<List<_i7.WasteClassification>>);
 
   @override
-  _i3.Future<int> getClassificationsCount({_i8.FilterOptions? filterOptions}) =>
-      (super.noSuchMethod(
+  _i3.Future<int> getClassificationsCount({_i8.FilterOptions? filterOptions}) => (super.noSuchMethod(
         Invocation.method(
           #getClassificationsCount,
           [],
@@ -176,9 +166,7 @@ class MockStorageService extends _i1.Mock implements _i5.StorageService {
       ) as _i3.Future<int>);
 
   @override
-  _i3.Future<String> exportClassificationsToCSV(
-          {_i8.FilterOptions? filterOptions}) =>
-      (super.noSuchMethod(
+  _i3.Future<String> exportClassificationsToCSV({_i8.FilterOptions? filterOptions}) => (super.noSuchMethod(
         Invocation.method(
           #exportClassificationsToCSV,
           [],
@@ -247,8 +235,7 @@ class MockStorageService extends _i1.Mock implements _i5.StorageService {
       ) as _i3.Future<void>);
 
   @override
-  _i3.Future<void> updateLastCloudSync(DateTime? timestamp) =>
-      (super.noSuchMethod(
+  _i3.Future<void> updateLastCloudSync(DateTime? timestamp) => (super.noSuchMethod(
         Invocation.method(
           #updateLastCloudSync,
           [timestamp],
@@ -272,13 +259,11 @@ class MockStorageService extends _i1.Mock implements _i5.StorageService {
           #getSettings,
           [],
         ),
-        returnValue:
-            _i3.Future<Map<String, dynamic>>.value(<String, dynamic>{}),
+        returnValue: _i3.Future<Map<String, dynamic>>.value(<String, dynamic>{}),
       ) as _i3.Future<Map<String, dynamic>>);
 
   @override
-  _i3.Future<_i7.WasteClassification?> getCachedClassification(String? hash) =>
-      (super.noSuchMethod(
+  _i3.Future<_i7.WasteClassification?> getCachedClassification(String? hash) => (super.noSuchMethod(
         Invocation.method(
           #getCachedClassification,
           [hash],
@@ -349,8 +334,7 @@ class MockStorageService extends _i1.Mock implements _i5.StorageService {
       ) as _i3.Future<void>);
 
   @override
-  _i3.Future<void> saveAnalyticsEvents(List<dynamic>? events) =>
-      (super.noSuchMethod(
+  _i3.Future<void> saveAnalyticsEvents(List<dynamic>? events) => (super.noSuchMethod(
         Invocation.method(
           #saveAnalyticsEvents,
           [events],
@@ -360,14 +344,12 @@ class MockStorageService extends _i1.Mock implements _i5.StorageService {
       ) as _i3.Future<void>);
 
   @override
-  _i3.Future<List<Map<String, dynamic>>> loadAnalyticsEvents() =>
-      (super.noSuchMethod(
+  _i3.Future<List<Map<String, dynamic>>> loadAnalyticsEvents() => (super.noSuchMethod(
         Invocation.method(
           #loadAnalyticsEvents,
           [],
         ),
-        returnValue: _i3.Future<List<Map<String, dynamic>>>.value(
-            <Map<String, dynamic>>[]),
+        returnValue: _i3.Future<List<Map<String, dynamic>>>.value(<Map<String, dynamic>>[]),
       ) as _i3.Future<List<Map<String, dynamic>>>);
 
   @override
@@ -414,9 +396,7 @@ class MockStorageService extends _i1.Mock implements _i5.StorageService {
       ) as _i3.Future<int>);
 
   @override
-  _i3.Future<void> saveClassificationFeedback(
-          _i10.ClassificationFeedback? feedback) =>
-      (super.noSuchMethod(
+  _i3.Future<void> saveClassificationFeedback(_i10.ClassificationFeedback? feedback) => (super.noSuchMethod(
         Invocation.method(
           #saveClassificationFeedback,
           [feedback],
@@ -426,15 +406,13 @@ class MockStorageService extends _i1.Mock implements _i5.StorageService {
       ) as _i3.Future<void>);
 
   @override
-  _i3.Future<List<_i10.ClassificationFeedback>>
-      getAllClassificationFeedback() => (super.noSuchMethod(
-            Invocation.method(
-              #getAllClassificationFeedback,
-              [],
-            ),
-            returnValue: _i3.Future<List<_i10.ClassificationFeedback>>.value(
-                <_i10.ClassificationFeedback>[]),
-          ) as _i3.Future<List<_i10.ClassificationFeedback>>);
+  _i3.Future<List<_i10.ClassificationFeedback>> getAllClassificationFeedback() => (super.noSuchMethod(
+        Invocation.method(
+          #getAllClassificationFeedback,
+          [],
+        ),
+        returnValue: _i3.Future<List<_i10.ClassificationFeedback>>.value(<_i10.ClassificationFeedback>[]),
+      ) as _i3.Future<List<_i10.ClassificationFeedback>>);
 
   @override
   _i3.Future<void> migrateOldClassifications() => (super.noSuchMethod(

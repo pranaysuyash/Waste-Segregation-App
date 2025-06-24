@@ -23,7 +23,7 @@ class ResultHeader extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    
+
     return Container(
       padding: const EdgeInsets.all(16),
       child: Column(
@@ -31,24 +31,24 @@ class ResultHeader extends ConsumerWidget {
         children: [
           // Hero thumbnail with visual continuity
           _buildHeroThumbnail(context),
-          
+
           const SizedBox(height: 16),
-          
+
           // Category chip + confidence bar for instant feedback
           _buildCategoryConfidenceRow(context, colorScheme),
-          
+
           const SizedBox(height: 12),
-          
+
           // Item name - readable and prominent
           _buildItemName(context, theme),
-          
+
           const SizedBox(height: 16),
-          
+
           // KPI chips: points earned & environmental impact
           _buildKPIChips(context, colorScheme),
-          
+
           const SizedBox(height: 20),
-          
+
           // Primary CTA: Dispose correctly
           _buildPrimaryCTA(context, colorScheme),
         ],
@@ -101,7 +101,7 @@ class ResultHeader extends ConsumerWidget {
   Widget _buildCategoryConfidenceRow(BuildContext context, ColorScheme colorScheme) {
     final confidence = classification.confidence;
     final category = classification.category;
-    
+
     return Row(
       children: [
         // Category chip with semantic color
@@ -134,20 +134,20 @@ class ResultHeader extends ConsumerWidget {
             ],
           ),
         ),
-        
+
         const SizedBox(width: 12),
-        
+
         // Confidence bar with animated width
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-                             Text(
-                 '${((confidence ?? 0.0) * 100).round()}% confidence',
+              Text(
+                '${((confidence ?? 0.0) * 100).round()}% confidence',
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: colorScheme.onSurfaceVariant,
-                  fontWeight: FontWeight.w500,
-                ),
+                      color: colorScheme.onSurfaceVariant,
+                      fontWeight: FontWeight.w500,
+                    ),
               ),
               const SizedBox(height: 4),
               AnimatedContainer(
@@ -158,21 +158,21 @@ class ResultHeader extends ConsumerWidget {
                   borderRadius: BorderRadius.circular(3),
                   color: colorScheme.surfaceContainerHighest,
                 ),
-                                 child: FractionallySizedBox(
-                   alignment: Alignment.centerLeft,
-                   widthFactor: confidence ?? 0.0,
-                   child: Container(
-                     decoration: BoxDecoration(
-                       borderRadius: BorderRadius.circular(3),
-                       gradient: LinearGradient(
-                         colors: [
-                           _getConfidenceColor(confidence ?? 0.0),
-                           _getConfidenceColor(confidence ?? 0.0).withValues(alpha: 0.8),
-                         ],
-                       ),
-                     ),
-                   ),
-                 ),
+                child: FractionallySizedBox(
+                  alignment: Alignment.centerLeft,
+                  widthFactor: confidence ?? 0.0,
+                  child: Container(
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(3),
+                      gradient: LinearGradient(
+                        colors: [
+                          _getConfidenceColor(confidence ?? 0.0),
+                          _getConfidenceColor(confidence ?? 0.0).withValues(alpha: 0.8),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
               ),
             ],
           ),
@@ -207,7 +207,7 @@ class ResultHeader extends ConsumerWidget {
           color: Colors.amber,
           animate: pointsEarned > 0,
         ),
-        
+
         // Environmental impact chip
         _buildKPIChip(
           context: context,
@@ -250,19 +250,19 @@ class ResultHeader extends ConsumerWidget {
           Text(
             label,
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: colorScheme.onSurfaceVariant,
-              fontSize: 11,
-            ),
+                  color: colorScheme.onSurfaceVariant,
+                  fontSize: 11,
+                ),
           ),
           const SizedBox(height: 2),
-                     Text(
-             value,
-             style: TextStyle(
-               color: color,
-               fontWeight: FontWeight.bold,
-               fontSize: 14,
-             ),
-           ),
+          Text(
+            value,
+            style: TextStyle(
+              color: color,
+              fontWeight: FontWeight.bold,
+              fontSize: 14,
+            ),
+          ),
         ],
       ),
     );
@@ -365,4 +365,4 @@ class ResultHeader extends ConsumerWidget {
         return '−1g CO₂e';
     }
   }
-} 
+}

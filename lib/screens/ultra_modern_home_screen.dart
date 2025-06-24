@@ -62,8 +62,7 @@ class UltraModernHomeScreen extends ConsumerStatefulWidget {
   ConsumerState<UltraModernHomeScreen> createState() => _UltraModernHomeScreenState();
 }
 
-class _UltraModernHomeScreenState extends ConsumerState<UltraModernHomeScreen>
-    with TickerProviderStateMixin {
+class _UltraModernHomeScreenState extends ConsumerState<UltraModernHomeScreen> with TickerProviderStateMixin {
   final ImagePicker _picker = ImagePicker();
   bool _isNavigating = false;
 
@@ -91,7 +90,7 @@ class _UltraModernHomeScreenState extends ConsumerState<UltraModernHomeScreen>
       duration: const Duration(milliseconds: 800),
       vsync: this,
     );
-    
+
     _slideController = AnimationController(
       duration: const Duration(milliseconds: 1000),
       vsync: this,
@@ -118,7 +117,7 @@ class _UltraModernHomeScreenState extends ConsumerState<UltraModernHomeScreen>
   /// Show points popup overlay on home screen after classification
   void _showPointsPopup(GamificationResult result) {
     final overlay = Overlay.of(context);
-    
+
     late OverlayEntry entry;
     entry = OverlayEntry(
       builder: (_) => Positioned(
@@ -142,7 +141,7 @@ class _UltraModernHomeScreenState extends ConsumerState<UltraModernHomeScreen>
       'action': result.action,
       'ui_element': 'points_popup_home_overlay'
     });
-    
+
     // Show achievement celebrations if any
     if (result.newlyEarnedAchievements.isNotEmpty) {
       Future.delayed(const Duration(milliseconds: 1500), () {
@@ -176,7 +175,7 @@ class _UltraModernHomeScreenState extends ConsumerState<UltraModernHomeScreen>
     final classificationsAsync = ref.watch(classificationsProvider);
     final profileAsync = ref.watch(profileProvider);
     final userProfileAsync = ref.watch(userProfileProvider);
-    
+
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.surface,
       body: SafeArea(
@@ -193,18 +192,18 @@ class _UltraModernHomeScreenState extends ConsumerState<UltraModernHomeScreen>
                 slivers: [
                   // Hero header with gradient
                   _buildHeroHeader(context, profileAsync, userProfileAsync),
-                  
+
                   // Content sections
                   SliverToBoxAdapter(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         const SizedBox(height: 24),
-                        
+
                         // Horizontal scrolling action chips
                         _buildActionChips(context),
                         const SizedBox(height: 20),
-                        
+
                         // Content with padding
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -214,10 +213,10 @@ class _UltraModernHomeScreenState extends ConsumerState<UltraModernHomeScreen>
                               // Active Challenge section
                               _buildActiveChallengeSection(context, profileAsync),
                               const SizedBox(height: 32),
-                              
+
                               // Recent Classifications
                               _buildRecentClassifications(context, classificationsAsync),
-                              
+
                               // Bottom padding for navigation
                               const SizedBox(height: 100),
                             ],
@@ -235,12 +234,13 @@ class _UltraModernHomeScreenState extends ConsumerState<UltraModernHomeScreen>
     );
   }
 
-  Widget _buildHeroHeader(BuildContext context, AsyncValue<GamificationProfile?> profileAsync, AsyncValue<UserProfile?> userProfileAsync) {
+  Widget _buildHeroHeader(
+      BuildContext context, AsyncValue<GamificationProfile?> profileAsync, AsyncValue<UserProfile?> userProfileAsync) {
     final hour = DateTime.now().hour;
     final timePhase = _getTimePhase(hour);
     final greeting = _getPersonalizedGreeting(timePhase);
     final gradientColors = _getTimeBasedGradient(hour);
-    
+
     return SliverAppBar(
       expandedHeight: 200,
       pinned: true,
@@ -370,7 +370,7 @@ class _UltraModernHomeScreenState extends ConsumerState<UltraModernHomeScreen>
 
   Widget _buildPointsChip(BuildContext context) {
     final pointsAsync = ref.watch(pointsManagerProvider);
-    
+
     return pointsAsync.when(
       data: (points) => _buildStatChip('${points.total}', AppStrings.points, Icons.stars),
       loading: () => _buildStatChip('...', AppStrings.points, Icons.stars),
@@ -380,7 +380,7 @@ class _UltraModernHomeScreenState extends ConsumerState<UltraModernHomeScreen>
 
   Widget _buildTokensChip(BuildContext context) {
     final walletAsync = ref.watch(tokenWalletProvider);
-    
+
     return walletAsync.when(
       data: (wallet) => _buildStatChip('${wallet?.balance ?? 0}', 'Tokens', Icons.bolt),
       loading: () => _buildStatChip('...', 'Tokens', Icons.bolt),
@@ -391,7 +391,7 @@ class _UltraModernHomeScreenState extends ConsumerState<UltraModernHomeScreen>
   Widget _buildDaysActiveChip(BuildContext context) {
     final classificationsAsync = ref.watch(classificationsProvider);
     final userProfileAsync = ref.watch(userProfileProvider);
-    
+
     return classificationsAsync.when(
       data: (classifications) {
         return userProfileAsync.when(
@@ -399,10 +399,11 @@ class _UltraModernHomeScreenState extends ConsumerState<UltraModernHomeScreen>
             // Calculate unique days with activity (classifications)
             final uniqueActivityDays = <String>{};
             for (final classification in classifications) {
-              final dateKey = '${classification.timestamp.year}-${classification.timestamp.month}-${classification.timestamp.day}';
+              final dateKey =
+                  '${classification.timestamp.year}-${classification.timestamp.month}-${classification.timestamp.day}';
               uniqueActivityDays.add(dateKey);
             }
-            
+
             // If user has activity days, use that count
             // Otherwise, fall back to days since account creation (logged-in days)
             int daysActive;
@@ -413,7 +414,7 @@ class _UltraModernHomeScreenState extends ConsumerState<UltraModernHomeScreen>
             } else {
               daysActive = 1;
             }
-            
+
             return _buildStatChip('$daysActive', 'Days Active', Icons.eco);
           },
           loading: () => _buildStatChip('...', 'Days Active', Icons.eco),
@@ -452,10 +453,10 @@ class _UltraModernHomeScreenState extends ConsumerState<UltraModernHomeScreen>
                 ),
                 Text(
                   label,
-                                      style: GoogleFonts.inter(
-                      color: Colors.white.withValues(alpha: 0.8),
-                      fontSize: AppTheme.fontSizeSmall,
-                    ),
+                  style: GoogleFonts.inter(
+                    color: Colors.white.withValues(alpha: 0.8),
+                    fontSize: AppTheme.fontSizeSmall,
+                  ),
                   overflow: TextOverflow.ellipsis,
                 ),
               ],
@@ -583,22 +584,22 @@ class _UltraModernHomeScreenState extends ConsumerState<UltraModernHomeScreen>
         if (profile?.activeChallenges == null || profile!.activeChallenges.isEmpty) {
           return const SizedBox.shrink();
         }
-        
+
         // Find active challenges with progress > 0
         final activeChallenges = profile.activeChallenges.where((challenge) {
           return challenge.isActive && !challenge.isCompleted && challenge.progress > 0;
         }).toList();
-        
+
         if (activeChallenges.isEmpty) {
           return const SizedBox.shrink();
         }
-        
+
         // Pick a random active challenge based on day
         final randomChallenge = activeChallenges[DateTime.now().day % activeChallenges.length];
         final progressPercentage = (randomChallenge.progress * 100).round();
         final currentCount = (randomChallenge.progress * (randomChallenge.requirements['count'] ?? 1)).round();
         final targetCount = randomChallenge.requirements['count'] ?? 1;
-        
+
         return GestureDetector(
           onTap: () => Navigator.push(
             context,
@@ -731,7 +732,7 @@ class _UltraModernHomeScreenState extends ConsumerState<UltraModernHomeScreen>
         if (classifications.isEmpty) {
           return _buildEmptyState(context);
         }
-        
+
         final recent = classifications.take(3).toList();
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -907,7 +908,7 @@ class _UltraModernHomeScreenState extends ConsumerState<UltraModernHomeScreen>
   Future<void> _takePhoto() async {
     if (_isNavigating) return;
     _isNavigating = true;
-    
+
     try {
       final image = await _picker.pickImage(
         source: ImageSource.camera,
@@ -915,7 +916,7 @@ class _UltraModernHomeScreenState extends ConsumerState<UltraModernHomeScreen>
         maxWidth: 1920,
         maxHeight: 1080,
       );
-      
+
       if (image != null && mounted) {
         await _navigateToImageCapture(image);
       }
@@ -934,7 +935,7 @@ class _UltraModernHomeScreenState extends ConsumerState<UltraModernHomeScreen>
   Future<void> _pickImage() async {
     if (_isNavigating) return;
     _isNavigating = true;
-    
+
     try {
       final image = await _picker.pickImage(
         source: ImageSource.gallery,
@@ -942,7 +943,7 @@ class _UltraModernHomeScreenState extends ConsumerState<UltraModernHomeScreen>
         maxWidth: 1920,
         maxHeight: 1080,
       );
-      
+
       if (image != null && mounted) {
         await _navigateToImageCapture(image);
       }
@@ -961,7 +962,7 @@ class _UltraModernHomeScreenState extends ConsumerState<UltraModernHomeScreen>
   Future<void> _takePhotoInstant() async {
     if (_isNavigating) return;
     _isNavigating = true;
-    
+
     try {
       final image = await _picker.pickImage(
         source: ImageSource.camera,
@@ -969,7 +970,7 @@ class _UltraModernHomeScreenState extends ConsumerState<UltraModernHomeScreen>
         maxWidth: 1920,
         maxHeight: 1080,
       );
-      
+
       if (image != null && mounted) {
         await _navigateToInstantAnalysis(image);
       }
@@ -988,7 +989,7 @@ class _UltraModernHomeScreenState extends ConsumerState<UltraModernHomeScreen>
   Future<void> _pickImageInstant() async {
     if (_isNavigating) return;
     _isNavigating = true;
-    
+
     try {
       final image = await _picker.pickImage(
         source: ImageSource.gallery,
@@ -996,7 +997,7 @@ class _UltraModernHomeScreenState extends ConsumerState<UltraModernHomeScreen>
         maxWidth: 1920,
         maxHeight: 1080,
       );
-      
+
       if (image != null && mounted) {
         await _navigateToInstantAnalysis(image);
       }
@@ -1025,7 +1026,7 @@ class _UltraModernHomeScreenState extends ConsumerState<UltraModernHomeScreen>
             ),
           ),
         );
-        
+
         // Show popup if gamification results are returned
         if (result != null && result.hasRewards && mounted) {
           _showPointsPopup(result);
@@ -1042,7 +1043,7 @@ class _UltraModernHomeScreenState extends ConsumerState<UltraModernHomeScreen>
             ),
           ),
         );
-        
+
         // Show popup if gamification results are returned
         if (result != null && result.hasRewards && mounted) {
           _showPointsPopup(result);
@@ -1145,4 +1146,4 @@ class ActionItem {
   final IconData icon;
   final Color color;
   final VoidCallback onTap;
-} 
+}

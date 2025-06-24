@@ -8,22 +8,24 @@ import '../../lib/providers/data_sync_provider.dart';
 
 // Mock classes for testing
 class MockAdService extends Mock implements AdService {}
+
 class MockThemeProvider extends Mock implements ThemeProvider {}
+
 class MockDataSyncProvider extends Mock implements DataSyncProvider {}
 
 /// Test providers configuration for golden tests and widget tests
 class TestProviders {
   static List<ChangeNotifierProvider> get allProviders => [
-    ChangeNotifierProvider<AdService>(
-      create: (_) => MockAdService(),
-    ),
-    ChangeNotifierProvider<ThemeProvider>(
-      create: (_) => MockThemeProvider(),
-    ),
-    ChangeNotifierProvider<DataSyncProvider>(
-      create: (_) => MockDataSyncProvider(),
-    ),
-  ];
+        ChangeNotifierProvider<AdService>(
+          create: (_) => MockAdService(),
+        ),
+        ChangeNotifierProvider<ThemeProvider>(
+          create: (_) => MockThemeProvider(),
+        ),
+        ChangeNotifierProvider<DataSyncProvider>(
+          create: (_) => MockDataSyncProvider(),
+        ),
+      ];
 
   /// Create a test widget wrapper with all providers
   static Widget wrapWithProviders(Widget child) {
@@ -56,4 +58,4 @@ class TestProviders {
     // Setup default mock behaviors here if needed
     // This can be called in setUp() methods of tests
   }
-} 
+}

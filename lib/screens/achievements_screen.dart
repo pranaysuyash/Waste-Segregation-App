@@ -11,7 +11,6 @@ import '../providers/points_engine_provider.dart';
 import '../utils/waste_app_logger.dart';
 
 class AchievementsScreen extends StatefulWidget {
-
   const AchievementsScreen({
     super.key,
     this.initialTabIndex = 0,
@@ -22,14 +21,13 @@ class AchievementsScreen extends StatefulWidget {
   State<AchievementsScreen> createState() => _AchievementsScreenState();
 }
 
-class _AchievementsScreenState extends State<AchievementsScreen>
-    with SingleTickerProviderStateMixin {
+class _AchievementsScreenState extends State<AchievementsScreen> with SingleTickerProviderStateMixin {
   late TabController _tabController;
-  
+
   // Achievement celebration state
   bool _showCelebration = false;
   Achievement? _celebrationAchievement;
-  
+
   // Loading state tracking
   bool _isLoadingProfile = true;
   bool _hasLoadingError = false;
@@ -37,8 +35,7 @@ class _AchievementsScreenState extends State<AchievementsScreen>
   @override
   void initState() {
     super.initState();
-    _tabController =
-        TabController(length: 3, vsync: this, initialIndex: widget.initialTabIndex);
+    _tabController = TabController(length: 3, vsync: this, initialIndex: widget.initialTabIndex);
     // Load initial profile asynchronously and trigger rebuild
     _loadInitialProfile();
   }
@@ -50,11 +47,11 @@ class _AchievementsScreenState extends State<AchievementsScreen>
         _hasLoadingError = false;
       });
     }
-    
+
     try {
       WasteAppLogger.info('Operation completed', null, null, {'service': 'screen', 'file': 'achievements_screen'});
-      
-      // Add timeout to prevent infinite loading  
+
+      // Add timeout to prevent infinite loading
       await context.read<PointsEngineProvider>().pointsEngine.initialize().timeout(
         const Duration(seconds: 10),
         onTimeout: () {
@@ -62,9 +59,9 @@ class _AchievementsScreenState extends State<AchievementsScreen>
           throw TimeoutException('Profile loading timed out', const Duration(seconds: 10));
         },
       );
-      
+
       WasteAppLogger.info('Operation completed', null, null, {'service': 'screen', 'file': 'achievements_screen'});
-      
+
       if (mounted) {
         setState(() {
           _isLoadingProfile = false;
@@ -74,24 +71,24 @@ class _AchievementsScreenState extends State<AchievementsScreen>
       // The profile should now be available and the widget will rebuild due to Provider
     } catch (e) {
       WasteAppLogger.severe('Error occurred', null, null, {'service': 'screen', 'file': 'achievements_screen'});
-      
+
       if (mounted) {
         setState(() {
           _isLoadingProfile = false;
           _hasLoadingError = true;
         });
       }
-      
+
       // Try to force a profile creation as last resort
       try {
         WasteAppLogger.info('Operation completed', null, null, {'service': 'screen', 'file': 'achievements_screen'});
         final pointsEngine = context.read<PointsEngineProvider>().pointsEngine;
-        
+
         // Force create a basic profile if none exists
         if (pointsEngine.currentProfile == null) {
           // This should trigger the emergency fallback in the service
           await pointsEngine.refresh();
-          
+
           if (mounted) {
             setState(() {
               _hasLoadingError = false;
@@ -101,7 +98,7 @@ class _AchievementsScreenState extends State<AchievementsScreen>
       } catch (emergencyError) {
         WasteAppLogger.severe('Error occurred', null, null, {'service': 'screen', 'file': 'achievements_screen'});
       }
-      
+
       // Even if there's an error, the service should provide a fallback profile
       final scaffoldMessenger = ScaffoldMessenger.of(context);
       if (mounted) {
@@ -122,24 +119,24 @@ class _AchievementsScreenState extends State<AchievementsScreen>
   Future<void> _refreshProfile() async {
     try {
       WasteAppLogger.info('Operation completed', null, null, {'service': 'screen', 'file': 'achievements_screen'});
-      
+
       if (mounted) {
         setState(() {
           _hasLoadingError = false;
         });
       }
-      
+
       await context.read<PointsEngineProvider>().pointsEngine.refresh();
       WasteAppLogger.info('Operation completed', null, null, {'service': 'screen', 'file': 'achievements_screen'});
     } catch (e) {
       WasteAppLogger.severe('Error occurred', null, null, {'service': 'screen', 'file': 'achievements_screen'});
-      
+
       final scaffoldMessenger = ScaffoldMessenger.of(context);
       if (mounted) {
         setState(() {
           _hasLoadingError = true;
         });
-        
+
         scaffoldMessenger.showSnackBar(
           SnackBar(
             content: Text('Failed to refresh achievements: ${e.toString()}'),
@@ -189,104 +186,107 @@ class _AchievementsScreenState extends State<AchievementsScreen>
         body: Stack(
           children: [
             Builder(
-          builder: (context) {
-            final pointsProvider = context.watch<PointsEngineProvider>();
-            final profile = pointsProvider.pointsEngine.currentProfile;
+              builder: (context) {
+                final pointsProvider = context.watch<PointsEngineProvider>();
+                final profile = pointsProvider.pointsEngine.currentProfile;
 
-            WasteAppLogger.info('Operation completed', null, null, {'service': 'screen', 'file': 'achievements_screen'});
+                WasteAppLogger.info(
+                    'Operation completed', null, null, {'service': 'screen', 'file': 'achievements_screen'});
 
-            // Show loading state
-            if (profile == null && _isLoadingProfile) {
-              WasteAppLogger.info('Operation completed', null, null, {'service': 'screen', 'file': 'achievements_screen'});
-              return const Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
+                // Show loading state
+                if (profile == null && _isLoadingProfile) {
+                  WasteAppLogger.info(
+                      'Operation completed', null, null, {'service': 'screen', 'file': 'achievements_screen'});
+                  return const Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        CircularProgressIndicator(),
+                        SizedBox(height: 16),
+                        Text('Loading achievements...'),
+                        SizedBox(height: 8),
+                        Text(
+                          'This may take a few moments',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.grey,
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                }
+
+                // Show error state with retry option
+                if (profile == null && _hasLoadingError) {
+                  return Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(
+                          Icons.error_outline,
+                          size: 64,
+                          color: Colors.orange,
+                        ),
+                        const SizedBox(height: 16),
+                        const Text(
+                          'Failed to load achievements',
+                          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                        ),
+                        const SizedBox(height: 8),
+                        const Text(
+                          'Please check your connection and try again',
+                          style: TextStyle(color: Colors.grey),
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 24),
+                        ElevatedButton.icon(
+                          onPressed: _loadInitialProfile,
+                          icon: const Icon(Icons.refresh),
+                          label: const Text('Retry'),
+                        ),
+                      ],
+                    ),
+                  );
+                }
+
+                // Show fallback loading if profile is still null
+                if (profile == null) {
+                  return const Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        CircularProgressIndicator(),
+                        SizedBox(height: 16),
+                        Text('Initializing achievements...'),
+                      ],
+                    ),
+                  );
+                }
+
+                WasteAppLogger.info(
+                    'Operation completed', null, null, {'service': 'screen', 'file': 'achievements_screen'});
+
+                return TabBarView(
+                  controller: _tabController,
                   children: [
-                    CircularProgressIndicator(),
-                    SizedBox(height: 16),
-                    Text('Loading achievements...'),
-                    SizedBox(height: 8),
-                    Text(
-                      'This may take a few moments',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: Colors.grey,
-                      ),
+                    RefreshIndicator(
+                      onRefresh: _refreshProfile,
+                      child: _buildAchievementsTab(profile),
+                    ),
+                    RefreshIndicator(
+                      onRefresh: _refreshProfile,
+                      child: _buildChallengesTab(profile),
+                    ),
+                    RefreshIndicator(
+                      onRefresh: _refreshProfile,
+                      child: _buildStatsTab(profile),
                     ),
                   ],
-                ),
-              );
-            }
-            
-            // Show error state with retry option
-            if (profile == null && _hasLoadingError) {
-              return Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Icon(
-                      Icons.error_outline,
-                      size: 64,
-                      color: Colors.orange,
-                    ),
-                    const SizedBox(height: 16),
-                    const Text(
-                      'Failed to load achievements',
-                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                    ),
-                    const SizedBox(height: 8),
-                    const Text(
-                      'Please check your connection and try again',
-                      style: TextStyle(color: Colors.grey),
-                      textAlign: TextAlign.center,
-                    ),
-                    const SizedBox(height: 24),
-                    ElevatedButton.icon(
-                      onPressed: _loadInitialProfile,
-                      icon: const Icon(Icons.refresh),
-                      label: const Text('Retry'),
-                    ),
-                  ],
-                ),
-              );
-            }
-            
-            // Show fallback loading if profile is still null
-            if (profile == null) {
-              return const Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    CircularProgressIndicator(),
-                    SizedBox(height: 16),
-                    Text('Initializing achievements...'),
-                  ],
-                ),
-              );
-            }
+                );
+              },
+            ),
 
-            WasteAppLogger.info('Operation completed', null, null, {'service': 'screen', 'file': 'achievements_screen'});
-
-            return TabBarView(
-              controller: _tabController,
-              children: [
-                RefreshIndicator(
-                  onRefresh: _refreshProfile,
-                  child: _buildAchievementsTab(profile),
-                ),
-                RefreshIndicator(
-                  onRefresh: _refreshProfile,
-                  child: _buildChallengesTab(profile),
-                ),
-                RefreshIndicator(
-                  onRefresh: _refreshProfile,
-                  child: _buildStatsTab(profile),
-                ),
-              ],
-            );
-          },
-        ),
-            
             // Achievement celebration overlay
             if (_showCelebration && _celebrationAchievement != null)
               AchievementCelebration(
@@ -423,9 +423,8 @@ class _AchievementsScreenState extends State<AchievementsScreen>
     final isEarned = achievement.isEarned;
     final isClaimable = achievement.isClaimable;
     // FIXED: Check if achievement is locked based on user's current level
-    final isLocked = achievement.unlocksAtLevel != null && 
-                         achievement.unlocksAtLevel! > profile.points.level;
-    
+    final isLocked = achievement.unlocksAtLevel != null && achievement.unlocksAtLevel! > profile.points.level;
+
     // DEBUGGING: Log achievement state for "Waste Apprentice"
     if (achievement.id == 'waste_apprentice') {
       WasteAppLogger.info('Operation completed', null, null, {'service': 'screen', 'file': 'achievements_screen'});
@@ -442,9 +441,7 @@ class _AchievementsScreenState extends State<AchievementsScreen>
       elevation: isEarned ? 3 : 1,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(AppTheme.borderRadiusSmall),
-        side: isClaimable 
-            ? const BorderSide(color: Colors.amber, width: 2)
-            : BorderSide.none,
+        side: isClaimable ? const BorderSide(color: Colors.amber, width: 2) : BorderSide.none,
       ),
       child: InkWell(
         onTap: () => _showAchievementDetails(achievement, profile),
@@ -472,7 +469,7 @@ class _AchievementsScreenState extends State<AchievementsScreen>
                 ),
               ),
             ),
-            
+
             // Locked overlay
             if (isLocked)
               Positioned.fill(
@@ -487,94 +484,91 @@ class _AchievementsScreenState extends State<AchievementsScreen>
                   ),
                 ),
               ),
-            
+
             // Main content
             Expanded(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                // Achievement icon
-                Container(
-                  padding: const EdgeInsets.all(AppTheme.paddingSmall),
-                  decoration: BoxDecoration(
-                    color: isEarned
-                        ? achievement.color.withValues(alpha: 0.2)
-                        : Colors.grey.shade200,
-                    shape: BoxShape.circle,
-                    border: isEarned && achievement.tier != AchievementTier.bronze
-                        ? Border.all(color: achievement.getTierColor(), width: 2)
-                        : null,
-                  ),
-                  child: getAchievementIcon(achievement.iconName, color: isEarned ? achievement.color : Colors.grey, size: 36),
-                ),
-                const SizedBox(height: 8),
-                // Achievement title
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 4),
-                  child: Text(
-                    achievement.title,
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: AppTheme.fontSizeSmall,
-                      fontWeight: FontWeight.bold,
-                      color: isEarned ? AppTheme.textPrimaryColor : Colors.grey,
+                  // Achievement icon
+                  Container(
+                    padding: const EdgeInsets.all(AppTheme.paddingSmall),
+                    decoration: BoxDecoration(
+                      color: isEarned ? achievement.color.withValues(alpha: 0.2) : Colors.grey.shade200,
+                      shape: BoxShape.circle,
+                      border: isEarned && achievement.tier != AchievementTier.bronze
+                          ? Border.all(color: achievement.getTierColor(), width: 2)
+                          : null,
                     ),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
+                    child: getAchievementIcon(achievement.iconName,
+                        color: isEarned ? achievement.color : Colors.grey, size: 36),
                   ),
-                ),
-                const SizedBox(height: 4),
-                // Progress indicator or status
-                if (!isEarned && !isLocked)
+                  const SizedBox(height: 8),
+                  // Achievement title
                   Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 12),
-                    child: ClipRRect(
-                      borderRadius:
-                          BorderRadius.circular(AppTheme.borderRadiusSmall),
-                      child: LinearProgressIndicator(
-                        value: achievement.progress,
-                        minHeight: 4,
-                        backgroundColor: Colors.grey.shade200,
-                        valueColor: AlwaysStoppedAnimation<Color>(
-                            achievement.color.withValues(alpha: 0.7)),
-                      ),
-                    ),
-                  )
-                else if (isEarned && isClaimable)
-                  const Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 12),
+                    padding: const EdgeInsets.symmetric(horizontal: 4),
                     child: Text(
-                      'Claim Reward!',
+                      achievement.title,
+                      textAlign: TextAlign.center,
                       style: TextStyle(
-                        fontSize: 12,
+                        fontSize: AppTheme.fontSizeSmall,
                         fontWeight: FontWeight.bold,
-                        color: Colors.amber,
+                        color: isEarned ? AppTheme.textPrimaryColor : Colors.grey,
                       ),
-                    ),
-                  )
-                else if (isEarned)
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 12),
-                    child: Text(
-                      'Earned',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: achievement.color,
-                      ),
-                    ),
-                  )
-                else if (isLocked)
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 12),
-                    child: Text(
-                      'Unlocks at level ${achievement.unlocksAtLevel}',
-                      style: const TextStyle(
-                        fontSize: 12,
-                        color: Colors.grey,
-                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ),
-              ],
+                  const SizedBox(height: 4),
+                  // Progress indicator or status
+                  if (!isEarned && !isLocked)
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(AppTheme.borderRadiusSmall),
+                        child: LinearProgressIndicator(
+                          value: achievement.progress,
+                          minHeight: 4,
+                          backgroundColor: Colors.grey.shade200,
+                          valueColor: AlwaysStoppedAnimation<Color>(achievement.color.withValues(alpha: 0.7)),
+                        ),
+                      ),
+                    )
+                  else if (isEarned && isClaimable)
+                    const Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 12),
+                      child: Text(
+                        'Claim Reward!',
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.amber,
+                        ),
+                      ),
+                    )
+                  else if (isEarned)
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                      child: Text(
+                        'Earned',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: achievement.color,
+                        ),
+                      ),
+                    )
+                  else if (isLocked)
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                      child: Text(
+                        'Unlocks at level ${achievement.unlocksAtLevel}',
+                        style: const TextStyle(
+                          fontSize: 12,
+                          color: Colors.grey,
+                        ),
+                      ),
+                    ),
+                ],
               ),
             ),
           ],
@@ -582,13 +576,11 @@ class _AchievementsScreenState extends State<AchievementsScreen>
       ),
     );
   }
-  
+
   // Helper method to determine contrasting text color for tier badges
   Color _getContrastColor(Color backgroundColor) {
     // Calculate perceived brightness using the formula: (R * 0.299 + G * 0.587 + B * 0.114)
-    final brightness = (backgroundColor.r * 0.299 + 
-                           backgroundColor.g * 0.587 + 
-                           backgroundColor.b * 0.114) / 255;
+    final brightness = (backgroundColor.r * 0.299 + backgroundColor.g * 0.587 + backgroundColor.b * 0.114) / 255;
     return brightness > 0.5 ? Colors.black : Colors.white;
   }
 
@@ -598,26 +590,26 @@ class _AchievementsScreenState extends State<AchievementsScreen>
       _showAchievementCelebration(achievement);
       return; // Don't show the dialog, just show the celebration
     }
-    
+
     // Helper function to handle claiming rewards
     Future<void> claimReward() async {
       try {
         // Use PointsEngine for atomic achievement claiming
         final pointsEngineProvider = Provider.of<PointsEngineProvider>(context, listen: false);
         await pointsEngineProvider.pointsEngine.claimAchievementReward(achievement.id);
-        
+
         // Refresh the profile data
         if (mounted) {
           setState(() {
             _refreshProfile();
           });
         }
-        
+
         // Close the dialog
         if (mounted) {
           Navigator.of(context).pop();
         }
-        
+
         // Show success message
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -670,25 +662,24 @@ class _AchievementsScreenState extends State<AchievementsScreen>
             Container(
               padding: const EdgeInsets.all(AppTheme.paddingRegular),
               decoration: BoxDecoration(
-                color: achievement.isEarned
-                    ? achievement.color.withValues(alpha: 0.2)
-                    : Colors.grey.shade200,
+                color: achievement.isEarned ? achievement.color.withValues(alpha: 0.2) : Colors.grey.shade200,
                 shape: BoxShape.circle,
                 border: achievement.isEarned && achievement.tier != AchievementTier.bronze
                     ? Border.all(color: achievement.getTierColor(), width: 3)
                     : null,
               ),
-              child: getAchievementIcon(achievement.iconName, color: achievement.isEarned ? achievement.color : Colors.grey, size: 48),
+              child: getAchievementIcon(achievement.iconName,
+                  color: achievement.isEarned ? achievement.color : Colors.grey, size: 48),
             ),
             const SizedBox(height: AppTheme.paddingRegular),
-            
+
             // Achievement description
             Text(
               achievement.description,
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: AppTheme.paddingSmall),
-            
+
             // Achievement family ID info (if available)
             if (achievement.achievementFamilyId != null)
               Padding(
@@ -703,7 +694,7 @@ class _AchievementsScreenState extends State<AchievementsScreen>
                   textAlign: TextAlign.center,
                 ),
               ),
-              
+
             // Achievement points reward info
             Container(
               margin: const EdgeInsets.symmetric(vertical: AppTheme.paddingSmall),
@@ -731,11 +722,11 @@ class _AchievementsScreenState extends State<AchievementsScreen>
                 ],
               ),
             ),
-            
+
             const SizedBox(height: AppTheme.paddingSmall),
-            
+
             // Achievement status
-            if (achievement.isEarned) 
+            if (achievement.isEarned)
               Column(
                 children: [
                   Text(
@@ -760,8 +751,7 @@ class _AchievementsScreenState extends State<AchievementsScreen>
                     ),
                 ],
               )
-            else if (achievement.unlocksAtLevel != null && 
-                     achievement.unlocksAtLevel! > profile.points.level)
+            else if (achievement.unlocksAtLevel != null && achievement.unlocksAtLevel! > profile.points.level)
               Container(
                 margin: const EdgeInsets.only(top: AppTheme.paddingSmall),
                 padding: const EdgeInsets.all(AppTheme.paddingSmall),
@@ -798,19 +788,17 @@ class _AchievementsScreenState extends State<AchievementsScreen>
                   ),
                   const SizedBox(height: 8),
                   ClipRRect(
-                    borderRadius:
-                        BorderRadius.circular(AppTheme.borderRadiusSmall),
+                    borderRadius: BorderRadius.circular(AppTheme.borderRadiusSmall),
                     child: LinearProgressIndicator(
                       value: achievement.progress,
                       minHeight: 8,
                       backgroundColor: Colors.grey.shade200,
-                      valueColor:
-                          AlwaysStoppedAnimation<Color>(achievement.color),
+                      valueColor: AlwaysStoppedAnimation<Color>(achievement.color),
                     ),
                   ),
                 ],
               ),
-              
+
             // Metadata (if any)
             if (achievement.metadata.isNotEmpty && achievement.isEarned)
               Container(
@@ -831,8 +819,8 @@ class _AchievementsScreenState extends State<AchievementsScreen>
                       ),
                     ),
                     const SizedBox(height: 4),
-                    ...achievement.metadata.entries.map((entry) => 
-                      Text(
+                    ...achievement.metadata.entries.map(
+                      (entry) => Text(
                         '${entry.key}: ${entry.value}',
                         style: const TextStyle(
                           fontSize: AppTheme.fontSizeSmall,
@@ -855,9 +843,8 @@ class _AchievementsScreenState extends State<AchievementsScreen>
   }
 
   Widget _buildChallengesTab(GamificationProfile profile) {
-    final activeChallenges = profile.activeChallenges
-        .where((challenge) => !challenge.isExpired && !challenge.isCompleted)
-        .toList();
+    final activeChallenges =
+        profile.activeChallenges.where((challenge) => !challenge.isExpired && !challenge.isCompleted).toList();
     final completedChallenges = profile.completedChallenges
         .take(5) // Show only the 5 most recent
         .toList();
@@ -885,8 +872,7 @@ class _AchievementsScreenState extends State<AchievementsScreen>
 
             if (activeChallenges.isEmpty)
               Padding(
-                padding:
-                    const EdgeInsets.symmetric(vertical: AppTheme.paddingLarge),
+                padding: const EdgeInsets.symmetric(vertical: AppTheme.paddingLarge),
                 child: Center(
                   child: Column(
                     children: [
@@ -910,7 +896,7 @@ class _AchievementsScreenState extends State<AchievementsScreen>
                           try {
                             final gamificationService = Provider.of<GamificationService>(context, listen: false);
                             final profile = await gamificationService.getProfile();
-                            
+
                             // Create sample new challenges
                             final newChallenges = [
                               Challenge(
@@ -936,19 +922,19 @@ class _AchievementsScreenState extends State<AchievementsScreen>
                                 requirements: {'any_item': true, 'count': 10},
                               ),
                             ];
-                            
+
                             // Add the new challenges to the profile
                             final updatedProfile = profile.copyWith(
                               activeChallenges: [...profile.activeChallenges, ...newChallenges],
                             );
-                            
+
                             await gamificationService.saveProfile(updatedProfile);
-                            
+
                             if (mounted) {
                               setState(() {
                                 _refreshProfile();
                               });
-                              
+
                               ScaffoldMessenger.of(context).showSnackBar(
                                 const SnackBar(
                                   content: Text('New challenges generated!'),
@@ -1016,8 +1002,7 @@ class _AchievementsScreenState extends State<AchievementsScreen>
                           title: const Text('All Completed Challenges'),
                           content: SizedBox(
                             width: double.maxFinite,
-                            height:
-                                MediaQuery.of(context).size.height * 0.5,
+                            height: MediaQuery.of(context).size.height * 0.5,
                             child: ListView.builder(
                               itemCount: profile.completedChallenges.length,
                               itemBuilder: (context, index) {
@@ -1128,9 +1113,7 @@ class _AchievementsScreenState extends State<AchievementsScreen>
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        isCompleted
-                            ? 'Completed!'
-                            : '${AppStrings.progress}: ${(challenge.progress * 100).round()}%',
+                        isCompleted ? 'Completed!' : '${AppStrings.progress}: ${(challenge.progress * 100).round()}%',
                         style: TextStyle(
                           fontSize: AppTheme.fontSizeSmall,
                           color: isCompleted ? challenge.color : null,
@@ -1139,14 +1122,12 @@ class _AchievementsScreenState extends State<AchievementsScreen>
                       ),
                       const SizedBox(height: 4),
                       ClipRRect(
-                        borderRadius:
-                            BorderRadius.circular(AppTheme.borderRadiusSmall),
+                        borderRadius: BorderRadius.circular(AppTheme.borderRadiusSmall),
                         child: LinearProgressIndicator(
                           value: isCompleted ? 1.0 : challenge.progress,
                           minHeight: 8,
                           backgroundColor: Colors.grey.shade200,
-                          valueColor:
-                              AlwaysStoppedAnimation<Color>(challenge.color),
+                          valueColor: AlwaysStoppedAnimation<Color>(challenge.color),
                         ),
                       ),
                     ],
@@ -1205,14 +1186,10 @@ class _AchievementsScreenState extends State<AchievementsScreen>
                       ),
                       const SizedBox(width: 4),
                       Text(
-                        daysLeft > 0
-                            ? '$daysLeft ${daysLeft == 1 ? 'day' : 'days'} left'
-                            : 'Expires today',
+                        daysLeft > 0 ? '$daysLeft ${daysLeft == 1 ? 'day' : 'days'} left' : 'Expires today',
                         style: TextStyle(
                           fontSize: AppTheme.fontSizeSmall,
-                          color: daysLeft < 2
-                              ? Colors.orange
-                              : Colors.grey.shade600,
+                          color: daysLeft < 2 ? Colors.orange : Colors.grey.shade600,
                         ),
                       ),
                     ],
@@ -1273,10 +1250,7 @@ class _AchievementsScreenState extends State<AchievementsScreen>
                     children: [
                       _buildStatItem(
                         'Achievements',
-                        profile.achievements
-                            .where((a) => a.isEarned)
-                            .length
-                            .toString(),
+                        profile.achievements.where((a) => a.isEarned).length.toString(),
                         Icons.emoji_events,
                         Colors.amber,
                       ),
@@ -1331,8 +1305,7 @@ class _AchievementsScreenState extends State<AchievementsScreen>
                   final points = entry.value;
                   final itemCount = (points / 10).round(); // Convert points to item count
                   return Padding(
-                    padding:
-                        const EdgeInsets.only(bottom: AppTheme.paddingSmall),
+                    padding: const EdgeInsets.only(bottom: AppTheme.paddingSmall),
                     child: Row(
                       children: [
                         Container(
@@ -1454,8 +1427,7 @@ class _AchievementsScreenState extends State<AchievementsScreen>
     );
   }
 
-  Widget _buildStatItem(
-      String label, String value, IconData icon, Color color) {
+  Widget _buildStatItem(String label, String value, IconData icon, Color color) {
     return Expanded(
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 4),
@@ -1598,20 +1570,7 @@ class _AchievementsScreenState extends State<AchievementsScreen>
     } else if (dateToCheck == yesterday) {
       return 'Yesterday';
     } else {
-      final months = [
-        'Jan',
-        'Feb',
-        'Mar',
-        'Apr',
-        'May',
-        'Jun',
-        'Jul',
-        'Aug',
-        'Sep',
-        'Oct',
-        'Nov',
-        'Dec'
-      ];
+      final months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
       return '${months[date.month - 1]} ${date.day}, ${date.year}';
     }
   }

@@ -14,7 +14,7 @@ class JobQueueScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final userProfileAsync = ref.watch(userProfileProvider);
-    
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Batch Jobs'),
@@ -28,7 +28,7 @@ class JobQueueScreen extends ConsumerWidget {
               child: Text('Please sign in to view your batch jobs'),
             );
           }
-          
+
           return _buildJobsList(context, ref, userProfile.id);
         },
         loading: () => const Center(child: CircularProgressIndicator()),
@@ -53,17 +53,17 @@ class JobQueueScreen extends ConsumerWidget {
 
   Widget _buildJobsList(BuildContext context, WidgetRef ref, String userId) {
     final jobsAsync = ref.watch(userAiJobsProvider(userId));
-    
+
     return jobsAsync.when(
       data: (jobs) {
         if (jobs.isEmpty) {
           return _buildEmptyState(context);
         }
-        
+
         // Separate active and completed jobs
         final activeJobs = jobs.where((job) => job.isProcessing).toList();
         final completedJobs = jobs.where((job) => job.isCompleted).toList();
-        
+
         return RefreshIndicator(
           onRefresh: () async {
             ref.refresh(userAiJobsProvider(userId));
@@ -92,7 +92,7 @@ class JobQueueScreen extends ConsumerWidget {
                   ),
                 ),
               ],
-              
+
               // Completed jobs section
               if (completedJobs.isNotEmpty) ...[
                 SliverToBoxAdapter(
@@ -115,7 +115,7 @@ class JobQueueScreen extends ConsumerWidget {
                   ),
                 ),
               ],
-              
+
               // Bottom padding
               const SliverToBoxAdapter(
                 child: SizedBox(height: 80),
@@ -130,7 +130,7 @@ class JobQueueScreen extends ConsumerWidget {
           'screen': 'job_queue',
           'userId': userId,
         });
-        
+
         return Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -197,7 +197,7 @@ class JobQueueScreen extends ConsumerWidget {
 
   Widget _buildJobCard(BuildContext context, AiJob job, {required bool isActive}) {
     final colorScheme = Theme.of(context).colorScheme;
-    
+
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       elevation: isActive ? 4 : 2,
@@ -220,9 +220,9 @@ class JobQueueScreen extends ConsumerWidget {
                 ),
               ],
             ),
-            
+
             const SizedBox(height: 12),
-            
+
             // Job details
             Row(
               children: [
@@ -270,7 +270,7 @@ class JobQueueScreen extends ConsumerWidget {
                   ),
               ],
             ),
-            
+
             // Progress indicator for active jobs
             if (isActive && job.status == AiJobStatus.processing) ...[
               const SizedBox(height: 12),
@@ -288,7 +288,7 @@ class JobQueueScreen extends ConsumerWidget {
                 ),
               ),
             ],
-            
+
             // Queue position for queued jobs
             if (isActive && job.status == AiJobStatus.queued) ...[
               const SizedBox(height: 12),
@@ -301,9 +301,7 @@ class JobQueueScreen extends ConsumerWidget {
                   ),
                   const SizedBox(width: 8),
                   Text(
-                    job.queuePosition != null 
-                        ? 'Position ${job.queuePosition} in queue'
-                        : 'Queued for processing',
+                    job.queuePosition != null ? 'Position ${job.queuePosition} in queue' : 'Queued for processing',
                     style: GoogleFonts.inter(
                       fontSize: 12,
                       color: Colors.orange.shade600,
@@ -323,7 +321,7 @@ class JobQueueScreen extends ConsumerWidget {
                 ),
               ],
             ],
-            
+
             // Error message for failed jobs
             if (job.status == AiJobStatus.failed && job.errorMessage != null) ...[
               const SizedBox(height: 12),
@@ -355,7 +353,7 @@ class JobQueueScreen extends ConsumerWidget {
                 ),
               ),
             ],
-            
+
             // Success message for completed jobs
             if (job.status == AiJobStatus.completed && job.result != null) ...[
               const SizedBox(height: 12),
@@ -399,7 +397,7 @@ class JobQueueScreen extends ConsumerWidget {
     Color textColor;
     IconData icon;
     String label;
-    
+
     switch (status) {
       case AiJobStatus.queued:
         backgroundColor = Colors.orange.shade100;
@@ -432,7 +430,7 @@ class JobQueueScreen extends ConsumerWidget {
         label = 'Cancelled';
         break;
     }
-    
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
@@ -460,7 +458,7 @@ class JobQueueScreen extends ConsumerWidget {
   String _formatTimestamp(DateTime timestamp) {
     final now = DateTime.now();
     final difference = now.difference(timestamp);
-    
+
     if (difference.inDays > 0) {
       return '${difference.inDays}d ago';
     } else if (difference.inHours > 0) {
@@ -471,4 +469,4 @@ class JobQueueScreen extends ConsumerWidget {
       return 'Just now';
     }
   }
-} 
+}

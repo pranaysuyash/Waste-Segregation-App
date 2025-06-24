@@ -18,10 +18,10 @@ void main() {
 
     setUp(() async {
       storageService = StorageService();
-      
+
       // Clear any existing test data
       SharedPreferences.setMockInitialValues({});
-      
+
       // Initialize required Hive boxes
       await StorageService.initializeHive();
     });
@@ -48,8 +48,7 @@ void main() {
       });
 
       // Act & Assert: Should not throw type cast exceptions
-      expect(() async => storageService.clearAllUserData(), 
-             returnsNormally);
+      expect(() async => storageService.clearAllUserData(), returnsNormally);
     });
 
     test('clearAllUserData should handle empty SharedPreferences', () async {
@@ -58,7 +57,7 @@ void main() {
 
       // Act & Assert: Should complete successfully
       await storageService.clearAllUserData();
-      
+
       // Verify the operation completed
       final prefs = await SharedPreferences.getInstance();
       expect(prefs.getKeys(), isEmpty);
@@ -73,9 +72,9 @@ void main() {
         createdAt: DateTime.now(),
         lastActive: DateTime.now(),
       );
-      
+
       await storageService.saveUserProfile(testProfile);
-      
+
       // Verify profile was saved
       final savedProfile = await storageService.getCurrentUserProfile();
       expect(savedProfile, isNotNull);
@@ -90,12 +89,11 @@ void main() {
     });
 
     test('clearAllUserData should handle Hive box errors gracefully', () async {
-      // This test ensures that even if one box fails to clear, 
+      // This test ensures that even if one box fails to clear,
       // the operation continues with other boxes
-      
+
       // Act & Assert: Should complete even if some operations fail
-      expect(() async => storageService.clearAllUserData(), 
-             returnsNormally);
+      expect(() async => storageService.clearAllUserData(), returnsNormally);
     });
 
     test('factory reset should not throw type cast errors', () async {
@@ -125,9 +123,9 @@ void main() {
       // Assert: Verify all data is cleared
       final clearedProfile = await storageService.getCurrentUserProfile();
       expect(clearedProfile, isNull);
-      
+
       final prefs = await SharedPreferences.getInstance();
       expect(prefs.getKeys(), isEmpty);
     });
   });
-} 
+}

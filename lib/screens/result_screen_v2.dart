@@ -8,7 +8,7 @@ import '../widgets/result_screen/action_row.dart';
 import '../utils/waste_app_logger.dart';
 
 /// ResultScreenV2 - New composable result screen implementation
-/// 
+///
 /// Features:
 /// - Composable widget architecture with separation of concerns
 /// - Material 3 design principles with proper theming
@@ -32,33 +32,32 @@ class ResultScreenV2 extends ConsumerStatefulWidget {
   ConsumerState<ResultScreenV2> createState() => _ResultScreenV2State();
 }
 
-class _ResultScreenV2State extends ConsumerState<ResultScreenV2>
-    with TickerProviderStateMixin {
+class _ResultScreenV2State extends ConsumerState<ResultScreenV2> with TickerProviderStateMixin {
   late AnimationController _fadeController;
   late AnimationController _slideController;
 
   @override
   void initState() {
     super.initState();
-    
+
     // Initialize animations
     _fadeController = AnimationController(
       duration: const Duration(milliseconds: 600),
       vsync: this,
     );
-    
+
     _slideController = AnimationController(
       duration: const Duration(milliseconds: 800),
       vsync: this,
     );
-    
+
     // Start animations
     _fadeController.forward();
     _slideController.forward();
-    
+
     // Process classification through pipeline
     _processClassification();
-    
+
     // Track screen view
     _trackScreenView();
   }
@@ -100,7 +99,7 @@ class _ResultScreenV2State extends ConsumerState<ResultScreenV2>
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final pipelineState = ref.watch(resultPipelineProvider);
-    
+
     return Scaffold(
       backgroundColor: colorScheme.surface,
       body: SafeArea(
@@ -131,7 +130,7 @@ class _ResultScreenV2State extends ConsumerState<ResultScreenV2>
                       ]
                     : null,
               ),
-              
+
               // Content
               SliverToBoxAdapter(
                 child: SlideTransition(
@@ -151,9 +150,9 @@ class _ResultScreenV2State extends ConsumerState<ResultScreenV2>
                         onDisposeCorrectly: _handleDisposeCorrectly,
                         heroTag: widget.heroTag,
                       ),
-                      
+
                       const SizedBox(height: 32),
-                      
+
                       // Progressive Disclosure Sections
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -163,14 +162,14 @@ class _ResultScreenV2State extends ConsumerState<ResultScreenV2>
                             DisposalAccordion(
                               classification: widget.classification,
                             ),
-                            
+
                             const SizedBox(height: 16),
-                            
+
                             // Why This Classification Card
                             _buildWhyCard(context),
-                            
+
                             const SizedBox(height: 24),
-                            
+
                             // Secondary Actions
                             if (widget.showActions) ...[
                               ActionRow(
@@ -179,7 +178,7 @@ class _ResultScreenV2State extends ConsumerState<ResultScreenV2>
                                 onSave: _handleSave,
                               ),
                             ],
-                            
+
                             const SizedBox(height: 32),
                           ],
                         ),
@@ -198,7 +197,7 @@ class _ResultScreenV2State extends ConsumerState<ResultScreenV2>
   Widget _buildWhyCard(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    
+
     return Card(
       elevation: 0,
       color: colorScheme.surfaceContainerHighest,
@@ -264,7 +263,7 @@ class _ResultScreenV2State extends ConsumerState<ResultScreenV2>
       'category': widget.classification.category,
       'version': 'v2',
     });
-    
+
     // Show disposal instructions in bottom sheet
     showModalBottomSheet(
       context: context,
@@ -300,17 +299,17 @@ class _ResultScreenV2State extends ConsumerState<ResultScreenV2>
                   Text(
                     'How to Dispose',
                     style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
+                          fontWeight: FontWeight.bold,
+                        ),
                   ),
                   const SizedBox(height: 16),
                   // Content
                   Expanded(
                     child: SingleChildScrollView(
                       controller: scrollController,
-                                             child: DisposalAccordion(
-                         classification: widget.classification,
-                       ),
+                      child: DisposalAccordion(
+                        classification: widget.classification,
+                      ),
                     ),
                   ),
                 ],
@@ -327,7 +326,7 @@ class _ResultScreenV2State extends ConsumerState<ResultScreenV2>
       'classificationId': widget.classification.id,
       'version': 'v2',
     });
-    
+
     // TODO: Implement correction dialog
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
@@ -340,7 +339,7 @@ class _ResultScreenV2State extends ConsumerState<ResultScreenV2>
     try {
       final pipeline = ref.read(resultPipelineProvider.notifier);
       await pipeline.saveClassificationOnly(widget.classification);
-      
+
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -365,7 +364,7 @@ class _ResultScreenV2State extends ConsumerState<ResultScreenV2>
     try {
       final pipeline = ref.read(resultPipelineProvider.notifier);
       await pipeline.shareClassification(widget.classification);
-      
+
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -385,4 +384,4 @@ class _ResultScreenV2State extends ConsumerState<ResultScreenV2>
       }
     }
   }
-} 
+}

@@ -73,4 +73,4 @@ class MockCloudStorageService extends CloudStorageService {
     // Mock: Do nothing
     return;
   }
-} 
+}

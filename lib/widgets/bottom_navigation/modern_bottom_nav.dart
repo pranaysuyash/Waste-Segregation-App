@@ -5,7 +5,6 @@ import '../../utils/constants.dart';
 /// A modern Android-style bottom navigation bar with smooth animations,
 /// customizable appearance, and haptic feedback
 class ModernBottomNavigation extends StatefulWidget {
-
   const ModernBottomNavigation({
     super.key,
     required this.currentIndex,
@@ -28,8 +27,7 @@ class ModernBottomNavigation extends StatefulWidget {
   State<ModernBottomNavigation> createState() => _ModernBottomNavigationState();
 }
 
-class _ModernBottomNavigationState extends State<ModernBottomNavigation>
-    with TickerProviderStateMixin {
+class _ModernBottomNavigationState extends State<ModernBottomNavigation> with TickerProviderStateMixin {
   late AnimationController _animationController;
   late AnimationController _rippleController;
   late List<AnimationController> _itemControllers;
@@ -38,12 +36,12 @@ class _ModernBottomNavigationState extends State<ModernBottomNavigation>
   @override
   void initState() {
     super.initState();
-    
+
     _animationController = AnimationController(
       duration: widget.animationDuration,
       vsync: this,
     );
-    
+
     _rippleController = AnimationController(
       duration: const Duration(milliseconds: 200),
       vsync: this,
@@ -75,13 +73,13 @@ class _ModernBottomNavigationState extends State<ModernBottomNavigation>
   @override
   void didUpdateWidget(ModernBottomNavigation oldWidget) {
     super.didUpdateWidget(oldWidget);
-    
+
     if (oldWidget.currentIndex != widget.currentIndex) {
       // Animate out the old selection
       if (oldWidget.currentIndex < _itemControllers.length) {
         _itemControllers[oldWidget.currentIndex].reverse();
       }
-      
+
       // Animate in the new selection
       if (widget.currentIndex < _itemControllers.length) {
         _itemControllers[widget.currentIndex].forward();
@@ -103,11 +101,11 @@ class _ModernBottomNavigationState extends State<ModernBottomNavigation>
     if (widget.enableHapticFeedback) {
       HapticFeedback.lightImpact();
     }
-    
+
     _rippleController.forward().then((_) {
       _rippleController.reverse();
     });
-    
+
     widget.onTap(index);
   }
 
@@ -121,49 +119,49 @@ class _ModernBottomNavigationState extends State<ModernBottomNavigation>
       right: false,
       child: Container(
         decoration: BoxDecoration(
-          color: widget.style.backgroundColor ?? 
-                 (isDark ? Colors.grey[900] : Colors.white),
-          boxShadow: widget.style.shadow ?? [
-            BoxShadow(
-              color: Colors.black.withValues(alpha:0.1),
-              blurRadius: 8,
-              offset: const Offset(0, -2),
-            ),
-          ],
+          color: widget.style.backgroundColor ?? (isDark ? Colors.grey[900] : Colors.white),
+          boxShadow: widget.style.shadow ??
+              [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.1),
+                  blurRadius: 8,
+                  offset: const Offset(0, -2),
+                ),
+              ],
           borderRadius: widget.style.borderRadius,
           border: widget.style.border,
         ),
         child: ClipRRect(
           borderRadius: widget.style.borderRadius ?? BorderRadius.zero,
-          child: widget.hasNotch 
-            ? BottomAppBar(
-                shape: const CircularNotchedRectangle(),
-                color: Colors.transparent,
-                elevation: 0,
-                notchMargin: 8,
-                child: Container(
+          child: widget.hasNotch
+              ? BottomAppBar(
+                  shape: const CircularNotchedRectangle(),
+                  color: Colors.transparent,
+                  elevation: 0,
+                  notchMargin: 8,
+                  child: Container(
+                    height: widget.style.height,
+                    padding: widget.style.padding,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: List.generate(
+                        widget.items.length,
+                        (index) => _buildNavItem(index, isDark),
+                      ),
+                    ),
+                  ),
+                )
+              : Container(
                   height: widget.style.height,
                   padding: widget.style.padding,
                   child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
                     children: List.generate(
                       widget.items.length,
                       (index) => _buildNavItem(index, isDark),
                     ),
                   ),
                 ),
-              )
-            : Container(
-                height: widget.style.height,
-                padding: widget.style.padding,
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
-                  children: List.generate(
-                    widget.items.length,
-                    (index) => _buildNavItem(index, isDark),
-                  ),
-                ),
-              ),
         ),
       ),
     );
@@ -172,7 +170,7 @@ class _ModernBottomNavigationState extends State<ModernBottomNavigation>
   Widget _buildNavItem(int index, bool isDark) {
     final item = widget.items[index];
     final isSelected = index == widget.currentIndex;
-    
+
     return Expanded(
       child: GestureDetector(
         onTap: () => _handleTap(index),
@@ -180,9 +178,8 @@ class _ModernBottomNavigationState extends State<ModernBottomNavigation>
         child: AnimatedBuilder(
           animation: _itemAnimations[index],
           builder: (context, child) {
-            final scale = isSelected ? 
-                       1.0 + (_itemAnimations[index].value * 0.1) : 1.0;
-            
+            final scale = isSelected ? 1.0 + (_itemAnimations[index].value * 0.1) : 1.0;
+
             return Transform.scale(
               scale: scale,
               child: Container(
@@ -196,25 +193,23 @@ class _ModernBottomNavigationState extends State<ModernBottomNavigation>
                       child: AnimatedContainer(
                         duration: widget.animationDuration,
                         curve: Curves.elasticOut,
-                        padding: isSelected ? 
-                                 const EdgeInsets.all(6) : 
-                                 const EdgeInsets.all(2),
-                        decoration: isSelected ? BoxDecoration(
-                          color: (widget.style.selectedColor ?? AppTheme.primaryColor)
-                                 .withValues(alpha:0.15),
-                          borderRadius: BorderRadius.circular(10),
-                        ) : null,
+                        padding: isSelected ? const EdgeInsets.all(6) : const EdgeInsets.all(2),
+                        decoration: isSelected
+                            ? BoxDecoration(
+                                color: (widget.style.selectedColor ?? AppTheme.primaryColor).withValues(alpha: 0.15),
+                                borderRadius: BorderRadius.circular(10),
+                              )
+                            : null,
                         child: Icon(
                           isSelected ? item.selectedIcon : item.icon,
                           color: isSelected
                               ? (widget.style.selectedColor ?? AppTheme.primaryColor)
-                              : (widget.style.unselectedColor ?? 
-                                 (isDark ? Colors.grey[400] : Colors.grey[600])),
+                              : (widget.style.unselectedColor ?? (isDark ? Colors.grey[400] : Colors.grey[600])),
                           size: widget.style.iconSize,
                         ),
                       ),
                     ),
-                    
+
                     // Label with fade animation
                     if (item.label != null) ...[
                       const SizedBox(height: 2),
@@ -226,8 +221,7 @@ class _ModernBottomNavigationState extends State<ModernBottomNavigation>
                             fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
                             color: isSelected
                                 ? (widget.style.selectedColor ?? AppTheme.primaryColor)
-                                : (widget.style.unselectedColor ?? 
-                                   (isDark ? Colors.grey[400] : Colors.grey[600])),
+                                : (widget.style.unselectedColor ?? (isDark ? Colors.grey[400] : Colors.grey[600])),
                           ),
                           child: Text(
                             item.label!,
@@ -238,7 +232,7 @@ class _ModernBottomNavigationState extends State<ModernBottomNavigation>
                         ),
                       ),
                     ],
-                    
+
                     // Selection indicator dot
                     if (widget.style.showIndicator && isSelected)
                       AnimatedContainer(
@@ -264,7 +258,6 @@ class _ModernBottomNavigationState extends State<ModernBottomNavigation>
 
 /// Configuration class for the modern bottom navigation styling
 class ModernBottomNavStyle {
-
   const ModernBottomNavStyle({
     this.backgroundColor,
     this.selectedColor,
@@ -297,15 +290,15 @@ class ModernBottomNavStyle {
   }) {
     final baseColor = isDark ? Colors.black : Colors.white;
     final primary = primaryColor ?? AppTheme.primaryColor;
-    
+
     return ModernBottomNavStyle(
-      backgroundColor: baseColor.withValues(alpha:0.8),
+      backgroundColor: baseColor.withValues(alpha: 0.8),
       selectedColor: primary,
       unselectedColor: isDark ? Colors.grey[300] : Colors.grey[600],
       borderRadius: BorderRadius.circular(24),
       shadow: [
         BoxShadow(
-          color: Colors.black.withValues(alpha:0.1),
+          color: Colors.black.withValues(alpha: 0.1),
           blurRadius: 20,
           offset: const Offset(0, -5),
         ),
@@ -328,7 +321,7 @@ class ModernBottomNavStyle {
       borderRadius: BorderRadius.circular(16),
       shadow: [
         BoxShadow(
-          color: Colors.black.withValues(alpha:0.08),
+          color: Colors.black.withValues(alpha: 0.08),
           blurRadius: 12,
           offset: const Offset(0, -3),
         ),
@@ -349,7 +342,7 @@ class ModernBottomNavStyle {
       borderRadius: BorderRadius.circular(32),
       shadow: [
         BoxShadow(
-          color: Colors.black.withValues(alpha:0.15),
+          color: Colors.black.withValues(alpha: 0.15),
           blurRadius: 16,
           offset: const Offset(0, 4),
         ),
@@ -365,7 +358,6 @@ class ModernBottomNavStyle {
 
 /// Data class for bottom navigation items
 class BottomNavItem {
-
   const BottomNavItem({
     required this.icon,
     this.selectedIcon,

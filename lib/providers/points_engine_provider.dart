@@ -46,6 +46,6 @@ class PointsEngineProvider extends ChangeNotifier {
 /// Extension to easily access Points Engine from context
 extension PointsEngineContext on BuildContext {
   PointsEngine get pointsEngine => Provider.of<PointsEngineProvider>(this, listen: false).pointsEngine;
-  
+
   PointsEngine watchPointsEngine() => Provider.of<PointsEngineProvider>(this).pointsEngine;
-} 
+}

@@ -40,7 +40,7 @@ class MockStorageService extends StorageService {
 /// Mock Cloud Storage Service for testing that extends CloudStorageService but avoids Firebase
 class MockCloudStorageService extends CloudStorageService {
   MockCloudStorageService._() : super(MockStorageService());
-  
+
   factory MockCloudStorageService() {
     return MockCloudStorageService._();
   }
@@ -89,7 +89,7 @@ class MockCommunityService extends CommunityService {
 /// Setup Firebase for testing
 Future<void> setupFirebaseForTesting() async {
   TestWidgetsFlutterBinding.ensureInitialized();
-  
+
   // Initialize Firebase with test configuration
   try {
     await Firebase.initializeApp(
@@ -145,4 +145,4 @@ Widget createRiverpodTestWidget({
 final storageServiceProvider = Provider<StorageService>((ref) => MockStorageService());
 final cloudStorageServiceProvider = Provider<CloudStorageService>((ref) => MockCloudStorageService());
 final gamificationServiceProvider = Provider<GamificationService>((ref) => MockGamificationService());
-final communityServiceProvider = Provider<CommunityService>((ref) => MockCommunityService()); 
+final communityServiceProvider = Provider<CommunityService>((ref) => MockCommunityService());

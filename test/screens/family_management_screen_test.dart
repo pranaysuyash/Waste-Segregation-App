@@ -69,7 +69,8 @@ invitation_models.FamilyInvitation createMockInvitation({
   String id = 'inv1',
   String familyId = 'fam1',
   String invitedEmail = 'invitee@test.com',
-  user_profile_models.UserRole roleToAssign = user_profile_models.UserRole.member, // Role from user_profile for invitation
+  user_profile_models.UserRole roleToAssign =
+      user_profile_models.UserRole.member, // Role from user_profile for invitation
   invitation_models.InvitationStatus status = invitation_models.InvitationStatus.pending,
 }) {
   return invitation_models.FamilyInvitation(
@@ -85,7 +86,6 @@ invitation_models.FamilyInvitation createMockInvitation({
     expiresAt: DateTime.now().add(const Duration(days: 6)),
   );
 }
-
 
 @GenerateMocks([FirebaseFamilyService, StorageService])
 void main() {
@@ -106,15 +106,12 @@ void main() {
     membersStreamController = StreamController<List<user_profile_models.UserProfile>>.broadcast();
     invitationsStreamController = StreamController<List<invitation_models.FamilyInvitation>>.broadcast();
 
-    when(mockStorageService.getCurrentUserProfile())
-        .thenAnswer((_) async => createMockUserProfile(id: 'currentUserAdmin')); // Removed role from UserProfile mock creation
+    when(mockStorageService.getCurrentUserProfile()).thenAnswer(
+        (_) async => createMockUserProfile(id: 'currentUserAdmin')); // Removed role from UserProfile mock creation
 
-    when(mockFamilyService.getFamilyStream(any))
-        .thenAnswer((_) => familyStreamController.stream);
-    when(mockFamilyService.getFamilyMembersStream(any))
-        .thenAnswer((_) => membersStreamController.stream);
-    when(mockFamilyService.getInvitationsStream(any))
-        .thenAnswer((_) => invitationsStreamController.stream);
+    when(mockFamilyService.getFamilyStream(any)).thenAnswer((_) => familyStreamController.stream);
+    when(mockFamilyService.getFamilyMembersStream(any)).thenAnswer((_) => membersStreamController.stream);
+    when(mockFamilyService.getInvitationsStream(any)).thenAnswer((_) => invitationsStreamController.stream);
 
     TestWidgetsFlutterBinding.instance.defaultBinaryMessenger.setMockMethodCallHandler(
       SystemChannels.platform,
@@ -138,7 +135,8 @@ void main() {
   Widget createTestableWidget(family_models.Family initialFamily, Widget child) {
     final testTheme = ThemeData.light().copyWith(
       primaryColor: AppTheme.primaryColor, // Assuming this is a static color on AppTheme
-      colorScheme: ColorScheme.fromSeed(seedColor: AppTheme.primaryColor), // Assuming this is a static color on AppTheme
+      colorScheme:
+          ColorScheme.fromSeed(seedColor: AppTheme.primaryColor), // Assuming this is a static color on AppTheme
       // textTheme, cardTheme, elevatedButtonTheme will use defaults from ThemeData.light()
       // or specific overrides if AppTheme provided them as ThemeData components (e.g. AppTheme.customCardTheme)
       tabBarTheme: TabBarTheme(
@@ -167,7 +165,8 @@ void main() {
       when(mockStorageService.getCurrentUserProfile()).thenAnswer((_) async => createMockUserProfile(id: 'adminUser'));
       // Don't add data to controllers yet
 
-      await tester.pumpWidget(createTestableWidget(mockInitialFamily, FamilyManagementScreen(family: mockInitialFamily)));
+      await tester
+          .pumpWidget(createTestableWidget(mockInitialFamily, FamilyManagementScreen(family: mockInitialFamily)));
 
       // Main family stream loading
       expect(find.byType(CircularProgressIndicator), findsOneWidget); // For the main family stream
@@ -250,7 +249,8 @@ void main() {
       });
 
       testWidgets('Edit Family Name shows dialog and calls updateFamily', (WidgetTester tester) async {
-        await tester.pumpWidget(createTestableWidget(familyForSettings, FamilyManagementScreen(family: familyForSettings)));
+        await tester
+            .pumpWidget(createTestableWidget(familyForSettings, FamilyManagementScreen(family: familyForSettings)));
         familyStreamController.add(familyForSettings);
         membersStreamController.add([]);
         invitationsStreamController.add([]);
@@ -270,12 +270,15 @@ void main() {
         await tester.pumpAndSettle();
 
         final updatedFamily = familyForSettings.copyWith(name: 'New Family Name');
-        verify(mockFamilyService.updateFamily(argThat(predicate<family_models.Family>((f) => f.name == updatedFamily.name && f.id == updatedFamily.id)))).called(1);
+        verify(mockFamilyService.updateFamily(argThat(
+                predicate<family_models.Family>((f) => f.name == updatedFamily.name && f.id == updatedFamily.id))))
+            .called(1);
         expect(find.text('Family name updated!'), findsOneWidget); // SnackBar
       });
 
       testWidgets('Copy Family ID calls Clipboard.setData and shows SnackBar', (WidgetTester tester) async {
-        await tester.pumpWidget(createTestableWidget(familyForSettings, FamilyManagementScreen(family: familyForSettings)));
+        await tester
+            .pumpWidget(createTestableWidget(familyForSettings, FamilyManagementScreen(family: familyForSettings)));
         familyStreamController.add(familyForSettings);
         membersStreamController.add([]);
         invitationsStreamController.add([]);
@@ -298,7 +301,8 @@ void main() {
         final initialSettings = family_models.FamilySettings.defaultSettings().copyWith(isPublic: false);
         final familyWithSettings = createMockFamily(settings: initialSettings);
 
-        await tester.pumpWidget(createTestableWidget(familyWithSettings, FamilyManagementScreen(family: familyWithSettings)));
+        await tester
+            .pumpWidget(createTestableWidget(familyWithSettings, FamilyManagementScreen(family: familyWithSettings)));
         familyStreamController.add(familyWithSettings);
         membersStreamController.add([]);
         invitationsStreamController.add([]);
@@ -313,7 +317,9 @@ void main() {
         await tester.pumpAndSettle();
 
         final expectedSettings = initialSettings.copyWith(isPublic: true);
-        verify(mockFamilyService.updateFamily(argThat(predicate<family_models.Family>((f) => f.settings.isPublic == expectedSettings.isPublic)))).called(1);
+        verify(mockFamilyService.updateFamily(
+                argThat(predicate<family_models.Family>((f) => f.settings.isPublic == expectedSettings.isPublic))))
+            .called(1);
         expect(find.text('Public family setting updated to true'), findsOneWidget);
       });
 
@@ -321,7 +327,8 @@ void main() {
         final initialSettings = family_models.FamilySettings.defaultSettings().copyWith(shareClassifications: true);
         final familyWithSettings = createMockFamily(settings: initialSettings);
 
-        await tester.pumpWidget(createTestableWidget(familyWithSettings, FamilyManagementScreen(family: familyWithSettings)));
+        await tester
+            .pumpWidget(createTestableWidget(familyWithSettings, FamilyManagementScreen(family: familyWithSettings)));
         familyStreamController.add(familyWithSettings);
         membersStreamController.add([]);
         invitationsStreamController.add([]);
@@ -335,7 +342,8 @@ void main() {
         await tester.pumpAndSettle();
 
         final expectedSettings = initialSettings.copyWith(shareClassifications: false);
-        verify(mockFamilyService.updateFamily(argThat(predicate<family_models.Family>((f) => f.settings.shareClassifications == expectedSettings.shareClassifications)))).called(1);
+        verify(mockFamilyService.updateFamily(argThat(predicate<family_models.Family>(
+            (f) => f.settings.shareClassifications == expectedSettings.shareClassifications)))).called(1);
         expect(find.text('Share classifications setting updated to false'), findsOneWidget);
       });
 
@@ -343,7 +351,8 @@ void main() {
         final initialSettings = family_models.FamilySettings.defaultSettings().copyWith(showMemberActivity: true);
         final familyWithSettings = createMockFamily(settings: initialSettings);
 
-        await tester.pumpWidget(createTestableWidget(familyWithSettings, FamilyManagementScreen(family: familyWithSettings)));
+        await tester
+            .pumpWidget(createTestableWidget(familyWithSettings, FamilyManagementScreen(family: familyWithSettings)));
         familyStreamController.add(familyWithSettings);
         membersStreamController.add([]);
         invitationsStreamController.add([]);
@@ -357,7 +366,8 @@ void main() {
         await tester.pumpAndSettle();
 
         final expectedSettings = initialSettings.copyWith(showMemberActivity: false);
-        verify(mockFamilyService.updateFamily(argThat(predicate<family_models.Family>((f) => f.settings.showMemberActivity == expectedSettings.showMemberActivity)))).called(1);
+        verify(mockFamilyService.updateFamily(argThat(predicate<family_models.Family>(
+            (f) => f.settings.showMemberActivity == expectedSettings.showMemberActivity)))).called(1);
         expect(find.text('Show member activity setting updated to false'), findsOneWidget);
       });
     });
@@ -365,14 +375,12 @@ void main() {
     // Admin actions tests (simplified, focusing on service calls)
     group('Admin Actions', () {
       final adminUser = createMockUserProfile(id: 'adminUser', familyId: 'adminFam');
-      final regularMember = createMockUserProfile(id: 'memberUser', displayName: 'Regular Member', familyId: 'adminFam');
-      final familyForAdmin = createMockFamily(
-        id: 'adminFam',
-        members: [
-          createMockFamilyMember(userId: adminUser.id, role: family_models.UserRole.admin),
-          createMockFamilyMember(userId: regularMember.id, displayName: 'Regular Member'),
-        ]
-      );
+      final regularMember =
+          createMockUserProfile(id: 'memberUser', displayName: 'Regular Member', familyId: 'adminFam');
+      final familyForAdmin = createMockFamily(id: 'adminFam', members: [
+        createMockFamilyMember(userId: adminUser.id, role: family_models.UserRole.admin),
+        createMockFamilyMember(userId: regularMember.id, displayName: 'Regular Member'),
+      ]);
       final pendingInvite = createMockInvitation(familyId: 'adminFam', id: 'inviteToCancel');
 
       setUp(() {

@@ -208,7 +208,7 @@ void main() {
     testWidgets('StatsCard golden test - narrow screen', (WidgetTester tester) async {
       // Set a narrow screen size
       await tester.binding.setSurfaceSize(const Size(320, 568));
-      
+
       await tester.pumpWidget(
         const MaterialApp(
           home: Scaffold(
@@ -256,7 +256,7 @@ void main() {
         find.byType(Scaffold),
         matchesGoldenFile('golden/stats_cards_narrow_screen.png'),
       );
-      
+
       // Reset screen size
       await tester.binding.setSurfaceSize(null);
     });
@@ -382,4 +382,4 @@ void main() {
       );
     });
   });
-} 
+}

@@ -46,7 +46,7 @@ class _InstantAnalysisScreenState extends State<InstantAnalysisScreen> {
 
     try {
       WasteAppLogger.info('🚀 Auto-analyze enabled - starting analysis immediately');
-      
+
       final aiService = Provider.of<AiService>(context, listen: false);
       WasteClassification? result;
 
@@ -68,13 +68,13 @@ class _InstantAnalysisScreenState extends State<InstantAnalysisScreen> {
 
       if (!_isCancelled && mounted) {
         WasteAppLogger.info('✅ Analysis complete - saving classification immediately');
-        
+
         // Save the classification immediately using gamification service to trigger all hooks
         final gamificationService = Provider.of<GamificationService>(context, listen: false);
         await gamificationService.processClassification(result);
-        
+
         WasteAppLogger.info('✅ Classification saved - navigating to results screen');
-        
+
         // Navigate to results screen and wait for it to complete
         await Navigator.pushReplacement<void, void>(
           context,
@@ -85,10 +85,10 @@ class _InstantAnalysisScreenState extends State<InstantAnalysisScreen> {
             ),
           ),
         );
-        
-        // Note: Removed the conflicting Navigator.pop(result) call that was causing 
-        // the double navigation issue. The result is now handled entirely by the 
-        // ResultScreen, and the parent screen will get the result through the 
+
+        // Note: Removed the conflicting Navigator.pop(result) call that was causing
+        // the double navigation issue. The result is now handled entirely by the
+        // ResultScreen, and the parent screen will get the result through the
         // normal navigation flow.
       }
     } catch (e) {
@@ -115,13 +115,13 @@ class _InstantAnalysisScreenState extends State<InstantAnalysisScreen> {
     // Cancel the AI service analysis
     final aiService = Provider.of<AiService>(context, listen: false);
     aiService.cancelAnalysis();
-    
+
     setState(() {
       _isCancelled = true;
       _isAnalyzing = false;
     });
     WasteAppLogger.info('Analysis cancelled by user');
-    
+
     // Show cancellation feedback
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -155,4 +155,4 @@ class _InstantAnalysisScreenState extends State<InstantAnalysisScreen> {
             ),
     );
   }
-} 
+}

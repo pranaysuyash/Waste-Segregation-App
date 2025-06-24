@@ -177,7 +177,7 @@ void main() {
     test('should create with required parameters', () {
       final start = DateTime.now();
       final end = start.add(const Duration(days: 7));
-      
+
       final metadata = LeaderboardMetadata(
         title: 'Weekly Challenge',
         description: 'This week\'s leaderboard',
@@ -199,7 +199,7 @@ void main() {
     test('should create with all optional parameters', () {
       final start = DateTime.now();
       final end = start.add(const Duration(days: 30));
-      
+
       final rewards = [
         LeaderboardReward(
           rankRange: '1',
@@ -209,7 +209,7 @@ void main() {
           value: 100,
         ),
       ];
-      
+
       final metadata = LeaderboardMetadata(
         title: 'Monthly Championship',
         description: 'The ultimate monthly competition',
@@ -231,7 +231,7 @@ void main() {
 
     test('should calculate isCurrentlyActive correctly', () {
       final now = DateTime.now();
-      
+
       // Active period
       final activeMetadata = LeaderboardMetadata(
         title: 'Active',
@@ -273,7 +273,7 @@ void main() {
 
     test('should calculate timeRemaining correctly', () {
       final now = DateTime.now();
-      
+
       // 2 hours remaining
       final futureEnd = LeaderboardMetadata(
         title: 'Future End',
@@ -290,14 +290,15 @@ void main() {
         periodEnd: now.subtract(const Duration(days: 1)),
       );
 
-      expect(futureEnd.timeRemaining.inMilliseconds, closeTo(const Duration(hours: 2).inMilliseconds, 5000)); // Check within a 5s tolerance
+      expect(futureEnd.timeRemaining.inMilliseconds,
+          closeTo(const Duration(hours: 2).inMilliseconds, 5000)); // Check within a 5s tolerance
       expect(pastEnd.timeRemaining, equals(Duration.zero));
     });
 
     test('should serialize to and from JSON correctly', () {
       final start = DateTime.parse('2023-12-01T00:00:00.000Z');
       final end = DateTime.parse('2023-12-31T23:59:59.999Z');
-      
+
       final rewards = [
         LeaderboardReward(
           rankRange: '1-3',
@@ -306,7 +307,7 @@ void main() {
           type: RewardType.recognition,
         ),
       ];
-      
+
       final metadata = LeaderboardMetadata(
         title: 'December Challenge',
         description: 'End of year challenge',
@@ -590,12 +591,14 @@ void main() {
     });
 
     test('should getTopEntries correctly', () {
-      final entries = List.generate(10, (i) => LeaderboardEntry(
-        userId: 'user$i',
-        displayName: 'User $i',
-        points: 1000 - (i * 100),
-        rank: i + 1,
-      ));
+      final entries = List.generate(
+          10,
+          (i) => LeaderboardEntry(
+                userId: 'user$i',
+                displayName: 'User $i',
+                points: 1000 - (i * 100),
+                rank: i + 1,
+              ));
 
       final leaderboard = Leaderboard(
         type: LeaderboardType.global,
@@ -658,12 +661,14 @@ void main() {
     });
 
     test('should getEntriesInRange correctly', () {
-      final entries = List.generate(15, (i) => LeaderboardEntry(
-        userId: 'user$i',
-        displayName: 'User $i',
-        points: 1500 - (i * 100),
-        rank: i + 1,
-      ));
+      final entries = List.generate(
+          15,
+          (i) => LeaderboardEntry(
+                userId: 'user$i',
+                displayName: 'User $i',
+                points: 1500 - (i * 100),
+                rank: i + 1,
+              ));
 
       final leaderboard = Leaderboard(
         type: LeaderboardType.global,
@@ -872,17 +877,19 @@ void main() {
     });
 
     test('should handle very large leaderboards', () {
-      final largeEntries = List.generate(10000, (i) => LeaderboardEntry(
-        userId: 'user$i',
-        displayName: 'User $i',
-        points: 100000 - i,
-        rank: i + 1,
-        categoryBreakdown: {
-          'Cat1': (100000 - i) ~/ 3,
-          'Cat2': (100000 - i) ~/ 3,
-          'Cat3': (100000 - i) ~/ 3,
-        },
-      ));
+      final largeEntries = List.generate(
+          10000,
+          (i) => LeaderboardEntry(
+                userId: 'user$i',
+                displayName: 'User $i',
+                points: 100000 - i,
+                rank: i + 1,
+                categoryBreakdown: {
+                  'Cat1': (100000 - i) ~/ 3,
+                  'Cat2': (100000 - i) ~/ 3,
+                  'Cat3': (100000 - i) ~/ 3,
+                },
+              ));
 
       final largeLeaderboard = Leaderboard(
         type: LeaderboardType.global,

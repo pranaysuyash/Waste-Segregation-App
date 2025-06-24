@@ -3,7 +3,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 /// Represents a community feed item showing user activities
 class CommunityFeedItem {
-
   const CommunityFeedItem({
     required this.id,
     required this.userId,
@@ -192,12 +191,9 @@ class CommunityStats {
       totalUsers: json['totalUsers'] as int? ?? 0,
       totalClassifications: json['totalClassifications'] as int? ?? 0,
       totalPoints: json['totalPoints'] as int? ?? 0,
-      categoryBreakdown: json['categoryBreakdown'] != null
-          ? Map<String, int>.from(json['categoryBreakdown'] as Map)
-          : const {},
-      lastUpdated: json['lastUpdated'] != null
-          ? _parseDateTime(json['lastUpdated'])
-          : null,
+      categoryBreakdown:
+          json['categoryBreakdown'] != null ? Map<String, int>.from(json['categoryBreakdown'] as Map) : const {},
+      lastUpdated: json['lastUpdated'] != null ? _parseDateTime(json['lastUpdated']) : null,
     );
   }
 
@@ -219,15 +215,14 @@ class CommunityStats {
 
   /// Get top categories as a map for display
   Map<String, int> get topCategories {
-    final sorted = categoryBreakdown.entries.toList()
-      ..sort((a, b) => b.value.compareTo(a.value));
+    final sorted = categoryBreakdown.entries.toList()..sort((a, b) => b.value.compareTo(a.value));
     return Map.fromEntries(sorted.take(5));
   }
 
   /// Helper method to parse DateTime from various formats
   static DateTime? _parseDateTime(dynamic value) {
     if (value == null) return null;
-    
+
     if (value is Timestamp) {
       return value.toDate();
     } else if (value is String) {
@@ -235,7 +230,7 @@ class CommunityStats {
     } else if (value is DateTime) {
       return value;
     }
-    
+
     return null;
   }
-} 
+}

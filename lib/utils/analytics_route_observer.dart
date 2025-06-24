@@ -26,17 +26,16 @@ class AnalyticsRouteAware extends ConsumerStatefulWidget {
   ConsumerState<AnalyticsRouteAware> createState() => _AnalyticsRouteAwareState();
 }
 
-class _AnalyticsRouteAwareState extends ConsumerState<AnalyticsRouteAware>
-    with RouteAware {
+class _AnalyticsRouteAwareState extends ConsumerState<AnalyticsRouteAware> with RouteAware {
   late AnalyticsService _analyticsService;
   DateTime? _screenStartTime;
   String? _previousScreenName;
-  
+
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
     _analyticsService = ref.read(analyticsServiceProvider);
-    
+
     final route = ModalRoute.of(context);
     if (route is PageRoute) {
       analyticsRouteObserver.subscribe(this, route);
@@ -54,7 +53,7 @@ class _AnalyticsRouteAwareState extends ConsumerState<AnalyticsRouteAware>
     WasteAppLogger.info('🧭 Route pushed: ${_getScreenName()}');
     _trackScreenView('push');
   }
-  
+
   @override
   void didPopNext() {
     WasteAppLogger.info('🧭 Route returned to: ${_getScreenName()}');
@@ -77,15 +76,15 @@ class _AnalyticsRouteAwareState extends ConsumerState<AnalyticsRouteAware>
   void _trackScreenView(String navigationMethod) {
     final screenName = _getScreenName();
     final now = DateTime.now();
-    
+
     // Calculate time on previous screen if available
     int? timeOnPreviousScreen;
     if (_screenStartTime != null) {
       timeOnPreviousScreen = now.difference(_screenStartTime!).inMilliseconds;
     }
-    
+
     _screenStartTime = now;
-    
+
     // Track the page view with enhanced parameters
     _analyticsService.trackPageView(
       screenName,
@@ -93,7 +92,7 @@ class _AnalyticsRouteAwareState extends ConsumerState<AnalyticsRouteAware>
       navigationMethod: navigationMethod,
       timeOnPreviousScreen: timeOnPreviousScreen,
     );
-    
+
     // Also track as screen view for backward compatibility
     _analyticsService.trackScreenView(screenName, parameters: {
       'navigation_method': navigationMethod,
@@ -101,9 +100,9 @@ class _AnalyticsRouteAwareState extends ConsumerState<AnalyticsRouteAware>
       if (timeOnPreviousScreen != null) 'time_on_previous_screen_ms': timeOnPreviousScreen,
       ...?widget.additionalParameters,
     });
-    
+
     _previousScreenName = screenName;
-    
+
     WasteAppLogger.info('📊 Screen tracked: $screenName', null, null, {
       'navigation_method': navigationMethod,
       'previous_screen': _previousScreenName,
@@ -116,13 +115,13 @@ class _AnalyticsRouteAwareState extends ConsumerState<AnalyticsRouteAware>
     if (_screenStartTime != null) {
       final timeSpent = DateTime.now().difference(_screenStartTime!).inMilliseconds;
       final screenName = _getScreenName();
-      
+
       _analyticsService.trackUserAction('screen_exit', parameters: {
         'screen_name': screenName,
         'time_spent_ms': timeSpent,
         'exit_method': 'navigation',
       });
-      
+
       WasteAppLogger.info('📊 Screen exit tracked: $screenName (${timeSpent}ms)', null, null, {
         'time_spent_ms': timeSpent,
         'service': 'AnalyticsRouteObserver',
@@ -136,18 +135,18 @@ class _AnalyticsRouteAwareState extends ConsumerState<AnalyticsRouteAware>
     if (widget.screenName != null) {
       return widget.screenName!;
     }
-    
+
     // Try to get from route settings
     final route = ModalRoute.of(context);
     if (route?.settings.name != null) {
       return route!.settings.name!;
     }
-    
+
     // Fall back to route type
     if (route != null) {
       return route.runtimeType.toString().replaceAll('Route', '');
     }
-    
+
     // Last resort: use widget type
     return widget.child.runtimeType.toString();
   }
@@ -160,7 +159,6 @@ class _AnalyticsRouteAwareState extends ConsumerState<AnalyticsRouteAware>
 
 /// Enhanced analytics route observer that can track additional metrics
 class EnhancedAnalyticsRouteObserver extends RouteObserver<PageRoute> {
-  
   EnhancedAnalyticsRouteObserver(this.analyticsService);
   final AnalyticsService analyticsService;
   final Map<Route, DateTime> _routeStartTimes = {};
@@ -169,7 +167,7 @@ class EnhancedAnalyticsRouteObserver extends RouteObserver<PageRoute> {
   void didPush(Route<dynamic> route, Route<dynamic>? previousRoute) {
     super.didPush(route, previousRoute);
     _routeStartTimes[route] = DateTime.now();
-    
+
     if (route is PageRoute) {
       _trackRouteChange(route, previousRoute, 'push');
     }
@@ -178,7 +176,7 @@ class EnhancedAnalyticsRouteObserver extends RouteObserver<PageRoute> {
   @override
   void didPop(Route<dynamic> route, Route<dynamic>? previousRoute) {
     super.didPop(route, previousRoute);
-    
+
     if (route is PageRoute) {
       _trackRouteExit(route);
       _routeStartTimes.remove(route);
@@ -188,12 +186,12 @@ class EnhancedAnalyticsRouteObserver extends RouteObserver<PageRoute> {
   @override
   void didReplace({Route<dynamic>? newRoute, Route<dynamic>? oldRoute}) {
     super.didReplace(newRoute: newRoute, oldRoute: oldRoute);
-    
+
     if (oldRoute != null) {
       _trackRouteExit(oldRoute);
       _routeStartTimes.remove(oldRoute);
     }
-    
+
     if (newRoute is PageRoute) {
       _routeStartTimes[newRoute] = DateTime.now();
       _trackRouteChange(newRoute, oldRoute, 'replace');
@@ -203,13 +201,13 @@ class EnhancedAnalyticsRouteObserver extends RouteObserver<PageRoute> {
   void _trackRouteChange(PageRoute route, Route<dynamic>? previousRoute, String method) {
     final screenName = _getRouteName(route);
     final previousScreenName = previousRoute != null ? _getRouteName(previousRoute) : null;
-    
+
     analyticsService.trackPageView(
       screenName,
       previousScreen: previousScreenName,
       navigationMethod: method,
     );
-    
+
     WasteAppLogger.info('🧭 Enhanced route tracking: $screenName', null, null, {
       'method': method,
       'previous_screen': previousScreenName,
@@ -222,7 +220,7 @@ class EnhancedAnalyticsRouteObserver extends RouteObserver<PageRoute> {
     if (startTime != null) {
       final timeSpent = DateTime.now().difference(startTime).inMilliseconds;
       final screenName = _getRouteName(route);
-      
+
       analyticsService.trackUserAction('route_exit', parameters: {
         'screen_name': screenName,
         'time_spent_ms': timeSpent,
@@ -241,17 +239,17 @@ class EnhancedAnalyticsRouteObserver extends RouteObserver<PageRoute> {
 /// Utility class for managing route-based analytics
 class RouteAnalyticsManager {
   static EnhancedAnalyticsRouteObserver? _enhancedObserver;
-  
+
   /// Initialize enhanced route tracking
   static void initialize(AnalyticsService analyticsService) {
     _enhancedObserver = EnhancedAnalyticsRouteObserver(analyticsService);
   }
-  
+
   /// Get the enhanced observer instance
   static RouteObserver<PageRoute> get observer {
     return _enhancedObserver ?? analyticsRouteObserver;
   }
-  
+
   /// Track a custom route event
   static void trackCustomRouteEvent(String eventName, Map<String, dynamic> parameters) {
     // This could be used for special navigation events
@@ -261,4 +259,4 @@ class RouteAnalyticsManager {
       'service': 'RouteAnalyticsManager',
     });
   }
-} 
+}

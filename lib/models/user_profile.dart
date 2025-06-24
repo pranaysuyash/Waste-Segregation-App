@@ -10,12 +10,15 @@ enum UserRole {
   /// Can manage family settings and members.
   @HiveField(0)
   admin,
+
   /// Regular family member with standard permissions.
   @HiveField(1)
   member,
+
   /// Limited permissions, typically for younger family members.
   @HiveField(2)
   child,
+
   /// Temporary access, potentially for guests or trial users within a family context.
   @HiveField(3)
   guest
@@ -27,8 +30,6 @@ enum UserRole {
 /// family/team membership and role.
 @HiveType(typeId: 4)
 class UserProfile {
-
-
   UserProfile({
     required this.id,
     this.displayName,
@@ -58,19 +59,14 @@ class UserProfile {
               orElse: () => UserRole.guest, // Default if string doesn't match
             )
           : null,
-      createdAt: json['createdAt'] != null
-          ? DateTime.parse(json['createdAt'] as String)
-          : null,
-      lastActive: json['lastActive'] != null
-          ? DateTime.parse(json['lastActive'] as String)
-          : null,
+      createdAt: json['createdAt'] != null ? DateTime.parse(json['createdAt'] as String) : null,
+      lastActive: json['lastActive'] != null ? DateTime.parse(json['lastActive'] as String) : null,
       preferences: json['preferences'] as Map<String, dynamic>?,
       gamificationProfile: json['gamificationProfile'] != null
           ? GamificationProfile.fromJson(json['gamificationProfile'] as Map<String, dynamic>)
           : null,
-      tokenWallet: json['tokenWallet'] != null
-          ? TokenWallet.fromJson(json['tokenWallet'] as Map<String, dynamic>)
-          : null,
+      tokenWallet:
+          json['tokenWallet'] != null ? TokenWallet.fromJson(json['tokenWallet'] as Map<String, dynamic>) : null,
       tokenTransactions: json['tokenTransactions'] != null
           ? (json['tokenTransactions'] as List)
               .map((e) => TokenTransaction.fromJson(e as Map<String, dynamic>))
@@ -78,6 +74,7 @@ class UserProfile {
           : null,
     );
   }
+
   /// The unique identifier for the user, typically from the authentication provider.
   @HiveField(0)
   final String id;
@@ -101,7 +98,7 @@ class UserProfile {
   /// The user's role within their family or team.
   @HiveField(5)
   final UserRole? role;
-  
+
   /// Timestamp of when the user profile was created.
   @HiveField(6)
   final DateTime? createdAt;
@@ -109,7 +106,7 @@ class UserProfile {
   /// Timestamp of the user's last activity.
   @HiveField(7)
   final DateTime? lastActive;
-  
+
   /// User-specific preferences.
   @HiveField(8)
   final Map<String, dynamic>? preferences;
@@ -174,4 +171,4 @@ class UserProfile {
       'tokenTransactions': tokenTransactions?.map((e) => e.toJson()).toList(),
     };
   }
-} 
+}

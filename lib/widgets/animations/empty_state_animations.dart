@@ -37,12 +37,11 @@ class EmptyStateWidget extends StatefulWidget {
   State<EmptyStateWidget> createState() => _EmptyStateWidgetState();
 }
 
-class _EmptyStateWidgetState extends State<EmptyStateWidget>
-    with TickerProviderStateMixin {
+class _EmptyStateWidgetState extends State<EmptyStateWidget> with TickerProviderStateMixin {
   late AnimationController _primaryController;
   late AnimationController _pulseController;
   late AnimationController _tipController;
-  
+
   late Animation<double> _fadeAnimation;
   late Animation<double> _scaleAnimation;
   late Animation<Offset> _slideAnimation;
@@ -52,29 +51,29 @@ class _EmptyStateWidgetState extends State<EmptyStateWidget>
   @override
   void initState() {
     super.initState();
-    
+
     // Primary animation controller for entrance
     _primaryController = AnimationController(
       duration: const Duration(milliseconds: 1200),
       vsync: this,
     );
-    
+
     // Pulse animation controller for icon
     _pulseController = AnimationController(
       duration: const Duration(milliseconds: 2000),
       vsync: this,
     );
-    
+
     // Tip animation controller for educational tips
     _tipController = AnimationController(
       duration: const Duration(milliseconds: 800),
       vsync: this,
     );
-    
+
     _setupAnimations();
     _startAnimations();
   }
-  
+
   void _setupAnimations() {
     // Fade animation
     _fadeAnimation = Tween<double>(
@@ -84,7 +83,7 @@ class _EmptyStateWidgetState extends State<EmptyStateWidget>
       parent: _primaryController,
       curve: const Interval(0.0, 0.6, curve: Curves.easeOut),
     ));
-    
+
     // Scale animation
     _scaleAnimation = Tween<double>(
       begin: 0.5,
@@ -93,7 +92,7 @@ class _EmptyStateWidgetState extends State<EmptyStateWidget>
       parent: _primaryController,
       curve: const Interval(0.2, 0.8, curve: Curves.elasticOut),
     ));
-    
+
     // Slide animation (from bottom)
     _slideAnimation = Tween<Offset>(
       begin: const Offset(0.0, 0.5),
@@ -102,7 +101,7 @@ class _EmptyStateWidgetState extends State<EmptyStateWidget>
       parent: _primaryController,
       curve: const Interval(0.3, 1.0, curve: Curves.easeOutCubic),
     ));
-    
+
     // Pulse animation for icon
     _pulseAnimation = Tween<double>(
       begin: 1.0,
@@ -111,7 +110,7 @@ class _EmptyStateWidgetState extends State<EmptyStateWidget>
       parent: _pulseController,
       curve: Curves.easeInOut,
     ));
-    
+
     // Educational tip fade animation
     _tipFadeAnimation = Tween<double>(
       begin: 0.0,
@@ -121,10 +120,10 @@ class _EmptyStateWidgetState extends State<EmptyStateWidget>
       curve: Curves.easeIn,
     ));
   }
-  
+
   void _startAnimations() {
     _primaryController.forward();
-    
+
     if (widget.showPulsingIcon) {
       // Start pulse animation after entrance completes
       _primaryController.addStatusListener((status) {
@@ -133,7 +132,7 @@ class _EmptyStateWidgetState extends State<EmptyStateWidget>
         }
       });
     }
-    
+
     // Show educational tip after a delay
     if (widget.educationalTip != null) {
       Future.delayed(const Duration(milliseconds: 2000), () {
@@ -143,7 +142,7 @@ class _EmptyStateWidgetState extends State<EmptyStateWidget>
       });
     }
   }
-  
+
   @override
   void dispose() {
     _primaryController.dispose();
@@ -151,7 +150,7 @@ class _EmptyStateWidgetState extends State<EmptyStateWidget>
     _tipController.dispose();
     super.dispose();
   }
-  
+
   @override
   Widget build(BuildContext context) {
     return Center(
@@ -161,7 +160,7 @@ class _EmptyStateWidgetState extends State<EmptyStateWidget>
       ),
     );
   }
-  
+
   Widget _buildAnimatedContent() {
     switch (widget.animationType) {
       case EmptyStateAnimationType.fadeInScale:
@@ -174,7 +173,7 @@ class _EmptyStateWidgetState extends State<EmptyStateWidget>
         return widget.customAnimation ?? _buildFadeInScaleContent();
     }
   }
-  
+
   Widget _buildFadeInScaleContent() {
     return AnimatedBuilder(
       animation: _primaryController,
@@ -189,7 +188,7 @@ class _EmptyStateWidgetState extends State<EmptyStateWidget>
       },
     );
   }
-  
+
   Widget _buildSlideUpContent() {
     return AnimatedBuilder(
       animation: _primaryController,
@@ -204,7 +203,7 @@ class _EmptyStateWidgetState extends State<EmptyStateWidget>
       },
     );
   }
-  
+
   Widget _buildBounceInContent() {
     return AnimatedBuilder(
       animation: _primaryController,
@@ -219,7 +218,7 @@ class _EmptyStateWidgetState extends State<EmptyStateWidget>
       },
     );
   }
-  
+
   Widget _buildContent() {
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
@@ -229,7 +228,7 @@ class _EmptyStateWidgetState extends State<EmptyStateWidget>
           _buildAnimatedIcon(),
           const SizedBox(height: AppTheme.paddingLarge),
         ],
-        
+
         // Title
         Text(
           widget.title,
@@ -239,9 +238,9 @@ class _EmptyStateWidgetState extends State<EmptyStateWidget>
               ),
           textAlign: TextAlign.center,
         ),
-        
+
         const SizedBox(height: AppTheme.paddingSmall),
-        
+
         // Message
         Text(
           widget.message,
@@ -252,13 +251,13 @@ class _EmptyStateWidgetState extends State<EmptyStateWidget>
             height: 1.4,
           ),
         ),
-        
+
         // Educational tip
         if (widget.educationalTip != null) ...[
           const SizedBox(height: AppTheme.paddingRegular),
           _buildEducationalTip(),
         ],
-        
+
         // Action button
         if (widget.actionButton != null || widget.actionText != null) ...[
           const SizedBox(height: AppTheme.paddingLarge),
@@ -267,7 +266,7 @@ class _EmptyStateWidgetState extends State<EmptyStateWidget>
       ],
     );
   }
-  
+
   Widget _buildAnimatedIcon() {
     if (!widget.showPulsingIcon) {
       return Icon(
@@ -276,7 +275,7 @@ class _EmptyStateWidgetState extends State<EmptyStateWidget>
         color: widget.iconColor ?? Colors.grey.shade400,
       );
     }
-    
+
     return AnimatedBuilder(
       animation: _pulseController,
       builder: (context, child) {
@@ -291,7 +290,7 @@ class _EmptyStateWidgetState extends State<EmptyStateWidget>
       },
     );
   }
-  
+
   Widget _buildEducationalTip() {
     return AnimatedBuilder(
       animation: _tipController,
@@ -332,12 +331,12 @@ class _EmptyStateWidgetState extends State<EmptyStateWidget>
       },
     );
   }
-  
+
   Widget _buildActionButton() {
     if (widget.actionButton != null) {
       return widget.actionButton!;
     }
-    
+
     if (widget.actionText != null && widget.onActionPressed != null) {
       return ElevatedButton.icon(
         onPressed: widget.onActionPressed,
@@ -356,7 +355,7 @@ class _EmptyStateWidgetState extends State<EmptyStateWidget>
         ),
       );
     }
-    
+
     return const SizedBox.shrink();
   }
 }
@@ -377,14 +376,15 @@ class EmptyHistoryStateWidget extends StatelessWidget {
     super.key,
     this.onStartClassifying,
   });
-  
+
   final VoidCallback? onStartClassifying;
-  
+
   @override
   Widget build(BuildContext context) {
     return EmptyStateWidget(
       title: 'No History Yet',
-      message: 'Start classifying items to build your waste history.\nEvery classification helps you learn and track your environmental impact!',
+      message:
+          'Start classifying items to build your waste history.\nEvery classification helps you learn and track your environmental impact!',
       icon: Icons.history_toggle_off_outlined,
       educationalTip: 'Tip: Take photos of different waste items to learn proper disposal methods',
       actionText: 'Start Classifying',
@@ -399,14 +399,15 @@ class EmptyAchievementsStateWidget extends StatelessWidget {
     super.key,
     this.onStartEarning,
   });
-  
+
   final VoidCallback? onStartEarning;
-  
+
   @override
   Widget build(BuildContext context) {
     return EmptyStateWidget(
       title: 'Your Journey Starts Here',
-      message: 'Complete waste classifications to unlock achievements and earn points.\nEvery small action makes a big difference!',
+      message:
+          'Complete waste classifications to unlock achievements and earn points.\nEvery small action makes a big difference!',
       icon: Icons.emoji_events_outlined,
       iconColor: Colors.amber.shade600,
       animationType: EmptyStateAnimationType.bounceIn,
@@ -425,16 +426,17 @@ class EmptySearchResultsWidget extends StatelessWidget {
     this.onClearSearch,
     this.onTryDifferentSearch,
   });
-  
+
   final String searchQuery;
   final VoidCallback? onClearSearch;
   final VoidCallback? onTryDifferentSearch;
-  
+
   @override
   Widget build(BuildContext context) {
     return EmptyStateWidget(
       title: 'No Results Found',
-      message: 'We couldn\'t find any items matching "$searchQuery".\nTry adjusting your search terms or explore different categories.',
+      message:
+          'We couldn\'t find any items matching "$searchQuery".\nTry adjusting your search terms or explore different categories.',
       icon: Icons.search_off_outlined,
       animationType: EmptyStateAnimationType.slideUp,
       educationalTip: 'Try searching for broader terms like "plastic" or "paper"',
@@ -451,17 +453,18 @@ class EmptyFilteredResultsWidget extends StatelessWidget {
     this.onClearFilters,
     this.activeFiltersCount = 0,
   });
-  
+
   final VoidCallback? onClearFilters;
   final int activeFiltersCount;
-  
+
   @override
   Widget build(BuildContext context) {
     return EmptyStateWidget(
       title: 'No Results Found',
-      message: 'Your current filters don\'t match any items.\nTry adjusting or clearing your filters to see more results.',
+      message:
+          'Your current filters don\'t match any items.\nTry adjusting or clearing your filters to see more results.',
       icon: Icons.filter_alt_off_outlined,
-      educationalTip: activeFiltersCount > 1 
+      educationalTip: activeFiltersCount > 1
           ? 'Try removing some filters to expand your results'
           : 'Different categories might have the content you\'re looking for',
       actionText: 'Clear Filters',
@@ -477,16 +480,16 @@ class EmptyEducationalContentWidget extends StatelessWidget {
     this.onExploreCategories,
     this.category,
   });
-  
+
   final VoidCallback? onExploreCategories;
   final String? category;
-  
+
   @override
   Widget build(BuildContext context) {
-    final message = category != null 
+    final message = category != null
         ? 'No content available for "$category" yet.\nExplore other categories or check back later for new content.'
         : 'Educational content is being prepared.\nCheck back soon for helpful waste management tips and guides.';
-        
+
     return EmptyStateWidget(
       title: 'Content Coming Soon',
       message: message,
@@ -508,64 +511,63 @@ class RefreshLoadingWidget extends StatefulWidget {
     this.showSteps = true,
     this.showEducationalTips = true,
   });
-  
+
   final String message;
   final bool showSteps;
   final bool showEducationalTips;
-  
+
   @override
   State<RefreshLoadingWidget> createState() => _RefreshLoadingWidgetState();
 }
 
-class _RefreshLoadingWidgetState extends State<RefreshLoadingWidget>
-    with TickerProviderStateMixin {
+class _RefreshLoadingWidgetState extends State<RefreshLoadingWidget> with TickerProviderStateMixin {
   late AnimationController _particleController;
   late AnimationController _stepController;
   late AnimationController _tipController;
-  
+
   late Animation<double> _particleAnimation;
   late Animation<double> _stepAnimation;
-  
+
   int _currentStep = 0;
   int _currentTipIndex = 0;
-  
+
   final List<String> _loadingSteps = [
     'Syncing...',
     'Loading...',
     'Almost ready...',
     'Complete!',
   ];
-  
+
   final List<String> _educationalTips = [
     'Did you know? Proper waste sorting can reduce landfill waste by 30%',
     'Tip: Rinse containers before recycling for better quality materials',
     'Fact: Composting food waste creates nutrient-rich soil for plants',
     'Remember: Small actions lead to big environmental changes',
   ];
-  
+
   @override
   void initState() {
     super.initState();
-    
+
     _particleController = AnimationController(
       duration: const Duration(milliseconds: 2000),
       vsync: this,
     );
-    
+
     _stepController = AnimationController(
       duration: const Duration(milliseconds: 1500),
       vsync: this,
     );
-    
+
     _tipController = AnimationController(
       duration: const Duration(milliseconds: 800),
       vsync: this,
     );
-    
+
     _setupAnimations();
     _startAnimations();
   }
-  
+
   void _setupAnimations() {
     _particleAnimation = Tween<double>(
       begin: 0.0,
@@ -574,7 +576,7 @@ class _RefreshLoadingWidgetState extends State<RefreshLoadingWidget>
       parent: _particleController,
       curve: Curves.easeInOut,
     ));
-    
+
     _stepAnimation = Tween<double>(
       begin: 0.0,
       end: 1.0,
@@ -583,10 +585,10 @@ class _RefreshLoadingWidgetState extends State<RefreshLoadingWidget>
       curve: Curves.easeOut,
     ));
   }
-  
+
   void _startAnimations() {
     _particleController.repeat();
-    
+
     if (widget.showSteps) {
       _stepController.forward();
       _stepController.addStatusListener((status) {
@@ -603,12 +605,12 @@ class _RefreshLoadingWidgetState extends State<RefreshLoadingWidget>
         }
       });
     }
-    
+
     if (widget.showEducationalTips) {
       _startTipRotation();
     }
   }
-  
+
   void _startTipRotation() {
     Future.delayed(const Duration(seconds: 2), () {
       if (mounted) {
@@ -629,7 +631,7 @@ class _RefreshLoadingWidgetState extends State<RefreshLoadingWidget>
       }
     });
   }
-  
+
   @override
   void dispose() {
     _particleController.dispose();
@@ -637,7 +639,7 @@ class _RefreshLoadingWidgetState extends State<RefreshLoadingWidget>
     _tipController.dispose();
     super.dispose();
   }
-  
+
   @override
   Widget build(BuildContext context) {
     return Center(
@@ -683,9 +685,9 @@ class _RefreshLoadingWidgetState extends State<RefreshLoadingWidget>
                 );
               },
             ),
-            
+
             const SizedBox(height: AppTheme.paddingLarge),
-            
+
             // Loading message
             Text(
               widget.message,
@@ -695,7 +697,7 @@ class _RefreshLoadingWidgetState extends State<RefreshLoadingWidget>
                 color: AppTheme.textPrimaryColor,
               ),
             ),
-            
+
             // Step indicators
             if (widget.showSteps) ...[
               const SizedBox(height: AppTheme.paddingRegular),
@@ -715,7 +717,7 @@ class _RefreshLoadingWidgetState extends State<RefreshLoadingWidget>
                 },
               ),
             ],
-            
+
             // Educational tips
             if (widget.showEducationalTips) ...[
               const SizedBox(height: AppTheme.paddingLarge),

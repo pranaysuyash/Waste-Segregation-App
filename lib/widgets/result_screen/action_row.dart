@@ -24,7 +24,7 @@ class ActionRow extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       child: Row(
@@ -82,12 +82,10 @@ class ActionRow extends ConsumerWidget {
               width: 48,
               height: 48,
               decoration: BoxDecoration(
-                color: isPrimary 
-                    ? colorScheme.primaryContainer
-                    : colorScheme.surfaceContainerHighest,
+                color: isPrimary ? colorScheme.primaryContainer : colorScheme.surfaceContainerHighest,
                 borderRadius: BorderRadius.circular(24),
                 border: Border.all(
-                  color: isPrimary 
+                  color: isPrimary
                       ? colorScheme.primary.withValues(alpha: 0.3)
                       : colorScheme.outline.withValues(alpha: 0.2),
                 ),
@@ -95,7 +93,7 @@ class ActionRow extends ConsumerWidget {
               child: Material(
                 color: Colors.transparent,
                 child: InkWell(
-                  onTap: onPressed != null 
+                  onTap: onPressed != null
                       ? () {
                           HapticFeedback.lightImpact();
                           onPressed();
@@ -106,23 +104,19 @@ class ActionRow extends ConsumerWidget {
                     label: semanticLabel,
                     button: true,
                     child: Center(
-                      child: isLoading 
+                      child: isLoading
                           ? SizedBox(
                               width: 20,
                               height: 20,
                               child: CircularProgressIndicator(
                                 strokeWidth: 2,
-                                color: isPrimary 
-                                    ? colorScheme.onPrimaryContainer
-                                    : colorScheme.onSurfaceVariant,
+                                color: isPrimary ? colorScheme.onPrimaryContainer : colorScheme.onSurfaceVariant,
                               ),
                             )
                           : Icon(
                               icon,
                               color: onPressed != null
-                                  ? (isPrimary 
-                                      ? colorScheme.onPrimaryContainer
-                                      : colorScheme.onSurfaceVariant)
+                                  ? (isPrimary ? colorScheme.onPrimaryContainer : colorScheme.onSurfaceVariant)
                                   : colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
                               size: 20,
                             ),
@@ -131,21 +125,19 @@ class ActionRow extends ConsumerWidget {
                 ),
               ),
             ),
-            
+
             const SizedBox(height: 8),
-            
+
             // Label
             Text(
               label,
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: onPressed != null
-                    ? (isPrimary 
-                        ? colorScheme.primary
-                        : colorScheme.onSurfaceVariant)
-                    : colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
-                fontWeight: isPrimary ? FontWeight.w600 : FontWeight.w500,
-                fontSize: 12,
-              ),
+                    color: onPressed != null
+                        ? (isPrimary ? colorScheme.primary : colorScheme.onSurfaceVariant)
+                        : colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
+                    fontWeight: isPrimary ? FontWeight.w600 : FontWeight.w500,
+                    fontSize: 12,
+                  ),
               textAlign: TextAlign.center,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
@@ -155,4 +147,4 @@ class ActionRow extends ConsumerWidget {
       ),
     );
   }
-} 
+}

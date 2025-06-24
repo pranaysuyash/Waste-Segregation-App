@@ -30,31 +30,31 @@ class ColorAdapter extends TypeAdapter<Color> {
 enum AchievementType {
   // Category-based achievements
   @HiveField(0)
-  wasteIdentified,      // Identify waste items
+  wasteIdentified, // Identify waste items
   @HiveField(1)
   categoriesIdentified, // Identify different categories
   @HiveField(2)
-  streakMaintained,     // Maintain a usage streak
+  streakMaintained, // Maintain a usage streak
   @HiveField(3)
-  challengesCompleted,  // Complete challenges
+  challengesCompleted, // Complete challenges
   @HiveField(4)
-  perfectWeek,          // Use app every day for a week
+  perfectWeek, // Use app every day for a week
   @HiveField(5)
-  knowledgeMaster,      // Complete educational content
+  knowledgeMaster, // Complete educational content
   @HiveField(6)
-  quizCompleted,        // Complete quizzes
+  quizCompleted, // Complete quizzes
   @HiveField(7)
-  specialItem,          // Identify special or rare items
+  specialItem, // Identify special or rare items
   @HiveField(8)
   communityContribution, // Contribute to community challenges
   @HiveField(9)
-  metaAchievement,      // Achievements for earning other achievements
+  metaAchievement, // Achievements for earning other achievements
   @HiveField(10)
-  specialEvent,         // Limited-time or event-based achievements
+  specialEvent, // Limited-time or event-based achievements
   @HiveField(11)
-  userGoal,             // User-defined goal achievements
+  userGoal, // User-defined goal achievements
   @HiveField(12)
-  collectionMilestone,  // Milestone in waste type collection
+  collectionMilestone, // Milestone in waste type collection
   @HiveField(13)
   firstClassification,
   @HiveField(14)
@@ -92,16 +92,17 @@ enum AchievementTier {
 @HiveType(typeId: 7)
 enum ClaimStatus {
   @HiveField(0)
-  claimed,      // User has claimed the reward
+  claimed, // User has claimed the reward
   @HiveField(1)
-  unclaimed,    // User is eligible but hasn't claimed the reward
+  unclaimed, // User is eligible but hasn't claimed the reward
   @HiveField(2)
-  ineligible    // User is not yet eligible to claim
+  ineligible // User is not yet eligible to claim
 }
 
 /// Represents a badge or trophy that can be earned
 @HiveType(typeId: 8)
-class Achievement {   // For meta-achievements
+class Achievement {
+  // For meta-achievements
 
   const Achievement({
     required this.id,
@@ -123,7 +124,7 @@ class Achievement {   // For meta-achievements
     this.relatedAchievementIds = const [],
     this.clues = const [],
   });
-  
+
   // For deserialization
   factory Achievement.fromJson(Map<String, dynamic> json) {
     return Achievement(
@@ -140,7 +141,7 @@ class Achievement {   // For meta-achievements
       isSecret: json['isSecret'] ?? false,
       earnedOn: json['earnedOn'] != null ? DateTime.parse(json['earnedOn']) : null,
       progress: (json['progress'] as num?)?.toDouble() ?? 0.0,
-      tier: json['tier'] != null 
+      tier: json['tier'] != null
           ? AchievementTier.values.firstWhere(
               (e) => e.toString() == json['tier'],
               orElse: () => AchievementTier.bronze,
@@ -154,13 +155,10 @@ class Achievement {   // For meta-achievements
               orElse: () => ClaimStatus.ineligible,
             )
           : ClaimStatus.ineligible,
-      metadata: json['metadata'] != null
-          ? Map<String, dynamic>.from(json['metadata'])
-          : {},
+      metadata: json['metadata'] != null ? Map<String, dynamic>.from(json['metadata']) : {},
       pointsReward: json['pointsReward'] ?? 50,
-      relatedAchievementIds: json['relatedAchievementIds'] != null
-          ? List<String>.from(json['relatedAchievementIds'])
-          : [],
+      relatedAchievementIds:
+          json['relatedAchievementIds'] != null ? List<String>.from(json['relatedAchievementIds']) : [],
       clues: json['clues'] != null ? List<String>.from(json['clues']) : const [],
     );
   }
@@ -173,42 +171,42 @@ class Achievement {   // For meta-achievements
   @HiveField(3)
   final AchievementType type;
   @HiveField(4)
-  final int threshold;  // Number required to earn this achievement
+  final int threshold; // Number required to earn this achievement
   @HiveField(5)
   final String iconName;
   @HiveField(6)
   final Color color;
   @HiveField(7)
-  final bool isSecret;  // Whether this is a hidden achievement
+  final bool isSecret; // Whether this is a hidden achievement
   @HiveField(8)
   final DateTime? earnedOn;
   @HiveField(9)
   final double progress; // Progress from 0.0 to 1.0
-  
+
   // New properties for enhanced gamification
   @HiveField(10)
-  final AchievementTier tier;                 // Bronze, Silver, Gold, Platinum
+  final AchievementTier tier; // Bronze, Silver, Gold, Platinum
   @HiveField(11)
-  final String? achievementFamilyId;          // Groups related tiered achievements
+  final String? achievementFamilyId; // Groups related tiered achievements
   @HiveField(12)
-  final int? unlocksAtLevel;                  // Level required to unlock this achievement
+  final int? unlocksAtLevel; // Level required to unlock this achievement
   @HiveField(13)
-  final ClaimStatus claimStatus;              // Whether the achievement reward is claimed
+  final ClaimStatus claimStatus; // Whether the achievement reward is claimed
   @HiveField(14)
-  final Map<String, dynamic> metadata;        // Additional achievement-specific data
+  final Map<String, dynamic> metadata; // Additional achievement-specific data
   @HiveField(15)
-  final int pointsReward;                     // Points earned when achievement is completed
+  final int pointsReward; // Points earned when achievement is completed
   @HiveField(16)
   final List<String> relatedAchievementIds;
   @HiveField(17)
   final List<String> clues;
-  
+
   bool get isEarned => earnedOn != null;
-  
+
   bool get isClaimable => isEarned && claimStatus == ClaimStatus.unclaimed;
-  
+
   bool get isLocked => unlocksAtLevel != null && unlocksAtLevel! > 0;
-  
+
   // Get tier-specific text color for visual distinction
   Color getTierColor() {
     switch (tier) {
@@ -222,12 +220,12 @@ class Achievement {   // For meta-achievements
         return const Color(0xFF71797E); // Darker Platinum for better contrast
     }
   }
-  
+
   // Get tier-specific name
   String get tierName {
     return tier.toString().split('.').last.capitalize();
   }
-  
+
   // For serialization
   Map<String, dynamic> toJson() {
     return {
@@ -237,7 +235,10 @@ class Achievement {   // For meta-achievements
       'type': type.toString().split('.').last,
       'threshold': threshold,
       'iconName': iconName,
-      'color': ((color.a * 255).round() << 24) | ((color.r * 255).round() << 16) | ((color.g * 255).round() << 8) | (color.b * 255).round(),
+      'color': ((color.a * 255).round() << 24) |
+          ((color.r * 255).round() << 16) |
+          ((color.g * 255).round() << 8) |
+          (color.b * 255).round(),
       'isSecret': isSecret,
       'earnedOn': earnedOn?.toIso8601String(),
       'progress': progress,
@@ -251,7 +252,7 @@ class Achievement {   // For meta-achievements
       'clues': clues,
     };
   }
-  
+
   // Create a copy with updated values
   Achievement copyWith({
     String? id,
@@ -305,27 +306,24 @@ extension StringExtension on String {
 
 /// Represents a daily streak of app usage
 class Streak {
-  
   const Streak({
     this.current = 0,
     this.longest = 0,
     required this.lastUsageDate,
   });
-  
+
   // For deserialization
   factory Streak.fromJson(Map<String, dynamic> json) {
     return Streak(
       current: json['current'] ?? 0,
       longest: json['longest'] ?? 0,
-      lastUsageDate: json['lastUsageDate'] != null 
-          ? DateTime.parse(json['lastUsageDate'])
-          : DateTime.now(),
+      lastUsageDate: json['lastUsageDate'] != null ? DateTime.parse(json['lastUsageDate']) : DateTime.now(),
     );
   }
   final int current;
   final int longest;
   final DateTime lastUsageDate;
-  
+
   // For serialization
   Map<String, dynamic> toJson() {
     return {
@@ -334,7 +332,7 @@ class Streak {
       'lastUsageDate': lastUsageDate.toIso8601String(),
     };
   }
-  
+
   // Create a copy with updated values
   Streak copyWith({
     int? current,
@@ -351,8 +349,9 @@ class Streak {
 
 /// Represents a challenge that can be completed for rewards
 @HiveType(typeId: 10)
-class Challenge { // For team challenges
-  
+class Challenge {
+  // For team challenges
+
   const Challenge({
     required this.id,
     required this.title,
@@ -382,9 +381,7 @@ class Challenge { // For team challenges
       requirements: json['requirements'],
       isCompleted: json['isCompleted'] ?? false,
       progress: json['progress'] ?? 0.0,
-      participantIds: json['participantIds'] != null 
-          ? List<String>.from(json['participantIds'])
-          : [],
+      participantIds: json['participantIds'] != null ? List<String>.from(json['participantIds']) : [],
     );
   }
   @HiveField(0)
@@ -411,13 +408,11 @@ class Challenge { // For team challenges
   final double progress; // Progress from 0.0 to 1.0
   @HiveField(11)
   final List<String> participantIds;
-  
-  bool get isActive => 
-      DateTime.now().isAfter(startDate) && 
-      DateTime.now().isBefore(endDate);
-  
+
+  bool get isActive => DateTime.now().isAfter(startDate) && DateTime.now().isBefore(endDate);
+
   bool get isExpired => DateTime.now().isAfter(endDate);
-  
+
   // For serialization
   Map<String, dynamic> toJson() {
     return {
@@ -428,14 +423,17 @@ class Challenge { // For team challenges
       'endDate': endDate.toIso8601String(),
       'pointsReward': pointsReward,
       'iconName': iconName,
-      'color': ((color.a * 255).round() << 24) | ((color.r * 255).round() << 16) | ((color.g * 255).round() << 8) | (color.b * 255).round(),
+      'color': ((color.a * 255).round() << 24) |
+          ((color.r * 255).round() << 16) |
+          ((color.g * 255).round() << 8) |
+          (color.b * 255).round(),
       'requirements': requirements,
       'isCompleted': isCompleted,
       'progress': progress,
       'participantIds': participantIds,
     };
   }
-  
+
   // Create a copy with updated values
   Challenge copyWith({
     String? id,
@@ -470,8 +468,9 @@ class Challenge { // For team challenges
 
 /// Represents a user's points and rank
 @HiveType(typeId: 11)
-class UserPoints { // Points per waste category
-  
+class UserPoints {
+  // Points per waste category
+
   const UserPoints({
     this.total = 0,
     this.weeklyTotal = 0,
@@ -487,9 +486,7 @@ class UserPoints { // Points per waste category
       weeklyTotal: json['weeklyTotal'] ?? 0,
       monthlyTotal: json['monthlyTotal'] ?? 0,
       level: json['level'] ?? 1,
-      categoryPoints: json['categoryPoints'] != null 
-          ? Map<String, int>.from(json['categoryPoints'])
-          : {},
+      categoryPoints: json['categoryPoints'] != null ? Map<String, int>.from(json['categoryPoints']) : {},
     );
   }
   @HiveField(0)
@@ -502,13 +499,13 @@ class UserPoints { // Points per waste category
   final int level;
   @HiveField(4)
   final Map<String, int> categoryPoints;
-  
+
   // Fixed: Calculate points needed to reach next level
   int get pointsToNextLevel {
     final pointsForNextLevel = level * 100;
     return pointsForNextLevel - total;
   }
-  
+
   // Get level name based on points
   String get rankName {
     if (level < 5) return 'Recycling Rookie';
@@ -518,7 +515,7 @@ class UserPoints { // Points per waste category
     if (level < 25) return 'Sustainability Sage';
     return 'Waste Management Master';
   }
-  
+
   // For serialization
   Map<String, dynamic> toJson() {
     return {
@@ -529,7 +526,7 @@ class UserPoints { // Points per waste category
       'categoryPoints': categoryPoints,
     };
   }
-  
+
   // Create a copy with updated values
   UserPoints copyWith({
     int? total,
@@ -550,8 +547,9 @@ class UserPoints { // Points per waste category
 
 /// Represents weekly statistics for leaderboards
 @HiveType(typeId: 12)
-class WeeklyStats { // Count per waste category
-  
+class WeeklyStats {
+  // Count per waste category
+
   const WeeklyStats({
     required this.weekStartDate,
     this.itemsIdentified = 0,
@@ -569,9 +567,7 @@ class WeeklyStats { // Count per waste category
       challengesCompleted: json['challengesCompleted'] ?? 0,
       streakMaximum: json['streakMaximum'] ?? 0,
       pointsEarned: json['pointsEarned'] ?? 0,
-      categoryCounts: json['categoryCounts'] != null 
-          ? Map<String, int>.from(json['categoryCounts'])
-          : {},
+      categoryCounts: json['categoryCounts'] != null ? Map<String, int>.from(json['categoryCounts']) : {},
     );
   }
   @HiveField(0)
@@ -586,7 +582,7 @@ class WeeklyStats { // Count per waste category
   final int pointsEarned;
   @HiveField(5)
   final Map<String, int> categoryCounts;
-  
+
   // For serialization
   Map<String, dynamic> toJson() {
     return {
@@ -598,7 +594,7 @@ class WeeklyStats { // Count per waste category
       'categoryCounts': categoryCounts,
     };
   }
-  
+
   // Create a copy with updated values
   WeeklyStats copyWith({
     DateTime? weekStartDate,
@@ -622,7 +618,6 @@ class WeeklyStats { // Count per waste category
 /// User's gamification profile containing all gamification data
 @HiveType(typeId: 9)
 class GamificationProfile {
-  
   const GamificationProfile({
     required this.userId,
     this.achievements = const [],
@@ -641,41 +636,30 @@ class GamificationProfile {
   factory GamificationProfile.fromJson(Map<String, dynamic> json) {
     return GamificationProfile(
       userId: json['userId'],
-      achievements: json['achievements'] != null 
-          ? List<Map<String, dynamic>>.from(json['achievements'])
-              .map((a) => Achievement.fromJson(a))
-              .toList()
+      achievements: json['achievements'] != null
+          ? List<Map<String, dynamic>>.from(json['achievements']).map((a) => Achievement.fromJson(a)).toList()
           : [],
       streaks: (json['streaks'] as Map<String, dynamic>?)?.map(
             (key, value) => MapEntry(key, StreakDetails.fromJson(value as Map<String, dynamic>)),
-          ) ?? const {},
-      points: json['points'] != null 
-          ? UserPoints.fromJson(json['points'])
-          : const UserPoints(),
-      activeChallenges: json['activeChallenges'] != null 
-          ? List<Map<String, dynamic>>.from(json['activeChallenges'])
-              .map((c) => Challenge.fromJson(c))
-              .toList()
+          ) ??
+          const {},
+      points: json['points'] != null ? UserPoints.fromJson(json['points']) : const UserPoints(),
+      activeChallenges: json['activeChallenges'] != null
+          ? List<Map<String, dynamic>>.from(json['activeChallenges']).map((c) => Challenge.fromJson(c)).toList()
           : [],
-      completedChallenges: json['completedChallenges'] != null 
-          ? List<Map<String, dynamic>>.from(json['completedChallenges'])
-              .map((c) => Challenge.fromJson(c))
-              .toList()
+      completedChallenges: json['completedChallenges'] != null
+          ? List<Map<String, dynamic>>.from(json['completedChallenges']).map((c) => Challenge.fromJson(c)).toList()
           : [],
-      weeklyStats: json['weeklyStats'] != null 
-          ? List<Map<String, dynamic>>.from(json['weeklyStats'])
-              .map((s) => WeeklyStats.fromJson(s))
-              .toList()
+      weeklyStats: json['weeklyStats'] != null
+          ? List<Map<String, dynamic>>.from(json['weeklyStats']).map((s) => WeeklyStats.fromJson(s)).toList()
           : [],
       discoveredItemIds: Set<String>.from(json['discoveredItemIds'] as List<dynamic>? ?? []),
-      lastDailyEngagementBonusAwardedDate:
-          json['lastDailyEngagementBonusAwardedDate'] != null
-              ? DateTime.parse(json['lastDailyEngagementBonusAwardedDate'])
-              : null,
-      lastViewPersonalStatsAwardedDate:
-          json['lastViewPersonalStatsAwardedDate'] != null
-              ? DateTime.parse(json['lastViewPersonalStatsAwardedDate'])
-              : null,
+      lastDailyEngagementBonusAwardedDate: json['lastDailyEngagementBonusAwardedDate'] != null
+          ? DateTime.parse(json['lastDailyEngagementBonusAwardedDate'])
+          : null,
+      lastViewPersonalStatsAwardedDate: json['lastViewPersonalStatsAwardedDate'] != null
+          ? DateTime.parse(json['lastViewPersonalStatsAwardedDate'])
+          : null,
       unlockedHiddenContentIds: Set<String>.from(json['unlockedHiddenContentIds'] as List<dynamic>? ?? []),
     );
   }
@@ -701,7 +685,7 @@ class GamificationProfile {
   final DateTime? lastViewPersonalStatsAwardedDate;
   @HiveField(10)
   final Set<String> unlockedHiddenContentIds;
-  
+
   // For serialization
   Map<String, dynamic> toJson() {
     return {
@@ -718,7 +702,7 @@ class GamificationProfile {
       'unlockedHiddenContentIds': unlockedHiddenContentIds.toList(),
     };
   }
-  
+
   // Create a copy with updated values
   GamificationProfile copyWith({
     String? userId,
@@ -742,7 +726,8 @@ class GamificationProfile {
       completedChallenges: completedChallenges ?? this.completedChallenges,
       weeklyStats: weeklyStats ?? this.weeklyStats,
       discoveredItemIds: discoveredItemIds ?? this.discoveredItemIds,
-      lastDailyEngagementBonusAwardedDate: lastDailyEngagementBonusAwardedDate ?? this.lastDailyEngagementBonusAwardedDate,
+      lastDailyEngagementBonusAwardedDate:
+          lastDailyEngagementBonusAwardedDate ?? this.lastDailyEngagementBonusAwardedDate,
       lastViewPersonalStatsAwardedDate: lastViewPersonalStatsAwardedDate ?? this.lastViewPersonalStatsAwardedDate,
       unlockedHiddenContentIds: unlockedHiddenContentIds ?? this.unlockedHiddenContentIds,
     );
@@ -761,7 +746,6 @@ enum FamilyReactionType {
 
 /// A reaction that a family member can give to shared content.
 class FamilyReaction {
-
   const FamilyReaction({
     required this.userId,
     required this.displayName,
@@ -807,7 +791,6 @@ class FamilyReaction {
 
 /// A comment that a family member can add to shared content.
 class FamilyComment {
-
   const FamilyComment({
     required this.id,
     required this.userId,
@@ -851,13 +834,10 @@ class FamilyComment {
       timestamp: DateTime.parse(json['timestamp'] as String),
       parentCommentId: json['parentCommentId'] as String?,
       isEdited: json['isEdited'] as bool? ?? false,
-      editedAt: json['editedAt'] != null
-          ? DateTime.parse(json['editedAt'] as String)
-          : null,
-      replies: (json['replies'] as List<dynamic>?)
-              ?.map((r) => FamilyComment.fromJson(r as Map<String, dynamic>))
-              .toList() ??
-          [],
+      editedAt: json['editedAt'] != null ? DateTime.parse(json['editedAt'] as String) : null,
+      replies:
+          (json['replies'] as List<dynamic>?)?.map((r) => FamilyComment.fromJson(r as Map<String, dynamic>)).toList() ??
+              [],
     );
   }
   final String id;
@@ -929,7 +909,6 @@ class FamilyComment {
 
 /// Classification location information for context.
 class ClassificationLocation {
-
   const ClassificationLocation({
     this.latitude,
     this.longitude,
@@ -972,7 +951,6 @@ class ClassificationLocation {
 
 /// Leaderboard entry for family competitions.
 class LeaderboardEntry {
-
   const LeaderboardEntry({
     required this.userId,
     required this.displayName,
@@ -993,9 +971,7 @@ class LeaderboardEntry {
       points: json['points'] as int,
       classificationsCount: json['classificationsCount'] as int,
       rank: json['rank'] as int,
-      achievements: (json['achievements'] as List<dynamic>)
-          .map((a) => a as String)
-          .toList(),
+      achievements: (json['achievements'] as List<dynamic>).map((a) => a as String).toList(),
       lastActive: DateTime.parse(json['lastActive'] as String),
     );
   }
@@ -1025,7 +1001,6 @@ class LeaderboardEntry {
 
 /// Analytics data for tracking user behavior and app usage.
 class AnalyticsEvent {
-
   const AnalyticsEvent({
     required this.id,
     required this.userId,
@@ -1100,7 +1075,7 @@ class AnalyticsEventTypes {
   // Core lifecycle
   static const String session = 'session';
   static const String pageView = 'page_view';
-  
+
   // Existing types
   static const String userAction = 'user_action';
   static const String screenView = 'screen_view';
@@ -1108,7 +1083,7 @@ class AnalyticsEventTypes {
   static const String social = 'social';
   static const String achievement = 'achievement';
   static const String error = 'error';
-  
+
   // New comprehensive types
   static const String interaction = 'interaction';
   static const String performance = 'performance';
@@ -1125,25 +1100,25 @@ class AnalyticsEventNames {
   static const String sessionStart = 'session_start';
   static const String sessionEnd = 'session_end';
   static const String pageView = 'page_view';
-  
+
   // Core interactions
   static const String click = 'click';
   static const String linkClick = 'link_click';
   static const String rageClick = 'rage_click';
   static const String scrollDepth = 'scroll_depth';
   static const String longPress = 'long_press';
-  
+
   // User Actions (existing)
   static const String buttonClick = 'button_click';
   static const String screenSwipe = 'screen_swipe';
   static const String searchPerformed = 'search_performed';
-  
+
   // Screen Views (existing)
   static const String homeScreenView = 'home_screen_view';
   static const String cameraScreenView = 'camera_screen_view';
   static const String resultsScreenView = 'results_screen_view';
   static const String familyScreenView = 'family_screen_view';
-  
+
   // Waste classification events
   static const String fileClassified = 'file_classified';
   static const String classificationStarted = 'classification_started';
@@ -1151,27 +1126,27 @@ class AnalyticsEventNames {
   static const String classificationRetried = 'classification_retried';
   static const String classificationShared = 'classification_shared';
   static const String disposalGuidanceViewed = 'disposal_guidance_viewed';
-  
+
   // Gamification events
   static const String pointsEarned = 'points_earned';
   static const String streakUpdated = 'streak_updated';
   static const String challengeCompleted = 'challenge_completed';
-  
+
   // Achievements (existing - maintain compatibility)
   static const String achievementUnlocked = 'achievement_unlocked';
   static const String levelUp = 'level_up';
-  
+
   // Educational content events
   static const String contentViewed = 'content_viewed';
   static const String contentCompleted = 'content_completed';
   static const String bookmarkAdded = 'bookmark_added';
-  
+
   // Performance & error events
   static const String clientError = 'client_error';
   static const String apiError = 'api_error';
   static const String slowResource = 'slow_resource';
   static const String networkFailure = 'network_failure';
-  
+
   // Social events (existing)
   static const String familyCreated = 'family_created';
   static const String familyJoined = 'family_joined';
@@ -1180,7 +1155,7 @@ class AnalyticsEventNames {
   static const String commentAdded = 'comment_added';
   static const String classificationReacted = 'classification_reacted';
   static const String leaderboardViewed = 'leaderboard_viewed';
-  
+
   // Legacy error events (maintain compatibility)
   static const String classificationError = 'classification_error';
   static const String networkError = 'network_error';
@@ -1204,7 +1179,6 @@ enum StreakType {
 /// New StreakDetails class
 @HiveType(typeId: 14)
 class StreakDetails {
-
   const StreakDetails({
     required this.type,
     this.currentCount = 0,
@@ -1220,9 +1194,8 @@ class StreakDetails {
       currentCount: json['currentCount'] ?? 0,
       longestCount: json['longestCount'] ?? 0,
       lastActivityDate: DateTime.parse(json['lastActivityDate']),
-      lastMaintenanceAwardedDate: json['lastMaintenanceAwardedDate'] != null
-          ? DateTime.parse(json['lastMaintenanceAwardedDate'])
-          : null,
+      lastMaintenanceAwardedDate:
+          json['lastMaintenanceAwardedDate'] != null ? DateTime.parse(json['lastMaintenanceAwardedDate']) : null,
       lastMilestoneAwardedLevel: json['lastMilestoneAwardedLevel'] ?? 0,
     );
   }
@@ -1240,13 +1213,13 @@ class StreakDetails {
   final int lastMilestoneAwardedLevel;
 
   Map<String, dynamic> toJson() => {
-    'type': type.name,
-    'currentCount': currentCount,
-    'longestCount': longestCount,
-    'lastActivityDate': lastActivityDate.toIso8601String(),
-    'lastMaintenanceAwardedDate': lastMaintenanceAwardedDate?.toIso8601String(),
-    'lastMilestoneAwardedLevel': lastMilestoneAwardedLevel,
-  };
+        'type': type.name,
+        'currentCount': currentCount,
+        'longestCount': longestCount,
+        'lastActivityDate': lastActivityDate.toIso8601String(),
+        'lastMaintenanceAwardedDate': lastMaintenanceAwardedDate?.toIso8601String(),
+        'lastMilestoneAwardedLevel': lastMilestoneAwardedLevel,
+      };
 
   StreakDetails copyWith({
     StreakType? type,

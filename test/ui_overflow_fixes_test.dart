@@ -43,14 +43,14 @@ void main() {
 
       // Verify the widget renders without overflow
       expect(find.byType(ClassificationFeedbackWidget), findsOneWidget);
-      
+
       // Tap "Incorrect" to show correction options
       await tester.tap(find.text('Incorrect'));
       await tester.pumpAndSettle();
 
       // Verify correction chips are displayed
       expect(find.byType(Wrap), findsWidgets);
-      
+
       // Check that no RenderFlex overflow occurs
       expect(tester.takeException(), isNull);
     });
@@ -92,15 +92,16 @@ void main() {
 
       // Verify the widget renders without overflow
       expect(find.byType(HistoryListItem), findsOneWidget);
-      
+
       // Check that no RenderFlex overflow occurs
       expect(tester.takeException(), isNull);
     });
 
     testWidgets('Interactive tag collection handles many tags', (WidgetTester tester) async {
       // Create many tags to test overflow
-      final tags = List.generate(10, (index) => 
-        TagData(
+      final tags = List.generate(
+        10,
+        (index) => TagData(
           text: 'Very Long Tag Name $index That Could Overflow',
           color: Colors.blue,
         ),
@@ -121,10 +122,10 @@ void main() {
 
       // Verify the widget renders without overflow
       expect(find.byType(InteractiveTagCollection), findsOneWidget);
-      
+
       // Verify "more" button appears when there are many tags
       expect(find.textContaining('more'), findsOneWidget);
-      
+
       // Check that no RenderFlex overflow occurs
       expect(tester.takeException(), isNull);
     });
@@ -181,13 +182,13 @@ void main() {
 
       // Verify dialog is displayed
       expect(find.byType(Dialog), findsOneWidget);
-      
+
       // Verify dialog has height constraints
       final dialog = tester.widget<Dialog>(find.byType(Dialog));
       expect(dialog.child, isA<Container>());
-      
+
       // Check that no overflow occurs
       expect(tester.takeException(), isNull);
     });
   });
-} 
+}

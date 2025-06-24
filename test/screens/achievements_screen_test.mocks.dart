@@ -10,8 +10,7 @@ import 'package:mockito/mockito.dart' as _i1;
 import 'package:waste_segregation_app/models/educational_content.dart' as _i6;
 import 'package:waste_segregation_app/models/gamification.dart' as _i2;
 import 'package:waste_segregation_app/models/waste_classification.dart' as _i5;
-import 'package:waste_segregation_app/services/gamification_service.dart'
-    as _i3;
+import 'package:waste_segregation_app/services/gamification_service.dart' as _i3;
 
 // ignore_for_file: type=lint
 // ignore_for_file: avoid_redundant_argument_values
@@ -26,8 +25,7 @@ import 'package:waste_segregation_app/services/gamification_service.dart'
 // ignore_for_file: camel_case_types
 // ignore_for_file: subtype_of_sealed_class
 
-class _FakeGamificationProfile_0 extends _i1.SmartFake
-    implements _i2.GamificationProfile {
+class _FakeGamificationProfile_0 extends _i1.SmartFake implements _i2.GamificationProfile {
   _FakeGamificationProfile_0(
     Object parent,
     Invocation parentInvocation,
@@ -60,8 +58,7 @@ class _FakeUserPoints_2 extends _i1.SmartFake implements _i2.UserPoints {
 /// A class which mocks [GamificationService].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockGamificationService extends _i1.Mock
-    implements _i3.GamificationService {
+class MockGamificationService extends _i1.Mock implements _i3.GamificationService {
   MockGamificationService() {
     _i1.throwOnMissingStub(this);
   }
@@ -83,16 +80,13 @@ class MockGamificationService extends _i1.Mock
       ) as _i4.Future<void>);
 
   @override
-  _i4.Future<_i2.GamificationProfile> getProfile(
-          {bool? forceRefresh = false}) =>
-      (super.noSuchMethod(
+  _i4.Future<_i2.GamificationProfile> getProfile({bool? forceRefresh = false}) => (super.noSuchMethod(
         Invocation.method(
           #getProfile,
           [],
           {#forceRefresh: forceRefresh},
         ),
-        returnValue: _i4.Future<_i2.GamificationProfile>.value(
-            _FakeGamificationProfile_0(
+        returnValue: _i4.Future<_i2.GamificationProfile>.value(_FakeGamificationProfile_0(
           this,
           Invocation.method(
             #getProfile,
@@ -103,9 +97,7 @@ class MockGamificationService extends _i1.Mock
       ) as _i4.Future<_i2.GamificationProfile>);
 
   @override
-  _i4.Future<void> saveProfile(
-          _i2.GamificationProfile? gamificationProfileToSave) =>
-      (super.noSuchMethod(
+  _i4.Future<void> saveProfile(_i2.GamificationProfile? gamificationProfileToSave) => (super.noSuchMethod(
         Invocation.method(
           #saveProfile,
           [gamificationProfileToSave],
@@ -168,8 +160,7 @@ class MockGamificationService extends _i1.Mock
       ) as _i4.Future<void>);
 
   @override
-  _i4.Future<void> syncAchievementProgressFromClassifications() =>
-      (super.noSuchMethod(
+  _i4.Future<void> syncAchievementProgressFromClassifications() => (super.noSuchMethod(
         Invocation.method(
           #syncAchievementProgressFromClassifications,
           [],
@@ -179,9 +170,7 @@ class MockGamificationService extends _i1.Mock
       ) as _i4.Future<void>);
 
   @override
-  _i4.Future<List<_i2.Challenge>> processClassification(
-          _i5.WasteClassification? classification) =>
-      (super.noSuchMethod(
+  _i4.Future<List<_i2.Challenge>> processClassification(_i5.WasteClassification? classification) => (super.noSuchMethod(
         Invocation.method(
           #processClassification,
           [classification],
@@ -190,8 +179,7 @@ class MockGamificationService extends _i1.Mock
       ) as _i4.Future<List<_i2.Challenge>>);
 
   @override
-  _i4.Future<void> processEducationalContent(_i6.EducationalContent? content) =>
-      (super.noSuchMethod(
+  _i4.Future<void> processEducationalContent(_i6.EducationalContent? content) => (super.noSuchMethod(
         Invocation.method(
           #processEducationalContent,
           [content],
@@ -213,8 +201,7 @@ class MockGamificationService extends _i1.Mock
             increment,
           ],
         ),
-        returnValue:
-            _i4.Future<List<_i2.Achievement>>.value(<_i2.Achievement>[]),
+        returnValue: _i4.Future<List<_i2.Achievement>>.value(<_i2.Achievement>[]),
       ) as _i4.Future<List<_i2.Achievement>>);
 
   @override
@@ -227,8 +214,7 @@ class MockGamificationService extends _i1.Mock
       ) as _i4.Future<List<_i2.Challenge>>);
 
   @override
-  _i4.Future<List<_i2.Challenge>> updateChallengeProgress(
-          _i5.WasteClassification? classification) =>
+  _i4.Future<List<_i2.Challenge>> updateChallengeProgress(_i5.WasteClassification? classification) =>
       (super.noSuchMethod(
         Invocation.method(
           #updateChallengeProgress,
@@ -243,8 +229,7 @@ class MockGamificationService extends _i1.Mock
           #getWeeklyStats,
           [],
         ),
-        returnValue:
-            _i4.Future<List<_i2.WeeklyStats>>.value(<_i2.WeeklyStats>[]),
+        returnValue: _i4.Future<List<_i2.WeeklyStats>>.value(<_i2.WeeklyStats>[]),
       ) as _i4.Future<List<_i2.WeeklyStats>>);
 
   @override
@@ -276,14 +261,12 @@ class MockGamificationService extends _i1.Mock
       ) as _i4.Future<int>);
 
   @override
-  _i4.Future<List<Map<String, dynamic>>> getArchivedPointsHistory() =>
-      (super.noSuchMethod(
+  _i4.Future<List<Map<String, dynamic>>> getArchivedPointsHistory() => (super.noSuchMethod(
         Invocation.method(
           #getArchivedPointsHistory,
           [],
         ),
-        returnValue: _i4.Future<List<Map<String, dynamic>>>.value(
-            <Map<String, dynamic>>[]),
+        returnValue: _i4.Future<List<Map<String, dynamic>>>.value(<Map<String, dynamic>>[]),
       ) as _i4.Future<List<Map<String, dynamic>>>);
 
   @override
@@ -297,14 +280,12 @@ class MockGamificationService extends _i1.Mock
       ) as _i4.Future<void>);
 
   @override
-  _i4.Future<_i2.GamificationProfile> forceRefreshProfile() =>
-      (super.noSuchMethod(
+  _i4.Future<_i2.GamificationProfile> forceRefreshProfile() => (super.noSuchMethod(
         Invocation.method(
           #forceRefreshProfile,
           [],
         ),
-        returnValue: _i4.Future<_i2.GamificationProfile>.value(
-            _FakeGamificationProfile_0(
+        returnValue: _i4.Future<_i2.GamificationProfile>.value(_FakeGamificationProfile_0(
           this,
           Invocation.method(
             #forceRefreshProfile,

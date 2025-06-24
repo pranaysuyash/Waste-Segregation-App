@@ -45,7 +45,7 @@ class FirebaseCleanupService {
     StorageKeys.invitationsBox,
     StorageKeys.classificationFeedbackBox,
   ];
-  
+
   /// Performs a complete data wipe for the current user, providing a "fresh install" experience.
   /// This function is destructive and irreversible.
   Future<void> clearAllDataForFreshInstall() async {
@@ -77,7 +77,6 @@ class FirebaseCleanupService {
       await prefs.setBool('justDidFreshInstall', true);
       didPerformFreshInstall = true;
       WasteAppLogger.info('✅ Fresh install process completed successfully.');
-
     } catch (e, s) {
       WasteAppLogger.severe('❌ Error during fresh install process: $e');
       WasteAppLogger.info('Stack trace: $s');
@@ -102,9 +101,9 @@ class FirebaseCleanupService {
 
     // Delete user from global collections
     for (final collectionName in _globalCollections) {
-        final docRef = _firestore.collection(collectionName).doc(uid);
-        batch.delete(docRef);
-        WasteAppLogger.info('  - Staged deletion for doc "$uid" in "$collectionName"');
+      final docRef = _firestore.collection(collectionName).doc(uid);
+      batch.delete(docRef);
+      WasteAppLogger.info('  - Staged deletion for doc "$uid" in "$collectionName"');
     }
 
     await batch.commit();
@@ -171,10 +170,10 @@ class FirebaseCleanupService {
     }
     // In a real app, this would check for a custom claim.
     // For this project, we'll use the email as a simple check.
-    const adminEmail = 'pranaysuyash@gmail.com'; 
+    const adminEmail = 'pranaysuyash@gmail.com';
     if (currentUser.email != adminEmail) {
       throw Exception('Admin action failed: User ${currentUser.email} is not an authorized admin.');
     }
     WasteAppLogger.info('🔑 Admin user verified: ${currentUser.email}');
   }
-} 
+}

@@ -18,10 +18,10 @@ class TestHelper {
     try {
       // Initialize Hive in memory for tests
       Hive.init('.');
-      
+
       // Register adapters if needed
       // Note: Only register if not already registered
-      
+
       _hiveInitialized = true;
       debugPrint('✅ Test Hive initialized in memory');
     } catch (e) {
@@ -93,8 +93,7 @@ class MockClassificationCacheService extends Mock implements ClassificationCache
   final Map<String, CachedClassification> _mockCache = {};
 
   @override
-  Future<void> initialize() async {
-  }
+  Future<void> initialize() async {}
 
   @override
   Future<CachedClassification?> getCachedClassification(
@@ -134,4 +133,4 @@ class MockClassificationCacheService extends Mock implements ClassificationCache
   Future<void> clearCache() async {
     _mockCache.clear();
   }
-} 
+}

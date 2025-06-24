@@ -25,7 +25,7 @@ void main() {
       mockAiService = MockAiService();
       mockStorageService = MockStorageService();
       mockGamificationService = MockGamificationService();
-      
+
       mockClassification = WasteClassification(
         id: 'test-id',
         itemName: 'Test Item',
@@ -54,18 +54,17 @@ void main() {
         instructionsLang: 'en',
         classificationId: null,
       )).thenAnswer((_) async => mockClassification);
-      
+
       when(mockStorageService.saveClassification(mockClassification, force: false)).thenAnswer((_) async {});
-      
-      when(mockGamificationService.getProfile(forceRefresh: false))
-          .thenAnswer((_) async => GamificationProfile(
+
+      when(mockGamificationService.getProfile(forceRefresh: false)).thenAnswer((_) async => GamificationProfile(
             userId: 'test-user',
             points: const UserPoints(total: 100),
             streaks: const {},
             achievements: const [],
             activeChallenges: const [],
           ));
-      
+
       when(mockGamificationService.processClassification(mockClassification)).thenAnswer((_) async => []);
     });
 
@@ -90,18 +89,17 @@ void main() {
       if (instantAnalysisButton.evaluate().isNotEmpty) {
         await tester.tap(instantAnalysisButton);
         await tester.pump(); // Trigger the navigation
-        
+
         // Verify only one additional route was pushed
         final newRouteCount = navigator.widget.pages?.length ?? 1;
-        expect(newRouteCount, equals(initialRouteCount + 1), 
-               reason: 'Should push exactly one route, not multiple');
+        expect(newRouteCount, equals(initialRouteCount + 1), reason: 'Should push exactly one route, not multiple');
       }
     });
 
     testWidgets('InstantAnalysisScreen should not cause double navigation', (WidgetTester tester) async {
       // Create a mock XFile for testing
       final mockXFile = XFile('/test/image.jpg');
-      
+
       // Build InstantAnalysisScreen directly
       await tester.pumpWidget(
         TestAppWrapper(
@@ -111,19 +109,18 @@ void main() {
           child: InstantAnalysisScreen(image: mockXFile),
         ),
       );
-      
+
       // Let the analysis complete
       await tester.pumpAndSettle();
-      
+
       // Verify we're on ResultScreen (not multiple instances)
       expect(find.byType(ResultScreen), findsOneWidget);
       expect(find.byType(InstantAnalysisScreen), findsNothing);
-      
+
       // Verify Navigator stack depth
       final navigator = tester.state<NavigatorState>(find.byType(Navigator).first);
       final routeCount = navigator.widget.pages?.length ?? 1;
-      expect(routeCount, equals(1), 
-             reason: 'Should have exactly one route after navigation completes');
+      expect(routeCount, equals(1), reason: 'Should have exactly one route after navigation completes');
     });
 
     testWidgets('Multiple rapid taps should not cause multiple navigations', (WidgetTester tester) async {
@@ -145,12 +142,11 @@ void main() {
         await tester.tap(instantAnalysisButton);
         await tester.tap(instantAnalysisButton);
         await tester.pump();
-        
+
         // Verify only one navigation occurred
         final navigator = tester.state<NavigatorState>(find.byType(Navigator).first);
         final routeCount = navigator.widget.pages?.length ?? 1;
-        expect(routeCount, lessThanOrEqualTo(2), 
-               reason: 'Multiple rapid taps should not create multiple routes');
+        expect(routeCount, lessThanOrEqualTo(2), reason: 'Multiple rapid taps should not create multiple routes');
       }
     });
 
@@ -168,18 +164,17 @@ void main() {
       // Simulate concurrent navigation attempts
       final takePhotoButton = find.byKey(const Key('take_photo_button'));
       final pickImageButton = find.byKey(const Key('pick_image_button'));
-      
+
       if (takePhotoButton.evaluate().isNotEmpty && pickImageButton.evaluate().isNotEmpty) {
         // Try to trigger both navigation paths simultaneously
         await tester.tap(takePhotoButton);
         await tester.tap(pickImageButton);
         await tester.pump();
-        
+
         // Verify navigation guard prevented double navigation
         final navigator = tester.state<NavigatorState>(find.byType(Navigator).first);
         final routeCount = navigator.widget.pages?.length ?? 1;
-        expect(routeCount, lessThanOrEqualTo(2), 
-               reason: 'Navigation guard should prevent concurrent navigation');
+        expect(routeCount, lessThanOrEqualTo(2), reason: 'Navigation guard should prevent concurrent navigation');
       }
     });
   });
@@ -187,7 +182,7 @@ void main() {
   group('Navigation Observer Tests', () {
     testWidgets('DebugNavigatorObserver should log navigation events', (WidgetTester tester) async {
       final logs = <String>[];
-      
+
       // Override debugPrint to capture logs
       void Function(String?, {int? wrapWidth}) originalDebugPrint = debugPrint;
       debugPrint = (String? message, {int? wrapWidth}) {
@@ -213,12 +208,11 @@ void main() {
         }
 
         // Verify navigation events were logged
-        expect(logs.any((log) => log.contains('NAVIGATION PUSH')), isTrue,
-               reason: 'Should log navigation push events');
+        expect(logs.any((log) => log.contains('NAVIGATION PUSH')), isTrue, reason: 'Should log navigation push events');
       } finally {
         // Restore original debugPrint
         debugPrint = originalDebugPrint;
       }
     });
   });
-} 
+}

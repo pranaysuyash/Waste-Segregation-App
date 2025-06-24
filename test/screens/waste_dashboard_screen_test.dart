@@ -25,14 +25,22 @@ void main() {
 
       // Create test data
       testClassifications = [
-        WasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
+        WasteClassification(
+          itemName: 'Test Item',
+          explanation: 'Test explanation',
+          category: 'plastic',
+          region: 'Test Region',
+          visualFeatures: ['test feature'],
+          alternatives: [],
+          disposalInstructions:
+              DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false),
           id: 'test1',
           itemName: 'Plastic Bottle',
           subcategory: 'Plastic',
           confidence: 0.95,
-            region: 'Test Region',
-            visualFeatures: ['test feature'],
-            alternatives: [],
+          region: 'Test Region',
+          visualFeatures: ['test feature'],
+          alternatives: [],
           timestamp: DateTime.now().subtract(const Duration(days: 5)),
           imageUrl: 'test_url_1',
           source: 'ai',
@@ -45,14 +53,22 @@ void main() {
             hasUrgentTimeframe: false,
           ),
         ),
-        WasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
+        WasteClassification(
+          itemName: 'Test Item',
+          explanation: 'Test explanation',
+          category: 'plastic',
+          region: 'Test Region',
+          visualFeatures: ['test feature'],
+          alternatives: [],
+          disposalInstructions:
+              DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false),
           id: 'test2',
           itemName: 'Food Scraps',
           subcategory: 'Food Waste',
           confidence: 0.87,
-            region: 'Test Region',
-            visualFeatures: ['test feature'],
-            alternatives: [],
+          region: 'Test Region',
+          visualFeatures: ['test feature'],
+          alternatives: [],
           timestamp: DateTime.now().subtract(const Duration(days: 3)),
           imageUrl: 'test_url_2',
           source: 'ai',
@@ -65,14 +81,22 @@ void main() {
             hasUrgentTimeframe: false,
           ),
         ),
-        WasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
+        WasteClassification(
+          itemName: 'Test Item',
+          explanation: 'Test explanation',
+          category: 'plastic',
+          region: 'Test Region',
+          visualFeatures: ['test feature'],
+          alternatives: [],
+          disposalInstructions:
+              DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false),
           id: 'test3',
           itemName: 'Battery',
           subcategory: 'Batteries',
           confidence: 0.92,
-            region: 'Test Region',
-            visualFeatures: ['test feature'],
-            alternatives: [],
+          region: 'Test Region',
+          visualFeatures: ['test feature'],
+          alternatives: [],
           timestamp: DateTime.now().subtract(const Duration(days: 1)),
           imageUrl: 'test_url_3',
           source: 'ai',
@@ -115,10 +139,8 @@ void main() {
       );
 
       // Set up default mock responses
-      when(mockStorageService.getAllClassifications())
-          .thenAnswer((_) async => testClassifications);
-      when(mockGamificationService.getProfile())
-          .thenAnswer((_) async => testGamificationProfile);
+      when(mockStorageService.getAllClassifications()).thenAnswer((_) async => testClassifications);
+      when(mockGamificationService.getProfile()).thenAnswer((_) async => testGamificationProfile);
     });
 
     Widget createTestWidget() {
@@ -143,7 +165,7 @@ void main() {
 
       testWidgets('should load data and show dashboard', (tester) async {
         await tester.pumpWidget(createTestWidget());
-        
+
         // Wait for data to load
         await tester.pumpAndSettle();
 
@@ -176,22 +198,21 @@ void main() {
 
     group('Empty State Handling', () {
       testWidgets('should show empty state when no classifications', (tester) async {
-        when(mockStorageService.getAllClassifications())
-            .thenAnswer((_) async => <WasteClassification>[]);
+        when(mockStorageService.getAllClassifications()).thenAnswer((_) async => <WasteClassification>[]);
 
         await tester.pumpWidget(createTestWidget());
         await tester.pumpAndSettle();
 
         expect(find.byType(EmptyStateWidget), findsOneWidget);
         expect(find.text('No Data Yet'), findsOneWidget);
-        expect(find.text('Start classifying waste items to see your personalized analytics dashboard.'), findsOneWidget);
+        expect(
+            find.text('Start classifying waste items to see your personalized analytics dashboard.'), findsOneWidget);
       });
     });
 
     group('Error Handling', () {
       testWidgets('should handle storage service errors', (tester) async {
-        when(mockStorageService.getAllClassifications())
-            .thenThrow(Exception('Storage error'));
+        when(mockStorageService.getAllClassifications()).thenThrow(Exception('Storage error'));
 
         await tester.pumpWidget(createTestWidget());
         await tester.pumpAndSettle();
@@ -200,8 +221,7 @@ void main() {
       });
 
       testWidgets('should handle gamification service errors', (tester) async {
-        when(mockGamificationService.getProfile())
-            .thenThrow(Exception('Gamification error'));
+        when(mockGamificationService.getProfile()).thenThrow(Exception('Gamification error'));
 
         await tester.pumpWidget(createTestWidget());
         await tester.pumpAndSettle();
@@ -232,8 +252,7 @@ void main() {
           ),
         ];
 
-        when(mockStorageService.getAllClassifications())
-            .thenAnswer((_) async => singleDayClassifications);
+        when(mockStorageService.getAllClassifications()).thenAnswer((_) async => singleDayClassifications);
 
         await tester.pumpWidget(createTestWidget());
         await tester.pumpAndSettle();
@@ -252,8 +271,7 @@ void main() {
       });
 
       testWidgets('should show empty chart message when no data', (tester) async {
-        when(mockStorageService.getAllClassifications())
-            .thenAnswer((_) async => <WasteClassification>[]);
+        when(mockStorageService.getAllClassifications()).thenAnswer((_) async => <WasteClassification>[]);
 
         await tester.pumpWidget(createTestWidget());
         await tester.pumpAndSettle();
@@ -282,8 +300,7 @@ void main() {
       });
 
       testWidgets('should show empty state for category distribution', (tester) async {
-        when(mockStorageService.getAllClassifications())
-            .thenAnswer((_) async => <WasteClassification>[]);
+        when(mockStorageService.getAllClassifications()).thenAnswer((_) async => <WasteClassification>[]);
 
         await tester.pumpWidget(createTestWidget());
         await tester.pumpAndSettle();
@@ -312,8 +329,7 @@ void main() {
       });
 
       testWidgets('should show empty state for subcategories', (tester) async {
-        when(mockStorageService.getAllClassifications())
-            .thenAnswer((_) async => <WasteClassification>[]);
+        when(mockStorageService.getAllClassifications()).thenAnswer((_) async => <WasteClassification>[]);
 
         await tester.pumpWidget(createTestWidget());
         await tester.pumpAndSettle();
@@ -351,8 +367,7 @@ void main() {
       });
 
       testWidgets('should show empty state for recent classifications', (tester) async {
-        when(mockStorageService.getAllClassifications())
-            .thenAnswer((_) async => <WasteClassification>[]);
+        when(mockStorageService.getAllClassifications()).thenAnswer((_) async => <WasteClassification>[]);
 
         await tester.pumpWidget(createTestWidget());
         await tester.pumpAndSettle();
@@ -398,12 +413,9 @@ void main() {
       });
 
       testWidgets('should handle zero recyclable items', (tester) async {
-        final nonRecyclableClassifications = testClassifications
-            .map((c) => c.copyWith(isRecyclable: false))
-            .toList();
+        final nonRecyclableClassifications = testClassifications.map((c) => c.copyWith(isRecyclable: false)).toList();
 
-        when(mockStorageService.getAllClassifications())
-            .thenAnswer((_) async => nonRecyclableClassifications);
+        when(mockStorageService.getAllClassifications()).thenAnswer((_) async => nonRecyclableClassifications);
 
         await tester.pumpWidget(createTestWidget());
         await tester.pumpAndSettle();
@@ -441,8 +453,7 @@ void main() {
       });
 
       testWidgets('should handle gamification loading state', (tester) async {
-        when(mockGamificationService.getProfile())
-            .thenAnswer((_) async {
+        when(mockGamificationService.getProfile()).thenAnswer((_) async {
           await Future.delayed(const Duration(seconds: 2));
           return testGamificationProfile;
         });
@@ -660,8 +671,7 @@ void main() {
           testClassifications.last.copyWith(subcategory: ''),
         ];
 
-        when(mockStorageService.getAllClassifications())
-            .thenAnswer((_) async => classificationsWithoutSubcategories);
+        when(mockStorageService.getAllClassifications()).thenAnswer((_) async => classificationsWithoutSubcategories);
 
         await tester.pumpWidget(createTestWidget());
         await tester.pumpAndSettle();
@@ -678,8 +688,7 @@ void main() {
           testClassifications[1], // Middle (3 days ago)
         ];
 
-        when(mockStorageService.getAllClassifications())
-            .thenAnswer((_) async => unsortedClassifications);
+        when(mockStorageService.getAllClassifications()).thenAnswer((_) async => unsortedClassifications);
 
         await tester.pumpWidget(createTestWidget());
         await tester.pumpAndSettle();
@@ -691,8 +700,17 @@ void main() {
 
     group('Performance and Edge Cases', () {
       testWidgets('should handle large datasets efficiently', (tester) async {
-        final largeDataset = List.generate(1000, (index) =>
-          WasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
+        final largeDataset = List.generate(
+          1000,
+          (index) => WasteClassification(
+            itemName: 'Test Item',
+            explanation: 'Test explanation',
+            category: 'plastic',
+            region: 'Test Region',
+            visualFeatures: ['test feature'],
+            alternatives: [],
+            disposalInstructions:
+                DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false),
             id: 'test_$index',
             itemName: 'Item $index',
             subcategory: 'Subcategory $index',
@@ -730,21 +748,28 @@ void main() {
       });
 
       testWidgets('should handle classifications with null values', (tester) async {
-        final classificationWithNulls = WasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
+        final classificationWithNulls = WasteClassification(
+          itemName: 'Test Item',
+          explanation: 'Test explanation',
+          category: 'plastic',
+          region: 'Test Region',
+          visualFeatures: ['test feature'],
+          alternatives: [],
+          disposalInstructions:
+              DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false),
           id: 'test_null',
           itemName: 'Test Item',
           confidence: 0.5,
-            region: 'Test Region',
-            visualFeatures: ['test feature'],
-            alternatives: [],
+          region: 'Test Region',
+          visualFeatures: ['test feature'],
+          alternatives: [],
           timestamp: DateTime.now(),
           imageUrl: 'test_url',
           source: 'ai',
           // Other fields are null by default
         );
 
-        when(mockStorageService.getAllClassifications())
-            .thenAnswer((_) async => [classificationWithNulls]);
+        when(mockStorageService.getAllClassifications()).thenAnswer((_) async => [classificationWithNulls]);
 
         await tester.pumpWidget(createTestWidget());
         await tester.pumpAndSettle();

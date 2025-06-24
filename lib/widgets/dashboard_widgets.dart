@@ -4,7 +4,6 @@ import 'modern_ui/modern_cards.dart';
 
 /// Today's Impact Goal Progress Ring Widget
 class TodaysImpactGoal extends StatefulWidget {
-
   const TodaysImpactGoal({
     super.key,
     required this.currentClassifications,
@@ -19,8 +18,7 @@ class TodaysImpactGoal extends StatefulWidget {
   State<TodaysImpactGoal> createState() => _TodaysImpactGoalState();
 }
 
-class _TodaysImpactGoalState extends State<TodaysImpactGoal>
-    with SingleTickerProviderStateMixin {
+class _TodaysImpactGoalState extends State<TodaysImpactGoal> with SingleTickerProviderStateMixin {
   late AnimationController _progressController;
   late Animation<double> _progressAnimation;
   late Animation<double> _pulseAnimation;
@@ -206,7 +204,6 @@ class _TodaysImpactGoalState extends State<TodaysImpactGoal>
 
 /// Custom painter for the impact ring
 class ImpactRingPainter extends CustomPainter {
-
   ImpactRingPainter({
     required this.progress,
     required this.primaryColor,
@@ -226,7 +223,7 @@ class ImpactRingPainter extends CustomPainter {
 
     // Background circle
     final backgroundPaint = Paint()
-      ..color = primaryColor.withValues(alpha:0.1)
+      ..color = primaryColor.withValues(alpha: 0.1)
       ..style = PaintingStyle.stroke
       ..strokeWidth = strokeWidth
       ..strokeCap = StrokeCap.round;
@@ -236,9 +233,7 @@ class ImpactRingPainter extends CustomPainter {
     // Progress arc
     final progressPaint = Paint()
       ..shader = LinearGradient(
-        colors: isGoalReached 
-            ? [Colors.green, Colors.lightGreen]
-            : [primaryColor, secondaryColor],
+        colors: isGoalReached ? [Colors.green, Colors.lightGreen] : [primaryColor, secondaryColor],
         begin: Alignment.topLeft,
         end: Alignment.bottomRight,
       ).createShader(Rect.fromCircle(center: center, radius: radius))
@@ -257,7 +252,7 @@ class ImpactRingPainter extends CustomPainter {
     // Goal reached celebration effect
     if (isGoalReached) {
       final celebrationPaint = Paint()
-        ..color = Colors.green.withValues(alpha:0.3)
+        ..color = Colors.green.withValues(alpha: 0.3)
         ..style = PaintingStyle.stroke
         ..strokeWidth = strokeWidth + 4
         ..strokeCap = StrokeCap.round;
@@ -268,14 +263,12 @@ class ImpactRingPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(ImpactRingPainter oldDelegate) {
-    return oldDelegate.progress != progress ||
-           oldDelegate.isGoalReached != isGoalReached;
+    return oldDelegate.progress != progress || oldDelegate.isGoalReached != isGoalReached;
   }
 }
 
 /// Community Feed Preview Widget
 class CommunityFeedPreview extends StatelessWidget {
-
   const CommunityFeedPreview({
     super.key,
     required this.activities,
@@ -371,7 +364,7 @@ class CommunityFeedPreview extends StatelessWidget {
           // Avatar
           CircleAvatar(
             radius: 20,
-            backgroundColor: AppTheme.primaryColor.withValues(alpha:0.1),
+            backgroundColor: AppTheme.primaryColor.withValues(alpha: 0.1),
             child: Text(
               activity.userName.isNotEmpty ? activity.userName[0].toUpperCase() : '?',
               style: const TextStyle(
@@ -439,7 +432,6 @@ class CommunityFeedPreview extends StatelessWidget {
 
 /// Global Impact Meter Widget
 class GlobalImpactMeter extends StatefulWidget {
-
   const GlobalImpactMeter({
     super.key,
     required this.globalCO2Saved,
@@ -454,8 +446,7 @@ class GlobalImpactMeter extends StatefulWidget {
   State<GlobalImpactMeter> createState() => _GlobalImpactMeterState();
 }
 
-class _GlobalImpactMeterState extends State<GlobalImpactMeter>
-    with SingleTickerProviderStateMixin {
+class _GlobalImpactMeterState extends State<GlobalImpactMeter> with SingleTickerProviderStateMixin {
   late AnimationController _animationController;
   late Animation<double> _countAnimation;
 
@@ -583,10 +574,10 @@ class _GlobalImpactMeterState extends State<GlobalImpactMeter>
     return Container(
       padding: const EdgeInsets.all(AppTheme.paddingSmall),
       decoration: BoxDecoration(
-        color: color.withValues(alpha:0.1),
+        color: color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(AppTheme.borderRadiusRegular),
         border: Border.all(
-          color: color.withValues(alpha:0.3),
+          color: color.withValues(alpha: 0.3),
         ),
       ),
       child: Column(
@@ -628,7 +619,6 @@ class _GlobalImpactMeterState extends State<GlobalImpactMeter>
 
 /// Data model for community activities
 class CommunityActivity {
-
   const CommunityActivity({
     required this.userName,
     required this.action,
@@ -670,4 +660,4 @@ class DashboardSampleData {
       ),
     ];
   }
-} 
+}

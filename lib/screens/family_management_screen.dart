@@ -10,7 +10,6 @@ import '../utils/constants.dart';
 import 'package:waste_segregation_app/utils/waste_app_logger.dart';
 
 class FamilyManagementScreen extends StatefulWidget {
-
   const FamilyManagementScreen({
     super.key,
     required this.family,
@@ -21,8 +20,7 @@ class FamilyManagementScreen extends StatefulWidget {
   State<FamilyManagementScreen> createState() => _FamilyManagementScreenState();
 }
 
-class _FamilyManagementScreenState extends State<FamilyManagementScreen>
-    with SingleTickerProviderStateMixin {
+class _FamilyManagementScreenState extends State<FamilyManagementScreen> with SingleTickerProviderStateMixin {
   late TabController _tabController;
   user_models.UserProfile? _currentUser;
   final FirebaseFamilyService _familyService = FirebaseFamilyService();
@@ -143,12 +141,9 @@ class _FamilyManagementScreenState extends State<FamilyManagementScreen>
                 child: ListTile(
                   leading: CircleAvatar(
                     backgroundColor: AppTheme.primaryColor.withValues(alpha: 0.1),
-                    backgroundImage: memberProfile.photoUrl != null
-                        ? NetworkImage(memberProfile.photoUrl!)
-                        : null,
-                    child: memberProfile.photoUrl == null
-                        ? Text(memberProfile.displayName?.substring(0, 1) ?? 'U')
-                        : null,
+                    backgroundImage: memberProfile.photoUrl != null ? NetworkImage(memberProfile.photoUrl!) : null,
+                    child:
+                        memberProfile.photoUrl == null ? Text(memberProfile.displayName?.substring(0, 1) ?? 'U') : null,
                   ),
                   title: Row(
                     children: [
@@ -339,7 +334,8 @@ class _FamilyManagementScreenState extends State<FamilyManagementScreen>
                       ),
                       Text('Invited ${_formatDate(invitation.createdAt)}'),
                       if (invitation.expiresAt.isAfter(DateTime.now()))
-                        Text('Expires ${_formatDate(invitation.expiresAt)}', style: const TextStyle(color: Colors.redAccent))
+                        Text('Expires ${_formatDate(invitation.expiresAt)}',
+                            style: const TextStyle(color: Colors.redAccent))
                       else
                         const Text('Expired', style: TextStyle(color: Colors.grey)),
                     ],
@@ -466,7 +462,8 @@ class _FamilyManagementScreenState extends State<FamilyManagementScreen>
     }
   }
 
-  void _handleInvitationAction(String action, invitation_models.FamilyInvitation invitation, family_models.Family family) {
+  void _handleInvitationAction(
+      String action, invitation_models.FamilyInvitation invitation, family_models.Family family) {
     if (action == 'resend') {
       _resendInvitation(invitation, family);
     } else if (action == 'cancel') {
@@ -476,7 +473,8 @@ class _FamilyManagementScreenState extends State<FamilyManagementScreen>
 
   bool _canModifyMember(family_models.Family family, String memberId) {
     final currentUserMemberData = family.getMember(_currentUser?.id ?? '');
-    return currentUserMemberData?.role == family_models.UserRole.admin || currentUserMemberData?.role == family_models.UserRole.moderator;
+    return currentUserMemberData?.role == family_models.UserRole.admin ||
+        currentUserMemberData?.role == family_models.UserRole.moderator;
   }
 
   bool _canChangeRole(family_models.Family family, String memberId) {
@@ -487,13 +485,15 @@ class _FamilyManagementScreenState extends State<FamilyManagementScreen>
   bool _canRemoveMember(family_models.Family family, String memberId) {
     final currentUserMemberData = family.getMember(_currentUser?.id ?? '');
     if (currentUserMemberData?.userId == memberId) return false;
-    return currentUserMemberData?.role == family_models.UserRole.admin || 
-           (currentUserMemberData?.role == family_models.UserRole.moderator && family.getMember(memberId)?.role == family_models.UserRole.member);
+    return currentUserMemberData?.role == family_models.UserRole.admin ||
+        (currentUserMemberData?.role == family_models.UserRole.moderator &&
+            family.getMember(memberId)?.role == family_models.UserRole.member);
   }
 
   bool _canManageInvitations(family_models.Family family) {
     final currentUserMemberData = family.getMember(_currentUser?.id ?? '');
-    return currentUserMemberData?.role == family_models.UserRole.admin || currentUserMemberData?.role == family_models.UserRole.moderator;
+    return currentUserMemberData?.role == family_models.UserRole.admin ||
+        currentUserMemberData?.role == family_models.UserRole.moderator;
   }
 
   bool _canModifySettings(family_models.Family family) {
@@ -515,38 +515,36 @@ class _FamilyManagementScreenState extends State<FamilyManagementScreen>
       builder: (context) {
         return AlertDialog(
           title: const Text('Invite New Member'),
-          content: StatefulBuilder(
-            builder: (BuildContext context, StateSetter setState) {
-              return Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  TextField(
-                    controller: emailController,
-                    decoration: const InputDecoration(labelText: 'Email Address'),
-                    keyboardType: TextInputType.emailAddress,
-                  ),
-                  const SizedBox(height: AppTheme.paddingRegular),
-                  DropdownButtonFormField<family_models.UserRole>(
-                    decoration: const InputDecoration(labelText: 'Assign Role'),
-                    value: roleToAssign,
-                    items: family_models.UserRole.values.map((family_models.UserRole role) {
-                      return DropdownMenuItem<family_models.UserRole>(
-                        value: role,
-                        child: Text(_getRoleText(role)),
-                      );
-                    }).toList(),
-                    onChanged: (family_models.UserRole? newValue) {
-                      if (newValue != null) {
-                        setState(() {
-                          roleToAssign = newValue;
-                        });
-                      }
-                    },
-                  ),
-                ],
-              );
-            }
-          ),
+          content: StatefulBuilder(builder: (BuildContext context, StateSetter setState) {
+            return Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextField(
+                  controller: emailController,
+                  decoration: const InputDecoration(labelText: 'Email Address'),
+                  keyboardType: TextInputType.emailAddress,
+                ),
+                const SizedBox(height: AppTheme.paddingRegular),
+                DropdownButtonFormField<family_models.UserRole>(
+                  decoration: const InputDecoration(labelText: 'Assign Role'),
+                  value: roleToAssign,
+                  items: family_models.UserRole.values.map((family_models.UserRole role) {
+                    return DropdownMenuItem<family_models.UserRole>(
+                      value: role,
+                      child: Text(_getRoleText(role)),
+                    );
+                  }).toList(),
+                  onChanged: (family_models.UserRole? newValue) {
+                    if (newValue != null) {
+                      setState(() {
+                        roleToAssign = newValue;
+                      });
+                    }
+                  },
+                ),
+              ],
+            );
+          }),
           actions: [
             TextButton(
               child: const Text('Cancel'),
@@ -571,9 +569,11 @@ class _FamilyManagementScreenState extends State<FamilyManagementScreen>
     try {
       final inviteRole = _convertToUserRole(role);
       await _familyService.createInvitation(family.id, _currentUser?.id ?? '', email, inviteRole);
-      if(mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Invitation sent!')));
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Invitation sent!')));
     } catch (e) {
-      if(mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to send invitation: ${e.toString()}')));
+      if (mounted)
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text('Failed to send invitation: ${e.toString()}')));
     }
   }
 
@@ -588,15 +588,14 @@ class _FamilyManagementScreenState extends State<FamilyManagementScreen>
             value: selectedRole,
             items: family_models.UserRole.values.map((family_models.UserRole role) {
               return DropdownMenuItem<family_models.UserRole>(
-                value: role,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(_getRoleText(role)),
-                    Text(_getRoleDescription(role), style: Theme.of(context).textTheme.bodySmall),
-                  ],
-                )
-              );
+                  value: role,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(_getRoleText(role)),
+                      Text(_getRoleDescription(role), style: Theme.of(context).textTheme.bodySmall),
+                    ],
+                  ));
             }).toList(),
             onChanged: (family_models.UserRole? newValue) {
               selectedRole = newValue;
@@ -628,7 +627,8 @@ class _FamilyManagementScreenState extends State<FamilyManagementScreen>
       builder: (context) {
         return AlertDialog(
           title: Text('Remove ${member.displayName}?'),
-          content: Text('Are you sure you want to remove ${member.displayName} from the family? This action cannot be undone.'),
+          content: Text(
+              'Are you sure you want to remove ${member.displayName} from the family? This action cannot be undone.'),
           actions: [
             TextButton(
               child: const Text('Cancel'),
@@ -661,46 +661,52 @@ class _FamilyManagementScreenState extends State<FamilyManagementScreen>
         default:
           final newFamilyRoleName = newFamilyRole.toString().split('.').last;
           try {
-            newProfileRole = user_profile_models.UserRole.values.firstWhere(
-              (profileRole) => profileRole.toString().split('.').last == newFamilyRoleName
-            );
+            newProfileRole = user_profile_models.UserRole.values
+                .firstWhere((profileRole) => profileRole.toString().split('.').last == newFamilyRoleName);
           } catch (e) {
-            WasteAppLogger.warning('Warning: Role "$newFamilyRoleName" from family_models.UserRole not found in user_profile_models.UserRole. Defaulting to member.');
+            WasteAppLogger.warning(
+                'Warning: Role "$newFamilyRoleName" from family_models.UserRole not found in user_profile_models.UserRole. Defaulting to member.');
             newProfileRole = user_profile_models.UserRole.member;
           }
       }
 
       await _familyService.updateMemberRole(family.id, userId, newProfileRole);
-      if(mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Member role updated.')));
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Member role updated.')));
     } catch (e) {
-      if(mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to update role: ${e.toString()}')));
+      if (mounted)
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to update role: ${e.toString()}')));
     }
   }
 
   Future<void> _removeMember(family_models.Family family, String userId) async {
     try {
       await _familyService.removeMember(family.id, userId);
-      if(mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Member removed.')));
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Member removed.')));
     } catch (e) {
-      if(mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to remove member: ${e.toString()}')));
+      if (mounted)
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to remove member: ${e.toString()}')));
     }
   }
 
   Future<void> _resendInvitation(invitation_models.FamilyInvitation invitation, family_models.Family family) async {
     try {
       await _familyService.resendInvitation(invitation.id);
-      if(mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Invitation resent.')));
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Invitation resent.')));
     } catch (e) {
-      if(mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to resend invitation: ${e.toString()}')));
+      if (mounted)
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text('Failed to resend invitation: ${e.toString()}')));
     }
   }
 
   Future<void> _cancelInvitation(invitation_models.FamilyInvitation invitation, family_models.Family family) async {
     try {
       await _familyService.cancelInvitation(invitation.id);
-      if(mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Invitation cancelled.')));
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Invitation cancelled.')));
     } catch (e) {
-      if(mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to cancel invitation: ${e.toString()}')));
+      if (mounted)
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text('Failed to cancel invitation: ${e.toString()}')));
     }
   }
 
@@ -711,7 +717,8 @@ class _FamilyManagementScreenState extends State<FamilyManagementScreen>
         builder: (context) {
           return AlertDialog(
             title: const Text('Edit Family Name'),
-            content: TextField(controller: nameController, decoration: const InputDecoration(labelText: 'New Family Name')),
+            content:
+                TextField(controller: nameController, decoration: const InputDecoration(labelText: 'New Family Name')),
             actions: [
               TextButton(child: const Text('Cancel'), onPressed: () => Navigator.of(context).pop()),
               ElevatedButton(
@@ -723,14 +730,14 @@ class _FamilyManagementScreenState extends State<FamilyManagementScreen>
                       navigator.pop();
                       final updatedFamily = family.copyWith(name: nameController.text);
                       await _familyService.updateFamily(updatedFamily);
-                      if(mounted) messenger.showSnackBar(const SnackBar(content: Text('Family name updated.')));
+                      if (mounted) messenger.showSnackBar(const SnackBar(content: Text('Family name updated.')));
                     }
                   }),
             ],
           );
         });
   }
-  
+
   Future<void> _editFamilyDescription(family_models.Family family) async {
     final descriptionController = TextEditingController(text: family.description);
     await showDialog(
@@ -738,7 +745,11 @@ class _FamilyManagementScreenState extends State<FamilyManagementScreen>
         builder: (context) {
           return AlertDialog(
             title: const Text('Edit Family Description'),
-            content: TextField(controller: descriptionController, decoration: const InputDecoration(labelText: 'New Family Description'), maxLines: 3,),
+            content: TextField(
+              controller: descriptionController,
+              decoration: const InputDecoration(labelText: 'New Family Description'),
+              maxLines: 3,
+            ),
             actions: [
               TextButton(child: const Text('Cancel'), onPressed: () => Navigator.of(context).pop()),
               ElevatedButton(
@@ -749,7 +760,7 @@ class _FamilyManagementScreenState extends State<FamilyManagementScreen>
                     navigator.pop();
                     final updatedFamily = family.copyWith(description: descriptionController.text);
                     await _familyService.updateFamily(updatedFamily);
-                    if(mounted) messenger.showSnackBar(const SnackBar(content: Text('Family description updated.')));
+                    if (mounted) messenger.showSnackBar(const SnackBar(content: Text('Family description updated.')));
                   }),
             ],
           );
@@ -757,16 +768,19 @@ class _FamilyManagementScreenState extends State<FamilyManagementScreen>
   }
 
   void _copyFamilyId(family_models.Family family) {
-    if(mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Family ID copied: ${family.id}')));
+    if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Family ID copied: ${family.id}')));
   }
 
   Future<void> _togglePublicFamily(family_models.Family family, bool value) async {
     try {
       final updatedFamily = family.copyWith(isPublic: value);
       await _familyService.updateFamily(updatedFamily);
-      if(mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Public setting updated to $value.')));
+      if (mounted)
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Public setting updated to $value.')));
     } catch (e) {
-      if(mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to update public setting: ${e.toString()}')));
+      if (mounted)
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text('Failed to update public setting: ${e.toString()}')));
     }
   }
 
@@ -775,9 +789,13 @@ class _FamilyManagementScreenState extends State<FamilyManagementScreen>
       final updatedSettings = family.settings.copyWith(shareClassificationsPublicly: value);
       final updatedFamily = family.copyWith(settings: updatedSettings);
       await _familyService.updateFamily(updatedFamily);
-      if(mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Share classifications setting updated to $value.')));
+      if (mounted)
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text('Share classifications setting updated to $value.')));
     } catch (e) {
-      if(mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to update share setting: ${e.toString()}')));
+      if (mounted)
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text('Failed to update share setting: ${e.toString()}')));
     }
   }
 
@@ -786,12 +804,16 @@ class _FamilyManagementScreenState extends State<FamilyManagementScreen>
       final updatedSettings = family.settings.copyWith(showMemberActivityInFeed: value);
       final updatedFamily = family.copyWith(settings: updatedSettings);
       await _familyService.updateFamily(updatedFamily);
-      if(mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Show member activity setting updated to $value.')));
+      if (mounted)
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text('Show member activity setting updated to $value.')));
     } catch (e) {
-      if(mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to update member activity setting: ${e.toString()}')));
+      if (mounted)
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text('Failed to update member activity setting: ${e.toString()}')));
     }
   }
-  
+
   Future<void> _showLeaderboardVisibilityDialog(family_models.Family family) async {
     family_models.FamilyLeaderboardVisibility? selectedVisibility = family.settings.leaderboardVisibility;
     await showDialog(
@@ -801,7 +823,8 @@ class _FamilyManagementScreenState extends State<FamilyManagementScreen>
           title: const Text('Set Leaderboard Visibility'),
           content: DropdownButton<family_models.FamilyLeaderboardVisibility>(
             value: selectedVisibility,
-            items: family_models.FamilyLeaderboardVisibility.values.map((family_models.FamilyLeaderboardVisibility visibility) {
+            items: family_models.FamilyLeaderboardVisibility.values
+                .map((family_models.FamilyLeaderboardVisibility visibility) {
               return DropdownMenuItem<family_models.FamilyLeaderboardVisibility>(
                 value: visibility,
                 child: Text(visibility.toString().split('.').last),
@@ -823,7 +846,7 @@ class _FamilyManagementScreenState extends State<FamilyManagementScreen>
                   final updatedSettings = family.settings.copyWith(leaderboardVisibility: selectedVisibility);
                   final updatedFamily = family.copyWith(settings: updatedSettings);
                   await _familyService.updateFamily(updatedFamily);
-                  if(mounted) messenger.showSnackBar(const SnackBar(content: Text('Leaderboard visibility updated.')));
+                  if (mounted) messenger.showSnackBar(const SnackBar(content: Text('Leaderboard visibility updated.')));
                 }
               },
             ),
@@ -838,14 +861,14 @@ class _FamilyManagementScreenState extends State<FamilyManagementScreen>
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Delete Family?'),
-        content: Text('Are you sure you want to delete the family "${family.name}"? This action is permanent and cannot be undone. All associated data will be lost.'),
+        content: Text(
+            'Are you sure you want to delete the family "${family.name}"? This action is permanent and cannot be undone. All associated data will be lost.'),
         actions: [
           TextButton(child: const Text('Cancel'), onPressed: () => Navigator.of(context).pop(false)),
           ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-            child: const Text('DELETE FAMILY', style: TextStyle(color: Colors.white)), 
-            onPressed: () => Navigator.of(context).pop(true)
-          ),
+              style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+              child: const Text('DELETE FAMILY', style: TextStyle(color: Colors.white)),
+              onPressed: () => Navigator.of(context).pop(true)),
         ],
       ),
     );
@@ -853,45 +876,47 @@ class _FamilyManagementScreenState extends State<FamilyManagementScreen>
     if (confirmed == true) {
       try {
         await _familyService.deleteFamily(family.id);
-        if(mounted) {
-           ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Family deleted successfully.')));
-           Navigator.of(context).pop();
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Family deleted successfully.')));
+          Navigator.of(context).pop();
         }
       } catch (e) {
-        if(mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to delete family: ${e.toString()}')));
+        if (mounted)
+          ScaffoldMessenger.of(context)
+              .showSnackBar(SnackBar(content: Text('Failed to delete family: ${e.toString()}')));
       }
     }
   }
 
   Color _getRoleColor(family_models.UserRole role) {
     switch (role) {
-      case family_models.UserRole.admin: 
+      case family_models.UserRole.admin:
         return Colors.redAccent;
-      case family_models.UserRole.moderator: 
+      case family_models.UserRole.moderator:
         return Colors.blueAccent;
-      case family_models.UserRole.member: 
+      case family_models.UserRole.member:
         return Colors.green;
     }
   }
 
   String _getRoleText(family_models.UserRole role) {
     switch (role) {
-      case family_models.UserRole.admin: 
+      case family_models.UserRole.admin:
         return 'Admin';
-      case family_models.UserRole.moderator: 
+      case family_models.UserRole.moderator:
         return 'Moderator';
-      case family_models.UserRole.member: 
+      case family_models.UserRole.member:
         return 'Member';
     }
   }
 
   String _getRoleDescription(family_models.UserRole role) {
     switch (role) {
-      case family_models.UserRole.admin: 
+      case family_models.UserRole.admin:
         return 'Manages family, members, and settings.';
-      case family_models.UserRole.moderator: 
+      case family_models.UserRole.moderator:
         return 'Manages members and invitations.';
-      case family_models.UserRole.member: 
+      case family_models.UserRole.member:
         return 'Participates in family activities.';
     }
   }
@@ -923,4 +948,4 @@ class _FamilyManagementScreenState extends State<FamilyManagementScreen>
         return user_models.UserRole.member;
     }
   }
-} 
+}

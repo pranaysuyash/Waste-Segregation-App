@@ -22,7 +22,7 @@ void main() {
       test('should throw exception in release mode', () async {
         // In a real test, we would mock kReleaseMode to be true
         // and verify that resetAccount throws an exception
-        
+
         // For now, this is a placeholder test structure
         expect(() async {
           // This would be mocked to simulate release mode
@@ -35,7 +35,7 @@ void main() {
       test('should throw exception in release mode', () async {
         // In a real test, we would mock kReleaseMode to be true
         // and verify that deleteAccount throws an exception
-        
+
         // For now, this is a placeholder test structure
         expect(() async {
           // This would be mocked to simulate release mode
@@ -49,7 +49,7 @@ void main() {
         // Test that the same UID always generates the same anonymous ID
         // This would require exposing the _generateAnonymousId method
         // or testing it indirectly through the archiving process
-        
+
         // For now, this is a placeholder for future implementation
         expect(true, isTrue);
       });
@@ -59,7 +59,7 @@ void main() {
       test('should clear all specified Hive boxes', () async {
         // Test that all Hive boxes in _hiveBoxesToClear are properly cleared
         // This would require mocking Hive and verifying clear() is called
-        
+
         // For now, this is a placeholder for future implementation
         expect(true, isTrue);
       });
@@ -67,10 +67,10 @@ void main() {
       test('should revoke FCM token', () async {
         // Test that FCM token is properly revoked
         // This would require mocking FirebaseMessaging
-        
+
         // For now, this is a placeholder for future implementation
         expect(true, isTrue);
       });
     });
   });
-} 
+}

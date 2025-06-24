@@ -4,7 +4,6 @@ import 'dart:math' as math;
 /// Advanced floating particle system for background animations
 /// Designed for Gen Z appeal with smooth, mesmerizing motion
 class FloatingParticleSystem extends StatefulWidget {
-  
   const FloatingParticleSystem({
     super.key,
     this.particleCount = 20,
@@ -20,17 +19,15 @@ class FloatingParticleSystem extends StatefulWidget {
   final double particleSize;
   final double animationSpeed;
   final bool isDarkMode;
-  
+
   @override
   _FloatingParticleSystemState createState() => _FloatingParticleSystemState();
 }
 
-class _FloatingParticleSystemState extends State<FloatingParticleSystem>
-    with TickerProviderStateMixin {
-  
+class _FloatingParticleSystemState extends State<FloatingParticleSystem> with TickerProviderStateMixin {
   late AnimationController _controller;
   late List<Particle> _particles;
-  
+
   @override
   void initState() {
     super.initState();
@@ -38,10 +35,10 @@ class _FloatingParticleSystemState extends State<FloatingParticleSystem>
       duration: Duration(seconds: (10 / widget.animationSpeed).round()),
       vsync: this,
     )..repeat();
-    
+
     _initializeParticles();
   }
-  
+
   void _initializeParticles() {
     final random = math.Random();
     _particles = List.generate(widget.particleCount, (index) {
@@ -61,7 +58,7 @@ class _FloatingParticleSystemState extends State<FloatingParticleSystem>
       );
     });
   }
-  
+
   @override
   Widget build(BuildContext context) {
     return AnimatedBuilder(
@@ -78,7 +75,7 @@ class _FloatingParticleSystemState extends State<FloatingParticleSystem>
       },
     );
   }
-  
+
   @override
   void dispose() {
     _controller.dispose();
@@ -87,7 +84,6 @@ class _FloatingParticleSystemState extends State<FloatingParticleSystem>
 }
 
 class Particle {
-  
   Particle({
     required this.x,
     required this.y,
@@ -109,7 +105,6 @@ class Particle {
 }
 
 class ParticleSystemPainter extends CustomPainter {
-  
   ParticleSystemPainter({
     required this.particles,
     required this.animationValue,
@@ -118,7 +113,7 @@ class ParticleSystemPainter extends CustomPainter {
   final List<Particle> particles;
   final double animationValue;
   final bool isDarkMode;
-  
+
   @override
   void paint(Canvas canvas, Size size) {
     for (final particle in particles) {
@@ -126,57 +121,51 @@ class ParticleSystemPainter extends CustomPainter {
       final timeOffset = animationValue * 2 * math.pi;
       final breathingEffect = math.sin(timeOffset + particle.phase) * 0.3;
       final driftEffect = math.cos(timeOffset * 0.5 + particle.phase) * 0.2;
-      
-      final animatedX = (particle.x + 
-          math.cos(particle.direction + timeOffset * particle.speed) * 0.1 +
-          driftEffect) % 1.0;
-      final animatedY = (particle.y + 
-          math.sin(particle.direction + timeOffset * particle.speed) * 0.1 +
-          breathingEffect * 0.5) % 1.0;
-      
+
+      final animatedX =
+          (particle.x + math.cos(particle.direction + timeOffset * particle.speed) * 0.1 + driftEffect) % 1.0;
+      final animatedY =
+          (particle.y + math.sin(particle.direction + timeOffset * particle.speed) * 0.1 + breathingEffect * 0.5) % 1.0;
+
       // Dynamic opacity based on animation
-      final dynamicOpacity = particle.opacity * 
-          (0.7 + 0.3 * math.sin(timeOffset * 2 + particle.phase));
-      
+      final dynamicOpacity = particle.opacity * (0.7 + 0.3 * math.sin(timeOffset * 2 + particle.phase));
+
       // Adjust opacity for theme
-      final themeAdjustedOpacity = isDarkMode ? 
-          dynamicOpacity * 0.8 : dynamicOpacity * 0.6;
-      
+      final themeAdjustedOpacity = isDarkMode ? dynamicOpacity * 0.8 : dynamicOpacity * 0.6;
+
       final paint = Paint()
-        ..color = particle.color.withValues(alpha:themeAdjustedOpacity)
+        ..color = particle.color.withValues(alpha: themeAdjustedOpacity)
         ..style = PaintingStyle.fill;
-      
+
       // Add subtle glow effect
       final glowPaint = Paint()
-        ..color = particle.color.withValues(alpha:themeAdjustedOpacity * 0.3)
+        ..color = particle.color.withValues(alpha: themeAdjustedOpacity * 0.3)
         ..style = PaintingStyle.fill
         ..maskFilter = MaskFilter.blur(BlurStyle.normal, particle.size * 0.5);
-      
+
       final center = Offset(
         animatedX * size.width,
         animatedY * size.height,
       );
-      
+
       final animatedSize = particle.size * (1.0 + breathingEffect * 0.2);
-      
+
       // Draw glow
       canvas.drawCircle(center, animatedSize * 1.5, glowPaint);
-      
+
       // Draw particle
       canvas.drawCircle(center, animatedSize, paint);
     }
   }
-  
+
   @override
   bool shouldRepaint(ParticleSystemPainter oldDelegate) {
-    return oldDelegate.animationValue != animationValue ||
-           oldDelegate.isDarkMode != isDarkMode;
+    return oldDelegate.animationValue != animationValue || oldDelegate.isDarkMode != isDarkMode;
   }
 }
 
 /// Pulsing scan button with particle trail effect
 class PulsingScanButton extends StatefulWidget {
-  
   const PulsingScanButton({
     super.key,
     required this.onPressed,
@@ -192,35 +181,33 @@ class PulsingScanButton extends StatefulWidget {
   final Color primaryColor;
   final Color secondaryColor;
   final double size;
-  
+
   @override
   _PulsingScanButtonState createState() => _PulsingScanButtonState();
 }
 
-class _PulsingScanButtonState extends State<PulsingScanButton>
-    with TickerProviderStateMixin {
-  
+class _PulsingScanButtonState extends State<PulsingScanButton> with TickerProviderStateMixin {
   late AnimationController _pulseController;
   late AnimationController _particleController;
   late Animation<double> _pulseAnimation;
   late Animation<double> _scaleAnimation;
-  
+
   bool _isPressed = false;
-  
+
   @override
   void initState() {
     super.initState();
-    
+
     _pulseController = AnimationController(
       duration: const Duration(milliseconds: 1500),
       vsync: this,
     )..repeat(reverse: true);
-    
+
     _particleController = AnimationController(
       duration: const Duration(seconds: 3),
       vsync: this,
     )..repeat();
-    
+
     _pulseAnimation = Tween<double>(
       begin: 1.0,
       end: 1.1,
@@ -228,7 +215,7 @@ class _PulsingScanButtonState extends State<PulsingScanButton>
       parent: _pulseController,
       curve: Curves.easeInOut,
     ));
-    
+
     _scaleAnimation = Tween<double>(
       begin: 1.0,
       end: 0.96,
@@ -237,7 +224,7 @@ class _PulsingScanButtonState extends State<PulsingScanButton>
       curve: Curves.easeInOut,
     ));
   }
-  
+
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
@@ -267,7 +254,7 @@ class _PulsingScanButtonState extends State<PulsingScanButton>
                 ),
                 boxShadow: [
                   BoxShadow(
-                    color: widget.primaryColor.withValues(alpha:0.4),
+                    color: widget.primaryColor.withValues(alpha: 0.4),
                     blurRadius: 20 * _pulseAnimation.value,
                     spreadRadius: 2 * _pulseAnimation.value,
                   ),
@@ -280,11 +267,11 @@ class _PulsingScanButtonState extends State<PulsingScanButton>
                   CustomPaint(
                     painter: ButtonParticleTrailPainter(
                       animationValue: _particleController.value,
-                      color: Colors.white.withValues(alpha:0.6),
+                      color: Colors.white.withValues(alpha: 0.6),
                     ),
                     size: Size(widget.size, widget.size),
                   ),
-                  
+
                   // Main button content
                   Column(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -314,7 +301,7 @@ class _PulsingScanButtonState extends State<PulsingScanButton>
       ),
     );
   }
-  
+
   @override
   void dispose() {
     _pulseController.dispose();
@@ -324,23 +311,22 @@ class _PulsingScanButtonState extends State<PulsingScanButton>
 }
 
 class ButtonParticleTrailPainter extends CustomPainter {
-  
   ButtonParticleTrailPainter({
     required this.animationValue,
     required this.color,
   });
   final double animationValue;
   final Color color;
-  
+
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
       ..color = color
       ..style = PaintingStyle.fill;
-    
+
     final center = Offset(size.width / 2, size.height / 2);
     final radius = size.width / 2;
-    
+
     // Draw orbiting particles
     for (var i = 0; i < 6; i++) {
       final angle = (i * 2 * math.pi / 6) + (animationValue * 2 * math.pi);
@@ -349,14 +335,14 @@ class ButtonParticleTrailPainter extends CustomPainter {
         center.dx + math.cos(angle) * particleRadius,
         center.dy + math.sin(angle) * particleRadius,
       );
-      
+
       final opacity = (math.sin(animationValue * 4 * math.pi + i) + 1) / 2;
-      paint.color = color.withValues(alpha:opacity * 0.8);
-      
+      paint.color = color.withValues(alpha: opacity * 0.8);
+
       canvas.drawCircle(particlePosition, 2, paint);
     }
   }
-  
+
   @override
   bool shouldRepaint(ButtonParticleTrailPainter oldDelegate) {
     return oldDelegate.animationValue != animationValue;

@@ -108,4 +108,4 @@ class ConvertPointsParams {
 
   @override
   int get hashCode => pointsToConvert.hashCode ^ currentUserPoints.hashCode;
-} 
+}

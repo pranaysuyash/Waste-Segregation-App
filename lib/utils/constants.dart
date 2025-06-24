@@ -12,17 +12,19 @@ class ApiConfig {
   // OpenAI API Configuration (Primary)
   static const String openAiBaseUrl = 'https://api.openai.com/v1';
   static const String openAiApiKey = String.fromEnvironment('OPENAI_API_KEY', defaultValue: 'your-openai-api-key-here');
-  
+
   // Primary model - Using the first model you specified
   static const String primaryModel = String.fromEnvironment('OPENAI_API_MODEL_PRIMARY', defaultValue: 'gpt-4.1-nano');
-  
+
   // Secondary models (fallbacks)
-  static const String secondaryModel1 = String.fromEnvironment('OPENAI_API_MODEL_SECONDARY', defaultValue: 'gpt-4o-mini');
-  static const String secondaryModel2 = String.fromEnvironment('OPENAI_API_MODEL_TERTIARY', defaultValue: 'gpt-4.1-mini');
-  
+  static const String secondaryModel1 =
+      String.fromEnvironment('OPENAI_API_MODEL_SECONDARY', defaultValue: 'gpt-4o-mini');
+  static const String secondaryModel2 =
+      String.fromEnvironment('OPENAI_API_MODEL_TERTIARY', defaultValue: 'gpt-4.1-mini');
+
   // Tertiary model (Gemini fallback)
   static const String tertiaryModel = String.fromEnvironment('GEMINI_API_MODEL', defaultValue: 'gemini-2.0-flash');
-  
+
   // Gemini API Configuration (Tertiary Fallback)
   static const String geminiBaseUrl = 'https://generativelanguage.googleapis.com/v1beta';
   static const String apiKey = String.fromEnvironment('GEMINI_API_KEY', defaultValue: 'your-gemini-api-key-here');
@@ -37,18 +39,19 @@ class StorageKeys {
   static const String userBox = 'userBox';
   static const String classificationsBox = 'classificationsBox';
   static const String settingsBox = 'settingsBox';
+
   /// Box for caching image classification results by hash
   static const String cacheBox = 'cacheBox';
   static const String gamificationBox = 'gamificationBox';
   static const String familiesBox = 'familiesBox';
   static const String invitationsBox = 'invitationsBox';
   static const String classificationFeedbackBox = 'classificationFeedbackBox';
-  
+
   // Keys for UserProfile object (New way)
   static const String userProfileKey = 'userProfile';
 
   // Old individual user keys (REMOVED)
-  // static const String userIdKey = 'userId'; 
+  // static const String userIdKey = 'userId';
   // static const String userEmailKey = 'userEmail';
   // static const String userDisplayNameKey = 'userDisplayName';
 
@@ -70,8 +73,7 @@ class AppTheme {
   static const Color seedColor = Color(0xFF2ECC71);
 
   /// Base text theme using Roboto for consistent typography.
-  static TextTheme _roboto(TextTheme base) =>
-      GoogleFonts.robotoTextTheme(base);
+  static TextTheme _roboto(TextTheme base) => GoogleFonts.robotoTextTheme(base);
 
   /// Build a [ThemeData] from the given [ColorScheme].
   static ThemeData fromScheme(ColorScheme scheme) {
@@ -104,28 +106,23 @@ class AppTheme {
         indicatorSize: TabBarIndicatorSize.tab,
       ),
       textTheme: _roboto(
-        scheme.brightness == Brightness.dark
-            ? ThemeData.dark().textTheme
-            : ThemeData.light().textTheme,
+        scheme.brightness == Brightness.dark ? ThemeData.dark().textTheme : ThemeData.light().textTheme,
       ),
     );
   }
 
   /// Default light theme using [ColorScheme.fromSeed].
-  static ThemeData get lightTheme =>
-      fromScheme(ColorScheme.fromSeed(seedColor: seedColor));
+  static ThemeData get lightTheme => fromScheme(ColorScheme.fromSeed(seedColor: seedColor));
 
   /// Default dark theme using [ColorScheme.fromSeed].
-  static ThemeData get darkTheme => fromScheme(
-      ColorScheme.fromSeed(seedColor: seedColor, brightness: Brightness.dark));
+  static ThemeData get darkTheme => fromScheme(ColorScheme.fromSeed(seedColor: seedColor, brightness: Brightness.dark));
 
   /// High contrast light theme.
-  static ThemeData get highContrastTheme => fromScheme(
-      ColorScheme.fromSeed(seedColor: seedColor, contrastLevel: 1.0));
+  static ThemeData get highContrastTheme => fromScheme(ColorScheme.fromSeed(seedColor: seedColor, contrastLevel: 1.0));
 
   /// High contrast dark theme.
-  static ThemeData get highContrastDarkTheme => fromScheme(
-      ColorScheme.fromSeed(seedColor: seedColor, brightness: Brightness.dark, contrastLevel: 1.0));
+  static ThemeData get highContrastDarkTheme =>
+      fromScheme(ColorScheme.fromSeed(seedColor: seedColor, brightness: Brightness.dark, contrastLevel: 1.0));
 
   // Category Colors (used for badges, etc.)
   // Updated colors from the "Living Earth" palette
@@ -144,7 +141,7 @@ class AppTheme {
   static const double fontSizeLarge = 18.0;
   static const double fontSizeExtraLarge = 24.0;
   static const double fontSizeHuge = 32.0;
-  
+
   // Enhanced Spacing System - 8pt grid
   static const double spacingXs = 4.0;
   static const double spacingSm = 8.0;
@@ -152,7 +149,7 @@ class AppTheme {
   static const double spacingLg = 24.0;
   static const double spacingXl = 32.0;
   static const double spacingXxl = 48.0;
-  
+
   // Padding and Margin (kept for backward compatibility)
   static const double paddingSmall = 8.0;
   static const double paddingMedium = 16.0;
@@ -160,7 +157,7 @@ class AppTheme {
   static const double paddingLarge = 24.0;
   static const double paddingExtraLarge = 32.0;
   static const double paddingMicro = 4.0;
-  
+
   // Modern Border Radius System
   static const double borderRadiusXs = 4.0;
   static const double borderRadiusSm = 8.0;
@@ -169,13 +166,13 @@ class AppTheme {
   static const double borderRadiusXl = 20.0;
   static const double borderRadiusXxl = 24.0;
   static const double borderRadiusRound = 50.0;
-  
+
   // Border Radius (kept for backward compatibility)
   static const double borderRadiusSmall = 4.0;
   static const double borderRadiusRegular = 8.0;
   static const double borderRadiusLarge = 16.0;
   static const double borderRadiusExtraLarge = 24.0;
-  
+
   // Modern Elevation System
   static const double elevationNone = 0.0;
   static const double elevationSm = 2.0;
@@ -183,14 +180,14 @@ class AppTheme {
   static const double elevationLg = 8.0;
   static const double elevationXl = 12.0;
   static const double elevationXxl = 24.0;
-  
+
   // Animation Durations
   static const Duration animationFast = Duration(milliseconds: 150);
   static const Duration animationNormal = Duration(milliseconds: 300);
   static const Duration animationSlow = Duration(milliseconds: 500);
-  
+
   // Modern Component Sizes (WCAG AA Compliant - minimum 48dp touch targets)
-  static const double buttonHeightSm = 48.0;  // FIXED: Was 36.0, now meets 48dp minimum
+  static const double buttonHeightSm = 48.0; // FIXED: Was 36.0, now meets 48dp minimum
   static const double buttonHeightMd = 48.0;
   static const double buttonHeightLg = 56.0;
   static const double iconSizeSm = 20.0;
@@ -208,13 +205,13 @@ class AppTheme {
   static const Color backgroundColor = Color(0xFFFFFFFF);
   static const Color surfaceColor = Color(0xFFFFFFFF);
   static const Color errorColor = Color(0xFFF44336);
-  
+
   // Additional semantic colors
   static const Color successColor = Color(0xFF2E7D32);
   static const Color warningColor = Color(0xFFFF9800);
   static const Color infoColor = Color(0xFF2196F3);
   static const Color neutralColor = Color(0xFF9E9E9E);
-  
+
   // Dark theme individual color constants
   static const Color darkPrimaryColor = Color(0xFF4CAF50);
   static const Color darkSecondaryColor = Color(0xFF2196F3);
@@ -277,12 +274,12 @@ class AppTheme {
 class AppStrings {
   // App Title
   static const String appName = 'Waste Segregation';
-  
+
   // Auth Screen
   static const String signInWithGoogle = 'Sign in with Google';
   static const String continueAsGuest = 'Continue as Guest';
   static const String welcomeMessage = 'Learn to segregate waste correctly';
-  
+
   // Home Screen
   static const String captureImage = 'Capture Image';
   static const String uploadImage = 'Upload Image';
@@ -297,19 +294,17 @@ class AppStrings {
   static const String helpStep2 = '2. Get AI-powered classification';
   static const String helpStep3 = '3. Follow disposal instructions';
   static const String helpStep4 = '4. Earn points and achievements';
-  static const String helpFooterText =
-      'Need more help? Check the Settings for tutorials and guides.';
+  static const String helpFooterText = 'Need more help? Check the Settings for tutorials and guides.';
 
   // About Dialog
   static const String appTagline = 'Smart Waste Classification';
-  static const String appDescription =
-      'An AI-powered app to help you classify and manage waste properly.';
-  
+  static const String appDescription = 'An AI-powered app to help you classify and manage waste properly.';
+
   // Image Capture Screen
   static const String analyzeImage = 'Analyze Image';
   static const String retakePhoto = 'Retake Photo';
   static const String analyzing = 'Analyzing...';
-  
+
   // Result Screen
   static const String identifiedAs = 'Identified As';
   static const String category = 'Category';
@@ -317,19 +312,19 @@ class AppStrings {
   static const String saveResult = 'Save Result';
   static const String shareResult = 'Share Result';
   static const String backToHome = 'Back to Home';
-  
+
   // Error Messages
   static const String errorCamera = 'Unable to access camera';
   static const String errorGallery = 'Unable to access gallery';
   static const String errorAnalysis = 'Failed to analyze image';
   static const String errorNetwork = 'Network error. Please check your connection';
   static const String errorGeneral = 'Something went wrong';
-  
+
   // Success Messages
   static const String successSaved = 'Result saved successfully';
   static const String successShared = 'Result shared successfully';
   static const String successSync = 'Data synced to Google Drive';
-  
+
   // Gamification Strings
   static const String achievements = 'Achievements';
   static const String badges = 'Badges';
@@ -349,7 +344,7 @@ class AppStrings {
   static const String progress = 'Progress';
   static const String viewAll = 'View All';
   static const String completeChallenge = 'Complete Challenge';
-  
+
   // Home Screen specific strings
   static const String ecoHero = 'Eco-hero';
   static const String takePhoto = 'Take Photo';
@@ -363,12 +358,12 @@ class AppStrings {
   static const String takeFirstPhoto = 'Take your first photo to begin making a positive environmental impact!';
   static const String streak = 'Streak';
   static const String complete = 'Complete';
-  
+
   // Time-based greetings
   static const String goodMorning = 'Good morning';
   static const String goodAfternoon = 'Good afternoon';
   static const String goodEvening = 'Good evening';
-  
+
   // Motivational messages
   static const String keepGoingChampion = 'Keep going, champion! 🌍';
   static const String energyToday = 'Bringing that energy today! ⚡';
@@ -376,24 +371,24 @@ class AppStrings {
   static const String makingDifference = 'You\'re making a difference! 🌱';
   static const String amazingWork = 'Amazing work today! 🎯';
   static const String nightOwlEco = 'Night owl eco-warrior! 🦉';
-  
+
   // Date strings
   static const String today = 'Today';
   static const String yesterday = 'Yesterday';
   static const String daysAgo = 'days ago';
-  
+
   // User placeholders
   static const String guestUser = 'Guest';
   static const String defaultUserName = 'Eco-warrior';
-  
+
   // Empty states
   static const String noClassificationsYet = 'No classifications yet';
   static const String startByCapturingImage = 'Start by capturing an image!';
-  
+
   // Error messages
   static const String errorTakingPhoto = 'Error taking photo';
   static const String errorPickingImage = 'Error picking image';
-  
+
   // Educational Content Screen
   static const String articles = 'Articles';
   static const String videos = 'Videos';
@@ -406,7 +401,7 @@ class AppStrings {
   static const String premium = 'Premium';
   static const String allCategories = 'All';
   static const String filterByCategory = 'Filter by category';
-  
+
   // Social Screen
   static const String family = 'Family';
   static const String community = 'Community';
@@ -443,39 +438,68 @@ class AppIcons {
   static const IconData verified = IconData(0xef76, fontFamily: 'MaterialIcons');
   static const IconData timerOutlined = IconData(0xef71, fontFamily: 'MaterialIcons');
   static const IconData barChart = IconData(0xe26b, fontFamily: 'MaterialIcons');
-  
+
   // Icon mapping for string to IconData conversion
   static IconData fromString(String iconName) {
     switch (iconName) {
-      case 'emoji_objects': return emojiObjects;
-      case 'recycling': return recycling;
-      case 'workspace_premium': return workspacePremium;
-      case 'category': return category;
-      case 'local_fire_department': return localFireDepartment;
-      case 'event_available': return eventAvailable;
-      case 'emoji_events': return emojiEvents;
-      case 'school': return school;
-      case 'quiz': return quiz;
-      case 'eco': return eco;
-      case 'task_alt': return taskAlt;
-      case 'shopping_bag': return shoppingBag;
-      case 'restaurant': return restaurant;
-      case 'compost': return compost;
-      case 'warning': return warning;
-      case 'medical_services': return medicalServices;
-      case 'autorenew': return autorenew;
-      case 'description': return description;
-      case 'water_drop': return waterDrop;
-      case 'hardware': return hardware;
-      case 'devices': return devices;
-      case 'auto_awesome': return autoAwesome;
-      case 'military_tech': return militaryTech;
-      case 'stars': return stars;
-      case 'search': return search;
-      case 'verified': return verified;
-      case 'timer_outlined': return timerOutlined;
-      case 'bar_chart': return barChart;
-      default: return autorenew; // Default to refresh icon
+      case 'emoji_objects':
+        return emojiObjects;
+      case 'recycling':
+        return recycling;
+      case 'workspace_premium':
+        return workspacePremium;
+      case 'category':
+        return category;
+      case 'local_fire_department':
+        return localFireDepartment;
+      case 'event_available':
+        return eventAvailable;
+      case 'emoji_events':
+        return emojiEvents;
+      case 'school':
+        return school;
+      case 'quiz':
+        return quiz;
+      case 'eco':
+        return eco;
+      case 'task_alt':
+        return taskAlt;
+      case 'shopping_bag':
+        return shoppingBag;
+      case 'restaurant':
+        return restaurant;
+      case 'compost':
+        return compost;
+      case 'warning':
+        return warning;
+      case 'medical_services':
+        return medicalServices;
+      case 'autorenew':
+        return autorenew;
+      case 'description':
+        return description;
+      case 'water_drop':
+        return waterDrop;
+      case 'hardware':
+        return hardware;
+      case 'devices':
+        return devices;
+      case 'auto_awesome':
+        return autoAwesome;
+      case 'military_tech':
+        return militaryTech;
+      case 'stars':
+        return stars;
+      case 'search':
+        return search;
+      case 'verified':
+        return verified;
+      case 'timer_outlined':
+        return timerOutlined;
+      case 'bar_chart':
+        return barChart;
+      default:
+        return autorenew; // Default to refresh icon
     }
   }
 }
@@ -490,16 +514,17 @@ class WasteInfo {
     'Non-Waste': 'Reusable items, items for donation, functional electronics, books, toys',
     'Requires Manual Review': 'Items that could not be automatically identified by AI - please identify manually',
   };
-  
+
   static const Map<String, String> disposalInstructions = {
     'Wet Waste': 'Dispose in green bin. Can be composted to create nutrient-rich soil.',
     'Dry Waste': 'Dispose in blue bin. Can be recycled into new products.',
     'Hazardous Waste': 'Do not mix with regular waste. Take to designated collection centers.',
     'Medical Waste': 'Seal in special bags and dispose according to local medical waste guidelines.',
     'Non-Waste': 'Consider donating, reusing, or repurposing instead of disposing.',
-    'Requires Manual Review': 'Do not dispose until properly identified. Refer to local guidelines or use the feedback feature.',
+    'Requires Manual Review':
+        'Do not dispose until properly identified. Refer to local guidelines or use the feedback feature.',
   };
-  
+
   // Maps subcategories to examples
   static const Map<String, String> subcategoryExamples = {
     // Wet Waste Subcategories
@@ -508,7 +533,7 @@ class WasteInfo {
     'Animal Waste': 'Pet waste, manure, bedding material from pet cages',
     'Biodegradable Packaging': 'Paper bags, compostable food containers, biodegradable plastics',
     'Other Wet Waste': 'Soiled paper towels, tissues, natural cork, sawdust',
-    
+
     // Dry Waste Subcategories
     'Paper': 'Newspapers, magazines, office paper, envelopes, books, paper bags',
     'Plastic': 'Plastic bottles, containers, packaging, toys, utensils (with recycling codes)',
@@ -519,7 +544,7 @@ class WasteInfo {
     'Rubber': 'Rubber bands, erasers, non-tire rubber products',
     'Wood': 'Wooden items, furniture pieces, crates, untreated lumber',
     'Other Dry Waste': 'Mixed materials, ceramics, leather items',
-    
+
     // Hazardous Waste Subcategories
     'Electronic Waste': 'Old computers, phones, TVs, cables, chargers, electronic devices',
     'Batteries': 'Car batteries, household batteries, lithium-ion batteries, button cells',
@@ -529,14 +554,14 @@ class WasteInfo {
     'Aerosol Cans': 'Spray paints, deodorants, air fresheners, insecticides',
     'Automotive Waste': 'Motor oil, antifreeze, brake fluid, filters, wiper fluid',
     'Other Hazardous Waste': 'Thermometers, barometers, smoke detectors',
-    
+
     // Medical Waste Subcategories
     'Sharps': 'Needles, syringes, lancets, scalpels, broken glass',
     'Pharmaceutical': 'Expired medications, unused medicines, vitamins, supplements',
     'Infectious': 'Bandages, swabs, gloves contaminated with blood or bodily fluids',
     'Non-Infectious': 'Unused medical supplies, packaging from medical devices',
     'Other Medical Waste': 'Medical devices, testing kits, first aid materials',
-    
+
     // Non-Waste Subcategories
     'Reusable Items': 'Containers, water bottles, shopping bags, utensils',
     'Donatable Items': 'Clothes, toys, books, furniture in good condition',
@@ -544,16 +569,19 @@ class WasteInfo {
     'Repurposable Items': 'Glass jars, paper scraps for crafts, old furniture for upcycling',
     'Other Non-Waste': 'Materials that can be shared or reused in community programs',
   };
-  
+
   // Maps subcategories to disposal instructions
   static const Map<String, String> subcategoryDisposal = {
     // Wet Waste Subcategories
-    'Food Waste': 'Compost in a compost bin or dispose in green bin. Keep meat and dairy separate if specified by local guidelines.',
+    'Food Waste':
+        'Compost in a compost bin or dispose in green bin. Keep meat and dairy separate if specified by local guidelines.',
     'Garden Waste': 'Compost or dispose in green bin. Large branches may need to be cut into smaller pieces.',
-    'Animal Waste': 'Check local regulations. Some areas allow disposal in green bins, others require special handling.',
-    'Biodegradable Packaging': 'Ensure packaging is certified compostable before adding to compost. Otherwise, dispose in green bin.',
+    'Animal Waste':
+        'Check local regulations. Some areas allow disposal in green bins, others require special handling.',
+    'Biodegradable Packaging':
+        'Ensure packaging is certified compostable before adding to compost. Otherwise, dispose in green bin.',
     'Other Wet Waste': 'Dispose in green bin. Ensure paper products are not contaminated with chemicals.',
-    
+
     // Dry Waste Subcategories
     'Paper': 'Recycle in blue bin. Remove any plastic coatings or metal attachments when possible.',
     'Plastic': 'Check recycling codes (1-7). Clean containers before recycling. Dispose in blue bin.',
@@ -564,7 +592,7 @@ class WasteInfo {
     'Rubber': 'Small rubber items may go in general waste. Check for specialized recycling programs.',
     'Wood': 'Untreated wood can be recycled or repurposed. Treated wood requires special disposal.',
     'Other Dry Waste': 'Check local guidelines for specific materials. Some may require special handling.',
-    
+
     // Hazardous Waste Subcategories
     'Electronic Waste': 'Take to e-waste collection centers or electronic retailer take-back programs.',
     'Batteries': 'Never put in regular trash. Take to battery recycling drop-off points.',
@@ -574,14 +602,14 @@ class WasteInfo {
     'Aerosol Cans': 'Ensure completely empty. Some areas accept in metal recycling if empty.',
     'Automotive Waste': 'Take to auto parts stores or garages that accept used fluids and parts.',
     'Other Hazardous Waste': 'Take to hazardous waste collection events or facilities.',
-    
+
     // Medical Waste Subcategories
     'Sharps': 'Always place in approved sharps containers and take to collection points.',
     'Pharmaceutical': 'Take to medication take-back programs. Do not flush down toilet.',
     'Infectious': 'Double-bag and seal. Follow local healthcare waste guidelines.',
     'Non-Infectious': 'Some items may be recyclable if not contaminated. Otherwise dispose as general waste.',
     'Other Medical Waste': 'Follow healthcare provider instructions or contact local health department.',
-    
+
     // Non-Waste Subcategories
     'Reusable Items': 'Continue using or share with friends and family.',
     'Donatable Items': 'Give to charity shops, shelters, or community organizations.',
@@ -589,26 +617,26 @@ class WasteInfo {
     'Repurposable Items': 'Use for DIY projects, crafts, or find creative reuse ideas online.',
     'Other Non-Waste': 'Consider free cycle networks or community exchange programs.',
   };
-  
+
   // Color codes for different waste types (standard international color coding)
   static const Map<String, String> colorCoding = {
-    'Wet Waste': '#4CAF50',  // Green
-    'Dry Waste': '#2196F3',  // Blue
-    'Hazardous Waste': '#FF5722',  // Deep Orange/Red
-    'Medical Waste': '#F44336',  // Red
-    'Non-Waste': '#9C27B0',  // Purple
-    
+    'Wet Waste': '#4CAF50', // Green
+    'Dry Waste': '#2196F3', // Blue
+    'Hazardous Waste': '#FF5722', // Deep Orange/Red
+    'Medical Waste': '#F44336', // Red
+    'Non-Waste': '#9C27B0', // Purple
+
     // Material-specific color coding (follows international standards where applicable)
-    'Paper': '#90CAF9',  // Light Blue
-    'Plastic': '#2196F3',  // Blue
-    'Glass': '#1976D2',  // Dark Blue
-    'Metal': '#0D47A1',  // Deep Blue
-    'Organic': '#4CAF50',  // Green
-    'E-waste': '#FF9800',  // Orange
-    'Batteries': '#FF5722',  // Deep Orange
-    'General Waste': '#9E9E9E',  // Gray
+    'Paper': '#90CAF9', // Light Blue
+    'Plastic': '#2196F3', // Blue
+    'Glass': '#1976D2', // Dark Blue
+    'Metal': '#0D47A1', // Deep Blue
+    'Organic': '#4CAF50', // Green
+    'E-waste': '#FF9800', // Orange
+    'Batteries': '#FF5722', // Deep Orange
+    'General Waste': '#9E9E9E', // Gray
   };
-  
+
   // Recycling codes for plastics
   static const Map<String, String> recyclingCodes = {
     '1': 'PET (Polyethylene Terephthalate) - Water bottles, soft drink bottles',
@@ -632,13 +660,13 @@ class GamificationConfig {
   static const int kPointsPerEducationalContent = 5;
   static const int kPointsPerPerfectWeek = 50;
   static const int kPointsPerCommunityChallenge = 30;
-  
+
   // Timeouts and retry configuration
   static const Duration kProfileTimeout = Duration(seconds: 10);
   static const Duration kClaimTimeout = Duration(seconds: 5);
   static const Duration kSyncTimeout = Duration(seconds: 15);
   static const int kMaxRetryAttempts = 3;
-  
+
   // UI Configuration
   static const int kCelebrationDuration = 3000; // milliseconds
   static const double kProgressAnimationDuration = 1.5; // seconds
@@ -648,22 +676,18 @@ class GamificationConfig {
 // App Exception Classes for better error handling
 abstract class AppException implements Exception {
   const AppException(this.message, [this.code]);
-  
-  factory AppException.timeout([String? message]) => 
-      TimeoutAppException(message ?? 'Operation timed out');
-  
-  factory AppException.network([String? message]) => 
-      NetworkAppException(message ?? 'Network error occurred');
-  
-  factory AppException.auth([String? message]) => 
-      AuthAppException(message ?? 'Authentication error');
-  
-  factory AppException.storage([String? message]) => 
-      StorageAppException(message ?? 'Storage error occurred');
-  
+
+  factory AppException.timeout([String? message]) => TimeoutAppException(message ?? 'Operation timed out');
+
+  factory AppException.network([String? message]) => NetworkAppException(message ?? 'Network error occurred');
+
+  factory AppException.auth([String? message]) => AuthAppException(message ?? 'Authentication error');
+
+  factory AppException.storage([String? message]) => StorageAppException(message ?? 'Storage error occurred');
+
   final String message;
   final String? code;
-  
+
   @override
   String toString() => 'AppException: $message${code != null ? ' (Code: $code)' : ''}';
 }
@@ -687,30 +711,31 @@ class StorageAppException extends AppException {
 // Result type for better error handling
 sealed class Result<T, E> {
   const Result();
-  
+
   factory Result.success(T value) => Success(value);
   factory Result.failure(E error) => Failure(error);
-  
+
   bool get isSuccess => this is Success<T, E>;
   bool get isFailure => this is Failure<T, E>;
-  
+
   T? get value => switch (this) {
-    Success(value: final v) => v,
-    Failure() => null,
-  };
-  
+        Success(value: final v) => v,
+        Failure() => null,
+      };
+
   E? get error => switch (this) {
-    Success() => null,
-    Failure(error: final e) => e,
-  };
-  
+        Success() => null,
+        Failure(error: final e) => e,
+      };
+
   R when<R>({
     required R Function(T value) success,
     required R Function(E error) failure,
-  }) => switch (this) {
-    Success(value: final v) => success(v),
-    Failure(error: final e) => failure(e),
-  };
+  }) =>
+      switch (this) {
+        Success(value: final v) => success(v),
+        Failure(error: final e) => failure(e),
+      };
 }
 
 class Success<T, E> extends Result<T, E> {

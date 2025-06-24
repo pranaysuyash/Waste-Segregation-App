@@ -35,14 +35,14 @@ class _AnalyticsTrackingWrapperState extends ConsumerState<AnalyticsTrackingWrap
   final ScrollController _scrollController = ScrollController();
   final List<DateTime> _tapTimes = [];
   final Set<int> _scrollDepthsReported = {};
-  
+
   late AnalyticsService _analyticsService;
-  
+
   @override
   void initState() {
     super.initState();
     _analyticsService = ref.read(analyticsServiceProvider);
-    
+
     if (widget.trackScrollDepth) {
       _scrollController.addListener(_onScroll);
     }
@@ -60,10 +60,10 @@ class _AnalyticsTrackingWrapperState extends ConsumerState<AnalyticsTrackingWrap
       final scrollPosition = _scrollController.position;
       final maxScroll = scrollPosition.maxScrollExtent;
       final currentScroll = scrollPosition.pixels;
-      
+
       if (maxScroll > 0) {
         final scrollPercent = ((currentScroll / maxScroll) * 100).round();
-        
+
         // Track at 25%, 50%, 75%, and 100% scroll depths
         const milestones = [25, 50, 75, 100];
         for (final milestone in milestones) {
@@ -75,10 +75,8 @@ class _AnalyticsTrackingWrapperState extends ConsumerState<AnalyticsTrackingWrap
         }
       }
     } catch (e) {
-      WasteAppLogger.warning('Error tracking scroll depth', e, null, {
-        'screen_name': widget.screenName,
-        'service': 'AnalyticsTrackingWrapper'
-      });
+      WasteAppLogger.warning('Error tracking scroll depth', e, null,
+          {'screen_name': widget.screenName, 'service': 'AnalyticsTrackingWrapper'});
     }
   }
 
@@ -96,31 +94,26 @@ class _AnalyticsTrackingWrapperState extends ConsumerState<AnalyticsTrackingWrap
     try {
       final now = DateTime.now();
       _tapTimes.add(now);
-      
+
       // Clean up old tap times (keep only last 5 seconds)
       _tapTimes.removeWhere((time) => now.difference(time).inSeconds > 5);
-      
+
       if (widget.trackClicks && widget.elementId != null) {
         _trackClick();
       }
-      
+
       if (widget.trackRageClicks && _tapTimes.length >= 3) {
         // Check if 3+ taps happened within 1 second
-        final recentTaps = _tapTimes.where((time) => 
-          now.difference(time).inSeconds <= 1
-        ).toList();
-        
+        final recentTaps = _tapTimes.where((time) => now.difference(time).inSeconds <= 1).toList();
+
         if (recentTaps.length >= 3) {
           _trackRageClick(recentTaps.length);
           _tapTimes.clear(); // Clear to avoid duplicate rage click events
         }
       }
     } catch (e) {
-      WasteAppLogger.warning('Error tracking tap', e, null, {
-        'screen_name': widget.screenName,
-        'element_id': widget.elementId,
-        'service': 'AnalyticsTrackingWrapper'
-      });
+      WasteAppLogger.warning('Error tracking tap', e, null,
+          {'screen_name': widget.screenName, 'element_id': widget.elementId, 'service': 'AnalyticsTrackingWrapper'});
     }
   }
 
@@ -142,7 +135,7 @@ class _AnalyticsTrackingWrapperState extends ConsumerState<AnalyticsTrackingWrap
         screenName: widget.screenName,
         tapCount: tapCount,
       );
-      
+
       WasteAppLogger.info('Rage click detected', null, null, {
         'element_id': widget.elementId,
         'screen_name': widget.screenName,
@@ -155,7 +148,7 @@ class _AnalyticsTrackingWrapperState extends ConsumerState<AnalyticsTrackingWrap
   @override
   Widget build(BuildContext context) {
     var child = widget.child;
-    
+
     // Wrap with scroll tracking if enabled
     if (widget.trackScrollDepth && widget.child is! Scrollable) {
       child = SingleChildScrollView(
@@ -165,12 +158,10 @@ class _AnalyticsTrackingWrapperState extends ConsumerState<AnalyticsTrackingWrap
     } else if (widget.trackScrollDepth && widget.child is Scrollable) {
       // If child is already scrollable, we need to inject our controller
       // This is more complex and might need specific handling per scrollable type
-      WasteAppLogger.info('Child is already scrollable, scroll tracking may not work', null, null, {
-        'screen_name': widget.screenName,
-        'service': 'AnalyticsTrackingWrapper'
-      });
+      WasteAppLogger.info('Child is already scrollable, scroll tracking may not work', null, null,
+          {'screen_name': widget.screenName, 'service': 'AnalyticsTrackingWrapper'});
     }
-    
+
     // Wrap with tap tracking if enabled
     if (widget.trackClicks || widget.trackRageClicks) {
       child = GestureDetector(
@@ -179,7 +170,7 @@ class _AnalyticsTrackingWrapperState extends ConsumerState<AnalyticsTrackingWrap
         child: child,
       );
     }
-    
+
     return child;
   }
 }
@@ -206,7 +197,7 @@ class AnalyticsButton extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final analyticsService = ref.read(analyticsServiceProvider);
-    
+
     return GestureDetector(
       onTap: () {
         // Track the click
@@ -216,7 +207,7 @@ class AnalyticsButton extends ConsumerWidget {
           elementType: elementType,
           userIntent: userIntent,
         );
-        
+
         // Execute the original callback
         onPressed?.call();
       },
@@ -247,21 +238,23 @@ class AnalyticsElevatedButton extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final analyticsService = ref.read(analyticsServiceProvider);
-    
+
     return ElevatedButton(
       style: style,
-      onPressed: onPressed == null ? null : () {
-        // Track the click
-        analyticsService.trackClick(
-          elementId: elementId,
-          screenName: screenName,
-          elementType: 'elevated_button',
-          userIntent: userIntent,
-        );
-        
-        // Execute the original callback
-        onPressed?.call();
-      },
+      onPressed: onPressed == null
+          ? null
+          : () {
+              // Track the click
+              analyticsService.trackClick(
+                elementId: elementId,
+                screenName: screenName,
+                elementType: 'elevated_button',
+                userIntent: userIntent,
+              );
+
+              // Execute the original callback
+              onPressed?.call();
+            },
       child: child,
     );
   }
@@ -289,21 +282,23 @@ class AnalyticsTextButton extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final analyticsService = ref.read(analyticsServiceProvider);
-    
+
     return TextButton(
       style: style,
-      onPressed: onPressed == null ? null : () {
-        // Track the click
-        analyticsService.trackClick(
-          elementId: elementId,
-          screenName: screenName,
-          elementType: 'text_button',
-          userIntent: userIntent,
-        );
-        
-        // Execute the original callback
-        onPressed?.call();
-      },
+      onPressed: onPressed == null
+          ? null
+          : () {
+              // Track the click
+              analyticsService.trackClick(
+                elementId: elementId,
+                screenName: screenName,
+                elementType: 'text_button',
+                userIntent: userIntent,
+              );
+
+              // Execute the original callback
+              onPressed?.call();
+            },
       child: child,
     );
   }
@@ -331,22 +326,24 @@ class AnalyticsIconButton extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final analyticsService = ref.read(analyticsServiceProvider);
-    
+
     return IconButton(
       tooltip: tooltip,
-      onPressed: onPressed == null ? null : () {
-        // Track the click
-        analyticsService.trackClick(
-          elementId: elementId,
-          screenName: screenName,
-          elementType: 'icon_button',
-          userIntent: userIntent,
-        );
-        
-        // Execute the original callback
-        onPressed?.call();
-      },
+      onPressed: onPressed == null
+          ? null
+          : () {
+              // Track the click
+              analyticsService.trackClick(
+                elementId: elementId,
+                screenName: screenName,
+                elementType: 'icon_button',
+                userIntent: userIntent,
+              );
+
+              // Execute the original callback
+              onPressed?.call();
+            },
       icon: icon,
     );
   }
-} 
+}

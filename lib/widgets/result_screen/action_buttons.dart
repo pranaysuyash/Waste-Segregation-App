@@ -3,7 +3,6 @@ import '../../utils/constants.dart';
 
 /// Action buttons for the result screen with proper state management
 class ActionButtons extends StatelessWidget {
-  
   const ActionButtons({
     super.key,
     required this.isSaved,
@@ -15,12 +14,12 @@ class ActionButtons extends StatelessWidget {
   final bool isAutoSaving;
   final VoidCallback onSave;
   final VoidCallback onShare;
-  
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    
+
     return Row(
       children: [
         Expanded(
@@ -38,14 +37,10 @@ class ActionButtons extends StatelessWidget {
               elevation: isAutoSaving ? 0 : 2,
             ),
             icon: Icon(
-              isAutoSaving
-                  ? Icons.hourglass_empty
-                  : (isSaved ? Icons.share : Icons.save),
+              isAutoSaving ? Icons.hourglass_empty : (isSaved ? Icons.share : Icons.save),
             ),
             label: Text(
-              isAutoSaving
-                  ? 'Saving...'
-                  : (isSaved ? 'Share' : 'Save'),
+              isAutoSaving ? 'Saving...' : (isSaved ? 'Share' : 'Save'),
               style: const TextStyle(fontWeight: FontWeight.w600),
             ),
           ),
@@ -75,4 +70,4 @@ class ActionButtons extends StatelessWidget {
       ],
     );
   }
-} 
+}

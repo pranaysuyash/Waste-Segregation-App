@@ -84,11 +84,11 @@ void main() {
         when(mockThemeProvider.themeMode).thenReturn(ThemeMode.light);
         when(mockConsentService.hasAnalyticsConsent).thenReturn(true);
         when(mockStorageService.getStorageUsage()).thenAnswer((_) async => {
-          'totalSize': 1024000,
-          'classificationsSize': 512000,
-          'cacheSize': 256000,
-          'imagesSize': 256000,
-        });
+              'totalSize': 1024000,
+              'classificationsSize': 512000,
+              'cacheSize': 256000,
+              'imagesSize': 256000,
+            });
 
         await tester.pumpWidget(createTestWidget());
         await tester.pumpAndSettle();
@@ -162,8 +162,7 @@ void main() {
         when(mockThemeProvider.themeMode).thenReturn(ThemeMode.light);
         when(mockConsentService.hasAnalyticsConsent).thenReturn(false);
         when(mockConsentService.hasMarketingConsent).thenReturn(false);
-        when(mockConsentService.setAnalyticsConsent(true))
-            .thenAnswer((_) async => null);
+        when(mockConsentService.setAnalyticsConsent(true)).thenAnswer((_) async => null);
 
         await tester.pumpWidget(createTestWidget());
 
@@ -179,8 +178,7 @@ void main() {
         when(mockThemeProvider.themeMode).thenReturn(ThemeMode.light);
         when(mockConsentService.hasAnalyticsConsent).thenReturn(true);
         when(mockConsentService.hasMarketingConsent).thenReturn(true);
-        when(mockConsentService.setMarketingConsent(false))
-            .thenAnswer((_) async => null);
+        when(mockConsentService.setMarketingConsent(false)).thenAnswer((_) async => null);
 
         await tester.pumpWidget(createTestWidget());
 
@@ -210,8 +208,7 @@ void main() {
       testWidgets('should handle consent service errors gracefully', (WidgetTester tester) async {
         when(mockThemeProvider.themeMode).thenReturn(ThemeMode.light);
         when(mockConsentService.hasAnalyticsConsent).thenReturn(false);
-        when(mockConsentService.setAnalyticsConsent(true))
-            .thenThrow(Exception('Failed to update consent'));
+        when(mockConsentService.setAnalyticsConsent(true)).thenThrow(Exception('Failed to update consent'));
 
         await tester.pumpWidget(createTestWidget());
 
@@ -265,9 +262,9 @@ void main() {
         when(mockThemeProvider.themeMode).thenReturn(ThemeMode.light);
         when(mockConsentService.hasAnalyticsConsent).thenReturn(true);
         when(mockStorageService.getStorageUsage()).thenAnswer((_) async => {
-          'totalSize': 1024000,
-          'cacheSize': 256000,
-        });
+              'totalSize': 1024000,
+              'cacheSize': 256000,
+            });
         when(mockStorageService.clearCache()).thenAnswer((_) async => true);
 
         await tester.pumpWidget(createTestWidget());
@@ -497,8 +494,7 @@ void main() {
     group('Error Handling', () {
       testWidgets('should handle theme provider errors', (WidgetTester tester) async {
         when(mockThemeProvider.themeMode).thenReturn(ThemeMode.light);
-        when(mockThemeProvider.setThemeMode(any))
-            .thenThrow(Exception('Theme change failed'));
+        when(mockThemeProvider.setThemeMode(any)).thenThrow(Exception('Theme change failed'));
         when(mockConsentService.hasAnalyticsConsent).thenReturn(true);
 
         await tester.pumpWidget(createTestWidget());
@@ -515,8 +511,7 @@ void main() {
       testWidgets('should handle storage service unavailable', (WidgetTester tester) async {
         when(mockThemeProvider.themeMode).thenReturn(ThemeMode.light);
         when(mockConsentService.hasAnalyticsConsent).thenReturn(true);
-        when(mockStorageService.getStorageUsage())
-            .thenThrow(Exception('Storage unavailable'));
+        when(mockStorageService.getStorageUsage()).thenThrow(Exception('Storage unavailable'));
 
         await tester.pumpWidget(createTestWidget());
         await tester.pumpAndSettle();
@@ -527,8 +522,7 @@ void main() {
       testWidgets('should recover from network errors', (WidgetTester tester) async {
         when(mockThemeProvider.themeMode).thenReturn(ThemeMode.light);
         when(mockConsentService.hasAnalyticsConsent).thenReturn(true);
-        when(mockConsentService.setAnalyticsConsent(any))
-            .thenThrow(Exception('Network error'));
+        when(mockConsentService.setAnalyticsConsent(any)).thenThrow(Exception('Network error'));
 
         await tester.pumpWidget(createTestWidget());
 
@@ -540,8 +534,7 @@ void main() {
         expect(find.text('Retry'), findsOneWidget);
 
         // Mock successful retry
-        when(mockConsentService.setAnalyticsConsent(any))
-            .thenAnswer((_) async => null);
+        when(mockConsentService.setAnalyticsConsent(any)).thenAnswer((_) async => null);
 
         await tester.tap(find.text('Retry'));
         await tester.pumpAndSettle();
@@ -571,8 +564,7 @@ void main() {
       testWidgets('should handle multiple rapid toggles', (WidgetTester tester) async {
         when(mockThemeProvider.themeMode).thenReturn(ThemeMode.light);
         when(mockConsentService.hasAnalyticsConsent).thenReturn(false);
-        when(mockConsentService.setAnalyticsConsent(any))
-            .thenAnswer((_) async => null);
+        when(mockConsentService.setAnalyticsConsent(any)).thenAnswer((_) async => null);
 
         await tester.pumpWidget(createTestWidget());
 

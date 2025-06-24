@@ -15,7 +15,6 @@ import '../providers/app_providers.dart';
 
 /// Pipeline state for tracking the result processing
 class ResultPipelineState {
-
   const ResultPipelineState({
     this.isProcessing = false,
     this.error,
@@ -53,7 +52,6 @@ class ResultPipelineState {
 /// ResultPipeline handles all business logic for processing waste classifications
 /// This separates concerns from the UI and makes the system more testable
 class ResultPipeline extends StateNotifier<ResultPipelineState> {
-
   ResultPipeline(
     this._storageService,
     this._gamificationService,
@@ -79,13 +77,13 @@ class ResultPipeline extends StateNotifier<ResultPipelineState> {
     bool autoAnalyze = false,
   }) async {
     final classificationId = classification.id;
-    
+
     // Prevent duplicate processing
     if (_processingClassifications.contains(classificationId) && !force) {
-             WasteAppLogger.warning('Classification already being processed', null, null, {
-         'classificationId': classificationId,
-         'service': 'ResultPipeline',
-       });
+      WasteAppLogger.warning('Classification already being processed', null, null, {
+        'classificationId': classificationId,
+        'service': 'ResultPipeline',
+      });
       return;
     }
 
@@ -117,10 +115,9 @@ class ResultPipeline extends StateNotifier<ResultPipelineState> {
       // Calculate deltas
       final pointsEarned = newProfile.points.total - oldProfile.points.total;
       final oldAchievementIds = oldProfile.achievements.map((a) => a.id).toSet();
-      final newlyEarnedAchievements = newProfile.achievements
-          .where((a) => a.isEarned && !oldAchievementIds.contains(a.id))
-          .toList();
-      
+      final newlyEarnedAchievements =
+          newProfile.achievements.where((a) => a.isEarned && !oldAchievementIds.contains(a.id)).toList();
+
       final completedChallenge = newProfile.completedChallenges
           .where((c) => !oldProfile.completedChallenges.map((oc) => oc.id).contains(c.id))
           .firstOrNull;
@@ -128,8 +125,8 @@ class ResultPipeline extends StateNotifier<ResultPipelineState> {
       // Stage 3: Cloud sync (if enabled)
       final settings = await _storageService.getSettings();
       final isGoogleSyncEnabled = settings['isGoogleSyncEnabled'] ?? false;
-      
-              if (isGoogleSyncEnabled) {
+
+      if (isGoogleSyncEnabled) {
         WasteAppLogger.info('Syncing to cloud', null, null, {
           'classificationId': classificationId,
           'stage': 'cloud_sync',
@@ -186,7 +183,6 @@ class ResultPipeline extends StateNotifier<ResultPipelineState> {
         'achievementsEarned': newlyEarnedAchievements.length,
         'service': 'ResultPipeline',
       });
-
     } catch (error, stackTrace) {
       WasteAppLogger.severe('Classification processing pipeline failed', error, stackTrace, {
         'classificationId': classificationId,
@@ -251,15 +247,16 @@ class ResultPipeline extends StateNotifier<ResultPipelineState> {
   Future<String> shareClassification(WasteClassification classification) async {
     try {
       await trackUserAction('classification_share', classification);
-      
+
       final link = DynamicLinkService.createResultLink(classification);
-      final shareText = 'I identified ${classification.itemName} as ${classification.category} waste using the Waste Segregation app!\n$link';
-      
+      final shareText =
+          'I identified ${classification.itemName} as ${classification.category} waste using the Waste Segregation app!\n$link';
+
       await ShareService.share(
         text: shareText,
         subject: 'Waste Classification Result',
       );
-      
+
       return shareText;
     } catch (e, stackTrace) {
       final error = 'Error sharing: ${ErrorHandler.getUserFriendlyMessage(e)}';
@@ -275,12 +272,12 @@ class ResultPipeline extends StateNotifier<ResultPipelineState> {
   Future<void> saveClassificationOnly(WasteClassification classification, {bool force = false}) async {
     try {
       await trackUserAction('classification_save', classification);
-      
+
       final savedClassification = classification.copyWith(isSaved: true);
       await _storageService.saveClassification(savedClassification, force: force);
-      
+
       state = state.copyWith(isSaved: true);
-      
+
       WasteAppLogger.info('Classification saved manually', null, null, {
         'classificationId': classification.id,
         'service': 'ResultPipeline',
@@ -302,25 +299,26 @@ class ResultPipeline extends StateNotifier<ResultPipelineState> {
       WasteAppLogger.info('Checking retroactive gamification processing', null, null, {
         'service': 'ResultPipeline',
       });
-      
+
       // Get current profile
       final profile = await _gamificationService.getProfile();
       final currentPoints = profile.points.total;
-      
+
       // Get all classifications
       final allClassifications = await _storageService.getAllClassifications();
-      
+
       // If user has classifications but 0 points, they need retroactive processing
       if (allClassifications.isNotEmpty && currentPoints == 0) {
-        WasteAppLogger.info('Processing retroactive gamification for ${allClassifications.length} classifications', null, null, {
+        WasteAppLogger.info(
+            'Processing retroactive gamification for ${allClassifications.length} classifications', null, null, {
           'service': 'ResultPipeline',
         });
-        
+
         // Process all classifications for gamification
         for (final classification in allClassifications) {
           await _gamificationService.processClassification(classification);
         }
-        
+
         WasteAppLogger.info('Retroactive gamification processing completed', null, null, {
           'classificationsProcessed': allClassifications.length,
           'service': 'ResultPipeline',
@@ -378,4 +376,4 @@ final resultPipelineAchievementsProvider = Provider<List<Achievement>>((ref) {
 
 final resultPipelineIsProcessingProvider = Provider<bool>((ref) {
   return ref.watch(resultPipelineProvider).isProcessing;
-}); 
+});

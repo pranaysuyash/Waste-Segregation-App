@@ -29,8 +29,7 @@ void main() {
 
       // Verify navigation occurred but not duplicated
       final newRouteCount = navigator.widget.pages?.length ?? 1;
-      expect(newRouteCount, equals(initialRouteCount + 1),
-             reason: 'Should navigate to exactly one new screen');
+      expect(newRouteCount, equals(initialRouteCount + 1), reason: 'Should navigate to exactly one new screen');
 
       // Visual verification - app should be in stable state
       await tester.pumpAndSettle();
@@ -45,7 +44,7 @@ void main() {
       final buttons = find.byType(FloatingActionButton);
       if (buttons.evaluate().isNotEmpty) {
         final button = buttons.first;
-        
+
         // Get initial state
         final navigator = tester.state<NavigatorState>(find.byType(Navigator).first);
         final initialRouteCount = navigator.widget.pages?.length ?? 1;
@@ -61,7 +60,7 @@ void main() {
         // Verify only one navigation occurred
         final finalRouteCount = navigator.widget.pages?.length ?? 1;
         expect(finalRouteCount, lessThanOrEqualTo(initialRouteCount + 1),
-               reason: 'Rapid taps should not cause multiple navigations');
+            reason: 'Rapid taps should not cause multiple navigations');
       }
     });
 
@@ -87,13 +86,13 @@ void main() {
         // Verify we ended up on a single result screen
         final finalRouteCount = navigator.widget.pages?.length ?? 1;
         expect(finalRouteCount, lessThanOrEqualTo(initialRouteCount + 1),
-               reason: 'Auto-analyze should not create multiple routes');
+            reason: 'Auto-analyze should not create multiple routes');
 
         // Verify we're on the expected screen
         final resultFinder = find.textContaining('Result');
         final classificationFinder = find.textContaining('Classification');
-        expect(resultFinder.evaluate().isNotEmpty || classificationFinder.evaluate().isNotEmpty, 
-               isTrue, reason: 'Should find either Result or Classification text');
+        expect(resultFinder.evaluate().isNotEmpty || classificationFinder.evaluate().isNotEmpty, isTrue,
+            reason: 'Should find either Result or Classification text');
       }
     });
 
@@ -116,16 +115,15 @@ void main() {
           of: tabs.first,
           matching: find.byType(InkWell),
         );
-        
+
         for (int i = 0; i < tabItems.evaluate().length && i < 3; i++) {
           await tester.tap(tabItems.at(i));
           await tester.pumpAndSettle();
-          
+
           // Verify Navigator stack doesn't grow unnecessarily
           final navigator = tester.state<NavigatorState>(find.byType(Navigator).first);
           final routeCount = navigator.widget.pages?.length ?? 1;
-          expect(routeCount, lessThanOrEqualTo(2),
-                 reason: 'Tab navigation should not accumulate routes');
+          expect(routeCount, lessThanOrEqualTo(2), reason: 'Tab navigation should not accumulate routes');
         }
       }
     });
@@ -141,13 +139,12 @@ void main() {
 
       // Simulate network error or analysis failure
       // (This would need to be coordinated with mock services in a real test)
-      
+
       // For now, just verify the app remains stable
       await tester.pumpAndSettle();
-      
+
       final finalRouteCount = navigator.widget.pages?.length ?? 1;
-      expect(finalRouteCount, equals(initialRouteCount),
-             reason: 'Error scenarios should not leave orphaned routes');
+      expect(finalRouteCount, equals(initialRouteCount), reason: 'Error scenarios should not leave orphaned routes');
     });
   });
 
@@ -162,16 +159,16 @@ void main() {
       if (button.evaluate().isNotEmpty) {
         // Trigger navigation
         await tester.tap(button);
-        
+
         // Let animations complete
         await tester.pumpAndSettle(const Duration(seconds: 2));
-        
+
         // Verify final state is stable
         await tester.pumpAndSettle();
-        
+
         // Verify no duplicate screens are visible
         expect(find.byType(Scaffold), findsOneWidget);
       }
     });
   });
-} 
+}

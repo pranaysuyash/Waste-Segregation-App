@@ -6,7 +6,6 @@ part 'waste_classification.g.dart';
 /// Represents a waste classification result with comprehensive disposal information
 @HiveType(typeId: 0)
 class WasteClassification extends HiveObject {
-
   WasteClassification({
     String? id,
     required this.itemName,
@@ -60,8 +59,8 @@ class WasteClassification extends HiveObject {
     this.relatedItems,
     this.imageRelativePath,
     this.thumbnailRelativePath,
-  }) : id = id ?? const Uuid().v4(),
-       timestamp = timestamp ?? DateTime.now();
+  })  : id = id ?? const Uuid().v4(),
+        timestamp = timestamp ?? DateTime.now();
 
   /// Creates a fallback classification when AI analysis fails
   factory WasteClassification.fallback(String imagePath, {String? userId, String? id}) {
@@ -70,7 +69,8 @@ class WasteClassification extends HiveObject {
       itemName: 'Unidentified Item',
       category: 'Requires Manual Review',
       subcategory: 'Classification Needed',
-      explanation: 'Our AI was unable to automatically identify this item. This could be due to unclear image quality, unusual lighting, or an uncommon item type. Please help us improve by providing feedback on what this item actually is.',
+      explanation:
+          'Our AI was unable to automatically identify this item. This could be due to unclear image quality, unusual lighting, or an uncommon item type. Please help us improve by providing feedback on what this item actually is.',
       disposalInstructions: DisposalInstructions(
         primaryMethod: 'Manual identification required',
         steps: [
@@ -81,10 +81,7 @@ class WasteClassification extends HiveObject {
           'When in doubt, contact your local waste management authority'
         ],
         hasUrgentTimeframe: false,
-        warnings: [
-          'Do not dispose until properly identified',
-          'Some items may require special handling'
-        ],
+        warnings: ['Do not dispose until properly identified', 'Some items may require special handling'],
         tips: [
           'Take a clearer photo with better lighting if possible',
           'Ensure the item fills most of the image frame',
@@ -145,21 +142,15 @@ class WasteClassification extends HiveObject {
       localGuidelinesReference: json['localGuidelinesReference'],
       imageUrl: json['imageUrl'],
       imageHash: json['imageHash'],
-      imageMetrics: json['imageMetrics'] != null
-          ? Map<String, double>.from(json['imageMetrics'])
-          : null,
-      visualFeatures: json['visualFeatures'] != null
-          ? List<String>.from(json['visualFeatures'])
-          : [],
+      imageMetrics: json['imageMetrics'] != null ? Map<String, double>.from(json['imageMetrics']) : null,
+      visualFeatures: json['visualFeatures'] != null ? List<String>.from(json['visualFeatures']) : [],
       isRecyclable: json['isRecyclable'],
       isCompostable: json['isCompostable'],
       requiresSpecialDisposal: json['requiresSpecialDisposal'],
       isSingleUse: json['isSingleUse'],
       colorCode: json['colorCode'],
       riskLevel: json['riskLevel'],
-      requiredPPE: json['requiredPPE'] != null
-          ? List<String>.from(json['requiredPPE'])
-          : null,
+      requiredPPE: json['requiredPPE'] != null ? List<String>.from(json['requiredPPE']) : null,
       brand: json['brand'],
       product: json['product'],
       barcode: json['barcode'],
@@ -176,29 +167,21 @@ class WasteClassification extends HiveObject {
       modelSource: json['modelSource'],
       analysisSessionId: json['analysisSessionId'],
       alternatives: json['alternatives'] != null
-          ? (json['alternatives'] as List)
-              .map((alt) => AlternativeClassification.fromJson(alt))
-              .toList()
+          ? (json['alternatives'] as List).map((alt) => AlternativeClassification.fromJson(alt)).toList()
           : [],
       suggestedAction: json['suggestedAction'],
       hasUrgentTimeframe: json['hasUrgentTimeframe'],
       instructionsLang: json['instructionsLang'],
-      translatedInstructions: json['translatedInstructions'] != null
-          ? Map<String, String>.from(json['translatedInstructions'])
-          : null,
+      translatedInstructions:
+          json['translatedInstructions'] != null ? Map<String, String>.from(json['translatedInstructions']) : null,
       source: json['source'],
-      timestamp: json['timestamp'] != null
-          ? DateTime.parse(json['timestamp'])
-          : DateTime.now(),
-      reanalysisModelsTried: json['reanalysisModelsTried'] != null
-          ? List<String>.from(json['reanalysisModelsTried'])
-          : null,
+      timestamp: json['timestamp'] != null ? DateTime.parse(json['timestamp']) : DateTime.now(),
+      reanalysisModelsTried:
+          json['reanalysisModelsTried'] != null ? List<String>.from(json['reanalysisModelsTried']) : null,
       confirmedByModel: json['confirmedByModel'],
       pointsAwarded: json['pointsAwarded'],
       environmentalImpact: json['environmentalImpact'],
-      relatedItems: json['relatedItems'] != null
-          ? List<String>.from(json['relatedItems'])
-          : null,
+      relatedItems: json['relatedItems'] != null ? List<String>.from(json['relatedItems']) : null,
       imageRelativePath: json['imageRelativePath'],
       thumbnailRelativePath: json['thumbnailRelativePath'],
     );
@@ -235,11 +218,11 @@ class WasteClassification extends HiveObject {
   // Image and visual data
   @HiveField(12)
   final String? imageUrl;
-  
+
   /// Relative path to the image (for better cross-platform compatibility)
   @HiveField(60)
   final String? imageRelativePath;
-  
+
   /// Relative path to the thumbnail image
   @HiveField(61)
   final String? thumbnailRelativePath;
@@ -347,23 +330,21 @@ class WasteClassification extends HiveObject {
         hasUrgentTimeframe: false,
       );
     }
-    
+
     // If it's already a Map, use the standard fromJson
     if (instructionsData is Map<String, dynamic>) {
       return DisposalInstructions.fromJson(instructionsData);
     }
-    
+
     // If it's a string, create basic instructions from it
     if (instructionsData is String) {
       return DisposalInstructions(
-        primaryMethod: instructionsData.length > 100 
-            ? '${instructionsData.substring(0, 100)}...'
-            : instructionsData,
+        primaryMethod: instructionsData.length > 100 ? '${instructionsData.substring(0, 100)}...' : instructionsData,
         steps: DisposalInstructions._parseStepsFromString(instructionsData),
         hasUrgentTimeframe: false,
       );
     }
-    
+
     // Fallback
     return DisposalInstructions(
       primaryMethod: 'Review required',
@@ -545,7 +526,6 @@ class WasteClassification extends HiveObject {
 /// Alternative classification suggestion
 @HiveType(typeId: 1)
 class AlternativeClassification {
-
   AlternativeClassification({
     required this.category,
     this.subcategory,
@@ -583,7 +563,6 @@ class AlternativeClassification {
 /// Detailed disposal instructions
 @HiveType(typeId: 2)
 class DisposalInstructions {
-
   DisposalInstructions({
     required this.primaryMethod,
     required this.steps,
@@ -633,15 +612,15 @@ class DisposalInstructions {
     if (stepsData == null) {
       return ['Please review manually'];
     }
-    
+
     if (stepsData is List) {
       return List<String>.from(stepsData);
     }
-    
+
     if (stepsData is String) {
       return _parseStepsFromString(stepsData);
     }
-    
+
     return ['Please review manually'];
   }
 
@@ -650,15 +629,15 @@ class DisposalInstructions {
     if (listData == null) {
       return null;
     }
-    
+
     if (listData is List) {
       return List<String>.from(listData);
     }
-    
+
     if (listData is String) {
       return _parseStepsFromString(listData);
     }
-    
+
     return null;
   }
 
@@ -667,46 +646,30 @@ class DisposalInstructions {
     if (stepsString.trim().isEmpty) {
       return ['Please review manually'];
     }
-    
+
     var steps = <String>[];
-    
+
     // Try newline separation first
     if (stepsString.contains('\n')) {
-      steps = stepsString
-          .split('\n')
-          .map((step) => step.trim())
-          .where((step) => step.isNotEmpty)
-          .toList();
+      steps = stepsString.split('\n').map((step) => step.trim()).where((step) => step.isNotEmpty).toList();
     }
     // Try comma separation
     else if (stepsString.contains(',')) {
-      steps = stepsString
-          .split(',')
-          .map((step) => step.trim())
-          .where((step) => step.isNotEmpty)
-          .toList();
+      steps = stepsString.split(',').map((step) => step.trim()).where((step) => step.isNotEmpty).toList();
     }
     // Try semicolon separation
     else if (stepsString.contains(';')) {
-      steps = stepsString
-          .split(';')
-          .map((step) => step.trim())
-          .where((step) => step.isNotEmpty)
-          .toList();
+      steps = stepsString.split(';').map((step) => step.trim()).where((step) => step.isNotEmpty).toList();
     }
     // Try numbered list pattern (1. 2. 3.)
     else if (RegExp(r'\d+\.').hasMatch(stepsString)) {
-      steps = stepsString
-          .split(RegExp(r'\d+\.'))
-          .map((step) => step.trim())
-          .where((step) => step.isNotEmpty)
-          .toList();
+      steps = stepsString.split(RegExp(r'\d+\.')).map((step) => step.trim()).where((step) => step.isNotEmpty).toList();
     }
     // Single step
     else {
       steps = [stepsString.trim()];
     }
-    
+
     return steps.isNotEmpty ? steps : ['Please review manually'];
   }
 

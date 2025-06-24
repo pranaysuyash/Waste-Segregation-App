@@ -9,7 +9,6 @@ import '../screens/result_screen.dart';
 
 /// Widget for collecting user feedback on classification accuracy
 class ClassificationFeedbackWidget extends StatefulWidget {
-
   const ClassificationFeedbackWidget({
     super.key,
     required this.classification,
@@ -62,6 +61,7 @@ class _ClassificationFeedbackWidgetState extends State<ClassificationFeedbackWid
     }
     return null;
   }
+
   bool get _allModelsExhausted => _nextModelToTry == null;
 
   @override
@@ -81,42 +81,39 @@ class _ClassificationFeedbackWidgetState extends State<ClassificationFeedbackWid
 
   void _submitFeedback() {
     final analyticsService = Provider.of<AnalyticsService>(context, listen: false);
-    
+
     String? correctedCategory;
     // String? correctedSubcategory; // This was declared but never used, can be kept or removed
-    
+
     if (_userConfirmed == false && _selectedCorrection != null) {
       if (_selectedCorrection == 'Custom correction...') {
-        correctedCategory = _customCorrectionController.text.trim().isNotEmpty 
-            ? _customCorrectionController.text.trim()
-            : null;
+        correctedCategory =
+            _customCorrectionController.text.trim().isNotEmpty ? _customCorrectionController.text.trim() : null;
       } else {
         correctedCategory = _selectedCorrection;
       }
-      
+
       // REMOVED: Correction analytics
       // if (correctedCategory != null) {
       //   analyticsService.trackUserAction('classification_corrected', ...);
       // }
     }
-    
+
     DisposalInstructions? updatedDisposalInstructions;
     if (correctedCategory != null) {
       updatedDisposalInstructions = _generateDisposalInstructionsForCategory(correctedCategory);
     }
-    
+
     final updatedClassification = widget.classification.copyWith(
       category: correctedCategory ?? widget.classification.category,
       disposalInstructions: updatedDisposalInstructions ?? widget.classification.disposalInstructions,
       userConfirmed: _userConfirmed,
-      userCorrection: _selectedCorrection == 'Custom correction...' 
-          ? _customCorrectionController.text.trim().isNotEmpty 
+      userCorrection: _selectedCorrection == 'Custom correction...'
+          ? _customCorrectionController.text.trim().isNotEmpty
               ? _customCorrectionController.text.trim()
               : null
           : _selectedCorrection,
-      userNotes: _notesController.text.trim().isNotEmpty 
-          ? _notesController.text.trim() 
-          : null,
+      userNotes: _notesController.text.trim().isNotEmpty ? _notesController.text.trim() : null,
       viewCount: (widget.classification.viewCount ?? 0) + 1, // This seems like existing logic
       confirmedByModel: _nextModelToTry, // Track which model was confirmed correct
     );
@@ -145,7 +142,7 @@ class _ClassificationFeedbackWidgetState extends State<ClassificationFeedbackWid
 
     widget.onFeedbackSubmitted(updatedClassification);
   }
-  
+
   /// Generate appropriate disposal instructions for a given category
   DisposalInstructions _generateDisposalInstructionsForCategory(String category) {
     switch (category.toLowerCase()) {
@@ -239,7 +236,7 @@ class _ClassificationFeedbackWidgetState extends State<ClassificationFeedbackWid
     if (widget.showCompactVersion) {
       return _buildCompactFeedback();
     }
-    
+
     return _buildFullFeedback();
   }
 
@@ -294,12 +291,8 @@ class _ClassificationFeedbackWidgetState extends State<ClassificationFeedbackWid
                           _submitFeedback();
                         },
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: _userConfirmed == true 
-                              ? Colors.green.shade600 
-                              : Colors.green.shade100,
-                          foregroundColor: _userConfirmed == true 
-                              ? Colors.white 
-                              : Colors.green.shade800,
+                          backgroundColor: _userConfirmed == true ? Colors.green.shade600 : Colors.green.shade100,
+                          foregroundColor: _userConfirmed == true ? Colors.white : Colors.green.shade800,
                           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
                         ),
                         icon: Icon(_userConfirmed == true ? Icons.check_circle : Icons.thumb_up, size: 18),
@@ -317,9 +310,7 @@ class _ClassificationFeedbackWidgetState extends State<ClassificationFeedbackWid
                           });
                         },
                         style: OutlinedButton.styleFrom(
-                          backgroundColor: _userConfirmed == false 
-                              ? Colors.orange.shade50 
-                              : null,
+                          backgroundColor: _userConfirmed == false ? Colors.orange.shade50 : null,
                           foregroundColor: Colors.orange.shade700,
                           side: BorderSide(color: Colors.orange.shade300),
                           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
@@ -331,7 +322,7 @@ class _ClassificationFeedbackWidgetState extends State<ClassificationFeedbackWid
                   ],
                 );
               }
-              
+
               // For wider screens, use row layout
               return Row(
                 children: [
@@ -345,12 +336,8 @@ class _ClassificationFeedbackWidgetState extends State<ClassificationFeedbackWid
                         _submitFeedback();
                       },
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: _userConfirmed == true 
-                            ? Colors.green.shade600 
-                            : Colors.green.shade100,
-                        foregroundColor: _userConfirmed == true 
-                            ? Colors.white 
-                            : Colors.green.shade800,
+                        backgroundColor: _userConfirmed == true ? Colors.green.shade600 : Colors.green.shade100,
+                        foregroundColor: _userConfirmed == true ? Colors.white : Colors.green.shade800,
                         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
                       ),
                       icon: Icon(_userConfirmed == true ? Icons.check_circle : Icons.thumb_up, size: 18),
@@ -367,9 +354,7 @@ class _ClassificationFeedbackWidgetState extends State<ClassificationFeedbackWid
                         });
                       },
                       style: OutlinedButton.styleFrom(
-                        backgroundColor: _userConfirmed == false 
-                            ? Colors.orange.shade50 
-                            : null,
+                        backgroundColor: _userConfirmed == false ? Colors.orange.shade50 : null,
                         foregroundColor: Colors.orange.shade700,
                         side: BorderSide(color: Colors.orange.shade300),
                         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
@@ -401,7 +386,8 @@ class _ClassificationFeedbackWidgetState extends State<ClassificationFeedbackWid
                   children: _commonCorrections.take(4).map((correction) {
                     return ConstrainedBox(
                       constraints: BoxConstraints(
-                        maxWidth: (constraints.maxWidth * 0.45).clamp(80.0, 200.0), // Added clamp to prevent too narrow chips
+                        maxWidth:
+                            (constraints.maxWidth * 0.45).clamp(80.0, 200.0), // Added clamp to prevent too narrow chips
                         minWidth: 80.0, // Minimum width to prevent overflow
                       ),
                       child: _buildCorrectionChip(correction),
@@ -410,7 +396,7 @@ class _ClassificationFeedbackWidgetState extends State<ClassificationFeedbackWid
                 );
               },
             ),
-            
+
             // Add Re-analyze button when correction is selected
             if (_userConfirmed == false && _selectedCorrection != null && !_isReanalyzing) ...[
               const SizedBox(height: AppTheme.paddingSmall),
@@ -447,7 +433,7 @@ class _ClassificationFeedbackWidgetState extends State<ClassificationFeedbackWid
                   ),
                 ),
             ],
-            
+
             // Show reanalyzing indicator
             if (_isReanalyzing) ...[
               const SizedBox(height: AppTheme.paddingSmall),
@@ -482,7 +468,7 @@ class _ClassificationFeedbackWidgetState extends State<ClassificationFeedbackWid
                 ),
               ),
             ],
-            
+
             // Inline expansion instead of modal
             TextButton.icon(
               onPressed: () {
@@ -499,13 +485,13 @@ class _ClassificationFeedbackWidgetState extends State<ClassificationFeedbackWid
                 style: const TextStyle(fontSize: 12),
               ),
             ),
-            
+
             // Expanded feedback options (inline, not modal)
             if (_showExpandedFeedback) ...[
               const SizedBox(height: AppTheme.paddingSmall),
               Divider(color: Colors.grey.shade300),
               const SizedBox(height: AppTheme.paddingSmall),
-              
+
               // Custom correction field if custom option selected
               if (_showCustomCorrection) ...[
                 TextField(
@@ -524,7 +510,7 @@ class _ClassificationFeedbackWidgetState extends State<ClassificationFeedbackWid
                 ),
                 const SizedBox(height: AppTheme.paddingSmall),
               ],
-              
+
               // Notes field
               TextField(
                 controller: _notesController,
@@ -540,9 +526,9 @@ class _ClassificationFeedbackWidgetState extends State<ClassificationFeedbackWid
                 style: const TextStyle(fontSize: 14),
                 maxLines: 2,
               ),
-              
+
               const SizedBox(height: AppTheme.paddingSmall),
-              
+
               // Submit feedback button for expanded view
               SizedBox(
                 width: double.infinity,
@@ -576,245 +562,242 @@ class _ClassificationFeedbackWidgetState extends State<ClassificationFeedbackWid
             color: Colors.grey.shade600,
           ),
         ),
-        
+
         const SizedBox(height: AppTheme.paddingLarge),
-            
-            // Confirmation question
-            Container(
-              padding: const EdgeInsets.all(AppTheme.paddingRegular),
-              decoration: BoxDecoration(
-                color: Colors.grey.shade50,
-                borderRadius: BorderRadius.circular(AppTheme.borderRadiusRegular),
-                border: Border.all(color: Colors.grey.shade200),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'Is this classification correct?',
-                    style: TextStyle(
-                      fontSize: AppTheme.fontSizeMedium,
-                      fontWeight: FontWeight.w500,
-                      color: AppTheme.textPrimaryColor,
-                    ),
-                  ),
-                  const SizedBox(height: AppTheme.paddingSmall),
-                  Text(
-                    'Classification: ${widget.classification.itemName} → ${widget.classification.category}',
-                    style: TextStyle(
-                      fontSize: AppTheme.fontSizeRegular,
-                      color: Colors.grey.shade700,
-                      fontStyle: FontStyle.italic,
-                    ),
-                  ),
-                  const SizedBox(height: AppTheme.paddingRegular),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: RadioListTile<bool>(
-                          title: const Text('Yes'),
-                          value: true,
-                          groupValue: _userConfirmed,
-                          onChanged: (value) {
-                            setState(() {
-                              _userConfirmed = value;
-                              _showCorrectionOptions = false;
-                            });
-                          },
-                          dense: true,
-                          activeColor: Colors.green.shade600,
-                        ),
-                      ),
-                      Expanded(
-                        child: RadioListTile<bool>(
-                          title: const Text('No'),
-                          value: false,
-                          groupValue: _userConfirmed,
-                          onChanged: (value) {
-                            setState(() {
-                              _userConfirmed = value;
-                              _showCorrectionOptions = true;
-                            });
-                          },
-                          dense: true,
-                          activeColor: Colors.orange.shade600,
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-            
-            // Correction options
-            if (_showCorrectionOptions) ...[
-              const SizedBox(height: AppTheme.paddingLarge),
+
+        // Confirmation question
+        Container(
+          padding: const EdgeInsets.all(AppTheme.paddingRegular),
+          decoration: BoxDecoration(
+            color: Colors.grey.shade50,
+            borderRadius: BorderRadius.circular(AppTheme.borderRadiusRegular),
+            border: Border.all(color: Colors.grey.shade200),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
               const Text(
-                'What should the correct classification be?',
+                'Is this classification correct?',
                 style: TextStyle(
                   fontSize: AppTheme.fontSizeMedium,
                   fontWeight: FontWeight.w500,
                   color: AppTheme.textPrimaryColor,
                 ),
               ),
-              const SizedBox(height: AppTheme.paddingRegular),
-              LayoutBuilder(
-                builder: (context, constraints) {
-                  return Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
-                    children: _commonCorrections.map((correction) {
-                      return ConstrainedBox(
-                        constraints: BoxConstraints(
-                          maxWidth: constraints.maxWidth * 0.48,
-                        ),
-                        child: _buildCorrectionChip(correction),
-                      );
-                    }).toList(),
-                  );
-                },
-              ),
-              
-              if (_showCustomCorrection) ...[
-                const SizedBox(height: AppTheme.paddingRegular),
-                TextField(
-                  controller: _customCorrectionController,
-                  decoration: InputDecoration(
-                    labelText: 'Custom correction',
-                    hintText: 'Enter the correct classification...',
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(AppTheme.borderRadiusRegular),
-                    ),
-                    prefixIcon: const Icon(Icons.edit),
-                  ),
-                  maxLines: 2,
+              const SizedBox(height: AppTheme.paddingSmall),
+              Text(
+                'Classification: ${widget.classification.itemName} → ${widget.classification.category}',
+                style: TextStyle(
+                  fontSize: AppTheme.fontSizeRegular,
+                  color: Colors.grey.shade700,
+                  fontStyle: FontStyle.italic,
                 ),
-              ],
-            ],
-            
-            // Notes section
-            const SizedBox(height: AppTheme.paddingLarge),
-            const Text(
-              'Additional notes (optional)',
-              style: TextStyle(
-                fontSize: AppTheme.fontSizeMedium,
-                fontWeight: FontWeight.w500,
-                color: AppTheme.textPrimaryColor,
               ),
+              const SizedBox(height: AppTheme.paddingRegular),
+              Row(
+                children: [
+                  Expanded(
+                    child: RadioListTile<bool>(
+                      title: const Text('Yes'),
+                      value: true,
+                      groupValue: _userConfirmed,
+                      onChanged: (value) {
+                        setState(() {
+                          _userConfirmed = value;
+                          _showCorrectionOptions = false;
+                        });
+                      },
+                      dense: true,
+                      activeColor: Colors.green.shade600,
+                    ),
+                  ),
+                  Expanded(
+                    child: RadioListTile<bool>(
+                      title: const Text('No'),
+                      value: false,
+                      groupValue: _userConfirmed,
+                      onChanged: (value) {
+                        setState(() {
+                          _userConfirmed = value;
+                          _showCorrectionOptions = true;
+                        });
+                      },
+                      dense: true,
+                      activeColor: Colors.orange.shade600,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+
+        // Correction options
+        if (_showCorrectionOptions) ...[
+          const SizedBox(height: AppTheme.paddingLarge),
+          const Text(
+            'What should the correct classification be?',
+            style: TextStyle(
+              fontSize: AppTheme.fontSizeMedium,
+              fontWeight: FontWeight.w500,
+              color: AppTheme.textPrimaryColor,
             ),
-            const SizedBox(height: AppTheme.paddingSmall),
+          ),
+          const SizedBox(height: AppTheme.paddingRegular),
+          LayoutBuilder(
+            builder: (context, constraints) {
+              return Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: _commonCorrections.map((correction) {
+                  return ConstrainedBox(
+                    constraints: BoxConstraints(
+                      maxWidth: constraints.maxWidth * 0.48,
+                    ),
+                    child: _buildCorrectionChip(correction),
+                  );
+                }).toList(),
+              );
+            },
+          ),
+          if (_showCustomCorrection) ...[
+            const SizedBox(height: AppTheme.paddingRegular),
             TextField(
-              controller: _notesController,
+              controller: _customCorrectionController,
               decoration: InputDecoration(
-                hintText: 'Any additional context or details...',
+                labelText: 'Custom correction',
+                hintText: 'Enter the correct classification...',
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(AppTheme.borderRadiusRegular),
                 ),
-                prefixIcon: const Icon(Icons.note_add),
+                prefixIcon: const Icon(Icons.edit),
               ),
-              maxLines: 3,
+              maxLines: 2,
             ),
-            
-            const SizedBox(height: AppTheme.paddingLarge),
-            
-            // Submit button
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton.icon(
-                onPressed: _submitFeedback,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppTheme.primaryColor,
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                ),
-                icon: const Icon(Icons.send),
-                label: const Text('Submit Feedback'),
-              ),
-            ),
-            
-            // Add Re-analyze button for full feedback version too
-            if (_userConfirmed == false && _selectedCorrection != null && !_isReanalyzing) ...[
-              const SizedBox(height: AppTheme.paddingSmall),
-              SizedBox(
-                width: double.infinity,
-                child: OutlinedButton.icon(
-                  onPressed: _allModelsExhausted ? null : _triggerReanalysis,
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: _allModelsExhausted ? Colors.grey.shade600 : Colors.orange,
-                    side: BorderSide(color: _allModelsExhausted ? Colors.grey.shade400 : Colors.orange),
-                    padding: const EdgeInsets.symmetric(vertical: 12),
-                  ),
-                  icon: const Icon(Icons.refresh),
-                  label: Text(_allModelsExhausted ? 'No more reanalysis possible' : 'Re-analyze with correction'),
-                ),
-              ),
-              if (_allModelsExhausted)
-                Padding(
-                  padding: const EdgeInsets.only(top: 8.0),
-                  child: Row(
-                    children: [
-                      Icon(Icons.warning_amber_rounded, color: Colors.orange.shade700, size: 18),
-                      const SizedBox(width: 6),
-                      Expanded(
-                        child: Text(
-                          'All available AI models have been tried. Your feedback will help us improve future results.',
-                          style: TextStyle(color: Colors.orange.shade700, fontSize: 13),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-            ],
-            
-            // Show reanalyzing indicator for full version
-            if (_isReanalyzing) ...[
-              const SizedBox(height: AppTheme.paddingSmall),
-              Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: Colors.orange.shade50,
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: Colors.orange.shade200),
-                ),
-                child: Row(
-                  children: [
-                    SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        valueColor: AlwaysStoppedAnimation<Color>(Colors.orange.shade700),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Text(
-                        'Re-analyzing with your correction...',
-                        style: TextStyle(
-                          fontSize: AppTheme.fontSizeRegular,
-                          color: Colors.orange.shade700,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
           ],
+        ],
+
+        // Notes section
+        const SizedBox(height: AppTheme.paddingLarge),
+        const Text(
+          'Additional notes (optional)',
+          style: TextStyle(
+            fontSize: AppTheme.fontSizeMedium,
+            fontWeight: FontWeight.w500,
+            color: AppTheme.textPrimaryColor,
+          ),
+        ),
+        const SizedBox(height: AppTheme.paddingSmall),
+        TextField(
+          controller: _notesController,
+          decoration: InputDecoration(
+            hintText: 'Any additional context or details...',
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(AppTheme.borderRadiusRegular),
+            ),
+            prefixIcon: const Icon(Icons.note_add),
+          ),
+          maxLines: 3,
+        ),
+
+        const SizedBox(height: AppTheme.paddingLarge),
+
+        // Submit button
+        SizedBox(
+          width: double.infinity,
+          child: ElevatedButton.icon(
+            onPressed: _submitFeedback,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppTheme.primaryColor,
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(vertical: 16),
+            ),
+            icon: const Icon(Icons.send),
+            label: const Text('Submit Feedback'),
+          ),
+        ),
+
+        // Add Re-analyze button for full feedback version too
+        if (_userConfirmed == false && _selectedCorrection != null && !_isReanalyzing) ...[
+          const SizedBox(height: AppTheme.paddingSmall),
+          SizedBox(
+            width: double.infinity,
+            child: OutlinedButton.icon(
+              onPressed: _allModelsExhausted ? null : _triggerReanalysis,
+              style: OutlinedButton.styleFrom(
+                foregroundColor: _allModelsExhausted ? Colors.grey.shade600 : Colors.orange,
+                side: BorderSide(color: _allModelsExhausted ? Colors.grey.shade400 : Colors.orange),
+                padding: const EdgeInsets.symmetric(vertical: 12),
+              ),
+              icon: const Icon(Icons.refresh),
+              label: Text(_allModelsExhausted ? 'No more reanalysis possible' : 'Re-analyze with correction'),
+            ),
+          ),
+          if (_allModelsExhausted)
+            Padding(
+              padding: const EdgeInsets.only(top: 8.0),
+              child: Row(
+                children: [
+                  Icon(Icons.warning_amber_rounded, color: Colors.orange.shade700, size: 18),
+                  const SizedBox(width: 6),
+                  Expanded(
+                    child: Text(
+                      'All available AI models have been tried. Your feedback will help us improve future results.',
+                      style: TextStyle(color: Colors.orange.shade700, fontSize: 13),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+        ],
+
+        // Show reanalyzing indicator for full version
+        if (_isReanalyzing) ...[
+          const SizedBox(height: AppTheme.paddingSmall),
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.orange.shade50,
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: Colors.orange.shade200),
+            ),
+            child: Row(
+              children: [
+                SizedBox(
+                  width: 20,
+                  height: 20,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    valueColor: AlwaysStoppedAnimation<Color>(Colors.orange.shade700),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    'Re-analyzing with your correction...',
+                    style: TextStyle(
+                      fontSize: AppTheme.fontSizeRegular,
+                      color: Colors.orange.shade700,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ],
     );
   }
 
   Widget _buildCorrectionChip(String correction) {
     final isSelected = _selectedCorrection == correction;
     final isCustom = correction == 'Custom correction...';
-    
+
     return Semantics(
       button: true,
       selected: isSelected,
-      label: isCustom 
-          ? 'Custom correction option' 
-          : 'Select $correction as correct classification',
+      label: isCustom ? 'Custom correction option' : 'Select $correction as correct classification',
       hint: isSelected ? 'Currently selected' : 'Tap to select',
       child: GestureDetector(
         onTap: () {
@@ -835,14 +818,10 @@ class _ClassificationFeedbackWidgetState extends State<ClassificationFeedbackWid
             vertical: 8,
           ),
           decoration: BoxDecoration(
-            color: isSelected 
-                ? AppTheme.primaryColor 
-                : Colors.grey.shade100,
+            color: isSelected ? AppTheme.primaryColor : Colors.grey.shade100,
             borderRadius: BorderRadius.circular(8), // Slightly less rounded for compactness
             border: Border.all(
-              color: isSelected 
-                  ? AppTheme.primaryColor 
-                  : Colors.grey.shade300,
+              color: isSelected ? AppTheme.primaryColor : Colors.grey.shade300,
             ),
           ),
           child: Row(
@@ -856,17 +835,14 @@ class _ClassificationFeedbackWidgetState extends State<ClassificationFeedbackWid
                 ),
                 const SizedBox(width: 4),
               ],
-              Expanded( // Allow text to take remaining space
+              Expanded(
+                // Allow text to take remaining space
                 child: Text(
                   correction,
                   style: TextStyle(
                     fontSize: 11, // Smaller font for tight spaces
-                    color: isSelected 
-                        ? Colors.white 
-                        : Colors.grey.shade800,
-                    fontWeight: isSelected 
-                        ? FontWeight.w500 
-                        : FontWeight.normal,
+                    color: isSelected ? Colors.white : Colors.grey.shade800,
+                    fontWeight: isSelected ? FontWeight.w500 : FontWeight.normal,
                   ),
                   overflow: TextOverflow.ellipsis,
                   maxLines: 1,
@@ -899,7 +875,7 @@ class _ClassificationFeedbackWidgetState extends State<ClassificationFeedbackWid
               Container(
                 padding: const EdgeInsets.all(AppTheme.paddingLarge),
                 decoration: BoxDecoration(
-                  color: AppTheme.primaryColor.withValues(alpha:0.1),
+                  color: AppTheme.primaryColor.withValues(alpha: 0.1),
                   borderRadius: const BorderRadius.only(
                     topLeft: Radius.circular(AppTheme.borderRadiusLarge),
                     topRight: Radius.circular(AppTheme.borderRadiusLarge),
@@ -962,25 +938,22 @@ class _ClassificationFeedbackWidgetState extends State<ClassificationFeedbackWid
 
   Future<void> _triggerReanalysis() async {
     if (_selectedCorrection == null) return;
-    
+
     setState(() {
       _isReanalyzing = true;
     });
 
     // Get the final correction text and user reason outside try block
     var correctionText = _selectedCorrection!;
-    if (_selectedCorrection == 'Custom correction...' && 
-        _customCorrectionController.text.trim().isNotEmpty) {
+    if (_selectedCorrection == 'Custom correction...' && _customCorrectionController.text.trim().isNotEmpty) {
       correctionText = _customCorrectionController.text.trim();
     }
-    
-    final userReason = _notesController.text.trim().isNotEmpty 
-        ? _notesController.text.trim() 
-        : null;
+
+    final userReason = _notesController.text.trim().isNotEmpty ? _notesController.text.trim() : null;
 
     try {
       final aiService = Provider.of<AiService>(context, listen: false);
-      
+
       // If all models are exhausted, just save feedback and show message
       if (_allModelsExhausted) {
         if (mounted) {
@@ -994,7 +967,8 @@ class _ClassificationFeedbackWidgetState extends State<ClassificationFeedbackWid
           widget.onFeedbackSubmitted(originalWithFeedback);
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: const Text('All available AI models have been tried. Your feedback will help us improve future results.'),
+              content: const Text(
+                  'All available AI models have been tried. Your feedback will help us improve future results.'),
               backgroundColor: Colors.orange.shade600,
               behavior: SnackBarBehavior.floating,
             ),
@@ -1010,13 +984,14 @@ class _ClassificationFeedbackWidgetState extends State<ClassificationFeedbackWid
         userReason,
         model: _nextModelToTry,
       );
-      
+
       // Update the list of tried models
       final updatedModelsTried = List<String>.from(_modelsTried)..add(_nextModelToTry!);
 
       // Create NEW classification entry (don't update existing)
       final newClassification = reanalyzedClassification.copyWith(
-        userNotes: 'Reanalyzed from: ${widget.classification.itemName} (${widget.classification.category})\n${userReason ?? ''}',
+        userNotes:
+            'Reanalyzed from: ${widget.classification.itemName} (${widget.classification.category})\n${userReason ?? ''}',
         userCorrection: correctionText,
         source: 'reanalysis', // Mark as reanalyzed
         viewCount: 1, // New classification starts at 1
@@ -1031,14 +1006,14 @@ class _ClassificationFeedbackWidgetState extends State<ClassificationFeedbackWid
         disagreementReason: 'User requested reanalysis - see newer entry',
         reanalysisModelsTried: updatedModelsTried,
       );
-      
+
       if (mounted) {
         // Save the original with user feedback first
         widget.onFeedbackSubmitted(originalWithFeedback);
-        
+
         // Brief delay then navigate to new classification
         await Future.delayed(const Duration(milliseconds: 500));
-        
+
         if (mounted) {
           // Show navigation snackbar with action to view new results
           ScaffoldMessenger.of(context).showSnackBar(
@@ -1064,7 +1039,7 @@ class _ClassificationFeedbackWidgetState extends State<ClassificationFeedbackWid
                     '${widget.classification.category} → ${newClassification.category}',
                     style: TextStyle(
                       fontSize: 12,
-                      color: Colors.white.withValues(alpha:0.9),
+                      color: Colors.white.withValues(alpha: 0.9),
                     ),
                   ),
                 ],
@@ -1091,7 +1066,6 @@ class _ClassificationFeedbackWidgetState extends State<ClassificationFeedbackWid
           );
         }
       }
-      
     } catch (e) {
       if (mounted) {
         // Even if reanalysis fails, save user's feedback on original classification
@@ -1102,10 +1076,10 @@ class _ClassificationFeedbackWidgetState extends State<ClassificationFeedbackWid
           disagreementReason: 'Reanalysis failed, but user feedback preserved: ${e.toString()}',
           reanalysisModelsTried: _modelsTried,
         );
-        
+
         // Save the user feedback regardless of reanalysis failure
         widget.onFeedbackSubmitted(originalWithFeedback);
-        
+
         // Show error message with explanation
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -1130,7 +1104,7 @@ class _ClassificationFeedbackWidgetState extends State<ClassificationFeedbackWid
                   'Your corrections have been saved for future improvement',
                   style: TextStyle(
                     fontSize: 12,
-                    color: Colors.white.withValues(alpha:0.9),
+                    color: Colors.white.withValues(alpha: 0.9),
                   ),
                 ),
               ],
@@ -1152,7 +1126,6 @@ class _ClassificationFeedbackWidgetState extends State<ClassificationFeedbackWid
 
 /// Compact feedback button for quick access
 class FeedbackButton extends StatelessWidget {
-
   const FeedbackButton({
     super.key,
     required this.classification,
@@ -1164,7 +1137,7 @@ class FeedbackButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final hasExistingFeedback = classification.userConfirmed != null;
-    
+
     return TextButton.icon(
       onPressed: () => _showFeedbackDialog(context),
       icon: Icon(
@@ -1201,7 +1174,7 @@ class FeedbackButton extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(AppTheme.paddingLarge),
                 decoration: BoxDecoration(
-                  color: AppTheme.primaryColor.withValues(alpha:0.1),
+                  color: AppTheme.primaryColor.withValues(alpha: 0.1),
                   borderRadius: const BorderRadius.only(
                     topLeft: Radius.circular(AppTheme.borderRadiusLarge),
                     topRight: Radius.circular(AppTheme.borderRadiusLarge),

@@ -74,7 +74,7 @@ class ThemeSettingsScreen extends ConsumerWidget {
               ),
             ),
           ),
-          
+
           // Premium Features Row - Always visible for easy access
           Card(
             margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
@@ -149,4 +149,4 @@ class ThemeSettingsScreen extends ConsumerWidget {
       ),
     );
   }
-} 
+}

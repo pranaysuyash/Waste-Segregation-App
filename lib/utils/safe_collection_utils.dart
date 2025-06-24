@@ -2,25 +2,24 @@
 // Prevents "Bad state: No element" errors throughout the app
 
 class SafeCollectionUtils {
-  
   /// Safely get the first element from a list without throwing
   static T? safeFirst<T>(List<T> list) {
     if (list.isEmpty) return null;
     return list.first;
   }
-  
+
   /// Safely get the last element from a list without throwing
   static T? safeLast<T>(List<T> list) {
     if (list.isEmpty) return null;
     return list.last;
   }
-  
+
   /// Safely get element at index without throwing
   static T? safeElementAt<T>(List<T> list, int index) {
     if (index < 0 || index >= list.length) return null;
     return list[index];
   }
-  
+
   /// Safely get first element matching condition
   static T? safeFirstWhere<T>(List<T> list, bool Function(T) test) {
     try {
@@ -29,7 +28,7 @@ class SafeCollectionUtils {
       return null;
     }
   }
-  
+
   /// Safely get last element matching condition
   static T? safeLastWhere<T>(List<T> list, bool Function(T) test) {
     try {
@@ -38,7 +37,7 @@ class SafeCollectionUtils {
       return null;
     }
   }
-  
+
   /// Safely get single element matching condition
   static T? safeSingleWhere<T>(List<T> list, bool Function(T) test) {
     try {
@@ -47,7 +46,7 @@ class SafeCollectionUtils {
       return null;
     }
   }
-  
+
   /// Safely get elements matching condition
   static List<T> safeWhere<T>(List<T> list, bool Function(T) test) {
     try {
@@ -56,17 +55,17 @@ class SafeCollectionUtils {
       return [];
     }
   }
-  
+
   /// Check if collection is null or empty
   static bool isNullOrEmpty<T>(List<T>? list) {
     return list == null || list.isEmpty;
   }
-  
+
   /// Check if collection is not null and not empty
   static bool isNotNullOrEmpty<T>(List<T>? list) {
     return list != null && list.isNotEmpty;
   }
-  
+
   /// Safe map operation
   static List<R> safeMap<T, R>(List<T> list, R Function(T) mapper) {
     try {
@@ -75,7 +74,7 @@ class SafeCollectionUtils {
       return [];
     }
   }
-  
+
   /// Safe reduce operation
   static T? safeReduce<T>(List<T> list, T Function(T, T) combine) {
     if (list.isEmpty) return null;
@@ -85,7 +84,7 @@ class SafeCollectionUtils {
       return null;
     }
   }
-  
+
   /// Safe fold operation
   static T safeFold<T, R>(List<R> list, T initialValue, T Function(T, R) combine) {
     try {
@@ -106,19 +105,19 @@ extension SafeListExtension<T> on List<T> {
   T? safeSingleWhere(bool Function(T) test) => SafeCollectionUtils.safeSingleWhere(this, test);
   List<T> safeWhere(bool Function(T) test) => SafeCollectionUtils.safeWhere(this, test);
   List<R> safeMap<R>(R Function(T) mapper) => SafeCollectionUtils.safeMap(this, mapper);
-  
+
   /// Safe operations with default values
   T safeFirstWithDefault(T defaultValue) => safeFirst ?? defaultValue;
   T safeLastWithDefault(T defaultValue) => safeLast ?? defaultValue;
   T safeAtWithDefault(int index, T defaultValue) => safeAt(index) ?? defaultValue;
-  
+
   /// Safe random element
   T? get safeRandom {
     if (isEmpty) return null;
     final random = DateTime.now().millisecondsSinceEpoch % length;
     return this[random];
   }
-  
+
   /// Safe sublist
   List<T> safeSublist(int start, [int? end]) {
     if (isEmpty) return [];
@@ -126,13 +125,13 @@ extension SafeListExtension<T> on List<T> {
     final safeEnd = (end ?? length).clamp(safeStart, length);
     return sublist(safeStart, safeEnd);
   }
-  
+
   /// Safe take operation
   List<T> safeTake(int count) {
     if (isEmpty || count <= 0) return [];
     return take(count.clamp(0, length)).toList();
   }
-  
+
   /// Safe skip operation
   List<T> safeSkip(int count) {
     if (isEmpty || count <= 0) return List.from(this);

@@ -8,6 +8,7 @@ import 'package:waste_segregation_app/models/user_profile.dart';
 import 'package:waste_segregation_app/models/gamification.dart';
 
 class MockStorageService extends Mock implements StorageService {}
+
 class MockCloudStorageService extends Mock implements CloudStorageService {}
 
 void main() {
@@ -25,7 +26,7 @@ void main() {
       mockStorageService = MockStorageService();
       mockCloudStorageService = MockCloudStorageService();
       gamificationService = GamificationService(mockStorageService, mockCloudStorageService);
-      
+
       // Initialize the service
       await gamificationService.initGamification();
     });
@@ -62,7 +63,7 @@ void main() {
         discoveredItemIds: {},
         unlockedHiddenContentIds: {},
       );
-      
+
       final userProfile = UserProfile(
         id: 'test_user_123',
         email: 'test@example.com',
@@ -132,4 +133,4 @@ void main() {
       expect(achievements.first.description, isNotEmpty);
     });
   });
-} 
+}

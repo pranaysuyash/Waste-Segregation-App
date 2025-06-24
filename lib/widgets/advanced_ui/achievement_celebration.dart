@@ -6,7 +6,6 @@ import '../../l10n/app_localizations.dart';
 
 /// Epic achievement celebration with confetti and 3D badge effect
 class AchievementCelebration extends StatefulWidget {
-  
   const AchievementCelebration({
     super.key,
     required this.achievement,
@@ -16,43 +15,41 @@ class AchievementCelebration extends StatefulWidget {
   final Achievement achievement;
   final VoidCallback onDismiss;
   final Duration duration;
-  
+
   @override
   _AchievementCelebrationState createState() => _AchievementCelebrationState();
 }
 
-class _AchievementCelebrationState extends State<AchievementCelebration>
-    with TickerProviderStateMixin {
-  
+class _AchievementCelebrationState extends State<AchievementCelebration> with TickerProviderStateMixin {
   late AnimationController _mainController;
   late AnimationController _confettiController;
   late AnimationController _badgeController;
-  
+
   late Animation<double> _slideAnimation;
   late Animation<double> _scaleAnimation;
   late Animation<double> _opacityAnimation;
-  
+
   List<ConfettiParticle> _confettiParticles = [];
-  
+
   @override
   void initState() {
     super.initState();
-    
+
     _mainController = AnimationController(
       duration: widget.duration,
       vsync: this,
     );
-    
+
     _confettiController = AnimationController(
       duration: const Duration(seconds: 3),
       vsync: this,
     );
-    
+
     _badgeController = AnimationController(
       duration: const Duration(milliseconds: 1200),
       vsync: this,
     );
-    
+
     _slideAnimation = Tween<double>(
       begin: 1.0,
       end: 0.0,
@@ -60,7 +57,7 @@ class _AchievementCelebrationState extends State<AchievementCelebration>
       parent: _mainController,
       curve: const Interval(0.0, 0.6, curve: Curves.elasticOut),
     ));
-    
+
     _scaleAnimation = Tween<double>(
       begin: 0.0,
       end: 1.0,
@@ -68,7 +65,7 @@ class _AchievementCelebrationState extends State<AchievementCelebration>
       parent: _mainController,
       curve: const Interval(0.1, 0.7, curve: Curves.elasticOut),
     ));
-    
+
     _opacityAnimation = Tween<double>(
       begin: 1.0,
       end: 0.0,
@@ -76,11 +73,11 @@ class _AchievementCelebrationState extends State<AchievementCelebration>
       parent: _mainController,
       curve: const Interval(0.8, 1.0, curve: Curves.easeOut),
     ));
-    
+
     _initializeConfetti();
     _startCelebration();
   }
-  
+
   void _initializeConfetti() {
     final random = math.Random();
     _confettiParticles = List.generate(50, (index) {
@@ -96,7 +93,7 @@ class _AchievementCelebrationState extends State<AchievementCelebration>
       );
     });
   }
-  
+
   List<Color> _getConfettiColors() {
     return [
       Colors.amber,
@@ -108,21 +105,21 @@ class _AchievementCelebrationState extends State<AchievementCelebration>
       const Color(0xFFFF6B6B),
     ];
   }
-  
+
   void _startCelebration() async {
     HapticFeedback.heavyImpact();
     _mainController.forward();
     _confettiController.forward();
     await Future.delayed(const Duration(milliseconds: 300));
     _badgeController.forward();
-    
+
     Future.delayed(widget.duration, () {
       if (mounted) {
         widget.onDismiss();
       }
     });
   }
-  
+
   @override
   Widget build(BuildContext context) {
     return Stack(
@@ -159,8 +156,7 @@ class _AchievementCelebrationState extends State<AchievementCelebration>
                           child: Transform.translate(
                             offset: Offset(
                               0,
-                              _slideAnimation.value *
-                                  MediaQuery.of(context).size.height,
+                              _slideAnimation.value * MediaQuery.of(context).size.height,
                             ),
                             child: Transform.scale(
                               scale: _scaleAnimation.value,
@@ -179,7 +175,7 @@ class _AchievementCelebrationState extends State<AchievementCelebration>
       ],
     );
   }
-  
+
   Widget _buildCelebrationCard() {
     return Container(
       margin: const EdgeInsets.all(32),
@@ -187,9 +183,9 @@ class _AchievementCelebrationState extends State<AchievementCelebration>
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
-            widget.achievement.color.withValues(alpha:0.1),
+            widget.achievement.color.withValues(alpha: 0.1),
             Colors.white,
-            widget.achievement.color.withValues(alpha:0.1),
+            widget.achievement.color.withValues(alpha: 0.1),
           ],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
@@ -197,7 +193,7 @@ class _AchievementCelebrationState extends State<AchievementCelebration>
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-            color: widget.achievement.color.withValues(alpha:0.3),
+            color: widget.achievement.color.withValues(alpha: 0.3),
             blurRadius: 20,
             spreadRadius: 5,
           ),
@@ -263,7 +259,7 @@ class _AchievementCelebrationState extends State<AchievementCelebration>
       ),
     );
   }
-  
+
   Widget _buildBadge() {
     return Container(
       width: 120,
@@ -272,16 +268,16 @@ class _AchievementCelebrationState extends State<AchievementCelebration>
         shape: BoxShape.circle,
         gradient: LinearGradient(
           colors: [
-            widget.achievement.color.withValues(alpha:0.8),
+            widget.achievement.color.withValues(alpha: 0.8),
             widget.achievement.color,
-            widget.achievement.color.withValues(alpha:0.6),
+            widget.achievement.color.withValues(alpha: 0.6),
           ],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
         boxShadow: [
           BoxShadow(
-            color: widget.achievement.color.withValues(alpha:0.4),
+            color: widget.achievement.color.withValues(alpha: 0.4),
             blurRadius: 20,
             spreadRadius: 5,
             offset: const Offset(0, 10),
@@ -297,25 +293,38 @@ class _AchievementCelebrationState extends State<AchievementCelebration>
       ),
     );
   }
-  
+
   IconData _getAchievementIcon() {
     switch (widget.achievement.iconName) {
-      case 'emoji_objects': return Icons.lightbulb;
-      case 'recycling': return Icons.recycling;
-      case 'workspace_premium': return Icons.workspace_premium;
-      case 'category': return Icons.category;
-      case 'local_fire_department': return Icons.local_fire_department;
-      case 'event_available': return Icons.event_available;
-      case 'emoji_events': return Icons.emoji_events;
-      case 'school': return Icons.school;
-      case 'quiz': return Icons.quiz;
-      case 'eco': return Icons.eco;
-      case 'auto_awesome': return Icons.auto_awesome;
-      case 'military_tech': return Icons.military_tech;
-      default: return Icons.emoji_events;
+      case 'emoji_objects':
+        return Icons.lightbulb;
+      case 'recycling':
+        return Icons.recycling;
+      case 'workspace_premium':
+        return Icons.workspace_premium;
+      case 'category':
+        return Icons.category;
+      case 'local_fire_department':
+        return Icons.local_fire_department;
+      case 'event_available':
+        return Icons.event_available;
+      case 'emoji_events':
+        return Icons.emoji_events;
+      case 'school':
+        return Icons.school;
+      case 'quiz':
+        return Icons.quiz;
+      case 'eco':
+        return Icons.eco;
+      case 'auto_awesome':
+        return Icons.auto_awesome;
+      case 'military_tech':
+        return Icons.military_tech;
+      default:
+        return Icons.emoji_events;
     }
   }
-  
+
   @override
   void dispose() {
     _mainController.dispose();
@@ -326,7 +335,6 @@ class _AchievementCelebrationState extends State<AchievementCelebration>
 }
 
 class ConfettiParticle {
-  
   ConfettiParticle({
     required this.x,
     required this.y,
@@ -348,34 +356,33 @@ class ConfettiParticle {
 }
 
 class ConfettiPainter extends CustomPainter {
-  
   ConfettiPainter({
     required this.particles,
     required this.animationValue,
   });
   final List<ConfettiParticle> particles;
   final double animationValue;
-  
+
   @override
   void paint(Canvas canvas, Size size) {
     for (final particle in particles) {
       final progress = animationValue;
       final x = (particle.x + particle.velocityX * progress) * size.width;
       final y = (particle.y + particle.velocityY * progress) * size.height;
-      
+
       if (y > size.height + 50) continue;
-      
+
       final rotation = particle.rotation + particle.rotationSpeed * progress * 10;
       final opacity = math.max(0.0, 1.0 - (y / size.height));
-      
+
       final paint = Paint()
-        ..color = particle.color.withValues(alpha:opacity)
+        ..color = particle.color.withValues(alpha: opacity)
         ..style = PaintingStyle.fill;
-      
+
       canvas.save();
       canvas.translate(x, y);
       canvas.rotate(rotation);
-      
+
       final shapeType = particle.color.hashCode % 3;
       switch (shapeType) {
         case 0:
@@ -400,11 +407,11 @@ class ConfettiPainter extends CustomPainter {
           canvas.drawPath(path, paint);
           break;
       }
-      
+
       canvas.restore();
     }
   }
-  
+
   @override
   bool shouldRepaint(ConfettiPainter oldDelegate) {
     return oldDelegate.animationValue != animationValue;
@@ -413,7 +420,6 @@ class ConfettiPainter extends CustomPainter {
 
 /// Points earned popup with bounce animation
 class PointsEarnedPopup extends StatefulWidget {
-  
   const PointsEarnedPopup({
     super.key,
     required this.points,
@@ -423,28 +429,26 @@ class PointsEarnedPopup extends StatefulWidget {
   final int points;
   final String action;
   final VoidCallback onDismiss;
-  
+
   @override
   _PointsEarnedPopupState createState() => _PointsEarnedPopupState();
 }
 
-class _PointsEarnedPopupState extends State<PointsEarnedPopup>
-    with TickerProviderStateMixin {
-  
+class _PointsEarnedPopupState extends State<PointsEarnedPopup> with TickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _scaleAnimation;
   late Animation<double> _slideAnimation;
   late Animation<double> _opacityAnimation;
-  
+
   @override
   void initState() {
     super.initState();
-    
+
     _controller = AnimationController(
       duration: const Duration(seconds: 3),
       vsync: this,
     );
-    
+
     _scaleAnimation = Tween<double>(
       begin: 0.0,
       end: 1.0,
@@ -452,7 +456,7 @@ class _PointsEarnedPopupState extends State<PointsEarnedPopup>
       parent: _controller,
       curve: const Interval(0.0, 0.3, curve: Curves.elasticOut),
     ));
-    
+
     _slideAnimation = Tween<double>(
       begin: 0.0,
       end: -50.0,
@@ -460,7 +464,7 @@ class _PointsEarnedPopupState extends State<PointsEarnedPopup>
       parent: _controller,
       curve: const Interval(0.3, 0.8, curve: Curves.easeOut),
     ));
-    
+
     _opacityAnimation = Tween<double>(
       begin: 1.0,
       end: 0.0,
@@ -468,12 +472,12 @@ class _PointsEarnedPopupState extends State<PointsEarnedPopup>
       parent: _controller,
       curve: const Interval(0.7, 1.0, curve: Curves.easeOut),
     ));
-    
+
     _controller.forward().then((_) {
       widget.onDismiss();
     });
   }
-  
+
   @override
   Widget build(BuildContext context) {
     return AnimatedBuilder(
@@ -494,7 +498,7 @@ class _PointsEarnedPopupState extends State<PointsEarnedPopup>
                   borderRadius: BorderRadius.circular(25),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.amber.withValues(alpha:0.4),
+                      color: Colors.amber.withValues(alpha: 0.4),
                       blurRadius: 12,
                       spreadRadius: 2,
                     ),
@@ -522,7 +526,7 @@ class _PointsEarnedPopupState extends State<PointsEarnedPopup>
       },
     );
   }
-  
+
   @override
   void dispose() {
     _controller.dispose();

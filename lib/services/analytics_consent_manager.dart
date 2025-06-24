@@ -7,10 +7,10 @@ class AnalyticsConsentManager {
   static const String _consentVersionKey = 'consent_version';
   static const String _consentTimestampKey = 'consent_timestamp';
   static const String _anonymousIdKey = 'anonymous_id';
-  
+
   // Current consent version - increment when consent requirements change
   static const int currentConsentVersion = 1;
-  
+
   // Consent types
   static const String essentialConsent = 'essential';
   static const String analyticsConsent = 'analytics';
@@ -21,7 +21,7 @@ class AnalyticsConsentManager {
   Future<bool> hasAnalyticsConsent() async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      
+
       // Check if consent version is current
       final consentVersion = prefs.getInt(_consentVersionKey) ?? 0;
       if (consentVersion < currentConsentVersion) {
@@ -32,13 +32,11 @@ class AnalyticsConsentManager {
         });
         return false;
       }
-      
+
       // Check specific analytics consent
       return prefs.getBool('$_consentKeyPrefix$analyticsConsent') ?? false;
     } catch (e) {
-      WasteAppLogger.severe('Error checking analytics consent', e, null, {
-        'service': 'AnalyticsConsentManager'
-      });
+      WasteAppLogger.severe('Error checking analytics consent', e, null, {'service': 'AnalyticsConsentManager'});
       return false; // Default to no consent on error
     }
   }
@@ -49,9 +47,7 @@ class AnalyticsConsentManager {
       final prefs = await SharedPreferences.getInstance();
       return prefs.getBool('$_consentKeyPrefix$performanceConsent') ?? false;
     } catch (e) {
-      WasteAppLogger.severe('Error checking performance consent', e, null, {
-        'service': 'AnalyticsConsentManager'
-      });
+      WasteAppLogger.severe('Error checking performance consent', e, null, {'service': 'AnalyticsConsentManager'});
       return false;
     }
   }
@@ -62,9 +58,7 @@ class AnalyticsConsentManager {
       final prefs = await SharedPreferences.getInstance();
       return prefs.getBool('$_consentKeyPrefix$marketingConsent') ?? false;
     } catch (e) {
-      WasteAppLogger.severe('Error checking marketing consent', e, null, {
-        'service': 'AnalyticsConsentManager'
-      });
+      WasteAppLogger.severe('Error checking marketing consent', e, null, {'service': 'AnalyticsConsentManager'});
       return false;
     }
   }
@@ -81,11 +75,11 @@ class AnalyticsConsentManager {
   }) async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      
+
       await prefs.setBool('$_consentKeyPrefix$consentType', granted);
       await prefs.setInt(_consentVersionKey, currentConsentVersion);
       await prefs.setString(_consentTimestampKey, DateTime.now().toIso8601String());
-      
+
       WasteAppLogger.info('Consent updated', null, null, {
         'consent_type': consentType,
         'granted': granted,
@@ -93,11 +87,8 @@ class AnalyticsConsentManager {
         'service': 'AnalyticsConsentManager'
       });
     } catch (e) {
-      WasteAppLogger.severe('Error setting consent', e, null, {
-        'consent_type': consentType,
-        'granted': granted,
-        'service': 'AnalyticsConsentManager'
-      });
+      WasteAppLogger.severe('Error setting consent', e, null,
+          {'consent_type': consentType, 'granted': granted, 'service': 'AnalyticsConsentManager'});
     }
   }
 
@@ -109,13 +100,13 @@ class AnalyticsConsentManager {
   }) async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      
+
       await prefs.setBool('$_consentKeyPrefix$analyticsConsent', analytics);
       await prefs.setBool('$_consentKeyPrefix$performanceConsent', performance);
       await prefs.setBool('$_consentKeyPrefix$marketingConsent', marketing);
       await prefs.setInt(_consentVersionKey, currentConsentVersion);
       await prefs.setString(_consentTimestampKey, DateTime.now().toIso8601String());
-      
+
       WasteAppLogger.info('All consents updated', null, null, {
         'analytics': analytics,
         'performance': performance,
@@ -124,9 +115,7 @@ class AnalyticsConsentManager {
         'service': 'AnalyticsConsentManager'
       });
     } catch (e) {
-      WasteAppLogger.severe('Error setting all consents', e, null, {
-        'service': 'AnalyticsConsentManager'
-      });
+      WasteAppLogger.severe('Error setting all consents', e, null, {'service': 'AnalyticsConsentManager'});
     }
   }
 
@@ -134,16 +123,14 @@ class AnalyticsConsentManager {
   Future<bool> needsConsentDialog() async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      
+
       // Check if consent version exists and is current
       final consentVersion = prefs.getInt(_consentVersionKey) ?? 0;
       final hasConsentTimestamp = prefs.containsKey(_consentTimestampKey);
-      
+
       return consentVersion < currentConsentVersion || !hasConsentTimestamp;
     } catch (e) {
-      WasteAppLogger.severe('Error checking consent dialog need', e, null, {
-        'service': 'AnalyticsConsentManager'
-      });
+      WasteAppLogger.severe('Error checking consent dialog need', e, null, {'service': 'AnalyticsConsentManager'});
       return true; // Show dialog on error to be safe
     }
   }
@@ -153,23 +140,19 @@ class AnalyticsConsentManager {
     try {
       final prefs = await SharedPreferences.getInstance();
       var anonymousId = prefs.getString(_anonymousIdKey);
-      
+
       if (anonymousId == null) {
         // Generate new anonymous ID
         anonymousId = 'anon_${DateTime.now().millisecondsSinceEpoch}_${DateTime.now().microsecond % 10000}';
         await prefs.setString(_anonymousIdKey, anonymousId);
-        
-        WasteAppLogger.info('Generated new anonymous ID', null, null, {
-          'anonymous_id': anonymousId,
-          'service': 'AnalyticsConsentManager'
-        });
+
+        WasteAppLogger.info('Generated new anonymous ID', null, null,
+            {'anonymous_id': anonymousId, 'service': 'AnalyticsConsentManager'});
       }
-      
+
       return anonymousId;
     } catch (e) {
-      WasteAppLogger.severe('Error getting anonymous ID', e, null, {
-        'service': 'AnalyticsConsentManager'
-      });
+      WasteAppLogger.severe('Error getting anonymous ID', e, null, {'service': 'AnalyticsConsentManager'});
       // Return a fallback ID
       return 'anon_fallback_${DateTime.now().millisecondsSinceEpoch}';
     }
@@ -180,14 +163,11 @@ class AnalyticsConsentManager {
     try {
       final prefs = await SharedPreferences.getInstance();
       await prefs.remove(_anonymousIdKey);
-      
-      WasteAppLogger.info('Anonymous ID cleared for identity stitching', null, null, {
-        'service': 'AnalyticsConsentManager'
-      });
+
+      WasteAppLogger.info(
+          'Anonymous ID cleared for identity stitching', null, null, {'service': 'AnalyticsConsentManager'});
     } catch (e) {
-      WasteAppLogger.severe('Error clearing anonymous ID', e, null, {
-        'service': 'AnalyticsConsentManager'
-      });
+      WasteAppLogger.severe('Error clearing anonymous ID', e, null, {'service': 'AnalyticsConsentManager'});
     }
   }
 
@@ -201,9 +181,7 @@ class AnalyticsConsentManager {
         marketingConsent: await hasMarketingConsent(),
       };
     } catch (e) {
-      WasteAppLogger.severe('Error getting consent status', e, null, {
-        'service': 'AnalyticsConsentManager'
-      });
+      WasteAppLogger.severe('Error getting consent status', e, null, {'service': 'AnalyticsConsentManager'});
       return {
         essentialConsent: true,
         analyticsConsent: false,
@@ -217,7 +195,7 @@ class AnalyticsConsentManager {
   Future<void> withdrawAllConsent() async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      
+
       // Remove all consent keys
       await prefs.remove('$_consentKeyPrefix$analyticsConsent');
       await prefs.remove('$_consentKeyPrefix$performanceConsent');
@@ -225,14 +203,10 @@ class AnalyticsConsentManager {
       await prefs.remove(_consentVersionKey);
       await prefs.remove(_consentTimestampKey);
       await prefs.remove(_anonymousIdKey);
-      
-      WasteAppLogger.info('All consent withdrawn', null, null, {
-        'service': 'AnalyticsConsentManager'
-      });
+
+      WasteAppLogger.info('All consent withdrawn', null, null, {'service': 'AnalyticsConsentManager'});
     } catch (e) {
-      WasteAppLogger.severe('Error withdrawing consent', e, null, {
-        'service': 'AnalyticsConsentManager'
-      });
+      WasteAppLogger.severe('Error withdrawing consent', e, null, {'service': 'AnalyticsConsentManager'});
     }
   }
 
@@ -241,7 +215,7 @@ class AnalyticsConsentManager {
     try {
       final prefs = await SharedPreferences.getInstance();
       final consentStatus = await getAllConsentStatus();
-      
+
       return {
         'consent_version': prefs.getInt(_consentVersionKey) ?? 0,
         'consent_timestamp': prefs.getString(_consentTimestampKey),
@@ -249,9 +223,7 @@ class AnalyticsConsentManager {
         'anonymous_id': await getAnonymousId(),
       };
     } catch (e) {
-      WasteAppLogger.severe('Error getting consent metadata', e, null, {
-        'service': 'AnalyticsConsentManager'
-      });
+      WasteAppLogger.severe('Error getting consent metadata', e, null, {'service': 'AnalyticsConsentManager'});
       return {
         'consent_version': 0,
         'consent_timestamp': null,
@@ -274,33 +246,31 @@ class AnalyticsConsentManager {
         case 'session':
         case 'error':
           return await hasEssentialConsent();
-        
+
         case 'analytics':
         case 'user_action':
         case 'screen_view':
         case 'classification':
         case 'gamification':
           return await hasAnalyticsConsent();
-        
+
         case 'performance':
         case 'slow_resource':
         case 'api_error':
           return await hasPerformanceConsent();
-        
+
         case 'marketing':
         case 'social':
           return await hasMarketingConsent();
-        
+
         default:
           // Default to analytics consent for unknown types
           return await hasAnalyticsConsent();
       }
     } catch (e) {
-      WasteAppLogger.severe('Error checking event tracking permission', e, null, {
-        'event_type': eventType,
-        'service': 'AnalyticsConsentManager'
-      });
+      WasteAppLogger.severe('Error checking event tracking permission', e, null,
+          {'event_type': eventType, 'service': 'AnalyticsConsentManager'});
       return false; // Default to not tracking on error
     }
   }
-} 
+}

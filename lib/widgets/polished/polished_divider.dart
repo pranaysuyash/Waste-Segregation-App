@@ -3,7 +3,6 @@ import '../../utils/app_theme.dart';
 
 /// Enhanced divider with modern styling and better visual hierarchy
 class PolishedDivider extends StatelessWidget {
-
   const PolishedDivider({
     super.key,
     this.height = 1.0,
@@ -56,8 +55,7 @@ class PolishedDivider extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final dividerColor = color ?? 
-        theme.colorScheme.outline.withValues(alpha: 0.3);
+    final dividerColor = color ?? theme.colorScheme.outline.withValues(alpha: 0.3);
 
     switch (style) {
       case DividerStyle.solid:
@@ -114,7 +112,6 @@ enum DividerStyle {
 
 /// Custom painter for dotted lines
 class DottedLinePainter extends CustomPainter {
-
   DottedLinePainter({
     required this.color,
     required this.thickness,
@@ -148,7 +145,6 @@ class DottedLinePainter extends CustomPainter {
 
 /// Custom painter for dashed lines
 class DashedLinePainter extends CustomPainter {
-
   DashedLinePainter({
     required this.color,
     required this.thickness,
@@ -182,4 +178,4 @@ class DashedLinePainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
-} 
+}

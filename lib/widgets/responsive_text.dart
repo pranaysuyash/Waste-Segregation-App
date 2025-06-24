@@ -4,7 +4,6 @@ import 'package:auto_size_text/auto_size_text.dart';
 /// A responsive text widget that automatically handles text overflow
 /// by adjusting font size or wrapping text based on available space
 class ResponsiveText extends StatelessWidget {
-
   const ResponsiveText(
     this.text, {
     super.key,
@@ -101,7 +100,6 @@ class ResponsiveText extends StatelessWidget {
 /// A responsive text widget specifically designed for dynamic greetings
 /// that adapts to different screen sizes and user name lengths
 class GreetingText extends StatelessWidget {
-
   const GreetingText({
     super.key,
     required this.greeting,
@@ -163,7 +161,6 @@ class GreetingText extends StatelessWidget {
 
 /// A responsive app bar title that handles long app names gracefully
 class ResponsiveAppBarTitle extends StatelessWidget {
-
   const ResponsiveAppBarTitle({
     super.key,
     required this.title,
@@ -209,4 +206,4 @@ class ResponsiveAppBarTitle extends StatelessWidget {
     }
     return fullTitle.length > 10 ? '${fullTitle.substring(0, 10)}...' : fullTitle;
   }
-} 
+}

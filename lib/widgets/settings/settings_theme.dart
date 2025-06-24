@@ -11,21 +11,24 @@ class SettingsTheme {
   // Typography styles
   static TextStyle sectionHeadingStyle(BuildContext context) {
     return Theme.of(context).textTheme.titleMedium?.copyWith(
-      fontWeight: FontWeight.bold,
-      color: Theme.of(context).colorScheme.primary,
-    ) ?? const TextStyle();
+              fontWeight: FontWeight.bold,
+              color: Theme.of(context).colorScheme.primary,
+            ) ??
+        const TextStyle();
   }
 
   static TextStyle tileTitle(BuildContext context) {
     return Theme.of(context).textTheme.bodyLarge?.copyWith(
-      fontWeight: FontWeight.w500,
-    ) ?? const TextStyle();
+              fontWeight: FontWeight.w500,
+            ) ??
+        const TextStyle();
   }
 
   static TextStyle tileSubtitle(BuildContext context) {
     return Theme.of(context).textTheme.bodyMedium?.copyWith(
-      color: Theme.of(context).colorScheme.onSurfaceVariant,
-    ) ?? const TextStyle();
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ) ??
+        const TextStyle();
   }
 
   static TextStyle developerModeTitle(BuildContext context) {
@@ -127,4 +130,4 @@ class SettingsSectionSpacer extends StatelessWidget {
   Widget build(BuildContext context) {
     return SizedBox(height: height ?? SettingsTheme.sectionSpacing);
   }
-} 
+}

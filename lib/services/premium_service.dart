@@ -4,7 +4,6 @@ import 'package:hive/hive.dart';
 import '../models/premium_feature.dart';
 
 class PremiumService extends ChangeNotifier {
-
   // Constructor now initializes immediately
   PremiumService() {
     // Ensure initialization happens early
@@ -20,9 +19,9 @@ class PremiumService extends ChangeNotifier {
   Future<void> initialize() async {
     // Prevent multiple simultaneous initialization attempts
     if (_isInitialized || _isInitializing) return;
-    
+
     _isInitializing = true;
-    
+
     try {
       // Check if the box is already open
       if (Hive.isBoxOpen(_premiumBoxName)) {
@@ -31,19 +30,17 @@ class PremiumService extends ChangeNotifier {
         _premiumBox = await Hive.openBox<bool>(_premiumBoxName);
       }
       _isInitialized = true;
-      
+
       // Add test features in debug mode for easy testing
       if (kDebugMode) {
         // Initialize with test values for development
         _initTestFeatures();
       }
-      
+
       notifyListeners();
     } catch (e) {
-      WasteAppLogger.severe('Error initializing premium service', e, null, {
-        'service': 'premium',
-        'action': 'attempt_recovery'
-      });
+      WasteAppLogger.severe(
+          'Error initializing premium service', e, null, {'service': 'premium', 'action': 'attempt_recovery'});
       // Try to recover by creating the box
       try {
         if (!Hive.isBoxOpen(_premiumBoxName)) {
@@ -55,10 +52,8 @@ class PremiumService extends ChangeNotifier {
         _isInitialized = true;
         notifyListeners();
       } catch (e) {
-        WasteAppLogger.severe('Failed to recover from premium service initialization error', e, null, {
-          'service': 'premium',
-          'action': 'continue_without_premium_features'
-        });
+        WasteAppLogger.severe('Failed to recover from premium service initialization error', e, null,
+            {'service': 'premium', 'action': 'continue_without_premium_features'});
       }
     } finally {
       _isInitializing = false;
@@ -74,14 +69,14 @@ class PremiumService extends ChangeNotifier {
   Future<void> setPremiumFeature(String featureId, bool isPremium) async {
     if (!_isInitialized) await initialize();
     if (_premiumBox == null) return;
-    
+
     await _premiumBox!.put(featureId, isPremium);
     notifyListeners();
   }
 
   List<PremiumFeature> getPremiumFeatures() {
     if (_premiumBox == null) return [];
-    
+
     return PremiumFeature.features
         .where((feature) => isPremiumFeature(feature.id))
         .map((feature) => PremiumFeature(
@@ -97,20 +92,18 @@ class PremiumService extends ChangeNotifier {
 
   List<PremiumFeature> getComingSoonFeatures() {
     if (_premiumBox == null) return PremiumFeature.features;
-    
-    return PremiumFeature.features
-        .where((feature) => !isPremiumFeature(feature.id))
-        .toList();
+
+    return PremiumFeature.features.where((feature) => !isPremiumFeature(feature.id)).toList();
   }
 
   Future<void> resetPremiumFeatures() async {
     if (!_isInitialized) await initialize();
     if (_premiumBox == null) return;
-    
+
     await _premiumBox!.clear();
     notifyListeners();
   }
-  
+
   // Initialize test features for development environment
   void _initTestFeatures() {
     // Enable one premium feature for testing
@@ -119,12 +112,12 @@ class PremiumService extends ChangeNotifier {
       _premiumBox!.put('remove_ads', true);
     }
   }
-  
+
   // Toggle a premium feature (useful for debug/test mode)
   Future<void> toggleFeature(String featureId) async {
     if (!_isInitialized) await initialize();
     if (_premiumBox == null) return;
-    
+
     final currentValue = _premiumBox!.get(featureId) ?? false;
     await _premiumBox!.put(featureId, !currentValue);
     notifyListeners();

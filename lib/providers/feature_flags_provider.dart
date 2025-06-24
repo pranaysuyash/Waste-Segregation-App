@@ -9,10 +9,10 @@ final _remoteConfigServiceProvider = Provider<RemoteConfigService>((ref) {
 /// Comprehensive feature flags provider that returns all flags as a map
 final featureFlagsProvider = FutureProvider<Map<String, bool>>((ref) async {
   final remoteConfig = ref.read(_remoteConfigServiceProvider);
-  
+
   return {
     'results_v2_enabled': await remoteConfig.getBool('results_v2_enabled'),
-    'home_header_v2_enabled': await remoteConfig.getBool('home_header_v2_enabled'), 
+    'home_header_v2_enabled': await remoteConfig.getBool('home_header_v2_enabled'),
     'accessibility_enhanced': await remoteConfig.getBool('accessibility_enhanced'),
     'micro_animations_enabled': await remoteConfig.getBool('micro_animations_enabled'),
     'golden_test_mode': await remoteConfig.getBool('golden_test_mode'),
@@ -64,4 +64,4 @@ final accessibilityEnhancedProvider = accessibilityEnhancedFeatureFlagProvider;
 final microAnimationsEnabledProvider = microAnimationsFeatureFlagProvider;
 
 @Deprecated('Use goldenTestModeFeatureFlagProvider instead')
-final goldenTestModeProvider = goldenTestModeFeatureFlagProvider; 
+final goldenTestModeProvider = goldenTestModeFeatureFlagProvider;

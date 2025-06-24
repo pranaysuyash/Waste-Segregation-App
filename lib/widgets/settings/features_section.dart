@@ -18,7 +18,6 @@ class FeaturesSection extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         SettingsSectionHeader(title: t.featuresSection),
-        
         SettingTile(
           icon: Icons.design_services,
           iconColor: Colors.purple,
@@ -27,7 +26,6 @@ class FeaturesSection extends StatelessWidget {
           trailing: _buildUpdatedBadge(),
           onTap: () => _navigateToModernUIShowcase(context),
         ),
-        
         Consumer<PremiumService>(
           builder: (context, premiumService, child) {
             return SettingTile(
@@ -36,17 +34,16 @@ class FeaturesSection extends StatelessWidget {
               title: t.offlineMode,
               subtitle: t.offlineModeClassify,
               trailing: _buildFeatureIndicator(
-                context, 
+                context,
                 premiumService.isPremiumFeature('offline_mode'),
               ),
               onTap: () => _handleOfflineModeNavigation(
-                context, 
+                context,
                 premiumService,
               ),
             );
           },
         ),
-        
         SettingTile(
           icon: Icons.analytics,
           iconColor: Colors.green,
@@ -54,7 +51,6 @@ class FeaturesSection extends StatelessWidget {
           subtitle: t.analyticsSubtitle,
           onTap: () => _navigateToAnalytics(context),
         ),
-        
         Consumer<PremiumService>(
           builder: (context, premiumService, child) {
             return SettingTile(
@@ -63,11 +59,11 @@ class FeaturesSection extends StatelessWidget {
               title: t.advancedAnalytics,
               subtitle: t.advancedAnalyticsSubtitle,
               trailing: _buildFeatureIndicator(
-                context, 
+                context,
                 premiumService.isPremiumFeature('advanced_analytics'),
               ),
               onTap: () => _handleAdvancedAnalyticsNavigation(
-                context, 
+                context,
                 premiumService,
               ),
             );
@@ -167,4 +163,4 @@ class FeaturesSection extends StatelessWidget {
       },
     );
   }
-} 
+}

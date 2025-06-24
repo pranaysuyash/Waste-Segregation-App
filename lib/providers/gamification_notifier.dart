@@ -44,7 +44,7 @@ class GamificationNotifier extends AsyncNotifier<GamificationProfile> {
     if (!currentState.hasValue) return;
 
     final currentProfile = currentState.value!;
-    
+
     try {
       // Optimistic update - immediately show claimed state
       final achievementIndex = currentProfile.achievements.indexWhere((a) => a.id == achievementId);
@@ -80,18 +80,17 @@ class GamificationNotifier extends AsyncNotifier<GamificationProfile> {
 
       // Perform actual claim operation
       await _repository.claimReward(achievementId, currentProfile);
-      
+
       // Refresh to ensure consistency
       await refresh();
-
     } catch (e) {
       if (kDebugMode) {
         WasteAppLogger.severe('🔥 Failed to claim reward: $e');
       }
-      
+
       // Revert optimistic update on error
       state = currentState;
-      
+
       // Re-throw for UI error handling
       throw AppException.storage('Failed to claim reward: $e');
     }
@@ -103,7 +102,7 @@ class GamificationNotifier extends AsyncNotifier<GamificationProfile> {
     if (!currentState.hasValue) return;
 
     final currentProfile = currentState.value!;
-    
+
     try {
       final now = DateTime.now();
       final streakKey = type.toString();
@@ -112,7 +111,7 @@ class GamificationNotifier extends AsyncNotifier<GamificationProfile> {
       // Validate streak update timing
       if (currentStreak != null) {
         final daysSinceLastActivity = now.difference(currentStreak.lastActivityDate).inDays;
-        
+
         // Prevent multiple updates on same day
         if (daysSinceLastActivity == 0) {
           if (kDebugMode) {
@@ -124,7 +123,7 @@ class GamificationNotifier extends AsyncNotifier<GamificationProfile> {
 
       // Calculate new streak
       final newStreak = _calculateNewStreak(currentStreak, now, type);
-      
+
       // Update profile
       final updatedStreaks = Map<String, StreakDetails>.from(currentProfile.streaks);
       updatedStreaks[streakKey] = newStreak;
@@ -143,7 +142,6 @@ class GamificationNotifier extends AsyncNotifier<GamificationProfile> {
       // Save and update state
       await _repository.saveProfile(updatedProfile);
       state = AsyncValue.data(updatedProfile);
-
     } catch (e) {
       if (kDebugMode) {
         WasteAppLogger.severe('🔥 Failed to update streak: $e');
@@ -158,11 +156,11 @@ class GamificationNotifier extends AsyncNotifier<GamificationProfile> {
     if (!currentState.hasValue) return;
 
     final currentProfile = currentState.value!;
-    
+
     try {
       // Calculate points based on category
       const points = GamificationConfig.kPointsPerItem;
-      
+
       // Update points
       final updatedPoints = currentProfile.points.copyWith(
         total: currentProfile.points.total + points,
@@ -183,7 +181,6 @@ class GamificationNotifier extends AsyncNotifier<GamificationProfile> {
       // Save and update state
       await _repository.saveProfile(updatedProfile);
       state = AsyncValue.data(updatedProfile);
-
     } catch (e) {
       if (kDebugMode) {
         WasteAppLogger.severe('🔥 Failed to add classification points: $e');
@@ -324,4 +321,4 @@ final gamificationStreaksProvider = Provider<Map<String, StreakDetails>>((ref) {
     loading: () => {},
     error: (_, __) => {},
   );
-}); 
+});

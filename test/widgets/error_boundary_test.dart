@@ -10,7 +10,6 @@ import 'error_boundary_test.mocks.dart';
 
 // Test widget that can throw errors
 class ErrorThrowingWidget extends StatelessWidget {
-
   const ErrorThrowingWidget({
     Key? key,
     this.shouldThrow = false,
@@ -30,7 +29,6 @@ class ErrorThrowingWidget extends StatelessWidget {
 
 // Widget that throws errors during specific lifecycle events
 class LifecycleErrorWidget extends StatefulWidget {
-
   const LifecycleErrorWidget({
     Key? key,
     this.throwInInit = false,
@@ -190,8 +188,7 @@ void main() {
       });
 
       testWidgets('should report errors to analytics service', (WidgetTester tester) async {
-        when(mockAnalyticsService.logError(any, any, any))
-            .thenAnswer((_) async => null);
+        when(mockAnalyticsService.logError(any, any, any)).thenAnswer((_) async => null);
 
         await tester.pumpWidget(createTestWidget(
           child: const ErrorThrowingWidget(
@@ -439,9 +436,7 @@ void main() {
 
         await tester.pumpWidget(createTestWidget(
           child: Column(
-            children: List.generate(100, (index) => 
-              Text('Item $index')
-            ),
+            children: List.generate(100, (index) => Text('Item $index')),
           ),
         ));
 
@@ -498,7 +493,7 @@ void main() {
         for (var i = 0; i < 5; i++) {
           await tester.tap(find.text('Try Again'));
           await tester.pump();
-          
+
           if (shouldThrow) {
             expect(find.text('Something went wrong'), findsOneWidget);
           } else {
@@ -539,10 +534,8 @@ void main() {
         ));
 
         // Should have live region announcement for accessibility
-        expect(find.byWidgetPredicate((widget) => 
-          widget is Semantics && 
-          widget.properties.liveRegion == true
-        ), findsOneWidget);
+        expect(find.byWidgetPredicate((widget) => widget is Semantics && widget.properties.liveRegion == true),
+            findsOneWidget);
       });
 
       testWidgets('should support keyboard navigation in error state', (WidgetTester tester) async {
@@ -564,8 +557,7 @@ void main() {
 
     group('Error Reporting Integration', () {
       testWidgets('should include stack trace in error reports', (WidgetTester tester) async {
-        when(mockAnalyticsService.logError(any, any, any))
-            .thenAnswer((_) async => null);
+        when(mockAnalyticsService.logError(any, any, any)).thenAnswer((_) async => null);
 
         await tester.pumpWidget(createTestWidget(
           child: const ErrorThrowingWidget(
@@ -582,8 +574,7 @@ void main() {
       });
 
       testWidgets('should handle analytics service errors gracefully', (WidgetTester tester) async {
-        when(mockAnalyticsService.logError(any, any, any))
-            .thenThrow(Exception('Analytics error'));
+        when(mockAnalyticsService.logError(any, any, any)).thenThrow(Exception('Analytics error'));
 
         await tester.pumpWidget(createTestWidget(
           child: const ErrorThrowingWidget(shouldThrow: true),
@@ -594,8 +585,7 @@ void main() {
       });
 
       testWidgets('should throttle error reports for repeated errors', (WidgetTester tester) async {
-        when(mockAnalyticsService.logError(any, any, any))
-            .thenAnswer((_) async => null);
+        when(mockAnalyticsService.logError(any, any, any)).thenAnswer((_) async => null);
 
         // Trigger same error multiple times
         for (var i = 0; i < 5; i++) {

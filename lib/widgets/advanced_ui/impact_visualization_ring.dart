@@ -4,7 +4,6 @@ import '../../utils/design_system.dart';
 
 /// Represents a milestone in the impact journey
 class ImpactMilestone {
-
   const ImpactMilestone({
     required this.threshold,
     required this.title,
@@ -23,7 +22,6 @@ class ImpactMilestone {
 
 /// Advanced impact ring with animated progress and environmental storytelling
 class ImpactVisualizationRing extends StatefulWidget {
-  
   const ImpactVisualizationRing({
     super.key,
     required this.progress,
@@ -47,41 +45,39 @@ class ImpactVisualizationRing extends StatefulWidget {
   final List<ImpactMilestone> milestones;
   final String title;
   final String subtitle;
-  
+
   @override
   _ImpactVisualizationRingState createState() => _ImpactVisualizationRingState();
 }
 
-class _ImpactVisualizationRingState extends State<ImpactVisualizationRing>
-    with TickerProviderStateMixin {
-  
+class _ImpactVisualizationRingState extends State<ImpactVisualizationRing> with TickerProviderStateMixin {
   late AnimationController _progressController;
   late AnimationController _pulseController;
   late AnimationController _milestoneController;
-  
+
   late Animation<double> _progressAnimation;
   late Animation<double> _pulseAnimation;
   late Animation<double> _glowAnimation;
-  
+
   @override
   void initState() {
     super.initState();
-    
+
     _progressController = AnimationController(
       duration: const Duration(milliseconds: 2000),
       vsync: this,
     );
-    
+
     _pulseController = AnimationController(
       duration: const Duration(milliseconds: 1500),
       vsync: this,
     )..repeat(reverse: true);
-    
+
     _milestoneController = AnimationController(
       duration: const Duration(milliseconds: 800),
       vsync: this,
     );
-    
+
     _progressAnimation = Tween<double>(
       begin: 0.0,
       end: widget.progress,
@@ -89,7 +85,7 @@ class _ImpactVisualizationRingState extends State<ImpactVisualizationRing>
       parent: _progressController,
       curve: Curves.easeOutCubic,
     ));
-    
+
     _pulseAnimation = Tween<double>(
       begin: 1.0,
       end: 1.05,
@@ -97,7 +93,7 @@ class _ImpactVisualizationRingState extends State<ImpactVisualizationRing>
       parent: _pulseController,
       curve: Curves.easeInOut,
     ));
-    
+
     _glowAnimation = Tween<double>(
       begin: 0.3,
       end: 0.8,
@@ -105,10 +101,10 @@ class _ImpactVisualizationRingState extends State<ImpactVisualizationRing>
       parent: _pulseController,
       curve: Curves.easeInOut,
     ));
-    
+
     _progressController.forward();
   }
-  
+
   @override
   void didUpdateWidget(ImpactVisualizationRing oldWidget) {
     super.didUpdateWidget(oldWidget);
@@ -121,12 +117,12 @@ class _ImpactVisualizationRingState extends State<ImpactVisualizationRing>
         curve: Curves.easeOutCubic,
       ));
       _progressController.forward(from: 0);
-      
+
       // Trigger milestone animation if we crossed a milestone
       _checkMilestones(oldWidget.progress, widget.progress);
     }
   }
-  
+
   void _checkMilestones(double oldProgress, double newProgress) {
     for (final milestone in widget.milestones) {
       if (oldProgress < milestone.threshold && newProgress >= milestone.threshold) {
@@ -135,7 +131,7 @@ class _ImpactVisualizationRingState extends State<ImpactVisualizationRing>
       }
     }
   }
-  
+
   @override
   void dispose() {
     _progressController.dispose();
@@ -143,7 +139,7 @@ class _ImpactVisualizationRingState extends State<ImpactVisualizationRing>
     _milestoneController.dispose();
     super.dispose();
   }
-  
+
   @override
   Widget build(BuildContext context) {
     return AnimatedBuilder(
@@ -160,9 +156,9 @@ class _ImpactVisualizationRingState extends State<ImpactVisualizationRing>
               Text(
                 widget.title,
                 style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                  color: widget.primaryColor,
-                  fontWeight: FontWeight.bold,
-                ),
+                      color: widget.primaryColor,
+                      fontWeight: FontWeight.bold,
+                    ),
                 textAlign: TextAlign.center,
               ),
               if (widget.subtitle.isNotEmpty) ...[
@@ -170,14 +166,14 @@ class _ImpactVisualizationRingState extends State<ImpactVisualizationRing>
                 Text(
                   widget.subtitle,
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: WasteAppDesignSystem.darkGray,
-                  ),
+                        color: WasteAppDesignSystem.darkGray,
+                      ),
                   textAlign: TextAlign.center,
                 ),
               ],
               const SizedBox(height: WasteAppDesignSystem.spacingL),
             ],
-            
+
             // Main impact ring
             Transform.scale(
               scale: _pulseAnimation.value,
@@ -201,39 +197,39 @@ class _ImpactVisualizationRingState extends State<ImpactVisualizationRing>
                         Text(
                           '${widget.currentValue.toInt()}',
                           style: Theme.of(context).textTheme.displayMedium?.copyWith(
-                            fontSize: 36,
-                            fontWeight: FontWeight.bold,
-                            color: widget.primaryColor,
-                          ),
+                                fontSize: 36,
+                                fontWeight: FontWeight.bold,
+                                color: widget.primaryColor,
+                              ),
                         ),
-                        
+
                         // Target and unit
                         Text(
                           'of ${widget.targetValue.toInt()} ${widget.unit}',
                           style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            color: WasteAppDesignSystem.darkGray,
-                            fontWeight: FontWeight.w500,
-                          ),
+                                color: WasteAppDesignSystem.darkGray,
+                                fontWeight: FontWeight.w500,
+                              ),
                         ),
-                        
+
                         // Percentage
                         const SizedBox(height: WasteAppDesignSystem.spacingXS),
                         Text(
                           '${(widget.progress * 100).toInt()}%',
                           style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                            color: widget.primaryColor,
-                            fontWeight: FontWeight.w600,
-                          ),
+                                color: widget.primaryColor,
+                                fontWeight: FontWeight.w600,
+                              ),
                         ),
-                        
+
                         // Center text if provided
                         if (widget.centerText.isNotEmpty) ...[
                           const SizedBox(height: WasteAppDesignSystem.spacingXS),
                           Text(
                             widget.centerText,
                             style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              color: WasteAppDesignSystem.darkGray,
-                            ),
+                                  color: WasteAppDesignSystem.darkGray,
+                                ),
                             textAlign: TextAlign.center,
                           ),
                         ],
@@ -243,7 +239,7 @@ class _ImpactVisualizationRingState extends State<ImpactVisualizationRing>
                 ),
               ),
             ),
-            
+
             // Milestones indicator
             if (widget.milestones.isNotEmpty) ...[
               const SizedBox(height: WasteAppDesignSystem.spacingL),
@@ -254,21 +250,19 @@ class _ImpactVisualizationRingState extends State<ImpactVisualizationRing>
       },
     );
   }
-  
+
   Widget _buildMilestonesIndicator() {
     return Container(
       padding: const EdgeInsets.all(WasteAppDesignSystem.spacingM),
-      decoration: WasteAppDesignSystem.getCardDecoration(
-        
-      ),
+      decoration: WasteAppDesignSystem.getCardDecoration(),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             'Milestones',
             style: Theme.of(context).textTheme.titleMedium?.copyWith(
-              fontWeight: FontWeight.bold,
-            ),
+                  fontWeight: FontWeight.bold,
+                ),
           ),
           const SizedBox(height: WasteAppDesignSystem.spacingS),
           ...widget.milestones.map((milestone) => _buildMilestoneItem(milestone)),
@@ -276,12 +270,11 @@ class _ImpactVisualizationRingState extends State<ImpactVisualizationRing>
       ),
     );
   }
-  
+
   Widget _buildMilestoneItem(ImpactMilestone milestone) {
     final isReached = widget.progress >= milestone.threshold;
-    final isActive = widget.progress >= milestone.threshold - 0.1 && 
-                     widget.progress <= milestone.threshold + 0.1;
-    
+    final isActive = widget.progress >= milestone.threshold - 0.1 && widget.progress <= milestone.threshold + 0.1;
+
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: WasteAppDesignSystem.spacingXS),
       child: Row(
@@ -290,25 +283,19 @@ class _ImpactVisualizationRingState extends State<ImpactVisualizationRing>
           Container(
             padding: const EdgeInsets.all(WasteAppDesignSystem.spacingS),
             decoration: BoxDecoration(
-              color: isReached 
-                  ? milestone.color.withValues(alpha:0.2)
-                  : WasteAppDesignSystem.lightGray,
+              color: isReached ? milestone.color.withValues(alpha: 0.2) : WasteAppDesignSystem.lightGray,
               shape: BoxShape.circle,
-              border: isActive 
-                  ? Border.all(color: milestone.color, width: 2)
-                  : null,
+              border: isActive ? Border.all(color: milestone.color, width: 2) : null,
             ),
             child: Icon(
               milestone.icon,
-              color: isReached 
-                  ? milestone.color
-                  : WasteAppDesignSystem.darkGray,
+              color: isReached ? milestone.color : WasteAppDesignSystem.darkGray,
               size: 20,
             ),
           ),
-          
+
           const SizedBox(width: WasteAppDesignSystem.spacingM),
-          
+
           // Milestone info
           Expanded(
             child: Column(
@@ -317,22 +304,20 @@ class _ImpactVisualizationRingState extends State<ImpactVisualizationRing>
                 Text(
                   milestone.title,
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    fontWeight: FontWeight.w600,
-                    color: isReached 
-                        ? milestone.color
-                        : WasteAppDesignSystem.textBlack,
-                  ),
+                        fontWeight: FontWeight.w600,
+                        color: isReached ? milestone.color : WasteAppDesignSystem.textBlack,
+                      ),
                 ),
                 Text(
                   milestone.description,
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: WasteAppDesignSystem.darkGray,
-                  ),
+                        color: WasteAppDesignSystem.darkGray,
+                      ),
                 ),
               ],
             ),
           ),
-          
+
           // Progress indicator
           if (isReached)
             Icon(
@@ -344,9 +329,9 @@ class _ImpactVisualizationRingState extends State<ImpactVisualizationRing>
             Text(
               '${(milestone.threshold * 100).toInt()}%',
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: WasteAppDesignSystem.darkGray,
-                fontWeight: FontWeight.w500,
-              ),
+                    color: WasteAppDesignSystem.darkGray,
+                    fontWeight: FontWeight.w500,
+                  ),
             ),
         ],
       ),
@@ -356,7 +341,6 @@ class _ImpactVisualizationRingState extends State<ImpactVisualizationRing>
 
 /// Custom painter for the impact ring
 class ImpactRingPainter extends CustomPainter {
-  
   ImpactRingPainter({
     required this.progress,
     required this.primaryColor,
@@ -371,30 +355,30 @@ class ImpactRingPainter extends CustomPainter {
   final double glowIntensity;
   final List<ImpactMilestone> milestones;
   final double milestoneAnimation;
-  
+
   @override
   void paint(Canvas canvas, Size size) {
     final center = Offset(size.width / 2, size.height / 2);
     final radius = (size.width - 40) / 2;
     const strokeWidth = 12.0;
-    
+
     // Draw background circle
     final backgroundPaint = Paint()
-      ..color = primaryColor.withValues(alpha:0.1)
+      ..color = primaryColor.withValues(alpha: 0.1)
       ..style = PaintingStyle.stroke
       ..strokeWidth = strokeWidth
       ..strokeCap = StrokeCap.round;
-    
+
     canvas.drawCircle(center, radius, backgroundPaint);
-    
+
     // Draw glow effect
     final glowPaint = Paint()
-      ..color = primaryColor.withValues(alpha:glowIntensity * 0.3)
+      ..color = primaryColor.withValues(alpha: glowIntensity * 0.3)
       ..style = PaintingStyle.stroke
       ..strokeWidth = strokeWidth + 4
       ..strokeCap = StrokeCap.round
       ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 3);
-    
+
     canvas.drawArc(
       Rect.fromCircle(center: center, radius: radius),
       -math.pi / 2,
@@ -402,7 +386,7 @@ class ImpactRingPainter extends CustomPainter {
       false,
       glowPaint,
     );
-    
+
     // Draw progress arc with gradient effect
     final progressPaint = Paint()
       ..shader = LinearGradient(
@@ -413,7 +397,7 @@ class ImpactRingPainter extends CustomPainter {
       ..style = PaintingStyle.stroke
       ..strokeWidth = strokeWidth
       ..strokeCap = StrokeCap.round;
-    
+
     canvas.drawArc(
       Rect.fromCircle(center: center, radius: radius),
       -math.pi / 2,
@@ -421,7 +405,7 @@ class ImpactRingPainter extends CustomPainter {
       false,
       progressPaint,
     );
-    
+
     // Draw milestone markers
     for (final milestone in milestones) {
       _drawMilestoneMarker(
@@ -434,7 +418,7 @@ class ImpactRingPainter extends CustomPainter {
       );
     }
   }
-  
+
   void _drawMilestoneMarker(
     Canvas canvas,
     Offset center,
@@ -445,41 +429,41 @@ class ImpactRingPainter extends CustomPainter {
   ) {
     final angle = -math.pi / 2 + 2 * math.pi * threshold;
     final markerRadius = isReached ? 8.0 : 6.0;
-    
+
     final markerCenter = Offset(
       center.dx + radius * math.cos(angle),
       center.dy + radius * math.sin(angle),
     );
-    
+
     // Draw marker glow if reached
     if (isReached) {
       final glowPaint = Paint()
-        ..color = color.withValues(alpha:0.4)
+        ..color = color.withValues(alpha: 0.4)
         ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 4);
-      
+
       canvas.drawCircle(markerCenter, markerRadius + 2, glowPaint);
     }
-    
+
     // Draw marker
     final markerPaint = Paint()
-      ..color = isReached ? color : color.withValues(alpha:0.5)
+      ..color = isReached ? color : color.withValues(alpha: 0.5)
       ..style = PaintingStyle.fill;
-    
+
     canvas.drawCircle(markerCenter, markerRadius, markerPaint);
-    
+
     // Draw marker border
     final borderPaint = Paint()
       ..color = Colors.white
       ..style = PaintingStyle.stroke
       ..strokeWidth = 2;
-    
+
     canvas.drawCircle(markerCenter, markerRadius, borderPaint);
   }
-  
+
   @override
   bool shouldRepaint(ImpactRingPainter oldDelegate) {
     return oldDelegate.progress != progress ||
-           oldDelegate.glowIntensity != glowIntensity ||
-           oldDelegate.milestoneAnimation != milestoneAnimation;
+        oldDelegate.glowIntensity != glowIntensity ||
+        oldDelegate.milestoneAnimation != milestoneAnimation;
   }
 }

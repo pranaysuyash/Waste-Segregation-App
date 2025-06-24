@@ -3,7 +3,6 @@ import '../../utils/constants.dart';
 
 /// Modern badge with various styles and animations
 class ModernBadge extends StatelessWidget {
-
   const ModernBadge({
     super.key,
     required this.text,
@@ -29,7 +28,7 @@ class ModernBadge extends StatelessWidget {
     final theme = Theme.of(context);
     final effectiveBackgroundColor = backgroundColor ?? theme.colorScheme.primary;
     final effectiveTextColor = textColor ?? _getTextColor(theme, effectiveBackgroundColor);
-    
+
     Widget badge = Container(
       padding: _getPadding(),
       decoration: _getDecoration(theme, effectiveBackgroundColor),
@@ -53,21 +52,21 @@ class ModernBadge extends StatelessWidget {
         ],
       ),
     );
-    
+
     if (showPulse) {
       badge = PulseBadge(child: badge);
     }
-    
+
     if (onTap != null) {
       badge = GestureDetector(
         onTap: onTap,
         child: badge,
       );
     }
-    
+
     return badge;
   }
-  
+
   EdgeInsets _getPadding() {
     switch (size) {
       case ModernBadgeSize.small:
@@ -78,7 +77,7 @@ class ModernBadge extends StatelessWidget {
         return const EdgeInsets.symmetric(horizontal: 16, vertical: 8);
     }
   }
-  
+
   double _getIconSize() {
     switch (size) {
       case ModernBadgeSize.small:
@@ -89,24 +88,27 @@ class ModernBadge extends StatelessWidget {
         return 20;
     }
   }
-  
+
   TextStyle _getTextStyle(ThemeData theme) {
     switch (size) {
       case ModernBadgeSize.small:
         return theme.textTheme.labelSmall?.copyWith(
-          fontWeight: FontWeight.w600,
-        ) ?? const TextStyle();
+              fontWeight: FontWeight.w600,
+            ) ??
+            const TextStyle();
       case ModernBadgeSize.medium:
         return theme.textTheme.labelMedium?.copyWith(
-          fontWeight: FontWeight.w600,
-        ) ?? const TextStyle();
+              fontWeight: FontWeight.w600,
+            ) ??
+            const TextStyle();
       case ModernBadgeSize.large:
         return theme.textTheme.labelLarge?.copyWith(
-          fontWeight: FontWeight.w600,
-        ) ?? const TextStyle();
+              fontWeight: FontWeight.w600,
+            ) ??
+            const TextStyle();
     }
   }
-  
+
   BoxDecoration _getDecoration(ThemeData theme, Color backgroundColor) {
     switch (style) {
       case ModernBadgeStyle.filled:
@@ -122,18 +124,18 @@ class ModernBadge extends StatelessWidget {
         );
       case ModernBadgeStyle.soft:
         return BoxDecoration(
-          color: backgroundColor.withValues(alpha:0.15),
+          color: backgroundColor.withValues(alpha: 0.15),
           borderRadius: BorderRadius.circular(AppTheme.borderRadiusXl),
         );
       case ModernBadgeStyle.glassmorphism:
         return BoxDecoration(
-          color: backgroundColor.withValues(alpha:0.1),
-          border: Border.all(color: backgroundColor.withValues(alpha:0.3)),
+          color: backgroundColor.withValues(alpha: 0.1),
+          border: Border.all(color: backgroundColor.withValues(alpha: 0.3)),
           borderRadius: BorderRadius.circular(AppTheme.borderRadiusXl),
         );
     }
   }
-  
+
   Color _getTextColor(ThemeData theme, Color backgroundColor) {
     switch (style) {
       case ModernBadgeStyle.filled:
@@ -148,7 +150,6 @@ class ModernBadge extends StatelessWidget {
 
 /// Pulsing animation wrapper for badges
 class PulseBadge extends StatefulWidget {
-  
   const PulseBadge({super.key, required this.child});
   final Widget child;
 
@@ -156,8 +157,7 @@ class PulseBadge extends StatefulWidget {
   State<PulseBadge> createState() => _PulseBadgeState();
 }
 
-class _PulseBadgeState extends State<PulseBadge>
-    with SingleTickerProviderStateMixin {
+class _PulseBadgeState extends State<PulseBadge> with SingleTickerProviderStateMixin {
   late AnimationController _animationController;
   late Animation<double> _pulseAnimation;
 
@@ -175,7 +175,7 @@ class _PulseBadgeState extends State<PulseBadge>
       parent: _animationController,
       curve: Curves.easeInOut,
     ));
-    
+
     _animationController.repeat(reverse: true);
   }
 
@@ -201,7 +201,6 @@ class _PulseBadgeState extends State<PulseBadge>
 
 /// Modern chip with selection and filtering capabilities
 class ModernChip extends StatelessWidget {
-
   const ModernChip({
     super.key,
     required this.label,
@@ -227,7 +226,7 @@ class ModernChip extends StatelessWidget {
     final theme = Theme.of(context);
     final effectiveSelectedColor = selectedColor ?? theme.colorScheme.primary;
     final effectiveUnselectedColor = unselectedColor ?? theme.colorScheme.surfaceContainerHighest;
-    
+
     return AnimatedContainer(
       duration: AppTheme.animationFast,
       decoration: _getDecoration(theme, effectiveSelectedColor, effectiveUnselectedColor),
@@ -274,7 +273,7 @@ class ModernChip extends StatelessWidget {
       ),
     );
   }
-  
+
   BoxDecoration _getDecoration(ThemeData theme, Color selectedColor, Color unselectedColor) {
     switch (style) {
       case ModernChipStyle.filled:
@@ -293,12 +292,12 @@ class ModernChip extends StatelessWidget {
         );
       case ModernChipStyle.soft:
         return BoxDecoration(
-          color: isSelected ? selectedColor.withValues(alpha:0.15) : unselectedColor.withValues(alpha:0.5),
+          color: isSelected ? selectedColor.withValues(alpha: 0.15) : unselectedColor.withValues(alpha: 0.5),
           borderRadius: BorderRadius.circular(AppTheme.borderRadiusXl),
         );
     }
   }
-  
+
   Color _getContentColor(ThemeData theme, Color selectedColor) {
     if (style == ModernChipStyle.filled && isSelected) {
       return Colors.white;
@@ -309,7 +308,6 @@ class ModernChip extends StatelessWidget {
 
 /// Category badge for waste types with predefined colors
 class WasteCategoryBadge extends StatelessWidget {
-
   const WasteCategoryBadge({
     super.key,
     required this.category,
@@ -326,7 +324,7 @@ class WasteCategoryBadge extends StatelessWidget {
   Widget build(BuildContext context) {
     final color = _getCategoryColor(category);
     final icon = _getCategoryIcon(category);
-    
+
     return ModernBadge(
       text: category,
       backgroundColor: color,
@@ -336,7 +334,7 @@ class WasteCategoryBadge extends StatelessWidget {
       onTap: onTap,
     );
   }
-  
+
   Color _getCategoryColor(String category) {
     switch (category.toLowerCase()) {
       case 'wet waste':
@@ -355,7 +353,7 @@ class WasteCategoryBadge extends StatelessWidget {
         return AppTheme.neutralColor;
     }
   }
-  
+
   IconData _getCategoryIcon(String category) {
     switch (category.toLowerCase()) {
       case 'wet waste':
@@ -378,7 +376,6 @@ class WasteCategoryBadge extends StatelessWidget {
 
 /// Status badge with predefined colors and states
 class StatusBadge extends StatelessWidget {
-
   const StatusBadge({
     super.key,
     required this.status,
@@ -392,7 +389,7 @@ class StatusBadge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final statusInfo = _getStatusInfo(status);
-    
+
     return ModernBadge(
       text: status,
       backgroundColor: statusInfo.color,
@@ -401,7 +398,7 @@ class StatusBadge extends StatelessWidget {
       size: size,
     );
   }
-  
+
   StatusInfo _getStatusInfo(String status) {
     switch (status.toLowerCase()) {
       case 'completed':
@@ -426,7 +423,6 @@ class StatusBadge extends StatelessWidget {
 
 /// Helper class for status information
 class StatusInfo {
-  
   StatusInfo(this.color, this.icon);
   final Color color;
   final IconData icon;
@@ -434,7 +430,6 @@ class StatusInfo {
 
 /// Chip group with multiple selection support
 class ModernChipGroup extends StatefulWidget {
-
   const ModernChipGroup({
     super.key,
     required this.options,
@@ -494,7 +489,7 @@ class _ModernChipGroupState extends State<ModernChipGroup> {
         }
       }
     });
-    
+
     widget.onSelectionChanged?.call(_selectedOptions);
   }
 
@@ -522,7 +517,6 @@ class _ModernChipGroupState extends State<ModernChipGroup> {
 
 /// Progress indicator badge with enhanced overflow protection and responsive sizing
 class ProgressBadge extends StatelessWidget {
-
   const ProgressBadge({
     super.key,
     required this.progress,
@@ -547,17 +541,16 @@ class ProgressBadge extends StatelessWidget {
     final effectiveProgressColor = progressColor ?? theme.colorScheme.primary;
     final effectiveBackgroundColor = backgroundColor ?? theme.colorScheme.surfaceContainerHighest;
     final effectiveStrokeWidth = strokeWidth ?? (size * 0.1).clamp(2.0, 4.0);
-    
+
     // Clamp progress to valid range
     final clampedProgress = progress.clamp(0.0, 1.0);
-    
+
     return LayoutBuilder(
       builder: (context, constraints) {
         // Responsive sizing based on available space
-        final responsiveSize = constraints.maxWidth > 0 
-            ? size.clamp(24.0, constraints.maxWidth.clamp(24.0, 48.0))
-            : size;
-        
+        final responsiveSize =
+            constraints.maxWidth > 0 ? size.clamp(24.0, constraints.maxWidth.clamp(24.0, 48.0)) : size;
+
         return SizedBox(
           width: responsiveSize,
           height: responsiveSize,
@@ -578,15 +571,15 @@ class ProgressBadge extends StatelessWidget {
       },
     );
   }
-  
+
   Widget _buildCenterText(double size, Color color, double progress) {
     final displayText = text ?? '${(progress * 100).round()}%';
-    
+
     return LayoutBuilder(
       builder: (context, constraints) {
         // Calculate appropriate font size based on badge size and text length
         var fontSize = size * 0.25;
-        
+
         // Adjust font size based on text length to prevent overflow
         if (displayText.length > 3) {
           fontSize = size * 0.2;
@@ -594,10 +587,10 @@ class ProgressBadge extends StatelessWidget {
         if (displayText.length > 4) {
           fontSize = size * 0.15;
         }
-        
+
         // Ensure minimum readable size
         fontSize = fontSize.clamp(8.0, (size * 0.3).clamp(8.0, double.infinity));
-        
+
         return FittedBox(
           fit: BoxFit.scaleDown,
           child: Container(

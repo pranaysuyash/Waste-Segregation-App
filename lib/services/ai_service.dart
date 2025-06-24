@@ -34,7 +34,6 @@ import '../utils/waste_app_logger.dart';
 ///   concatenation (`RegExp(r'"([^"]+)"|' + r"'([^']+)'")`) to correctly
 ///   handle both double and single-quoted values.
 class AiService {
-
   /// Constructs an [AiService].
   ///
   /// Initializes API configurations and the [ClassificationCacheService].
@@ -61,33 +60,33 @@ class AiService {
   final String geminiBaseUrl;
   final String geminiApiKey;
   final ClassificationCacheService cacheService;
-  
+
   // ✅ OPTIMIZATION: Add as class field to avoid creating new instances repeatedly
   final EnhancedImageService _imageService = EnhancedImageService();
-  
+
   // Dio client for HTTP requests with cancellation support
   final Dio _dio = Dio();
   CancelToken? _cancelToken;
-  
+
   // Simple segmentation parameters - can be adjusted based on needs
   static const int segmentGridSize = 3; // 3x3 grid for basic segmentation
   static const double minSegmentArea = 0.05; // Minimum 5% of image area
   static const int objectDetectionSegments = 9; // Maximum number of segments to return
-  
+
   // Enable/disable caching (for testing or fallback)
   final bool cachingEnabled;
 
   // Default region for classifications
   final String defaultRegion;
   final String defaultLanguage;
-        
+
   /// Initialize the service and its dependencies
   Future<void> initialize() async {
     // Initialize the cache service if caching is enabled
     if (cachingEnabled) {
       await cacheService.initialize();
     }
-    
+
     // Configure Dio with default timeouts
     _dio.options.connectTimeout = const Duration(seconds: 60);
     _dio.options.receiveTimeout = const Duration(seconds: 60);
@@ -215,7 +214,8 @@ Format the response as a valid JSON object with these fields: itemName, category
   ///
   /// Guides the AI to re-analyze an item based on user-provided corrections
   /// or disagreements, updating the classification and explaining changes.
-  String _getCorrectionPrompt(Map<String, dynamic> previousClassification, String userCorrection, String? userReason) => '''
+  String _getCorrectionPrompt(Map<String, dynamic> previousClassification, String userCorrection, String? userReason) =>
+      '''
 A user has reviewed the waste item classification and provided feedback or a correction.  
 Please re-analyze the item and return an updated JSON response, as per the data model, with special attention to:
 
@@ -261,15 +261,12 @@ Output:
         imageBytes[3] == 0x47) {
       return 'image/png';
     }
-    
+
     // Check JPEG signature
-    if (imageBytes.length >= 3 &&
-        imageBytes[0] == 0xFF &&
-        imageBytes[1] == 0xD8 &&
-        imageBytes[2] == 0xFF) {
+    if (imageBytes.length >= 3 && imageBytes[0] == 0xFF && imageBytes[1] == 0xD8 && imageBytes[2] == 0xFF) {
       return 'image/jpeg';
     }
-    
+
     // Check WebP signature
     if (imageBytes.length >= 12 &&
         imageBytes[0] == 0x52 &&
@@ -282,7 +279,7 @@ Output:
         imageBytes[11] == 0x50) {
       return 'image/webp';
     }
-    
+
     // Default to JPEG if unknown
     return 'image/jpeg';
   }
@@ -296,9 +293,9 @@ Output:
   Future<Uint8List> _compressImageForOpenAI(Uint8List imageBytes) async {
     const maxSizeBytes = 20 * 1024 * 1024; // 20MB OpenAI limit
     const preferredSizeBytes = 5 * 1024 * 1024; // 5MB preferred
-    
+
     WasteAppLogger.info('Original image size: ${(imageBytes.length / 1024 / 1024).toStringAsFixed(2)} MB');
-    
+
     // If image is already smaller than preferred size, return as is
     if (imageBytes.length < preferredSizeBytes) {
       WasteAppLogger.info('Image is smaller than preferred size, no compression needed.');
@@ -315,17 +312,18 @@ Output:
           WasteAppLogger.severe('Failed to decode image for compression.');
           return compressedBytes; // Return original if decoding fails
         }
-        
+
         compressedBytes = Uint8List.fromList(img.encodeJpg(image, quality: quality));
-        WasteAppLogger.info('Compressed image to ${(compressedBytes.length / 1024 / 1024).toStringAsFixed(2)} MB with quality $quality');
-        
+        WasteAppLogger.info(
+            'Compressed image to ${(compressedBytes.length / 1024 / 1024).toStringAsFixed(2)} MB with quality $quality');
+
         quality -= 5;
       } catch (e, s) {
         WasteAppLogger.severe('Error during image compression', e, s);
         break; // Exit loop on error
       }
     }
-    
+
     // Final check against OpenAI's hard limit
     if (compressedBytes.length > maxSizeBytes) {
       WasteAppLogger.warning('Image size after compression still exceeds 20MB limit. Further reduction needed.');
@@ -360,10 +358,12 @@ Output:
     );
 
     final List<int> compressedBytes = img.encodeJpg(image, quality: 80); // Maintain good quality
-    WasteAppLogger.info('Compressed image size for Gemini: ${(compressedBytes.length / 1024 / 1024).toStringAsFixed(2)} MB');
+    WasteAppLogger.info(
+        'Compressed image size for Gemini: ${(compressedBytes.length / 1024 / 1024).toStringAsFixed(2)} MB');
 
     if (compressedBytes.length > maxSizeBytes) {
-      throw Exception('Image still too large after Gemini compression (${(compressedBytes.length / 1024 / 1024).toStringAsFixed(2)} MB). Max allowed is ${maxSizeBytes / 1024 / 1024} MB.');
+      throw Exception(
+          'Image still too large after Gemini compression (${(compressedBytes.length / 1024 / 1024).toStringAsFixed(2)} MB). Max allowed is ${maxSizeBytes / 1024 / 1024} MB.');
     }
 
     return Uint8List.fromList(compressedBytes);
@@ -400,7 +400,7 @@ Output:
     try {
       final permanentPath = await _imageService.saveFilePermanently(imageFile);
       permanentFile = File(permanentPath);
-      
+
       // Generate and save thumbnail
       final imageBytes = await permanentFile.readAsBytes();
       thumbnailPath = await _imageService.saveThumbnail(imageBytes);
@@ -414,17 +414,17 @@ Output:
       String? contentHash;
       if (cachingEnabled) {
         final imageBytes = permanentFile.readAsBytesSync();
-        
+
         // Generate both hashes efficiently in isolate to prevent UI lag
         final hashes = await ImageUtils.generateDualHashes(imageBytes);
         imageHash = hashes['perceptualHash'];
         contentHash = hashes['contentHash'];
-        
+
         if (imageHash == null || contentHash == null) {
           WasteAppLogger.severe('Failed to generate image hashes', null, null, {'hashes': hashes});
           throw Exception('Failed to generate required image hashes');
         }
-        
+
         WasteAppLogger.info('Generated perceptual hash: $imageHash');
         WasteAppLogger.info('Generated content hash: $contentHash');
 
@@ -433,11 +433,13 @@ Output:
           contentHash: contentHash,
         );
         if (cachedResult != null) {
-          WasteAppLogger.cacheEvent('cache_operation', 'classification', context: {'service': 'ai', 'file': 'ai_service'});
+          WasteAppLogger.cacheEvent('cache_operation', 'classification',
+              context: {'service': 'ai', 'file': 'ai_service'});
           return cachedResult.classification.copyWith(id: currentClassificationId);
         }
 
-        WasteAppLogger.cacheEvent('cache_operation', 'classification', context: {'service': 'ai', 'file': 'ai_service'});
+        WasteAppLogger.cacheEvent('cache_operation', 'classification',
+            context: {'service': 'ai', 'file': 'ai_service'});
       }
 
       // Try OpenAI first with compression
@@ -506,7 +508,8 @@ Output:
   /// It generates a perceptual hash, checks the cache, and then
   /// calls the appropriate AI model (OpenAI or Gemini) for analysis.
   Future<WasteClassification> analyzeWebImage(
-    Uint8List imageBytes, String imageName, {
+    Uint8List imageBytes,
+    String imageName, {
     int retryCount = 0,
     int maxRetries = 3,
     String? region,
@@ -531,8 +534,7 @@ Output:
       // Ensure WasteClassification.fallback sets clarificationNeeded = true and handles an optional reason.
       // If WasteClassification.fallback doesn't support a 'reason' parameter, it might need adjustment,
       // or this call simplified. For now, assuming it can take it or ignore it.
-      final savedImagePath = await _imageService
-          .saveImagePermanently(imageBytes, fileName: imageName);
+      final savedImagePath = await _imageService.saveImagePermanently(imageBytes, fileName: imageName);
       return WasteClassification.fallback(
         savedImagePath,
         id: currentClassificationId,
@@ -557,12 +559,12 @@ Output:
         final hashes = await ImageUtils.generateDualHashes(imageBytes);
         imageHash = hashes['perceptualHash'];
         contentHash = hashes['contentHash'];
-        
+
         if (imageHash == null || contentHash == null) {
           WasteAppLogger.severe('Failed to generate web image hashes', null, null, {'hashes': hashes});
           throw Exception('Failed to generate required image hashes for web image');
         }
-        
+
         WasteAppLogger.info('Generated perceptual hash for web image: $imageHash');
         WasteAppLogger.info('Generated content hash for web image: $contentHash');
 
@@ -571,11 +573,13 @@ Output:
           contentHash: contentHash,
         );
         if (cachedResult != null) {
-          WasteAppLogger.cacheEvent('cache_operation', 'classification', context: {'service': 'ai', 'file': 'ai_service'});
+          WasteAppLogger.cacheEvent('cache_operation', 'classification',
+              context: {'service': 'ai', 'file': 'ai_service'});
           return cachedResult.classification.copyWith(id: currentClassificationId);
         }
 
-        WasteAppLogger.cacheEvent('cache_operation', 'classification', context: {'service': 'ai', 'file': 'ai_service'});
+        WasteAppLogger.cacheEvent('cache_operation', 'classification',
+            context: {'service': 'ai', 'file': 'ai_service'});
       }
 
       // Try OpenAI first with compression
@@ -673,8 +677,7 @@ Output:
     String? instructionsLang,
     String? classificationId,
   }) async {
-    final savedPath = await _imageService
-        .saveImagePermanently(imageBytes, fileName: imageName);
+    final savedPath = await _imageService.saveImagePermanently(imageBytes, fileName: imageName);
     return _analyzeImageSegmentsInternal(
       imageBytes,
       savedPath,
@@ -767,7 +770,7 @@ Output:
     final compressedBytes = await _compressImageForOpenAI(imageBytes);
     final base64Image = _bytesToBase64(compressedBytes);
     final mimeType = _detectImageMimeType(compressedBytes);
-    
+
     WasteAppLogger.info('Sending image to OpenAI for analysis.');
     WasteAppLogger.info('Image size: ${(compressedBytes.length / 1024).toStringAsFixed(2)} KB');
     WasteAppLogger.info('MIME type: $mimeType');
@@ -777,16 +780,14 @@ Output:
     final requestBody = <String, dynamic>{
       'model': ApiConfig.primaryModel,
       'messages': [
-        {
-          'role': 'system',
-          'content': _systemPrompt
-        },
+        {'role': 'system', 'content': _systemPrompt},
         {
           'role': 'user',
           'content': [
             {
               'type': 'text',
-              'text': '$_mainClassificationPrompt\n\nAdditional context:\n- Region: $region\n- Instructions language: $language\n- Image source: web upload'
+              'text':
+                  '$_mainClassificationPrompt\n\nAdditional context:\n- Region: $region\n- Instructions language: $language\n- Image source: web upload'
             },
             {
               'type': 'image_url',
@@ -830,24 +831,24 @@ Output:
         classificationId,
         thumbnailPath: thumbnailPath,
       );
-      
+
       // Cache the result if we have a valid hash
       if (cachingEnabled && imageHash != null) {
         await cacheService.cacheClassification(
-          imageHash, 
-          classification, 
+          imageHash,
+          classification,
           contentHash: contentHash,
           imageSize: imageBytes.length,
         );
       }
-      
+
       return classification;
     } else {
       // ENHANCED ERROR LOGGING
       WasteAppLogger.severe('OpenAI API request failed.');
       WasteAppLogger.severe('Status code: ${response.statusCode}');
       WasteAppLogger.severe('Response body: ${response.data}');
-      
+
       // Parse error details if available
       try {
         final errorData = response.data;
@@ -861,7 +862,7 @@ Output:
       } catch (e, s) {
         WasteAppLogger.severe('Failed to parse OpenAI error response.', e, s);
       }
-      
+
       // Handle specific error codes
       if (response.statusCode == 400) {
         throw Exception('OpenAI Bad Request - Check image format and prompt: ${response.data}');
@@ -901,22 +902,22 @@ Output:
 
     final firstSegment = segments.first;
     final bounds = firstSegment['bounds'] as Map<String, dynamic>;
-    
+
     // Convert percentage coordinates to pixel coordinates
     final imageWidth = originalImage.width;
     final imageHeight = originalImage.height;
-    
+
     final x = ((bounds['x'] as num).toDouble() * imageWidth / 100).round();
     final y = ((bounds['y'] as num).toDouble() * imageHeight / 100).round();
     final width = ((bounds['width'] as num).toDouble() * imageWidth / 100).round();
     final height = ((bounds['height'] as num).toDouble() * imageHeight / 100).round();
-    
+
     // Ensure coordinates are within image bounds
     final clampedX = x.clamp(0, imageWidth - 1);
     final clampedY = y.clamp(0, imageHeight - 1);
     final clampedWidth = width.clamp(1, imageWidth - clampedX);
     final clampedHeight = height.clamp(1, imageHeight - clampedY);
-    
+
     final croppedImage = img.copyCrop(
       originalImage,
       x: clampedX,
@@ -949,41 +950,36 @@ Output:
     String? thumbnailPath,
   }) async {
     WasteAppLogger.info('Falling back to Gemini for analysis.');
-    
+
     // Gemini can handle larger images, but still compress if extremely large
     var processedBytes = imageBytes;
     const geminiMaxSize = 50 * 1024 * 1024; // 50MB for Gemini (more generous)
-    
+
     if (imageBytes.length > geminiMaxSize) {
       WasteAppLogger.warning('Image exceeds Gemini max size, applying compression.');
       processedBytes = await _compressImageForGemini(imageBytes);
     }
-    
+
     final base64Image = _bytesToBase64(processedBytes);
     final mimeType = _detectImageMimeType(processedBytes);
-    
+
     WasteAppLogger.info('Sending image to Gemini. Size: ${(processedBytes.length / 1024).toStringAsFixed(2)} KB');
-    
+
     final requestBody = <String, dynamic>{
       'contents': [
         {
           'parts': [
             {
-              'text': '$_systemPrompt\n\n$_mainClassificationPrompt\n\nAdditional context:\n- Region: $region\n- Instructions language: $language\n- Image source: Gemini analysis (OpenAI fallback)'
+              'text':
+                  '$_systemPrompt\n\n$_mainClassificationPrompt\n\nAdditional context:\n- Region: $region\n- Instructions language: $language\n- Image source: Gemini analysis (OpenAI fallback)'
             },
             {
-              'inline_data': {
-                'mime_type': mimeType,
-                'data': base64Image
-              }
+              'inline_data': {'mime_type': mimeType, 'data': base64Image}
             }
           ]
         }
       ],
-      'generationConfig': {
-        'temperature': 0.1,
-        'maxOutputTokens': 1500
-      }
+      'generationConfig': {'temperature': 0.1, 'maxOutputTokens': 1500}
     };
 
     late final Response response;
@@ -1007,27 +1003,24 @@ Output:
     if (response.statusCode == 200) {
       WasteAppLogger.info('Received successful response from Gemini.');
       final Map<String, dynamic> responseData = response.data;
-      
+
       // Extract content from Gemini response format
-      if (responseData['candidates'] != null && 
+      if (responseData['candidates'] != null &&
           responseData['candidates'].isNotEmpty &&
           responseData['candidates'][0]['content'] != null &&
           responseData['candidates'][0]['content']['parts'] != null &&
           responseData['candidates'][0]['content']['parts'].isNotEmpty) {
-        
         final String content = responseData['candidates'][0]['content']['parts'][0]['text'];
-        
+
         // Convert Gemini response to OpenAI format for processing
         final openAiFormat = <String, dynamic>{
           'choices': [
             {
-              'message': {
-                'content': content
-              }
+              'message': {'content': content}
             }
           ]
         };
-        
+
         final classification = _processAiResponseData(
           openAiFormat,
           imageName,
@@ -1037,17 +1030,17 @@ Output:
           classificationId,
           thumbnailPath: thumbnailPath,
         );
-        
+
         // Cache the result if we have a valid hash
         if (cachingEnabled && imageHash != null) {
           await cacheService.cacheClassification(
-            imageHash, 
-            classification, 
+            imageHash,
+            classification,
             contentHash: contentHash,
             imageSize: imageBytes.length,
           );
         }
-        
+
         return classification;
       } else {
         throw Exception('Invalid Gemini response format');
@@ -1074,8 +1067,8 @@ Output:
     WasteAppLogger.info('Operation completed', null, null, {'service': 'ai', 'file': 'ai_service'});
 
     // Determine which model to use for re-analysis
-    final modelToUse = model ?? 
-        (originalClassification.source == 'ai_analysis_gemini' 
+    final modelToUse = model ??
+        (originalClassification.source == 'ai_analysis_gemini'
             ? ApiConfig.tertiaryModel // Use Gemini for re-analysis if it was the original source
             : ApiConfig.primaryModel); // Default to OpenAI
 
@@ -1104,35 +1097,32 @@ Output:
       if (imageBytes == null) {
         WasteAppLogger.info('Operation completed', null, null, {'service': 'ai', 'file': 'ai_service'});
       }
-      
+
       final base64Image = imageBytes != null ? _bytesToBase64(imageBytes) : '';
       final mimeType = imageBytes != null ? _detectImageMimeType(imageBytes) : '';
 
       final requestBody = <String, dynamic>{
-          'model': modelToUse,
-          'messages': [
-            {
-              'role': 'system',
-              'content': _systemPrompt
-            },
-            {
-              'role': 'user',
-              'content': [
-                {
-                  'type': 'text',
+        'model': modelToUse,
+        'messages': [
+          {'role': 'system', 'content': _systemPrompt},
+          {
+            'role': 'user',
+            'content': [
+              {
+                'type': 'text',
                 'text': _getCorrectionPrompt(originalClassification.toJson(), userCorrection, userReason)
-                },
+              },
               if (imageBytes != null)
                 {
                   'type': 'image_url',
                   'image_url': {'url': 'data:$mimeType;base64,$base64Image'}
                 }
-              ]
-            }
-          ],
-          'max_tokens': 1500,
-          'temperature': 0.1
-        };
+            ]
+          }
+        ],
+        'max_tokens': 1500,
+        'temperature': 0.1
+      };
 
       late final Response response;
       try {
@@ -1159,14 +1149,14 @@ Output:
       if (response.statusCode == 200) {
         final Map<String, dynamic> responseData = response.data;
         final correctedClassification = _processAiResponseData(
-          responseData, 
+          responseData,
           originalClassification.imageUrl ?? 'correction_update',
           originalClassification.region,
           originalClassification.instructionsLang,
           reanalysisModelsTried,
           originalClassification.id,
         );
-        
+
         // Preserve some original metadata
         return correctedClassification.copyWith(
           imageUrl: originalClassification.imageUrl,
@@ -1209,13 +1199,13 @@ Output:
         final choice = responseData['choices'][0];
         if (choice['message'] != null && choice['message']['content'] != null) {
           final String content = choice['message']['content'];
-          
+
           final jsonString = cleanJsonString(content);
 
           Map<String, dynamic> jsonContent;
           try {
             jsonContent = jsonDecode(jsonString);
-            
+
             return _createClassificationFromJsonContent(
               jsonContent,
               imagePath,
@@ -1279,10 +1269,10 @@ Output:
     // Strip C/C++ style comments that can cause JSON parsing to fail
     // Remove single-line comments (// comment)
     jsonString = jsonString.replaceAll(RegExp(r'//.*'), '');
-    
+
     // Remove multi-line comments (/* comment */)
     jsonString = jsonString.replaceAll(RegExp(r'/\*[\s\S]*?\*/'), '');
-    
+
     return jsonString.trim();
   }
 
@@ -1318,7 +1308,8 @@ Output:
       );
     } else if (jsonDisposalInstructions is List) {
       // If it's a list, treat the first element as primary method and others as steps
-      final primaryMethod = jsonDisposalInstructions.isNotEmpty ? jsonDisposalInstructions[0].toString() : 'Review required';
+      final primaryMethod =
+          jsonDisposalInstructions.isNotEmpty ? jsonDisposalInstructions[0].toString() : 'Review required';
       final steps = jsonDisposalInstructions.map((e) => e.toString()).toList();
       return DisposalInstructions(
         primaryMethod: primaryMethod,
@@ -1375,26 +1366,29 @@ Output:
 
       // 🔧 ENHANCED ITEM NAME PARSING: Handle null itemName from AI
       var itemName = _safeStringParse(jsonContent['itemName']) ?? '';
-      
+
       if (itemName.isEmpty || itemName == 'null') {
         // Try to extract item name from explanation or subcategory
         final explanation = _safeStringParse(jsonContent['explanation']) ?? '';
         final subcategory = _safeStringParse(jsonContent['subcategory']) ?? '';
         final category = _safeStringParse(jsonContent['category']) ?? '';
-        
+
         WasteAppLogger.info('Operation completed', null, null, {'service': 'ai', 'file': 'ai_service'});
         WasteAppLogger.info('Operation completed', null, null, {'service': 'ai', 'file': 'ai_service'});
         WasteAppLogger.info('Operation completed', null, null, {'service': 'ai', 'file': 'ai_service'});
         WasteAppLogger.info('Operation completed', null, null, {'service': 'ai', 'file': 'ai_service'});
-        
+
         // Try to extract from explanation first
         if (explanation.isNotEmpty) {
           // Look for patterns like "The image shows [item]" or "This is [item]"
           final patterns = [
-            RegExp(r'(?:shows?|depicts?|contains?|is)\s+(?:an?|the)?\s*([^.]+?)(?:\s+(?:which|that|in|on)|\.|$)', caseSensitive: false),
-            RegExp(r'(?:This|It)\s+(?:appears to be|looks like|is)\s+(?:an?|the)?\s*([^.]+?)(?:\s+(?:which|that|in|on)|\.|$)', caseSensitive: false),
+            RegExp(r'(?:shows?|depicts?|contains?|is)\s+(?:an?|the)?\s*([^.]+?)(?:\s+(?:which|that|in|on)|\.|$)',
+                caseSensitive: false),
+            RegExp(
+                r'(?:This|It)\s+(?:appears to be|looks like|is)\s+(?:an?|the)?\s*([^.]+?)(?:\s+(?:which|that|in|on)|\.|$)',
+                caseSensitive: false),
           ];
-          
+
           for (final pattern in patterns) {
             final match = pattern.firstMatch(explanation);
             if (match != null && match.group(1) != null) {
@@ -1407,19 +1401,19 @@ Output:
             }
           }
         }
-        
+
         // Fallback to subcategory if still empty
         if (itemName.isEmpty && subcategory.isNotEmpty) {
           itemName = subcategory;
           WasteAppLogger.info('Operation completed', null, null, {'service': 'ai', 'file': 'ai_service'});
         }
-        
+
         // Final fallback to category
         if (itemName.isEmpty && category.isNotEmpty) {
           itemName = category;
           WasteAppLogger.info('Operation completed', null, null, {'service': 'ai', 'file': 'ai_service'});
         }
-        
+
         // Last resort fallback
         if (itemName.isEmpty) {
           itemName = 'Unidentified Item';
@@ -1435,8 +1429,10 @@ Output:
       } else if (imagePath.contains('\\images\\')) {
         final index = imagePath.indexOf('\\images\\');
         imageRelativePath = imagePath.substring(index + 1).replaceAll('\\', '/');
-      } else if (imagePath.contains('.jpg') || imagePath.contains('.png') || 
-                 imagePath.contains('.jpeg') || imagePath.contains('.webp')) {
+      } else if (imagePath.contains('.jpg') ||
+          imagePath.contains('.png') ||
+          imagePath.contains('.jpeg') ||
+          imagePath.contains('.webp')) {
         final fileName = imagePath.split('/').last.split('\\').last;
         imageRelativePath = 'images/$fileName';
       }
@@ -1450,8 +1446,10 @@ Output:
         } else if (thumbnailPath.contains('\\thumbnails\\')) {
           final index = thumbnailPath.indexOf('\\thumbnails\\');
           thumbnailRelativePath = thumbnailPath.substring(index + 1).replaceAll('\\', '/');
-        } else if (thumbnailPath.contains('.jpg') || thumbnailPath.contains('.png') || 
-                   thumbnailPath.contains('.jpeg') || thumbnailPath.contains('.webp')) {
+        } else if (thumbnailPath.contains('.jpg') ||
+            thumbnailPath.contains('.png') ||
+            thumbnailPath.contains('.jpeg') ||
+            thumbnailPath.contains('.webp')) {
           final fileName = thumbnailPath.split('/').last.split('\\').last;
           thumbnailRelativePath = 'thumbnails/$fileName';
         }
@@ -1501,10 +1499,10 @@ Output:
         source: 'ai_analysis',
         reanalysisModelsTried: reanalysisModelsTried,
       );
-      
     } catch (e) {
       WasteAppLogger.severe('Error occurred');
-      return _createFallbackClassification(jsonContent.toString(), imagePath, region, classificationId: classificationId);
+      return _createFallbackClassification(jsonContent.toString(), imagePath, region,
+          classificationId: classificationId);
     }
   }
 
@@ -1600,8 +1598,7 @@ Output:
     if (value == null) return null;
     if (value is Map) {
       return Map<String, double>.fromEntries(
-        value.entries.map((e) => MapEntry(e.key.toString(), _parseDouble(e.value) ?? 0.0))
-      );
+          value.entries.map((e) => MapEntry(e.key.toString(), _parseDouble(e.value) ?? 0.0)));
     }
     return null;
   }
@@ -1611,46 +1608,30 @@ Output:
     if (stepsString.trim().isEmpty) {
       return ['Please review manually'];
     }
-    
+
     var steps = <String>[];
-    
+
     // Try newline separation first
     if (stepsString.contains('\n')) {
-      steps = stepsString
-          .split('\n')
-          .map((step) => step.trim())
-          .where((step) => step.isNotEmpty)
-          .toList();
+      steps = stepsString.split('\n').map((step) => step.trim()).where((step) => step.isNotEmpty).toList();
     }
     // Try comma separation
     else if (stepsString.contains(',')) {
-      steps = stepsString
-          .split(',')
-          .map((step) => step.trim())
-          .where((step) => step.isNotEmpty)
-          .toList();
+      steps = stepsString.split(',').map((step) => step.trim()).where((step) => step.isNotEmpty).toList();
     }
     // Try semicolon separation
     else if (stepsString.contains(';')) {
-      steps = stepsString
-          .split(';')
-          .map((step) => step.trim())
-          .where((step) => step.isNotEmpty)
-          .toList();
+      steps = stepsString.split(';').map((step) => step.trim()).where((step) => step.isNotEmpty).toList();
     }
     // Try numbered list pattern (1. 2. 3.)
     else if (RegExp(r'\d+\.').hasMatch(stepsString)) {
-      steps = stepsString
-          .split(RegExp(r'\d+\.'))
-          .map((step) => step.trim())
-          .where((step) => step.isNotEmpty)
-          .toList();
+      steps = stepsString.split(RegExp(r'\d+\.')).map((step) => step.trim()).where((step) => step.isNotEmpty).toList();
     }
     // Single step
     else {
       steps = [stepsString.trim()];
     }
-    
+
     return steps.isNotEmpty ? steps : ['Please review manually'];
   }
 
@@ -1659,14 +1640,15 @@ Output:
   /// Attempts to extract basic information (itemName, category, explanation)
   /// from the raw content string using simple keyword matching and regex.
   /// Assigns moderate confidence and marks clarification as needed.
-  WasteClassification _createFallbackClassification(String content, String imagePath, String region, {String? classificationId}) {
+  WasteClassification _createFallbackClassification(String content, String imagePath, String region,
+      {String? classificationId}) {
     WasteAppLogger.info('Operation completed', null, null, {'service': 'ai', 'file': 'ai_service'});
-    
+
     // Try to extract basic information from the text
     var itemName = 'Unknown Item';
     var category = 'Dry Waste';
     var explanation = 'Classification extracted from partial AI response.';
-    
+
     // Basic text extraction
     final lines = content.split('\n');
     for (final line in lines) {
@@ -1695,7 +1677,7 @@ Output:
         }
       }
     }
-    
+
     return WasteClassification.fallback(
       imagePath,
       id: classificationId,
@@ -1714,7 +1696,7 @@ Output:
   Future<List<Map<String, dynamic>>> segmentImage(dynamic imageSource) async {
     try {
       Uint8List imageBytes;
-      
+
       // Handle different input types
       if (imageSource is File) {
         imageBytes = await imageSource.readAsBytes();
@@ -1741,7 +1723,7 @@ Output:
         for (var col = 0; col < segmentGridSize; col++) {
           final x = col * segmentWidth;
           final y = row * segmentHeight;
-          
+
           // Create segment data as Map<String, dynamic>
           final segment = <String, dynamic>{
             'id': row * segmentGridSize + col,
@@ -1751,10 +1733,11 @@ Output:
               'width': segmentWidth,
               'height': segmentHeight,
             },
-            'confidence': 0.8 + (0.2 * (row * segmentGridSize + col) / (segmentGridSize * segmentGridSize)), // Simulated confidence
+            'confidence': 0.8 +
+                (0.2 * (row * segmentGridSize + col) / (segmentGridSize * segmentGridSize)), // Simulated confidence
             'label': 'Object ${row * segmentGridSize + col + 1}',
           };
-          
+
           segments.add(segment);
         }
       }

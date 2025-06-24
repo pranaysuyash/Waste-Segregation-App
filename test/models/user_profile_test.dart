@@ -406,7 +406,7 @@ void main() {
     test('should validate required fields', () {
       // ID is required
       expect(() => UserProfile(id: ''), returnsNormally);
-      
+
       // Empty ID should still work
       final profile = UserProfile(id: '');
       expect(profile.id, '');

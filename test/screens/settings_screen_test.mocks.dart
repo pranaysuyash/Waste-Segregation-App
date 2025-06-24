@@ -9,15 +9,13 @@ import 'dart:ui' as _i5;
 import 'package:flutter/material.dart' as _i3;
 import 'package:mockito/mockito.dart' as _i1;
 import 'package:mockito/src/dummies.dart' as _i11;
-import 'package:waste_segregation_app/models/classification_feedback.dart'
-    as _i12;
+import 'package:waste_segregation_app/models/classification_feedback.dart' as _i12;
 import 'package:waste_segregation_app/models/filter_options.dart' as _i10;
 import 'package:waste_segregation_app/models/user_profile.dart' as _i8;
 import 'package:waste_segregation_app/models/waste_classification.dart' as _i9;
 import 'package:waste_segregation_app/providers/theme_provider.dart' as _i2;
 import 'package:waste_segregation_app/services/storage_service.dart' as _i7;
-import 'package:waste_segregation_app/services/user_consent_service.dart'
-    as _i6;
+import 'package:waste_segregation_app/services/user_consent_service.dart' as _i6;
 
 // ignore_for_file: type=lint
 // ignore_for_file: avoid_redundant_argument_values
@@ -102,8 +100,7 @@ class MockThemeProvider extends _i1.Mock implements _i2.ThemeProvider {
 /// A class which mocks [UserConsentService].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockUserConsentService extends _i1.Mock
-    implements _i6.UserConsentService {
+class MockUserConsentService extends _i1.Mock implements _i6.UserConsentService {
   MockUserConsentService() {
     _i1.throwOnMissingStub(this);
   }
@@ -184,8 +181,7 @@ class MockStorageService extends _i1.Mock implements _i7.StorageService {
   }
 
   @override
-  _i4.Future<void> saveUserProfile(_i8.UserProfile? userProfile) =>
-      (super.noSuchMethod(
+  _i4.Future<void> saveUserProfile(_i8.UserProfile? userProfile) => (super.noSuchMethod(
         Invocation.method(
           #saveUserProfile,
           [userProfile],
@@ -238,16 +234,14 @@ class MockStorageService extends _i1.Mock implements _i7.StorageService {
       ) as _i4.Future<void>);
 
   @override
-  _i4.Future<List<_i9.WasteClassification>> getAllClassifications(
-          {_i10.FilterOptions? filterOptions}) =>
+  _i4.Future<List<_i9.WasteClassification>> getAllClassifications({_i10.FilterOptions? filterOptions}) =>
       (super.noSuchMethod(
         Invocation.method(
           #getAllClassifications,
           [],
           {#filterOptions: filterOptions},
         ),
-        returnValue: _i4.Future<List<_i9.WasteClassification>>.value(
-            <_i9.WasteClassification>[]),
+        returnValue: _i4.Future<List<_i9.WasteClassification>>.value(<_i9.WasteClassification>[]),
       ) as _i4.Future<List<_i9.WasteClassification>>);
 
   @override
@@ -266,14 +260,11 @@ class MockStorageService extends _i1.Mock implements _i7.StorageService {
             #page: page,
           },
         ),
-        returnValue: _i4.Future<List<_i9.WasteClassification>>.value(
-            <_i9.WasteClassification>[]),
+        returnValue: _i4.Future<List<_i9.WasteClassification>>.value(<_i9.WasteClassification>[]),
       ) as _i4.Future<List<_i9.WasteClassification>>);
 
   @override
-  _i4.Future<int> getClassificationsCount(
-          {_i10.FilterOptions? filterOptions}) =>
-      (super.noSuchMethod(
+  _i4.Future<int> getClassificationsCount({_i10.FilterOptions? filterOptions}) => (super.noSuchMethod(
         Invocation.method(
           #getClassificationsCount,
           [],
@@ -283,9 +274,7 @@ class MockStorageService extends _i1.Mock implements _i7.StorageService {
       ) as _i4.Future<int>);
 
   @override
-  _i4.Future<String> exportClassificationsToCSV(
-          {_i10.FilterOptions? filterOptions}) =>
-      (super.noSuchMethod(
+  _i4.Future<String> exportClassificationsToCSV({_i10.FilterOptions? filterOptions}) => (super.noSuchMethod(
         Invocation.method(
           #exportClassificationsToCSV,
           [],
@@ -354,8 +343,7 @@ class MockStorageService extends _i1.Mock implements _i7.StorageService {
       ) as _i4.Future<void>);
 
   @override
-  _i4.Future<void> updateLastCloudSync(DateTime? timestamp) =>
-      (super.noSuchMethod(
+  _i4.Future<void> updateLastCloudSync(DateTime? timestamp) => (super.noSuchMethod(
         Invocation.method(
           #updateLastCloudSync,
           [timestamp],
@@ -379,13 +367,11 @@ class MockStorageService extends _i1.Mock implements _i7.StorageService {
           #getSettings,
           [],
         ),
-        returnValue:
-            _i4.Future<Map<String, dynamic>>.value(<String, dynamic>{}),
+        returnValue: _i4.Future<Map<String, dynamic>>.value(<String, dynamic>{}),
       ) as _i4.Future<Map<String, dynamic>>);
 
   @override
-  _i4.Future<_i9.WasteClassification?> getCachedClassification(String? hash) =>
-      (super.noSuchMethod(
+  _i4.Future<_i9.WasteClassification?> getCachedClassification(String? hash) => (super.noSuchMethod(
         Invocation.method(
           #getCachedClassification,
           [hash],
@@ -456,8 +442,7 @@ class MockStorageService extends _i1.Mock implements _i7.StorageService {
       ) as _i4.Future<void>);
 
   @override
-  _i4.Future<void> saveAnalyticsEvents(List<dynamic>? events) =>
-      (super.noSuchMethod(
+  _i4.Future<void> saveAnalyticsEvents(List<dynamic>? events) => (super.noSuchMethod(
         Invocation.method(
           #saveAnalyticsEvents,
           [events],
@@ -467,14 +452,12 @@ class MockStorageService extends _i1.Mock implements _i7.StorageService {
       ) as _i4.Future<void>);
 
   @override
-  _i4.Future<List<Map<String, dynamic>>> loadAnalyticsEvents() =>
-      (super.noSuchMethod(
+  _i4.Future<List<Map<String, dynamic>>> loadAnalyticsEvents() => (super.noSuchMethod(
         Invocation.method(
           #loadAnalyticsEvents,
           [],
         ),
-        returnValue: _i4.Future<List<Map<String, dynamic>>>.value(
-            <Map<String, dynamic>>[]),
+        returnValue: _i4.Future<List<Map<String, dynamic>>>.value(<Map<String, dynamic>>[]),
       ) as _i4.Future<List<Map<String, dynamic>>>);
 
   @override
@@ -521,9 +504,7 @@ class MockStorageService extends _i1.Mock implements _i7.StorageService {
       ) as _i4.Future<int>);
 
   @override
-  _i4.Future<void> saveClassificationFeedback(
-          _i12.ClassificationFeedback? feedback) =>
-      (super.noSuchMethod(
+  _i4.Future<void> saveClassificationFeedback(_i12.ClassificationFeedback? feedback) => (super.noSuchMethod(
         Invocation.method(
           #saveClassificationFeedback,
           [feedback],
@@ -533,15 +514,13 @@ class MockStorageService extends _i1.Mock implements _i7.StorageService {
       ) as _i4.Future<void>);
 
   @override
-  _i4.Future<List<_i12.ClassificationFeedback>>
-      getAllClassificationFeedback() => (super.noSuchMethod(
-            Invocation.method(
-              #getAllClassificationFeedback,
-              [],
-            ),
-            returnValue: _i4.Future<List<_i12.ClassificationFeedback>>.value(
-                <_i12.ClassificationFeedback>[]),
-          ) as _i4.Future<List<_i12.ClassificationFeedback>>);
+  _i4.Future<List<_i12.ClassificationFeedback>> getAllClassificationFeedback() => (super.noSuchMethod(
+        Invocation.method(
+          #getAllClassificationFeedback,
+          [],
+        ),
+        returnValue: _i4.Future<List<_i12.ClassificationFeedback>>.value(<_i12.ClassificationFeedback>[]),
+      ) as _i4.Future<List<_i12.ClassificationFeedback>>);
 
   @override
   _i4.Future<void> migrateOldClassifications() => (super.noSuchMethod(

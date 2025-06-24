@@ -66,7 +66,7 @@ class WebFallbackScreen extends StatelessWidget {
       ),
     );
   }
-  
+
   // Simple clipboard share method
   void _copyToClipboard(String text, BuildContext context) {
     // Simplified version that works on all platforms
@@ -77,7 +77,7 @@ class WebFallbackScreen extends StatelessWidget {
       _showSnackBar(context, 'Failed to copy: $e');
     }
   }
-  
+
   void _showSnackBar(BuildContext context, String message) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(

@@ -54,9 +54,7 @@ class _RefactoredSettingsScreenState extends State<RefactoredSettingsScreen> {
         if (DeveloperConfig.canShowDeveloperOptions)
           IconButton(
             icon: Icon(
-              _showDeveloperOptions 
-                  ? Icons.developer_mode 
-                  : Icons.developer_mode_outlined,
+              _showDeveloperOptions ? Icons.developer_mode : Icons.developer_mode_outlined,
               color: _showDeveloperOptions ? Colors.yellow : Colors.white,
             ),
             onPressed: _toggleDeveloperMode,
@@ -70,7 +68,7 @@ class _RefactoredSettingsScreenState extends State<RefactoredSettingsScreen> {
   Widget _buildBody() {
     // Use ListView.separated for clean section separation
     final sections = _buildSections();
-    
+
     return ListView.separated(
       padding: const EdgeInsets.only(bottom: 16),
       itemCount: sections.length,
@@ -96,4 +94,4 @@ class _RefactoredSettingsScreenState extends State<RefactoredSettingsScreen> {
       _showDeveloperOptions = !_showDeveloperOptions;
     });
   }
-} 
+}

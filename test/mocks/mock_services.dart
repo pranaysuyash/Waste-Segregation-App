@@ -48,7 +48,7 @@ class MockAiService extends Mock implements AiService {
 
   @override
   Future<WasteClassification> analyzeWebImage(
-    Uint8List imageBytes, 
+    Uint8List imageBytes,
     String imageName, {
     int retryCount = 0,
     int maxRetries = 3,
@@ -194,4 +194,4 @@ class MockCommunityService extends Mock implements CommunityService {
   Future<void> commentOnPost(String postId, String comment) async {
     // Mock implementation
   }
-} 
+}

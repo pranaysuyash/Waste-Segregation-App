@@ -7,9 +7,9 @@ import 'package:waste_segregation_app/utils/waste_app_logger.dart';
 
 class AdService extends ChangeNotifier {
   // static const String _removeAdsFeatureId = 'remove_ads'; // Unused field removed
-  
+
   bool _hasPremium = false;
-  
+
   // TODO: ADMOB CONFIGURATION REQUIRED
   // ================================
   // 1. Create AdMob account at https://admob.google.com
@@ -18,59 +18,56 @@ class AdService extends ChangeNotifier {
   // 4. Update android/app/src/main/AndroidManifest.xml with AdMob App ID
   // 5. Update ios/Runner/Info.plist with AdMob App ID
   // 6. Replace test IDs below with production IDs before release
-  
+
   // Ad unit IDs - CURRENTLY USING TEST IDs
   static const Map<String, String> _bannerAdUnitIds = {
     // TODO: Replace with your actual banner ad unit IDs from AdMob console
     'android': 'ca-app-pub-3940256099942544/6300978111', // TEST ID - REPLACE
-    'ios': 'ca-app-pub-3940256099942544/2934735716',     // TEST ID - REPLACE
+    'ios': 'ca-app-pub-3940256099942544/2934735716', // TEST ID - REPLACE
   };
-  
+
   static const Map<String, String> _interstitialAdUnitIds = {
     // TODO: Replace with your actual interstitial ad unit IDs from AdMob console
     'android': 'ca-app-pub-3940256099942544/1033173712', // TEST ID - REPLACE
-    'ios': 'ca-app-pub-3940256099942544/4411468910',     // TEST ID - REPLACE
+    'ios': 'ca-app-pub-3940256099942544/4411468910', // TEST ID - REPLACE
   };
-  
+
   // TODO: Add reward ad unit IDs when implementing reward ads
   // static const Map<String, String> _rewardAdUnitIds = {
   //   'android': 'ca-app-pub-3940256099942544/5224354917', // TEST ID
   //   'ios': 'ca-app-pub-3940256099942544/1712485313',     // TEST ID
   // };
-  
+
   // Ad state tracking
   InterstitialAd? _interstitialAd;
   bool _isInterstitialAdLoading = false;
   DateTime? _lastInterstitialAdTime;
   int _classificationsSinceLastAd = 0;
-  
+
   // Ad context management - FIXED: Prevent notifyListeners during build
   bool _isInClassificationFlow = false;
   bool _isInEducationalContent = false;
   bool _isInSettings = false;
-  
+
   bool _isInitialized = false;
   bool _isInitializing = false;
   int _classificationCount = 0;
-  
+
   BannerAd? _bannerAd;
   Widget? _cachedBannerWidget;
   String? _currentBannerAdKey;
-  
+
   // Getters
   bool get isInitialized => _isInitialized;
-  
-  bool get shouldShowAds => !kIsWeb && 
-         !_hasPremium &&
-         !_isInClassificationFlow && 
-         !_isInEducationalContent && 
-         !_isInSettings;
-  
+
+  bool get shouldShowAds =>
+      !kIsWeb && !_hasPremium && !_isInClassificationFlow && !_isInEducationalContent && !_isInSettings;
+
   bool get canShowInterstitialAd {
     if (_lastInterstitialAdTime == null) return true;
     return DateTime.now().difference(_lastInterstitialAdTime!).inMinutes >= 5;
   }
-  
+
   // Set premium status
   void setPremiumStatus(bool hasPremium) {
     if (_hasPremium != hasPremium) {
@@ -83,40 +80,40 @@ class AdService extends ChangeNotifier {
       });
     }
   }
-  
+
   // Check if the service is still mounted (not disposed)
   bool get mounted => !_disposed;
   bool _disposed = false;
-  
+
   // Initialize the ad service
   Future<void> initialize() async {
     if (kIsWeb) {
       _isInitialized = true;
       return; // Skip ad initialization on web
     }
-    
+
     if (_isInitialized || _isInitializing || _disposed) return;
-    
+
     _isInitializing = true;
-    
+
     try {
       // TODO: Verify AdMob App ID is correctly configured in platform files
       // Android: android/app/src/main/AndroidManifest.xml
       // iOS: ios/Runner/Info.plist
-      
+
       // Initialize MobileAds
       await MobileAds.instance.initialize();
       _isInitialized = true;
-      
+
       // TODO: Add consent management for GDPR compliance
       // Consider implementing User Messaging Platform (UMP) SDK
-      
+
       // Preload interstitial ad
       _loadInterstitialAd();
-      
+
       // Preload banner ad
       _loadBannerAd();
-      
+
       // Use post-frame callback to avoid calling notifyListeners during build
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) {
@@ -130,18 +127,16 @@ class AdService extends ChangeNotifier {
       _isInitializing = false;
     }
   }
-  
+
   // Preload banner ad with performance optimization
   void _loadBannerAd() {
     if (kIsWeb || _bannerAd != null || _disposed) return;
-    
+
     // Use microtask to avoid blocking the main thread
     scheduleMicrotask(() async {
       try {
-        final adUnitId = Platform.isAndroid 
-            ? _bannerAdUnitIds['android']! 
-            : _bannerAdUnitIds['ios']!;
-        
+        final adUnitId = Platform.isAndroid ? _bannerAdUnitIds['android']! : _bannerAdUnitIds['ios']!;
+
         // Use adaptive banner for better performance and responsive design
         final newBannerAd = BannerAd(
           adUnitId: adUnitId,
@@ -161,7 +156,7 @@ class AdService extends ChangeNotifier {
                     // Clear cached widget to force recreation
                     _cachedBannerWidget = null;
                     _currentBannerAdKey = null;
-                    
+
                     if (mounted) {
                       notifyListeners();
                     }
@@ -172,14 +167,14 @@ class AdService extends ChangeNotifier {
             onAdFailedToLoad: (ad, error) {
               WasteAppLogger.severe('Banner ad failed to load: $error');
               ad.dispose();
-              
+
               // Schedule cleanup after current frame
               WidgetsBinding.instance.addPostFrameCallback((_) {
                 if (!_disposed) {
                   _bannerAd = null;
                   _cachedBannerWidget = null;
                   _currentBannerAdKey = null;
-                  
+
                   // Exponential backoff for retries
                   _retryBannerAdLoad();
                 }
@@ -195,7 +190,7 @@ class AdService extends ChangeNotifier {
             },
           ),
         );
-        
+
         // Load ad asynchronously to prevent main thread blocking
         await newBannerAd.load();
       } catch (e) {
@@ -207,39 +202,37 @@ class AdService extends ChangeNotifier {
       }
     });
   }
-  
+
   int _bannerRetryCount = 0;
   static const int _maxBannerRetries = 3;
-  
+
   void _retryBannerAdLoad() {
     if (_bannerRetryCount >= _maxBannerRetries || _disposed) {
       _bannerRetryCount = 0;
       return;
     }
-    
+
     _bannerRetryCount++;
     final delay = Duration(seconds: _bannerRetryCount * 30); // 30s, 60s, 90s
-    
+
     Future.delayed(delay, () {
       if (!_disposed) {
         _loadBannerAd();
       }
     });
   }
-  
+
   // Load interstitial ad with performance optimization
   void _loadInterstitialAd() {
     if (kIsWeb || _isInterstitialAdLoading || _interstitialAd != null || _disposed) return;
-    
+
     _isInterstitialAdLoading = true;
-    
+
     // Use microtask to avoid blocking the main thread
     scheduleMicrotask(() async {
       try {
-        final adUnitId = Platform.isAndroid 
-            ? _interstitialAdUnitIds['android']! 
-            : _interstitialAdUnitIds['ios']!;
-        
+        final adUnitId = Platform.isAndroid ? _interstitialAdUnitIds['android']! : _interstitialAdUnitIds['ios']!;
+
         await InterstitialAd.load(
           adUnitId: adUnitId,
           request: const AdRequest(
@@ -254,7 +247,7 @@ class AdService extends ChangeNotifier {
                   _interstitialAd = ad;
                   _isInterstitialAdLoading = false;
                   _interstitialRetryCount = 0; // Reset retry count on success
-                  
+
                   // Set callback for ad close
                   ad.fullScreenContentCallback = FullScreenContentCallback(
                     onAdDismissedFullScreenContent: (ad) {
@@ -282,7 +275,7 @@ class AdService extends ChangeNotifier {
                       // Track ad click analytics here
                     },
                   );
-                  
+
                   if (mounted) {
                     notifyListeners();
                   }
@@ -310,32 +303,32 @@ class AdService extends ChangeNotifier {
       }
     });
   }
-  
+
   int _interstitialRetryCount = 0;
   static const int _maxInterstitialRetries = 3;
-  
+
   void _retryInterstitialAdLoad() {
     if (_interstitialRetryCount >= _maxInterstitialRetries || _disposed) {
       _interstitialRetryCount = 0;
       return;
     }
-    
+
     _interstitialRetryCount++;
     final delay = Duration(minutes: _interstitialRetryCount); // 1min, 2min, 3min
-    
+
     Future.delayed(delay, () {
       if (!_disposed) {
         _loadInterstitialAd();
       }
     });
   }
-  
+
   // Get banner ad widget - Optimized for performance and lifecycle management
   Widget getBannerAd() {
     if (kIsWeb || !shouldShowAds || _disposed) {
       return const SizedBox.shrink();
     }
-    
+
     if (_bannerAd == null) {
       // If banner ad is not loaded yet, try to load it asynchronously
       if (!_isInitializing) {
@@ -348,10 +341,10 @@ class AdService extends ChangeNotifier {
       }
       return _buildPlaceholderAd();
     }
-    
+
     // Use a stable key based on ad instance to prevent unnecessary rebuilds
     final adKey = '${_bannerAd.hashCode}';
-    
+
     // Only create a new widget if we don't have a cached one or the ad changed
     if (_cachedBannerWidget == null || _currentBannerAdKey != adKey) {
       _cachedBannerWidget = RepaintBoundary(
@@ -371,17 +364,17 @@ class AdService extends ChangeNotifier {
       );
       _currentBannerAdKey = adKey;
     }
-    
+
     return _cachedBannerWidget!;
   }
-  
+
   // Build a performant placeholder for the ad
   Widget _buildPlaceholderAd() {
     return RepaintBoundary(
       child: Container(
         alignment: Alignment.center,
         width: 320, // Standard banner width
-        height: 50,  // Standard banner height
+        height: 50, // Standard banner height
         decoration: BoxDecoration(
           color: Colors.grey.shade100,
           border: Border.all(color: Colors.grey.shade300, width: 0.5),
@@ -403,9 +396,9 @@ class AdService extends ChangeNotifier {
               ),
               const SizedBox(width: 8),
               Text(
-                'Loading ad...', 
+                'Loading ad...',
                 style: TextStyle(
-                  fontSize: 11, 
+                  fontSize: 11,
                   color: Colors.grey.shade600,
                   fontWeight: FontWeight.w400,
                 ),
@@ -416,13 +409,13 @@ class AdService extends ChangeNotifier {
       ),
     );
   }
-  
+
   // Show interstitial ad
   Future<bool> showInterstitialAd() async {
     if (kIsWeb || !shouldShowAds || !canShowInterstitialAd || _interstitialAd == null || _disposed) {
       return false;
     }
-    
+
     try {
       await _interstitialAd!.show();
       _lastInterstitialAdTime = DateTime.now();
@@ -433,34 +426,34 @@ class AdService extends ChangeNotifier {
       return false;
     }
   }
-  
+
   // TODO: Implement reward ad functionality
   // Future<bool> showRewardAd() async {
   //   // Implementation for reward ads
   //   return false;
   // }
-  
+
   // Track classification completion
   void trackClassificationCompleted() {
     if (_disposed) return;
-    
+
     _classificationsSinceLastAd++;
-    
+
     // If approaching threshold, preload the ad
     if (_classificationsSinceLastAd >= 3 && _interstitialAd == null && !_isInterstitialAdLoading) {
       _loadInterstitialAd();
     }
   }
-  
+
   // Check if interstitial should be shown
   bool shouldShowInterstitial() {
     return !_disposed && _classificationsSinceLastAd >= 5 && shouldShowAds;
   }
-  
+
   // FIXED: Set context methods with post-frame callbacks to prevent build errors
   void setInClassificationFlow(bool value) {
     if (_disposed) return;
-    
+
     if (_isInClassificationFlow != value) {
       _isInClassificationFlow = value;
       // Use post-frame callback to avoid calling notifyListeners during build
@@ -471,10 +464,10 @@ class AdService extends ChangeNotifier {
       });
     }
   }
-  
+
   void setInEducationalContent(bool value) {
     if (_disposed) return;
-    
+
     if (_isInEducationalContent != value) {
       _isInEducationalContent = value;
       // Use post-frame callback to avoid calling notifyListeners during build
@@ -485,10 +478,10 @@ class AdService extends ChangeNotifier {
       });
     }
   }
-  
+
   void setInSettings(bool value) {
     if (_disposed) return;
-    
+
     if (_isInSettings != value) {
       _isInSettings = value;
       // Use post-frame callback to avoid calling notifyListeners during build
@@ -502,7 +495,7 @@ class AdService extends ChangeNotifier {
 
   void incrementClassificationCount() {
     if (_disposed) return;
-    
+
     _classificationCount++;
     if (_classificationCount >= 5 && canShowInterstitialAd) {
       // Schedule showing ad after the current build cycle
@@ -524,24 +517,24 @@ class AdService extends ChangeNotifier {
     _currentBannerAdKey = null;
     super.dispose();
   }
-  
+
   // Additional method to track classification for ad frequency
   void trackClassification() {
     if (!_disposed) {
       incrementClassificationCount();
     }
   }
-  
+
   // Method to refresh banner ad (creates a new ad instance)
   void refreshBannerAd() {
     if (_disposed || kIsWeb) return;
-    
+
     // Dispose current ad and clear cache
     _bannerAd?.dispose();
     _bannerAd = null;
     _cachedBannerWidget = null;
     _currentBannerAdKey = null;
-    
+
     // Load a new banner ad
     _loadBannerAd();
   }

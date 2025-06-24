@@ -60,16 +60,15 @@ void main() {
 
       // Then: First classification achievement should be unlocked
       final profile = await gamificationService.getProfile();
-      final firstClassificationAchievement = profile.achievements
-          .firstWhere((a) => a.id == 'first_classification');
-      
+      final firstClassificationAchievement = profile.achievements.firstWhere((a) => a.id == 'first_classification');
+
       expect(firstClassificationAchievement.isEarned, true);
     });
 
     test('Should unlock "Recycling Expert" achievement after 50 recyclable items', () async {
       // Given: 49 previous recyclable classifications
       await storageService.clearClassifications();
-      
+
       for (var i = 0; i < 49; i++) {
         final classification = WasteClassification(
           itemName: 'Recyclable Item $i',
@@ -122,15 +121,14 @@ void main() {
 
       // Then: Recycling Expert achievement should be unlocked
       final profile = await gamificationService.getProfile();
-      final recyclingExpertAchievement = profile.achievements
-          .firstWhere((a) => a.id == 'recycling_expert');
-      
+      final recyclingExpertAchievement = profile.achievements.firstWhere((a) => a.id == 'recycling_expert');
+
       expect(recyclingExpertAchievement.isEarned, true);
     });
 
     test('Should award different points based on classification type', () async {
       await storageService.clearClassifications();
-      
+
       final initialProfile = await gamificationService.getProfile();
       final initialPoints = initialProfile.points.total;
 
@@ -185,14 +183,14 @@ void main() {
       }
 
       final finalProfile = await gamificationService.getProfile();
-      
+
       // Points should have increased
       expect(finalProfile.points.total, greaterThan(initialPoints));
     });
 
     test('Should maintain streak with consecutive daily classifications', () async {
       await storageService.clearClassifications();
-      
+
       // Simulate classifications on consecutive days
       final classification1 = WasteClassification(
         itemName: 'Day 1 Item',
@@ -264,10 +262,10 @@ void main() {
       await gamificationService.processClassification(classification3);
 
       final profile = await gamificationService.getProfile();
-      
+
       // Streak should reflect consecutive classifications
       final dailyStreak = profile.streaks[StreakType.dailyClassification.toString()];
       expect(dailyStreak?.currentCount ?? 0, greaterThanOrEqualTo(1));
     });
   });
-} 
+}

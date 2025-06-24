@@ -20,7 +20,7 @@ enum PointableAction {
 
   /// String key used in storage and analytics
   final String key;
-  
+
   /// Default points awarded for this action
   final int defaultPoints;
 
@@ -51,9 +51,9 @@ extension PointableActionExtension on PointableAction {
   /// Check if this action supports custom points
   bool get supportsCustomPoints {
     return this == PointableAction.achievementClaim ||
-           this == PointableAction.streakBonus ||
-           this == PointableAction.migrationSync ||
-           this == PointableAction.retroactiveSync;
+        this == PointableAction.streakBonus ||
+        this == PointableAction.migrationSync ||
+        this == PointableAction.retroactiveSync;
   }
 
   /// Get category for this action (for analytics)
@@ -81,4 +81,4 @@ extension PointableActionExtension on PointableAction {
         return 'system';
     }
   }
-} 
+}

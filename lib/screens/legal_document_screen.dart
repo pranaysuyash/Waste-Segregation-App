@@ -4,7 +4,6 @@ import 'package:flutter_markdown/flutter_markdown.dart';
 import '../utils/constants.dart';
 
 class LegalDocumentScreen extends StatefulWidget {
-
   const LegalDocumentScreen({
     super.key,
     required this.title,

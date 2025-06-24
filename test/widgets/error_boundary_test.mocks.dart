@@ -530,8 +530,7 @@ class MockAnalyticsService extends _i1.Mock implements _i2.AnalyticsService {
             endDate,
           ],
         ),
-        returnValue:
-            _i3.Future<Map<String, dynamic>>.value(<String, dynamic>{}),
+        returnValue: _i3.Future<Map<String, dynamic>>.value(<String, dynamic>{}),
       ) as _i3.Future<Map<String, dynamic>>);
 
   @override
@@ -547,19 +546,16 @@ class MockAnalyticsService extends _i1.Mock implements _i2.AnalyticsService {
             endDate,
           ],
         ),
-        returnValue:
-            _i3.Future<Map<String, dynamic>>.value(<String, dynamic>{}),
+        returnValue: _i3.Future<Map<String, dynamic>>.value(<String, dynamic>{}),
       ) as _i3.Future<Map<String, dynamic>>);
 
   @override
-  _i3.Future<List<Map<String, dynamic>>> getPopularContent(int? limit) =>
-      (super.noSuchMethod(
+  _i3.Future<List<Map<String, dynamic>>> getPopularContent(int? limit) => (super.noSuchMethod(
         Invocation.method(
           #getPopularContent,
           [limit],
         ),
-        returnValue: _i3.Future<List<Map<String, dynamic>>>.value(
-            <Map<String, dynamic>>[]),
+        returnValue: _i3.Future<List<Map<String, dynamic>>>.value(<Map<String, dynamic>>[]),
       ) as _i3.Future<List<Map<String, dynamic>>>);
 
   @override

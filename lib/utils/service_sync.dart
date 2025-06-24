@@ -9,11 +9,11 @@ class ServiceSync {
   static void syncAdServiceWithPremium(BuildContext context) {
     final premiumService = Provider.of<PremiumService>(context, listen: false);
     final adService = Provider.of<AdService>(context, listen: false);
-    
+
     // Update ad service with premium status
     adService.setPremiumStatus(premiumService.isPremiumFeature('remove_ads'));
   }
-  
+
   /// Set context for showing ads appropriately
   static void setAdContext(
     BuildContext context, {

@@ -17,4 +17,4 @@ class OpacityValues {
   static const double strong = 0.7;
   static const double prominent = 0.8;
   static const double almostOpaque = 0.9;
-} 
+}

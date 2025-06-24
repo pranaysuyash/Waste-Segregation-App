@@ -4,7 +4,6 @@ import '../utils/constants.dart';
 import '../utils/accessibility_contrast_fixes.dart';
 
 class QuizScreen extends StatefulWidget {
-
   const QuizScreen({
     super.key,
     required this.quizContent,
@@ -163,8 +162,7 @@ class _QuizScreenState extends State<QuizScreen> {
                     padding: const EdgeInsets.all(AppTheme.paddingRegular),
                     decoration: BoxDecoration(
                       color: Colors.orange.shade50,
-                      borderRadius:
-                          BorderRadius.circular(AppTheme.borderRadiusRegular),
+                      borderRadius: BorderRadius.circular(AppTheme.borderRadiusRegular),
                       border: Border.all(color: Colors.orange.shade200),
                     ),
                     child: Text(
@@ -179,11 +177,8 @@ class _QuizScreenState extends State<QuizScreen> {
                   const SizedBox(height: AppTheme.paddingLarge),
 
                   // Options
-                  ...List.generate(
-                      _questions[_currentQuestionIndex].options.length,
-                      (index) {
-                    final isCorrect = index ==
-                        _questions[_currentQuestionIndex].correctOptionIndex;
+                  ...List.generate(_questions[_currentQuestionIndex].options.length, (index) {
+                    final isCorrect = index == _questions[_currentQuestionIndex].correctOptionIndex;
                     final isSelected = index == _selectedOptionIndex;
 
                     // Determine option card style based on selection and correctness
@@ -208,13 +203,11 @@ class _QuizScreenState extends State<QuizScreen> {
                         _selectOption(index);
                       },
                       child: Container(
-                        margin: const EdgeInsets.only(
-                            bottom: AppTheme.paddingRegular),
+                        margin: const EdgeInsets.only(bottom: AppTheme.paddingRegular),
                         padding: const EdgeInsets.all(AppTheme.paddingRegular),
                         decoration: BoxDecoration(
                           color: backgroundColor,
-                          borderRadius: BorderRadius.circular(
-                              AppTheme.borderRadiusRegular),
+                          borderRadius: BorderRadius.circular(AppTheme.borderRadiusRegular),
                           border: Border.all(color: borderColor),
                           boxShadow: [
                             BoxShadow(
@@ -254,12 +247,9 @@ class _QuizScreenState extends State<QuizScreen> {
                                         size: 16,
                                       )
                                     : Text(
-                                        String.fromCharCode(
-                                            65 + index), // A, B, C, D...
+                                        String.fromCharCode(65 + index), // A, B, C, D...
                                         style: TextStyle(
-                                          color: isSelected
-                                              ? Colors.white
-                                              : Colors.black,
+                                          color: isSelected ? Colors.white : Colors.black,
                                           fontWeight: FontWeight.bold,
                                         ),
                                       ),
@@ -271,8 +261,7 @@ class _QuizScreenState extends State<QuizScreen> {
                             // Option text
                             Expanded(
                               child: Text(
-                                _questions[_currentQuestionIndex]
-                                    .options[index],
+                                _questions[_currentQuestionIndex].options[index],
                                 style: TextStyle(
                                   fontSize: AppTheme.fontSizeRegular,
                                   color: _hasAnswered && isCorrect
@@ -290,9 +279,7 @@ class _QuizScreenState extends State<QuizScreen> {
                   }),
 
                   // Explanation after answering
-                  if (_hasAnswered &&
-                      _questions[_currentQuestionIndex].explanation !=
-                          null) ...[
+                  if (_hasAnswered && _questions[_currentQuestionIndex].explanation != null) ...[
                     const SizedBox(height: AppTheme.paddingRegular),
                     Container(
                       padding: const EdgeInsets.all(AppTheme.paddingRegular),
@@ -357,10 +344,8 @@ class _QuizScreenState extends State<QuizScreen> {
                     onPressed: () {
                       setState(() {
                         _currentQuestionIndex--;
-                        _hasAnswered =
-                            _userAnswers[_currentQuestionIndex] != -1;
-                        _selectedOptionIndex =
-                            _userAnswers[_currentQuestionIndex];
+                        _hasAnswered = _userAnswers[_currentQuestionIndex] != -1;
+                        _selectedOptionIndex = _userAnswers[_currentQuestionIndex];
                       });
                     },
                     icon: const Icon(Icons.arrow_back),
@@ -387,9 +372,7 @@ class _QuizScreenState extends State<QuizScreen> {
                     disabledBackgroundColor: Colors.grey.shade300,
                   ),
                   child: Text(
-                    _currentQuestionIndex < _questions.length - 1
-                        ? 'Next'
-                        : 'Finish',
+                    _currentQuestionIndex < _questions.length - 1 ? 'Next' : 'Finish',
                   ),
                 ),
               ],
@@ -513,12 +496,10 @@ class _QuizScreenState extends State<QuizScreen> {
                 final isCorrect = userAnswer == question.correctOptionIndex;
 
                 return Container(
-                  margin:
-                      const EdgeInsets.only(bottom: AppTheme.paddingRegular),
+                  margin: const EdgeInsets.only(bottom: AppTheme.paddingRegular),
                   decoration: BoxDecoration(
                     color: Colors.white.withValues(alpha: 0.9),
-                    borderRadius:
-                        BorderRadius.circular(AppTheme.borderRadiusRegular),
+                    borderRadius: BorderRadius.circular(AppTheme.borderRadiusRegular),
                     border: Border.all(
                       color: userAnswer == -1
                           ? Colors.grey.shade300
@@ -547,10 +528,8 @@ class _QuizScreenState extends State<QuizScreen> {
                                   ? Colors.green.shade50
                                   : Colors.red.shade50,
                           borderRadius: const BorderRadius.only(
-                            topLeft: Radius.circular(
-                                AppTheme.borderRadiusRegular - 1),
-                            topRight: Radius.circular(
-                                AppTheme.borderRadiusRegular - 1),
+                            topLeft: Radius.circular(AppTheme.borderRadiusRegular - 1),
+                            topRight: Radius.circular(AppTheme.borderRadiusRegular - 1),
                           ),
                         ),
                         child: Row(
@@ -634,16 +613,14 @@ class _QuizScreenState extends State<QuizScreen> {
                                 ),
                                 Expanded(
                                   child: Text(
-                                    question
-                                        .options[question.correctOptionIndex],
+                                    question.options[question.correctOptionIndex],
                                   ),
                                 ),
                               ],
                             ),
 
                             // User answer if different
-                            if (userAnswer != -1 &&
-                                userAnswer != question.correctOptionIndex) ...[
+                            if (userAnswer != -1 && userAnswer != question.correctOptionIndex) ...[
                               const SizedBox(height: 4),
                               Row(
                                 children: [
@@ -691,8 +668,7 @@ class _QuizScreenState extends State<QuizScreen> {
                             if (question.explanation != null) ...[
                               const SizedBox(height: AppTheme.paddingSmall),
                               Container(
-                                padding:
-                                    const EdgeInsets.all(AppTheme.paddingSmall),
+                                padding: const EdgeInsets.all(AppTheme.paddingSmall),
                                 decoration: AccessibilityContrastFixes.getAccessibleInfoBoxDecoration('blue'),
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -701,7 +677,8 @@ class _QuizScreenState extends State<QuizScreen> {
                                       children: [
                                         Icon(
                                           Icons.info_outline,
-                                          color: AccessibilityContrastFixes.getContrastColors('blue_info_box').textColor,
+                                          color:
+                                              AccessibilityContrastFixes.getContrastColors('blue_info_box').textColor,
                                           size: 14,
                                         ),
                                         const SizedBox(width: 4),
@@ -710,7 +687,8 @@ class _QuizScreenState extends State<QuizScreen> {
                                           style: TextStyle(
                                             fontSize: AppTheme.fontSizeSmall,
                                             fontWeight: FontWeight.bold,
-                                            color: AccessibilityContrastFixes.getContrastColors('blue_info_box').textColor,
+                                            color:
+                                                AccessibilityContrastFixes.getContrastColors('blue_info_box').textColor,
                                           ),
                                         ),
                                       ],

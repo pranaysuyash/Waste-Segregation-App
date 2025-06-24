@@ -26,9 +26,7 @@ class WebImageHandler {
     if (isBlobUrl(path)) {
       // For blob URLs, extract the UUID part
       final uriParts = path.split('/');
-      return uriParts.last.length > 8
-          ? uriParts.last.substring(0, 8)
-          : uriParts.last;
+      return uriParts.last.length > 8 ? uriParts.last.substring(0, 8) : uriParts.last;
     }
 
     // Otherwise extract filename from a regular path

@@ -6,17 +6,33 @@ void main() {
   group('SharedWasteClassification Model Tests', () {
     group('SharedWasteClassification Model', () {
       test('should create SharedWasteClassification with all required properties', () {
-        final originalClassification = WasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
+        final originalClassification = WasteClassification(
+          itemName: 'Test Item',
+          explanation: 'Test explanation',
+          category: 'plastic',
+          region: 'Test Region',
+          visualFeatures: ['test feature'],
+          alternatives: [],
+          disposalInstructions:
+              DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false),
           id: 'class_001',
           imageUrl: '/path/to/image.jpg',
           confidence: 0.95,
-            region: 'Test Region',
-            visualFeatures: ['test feature'],
-            alternatives: [],
+          region: 'Test Region',
+          visualFeatures: ['test feature'],
+          alternatives: [],
           timestamp: DateTime(2024, 1, 15, 10, 30),
         );
 
-        final sharedClassification = SharedWasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
+        final sharedClassification = SharedWasteClassification(
+          itemName: 'Test Item',
+          explanation: 'Test explanation',
+          category: 'plastic',
+          region: 'Test Region',
+          visualFeatures: ['test feature'],
+          alternatives: [],
+          disposalInstructions:
+              DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false),
           id: 'shared_001',
           originalClassification: originalClassification,
           sharedBy: 'user123',
@@ -36,17 +52,33 @@ void main() {
       });
 
       test('should create SharedWasteClassification with optional properties', () {
-        final originalClassification = WasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
+        final originalClassification = WasteClassification(
+          itemName: 'Test Item',
+          explanation: 'Test explanation',
+          category: 'plastic',
+          region: 'Test Region',
+          visualFeatures: ['test feature'],
+          alternatives: [],
+          disposalInstructions:
+              DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false),
           id: 'class_002',
           imageUrl: '/path/to/image2.jpg',
           confidence: 0.88,
-            region: 'Test Region',
-            visualFeatures: ['test feature'],
-            alternatives: [],
+          region: 'Test Region',
+          visualFeatures: ['test feature'],
+          alternatives: [],
           timestamp: DateTime(2024, 1, 15, 10, 30),
         );
 
-        final sharedClassification = SharedWasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
+        final sharedClassification = SharedWasteClassification(
+          itemName: 'Test Item',
+          explanation: 'Test explanation',
+          category: 'plastic',
+          region: 'Test Region',
+          visualFeatures: ['test feature'],
+          alternatives: [],
+          disposalInstructions:
+              DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false),
           id: 'shared_002',
           originalClassification: originalClassification,
           sharedBy: 'user456',
@@ -83,17 +115,33 @@ void main() {
       });
 
       test('should serialize SharedWasteClassification to JSON correctly', () {
-        final originalClassification = WasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
+        final originalClassification = WasteClassification(
+          itemName: 'Test Item',
+          explanation: 'Test explanation',
+          category: 'plastic',
+          region: 'Test Region',
+          visualFeatures: ['test feature'],
+          alternatives: [],
+          disposalInstructions:
+              DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false),
           id: 'class_003',
           imageUrl: '/path/to/image3.jpg',
           confidence: 0.92,
-            region: 'Test Region',
-            visualFeatures: ['test feature'],
-            alternatives: [],
+          region: 'Test Region',
+          visualFeatures: ['test feature'],
+          alternatives: [],
           timestamp: DateTime(2024, 1, 15, 10, 30),
         );
 
-        final sharedClassification = SharedWasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
+        final sharedClassification = SharedWasteClassification(
+          itemName: 'Test Item',
+          explanation: 'Test explanation',
+          category: 'plastic',
+          region: 'Test Region',
+          visualFeatures: ['test feature'],
+          alternatives: [],
+          disposalInstructions:
+              DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false),
           id: 'shared_003',
           originalClassification: originalClassification,
           sharedBy: 'user123',
@@ -163,11 +211,31 @@ void main() {
       });
 
       test('should check if classification can be viewed by user', () {
-        final publicClassification = SharedWasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
+        final publicClassification = SharedWasteClassification(
+          itemName: 'Test Item',
+          explanation: 'Test explanation',
+          category: 'plastic',
+          region: 'Test Region',
+          visualFeatures: ['test feature'],
+          alternatives: [],
+          disposalInstructions:
+              DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false),
           id: 'shared_public',
-          originalClassification: WasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
-            id: 'class', imageUrl: '/path', category: 'plastic',
-            confidence: 0.9, disposalInstructions: DisposalInstructions(primaryMethod: 'Recycle', steps: ['Test step'], hasUrgentTimeframe: false),
+          originalClassification: WasteClassification(
+            itemName: 'Test Item',
+            explanation: 'Test explanation',
+            category: 'plastic',
+            region: 'Test Region',
+            visualFeatures: ['test feature'],
+            alternatives: [],
+            disposalInstructions:
+                DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false),
+            id: 'class',
+            imageUrl: '/path',
+            category: 'plastic',
+            confidence: 0.9,
+            disposalInstructions:
+                DisposalInstructions(primaryMethod: 'Recycle', steps: ['Test step'], hasUrgentTimeframe: false),
             timestamp: DateTime.now(),
           ),
           sharedBy: 'user123',
@@ -176,11 +244,31 @@ void main() {
           visibility: SharingVisibility.public,
         );
 
-        final familyClassification = SharedWasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
+        final familyClassification = SharedWasteClassification(
+          itemName: 'Test Item',
+          explanation: 'Test explanation',
+          category: 'plastic',
+          region: 'Test Region',
+          visualFeatures: ['test feature'],
+          alternatives: [],
+          disposalInstructions:
+              DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false),
           id: 'shared_family',
-          originalClassification: WasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
-            id: 'class', imageUrl: '/path', category: 'plastic',
-            confidence: 0.9, disposalInstructions: DisposalInstructions(primaryMethod: 'Recycle', steps: ['Test step'], hasUrgentTimeframe: false),
+          originalClassification: WasteClassification(
+            itemName: 'Test Item',
+            explanation: 'Test explanation',
+            category: 'plastic',
+            region: 'Test Region',
+            visualFeatures: ['test feature'],
+            alternatives: [],
+            disposalInstructions:
+                DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false),
+            id: 'class',
+            imageUrl: '/path',
+            category: 'plastic',
+            confidence: 0.9,
+            disposalInstructions:
+                DisposalInstructions(primaryMethod: 'Recycle', steps: ['Test step'], hasUrgentTimeframe: false),
             timestamp: DateTime.now(),
           ),
           sharedBy: 'user123',
@@ -190,11 +278,31 @@ void main() {
           familyId: 'family456',
         );
 
-        final privateClassification = SharedWasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
+        final privateClassification = SharedWasteClassification(
+          itemName: 'Test Item',
+          explanation: 'Test explanation',
+          category: 'plastic',
+          region: 'Test Region',
+          visualFeatures: ['test feature'],
+          alternatives: [],
+          disposalInstructions:
+              DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false),
           id: 'shared_private',
-          originalClassification: WasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
-            id: 'class', imageUrl: '/path', category: 'plastic',
-            confidence: 0.9, disposalInstructions: DisposalInstructions(primaryMethod: 'Recycle', steps: ['Test step'], hasUrgentTimeframe: false),
+          originalClassification: WasteClassification(
+            itemName: 'Test Item',
+            explanation: 'Test explanation',
+            category: 'plastic',
+            region: 'Test Region',
+            visualFeatures: ['test feature'],
+            alternatives: [],
+            disposalInstructions:
+                DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false),
+            id: 'class',
+            imageUrl: '/path',
+            category: 'plastic',
+            confidence: 0.9,
+            disposalInstructions:
+                DisposalInstructions(primaryMethod: 'Recycle', steps: ['Test step'], hasUrgentTimeframe: false),
             timestamp: DateTime.now(),
           ),
           sharedBy: 'user123',
@@ -218,11 +326,31 @@ void main() {
       });
 
       test('should check if classification can be liked by user', () {
-        final sharedClassification = SharedWasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
+        final sharedClassification = SharedWasteClassification(
+          itemName: 'Test Item',
+          explanation: 'Test explanation',
+          category: 'plastic',
+          region: 'Test Region',
+          visualFeatures: ['test feature'],
+          alternatives: [],
+          disposalInstructions:
+              DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false),
           id: 'shared_001',
-          originalClassification: WasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
-            id: 'class', imageUrl: '/path', category: 'plastic',
-            confidence: 0.9, disposalInstructions: DisposalInstructions(primaryMethod: 'Recycle', steps: ['Test step'], hasUrgentTimeframe: false),
+          originalClassification: WasteClassification(
+            itemName: 'Test Item',
+            explanation: 'Test explanation',
+            category: 'plastic',
+            region: 'Test Region',
+            visualFeatures: ['test feature'],
+            alternatives: [],
+            disposalInstructions:
+                DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false),
+            id: 'class',
+            imageUrl: '/path',
+            category: 'plastic',
+            confidence: 0.9,
+            disposalInstructions:
+                DisposalInstructions(primaryMethod: 'Recycle', steps: ['Test step'], hasUrgentTimeframe: false),
             timestamp: DateTime.now(),
           ),
           sharedBy: 'user123',
@@ -236,11 +364,31 @@ void main() {
           ),
         );
 
-        final noLikesClassification = SharedWasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
+        final noLikesClassification = SharedWasteClassification(
+          itemName: 'Test Item',
+          explanation: 'Test explanation',
+          category: 'plastic',
+          region: 'Test Region',
+          visualFeatures: ['test feature'],
+          alternatives: [],
+          disposalInstructions:
+              DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false),
           id: 'shared_002',
-          originalClassification: WasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
-            id: 'class', imageUrl: '/path', category: 'plastic',
-            confidence: 0.9, disposalInstructions: DisposalInstructions(primaryMethod: 'Recycle', steps: ['Test step'], hasUrgentTimeframe: false),
+          originalClassification: WasteClassification(
+            itemName: 'Test Item',
+            explanation: 'Test explanation',
+            category: 'plastic',
+            region: 'Test Region',
+            visualFeatures: ['test feature'],
+            alternatives: [],
+            disposalInstructions:
+                DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false),
+            id: 'class',
+            imageUrl: '/path',
+            category: 'plastic',
+            confidence: 0.9,
+            disposalInstructions:
+                DisposalInstructions(primaryMethod: 'Recycle', steps: ['Test step'], hasUrgentTimeframe: false),
             timestamp: DateTime.now(),
           ),
           sharedBy: 'user123',
@@ -260,11 +408,31 @@ void main() {
       });
 
       test('should check if classification can be commented on', () {
-        final sharedClassification = SharedWasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
+        final sharedClassification = SharedWasteClassification(
+          itemName: 'Test Item',
+          explanation: 'Test explanation',
+          category: 'plastic',
+          region: 'Test Region',
+          visualFeatures: ['test feature'],
+          alternatives: [],
+          disposalInstructions:
+              DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false),
           id: 'shared_001',
-          originalClassification: WasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
-            id: 'class', imageUrl: '/path', category: 'plastic',
-            confidence: 0.9, disposalInstructions: DisposalInstructions(primaryMethod: 'Recycle', steps: ['Test step'], hasUrgentTimeframe: false),
+          originalClassification: WasteClassification(
+            itemName: 'Test Item',
+            explanation: 'Test explanation',
+            category: 'plastic',
+            region: 'Test Region',
+            visualFeatures: ['test feature'],
+            alternatives: [],
+            disposalInstructions:
+                DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false),
+            id: 'class',
+            imageUrl: '/path',
+            category: 'plastic',
+            confidence: 0.9,
+            disposalInstructions:
+                DisposalInstructions(primaryMethod: 'Recycle', steps: ['Test step'], hasUrgentTimeframe: false),
             timestamp: DateTime.now(),
           ),
           sharedBy: 'user123',
@@ -278,11 +446,31 @@ void main() {
           ),
         );
 
-        final noCommentsClassification = SharedWasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
+        final noCommentsClassification = SharedWasteClassification(
+          itemName: 'Test Item',
+          explanation: 'Test explanation',
+          category: 'plastic',
+          region: 'Test Region',
+          visualFeatures: ['test feature'],
+          alternatives: [],
+          disposalInstructions:
+              DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false),
           id: 'shared_002',
-          originalClassification: WasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
-            id: 'class', imageUrl: '/path', category: 'plastic',
-            confidence: 0.9, disposalInstructions: DisposalInstructions(primaryMethod: 'Recycle', steps: ['Test step'], hasUrgentTimeframe: false),
+          originalClassification: WasteClassification(
+            itemName: 'Test Item',
+            explanation: 'Test explanation',
+            category: 'plastic',
+            region: 'Test Region',
+            visualFeatures: ['test feature'],
+            alternatives: [],
+            disposalInstructions:
+                DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false),
+            id: 'class',
+            imageUrl: '/path',
+            category: 'plastic',
+            confidence: 0.9,
+            disposalInstructions:
+                DisposalInstructions(primaryMethod: 'Recycle', steps: ['Test step'], hasUrgentTimeframe: false),
             timestamp: DateTime.now(),
           ),
           sharedBy: 'user123',
@@ -302,11 +490,31 @@ void main() {
       });
 
       test('should calculate engagement score', () {
-        final sharedClassification = SharedWasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
+        final sharedClassification = SharedWasteClassification(
+          itemName: 'Test Item',
+          explanation: 'Test explanation',
+          category: 'plastic',
+          region: 'Test Region',
+          visualFeatures: ['test feature'],
+          alternatives: [],
+          disposalInstructions:
+              DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false),
           id: 'shared_001',
-          originalClassification: WasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
-            id: 'class', imageUrl: '/path', category: 'plastic',
-            confidence: 0.9, disposalInstructions: DisposalInstructions(primaryMethod: 'Recycle', steps: ['Test step'], hasUrgentTimeframe: false),
+          originalClassification: WasteClassification(
+            itemName: 'Test Item',
+            explanation: 'Test explanation',
+            category: 'plastic',
+            region: 'Test Region',
+            visualFeatures: ['test feature'],
+            alternatives: [],
+            disposalInstructions:
+                DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false),
+            id: 'class',
+            imageUrl: '/path',
+            category: 'plastic',
+            confidence: 0.9,
+            disposalInstructions:
+                DisposalInstructions(primaryMethod: 'Recycle', steps: ['Test step'], hasUrgentTimeframe: false),
             timestamp: DateTime.now(),
           ),
           sharedBy: 'user123',
@@ -314,13 +522,15 @@ void main() {
           sharedAt: DateTime.now(),
           visibility: SharingVisibility.public,
           likes: 10,
-          comments: List.generate(5, (index) => SharingComment(
-            id: 'comment_$index',
-            userId: 'user_$index',
-            userName: 'User $index',
-            content: 'Comment $index',
-            timestamp: DateTime.now(),
-          )),
+          comments: List.generate(
+              5,
+              (index) => SharingComment(
+                    id: 'comment_$index',
+                    userId: 'user_$index',
+                    userName: 'User $index',
+                    content: 'Comment $index',
+                    timestamp: DateTime.now(),
+                  )),
           shareCount: 3,
           viewCount: 50,
         );
@@ -331,11 +541,31 @@ void main() {
       });
 
       test('should check if shared recently', () {
-        final recentlyShared = SharedWasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
+        final recentlyShared = SharedWasteClassification(
+          itemName: 'Test Item',
+          explanation: 'Test explanation',
+          category: 'plastic',
+          region: 'Test Region',
+          visualFeatures: ['test feature'],
+          alternatives: [],
+          disposalInstructions:
+              DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false),
           id: 'shared_recent',
-          originalClassification: WasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
-            id: 'class', imageUrl: '/path', category: 'plastic',
-            confidence: 0.9, disposalInstructions: DisposalInstructions(primaryMethod: 'Recycle', steps: ['Test step'], hasUrgentTimeframe: false),
+          originalClassification: WasteClassification(
+            itemName: 'Test Item',
+            explanation: 'Test explanation',
+            category: 'plastic',
+            region: 'Test Region',
+            visualFeatures: ['test feature'],
+            alternatives: [],
+            disposalInstructions:
+                DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false),
+            id: 'class',
+            imageUrl: '/path',
+            category: 'plastic',
+            confidence: 0.9,
+            disposalInstructions:
+                DisposalInstructions(primaryMethod: 'Recycle', steps: ['Test step'], hasUrgentTimeframe: false),
             timestamp: DateTime.now(),
           ),
           sharedBy: 'user123',
@@ -344,11 +574,31 @@ void main() {
           visibility: SharingVisibility.public,
         );
 
-        final oldShared = SharedWasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
+        final oldShared = SharedWasteClassification(
+          itemName: 'Test Item',
+          explanation: 'Test explanation',
+          category: 'plastic',
+          region: 'Test Region',
+          visualFeatures: ['test feature'],
+          alternatives: [],
+          disposalInstructions:
+              DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false),
           id: 'shared_old',
-          originalClassification: WasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
-            id: 'class', imageUrl: '/path', category: 'plastic',
-            confidence: 0.9, disposalInstructions: DisposalInstructions(primaryMethod: 'Recycle', steps: ['Test step'], hasUrgentTimeframe: false),
+          originalClassification: WasteClassification(
+            itemName: 'Test Item',
+            explanation: 'Test explanation',
+            category: 'plastic',
+            region: 'Test Region',
+            visualFeatures: ['test feature'],
+            alternatives: [],
+            disposalInstructions:
+                DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false),
+            id: 'class',
+            imageUrl: '/path',
+            category: 'plastic',
+            confidence: 0.9,
+            disposalInstructions:
+                DisposalInstructions(primaryMethod: 'Recycle', steps: ['Test step'], hasUrgentTimeframe: false),
             timestamp: DateTime.now(),
           ),
           sharedBy: 'user123',
@@ -362,11 +612,31 @@ void main() {
       });
 
       test('should get time since shared', () {
-        final sharedClassification = SharedWasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
+        final sharedClassification = SharedWasteClassification(
+          itemName: 'Test Item',
+          explanation: 'Test explanation',
+          category: 'plastic',
+          region: 'Test Region',
+          visualFeatures: ['test feature'],
+          alternatives: [],
+          disposalInstructions:
+              DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false),
           id: 'shared_001',
-          originalClassification: WasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
-            id: 'class', imageUrl: '/path', category: 'plastic',
-            confidence: 0.9, disposalInstructions: DisposalInstructions(primaryMethod: 'Recycle', steps: ['Test step'], hasUrgentTimeframe: false),
+          originalClassification: WasteClassification(
+            itemName: 'Test Item',
+            explanation: 'Test explanation',
+            category: 'plastic',
+            region: 'Test Region',
+            visualFeatures: ['test feature'],
+            alternatives: [],
+            disposalInstructions:
+                DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false),
+            id: 'class',
+            imageUrl: '/path',
+            category: 'plastic',
+            confidence: 0.9,
+            disposalInstructions:
+                DisposalInstructions(primaryMethod: 'Recycle', steps: ['Test step'], hasUrgentTimeframe: false),
             timestamp: DateTime.now(),
           ),
           sharedBy: 'user123',
@@ -563,84 +833,176 @@ void main() {
 
     group('Validation', () {
       test('should validate shared classification content', () {
-        expect(() => SharedWasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
-          id: '', // Empty ID
-          originalClassification: WasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
-            id: 'class', imageUrl: '/path', category: 'plastic',
-            confidence: 0.9, disposalInstructions: DisposalInstructions(primaryMethod: 'Recycle', steps: ['Test step'], hasUrgentTimeframe: false),
-            timestamp: DateTime.now(),
-          ),
-          sharedBy: 'user123',
-          sharedByName: 'John Doe',
-          sharedAt: DateTime.now(),
-          visibility: SharingVisibility.public,
-        ), throwsArgumentError);
+        expect(
+            () => SharedWasteClassification(
+                  itemName: 'Test Item',
+                  explanation: 'Test explanation',
+                  category: 'plastic',
+                  region: 'Test Region',
+                  visualFeatures: ['test feature'],
+                  alternatives: [],
+                  disposalInstructions: DisposalInstructions(
+                      primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false),
+                  id: '', // Empty ID
+                  originalClassification: WasteClassification(
+                    itemName: 'Test Item',
+                    explanation: 'Test explanation',
+                    category: 'plastic',
+                    region: 'Test Region',
+                    visualFeatures: ['test feature'],
+                    alternatives: [],
+                    disposalInstructions: DisposalInstructions(
+                        primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false),
+                    id: 'class',
+                    imageUrl: '/path',
+                    category: 'plastic',
+                    confidence: 0.9,
+                    disposalInstructions:
+                        DisposalInstructions(primaryMethod: 'Recycle', steps: ['Test step'], hasUrgentTimeframe: false),
+                    timestamp: DateTime.now(),
+                  ),
+                  sharedBy: 'user123',
+                  sharedByName: 'John Doe',
+                  sharedAt: DateTime.now(),
+                  visibility: SharingVisibility.public,
+                ),
+            throwsArgumentError);
 
-        expect(() => SharedWasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
-          id: 'shared_001',
-          originalClassification: WasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
-            id: 'class', imageUrl: '/path', category: 'plastic',
-            confidence: 0.9, disposalInstructions: DisposalInstructions(primaryMethod: 'Recycle', steps: ['Test step'], hasUrgentTimeframe: false),
-            timestamp: DateTime.now(),
-          ),
-          sharedBy: '', // Empty shared by
-          sharedByName: 'John Doe',
-          sharedAt: DateTime.now(),
-          visibility: SharingVisibility.public,
-        ), throwsArgumentError);
+        expect(
+            () => SharedWasteClassification(
+                  itemName: 'Test Item',
+                  explanation: 'Test explanation',
+                  category: 'plastic',
+                  region: 'Test Region',
+                  visualFeatures: ['test feature'],
+                  alternatives: [],
+                  disposalInstructions: DisposalInstructions(
+                      primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false),
+                  id: 'shared_001',
+                  originalClassification: WasteClassification(
+                    itemName: 'Test Item',
+                    explanation: 'Test explanation',
+                    category: 'plastic',
+                    region: 'Test Region',
+                    visualFeatures: ['test feature'],
+                    alternatives: [],
+                    disposalInstructions: DisposalInstructions(
+                        primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false),
+                    id: 'class',
+                    imageUrl: '/path',
+                    category: 'plastic',
+                    confidence: 0.9,
+                    disposalInstructions:
+                        DisposalInstructions(primaryMethod: 'Recycle', steps: ['Test step'], hasUrgentTimeframe: false),
+                    timestamp: DateTime.now(),
+                  ),
+                  sharedBy: '', // Empty shared by
+                  sharedByName: 'John Doe',
+                  sharedAt: DateTime.now(),
+                  visibility: SharingVisibility.public,
+                ),
+            throwsArgumentError);
       });
 
       test('should validate comment content', () {
-        expect(() => SharingComment(
-          id: 'comment_001',
-          userId: 'user123',
-          userName: 'John Doe',
-          content: '', // Empty content
-          timestamp: DateTime.now(),
-        ), throwsArgumentError);
+        expect(
+            () => SharingComment(
+                  id: 'comment_001',
+                  userId: 'user123',
+                  userName: 'John Doe',
+                  content: '', // Empty content
+                  timestamp: DateTime.now(),
+                ),
+            throwsArgumentError);
 
-        expect(() => SharingComment(
-          id: 'comment_001',
-          userId: 'user123',
-          userName: 'John Doe',
-          content: 'a' * 1001, // Too long content
-          timestamp: DateTime.now(),
-        ), throwsArgumentError);
+        expect(
+            () => SharingComment(
+                  id: 'comment_001',
+                  userId: 'user123',
+                  userName: 'John Doe',
+                  content: 'a' * 1001, // Too long content
+                  timestamp: DateTime.now(),
+                ),
+            throwsArgumentError);
       });
 
       test('should validate negative values', () {
-        expect(() => SharedWasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
-          id: 'shared_001',
-          originalClassification: WasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
-            id: 'class', imageUrl: '/path', category: 'plastic',
-            confidence: 0.9, disposalInstructions: DisposalInstructions(primaryMethod: 'Recycle', steps: ['Test step'], hasUrgentTimeframe: false),
-            timestamp: DateTime.now(),
-          ),
-          sharedBy: 'user123',
-          sharedByName: 'John Doe',
-          sharedAt: DateTime.now(),
-          visibility: SharingVisibility.public,
-          likes: -5, // Negative likes
-        ), throwsArgumentError);
+        expect(
+            () => SharedWasteClassification(
+                  itemName: 'Test Item',
+                  explanation: 'Test explanation',
+                  category: 'plastic',
+                  region: 'Test Region',
+                  visualFeatures: ['test feature'],
+                  alternatives: [],
+                  disposalInstructions: DisposalInstructions(
+                      primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false),
+                  id: 'shared_001',
+                  originalClassification: WasteClassification(
+                    itemName: 'Test Item',
+                    explanation: 'Test explanation',
+                    category: 'plastic',
+                    region: 'Test Region',
+                    visualFeatures: ['test feature'],
+                    alternatives: [],
+                    disposalInstructions: DisposalInstructions(
+                        primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false),
+                    id: 'class',
+                    imageUrl: '/path',
+                    category: 'plastic',
+                    confidence: 0.9,
+                    disposalInstructions:
+                        DisposalInstructions(primaryMethod: 'Recycle', steps: ['Test step'], hasUrgentTimeframe: false),
+                    timestamp: DateTime.now(),
+                  ),
+                  sharedBy: 'user123',
+                  sharedByName: 'John Doe',
+                  sharedAt: DateTime.now(),
+                  visibility: SharingVisibility.public,
+                  likes: -5, // Negative likes
+                ),
+            throwsArgumentError);
 
-        expect(() => SharingComment(
-          id: 'comment_001',
-          userId: 'user123',
-          userName: 'John Doe',
-          content: 'Valid content',
-          timestamp: DateTime.now(),
-          likes: -2, // Negative likes
-        ), throwsArgumentError);
+        expect(
+            () => SharingComment(
+                  id: 'comment_001',
+                  userId: 'user123',
+                  userName: 'John Doe',
+                  content: 'Valid content',
+                  timestamp: DateTime.now(),
+                  likes: -2, // Negative likes
+                ),
+            throwsArgumentError);
       });
     });
 
     group('Equality and Comparison', () {
       test('should compare SharedWasteClassification for equality', () {
-        final classification1 = SharedWasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
+        final classification1 = SharedWasteClassification(
+          itemName: 'Test Item',
+          explanation: 'Test explanation',
+          category: 'plastic',
+          region: 'Test Region',
+          visualFeatures: ['test feature'],
+          alternatives: [],
+          disposalInstructions:
+              DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false),
           id: 'shared_001',
-          originalClassification: WasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
-            id: 'class', imageUrl: '/path', category: 'plastic',
-            confidence: 0.9, disposalInstructions: DisposalInstructions(primaryMethod: 'Recycle', steps: ['Test step'], hasUrgentTimeframe: false),
+          originalClassification: WasteClassification(
+            itemName: 'Test Item',
+            explanation: 'Test explanation',
+            category: 'plastic',
+            region: 'Test Region',
+            visualFeatures: ['test feature'],
+            alternatives: [],
+            disposalInstructions:
+                DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false),
+            id: 'class',
+            imageUrl: '/path',
+            category: 'plastic',
+            confidence: 0.9,
+            disposalInstructions:
+                DisposalInstructions(primaryMethod: 'Recycle', steps: ['Test step'], hasUrgentTimeframe: false),
             timestamp: DateTime(2024, 1, 15),
           ),
           sharedBy: 'user123',
@@ -649,11 +1011,31 @@ void main() {
           visibility: SharingVisibility.public,
         );
 
-        final classification2 = SharedWasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
+        final classification2 = SharedWasteClassification(
+          itemName: 'Test Item',
+          explanation: 'Test explanation',
+          category: 'plastic',
+          region: 'Test Region',
+          visualFeatures: ['test feature'],
+          alternatives: [],
+          disposalInstructions:
+              DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false),
           id: 'shared_001',
-          originalClassification: WasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
-            id: 'class', imageUrl: '/path', category: 'plastic',
-            confidence: 0.9, disposalInstructions: DisposalInstructions(primaryMethod: 'Recycle', steps: ['Test step'], hasUrgentTimeframe: false),
+          originalClassification: WasteClassification(
+            itemName: 'Test Item',
+            explanation: 'Test explanation',
+            category: 'plastic',
+            region: 'Test Region',
+            visualFeatures: ['test feature'],
+            alternatives: [],
+            disposalInstructions:
+                DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false),
+            id: 'class',
+            imageUrl: '/path',
+            category: 'plastic',
+            confidence: 0.9,
+            disposalInstructions:
+                DisposalInstructions(primaryMethod: 'Recycle', steps: ['Test step'], hasUrgentTimeframe: false),
             timestamp: DateTime(2024, 1, 15),
           ),
           sharedBy: 'user123',
@@ -662,11 +1044,31 @@ void main() {
           visibility: SharingVisibility.public,
         );
 
-        final classification3 = SharedWasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
+        final classification3 = SharedWasteClassification(
+          itemName: 'Test Item',
+          explanation: 'Test explanation',
+          category: 'plastic',
+          region: 'Test Region',
+          visualFeatures: ['test feature'],
+          alternatives: [],
+          disposalInstructions:
+              DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false),
           id: 'shared_002',
-          originalClassification: WasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
-            id: 'class2', imageUrl: '/path2', category: 'paper',
-            confidence: 0.8, disposalInstructions: DisposalInstructions(primaryMethod: 'Recycle', steps: ['Test step'], hasUrgentTimeframe: false),
+          originalClassification: WasteClassification(
+            itemName: 'Test Item',
+            explanation: 'Test explanation',
+            category: 'plastic',
+            region: 'Test Region',
+            visualFeatures: ['test feature'],
+            alternatives: [],
+            disposalInstructions:
+                DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false),
+            id: 'class2',
+            imageUrl: '/path2',
+            category: 'paper',
+            confidence: 0.8,
+            disposalInstructions:
+                DisposalInstructions(primaryMethod: 'Recycle', steps: ['Test step'], hasUrgentTimeframe: false),
             timestamp: DateTime(2024, 1, 16),
           ),
           sharedBy: 'user456',
@@ -682,26 +1084,70 @@ void main() {
 
       test('should sort shared classifications by engagement', () {
         final classifications = [
-          SharedWasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
+          SharedWasteClassification(
+            itemName: 'Test Item',
+            explanation: 'Test explanation',
+            category: 'plastic',
+            region: 'Test Region',
+            visualFeatures: ['test feature'],
+            alternatives: [],
+            disposalInstructions:
+                DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false),
             id: 'shared_1',
-            originalClassification: WasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
-              id: 'class', imageUrl: '/path', category: 'plastic',
-              confidence: 0.9, disposalInstructions: DisposalInstructions(primaryMethod: 'Recycle', steps: ['Test step'], hasUrgentTimeframe: false),
+            originalClassification: WasteClassification(
+              itemName: 'Test Item',
+              explanation: 'Test explanation',
+              category: 'plastic',
+              region: 'Test Region',
+              visualFeatures: ['test feature'],
+              alternatives: [],
+              disposalInstructions:
+                  DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false),
+              id: 'class',
+              imageUrl: '/path',
+              category: 'plastic',
+              confidence: 0.9,
+              disposalInstructions:
+                  DisposalInstructions(primaryMethod: 'Recycle', steps: ['Test step'], hasUrgentTimeframe: false),
               timestamp: DateTime.now(),
             ),
-            sharedBy: 'user123', sharedByName: 'John Doe',
-            sharedAt: DateTime.now(), visibility: SharingVisibility.public,
+            sharedBy: 'user123',
+            sharedByName: 'John Doe',
+            sharedAt: DateTime.now(),
+            visibility: SharingVisibility.public,
             likes: 5,
           ),
-          SharedWasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
+          SharedWasteClassification(
+            itemName: 'Test Item',
+            explanation: 'Test explanation',
+            category: 'plastic',
+            region: 'Test Region',
+            visualFeatures: ['test feature'],
+            alternatives: [],
+            disposalInstructions:
+                DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false),
             id: 'shared_2',
-            originalClassification: WasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
-              id: 'class', imageUrl: '/path', category: 'plastic',
-              confidence: 0.9, disposalInstructions: DisposalInstructions(primaryMethod: 'Recycle', steps: ['Test step'], hasUrgentTimeframe: false),
+            originalClassification: WasteClassification(
+              itemName: 'Test Item',
+              explanation: 'Test explanation',
+              category: 'plastic',
+              region: 'Test Region',
+              visualFeatures: ['test feature'],
+              alternatives: [],
+              disposalInstructions:
+                  DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false),
+              id: 'class',
+              imageUrl: '/path',
+              category: 'plastic',
+              confidence: 0.9,
+              disposalInstructions:
+                  DisposalInstructions(primaryMethod: 'Recycle', steps: ['Test step'], hasUrgentTimeframe: false),
               timestamp: DateTime.now(),
             ),
-            sharedBy: 'user123', sharedByName: 'John Doe',
-            sharedAt: DateTime.now(), visibility: SharingVisibility.public,
+            sharedBy: 'user123',
+            sharedByName: 'John Doe',
+            sharedAt: DateTime.now(),
+            visibility: SharingVisibility.public,
             likes: 10,
           ),
         ];

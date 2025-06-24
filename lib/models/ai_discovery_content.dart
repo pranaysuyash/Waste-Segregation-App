@@ -57,25 +57,23 @@ const _triggerTypeReverseMap = {
 
 // Value objects for strongly typed parameters
 class SpecificItemDiscoveryParams {
-  
   const SpecificItemDiscoveryParams({required this.itemId});
-  
+
   factory SpecificItemDiscoveryParams.from(Map<String, dynamic> params) {
     return SpecificItemDiscoveryParams(
       itemId: params['itemId'] as String? ?? '',
     );
   }
   final String itemId;
-  
+
   Map<String, dynamic> toJson() => {'itemId': itemId};
-  
+
   bool validate() => itemId.isNotEmpty;
 }
 
 class ItemCountByTagParams {
-  
   const ItemCountByTagParams({required this.tag, required this.count});
-  
+
   factory ItemCountByTagParams.from(Map<String, dynamic> params) {
     return ItemCountByTagParams(
       tag: params['tag'] as String? ?? '',
@@ -84,16 +82,15 @@ class ItemCountByTagParams {
   }
   final String tag;
   final int count;
-  
+
   Map<String, dynamic> toJson() => {'tag': tag, 'count': count};
-  
+
   bool validate() => tag.isNotEmpty && count > 0;
 }
 
 class ItemCountByCategoryParams {
-  
   const ItemCountByCategoryParams({required this.category, required this.count});
-  
+
   factory ItemCountByCategoryParams.from(Map<String, dynamic> params) {
     return ItemCountByCategoryParams(
       category: params['category'] as String? ?? '',
@@ -102,16 +99,15 @@ class ItemCountByCategoryParams {
   }
   final String category;
   final int count;
-  
+
   Map<String, dynamic> toJson() => {'category': category, 'count': count};
-  
+
   bool validate() => category.isNotEmpty && count > 0;
 }
 
 class ItemCountByMaterialParams {
-  
   const ItemCountByMaterialParams({required this.material, required this.count});
-  
+
   factory ItemCountByMaterialParams.from(Map<String, dynamic> params) {
     return ItemCountByMaterialParams(
       material: params['material'] as String? ?? '',
@@ -120,20 +116,19 @@ class ItemCountByMaterialParams {
   }
   final String material;
   final int count;
-  
+
   Map<String, dynamic> toJson() => {'material': material, 'count': count};
-  
+
   bool validate() => material.isNotEmpty && count > 0;
 }
 
 class SpecificItemSequenceParams {
-  
   const SpecificItemSequenceParams({
     required this.items,
     required this.ordered,
     required this.withinSeconds,
   });
-  
+
   factory SpecificItemSequenceParams.from(Map<String, dynamic> params) {
     return SpecificItemSequenceParams(
       items: List<String>.from(params['items'] as List<dynamic>? ?? []),
@@ -144,23 +139,22 @@ class SpecificItemSequenceParams {
   final List<String> items;
   final bool ordered;
   final int withinSeconds;
-  
+
   Map<String, dynamic> toJson() => {
-    'items': items,
-    'ordered': ordered,
-    'withinSeconds': withinSeconds,
-  };
-  
+        'items': items,
+        'ordered': ordered,
+        'withinSeconds': withinSeconds,
+      };
+
   bool validate() => items.isNotEmpty && withinSeconds > 0;
 }
 
 class ClassificationAccuracyStreakParams {
-  
   const ClassificationAccuracyStreakParams({
     required this.accuracyThreshold,
     required this.streakLength,
   });
-  
+
   factory ClassificationAccuracyStreakParams.from(Map<String, dynamic> params) {
     return ClassificationAccuracyStreakParams(
       accuracyThreshold: (params['accuracyThreshold'] as num?)?.toDouble() ?? 0.95,
@@ -169,17 +163,16 @@ class ClassificationAccuracyStreakParams {
   }
   final double accuracyThreshold;
   final int streakLength;
-  
+
   Map<String, dynamic> toJson() => {
-    'accuracyThreshold': accuracyThreshold,
-    'streakLength': streakLength,
-  };
-  
+        'accuracyThreshold': accuracyThreshold,
+        'streakLength': streakLength,
+      };
+
   bool validate() => accuracyThreshold > 0 && accuracyThreshold <= 1.0 && streakLength > 0;
 }
 
 class CombinedItemPropertiesParams {
-  
   const CombinedItemPropertiesParams({
     this.material,
     this.tag,
@@ -187,7 +180,7 @@ class CombinedItemPropertiesParams {
     this.category,
     required this.count,
   });
-  
+
   factory CombinedItemPropertiesParams.from(Map<String, dynamic> params) {
     return CombinedItemPropertiesParams(
       material: params['material'] as String?,
@@ -202,15 +195,15 @@ class CombinedItemPropertiesParams {
   final String? era;
   final String? category;
   final int count;
-  
+
   Map<String, dynamic> toJson() => {
-    if (material != null) 'material': material!,
-    if (tag != null) 'tag': tag!,
-    if (era != null) 'era': era!,
-    if (category != null) 'category': category!,
-    'count': count,
-  };
-  
+        if (material != null) 'material': material!,
+        if (tag != null) 'tag': tag!,
+        if (era != null) 'era': era!,
+        if (category != null) 'category': category!,
+        'count': count,
+      };
+
   bool validate() {
     final hasAtLeastOneProperty = material != null || tag != null || era != null || category != null;
     return hasAtLeastOneProperty && count > 0;
@@ -220,9 +213,9 @@ class CombinedItemPropertiesParams {
 // Template interpolation helper
 class TemplateInterpolator {
   static final RegExp _placeholderRegex = RegExp(r'\{([^}]+)\}');
-  
+
   /// Instantiate a template string with the provided values
-  /// 
+  ///
   /// Replaces all placeholders in the format {key} with corresponding values.
   /// If a placeholder has no corresponding value, it remains unchanged.
   static String instantiate(String template, Map<String, String> values) {
@@ -231,18 +224,16 @@ class TemplateInterpolator {
       return values[key] ?? '{$key}'; // Keep placeholder if no value provided
     });
   }
-  
+
   /// Extract all placeholder keys from a template
-  /// 
+  ///
   /// Returns a Set of all unique placeholder keys found in the template.
   static Set<String> extractPlaceholders(String template) {
-    return _placeholderRegex.allMatches(template)
-        .map((match) => match.group(1)!)
-        .toSet();
+    return _placeholderRegex.allMatches(template).map((match) => match.group(1)!).toSet();
   }
-  
+
   /// Validate that all placeholders in template have corresponding values
-  /// 
+  ///
   /// Returns true if all placeholders can be filled with the provided values.
   static bool validateTemplate(String template, Map<String, String> values) {
     final placeholders = extractPlaceholders(template);
@@ -262,13 +253,13 @@ class TriggerCondition {
     final typeValue = json['type'];
     final typeString = typeValue is String ? typeValue : 'specific_item_discovery';
     final type = _triggerTypeMap[typeString] ?? HiddenContentTriggerType.specificItemDiscovery;
-    
+
     return TriggerCondition(
       type: type,
       parameters: Map<String, dynamic>.from(json['parameters'] ?? {}),
     );
   }
-  
+
   final HiddenContentTriggerType type;
   final Map<String, dynamic> parameters;
 
@@ -283,36 +274,30 @@ class TriggerCondition {
   List<String> get items => List<String>.from(parameters['items'] as List<dynamic>? ?? []);
   bool get ordered => parameters['ordered'] as bool? ?? true;
   int get withinSeconds => (parameters['withinSeconds'] as num?)?.toInt() ?? 300;
-  
+
   // Strongly typed parameter objects
-  SpecificItemDiscoveryParams get asSpecificItemDiscovery => 
-      SpecificItemDiscoveryParams.from(parameters);
-  
-  ItemCountByTagParams get asItemCountByTag => 
-      ItemCountByTagParams.from(parameters);
-  
-  ItemCountByCategoryParams get asItemCountByCategory => 
-      ItemCountByCategoryParams.from(parameters);
-  
-  ItemCountByMaterialParams get asItemCountByMaterial => 
-      ItemCountByMaterialParams.from(parameters);
-  
-  SpecificItemSequenceParams get asSpecificItemSequence => 
-      SpecificItemSequenceParams.from(parameters);
-  
-  ClassificationAccuracyStreakParams get asClassificationAccuracyStreak => 
+  SpecificItemDiscoveryParams get asSpecificItemDiscovery => SpecificItemDiscoveryParams.from(parameters);
+
+  ItemCountByTagParams get asItemCountByTag => ItemCountByTagParams.from(parameters);
+
+  ItemCountByCategoryParams get asItemCountByCategory => ItemCountByCategoryParams.from(parameters);
+
+  ItemCountByMaterialParams get asItemCountByMaterial => ItemCountByMaterialParams.from(parameters);
+
+  SpecificItemSequenceParams get asSpecificItemSequence => SpecificItemSequenceParams.from(parameters);
+
+  ClassificationAccuracyStreakParams get asClassificationAccuracyStreak =>
       ClassificationAccuracyStreakParams.from(parameters);
-  
-  CombinedItemPropertiesParams get asCombinedItemProperties => 
-      CombinedItemPropertiesParams.from(parameters);
+
+  CombinedItemPropertiesParams get asCombinedItemProperties => CombinedItemPropertiesParams.from(parameters);
 
   Map<String, dynamic> toJson() => {
-    'type': _triggerTypeReverseMap[type] ?? 'specific_item_discovery',
-    'parameters': parameters,
-  };
+        'type': _triggerTypeReverseMap[type] ?? 'specific_item_discovery',
+        'parameters': parameters,
+      };
 
   /// Validate that the parameters are valid for this trigger type
-  /// 
+  ///
   /// Returns true if all parameters are valid according to the trigger type's requirements.
   /// Uses exception-safe validation to handle malformed data gracefully.
   bool validate() {
@@ -369,7 +354,7 @@ class HiddenContentRule {
     final typeValue = json['unlockedContentType'];
     final typeString = typeValue is String ? typeValue : 'badge';
     final unlockedContentType = _unlockedContentTypeMap[typeString] ?? UnlockedContentType.badge;
-    
+
     return HiddenContentRule(
       ruleId: json['ruleId'] ?? '',
       contentIdToUnlock: json['contentIdToUnlock'] ?? '',
@@ -383,13 +368,12 @@ class HiddenContentRule {
       notificationMessages: List<String>.from(json['notificationMessages'] as List<dynamic>? ?? []),
       allMustMatch: json['allMustMatch'] ?? true,
       anyOfGroups: (json['anyOfGroups'] as List<dynamic>? ?? [])
-          .map((group) => (group as List<dynamic>)
-              .map((tc) => TriggerCondition.fromJson(tc as Map<String, dynamic>))
-              .toList())
+          .map((group) =>
+              (group as List<dynamic>).map((tc) => TriggerCondition.fromJson(tc as Map<String, dynamic>)).toList())
           .toList(),
     );
   }
-  
+
   final String ruleId;
   final String contentIdToUnlock;
   final UnlockedContentType unlockedContentType;
@@ -402,21 +386,20 @@ class HiddenContentRule {
   final List<List<TriggerCondition>> anyOfGroups; // OR groups of AND conditions
 
   Map<String, dynamic> toJson() => {
-    'ruleId': ruleId,
-    'contentIdToUnlock': contentIdToUnlock,
-    'unlockedContentType': _unlockedContentTypeReverseMap[unlockedContentType] ?? 'badge',
-    'triggerConditions': triggerConditions.map((tc) => tc.toJson()).toList(),
-    'description': description,
-    'isActive': isActive,
-    'pointsBonus': pointsBonus,
-    'notificationMessages': notificationMessages,
-    'allMustMatch': allMustMatch,
-    'anyOfGroups': anyOfGroups.map((group) => 
-        group.map((tc) => tc.toJson()).toList()).toList(),
-  };
-  
+        'ruleId': ruleId,
+        'contentIdToUnlock': contentIdToUnlock,
+        'unlockedContentType': _unlockedContentTypeReverseMap[unlockedContentType] ?? 'badge',
+        'triggerConditions': triggerConditions.map((tc) => tc.toJson()).toList(),
+        'description': description,
+        'isActive': isActive,
+        'pointsBonus': pointsBonus,
+        'notificationMessages': notificationMessages,
+        'allMustMatch': allMustMatch,
+        'anyOfGroups': anyOfGroups.map((group) => group.map((tc) => tc.toJson()).toList()).toList(),
+      };
+
   /// Validate the entire rule and all its conditions
-  /// 
+  ///
   /// Performs comprehensive validation including basic rule structure,
   /// all trigger conditions, and anyOfGroups conditions.
   /// Returns false if any validation fails or if an exception occurs.
@@ -425,27 +408,27 @@ class HiddenContentRule {
       // Basic validation
       if (ruleId.isEmpty || contentIdToUnlock.isEmpty) return false;
       if (pointsBonus < 0) return false;
-      
+
       // Validate all trigger conditions
       if (!triggerConditions.every((condition) => condition.validate())) {
         return false;
       }
-      
+
       // Validate anyOfGroups conditions
       for (final group in anyOfGroups) {
         if (!group.every((condition) => condition.validate())) {
           return false;
         }
       }
-      
+
       return true;
     } catch (e) {
       return false;
     }
   }
-  
+
   /// Get all trigger types used in this rule for indexing
-  /// 
+  ///
   /// Returns a Set of all HiddenContentTriggerType values used in both
   /// the main triggerConditions and all anyOfGroups. This is used by
   /// the RuleEvaluationOptimizer for efficient rule indexing.
@@ -457,16 +440,16 @@ class HiddenContentRule {
     }
     return types;
   }
-  
+
   /// Check if this rule should be evaluated for a given trigger type
-  /// 
+  ///
   /// Returns true if this rule contains any conditions that match the
   /// specified trigger type. Used for performance optimization to avoid
   /// evaluating irrelevant rules.
   bool isRelevantForTriggerType(HiddenContentTriggerType triggerType) {
     return getTriggerTypes().contains(triggerType);
   }
-  
+
   HiddenContentRule copyWith({
     String? ruleId,
     String? contentIdToUnlock,
@@ -521,7 +504,7 @@ class DiscoveryQuestTemplate {
       durationDays: json['durationDays'] ?? 7,
     );
   }
-  
+
   final String templateId;
   final String titleTemplate;
   final String descriptionTemplate;
@@ -533,21 +516,21 @@ class DiscoveryQuestTemplate {
   final int durationDays;
 
   /// Instantiate the title template with provided values
-  /// 
+  ///
   /// Uses the TemplateInterpolator to replace placeholders in the title template.
   String instantiateTitle(Map<String, String> values) {
     return TemplateInterpolator.instantiate(titleTemplate, values);
   }
-  
+
   /// Instantiate the description template with provided values
-  /// 
+  ///
   /// Uses the TemplateInterpolator to replace placeholders in the description template.
   String instantiateDescription(Map<String, String> values) {
     return TemplateInterpolator.instantiate(descriptionTemplate, values);
   }
-  
+
   /// Get all placeholders used in title and description templates
-  /// 
+  ///
   /// Returns a Set of all unique placeholder keys required to fully
   /// instantiate both the title and description templates.
   Set<String> getRequiredPlaceholders() {
@@ -555,9 +538,9 @@ class DiscoveryQuestTemplate {
     final descriptionPlaceholders = TemplateInterpolator.extractPlaceholders(descriptionTemplate);
     return {...titlePlaceholders, ...descriptionPlaceholders};
   }
-  
+
   /// Validate the template and objective criteria
-  /// 
+  ///
   /// Checks that all required fields are present and valid.
   /// Returns false if any validation fails or if an exception occurs.
   bool validate() {
@@ -567,33 +550,33 @@ class DiscoveryQuestTemplate {
       }
       if (pointsReward < 0 || durationDays <= 0) return false;
       if (objectiveCriteria.isEmpty) return false;
-      
+
       return true;
     } catch (e) {
       return false;
     }
   }
-  
+
   /// Validate that the provided values can fill all template placeholders
-  /// 
+  ///
   /// Returns true if all placeholders in both title and description templates
   /// have corresponding values in the provided map.
   bool validateInstantiation(Map<String, String> values) {
     return TemplateInterpolator.validateTemplate(titleTemplate, values) &&
-           TemplateInterpolator.validateTemplate(descriptionTemplate, values);
+        TemplateInterpolator.validateTemplate(descriptionTemplate, values);
   }
 
   Map<String, dynamic> toJson() => {
-    'templateId': templateId,
-    'titleTemplate': titleTemplate,
-    'descriptionTemplate': descriptionTemplate,
-    'objectiveCriteria': objectiveCriteria,
-    'pointsReward': pointsReward,
-    'achievementIdOnCompletion': achievementIdOnCompletion,
-    'aiPersonalizationHints': aiPersonalizationHints,
-    'isActive': isActive,
-    'durationDays': durationDays,
-  };
+        'templateId': templateId,
+        'titleTemplate': titleTemplate,
+        'descriptionTemplate': descriptionTemplate,
+        'objectiveCriteria': objectiveCriteria,
+        'pointsReward': pointsReward,
+        'achievementIdOnCompletion': achievementIdOnCompletion,
+        'aiPersonalizationHints': aiPersonalizationHints,
+        'isActive': isActive,
+        'durationDays': durationDays,
+      };
 
   DiscoveryQuestTemplate copyWith({
     String? templateId,
@@ -624,56 +607,56 @@ class DiscoveryQuestTemplate {
 class RuleEvaluationOptimizer {
   static final Map<HiddenContentTriggerType, List<HiddenContentRule>> _rulesByTriggerType = {};
   static final Map<String, HiddenContentRule> _rulesById = {};
-  
+
   /// Index rules by trigger type for fast lookup
-  /// 
+  ///
   /// Creates optimized indexes for rule evaluation. Only active rules are indexed.
   /// Rules are organized by trigger type for O(1) lookup during evaluation.
   /// Call this method whenever rules are updated to refresh the indexes.
   static void indexRules(List<HiddenContentRule> rules) {
     _rulesByTriggerType.clear();
     _rulesById.clear();
-    
+
     for (final rule in rules.where((r) => r.isActive)) {
       _rulesById[rule.ruleId] = rule;
-      
+
       for (final triggerType in rule.getTriggerTypes()) {
         _rulesByTriggerType.putIfAbsent(triggerType, () => []).add(rule);
       }
     }
   }
-  
+
   /// Get only rules relevant to a specific trigger type
-  /// 
+  ///
   /// Returns a list of rules that contain conditions matching the specified
   /// trigger type. This enables efficient rule evaluation by only processing
   /// relevant rules instead of all rules.
   static List<HiddenContentRule> getRulesForTriggerType(HiddenContentTriggerType triggerType) {
     return _rulesByTriggerType[triggerType] ?? [];
   }
-  
+
   /// Get rule by ID for fast lookup
-  /// 
+  ///
   /// Provides O(1) access to rules by their unique ID.
   /// Returns null if the rule is not found or is inactive.
   static HiddenContentRule? getRuleById(String ruleId) {
     return _rulesById[ruleId];
   }
-  
+
   /// Get all active rules
-  /// 
+  ///
   /// Returns a list of all currently active and indexed rules.
   /// Useful for administrative operations and bulk processing.
   static List<HiddenContentRule> getAllActiveRules() {
     return _rulesById.values.toList();
   }
-  
+
   /// Clear the index (call when rules are updated)
-  /// 
+  ///
   /// Clears all internal indexes. Call this before re-indexing with
   /// updated rules to ensure clean state.
   static void clearIndex() {
     _rulesByTriggerType.clear();
     _rulesById.clear();
   }
-} 
+}

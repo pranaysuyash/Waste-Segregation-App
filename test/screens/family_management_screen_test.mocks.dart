@@ -7,18 +7,15 @@ import 'dart:async' as _i5;
 
 import 'package:mockito/mockito.dart' as _i1;
 import 'package:mockito/src/dummies.dart' as _i12;
-import 'package:waste_segregation_app/models/classification_feedback.dart'
-    as _i13;
+import 'package:waste_segregation_app/models/classification_feedback.dart' as _i13;
 import 'package:waste_segregation_app/models/enhanced_family.dart' as _i2;
 import 'package:waste_segregation_app/models/family_invitation.dart' as _i3;
 import 'package:waste_segregation_app/models/filter_options.dart' as _i11;
 import 'package:waste_segregation_app/models/gamification.dart' as _i9;
-import 'package:waste_segregation_app/models/shared_waste_classification.dart'
-    as _i7;
+import 'package:waste_segregation_app/models/shared_waste_classification.dart' as _i7;
 import 'package:waste_segregation_app/models/user_profile.dart' as _i6;
 import 'package:waste_segregation_app/models/waste_classification.dart' as _i8;
-import 'package:waste_segregation_app/services/firebase_family_service.dart'
-    as _i4;
+import 'package:waste_segregation_app/services/firebase_family_service.dart' as _i4;
 import 'package:waste_segregation_app/services/storage_service.dart' as _i10;
 
 // ignore_for_file: type=lint
@@ -54,8 +51,7 @@ class _FakeFamilyStats_1 extends _i1.SmartFake implements _i2.FamilyStats {
         );
 }
 
-class _FakeFamilyInvitation_2 extends _i1.SmartFake
-    implements _i3.FamilyInvitation {
+class _FakeFamilyInvitation_2 extends _i1.SmartFake implements _i3.FamilyInvitation {
   _FakeFamilyInvitation_2(
     Object parent,
     Invocation parentInvocation,
@@ -68,8 +64,7 @@ class _FakeFamilyInvitation_2 extends _i1.SmartFake
 /// A class which mocks [FirebaseFamilyService].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockFirebaseFamilyService extends _i1.Mock
-    implements _i4.FirebaseFamilyService {
+class MockFirebaseFamilyService extends _i1.Mock implements _i4.FirebaseFamilyService {
   MockFirebaseFamilyService() {
     _i1.throwOnMissingStub(this);
   }
@@ -129,8 +124,7 @@ class MockFirebaseFamilyService extends _i1.Mock
       ) as _i5.Future<void>);
 
   @override
-  _i5.Stream<_i2.Family?> getFamilyStream(String? familyId) =>
-      (super.noSuchMethod(
+  _i5.Stream<_i2.Family?> getFamilyStream(String? familyId) => (super.noSuchMethod(
         Invocation.method(
           #getFamilyStream,
           [familyId],
@@ -194,19 +188,16 @@ class MockFirebaseFamilyService extends _i1.Mock
       ) as _i5.Future<void>);
 
   @override
-  _i5.Future<List<_i6.UserProfile>> getFamilyMembers(String? familyId) =>
-      (super.noSuchMethod(
+  _i5.Future<List<_i6.UserProfile>> getFamilyMembers(String? familyId) => (super.noSuchMethod(
         Invocation.method(
           #getFamilyMembers,
           [familyId],
         ),
-        returnValue:
-            _i5.Future<List<_i6.UserProfile>>.value(<_i6.UserProfile>[]),
+        returnValue: _i5.Future<List<_i6.UserProfile>>.value(<_i6.UserProfile>[]),
       ) as _i5.Future<List<_i6.UserProfile>>);
 
   @override
-  _i5.Stream<List<_i6.UserProfile>> getFamilyMembersStream(String? familyId) =>
-      (super.noSuchMethod(
+  _i5.Stream<List<_i6.UserProfile>> getFamilyMembersStream(String? familyId) => (super.noSuchMethod(
         Invocation.method(
           #getFamilyMembersStream,
           [familyId],
@@ -215,8 +206,7 @@ class MockFirebaseFamilyService extends _i1.Mock
       ) as _i5.Stream<List<_i6.UserProfile>>);
 
   @override
-  _i5.Future<_i2.FamilyStats> getFamilyStats(String? familyId) =>
-      (super.noSuchMethod(
+  _i5.Future<_i2.FamilyStats> getFamilyStats(String? familyId) => (super.noSuchMethod(
         Invocation.method(
           #getFamilyStats,
           [familyId],
@@ -231,43 +221,36 @@ class MockFirebaseFamilyService extends _i1.Mock
       ) as _i5.Future<_i2.FamilyStats>);
 
   @override
-  _i5.Future<List<_i7.SharedWasteClassification>> getFamilyClassifications(
-          String? familyId) =>
-      (super.noSuchMethod(
+  _i5.Future<List<_i7.SharedWasteClassification>> getFamilyClassifications(String? familyId) => (super.noSuchMethod(
         Invocation.method(
           #getFamilyClassifications,
           [familyId],
         ),
-        returnValue: _i5.Future<List<_i7.SharedWasteClassification>>.value(
-            <_i7.SharedWasteClassification>[]),
+        returnValue: _i5.Future<List<_i7.SharedWasteClassification>>.value(<_i7.SharedWasteClassification>[]),
       ) as _i5.Future<List<_i7.SharedWasteClassification>>);
 
   @override
-  _i5.Future<Map<String, dynamic>> getFamilyDashboardData(String? familyId) =>
-      (super.noSuchMethod(
+  _i5.Future<Map<String, dynamic>> getFamilyDashboardData(String? familyId) => (super.noSuchMethod(
         Invocation.method(
           #getFamilyDashboardData,
           [familyId],
         ),
-        returnValue:
-            _i5.Future<Map<String, dynamic>>.value(<String, dynamic>{}),
+        returnValue: _i5.Future<Map<String, dynamic>>.value(<String, dynamic>{}),
       ) as _i5.Future<Map<String, dynamic>>);
 
   @override
-  _i5.Stream<List<_i7.SharedWasteClassification>>
-      getFamilyClassificationsStream(
+  _i5.Stream<List<_i7.SharedWasteClassification>> getFamilyClassificationsStream(
     String? familyId, {
     int? limit = 5,
   }) =>
-          (super.noSuchMethod(
-            Invocation.method(
-              #getFamilyClassificationsStream,
-              [familyId],
-              {#limit: limit},
-            ),
-            returnValue:
-                _i5.Stream<List<_i7.SharedWasteClassification>>.empty(),
-          ) as _i5.Stream<List<_i7.SharedWasteClassification>>);
+      (super.noSuchMethod(
+        Invocation.method(
+          #getFamilyClassificationsStream,
+          [familyId],
+          {#limit: limit},
+        ),
+        returnValue: _i5.Stream<List<_i7.SharedWasteClassification>>.empty(),
+      ) as _i5.Stream<List<_i7.SharedWasteClassification>>);
 
   @override
   _i5.Future<void> saveSharedClassification(
@@ -359,8 +342,7 @@ class MockFirebaseFamilyService extends _i1.Mock
           ],
           {#method: method},
         ),
-        returnValue:
-            _i5.Future<_i3.FamilyInvitation>.value(_FakeFamilyInvitation_2(
+        returnValue: _i5.Future<_i3.FamilyInvitation>.value(_FakeFamilyInvitation_2(
           this,
           Invocation.method(
             #createInvitation,
@@ -410,8 +392,7 @@ class MockFirebaseFamilyService extends _i1.Mock
       ) as _i5.Future<void>);
 
   @override
-  _i5.Future<void> resendInvitation(String? invitationId) =>
-      (super.noSuchMethod(
+  _i5.Future<void> resendInvitation(String? invitationId) => (super.noSuchMethod(
         Invocation.method(
           #resendInvitation,
           [invitationId],
@@ -421,8 +402,7 @@ class MockFirebaseFamilyService extends _i1.Mock
       ) as _i5.Future<void>);
 
   @override
-  _i5.Future<void> cancelInvitation(String? invitationId) =>
-      (super.noSuchMethod(
+  _i5.Future<void> cancelInvitation(String? invitationId) => (super.noSuchMethod(
         Invocation.method(
           #cancelInvitation,
           [invitationId],
@@ -432,20 +412,16 @@ class MockFirebaseFamilyService extends _i1.Mock
       ) as _i5.Future<void>);
 
   @override
-  _i5.Future<List<_i3.FamilyInvitation>> getInvitations(String? familyId) =>
-      (super.noSuchMethod(
+  _i5.Future<List<_i3.FamilyInvitation>> getInvitations(String? familyId) => (super.noSuchMethod(
         Invocation.method(
           #getInvitations,
           [familyId],
         ),
-        returnValue: _i5.Future<List<_i3.FamilyInvitation>>.value(
-            <_i3.FamilyInvitation>[]),
+        returnValue: _i5.Future<List<_i3.FamilyInvitation>>.value(<_i3.FamilyInvitation>[]),
       ) as _i5.Future<List<_i3.FamilyInvitation>>);
 
   @override
-  _i5.Stream<List<_i3.FamilyInvitation>> getInvitationsStream(
-          String? familyId) =>
-      (super.noSuchMethod(
+  _i5.Stream<List<_i3.FamilyInvitation>> getInvitationsStream(String? familyId) => (super.noSuchMethod(
         Invocation.method(
           #getInvitationsStream,
           [familyId],
@@ -463,8 +439,7 @@ class MockStorageService extends _i1.Mock implements _i10.StorageService {
   }
 
   @override
-  _i5.Future<void> saveUserProfile(_i6.UserProfile? userProfile) =>
-      (super.noSuchMethod(
+  _i5.Future<void> saveUserProfile(_i6.UserProfile? userProfile) => (super.noSuchMethod(
         Invocation.method(
           #saveUserProfile,
           [userProfile],
@@ -517,16 +492,14 @@ class MockStorageService extends _i1.Mock implements _i10.StorageService {
       ) as _i5.Future<void>);
 
   @override
-  _i5.Future<List<_i8.WasteClassification>> getAllClassifications(
-          {_i11.FilterOptions? filterOptions}) =>
+  _i5.Future<List<_i8.WasteClassification>> getAllClassifications({_i11.FilterOptions? filterOptions}) =>
       (super.noSuchMethod(
         Invocation.method(
           #getAllClassifications,
           [],
           {#filterOptions: filterOptions},
         ),
-        returnValue: _i5.Future<List<_i8.WasteClassification>>.value(
-            <_i8.WasteClassification>[]),
+        returnValue: _i5.Future<List<_i8.WasteClassification>>.value(<_i8.WasteClassification>[]),
       ) as _i5.Future<List<_i8.WasteClassification>>);
 
   @override
@@ -545,14 +518,11 @@ class MockStorageService extends _i1.Mock implements _i10.StorageService {
             #page: page,
           },
         ),
-        returnValue: _i5.Future<List<_i8.WasteClassification>>.value(
-            <_i8.WasteClassification>[]),
+        returnValue: _i5.Future<List<_i8.WasteClassification>>.value(<_i8.WasteClassification>[]),
       ) as _i5.Future<List<_i8.WasteClassification>>);
 
   @override
-  _i5.Future<int> getClassificationsCount(
-          {_i11.FilterOptions? filterOptions}) =>
-      (super.noSuchMethod(
+  _i5.Future<int> getClassificationsCount({_i11.FilterOptions? filterOptions}) => (super.noSuchMethod(
         Invocation.method(
           #getClassificationsCount,
           [],
@@ -562,9 +532,7 @@ class MockStorageService extends _i1.Mock implements _i10.StorageService {
       ) as _i5.Future<int>);
 
   @override
-  _i5.Future<String> exportClassificationsToCSV(
-          {_i11.FilterOptions? filterOptions}) =>
-      (super.noSuchMethod(
+  _i5.Future<String> exportClassificationsToCSV({_i11.FilterOptions? filterOptions}) => (super.noSuchMethod(
         Invocation.method(
           #exportClassificationsToCSV,
           [],
@@ -633,8 +601,7 @@ class MockStorageService extends _i1.Mock implements _i10.StorageService {
       ) as _i5.Future<void>);
 
   @override
-  _i5.Future<void> updateLastCloudSync(DateTime? timestamp) =>
-      (super.noSuchMethod(
+  _i5.Future<void> updateLastCloudSync(DateTime? timestamp) => (super.noSuchMethod(
         Invocation.method(
           #updateLastCloudSync,
           [timestamp],
@@ -658,13 +625,11 @@ class MockStorageService extends _i1.Mock implements _i10.StorageService {
           #getSettings,
           [],
         ),
-        returnValue:
-            _i5.Future<Map<String, dynamic>>.value(<String, dynamic>{}),
+        returnValue: _i5.Future<Map<String, dynamic>>.value(<String, dynamic>{}),
       ) as _i5.Future<Map<String, dynamic>>);
 
   @override
-  _i5.Future<_i8.WasteClassification?> getCachedClassification(String? hash) =>
-      (super.noSuchMethod(
+  _i5.Future<_i8.WasteClassification?> getCachedClassification(String? hash) => (super.noSuchMethod(
         Invocation.method(
           #getCachedClassification,
           [hash],
@@ -735,8 +700,7 @@ class MockStorageService extends _i1.Mock implements _i10.StorageService {
       ) as _i5.Future<void>);
 
   @override
-  _i5.Future<void> saveAnalyticsEvents(List<dynamic>? events) =>
-      (super.noSuchMethod(
+  _i5.Future<void> saveAnalyticsEvents(List<dynamic>? events) => (super.noSuchMethod(
         Invocation.method(
           #saveAnalyticsEvents,
           [events],
@@ -746,14 +710,12 @@ class MockStorageService extends _i1.Mock implements _i10.StorageService {
       ) as _i5.Future<void>);
 
   @override
-  _i5.Future<List<Map<String, dynamic>>> loadAnalyticsEvents() =>
-      (super.noSuchMethod(
+  _i5.Future<List<Map<String, dynamic>>> loadAnalyticsEvents() => (super.noSuchMethod(
         Invocation.method(
           #loadAnalyticsEvents,
           [],
         ),
-        returnValue: _i5.Future<List<Map<String, dynamic>>>.value(
-            <Map<String, dynamic>>[]),
+        returnValue: _i5.Future<List<Map<String, dynamic>>>.value(<Map<String, dynamic>>[]),
       ) as _i5.Future<List<Map<String, dynamic>>>);
 
   @override
@@ -800,9 +762,7 @@ class MockStorageService extends _i1.Mock implements _i10.StorageService {
       ) as _i5.Future<int>);
 
   @override
-  _i5.Future<void> saveClassificationFeedback(
-          _i13.ClassificationFeedback? feedback) =>
-      (super.noSuchMethod(
+  _i5.Future<void> saveClassificationFeedback(_i13.ClassificationFeedback? feedback) => (super.noSuchMethod(
         Invocation.method(
           #saveClassificationFeedback,
           [feedback],
@@ -812,15 +772,13 @@ class MockStorageService extends _i1.Mock implements _i10.StorageService {
       ) as _i5.Future<void>);
 
   @override
-  _i5.Future<List<_i13.ClassificationFeedback>>
-      getAllClassificationFeedback() => (super.noSuchMethod(
-            Invocation.method(
-              #getAllClassificationFeedback,
-              [],
-            ),
-            returnValue: _i5.Future<List<_i13.ClassificationFeedback>>.value(
-                <_i13.ClassificationFeedback>[]),
-          ) as _i5.Future<List<_i13.ClassificationFeedback>>);
+  _i5.Future<List<_i13.ClassificationFeedback>> getAllClassificationFeedback() => (super.noSuchMethod(
+        Invocation.method(
+          #getAllClassificationFeedback,
+          [],
+        ),
+        returnValue: _i5.Future<List<_i13.ClassificationFeedback>>.value(<_i13.ClassificationFeedback>[]),
+      ) as _i5.Future<List<_i13.ClassificationFeedback>>);
 
   @override
   _i5.Future<void> migrateOldClassifications() => (super.noSuchMethod(

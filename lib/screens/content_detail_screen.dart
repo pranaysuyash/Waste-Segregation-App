@@ -23,8 +23,7 @@ class _ContentDetailScreenState extends State<ContentDetailScreen> {
   @override
   void initState() {
     super.initState();
-    final educationalService =
-        Provider.of<EducationalContentService>(context, listen: false);
+    final educationalService = Provider.of<EducationalContentService>(context, listen: false);
     final content = educationalService.getContentById(widget.contentId);
     if (content != null) {
       educationalService.trackContentViewed(content);
@@ -33,8 +32,7 @@ class _ContentDetailScreenState extends State<ContentDetailScreen> {
 
   @override
   void dispose() {
-    final educationalService =
-        Provider.of<EducationalContentService>(context, listen: false);
+    final educationalService = Provider.of<EducationalContentService>(context, listen: false);
     educationalService.endContentView();
     super.dispose();
   }
@@ -88,8 +86,8 @@ class _ContentDetailScreenState extends State<ContentDetailScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-            Container(
-              height: MediaQuery.of(context).size.height * 0.25,
+          Container(
+            height: MediaQuery.of(context).size.height * 0.25,
             width: double.infinity,
             decoration: BoxDecoration(
               color: Colors.grey.shade200,
@@ -157,8 +155,7 @@ class _ContentDetailScreenState extends State<ContentDetailScreen> {
                 ),
                 decoration: BoxDecoration(
                   color: categoryColor.withValues(alpha: 0.1),
-                  borderRadius:
-                      BorderRadius.circular(AppTheme.borderRadiusSmall),
+                  borderRadius: BorderRadius.circular(AppTheme.borderRadiusSmall),
                   border: Border.all(color: categoryColor.withValues(alpha: 0.5)),
                 ),
                 child: Text(
@@ -202,8 +199,7 @@ class _ContentDetailScreenState extends State<ContentDetailScreen> {
                   ),
                   decoration: BoxDecoration(
                     color: Colors.grey.shade200,
-                    borderRadius:
-                        BorderRadius.circular(AppTheme.borderRadiusSmall),
+                    borderRadius: BorderRadius.circular(AppTheme.borderRadiusSmall),
                   ),
                   child: Text(
                     '#$tag',
@@ -301,8 +297,7 @@ class _ContentDetailScreenState extends State<ContentDetailScreen> {
                 ),
                 decoration: BoxDecoration(
                   color: categoryColor.withValues(alpha: 0.1),
-                  borderRadius:
-                      BorderRadius.circular(AppTheme.borderRadiusSmall),
+                  borderRadius: BorderRadius.circular(AppTheme.borderRadiusSmall),
                   border: Border.all(color: categoryColor.withValues(alpha: 0.5)),
                 ),
                 child: Text(
@@ -369,14 +364,13 @@ class _ContentDetailScreenState extends State<ContentDetailScreen> {
                 return Center(
                   child: CircularProgressIndicator(
                     value: loadingProgress.expectedTotalBytes != null
-                        ? loadingProgress.cumulativeBytesLoaded /
-                            loadingProgress.expectedTotalBytes!
+                        ? loadingProgress.cumulativeBytesLoaded / loadingProgress.expectedTotalBytes!
                         : null,
                   ),
                 );
               },
-                errorBuilder: (context, error, stackTrace) => Container(
-                  height: MediaQuery.of(context).size.height * 0.25,
+              errorBuilder: (context, error, stackTrace) => Container(
+                height: MediaQuery.of(context).size.height * 0.25,
                 color: Colors.grey.shade200,
                 child: const Icon(Icons.broken_image, size: 64, color: Colors.grey),
               ),
@@ -413,7 +407,7 @@ class _ContentDetailScreenState extends State<ContentDetailScreen> {
                   const Icon(Icons.remove_red_eye_outlined, size: 16),
                   const SizedBox(width: 4),
                   Text(
-                    content.getFormattedDuration(), 
+                    content.getFormattedDuration(),
                     style: const TextStyle(
                       fontSize: AppTheme.fontSizeSmall,
                       color: AppTheme.textPrimaryColor,
@@ -451,8 +445,7 @@ class _ContentDetailScreenState extends State<ContentDetailScreen> {
                 ),
                 decoration: BoxDecoration(
                   color: categoryColor.withValues(alpha: 0.1),
-                  borderRadius:
-                      BorderRadius.circular(AppTheme.borderRadiusSmall),
+                  borderRadius: BorderRadius.circular(AppTheme.borderRadiusSmall),
                   border: Border.all(color: categoryColor.withValues(alpha: 0.5)),
                 ),
                 child: Text(
@@ -567,8 +560,7 @@ class _ContentDetailScreenState extends State<ContentDetailScreen> {
                 ),
                 decoration: BoxDecoration(
                   color: categoryColor.withValues(alpha: 0.1),
-                  borderRadius:
-                      BorderRadius.circular(AppTheme.borderRadiusSmall),
+                  borderRadius: BorderRadius.circular(AppTheme.borderRadiusSmall),
                   border: Border.all(color: categoryColor.withValues(alpha: 0.5)),
                 ),
                 child: Text(
@@ -649,12 +641,18 @@ class _ContentDetailScreenState extends State<ContentDetailScreen> {
 
   Color _getCategoryColor(String category) {
     switch (category.toLowerCase()) {
-      case 'recycling': return Colors.green;
-      case 'composting': return Colors.brown;
-      case 'waste reduction': return Colors.blue;
-      case 'hazardous waste': return Colors.red;
-      case 'e-waste': return Colors.purple;
-      default: return Colors.grey.shade400;
+      case 'recycling':
+        return Colors.green;
+      case 'composting':
+        return Colors.brown;
+      case 'waste reduction':
+        return Colors.blue;
+      case 'hazardous waste':
+        return Colors.red;
+      case 'e-waste':
+        return Colors.purple;
+      default:
+        return Colors.grey.shade400;
     }
   }
 }
@@ -702,14 +700,14 @@ class _VideoPlayerWidgetState extends State<_VideoPlayerWidget> {
         if (!mounted) return;
         setState(() {
           _error = 'Failed to load video: ${e.toString()}';
-          _isInitialized = true; 
+          _isInitialized = true;
         });
       }));
     } catch (e) {
       if (!mounted) return;
       setState(() {
         _error = 'Invalid video URL or format.';
-         _isInitialized = true; 
+        _isInitialized = true;
       });
     }
   }
@@ -722,9 +720,9 @@ class _VideoPlayerWidgetState extends State<_VideoPlayerWidget> {
 
   @override
   Widget build(BuildContext context) {
-      if (_error != null) {
-        return Container(
-          height: MediaQuery.of(context).size.height * 0.25,
+    if (_error != null) {
+      return Container(
+        height: MediaQuery.of(context).size.height * 0.25,
         color: Colors.black,
         alignment: Alignment.center,
         child: Padding(
@@ -737,9 +735,9 @@ class _VideoPlayerWidgetState extends State<_VideoPlayerWidget> {
         ),
       );
     }
-      if (!_isInitialized || _controller == null || !_controller!.value.isInitialized) {
-        return Container(
-          height: MediaQuery.of(context).size.height * 0.25,
+    if (!_isInitialized || _controller == null || !_controller!.value.isInitialized) {
+      return Container(
+        height: MediaQuery.of(context).size.height * 0.25,
         color: Colors.black,
         alignment: Alignment.center,
         child: const CircularProgressIndicator(),

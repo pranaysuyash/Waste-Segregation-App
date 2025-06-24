@@ -60,10 +60,7 @@ class LeaderboardScreen extends ConsumerWidget {
                 else
                   const SliverFillRemaining(
                     child: Center(
-                       child: Text('No top performers yet.',
-                         style: TextStyle(fontSize: 16, color: Colors.grey)
-                       )
-                    ),
+                        child: Text('No top performers yet.', style: TextStyle(fontSize: 16, color: Colors.grey))),
                   ),
               ],
             ),
@@ -79,9 +76,8 @@ class LeaderboardScreen extends ConsumerWidget {
                 icon: Icons.error_outline,
                 actionText: 'Retry',
                 onAction: () {
-                    ref.invalidate(leaderboardScreenDataProvider);
-                }
-            ),
+                  ref.invalidate(leaderboardScreenDataProvider);
+                }),
           );
         },
       ),
@@ -107,7 +103,10 @@ class LeaderboardScreen extends ConsumerWidget {
           children: [
             Text(
               'Your Position',
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.primary),
+              style: Theme.of(context)
+                  .textTheme
+                  .titleMedium
+                  ?.copyWith(fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.primary),
             ),
             const SizedBox(height: 12),
             Row(
@@ -118,15 +117,17 @@ class LeaderboardScreen extends ConsumerWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text('Rank', style: Theme.of(context).textTheme.labelLarge?.copyWith(color: Colors.grey[700])),
-                      Text('$rankToShow', style: Theme.of(context).textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.bold)),
+                      Text('$rankToShow',
+                          style: Theme.of(context).textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.bold)),
                     ],
                   ),
                 if (pointsToShow != null)
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
-                       Text('Points', style: Theme.of(context).textTheme.labelLarge?.copyWith(color: Colors.grey[700])),
-                       Text('$pointsToShow', style: Theme.of(context).textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.bold)),
+                      Text('Points', style: Theme.of(context).textTheme.labelLarge?.copyWith(color: Colors.grey[700])),
+                      Text('$pointsToShow',
+                          style: Theme.of(context).textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.bold)),
                     ],
                   ),
               ],
@@ -163,7 +164,8 @@ class LeaderboardScreen extends ConsumerWidget {
                     ? ClipOval(child: Image.network(entry.photoUrl!, width: 40, height: 40, fit: BoxFit.cover))
                     : Text(
                         entry.displayName.isNotEmpty ? entry.displayName[0].toUpperCase() : 'U',
-                        style: TextStyle(color: Theme.of(context).colorScheme.onSecondaryContainer, fontWeight: FontWeight.bold),
+                        style: TextStyle(
+                            color: Theme.of(context).colorScheme.onSecondaryContainer, fontWeight: FontWeight.bold),
                       ),
               ),
               title: Text(
@@ -173,7 +175,8 @@ class LeaderboardScreen extends ConsumerWidget {
               subtitle: Text('${entry.points} points'),
               trailing: Text(
                 '#$rank',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.primary),
+                style:
+                    TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.primary),
               ),
             ),
           );
@@ -182,4 +185,4 @@ class LeaderboardScreen extends ConsumerWidget {
       ),
     );
   }
-} 
+}

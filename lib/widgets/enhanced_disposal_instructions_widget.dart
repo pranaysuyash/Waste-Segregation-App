@@ -7,7 +7,6 @@ import 'disposal_instructions_widget.dart';
 
 /// Enhanced widget that fetches LLM-generated disposal instructions
 class EnhancedDisposalInstructionsWidget extends ConsumerWidget {
-
   const EnhancedDisposalInstructionsWidget({
     super.key,
     required this.classification,
@@ -41,29 +40,29 @@ class EnhancedDisposalInstructionsWidget extends ConsumerWidget {
   /// Get material description for LLM generation
   String _getMaterialDescription() {
     final parts = <String>[];
-    
+
     // Add item name if available
     if (classification.itemName.isNotEmpty) {
       parts.add(classification.itemName);
     }
-    
+
     // Add material type if available and different from item name
-    if (classification.materialType != null && 
+    if (classification.materialType != null &&
         classification.materialType!.isNotEmpty &&
         classification.materialType != classification.itemName) {
       parts.add(classification.materialType!);
     }
-    
+
     // Add brand if available
     if (classification.brand != null && classification.brand!.isNotEmpty) {
       parts.add('(${classification.brand})');
     }
-    
+
     // Fallback to category if no specific material info
     if (parts.isEmpty) {
       parts.add(classification.category);
     }
-    
+
     return parts.join(' ');
   }
 
@@ -196,7 +195,6 @@ class EnhancedDisposalInstructionsWidget extends ConsumerWidget {
 
 /// Widget to show both AI and fallback instructions for comparison (debug mode)
 class DebugDisposalInstructionsWidget extends ConsumerWidget {
-
   const DebugDisposalInstructionsWidget({
     super.key,
     required this.classification,
@@ -256,9 +254,9 @@ class DebugDisposalInstructionsWidget extends ConsumerWidget {
           loading: () => const SizedBox.shrink(),
           error: (error, stackTrace) => const SizedBox.shrink(),
         ),
-        
+
         const SizedBox(height: AppTheme.paddingRegular),
-        
+
         // Fallback instructions for comparison
         Container(
           padding: const EdgeInsets.symmetric(
@@ -294,25 +292,25 @@ class DebugDisposalInstructionsWidget extends ConsumerWidget {
 
   String _getMaterialDescription() {
     final parts = <String>[];
-    
+
     if (classification.itemName.isNotEmpty) {
       parts.add(classification.itemName);
     }
-    
-    if (classification.materialType != null && 
+
+    if (classification.materialType != null &&
         classification.materialType!.isNotEmpty &&
         classification.materialType != classification.itemName) {
       parts.add(classification.materialType!);
     }
-    
+
     if (classification.brand != null && classification.brand!.isNotEmpty) {
       parts.add('(${classification.brand})');
     }
-    
+
     if (parts.isEmpty) {
       parts.add(classification.category);
     }
-    
+
     return parts.join(' ');
   }
-} 
+}

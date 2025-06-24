@@ -4,7 +4,6 @@ import 'polished_divider.dart';
 
 /// Enhanced section component with modern spacing and visual hierarchy
 class PolishedSection extends StatelessWidget {
-
   const PolishedSection({
     super.key,
     this.title,
@@ -34,8 +33,8 @@ class PolishedSection extends StatelessWidget {
     this.onTitleTap,
     this.trailing,
     this.crossAxisAlignment = CrossAxisAlignment.start,
-  }) : padding = const EdgeInsets.all(AppThemePolish.spacingComfortable),
-       margin = const EdgeInsets.symmetric(vertical: AppThemePolish.spacingGenerous);
+  })  : padding = const EdgeInsets.all(AppThemePolish.spacingComfortable),
+        margin = const EdgeInsets.symmetric(vertical: AppThemePolish.spacingGenerous);
 
   /// Creates a section with luxurious spacing for hero sections
   const PolishedSection.luxurious({
@@ -50,8 +49,8 @@ class PolishedSection extends StatelessWidget {
     this.onTitleTap,
     this.trailing,
     this.crossAxisAlignment = CrossAxisAlignment.start,
-  }) : padding = const EdgeInsets.all(AppThemePolish.spacingLuxurious),
-       margin = const EdgeInsets.symmetric(vertical: AppThemePolish.spacingComfortable);
+  })  : padding = const EdgeInsets.all(AppThemePolish.spacingLuxurious),
+        margin = const EdgeInsets.symmetric(vertical: AppThemePolish.spacingComfortable);
   final String? title;
   final String? subtitle;
   final Widget? titleWidget;
@@ -68,7 +67,7 @@ class PolishedSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    
+
     return Container(
       margin: margin ?? const EdgeInsets.symmetric(vertical: 16.0),
       decoration: backgroundColor != null
@@ -124,9 +123,7 @@ class PolishedSection extends StatelessWidget {
                     style: theme.textTheme.headlineSmall?.copyWith(
                       fontWeight: FontWeight.bold,
                       height: AppThemePolish.lineHeightComfortable,
-                      color: onTitleTap != null 
-                          ? theme.colorScheme.primary 
-                          : null,
+                      color: onTitleTap != null ? theme.colorScheme.primary : null,
                     ),
                   ),
 
@@ -168,7 +165,6 @@ class PolishedSection extends StatelessWidget {
 
 /// Enhanced section header with modern styling
 class PolishedSectionHeader extends StatelessWidget {
-
   const PolishedSectionHeader({
     super.key,
     required this.title,
@@ -190,7 +186,7 @@ class PolishedSectionHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    
+
     return GestureDetector(
       onTap: onTap,
       child: Container(
@@ -223,9 +219,7 @@ class PolishedSectionHeader extends StatelessWidget {
                     style: theme.textTheme.titleLarge?.copyWith(
                       fontWeight: FontWeight.bold,
                       height: AppThemePolish.lineHeightComfortable,
-                      color: onTap != null 
-                          ? theme.colorScheme.primary 
-                          : null,
+                      color: onTap != null ? theme.colorScheme.primary : null,
                     ),
                   ),
                   if (subtitle != null) ...[
@@ -262,4 +256,4 @@ class PolishedSectionHeader extends StatelessWidget {
       ),
     );
   }
-} 
+}

@@ -71,7 +71,7 @@ void main() {
         await tester.pumpAndSettle();
 
         final context = tester.element(find.byType(Builder).first);
-        
+
         final primaryStyle = UIConsistency.primaryButtonStyle(context);
         final secondaryStyle = UIConsistency.secondaryButtonStyle(context);
         final tertiaryStyle = UIConsistency.tertiaryButtonStyle(context);
@@ -82,9 +82,9 @@ void main() {
         final tertiaryElevation = tertiaryStyle.elevation?.resolve({}) ?? 0;
 
         expect(primaryElevation, greaterThanOrEqualTo(secondaryElevation),
-               reason: 'Primary buttons should have equal or higher elevation than secondary');
+            reason: 'Primary buttons should have equal or higher elevation than secondary');
         expect(secondaryElevation, greaterThanOrEqualTo(tertiaryElevation),
-               reason: 'Secondary buttons should have equal or higher elevation than tertiary');
+            reason: 'Secondary buttons should have equal or higher elevation than tertiary');
       });
 
       testWidgets('Destructive buttons have appropriate warning styling', (WidgetTester tester) async {
@@ -96,16 +96,14 @@ void main() {
 
         final backgroundColor = destructiveStyle.backgroundColor?.resolve({});
         expect(backgroundColor, isNotNull);
-        
+
         // Should use red-ish color for destructive actions
         final red = backgroundColor!.r;
         final green = backgroundColor.g;
         final blue = backgroundColor.b;
-        
-        expect(red, greaterThan(green),
-               reason: 'Destructive buttons should have more red than green');
-        expect(red, greaterThan(blue),
-               reason: 'Destructive buttons should have more red than blue');
+
+        expect(red, greaterThan(green), reason: 'Destructive buttons should have more red than green');
+        expect(red, greaterThan(blue), reason: 'Destructive buttons should have more red than blue');
       });
 
       testWidgets('Success buttons have appropriate positive styling', (WidgetTester tester) async {
@@ -117,16 +115,14 @@ void main() {
 
         final backgroundColor = successStyle.backgroundColor?.resolve({});
         expect(backgroundColor, isNotNull);
-        
+
         // Should use green-ish color for success actions
         final red = backgroundColor!.r;
         final green = backgroundColor.g;
         final blue = backgroundColor.b;
-        
-        expect(green, greaterThan(red),
-               reason: 'Success buttons should have more green than red');
-        expect(green, greaterThan(blue),
-               reason: 'Success buttons should have more green than blue');
+
+        expect(green, greaterThan(red), reason: 'Success buttons should have more green than red');
+        expect(green, greaterThan(blue), reason: 'Success buttons should have more green than blue');
       });
     });
 
@@ -137,7 +133,7 @@ void main() {
         await tester.pumpAndSettle();
 
         final context = tester.element(find.byType(Builder).first);
-        
+
         final buttonStyles = [
           UIConsistency.primaryButtonStyle(context),
           UIConsistency.secondaryButtonStyle(context),
@@ -150,8 +146,7 @@ void main() {
           if (expectedPadding == null) {
             expectedPadding = padding;
           } else {
-            expect(padding, equals(expectedPadding),
-                   reason: 'All button types should have consistent padding');
+            expect(padding, equals(expectedPadding), reason: 'All button types should have consistent padding');
           }
         }
       });
@@ -162,19 +157,19 @@ void main() {
 
         // Find the actual button widgets, not just text
         final buttonFinders = [
-          find.byType(ElevatedButton).first,  // Primary
-          find.byType(OutlinedButton).first,  // Secondary
-          find.byType(TextButton).first,      // Tertiary
+          find.byType(ElevatedButton).first, // Primary
+          find.byType(OutlinedButton).first, // Secondary
+          find.byType(TextButton).first, // Tertiary
         ];
 
         for (final finder in buttonFinders) {
           final buttonSize = tester.getSize(finder);
-          
+
           // Material Design minimum touch target is 48x48
           expect(buttonSize.height, greaterThanOrEqualTo(48.0),
-                 reason: 'Buttons should meet minimum touch target height of 48px');
+              reason: 'Buttons should meet minimum touch target height of 48px');
           expect(buttonSize.width, greaterThanOrEqualTo(48.0),
-                 reason: 'Buttons should meet minimum touch target width of 48px');
+              reason: 'Buttons should meet minimum touch target width of 48px');
         }
       });
 
@@ -183,13 +178,12 @@ void main() {
         await tester.pumpAndSettle();
 
         final textWidgets = tester.widgetList<Text>(find.byType(Text));
-        
+
         for (final textWidget in textWidgets) {
           final fontSize = textWidget.style?.fontSize ?? 14.0;
-          expect(fontSize, greaterThanOrEqualTo(14.0),
-                 reason: 'Button text should be at least 14px for readability');
+          expect(fontSize, greaterThanOrEqualTo(14.0), reason: 'Button text should be at least 14px for readability');
           expect(fontSize, lessThanOrEqualTo(20.0),
-                 reason: 'Button text should not exceed 20px to maintain button proportions');
+              reason: 'Button text should not exceed 20px to maintain button proportions');
         }
       });
     });
@@ -201,7 +195,7 @@ void main() {
         await tester.pumpAndSettle();
 
         final context = tester.element(find.byType(Builder).first);
-        
+
         final buttonStyles = [
           UIConsistency.primaryButtonStyle(context),
           UIConsistency.secondaryButtonStyle(context),
@@ -212,11 +206,11 @@ void main() {
         for (final style in buttonStyles) {
           final backgroundColor = style.backgroundColor?.resolve({});
           final foregroundColor = style.foregroundColor?.resolve({});
-          
+
           if (backgroundColor != null && foregroundColor != null) {
             final contrast = _calculateContrast(foregroundColor, backgroundColor);
             expect(contrast, greaterThan(4.5),
-                   reason: 'Button text should have at least 4.5:1 contrast ratio with background');
+                reason: 'Button text should have at least 4.5:1 contrast ratio with background');
           }
         }
       });
@@ -235,7 +229,7 @@ void main() {
           // Verify button can be tapped
           await tester.tap(finder);
           await tester.pumpAndSettle();
-          
+
           // No exceptions should be thrown
           expect(tester.takeException(), isNull);
         }
@@ -253,19 +247,19 @@ void main() {
 
         // FIXED: Test actual button widgets, not text widgets for touch target compliance
         final buttonFinders = [
-          find.byType(ElevatedButton).first,  // Primary Button
-          find.byType(OutlinedButton).first,  // Secondary Button  
-          find.byType(TextButton).first,      // Tertiary Button
+          find.byType(ElevatedButton).first, // Primary Button
+          find.byType(OutlinedButton).first, // Secondary Button
+          find.byType(TextButton).first, // Tertiary Button
         ];
 
         for (final finder in buttonFinders) {
           final buttonSize = tester.getSize(finder);
-          
+
           // Buttons should still meet minimum touch targets when scaled
           expect(buttonSize.height, greaterThanOrEqualTo(48.0),
-                 reason: 'Scaled buttons should still meet minimum touch target height');
+              reason: 'Scaled buttons should still meet minimum touch target height');
           expect(buttonSize.width, greaterThanOrEqualTo(48.0),
-                 reason: 'Scaled buttons should still meet minimum touch target width');
+              reason: 'Scaled buttons should still meet minimum touch target width');
         }
       });
     });
@@ -290,11 +284,11 @@ void main() {
 
         // Pressed state should be different from normal
         expect(pressedColor, isNot(equals(normalColor)),
-               reason: 'Pressed button should have different color than normal state');
+            reason: 'Pressed button should have different color than normal state');
 
         // Disabled state should be different from normal
         expect(disabledColor, isNot(equals(normalColor)),
-               reason: 'Disabled button should have different color than normal state');
+            reason: 'Disabled button should have different color than normal state');
       });
 
       testWidgets('Disabled buttons are properly styled', (WidgetTester tester) async {
@@ -332,7 +326,7 @@ void main() {
         // Verify disabled button cannot be tapped
         await tester.tap(disabledButton);
         await tester.pumpAndSettle();
-        
+
         // No visual changes should occur for disabled button
         expect(tester.takeException(), isNull);
       });
@@ -345,10 +339,10 @@ void main() {
         await tester.pumpAndSettle();
 
         final textWidgets = tester.widgetList<Text>(find.byType(Text));
-        
+
         for (final textWidget in textWidgets) {
           expect(textWidget.textAlign, anyOf(isNull, equals(TextAlign.center)),
-                 reason: 'Button text should be center-aligned by default');
+              reason: 'Button text should be center-aligned by default');
         }
       });
 
@@ -393,9 +387,9 @@ void main() {
 double _calculateContrast(Color color1, Color color2) {
   final luminance1 = color1.computeLuminance();
   final luminance2 = color2.computeLuminance();
-  
+
   final lighter = luminance1 > luminance2 ? luminance1 : luminance2;
   final darker = luminance1 > luminance2 ? luminance2 : luminance1;
-  
+
   return (lighter + 0.05) / (darker + 0.05);
-} 
+}

@@ -16,7 +16,6 @@ class LegalSupportSection extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         SettingsSectionHeader(title: t.legalSupportSection),
-        
         SettingTile(
           icon: Icons.privacy_tip,
           iconColor: SettingsTheme.legalColor,
@@ -28,7 +27,6 @@ class LegalSupportSection extends StatelessWidget {
             'assets/docs/privacy_policy.md',
           ),
         ),
-        
         SettingTile(
           icon: Icons.description,
           iconColor: SettingsTheme.legalColor,
@@ -40,7 +38,6 @@ class LegalSupportSection extends StatelessWidget {
             'assets/docs/terms_of_service.md',
           ),
         ),
-        
         SettingTile(
           icon: Icons.help,
           iconColor: Colors.blue,
@@ -48,7 +45,6 @@ class LegalSupportSection extends StatelessWidget {
           subtitle: t.helpSupportSubtitle,
           onTap: () => _showSupportOptions(context),
         ),
-        
         SettingTile(
           icon: Icons.info_outline,
           iconColor: Colors.indigo,
@@ -61,8 +57,8 @@ class LegalSupportSection extends StatelessWidget {
   }
 
   void _navigateToLegalDocument(
-    BuildContext context, 
-    String title, 
+    BuildContext context,
+    String title,
     String assetPath,
   ) {
     Navigator.push(
@@ -90,11 +86,10 @@ class LegalSupportSection extends StatelessWidget {
               Text(
                 t.helpSupport,
                 style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
+                      fontWeight: FontWeight.bold,
+                    ),
               ),
               const SizedBox(height: 16),
-              
               ListTile(
                 leading: const Icon(Icons.email, color: Colors.blue),
                 title: Text(t.contactSupport),
@@ -104,7 +99,6 @@ class LegalSupportSection extends StatelessWidget {
                   _contactSupport(context);
                 },
               ),
-              
               ListTile(
                 leading: const Icon(Icons.bug_report, color: Colors.orange),
                 title: Text(t.reportBug),
@@ -114,7 +108,6 @@ class LegalSupportSection extends StatelessWidget {
                   _reportBug(context);
                 },
               ),
-              
               ListTile(
                 leading: const Icon(Icons.star, color: Colors.amber),
                 title: Text(t.rateApp),
@@ -124,7 +117,6 @@ class LegalSupportSection extends StatelessWidget {
                   _rateApp(context);
                 },
               ),
-              
               const SizedBox(height: 16),
             ],
           ),
@@ -144,7 +136,8 @@ class LegalSupportSection extends StatelessWidget {
         color: Colors.green,
       ),
       children: [
-        const Text('A smart waste classification app that helps you sort waste correctly and track your environmental impact.'),
+        const Text(
+            'A smart waste classification app that helps you sort waste correctly and track your environmental impact.'),
         const SizedBox(height: 16),
         const Text('Built with Flutter and powered by AI to make waste management easier and more effective.'),
       ],
@@ -174,4 +167,4 @@ class LegalSupportSection extends StatelessWidget {
       'App rating feature coming soon!',
     );
   }
-} 
+}

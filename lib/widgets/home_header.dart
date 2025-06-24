@@ -9,13 +9,12 @@ import '../providers/token_providers.dart';
 /// Replaces the verbose welcome section with essential data chips only
 class HomeHeader extends ConsumerStatefulWidget {
   const HomeHeader({super.key});
-  
+
   @override
   HomeHeaderState createState() => HomeHeaderState();
 }
 
-class HomeHeaderState extends ConsumerState<HomeHeader>
-    with SingleTickerProviderStateMixin {
+class HomeHeaderState extends ConsumerState<HomeHeader> with SingleTickerProviderStateMixin {
   int? _prevPts;
   late final AnimationController _pulse;
 
@@ -59,7 +58,7 @@ class HomeHeaderState extends ConsumerState<HomeHeader>
     final unread = unreadAsync.valueOrNull ?? 0;
     final (done, total) = todayGoalAsync.valueOrNull ?? (0, 10);
     final userProfile = userProfileAsync.valueOrNull;
-    
+
     // Get token wallet for token display
     final tokenWalletAsync = ref.watch(tokenWalletProvider);
 
@@ -80,135 +79,135 @@ class HomeHeaderState extends ConsumerState<HomeHeader>
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
             children: [
-            // Row 1: avatar + greeting + points + bell (responsive)
-            LayoutBuilder(
-              builder: (context, constraints) {
-                final isVerySmallScreen = constraints.maxWidth < 300;
-                
-                return Row(
-                  children: [
-                    Semantics(
-                      label: 'User avatar for ${userProfile?.displayName ?? 'User'}',
-                      child: CircleAvatar(
-                        radius: isVerySmallScreen ? 20 : 28,
-                        child: _buildAvatar(userProfile),
-                      ),
-                    ),
-                    SizedBox(width: isVerySmallScreen ? 8 : 16),
-                    Expanded(
-                      flex: 3,
-                      child: _buildGreeting(context, userProfile),
-                    ),
-                    if (!isVerySmallScreen) ...[
-                      Semantics(
-                        label: 'Current points: $pts',
-                        child: _PointsPill(points: pts, pulse: _pulse),
-                      ),
-                      const SizedBox(width: 8),
-                      // Token display
-                      tokenWalletAsync.when(
-                        data: (wallet) => Semantics(
-                          label: 'AI tokens: ${wallet?.balance ?? 0}',
-                          child: _TokenPill(tokens: wallet?.balance ?? 0),
-                        ),
-                        loading: () => const SizedBox.shrink(),
-                        error: (_, __) => const SizedBox.shrink(),
-                      ),
-                      const SizedBox(width: 12),
-                    ],
-                    Semantics(
-                      label: unread > 0 ? '$unread unread notifications' : 'No unread notifications',
-                      button: true,
-                      child: _Bell(unread: unread),
-                    ),
-                  ],
-                );
-              },
-            ),
-            const SizedBox(height: 20),
-            // Row 2: streak + goal (responsive)
-            LayoutBuilder(
-              builder: (context, constraints) {
-                final isSmallScreen = constraints.maxWidth < 350;
-                
-                if (isSmallScreen) {
-                  // Stack vertically on small screens
-                  return Column(
-                    children: [
-                      Semantics(
-                        label: 'Current streak: ${_getCurrentStreak(profile)} days',
-                        child: _SmallPill(
-                          icon: Icons.local_fire_department,
-                          label: '${_getCurrentStreak(profile)}-day streak',
-                          bg: const Color(0xFFFFF2E5), // peach
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                      Semantics(
-                        label: 'Today\'s goal progress: $done out of $total items completed',
-                        child: Column(
-                          children: [
-                            Text(
-                              "TODAY'S GOAL",
-                              style: Theme.of(context).textTheme.labelSmall!.copyWith(
-                                letterSpacing: 1.2,
-                                color: Theme.of(context).colorScheme.onSurfaceVariant,
-                              ),
-                            ),
-                            Text(
-                              '$done/$total items',
-                              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                                color: Theme.of(context).colorScheme.onSurface,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  );
-                } else {
-                  // Horizontal layout for larger screens
+              // Row 1: avatar + greeting + points + bell (responsive)
+              LayoutBuilder(
+                builder: (context, constraints) {
+                  final isVerySmallScreen = constraints.maxWidth < 300;
+
                   return Row(
                     children: [
                       Semantics(
-                        label: 'Current streak: ${_getCurrentStreak(profile)} days',
-                        child: _SmallPill(
-                          icon: Icons.local_fire_department,
-                          label: '${_getCurrentStreak(profile)}-day streak',
-                          bg: const Color(0xFFFFF2E5), // peach
+                        label: 'User avatar for ${userProfile?.displayName ?? 'User'}',
+                        child: CircleAvatar(
+                          radius: isVerySmallScreen ? 20 : 28,
+                          child: _buildAvatar(userProfile),
                         ),
                       ),
-                      const Spacer(),
-                      Semantics(
-                        label: 'Today\'s goal progress: $done out of $total items completed',
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.end,
-                          children: [
-                            Text(
-                              "TODAY'S GOAL",
-                              style: Theme.of(context).textTheme.labelSmall!.copyWith(
-                                letterSpacing: 1.2,
-                                color: Theme.of(context).colorScheme.onSurfaceVariant,
-                              ),
-                            ),
-                            Text(
-                              '$done/$total items',
-                              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                                color: Theme.of(context).colorScheme.onSurface,
-                              ),
-                            ),
-                          ],
+                      SizedBox(width: isVerySmallScreen ? 8 : 16),
+                      Expanded(
+                        flex: 3,
+                        child: _buildGreeting(context, userProfile),
+                      ),
+                      if (!isVerySmallScreen) ...[
+                        Semantics(
+                          label: 'Current points: $pts',
+                          child: _PointsPill(points: pts, pulse: _pulse),
                         ),
+                        const SizedBox(width: 8),
+                        // Token display
+                        tokenWalletAsync.when(
+                          data: (wallet) => Semantics(
+                            label: 'AI tokens: ${wallet?.balance ?? 0}',
+                            child: _TokenPill(tokens: wallet?.balance ?? 0),
+                          ),
+                          loading: () => const SizedBox.shrink(),
+                          error: (_, __) => const SizedBox.shrink(),
+                        ),
+                        const SizedBox(width: 12),
+                      ],
+                      Semantics(
+                        label: unread > 0 ? '$unread unread notifications' : 'No unread notifications',
+                        button: true,
+                        child: _Bell(unread: unread),
                       ),
                     ],
                   );
-                }
-              },
-            ),
-          ],
+                },
+              ),
+              const SizedBox(height: 20),
+              // Row 2: streak + goal (responsive)
+              LayoutBuilder(
+                builder: (context, constraints) {
+                  final isSmallScreen = constraints.maxWidth < 350;
+
+                  if (isSmallScreen) {
+                    // Stack vertically on small screens
+                    return Column(
+                      children: [
+                        Semantics(
+                          label: 'Current streak: ${_getCurrentStreak(profile)} days',
+                          child: _SmallPill(
+                            icon: Icons.local_fire_department,
+                            label: '${_getCurrentStreak(profile)}-day streak',
+                            bg: const Color(0xFFFFF2E5), // peach
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        Semantics(
+                          label: 'Today\'s goal progress: $done out of $total items completed',
+                          child: Column(
+                            children: [
+                              Text(
+                                "TODAY'S GOAL",
+                                style: Theme.of(context).textTheme.labelSmall!.copyWith(
+                                      letterSpacing: 1.2,
+                                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                                    ),
+                              ),
+                              Text(
+                                '$done/$total items',
+                                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                                      color: Theme.of(context).colorScheme.onSurface,
+                                    ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    );
+                  } else {
+                    // Horizontal layout for larger screens
+                    return Row(
+                      children: [
+                        Semantics(
+                          label: 'Current streak: ${_getCurrentStreak(profile)} days',
+                          child: _SmallPill(
+                            icon: Icons.local_fire_department,
+                            label: '${_getCurrentStreak(profile)}-day streak',
+                            bg: const Color(0xFFFFF2E5), // peach
+                          ),
+                        ),
+                        const Spacer(),
+                        Semantics(
+                          label: 'Today\'s goal progress: $done out of $total items completed',
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            children: [
+                              Text(
+                                "TODAY'S GOAL",
+                                style: Theme.of(context).textTheme.labelSmall!.copyWith(
+                                      letterSpacing: 1.2,
+                                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                                    ),
+                              ),
+                              Text(
+                                '$done/$total items',
+                                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                                      color: Theme.of(context).colorScheme.onSurface,
+                                    ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    );
+                  }
+                },
+              ),
+            ],
+          ),
         ),
       ),
-    ),
     );
   }
 
@@ -241,7 +240,7 @@ class HomeHeaderState extends ConsumerState<HomeHeader>
   Widget _buildAvatar(UserProfile? userProfile) {
     final displayName = userProfile?.displayName ?? 'User';
     final initials = displayName.split(' ').map((n) => n.isNotEmpty ? n[0] : '').take(2).join().toUpperCase();
-    
+
     return Text(
       initials.isNotEmpty ? initials : 'U',
       style: const TextStyle(
@@ -253,14 +252,18 @@ class HomeHeaderState extends ConsumerState<HomeHeader>
 
   Widget _buildGreeting(BuildContext context, UserProfile? userProfile) {
     final h = TimeOfDay.now().hour;
-    final slot = h < 12 ? 'morning' : h < 18 ? 'afternoon' : 'evening';
+    final slot = h < 12
+        ? 'morning'
+        : h < 18
+            ? 'afternoon'
+            : 'evening';
     final firstName = userProfile?.displayName?.split(' ').first ?? 'Eco-hero';
-    
+
     return Text(
       'Good $slot, $firstName',
       style: Theme.of(context).textTheme.titleMedium!.copyWith(
-        fontWeight: FontWeight.bold,
-      ),
+            fontWeight: FontWeight.bold,
+          ),
     );
   }
 
@@ -274,7 +277,7 @@ class HomeHeaderState extends ConsumerState<HomeHeader>
 /// Points pill with pulse animation
 class _PointsPill extends StatelessWidget {
   const _PointsPill({required this.points, required this.pulse});
-  
+
   final int points;
   final AnimationController pulse;
 
@@ -305,7 +308,7 @@ class _PointsPill extends StatelessWidget {
 /// Token pill showing AI token balance
 class _TokenPill extends StatelessWidget {
   const _TokenPill({required this.tokens});
-  
+
   final int tokens;
 
   @override
@@ -330,7 +333,7 @@ class _TokenPill extends StatelessWidget {
 /// Bell with wiggle animation for notifications
 class _Bell extends StatefulWidget {
   const _Bell({required this.unread});
-  
+
   final int unread;
 
   @override
@@ -377,7 +380,7 @@ class _BellState extends State<_Bell> with SingleTickerProviderStateMixin {
           alignment: Alignment.center,
           children: [
             Icon(
-              Icons.notifications_outlined, 
+              Icons.notifications_outlined,
               size: 28,
               color: Theme.of(context).colorScheme.onSurface,
             ),
@@ -419,10 +422,10 @@ class _SmallPill extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final textColor = Theme.of(context).brightness == Brightness.dark 
+    final textColor = Theme.of(context).brightness == Brightness.dark
         ? Theme.of(context).colorScheme.onSurfaceVariant
         : Colors.grey[700]!;
-        
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
@@ -433,8 +436,8 @@ class _SmallPill extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           Icon(
-            icon, 
-            size: 16, 
+            icon,
+            size: 16,
             color: textColor,
           ),
           const SizedBox(width: 6),
@@ -450,4 +453,4 @@ class _SmallPill extends StatelessWidget {
       ),
     );
   }
-} 
+}

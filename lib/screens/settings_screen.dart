@@ -32,7 +32,6 @@ import '../services/cloud_storage_service.dart';
 import '../services/firebase_cleanup_service.dart';
 import 'package:waste_segregation_app/utils/waste_app_logger.dart';
 
-
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
 
@@ -59,7 +58,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final adService = Provider.of<AdService>(context, listen: false);
     final analyticsService = Provider.of<AnalyticsService>(context, listen: false);
     final googleDriveService = Provider.of<GoogleDriveService>(context, listen: false);
-    
+
     // Set context for ads
     adService.setInClassificationFlow(false);
     adService.setInEducationalContent(false);
@@ -93,12 +92,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
             child: Text(
               l10n.accountSection,
               style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.bold,
-                color: Theme.of(context).colorScheme.primary,
-              ),
+                    fontWeight: FontWeight.bold,
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
             ),
           ),
-          
+
           // Sign Out / Switch Account - Moved to top for better accessibility
           Card(
             margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
@@ -106,7 +105,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               future: googleDriveService.isSignedIn(),
               builder: (context, snapshot) {
                 final isSignedIn = snapshot.data ?? false;
-                
+
                 return ListTile(
                   leading: Container(
                     padding: const EdgeInsets.all(8),
@@ -127,9 +126,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     ),
                   ),
                   subtitle: Text(
-                    isSignedIn 
-                        ? l10n.signOutSubtitle
-                        : l10n.guestModeSubtitle,
+                    isSignedIn ? l10n.signOutSubtitle : l10n.guestModeSubtitle,
                   ),
                   trailing: Icon(
                     Icons.chevron_right,
@@ -140,21 +137,21 @@ class _SettingsScreenState extends State<SettingsScreen> {
               },
             ),
           ),
-          
+
           const SizedBox(height: 16),
-          
+
           // Premium Features Section
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
             child: Text(
               l10n.premiumSection,
               style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.bold,
-                color: Theme.of(context).colorScheme.primary,
-              ),
+                    fontWeight: FontWeight.bold,
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
             ),
           ),
-          
+
           Card(
             margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
             child: ListTile(
@@ -182,18 +179,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
               },
             ),
           ),
-          
+
           const SizedBox(height: 16),
-          
+
           // App Settings Section Header
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
             child: Text(
               l10n.appSettingsSection,
               style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.bold,
-                color: Theme.of(context).colorScheme.primary,
-              ),
+                    fontWeight: FontWeight.bold,
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
             ),
           ),
 
@@ -334,7 +331,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     },
                   ),
                   // Test new home screen implementation
-
                 ],
               ),
             ),
@@ -361,82 +357,82 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   ),
                   subtitle: const Text('Customize navigation behavior'),
                   children: [
-                  Semantics(
-                    label: 'Toggle bottom navigation bar',
-                    child: AnimatedSettingsToggle(
-                      title: 'Bottom Navigation',
-                      subtitle: 'Show bottom navigation bar',
-                      value: navSettings.bottomNavEnabled,
-                      onChanged: (value) async {
-                        await navSettings.setBottomNavEnabled(value);
-                        if (mounted) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text('Bottom navigation ${value ? 'enabled' : 'disabled'}'),
-                              duration: const Duration(seconds: 1),
-                            ),
-                          );
-                        }
-                      },
-                    ),
-                  ),
-                  Semantics(
-                    label: 'Toggle floating camera button',
-                    child: SwitchListTile(
-                      title: const Text('Camera Button (FAB)'),
-                      subtitle: const Text('Show floating camera button'),
-                      value: navSettings.fabEnabled,
-                      onChanged: (value) async {
-                        await navSettings.setFabEnabled(value);
-                        if (mounted) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text('Camera button ${value ? 'enabled' : 'disabled'}'),
-                              duration: const Duration(seconds: 1),
-                            ),
-                          );
-                        }
-                      },
-                    ),
-                  ),
-                  ListTile(
-                    title: const Text('Navigation Style'),
-                    subtitle: Text('Current: ${navSettings.navigationStyle}'),
-                    trailing: DropdownButton<String>(
-                      value: navSettings.navigationStyle,
-                      items: const [
-                        DropdownMenuItem(
-                          value: 'glassmorphism',
-                          child: Text('Glassmorphism'),
-                        ),
-                        DropdownMenuItem(
-                          value: 'material3',
-                          child: Text('Material 3'),
-                        ),
-                        DropdownMenuItem(
-                          value: 'floating',
-                          child: Text('Floating'),
-                        ),
-                      ],
-                      onChanged: (value) async {
-                        if (value != null) {
-                          await navSettings.setNavigationStyle(value);
+                    Semantics(
+                      label: 'Toggle bottom navigation bar',
+                      child: AnimatedSettingsToggle(
+                        title: 'Bottom Navigation',
+                        subtitle: 'Show bottom navigation bar',
+                        value: navSettings.bottomNavEnabled,
+                        onChanged: (value) async {
+                          await navSettings.setBottomNavEnabled(value);
                           if (mounted) {
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
-                                content: Text('Navigation style changed to $value'),
+                                content: Text('Bottom navigation ${value ? 'enabled' : 'disabled'}'),
                                 duration: const Duration(seconds: 1),
                               ),
                             );
                           }
-                        }
-                      },
+                        },
+                      ),
                     ),
-                  ),
-                ],
-              );
-            },
-          ),
+                    Semantics(
+                      label: 'Toggle floating camera button',
+                      child: SwitchListTile(
+                        title: const Text('Camera Button (FAB)'),
+                        subtitle: const Text('Show floating camera button'),
+                        value: navSettings.fabEnabled,
+                        onChanged: (value) async {
+                          await navSettings.setFabEnabled(value);
+                          if (mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text('Camera button ${value ? 'enabled' : 'disabled'}'),
+                                duration: const Duration(seconds: 1),
+                              ),
+                            );
+                          }
+                        },
+                      ),
+                    ),
+                    ListTile(
+                      title: const Text('Navigation Style'),
+                      subtitle: Text('Current: ${navSettings.navigationStyle}'),
+                      trailing: DropdownButton<String>(
+                        value: navSettings.navigationStyle,
+                        items: const [
+                          DropdownMenuItem(
+                            value: 'glassmorphism',
+                            child: Text('Glassmorphism'),
+                          ),
+                          DropdownMenuItem(
+                            value: 'material3',
+                            child: Text('Material 3'),
+                          ),
+                          DropdownMenuItem(
+                            value: 'floating',
+                            child: Text('Floating'),
+                          ),
+                        ],
+                        onChanged: (value) async {
+                          if (value != null) {
+                            await navSettings.setNavigationStyle(value);
+                            if (mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text('Navigation style changed to $value'),
+                                  duration: const Duration(seconds: 1),
+                                ),
+                              );
+                            }
+                          }
+                        },
+                      ),
+                    ),
+                  ],
+                );
+              },
+            ),
           ),
 
           const SizedBox(height: 8),
@@ -507,9 +503,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
             child: Text(
               'Features & Tools',
               style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.bold,
-                color: Theme.of(context).colorScheme.primary,
-              ),
+                    fontWeight: FontWeight.bold,
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
             ),
           ),
 
@@ -582,10 +578,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             leading: const Icon(Icons.offline_bolt),
             title: const Text('Offline Mode'),
             subtitle: const Text('Classify items without internet'),
-            trailing: _buildFeatureIndicator(
-              context, 
-              premiumService.isPremiumFeature('offline_mode')
-            ),
+            trailing: _buildFeatureIndicator(context, premiumService.isPremiumFeature('offline_mode')),
             onTap: () {
               if (premiumService.isPremiumFeature('offline_mode')) {
                 Navigator.push(
@@ -606,14 +599,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
             leading: const Icon(Icons.analytics),
             title: const Text('Analytics'),
             subtitle: const Text('View detailed insights'),
-            trailing: _buildFeatureIndicator(
-              context, 
-              premiumService.isPremiumFeature('advanced_analytics')
-            ),
+            trailing: _buildFeatureIndicator(context, premiumService.isPremiumFeature('advanced_analytics')),
             onTap: () {
               if (premiumService.isPremiumFeature('advanced_analytics')) {
                 Navigator.push(
-                  context, 
+                  context,
                   MaterialPageRoute(
                     builder: (context) => const WasteDashboardScreen(),
                   ),
@@ -629,13 +619,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ListTile(
             leading: const Icon(Icons.block),
             title: const Text('Ad Settings'),
-            subtitle: premiumService.isPremiumFeature('remove_ads') 
+            subtitle: premiumService.isPremiumFeature('remove_ads')
                 ? const Text('Ads are disabled')
                 : const Text('Manage ad preferences'),
-            trailing: _buildFeatureIndicator(
-              context, 
-              premiumService.isPremiumFeature('remove_ads')
-            ),
+            trailing: _buildFeatureIndicator(context, premiumService.isPremiumFeature('remove_ads')),
             onTap: () {
               if (premiumService.isPremiumFeature('remove_ads')) {
                 ScaffoldMessenger.of(context).showSnackBar(
@@ -653,10 +640,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             leading: const Icon(Icons.file_download),
             title: const Text('Export Data'),
             subtitle: const Text('Export your classification history'),
-            trailing: _buildFeatureIndicator(
-              context, 
-              premiumService.isPremiumFeature('export_data')
-            ),
+            trailing: _buildFeatureIndicator(context, premiumService.isPremiumFeature('export_data')),
             onTap: () {
               if (premiumService.isPremiumFeature('export_data')) {
                 Navigator.push(
@@ -695,7 +679,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ),
             ),
           ),
-          
+
           // Feedback Settings
           Card(
             margin: const EdgeInsets.only(bottom: 16),
@@ -710,7 +694,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     final settings = snapshot.data ?? {};
                     final allowHistoryFeedback = settings['allowHistoryFeedback'] ?? true;
                     final feedbackTimeframeDays = settings['feedbackTimeframeDays'] ?? 7;
-                    
+
                     return Column(
                       children: [
                         Semantics(
@@ -754,7 +738,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         Padding(
                           padding: const EdgeInsets.all(16.0),
                           child: Text(
-                            allowHistoryFeedback 
+                            allowHistoryFeedback
                                 ? 'Perfect for scanning multiple items quickly and providing feedback later when you have more time!'
                                 : 'Feedback is only available immediately after classification.',
                             style: TextStyle(
@@ -771,7 +755,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ],
             ),
           ),
-          
+
           // Sync actions when Google sync is enabled
           if (_isGoogleSyncEnabled) ...[
             Card(
@@ -812,9 +796,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
             child: Text(
               'Data Management',
               style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.bold,
-                color: Theme.of(context).colorScheme.primary,
-              ),
+                    fontWeight: FontWeight.bold,
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
             ),
           ),
 
@@ -840,45 +824,45 @@ class _SettingsScreenState extends State<SettingsScreen> {
               subtitle: const Text('Reset all app data (history, settings, preferences)'),
               trailing: const Icon(Icons.chevron_right, color: Colors.red),
               onTap: () {
-              showDialog(
-                context: context,
-                builder: (context) => AlertDialog(
-                  title: const Text('Clear Data'),
-                  content: const Text(
-                    'Are you sure you want to clear ALL your data including classification history, settings, and preferences? This action cannot be undone.',
+                showDialog(
+                  context: context,
+                  builder: (context) => AlertDialog(
+                    title: const Text('Clear Data'),
+                    content: const Text(
+                      'Are you sure you want to clear ALL your data including classification history, settings, and preferences? This action cannot be undone.',
+                    ),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.pop(context),
+                        child: const Text('Cancel'),
+                      ),
+                      TextButton(
+                        onPressed: () async {
+                          // Clear analytics data first
+                          analyticsService.clearAnalyticsData();
+
+                          // Clear all user data (includes proper gamification reset)
+                          await storageService.clearAllUserData();
+
+                          // Clear enhanced storage cache if available
+                          if (storageService is EnhancedStorageService) {
+                            storageService.clearCache();
+                          }
+
+                          if (context.mounted) {
+                            Navigator.pop(context);
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('All data cleared successfully')),
+                            );
+                          }
+                        },
+                        child: const Text('Clear'),
+                      ),
+                    ],
                   ),
-                  actions: [
-                    TextButton(
-                      onPressed: () => Navigator.pop(context),
-                      child: const Text('Cancel'),
-                    ),
-                    TextButton(
-                      onPressed: () async {
-                        // Clear analytics data first
-                        analyticsService.clearAnalyticsData();
-                        
-                        // Clear all user data (includes proper gamification reset)
-                        await storageService.clearAllUserData();
-                        
-                        // Clear enhanced storage cache if available
-                        if (storageService is EnhancedStorageService) {
-                          storageService.clearCache();
-                        }
-                        
-                        if (context.mounted) {
-                          Navigator.pop(context);
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('All data cleared successfully')),
-                          );
-                        }
-                      },
-                      child: const Text('Clear'),
-                    ),
-                  ],
-                ),
-              );
-            },
-          ),
+                );
+              },
+            ),
           ),
 
           const SizedBox(height: 16),
@@ -889,9 +873,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
             child: Text(
               'Legal & Support',
               style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.bold,
-                color: Theme.of(context).colorScheme.primary,
-              ),
+                    fontWeight: FontWeight.bold,
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
             ),
           ),
 
@@ -914,52 +898,52 @@ class _SettingsScreenState extends State<SettingsScreen> {
               subtitle: const Text('Privacy Policy and Terms of Service'),
               trailing: const Icon(Icons.chevron_right),
               onTap: () {
-              showModalBottomSheet(
-                context: context,
-                builder: (context) {
-                  return SafeArea(
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        ListTile(
-                          leading: const Icon(Icons.privacy_tip),
-                          title: const Text('Privacy Policy'),
-                          onTap: () {
-                            Navigator.pop(context);
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => const LegalDocumentScreen(
-                                  title: 'Privacy Policy',
-                                  assetPath: 'assets/docs/privacy_policy.md',
+                showModalBottomSheet(
+                  context: context,
+                  builder: (context) {
+                    return SafeArea(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          ListTile(
+                            leading: const Icon(Icons.privacy_tip),
+                            title: const Text('Privacy Policy'),
+                            onTap: () {
+                              Navigator.pop(context);
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => const LegalDocumentScreen(
+                                    title: 'Privacy Policy',
+                                    assetPath: 'assets/docs/privacy_policy.md',
+                                  ),
                                 ),
-                              ),
-                            );
-                          },
-                        ),
-                        ListTile(
-                          leading: const Icon(Icons.description),
-                          title: const Text('Terms of Service'),
-                          onTap: () {
-                            Navigator.pop(context);
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => const LegalDocumentScreen(
-                                  title: 'Terms of Service',
-                                  assetPath: 'assets/docs/terms_of_service.md',
+                              );
+                            },
+                          ),
+                          ListTile(
+                            leading: const Icon(Icons.description),
+                            title: const Text('Terms of Service'),
+                            onTap: () {
+                              Navigator.pop(context);
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => const LegalDocumentScreen(
+                                    title: 'Terms of Service',
+                                    assetPath: 'assets/docs/terms_of_service.md',
+                                  ),
                                 ),
-                              ),
-                            );
-                          },
-                        ),
-                      ],
-                    ),
-                  );
-                },
-              );
-            },
-          ),
+                              );
+                            },
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                );
+              },
+            ),
           ),
 
           // About
@@ -981,64 +965,64 @@ class _SettingsScreenState extends State<SettingsScreen> {
               subtitle: const Text('App information and credits'),
               trailing: const Icon(Icons.chevron_right),
               onTap: () {
-              showAboutDialog(
-                context: context,
-                applicationName: AppStrings.appName,
-                applicationVersion: AppVersion.displayVersion,
-                applicationIcon: const FlutterLogo(size: 64),
-                children: [
-                  const Text(
-                    'Waste Segregation App helps you learn how to properly segregate waste using AI-powered image recognition.',
-                  ),
-                  const SizedBox(height: 16),
-                  const Text(
-                    '© 2024 Waste Segregation App. All rights reserved.',
-                  ),
-                  const SizedBox(height: 16),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Flexible(
-                        child: TextButton(
-                          onPressed: () {
-                            Navigator.pop(context);
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => const LegalDocumentScreen(
-                                  title: 'Privacy Policy',
-                                  assetPath: 'assets/docs/privacy_policy.md',
+                showAboutDialog(
+                  context: context,
+                  applicationName: AppStrings.appName,
+                  applicationVersion: AppVersion.displayVersion,
+                  applicationIcon: const FlutterLogo(size: 64),
+                  children: [
+                    const Text(
+                      'Waste Segregation App helps you learn how to properly segregate waste using AI-powered image recognition.',
+                    ),
+                    const SizedBox(height: 16),
+                    const Text(
+                      '© 2024 Waste Segregation App. All rights reserved.',
+                    ),
+                    const SizedBox(height: 16),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Flexible(
+                          child: TextButton(
+                            onPressed: () {
+                              Navigator.pop(context);
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => const LegalDocumentScreen(
+                                    title: 'Privacy Policy',
+                                    assetPath: 'assets/docs/privacy_policy.md',
+                                  ),
                                 ),
-                              ),
-                            );
-                          },
-                          child: const Text('Privacy Policy'),
+                              );
+                            },
+                            child: const Text('Privacy Policy'),
+                          ),
                         ),
-                      ),
-                      const Text(' | '),
-                      Flexible(
-                        child: TextButton(
-                          onPressed: () {
-                            Navigator.pop(context);
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => const LegalDocumentScreen(
-                                  title: 'Terms of Service',
-                                  assetPath: 'assets/docs/terms_of_service.md',
+                        const Text(' | '),
+                        Flexible(
+                          child: TextButton(
+                            onPressed: () {
+                              Navigator.pop(context);
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => const LegalDocumentScreen(
+                                    title: 'Terms of Service',
+                                    assetPath: 'assets/docs/terms_of_service.md',
+                                  ),
                                 ),
-                              ),
-                            );
-                          },
-                          child: const Text('Terms of Service'),
+                              );
+                            },
+                            child: const Text('Terms of Service'),
+                          ),
                         ),
-                      ),
-                    ],
-                  ),
-                ],
-              );
-            },
-          ),
+                      ],
+                    ),
+                  ],
+                );
+              },
+            ),
           ),
 
           // Email Support
@@ -1115,8 +1099,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   // Handle account actions (sign in/sign out)
   Future<void> _handleAccountAction(
-    BuildContext context, 
-    bool isSignedIn, 
+    BuildContext context,
+    bool isSignedIn,
     GoogleDriveService googleDriveService,
   ) async {
     if (isSignedIn) {
@@ -1136,7 +1120,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             TextButton(
               onPressed: () async {
                 Navigator.pop(context); // Close dialog
-                
+
                 try {
                   // Show loading indicator
                   showDialog(
@@ -1152,13 +1136,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       ),
                     ),
                   );
-                  
+
                   // Perform sign out
                   await googleDriveService.signOut();
-                  
+
                   if (context.mounted) {
                     Navigator.pop(context); // Close loading dialog
-                    
+
                     // Navigate back to auth screen
                     Navigator.pushAndRemoveUntil(
                       context,
@@ -1200,7 +1184,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ElevatedButton(
               onPressed: () {
                 Navigator.pop(context); // Close dialog
-                
+
                 // Navigate to auth screen
                 Navigator.pushAndRemoveUntil(
                   context,
@@ -1289,20 +1273,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
       final packageInfo = await PackageInfo.fromPlatform();
       final appVersion = packageInfo.version;
       final buildNumber = packageInfo.buildNumber;
-      
+
       final subject = Uri.encodeComponent('Waste Segregation App - Support Request');
-      final body = Uri.encodeComponent(
-        'Hi Support Team,\n\n'
-        'I need help with the Waste Segregation App.\n\n'
-        'App Version: $appVersion ($buildNumber)\n'
-        'Platform: ${Platform.operatingSystem}\n'
-        'Device: ${Platform.operatingSystemVersion}\n\n'
-        'Please describe your issue below:\n\n'
-      );
-      
+      final body = Uri.encodeComponent('Hi Support Team,\n\n'
+          'I need help with the Waste Segregation App.\n\n'
+          'App Version: $appVersion ($buildNumber)\n'
+          'Platform: ${Platform.operatingSystem}\n'
+          'Device: ${Platform.operatingSystemVersion}\n\n'
+          'Please describe your issue below:\n\n');
+
       final emailUrl = 'mailto:support@wastewise.app?subject=$subject&body=$body';
       final uri = Uri.parse(emailUrl);
-      
+
       if (await canLaunchUrl(uri)) {
         await launchUrl(uri);
       } else {
@@ -1328,29 +1310,27 @@ class _SettingsScreenState extends State<SettingsScreen> {
       final packageInfo = await PackageInfo.fromPlatform();
       final appVersion = packageInfo.version;
       final buildNumber = packageInfo.buildNumber;
-      
+
       final subject = Uri.encodeComponent('Waste Segregation App - Bug Report');
-      final body = Uri.encodeComponent(
-        'Hi Development Team,\n\n'
-        'I found a bug in the Waste Segregation App.\n\n'
-        'App Version: $appVersion ($buildNumber)\n'
-        'Platform: ${Platform.operatingSystem}\n'
-        'Device: ${Platform.operatingSystemVersion}\n\n'
-        'Bug Description:\n'
-        '- What happened?\n'
-        '- What did you expect to happen?\n'
-        '- Steps to reproduce:\n'
-        '  1. \n'
-        '  2. \n'
-        '  3. \n\n'
-        'Additional Information:\n'
-        '- Screenshots (if applicable): \n'
-        '- Frequency: Always / Sometimes / Once\n\n'
-      );
-      
+      final body = Uri.encodeComponent('Hi Development Team,\n\n'
+          'I found a bug in the Waste Segregation App.\n\n'
+          'App Version: $appVersion ($buildNumber)\n'
+          'Platform: ${Platform.operatingSystem}\n'
+          'Device: ${Platform.operatingSystemVersion}\n\n'
+          'Bug Description:\n'
+          '- What happened?\n'
+          '- What did you expect to happen?\n'
+          '- Steps to reproduce:\n'
+          '  1. \n'
+          '  2. \n'
+          '  3. \n\n'
+          'Additional Information:\n'
+          '- Screenshots (if applicable): \n'
+          '- Frequency: Always / Sometimes / Once\n\n');
+
       final emailUrl = 'mailto:bugs@wastewise.app?subject=$subject&body=$body';
       final uri = Uri.parse(emailUrl);
-      
+
       if (await canLaunchUrl(uri)) {
         await launchUrl(uri);
       } else {
@@ -1384,9 +1364,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
         // Fallback for other platforms
         storeUrl = 'https://wastewise.app';
       }
-      
+
       final uri = Uri.parse(storeUrl);
-      
+
       if (await canLaunchUrl(uri)) {
         await launchUrl(uri, mode: LaunchMode.externalApplication);
       } else {
@@ -1549,7 +1529,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
               showDialog(
                 context: currentCapturedContext, // Use captured context
                 barrierDismissible: false,
-                builder: (BuildContext dialogContext) { // It's good practice to name this context differently
+                builder: (BuildContext dialogContext) {
+                  // It's good practice to name this context differently
                   return const AlertDialog(
                     content: Row(
                       children: [
@@ -1569,22 +1550,21 @@ class _SettingsScreenState extends State<SettingsScreen> {
               try {
                 // Clear all analytics data
                 analyticsService.clearAnalyticsData();
-                
+
                 // Reset all premium features
                 await premiumService.resetPremiumFeatures();
-                
+
                 // Clear all user data (includes gamification reset)
                 await storageService.clearAllUserData();
-                
+
                 // Clear enhanced storage cache if available
                 if (storageService is EnhancedStorageService) {
                   storageService.clearCache();
                 }
-                
+
                 success = true;
                 snackBarMessage = 'App has been reset to factory settings';
                 snackBarBackgroundColor = Colors.green;
-
               } catch (e) {
                 success = false;
                 snackBarMessage = 'Error during factory reset: ${e.toString()}';
@@ -1594,7 +1574,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 // Pop the loading dialog. Uses currentCapturedContext's navigator.
                 // This should happen regardless of success or failure of the try block.
                 if (currentCapturedContext.mounted) {
-                  Navigator.pop(currentCapturedContext); 
+                  Navigator.pop(currentCapturedContext);
                 } else {
                   // If the original context is unmounted, a root navigator pop might be needed
                   // For now, we assume the auth state change might have already rebuilt the tree.
@@ -1605,7 +1585,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 if (snackBarMessage != null) {
                   // Check mounted status again before showing SnackBar, as state might have changed
                   if (currentCapturedContext.mounted) {
-                     ScaffoldMessenger.of(currentCapturedContext).showSnackBar(
+                    ScaffoldMessenger.of(currentCapturedContext).showSnackBar(
                       SnackBar(
                         content: Text(snackBarMessage),
                         backgroundColor: snackBarBackgroundColor,
@@ -1613,10 +1593,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       ),
                     );
                   } else {
-                     WasteAppLogger.info('SettingsScreen context unmounted, cannot show SnackBar: $snackBarMessage');
+                    WasteAppLogger.info('SettingsScreen context unmounted, cannot show SnackBar: $snackBarMessage');
                   }
                 }
-                
+
                 // After everything, if successful, navigate to AuthScreen
                 // Check mounted status before navigation as well
                 if (success && currentCapturedContext.mounted) {
@@ -1629,7 +1609,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   WasteAppLogger.severe('Factory reset failed, staying on current screen.');
                 } else if (!currentCapturedContext.mounted) {
                   // If not mounted, assume an auth state listener has already handled navigation
-                  WasteAppLogger.info('SettingsScreen context unmounted, assuming navigation handled by auth listener.');
+                  WasteAppLogger.info(
+                      'SettingsScreen context unmounted, assuming navigation handled by auth listener.');
                 }
               }
             },
@@ -1658,18 +1639,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
     try {
       final storageService = Provider.of<StorageService>(context, listen: false);
       final cloudStorageService = Provider.of<CloudStorageService>(context, listen: false);
-      
+
       // Update the setting
       final currentSettings = await storageService.getSettings();
       await storageService.saveSettings(
         isDarkMode: currentSettings['isDarkMode'] ?? false,
         isGoogleSyncEnabled: value,
       );
-      
+
       setState(() {
         _isGoogleSyncEnabled = value;
       });
-      
+
       if (value) {
         // When enabling sync, offer to upload existing data
         _showSyncEnableDialog(cloudStorageService);
@@ -1748,7 +1729,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           _lastCloudSync = lastSync;
         });
       }
-      
+
       if (mounted) {
         Navigator.pop(context); // Close loading dialog
 
@@ -1801,10 +1782,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
       final cloudStorageService = Provider.of<CloudStorageService>(context, listen: false);
       final downloadedCount = await cloudStorageService.syncCloudToLocal();
-      
+
       if (mounted) {
         Navigator.pop(context); // Close loading dialog
-        
+
         if (downloadedCount > 0) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
@@ -1927,11 +1908,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   ),
                 ),
               );
-              
+
               try {
                 final cleanupService = FirebaseCleanupService();
                 await cleanupService.clearAllDataForFreshInstall();
-                
+
                 if (context.mounted) {
                   Navigator.pop(context); // Close loading dialog
                   // Immediately navigate to AuthScreen to force full UI reset
@@ -1949,7 +1930,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               } catch (e) {
                 if (context.mounted) {
                   Navigator.pop(context);
-                  
+
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
                       content: Text('❌ Data clearing failed: $e'),
@@ -1989,10 +1970,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
       // Run the migration
       await storageService.migrateOldClassifications();
-      
+
       if (mounted) {
         Navigator.pop(context); // Close loading dialog
-        
+
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Row(

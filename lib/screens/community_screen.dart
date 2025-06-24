@@ -8,7 +8,6 @@ import '../widgets/modern_ui/modern_cards.dart';
 import 'package:waste_segregation_app/utils/waste_app_logger.dart';
 
 class CommunityScreen extends StatefulWidget {
-
   const CommunityScreen({super.key, this.showAppBar = true});
   final bool showAppBar;
 
@@ -40,16 +39,16 @@ class _CommunityScreenState extends State<CommunityScreen> with TickerProviderSt
       final storageService = Provider.of<StorageService>(context, listen: false);
       final communityService = Provider.of<CommunityService>(context, listen: false);
       final userProfile = await storageService.getCurrentUserProfile();
-      
+
       await communityService.initCommunity();
-      
+
       // Sync with real user data first
       final userClassifications = await storageService.getAllClassifications();
       await communityService.syncWithUserData(userClassifications, userProfile);
-      
+
       final feedItems = await communityService.getFeedItems();
       final stats = await communityService.getStats();
-      
+
       if (mounted) {
         setState(() {
           _feedItems = feedItems;
@@ -69,7 +68,7 @@ class _CommunityScreenState extends State<CommunityScreen> with TickerProviderSt
 
   Future<void> _forceSyncCommunityData() async {
     if (!mounted) return;
-    
+
     setState(() {
       _isLoading = true;
     });
@@ -78,25 +77,25 @@ class _CommunityScreenState extends State<CommunityScreen> with TickerProviderSt
       final storageService = Provider.of<StorageService>(context, listen: false);
       final communityService = Provider.of<CommunityService>(context, listen: false);
       final userProfile = await storageService.getCurrentUserProfile();
-      
+
       if (userProfile != null) {
         // Force sync all historical data
         final userClassifications = await storageService.getAllClassifications();
         WasteAppLogger.info('🔄 FORCE SYNC: Starting with ${userClassifications.length} classifications');
-        
+
         await communityService.syncWithUserData(userClassifications, userProfile);
-        
+
         // Reload data after sync
         final feedItems = await communityService.getFeedItems();
         final stats = await communityService.getStats();
-        
+
         if (mounted) {
           setState(() {
             _feedItems = feedItems;
             _stats = stats;
             _isLoading = false;
           });
-          
+
           // Show success message
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
@@ -112,7 +111,7 @@ class _CommunityScreenState extends State<CommunityScreen> with TickerProviderSt
         setState(() {
           _isLoading = false;
         });
-        
+
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('❌ Sync failed: $e'),
@@ -126,24 +125,26 @@ class _CommunityScreenState extends State<CommunityScreen> with TickerProviderSt
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: widget.showAppBar ? AppBar(
-        title: const Text('Community'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.sync),
-            tooltip: 'Sync All Data',
-            onPressed: _forceSyncCommunityData,
-          ),
-        ],
-        bottom: TabBar(
-          controller: _tabController,
-          tabs: const [
-            Tab(icon: Icon(Icons.feed), text: 'Feed'),
-            Tab(icon: Icon(Icons.leaderboard), text: 'Stats'),
-            Tab(icon: Icon(Icons.people), text: 'Members'),
-          ],
-        ),
-      ) : null,
+      appBar: widget.showAppBar
+          ? AppBar(
+              title: const Text('Community'),
+              actions: [
+                IconButton(
+                  icon: const Icon(Icons.sync),
+                  tooltip: 'Sync All Data',
+                  onPressed: _forceSyncCommunityData,
+                ),
+              ],
+              bottom: TabBar(
+                controller: _tabController,
+                tabs: const [
+                  Tab(icon: Icon(Icons.feed), text: 'Feed'),
+                  Tab(icon: Icon(Icons.leaderboard), text: 'Stats'),
+                  Tab(icon: Icon(Icons.people), text: 'Members'),
+                ],
+              ),
+            )
+          : null,
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : TabBarView(
@@ -325,8 +326,8 @@ class _CommunityScreenState extends State<CommunityScreen> with TickerProviderSt
                     Text(
                       'Data Reconciliation',
                       style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
+                            fontWeight: FontWeight.bold,
+                          ),
                     ),
                   ],
                 ),
@@ -415,30 +416,30 @@ class _CommunityScreenState extends State<CommunityScreen> with TickerProviderSt
                     if (_feedItems.length < expectedCount) {
                       return Column(
                         children: [
-                  const SizedBox(height: 12),
-                  Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: Colors.orange.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(6),
-                      border: Border.all(color: Colors.orange.withValues(alpha: 0.3)),
-                    ),
-                    child: Row(
-                      children: [
-                        const Icon(Icons.warning_amber, color: Colors.orange, size: 16),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: Text(
-                            'Tap the sync button above to reconcile all historical data',
-                            style: TextStyle(
-                              color: Colors.orange[800],
-                              fontSize: 11,
+                          const SizedBox(height: 12),
+                          Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: Colors.orange.withValues(alpha: 0.1),
+                              borderRadius: BorderRadius.circular(6),
+                              border: Border.all(color: Colors.orange.withValues(alpha: 0.3)),
+                            ),
+                            child: Row(
+                              children: [
+                                const Icon(Icons.warning_amber, color: Colors.orange, size: 16),
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: Text(
+                                    'Tap the sync button above to reconcile all historical data',
+                                    style: TextStyle(
+                                      color: Colors.orange[800],
+                                      fontSize: 11,
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
-                        ),
-                      ],
-                    ),
-                  ),
                         ],
                       );
                     }
@@ -449,7 +450,7 @@ class _CommunityScreenState extends State<CommunityScreen> with TickerProviderSt
             ),
           ),
           const SizedBox(height: AppTheme.paddingLarge),
-          
+
           // Community overview
           ModernCard(
             padding: const EdgeInsets.all(16),
@@ -479,11 +480,10 @@ class _CommunityScreenState extends State<CommunityScreen> with TickerProviderSt
                     Text(
                       'Popular Categories',
                       style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
+                            fontWeight: FontWeight.bold,
+                          ),
                     ),
                     const SizedBox(height: AppTheme.paddingRegular),
-                    
                     ..._stats!.topCategories.entries.map((entry) {
                       return _buildStatRow(entry.key, '${entry.value} items');
                     }),
@@ -568,4 +568,4 @@ class _CommunityScreenState extends State<CommunityScreen> with TickerProviderSt
       ),
     );
   }
-} 
+}

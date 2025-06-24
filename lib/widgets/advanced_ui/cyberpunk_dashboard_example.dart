@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 // import 'futuristic_impact_ring.dart'; // File was corrupted and removed
 
 /// 🚀 EPIC FUTURISTIC DASHBOARD THAT WILL BLOW USERS' MINDS! 🚀
-/// 
+///
 /// This showcases the cyberpunk impact rings in all their glory!
 /// Features: Dark theme, neon glows, holographic effects, particle systems!
 
@@ -22,7 +22,7 @@ class _CyberpunkWasteImpactDashboardState extends State<CyberpunkWasteImpactDash
   double co2Target = 50.0;
   int currentStreak = 12;
   int streakTarget = 30;
-  
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -68,12 +68,12 @@ class _CyberpunkWasteImpactDashboardState extends State<CyberpunkWasteImpactDash
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   border: Border.all(
-                    color: const Color(0xFF00ffff).withValues(alpha:0.5),
+                    color: const Color(0xFF00ffff).withValues(alpha: 0.5),
                     width: 3,
                   ),
                   gradient: RadialGradient(
                     colors: [
-                      const Color(0xFF00ffff).withValues(alpha:0.1),
+                      const Color(0xFF00ffff).withValues(alpha: 0.1),
                       Colors.transparent,
                     ],
                   ),
@@ -94,7 +94,7 @@ class _CyberpunkWasteImpactDashboardState extends State<CyberpunkWasteImpactDash
                         'of ${dailyTarget.toInt()}',
                         style: TextStyle(
                           fontSize: 14,
-                          color: Colors.white.withValues(alpha:0.7),
+                          color: Colors.white.withValues(alpha: 0.7),
                         ),
                       ),
                       const Text(
@@ -109,9 +109,9 @@ class _CyberpunkWasteImpactDashboardState extends State<CyberpunkWasteImpactDash
                   ),
                 ),
               ),
-              
+
               const SizedBox(height: 40),
-              
+
               // 🌟 SECONDARY IMPACT RINGS GRID 🌟
               GridView.count(
                 shrinkWrap: true,
@@ -130,7 +130,7 @@ class _CyberpunkWasteImpactDashboardState extends State<CyberpunkWasteImpactDash
                     const [Color(0xFF39FF14), Color(0xFF00FF41)],
                     Icons.eco,
                   ),
-                  
+
                   // Streak Ring
                   _buildCompactCyberRing(
                     'STREAK COMBO',
@@ -140,7 +140,7 @@ class _CyberpunkWasteImpactDashboardState extends State<CyberpunkWasteImpactDash
                     const [Color(0xFFFF0080), Color(0xFF8A2BE2)],
                     Icons.whatshot,
                   ),
-                  
+
                   // Weekly Progress
                   _buildCompactCyberRing(
                     'WEEKLY TARGET',
@@ -150,7 +150,7 @@ class _CyberpunkWasteImpactDashboardState extends State<CyberpunkWasteImpactDash
                     const [Color(0xFFFFD700), Color(0xFFFF4500)],
                     Icons.calendar_today,
                   ),
-                  
+
                   // AI Efficiency
                   _buildCompactCyberRing(
                     'AI EFFICIENCY',
@@ -162,14 +162,14 @@ class _CyberpunkWasteImpactDashboardState extends State<CyberpunkWasteImpactDash
                   ),
                 ],
               ),
-              
+
               const SizedBox(height: 40),
-              
+
               // 💫 HOLOGRAPHIC STATS PANEL 💫
               _buildHolographicStatsPanel(),
-              
+
               const SizedBox(height: 40),
-              
+
               // 🎮 INTERACTIVE CONTROL PANEL 🎮
               _buildCyberControlPanel(),
             ],
@@ -178,7 +178,7 @@ class _CyberpunkWasteImpactDashboardState extends State<CyberpunkWasteImpactDash
       ),
     );
   }
-  
+
   Widget _buildCompactCyberRing(
     String title,
     double currentValue,
@@ -188,7 +188,7 @@ class _CyberpunkWasteImpactDashboardState extends State<CyberpunkWasteImpactDash
     IconData icon,
   ) {
     final progress = currentValue / targetValue;
-    
+
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -196,18 +196,18 @@ class _CyberpunkWasteImpactDashboardState extends State<CyberpunkWasteImpactDash
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            Colors.white.withValues(alpha:0.05),
-            Colors.white.withValues(alpha:0.02),
-            Colors.black.withValues(alpha:0.1),
+            Colors.white.withValues(alpha: 0.05),
+            Colors.white.withValues(alpha: 0.02),
+            Colors.black.withValues(alpha: 0.1),
           ],
         ),
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
-          color: colors.first.withValues(alpha:0.3),
+          color: colors.first.withValues(alpha: 0.3),
         ),
         boxShadow: [
           BoxShadow(
-            color: colors.first.withValues(alpha:0.2),
+            color: colors.first.withValues(alpha: 0.2),
             blurRadius: 15,
             spreadRadius: 2,
           ),
@@ -223,7 +223,7 @@ class _CyberpunkWasteImpactDashboardState extends State<CyberpunkWasteImpactDash
               borderRadius: BorderRadius.circular(15),
               boxShadow: [
                 BoxShadow(
-                  color: colors.first.withValues(alpha:0.4),
+                  color: colors.first.withValues(alpha: 0.4),
                   blurRadius: 8,
                   spreadRadius: 1,
                 ),
@@ -246,9 +246,9 @@ class _CyberpunkWasteImpactDashboardState extends State<CyberpunkWasteImpactDash
               ],
             ),
           ),
-          
+
           const SizedBox(height: 16),
-          
+
           // Compact progress ring
           SizedBox(
             width: 100,
@@ -263,12 +263,12 @@ class _CyberpunkWasteImpactDashboardState extends State<CyberpunkWasteImpactDash
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     border: Border.all(
-                      color: colors.first.withValues(alpha:0.2),
+                      color: colors.first.withValues(alpha: 0.2),
                       width: 6,
                     ),
                   ),
                 ),
-                
+
                 // Progress circle
                 SizedBox(
                   width: 100,
@@ -280,7 +280,7 @@ class _CyberpunkWasteImpactDashboardState extends State<CyberpunkWasteImpactDash
                     valueColor: AlwaysStoppedAnimation(colors.first),
                   ),
                 ),
-                
+
                 // Center content
                 Column(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -302,7 +302,7 @@ class _CyberpunkWasteImpactDashboardState extends State<CyberpunkWasteImpactDash
                       unit,
                       style: TextStyle(
                         fontSize: 12,
-                        color: Colors.white.withValues(alpha:0.7),
+                        color: Colors.white.withValues(alpha: 0.7),
                         fontWeight: FontWeight.w600,
                       ),
                     ),
@@ -311,17 +311,17 @@ class _CyberpunkWasteImpactDashboardState extends State<CyberpunkWasteImpactDash
               ],
             ),
           ),
-          
+
           const SizedBox(height: 12),
-          
+
           // Progress percentage
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
             decoration: BoxDecoration(
-              color: colors.first.withValues(alpha:0.1),
+              color: colors.first.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(10),
               border: Border.all(
-                color: colors.first.withValues(alpha:0.3),
+                color: colors.first.withValues(alpha: 0.3),
               ),
             ),
             child: Text(
@@ -337,7 +337,7 @@ class _CyberpunkWasteImpactDashboardState extends State<CyberpunkWasteImpactDash
       ),
     );
   }
-  
+
   Widget _buildHolographicStatsPanel() {
     return Container(
       padding: const EdgeInsets.all(24),
@@ -346,19 +346,19 @@ class _CyberpunkWasteImpactDashboardState extends State<CyberpunkWasteImpactDash
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            Colors.white.withValues(alpha:0.08),
-            Colors.white.withValues(alpha:0.03),
-            Colors.black.withValues(alpha:0.1),
+            Colors.white.withValues(alpha: 0.08),
+            Colors.white.withValues(alpha: 0.03),
+            Colors.black.withValues(alpha: 0.1),
           ],
         ),
         borderRadius: BorderRadius.circular(25),
         border: Border.all(
-          color: const Color(0xFF00F5FF).withValues(alpha:0.3),
+          color: const Color(0xFF00F5FF).withValues(alpha: 0.3),
           width: 2,
         ),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF00F5FF).withValues(alpha:0.2),
+            color: const Color(0xFF00F5FF).withValues(alpha: 0.2),
             blurRadius: 20,
             spreadRadius: 3,
           ),
@@ -397,9 +397,9 @@ class _CyberpunkWasteImpactDashboardState extends State<CyberpunkWasteImpactDash
               ),
             ],
           ),
-          
+
           const SizedBox(height: 20),
-          
+
           // Stats grid
           Row(
             children: [
@@ -424,9 +424,9 @@ class _CyberpunkWasteImpactDashboardState extends State<CyberpunkWasteImpactDash
               ),
             ],
           ),
-          
+
           const SizedBox(height: 16),
-          
+
           Row(
             children: [
               Expanded(
@@ -454,15 +454,15 @@ class _CyberpunkWasteImpactDashboardState extends State<CyberpunkWasteImpactDash
       ),
     );
   }
-  
+
   Widget _buildStatItem(String title, String value, String subtitle, IconData icon, Color color) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: color.withValues(alpha:0.1),
+        color: color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(15),
         border: Border.all(
-          color: color.withValues(alpha:0.3),
+          color: color.withValues(alpha: 0.3),
         ),
       ),
       child: Column(
@@ -488,7 +488,7 @@ class _CyberpunkWasteImpactDashboardState extends State<CyberpunkWasteImpactDash
           const SizedBox(height: 8),
           ShaderMask(
             shaderCallback: (bounds) => LinearGradient(
-              colors: [color, color.withValues(alpha:0.7)],
+              colors: [color, color.withValues(alpha: 0.7)],
             ).createShader(bounds),
             child: Text(
               value,
@@ -503,7 +503,7 @@ class _CyberpunkWasteImpactDashboardState extends State<CyberpunkWasteImpactDash
             subtitle,
             style: TextStyle(
               fontSize: 12,
-              color: Colors.white.withValues(alpha:0.6),
+              color: Colors.white.withValues(alpha: 0.6),
               fontWeight: FontWeight.w500,
             ),
           ),
@@ -511,7 +511,7 @@ class _CyberpunkWasteImpactDashboardState extends State<CyberpunkWasteImpactDash
       ),
     );
   }
-  
+
   Widget _buildCyberControlPanel() {
     return Container(
       padding: const EdgeInsets.all(24),
@@ -520,19 +520,19 @@ class _CyberpunkWasteImpactDashboardState extends State<CyberpunkWasteImpactDash
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            Colors.white.withValues(alpha:0.06),
-            Colors.white.withValues(alpha:0.02),
-            Colors.black.withValues(alpha:0.15),
+            Colors.white.withValues(alpha: 0.06),
+            Colors.white.withValues(alpha: 0.02),
+            Colors.black.withValues(alpha: 0.15),
           ],
         ),
         borderRadius: BorderRadius.circular(25),
         border: Border.all(
-          color: const Color(0xFFFF006E).withValues(alpha:0.3),
+          color: const Color(0xFFFF006E).withValues(alpha: 0.3),
           width: 2,
         ),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFFFF006E).withValues(alpha:0.2),
+            color: const Color(0xFFFF006E).withValues(alpha: 0.2),
             blurRadius: 20,
             spreadRadius: 3,
           ),
@@ -550,9 +550,9 @@ class _CyberpunkWasteImpactDashboardState extends State<CyberpunkWasteImpactDash
               letterSpacing: 2,
             ),
           ),
-          
+
           const SizedBox(height: 20),
-          
+
           // Control buttons
           Row(
             children: [
@@ -575,9 +575,9 @@ class _CyberpunkWasteImpactDashboardState extends State<CyberpunkWasteImpactDash
               ),
             ],
           ),
-          
+
           const SizedBox(height: 12),
-          
+
           // Full width button
           _buildControlButton(
             'INITIALIZE QUANTUM PROCESSING',
@@ -590,7 +590,7 @@ class _CyberpunkWasteImpactDashboardState extends State<CyberpunkWasteImpactDash
       ),
     );
   }
-  
+
   Widget _buildControlButton(
     String text,
     IconData icon,
@@ -619,7 +619,7 @@ class _CyberpunkWasteImpactDashboardState extends State<CyberpunkWasteImpactDash
             borderRadius: BorderRadius.circular(15),
             boxShadow: [
               BoxShadow(
-                color: colors.first.withValues(alpha:0.4),
+                color: colors.first.withValues(alpha: 0.4),
                 blurRadius: 8,
                 spreadRadius: 1,
               ),
@@ -645,12 +645,12 @@ class _CyberpunkWasteImpactDashboardState extends State<CyberpunkWasteImpactDash
       ),
     );
   }
-  
+
   void _boostSystem() {
     setState(() {
       wasteItemsClassified = (wasteItemsClassified + 5).clamp(0, dailyTarget);
     });
-    
+
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: const Text('🚀 NEURAL BOOST ACTIVATED!'),
@@ -660,12 +660,12 @@ class _CyberpunkWasteImpactDashboardState extends State<CyberpunkWasteImpactDash
       ),
     );
   }
-  
+
   void _syncMatrix() {
     setState(() {
       co2Saved = (co2Saved + 2.5).clamp(0, co2Target);
     });
-    
+
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: const Text('⚡ MATRIX SYNCHRONIZED!'),
@@ -675,13 +675,13 @@ class _CyberpunkWasteImpactDashboardState extends State<CyberpunkWasteImpactDash
       ),
     );
   }
-  
+
   void _quantumProcess() {
     setState(() {
       currentStreak = (currentStreak + 1).clamp(0, streakTarget);
       wasteItemsClassified = (wasteItemsClassified + 3).clamp(0, dailyTarget);
     });
-    
+
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: const Text('🌌 QUANTUM PROCESSING INITIATED!'),

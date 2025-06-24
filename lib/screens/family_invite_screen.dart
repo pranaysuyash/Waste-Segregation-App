@@ -10,7 +10,6 @@ import '../services/storage_service.dart';
 import '../utils/constants.dart';
 
 class FamilyInviteScreen extends StatefulWidget {
-
   const FamilyInviteScreen({
     super.key,
     required this.family,
@@ -21,13 +20,12 @@ class FamilyInviteScreen extends StatefulWidget {
   State<FamilyInviteScreen> createState() => _FamilyInviteScreenState();
 }
 
-class _FamilyInviteScreenState extends State<FamilyInviteScreen>
-    with SingleTickerProviderStateMixin {
+class _FamilyInviteScreenState extends State<FamilyInviteScreen> with SingleTickerProviderStateMixin {
   final _emailController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
   final _familyService = FirebaseFamilyService();
   late TabController _tabController;
-  
+
   UserRole _selectedRole = UserRole.member;
   bool _isLoading = false;
   String? _inviteLink;
@@ -507,7 +505,7 @@ class _FamilyInviteScreenState extends State<FamilyInviteScreen>
       // Get current user ID
       final storageService = Provider.of<StorageService>(context, listen: false);
       final currentUser = await storageService.getCurrentUserProfile();
-      
+
       if (currentUser == null) {
         throw Exception('User not found. Please sign in again.');
       }
@@ -526,7 +524,7 @@ class _FamilyInviteScreenState extends State<FamilyInviteScreen>
             backgroundColor: Colors.green,
           ),
         );
-        
+
         // Clear the form
         _emailController.clear();
         setState(() {
@@ -606,4 +604,4 @@ class _FamilyInviteScreenState extends State<FamilyInviteScreen>
         return 'Read-only access to family activities';
     }
   }
-} 
+}

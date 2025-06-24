@@ -25,7 +25,7 @@ class AnimationHelpers {
       },
     );
   }
-  
+
   /// Creates a success checkmark animation
   static Widget createSuccessCheck({
     required Color color,
@@ -45,7 +45,7 @@ class AnimationHelpers {
           width: size,
           height: size,
           decoration: BoxDecoration(
-            color: color.withValues(alpha:0.2 * animation.value),
+            color: color.withValues(alpha: 0.2 * animation.value),
             shape: BoxShape.circle,
           ),
           child: Center(
@@ -78,39 +78,35 @@ class AnimationHelpers {
   static void disposeController(AnimationController? controller) {
     controller?.dispose();
   }
-  
+
   /// Creates a bouncing animation for UI elements
   static Animation<double> createBounceAnimation(AnimationController controller) {
     return TweenSequence<double>([
       TweenSequenceItem(
-        tween: Tween<double>(begin: 1.0, end: 1.2)
-            .chain(CurveTween(curve: Curves.elasticOut)),
+        tween: Tween<double>(begin: 1.0, end: 1.2).chain(CurveTween(curve: Curves.elasticOut)),
         weight: 40.0,
       ),
       TweenSequenceItem(
-        tween: Tween<double>(begin: 1.2, end: 1.0)
-            .chain(CurveTween(curve: Curves.elasticIn)),
+        tween: Tween<double>(begin: 1.2, end: 1.0).chain(CurveTween(curve: Curves.elasticIn)),
         weight: 60.0,
       ),
     ]).animate(controller);
   }
-  
+
   /// Creates a pulse animation for UI elements
   static Animation<double> createPulseAnimation(AnimationController controller) {
     return TweenSequence<double>([
       TweenSequenceItem(
-        tween: Tween<double>(begin: 1.0, end: 1.2)
-            .chain(CurveTween(curve: Curves.easeInOut)),
+        tween: Tween<double>(begin: 1.0, end: 1.2).chain(CurveTween(curve: Curves.easeInOut)),
         weight: 50.0,
       ),
       TweenSequenceItem(
-        tween: Tween<double>(begin: 1.2, end: 1.0)
-            .chain(CurveTween(curve: Curves.easeInOut)),
+        tween: Tween<double>(begin: 1.2, end: 1.0).chain(CurveTween(curve: Curves.easeInOut)),
         weight: 50.0,
       ),
     ]).animate(controller);
   }
-  
+
   /// Creates a progress animation with color transition
   static Animation<Color?> createProgressColorAnimation(
     AnimationController controller,
@@ -152,7 +148,7 @@ class CheckmarkPainter extends CustomPainter {
     final height = size.height;
 
     final path = Path();
-    
+
     // Define the checkmark path
     path.moveTo(width * 0.2, height * 0.5);
     path.lineTo(width * 0.45, height * 0.75);
@@ -160,28 +156,26 @@ class CheckmarkPainter extends CustomPainter {
 
     // Use path metrics to animate the drawing of the path
     final pathMetrics = path.computeMetrics();
-    
+
     // Guard against empty path metrics
     if (pathMetrics.isEmpty) {
       WasteAppLogger.warning('Warning: Path metrics is empty, skipping checkmark animation');
       return;
     }
-    
+
     final pathMetric = pathMetrics.first;
-    
+
     final length = pathMetric.length;
     final animatedLength = length * animation;
-    
+
     final animatedPath = pathMetric.extractPath(0, animatedLength);
-    
+
     canvas.drawPath(animatedPath, paint);
   }
 
   @override
   bool shouldRepaint(CheckmarkPainter oldDelegate) {
-    return oldDelegate.animation != animation ||
-        oldDelegate.color != color ||
-        oldDelegate.strokeWidth != strokeWidth;
+    return oldDelegate.animation != animation || oldDelegate.color != color || oldDelegate.strokeWidth != strokeWidth;
   }
 }
 
@@ -200,21 +194,21 @@ class ParticlePainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     final animationValue = animation.value;
     final paint = Paint()
-      ..color = color.withValues(alpha:1.0 - animationValue)
+      ..color = color.withValues(alpha: 1.0 - animationValue)
       ..style = PaintingStyle.fill;
-    
+
     final center = size.width / 2;
-    
+
     for (var i = 0; i < particleCount; i++) {
       final angle = i * (2 * 3.14159 / particleCount);
       final distance = animationValue * size.width / 2;
-      
+
       final x = center + distance * cos(angle);
       final y = center + distance * sin(angle);
-      
+
       // Reduce particle size as they move outward
       final particleSize = (1.0 - animationValue) * 8.0;
-      
+
       canvas.drawCircle(
         Offset(x, y),
         particleSize,
@@ -225,8 +219,7 @@ class ParticlePainter extends CustomPainter {
 
   @override
   bool shouldRepaint(ParticlePainter oldDelegate) {
-    return oldDelegate.animation.value != animation.value ||
-        oldDelegate.color != color;
+    return oldDelegate.animation.value != animation.value || oldDelegate.color != color;
   }
 }
 
@@ -252,8 +245,7 @@ class ScaleAnimation extends StatefulWidget {
   State<ScaleAnimation> createState() => _ScaleAnimationState();
 }
 
-class _ScaleAnimationState extends State<ScaleAnimation>
-    with SingleTickerProviderStateMixin {
+class _ScaleAnimationState extends State<ScaleAnimation> with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _animation;
 
@@ -267,13 +259,11 @@ class _ScaleAnimationState extends State<ScaleAnimation>
 
     _animation = TweenSequence<double>([
       TweenSequenceItem(
-        tween: Tween<double>(begin: 1.0, end: 1.2)
-            .chain(CurveTween(curve: widget.curve)),
+        tween: Tween<double>(begin: 1.0, end: 1.2).chain(CurveTween(curve: widget.curve)),
         weight: 40.0,
       ),
       TweenSequenceItem(
-        tween: Tween<double>(begin: 1.2, end: 1.0)
-            .chain(CurveTween(curve: widget.curve)),
+        tween: Tween<double>(begin: 1.2, end: 1.0).chain(CurveTween(curve: widget.curve)),
         weight: 60.0,
       ),
     ]).animate(_controller);
@@ -338,8 +328,7 @@ class FadeSlideAnimation extends StatefulWidget {
   State<FadeSlideAnimation> createState() => _FadeSlideAnimationState();
 }
 
-class _FadeSlideAnimationState extends State<FadeSlideAnimation>
-    with SingleTickerProviderStateMixin {
+class _FadeSlideAnimationState extends State<FadeSlideAnimation> with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _fadeAnimation;
   late Animation<Offset> _slideAnimation;

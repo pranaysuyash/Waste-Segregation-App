@@ -7,7 +7,7 @@ class DefaultFirebaseOptions {
     if (kIsWeb) {
       return web;
     }
-    
+
     switch (defaultTargetPlatform) {
       case TargetPlatform.android:
         return android;
@@ -69,4 +69,4 @@ class DefaultFirebaseOptions {
   );
 
   // Firebase configuration settings for Web
-} 
+}

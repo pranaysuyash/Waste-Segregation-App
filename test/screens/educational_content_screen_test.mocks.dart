@@ -11,8 +11,7 @@ import 'package:flutter/material.dart' as _i3;
 import 'package:mockito/mockito.dart' as _i1;
 import 'package:waste_segregation_app/models/educational_content.dart' as _i2;
 import 'package:waste_segregation_app/services/ad_service.dart' as _i7;
-import 'package:waste_segregation_app/services/educational_content_service.dart'
-    as _i5;
+import 'package:waste_segregation_app/services/educational_content_service.dart' as _i5;
 
 // ignore_for_file: type=lint
 // ignore_for_file: avoid_redundant_argument_values
@@ -47,15 +46,13 @@ class _FakeWidget_1 extends _i1.SmartFake implements _i3.Widget {
         );
 
   @override
-  String toString({_i4.DiagnosticLevel? minLevel = _i4.DiagnosticLevel.info}) =>
-      super.toString();
+  String toString({_i4.DiagnosticLevel? minLevel = _i4.DiagnosticLevel.info}) => super.toString();
 }
 
 /// A class which mocks [EducationalContentService].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockEducationalContentService extends _i1.Mock
-    implements _i5.EducationalContentService {
+class MockEducationalContentService extends _i1.Mock implements _i5.EducationalContentService {
   MockEducationalContentService() {
     _i1.throwOnMissingStub(this);
   }
@@ -108,8 +105,7 @@ class MockEducationalContentService extends _i1.Mock
       ) as List<_i2.EducationalContent>);
 
   @override
-  List<_i2.EducationalContent> getContentByCategory(String? category) =>
-      (super.noSuchMethod(
+  List<_i2.EducationalContent> getContentByCategory(String? category) => (super.noSuchMethod(
         Invocation.method(
           #getContentByCategory,
           [category],
@@ -118,8 +114,7 @@ class MockEducationalContentService extends _i1.Mock
       ) as List<_i2.EducationalContent>);
 
   @override
-  List<_i2.EducationalContent> getContentByType(_i2.ContentType? type) =>
-      (super.noSuchMethod(
+  List<_i2.EducationalContent> getContentByType(_i2.ContentType? type) => (super.noSuchMethod(
         Invocation.method(
           #getContentByType,
           [type],
@@ -128,8 +123,7 @@ class MockEducationalContentService extends _i1.Mock
       ) as List<_i2.EducationalContent>);
 
   @override
-  List<_i2.EducationalContent> searchContent(String? query) =>
-      (super.noSuchMethod(
+  List<_i2.EducationalContent> searchContent(String? query) => (super.noSuchMethod(
         Invocation.method(
           #searchContent,
           [query],
@@ -138,8 +132,7 @@ class MockEducationalContentService extends _i1.Mock
       ) as List<_i2.EducationalContent>);
 
   @override
-  _i2.EducationalContent? getContentById(String? id) =>
-      (super.noSuchMethod(Invocation.method(
+  _i2.EducationalContent? getContentById(String? id) => (super.noSuchMethod(Invocation.method(
         #getContentById,
         [id],
       )) as _i2.EducationalContent?);
@@ -190,8 +183,7 @@ class MockEducationalContentService extends _i1.Mock
       ) as List<_i2.EducationalContent>);
 
   @override
-  void trackContentViewed(_i2.EducationalContent? content) =>
-      super.noSuchMethod(
+  void trackContentViewed(_i2.EducationalContent? content) => super.noSuchMethod(
         Invocation.method(
           #trackContentViewed,
           [content],
@@ -200,8 +192,7 @@ class MockEducationalContentService extends _i1.Mock
       );
 
   @override
-  _i6.Future<void> endContentView({bool? completed = false}) =>
-      (super.noSuchMethod(
+  _i6.Future<void> endContentView({bool? completed = false}) => (super.noSuchMethod(
         Invocation.method(
           #endContentView,
           [],

@@ -18,7 +18,7 @@ class AppSettingsSection extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         // Section header is handled by parent
-        
+
         SettingTile(
           icon: Icons.palette,
           iconColor: SettingsTheme.themeColor,
@@ -27,7 +27,7 @@ class AppSettingsSection extends StatelessWidget {
           subtitle: 'Customize app appearance',
           onTap: () => _navigateToThemeSettings(context),
         ),
-        
+
         SettingTile(
           icon: Icons.notifications,
           iconColor: Colors.green,
@@ -36,7 +36,7 @@ class AppSettingsSection extends StatelessWidget {
           subtitle: 'Manage notifications and alerts',
           onTap: () => _navigateToNotificationSettings(context),
         ),
-        
+
         SettingTile(
           icon: Icons.cloud_off,
           iconColor: Colors.indigo,
@@ -45,7 +45,7 @@ class AppSettingsSection extends StatelessWidget {
           subtitle: 'Configure offline functionality',
           onTap: () => _navigateToOfflineSettings(context),
         ),
-        
+
         SettingTile(
           icon: Icons.download,
           iconColor: SettingsTheme.dataColor,
@@ -106,4 +106,4 @@ class AppSettingsSection extends StatelessWidget {
       ),
     );
   }
-} 
+}

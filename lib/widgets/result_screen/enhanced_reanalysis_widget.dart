@@ -8,7 +8,6 @@ import '../../services/haptic_settings_service.dart';
 
 /// Enhanced re-analysis widget with better UI hooks and user experience
 class EnhancedReanalysisWidget extends StatefulWidget {
-
   const EnhancedReanalysisWidget({
     super.key,
     required this.classification,
@@ -27,8 +26,7 @@ class EnhancedReanalysisWidget extends StatefulWidget {
   State<EnhancedReanalysisWidget> createState() => _EnhancedReanalysisWidgetState();
 }
 
-class _EnhancedReanalysisWidgetState extends State<EnhancedReanalysisWidget>
-    with SingleTickerProviderStateMixin {
+class _EnhancedReanalysisWidgetState extends State<EnhancedReanalysisWidget> with SingleTickerProviderStateMixin {
   bool _isReanalyzing = false;
   late AnimationController _animationController;
   late Animation<double> _scaleAnimation;
@@ -75,15 +73,15 @@ class _EnhancedReanalysisWidgetState extends State<EnhancedReanalysisWidget>
   Widget _buildReanalysisCard() {
     final confidence = widget.classification.confidence ?? 1.0;
     final isLowConfidence = confidence < 0.7;
-    
+
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 8),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: isLowConfidence 
-            ? [Colors.orange.shade50, Colors.orange.shade100]
-            : [Colors.blue.shade50, Colors.blue.shade100],
+          colors: isLowConfidence
+              ? [Colors.orange.shade50, Colors.orange.shade100]
+              : [Colors.blue.shade50, Colors.blue.shade100],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
@@ -115,7 +113,7 @@ class _EnhancedReanalysisWidgetState extends State<EnhancedReanalysisWidget>
   Widget _buildHeader(bool isLowConfidence) {
     final confidence = widget.classification.confidence ?? 1.0;
     final confidencePercent = (confidence * 100).round();
-    
+
     return Row(
       children: [
         Container(
@@ -187,7 +185,8 @@ class _EnhancedReanalysisWidgetState extends State<EnhancedReanalysisWidget>
     if (widget.userCorrection != null) {
       description = 'Re-analyze this image with your correction: "${widget.userCorrection}" for improved accuracy.';
     } else if (isLowConfidence) {
-      description = 'This classification has lower confidence than usual. Try re-analyzing with a clearer image or different angle.';
+      description =
+          'This classification has lower confidence than usual. Try re-analyzing with a clearer image or different angle.';
     } else {
       description = 'Not satisfied with the result? Re-analyze the image to get a fresh classification.';
     }
@@ -214,9 +213,7 @@ class _EnhancedReanalysisWidgetState extends State<EnhancedReanalysisWidget>
             onPressed: _triggerReanalysis,
             icon: const Icon(Icons.refresh, size: 18),
             label: Text(
-              widget.userCorrection != null 
-                ? 'Re-analyze with Correction'
-                : 'Re-analyze Image',
+              widget.userCorrection != null ? 'Re-analyze with Correction' : 'Re-analyze Image',
               style: const TextStyle(fontWeight: FontWeight.w600),
             ),
             style: ElevatedButton.styleFrom(
@@ -307,7 +304,7 @@ class _EnhancedReanalysisWidgetState extends State<EnhancedReanalysisWidget>
   void _triggerReanalysis() async {
     final analyticsService = context.read<AnalyticsService>();
     final hapticService = context.read<HapticSettingsService>();
-    
+
     // Track re-analysis event
     analyticsService.trackUserAction('enhanced_reanalysis_triggered', parameters: {
       'original_category': widget.classification.category,
@@ -330,7 +327,7 @@ class _EnhancedReanalysisWidgetState extends State<EnhancedReanalysisWidget>
 
     try {
       final aiService = context.read<AiService>();
-      
+
       // For now, use the existing re-analyze functionality
       // Navigate back to capture screen for re-analysis
       if (mounted) {
@@ -377,7 +374,7 @@ class _EnhancedReanalysisWidgetState extends State<EnhancedReanalysisWidget>
   void _cancelReanalysis() {
     final aiService = context.read<AiService>();
     aiService.cancelAnalysis();
-    
+
     setState(() {
       _isReanalyzing = false;
     });
@@ -412,7 +409,7 @@ class _EnhancedReanalysisWidgetState extends State<EnhancedReanalysisWidget>
               ),
             ),
             const SizedBox(height: 20),
-            
+
             Text(
               'Re-analysis Options',
               style: TextStyle(
@@ -422,7 +419,7 @@ class _EnhancedReanalysisWidgetState extends State<EnhancedReanalysisWidget>
               ),
             ),
             const SizedBox(height: 16),
-            
+
             _buildOption(
               icon: Icons.camera_alt,
               title: 'Retake Photo',
@@ -432,7 +429,7 @@ class _EnhancedReanalysisWidgetState extends State<EnhancedReanalysisWidget>
                 Navigator.pushReplacementNamed(context, '/capture');
               },
             ),
-            
+
             _buildOption(
               icon: Icons.refresh,
               title: 'Try Different Analysis',
@@ -442,7 +439,7 @@ class _EnhancedReanalysisWidgetState extends State<EnhancedReanalysisWidget>
                 _triggerReanalysis();
               },
             ),
-            
+
             _buildOption(
               icon: Icons.support_agent,
               title: 'Request Manual Review',
@@ -452,7 +449,7 @@ class _EnhancedReanalysisWidgetState extends State<EnhancedReanalysisWidget>
                 _requestManualReview();
               },
             ),
-            
+
             const SizedBox(height: 20),
           ],
         ),
@@ -525,4 +522,4 @@ class _EnhancedReanalysisWidgetState extends State<EnhancedReanalysisWidget>
       ),
     );
   }
-} 
+}

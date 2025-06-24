@@ -20,7 +20,7 @@ class NavigationDemoScreen extends StatelessWidget {
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
             colors: [
-              AppTheme.primaryColor.withValues(alpha:0.1),
+              AppTheme.primaryColor.withValues(alpha: 0.1),
               Colors.white,
             ],
           ),
@@ -48,7 +48,7 @@ class NavigationDemoScreen extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: AppTheme.paddingLarge * 2),
-                
+
                 Expanded(
                   child: ListView(
                     children: [
@@ -61,9 +61,7 @@ class NavigationDemoScreen extends StatelessWidget {
                         NavigationStyle.glassmorphism,
                         'Used by: Spotify, Instagram, iOS Control Center',
                       ),
-                      
                       const SizedBox(height: AppTheme.paddingRegular),
-                      
                       _buildNavigationStyleCard(
                         context,
                         'Material 3 Design',
@@ -73,9 +71,7 @@ class NavigationDemoScreen extends StatelessWidget {
                         NavigationStyle.material3,
                         'Used by: Google apps, Android 12+, Material You',
                       ),
-                      
                       const SizedBox(height: AppTheme.paddingRegular),
-                      
                       _buildNavigationStyleCard(
                         context,
                         'Floating Navigation',
@@ -88,9 +84,9 @@ class NavigationDemoScreen extends StatelessWidget {
                     ],
                   ),
                 ),
-                
+
                 const SizedBox(height: AppTheme.paddingLarge),
-                
+
                 // Back to current navigation button
                 SizedBox(
                   width: double.infinity,
@@ -156,7 +152,7 @@ class NavigationDemoScreen extends StatelessWidget {
                   Container(
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: color.withValues(alpha:0.1),
+                      color: color.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(AppTheme.borderRadiusRegular),
                     ),
                     child: Icon(
@@ -196,9 +192,7 @@ class NavigationDemoScreen extends StatelessWidget {
                   ),
                 ],
               ),
-              
               const SizedBox(height: AppTheme.paddingRegular),
-              
               Container(
                 padding: const EdgeInsets.all(AppTheme.paddingSmall),
                 decoration: BoxDecoration(

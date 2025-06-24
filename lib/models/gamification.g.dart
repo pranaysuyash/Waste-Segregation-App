@@ -86,9 +86,7 @@ class AchievementAdapter extends TypeAdapter<Achievement> {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      other is AchievementAdapter &&
-          runtimeType == other.runtimeType &&
-          typeId == other.typeId;
+      other is AchievementAdapter && runtimeType == other.runtimeType && typeId == other.typeId;
 }
 
 class ChallengeAdapter extends TypeAdapter<Challenge> {
@@ -152,10 +150,7 @@ class ChallengeAdapter extends TypeAdapter<Challenge> {
 
   @override
   bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is ChallengeAdapter &&
-          runtimeType == other.runtimeType &&
-          typeId == other.typeId;
+      identical(this, other) || other is ChallengeAdapter && runtimeType == other.runtimeType && typeId == other.typeId;
 }
 
 class UserPointsAdapter extends TypeAdapter<UserPoints> {
@@ -199,9 +194,7 @@ class UserPointsAdapter extends TypeAdapter<UserPoints> {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      other is UserPointsAdapter &&
-          runtimeType == other.runtimeType &&
-          typeId == other.typeId;
+      other is UserPointsAdapter && runtimeType == other.runtimeType && typeId == other.typeId;
 }
 
 class WeeklyStatsAdapter extends TypeAdapter<WeeklyStats> {
@@ -248,9 +241,7 @@ class WeeklyStatsAdapter extends TypeAdapter<WeeklyStats> {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      other is WeeklyStatsAdapter &&
-          runtimeType == other.runtimeType &&
-          typeId == other.typeId;
+      other is WeeklyStatsAdapter && runtimeType == other.runtimeType && typeId == other.typeId;
 }
 
 class GamificationProfileAdapter extends TypeAdapter<GamificationProfile> {
@@ -312,9 +303,7 @@ class GamificationProfileAdapter extends TypeAdapter<GamificationProfile> {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      other is GamificationProfileAdapter &&
-          runtimeType == other.runtimeType &&
-          typeId == other.typeId;
+      other is GamificationProfileAdapter && runtimeType == other.runtimeType && typeId == other.typeId;
 }
 
 class StreakDetailsAdapter extends TypeAdapter<StreakDetails> {
@@ -361,9 +350,7 @@ class StreakDetailsAdapter extends TypeAdapter<StreakDetails> {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      other is StreakDetailsAdapter &&
-          runtimeType == other.runtimeType &&
-          typeId == other.typeId;
+      other is StreakDetailsAdapter && runtimeType == other.runtimeType && typeId == other.typeId;
 }
 
 class AchievementTypeAdapter extends TypeAdapter<AchievementType> {
@@ -500,9 +487,7 @@ class AchievementTypeAdapter extends TypeAdapter<AchievementType> {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      other is AchievementTypeAdapter &&
-          runtimeType == other.runtimeType &&
-          typeId == other.typeId;
+      other is AchievementTypeAdapter && runtimeType == other.runtimeType && typeId == other.typeId;
 }
 
 class AchievementTierAdapter extends TypeAdapter<AchievementTier> {
@@ -549,9 +534,7 @@ class AchievementTierAdapter extends TypeAdapter<AchievementTier> {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      other is AchievementTierAdapter &&
-          runtimeType == other.runtimeType &&
-          typeId == other.typeId;
+      other is AchievementTierAdapter && runtimeType == other.runtimeType && typeId == other.typeId;
 }
 
 class ClaimStatusAdapter extends TypeAdapter<ClaimStatus> {
@@ -593,9 +576,7 @@ class ClaimStatusAdapter extends TypeAdapter<ClaimStatus> {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      other is ClaimStatusAdapter &&
-          runtimeType == other.runtimeType &&
-          typeId == other.typeId;
+      other is ClaimStatusAdapter && runtimeType == other.runtimeType && typeId == other.typeId;
 }
 
 class StreakTypeAdapter extends TypeAdapter<StreakType> {
@@ -642,7 +623,5 @@ class StreakTypeAdapter extends TypeAdapter<StreakType> {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      other is StreakTypeAdapter &&
-          runtimeType == other.runtimeType &&
-          typeId == other.typeId;
+      other is StreakTypeAdapter && runtimeType == other.runtimeType && typeId == other.typeId;
 }

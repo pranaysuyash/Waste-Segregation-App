@@ -7,17 +7,19 @@ import 'gamification.dart' show FamilyReaction, FamilyComment, ClassificationLoc
 enum ClassificationVisibility {
   /// Visible only to the classifier.
   private,
+
   /// Visible to family members only.
   family,
+
   /// Visible to friends and family.
   friends,
+
   /// Visible to everyone (public).
   public,
 }
 
 /// Represents a waste classification that has been shared with family members.
 class SharedWasteClassification {
-
   SharedWasteClassification({
     required this.id,
     required this.classification,
@@ -74,13 +76,13 @@ class SharedWasteClassification {
               ?.map((c) => FamilyComment.fromJson(c as Map<String, dynamic>))
               .toList() ??
           [],
-      location: json['location'] != null
-          ? ClassificationLocation.fromJson(json['location'] as Map<String, dynamic>)
-          : null,
+      location:
+          json['location'] != null ? ClassificationLocation.fromJson(json['location'] as Map<String, dynamic>) : null,
       isVisible: json['isVisible'] as bool? ?? true,
       familyTags: List<String>.from(json['familyTags'] as List? ?? []),
     );
   }
+
   /// Unique identifier for this shared classification.
   final String id;
 
@@ -169,19 +171,19 @@ class SharedWasteClassification {
   /// Gets the most recent activity timestamp.
   DateTime get lastActivityTimestamp {
     var latest = sharedAt;
-    
+
     for (final reaction in reactions) {
       if (reaction.timestamp.isAfter(latest)) {
         latest = reaction.timestamp;
       }
     }
-    
+
     for (final comment in comments) {
       if (comment.timestamp.isAfter(latest)) {
         latest = comment.timestamp;
       }
     }
-    
+
     return latest;
   }
 

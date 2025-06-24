@@ -3,7 +3,6 @@ import '../../utils/constants.dart';
 
 /// Modern text field with enhanced styling and animations
 class ModernTextField extends StatefulWidget {
-
   const ModernTextField({
     super.key,
     this.controller,
@@ -52,8 +51,7 @@ class ModernTextField extends StatefulWidget {
   State<ModernTextField> createState() => _ModernTextFieldState();
 }
 
-class _ModernTextFieldState extends State<ModernTextField>
-    with SingleTickerProviderStateMixin {
+class _ModernTextFieldState extends State<ModernTextField> with SingleTickerProviderStateMixin {
   late AnimationController _animationController;
   late Animation<double> _focusAnimation;
   bool _isFocused = false;
@@ -84,7 +82,7 @@ class _ModernTextFieldState extends State<ModernTextField>
     setState(() {
       _isFocused = hasFocus;
     });
-    
+
     if (hasFocus) {
       _animationController.forward();
     } else {
@@ -95,7 +93,7 @@ class _ModernTextFieldState extends State<ModernTextField>
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    
+
     return AnimatedBuilder(
       animation: _focusAnimation,
       builder: (context, child) {
@@ -119,61 +117,61 @@ class _ModernTextFieldState extends State<ModernTextField>
           onTap: widget.onTap,
           validator: widget.validator,
           textCapitalization: widget.textCapitalization,
-          decoration: widget.decoration ?? InputDecoration(
-            labelText: widget.labelText,
-            hintText: widget.hintText,
-            helperText: widget.helperText,
-            errorText: widget.errorText,
-            prefixIcon: widget.prefixIcon != null ? Icon(widget.prefixIcon) : null,
-            suffixIcon: widget.suffixIcon != null 
-                ? IconButton(
-                    icon: Icon(widget.suffixIcon),
-                    onPressed: widget.onSuffixIconPressed,
-                  )
-                : null,
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(AppTheme.borderRadiusRegular),
-              borderSide: BorderSide(
-                color: theme.colorScheme.outline,
+          decoration: widget.decoration ??
+              InputDecoration(
+                labelText: widget.labelText,
+                hintText: widget.hintText,
+                helperText: widget.helperText,
+                errorText: widget.errorText,
+                prefixIcon: widget.prefixIcon != null ? Icon(widget.prefixIcon) : null,
+                suffixIcon: widget.suffixIcon != null
+                    ? IconButton(
+                        icon: Icon(widget.suffixIcon),
+                        onPressed: widget.onSuffixIconPressed,
+                      )
+                    : null,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(AppTheme.borderRadiusRegular),
+                  borderSide: BorderSide(
+                    color: theme.colorScheme.outline,
+                  ),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(AppTheme.borderRadiusRegular),
+                  borderSide: BorderSide(
+                    color: theme.colorScheme.outline.withValues(alpha: 0.5),
+                  ),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(AppTheme.borderRadiusRegular),
+                  borderSide: BorderSide(
+                    color: theme.colorScheme.primary,
+                    width: 2.0,
+                  ),
+                ),
+                errorBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(AppTheme.borderRadiusRegular),
+                  borderSide: BorderSide(
+                    color: theme.colorScheme.error,
+                  ),
+                ),
+                focusedErrorBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(AppTheme.borderRadiusRegular),
+                  borderSide: BorderSide(
+                    color: theme.colorScheme.error,
+                    width: 2.0,
+                  ),
+                ),
+                filled: true,
+                fillColor:
+                    _isFocused ? theme.colorScheme.primaryContainer.withValues(alpha: 0.1) : theme.colorScheme.surface,
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: AppTheme.paddingRegular,
+                  vertical: AppTheme.paddingRegular,
+                ),
               ),
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(AppTheme.borderRadiusRegular),
-              borderSide: BorderSide(
-                color: theme.colorScheme.outline.withValues(alpha: 0.5),
-              ),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(AppTheme.borderRadiusRegular),
-              borderSide: BorderSide(
-                color: theme.colorScheme.primary,
-                width: 2.0,
-              ),
-            ),
-            errorBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(AppTheme.borderRadiusRegular),
-              borderSide: BorderSide(
-                color: theme.colorScheme.error,
-              ),
-            ),
-            focusedErrorBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(AppTheme.borderRadiusRegular),
-              borderSide: BorderSide(
-                color: theme.colorScheme.error,
-                width: 2.0,
-              ),
-            ),
-            filled: true,
-            fillColor: _isFocused
-                ? theme.colorScheme.primaryContainer.withValues(alpha: 0.1)
-                : theme.colorScheme.surface,
-            contentPadding: const EdgeInsets.symmetric(
-              horizontal: AppTheme.paddingRegular,
-              vertical: AppTheme.paddingRegular,
-            ),
-          ),
         ),
       ),
     );
   }
-} 
+}

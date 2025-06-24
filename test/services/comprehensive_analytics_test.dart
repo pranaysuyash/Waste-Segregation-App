@@ -16,7 +16,7 @@ void main() {
     setUp(() async {
       // Initialize SharedPreferences for testing
       SharedPreferences.setMockInitialValues({});
-      
+
       consentManager = AnalyticsConsentManager();
       validator = AnalyticsSchemaValidator();
       storageService = StorageService();
@@ -36,7 +36,7 @@ void main() {
           consentType: AnalyticsConsentManager.analyticsConsent,
           granted: true,
         );
-        
+
         expect(await consentManager.hasAnalyticsConsent(), true);
         expect(await consentManager.hasPerformanceConsent(), false);
       });
@@ -47,7 +47,7 @@ void main() {
           performance: true,
           marketing: false,
         );
-        
+
         expect(await consentManager.hasAnalyticsConsent(), true);
         expect(await consentManager.hasPerformanceConsent(), true);
         expect(await consentManager.hasMarketingConsent(), false);
@@ -56,7 +56,7 @@ void main() {
       test('should generate and persist anonymous ID', () async {
         final id1 = await consentManager.getAnonymousId();
         final id2 = await consentManager.getAnonymousId();
-        
+
         expect(id1, isNotEmpty);
         expect(id1, equals(id2)); // Should be the same on subsequent calls
         expect(id1, startsWith('anon_'));
@@ -66,18 +66,18 @@ void main() {
         final id1 = await consentManager.getAnonymousId();
         await consentManager.clearAnonymousId();
         final id2 = await consentManager.getAnonymousId();
-        
+
         expect(id1, isNot(equals(id2))); // Should be different after clearing
       });
 
       test('should check if consent dialog is needed', () async {
         expect(await consentManager.needsConsentDialog(), true); // First time
-        
+
         await consentManager.setConsent(
           consentType: AnalyticsConsentManager.analyticsConsent,
           granted: true,
         );
-        
+
         expect(await consentManager.needsConsentDialog(), false); // After setting consent
       });
 
@@ -86,13 +86,13 @@ void main() {
         expect(await consentManager.shouldTrackEvent('analytics'), false);
         expect(await consentManager.shouldTrackEvent('performance'), false);
         expect(await consentManager.shouldTrackEvent('essential'), true);
-        
+
         // Grant analytics consent
         await consentManager.setConsent(
           consentType: AnalyticsConsentManager.analyticsConsent,
           granted: true,
         );
-        
+
         expect(await consentManager.shouldTrackEvent('analytics'), true);
         expect(await consentManager.shouldTrackEvent('user_action'), true);
         expect(await consentManager.shouldTrackEvent('performance'), false);
@@ -104,11 +104,11 @@ void main() {
           performance: true,
           marketing: true,
         );
-        
+
         expect(await consentManager.hasAnalyticsConsent(), true);
-        
+
         await consentManager.withdrawAllConsent();
-        
+
         expect(await consentManager.hasAnalyticsConsent(), false);
         expect(await consentManager.hasPerformanceConsent(), false);
         expect(await consentManager.hasMarketingConsent(), false);
@@ -127,9 +127,9 @@ void main() {
             'platform': 'iOS',
           },
         );
-        
+
         final result = await validator.validateEvent(event);
-        
+
         expect(result.isValid, true);
         expect(result.errors, isEmpty);
       });
@@ -143,9 +143,9 @@ void main() {
             // Missing required fields: device_type, app_version, platform
           },
         );
-        
+
         final result = await validator.validateEvent(event);
-        
+
         expect(result.isValid, false);
         expect(result.errors.length, greaterThan(0));
         expect(result.errors.any((error) => error.contains('device_type')), true);
@@ -163,9 +163,9 @@ void main() {
             'category': 'recyclable',
           },
         );
-        
+
         final result = await validator.validateEvent(event);
-        
+
         expect(result.isValid, false);
         expect(result.errors.any((error) => error.contains('processing_duration_ms')), true);
       });
@@ -182,9 +182,9 @@ void main() {
             'category': 'recyclable',
           },
         );
-        
+
         final result = await validator.validateEvent(event);
-        
+
         expect(result.isValid, false);
         expect(result.errors.any((error) => error.contains('confidence_score')), true);
       });
@@ -196,9 +196,9 @@ void main() {
           eventName: 'Invalid-Event-Name', // Should be snake_case
           parameters: {},
         );
-        
+
         final result = await validator.validateEvent(event);
-        
+
         expect(result.isValid, false);
         expect(result.errors.any((error) => error.contains('Invalid event name format')), true);
       });
@@ -213,9 +213,9 @@ void main() {
             'element_id': 'submit_button',
           },
         );
-        
+
         final result = await validator.validateEvent(event);
-        
+
         expect(result.warnings.any((warning) => warning.contains('email')), true);
       });
 
@@ -238,9 +238,9 @@ void main() {
             parameters: {},
           ),
         ];
-        
+
         final result = await validator.validateEvents(events);
-        
+
         expect(result.totalEvents, 2);
         expect(result.validEvents, 1);
         expect(result.invalidEvents, 1);
@@ -255,9 +255,9 @@ void main() {
           consentType: AnalyticsConsentManager.analyticsConsent,
           granted: true,
         );
-        
+
         await analyticsService.trackSessionStart();
-        
+
         // Verify event was created (would need access to pending events)
         expect(analyticsService.pendingEventsCount, greaterThan(0));
       });
@@ -267,14 +267,14 @@ void main() {
           consentType: AnalyticsConsentManager.analyticsConsent,
           granted: true,
         );
-        
+
         await analyticsService.trackPageView(
           'HomeScreen',
           previousScreen: 'OnboardingScreen',
           navigationMethod: 'button_tap',
           timeOnPreviousScreen: 5000,
         );
-        
+
         expect(analyticsService.pendingEventsCount, greaterThan(0));
       });
 
@@ -283,14 +283,14 @@ void main() {
           consentType: AnalyticsConsentManager.analyticsConsent,
           granted: true,
         );
-        
+
         await analyticsService.trackClick(
           elementId: 'classify_button',
           screenName: 'HomeScreen',
           elementType: 'button',
           userIntent: 'start_classification',
         );
-        
+
         expect(analyticsService.pendingEventsCount, greaterThan(0));
       });
 
@@ -299,7 +299,7 @@ void main() {
           consentType: AnalyticsConsentManager.analyticsConsent,
           granted: true,
         );
-        
+
         await analyticsService.trackFileClassified(
           classificationId: 'test_id',
           category: 'recyclable_plastic',
@@ -309,7 +309,7 @@ void main() {
           method: 'instant',
           resultAccuracy: true,
         );
-        
+
         expect(analyticsService.pendingEventsCount, greaterThan(0));
       });
 
@@ -318,13 +318,13 @@ void main() {
           consentType: AnalyticsConsentManager.performanceConsent,
           granted: true,
         );
-        
+
         await analyticsService.trackSlowResource(
           operationName: 'image_processing',
           durationMs: 5000,
           resourceType: 'ai_classification',
         );
-        
+
         expect(analyticsService.pendingEventsCount, greaterThan(0));
       });
 
@@ -333,7 +333,7 @@ void main() {
           consentType: AnalyticsConsentManager.performanceConsent,
           granted: true,
         );
-        
+
         await analyticsService.trackApiError(
           endpoint: '/api/classify',
           statusCode: 500,
@@ -341,20 +341,20 @@ void main() {
           retryCount: 2,
           errorMessage: 'Internal server error',
         );
-        
+
         expect(analyticsService.pendingEventsCount, greaterThan(0));
       });
 
       test('should not track events without consent', () async {
         // No consent granted
         final initialCount = analyticsService.pendingEventsCount;
-        
+
         await analyticsService.trackClick(
           elementId: 'test_button',
           screenName: 'TestScreen',
           elementType: 'button',
         );
-        
+
         expect(analyticsService.pendingEventsCount, equals(initialCount));
       });
 
@@ -363,14 +363,14 @@ void main() {
           consentType: AnalyticsConsentManager.analyticsConsent,
           granted: true,
         );
-        
+
         await analyticsService.trackPointsEarned(
           pointsAmount: 10,
           sourceAction: 'classification',
           totalPoints: 150,
           category: 'recyclable',
         );
-        
+
         expect(analyticsService.pendingEventsCount, greaterThan(0));
       });
 
@@ -379,21 +379,21 @@ void main() {
           consentType: AnalyticsConsentManager.analyticsConsent,
           granted: true,
         );
-        
+
         await analyticsService.trackContentViewed(
           contentId: 'recycling_guide_1',
           contentType: 'educational_article',
           source: 'search',
           userLevel: 5,
         );
-        
+
         await analyticsService.trackContentCompleted(
           contentId: 'recycling_guide_1',
           timeSpentMs: 45000,
           completionRate: 1.0,
           quizScore: 8,
         );
-        
+
         expect(analyticsService.pendingEventsCount, greaterThan(1));
       });
     });
@@ -404,9 +404,9 @@ void main() {
           consentType: AnalyticsConsentManager.analyticsConsent,
           granted: true,
         );
-        
+
         final initialCount = analyticsService.pendingEventsCount;
-        
+
         // Try to track an invalid event (missing required fields)
         await analyticsService.trackEvent(
           eventType: AnalyticsEventTypes.classification,
@@ -415,7 +415,7 @@ void main() {
             // Missing required fields
           },
         );
-        
+
         // Event should not be tracked due to validation failure
         expect(analyticsService.pendingEventsCount, equals(initialCount));
       });
@@ -426,16 +426,16 @@ void main() {
           performance: false,
           marketing: true,
         );
-        
+
         await analyticsService.trackClick(
           elementId: 'test_button',
           screenName: 'TestScreen',
           elementType: 'button',
         );
-        
+
         // Would need access to the actual event to verify consent metadata is included
         expect(analyticsService.pendingEventsCount, greaterThan(0));
       });
     });
   });
-} 
+}

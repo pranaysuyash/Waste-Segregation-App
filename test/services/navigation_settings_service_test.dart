@@ -477,11 +477,11 @@ void main() {
         for (var i = 0; i < 10; i++) {
           service = NavigationSettingsService();
           await Future.delayed(const Duration(milliseconds: 50));
-          
+
           await service.setBottomNavEnabled(i % 2 == 0);
           await service.setFabEnabled(i % 3 == 0);
           await service.setNavigationStyle('style_$i');
-          
+
           service.dispose();
         }
 
@@ -525,7 +525,7 @@ void main() {
         await Future.delayed(const Duration(milliseconds: 100));
 
         final listenerCounts = <int>[];
-        
+
         // Add many listeners
         for (var i = 0; i < 50; i++) {
           listenerCounts.add(0);
@@ -553,7 +553,7 @@ void main() {
         // Simulate user toggling settings in UI
         await service.setBottomNavEnabled(false); // User disables bottom nav
         await service.setFabEnabled(true); // User enables FAB as alternative
-        
+
         expect(service.bottomNavEnabled, isFalse);
         expect(service.fabEnabled, isTrue);
 
@@ -581,7 +581,7 @@ void main() {
         await service.setNavigationStyle('material3');
 
         // Simulate app backgrounding (no explicit action needed)
-        
+
         // Simulate app foregrounding with new service instance
         service.dispose();
         service = NavigationSettingsService();

@@ -23,8 +23,7 @@ class ImageCaptureScreen extends ConsumerStatefulWidget {
     this.autoAnalyze = false,
   });
 
-  factory ImageCaptureScreen.fromXFile(XFile xFile, {bool autoAnalyze = false}) =>
-      ImageCaptureScreen(
+  factory ImageCaptureScreen.fromXFile(XFile xFile, {bool autoAnalyze = false}) => ImageCaptureScreen(
         xFile: xFile,
         imageFile: kIsWeb ? null : File(xFile.path),
         autoAnalyze: autoAnalyze,
@@ -94,7 +93,8 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen> with Re
       }
       _useSegmentationRestorable.value = _useSegmentation;
       if (widget.autoAnalyze && (_imageFile != null || _xFile != null || _webImageBytes != null)) {
-        WasteAppLogger.info('Auto-analyzing image on init.', null, null, {'service': 'screen', 'file': 'image_capture_screen'});
+        WasteAppLogger.info(
+            'Auto-analyzing image on init.', null, null, {'service': 'screen', 'file': 'image_capture_screen'});
         _analyzeImage();
       }
     });
@@ -187,7 +187,8 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen> with Re
             try {
               imageBytes = await _xFile!.readAsBytes();
               if (_isCancelled) {
-                WasteAppLogger.info('Analysis cancelled during image reading.', null, null, {'service': 'screen', 'file': 'image_capture_screen'});
+                WasteAppLogger.info('Analysis cancelled during image reading.', null, null,
+                    {'service': 'screen', 'file': 'image_capture_screen'});
                 return;
               }
               if (mounted) {
@@ -196,7 +197,8 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen> with Re
                 });
               }
             } catch (bytesError, s) {
-              WasteAppLogger.severe('Failed to read image data for web analysis', bytesError, s, {'service': 'screen', 'file': 'image_capture_screen'});
+              WasteAppLogger.severe('Failed to read image data for web analysis', bytesError, s,
+                  {'service': 'screen', 'file': 'image_capture_screen'});
               throw Exception('Failed to read image data: $bytesError');
             }
           }
@@ -204,10 +206,12 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen> with Re
             throw Exception('Image data is empty or could not be read');
           }
           if (_isCancelled) {
-            WasteAppLogger.info('Analysis cancelled before starting.', null, null, {'service': 'screen', 'file': 'image_capture_screen'});
+            WasteAppLogger.info('Analysis cancelled before starting.', null, null,
+                {'service': 'screen', 'file': 'image_capture_screen'});
             return;
           }
-          WasteAppLogger.info('Analyzing web image: ${_xFile!.name}, size: ${imageBytes.length} bytes', null, null, {'service': 'screen', 'file': 'image_capture_screen'});
+          WasteAppLogger.info('Analyzing web image: ${_xFile!.name}, size: ${imageBytes.length} bytes', null, null,
+              {'service': 'screen', 'file': 'image_capture_screen'});
           if (_useSegmentation && _selectedSegments.isNotEmpty) {
             if (_selectedSpeed == AnalysisSpeed.instant) {
               classification = await aiService.analyzeImageSegmentsWeb(
@@ -216,7 +220,8 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen> with Re
                 _selectedSegments.map((i) => _segments[i]).toList(),
               );
             } else {
-              await _createBatchJobWeb(imageBytes, _xFile!.name, segments: _selectedSegments.map((i) => _segments[i]).toList(), useSegmentation: true);
+              await _createBatchJobWeb(imageBytes, _xFile!.name,
+                  segments: _selectedSegments.map((i) => _segments[i]).toList(), useSegmentation: true);
               return;
             }
           } else {
@@ -230,13 +235,16 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen> with Re
               return;
             }
           }
-          WasteAppLogger.info('Web image analysis complete: ${classification.itemName}', null, null, {'service': 'screen', 'file': 'image_capture_screen'});
+          WasteAppLogger.info('Web image analysis complete: ${classification.itemName}', null, null,
+              {'service': 'screen', 'file': 'image_capture_screen'});
         } else if (_webImageBytes != null) {
           if (_isCancelled) {
-            WasteAppLogger.info('Analysis cancelled before starting.', null, null, {'service': 'screen', 'file': 'image_capture_screen'});
+            WasteAppLogger.info('Analysis cancelled before starting.', null, null,
+                {'service': 'screen', 'file': 'image_capture_screen'});
             return;
           }
-          WasteAppLogger.info('Analyzing web image from bytes, size: ${_webImageBytes!.length} bytes', null, null, {'service': 'screen', 'file': 'image_capture_screen'});
+          WasteAppLogger.info('Analyzing web image from bytes, size: ${_webImageBytes!.length} bytes', null, null,
+              {'service': 'screen', 'file': 'image_capture_screen'});
           if (_useSegmentation && _selectedSegments.isNotEmpty) {
             classification = await aiService.analyzeImageSegmentsWeb(
               _webImageBytes!,
@@ -249,20 +257,23 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen> with Re
               'uploaded_image.jpg',
             );
           }
-          WasteAppLogger.info('Web image bytes analysis complete: ${classification.itemName}', null, null, {'service': 'screen', 'file': 'image_capture_screen'});
+          WasteAppLogger.info('Web image bytes analysis complete: ${classification.itemName}', null, null,
+              {'service': 'screen', 'file': 'image_capture_screen'});
         } else {
           throw Exception('No image provided for analysis');
         }
       } else {
         if (_imageFile != null) {
           if (_isCancelled) {
-            WasteAppLogger.info('Analysis cancelled before starting.', null, null, {'service': 'screen', 'file': 'image_capture_screen'});
+            WasteAppLogger.info('Analysis cancelled before starting.', null, null,
+                {'service': 'screen', 'file': 'image_capture_screen'});
             setState(() {
               _isAnalyzing = false;
             });
             return;
           }
-          WasteAppLogger.info('Analyzing mobile image: ${_imageFile!.path}', null, null, {'service': 'screen', 'file': 'image_capture_screen'});
+          WasteAppLogger.info('Analyzing mobile image: ${_imageFile!.path}', null, null,
+              {'service': 'screen', 'file': 'image_capture_screen'});
           if (await _imageFile!.exists()) {
             if (_useSegmentation && _selectedSegments.isNotEmpty) {
               if (_selectedSpeed == AnalysisSpeed.instant) {
@@ -290,7 +301,8 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen> with Re
                 return;
               }
             }
-            WasteAppLogger.info('Mobile image analysis complete: ${classification.itemName}', null, null, {'service': 'screen', 'file': 'image_capture_screen'});
+            WasteAppLogger.info('Mobile image analysis complete: ${classification.itemName}', null, null,
+                {'service': 'screen', 'file': 'image_capture_screen'});
           } else {
             throw Exception('Image file does not exist or could not be read');
           }
@@ -299,14 +311,16 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen> with Re
         }
       }
       if (_isCancelled) {
-        WasteAppLogger.info('Analysis cancelled after completion, not navigating.', null, null, {'service': 'screen', 'file': 'image_capture_screen'});
+        WasteAppLogger.info('Analysis cancelled after completion, not navigating.', null, null,
+            {'service': 'screen', 'file': 'image_capture_screen'});
         setState(() {
           _isAnalyzing = false;
         });
         return;
       }
       if (mounted && !_isCancelled) {
-        WasteAppLogger.info('Analysis complete, navigating to ResultScreen.', null, null, {'service': 'screen', 'file': 'image_capture_screen'});
+        WasteAppLogger.info('Analysis complete, navigating to ResultScreen.', null, null,
+            {'service': 'screen', 'file': 'image_capture_screen'});
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
@@ -388,7 +402,8 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen> with Re
     }
   }
 
-  Future<void> _createBatchJobWeb(Uint8List imageBytes, String imageName, {List<Map<String, dynamic>>? segments, bool useSegmentation = false}) async {
+  Future<void> _createBatchJobWeb(Uint8List imageBytes, String imageName,
+      {List<Map<String, dynamic>>? segments, bool useSegmentation = false}) async {
     // TODO: Implement web batch job creation using Riverpod
     // For now, show a placeholder
     if (mounted) {
@@ -422,72 +437,70 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen> with Re
         ),
       );
     }
-    
+
     // If auto-analyze is enabled, show only the loader (no review screen)
     if (widget.autoAnalyze) {
       return Scaffold(
-        body: _isAnalyzing 
-          ? EnhancedAnalysisLoader(
-              imageName: _imageFile?.path.split('/').last ?? 
-                         _xFile?.name ?? 
-                         'captured_image.jpg',
-              onCancel: () {
-                // Cancel the AI service analysis
-                final aiService = ref.read(aiServiceProvider);
-                aiService.cancelAnalysis();
-                
-                setState(() {
-                  _isCancelled = true;
-                  _isAnalyzing = false;
-                });
-                WasteAppLogger.info('Analysis cancelled by user.', null, null, {'service': 'screen', 'file': 'image_capture_screen'});
-                
-                // Show cancellation feedback
-                if (mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Analysis cancelled.'),
-                      duration: Duration(seconds: 2),
-                    ),
-                  );
-                }
-                // Navigate back to home screen
-                Navigator.of(context).popUntil((route) => route.isFirst);
-              },
-            )
-          : const Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  CircularProgressIndicator(),
-                  SizedBox(height: 16),
-                  Text('Preparing image for analysis...'),
-                ],
+        body: _isAnalyzing
+            ? EnhancedAnalysisLoader(
+                imageName: _imageFile?.path.split('/').last ?? _xFile?.name ?? 'captured_image.jpg',
+                onCancel: () {
+                  // Cancel the AI service analysis
+                  final aiService = ref.read(aiServiceProvider);
+                  aiService.cancelAnalysis();
+
+                  setState(() {
+                    _isCancelled = true;
+                    _isAnalyzing = false;
+                  });
+                  WasteAppLogger.info(
+                      'Analysis cancelled by user.', null, null, {'service': 'screen', 'file': 'image_capture_screen'});
+
+                  // Show cancellation feedback
+                  if (mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Analysis cancelled.'),
+                        duration: Duration(seconds: 2),
+                      ),
+                    );
+                  }
+                  // Navigate back to home screen
+                  Navigator.of(context).popUntil((route) => route.isFirst);
+                },
+              )
+            : const Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    CircularProgressIndicator(),
+                    SizedBox(height: 16),
+                    Text('Preparing image for analysis...'),
+                  ],
+                ),
               ),
-            ),
       );
     }
-    
+
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.autoAnalyze ? 'Analyzing Image' : 'Review Image'),
       ),
       body: _isAnalyzing
           ? EnhancedAnalysisLoader(
-              imageName: _imageFile?.path.split('/').last ?? 
-                         _xFile?.name ?? 
-                         'captured_image.jpg',
+              imageName: _imageFile?.path.split('/').last ?? _xFile?.name ?? 'captured_image.jpg',
               onCancel: () {
                 // Cancel the AI service analysis
                 final aiService = ref.read(aiServiceProvider);
                 aiService.cancelAnalysis();
-                
+
                 setState(() {
                   _isCancelled = true;
                   _isAnalyzing = false;
                 });
-                WasteAppLogger.info('Analysis cancelled by user.', null, null, {'service': 'screen', 'file': 'image_capture_screen'});
-                
+                WasteAppLogger.info(
+                    'Analysis cancelled by user.', null, null, {'service': 'screen', 'file': 'image_capture_screen'});
+
                 // Show cancellation feedback
                 if (mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
@@ -517,8 +530,7 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen> with Re
                                     final imageHeight = constraints.maxHeight;
 
                                     return Stack(
-                                      children:
-                                          List.generate(_segments.length, (index) {
+                                      children: List.generate(_segments.length, (index) {
                                         // Using segment bounds from Map
                                         final segment = _segments[index];
                                         final bounds = segment['bounds'] as Map<String, dynamic>;
@@ -526,8 +538,7 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen> with Re
                                         final top = (bounds['y'] as num).toDouble() * imageHeight / 100;
                                         final width = (bounds['width'] as num).toDouble() * imageWidth / 100;
                                         final height = (bounds['height'] as num).toDouble() * imageHeight / 100;
-                                        final selected =
-                                            _selectedSegments.contains(index);
+                                        final selected = _selectedSegments.contains(index);
 
                                         return Positioned(
                                           left: left,
@@ -546,13 +557,10 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen> with Re
                                             },
                                             child: Container(
                                               decoration: BoxDecoration(
-                                                color: selected
-                                                    ? Colors.blue.withValues(alpha: 0.3)
-                                                    : Colors.transparent,
+                                                color:
+                                                    selected ? Colors.blue.withValues(alpha: 0.3) : Colors.transparent,
                                                 border: Border.all(
-                                                  color: selected
-                                                      ? Colors.blue
-                                                      : Colors.white,
+                                                  color: selected ? Colors.blue : Colors.white,
                                                   width: 2,
                                                 ),
                                               ),
@@ -589,8 +597,7 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen> with Re
 
                 // Segmentation toggle with premium feature indication
                 Padding(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: AppTheme.paddingRegular),
+                  padding: const EdgeInsets.symmetric(horizontal: AppTheme.paddingRegular),
                   child: PremiumSegmentationToggle(
                     value: _useSegmentation,
                     onChanged: (bool value) async {
@@ -609,12 +616,12 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen> with Re
                         try {
                           await _runSegmentation();
                         } catch (e) {
-                          WasteAppLogger.severe('Segmentation failed', e, null, {'service': 'screen', 'file': 'image_capture_screen'});
+                          WasteAppLogger.severe(
+                              'Segmentation failed', e, null, {'service': 'screen', 'file': 'image_capture_screen'});
                           if (mounted) {
                             scaffoldMessenger.showSnackBar(
                               SnackBar(
-                                content:
-                                    Text('Segmentation failed: ${e.toString()}'),
+                                content: Text('Segmentation failed: ${e.toString()}'),
                                 duration: const Duration(seconds: 5),
                               ),
                             );
@@ -632,7 +639,7 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen> with Re
                     },
                   ),
                 ),
-                
+
                 // Segmentation results info
                 if (_useSegmentation && _segments.isNotEmpty)
                   Padding(
@@ -657,7 +664,7 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen> with Re
                       ],
                     ),
                   ),
-                        
+
                 // Speed selector
                 const SizedBox(height: 16),
                 AnalysisSpeedSelector(
@@ -678,7 +685,7 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen> with Re
                       // Quick analyze button (prominent)
                       _buildAnalyzeButton(),
                       const SizedBox(height: AppTheme.paddingSmall),
-                      
+
                       // Quick action row
                       Row(
                         children: [
@@ -724,7 +731,7 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen> with Re
   Widget _buildAnalyzeButton() {
     final speedText = _selectedSpeed == AnalysisSpeed.instant ? 'Instant' : 'Batch';
     final tokenCost = _selectedSpeed.cost;
-    
+
     return SizedBox(
       width: double.infinity,
       child: ElevatedButton.icon(
@@ -776,7 +783,7 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen> with Re
 
   Widget _buildImagePreview() {
     Widget imageWidget;
-    
+
     if (kIsWeb) {
       if (_webImageBytes != null) {
         imageWidget = Image.memory(
@@ -794,56 +801,56 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen> with Re
         fit: BoxFit.contain,
       );
     }
-    
+
     // Wrap with InteractiveViewer for zoom functionality
     return AspectRatio(
-      aspectRatio: 16 / 9,
-      child: InteractiveViewer(
-        minScale: 0.5, // Minimum zoom out
-        maxScale: 4.0, // Maximum zoom in
-        child: Stack(
-          fit: StackFit.expand, // FIXED: Use StackFit.expand instead of infinite container
-          children: [
-          // FIXED: Center the image within available space
-          Center(child: imageWidget),
-          // Zoom instruction overlay (shows briefly)
-          Positioned(
-            top: 16,
-            left: 16,
-            right: 16,
-            child: Container(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 12,
-                vertical: 8,
-              ),
-              decoration: BoxDecoration(
-                color: Colors.black.withValues(alpha: 0.7),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: const Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(
-                    Icons.zoom_in,
-                    color: Colors.white,
-                    size: 16,
+        aspectRatio: 16 / 9,
+        child: InteractiveViewer(
+          minScale: 0.5, // Minimum zoom out
+          maxScale: 4.0, // Maximum zoom in
+          child: Stack(
+            fit: StackFit.expand, // FIXED: Use StackFit.expand instead of infinite container
+            children: [
+              // FIXED: Center the image within available space
+              Center(child: imageWidget),
+              // Zoom instruction overlay (shows briefly)
+              Positioned(
+                top: 16,
+                left: 16,
+                right: 16,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 8,
                   ),
-                  SizedBox(width: 8),
-                  Text(
-                    'Pinch to zoom • Drag to pan',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 12,
-                      fontWeight: FontWeight.w500,
-                    ),
+                  decoration: BoxDecoration(
+                    color: Colors.black.withValues(alpha: 0.7),
+                    borderRadius: BorderRadius.circular(8),
                   ),
-                ],
+                  child: const Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        Icons.zoom_in,
+                        color: Colors.white,
+                        size: 16,
+                      ),
+                      SizedBox(width: 8),
+                      Text(
+                        'Pinch to zoom • Drag to pan',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               ),
-            ),
+            ],
           ),
-        ],
-      ),
-    ));
+        ));
   }
 
   @override

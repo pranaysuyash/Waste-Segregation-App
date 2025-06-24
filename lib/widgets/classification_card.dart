@@ -5,9 +5,8 @@ import 'helpers/thumbnail_widget.dart';
 
 /// The new beautified classification card with modern Material Design
 class ClassificationCard extends StatelessWidget {
-  
   const ClassificationCard({
-    super.key, 
+    super.key,
     required this.classification,
   });
   final WasteClassification classification;
@@ -50,10 +49,7 @@ class ClassificationCard extends StatelessWidget {
                     // Title
                     Text(
                       classification.itemName,
-                      style: Theme.of(context)
-                          .textTheme
-                          .titleLarge
-                          ?.copyWith(fontWeight: FontWeight.bold),
+                      style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -67,8 +63,7 @@ class ClassificationCard extends StatelessWidget {
                       children: [
                         Chip(
                           backgroundColor: catColor.withValues(alpha: 0.1),
-                          avatar: Icon(_categoryIcon(classification.category),
-                              size: 16, color: catColor),
+                          avatar: Icon(_categoryIcon(classification.category), size: 16, color: catColor),
                           label: Text(classification.category,
                               style: TextStyle(color: catColor, fontWeight: FontWeight.w500)),
                           visualDensity: VisualDensity.compact,
@@ -85,14 +80,10 @@ class ClassificationCard extends StatelessWidget {
                           ),
                         if (classification.confidence != null)
                           Chip(
-                            backgroundColor:
-                                _confidenceColor(confidencePct).withValues(alpha: 0.1),
-                            avatar: Icon(Icons.verified,
-                                size: 16, color: _confidenceColor(confidencePct)),
+                            backgroundColor: _confidenceColor(confidencePct).withValues(alpha: 0.1),
+                            avatar: Icon(Icons.verified, size: 16, color: _confidenceColor(confidencePct)),
                             label: Text('$confidencePct%',
-                                style: TextStyle(
-                                    color: _confidenceColor(confidencePct),
-                                    fontWeight: FontWeight.w500)),
+                                style: TextStyle(color: _confidenceColor(confidencePct), fontWeight: FontWeight.w500)),
                             visualDensity: VisualDensity.compact,
                           ),
                       ],
@@ -105,8 +96,7 @@ class ClassificationCard extends StatelessWidget {
                       children: [
                         Icon(Icons.access_time, size: 14, color: Colors.grey.shade600),
                         const SizedBox(width: 4),
-                        Text(timeAgo,
-                            style: TextStyle(fontSize: 12, color: Colors.grey.shade600)),
+                        Text(timeAgo, style: TextStyle(fontSize: 12, color: Colors.grey.shade600)),
                       ],
                     ),
                   ],
@@ -124,7 +114,7 @@ class ClassificationCard extends StatelessWidget {
                       label: Text(
                         '+${classification.environmentalImpact} pts',
                         style: const TextStyle(
-                          color: Colors.green, 
+                          color: Colors.green,
                           fontSize: 12,
                           fontWeight: FontWeight.w500,
                         ),
@@ -198,18 +188,14 @@ class ClassificationCard extends StatelessWidget {
               ),
               Text(
                 'Classification Details',
-                style: Theme.of(context).textTheme.headlineSmall
-                    ?.copyWith(fontWeight: FontWeight.bold),
+                style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 16),
-              Text(classification.itemName,
-                  style: Theme.of(context).textTheme.titleLarge),
+              Text(classification.itemName, style: Theme.of(context).textTheme.titleLarge),
               const SizedBox(height: 8),
               Text('Category: ${classification.category}'),
-              if (classification.confidence != null)
-                Text('Confidence: ${(classification.confidence! * 100).toInt()}%'),
-              if (classification.disposalMethod != null)
-                Text('Disposal: ${classification.disposalMethod}'),
+              if (classification.confidence != null) Text('Confidence: ${(classification.confidence! * 100).toInt()}%'),
+              if (classification.disposalMethod != null) Text('Disposal: ${classification.disposalMethod}'),
               Text('Date: ${_formatDate(classification.timestamp)} at ${_formatTime(classification.timestamp)}'),
               if (classification.environmentalImpact != null)
                 Text('Environmental Impact: +${classification.environmentalImpact} points'),
@@ -302,7 +288,7 @@ class ClassificationCard extends StatelessWidget {
     final today = DateTime(now.year, now.month, now.day);
     final yesterday = today.subtract(const Duration(days: 1));
     final classificationDate = DateTime(dateTime.year, dateTime.month, dateTime.day);
-    
+
     if (classificationDate == today) {
       return 'Today';
     } else if (classificationDate == yesterday) {

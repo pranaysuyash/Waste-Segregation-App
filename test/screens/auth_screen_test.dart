@@ -10,6 +10,7 @@ import '../test_helper.dart';
 
 // Mock classes for testing
 class MockGoogleDriveService extends Mock implements GoogleDriveService {}
+
 class MockNavigatorObserver extends Mock implements NavigatorObserver {}
 
 void main() {
@@ -182,7 +183,7 @@ void main() {
 
         // Verify loading state
         expect(find.byType(CircularProgressIndicator), findsOneWidget);
-        
+
         // Verify button is disabled during loading
         final googleButton = tester.widget<InkWell>(
           find.ancestor(
@@ -207,7 +208,7 @@ void main() {
 
         // Verify sign-in was called but no navigation occurred
         verify(mockGoogleDriveService.signIn()).called(1);
-        
+
         // Should remain on auth screen
         expect(find.byType(AuthScreen), findsOneWidget);
       });
@@ -273,7 +274,7 @@ void main() {
             matching: find.byType(InkWell),
           ),
         );
-        
+
         // Guest button should be disabled during loading
         expect(guestInkWell.onTap, isNull);
 
@@ -524,7 +525,7 @@ void main() {
 
       testWidgets('should handle small screen sizes', (WidgetTester tester) async {
         await tester.binding.setSurfaceSize(const Size(320, 568)); // Small phone size
-        
+
         await tester.pumpWidget(createTestableWidget());
         await tester.pumpAndSettle();
 
@@ -538,7 +539,7 @@ void main() {
 
       testWidgets('should handle very large screen sizes', (WidgetTester tester) async {
         await tester.binding.setSurfaceSize(const Size(1200, 1600)); // Tablet size
-        
+
         await tester.pumpWidget(createTestableWidget());
         await tester.pumpAndSettle();
 
@@ -557,7 +558,7 @@ void main() {
         // Simulate orientation changes
         await tester.binding.setSurfaceSize(const Size(800, 600)); // Landscape
         await tester.pump();
-        
+
         await tester.binding.setSurfaceSize(const Size(600, 800)); // Portrait
         await tester.pump();
 

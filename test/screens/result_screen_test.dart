@@ -13,8 +13,11 @@ import 'package:waste_segregation_app/widgets/classification_feedback_widget.dar
 
 // Mock services
 class MockStorageService extends Mock implements StorageService {}
+
 class MockGamificationService extends Mock implements GamificationService {}
+
 class MockAnalyticsService extends Mock implements AnalyticsService {}
+
 class MockAiService extends Mock implements AiService {}
 
 void main() {
@@ -51,7 +54,8 @@ void main() {
           itemName: 'Plastic Water Bottle',
           category: 'Dry Waste',
           subcategory: 'Plastic',
-          explanation: 'Clear plastic bottle, recyclable with PET code 1. This type of plastic is widely accepted in recycling programs.',
+          explanation:
+              'Clear plastic bottle, recyclable with PET code 1. This type of plastic is widely accepted in recycling programs.',
           disposalInstructions: DisposalInstructions(
             primaryMethod: 'Recycle in blue bin',
             steps: ['Remove cap and label', 'Rinse thoroughly', 'Place in recycling bin'],
@@ -104,7 +108,8 @@ void main() {
           itemName: 'Very Long Item Name That Could Potentially Cause Text Overflow Issues In The UI Components',
           category: 'Dry Waste',
           subcategory: 'Plastic',
-          explanation: 'This is a very long explanation that contains a lot of detailed information about the waste item and its classification, disposal methods, environmental impact, and various other relevant details that users might find useful.',
+          explanation:
+              'This is a very long explanation that contains a lot of detailed information about the waste item and its classification, disposal methods, environmental impact, and various other relevant details that users might find useful.',
           disposalInstructions: DisposalInstructions(
             primaryMethod: 'Very detailed disposal method with extensive instructions',
             steps: [
@@ -217,10 +222,8 @@ void main() {
       testWidgets('should allow saving to history', (WidgetTester tester) async {
         final classification = _createTestClassification();
 
-        when(mockStorageService.saveClassification(any))
-            .thenAnswer((_) async => {});
-        when(mockGamificationService.processClassification(any))
-            .thenAnswer((_) async => {});
+        when(mockStorageService.saveClassification(any)).thenAnswer((_) async => {});
+        when(mockGamificationService.processClassification(any)).thenAnswer((_) async => {});
 
         await tester.pumpWidget(createResultScreen(classification));
         await tester.pumpAndSettle();
@@ -255,8 +258,7 @@ void main() {
       testWidgets('should handle re-analysis requests', (WidgetTester tester) async {
         final classification = _createTestClassification();
 
-        when(mockAiService.analyzeWebImage(any, any))
-            .thenAnswer((_) async => classification.copyWith(
+        when(mockAiService.analyzeWebImage(any, any)).thenAnswer((_) async => classification.copyWith(
               confidence: 0.88,
               explanation: 'Re-analyzed classification',
             ));
@@ -317,15 +319,8 @@ void main() {
             ],
             hasUrgentTimeframe: true,
             timeframe: 'Within 30 days',
-            warnings: [
-              'Do not puncture or damage',
-              'Keep away from children',
-              'Avoid extreme temperatures'
-            ],
-            tips: [
-              'Many retailers offer take-back programs',
-              'Check manufacturer recycling options'
-            ],
+            warnings: ['Do not puncture or damage', 'Keep away from children', 'Avoid extreme temperatures'],
+            tips: ['Many retailers offer take-back programs', 'Check manufacturer recycling options'],
             location: 'Certified e-waste facility',
           ),
           timestamp: DateTime.now(),
@@ -431,8 +426,7 @@ void main() {
       testWidgets('should show gamification rewards for environmentally positive actions', (WidgetTester tester) async {
         final classification = _createTestClassification();
 
-        when(mockGamificationService.processClassification(any))
-            .thenAnswer((_) async => {
+        when(mockGamificationService.processClassification(any)).thenAnswer((_) async => {
               'points_earned': 10,
               'achievements_unlocked': ['Eco Warrior'],
               'streak_bonus': 5,
@@ -455,8 +449,7 @@ void main() {
       testWidgets('should handle save failures gracefully', (WidgetTester tester) async {
         final classification = _createTestClassification();
 
-        when(mockStorageService.saveClassification(any))
-            .thenThrow(Exception('Storage error'));
+        when(mockStorageService.saveClassification(any)).thenThrow(Exception('Storage error'));
 
         await tester.pumpWidget(createResultScreen(classification));
         await tester.pumpAndSettle();
@@ -475,8 +468,7 @@ void main() {
       testWidgets('should handle re-analysis failures', (WidgetTester tester) async {
         final classification = _createTestClassification();
 
-        when(mockAiService.analyzeWebImage(any, any))
-            .thenThrow(Exception('AI service error'));
+        when(mockAiService.analyzeWebImage(any, any)).thenThrow(Exception('AI service error'));
 
         await tester.pumpWidget(createResultScreen(classification));
         await tester.pumpAndSettle();
@@ -493,8 +485,7 @@ void main() {
       testWidgets('should handle network connectivity issues', (WidgetTester tester) async {
         final classification = _createTestClassification();
 
-        when(mockAnalyticsService.trackEvent(any))
-            .thenThrow(Exception('Network error'));
+        when(mockAnalyticsService.trackEvent(any)).thenThrow(Exception('Network error'));
 
         await tester.pumpWidget(createResultScreen(classification));
         await tester.pumpAndSettle();
@@ -575,12 +566,14 @@ void main() {
           timestamp: DateTime.now(),
           region: 'Test Region',
           visualFeatures: List.generate(100, (i) => 'feature_$i'),
-          alternatives: List.generate(10, (i) => AlternativeClassification(
-            category: 'Category $i',
-            subcategory: 'Subcategory $i',
-            confidence: 0.1 + (i * 0.08),
-            reason: 'Detailed reason $i with extensive explanation',
-          )),
+          alternatives: List.generate(
+              10,
+              (i) => AlternativeClassification(
+                    category: 'Category $i',
+                    subcategory: 'Subcategory $i',
+                    confidence: 0.1 + (i * 0.08),
+                    reason: 'Detailed reason $i with extensive explanation',
+                  )),
           confidence: 0.75,
         );
 
@@ -598,7 +591,7 @@ void main() {
 
       testWidgets('should handle image loading efficiently', (WidgetTester tester) async {
         final classification = _createTestClassification();
-        
+
         // Add image path to classification
         final classificationWithImage = classification.copyWith(
           imageUrl: 'test_image.jpg',

@@ -9,7 +9,7 @@ import 'package:waste_segregation_app/models/user_profile.dart';
 // Simple mock implementations for testing
 class TestStorageService implements StorageService {
   UserProfile? _userProfile;
-  
+
   @override
   Future<UserProfile?> getCurrentUserProfile() async {
     return _userProfile ??= UserProfile(
@@ -19,12 +19,12 @@ class TestStorageService implements StorageService {
       gamificationProfile: _createTestProfile(),
     );
   }
-  
+
   @override
   Future<void> saveUserProfile(UserProfile profile) async {
     _userProfile = profile;
   }
-  
+
   GamificationProfile _createTestProfile() {
     return GamificationProfile(
       userId: 'test_user',
@@ -74,7 +74,7 @@ class TestStorageService implements StorageService {
       unlockedHiddenContentIds: {},
     );
   }
-  
+
   // Implement other required methods with minimal implementations
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
@@ -85,7 +85,7 @@ class TestCloudStorageService implements CloudStorageService {
   Future<void> saveUserProfileToFirestore(UserProfile profile) async {
     // No-op for testing
   }
-  
+
   // Implement other required methods with minimal implementations
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
@@ -99,7 +99,7 @@ void main() {
     setUp(() {
       testStorageService = TestStorageService();
       testCloudStorageService = TestCloudStorageService();
-      
+
       // Reset singleton before each test
       PointsEngine.resetInstance();
     });
@@ -112,27 +112,27 @@ void main() {
     test('should claim achievement atomically and update points', () async {
       final pointsEngine = PointsEngine.getInstance(testStorageService, testCloudStorageService);
       await pointsEngine.initialize();
-      
+
       // Verify initial state
       expect(pointsEngine.currentPoints, equals(100));
-      
+
       final initialProfile = pointsEngine.currentProfile!;
       final claimableAchievement = initialProfile.achievements.firstWhere(
         (a) => a.id == 'claimable_achievement',
       );
       expect(claimableAchievement.claimStatus, equals(ClaimStatus.unclaimed));
       expect(claimableAchievement.isClaimable, isTrue);
-      
+
       // Claim the achievement
       final claimedAchievement = await pointsEngine.claimAchievementReward('claimable_achievement');
-      
+
       // Verify achievement was claimed
       expect(claimedAchievement.claimStatus, equals(ClaimStatus.claimed));
       expect(claimedAchievement.id, equals('claimable_achievement'));
-      
+
       // Verify points were added
       expect(pointsEngine.currentPoints, equals(150)); // 100 + 50 reward
-      
+
       // Verify profile was updated
       final updatedProfile = pointsEngine.currentProfile!;
       final updatedAchievement = updatedProfile.achievements.firstWhere(
@@ -144,17 +144,17 @@ void main() {
     test('should prevent double claiming of same achievement', () async {
       final pointsEngine = PointsEngine.getInstance(testStorageService, testCloudStorageService);
       await pointsEngine.initialize();
-      
+
       // Claim achievement first time
       await pointsEngine.claimAchievementReward('claimable_achievement');
       expect(pointsEngine.currentPoints, equals(150));
-      
+
       // Attempt to claim again - should throw exception
       expect(
         () => pointsEngine.claimAchievementReward('claimable_achievement'),
         throwsException,
       );
-      
+
       // Points should remain the same
       expect(pointsEngine.currentPoints, equals(150));
     });
@@ -162,25 +162,23 @@ void main() {
     test('should handle concurrent claim attempts atomically', () async {
       final pointsEngine = PointsEngine.getInstance(testStorageService, testCloudStorageService);
       await pointsEngine.initialize();
-      
+
       // Start multiple concurrent claim operations
-      final futures = List.generate(3, (index) => 
-        pointsEngine.claimAchievementReward('claimable_achievement')
-      );
-      
+      final futures = List.generate(3, (index) => pointsEngine.claimAchievementReward('claimable_achievement'));
+
       // Only one should succeed, others should fail
       final results = await Future.wait(
         futures.map((f) => f.then<Object>((achievement) => achievement).catchError((e) => e)),
         eagerError: false,
       );
-      
+
       // Count successful claims
       final successfulClaims = results.where((r) => r is Achievement).length;
       final failedClaims = results.where((r) => r is Exception).length;
-      
+
       expect(successfulClaims, equals(1));
       expect(failedClaims, equals(2));
-      
+
       // Points should only be added once
       expect(pointsEngine.currentPoints, equals(150)); // 100 + 50
     });
@@ -188,13 +186,13 @@ void main() {
     test('should reject claim for already claimed achievement', () async {
       final pointsEngine = PointsEngine.getInstance(testStorageService, testCloudStorageService);
       await pointsEngine.initialize();
-      
+
       // Attempt to claim already claimed achievement
       expect(
         () => pointsEngine.claimAchievementReward('already_claimed'),
         throwsException,
       );
-      
+
       // Points should remain unchanged
       expect(pointsEngine.currentPoints, equals(100));
     });
@@ -202,13 +200,13 @@ void main() {
     test('should reject claim for non-claimable achievement', () async {
       final pointsEngine = PointsEngine.getInstance(testStorageService, testCloudStorageService);
       await pointsEngine.initialize();
-      
+
       // Attempt to claim non-claimable achievement
       expect(
         () => pointsEngine.claimAchievementReward('not_claimable'),
         throwsException,
       );
-      
+
       // Points should remain unchanged
       expect(pointsEngine.currentPoints, equals(100));
     });
@@ -216,13 +214,13 @@ void main() {
     test('should reject claim for non-existent achievement', () async {
       final pointsEngine = PointsEngine.getInstance(testStorageService, testCloudStorageService);
       await pointsEngine.initialize();
-      
+
       // Attempt to claim non-existent achievement
       expect(
         () => pointsEngine.claimAchievementReward('non_existent'),
         throwsException,
       );
-      
+
       // Points should remain unchanged
       expect(pointsEngine.currentPoints, equals(100));
     });
@@ -230,22 +228,22 @@ void main() {
     test('should maintain consistency across multiple operations', () async {
       final pointsEngine = PointsEngine.getInstance(testStorageService, testCloudStorageService);
       await pointsEngine.initialize();
-      
+
       // Perform mixed operations
       final operations = [
         () => pointsEngine.claimAchievementReward('claimable_achievement'),
         () => pointsEngine.addPoints('classification', customPoints: 10),
         () => pointsEngine.addPoints('daily_streak', customPoints: 5),
       ];
-      
+
       // Execute all operations
       for (final operation in operations) {
         await operation();
       }
-      
+
       // Verify final state
       expect(pointsEngine.currentPoints, equals(165)); // 100 + 50 + 10 + 5
-      
+
       // Verify achievement was claimed
       final profile = pointsEngine.currentProfile!;
       final claimedAchievement = profile.achievements.firstWhere(
@@ -257,17 +255,17 @@ void main() {
     test('should emit proper events during claim operation', () async {
       final pointsEngine = PointsEngine.getInstance(testStorageService, testCloudStorageService);
       await pointsEngine.initialize();
-      
+
       var notificationCount = 0;
       pointsEngine.addListener(() {
         notificationCount++;
       });
-      
+
       // Claim achievement
       await pointsEngine.claimAchievementReward('claimable_achievement');
-      
+
       // Should notify listeners
       expect(notificationCount, greaterThan(0));
     });
   });
-} 
+}

@@ -136,7 +136,7 @@ void main() {
       test('should serialize and deserialize correctly with toJson/fromJson', () {
         const imageHash = 'test_hash_serialize';
         const imageSize = 1500;
-        
+
         final original = CachedClassification(
           imageHash: imageHash,
           classification: mockClassification,
@@ -168,7 +168,7 @@ void main() {
 
       test('should serialize to string and deserialize correctly', () {
         const imageHash = 'test_hash_string_serialize';
-        
+
         final original = CachedClassification(
           imageHash: imageHash,
           classification: mockClassification,
@@ -191,7 +191,7 @@ void main() {
 
       test('should handle null fields in serialization', () {
         const imageHash = 'test_hash_null_fields';
-        
+
         final cached = CachedClassification(
           imageHash: imageHash,
           classification: mockClassification,
@@ -210,7 +210,7 @@ void main() {
       test('should track age of cache entry correctly', () {
         const imageHash = 'test_hash_age';
         final oldTimestamp = DateTime.now().subtract(const Duration(days: 5));
-        
+
         final cached = CachedClassification(
           imageHash: imageHash,
           classification: mockClassification,
@@ -225,7 +225,7 @@ void main() {
         const imageHash = 'test_hash_lru';
         final recentlyAccessed = DateTime.now().subtract(const Duration(minutes: 5));
         final longerAgo = DateTime.now().subtract(const Duration(hours: 2));
-        
+
         final cached1 = CachedClassification(
           imageHash: '${imageHash}_1',
           classification: mockClassification,
@@ -246,7 +246,7 @@ void main() {
         const imageHash = 'test_hash_size';
         const smallImageSize = 100 * 1024; // 100KB
         const largeImageSize = 5 * 1024 * 1024; // 5MB
-        
+
         final smallCached = CachedClassification(
           imageHash: '${imageHash}_small',
           classification: mockClassification,
@@ -303,7 +303,7 @@ void main() {
       test('should handle very large image sizes', () {
         const imageHash = 'test_hash_large_size';
         const veryLargeSize = 100 * 1024 * 1024; // 100MB
-        
+
         final cached = CachedClassification(
           imageHash: imageHash,
           classification: mockClassification,
@@ -317,7 +317,7 @@ void main() {
         const imageHash = 'test_hash_extreme_time';
         final futureDate = DateTime(2030, 12, 31);
         final pastDate = DateTime(1990);
-        
+
         final futureCached = CachedClassification(
           imageHash: '${imageHash}_future',
           classification: mockClassification,
@@ -338,7 +338,7 @@ void main() {
     group('Classification Integration Tests', () {
       test('should preserve all classification data accurately', () {
         const imageHash = 'test_hash_classification_data';
-        
+
         final cached = CachedClassification(
           imageHash: imageHash,
           classification: mockClassification,
@@ -350,10 +350,9 @@ void main() {
         expect(cached.classification.subcategory, equals(mockClassification.subcategory));
         expect(cached.classification.confidence, equals(mockClassification.confidence));
         expect(cached.classification.visualFeatures, equals(mockClassification.visualFeatures));
-        expect(cached.classification.disposalInstructions.primaryMethod, 
-               equals(mockClassification.disposalInstructions.primaryMethod));
-        expect(cached.classification.disposalInstructions.steps, 
-               equals(mockClassification.disposalInstructions.steps));
+        expect(cached.classification.disposalInstructions.primaryMethod,
+            equals(mockClassification.disposalInstructions.primaryMethod));
+        expect(cached.classification.disposalInstructions.steps, equals(mockClassification.disposalInstructions.steps));
       });
 
       test('should handle classification with all optional fields', () {

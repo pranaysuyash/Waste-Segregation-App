@@ -290,7 +290,7 @@ void main() {
     test('should create with required parameters', () {
       final startDate = DateTime.now();
       final endDate = startDate.add(const Duration(days: 7));
-      
+
       final challenge = Challenge(
         id: 'challenge_1',
         title: 'Weekly Challenge',
@@ -361,7 +361,7 @@ void main() {
     test('should serialize to and from JSON correctly', () {
       final startDate = DateTime.now();
       final endDate = startDate.add(const Duration(days: 5));
-      
+
       final challenge = Challenge(
         id: 'json_test',
         title: 'JSON Test',
@@ -535,7 +535,7 @@ void main() {
     test('should serialize to and from JSON correctly', () {
       final lastActivity = DateTime.now();
       final lastMaintenance = DateTime.now().subtract(const Duration(days: 1));
-      
+
       final streak = StreakDetails(
         type: StreakType.dailyLearning,
         currentCount: 8,
@@ -678,7 +678,7 @@ void main() {
     test('should serialize to and from JSON correctly', () {
       final timestamp = DateTime.now();
       final editedAt = timestamp.add(const Duration(minutes: 5));
-      
+
       final comment = FamilyComment(
         id: 'comment123',
         userId: 'user123',
@@ -900,24 +900,28 @@ void main() {
     test('should handle large datasets', () {
       final largeProfile = GamificationProfile(
         userId: 'large_user',
-        achievements: List.generate(100, (i) => Achievement(
-          id: 'ach_$i',
-          title: 'Achievement $i',
-          description: 'Description $i',
-          type: AchievementType.wasteIdentified,
-          threshold: i + 1,
-          iconName: 'icon_$i',
-          color: Colors.blue,
-        )),
-        streaks: Map.fromEntries(List.generate(10, (i) => MapEntry(
-          'streak_$i',
-          StreakDetails(
-            type: StreakType.dailyClassification,
-            currentCount: i,
-            longestCount: i * 2,
-            lastActivityDate: DateTime.now(),
-          ),
-        ))),
+        achievements: List.generate(
+            100,
+            (i) => Achievement(
+                  id: 'ach_$i',
+                  title: 'Achievement $i',
+                  description: 'Description $i',
+                  type: AchievementType.wasteIdentified,
+                  threshold: i + 1,
+                  iconName: 'icon_$i',
+                  color: Colors.blue,
+                )),
+        streaks: Map.fromEntries(List.generate(
+            10,
+            (i) => MapEntry(
+                  'streak_$i',
+                  StreakDetails(
+                    type: StreakType.dailyClassification,
+                    currentCount: i,
+                    longestCount: i * 2,
+                    lastActivityDate: DateTime.now(),
+                  ),
+                ))),
         points: const UserPoints(total: 10000, level: 100),
         discoveredItemIds: Set.from(List.generate(1000, (i) => 'item_$i')),
       );

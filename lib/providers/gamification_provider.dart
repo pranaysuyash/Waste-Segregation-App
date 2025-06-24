@@ -36,9 +36,9 @@ class GamificationNotifier extends AsyncNotifier<GamificationProfile> {
     try {
       final service = ref.read(gamificationServiceProvider);
       return await service.getProfile().timeout(
-        GamificationConfig.kProfileTimeout,
-        onTimeout: () => throw AppException.timeout('Profile loading timed out'),
-      );
+            GamificationConfig.kProfileTimeout,
+            onTimeout: () => throw AppException.timeout('Profile loading timed out'),
+          );
     } catch (e) {
       if (e is AppException) {
         rethrow;
@@ -54,9 +54,9 @@ class GamificationNotifier extends AsyncNotifier<GamificationProfile> {
     try {
       final service = ref.read(gamificationServiceProvider);
       final profile = await service.getProfile(forceRefresh: true).timeout(
-        GamificationConfig.kProfileTimeout,
-        onTimeout: () => throw AppException.timeout('Profile refresh timed out'),
-      );
+            GamificationConfig.kProfileTimeout,
+            onTimeout: () => throw AppException.timeout('Profile refresh timed out'),
+          );
       state = AsyncValue.data(profile);
     } catch (e) {
       final exception = e is AppException ? e : AppException.storage('Failed to refresh profile: $e');
@@ -72,34 +72,34 @@ class GamificationNotifier extends AsyncNotifier<GamificationProfile> {
       if (currentState is! AsyncData<GamificationProfile>) {
         return Result.failure(AppException.storage('Profile not loaded'));
       }
-      
+
       final profile = currentState.value;
       final achievement = profile.achievements.firstWhere(
         (a) => a.id == achievementId,
         orElse: () => throw AppException.storage('Achievement not found'),
       );
-      
+
       if (!achievement.isClaimable) {
         return Result.failure(AppException.storage('Achievement is not claimable'));
       }
-      
+
       // RACE CONDITION FIX: Use atomic PointsEngine operation
       final pointsEngine = PointsEngine.getInstance(
         ref.read(storageServiceProvider),
         ref.read(cloudStorageServiceProvider),
       );
-      
+
       // Perform atomic claim operation
       await pointsEngine.claimAchievementReward(achievementId);
-      
+
       // RACE CONDITION FIX: Invalidate all related providers to refresh UI
       ref.invalidate(gamificationServiceProvider);
       ref.invalidate(profileProvider);
       ref.invalidate(pointsManagerProvider);
-      
+
       // Refresh the profile to get updated data from PointsEngine
       await refresh();
-      
+
       return Result.success(true);
     } catch (e) {
       final exception = e is AppException ? e : AppException.storage('Failed to claim reward: $e');
@@ -115,13 +115,14 @@ class GamificationNotifier extends AsyncNotifier<GamificationProfile> {
     try {
       final service = ref.read(gamificationServiceProvider);
       await service.updateAchievementProgress(type, increment);
-      
+
       // Refresh the profile to get updated achievements
       await refresh();
     } catch (e) {
       // Handle error but don't update state to error since this is a background operation
       if (kDebugMode) {
-        WasteAppLogger.severe('Error occurred', null, null, {'service': 'gamification', 'file': 'gamification_provider'});
+        WasteAppLogger.severe(
+            'Error occurred', null, null, {'service': 'gamification', 'file': 'gamification_provider'});
       }
     }
   }
@@ -135,7 +136,7 @@ final gamificationProvider = AsyncNotifierProvider<GamificationNotifier, Gamific
 /// Provider for achievements filtered by status
 final achievementsByStatusProvider = Provider.family<List<Achievement>, AchievementStatus>((ref, status) {
   final profileAsync = ref.watch(gamificationProvider);
-  
+
   return profileAsync.when(
     data: (profile) {
       switch (status) {
@@ -159,7 +160,7 @@ final achievementsByStatusProvider = Provider.family<List<Achievement>, Achievem
 /// Provider for achievement statistics
 final achievementStatsProvider = Provider<AchievementStats>((ref) {
   final profileAsync = ref.watch(gamificationProvider);
-  
+
   return profileAsync.when(
     data: (profile) {
       final achievements = profile.achievements;
@@ -167,7 +168,7 @@ final achievementStatsProvider = Provider<AchievementStats>((ref) {
       final claimable = achievements.where((a) => a.isClaimable).length;
       final total = achievements.length;
       final totalPoints = profile.points.total;
-      
+
       return AchievementStats(
         earned: earned,
         claimable: claimable,
@@ -221,4 +222,4 @@ class AchievementStats {
 
 // Using Result class from constants.dart - removed duplicate definition
 
-// REMOVED: Duplicate AppException class - using the one from constants.dart 
+// REMOVED: Duplicate AppException class - using the one from constants.dart

@@ -212,7 +212,7 @@ void main() {
         };
 
         final family = Family.fromJson(minimalJson);
-        
+
         expect(family.id, equals('family_minimal'));
         expect(family.name, equals('Minimal Family'));
         expect(family.description, isNull);
@@ -280,7 +280,7 @@ void main() {
         };
 
         final member = FamilyMember.fromJson(json);
-        
+
         expect(member.userId, equals('member_invalid_role'));
         expect(member.role, equals(UserRole.member)); // Default fallback
       });
@@ -337,7 +337,7 @@ void main() {
 
       test('should create default settings', () {
         final defaultSettings = FamilySettings.defaultSettings();
-        
+
         expect(defaultSettings.isPublic, isFalse);
         expect(defaultSettings.allowChildInvites, isFalse);
         expect(defaultSettings.shareClassifications, isTrue);
@@ -408,7 +408,7 @@ void main() {
 
       test('should create default notification settings', () {
         final defaultSettings = NotificationSettings.defaultSettings();
-        
+
         expect(defaultSettings.newMemberJoined, isTrue);
         expect(defaultSettings.classificationShared, isTrue);
         expect(defaultSettings.achievementUnlocked, isTrue);
@@ -461,7 +461,7 @@ void main() {
 
       test('should create default privacy settings', () {
         final defaultSettings = PrivacySettings.defaultSettings();
-        
+
         expect(defaultSettings.showLastSeen, isTrue);
         expect(defaultSettings.showActivityStatus, isTrue);
         expect(defaultSettings.allowSearchByName, isTrue);
@@ -534,7 +534,7 @@ void main() {
 
       test('should create empty family stats', () {
         final emptyStats = FamilyStats.empty();
-        
+
         expect(emptyStats.totalClassifications, equals(0));
         expect(emptyStats.totalPoints, equals(0));
         expect(emptyStats.currentStreak, equals(0));
@@ -547,7 +547,7 @@ void main() {
 
       test('should copyWith correctly', () {
         final original = FamilyStats.empty();
-        
+
         final updated = original.copyWith(
           totalClassifications: 50,
           totalPoints: 250,
@@ -586,7 +586,7 @@ void main() {
 
       test('should create empty user stats', () {
         final emptyStats = UserStats.empty();
-        
+
         expect(emptyStats.totalPoints, equals(0));
         expect(emptyStats.totalClassifications, equals(0));
         expect(emptyStats.currentStreak, equals(0));
@@ -625,7 +625,7 @@ void main() {
 
       test('should copyWith correctly', () {
         final original = UserStats.empty();
-        
+
         final updated = original.copyWith(
           totalPoints: 100,
           achievements: ['new_achievement'],
@@ -657,7 +657,7 @@ void main() {
 
       test('should create empty environmental impact', () {
         final emptyImpact = EnvironmentalImpact.empty();
-        
+
         expect(emptyImpact.co2Saved, equals(0.0));
         expect(emptyImpact.treesEquivalent, equals(0.0));
         expect(emptyImpact.waterSaved, equals(0.0));
@@ -692,7 +692,7 @@ void main() {
       test('should create WeeklyProgress with all fields', () {
         final weekStart = testDateTime.subtract(const Duration(days: 7));
         final weekEnd = testDateTime;
-        
+
         final progress = WeeklyProgress(
           weekStart: weekStart,
           weekEnd: weekEnd,
@@ -712,7 +712,7 @@ void main() {
       test('should serialize and deserialize WeeklyProgress correctly', () {
         final weekStart = testDateTime.subtract(const Duration(days: 7));
         final weekEnd = testDateTime;
-        
+
         final original = WeeklyProgress(
           weekStart: weekStart,
           weekEnd: weekEnd,
@@ -828,11 +828,11 @@ void main() {
         expect(family.hasMember('admin_user'), isTrue);
         expect(family.hasMember('regular_member'), isTrue);
         expect(family.hasMember('non_member'), isFalse);
-        
+
         final foundAdmin = family.getMember('admin_user');
         expect(foundAdmin?.role, equals(UserRole.admin));
         expect(foundAdmin?.individualStats.totalPoints, equals(500));
-        
+
         final admins = family.getAdmins();
         expect(admins.length, equals(1));
         expect(admins.first.userId, equals('admin_user'));
@@ -868,9 +868,7 @@ void main() {
           totalClassifications: 50000,
           currentStreak: 365,
           bestStreak: 500,
-          categoryBreakdown: Map.fromEntries(
-            List.generate(20, (i) => MapEntry('Category_$i', i * 100))
-          ),
+          categoryBreakdown: Map.fromEntries(List.generate(20, (i) => MapEntry('Category_$i', i * 100))),
           achievements: List.generate(100, (i) => 'achievement_$i'),
           lastActive: testDateTime,
         );
@@ -907,7 +905,7 @@ void main() {
       test('should handle date edge cases', () {
         final futureDate = DateTime(2030, 12, 31);
         final pastDate = DateTime(1990);
-        
+
         final timeTravelFamily = Family(
           id: 'time_travel',
           name: 'Time Travel Family',

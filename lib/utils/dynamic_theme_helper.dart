@@ -4,14 +4,14 @@ import 'package:flutter/material.dart';
 class DynamicThemeHelper {
   /// Minimum contrast ratio for WCAG AA compliance
   static const double minContrastRatio = 4.5;
-  
+
   /// Fallback seed color for dynamic color generation
   static const Color fallbackSeedColor = Color(0xFF2E7D32); // App's primary green
-  
+
   /// Generate dynamic light theme with WCAG contrast validation
   static ThemeData generateLightTheme(ColorScheme? dynamicColorScheme) {
     ColorScheme colorScheme;
-    
+
     if (dynamicColorScheme != null) {
       // Use dynamic colors but validate contrast
       colorScheme = _validateAndAdjustContrast(
@@ -24,14 +24,14 @@ class DynamicThemeHelper {
         seedColor: fallbackSeedColor,
       );
     }
-    
+
     return _buildThemeFromColorScheme(colorScheme, Brightness.light);
   }
-  
+
   /// Generate dynamic dark theme with WCAG contrast validation
   static ThemeData generateDarkTheme(ColorScheme? dynamicColorScheme) {
     ColorScheme colorScheme;
-    
+
     if (dynamicColorScheme != null) {
       // Use dynamic colors but validate contrast
       colorScheme = _validateAndAdjustContrast(
@@ -45,10 +45,10 @@ class DynamicThemeHelper {
         brightness: Brightness.dark,
       );
     }
-    
+
     return _buildThemeFromColorScheme(colorScheme, Brightness.dark);
   }
-  
+
   /// Validate and adjust color scheme for WCAG contrast compliance
   static ColorScheme _validateAndAdjustContrast(
     ColorScheme scheme,
@@ -59,13 +59,13 @@ class DynamicThemeHelper {
       scheme.primary,
       scheme.onPrimary,
     );
-    
+
     // Check surface color contrast
     final surfaceContrast = _calculateContrast(
       scheme.surface,
       scheme.onSurface,
     );
-    
+
     // If contrast is insufficient, fall back to seed-based scheme
     if (primaryContrast < minContrastRatio || surfaceContrast < minContrastRatio) {
       return ColorScheme.fromSeed(
@@ -73,33 +73,33 @@ class DynamicThemeHelper {
         brightness: brightness,
       );
     }
-    
+
     return scheme;
   }
-  
+
   /// Calculate contrast ratio between two colors
   static double _calculateContrast(Color color1, Color color2) {
     final luminance1 = color1.computeLuminance();
     final luminance2 = color2.computeLuminance();
-    
+
     final lighter = luminance1 > luminance2 ? luminance1 : luminance2;
     final darker = luminance1 > luminance2 ? luminance2 : luminance1;
-    
+
     return (lighter + 0.05) / (darker + 0.05);
   }
-  
+
   /// Build complete theme from color scheme
   static ThemeData _buildThemeFromColorScheme(
     ColorScheme colorScheme,
     Brightness brightness,
   ) {
     final isLight = brightness == Brightness.light;
-    
+
     return ThemeData(
       useMaterial3: true,
       colorScheme: colorScheme,
       brightness: brightness,
-      
+
       // App Bar Theme
       appBarTheme: AppBarTheme(
         backgroundColor: colorScheme.primary,
@@ -113,7 +113,7 @@ class DynamicThemeHelper {
         ),
         iconTheme: IconThemeData(color: colorScheme.onPrimary),
       ),
-      
+
       // Card Theme
       cardTheme: CardThemeData(
         color: colorScheme.surface,
@@ -123,7 +123,7 @@ class DynamicThemeHelper {
           borderRadius: BorderRadius.circular(12),
         ),
       ),
-      
+
       // Elevated Button Theme
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
@@ -138,7 +138,7 @@ class DynamicThemeHelper {
           ),
         ),
       ),
-      
+
       // Outlined Button Theme
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
@@ -149,7 +149,7 @@ class DynamicThemeHelper {
           ),
         ),
       ),
-      
+
       // Text Button Theme
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
@@ -159,7 +159,7 @@ class DynamicThemeHelper {
           ),
         ),
       ),
-      
+
       // Input Decoration Theme
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
@@ -185,7 +185,7 @@ class DynamicThemeHelper {
           borderSide: BorderSide(color: colorScheme.error, width: 2),
         ),
       ),
-      
+
       // Switch Theme
       switchTheme: SwitchThemeData(
         thumbColor: WidgetStateProperty.resolveWith((states) {
@@ -201,7 +201,7 @@ class DynamicThemeHelper {
           return colorScheme.surfaceContainerHighest;
         }),
       ),
-      
+
       // Radio Theme
       radioTheme: RadioThemeData(
         fillColor: WidgetStateProperty.resolveWith((states) {
@@ -211,7 +211,7 @@ class DynamicThemeHelper {
           return colorScheme.outline;
         }),
       ),
-      
+
       // Checkbox Theme
       checkboxTheme: CheckboxThemeData(
         fillColor: WidgetStateProperty.resolveWith((states) {
@@ -222,7 +222,7 @@ class DynamicThemeHelper {
         }),
         checkColor: WidgetStateProperty.all(colorScheme.onPrimary),
       ),
-      
+
       // Tab Bar Theme
       tabBarTheme: TabBarThemeData(
         labelColor: colorScheme.primary,
@@ -230,7 +230,7 @@ class DynamicThemeHelper {
         indicatorColor: colorScheme.primary,
         indicatorSize: TabBarIndicatorSize.tab,
       ),
-      
+
       // Bottom Navigation Bar Theme
       bottomNavigationBarTheme: BottomNavigationBarThemeData(
         backgroundColor: colorScheme.surface,
@@ -239,7 +239,7 @@ class DynamicThemeHelper {
         type: BottomNavigationBarType.fixed,
         elevation: 8,
       ),
-      
+
       // Floating Action Button Theme
       floatingActionButtonTheme: FloatingActionButtonThemeData(
         backgroundColor: colorScheme.primary,
@@ -249,7 +249,7 @@ class DynamicThemeHelper {
           borderRadius: BorderRadius.circular(16),
         ),
       ),
-      
+
       // Snack Bar Theme
       snackBarTheme: SnackBarThemeData(
         backgroundColor: colorScheme.inverseSurface,
@@ -260,7 +260,7 @@ class DynamicThemeHelper {
         ),
         behavior: SnackBarBehavior.floating,
       ),
-      
+
       // Dialog Theme
       dialogTheme: DialogThemeData(
         backgroundColor: colorScheme.surface,
@@ -280,4 +280,4 @@ class DynamicThemeHelper {
       ),
     );
   }
-} 
+}

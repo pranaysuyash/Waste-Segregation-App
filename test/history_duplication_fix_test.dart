@@ -3,7 +3,6 @@ import 'package:waste_segregation_app/models/waste_classification.dart';
 
 void main() {
   group('History Duplication Fix Tests', () {
-    
     test('WasteClassification model should have correct properties', () {
       // Create a test classification
       final classification = WasteClassification(
@@ -28,7 +27,7 @@ void main() {
         isSaved: true,
         userId: 'test_user',
       );
-      
+
       // Verify properties
       expect(classification.itemName, equals('Test Plastic Bottle'));
       expect(classification.category, equals('Dry Waste'));
@@ -39,7 +38,7 @@ void main() {
       expect(classification.isSaved, equals(true));
       expect(classification.userId, equals('test_user'));
     });
-    
+
     test('WasteClassification copyWith should preserve original values', () {
       // Create a test classification
       final original = WasteClassification(
@@ -58,27 +57,27 @@ void main() {
         isSaved: false,
         userId: 'test_user',
       );
-      
+
       // Create a copy with isSaved set to true
       final saved = original.copyWith(isSaved: true);
-      
+
       // Verify that the copy has the updated isSaved value
       expect(saved.isSaved, equals(true));
       expect(saved.itemName, equals(original.itemName));
       expect(saved.category, equals(original.category));
       expect(saved.userId, equals(original.userId));
-      
+
       // Verify original is unchanged
       expect(original.isSaved, equals(false));
     });
-    
+
     test('DisposalInstructions should be created correctly', () {
       final instructions = DisposalInstructions(
         primaryMethod: 'Recycle',
         steps: ['Clean', 'Sort', 'Dispose'],
         hasUrgentTimeframe: false,
       );
-      
+
       expect(instructions.primaryMethod, equals('Recycle'));
       expect(instructions.steps.length, equals(3));
       expect(instructions.steps, contains('Clean'));
@@ -87,4 +86,4 @@ void main() {
       expect(instructions.hasUrgentTimeframe, equals(false));
     });
   });
-} 
+}
