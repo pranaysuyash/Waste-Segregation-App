@@ -405,3 +405,57 @@ Created comprehensive test fix documentation including:
 **Mistake Identified**: While fixing duplicate parameter compilation errors, accidentally removed valid model properties instead of just removing duplicate parameter names. This was corrected and documented in `TEST_FIX_LESSONS_LEARNED.md` to prevent similar issues.
 
 **Key Learning**: Always verify against actual model schema (`lib/models/waste_classification.dart`) before removing properties. Only remove duplicate parameter names, preserve all valid properties.
+
+## Consolidated Engineering Backlog (June 24, 2025)
+
+### 📋 Implementation-Ready Roadmap
+A comprehensive 12-week engineering backlog has been created based on:
+- Roadmap feedback analysis with verified codebase state
+- Current architecture strengths and identified gaps
+- Prioritized cost optimization opportunities (40-50% AI cost reduction)
+- Strategic feature development with clear dependencies
+
+#### **Week 1-2: Critical Infrastructure** 🔥
+- **COMPLETED**: CI pipeline test fixes, compilation error resolution
+- **READY**: Points popup race condition fix, Cloud Function error handling
+- **STATUS**: Infrastructure stable, ready for feature development
+
+#### **Week 3-4: Token Economy Foundation** 💰
+- Token wallet system implementation
+- Batch job queue with OpenAI Batch API integration  
+- AI speed toggle UI (instant vs batch selection)
+- **IMPACT**: 40-50% cost reduction via smart batch processing
+
+#### **Week 5-6: Enhanced AI Analysis v2.0** 🤖
+- Expand WasteClassification model to 21 data points
+- Enhanced prompt builder with environmental impact, CO₂, PPE
+- Interactive tag renderer and gamification integration
+- **IMPACT**: Richer user experience, improved AI accuracy
+
+#### **Week 7-8: UI/UX Modernization** 🎨
+- Classification cards with gradient themes and confidence badges
+- Details screen v2.2.2 with ModernCard consistency
+- Golden tests for visual regression prevention
+- **IMPACT**: Modern, polished user interface
+
+#### **Week 9-10: Community Features** 🌐
+- Cloud sync for community feed (currently local only)
+- Reactions, comments, and weekly leaderboards
+- **IMPACT**: Enhanced user engagement and retention
+
+#### **Week 11-12: Advanced Features** 🚀
+- GPS + map view for disposal facilities
+- AI Discovery engine optimization
+- Cost analytics dashboard
+- **IMPACT**: Complete feature set for market differentiation
+
+### 📊 Success Metrics & Timeline
+- **Cost Reduction**: 40-50% savings via batch processing implementation
+- **User Engagement**: 80% adoption rate for speed toggle features
+- **System Reliability**: 99.5% uptime for batch operations
+- **Development Velocity**: All major features delivered on 12-week schedule
+
+### 📚 Related Documentation
+- **Detailed Backlog**: `docs/planning/ENGINEERING_BACKLOG_CONSOLIDATED.md`
+- **Implementation Plan**: `docs/features/COMPREHENSIVE_ROADMAP_FEEDBACK_IMPLEMENTATION.md`
+- **Architecture Analysis**: `docs/features/ai-batch-processing-cost-optimization.md`

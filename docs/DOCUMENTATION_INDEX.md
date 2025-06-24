@@ -59,6 +59,7 @@ This document provides a comprehensive index to all project documentation, now p
 
 ### `/docs/planning/` - Project Planning & Strategy
 
+- **ENGINEERING_BACKLOG_CONSOLIDATED.md** - 📋 **12-week implementation-ready backlog** (June 2025)
 - **SPRINT_PLANNING.md** - Sprint planning and acceptance criteria
 - **COMPLETE_MODERNIZATION.md** - Modernization strategy and roadmap
 - **MASTER_TODO_COMPREHENSIVE.md** - Comprehensive TODO tracking
@@ -162,11 +163,12 @@ This document provides a comprehensive index to all project documentation, now p
 
 ### **For Development**
 
-1. **DEVOPS_QUICK_REFERENCE.md** - Daily commands and procedures (START HERE)
-2. **SPRINT_PLANNING.md** - Current sprint goals and acceptance criteria
-3. **TEST_STATUS_SUMMARY.md** - Latest testing status
-4. **ISSUES_SUMMARY_2025-06-02.md** - Detailed technical issues
-5. **MANUAL_COMMIT_INSTRUCTIONS.md** - Git workflow procedures
+1. **ENGINEERING_BACKLOG_CONSOLIDATED.md** - 📋 **12-week roadmap** (START HERE for new features)
+2. **DEVOPS_QUICK_REFERENCE.md** - Daily commands and procedures 
+3. **SPRINT_PLANNING.md** - Current sprint goals and acceptance criteria
+4. **TEST_STATUS_SUMMARY.md** - Latest testing status
+5. **ISSUES_SUMMARY_2025-06-02.md** - Detailed technical issues
+6. **MANUAL_COMMIT_INSTRUCTIONS.md** - Git workflow procedures
 
 ### **For QA & Testing**
 
