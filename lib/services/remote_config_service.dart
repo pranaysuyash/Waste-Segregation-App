@@ -18,13 +18,48 @@ class RemoteConfigService {
     try {
       _remoteConfig = FirebaseRemoteConfig.instance;
 
-      // Set default values for feature flags
+      // Set default values for feature flags and pricing
       await _remoteConfig!.setDefaults({
         'home_header_v2_enabled': true, // Default to new header
         'results_v2_enabled': false, // Default to legacy result screen
         'golden_test_mode': false,
         'accessibility_enhanced': true,
         'micro_animations_enabled': true,
+        
+        // Dynamic pricing configuration
+        'ai_model_pricing': '''
+{
+  "gpt_4_1_nano_input": 0.000150,
+  "gpt_4_1_nano_output": 0.000600,
+  "gpt_4o_mini_input": 0.000150,
+  "gpt_4o_mini_output": 0.000600,
+  "gpt_4_1_mini_input": 0.000300,
+  "gpt_4_1_mini_output": 0.001200,
+  "gemini_2_0_flash_input": 0.000075,
+  "gemini_2_0_flash_output": 0.000300,
+  "batch_discount_rate": 0.50
+}''',
+        
+        // Spending budgets
+        'spending_budgets': '''
+{
+  "daily_budget": 5.00,
+  "weekly_budget": 30.00,
+  "monthly_budget": 100.00
+}''',
+        
+        // Token limits and estimates
+        'token_limits': '''
+{
+  "avg_input_tokens": 1500,
+  "avg_output_tokens": 800,
+  "max_tokens_per_request": 4000
+}''',
+        
+        // Cost guardrails
+        'cost_guardrails_enabled': true,
+        'budget_threshold_percentage': 80,
+        'force_batch_mode_on_threshold': true,
       });
 
       // Configure fetch settings

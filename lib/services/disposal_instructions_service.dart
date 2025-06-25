@@ -84,7 +84,7 @@ class DisposalInstructionsService {
     }
   }
 
-  /// Generate instructions via Cloud Function
+  /// Generate instructions via Cloud Function with 503 retry handling
   Future<DisposalInstructions> _generateViaCloudFunction({
     required String materialId,
     required String material,
@@ -92,6 +92,9 @@ class DisposalInstructionsService {
     String? subcategory,
     required String lang,
   }) async {
+    const maxRetries = 3;
+    const baseDelay = Duration(seconds: 1);
+    
     final requestBody = {
       'materialId': materialId,
       'material': material,
@@ -100,22 +103,115 @@ class DisposalInstructionsService {
       'lang': lang,
     };
 
-    final response = await http
-        .post(
-          Uri.parse(_functionUrl),
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: json.encode(requestBody),
-        )
-        .timeout(const Duration(seconds: 30));
+    for (int attempt = 0; attempt <= maxRetries; attempt++) {
+      try {
+        WasteAppLogger.info('Disposal instructions API call attempt ${attempt + 1}/${maxRetries + 1}', 
+            null, null, {
+              'material_id': materialId,
+              'material': material,
+              'attempt': attempt + 1,
+              'max_retries': maxRetries + 1
+            });
 
-    if (response.statusCode == 200) {
-      final data = json.decode(response.body) as Map<String, dynamic>;
-      return _parseCloudFunctionResponse(data);
-    } else {
-      throw Exception('Cloud Function returned ${response.statusCode}: ${response.body}');
+        final response = await http
+            .post(
+              Uri.parse(_functionUrl),
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: json.encode(requestBody),
+            )
+            .timeout(const Duration(seconds: 30));
+
+        if (response.statusCode == 200) {
+          WasteAppLogger.info('Disposal instructions API call successful', 
+              null, null, {
+                'material_id': materialId,
+                'attempt': attempt + 1,
+                'response_length': response.body.length
+              });
+          final data = json.decode(response.body) as Map<String, dynamic>;
+          return _parseCloudFunctionResponse(data);
+        } else if (response.statusCode == 503) {
+          // Server is temporarily unavailable - check for retry-after header
+          final retryAfterHeader = response.headers['retry-after'];
+          int retryAfterSeconds = 0;
+          
+          if (retryAfterHeader != null) {
+            retryAfterSeconds = int.tryParse(retryAfterHeader) ?? 0;
+          }
+          
+          if (attempt < maxRetries) {
+            // Calculate delay: use retry-after header if provided, otherwise exponential backoff
+            final delay = retryAfterSeconds > 0 
+                ? Duration(seconds: retryAfterSeconds)
+                : Duration(seconds: baseDelay.inSeconds * (1 << attempt)); // Exponential backoff: 1s, 2s, 4s
+            
+            WasteAppLogger.warning('Disposal instructions API returned 503, retrying', null, null, {
+              'material_id': materialId,
+              'attempt': attempt + 1,
+              'max_retries': maxRetries + 1,
+              'retry_after_seconds': retryAfterSeconds,
+              'delay_seconds': delay.inSeconds,
+              'response_body': response.body
+            });
+            
+            await Future.delayed(delay);
+            continue; // Retry the request
+          } else {
+            // Final attempt failed with 503
+            WasteAppLogger.severe('Disposal instructions API exhausted retries with 503', null, null, {
+              'material_id': materialId,
+              'total_attempts': attempt + 1,
+              'final_status_code': response.statusCode,
+              'response_body': response.body,
+              'action': 'falling_back_to_default'
+            });
+            throw Exception('Service temporarily unavailable after ${attempt + 1} attempts: ${response.body}');
+          }
+        } else {
+          // Non-retryable error (4xx, 5xx except 503)
+          WasteAppLogger.severe('Disposal instructions API returned non-retryable error', null, null, {
+            'material_id': materialId,
+            'attempt': attempt + 1,
+            'status_code': response.statusCode,
+            'response_body': response.body,
+            'action': 'failing_immediately'
+          });
+          throw Exception('Cloud Function returned ${response.statusCode}: ${response.body}');
+        }
+      } catch (e) {
+        if (e.toString().contains('Service temporarily unavailable')) {
+          // Re-throw 503 exhaustion errors
+          rethrow;
+        }
+        
+        // Handle other exceptions (network errors, timeouts, etc.)
+        if (attempt < maxRetries) {
+          final delay = Duration(seconds: baseDelay.inSeconds * (1 << attempt));
+          WasteAppLogger.warning('Disposal instructions API call failed with exception, retrying', e, null, {
+            'material_id': materialId,
+            'attempt': attempt + 1,
+            'max_retries': maxRetries + 1,
+            'delay_seconds': delay.inSeconds,
+            'exception_type': e.runtimeType.toString()
+          });
+          await Future.delayed(delay);
+          continue;
+        } else {
+          WasteAppLogger.severe('Disposal instructions API exhausted retries with exception', e, null, {
+            'material_id': materialId,
+            'total_attempts': attempt + 1,
+            'exception_type': e.runtimeType.toString(),
+            'action': 'falling_back_to_default'
+          });
+          rethrow;
+        }
+      }
     }
+    
+    // This should never be reached due to the loop structure, but added for completeness
+    throw Exception('Unexpected end of retry loop');
   }
 
   /// Parse Cloud Function response to DisposalInstructions

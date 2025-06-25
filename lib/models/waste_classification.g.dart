@@ -69,13 +69,23 @@ class WasteClassificationAdapter extends TypeAdapter<WasteClassification> {
       relatedItems: (fields[45] as List?)?.cast<String>(),
       imageRelativePath: fields[60] as String?,
       thumbnailRelativePath: fields[61] as String?,
+      recyclability: fields[62] as String?,
+      hazardLevel: fields[63] as int?,
+      co2Impact: fields[64] as double?,
+      decompositionTime: fields[65] as String?,
+      properEquipment: (fields[66] as List?)?.cast<String>(),
+      materials: (fields[67] as List?)?.cast<String>(),
+      subCategory: fields[68] as String?,
+      commonUses: (fields[69] as List?)?.cast<String>(),
+      alternativeOptions: (fields[70] as List?)?.cast<String>(),
+      localRegulations: (fields[71] as Map?)?.cast<String, String>(),
     );
   }
 
   @override
   void write(BinaryWriter writer, WasteClassification obj) {
     writer
-      ..writeByte(52)
+      ..writeByte(62)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
@@ -179,7 +189,27 @@ class WasteClassificationAdapter extends TypeAdapter<WasteClassification> {
       ..writeByte(48)
       ..write(obj.reanalysisModelsTried)
       ..writeByte(49)
-      ..write(obj.confirmedByModel);
+      ..write(obj.confirmedByModel)
+      ..writeByte(62)
+      ..write(obj.recyclability)
+      ..writeByte(63)
+      ..write(obj.hazardLevel)
+      ..writeByte(64)
+      ..write(obj.co2Impact)
+      ..writeByte(65)
+      ..write(obj.decompositionTime)
+      ..writeByte(66)
+      ..write(obj.properEquipment)
+      ..writeByte(67)
+      ..write(obj.materials)
+      ..writeByte(68)
+      ..write(obj.subCategory)
+      ..writeByte(69)
+      ..write(obj.commonUses)
+      ..writeByte(70)
+      ..write(obj.alternativeOptions)
+      ..writeByte(71)
+      ..write(obj.localRegulations);
   }
 
   @override
@@ -188,10 +218,13 @@ class WasteClassificationAdapter extends TypeAdapter<WasteClassification> {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      other is WasteClassificationAdapter && runtimeType == other.runtimeType && typeId == other.typeId;
+      other is WasteClassificationAdapter &&
+          runtimeType == other.runtimeType &&
+          typeId == other.typeId;
 }
 
-class AlternativeClassificationAdapter extends TypeAdapter<AlternativeClassification> {
+class AlternativeClassificationAdapter
+    extends TypeAdapter<AlternativeClassification> {
   @override
   final int typeId = 1;
 
@@ -229,7 +262,9 @@ class AlternativeClassificationAdapter extends TypeAdapter<AlternativeClassifica
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      other is AlternativeClassificationAdapter && runtimeType == other.runtimeType && typeId == other.typeId;
+      other is AlternativeClassificationAdapter &&
+          runtimeType == other.runtimeType &&
+          typeId == other.typeId;
 }
 
 class DisposalInstructionsAdapter extends TypeAdapter<DisposalInstructions> {
@@ -285,5 +320,7 @@ class DisposalInstructionsAdapter extends TypeAdapter<DisposalInstructions> {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      other is DisposalInstructionsAdapter && runtimeType == other.runtimeType && typeId == other.typeId;
+      other is DisposalInstructionsAdapter &&
+          runtimeType == other.runtimeType &&
+          typeId == other.typeId;
 }

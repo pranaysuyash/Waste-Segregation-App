@@ -59,6 +59,17 @@ class WasteClassification extends HiveObject {
     this.relatedItems,
     this.imageRelativePath,
     this.thumbnailRelativePath,
+    // Enhanced AI Analysis v2.0 fields
+    this.recyclability,
+    this.hazardLevel,
+    this.co2Impact,
+    this.decompositionTime,
+    this.properEquipment,
+    this.materials,
+    this.subCategory,
+    this.commonUses,
+    this.alternativeOptions,
+    this.localRegulations,
   })  : id = id ?? const Uuid().v4(),
         timestamp = timestamp ?? DateTime.now();
 
@@ -320,6 +331,47 @@ class WasteClassification extends HiveObject {
   // The model that produced a user-confirmed correct result
   @HiveField(49)
   final String? confirmedByModel;
+
+  // Enhanced AI Analysis v2.0 - Environmental Impact Fields
+  /// Recyclability level (fully, partially, not recyclable)
+  @HiveField(62)
+  final String? recyclability; // Using String for backward compatibility
+
+  /// Hazard level (1-5 scale)
+  @HiveField(63)
+  final int? hazardLevel;
+
+  /// CO2 impact in kg CO2 equivalent
+  @HiveField(64)
+  final double? co2Impact;
+
+  /// Decomposition time estimate
+  @HiveField(65)
+  final String? decompositionTime;
+
+  /// Personal protective equipment needed
+  @HiveField(66)
+  final List<String>? properEquipment;
+
+  /// Component materials list
+  @HiveField(67)
+  final List<String>? materials;
+
+  /// Detailed subcategory classification
+  @HiveField(68)
+  final String? subCategory;
+
+  /// Common uses for this item
+  @HiveField(69)
+  final List<String>? commonUses;
+
+  /// Eco-friendly alternatives
+  @HiveField(70)
+  final List<String>? alternativeOptions;
+
+  /// City-specific regulations (key-value pairs)
+  @HiveField(71)
+  final Map<String, String>? localRegulations;
 
   /// Parse disposal instructions from various input formats
   static DisposalInstructions _parseDisposalInstructions(dynamic instructionsData) {
@@ -685,6 +737,49 @@ class DisposalInstructions {
       'estimatedTime': estimatedTime,
       'hasUrgentTimeframe': hasUrgentTimeframe,
     };
+  }
+}
+
+// Enum to define recyclability levels
+enum RecyclabilityLevel {
+  fullyRecyclable,
+  partiallyRecyclable,
+  notRecyclable,
+}
+
+// Extension for recyclability levels
+extension RecyclabilityLevelExtension on RecyclabilityLevel {
+  String get name {
+    switch (this) {
+      case RecyclabilityLevel.fullyRecyclable:
+        return 'Fully Recyclable';
+      case RecyclabilityLevel.partiallyRecyclable:
+        return 'Partially Recyclable';
+      case RecyclabilityLevel.notRecyclable:
+        return 'Not Recyclable';
+    }
+  }
+
+  String get description {
+    switch (this) {
+      case RecyclabilityLevel.fullyRecyclable:
+        return 'Can be completely recycled in standard facilities';
+      case RecyclabilityLevel.partiallyRecyclable:
+        return 'Some parts can be recycled, others require special handling';
+      case RecyclabilityLevel.notRecyclable:
+        return 'Cannot be recycled through standard waste management';
+    }
+  }
+
+  String get color {
+    switch (this) {
+      case RecyclabilityLevel.fullyRecyclable:
+        return '#4CAF50'; // Green
+      case RecyclabilityLevel.partiallyRecyclable:
+        return '#FF9800'; // Orange
+      case RecyclabilityLevel.notRecyclable:
+        return '#F44336'; // Red
+    }
   }
 }
 

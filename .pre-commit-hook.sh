@@ -58,6 +58,12 @@ echo "📁 Checking staged files..."
 
 for file in $STAGED_FILES; do
     if [ -f "$file" ]; then
+        # Skip documentation files and the hook itself
+        if [[ "$file" == docs/* ]] || [[ "$file" == *.md ]] || [[ "$file" == *pre-commit* ]] || [[ "$file" == *git-hooks* ]]; then
+            echo "📄 Skipping documentation/hook file: $file"
+            continue
+        fi
+        
         echo "🔍 Checking $file..."
         TOTAL_CHECKED=$((TOTAL_CHECKED + 1))
         

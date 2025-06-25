@@ -16,6 +16,7 @@ analyzer:
     - "**/*.freezed.dart"
     - "**/*.mocks.dart"
     - integration_test_disabled/**
+    - scripts/**
 
 linter:
   # The lint rules applied to this project can be customized in the

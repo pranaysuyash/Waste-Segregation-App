@@ -53,5 +53,7 @@ class CachedClassificationAdapter extends TypeAdapter<CachedClassification> {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      other is CachedClassificationAdapter && runtimeType == other.runtimeType && typeId == other.typeId;
+      other is CachedClassificationAdapter &&
+          runtimeType == other.runtimeType &&
+          typeId == other.typeId;
 }

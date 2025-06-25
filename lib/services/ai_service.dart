@@ -6,10 +6,14 @@ import 'package:http/http.dart' as http;
 import 'package:dio/dio.dart';
 import 'package:image/image.dart' as img;
 import '../models/waste_classification.dart';
+import '../models/token_wallet.dart';
 import '../utils/constants.dart';
 import '../utils/image_utils.dart';
 import '../services/cache_service.dart';
 import 'enhanced_image_service.dart';
+import 'dynamic_pricing_service.dart';
+import 'cost_guardrail_service.dart';
+import 'enhanced_api_error_handler.dart';
 import 'package:uuid/uuid.dart';
 import '../utils/waste_app_logger.dart';
 
@@ -47,6 +51,9 @@ class AiService {
     String? geminiBaseUrl,
     String? geminiApiKey,
     ClassificationCacheService? cacheService,
+    DynamicPricingService? pricingService,
+    CostGuardrailService? guardrailService,
+    EnhancedApiErrorHandler? errorHandler,
     this.cachingEnabled = true,
     this.defaultRegion = 'Bangalore, IN',
     this.defaultLanguage = 'en',
@@ -54,12 +61,18 @@ class AiService {
         openAiApiKey = openAiApiKey ?? ApiConfig.openAiApiKey,
         geminiBaseUrl = geminiBaseUrl ?? ApiConfig.geminiBaseUrl,
         geminiApiKey = geminiApiKey ?? ApiConfig.apiKey,
-        cacheService = cacheService ?? ClassificationCacheService();
+        cacheService = cacheService ?? ClassificationCacheService(),
+        pricingService = pricingService ?? DynamicPricingService(),
+        guardrailService = guardrailService ?? CostGuardrailService(),
+        errorHandler = errorHandler ?? EnhancedApiErrorHandler();
   final String openAiBaseUrl;
   final String openAiApiKey;
   final String geminiBaseUrl;
   final String geminiApiKey;
   final ClassificationCacheService cacheService;
+  final DynamicPricingService pricingService;
+  final CostGuardrailService guardrailService;
+  final EnhancedApiErrorHandler errorHandler;
 
   // ✅ OPTIMIZATION: Add as class field to avoid creating new instances repeatedly
   final EnhancedImageService _imageService = EnhancedImageService();
@@ -87,10 +100,22 @@ class AiService {
       await cacheService.initialize();
     }
 
+    // Initialize pricing and guardrail services
+    await pricingService.initialize();
+    await guardrailService.initialize();
+
     // Configure Dio with default timeouts
     _dio.options.connectTimeout = const Duration(seconds: 60);
     _dio.options.receiveTimeout = const Duration(seconds: 60);
     _dio.options.sendTimeout = const Duration(seconds: 60);
+
+    WasteAppLogger.info('AiService initialized with enhanced pricing and error handling', null, null, {
+      'service': 'ai_service',
+      'caching_enabled': cachingEnabled,
+      'pricing_service_initialized': true,
+      'guardrail_service_initialized': true,
+      'error_handler_configured': true,
+    });
   }
 
   /// Prepares a new cancel token for the next analysis operation.
@@ -108,6 +133,50 @@ class AiService {
       _cancelToken!.cancel('User requested cancellation');
       WasteAppLogger.warning('Analysis cancelled by user.');
     }
+  }
+
+  /// Check if instant analysis is available based on current budget
+  bool canUseInstantAnalysis({String? model}) {
+    final modelKey = model ?? ApiConfig.primaryModel.replaceAll('-', '_').replaceAll('.', '_');
+    return guardrailService.canUseInstantAnalysis(model: modelKey);
+  }
+
+  /// Get recommended analysis speed based on current budget and cost constraints
+  AnalysisSpeed getRecommendedAnalysisSpeed({String? model}) {
+    final modelKey = model ?? ApiConfig.primaryModel.replaceAll('-', '_').replaceAll('.', '_');
+    return guardrailService.getRecommendedAnalysisSpeed(model: modelKey);
+  }
+
+  /// Check if batch mode is currently enforced due to budget constraints
+  bool isBatchModeEnforced() {
+    return guardrailService.isBatchModeEnforced;
+  }
+
+  /// Get current budget utilization for displaying to user
+  Map<String, double> getBudgetUtilization() {
+    return pricingService.getBudgetUtilization();
+  }
+
+  /// Get estimated cost for an analysis operation
+  double getEstimatedCost({
+    String? model,
+    int? estimatedInputTokens,
+    int? estimatedOutputTokens,
+    bool isBatchMode = false,
+  }) {
+    final modelKey = model ?? ApiConfig.primaryModel.replaceAll('-', '_').replaceAll('.', '_');
+    return pricingService.calculateCost(
+      model: modelKey,
+      inputTokens: estimatedInputTokens ?? 1500,
+      outputTokens: estimatedOutputTokens ?? 800,
+      isBatchMode: isBatchMode,
+    );
+  }
+
+  /// Get estimated cost savings from using batch mode
+  double getEstimatedBatchSavings({String? model}) {
+    final modelKey = model ?? ApiConfig.primaryModel.replaceAll('-', '_').replaceAll('.', '_');
+    return pricingService.getEstimatedBatchSavings(model: modelKey);
   }
 
   /// Checks if the current operation has been cancelled.
@@ -755,7 +824,7 @@ Output:
   ///
   /// Compresses the image if necessary, constructs the request,
   /// and processes the response. Caches the result if successful.
-  /// Throws specific exceptions for different API error codes.
+  /// Includes cost tracking and enhanced error handling.
   Future<WasteClassification> _analyzeWithOpenAI(
     Uint8List imageBytes,
     String imageName,
@@ -766,6 +835,16 @@ Output:
     String? contentHash,
     String? thumbnailPath,
   }) async {
+    final operationId = 'openai_analysis_$classificationId';
+    final modelKey = ApiConfig.primaryModel.replaceAll('-', '_').replaceAll('.', '_');
+    final startTime = DateTime.now();
+    
+    // Check cost guardrails before proceeding
+    final canAffordInstant = guardrailService.canUseInstantAnalysis(model: modelKey);
+    if (!canAffordInstant) {
+      throw Exception('Budget exceeded - instant analysis not available. Please use batch mode.');
+    }
+    
     // Compress image if needed
     final compressedBytes = await _compressImageForOpenAI(imageBytes);
     final base64Image = _bytesToBase64(compressedBytes);
@@ -820,8 +899,43 @@ Output:
 
     // Enhanced error handling with detailed logging
     if (response.statusCode == 200) {
+      final endTime = DateTime.now();
+      final processingTime = endTime.difference(startTime);
+      
       WasteAppLogger.info('Received successful response from OpenAI.');
       final Map<String, dynamic> responseData = response.data;
+      
+      // Extract token usage from response
+      final usage = responseData['usage'] as Map<String, dynamic>?;
+      final inputTokens = usage?['prompt_tokens'] ?? 1500; // Fallback estimate
+      final outputTokens = usage?['completion_tokens'] ?? 800; // Fallback estimate
+      
+      // Calculate and record cost
+      final cost = pricingService.calculateCost(
+        model: modelKey,
+        inputTokens: inputTokens,
+        outputTokens: outputTokens,
+        isBatchMode: false,
+      );
+      
+      // Record spending in guardrail service
+      await guardrailService.recordApiSpending(
+        model: modelKey,
+        cost: cost,
+        inputTokens: inputTokens,
+        outputTokens: outputTokens,
+        isBatchMode: false,
+      );
+      
+      WasteAppLogger.info('API cost recorded', null, null, {
+        'service': 'ai_service',
+        'model': modelKey,
+        'cost': cost,
+        'input_tokens': inputTokens,
+        'output_tokens': outputTokens,
+        'processing_time_ms': processingTime.inMilliseconds,
+      });
+      
       final classification = _processAiResponseData(
         responseData,
         imageName,
@@ -877,6 +991,7 @@ Output:
       }
     }
   }
+
 
   /// Analyzes an image by segments using the OpenAI API.
   Future<WasteClassification> _analyzeWithOpenAISegments(
@@ -949,6 +1064,7 @@ Output:
     String? contentHash,
     String? thumbnailPath,
   }) async {
+    final startTime = DateTime.now();
     WasteAppLogger.info('Falling back to Gemini for analysis.');
 
     // Gemini can handle larger images, but still compress if extremely large
@@ -1001,6 +1117,9 @@ Output:
     }
 
     if (response.statusCode == 200) {
+      final endTime = DateTime.now();
+      final processingTime = endTime.difference(startTime);
+      
       WasteAppLogger.info('Received successful response from Gemini.');
       final Map<String, dynamic> responseData = response.data;
 
@@ -1011,6 +1130,38 @@ Output:
           responseData['candidates'][0]['content']['parts'] != null &&
           responseData['candidates'][0]['content']['parts'].isNotEmpty) {
         final String content = responseData['candidates'][0]['content']['parts'][0]['text'];
+
+        // Extract token usage from Gemini response (if available)
+        final usage = responseData['usageMetadata'] as Map<String, dynamic>?;
+        final inputTokens = usage?['promptTokenCount'] ?? 1500; // Fallback estimate
+        final outputTokens = usage?['candidatesTokenCount'] ?? 800; // Fallback estimate
+        
+        // Calculate and record cost for Gemini
+        final modelKey = 'gemini_2_0_flash';
+        final cost = pricingService.calculateCost(
+          model: modelKey,
+          inputTokens: inputTokens,
+          outputTokens: outputTokens,
+          isBatchMode: false,
+        );
+        
+        // Record spending in guardrail service
+        await guardrailService.recordApiSpending(
+          model: modelKey,
+          cost: cost,
+          inputTokens: inputTokens,
+          outputTokens: outputTokens,
+          isBatchMode: false,
+        );
+        
+        WasteAppLogger.info('Gemini API cost recorded', null, null, {
+          'service': 'ai_service',
+          'model': modelKey,
+          'cost': cost,
+          'input_tokens': inputTokens,
+          'output_tokens': outputTokens,
+          'processing_time_ms': processingTime.inMilliseconds,
+        });
 
         // Convert Gemini response to OpenAI format for processing
         final openAiFormat = <String, dynamic>{

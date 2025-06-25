@@ -11,6 +11,10 @@ import '../services/analytics_schema_validator.dart';
 import '../models/gamification.dart';
 import '../models/user_profile.dart';
 import '../services/remote_config_service.dart';
+import '../services/dynamic_pricing_service.dart';
+import '../services/cost_guardrail_service.dart';
+import '../services/enhanced_api_error_handler.dart';
+import '../services/ai_cost_tracker.dart';
 import '../utils/waste_app_logger.dart';
 import '../services/ai_service.dart';
 
@@ -119,11 +123,70 @@ final profileProvider = FutureProvider<GamificationProfile?>((ref) async {
 /// Remote config provider for A/B testing
 final remoteConfigProvider = Provider<RemoteConfigService>((ref) => RemoteConfigService());
 
+/// Dynamic pricing service provider - for cost management
+final dynamicPricingServiceProvider = Provider<DynamicPricingService>((ref) {
+  final remoteConfig = ref.read(remoteConfigProvider);
+  return DynamicPricingService(remoteConfigService: remoteConfig);
+});
+
+/// Cost guardrail service provider - for budget monitoring
+final costGuardrailServiceProvider = Provider<CostGuardrailService>((ref) {
+  final pricingService = ref.read(dynamicPricingServiceProvider);
+  final remoteConfig = ref.read(remoteConfigProvider);
+  return CostGuardrailService(
+    pricingService: pricingService,
+    remoteConfigService: remoteConfig,
+  );
+});
+
+/// Enhanced API error handler provider - for reliable API operations
+final enhancedApiErrorHandlerProvider = Provider<EnhancedApiErrorHandler>((ref) {
+  return EnhancedApiErrorHandler();
+});
+
+/// AI cost tracker provider - for comprehensive cost tracking
+final aiCostTrackerProvider = Provider<AiCostTracker>((ref) {
+  final pricingService = ref.read(dynamicPricingServiceProvider);
+  final guardrailService = ref.read(costGuardrailServiceProvider);
+  return AiCostTracker(
+    pricingService: pricingService,
+    guardrailService: guardrailService,
+  );
+});
+
 /// Home header v2 feature flag provider for A/B testing
 final homeHeaderV2EnabledProvider = FutureProvider<bool>((ref) async {
   final remoteConfig = ref.watch(remoteConfigProvider);
   return remoteConfig.getBool('home_header_v2_enabled', defaultValue: true);
 });
 
-/// Ai service provider - single source of truth
-final aiServiceProvider = Provider<AiService>((ref) => AiService());
+/// Batch mode enforcement status provider - for UI updates
+final batchModeEnforcedProvider = StreamProvider<bool>((ref) {
+  final guardrailService = ref.watch(costGuardrailServiceProvider);
+  return guardrailService.batchModeEnforced;
+});
+
+/// Budget utilization provider - for cost monitoring widgets
+final budgetUtilizationProvider = StreamProvider<Map<String, double>>((ref) {
+  final guardrailService = ref.watch(costGuardrailServiceProvider);
+  return guardrailService.budgetUtilization;
+});
+
+/// Cost alerts provider - for alert notifications
+final costAlertsProvider = StreamProvider<CostAlert>((ref) {
+  final guardrailService = ref.watch(costGuardrailServiceProvider);
+  return guardrailService.costAlerts;
+});
+
+/// Enhanced Ai service provider with cost management integration
+final aiServiceProvider = Provider<AiService>((ref) {
+  final pricingService = ref.read(dynamicPricingServiceProvider);
+  final guardrailService = ref.read(costGuardrailServiceProvider);
+  final errorHandler = ref.read(enhancedApiErrorHandlerProvider);
+  
+  return AiService(
+    pricingService: pricingService,
+    guardrailService: guardrailService,
+    errorHandler: errorHandler,
+  );
+});

@@ -68,7 +68,9 @@ class UserProfileAdapter extends TypeAdapter<UserProfile> {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      other is UserProfileAdapter && runtimeType == other.runtimeType && typeId == other.typeId;
+      other is UserProfileAdapter &&
+          runtimeType == other.runtimeType &&
+          typeId == other.typeId;
 }
 
 class UserRoleAdapter extends TypeAdapter<UserRole> {
@@ -114,5 +116,8 @@ class UserRoleAdapter extends TypeAdapter<UserRole> {
 
   @override
   bool operator ==(Object other) =>
-      identical(this, other) || other is UserRoleAdapter && runtimeType == other.runtimeType && typeId == other.typeId;
+      identical(this, other) ||
+      other is UserRoleAdapter &&
+          runtimeType == other.runtimeType &&
+          typeId == other.typeId;
 }
