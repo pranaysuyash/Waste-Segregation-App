@@ -217,10 +217,31 @@ export const generateDisposal = asiaSouth1.https.onRequest(async (req, res) => {
       console.log(`Generated and cached disposal instructions for ${materialId}`);
       res.json(result);
 
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error generating disposal instructions:', error);
       
-      // Return fallback instructions
+      // ROADMAP FIX: Circuit-breaker pattern with 503 retry-after for retryable errors
+      const isRetryableError = (
+        error.code === 'rate_limit_exceeded' ||
+        error.status === 429 ||
+        error.status === 503 ||
+        error.status === 502 ||
+        error.status === 504 ||
+        (error.message && error.message.includes('timeout'))
+      );
+      
+      if (isRetryableError) {
+        console.log('Retryable error detected, returning 503 with retry-after');
+        res.status(503).json({ 
+          error: 'Service temporarily unavailable',
+          retryAfter: 30,
+          fallback: true,
+          code: 'retryable_error'
+        });
+        return;
+      }
+      
+      // Return fallback instructions for non-retryable errors
       const fallbackInstructions = {
         steps: [
           'Identify the correct waste category for this item',

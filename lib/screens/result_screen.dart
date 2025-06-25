@@ -179,7 +179,11 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
             _showAchievementCelebration(majorAchievement);
           }
 
-          // Points earned will be shown on home screen via navigation result
+          // ROADMAP FIX: Show points popup with proper timing to avoid race condition
+          if (earnedPoints > 0) {
+            _showPointsEarnedPopup(earnedPoints);
+          }
+          
           WasteAppLogger.info('Points earned: $earnedPoints, Achievements: ${newlyEarnedAchievements.length}', null,
               null, {'service': 'screen', 'file': 'result_screen'});
         });
@@ -274,6 +278,48 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
         _isSaved = true;
         _pointsEarned = 10; // Standard classification points
       });
+    }
+  }
+
+  /// ROADMAP FIX: Show points earned popup with proper timing to avoid race condition
+  Future<void> _showPointsEarnedPopup(int points) async {
+    // Wait for navigation and UI to complete to avoid race condition
+    await Future.delayed(const Duration(milliseconds: 500));
+    
+    if (mounted && Navigator.of(context).canPop()) {
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => AlertDialog(
+          title: const Row(
+            children: [
+              Icon(Icons.star, color: Colors.amber),
+              SizedBox(width: 8),
+              Text('Points Earned!'),
+            ],
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                '+$points points',
+                style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                  color: Colors.green,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 8),
+              const Text('Great job classifying waste!'),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Continue'),
+            ),
+          ],  
+        ),
+      );
     }
   }
 
