@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../services/google_drive_service.dart';
 import '../../services/firebase_cleanup_service.dart';
+import '../../services/storage_service.dart';
 import '../../utils/dialog_helper.dart';
 import 'setting_tile.dart';
 import 'settings_theme.dart';
@@ -149,11 +150,13 @@ class AccountSection extends StatelessWidget {
       () async {
         final cleanupService = FirebaseCleanupService();
         await cleanupService.clearAllDataForFreshInstall();
+        // Reinitialize Hive boxes after reset to prevent "Box has already been closed" errors
+        await StorageService.reinitializeAfterReset();
 
         if (context.mounted) {
           SettingsTheme.showSuccessSnackBar(
             context,
-            'All data has been cleared. Please restart the app.',
+            'All data has been cleared successfully!',
           );
 
           await Navigator.of(context).pushNamedAndRemoveUntil(

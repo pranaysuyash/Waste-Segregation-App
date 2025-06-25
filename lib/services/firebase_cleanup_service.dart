@@ -28,11 +28,21 @@ class FirebaseCleanupService {
     'analytics_events',
     'feedback',
     'content_progress',
+    'classification_feedback',
+    'user_contributions',
   ];
 
   static const List<String> _globalCollections = [
     'community_feed',
-    'leaderboard',
+    'leaderboard_allTime',
+    'community_stats',
+    'disposal_instructions',
+    'disposal_locations',
+  ];
+
+  /// Collections that need direct document deletion (not query-based)
+  static const List<String> _directUserCollections = [
+    'users',
   ];
 
   static final List<String> _hiveBoxesToNuke = [
@@ -97,6 +107,20 @@ class FirebaseCleanupService {
         batch.delete(doc.reference);
       }
       WasteAppLogger.info('  - Found and staged ${snapshot.size} docs for deletion in "$collectionName"');
+    }
+
+    // Delete direct user collections (document ID = userId)
+    for (final collectionName in _directUserCollections) {
+      try {
+        final docRef = _firestore.collection(collectionName).doc(uid);
+        final docSnapshot = await docRef.get();
+        if (docSnapshot.exists) {
+          batch.delete(docRef);
+          WasteAppLogger.info('  - Staged deletion for doc "$uid" in "$collectionName"');
+        }
+      } catch (e) {
+        WasteAppLogger.warning('Failed to delete from $collectionName: $e');
+      }
     }
 
     // Delete user from global collections

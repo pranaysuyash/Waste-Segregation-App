@@ -857,8 +857,11 @@ class StorageService {
       // Clear Hive boxes
       await clearUserInfo();
       await clearAllClassifications();
-      final settingsBox = Hive.box(StorageKeys.settingsBox);
-      await settingsBox.clear();
+      // Use HiveManager for safe box access
+      if (HiveManager.isBoxOpen(StorageKeys.settingsBox)) {
+        final settingsBox = HiveManager.getDynamicBox(StorageKeys.settingsBox);
+        await settingsBox.clear();
+      }
 
       // Import GamificationService to ensure proper clearing
       // Create a temporary instance with minimal dependencies for clearing
@@ -867,8 +870,10 @@ class StorageService {
       final gamificationService = GamificationService(storageService, cloudStorageService);
       await gamificationService.clearGamificationData(); // Use the proper clear method
 
-      final cacheBox = Hive.box<String>(StorageKeys.cacheBox);
-      await cacheBox.clear();
+      if (HiveManager.isBoxOpen(StorageKeys.cacheBox)) {
+        final cacheBox = HiveManager.getBox<String>(StorageKeys.cacheBox);
+        await cacheBox.clear();
+      }
 
       // Clear SharedPreferences (theme, user consent, etc.) with proper error handling
       try {
@@ -885,6 +890,18 @@ class StorageService {
       WasteAppLogger.info('Operation completed', null, null, {'service': 'storage', 'file': 'storage_service'});
     } catch (e) {
       WasteAppLogger.severe('Error occurred', null, null, {'service': 'storage', 'file': 'storage_service'});
+      rethrow;
+    }
+  }
+
+  /// Reinitialize Hive boxes after a factory reset
+  static Future<void> reinitializeAfterReset() async {
+    try {
+      // Ensure all required boxes are reopened
+      await initializeHive();
+      WasteAppLogger.info('Hive boxes reinitialized after reset');
+    } catch (e) {
+      WasteAppLogger.severe('Failed to reinitialize Hive boxes after reset: $e');
       rethrow;
     }
   }

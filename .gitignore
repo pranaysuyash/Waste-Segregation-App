@@ -35,6 +35,9 @@ migrate_working_dir/
 
 # Ignore backup files
 *.bak
+*.backup
+.env.backup
+.env.template.backup
 
 # Symbolication related
 app.*.symbols
@@ -86,7 +89,13 @@ yarn.lock
 # Temporary files
 *.tmp
 *.temp
+*.temporary
 .cache/
+temp/
+.temp/
+*_temp.txt
+*_backup.*
+temp_msg.txt
 
 # Coverage reports
 coverage/
@@ -99,3 +108,32 @@ logs/
 # Structured logging files
 waste_app_logs.jsonl
 waste_app_logs_*.jsonl
+
+# Development and testing files
+*.test.txt
+*.debug.txt
+*_test_output.txt
+*_debug.log
+test_output.txt
+debug_output.txt
+
+# Environment templates (keep only the main template)
+.env.template.*
+.env.local
+.env.development
+.env.production
+.env.staging
+
+# Editor and IDE files
+*.swp
+*.swo
+*~
+.vscode/settings.json.backup
+
+# macOS specific
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db

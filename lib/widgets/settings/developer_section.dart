@@ -265,13 +265,15 @@ class DeveloperSection extends StatelessWidget {
       () async {
         final cleanupService = FirebaseCleanupService();
         await cleanupService.clearAllDataForFreshInstall();
+        // Reinitialize Hive boxes after reset to prevent "Box has already been closed" errors
+        await StorageService.reinitializeAfterReset();
       },
       message: 'Clearing all data...',
     ).then((_) {
       if (context.mounted) {
         SettingsTheme.showSuccessSnackBar(
           context,
-          'All data cleared. Please restart the app.',
+          'All data cleared successfully!',
         );
       }
     }).catchError((e) {

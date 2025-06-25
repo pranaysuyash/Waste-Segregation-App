@@ -248,7 +248,8 @@ class _CommunityScreenState extends State<CommunityScreen> with TickerProviderSt
                   ],
                 ),
               ),
-              Flexible(
+              Expanded(
+                flex: 0,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.end,
                   mainAxisSize: MainAxisSize.min,
@@ -260,6 +261,7 @@ class _CommunityScreenState extends State<CommunityScreen> with TickerProviderSt
                         fontSize: 11,
                       ),
                       overflow: TextOverflow.ellipsis,
+                      maxLines: 1,
                     ),
                     if (item.points > 0) ...[
                       const SizedBox(height: 4),
@@ -279,6 +281,8 @@ class _CommunityScreenState extends State<CommunityScreen> with TickerProviderSt
                             fontWeight: FontWeight.bold,
                             fontSize: 10,
                           ),
+                          overflow: TextOverflow.ellipsis,
+                          maxLines: 1,
                         ),
                       ),
                     ],
