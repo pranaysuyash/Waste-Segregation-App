@@ -29,14 +29,14 @@
 **Task**: Delay popup until navigation completes (see roadmap implementation) and add widget test for regression.
 **Definition of Done**: Points popup shows consistently after classification with proper timing.
 **Effort**: ⚡ (0.5 days)
-**Status**: 📋 Ready for implementation
+**Status**: ✅ COMPLETED (June 25, 2025) - Added _showPointsEarnedPopup with navigation timing fixes
 
 ### 🔥 Priority 4: Cloud Function Crash Safety
 **Issue**: Cloud function crashes cascade to user errors
 **Task**: Wrap classifyWaste endpoint with circuit-breaker + 503 retry-after pattern.
 **Definition of Done**: Cloud function returns 503 for retryable errors, fallback responses for others.
 **Effort**: ⚡ (0.5 days)
-**Status**: 📋 Ready for implementation
+**Status**: ✅ COMPLETED (June 25, 2025) - Implemented circuit-breaker pattern with 503 responses
 
 **Source**: [Batch Processing Implementation Roadmap](../features/ai-batch-processing-implementation-roadmap.md)
 
