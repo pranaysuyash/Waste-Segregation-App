@@ -58,10 +58,17 @@ app.*.map.json
 freepik_badge_downloader.py
 *.asset_downloader.py
 
-# Python virtual environments
+# Python virtual environments and environment files
 .venv/
 venv/
+
+# Environment files (CRITICAL: Keep these ignored!)
 .env
+.env.local
+.env.development  
+.env.production
+.env.staging
+.env.backup
 
 # Node.js dependencies
 node_modules/
