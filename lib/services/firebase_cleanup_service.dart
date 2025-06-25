@@ -30,6 +30,8 @@ class FirebaseCleanupService {
     'content_progress',
     'classification_feedback',
     'user_contributions',
+    'admin_classifications', // AI model training data
+    'admin_user_recovery',   // User recovery data
   ];
 
   static const List<String> _globalCollections = [
@@ -38,11 +40,18 @@ class FirebaseCleanupService {
     'community_stats',
     'disposal_instructions',
     'disposal_locations',
+    'family_stats', // Family feature collections
+    'test',         // Test collection for API verification
   ];
 
   /// Collections that need direct document deletion (not query-based)
   static const List<String> _directUserCollections = [
     'users',
+  ];
+
+  /// Collections that have subcollections requiring special handling
+  static const List<String> _collectionsWithSubcollections = [
+    'users', // Contains 'classifications' subcollection
   ];
 
   static final List<String> _hiveBoxesToNuke = [
@@ -120,6 +129,27 @@ class FirebaseCleanupService {
         }
       } catch (e) {
         WasteAppLogger.warning('Failed to delete from $collectionName: $e');
+      }
+    }
+
+    // Delete subcollections for collections that have them
+    for (final collectionName in _collectionsWithSubcollections) {
+      try {
+        if (collectionName == 'users') {
+          // Handle users/{uid}/classifications subcollection
+          final subcollectionSnapshot = await _firestore
+              .collection('users')
+              .doc(uid)
+              .collection('classifications')
+              .get();
+          
+          for (final doc in subcollectionSnapshot.docs) {
+            batch.delete(doc.reference);
+          }
+          WasteAppLogger.info('  - Found and staged ${subcollectionSnapshot.size} docs for deletion in "users/$uid/classifications"');
+        }
+      } catch (e) {
+        WasteAppLogger.warning('Failed to delete subcollections from $collectionName: $e');
       }
     }
 
