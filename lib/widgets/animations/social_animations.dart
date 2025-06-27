@@ -9,8 +9,7 @@ class CommunityFeedWidget extends StatefulWidget {
   State<CommunityFeedWidget> createState() => _CommunityFeedWidgetState();
 }
 
-class _CommunityFeedWidgetState extends State<CommunityFeedWidget>
-    with SingleTickerProviderStateMixin {
+class _CommunityFeedWidgetState extends State<CommunityFeedWidget> with SingleTickerProviderStateMixin {
   late AnimationController _controller;
 
   @override

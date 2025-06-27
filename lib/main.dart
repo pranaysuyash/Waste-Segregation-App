@@ -29,6 +29,7 @@ import 'services/haptic_settings_service.dart';
 import 'services/community_service.dart';
 import 'services/dynamic_link_service.dart';
 import 'services/cache_service.dart';
+import 'services/local_guidelines_plugin.dart';
 import 'screens/auth_screen.dart';
 import 'screens/consent_dialog_screen.dart';
 import 'screens/settings_screen.dart';
@@ -75,14 +76,14 @@ Required packages:
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
+
   // Initialize structured logging
   await WasteAppLogger.initialize();
   WasteAppLogger.info('App startup initiated');
-  
+
   // Set up error handling
   _setupErrorHandling();
-  
+
   // Environment variables are now loaded via --dart-define-from-file=.env
   if (kDebugMode) {
     WasteAppLogger.info('Environment variables loaded via --dart-define-from-file');
@@ -111,17 +112,17 @@ void main() async {
       await Firebase.initializeApp(
         options: DefaultFirebaseOptions.currentPlatform,
       );
-      
+
       // Add web-specific Firestore settings to prevent internal assertion failures
       final firestore = FirebaseFirestore.instance;
       await firestore.enableNetwork();
-      
+
       // Set web-specific settings to prevent connection issues
       firestore.settings = const Settings(
         persistenceEnabled: true,
         cacheSizeBytes: Settings.CACHE_SIZE_UNLIMITED,
       );
-      
+
       WasteAppLogger.info('Firebase initialized for web with enhanced error handling');
     } else {
       // Mobile initialization
@@ -130,7 +131,7 @@ void main() async {
       );
       WasteAppLogger.info('Firebase initialized for mobile');
     }
-    
+
     // Test Firestore connection and enable API if needed
     try {
       final firestore = FirebaseFirestore.instance;
@@ -138,7 +139,7 @@ void main() async {
       if (kDebugMode) {
         WasteAppLogger.info('Firestore network enabled successfully');
       }
-      
+
       // Test basic Firestore operation
       await firestore.collection('test').limit(1).get();
       if (kDebugMode) {
@@ -147,17 +148,18 @@ void main() async {
     } catch (firestoreError) {
       if (kDebugMode) {
         WasteAppLogger.severe('Firestore API error: $firestoreError');
-        WasteAppLogger.info('Please enable Firestore API at: https://console.developers.google.com/apis/api/firestore.googleapis.com/overview?project=waste-segregation-app-df523');
+        WasteAppLogger.info(
+            'Please enable Firestore API at: https://console.developers.google.com/apis/api/firestore.googleapis.com/overview?project=waste-segregation-app-df523');
       }
       // Continue without Firestore - app can still function
     }
-    
+
     // Crashlytics is ready for error reporting
   } catch (e, s) {
     WasteAppLogger.severe('Firebase initialization failed', e, s);
     // Continue with app initialization even if Firebase fails
     if (kDebugMode) {
-      print('Firebase initialization error: $e');
+      WasteAppLogger.severe('Firebase initialization error', e);
     }
   }
 
@@ -191,13 +193,13 @@ void main() async {
 
   // Create enhanced storage service instance
   final storageService = EnhancedStorageService();
-  
+
   // Run migration tasks with error handling (skip on web)
   if (!kIsWeb) {
     try {
       // Run image path migration
       await storageService.migrateImagePathsToRelative();
-      
+
       // Migrate existing classifications to generate missing thumbnails
       await storageService.migrateThumbnails();
     } catch (e) {
@@ -207,11 +209,11 @@ void main() async {
   } else {
     WasteAppLogger.info('⏭️ Skipping migrations on web platform');
   }
-  
+
   final aiService = AiService();
   final analyticsService = AnalyticsService(storageService);
   final educationalContentAnalyticsService = EducationalContentAnalyticsService();
-  
+
   // Initialize frame performance monitoring
   FramePerformanceMonitor.initialize(analyticsService);
   if (kDebugMode) {
@@ -226,6 +228,10 @@ void main() async {
   final navigationSettingsService = NavigationSettingsService();
   final hapticSettingsService = HapticSettingsService();
   final communityService = CommunityService();
+
+  // Initialize Enhanced AI Analysis v2.0 - Local Guidelines Plugin System
+  LocalGuidelinesManager.initializeDefaultPlugins();
+  WasteAppLogger.info('Local guidelines plugins initialized (Enhanced AI Analysis v2.0)');
 
   try {
     if (kDebugMode) {
@@ -247,7 +253,7 @@ void main() async {
         } catch (e) {
           WasteAppLogger.severe('❌ Gamification service failed: $e');
         }
-        
+
         try {
           await premiumService.initialize();
           WasteAppLogger.info('✅ Premium service initialized');
@@ -314,7 +320,7 @@ void _setupErrorHandling() {
       WasteAppLogger.severe('🚨 Flutter Error Captured: ${details.exception}');
       WasteAppLogger.info('📍 Stack: ${details.stack}');
     }
-    
+
     // Send to Crashlytics in release mode
     if (!kDebugMode) {
       FirebaseCrashlytics.instance.recordFlutterFatalError(details);
@@ -327,7 +333,7 @@ void _setupErrorHandling() {
       WasteAppLogger.severe('🚨 Platform Error Captured: $error');
       WasteAppLogger.info('📍 Stack: $stack');
     }
-    
+
     if (!kDebugMode) {
       FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
     }
@@ -336,7 +342,6 @@ void _setupErrorHandling() {
 }
 
 class WasteSegregationApp extends StatelessWidget {
-
   const WasteSegregationApp({
     super.key,
     required this.storageService,
@@ -377,13 +382,12 @@ class WasteSegregationApp extends StatelessWidget {
         providers: [
           // ThemeProvider for dynamic theming
           ChangeNotifierProvider(create: (_) => ThemeProvider()),
-          
+
           // Provide existing service instances
           Provider<StorageService>.value(value: storageService),
           Provider<AiService>.value(value: aiService),
           ChangeNotifierProvider<AnalyticsService>.value(value: analyticsService),
-          ChangeNotifierProvider<EducationalContentAnalyticsService>.value(
-              value: educationalContentAnalyticsService),
+          ChangeNotifierProvider<EducationalContentAnalyticsService>.value(value: educationalContentAnalyticsService),
           Provider<GoogleDriveService>.value(value: googleDriveService),
           Provider<EducationalContentService>.value(value: educationalContentService),
           ChangeNotifierProvider<GamificationService>.value(value: gamificationService),
@@ -396,7 +400,7 @@ class WasteSegregationApp extends StatelessWidget {
           // Other providers
           Provider(create: (_) => UserConsentService()),
           Provider(create: (context) => CloudStorageService(context.read<StorageService>())),
-          
+
           // Points Engine Provider - Single source of truth for points
           ChangeNotifierProvider(
             create: (context) => PointsEngineProvider(
@@ -409,10 +413,9 @@ class WasteSegregationApp extends StatelessWidget {
           builder: (context, themeProvider, child) {
             return DynamicColorBuilder(
               builder: (lightDynamic, darkDynamic) {
-                final lightScheme =
-                    lightDynamic ?? ColorScheme.fromSeed(seedColor: AppTheme.seedColor);
-                final darkScheme = darkDynamic ??
-                    ColorScheme.fromSeed(seedColor: AppTheme.seedColor, brightness: Brightness.dark);
+                final lightScheme = lightDynamic ?? ColorScheme.fromSeed(seedColor: AppTheme.seedColor);
+                final darkScheme =
+                    darkDynamic ?? ColorScheme.fromSeed(seedColor: AppTheme.seedColor, brightness: Brightness.dark);
                 return MaterialApp(
                   navigatorKey: navigatorKey,
                   title: AppStrings.appName,
@@ -437,56 +440,57 @@ class WasteSegregationApp extends StatelessWidget {
                       child: child ?? const SizedBox.shrink(),
                     );
                   },
-          
-          // ADD ROUTE DEFINITIONS:
-          routes: {
-            '/home': (context) => const GlobalMenuWrapper(child: MainNavigationWrapper()),
-            '/settings': (context) => const GlobalMenuWrapper(child: SettingsScreen()),
-            '/history': (context) => const GlobalMenuWrapper(child: HistoryScreen()),
-            '/achievements': (context) => const GlobalMenuWrapper(child: AchievementsScreen()),
-            '/educational': (context) => const GlobalMenuWrapper(child: EducationalContentScreen()),
-            '/analytics': (context) => const GlobalMenuWrapper(child: WasteDashboardScreen()),
-            '/premium': (context) => const GlobalMenuWrapper(child: PremiumFeaturesScreen()),
-            '/premium-features': (context) => const GlobalMenuWrapper(child: PremiumFeaturesScreen()),
-            '/premium_features': (context) => const GlobalMenuWrapper(child: PremiumFeaturesScreen()),
-            '/data-export': (context) => const GlobalMenuWrapper(child: DataExportScreen()),
-            '/offline-settings': (context) => const GlobalMenuWrapper(child: OfflineModeSettingsScreen()),
-            '/disposal-facilities': (context) => const GlobalMenuWrapper(child: DisposalFacilitiesScreen()),
-          },
-            home: FutureBuilder<Map<String, bool>>(
-              future: _checkInitialConditions(),
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const _SplashScreen();
-                }
 
-                final conditions = snapshot.data ?? {
-                  'hasConsent': false,
-                };
-                
-                final hasConsent = conditions['hasConsent'] ?? false;
-                
-                // First, check if user has accepted privacy policy and terms
-                if (!hasConsent) {
-                  return ConsentDialogScreen(
-                    onConsent: () {
-                      // After consent, navigate to auth screen
-                      Navigator.pushReplacement(
-                        context,
-                        MaterialPageRoute(builder: (context) => const AuthScreen()),
-                      );
+                  // ADD ROUTE DEFINITIONS:
+                  routes: {
+                    '/home': (context) => const GlobalMenuWrapper(child: MainNavigationWrapper()),
+                    '/settings': (context) => const GlobalMenuWrapper(child: SettingsScreen()),
+                    '/history': (context) => const GlobalMenuWrapper(child: HistoryScreen()),
+                    '/achievements': (context) => const GlobalMenuWrapper(child: AchievementsScreen()),
+                    '/educational': (context) => const GlobalMenuWrapper(child: EducationalContentScreen()),
+                    '/analytics': (context) => const GlobalMenuWrapper(child: WasteDashboardScreen()),
+                    '/premium': (context) => const GlobalMenuWrapper(child: PremiumFeaturesScreen()),
+                    '/premium-features': (context) => const GlobalMenuWrapper(child: PremiumFeaturesScreen()),
+                    '/premium_features': (context) => const GlobalMenuWrapper(child: PremiumFeaturesScreen()),
+                    '/data-export': (context) => const GlobalMenuWrapper(child: DataExportScreen()),
+                    '/offline-settings': (context) => const GlobalMenuWrapper(child: OfflineModeSettingsScreen()),
+                    '/disposal-facilities': (context) => const GlobalMenuWrapper(child: DisposalFacilitiesScreen()),
+                  },
+                  home: FutureBuilder<Map<String, bool>>(
+                    future: _checkInitialConditions(),
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return const _SplashScreen();
+                      }
+
+                      final conditions = snapshot.data ??
+                          {
+                            'hasConsent': false,
+                          };
+
+                      final hasConsent = conditions['hasConsent'] ?? false;
+
+                      // First, check if user has accepted privacy policy and terms
+                      if (!hasConsent) {
+                        return ConsentDialogScreen(
+                          onConsent: () {
+                            // After consent, navigate to auth screen
+                            Navigator.pushReplacement(
+                              context,
+                              MaterialPageRoute(builder: (context) => const AuthScreen()),
+                            );
+                          },
+                          onDecline: () {
+                            // If user declines, exit the app
+                            SystemNavigator.pop();
+                          },
+                        );
+                      }
+
+                      // Then check login status
+                      return const AuthScreen(); // Will automatically redirect to HomeScreen if logged in
                     },
-                    onDecline: () {
-                      // If user declines, exit the app
-                      SystemNavigator.pop();
-                    },
-                  );
-                }
-                
-                // Then check login status
-                return const AuthScreen(); // Will automatically redirect to HomeScreen if logged in
-              },
-            ),
+                  ),
                 );
               },
             );
@@ -503,9 +507,8 @@ class WasteSegregationApp extends StatelessWidget {
     try {
       // Check user consent status with timeout for web compatibility
       final userConsentService = UserConsentService();
-      final hasConsent = await userConsentService.hasAllRequiredConsents()
-          .timeout(const Duration(seconds: 3));
-      
+      final hasConsent = await userConsentService.hasAllRequiredConsents().timeout(const Duration(seconds: 3));
+
       return {
         'hasConsent': hasConsent,
       };
@@ -536,19 +539,19 @@ class _SplashScreenState extends State<_SplashScreen> with TickerProviderStateMi
   @override
   void initState() {
     super.initState();
-    
+
     // Logo animation controller
     _logoController = AnimationController(
       duration: const Duration(milliseconds: 1200),
       vsync: this,
     );
-    
+
     // Text animation controller
     _textController = AnimationController(
       duration: const Duration(milliseconds: 800),
       vsync: this,
     );
-    
+
     // Logo scale animation
     _logoScale = Tween<double>(
       begin: 0.5,
@@ -557,7 +560,7 @@ class _SplashScreenState extends State<_SplashScreen> with TickerProviderStateMi
       parent: _logoController,
       curve: Curves.elasticOut,
     ));
-    
+
     // Text fade animation
     _textFade = Tween<double>(
       begin: 0.0,
@@ -566,7 +569,7 @@ class _SplashScreenState extends State<_SplashScreen> with TickerProviderStateMi
       parent: _textController,
       curve: Curves.easeInOut,
     ));
-    
+
     // Text slide animation
     _textSlide = Tween<Offset>(
       begin: const Offset(0, 0.3),
@@ -575,16 +578,16 @@ class _SplashScreenState extends State<_SplashScreen> with TickerProviderStateMi
       parent: _textController,
       curve: Curves.easeOutCubic,
     ));
-    
+
     // Start animations
     _startAnimations();
   }
-  
+
   void _startAnimations() async {
     await _logoController.forward();
     await _textController.forward();
   }
-  
+
   @override
   void dispose() {
     _logoController.dispose();
@@ -602,9 +605,9 @@ class _SplashScreenState extends State<_SplashScreen> with TickerProviderStateMi
             end: Alignment.bottomCenter,
             colors: [
               AppTheme.primaryColor,
-              AppTheme.primaryColor.withValues(alpha:0.8),
+              AppTheme.primaryColor.withValues(alpha: 0.8),
               AppTheme.secondaryColor,
-              AppTheme.secondaryColor.withValues(alpha:0.6),
+              AppTheme.secondaryColor.withValues(alpha: 0.6),
             ],
             stops: const [0.0, 0.3, 0.7, 1.0],
           ),
@@ -626,7 +629,7 @@ class _SplashScreenState extends State<_SplashScreen> with TickerProviderStateMi
                       borderRadius: BorderRadius.circular(35),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withValues(alpha:0.3),
+                          color: Colors.black.withValues(alpha: 0.3),
                           blurRadius: 25,
                           offset: const Offset(0, 15),
                           spreadRadius: 5,
@@ -644,8 +647,8 @@ class _SplashScreenState extends State<_SplashScreen> with TickerProviderStateMi
                                 begin: Alignment.topLeft,
                                 end: Alignment.bottomRight,
                                 colors: [
-                                  AppTheme.primaryColor.withValues(alpha:0.1),
-                                  AppTheme.secondaryColor.withValues(alpha:0.1),
+                                  AppTheme.primaryColor.withValues(alpha: 0.1),
+                                  AppTheme.secondaryColor.withValues(alpha: 0.1),
                                 ],
                               ),
                             ),
@@ -667,7 +670,7 @@ class _SplashScreenState extends State<_SplashScreen> with TickerProviderStateMi
                                 borderRadius: BorderRadius.circular(20),
                                 boxShadow: [
                                   BoxShadow(
-                                    color: AppTheme.primaryColor.withValues(alpha:0.3),
+                                    color: AppTheme.primaryColor.withValues(alpha: 0.3),
                                     blurRadius: 10,
                                     offset: const Offset(0, 5),
                                   ),
@@ -733,9 +736,9 @@ class _SplashScreenState extends State<_SplashScreen> with TickerProviderStateMi
                         ),
                         textAlign: TextAlign.center,
                       ),
-                      
+
                       const SizedBox(height: AppTheme.paddingSmall),
-                      
+
                       // Enhanced tagline with gradient text effect
                       ShaderMask(
                         shaderCallback: (bounds) => const LinearGradient(
@@ -762,16 +765,16 @@ class _SplashScreenState extends State<_SplashScreen> with TickerProviderStateMi
                           textAlign: TextAlign.center,
                         ),
                       ),
-                      
+
                       const SizedBox(height: AppTheme.paddingSmall),
-                      
+
                       // Community tagline
                       Text(
                         'Join the Eco-Warriors Community',
                         style: TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.w500,
-                          color: Colors.white.withValues(alpha:0.8),
+                          color: Colors.white.withValues(alpha: 0.8),
                           letterSpacing: 0.5,
                         ),
                         textAlign: TextAlign.center,
@@ -794,7 +797,7 @@ class _SplashScreenState extends State<_SplashScreen> with TickerProviderStateMi
                       child: CircularProgressIndicator(
                         valueColor: const AlwaysStoppedAnimation<Color>(Colors.white),
                         strokeWidth: 3.0,
-                        backgroundColor: Colors.white.withValues(alpha:0.3),
+                        backgroundColor: Colors.white.withValues(alpha: 0.3),
                       ),
                     ),
                     const SizedBox(height: AppTheme.paddingRegular),
@@ -802,7 +805,7 @@ class _SplashScreenState extends State<_SplashScreen> with TickerProviderStateMi
                       'Initializing...',
                       style: TextStyle(
                         fontSize: 14,
-                        color: Colors.white.withValues(alpha:0.8),
+                        color: Colors.white.withValues(alpha: 0.8),
                         fontWeight: FontWeight.w400,
                       ),
                     ),

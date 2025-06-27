@@ -5,7 +5,6 @@ import '../l10n/app_localizations.dart';
 
 /// Animated FAB with pulsing effects and celebratory animations
 class AnimatedFAB extends StatefulWidget {
-
   const AnimatedFAB({
     super.key,
     required this.onPressed,
@@ -24,8 +23,7 @@ class AnimatedFAB extends StatefulWidget {
   State<AnimatedFAB> createState() => _AnimatedFABState();
 }
 
-class _AnimatedFABState extends State<AnimatedFAB>
-    with TickerProviderStateMixin {
+class _AnimatedFABState extends State<AnimatedFAB> with TickerProviderStateMixin {
   late AnimationController _pulseController;
   late AnimationController _celebrationController;
   late AnimationController _rippleController;
@@ -151,8 +149,8 @@ class _AnimatedFABState extends State<AnimatedFAB>
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   border: Border.all(
-                    color: AppTheme.primaryColor.withValues(alpha:
-                      0.5 * (1 - _rippleAnimation.value),
+                    color: AppTheme.primaryColor.withValues(
+                      alpha: 0.5 * (1 - _rippleAnimation.value),
                     ),
                     width: 2,
                   ),
@@ -168,8 +166,8 @@ class _AnimatedFABState extends State<AnimatedFAB>
                   shape: BoxShape.circle,
                   boxShadow: [
                     BoxShadow(
-                      color: AppTheme.primaryColor.withValues(alpha:
-                        0.3 * _pulseAnimation.value,
+                      color: AppTheme.primaryColor.withValues(
+                        alpha: 0.3 * _pulseAnimation.value,
                       ),
                       blurRadius: 20 * _pulseAnimation.value,
                       spreadRadius: 5 * _pulseAnimation.value,
@@ -255,7 +253,6 @@ class _AnimatedFABState extends State<AnimatedFAB>
 
 /// Flame streak animation widget for streaks
 class FlameStreakWidget extends StatefulWidget {
-
   const FlameStreakWidget({
     super.key,
     required this.streakCount,
@@ -268,8 +265,7 @@ class FlameStreakWidget extends StatefulWidget {
   State<FlameStreakWidget> createState() => _FlameStreakWidgetState();
 }
 
-class _FlameStreakWidgetState extends State<FlameStreakWidget>
-    with TickerProviderStateMixin {
+class _FlameStreakWidgetState extends State<FlameStreakWidget> with TickerProviderStateMixin {
   late AnimationController _flameController;
   late Animation<double> _flameAnimation;
   late Animation<Color?> _colorAnimation;
@@ -358,7 +354,6 @@ class _FlameStreakWidgetState extends State<FlameStreakWidget>
 
 /// Celebratory effects overlay
 class CelebrationOverlay extends StatefulWidget {
-
   const CelebrationOverlay({
     super.key,
     required this.isVisible,
@@ -373,8 +368,7 @@ class CelebrationOverlay extends StatefulWidget {
   State<CelebrationOverlay> createState() => _CelebrationOverlayState();
 }
 
-class _CelebrationOverlayState extends State<CelebrationOverlay>
-    with TickerProviderStateMixin {
+class _CelebrationOverlayState extends State<CelebrationOverlay> with TickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _scaleAnimation;
   late Animation<double> _fadeAnimation;
@@ -448,7 +442,7 @@ class _CelebrationOverlayState extends State<CelebrationOverlay>
         return Positioned.fill(
           child: IgnorePointer(
             child: Container(
-              color: Colors.black.withValues(alpha:0.3 * (1 - _fadeAnimation.value)),
+              color: Colors.black.withValues(alpha: 0.3 * (1 - _fadeAnimation.value)),
               child: Center(
                 child: SlideTransition(
                   position: _slideAnimation,
@@ -466,7 +460,7 @@ class _CelebrationOverlayState extends State<CelebrationOverlay>
                           borderRadius: BorderRadius.circular(16),
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.black.withValues(alpha:0.2),
+                              color: Colors.black.withValues(alpha: 0.2),
                               blurRadius: 20,
                               offset: const Offset(0, 10),
                             ),
@@ -502,4 +496,4 @@ class _CelebrationOverlayState extends State<CelebrationOverlay>
       },
     );
   }
-} 
+}

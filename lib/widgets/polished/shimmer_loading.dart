@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 
 /// Branded shimmer loading effect for modern loading states
 class ShimmerLoading extends StatefulWidget {
-
   const ShimmerLoading({
     super.key,
     required this.child,
@@ -21,8 +20,7 @@ class ShimmerLoading extends StatefulWidget {
   State<ShimmerLoading> createState() => _ShimmerLoadingState();
 }
 
-class _ShimmerLoadingState extends State<ShimmerLoading>
-    with SingleTickerProviderStateMixin {
+class _ShimmerLoadingState extends State<ShimmerLoading> with SingleTickerProviderStateMixin {
   late AnimationController _animationController;
   late Animation<double> _animation;
 
@@ -71,10 +69,8 @@ class _ShimmerLoadingState extends State<ShimmerLoading>
     }
 
     final theme = Theme.of(context);
-    final baseColor = widget.baseColor ?? 
-        theme.colorScheme.surfaceContainerHighest;
-    final highlightColor = widget.highlightColor ?? 
-        theme.colorScheme.surface;
+    final baseColor = widget.baseColor ?? theme.colorScheme.surfaceContainerHighest;
+    final highlightColor = widget.highlightColor ?? theme.colorScheme.surface;
 
     return AnimatedBuilder(
       animation: _animation,
@@ -235,4 +231,4 @@ class ShimmerSkeleton {
       ),
     );
   }
-} 
+}

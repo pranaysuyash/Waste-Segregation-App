@@ -19,48 +19,46 @@ void main() {
     group('Screen Loading Performance', () {
       testWidgets('Home screen loads within 1 second', (WidgetTester tester) async {
         final stopwatch = Stopwatch()..start();
-        
+
         await tester.pumpWidget(
           const MaterialApp(
             home: HomeScreen(),
           ),
         );
-        
+
         await tester.pumpAndSettle();
         stopwatch.stop();
-        
-        expect(stopwatch.elapsedMilliseconds, lessThan(1000),
-            reason: 'Home screen should load within 1 second');
+
+        expect(stopwatch.elapsedMilliseconds, lessThan(1000), reason: 'Home screen should load within 1 second');
       });
 
       testWidgets('History screen loads within 1.5 seconds', (WidgetTester tester) async {
         final stopwatch = Stopwatch()..start();
-        
+
         await tester.pumpWidget(
           const MaterialApp(
             home: HistoryScreen(),
           ),
         );
-        
+
         await tester.pumpAndSettle();
         stopwatch.stop();
-        
-        expect(stopwatch.elapsedMilliseconds, lessThan(1500),
-            reason: 'History screen should load within 1.5 seconds');
+
+        expect(stopwatch.elapsedMilliseconds, lessThan(1500), reason: 'History screen should load within 1.5 seconds');
       });
 
       testWidgets('Educational content screen loads within 2 seconds', (WidgetTester tester) async {
         final stopwatch = Stopwatch()..start();
-        
+
         await tester.pumpWidget(
           const MaterialApp(
             home: EducationalContentScreen(),
           ),
         );
-        
+
         await tester.pumpAndSettle();
         stopwatch.stop();
-        
+
         expect(stopwatch.elapsedMilliseconds, lessThan(2000),
             reason: 'Educational content screen should load within 2 seconds');
       });
@@ -91,8 +89,7 @@ void main() {
         await tester.pump();
 
         // Check that no frames were dropped (simplified check)
-        expect(tester.binding.hasScheduledFrame, isFalse,
-            reason: 'Should not have dropped frames during scrolling');
+        expect(tester.binding.hasScheduledFrame, isFalse, reason: 'Should not have dropped frames during scrolling');
       });
 
       testWidgets('Animation performance test', (WidgetTester tester) async {
@@ -114,7 +111,7 @@ void main() {
         // Trigger animation and measure performance
         await tester.pump();
         await tester.pump(const Duration(milliseconds: 250));
-        
+
         // Verify animation is smooth (no dropped frames)
         expect(tester.binding.hasScheduledFrame, isFalse);
       });
@@ -141,7 +138,7 @@ void main() {
         );
 
         await tester.pumpAndSettle();
-        
+
         // Memory usage test (simplified - in real app would use actual memory monitoring)
         expect(find.byType(Container), findsNWidgets(50));
       });
@@ -151,7 +148,7 @@ void main() {
       testWidgets('Button tap responds within 16ms', (WidgetTester tester) async {
         var tapped = false;
         final stopwatch = Stopwatch();
-        
+
         await tester.pumpWidget(
           MaterialApp(
             home: Scaffold(
@@ -173,8 +170,7 @@ void main() {
         await tester.pump();
 
         expect(tapped, isTrue);
-        expect(stopwatch.elapsedMilliseconds, lessThan(16),
-            reason: 'Button should respond within 16ms for 60fps');
+        expect(stopwatch.elapsedMilliseconds, lessThan(16), reason: 'Button should respond within 16ms for 60fps');
       });
 
       testWidgets('Text input responds immediately', (WidgetTester tester) async {
@@ -202,23 +198,23 @@ void main() {
       testWidgets('Performance baseline test', (WidgetTester tester) async {
         // This test establishes a baseline for performance
         final stopwatch = Stopwatch()..start();
-        
+
         await tester.pumpWidget(
           const MaterialApp(
             home: HomeScreen(),
           ),
         );
-        
+
         await tester.pumpAndSettle();
         stopwatch.stop();
-        
+
         // Store baseline (in real implementation, would save to file)
         final loadTime = stopwatch.elapsedMilliseconds;
-        
+
         // Ensure we don't regress beyond 20% of baseline
         expect(loadTime, lessThan(1200), // 20% buffer on 1000ms target
             reason: 'Performance should not regress beyond baseline');
       });
     });
   });
-} 
+}

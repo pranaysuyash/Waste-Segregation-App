@@ -245,7 +245,7 @@ void main() {
           matching: find.byType(Container),
         );
         final containerWidget = tester.widget<Container>(container);
-        
+
         // Check minimum height (48dp for accessibility)
         expect(containerWidget.constraints?.minHeight, equals(AppTheme.buttonHeightSm));
         expect(AppTheme.buttonHeightSm, greaterThanOrEqualTo(48.0));
@@ -378,10 +378,10 @@ void main() {
         final largeProfile = mockProfile.copyWith(achievements: largeAchievementList);
 
         final stopwatch = Stopwatch()..start();
-        
+
         await tester.pumpWidget(createTestWidget(profile: largeProfile));
         await tester.pumpAndSettle();
-        
+
         stopwatch.stop();
 
         // Ensure rendering completes within reasonable time (2 seconds)
@@ -432,7 +432,7 @@ void main() {
     group('Edge Cases', () {
       testWidgets('handles empty achievements list', (tester) async {
         final emptyProfile = mockProfile.copyWith(achievements: []);
-        
+
         await tester.pumpWidget(createTestWidget(profile: emptyProfile));
         await tester.pumpAndSettle();
 
@@ -445,7 +445,8 @@ void main() {
         final longTextAchievement = Achievement(
           id: 'long_text',
           title: 'This is a very long achievement title that should be truncated properly',
-          description: 'This is an extremely long description that should also be truncated to prevent overflow and maintain proper layout in the achievement card widget',
+          description:
+              'This is an extremely long description that should also be truncated to prevent overflow and maintain proper layout in the achievement card widget',
           type: AchievementType.wasteIdentified,
           threshold: 10,
           iconName: 'eco',
@@ -466,4 +467,4 @@ void main() {
       });
     });
   });
-} 
+}

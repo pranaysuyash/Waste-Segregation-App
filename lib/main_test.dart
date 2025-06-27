@@ -4,20 +4,22 @@ import 'utils/waste_app_logger.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
+
   // Test WasteAppLogger initialization
   try {
     await WasteAppLogger.initialize();
     WasteAppLogger.info('Test app startup initiated');
     if (kDebugMode) {
-      print('✅ WasteAppLogger initialized successfully');
+      WasteAppLogger.info('✅ WasteAppLogger initialized successfully', null, null,
+          {'initialization_step': 'success', 'test_mode': true});
     }
   } catch (e) {
     if (kDebugMode) {
+      // Can't use WasteAppLogger here since it failed to initialize
       print('❌ WasteAppLogger failed: $e');
     }
   }
-  
+
   runApp(const TestApp());
 }
 
@@ -87,4 +89,4 @@ class TestHomePage extends StatelessWidget {
       ),
     );
   }
-} 
+}

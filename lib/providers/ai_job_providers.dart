@@ -42,13 +42,13 @@ class BatchJobCreationNotifier extends StateNotifier<AsyncValue<String?>> {
     required dynamic imageFile, // File for mobile, Uint8List for web
   }) async {
     state = const AsyncValue.loading();
-    
+
     try {
       final jobId = await _aiJobService.createBatchJob(
         userId: userId,
         imageFile: imageFile,
       );
-      
+
       state = AsyncValue.data(jobId);
       return jobId;
     } catch (error, stackTrace) {
@@ -67,4 +67,4 @@ class BatchJobCreationNotifier extends StateNotifier<AsyncValue<String?>> {
 final batchJobCreationProvider = StateNotifierProvider<BatchJobCreationNotifier, AsyncValue<String?>>((ref) {
   final aiJobService = ref.watch(aiJobServiceProvider);
   return BatchJobCreationNotifier(aiJobService);
-}); 
+});

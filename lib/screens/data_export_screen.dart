@@ -29,7 +29,7 @@ class _DataExportScreenState extends State<DataExportScreen> {
   bool _isLoading = true;
   bool _isExporting = false;
   List<WasteClassification> _classifications = [];
-  
+
   // Export options
   ExportFormat _selectedFormat = ExportFormat.csv;
   DateRange _selectedDateRange = DateRange.all;
@@ -46,7 +46,7 @@ class _DataExportScreenState extends State<DataExportScreen> {
   Future<void> _loadData() async {
     final storage = Provider.of<StorageService>(context, listen: false);
     final classifications = await storage.getAllClassifications();
-    
+
     setState(() {
       _classifications = classifications;
       _isLoading = false;
@@ -55,10 +55,10 @@ class _DataExportScreenState extends State<DataExportScreen> {
 
   List<WasteClassification> _getFilteredClassifications() {
     var filtered = List<WasteClassification>.from(_classifications);
-    
+
     final now = DateTime.now();
     DateTime? cutoffDate;
-    
+
     switch (_selectedDateRange) {
       case DateRange.lastWeek:
         cutoffDate = now.subtract(const Duration(days: 7));
@@ -73,11 +73,11 @@ class _DataExportScreenState extends State<DataExportScreen> {
         cutoffDate = null;
         break;
     }
-    
+
     if (cutoffDate != null) {
       filtered = filtered.where((c) => c.timestamp.isAfter(cutoffDate!)).toList();
     }
-    
+
     return filtered;
   }
 
@@ -100,155 +100,157 @@ class _DataExportScreenState extends State<DataExportScreen> {
             ),
         ],
       ),
-      body: _isExporting 
-        ? const Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
+      body: _isExporting
+          ? const Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  CircularProgressIndicator(),
+                  SizedBox(height: 16),
+                  Text('Exporting your data...'),
+                ],
+              ),
+            )
+          : ListView(
+              padding: const EdgeInsets.all(16),
               children: [
-                CircularProgressIndicator(),
-                SizedBox(height: 16),
-                Text('Exporting your data...'),
-              ],
-            ),
-          )
-        : ListView(
-            padding: const EdgeInsets.all(16),
-            children: [
-              // Export format selection
-              Card(
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text('Export Format', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                      const SizedBox(height: 16),
-                      ...ExportFormat.values.map((format) => RadioListTile<ExportFormat>(
-                        title: Text(format.displayName),
-                        subtitle: Text(format.description),
-                        value: format,
-                        groupValue: _selectedFormat,
-                        onChanged: (value) {
-                          setState(() {
-                            _selectedFormat = value!;
-                          });
-                        },
-                      )),
-                    ],
+                // Export format selection
+                Card(
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text('Export Format', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                        const SizedBox(height: 16),
+                        ...ExportFormat.values.map((format) => RadioListTile<ExportFormat>(
+                              title: Text(format.displayName),
+                              subtitle: Text(format.description),
+                              value: format,
+                              groupValue: _selectedFormat,
+                              onChanged: (value) {
+                                setState(() {
+                                  _selectedFormat = value!;
+                                });
+                              },
+                            )),
+                      ],
+                    ),
                   ),
                 ),
-              ),
-              
-              const SizedBox(height: 16),
-              
-              // Date range selection
-              Card(
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text('Date Range', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                      const SizedBox(height: 16),
-                      DropdownButtonFormField<DateRange>(
-                        value: _selectedDateRange,
-                        decoration: const InputDecoration(
-                          border: OutlineInputBorder(),
-                          labelText: 'Select date range',
-                        ),
-                        items: DateRange.values.map((range) => DropdownMenuItem(
-                          value: range,
-                          child: Text(range.displayName),
-                        )).toList(),
-                        onChanged: (value) {
-                          setState(() {
-                            _selectedDateRange = value!;
-                          });
-                        },
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              
-              const SizedBox(height: 16),
-              
-              // Export options
-              Card(
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text('Export Options', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                      CheckboxListTile(
-                        title: const Text('Include Personal Data'),
-                        subtitle: const Text('Timestamps, device info'),
-                        value: _includePersonalData,
-                        onChanged: (value) {
-                          setState(() {
-                            _includePersonalData = value ?? true;
-                          });
-                        },
-                      ),
-                      CheckboxListTile(
-                        title: const Text('Include Analytics'),
-                        subtitle: const Text('Confidence scores and processing details'),
-                        value: _includeAnalytics,
-                        onChanged: (value) {
-                          setState(() {
-                            _includeAnalytics = value ?? true;
-                          });
-                        },
-                      ),
-                      if (!kIsWeb)
-                        CheckboxListTile(
-                          title: const Text('Include Image References'),
-                          subtitle: const Text('File paths to images'),
-                          value: _includeImages,
+
+                const SizedBox(height: 16),
+
+                // Date range selection
+                Card(
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text('Date Range', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                        const SizedBox(height: 16),
+                        DropdownButtonFormField<DateRange>(
+                          value: _selectedDateRange,
+                          decoration: const InputDecoration(
+                            border: OutlineInputBorder(),
+                            labelText: 'Select date range',
+                          ),
+                          items: DateRange.values
+                              .map((range) => DropdownMenuItem(
+                                    value: range,
+                                    child: Text(range.displayName),
+                                  ))
+                              .toList(),
                           onChanged: (value) {
                             setState(() {
-                              _includeImages = value ?? false;
+                              _selectedDateRange = value!;
                             });
                           },
                         ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
-              ),
-              
-              const SizedBox(height: 16),
-              
-              // Summary
-              Card(
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text('Export Summary', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                      const SizedBox(height: 8),
-                      Text('Total classifications: ${_classifications.length}'),
-                      Text('Items to export: ${_getFilteredClassifications().length}'),
-                      Text('Format: ${_selectedFormat.displayName}'),
-                    ],
+
+                const SizedBox(height: 16),
+
+                // Export options
+                Card(
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text('Export Options', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                        CheckboxListTile(
+                          title: const Text('Include Personal Data'),
+                          subtitle: const Text('Timestamps, device info'),
+                          value: _includePersonalData,
+                          onChanged: (value) {
+                            setState(() {
+                              _includePersonalData = value ?? true;
+                            });
+                          },
+                        ),
+                        CheckboxListTile(
+                          title: const Text('Include Analytics'),
+                          subtitle: const Text('Confidence scores and processing details'),
+                          value: _includeAnalytics,
+                          onChanged: (value) {
+                            setState(() {
+                              _includeAnalytics = value ?? true;
+                            });
+                          },
+                        ),
+                        if (!kIsWeb)
+                          CheckboxListTile(
+                            title: const Text('Include Image References'),
+                            subtitle: const Text('File paths to images'),
+                            value: _includeImages,
+                            onChanged: (value) {
+                              setState(() {
+                                _includeImages = value ?? false;
+                              });
+                            },
+                          ),
+                      ],
+                    ),
                   ),
                 ),
-              ),
-              
-              const SizedBox(height: 24),
-              
-              // Export button
-              ElevatedButton.icon(
-                onPressed: _classifications.isEmpty ? null : _exportData,
-                icon: const Icon(Icons.file_download),
-                label: Text('Export ${_getFilteredClassifications().length} Items'),
-                style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 16),
+
+                const SizedBox(height: 16),
+
+                // Summary
+                Card(
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text('Export Summary', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                        const SizedBox(height: 8),
+                        Text('Total classifications: ${_classifications.length}'),
+                        Text('Items to export: ${_getFilteredClassifications().length}'),
+                        Text('Format: ${_selectedFormat.displayName}'),
+                      ],
+                    ),
+                  ),
                 ),
-              ),
-            ],
-          ),
+
+                const SizedBox(height: 24),
+
+                // Export button
+                ElevatedButton.icon(
+                  onPressed: _classifications.isEmpty ? null : _exportData,
+                  icon: const Icon(Icons.file_download),
+                  label: Text('Export ${_getFilteredClassifications().length} Items'),
+                  style: ElevatedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                  ),
+                ),
+              ],
+            ),
     );
   }
 
@@ -260,14 +262,14 @@ class _DataExportScreenState extends State<DataExportScreen> {
     try {
       final filteredData = _getFilteredClassifications();
       final exportContent = _generateExportContent(filteredData);
-      
+
       // Share the export content
       await ShareService.share(
         text: exportContent,
         context: context,
         subject: 'Waste Classification Export',
       );
-      
+
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -307,7 +309,7 @@ class _DataExportScreenState extends State<DataExportScreen> {
 
   String _generateCSV(List<WasteClassification> data) {
     final buffer = StringBuffer();
-    
+
     // Headers
     final headers = <String>['Item Name', 'Category', 'Timestamp'];
     if (_includeAnalytics) {
@@ -315,9 +317,9 @@ class _DataExportScreenState extends State<DataExportScreen> {
     }
     if (_includePersonalData) headers.add('Device');
     if (_includeImages && !kIsWeb) headers.add('Image Path');
-    
+
     buffer.writeln(headers.join(','));
-    
+
     // Data rows
     for (final item in data) {
       final row = <String>[
@@ -325,7 +327,7 @@ class _DataExportScreenState extends State<DataExportScreen> {
         '"${item.category}"',
         '"${DateFormat('yyyy-MM-dd HH:mm:ss').format(item.timestamp)}"',
       ];
-      
+
       if (_includeAnalytics) {
         row.addAll([
           '"${item.confidence != null ? (item.confidence! * 100).toStringAsFixed(1) : 'N/A'}%"',
@@ -340,10 +342,10 @@ class _DataExportScreenState extends State<DataExportScreen> {
       if (_includeImages && !kIsWeb) {
         row.add('"${item.imageUrl ?? ''}"');
       }
-      
+
       buffer.writeln(row.join(','));
     }
-    
+
     return buffer.toString();
   }
 
@@ -355,29 +357,31 @@ class _DataExportScreenState extends State<DataExportScreen> {
         'format': _selectedFormat.name,
         'appVersion': AppVersion.displayVersion,
       },
-      'classifications': data.map((item) => {
-        'itemName': item.itemName,
-        'category': item.category,
-        'timestamp': item.timestamp.toIso8601String(),
-        'explanation': item.explanation,
-        if (_includeAnalytics) ...{
-          'confidence': item.confidence,
-          'modelVersion': item.modelVersion,
-          'processingTimeMs': item.processingTimeMs,
-          'subcategory': item.subcategory,
-          'materialType': item.materialType,
-          'isRecyclable': item.isRecyclable,
-          'isCompostable': item.isCompostable,
-          'requiresSpecialDisposal': item.requiresSpecialDisposal,
-          'recyclingCode': item.recyclingCode,
-          'disposalMethod': item.disposalMethod,
-          'source': item.source,
-        },
-        if (_includePersonalData) 'deviceType': 'Mobile Device',
-        if (_includeImages && !kIsWeb) 'imagePath': item.imageUrl,
-      }).toList(),
+      'classifications': data
+          .map((item) => {
+                'itemName': item.itemName,
+                'category': item.category,
+                'timestamp': item.timestamp.toIso8601String(),
+                'explanation': item.explanation,
+                if (_includeAnalytics) ...{
+                  'confidence': item.confidence,
+                  'modelVersion': item.modelVersion,
+                  'processingTimeMs': item.processingTimeMs,
+                  'subcategory': item.subcategory,
+                  'materialType': item.materialType,
+                  'isRecyclable': item.isRecyclable,
+                  'isCompostable': item.isCompostable,
+                  'requiresSpecialDisposal': item.requiresSpecialDisposal,
+                  'recyclingCode': item.recyclingCode,
+                  'disposalMethod': item.disposalMethod,
+                  'source': item.source,
+                },
+                if (_includePersonalData) 'deviceType': 'Mobile Device',
+                if (_includeImages && !kIsWeb) 'imagePath': item.imageUrl,
+              })
+          .toList(),
     };
-    
+
     const encoder = JsonEncoder.withIndent('  ');
     return encoder.convert(exportData);
   }
@@ -389,7 +393,7 @@ class _DataExportScreenState extends State<DataExportScreen> {
     buffer.writeln('Total Items: ${data.length}');
     buffer.writeln('=' * 50);
     buffer.writeln();
-    
+
     for (var i = 0; i < data.length; i++) {
       final item = data[i];
       buffer.writeln('Classification ${i + 1}:');
@@ -399,7 +403,7 @@ class _DataExportScreenState extends State<DataExportScreen> {
         buffer.writeln('  Subcategory: ${item.subcategory}');
       }
       buffer.writeln('  Date: ${DateFormat('yyyy-MM-dd HH:mm:ss').format(item.timestamp)}');
-      
+
       if (_includeAnalytics) {
         if (item.materialType != null) {
           buffer.writeln('  Material: ${item.materialType}');
@@ -414,14 +418,14 @@ class _DataExportScreenState extends State<DataExportScreen> {
           buffer.writeln('  Recycling Code: ${item.recyclingCode}');
         }
       }
-      
+
       if (item.explanation.isNotEmpty) {
         buffer.writeln('  Explanation: ${item.explanation}');
       }
-      
+
       buffer.writeln();
     }
-    
+
     return buffer.toString();
   }
 }
@@ -432,7 +436,7 @@ enum ExportFormat {
   txt('Text', 'Human-readable text format', 'txt');
 
   const ExportFormat(this.displayName, this.description, this.extension);
-  
+
   final String displayName;
   final String description;
   final String extension;
@@ -445,6 +449,6 @@ enum DateRange {
   lastYear('Last Year');
 
   const DateRange(this.displayName);
-  
+
   final String displayName;
 }

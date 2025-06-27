@@ -19,7 +19,7 @@ class DynamicLinkService {
   /// Initialize listeners for incoming links.
   static Future<void> initDynamicLinks(BuildContext context) async {
     _appLinks = AppLinks();
-    
+
     // Handle initial link if app was launched from a link
     try {
       final initialLink = await _appLinks!.getInitialLink();
@@ -45,12 +45,12 @@ class DynamicLinkService {
 
   static void _handleLinkData(Uri? deepLink, BuildContext context) {
     if (deepLink == null) return;
-    
+
     if (deepLink.pathSegments.contains('result')) {
       final id = deepLink.queryParameters['id'];
       final item = deepLink.queryParameters['item'];
       final category = deepLink.queryParameters['category'];
-      
+
       if (id != null && item != null && category != null) {
         final classification = WasteClassification(
           id: id,
@@ -66,7 +66,7 @@ class DynamicLinkService {
           visualFeatures: const [],
           alternatives: const [],
         );
-        
+
         Navigator.push(
           context,
           MaterialPageRoute(

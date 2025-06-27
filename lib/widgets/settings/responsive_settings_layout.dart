@@ -21,7 +21,7 @@ class ResponsiveSettingsLayout extends StatelessWidget {
     return LayoutBuilder(
       builder: (context, constraints) {
         final screenWidth = constraints.maxWidth;
-        
+
         if (screenWidth >= desktopBreakpoint) {
           return _buildDesktopLayout();
         } else if (screenWidth >= tabletBreakpoint) {
@@ -42,10 +42,10 @@ class ResponsiveSettingsLayout extends StatelessWidget {
           width: 280,
           child: _buildSidebarNavigation(),
         ),
-        
+
         // Vertical divider
         const VerticalDivider(width: 1),
-        
+
         // Main content area
         Expanded(
           child: Container(
@@ -96,7 +96,7 @@ class ResponsiveSettingsLayout extends StatelessWidget {
               (context, index) {
                 final sectionIndex = index ~/ 2;
                 final isSection = index % 2 == 0;
-                
+
                 if (isSection && sectionIndex < sections.length) {
                   return sections[sectionIndex];
                 } else if (!isSection && sectionIndex < sections.length - 1) {
@@ -136,7 +136,6 @@ class ResponsiveSettingsLayout extends StatelessWidget {
               ),
             ),
           ),
-          
           Expanded(
             child: ListView(
               padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -191,7 +190,7 @@ class ResponsiveSettingsLayout extends StatelessWidget {
               (context, index) {
                 final sectionIndex = index ~/ 2;
                 final isSection = index % 2 == 0;
-                
+
                 if (isSection && sectionIndex < sections.length) {
                   return sections[sectionIndex];
                 } else if (!isSection && sectionIndex < sections.length - 1) {
@@ -289,4 +288,4 @@ class ResponsiveText {
       return 1.1;
     }
   }
-} 
+}

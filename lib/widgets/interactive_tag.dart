@@ -7,7 +7,6 @@ import '../screens/history_screen.dart';
 
 /// Interactive tag widget that can navigate to educational content or filter results
 class InteractiveTag extends StatelessWidget {
-
   const InteractiveTag({
     super.key,
     required this.text,
@@ -47,13 +46,15 @@ class InteractiveTag extends StatelessWidget {
             width: isOutlined ? 2 : 0,
           ),
           // Add shadow for better depth and readability
-          boxShadow: isOutlined ? null : [
-            BoxShadow(
-              color: color.withValues(alpha:0.3),
-              offset: const Offset(0, 2),
-              blurRadius: 4,
-            ),
-          ],
+          boxShadow: isOutlined
+              ? null
+              : [
+                  BoxShadow(
+                    color: color.withValues(alpha: 0.3),
+                    offset: const Offset(0, 2),
+                    blurRadius: 4,
+                  ),
+                ],
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
@@ -74,13 +75,15 @@ class InteractiveTag extends StatelessWidget {
                   fontSize: AppTheme.fontSizeSmall,
                   fontWeight: FontWeight.bold,
                   // Add text shadow for better readability on colored backgrounds
-                  shadows: isOutlined ? null : [
-                    Shadow(
-                      color: Colors.black.withValues(alpha:0.5),
-                      offset: const Offset(1, 1),
-                      blurRadius: 2,
-                    ),
-                  ],
+                  shadows: isOutlined
+                      ? null
+                      : [
+                          Shadow(
+                            color: Colors.black.withValues(alpha: 0.5),
+                            offset: const Offset(1, 1),
+                            blurRadius: 2,
+                          ),
+                        ],
                 ),
                 overflow: TextOverflow.ellipsis,
                 maxLines: 1,
@@ -91,7 +94,7 @@ class InteractiveTag extends StatelessWidget {
             Icon(
               Icons.chevron_right,
               size: 14,
-              color: isOutlined ? color : textColor.withValues(alpha:0.8),
+              color: isOutlined ? color : textColor.withValues(alpha: 0.8),
             ),
           ],
         ),
@@ -189,12 +192,12 @@ class InteractiveTag extends StatelessWidget {
     if (category != null) {
       final examples = WasteInfo.categoryExamples[category];
       final disposal = WasteInfo.disposalInstructions[category];
-      
+
       if (examples != null && disposal != null) {
         return 'Examples: $examples\n\nDisposal: $disposal';
       }
     }
-    
+
     // Fallback information
     return 'Tap "Learn More" to discover educational content about $text and proper waste management practices.';
   }
@@ -390,25 +393,21 @@ class InteractiveTag extends StatelessWidget {
   String _getTipText() {
     return '${text.replaceFirst('Tip: ', '')}\n\nThis tip can help you dispose of waste more effectively and contribute to better environmental outcomes.';
   }
+
   Future<void> _openMaps() async {
     final query = Uri.encodeComponent(category ?? text);
     final url = Uri.parse('https://www.google.com/maps/search/?api=1&query=$query');
     if (await canLaunchUrl(url)) {
       await launchUrl(url, mode: LaunchMode.externalApplication);
     } else {
-              WasteAppLogger.warning('Could not launch maps for query', null, null, {
-          'query': query,
-          'widget': 'interactive_tag',
-          'action': 'maps_launch_failed'
-        });
+      WasteAppLogger.warning('Could not launch maps for query', null, null,
+          {'query': query, 'widget': 'interactive_tag', 'action': 'maps_launch_failed'});
     }
   }
-
 }
 
 /// Enhanced tag collection widget for displaying multiple interactive tags
 class InteractiveTagCollection extends StatelessWidget {
-
   const InteractiveTagCollection({
     super.key,
     required this.tags,
@@ -428,30 +427,26 @@ class InteractiveTagCollection extends StatelessWidget {
         final availableWidth = constraints.maxWidth;
         const estimatedTagWidth = 80.0; // Estimated average tag width
         final maxTagsPerRow = (availableWidth / estimatedTagWidth).floor().clamp(2, 6);
-        
+
         // Determine which tags to show
-        final tagsToShow = showViewMore && tags.length > maxTagsPerRow 
-            ? tags.take(maxTagsPerRow - 1).toList() 
-            : tags;
-        final hiddenCount = showViewMore && tags.length > maxTagsPerRow 
-            ? tags.length - (maxTagsPerRow - 1) 
-            : 0;
+        final tagsToShow = showViewMore && tags.length > maxTagsPerRow ? tags.take(maxTagsPerRow - 1).toList() : tags;
+        final hiddenCount = showViewMore && tags.length > maxTagsPerRow ? tags.length - (maxTagsPerRow - 1) : 0;
 
         return Wrap(
           spacing: 8,
           runSpacing: 8,
           children: [
             ...tagsToShow.map((tag) => InteractiveTag(
-              text: tag.text,
-              color: tag.color,
-              textColor: tag.textColor,
-              category: tag.category,
-              subcategory: tag.subcategory,
-              action: tag.action,
-              icon: tag.icon,
-              isOutlined: tag.isOutlined,
-              onTap: tag.onTap,
-            )),
+                  text: tag.text,
+                  color: tag.color,
+                  textColor: tag.textColor,
+                  category: tag.category,
+                  subcategory: tag.subcategory,
+                  action: tag.action,
+                  icon: tag.icon,
+                  isOutlined: tag.isOutlined,
+                  onTap: tag.onTap,
+                )),
             if (hiddenCount > 0 && showViewMore)
               GestureDetector(
                 onTap: () => _showAllTags(context),
@@ -522,7 +517,6 @@ class InteractiveTagCollection extends StatelessWidget {
 
 /// Data class for tag configuration
 class TagData {
-
   const TagData({
     required this.text,
     required this.color,
@@ -547,15 +541,15 @@ class TagData {
 
 /// Actions that tags can perform - Enhanced version
 enum TagAction {
-  educate,      // Navigate to educational content
-  filter,       // Filter history/search results
-  info,         // Show information dialog
+  educate, // Navigate to educational content
+  filter, // Filter history/search results
+  info, // Show information dialog
   environmental, // Environmental impact information
-  location,     // Location/facility information
-  warning,      // Important warnings or alerts
-  local,        // Local information (BBMP, schedules)
-  action,       // Required actions
-  tip,          // Educational tips
+  location, // Location/facility information
+  warning, // Important warnings or alerts
+  local, // Local information (BBMP, schedules)
+  action, // Required actions
+  tip, // Educational tips
 }
 
 /// Enhanced difficulty levels for recycling/disposal
@@ -564,7 +558,7 @@ enum DifficultyLevel {
   medium,
   hard,
   expert;
-  
+
   Color get color {
     switch (this) {
       case DifficultyLevel.easy:
@@ -577,7 +571,7 @@ enum DifficultyLevel {
         return Colors.purple;
     }
   }
-  
+
   String get label {
     switch (this) {
       case DifficultyLevel.easy:
@@ -598,7 +592,7 @@ enum UrgencyLevel {
   medium,
   high,
   critical;
-  
+
   Color get color {
     switch (this) {
       case UrgencyLevel.low:
@@ -611,7 +605,7 @@ enum UrgencyLevel {
         return Colors.red;
     }
   }
-  
+
   String get urgencyText {
     switch (this) {
       case UrgencyLevel.low:
@@ -625,6 +619,7 @@ enum UrgencyLevel {
     }
   }
 }
+
 class TagFactory {
   /// Create a category tag
   static TagData category(String category) {

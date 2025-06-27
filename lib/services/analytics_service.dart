@@ -15,19 +15,19 @@ class AnalyticsService extends ChangeNotifier {
     _initializeFirestore();
   }
   static const String _analyticsCollection = 'analytics_events';
-  
+
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final StorageService _storageService;
   final Uuid _uuid = const Uuid();
   final AnalyticsConsentManager _consentManager = AnalyticsConsentManager();
   final AnalyticsSchemaValidator _validator = AnalyticsSchemaValidator();
-  
+
   String? _currentSessionId;
   DateTime? _sessionStartTime;
   Map<String, dynamic> _sessionParameters = {};
   final List<AnalyticsEvent> _pendingEvents = [];
   final List<AnalyticsEvent> _sessionEvents = [];
-  
+
   // Connection state tracking
   bool _isFirestoreAvailable = false;
 
@@ -42,7 +42,7 @@ class AnalyticsService extends ChangeNotifier {
       'appVersion': '0.1.4+96', // Could be dynamic
       'deviceLocale': 'en_US', // Could be dynamic
     };
-    
+
     _trackSessionStart();
   }
 
@@ -70,7 +70,7 @@ class AnalyticsService extends ChangeNotifier {
   void trackSessionEndLegacy() {
     if (_sessionStartTime != null) {
       final sessionDuration = DateTime.now().difference(_sessionStartTime!).inMinutes;
-      
+
       trackEvent(
         eventType: AnalyticsEventTypes.userAction,
         eventName: 'session_end',
@@ -94,11 +94,8 @@ class AnalyticsService extends ChangeNotifier {
     try {
       // Check consent before tracking
       if (!await _consentManager.shouldTrackEvent(eventType)) {
-        WasteAppLogger.info('Event not tracked due to consent settings', null, null, {
-          'event_name': eventName,
-          'event_type': eventType,
-          'service': 'AnalyticsService'
-        });
+        WasteAppLogger.info('Event not tracked due to consent settings', null, null,
+            {'event_name': eventName, 'event_type': eventType, 'service': 'AnalyticsService'});
         return;
       }
 
@@ -129,19 +126,16 @@ class AnalyticsService extends ChangeNotifier {
       // Validate event before processing
       final validationResult = await _validator.validateEvent(event);
       if (!validationResult.isValid) {
-        WasteAppLogger.warning('Event validation failed, not tracking', null, null, {
-          'event_name': eventName,
-          'validation_errors': validationResult.errors,
-          'service': 'AnalyticsService'
-        });
+        WasteAppLogger.warning('Event validation failed, not tracking', null, null,
+            {'event_name': eventName, 'validation_errors': validationResult.errors, 'service': 'AnalyticsService'});
         return;
       }
 
       _pendingEvents.add(event);
-      
+
       // Save to Firebase immediately (could be batched for efficiency)
       await _saveEventToFirestore(event);
-      
+
       notifyListeners();
     } catch (e) {
       WasteAppLogger.severe('Analytics: Failed to track event $eventName: $e');
@@ -268,7 +262,7 @@ class AnalyticsService extends ChangeNotifier {
   Future<void> trackSessionEnd() async {
     if (_sessionStartTime != null) {
       final sessionDuration = DateTime.now().difference(_sessionStartTime!);
-      
+
       await trackEvent(
         eventType: AnalyticsEventTypes.session,
         eventName: AnalyticsEventNames.sessionEnd,
@@ -547,7 +541,7 @@ class AnalyticsService extends ChangeNotifier {
         WasteAppLogger.info('Analytics: Firestore not available for user analytics query');
         return {'error': 'Analytics service unavailable'};
       }
-      
+
       final querySnapshot = await _firestore
           .collection(_analyticsCollection)
           .where('userId', isEqualTo: userId)
@@ -555,9 +549,7 @@ class AnalyticsService extends ChangeNotifier {
           .where('timestamp', isLessThanOrEqualTo: Timestamp.fromDate(endDate))
           .get();
 
-      final events = querySnapshot.docs
-          .map((doc) => AnalyticsEvent.fromJson(doc.data()))
-          .toList();
+      final events = querySnapshot.docs.map((doc) => AnalyticsEvent.fromJson(doc.data())).toList();
 
       return _aggregateUserAnalytics(events);
     } catch (e) {
@@ -577,16 +569,14 @@ class AnalyticsService extends ChangeNotifier {
         WasteAppLogger.info('Analytics: Firestore not available for system analytics query');
         return {'error': 'Analytics service unavailable'};
       }
-      
+
       final querySnapshot = await _firestore
           .collection(_analyticsCollection)
           .where('timestamp', isGreaterThanOrEqualTo: Timestamp.fromDate(startDate))
           .where('timestamp', isLessThanOrEqualTo: Timestamp.fromDate(endDate))
           .get();
 
-      final events = querySnapshot.docs
-          .map((doc) => AnalyticsEvent.fromJson(doc.data()))
-          .toList();
+      final events = querySnapshot.docs.map((doc) => AnalyticsEvent.fromJson(doc.data())).toList();
 
       return _aggregateSystemAnalytics(events);
     } catch (e) {
@@ -603,7 +593,7 @@ class AnalyticsService extends ChangeNotifier {
         WasteAppLogger.info('Analytics: Firestore not available for popular content query');
         return [];
       }
-      
+
       final querySnapshot = await _firestore
           .collection(_analyticsCollection)
           .where('eventType', isEqualTo: 'content_interaction')
@@ -611,9 +601,7 @@ class AnalyticsService extends ChangeNotifier {
           .limit(limit * 10) // Get more to account for duplicates
           .get();
 
-      final events = querySnapshot.docs
-          .map((doc) => AnalyticsEvent.fromJson(doc.data()))
-          .toList();
+      final events = querySnapshot.docs.map((doc) => AnalyticsEvent.fromJson(doc.data())).toList();
 
       return _aggregateContentAnalytics(events, limit);
     } catch (e) {
@@ -624,22 +612,22 @@ class AnalyticsService extends ChangeNotifier {
   }
 
   // ================ ANALYTICS AGGREGATION ================
-  
+
   /// Aggregate user analytics from events
   Map<String, dynamic> _aggregateUserAnalytics(List<AnalyticsEvent> events) {
     final eventCounts = <String, int>{};
     final dailyActivity = <String, int>{};
     final totalEvents = events.length;
-    
+
     for (final event in events) {
       // Count event types
       eventCounts[event.eventType] = (eventCounts[event.eventType] ?? 0) + 1;
-      
+
       // Count daily activity
       final dateKey = '${event.timestamp.year}-${event.timestamp.month}-${event.timestamp.day}';
       dailyActivity[dateKey] = (dailyActivity[dateKey] ?? 0) + 1;
     }
-    
+
     return {
       'totalEvents': totalEvents,
       'eventCounts': eventCounts,
@@ -648,26 +636,26 @@ class AnalyticsService extends ChangeNotifier {
       'periodEnd': events.isNotEmpty ? events.first.timestamp : null,
     };
   }
-  
+
   /// Aggregate system-wide analytics from events
   Map<String, dynamic> _aggregateSystemAnalytics(List<AnalyticsEvent> events) {
     final eventTypeCounts = <String, int>{};
     final userCounts = <String, int>{};
     final dailyTotals = <String, int>{};
     final uniqueUsers = <String>{};
-    
+
     for (final event in events) {
       // Count event types
       eventTypeCounts[event.eventType] = (eventTypeCounts[event.eventType] ?? 0) + 1;
-      
+
       // Track unique users
       uniqueUsers.add(event.userId);
-          
+
       // Count daily totals
       final dateKey = '${event.timestamp.year}-${event.timestamp.month}-${event.timestamp.day}';
       dailyTotals[dateKey] = (dailyTotals[dateKey] ?? 0) + 1;
     }
-    
+
     return {
       'totalEvents': events.length,
       'uniqueUsers': uniqueUsers.length,
@@ -676,17 +664,17 @@ class AnalyticsService extends ChangeNotifier {
       'averageEventsPerUser': uniqueUsers.isNotEmpty ? events.length / uniqueUsers.length : 0,
     };
   }
-  
+
   /// Aggregate content analytics from events
   List<Map<String, dynamic>> _aggregateContentAnalytics(List<AnalyticsEvent> events, int limit) {
     final contentCounts = <String, int>{};
     final contentDetails = <String, Map<String, dynamic>>{};
-    
+
     for (final event in events) {
       final contentId = event.parameters['content_id'] as String?;
       final contentTitle = event.parameters['content_title'] as String?;
       final contentType = event.parameters['content_type'] as String?;
-      
+
       if (contentId != null) {
         contentCounts[contentId] = (contentCounts[contentId] ?? 0) + 1;
         contentDetails[contentId] = {
@@ -697,11 +685,11 @@ class AnalyticsService extends ChangeNotifier {
         };
       }
     }
-    
+
     // Sort by count and return top items
     final sortedContent = contentDetails.values.toList()
       ..sort((a, b) => (b['count'] as int).compareTo(a['count'] as int));
-    
+
     return sortedContent.take(limit).toList();
   }
 
@@ -716,19 +704,16 @@ class AnalyticsService extends ChangeNotifier {
         _pendingEvents.add(event);
         return;
       }
-      
-      await _firestore
-          .collection('analytics_events')
-          .doc(event.id)
-          .set(event.toJson());
+
+      await _firestore.collection('analytics_events').doc(event.id).set(event.toJson());
       WasteAppLogger.info('Analytics: Event saved to Firestore successfully');
     } catch (e) {
       WasteAppLogger.severe('Analytics: Failed to save event to Firestore: $e');
-      
+
       // If Firestore fails, mark as unavailable and store locally
       _isFirestoreAvailable = false;
       _pendingEvents.add(event);
-      
+
       // Try to reinitialize Firestore connection in background
       _initializeFirestore();
     }
@@ -739,18 +724,15 @@ class AnalyticsService extends ChangeNotifier {
     if (!_isFirestoreAvailable || _pendingEvents.isEmpty) {
       return;
     }
-    
+
     WasteAppLogger.info('Analytics: Processing ${_pendingEvents.length} pending events');
-    
+
     final eventsToProcess = List<AnalyticsEvent>.from(_pendingEvents);
     _pendingEvents.clear();
-    
+
     for (final event in eventsToProcess) {
       try {
-        await _firestore
-            .collection('analytics_events')
-            .doc(event.id)
-            .set(event.toJson());
+        await _firestore.collection('analytics_events').doc(event.id).set(event.toJson());
       } catch (e) {
         WasteAppLogger.severe('Analytics: Failed to process pending event: $e');
         // Add back to pending if still failing
@@ -759,15 +741,15 @@ class AnalyticsService extends ChangeNotifier {
         break;
       }
     }
-    
+
     if (_pendingEvents.isEmpty) {
       WasteAppLogger.info('✅ All pending analytics events processed successfully');
     }
   }
-  
+
   /// Get connection status for diagnostics
   bool get isFirestoreConnected => _isFirestoreAvailable;
-  
+
   /// Get number of pending events
   int get pendingEventsCount => _pendingEvents.length;
 
@@ -778,17 +760,17 @@ class AnalyticsService extends ChangeNotifier {
 
   /// Gets count of classifications in current session
   int _getSessionClassificationsCount() {
-    return _sessionEvents.where((event) => 
-      event.eventType == AnalyticsEventTypes.classification ||
-      event.eventName.contains('classification')
-    ).length;
+    return _sessionEvents
+        .where((event) =>
+            event.eventType == AnalyticsEventTypes.classification || event.eventName.contains('classification'))
+        .length;
   }
 
   /// Calculates analytics metrics for a user.
   Map<String, dynamic> _calculateUserAnalytics(List<AnalyticsEvent> events) {
     final totalEvents = events.length;
     final uniqueSessions = events.map((e) => e.sessionId).toSet().length;
-    
+
     // Calculate event type breakdown
     final eventTypeBreakdown = <String, int>{};
     for (final event in events) {
@@ -825,7 +807,7 @@ class AnalyticsService extends ChangeNotifier {
   Map<String, dynamic> _calculateFamilyAnalytics(List<AnalyticsEvent> events) {
     final totalEvents = events.length;
     final uniqueUsers = events.map((e) => e.userId).toSet().length;
-    
+
     // Calculate member activity
     final memberActivity = <String, int>{};
     for (final event in events) {
@@ -842,28 +824,29 @@ class AnalyticsService extends ChangeNotifier {
       'member_activity': memberActivity,
       'social_interactions': socialEvents.length,
       'classifications_shared': classificationEvents.length,
-      'most_active_member': memberActivity.isNotEmpty 
-          ? memberActivity.entries.reduce((a, b) => a.value > b.value ? a : b).key
-          : null,
+      'most_active_member':
+          memberActivity.isNotEmpty ? memberActivity.entries.reduce((a, b) => a.value > b.value ? a : b).key : null,
     };
   }
 
   /// Calculates popular features based on usage frequency.
   List<Map<String, dynamic>> _calculatePopularFeatures(List<AnalyticsEvent> events, int limit) {
     final featureUsage = <String, int>{};
-    
+
     for (final event in events) {
       featureUsage[event.eventName] = (featureUsage[event.eventName] ?? 0) + 1;
     }
 
-    final sortedFeatures = featureUsage.entries.toList()
-      ..sort((a, b) => b.value.compareTo(a.value));
+    final sortedFeatures = featureUsage.entries.toList()..sort((a, b) => b.value.compareTo(a.value));
 
-    return sortedFeatures.take(limit).map((entry) => {
-      'feature_name': entry.key,
-      'usage_count': entry.value,
-      'usage_percentage': (entry.value / events.length * 100).toStringAsFixed(1),
-    }).toList();
+    return sortedFeatures
+        .take(limit)
+        .map((entry) => {
+              'feature_name': entry.key,
+              'usage_count': entry.value,
+              'usage_percentage': (entry.value / events.length * 100).toStringAsFixed(1),
+            })
+        .toList();
   }
 
   // ================ CONVENIENCE METHODS ================
@@ -955,29 +938,30 @@ class AnalyticsService extends ChangeNotifier {
     try {
       // Test Firestore connection
       await _firestore.enableNetwork();
-      
+
       // Try a simple read operation to verify API access
       await _firestore.collection('test').limit(1).get();
-      
+
       _isFirestoreAvailable = true;
       WasteAppLogger.info('✅ Firestore connection established');
-      
+
       // Sync any pending events
       await _syncPendingEvents();
     } catch (e) {
       _isFirestoreAvailable = false;
       WasteAppLogger.info('❌ Firestore unavailable: $e');
       WasteAppLogger.info('📱 Analytics will use local storage only');
-      
+
       // Check if it's a permission error and provide helpful message
-      if (e.toString().contains('PERMISSION_DENIED') || 
+      if (e.toString().contains('PERMISSION_DENIED') ||
           e.toString().contains('has not been used') ||
           e.toString().contains('disabled')) {
-        WasteAppLogger.info('🔧 To fix: Enable Firestore API at https://console.developers.google.com/apis/api/firestore.googleapis.com/overview?project=waste-segregation-app-df523');
+        WasteAppLogger.info(
+            '🔧 To fix: Enable Firestore API at https://console.developers.google.com/apis/api/firestore.googleapis.com/overview?project=waste-segregation-app-df523');
       }
     }
   }
-  
+
   /// Store analytics events locally when Firestore is unavailable
   void _storeEventsLocally() {
     WasteAppLogger.info('Analytics: Storing ${_pendingEvents.length} events locally');
@@ -993,19 +977,19 @@ class AnalyticsService extends ChangeNotifier {
   /// Syncs pending events to Firestore when connection is available
   Future<void> _syncPendingEvents() async {
     if (!_isFirestoreAvailable || _pendingEvents.isEmpty) return;
-    
+
     try {
       final batch = _firestore.batch();
-      
+
       for (final event in _pendingEvents) {
         final docRef = _firestore.collection(_analyticsCollection).doc();
         batch.set(docRef, event.toJson());
       }
-      
+
       await batch.commit();
       WasteAppLogger.info('✅ Synced ${_pendingEvents.length} pending analytics events');
       _pendingEvents.clear();
-      
+
       // Save cleared pending events to local storage
       await _storageService.saveAnalyticsEvents(_pendingEvents);
     } catch (e) {
@@ -1016,14 +1000,14 @@ class AnalyticsService extends ChangeNotifier {
   /// Stores an event locally when Firestore is unavailable
   void _storeEventLocally(AnalyticsEvent event) {
     _pendingEvents.add(event);
-    
+
     // Limit pending events to prevent memory issues
     if (_pendingEvents.length > 100) {
       _pendingEvents.removeAt(0);
     }
-    
+
     // Save to local storage
     _storageService.saveAnalyticsEvents(_pendingEvents);
     WasteAppLogger.info('📱 Stored analytics event locally (${_pendingEvents.length} pending)');
   }
-} 
+}

@@ -98,13 +98,12 @@ class ProfileSummaryCard extends StatelessWidget {
                 ),
                 const SizedBox(height: 4),
                 ClipRRect(
-                  borderRadius:
-                      BorderRadius.circular(AppTheme.borderRadiusSmall),
+                  borderRadius: BorderRadius.circular(AppTheme.borderRadiusSmall),
                   child: LinearProgressIndicator(
                     value: (points.total % 100) / 100,
                     minHeight: 8,
                     color: AppTheme.primaryColor,
-                    backgroundColor: AppTheme.textSecondaryColor.withValues(alpha:0.2),
+                    backgroundColor: AppTheme.textSecondaryColor.withValues(alpha: 0.2),
                   ),
                 ),
               ],

@@ -55,16 +55,16 @@ void main() {
 
       // Check if item name is displayed
       expect(find.text('Test Aluminum Can'), findsOneWidget);
-      
+
       // Check if category is displayed
       expect(find.text('Recyclable'), findsOneWidget);
-      
+
       // Check if confidence is displayed
       expect(find.text('92% confidence'), findsOneWidget);
-      
+
       // Check if points are displayed
       expect(find.text('+15 XP'), findsOneWidget);
-      
+
       // Check if primary CTA is present
       expect(find.text('Dispose Correctly'), findsOneWidget);
     });
@@ -84,7 +84,7 @@ void main() {
 
     testWidgets('handles dispose correctly button tap', (tester) async {
       bool buttonTapped = false;
-      
+
       await tester.pumpWidget(createTestWidget(
         classification: mockClassification,
         onDisposeCorrectly: () {
@@ -110,7 +110,7 @@ void main() {
 
     testWidgets('shows confidence bar animation', (tester) async {
       await tester.pumpWidget(createTestWidget(classification: mockClassification));
-      
+
       // Pump a few frames to allow animation to start
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 100));
@@ -143,7 +143,7 @@ void main() {
 
     testWidgets('displays placeholder when no image URL', (tester) async {
       final classificationNoImage = mockClassification.copyWith(imageUrl: null);
-      
+
       await tester.pumpWidget(createTestWidget(classification: classificationNoImage));
       await tester.pumpAndSettle();
 
@@ -153,11 +153,11 @@ void main() {
 
     testWidgets('handles low confidence correctly', (tester) async {
       final lowConfidenceClassification = mockClassification.copyWith(confidence: 0.45);
-      
+
       await tester.pumpWidget(createTestWidget(classification: lowConfidenceClassification));
       await tester.pumpAndSettle();
 
       expect(find.text('45% confidence'), findsOneWidget);
     });
   });
-} 
+}

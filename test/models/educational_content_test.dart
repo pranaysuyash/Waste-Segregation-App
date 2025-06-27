@@ -582,7 +582,7 @@ void main() {
 
       test('should handle very long strings', () {
         final longString = 'A' * 1000;
-        
+
         final content = EducationalContent(
           id: longString,
           title: longString,
@@ -674,7 +674,7 @@ void main() {
 
       test('should handle future dates', () {
         final futureDate = DateTime.now().add(const Duration(days: 365));
-        
+
         final content = EducationalContent(
           id: 'future_content',
           title: 'Future Content',

@@ -1,0 +1,10 @@
+targets:
+  $default:
+    sources:
+      exclude:
+        - test/**
+        - "**/*.g.dart"
+        - "**/*.freezed.dart"
+        - "**/*.mocks.dart"
+        - integration_test_disabled/**
+        - scripts/**

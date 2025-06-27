@@ -30,7 +30,8 @@ class AppLocalizationsKn extends AppLocalizations {
   String get signOutConfirmTitle => 'Sign Out';
 
   @override
-  String get signOutConfirmBody => 'Are you sure you want to sign out? Your data will remain on this device, but you won\'t be able to sync with the cloud.';
+  String get signOutConfirmBody =>
+      'Are you sure you want to sign out? Your data will remain on this device, but you won\'t be able to sync with the cloud.';
 
   @override
   String get cancel => 'Cancel';
@@ -194,7 +195,8 @@ class AppLocalizationsKn extends AppLocalizations {
   String get factoryReset => 'Factory Reset';
 
   @override
-  String get factoryResetBody => 'This will delete ALL app data including classifications, settings, and user preferences. This action cannot be undone.\\n\\nAre you sure you want to continue?';
+  String get factoryResetBody =>
+      'This will delete ALL app data including classifications, settings, and user preferences. This action cannot be undone.\\n\\nAre you sure you want to continue?';
 
   @override
   String get resetAllData => 'Reset All Data';
@@ -203,7 +205,8 @@ class AppLocalizationsKn extends AppLocalizations {
   String get clearFirebaseData => 'Clear Firebase Data';
 
   @override
-  String get clearFirebaseDataBody => 'This will clear all Firebase data for testing purposes. This simulates a fresh install experience.\\n\\nContinue?';
+  String get clearFirebaseDataBody =>
+      'This will clear all Firebase data for testing purposes. This simulates a fresh install experience.\\n\\nContinue?';
 
   @override
   String get clearData => 'Clear Data';
@@ -430,7 +433,8 @@ class AppLocalizationsKn extends AppLocalizations {
   }
 
   @override
-  String get unableToOpenAppStore => 'Unable to open app store. Please search for \"Waste Segregation App\" in your app store.';
+  String get unableToOpenAppStore =>
+      'Unable to open app store. Please search for \"Waste Segregation App\" in your app store.';
 
   @override
   String errorOpeningAppStore(String error) {
@@ -458,7 +462,8 @@ class AppLocalizationsKn extends AppLocalizations {
   }
 
   @override
-  String get factoryResetWarning => 'This will delete ALL app data including:\\n\\n• All classification history\\n• All gamification progress (points, streaks, achievements)\\n• All user preferences and settings\\n• All cached data\\n• All premium feature settings\\n\\nThis action cannot be undone.\\n\\nAre you sure you want to continue?';
+  String get factoryResetWarning =>
+      'This will delete ALL app data including:\\n\\n• All classification history\\n• All gamification progress (points, streaks, achievements)\\n• All user preferences and settings\\n• All cached data\\n• All premium feature settings\\n\\nThis action cannot be undone.\\n\\nAre you sure you want to continue?';
 
   @override
   String get resettingToFactorySettings => 'Resetting app to factory settings...';

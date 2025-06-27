@@ -28,11 +28,30 @@ class FirebaseCleanupService {
     'analytics_events',
     'feedback',
     'content_progress',
+    'classification_feedback',
+    'user_contributions',
+    'admin_classifications', // AI model training data
+    'admin_user_recovery',   // User recovery data
   ];
 
   static const List<String> _globalCollections = [
     'community_feed',
-    'leaderboard',
+    'leaderboard_allTime',
+    'community_stats',
+    'disposal_instructions',
+    'disposal_locations',
+    'family_stats', // Family feature collections
+    'test',         // Test collection for API verification
+  ];
+
+  /// Collections that need direct document deletion (not query-based)
+  static const List<String> _directUserCollections = [
+    'users',
+  ];
+
+  /// Collections that have subcollections requiring special handling
+  static const List<String> _collectionsWithSubcollections = [
+    'users', // Contains 'classifications' subcollection
   ];
 
   static final List<String> _hiveBoxesToNuke = [
@@ -45,7 +64,7 @@ class FirebaseCleanupService {
     StorageKeys.invitationsBox,
     StorageKeys.classificationFeedbackBox,
   ];
-  
+
   /// Performs a complete data wipe for the current user, providing a "fresh install" experience.
   /// This function is destructive and irreversible.
   Future<void> clearAllDataForFreshInstall() async {
@@ -77,7 +96,6 @@ class FirebaseCleanupService {
       await prefs.setBool('justDidFreshInstall', true);
       didPerformFreshInstall = true;
       WasteAppLogger.info('✅ Fresh install process completed successfully.');
-
     } catch (e, s) {
       WasteAppLogger.severe('❌ Error during fresh install process: $e');
       WasteAppLogger.info('Stack trace: $s');
@@ -100,11 +118,46 @@ class FirebaseCleanupService {
       WasteAppLogger.info('  - Found and staged ${snapshot.size} docs for deletion in "$collectionName"');
     }
 
+    // Delete direct user collections (document ID = userId)
+    for (final collectionName in _directUserCollections) {
+      try {
+        final docRef = _firestore.collection(collectionName).doc(uid);
+        final docSnapshot = await docRef.get();
+        if (docSnapshot.exists) {
+          batch.delete(docRef);
+          WasteAppLogger.info('  - Staged deletion for doc "$uid" in "$collectionName"');
+        }
+      } catch (e) {
+        WasteAppLogger.warning('Failed to delete from $collectionName: $e');
+      }
+    }
+
+    // Delete subcollections for collections that have them
+    for (final collectionName in _collectionsWithSubcollections) {
+      try {
+        if (collectionName == 'users') {
+          // Handle users/{uid}/classifications subcollection
+          final subcollectionSnapshot = await _firestore
+              .collection('users')
+              .doc(uid)
+              .collection('classifications')
+              .get();
+          
+          for (final doc in subcollectionSnapshot.docs) {
+            batch.delete(doc.reference);
+          }
+          WasteAppLogger.info('  - Found and staged ${subcollectionSnapshot.size} docs for deletion in "users/$uid/classifications"');
+        }
+      } catch (e) {
+        WasteAppLogger.warning('Failed to delete subcollections from $collectionName: $e');
+      }
+    }
+
     // Delete user from global collections
     for (final collectionName in _globalCollections) {
-        final docRef = _firestore.collection(collectionName).doc(uid);
-        batch.delete(docRef);
-        WasteAppLogger.info('  - Staged deletion for doc "$uid" in "$collectionName"');
+      final docRef = _firestore.collection(collectionName).doc(uid);
+      batch.delete(docRef);
+      WasteAppLogger.info('  - Staged deletion for doc "$uid" in "$collectionName"');
     }
 
     await batch.commit();
@@ -171,10 +224,10 @@ class FirebaseCleanupService {
     }
     // In a real app, this would check for a custom claim.
     // For this project, we'll use the email as a simple check.
-    const adminEmail = 'pranaysuyash@gmail.com'; 
+    const adminEmail = 'pranaysuyash@gmail.com';
     if (currentUser.email != adminEmail) {
       throw Exception('Admin action failed: User ${currentUser.email} is not an authorized admin.');
     }
     WasteAppLogger.info('🔑 Admin user verified: ${currentUser.email}');
   }
-} 
+}

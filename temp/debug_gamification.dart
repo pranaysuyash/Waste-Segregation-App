@@ -5,6 +5,7 @@ import 'package:waste_segregation_app/models/waste_classification.dart';
 import 'package:waste_segregation_app/services/gamification_service.dart';
 import 'package:waste_segregation_app/services/storage_service.dart';
 import 'package:waste_segregation_app/services/cloud_storage_service.dart';
+import 'package:waste_segregation_app/utils/waste_app_logger.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -12,7 +13,11 @@ void main() async {
   // Initialize Hive
   await Hive.initFlutter();
   
-  debugPrint('🎮 DEBUG: Starting gamification debug...');
+  await WasteAppLogger.initialize();
+  WasteAppLogger.info('🎮 DEBUG: Starting gamification debug...', null, null, {
+    'debug_type': 'gamification',
+    'mode': 'temp_script'
+  });
   
   try {
     // Initialize services
@@ -24,13 +29,17 @@ void main() async {
     
     await gamificationService.initGamification();
     
-    debugPrint('🎮 DEBUG: Services initialized');
+    WasteAppLogger.info('🎮 DEBUG: Services initialized', null, null, {
+      'services': ['storage', 'cloud_storage', 'gamification']
+    });
     
     // Get current profile
     final profileBefore = await gamificationService.getProfile();
-    debugPrint('🎮 DEBUG: Current points: ${profileBefore.points.total}');
-    debugPrint('🎮 DEBUG: Current level: ${profileBefore.points.level}');
-    debugPrint('🎮 DEBUG: Category points: ${profileBefore.points.categoryPoints}');
+    WasteAppLogger.gamificationEvent('profile_status_before', context: {
+      'points_total': profileBefore.points.total,
+      'level': profileBefore.points.level,
+      'category_points': profileBefore.points.categoryPoints
+    });
     
     // Create a test classification
     final testClassification = WasteClassification(
@@ -49,29 +58,41 @@ void main() async {
       alternatives: [],
     );
     
-    debugPrint('🎮 DEBUG: Created test classification: ${testClassification.itemName}');
+    WasteAppLogger.wasteEvent('test_classification_created', testClassification.category, context: {
+      'item_name': testClassification.itemName,
+      'subcategory': testClassification.subcategory
+    });
     
     // Process the classification
-    debugPrint('🎮 DEBUG: Processing classification...');
+    WasteAppLogger.gamificationEvent('processing_classification', context: {
+      'classification_id': testClassification.itemName
+    });
     await gamificationService.processClassification(testClassification);
     
     // Get updated profile
     final profileAfter = await gamificationService.getProfile();
-    debugPrint('🎮 DEBUG: Points after processing: ${profileAfter.points.total}');
-    debugPrint('🎮 DEBUG: Level after processing: ${profileAfter.points.level}');
-    debugPrint('🎮 DEBUG: Category points after: ${profileAfter.points.categoryPoints}');
-    
     final pointsEarned = profileAfter.points.total - profileBefore.points.total;
-    debugPrint('🎮 DEBUG: Points earned: $pointsEarned');
+    WasteAppLogger.gamificationEvent('classification_processed', pointsEarned: pointsEarned, context: {
+      'points_before': profileBefore.points.total,
+      'points_after': profileAfter.points.total,
+      'level_before': profileBefore.points.level,
+      'level_after': profileAfter.points.level,
+      'category_points_after': profileAfter.points.categoryPoints
+    });
     
     if (pointsEarned > 0) {
-      debugPrint('✅ SUCCESS: Points were awarded correctly!');
+      WasteAppLogger.gamificationEvent('points_verification_success', pointsEarned: pointsEarned);
     } else {
-      debugPrint('❌ ISSUE: No points were awarded');
+      WasteAppLogger.severe('Points verification failed', null, null, {
+        'expected_points': '>0',
+        'actual_points': pointsEarned
+      });
     }
     
     // Test cloud storage service gamification processing
-    debugPrint('🎮 DEBUG: Testing CloudStorageService gamification...');
+    WasteAppLogger.info('Testing CloudStorageService gamification...', null, null, {
+      'test_type': 'cloud_storage_gamification'
+    });
     await cloudStorageService.saveClassificationWithSync(
       testClassification.copyWith(itemName: 'Test Cloud Classification'),
       false, // No Google sync for test
@@ -79,13 +100,18 @@ void main() async {
     
     final profileAfterCloud = await gamificationService.getProfile();
     final cloudPointsEarned = profileAfterCloud.points.total - profileAfter.points.total;
-    debugPrint('🎮 DEBUG: Points earned from cloud service: $cloudPointsEarned');
+    WasteAppLogger.gamificationEvent('cloud_points_earned', pointsEarned: cloudPointsEarned, context: {
+      'service_type': 'cloud_storage'
+    });
     
   } catch (e, stackTrace) {
-    debugPrint('❌ ERROR: $e');
-    debugPrint('Stack trace: $stackTrace');
+    WasteAppLogger.severe('Gamification debug error', e, stackTrace, {
+      'debug_type': 'gamification_temp_script'
+    });
   }
   
-  debugPrint('🎮 DEBUG: Debug complete');
+  WasteAppLogger.info('🎮 DEBUG: Debug complete', null, null, {
+    'debug_session': 'gamification_completed'
+  });
   exit(0);
 } 

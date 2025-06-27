@@ -27,13 +27,15 @@ class UserProfileAdapter extends TypeAdapter<UserProfile> {
       lastActive: fields[7] as DateTime?,
       preferences: (fields[8] as Map?)?.cast<String, dynamic>(),
       gamificationProfile: fields[9] as GamificationProfile?,
+      tokenWallet: fields[10] as TokenWallet?,
+      tokenTransactions: (fields[11] as List?)?.cast<TokenTransaction>(),
     );
   }
 
   @override
   void write(BinaryWriter writer, UserProfile obj) {
     writer
-      ..writeByte(10)
+      ..writeByte(12)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
@@ -53,7 +55,11 @@ class UserProfileAdapter extends TypeAdapter<UserProfile> {
       ..writeByte(8)
       ..write(obj.preferences)
       ..writeByte(9)
-      ..write(obj.gamificationProfile);
+      ..write(obj.gamificationProfile)
+      ..writeByte(10)
+      ..write(obj.tokenWallet)
+      ..writeByte(11)
+      ..write(obj.tokenTransactions);
   }
 
   @override

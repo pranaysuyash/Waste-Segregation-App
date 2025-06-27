@@ -14,12 +14,12 @@ void main() {
       // Only run this test in debug mode
       if (kDebugMode) {
         final status = DeveloperConfig.getStatus();
-        
+
         expect(status, isA<Map<String, dynamic>>());
         expect(status.containsKey('isDeveloperModeEnabled'), isTrue);
         expect(status.containsKey('buildMode'), isTrue);
         expect(status['buildMode'], equals('DEBUG'));
-        
+
         // In debug mode, developer features should be enabled
         expect(status['isDeveloperModeEnabled'], isTrue);
         expect(status['canShowDeveloperOptions'], isTrue);
@@ -32,7 +32,7 @@ void main() {
     test('should disable all developer features in release mode', () {
       // This test simulates what should happen in release mode
       // Note: In actual release builds, these would be compile-time optimized out
-      
+
       if (kReleaseMode) {
         // In release mode, all developer features should be disabled
         expect(DeveloperConfig.isDeveloperModeEnabled, isFalse);
@@ -41,7 +41,7 @@ void main() {
         expect(DeveloperConfig.canShowPremiumToggles, isFalse);
         expect(DeveloperConfig.canShowCrashTest, isFalse);
         expect(DeveloperConfig.isDebugLoggingEnabled, isFalse);
-        
+
         // Status should not be available in release mode
         final status = DeveloperConfig.getStatus();
         expect(status.containsKey('error'), isTrue);
@@ -50,7 +50,7 @@ void main() {
 
     test('should have consistent behavior across all getters', () {
       final isDeveloperModeEnabled = DeveloperConfig.isDeveloperModeEnabled;
-      
+
       // All developer feature flags should match the main flag
       expect(DeveloperConfig.canShowDeveloperOptions, equals(isDeveloperModeEnabled));
       expect(DeveloperConfig.canShowFactoryReset, equals(isDeveloperModeEnabled));
@@ -88,7 +88,7 @@ void main() {
     test('should be secure against reflection attacks', () {
       // Ensure that the class cannot be instantiated
       expect(() => DeveloperConfig, returnsNormally);
-      
+
       // The constructor should be private (this is enforced at compile time)
       // We can't directly test private constructors, but we can ensure
       // the class behaves as a static utility
@@ -108,7 +108,7 @@ void main() {
         final firstCheck = DeveloperConfig.isDeveloperModeEnabled;
         final secondCheck = DeveloperConfig.isDeveloperModeEnabled;
         final thirdCheck = DeveloperConfig.isDeveloperModeEnabled;
-        
+
         expect(firstCheck, equals(secondCheck));
         expect(secondCheck, equals(thirdCheck));
       });
@@ -121,16 +121,16 @@ void main() {
           // In release mode, absolutely no developer features should be available
           expect(DeveloperConfig.isDeveloperModeEnabled, isFalse,
               reason: 'Developer mode should NEVER be enabled in release builds');
-          
+
           expect(DeveloperConfig.canShowDeveloperOptions, isFalse,
               reason: 'Developer options should NEVER be shown in release builds');
-          
+
           expect(DeveloperConfig.canShowFactoryReset, isFalse,
               reason: 'Factory reset should NEVER be available in release builds');
-          
+
           expect(DeveloperConfig.canShowPremiumToggles, isFalse,
               reason: 'Premium toggles should NEVER be available in release builds');
-          
+
           expect(DeveloperConfig.canShowCrashTest, isFalse,
               reason: 'Crash test should NEVER be available in release builds');
         }
@@ -142,4 +142,4 @@ void main() {
       });
     });
   });
-} 
+}

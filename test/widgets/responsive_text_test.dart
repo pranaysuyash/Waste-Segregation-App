@@ -8,7 +8,7 @@ void main() {
   group('ResponsiveText Widget Tests', () {
     testWidgets('ResponsiveText displays text correctly', (WidgetTester tester) async {
       const testText = 'Test Text';
-      
+
       await tester.pumpWidget(
         const MaterialApp(
           home: Scaffold(
@@ -22,7 +22,7 @@ void main() {
 
     testWidgets('ResponsiveText.appBarTitle handles long text', (WidgetTester tester) async {
       const longTitle = 'Very Long Application Title That Should Overflow';
-      
+
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
@@ -39,7 +39,7 @@ void main() {
 
     testWidgets('ResponsiveText.greeting handles long user names', (WidgetTester tester) async {
       const longText = 'This is a very long greeting text that should wrap or resize';
-      
+
       await tester.pumpWidget(
         const MaterialApp(
           home: Scaffold(
@@ -59,7 +59,7 @@ void main() {
     testWidgets('GreetingText displays greeting and username', (WidgetTester tester) async {
       const greeting = 'Good Morning';
       const userName = 'John';
-      
+
       await tester.pumpWidget(
         const MaterialApp(
           home: Scaffold(
@@ -77,7 +77,7 @@ void main() {
     testWidgets('GreetingText handles very long usernames', (WidgetTester tester) async {
       const greeting = 'Good Evening';
       const longUserName = 'AVeryLongUserNameThatShouldCauseTextOverflow';
-      
+
       await tester.pumpWidget(
         const MaterialApp(
           home: Scaffold(
@@ -99,7 +99,7 @@ void main() {
     testWidgets('GreetingText adapts to different screen sizes', (WidgetTester tester) async {
       const greeting = 'Good Afternoon';
       const userName = 'TestUser';
-      
+
       // Test with narrow screen
       await tester.pumpWidget(
         const MaterialApp(
@@ -138,7 +138,7 @@ void main() {
     testWidgets('GreetingText respects maxLines parameter', (WidgetTester tester) async {
       const greeting = 'Good Morning';
       const userName = 'User';
-      
+
       await tester.pumpWidget(
         const MaterialApp(
           home: Scaffold(
@@ -158,7 +158,7 @@ void main() {
   group('ResponsiveAppBarTitle Widget Tests', () {
     testWidgets('ResponsiveAppBarTitle displays title correctly', (WidgetTester tester) async {
       const title = 'App Title';
-      
+
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
@@ -174,7 +174,7 @@ void main() {
 
     testWidgets('ResponsiveAppBarTitle abbreviates very long titles on narrow screens', (WidgetTester tester) async {
       const longTitle = 'Very Long Application Title That Should Be Abbreviated';
-      
+
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
@@ -194,7 +194,7 @@ void main() {
 
     testWidgets('ResponsiveAppBarTitle handles single word titles', (WidgetTester tester) async {
       const singleWordTitle = 'SuperLongSingleWordTitle';
-      
+
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
@@ -213,7 +213,7 @@ void main() {
 
     testWidgets('ResponsiveAppBarTitle creates proper abbreviations', (WidgetTester tester) async {
       const multiWordTitle = 'Waste Segregation Application';
-      
+
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
@@ -295,7 +295,7 @@ void main() {
             body: StatsCard(
               title: 'Performance',
               value: '25',
-                              trend: Trend.down,
+              trend: Trend.down,
               isPositiveTrend: false,
             ),
           ),
@@ -352,7 +352,7 @@ void main() {
             body: StatsCard(
               title: 'Test',
               value: '100',
-                              trend: Trend.down,
+              trend: Trend.down,
               isPositiveTrend: false,
             ),
           ),
@@ -364,7 +364,7 @@ void main() {
 
     testWidgets('StatsCard handles tap events', (WidgetTester tester) async {
       var tapped = false;
-      
+
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
@@ -442,7 +442,7 @@ void main() {
     testWidgets('GreetingText handles empty username', (WidgetTester tester) async {
       const greeting = 'Hello';
       const emptyUserName = '';
-      
+
       await tester.pumpWidget(
         const MaterialApp(
           home: Scaffold(
@@ -492,7 +492,7 @@ void main() {
     testWidgets('ResponsiveText supports semantics labels', (WidgetTester tester) async {
       const testText = 'Test Text';
       const semanticsLabel = 'Test Semantics Label';
-      
+
       await tester.pumpWidget(
         const MaterialApp(
           home: Scaffold(
@@ -510,7 +510,7 @@ void main() {
     testWidgets('GreetingText is accessible', (WidgetTester tester) async {
       const greeting = 'Good Morning';
       const userName = 'John';
-      
+
       await tester.pumpWidget(
         const MaterialApp(
           home: Scaffold(
@@ -592,4 +592,4 @@ void main() {
       }
     });
   });
-} 
+}

@@ -3,7 +3,6 @@ import '../../utils/constants.dart';
 
 /// Modern button with multiple styles and animations
 class ModernButton extends StatefulWidget {
-
   const ModernButton({
     super.key,
     required this.text,
@@ -38,8 +37,7 @@ class ModernButton extends StatefulWidget {
   State<ModernButton> createState() => _ModernButtonState();
 }
 
-class _ModernButtonState extends State<ModernButton>
-    with SingleTickerProviderStateMixin {
+class _ModernButtonState extends State<ModernButton> with SingleTickerProviderStateMixin {
   late AnimationController _animationController;
   late Animation<double> _scaleAnimation;
 
@@ -81,11 +79,11 @@ class _ModernButtonState extends State<ModernButton>
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final effectiveColor = widget.backgroundColor ?? widget.color ?? theme.colorScheme.primary;
-    
+
     // Button styling based on style type
     late ButtonStyle buttonStyle;
     late Widget content;
-    
+
     switch (widget.style) {
       case ModernButtonStyle.filled:
         buttonStyle = _getFilledButtonStyle(theme, effectiveColor);
@@ -100,7 +98,7 @@ class _ModernButtonState extends State<ModernButton>
         buttonStyle = _getGlassmorphismButtonStyle(theme, effectiveColor);
         break;
     }
-    
+
     // Content based on state
     if (widget.isLoading) {
       content = Row(
@@ -146,7 +144,7 @@ class _ModernButtonState extends State<ModernButton>
     } else {
       content = Text(widget.text);
     }
-    
+
     final Widget button = AnimatedBuilder(
       animation: _scaleAnimation,
       builder: (context, child) {
@@ -165,14 +163,14 @@ class _ModernButtonState extends State<ModernButton>
         ),
       ),
     );
-    
+
     Widget finalButton = GestureDetector(
       onTapDown: widget.onPressed != null ? _handleTapDown : null,
       onTapUp: widget.onPressed != null ? _handleTapUp : null,
       onTapCancel: widget.onPressed != null ? _handleTapCancel : null,
       child: button,
     );
-    
+
     // Wrap with tooltip if provided
     if (widget.tooltip != null) {
       finalButton = Tooltip(
@@ -180,16 +178,16 @@ class _ModernButtonState extends State<ModernButton>
         child: finalButton,
       );
     }
-    
+
     return finalButton;
   }
-  
+
   ButtonStyle _getFilledButtonStyle(ThemeData theme, Color color) {
     return ElevatedButton.styleFrom(
       backgroundColor: color,
       foregroundColor: widget.foregroundColor ?? widget.textColor ?? Colors.white,
       elevation: widget.style == ModernButtonStyle.glassmorphism ? 0 : 2,
-      shadowColor: color.withValues(alpha:0.3),
+      shadowColor: color.withValues(alpha: 0.3),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(_getBorderRadius()),
       ),
@@ -197,7 +195,7 @@ class _ModernButtonState extends State<ModernButton>
       textStyle: _getTextStyle(theme),
     );
   }
-  
+
   ButtonStyle _getOutlinedButtonStyle(ThemeData theme, Color color) {
     return OutlinedButton.styleFrom(
       foregroundColor: widget.foregroundColor ?? widget.textColor ?? color,
@@ -209,7 +207,7 @@ class _ModernButtonState extends State<ModernButton>
       textStyle: _getTextStyle(theme),
     );
   }
-  
+
   ButtonStyle _getTextButtonStyle(ThemeData theme, Color color) {
     return TextButton.styleFrom(
       foregroundColor: widget.foregroundColor ?? widget.textColor ?? color,
@@ -220,22 +218,22 @@ class _ModernButtonState extends State<ModernButton>
       textStyle: _getTextStyle(theme),
     );
   }
-  
+
   ButtonStyle _getGlassmorphismButtonStyle(ThemeData theme, Color color) {
     return ElevatedButton.styleFrom(
-      backgroundColor: color.withValues(alpha:0.2),
+      backgroundColor: color.withValues(alpha: 0.2),
       foregroundColor: widget.textColor ?? color,
       elevation: 0,
       shadowColor: Colors.transparent,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(_getBorderRadius()),
-        side: BorderSide(color: color.withValues(alpha:0.3)),
+        side: BorderSide(color: color.withValues(alpha: 0.3)),
       ),
       padding: _getPadding(),
       textStyle: _getTextStyle(theme),
     );
   }
-  
+
   double _getButtonHeight() {
     switch (widget.size) {
       case ModernButtonSize.small:
@@ -246,7 +244,7 @@ class _ModernButtonState extends State<ModernButton>
         return AppTheme.buttonHeightLg;
     }
   }
-  
+
   double _getBorderRadius() {
     switch (widget.size) {
       case ModernButtonSize.small:
@@ -257,7 +255,7 @@ class _ModernButtonState extends State<ModernButton>
         return AppTheme.borderRadiusLg;
     }
   }
-  
+
   EdgeInsets _getPadding() {
     switch (widget.size) {
       case ModernButtonSize.small:
@@ -268,7 +266,7 @@ class _ModernButtonState extends State<ModernButton>
         return const EdgeInsets.symmetric(horizontal: 32, vertical: 16);
     }
   }
-  
+
   double _getIconSize() {
     switch (widget.size) {
       case ModernButtonSize.small:
@@ -279,24 +277,27 @@ class _ModernButtonState extends State<ModernButton>
         return AppTheme.iconSizeLg;
     }
   }
-  
+
   TextStyle _getTextStyle(ThemeData theme) {
     switch (widget.size) {
       case ModernButtonSize.small:
         return theme.textTheme.labelSmall?.copyWith(
-          fontWeight: FontWeight.w600,
-        ) ?? const TextStyle();
+              fontWeight: FontWeight.w600,
+            ) ??
+            const TextStyle();
       case ModernButtonSize.medium:
         return theme.textTheme.labelMedium?.copyWith(
-          fontWeight: FontWeight.w600,
-        ) ?? const TextStyle();
+              fontWeight: FontWeight.w600,
+            ) ??
+            const TextStyle();
       case ModernButtonSize.large:
         return theme.textTheme.labelLarge?.copyWith(
-          fontWeight: FontWeight.w600,
-        ) ?? const TextStyle();
+              fontWeight: FontWeight.w600,
+            ) ??
+            const TextStyle();
     }
   }
-  
+
   Color _getTextColor(ThemeData theme, Color buttonColor) {
     if (widget.style == ModernButtonStyle.filled) {
       return Colors.white;
@@ -307,7 +308,6 @@ class _ModernButtonState extends State<ModernButton>
 
 /// Modern search bar with animations
 class ModernSearchBar extends StatefulWidget {
-
   const ModernSearchBar({
     super.key,
     this.hint = 'Search...',
@@ -326,8 +326,7 @@ class ModernSearchBar extends StatefulWidget {
   State<ModernSearchBar> createState() => _ModernSearchBarState();
 }
 
-class _ModernSearchBarState extends State<ModernSearchBar>
-    with SingleTickerProviderStateMixin {
+class _ModernSearchBarState extends State<ModernSearchBar> with SingleTickerProviderStateMixin {
   late TextEditingController _controller;
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
@@ -345,7 +344,7 @@ class _ModernSearchBarState extends State<ModernSearchBar>
       parent: _animationController,
       curve: Curves.easeInOut,
     );
-    
+
     _controller.addListener(_handleTextChange);
   }
 
@@ -362,14 +361,14 @@ class _ModernSearchBarState extends State<ModernSearchBar>
       setState(() {
         _hasText = hasText;
       });
-      
+
       if (hasText) {
         _animationController.forward();
       } else {
         _animationController.reverse();
       }
     }
-    
+
     widget.onChanged?.call(_controller.text);
   }
 
@@ -381,13 +380,13 @@ class _ModernSearchBarState extends State<ModernSearchBar>
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    
+
     return Container(
       decoration: BoxDecoration(
-        color: theme.colorScheme.surfaceContainerHighest.withValues(alpha:0.5),
+        color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
         borderRadius: BorderRadius.circular(AppTheme.borderRadiusXl),
         border: Border.all(
-          color: theme.colorScheme.outline.withValues(alpha:0.2),
+          color: theme.colorScheme.outline.withValues(alpha: 0.2),
         ),
       ),
       child: TextField(
@@ -427,7 +426,6 @@ class _ModernSearchBarState extends State<ModernSearchBar>
 
 /// Floating Action Button with modern styling
 class ModernFAB extends StatefulWidget {
-
   const ModernFAB({
     super.key,
     required this.onPressed,
@@ -452,8 +450,7 @@ class ModernFAB extends StatefulWidget {
   State<ModernFAB> createState() => _ModernFABState();
 }
 
-class _ModernFABState extends State<ModernFAB>
-    with SingleTickerProviderStateMixin {
+class _ModernFABState extends State<ModernFAB> with SingleTickerProviderStateMixin {
   late AnimationController _animationController;
   late Animation<double> _scaleAnimation;
 
@@ -494,7 +491,7 @@ class _ModernFABState extends State<ModernFAB>
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    
+
     Widget fab = AnimatedBuilder(
       animation: _scaleAnimation,
       builder: (context, child) {
@@ -510,7 +507,7 @@ class _ModernFABState extends State<ModernFAB>
             end: Alignment.bottomRight,
             colors: [
               widget.backgroundColor ?? theme.colorScheme.primary,
-              (widget.backgroundColor ?? theme.colorScheme.primary).withValues(alpha:0.8),
+              (widget.backgroundColor ?? theme.colorScheme.primary).withValues(alpha: 0.8),
             ],
           ),
           borderRadius: BorderRadius.circular(
@@ -518,7 +515,7 @@ class _ModernFABState extends State<ModernFAB>
           ),
           boxShadow: [
             BoxShadow(
-              color: (widget.backgroundColor ?? theme.colorScheme.primary).withValues(alpha:0.3),
+              color: (widget.backgroundColor ?? theme.colorScheme.primary).withValues(alpha: 0.3),
               blurRadius: 12,
               offset: const Offset(0, 6),
             ),
@@ -541,8 +538,7 @@ class _ModernFABState extends State<ModernFAB>
                 children: [
                   Icon(
                     widget.icon,
-                    color: widget.foregroundColor ??
-                        theme.colorScheme.onPrimary,
+                    color: widget.foregroundColor ?? theme.colorScheme.onPrimary,
                     size: AppTheme.iconSizeMd,
                   ),
                   if (widget.isExtended && widget.label != null) ...[
@@ -551,8 +547,7 @@ class _ModernFABState extends State<ModernFAB>
                       child: Text(
                         widget.label!,
                         style: theme.textTheme.labelLarge?.copyWith(
-                          color: widget.foregroundColor ??
-                              theme.colorScheme.onPrimary,
+                          color: widget.foregroundColor ?? theme.colorScheme.onPrimary,
                           fontWeight: FontWeight.w600,
                         ),
                         overflow: TextOverflow.ellipsis,
@@ -567,14 +562,14 @@ class _ModernFABState extends State<ModernFAB>
         ),
       ),
     );
-    
+
     if (widget.showBadge) {
       fab = Badge(
         label: widget.badgeText != null ? Text(widget.badgeText!) : null,
         child: fab,
       );
     }
-    
+
     return GestureDetector(
       onTapDown: _handleTapDown,
       onTapUp: _handleTapUp,
@@ -606,7 +601,6 @@ enum ModernTextFieldStyle {
 
 /// Enhanced View All Button with overflow protection and responsive layout
 class ViewAllButton extends StatelessWidget {
-
   const ViewAllButton({
     super.key,
     this.text = 'View All',
@@ -626,13 +620,13 @@ class ViewAllButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    
+
     return LayoutBuilder(
       builder: (context, constraints) {
         // Determine if we need to show abbreviated text or icon only
         final isVeryNarrow = constraints.maxWidth < 80;
         final isNarrow = constraints.maxWidth < 120;
-        
+
         if (isVeryNarrow) {
           // Show only icon for very narrow spaces
           return ModernButton(
@@ -655,7 +649,7 @@ class ViewAllButton extends StatelessWidget {
             // Truncate long single words
             abbreviatedText = text.substring(0, 4);
           }
-          
+
           return ModernButton(
             text: abbreviatedText,
             icon: icon,

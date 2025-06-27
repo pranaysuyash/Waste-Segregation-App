@@ -22,7 +22,7 @@ class _OfflineModeSettingsScreenState extends State<OfflineModeSettingsScreen> {
   bool _compressImages = true;
   bool _storageOptimization = true;
   bool _isLoading = true;
-  
+
   // Mock offline model information
   final List<OfflineModel> _offlineModels = [
     OfflineModel(
@@ -44,7 +44,7 @@ class _OfflineModeSettingsScreenState extends State<OfflineModeSettingsScreen> {
     OfflineModel(
       name: 'Organic Material Detection',
       description: 'Food waste and compostable items',
-      size: '92 MB',  
+      size: '92 MB',
       accuracy: 82.0,
       isDownloaded: true,
       isRequired: false,
@@ -59,10 +59,10 @@ class _OfflineModeSettingsScreenState extends State<OfflineModeSettingsScreen> {
 
   Future<void> _loadSettings() async {
     final storage = Provider.of<EnhancedStorageService>(context, listen: false);
-    
+
     // Load offline settings from storage
     final settings = await storage.get<Map<String, dynamic>>('offline_settings') ?? <String, dynamic>{};
-    
+
     if (!mounted) return;
     setState(() {
       _offlineEnabled = settings['enabled'] ?? false;
@@ -75,14 +75,14 @@ class _OfflineModeSettingsScreenState extends State<OfflineModeSettingsScreen> {
 
   Future<void> _saveSettings() async {
     final storage = Provider.of<EnhancedStorageService>(context, listen: false);
-    
+
     await storage.store('offline_settings', {
       'enabled': _offlineEnabled,
       'auto_download': _autoDownloadModels,
       'compress_images': _compressImages,
       'storage_optimization': _storageOptimization,
     });
-    
+
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -156,9 +156,7 @@ class _OfflineModeSettingsScreenState extends State<OfflineModeSettingsScreen> {
                       },
                       title: const Text('Enable Offline Classification'),
                       subtitle: Text(
-                        _offlineEnabled 
-                          ? 'Offline mode is enabled'
-                          : 'Offline mode is disabled',
+                        _offlineEnabled ? 'Offline mode is enabled' : 'Offline mode is disabled',
                       ),
                       activeColor: WasteAppDesignSystem.primaryGreen,
                     ),
@@ -166,9 +164,9 @@ class _OfflineModeSettingsScreenState extends State<OfflineModeSettingsScreen> {
                 ),
               ),
             ),
-            
+
             const SizedBox(height: WasteAppDesignSystem.spacingL),
-            
+
             // Model management section
             if (_offlineEnabled) ...[
               const Text(
@@ -179,7 +177,7 @@ class _OfflineModeSettingsScreenState extends State<OfflineModeSettingsScreen> {
                 ),
               ),
               const SizedBox(height: WasteAppDesignSystem.spacingM),
-              
+
               ..._offlineModels.asMap().entries.map((entry) {
                 final index = entry.key;
                 final model = entry.value;
@@ -189,9 +187,9 @@ class _OfflineModeSettingsScreenState extends State<OfflineModeSettingsScreen> {
                   child: _buildModelCard(model),
                 );
               }),
-              
+
               const SizedBox(height: WasteAppDesignSystem.spacingL),
-              
+
               // Advanced settings
               Card(
                 child: Padding(
@@ -214,7 +212,6 @@ class _OfflineModeSettingsScreenState extends State<OfflineModeSettingsScreen> {
                         ],
                       ),
                       const SizedBox(height: WasteAppDesignSystem.spacingM),
-                      
                       SwitchListTile(
                         value: _autoDownloadModels,
                         onChanged: (value) {
@@ -227,7 +224,6 @@ class _OfflineModeSettingsScreenState extends State<OfflineModeSettingsScreen> {
                         subtitle: const Text('Automatically download new model versions'),
                         activeColor: WasteAppDesignSystem.primaryGreen,
                       ),
-                      
                       SwitchListTile(
                         value: _compressImages,
                         onChanged: (value) {
@@ -240,7 +236,6 @@ class _OfflineModeSettingsScreenState extends State<OfflineModeSettingsScreen> {
                         subtitle: const Text('Reduce image size for faster processing'),
                         activeColor: WasteAppDesignSystem.primaryGreen,
                       ),
-                      
                       SwitchListTile(
                         value: _storageOptimization,
                         onChanged: (value) {
@@ -257,9 +252,9 @@ class _OfflineModeSettingsScreenState extends State<OfflineModeSettingsScreen> {
                   ),
                 ),
               ),
-              
+
               const SizedBox(height: WasteAppDesignSystem.spacingL),
-              
+
               // Storage info
               Card(
                 color: Colors.blue.shade50,
@@ -297,9 +292,7 @@ class _OfflineModeSettingsScreenState extends State<OfflineModeSettingsScreen> {
   Widget _buildModelCard(OfflineModel model) {
     return ListTile(
       leading: CircleAvatar(
-        backgroundColor: model.isDownloaded 
-          ? Colors.green.shade100 
-          : Colors.grey.shade100,
+        backgroundColor: model.isDownloaded ? Colors.green.shade100 : Colors.grey.shade100,
         child: Icon(
           model.isDownloaded ? Icons.check_circle : Icons.download,
           color: model.isDownloaded ? Colors.green : Colors.grey,
@@ -340,25 +333,24 @@ class _OfflineModeSettingsScreenState extends State<OfflineModeSettingsScreen> {
         ],
       ),
       trailing: model.isDownloaded
-        ? (model.isRequired 
-            ? const Icon(Icons.lock, color: Colors.grey)
-            : IconButton(
-                icon: const Icon(Icons.delete_outline, color: Colors.red),
-                onPressed: () => _removeModel(model),
-              ))
-        : IconButton(
-            icon: const Icon(Icons.download, color: Colors.blue),
-            onPressed: () => _downloadModel(model),
-          ),
+          ? (model.isRequired
+              ? const Icon(Icons.lock, color: Colors.grey)
+              : IconButton(
+                  icon: const Icon(Icons.delete_outline, color: Colors.red),
+                  onPressed: () => _removeModel(model),
+                ))
+          : IconButton(
+              icon: const Icon(Icons.download, color: Colors.blue),
+              onPressed: () => _downloadModel(model),
+            ),
       isThreeLine: true,
     );
   }
 
   Widget _buildStorageInfo() {
-    final totalSize = _offlineModels
-        .where((m) => m.isDownloaded)
-        .fold<double>(0, (sum, model) => sum + _parseSize(model.size));
-    
+    final totalSize =
+        _offlineModels.where((m) => m.isDownloaded).fold<double>(0, (sum, model) => sum + _parseSize(model.size));
+
     return Column(
       children: [
         Row(
@@ -469,7 +461,6 @@ class _OfflineModeSettingsScreenState extends State<OfflineModeSettingsScreen> {
 }
 
 class OfflineModel {
-
   OfflineModel({
     required this.name,
     required this.description,

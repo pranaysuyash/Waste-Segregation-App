@@ -72,20 +72,20 @@ void main() {
             ChangeNotifierProvider<PremiumService>.value(value: mockPremiumService),
           ],
           child: Scaffold(
-            body: showAtBottom 
-              ? Stack(
-                  children: [
-                    Container(), // Empty container as background
-                    BannerAdWidget(
-                      height: height ?? 50,
-                      showAtBottom: showAtBottom,
-                    ),
-                  ],
-                )
-              : BannerAdWidget(
-                  height: height ?? 50,
-                  showAtBottom: showAtBottom,
-                ),
+            body: showAtBottom
+                ? Stack(
+                    children: [
+                      Container(), // Empty container as background
+                      BannerAdWidget(
+                        height: height ?? 50,
+                        showAtBottom: showAtBottom,
+                      ),
+                    ],
+                  )
+                : BannerAdWidget(
+                    height: height ?? 50,
+                    showAtBottom: showAtBottom,
+                  ),
           ),
         ),
       );
@@ -110,7 +110,7 @@ void main() {
 
         final bannerWidget = find.byType(BannerAdWidget);
         expect(bannerWidget, findsOneWidget);
-        
+
         // Check that the widget was created with the correct height parameter
         final widget = tester.widget<BannerAdWidget>(bannerWidget);
         expect(widget.height, equals(100.0));
@@ -198,7 +198,7 @@ void main() {
       testWidgets('should handle ad service errors', (WidgetTester tester) async {
         mockPremiumService.setMockIsPremium(false);
         // Don't set a mock banner ad to simulate error case
-        
+
         await tester.pumpWidget(createTestWidget());
 
         // Should not crash
@@ -215,7 +215,7 @@ void main() {
 
         final bannerWidget = find.byType(BannerAdWidget);
         expect(bannerWidget, findsOneWidget);
-        
+
         // Check that the widget was created with the correct height parameter
         final widget = tester.widget<BannerAdWidget>(bannerWidget);
         expect(widget.height, equals(50.0));
@@ -272,7 +272,7 @@ void main() {
 
         final bannerWidget = find.byType(BannerAdWidget);
         expect(bannerWidget, findsOneWidget);
-        
+
         // Check that the widget was created with the correct height parameter
         final widget = tester.widget<BannerAdWidget>(bannerWidget);
         expect(widget.height, equals(1000.0));
@@ -297,7 +297,7 @@ void main() {
         mockAdService.setMockBannerAd(const SizedBox(height: 50));
 
         await tester.pumpWidget(createTestWidget());
-        
+
         // Remove widget
         await tester.pumpWidget(const MaterialApp(home: Scaffold(body: Text('Empty'))));
 

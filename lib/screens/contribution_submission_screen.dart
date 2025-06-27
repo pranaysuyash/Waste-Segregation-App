@@ -8,7 +8,6 @@ import '../utils/constants.dart';
 import '../utils/error_handler.dart';
 
 class ContributionSubmissionScreen extends StatefulWidget {
-
   const ContributionSubmissionScreen({
     super.key,
     this.facilityId,
@@ -26,19 +25,19 @@ class ContributionSubmissionScreen extends StatefulWidget {
 class _ContributionSubmissionScreenState extends State<ContributionSubmissionScreen> {
   final _formKey = GlobalKey<FormState>();
   final _userNotesController = TextEditingController();
-  
+
   // Controllers for different edit types
   final Map<String, TextEditingController> _operatingHoursControllers = {};
   final Map<String, TextEditingController> _contactInfoControllers = {};
   final List<String> _acceptedMaterials = [];
   final TextEditingController _materialController = TextEditingController();
-  
+
   // For new facility
   final _facilityNameController = TextEditingController();
   final _facilityAddressController = TextEditingController();
   final _latitudeController = TextEditingController();
   final _longitudeController = TextEditingController();
-  
+
   final List<File> _selectedImages = [];
   final ImagePicker _imagePicker = ImagePicker();
   bool _isSubmitting = false;
@@ -174,8 +173,8 @@ class _ContributionSubmissionScreenState extends State<ContributionSubmissionScr
                 Text(
                   'Instructions',
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
+                        fontWeight: FontWeight.bold,
+                      ),
                 ),
               ],
             ),
@@ -223,27 +222,27 @@ class _ContributionSubmissionScreenState extends State<ContributionSubmissionScr
             Text(
               'Operating Hours',
               style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
+                    fontWeight: FontWeight.bold,
+                  ),
             ),
             const SizedBox(height: AppTheme.paddingRegular),
             ..._operatingHoursControllers.entries.map((entry) => Padding(
-              padding: const EdgeInsets.only(bottom: AppTheme.paddingSmall),
-              child: TextFormField(
-                controller: entry.value,
-                decoration: InputDecoration(
-                  labelText: _capitalizeFirstLetter(entry.key),
-                  hintText: 'e.g., 9:00 AM - 5:00 PM or Closed',
-                  border: const OutlineInputBorder(),
-                ),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter operating hours for ${entry.key}';
-                  }
-                  return null;
-                },
-              ),
-            )),
+                  padding: const EdgeInsets.only(bottom: AppTheme.paddingSmall),
+                  child: TextFormField(
+                    controller: entry.value,
+                    decoration: InputDecoration(
+                      labelText: _capitalizeFirstLetter(entry.key),
+                      hintText: 'e.g., 9:00 AM - 5:00 PM or Closed',
+                      border: const OutlineInputBorder(),
+                    ),
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Please enter operating hours for ${entry.key}';
+                      }
+                      return null;
+                    },
+                  ),
+                )),
           ],
         ),
       ),
@@ -264,32 +263,34 @@ class _ContributionSubmissionScreenState extends State<ContributionSubmissionScr
             Text(
               'Contact Information',
               style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
+                    fontWeight: FontWeight.bold,
+                  ),
             ),
             const SizedBox(height: AppTheme.paddingRegular),
             ..._contactInfoControllers.entries.map((entry) => Padding(
-              padding: const EdgeInsets.only(bottom: AppTheme.paddingSmall),
-              child: TextFormField(
-                controller: entry.value,
-                decoration: InputDecoration(
-                  labelText: _capitalizeFirstLetter(entry.key),
-                  hintText: _getContactHint(entry.key),
-                  border: const OutlineInputBorder(),
-                ),
-                keyboardType: entry.key == 'phone' ? TextInputType.phone : 
-                             entry.key == 'email' ? TextInputType.emailAddress : 
-                             TextInputType.url,
-                validator: (value) {
-                  if (entry.key == 'email' && value != null && value.isNotEmpty) {
-                    if (!value.contains('@')) {
-                      return 'Please enter a valid email address';
-                    }
-                  }
-                  return null;
-                },
-              ),
-            )),
+                  padding: const EdgeInsets.only(bottom: AppTheme.paddingSmall),
+                  child: TextFormField(
+                    controller: entry.value,
+                    decoration: InputDecoration(
+                      labelText: _capitalizeFirstLetter(entry.key),
+                      hintText: _getContactHint(entry.key),
+                      border: const OutlineInputBorder(),
+                    ),
+                    keyboardType: entry.key == 'phone'
+                        ? TextInputType.phone
+                        : entry.key == 'email'
+                            ? TextInputType.emailAddress
+                            : TextInputType.url,
+                    validator: (value) {
+                      if (entry.key == 'email' && value != null && value.isNotEmpty) {
+                        if (!value.contains('@')) {
+                          return 'Please enter a valid email address';
+                        }
+                      }
+                      return null;
+                    },
+                  ),
+                )),
           ],
         ),
       ),
@@ -310,8 +311,8 @@ class _ContributionSubmissionScreenState extends State<ContributionSubmissionScr
             Text(
               'Accepted Materials',
               style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
+                    fontWeight: FontWeight.bold,
+                  ),
             ),
             const SizedBox(height: AppTheme.paddingRegular),
             Row(
@@ -343,19 +344,21 @@ class _ContributionSubmissionScreenState extends State<ContributionSubmissionScr
               Text(
                 'Materials List:',
                 style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
+                      fontWeight: FontWeight.bold,
+                    ),
               ),
               const SizedBox(height: AppTheme.paddingSmall),
               Wrap(
                 spacing: 8,
                 runSpacing: 8,
-                children: _acceptedMaterials.map((material) => Chip(
-                  label: Text(material),
-                  deleteIcon: const Icon(Icons.close, size: 18),
-                  onDeleted: () => _removeMaterial(material),
-                  backgroundColor: AppTheme.primaryColor.withValues(alpha: 0.1),
-                )).toList(),
+                children: _acceptedMaterials
+                    .map((material) => Chip(
+                          label: Text(material),
+                          deleteIcon: const Icon(Icons.close, size: 18),
+                          onDeleted: () => _removeMaterial(material),
+                          backgroundColor: AppTheme.primaryColor.withValues(alpha: 0.1),
+                        ))
+                    .toList(),
               ),
             ],
           ],
@@ -380,8 +383,8 @@ class _ContributionSubmissionScreenState extends State<ContributionSubmissionScr
                 Text(
                   'Basic Information',
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
+                        fontWeight: FontWeight.bold,
+                      ),
                 ),
                 const SizedBox(height: AppTheme.paddingRegular),
                 TextFormField(
@@ -474,9 +477,9 @@ class _ContributionSubmissionScreenState extends State<ContributionSubmissionScr
                 Text(
                   'Report Facility Closure',
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: Colors.orange[800],
-                  ),
+                        fontWeight: FontWeight.bold,
+                        color: Colors.orange[800],
+                      ),
                 ),
               ],
             ),
@@ -505,8 +508,8 @@ class _ContributionSubmissionScreenState extends State<ContributionSubmissionScr
             Text(
               'Add Photos',
               style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
+                    fontWeight: FontWeight.bold,
+                  ),
             ),
             const SizedBox(height: AppTheme.paddingRegular),
             Text(
@@ -533,8 +536,8 @@ class _ContributionSubmissionScreenState extends State<ContributionSubmissionScr
             Text(
               'Other Correction',
               style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
+                    fontWeight: FontWeight.bold,
+                  ),
             ),
             const SizedBox(height: AppTheme.paddingRegular),
             Text(
@@ -569,8 +572,8 @@ class _ContributionSubmissionScreenState extends State<ContributionSubmissionScr
                 Text(
                   'Photos (Optional)',
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
+                        fontWeight: FontWeight.bold,
+                      ),
                 ),
               ],
             ),
@@ -662,8 +665,8 @@ class _ContributionSubmissionScreenState extends State<ContributionSubmissionScr
             Text(
               'Additional Notes',
               style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
+                    fontWeight: FontWeight.bold,
+                  ),
             ),
             const SizedBox(height: AppTheme.paddingRegular),
             TextFormField(
@@ -705,9 +708,9 @@ class _ContributionSubmissionScreenState extends State<ContributionSubmissionScr
             : Text(
                 'Submit Contribution',
                 style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                ),
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
               ),
       ),
     );
@@ -795,7 +798,7 @@ class _ContributionSubmissionScreenState extends State<ContributionSubmissionScr
         maxHeight: 1024,
         imageQuality: 80,
       );
-      
+
       if (image != null) {
         if (!mounted) return;
         setState(() {
@@ -948,8 +951,6 @@ class _ContributionSubmissionScreenState extends State<ContributionSubmissionScr
   }
 
   Future<void> _submitToFirestore(UserContribution contribution) async {
-    await FirebaseFirestore.instance
-        .collection('user_contributions')
-        .add(contribution.toJson());
+    await FirebaseFirestore.instance.collection('user_contributions').add(contribution.toJson());
   }
-} 
+}

@@ -6,12 +6,17 @@ import 'package:http/http.dart' as http;
 import 'package:dio/dio.dart';
 import 'package:image/image.dart' as img;
 import '../models/waste_classification.dart';
+import '../models/token_wallet.dart';
 import '../utils/constants.dart';
 import '../utils/image_utils.dart';
 import '../services/cache_service.dart';
 import 'enhanced_image_service.dart';
+import 'dynamic_pricing_service.dart';
+import 'cost_guardrail_service.dart';
+import 'enhanced_api_error_handler.dart';
 import 'package:uuid/uuid.dart';
 import '../utils/waste_app_logger.dart';
+import 'local_guidelines_plugin.dart';
 
 /// Service for analyzing waste items using AI models (OpenAI and Gemini).
 ///
@@ -34,7 +39,6 @@ import '../utils/waste_app_logger.dart';
 ///   concatenation (`RegExp(r'"([^"]+)"|' + r"'([^']+)'")`) to correctly
 ///   handle both double and single-quoted values.
 class AiService {
-
   /// Constructs an [AiService].
   ///
   /// Initializes API configurations and the [ClassificationCacheService].
@@ -48,6 +52,9 @@ class AiService {
     String? geminiBaseUrl,
     String? geminiApiKey,
     ClassificationCacheService? cacheService,
+    DynamicPricingService? pricingService,
+    CostGuardrailService? guardrailService,
+    EnhancedApiErrorHandler? errorHandler,
     this.cachingEnabled = true,
     this.defaultRegion = 'Bangalore, IN',
     this.defaultLanguage = 'en',
@@ -55,43 +62,61 @@ class AiService {
         openAiApiKey = openAiApiKey ?? ApiConfig.openAiApiKey,
         geminiBaseUrl = geminiBaseUrl ?? ApiConfig.geminiBaseUrl,
         geminiApiKey = geminiApiKey ?? ApiConfig.apiKey,
-        cacheService = cacheService ?? ClassificationCacheService();
+        cacheService = cacheService ?? ClassificationCacheService(),
+        pricingService = pricingService ?? DynamicPricingService(),
+        guardrailService = guardrailService ?? CostGuardrailService(),
+        errorHandler = errorHandler ?? EnhancedApiErrorHandler();
   final String openAiBaseUrl;
   final String openAiApiKey;
   final String geminiBaseUrl;
   final String geminiApiKey;
   final ClassificationCacheService cacheService;
-  
+  final DynamicPricingService pricingService;
+  final CostGuardrailService guardrailService;
+  final EnhancedApiErrorHandler errorHandler;
+
   // ✅ OPTIMIZATION: Add as class field to avoid creating new instances repeatedly
   final EnhancedImageService _imageService = EnhancedImageService();
-  
+
   // Dio client for HTTP requests with cancellation support
   final Dio _dio = Dio();
   CancelToken? _cancelToken;
-  
+
   // Simple segmentation parameters - can be adjusted based on needs
   static const int segmentGridSize = 3; // 3x3 grid for basic segmentation
   static const double minSegmentArea = 0.05; // Minimum 5% of image area
   static const int objectDetectionSegments = 9; // Maximum number of segments to return
-  
+
   // Enable/disable caching (for testing or fallback)
   final bool cachingEnabled;
 
   // Default region for classifications
   final String defaultRegion;
   final String defaultLanguage;
-        
+
   /// Initialize the service and its dependencies
   Future<void> initialize() async {
     // Initialize the cache service if caching is enabled
     if (cachingEnabled) {
       await cacheService.initialize();
     }
-    
+
+    // Initialize pricing and guardrail services
+    await pricingService.initialize();
+    await guardrailService.initialize();
+
     // Configure Dio with default timeouts
     _dio.options.connectTimeout = const Duration(seconds: 60);
     _dio.options.receiveTimeout = const Duration(seconds: 60);
     _dio.options.sendTimeout = const Duration(seconds: 60);
+
+    WasteAppLogger.info('AiService initialized with enhanced pricing and error handling', null, null, {
+      'service': 'ai_service',
+      'caching_enabled': cachingEnabled,
+      'pricing_service_initialized': true,
+      'guardrail_service_initialized': true,
+      'error_handler_configured': true,
+    });
   }
 
   /// Prepares a new cancel token for the next analysis operation.
@@ -109,6 +134,50 @@ class AiService {
       _cancelToken!.cancel('User requested cancellation');
       WasteAppLogger.warning('Analysis cancelled by user.');
     }
+  }
+
+  /// Check if instant analysis is available based on current budget
+  bool canUseInstantAnalysis({String? model}) {
+    final modelKey = model ?? ApiConfig.primaryModel.replaceAll('-', '_').replaceAll('.', '_');
+    return guardrailService.canUseInstantAnalysis(model: modelKey);
+  }
+
+  /// Get recommended analysis speed based on current budget and cost constraints
+  AnalysisSpeed getRecommendedAnalysisSpeed({String? model}) {
+    final modelKey = model ?? ApiConfig.primaryModel.replaceAll('-', '_').replaceAll('.', '_');
+    return guardrailService.getRecommendedAnalysisSpeed(model: modelKey);
+  }
+
+  /// Check if batch mode is currently enforced due to budget constraints
+  bool isBatchModeEnforced() {
+    return guardrailService.isBatchModeEnforced;
+  }
+
+  /// Get current budget utilization for displaying to user
+  Map<String, double> getBudgetUtilization() {
+    return pricingService.getBudgetUtilization();
+  }
+
+  /// Get estimated cost for an analysis operation
+  double getEstimatedCost({
+    String? model,
+    int? estimatedInputTokens,
+    int? estimatedOutputTokens,
+    bool isBatchMode = false,
+  }) {
+    final modelKey = model ?? ApiConfig.primaryModel.replaceAll('-', '_').replaceAll('.', '_');
+    return pricingService.calculateCost(
+      model: modelKey,
+      inputTokens: estimatedInputTokens ?? 1500,
+      outputTokens: estimatedOutputTokens ?? 800,
+      isBatchMode: isBatchMode,
+    );
+  }
+
+  /// Get estimated cost savings from using batch mode
+  double getEstimatedBatchSavings({String? model}) {
+    final modelKey = model ?? ApiConfig.primaryModel.replaceAll('-', '_').replaceAll('.', '_');
+    return pricingService.getEstimatedBatchSavings(model: modelKey);
   }
 
   /// Checks if the current operation has been cancelled.
@@ -140,82 +209,93 @@ You are familiar with global and local waste management rules (including $defaul
 Your goal is to provide accurate, actionable, and safe waste sorting guidance based on the latest environmental standards.
 ''';
 
-  /// Main classification prompt for analyzing waste items.
+  /// Enhanced AI Analysis v2.0 - Main classification prompt for comprehensive environmental analysis
   ///
   /// Instructs the AI model to return a comprehensive, strictly formatted JSON object
-  /// based on the provided image and context. Details the expected JSON structure
-  /// and rules for classification.
+  /// with 21+ data points including environmental impact, CO2 footprint, and local guidelines.
   String get _mainClassificationPrompt => '''
-Analyze the provided waste item (with optional image context) and return a comprehensive, strictly formatted JSON object matching the data model below.
+Analyze the provided waste item and return a comprehensive JSON object with detailed environmental analysis. Use your knowledge of materials science, environmental impact, and waste management to provide accurate assessments.
 
 Classification Hierarchy & Instructions:
 
-1. Main category (exactly one):
-   - Wet Waste (organic, compostable)
-   - Dry Waste (recyclable)
-   - Hazardous Waste (special handling)
-   - Medical Waste (potentially contaminated)
-   - Non-Waste (reusable, edible, donatable, etc.)
+1. BASIC CLASSIFICATION:
+   - Main category: Wet Waste, Dry Waste, Hazardous Waste, Medical Waste, Non-Waste
+   - Subcategory: Most specific classification (e.g., "PET Plastic", "Food Scraps", "E-waste")
+   - Material type: Primary material composition
+   - Recycling code: For plastics (1-7), if identifiable
 
-2. Subcategory: Most specific fit, based on local guidelines if available.
-3. Material type: E.g., PET plastic, cardboard, metal, glass, food scraps.
-4. Recycling code: For plastics (1–7), if identified.
-5. Disposal method: Short instruction (e.g., "Rinse and recycle in blue bin").
-6. Disposal instructions (object):
-   - primaryMethod: Main recommended action
-   - steps: Step-by-step list
-   - timeframe: If urgent (e.g., "Immediate", "Within 24 hours")
-   - location: Drop-off or bin type
-   - warnings: Any safety or contamination warnings
-   - tips: Helpful tips
-   - recyclingInfo: Extra recycling info
-   - estimatedTime: Time needed for disposal
-   - hasUrgentTimeframe: Boolean
+2. ENVIRONMENTAL IMPACT ANALYSIS (Enhanced v2.0):
+   - recyclability: "fully recyclable", "partially recyclable", "not recyclable"
+   - hazardLevel: Integer 1-5 (1=safe, 5=extremely hazardous)
+   - co2Impact: CO2 equivalent in kg (estimate lifecycle impact)
+   - decompositionTime: Natural decomposition timeline (e.g., "6 months", "500 years")
+   - waterPollutionLevel: Integer 1-5 (potential for water contamination)
+   - soilContaminationRisk: Integer 1-5 (soil pollution risk)
+   - biodegradabilityDays: Integer days for natural breakdown
+   - recyclingEfficiency: Percentage 0-100 (how much can actually be recycled)
+   - manufacturingEnergyFootprint: Energy in kWh to produce this item
+   - transportationFootprint: CO2 kg for typical transport to disposal
+   - endOfLifeCost: Environmental cost description (e.g., "landfill space", "toxic leachate")
+   - generatesMicroplastics: Boolean (does this create microplastic pollution?)
+   - humanToxicityLevel: Integer 1-5 (health risk to humans)
+   - wildlifeImpactSeverity: Integer 1-5 (impact on animals/ecosystems)
+   - resourceScarcity: "common", "uncommon", "rare" (how scarce are source materials?)
+   - disposalCostEstimate: Estimated cost in INR for proper disposal
 
-7. Risk & safety:
+3. CIRCULAR ECONOMY ANALYSIS:
+   - circularEconomyPotential: List of reuse/repurpose opportunities
+   - materials: List of component materials for better sorting
+   - commonUses: List of typical uses for this item
+   - alternativeOptions: List of eco-friendly alternatives
+
+4. LOCAL GUIDELINES (BANGALORE BBMP FOCUS):
+   - bbmpComplianceStatus: "compliant", "requires_attention", "violation" (BBMP regulations)
+   - localGuidelinesVersion: "BBMP 2024" or relevant local authority
+   - localRegulations: Key-value pairs of local rules (e.g., {"color_coding": "green_bin", "collection_day": "tuesday"})
+
+5. SAFETY & HANDLING:
+   - properEquipment: List of required PPE (e.g., ["gloves", "mask", "eye_protection"])
+   - requiredPPE: Safety equipment needed for handling
    - riskLevel: "safe", "caution", "hazardous"
-   - requiredPPE: ["gloves", "mask"], if needed
 
-8. Booleans:
-   - isRecyclable, isCompostable, requiresSpecialDisposal, isSingleUse
+6. STANDARD FIELDS:
+   - Disposal instructions with primaryMethod, steps, timeframe, location, warnings, tips
+   - Visual features, brand, product, barcode (if visible)
+   - Confidence score (0.0-1.0), clarificationNeeded boolean
+   - Alternative classifications with reasoning
+   - Multi-language support (hi, kn, en)
 
-9. Brand/product/barcode: If present/visible
-10. Region/locale: City/country string (e.g., "$defaultRegion")
-    - localGuidelinesReference: If possible (e.g., "BBMP 2024/5")
+7. DYNAMIC POINTS CALCULATION:
+   Instead of fixed pointsAwarded, use calculatePoints() method which considers:
+   - Data richness (more detailed analysis = more points)
+   - Environmental complexity (hazardous items = bonus points)
+   - Local compliance (BBMP compliance = bonus points)
+   - Confidence level (high confidence = bonus points)
+   Range: 5-50 points based on analysis quality
 
-11. Visual features: Notable characteristics from the image (e.g., ["broken", "dirty", "label missing"])
-12. Explanation: Detailed reasoning for decisions
-13. Suggested action: E.g., "Recycle", "Compost", "Donate", etc.
-14. Color code: Hex value for UI
-15. Confidence: 0.0–1.0, with a brief note if confidence < 0.7
-16. clarificationNeeded: Boolean if confidence < 0.7 or item ambiguous
-17. Alternatives: Up to 2 alternative category/subcategory suggestions, each with confidence and reason
-18. Model info:
-    - modelVersion, modelSource, processingTimeMs, analysisSessionId (set to null if not provided)
-
-19. Multilingual support:
-    - If instructionsLang provided, output translated disposal instructions as translatedInstructions for ["hi", "kn"] as well as "en".
-20. Gamification & Engagement:
-    - pointsAwarded: An integer representing the points for this classification (typically 10).
-    - environmentalImpact: A short sentence describing the positive or negative environmental impact of this item.
-    - relatedItems: A list of up to 3 related items that are often found with this one.
-21. User fields:
-    - Set isSaved, userConfirmed, userCorrection, disagreementReason, userNotes, viewCount to null unless provided in input context.
+SPECIAL INSTRUCTIONS FOR BANGALORE:
+- Reference BBMP waste segregation rules where applicable
+- Consider monsoon disposal challenges (May-October)
+- Include color-coded bin recommendations (Green/Brown/Red)
+- Factor in apartment vs independent house disposal differences
+- Consider local recycling market rates for valuable materials
 
 Rules:
-- Reply with only the JSON object (no extra commentary).
-- Use null for any unknown fields.
-- Strictly match the field names and structure below.
-- Do not hallucinate image URLs or user fields unless given.
+- Return ONLY the JSON object
+- Include all environmental analysis fields
+- Use scientific estimates for environmental impacts
+- Reference actual BBMP guidelines when possible
+- Set pointsAwarded to null (will be calculated dynamically)
 
-Format the response as a valid JSON object with these fields: itemName, category, subcategory, materialType, recyclingCode, explanation, disposalMethod, disposalInstructions, region, localGuidelinesReference, imageUrl, imageHash, imageMetrics, visualFeatures, isRecyclable, isCompostable, requiresSpecialDisposal, colorCode, riskLevel, requiredPPE, brand, product, barcode, isSaved, userConfirmed, userCorrection, disagreementReason, userNotes, viewCount, clarificationNeeded, confidence, modelVersion, processingTimeMs, modelSource, analysisSessionId, alternatives, suggestedAction, hasUrgentTimeframe, instructionsLang, translatedInstructions, pointsAwarded, isSingleUse, environmentalImpact, relatedItems
+JSON STRUCTURE with ALL fields: itemName, category, subcategory, materialType, recyclingCode, explanation, disposalMethod, disposalInstructions, region, localGuidelinesReference, imageUrl, imageHash, imageMetrics, visualFeatures, isRecyclable, isCompostable, requiresSpecialDisposal, colorCode, riskLevel, requiredPPE, brand, product, barcode, isSaved, userConfirmed, userCorrection, disagreementReason, userNotes, viewCount, clarificationNeeded, confidence, modelVersion, processingTimeMs, modelSource, analysisSessionId, alternatives, suggestedAction, hasUrgentTimeframe, instructionsLang, translatedInstructions, pointsAwarded, isSingleUse, environmentalImpact, relatedItems, recyclability, hazardLevel, co2Impact, decompositionTime, properEquipment, materials, subCategory, commonUses, alternativeOptions, localRegulations, waterPollutionLevel, soilContaminationRisk, biodegradabilityDays, recyclingEfficiency, manufacturingEnergyFootprint, transportationFootprint, endOfLifeCost, circularEconomyPotential, generatesMicroplastics, humanToxicityLevel, wildlifeImpactSeverity, resourceScarcity, disposalCostEstimate, bbmpComplianceStatus, localGuidelinesVersion
 ''';
 
   /// Correction/disagreement prompt for handling user feedback.
   ///
   /// Guides the AI to re-analyze an item based on user-provided corrections
   /// or disagreements, updating the classification and explaining changes.
-  String _getCorrectionPrompt(Map<String, dynamic> previousClassification, String userCorrection, String? userReason) => '''
+  String _getCorrectionPrompt(Map<String, dynamic> previousClassification, String userCorrection, String? userReason) =>
+      '''
 A user has reviewed the waste item classification and provided feedback or a correction.  
 Please re-analyze the item and return an updated JSON response, as per the data model, with special attention to:
 
@@ -261,15 +341,12 @@ Output:
         imageBytes[3] == 0x47) {
       return 'image/png';
     }
-    
+
     // Check JPEG signature
-    if (imageBytes.length >= 3 &&
-        imageBytes[0] == 0xFF &&
-        imageBytes[1] == 0xD8 &&
-        imageBytes[2] == 0xFF) {
+    if (imageBytes.length >= 3 && imageBytes[0] == 0xFF && imageBytes[1] == 0xD8 && imageBytes[2] == 0xFF) {
       return 'image/jpeg';
     }
-    
+
     // Check WebP signature
     if (imageBytes.length >= 12 &&
         imageBytes[0] == 0x52 &&
@@ -282,7 +359,7 @@ Output:
         imageBytes[11] == 0x50) {
       return 'image/webp';
     }
-    
+
     // Default to JPEG if unknown
     return 'image/jpeg';
   }
@@ -296,9 +373,9 @@ Output:
   Future<Uint8List> _compressImageForOpenAI(Uint8List imageBytes) async {
     const maxSizeBytes = 20 * 1024 * 1024; // 20MB OpenAI limit
     const preferredSizeBytes = 5 * 1024 * 1024; // 5MB preferred
-    
+
     WasteAppLogger.info('Original image size: ${(imageBytes.length / 1024 / 1024).toStringAsFixed(2)} MB');
-    
+
     // If image is already smaller than preferred size, return as is
     if (imageBytes.length < preferredSizeBytes) {
       WasteAppLogger.info('Image is smaller than preferred size, no compression needed.');
@@ -315,17 +392,18 @@ Output:
           WasteAppLogger.severe('Failed to decode image for compression.');
           return compressedBytes; // Return original if decoding fails
         }
-        
+
         compressedBytes = Uint8List.fromList(img.encodeJpg(image, quality: quality));
-        WasteAppLogger.info('Compressed image to ${(compressedBytes.length / 1024 / 1024).toStringAsFixed(2)} MB with quality $quality');
-        
+        WasteAppLogger.info(
+            'Compressed image to ${(compressedBytes.length / 1024 / 1024).toStringAsFixed(2)} MB with quality $quality');
+
         quality -= 5;
       } catch (e, s) {
         WasteAppLogger.severe('Error during image compression', e, s);
         break; // Exit loop on error
       }
     }
-    
+
     // Final check against OpenAI's hard limit
     if (compressedBytes.length > maxSizeBytes) {
       WasteAppLogger.warning('Image size after compression still exceeds 20MB limit. Further reduction needed.');
@@ -360,10 +438,12 @@ Output:
     );
 
     final List<int> compressedBytes = img.encodeJpg(image, quality: 80); // Maintain good quality
-    WasteAppLogger.info('Compressed image size for Gemini: ${(compressedBytes.length / 1024 / 1024).toStringAsFixed(2)} MB');
+    WasteAppLogger.info(
+        'Compressed image size for Gemini: ${(compressedBytes.length / 1024 / 1024).toStringAsFixed(2)} MB');
 
     if (compressedBytes.length > maxSizeBytes) {
-      throw Exception('Image still too large after Gemini compression (${(compressedBytes.length / 1024 / 1024).toStringAsFixed(2)} MB). Max allowed is ${maxSizeBytes / 1024 / 1024} MB.');
+      throw Exception(
+          'Image still too large after Gemini compression (${(compressedBytes.length / 1024 / 1024).toStringAsFixed(2)} MB). Max allowed is ${maxSizeBytes / 1024 / 1024} MB.');
     }
 
     return Uint8List.fromList(compressedBytes);
@@ -400,7 +480,7 @@ Output:
     try {
       final permanentPath = await _imageService.saveFilePermanently(imageFile);
       permanentFile = File(permanentPath);
-      
+
       // Generate and save thumbnail
       final imageBytes = await permanentFile.readAsBytes();
       thumbnailPath = await _imageService.saveThumbnail(imageBytes);
@@ -414,12 +494,17 @@ Output:
       String? contentHash;
       if (cachingEnabled) {
         final imageBytes = permanentFile.readAsBytesSync();
-        
+
         // Generate both hashes efficiently in isolate to prevent UI lag
         final hashes = await ImageUtils.generateDualHashes(imageBytes);
-        imageHash = hashes['perceptualHash']!;
-        contentHash = hashes['contentHash']!;
-        
+        imageHash = hashes['perceptualHash'];
+        contentHash = hashes['contentHash'];
+
+        if (imageHash == null || contentHash == null) {
+          WasteAppLogger.severe('Failed to generate image hashes', null, null, {'hashes': hashes});
+          throw Exception('Failed to generate required image hashes');
+        }
+
         WasteAppLogger.info('Generated perceptual hash: $imageHash');
         WasteAppLogger.info('Generated content hash: $contentHash');
 
@@ -428,11 +513,13 @@ Output:
           contentHash: contentHash,
         );
         if (cachedResult != null) {
-          WasteAppLogger.cacheEvent('cache_operation', 'classification', context: {'service': 'ai', 'file': 'ai_service'});
+          WasteAppLogger.cacheEvent('cache_operation', 'classification',
+              context: {'service': 'ai', 'file': 'ai_service'});
           return cachedResult.classification.copyWith(id: currentClassificationId);
         }
 
-        WasteAppLogger.cacheEvent('cache_operation', 'classification', context: {'service': 'ai', 'file': 'ai_service'});
+        WasteAppLogger.cacheEvent('cache_operation', 'classification',
+            context: {'service': 'ai', 'file': 'ai_service'});
       }
 
       // Try OpenAI first with compression
@@ -501,7 +588,8 @@ Output:
   /// It generates a perceptual hash, checks the cache, and then
   /// calls the appropriate AI model (OpenAI or Gemini) for analysis.
   Future<WasteClassification> analyzeWebImage(
-    Uint8List imageBytes, String imageName, {
+    Uint8List imageBytes,
+    String imageName, {
     int retryCount = 0,
     int maxRetries = 3,
     String? region,
@@ -526,8 +614,7 @@ Output:
       // Ensure WasteClassification.fallback sets clarificationNeeded = true and handles an optional reason.
       // If WasteClassification.fallback doesn't support a 'reason' parameter, it might need adjustment,
       // or this call simplified. For now, assuming it can take it or ignore it.
-      final savedImagePath = await _imageService
-          .saveImagePermanently(imageBytes, fileName: imageName);
+      final savedImagePath = await _imageService.saveImagePermanently(imageBytes, fileName: imageName);
       return WasteClassification.fallback(
         savedImagePath,
         id: currentClassificationId,
@@ -550,9 +637,14 @@ Output:
       if (cachingEnabled) {
         // Generate both hashes efficiently in isolate to prevent UI lag
         final hashes = await ImageUtils.generateDualHashes(imageBytes);
-        imageHash = hashes['perceptualHash']!;
-        contentHash = hashes['contentHash']!;
-        
+        imageHash = hashes['perceptualHash'];
+        contentHash = hashes['contentHash'];
+
+        if (imageHash == null || contentHash == null) {
+          WasteAppLogger.severe('Failed to generate web image hashes', null, null, {'hashes': hashes});
+          throw Exception('Failed to generate required image hashes for web image');
+        }
+
         WasteAppLogger.info('Generated perceptual hash for web image: $imageHash');
         WasteAppLogger.info('Generated content hash for web image: $contentHash');
 
@@ -561,11 +653,13 @@ Output:
           contentHash: contentHash,
         );
         if (cachedResult != null) {
-          WasteAppLogger.cacheEvent('cache_operation', 'classification', context: {'service': 'ai', 'file': 'ai_service'});
+          WasteAppLogger.cacheEvent('cache_operation', 'classification',
+              context: {'service': 'ai', 'file': 'ai_service'});
           return cachedResult.classification.copyWith(id: currentClassificationId);
         }
 
-        WasteAppLogger.cacheEvent('cache_operation', 'classification', context: {'service': 'ai', 'file': 'ai_service'});
+        WasteAppLogger.cacheEvent('cache_operation', 'classification',
+            context: {'service': 'ai', 'file': 'ai_service'});
       }
 
       // Try OpenAI first with compression
@@ -663,8 +757,7 @@ Output:
     String? instructionsLang,
     String? classificationId,
   }) async {
-    final savedPath = await _imageService
-        .saveImagePermanently(imageBytes, fileName: imageName);
+    final savedPath = await _imageService.saveImagePermanently(imageBytes, fileName: imageName);
     return _analyzeImageSegmentsInternal(
       imageBytes,
       savedPath,
@@ -742,7 +835,7 @@ Output:
   ///
   /// Compresses the image if necessary, constructs the request,
   /// and processes the response. Caches the result if successful.
-  /// Throws specific exceptions for different API error codes.
+  /// Includes cost tracking and enhanced error handling.
   Future<WasteClassification> _analyzeWithOpenAI(
     Uint8List imageBytes,
     String imageName,
@@ -753,11 +846,21 @@ Output:
     String? contentHash,
     String? thumbnailPath,
   }) async {
+    final operationId = 'openai_analysis_$classificationId';
+    final modelKey = ApiConfig.primaryModel.replaceAll('-', '_').replaceAll('.', '_');
+    final startTime = DateTime.now();
+    
+    // Check cost guardrails before proceeding
+    final canAffordInstant = guardrailService.canUseInstantAnalysis(model: modelKey);
+    if (!canAffordInstant) {
+      throw Exception('Budget exceeded - instant analysis not available. Please use batch mode.');
+    }
+    
     // Compress image if needed
     final compressedBytes = await _compressImageForOpenAI(imageBytes);
     final base64Image = _bytesToBase64(compressedBytes);
     final mimeType = _detectImageMimeType(compressedBytes);
-    
+
     WasteAppLogger.info('Sending image to OpenAI for analysis.');
     WasteAppLogger.info('Image size: ${(compressedBytes.length / 1024).toStringAsFixed(2)} KB');
     WasteAppLogger.info('MIME type: $mimeType');
@@ -767,16 +870,14 @@ Output:
     final requestBody = <String, dynamic>{
       'model': ApiConfig.primaryModel,
       'messages': [
-        {
-          'role': 'system',
-          'content': _systemPrompt
-        },
+        {'role': 'system', 'content': _systemPrompt},
         {
           'role': 'user',
           'content': [
             {
               'type': 'text',
-              'text': '$_mainClassificationPrompt\n\nAdditional context:\n- Region: $region\n- Instructions language: $language\n- Image source: web upload'
+              'text':
+                  '$_mainClassificationPrompt\n\nAdditional context:\n- Region: $region\n- Instructions language: $language\n- Image source: web upload'
             },
             {
               'type': 'image_url',
@@ -809,9 +910,42 @@ Output:
 
     // Enhanced error handling with detailed logging
     if (response.statusCode == 200) {
+      final endTime = DateTime.now();
+      final processingTime = endTime.difference(startTime);
+      
       WasteAppLogger.info('Received successful response from OpenAI.');
       final Map<String, dynamic> responseData = response.data;
-      final classification = _processAiResponseData(
+      
+      // Extract token usage from response
+      final usage = responseData['usage'] as Map<String, dynamic>?;
+      final inputTokens = usage?['prompt_tokens'] ?? 1500; // Fallback estimate
+      final outputTokens = usage?['completion_tokens'] ?? 800; // Fallback estimate
+      
+      // Calculate and record cost
+      final cost = pricingService.calculateCost(
+        model: modelKey,
+        inputTokens: inputTokens,
+        outputTokens: outputTokens,
+      );
+      
+      // Record spending in guardrail service
+      await guardrailService.recordApiSpending(
+        model: modelKey,
+        cost: cost,
+        inputTokens: inputTokens,
+        outputTokens: outputTokens,
+      );
+      
+      WasteAppLogger.info('API cost recorded', null, null, {
+        'service': 'ai_service',
+        'model': modelKey,
+        'cost': cost,
+        'input_tokens': inputTokens,
+        'output_tokens': outputTokens,
+        'processing_time_ms': processingTime.inMilliseconds,
+      });
+      
+      var classification = _processAiResponseData(
         responseData,
         imageName,
         region,
@@ -821,23 +955,29 @@ Output:
         thumbnailPath: thumbnailPath,
       );
       
+      // Apply Enhanced AI Analysis v2.0 - Local Guidelines
+      classification = await LocalGuidelinesManager.applyLocalGuidelines(
+        classification,
+        region,
+      );
+
       // Cache the result if we have a valid hash
       if (cachingEnabled && imageHash != null) {
         await cacheService.cacheClassification(
-          imageHash, 
-          classification, 
+          imageHash,
+          classification,
           contentHash: contentHash,
           imageSize: imageBytes.length,
         );
       }
-      
+
       return classification;
     } else {
       // ENHANCED ERROR LOGGING
       WasteAppLogger.severe('OpenAI API request failed.');
       WasteAppLogger.severe('Status code: ${response.statusCode}');
       WasteAppLogger.severe('Response body: ${response.data}');
-      
+
       // Parse error details if available
       try {
         final errorData = response.data;
@@ -851,7 +991,7 @@ Output:
       } catch (e, s) {
         WasteAppLogger.severe('Failed to parse OpenAI error response.', e, s);
       }
-      
+
       // Handle specific error codes
       if (response.statusCode == 400) {
         throw Exception('OpenAI Bad Request - Check image format and prompt: ${response.data}');
@@ -866,6 +1006,7 @@ Output:
       }
     }
   }
+
 
   /// Analyzes an image by segments using the OpenAI API.
   Future<WasteClassification> _analyzeWithOpenAISegments(
@@ -891,22 +1032,22 @@ Output:
 
     final firstSegment = segments.first;
     final bounds = firstSegment['bounds'] as Map<String, dynamic>;
-    
+
     // Convert percentage coordinates to pixel coordinates
     final imageWidth = originalImage.width;
     final imageHeight = originalImage.height;
-    
+
     final x = ((bounds['x'] as num).toDouble() * imageWidth / 100).round();
     final y = ((bounds['y'] as num).toDouble() * imageHeight / 100).round();
     final width = ((bounds['width'] as num).toDouble() * imageWidth / 100).round();
     final height = ((bounds['height'] as num).toDouble() * imageHeight / 100).round();
-    
+
     // Ensure coordinates are within image bounds
     final clampedX = x.clamp(0, imageWidth - 1);
     final clampedY = y.clamp(0, imageHeight - 1);
     final clampedWidth = width.clamp(1, imageWidth - clampedX);
     final clampedHeight = height.clamp(1, imageHeight - clampedY);
-    
+
     final croppedImage = img.copyCrop(
       originalImage,
       x: clampedX,
@@ -938,42 +1079,38 @@ Output:
     String? contentHash,
     String? thumbnailPath,
   }) async {
+    final startTime = DateTime.now();
     WasteAppLogger.info('Falling back to Gemini for analysis.');
-    
+
     // Gemini can handle larger images, but still compress if extremely large
     var processedBytes = imageBytes;
     const geminiMaxSize = 50 * 1024 * 1024; // 50MB for Gemini (more generous)
-    
+
     if (imageBytes.length > geminiMaxSize) {
       WasteAppLogger.warning('Image exceeds Gemini max size, applying compression.');
       processedBytes = await _compressImageForGemini(imageBytes);
     }
-    
+
     final base64Image = _bytesToBase64(processedBytes);
     final mimeType = _detectImageMimeType(processedBytes);
-    
+
     WasteAppLogger.info('Sending image to Gemini. Size: ${(processedBytes.length / 1024).toStringAsFixed(2)} KB');
-    
+
     final requestBody = <String, dynamic>{
       'contents': [
         {
           'parts': [
             {
-              'text': '$_systemPrompt\n\n$_mainClassificationPrompt\n\nAdditional context:\n- Region: $region\n- Instructions language: $language\n- Image source: Gemini analysis (OpenAI fallback)'
+              'text':
+                  '$_systemPrompt\n\n$_mainClassificationPrompt\n\nAdditional context:\n- Region: $region\n- Instructions language: $language\n- Image source: Gemini analysis (OpenAI fallback)'
             },
             {
-              'inline_data': {
-                'mime_type': mimeType,
-                'data': base64Image
-              }
+              'inline_data': {'mime_type': mimeType, 'data': base64Image}
             }
           ]
         }
       ],
-      'generationConfig': {
-        'temperature': 0.1,
-        'maxOutputTokens': 1500
-      }
+      'generationConfig': {'temperature': 0.1, 'maxOutputTokens': 1500}
     };
 
     late final Response response;
@@ -995,30 +1132,60 @@ Output:
     }
 
     if (response.statusCode == 200) {
+      final endTime = DateTime.now();
+      final processingTime = endTime.difference(startTime);
+      
       WasteAppLogger.info('Received successful response from Gemini.');
       final Map<String, dynamic> responseData = response.data;
-      
+
       // Extract content from Gemini response format
-      if (responseData['candidates'] != null && 
+      if (responseData['candidates'] != null &&
           responseData['candidates'].isNotEmpty &&
           responseData['candidates'][0]['content'] != null &&
           responseData['candidates'][0]['content']['parts'] != null &&
           responseData['candidates'][0]['content']['parts'].isNotEmpty) {
-        
         final String content = responseData['candidates'][0]['content']['parts'][0]['text'];
+
+        // Extract token usage from Gemini response (if available)
+        final usage = responseData['usageMetadata'] as Map<String, dynamic>?;
+        final inputTokens = usage?['promptTokenCount'] ?? 1500; // Fallback estimate
+        final outputTokens = usage?['candidatesTokenCount'] ?? 800; // Fallback estimate
         
+        // Calculate and record cost for Gemini
+        const modelKey = 'gemini_2_0_flash';
+        final cost = pricingService.calculateCost(
+          model: modelKey,
+          inputTokens: inputTokens,
+          outputTokens: outputTokens,
+        );
+        
+        // Record spending in guardrail service
+        await guardrailService.recordApiSpending(
+          model: modelKey,
+          cost: cost,
+          inputTokens: inputTokens,
+          outputTokens: outputTokens,
+        );
+        
+        WasteAppLogger.info('Gemini API cost recorded', null, null, {
+          'service': 'ai_service',
+          'model': modelKey,
+          'cost': cost,
+          'input_tokens': inputTokens,
+          'output_tokens': outputTokens,
+          'processing_time_ms': processingTime.inMilliseconds,
+        });
+
         // Convert Gemini response to OpenAI format for processing
         final openAiFormat = <String, dynamic>{
           'choices': [
             {
-              'message': {
-                'content': content
-              }
+              'message': {'content': content}
             }
           ]
         };
-        
-        final classification = _processAiResponseData(
+
+        var classification = _processAiResponseData(
           openAiFormat,
           imageName,
           region,
@@ -1028,16 +1195,22 @@ Output:
           thumbnailPath: thumbnailPath,
         );
         
+        // Apply Enhanced AI Analysis v2.0 - Local Guidelines
+        classification = await LocalGuidelinesManager.applyLocalGuidelines(
+          classification,
+          region,
+        );
+
         // Cache the result if we have a valid hash
         if (cachingEnabled && imageHash != null) {
           await cacheService.cacheClassification(
-            imageHash, 
-            classification, 
+            imageHash,
+            classification,
             contentHash: contentHash,
             imageSize: imageBytes.length,
           );
         }
-        
+
         return classification;
       } else {
         throw Exception('Invalid Gemini response format');
@@ -1064,8 +1237,8 @@ Output:
     WasteAppLogger.info('Operation completed', null, null, {'service': 'ai', 'file': 'ai_service'});
 
     // Determine which model to use for re-analysis
-    final modelToUse = model ?? 
-        (originalClassification.source == 'ai_analysis_gemini' 
+    final modelToUse = model ??
+        (originalClassification.source == 'ai_analysis_gemini'
             ? ApiConfig.tertiaryModel // Use Gemini for re-analysis if it was the original source
             : ApiConfig.primaryModel); // Default to OpenAI
 
@@ -1094,35 +1267,32 @@ Output:
       if (imageBytes == null) {
         WasteAppLogger.info('Operation completed', null, null, {'service': 'ai', 'file': 'ai_service'});
       }
-      
+
       final base64Image = imageBytes != null ? _bytesToBase64(imageBytes) : '';
       final mimeType = imageBytes != null ? _detectImageMimeType(imageBytes) : '';
 
       final requestBody = <String, dynamic>{
-          'model': modelToUse,
-          'messages': [
-            {
-              'role': 'system',
-              'content': _systemPrompt
-            },
-            {
-              'role': 'user',
-              'content': [
-                {
-                  'type': 'text',
+        'model': modelToUse,
+        'messages': [
+          {'role': 'system', 'content': _systemPrompt},
+          {
+            'role': 'user',
+            'content': [
+              {
+                'type': 'text',
                 'text': _getCorrectionPrompt(originalClassification.toJson(), userCorrection, userReason)
-                },
+              },
               if (imageBytes != null)
                 {
                   'type': 'image_url',
                   'image_url': {'url': 'data:$mimeType;base64,$base64Image'}
                 }
-              ]
-            }
-          ],
-          'max_tokens': 1500,
-          'temperature': 0.1
-        };
+            ]
+          }
+        ],
+        'max_tokens': 1500,
+        'temperature': 0.1
+      };
 
       late final Response response;
       try {
@@ -1149,14 +1319,14 @@ Output:
       if (response.statusCode == 200) {
         final Map<String, dynamic> responseData = response.data;
         final correctedClassification = _processAiResponseData(
-          responseData, 
+          responseData,
           originalClassification.imageUrl ?? 'correction_update',
           originalClassification.region,
           originalClassification.instructionsLang,
           reanalysisModelsTried,
           originalClassification.id,
         );
-        
+
         // Preserve some original metadata
         return correctedClassification.copyWith(
           imageUrl: originalClassification.imageUrl,
@@ -1199,13 +1369,13 @@ Output:
         final choice = responseData['choices'][0];
         if (choice['message'] != null && choice['message']['content'] != null) {
           final String content = choice['message']['content'];
-          
+
           final jsonString = cleanJsonString(content);
 
           Map<String, dynamic> jsonContent;
           try {
             jsonContent = jsonDecode(jsonString);
-            
+
             return _createClassificationFromJsonContent(
               jsonContent,
               imagePath,
@@ -1269,10 +1439,10 @@ Output:
     // Strip C/C++ style comments that can cause JSON parsing to fail
     // Remove single-line comments (// comment)
     jsonString = jsonString.replaceAll(RegExp(r'//.*'), '');
-    
+
     // Remove multi-line comments (/* comment */)
     jsonString = jsonString.replaceAll(RegExp(r'/\*[\s\S]*?\*/'), '');
-    
+
     return jsonString.trim();
   }
 
@@ -1308,7 +1478,8 @@ Output:
       );
     } else if (jsonDisposalInstructions is List) {
       // If it's a list, treat the first element as primary method and others as steps
-      final primaryMethod = jsonDisposalInstructions.isNotEmpty ? jsonDisposalInstructions[0].toString() : 'Review required';
+      final primaryMethod =
+          jsonDisposalInstructions.isNotEmpty ? jsonDisposalInstructions[0].toString() : 'Review required';
       final steps = jsonDisposalInstructions.map((e) => e.toString()).toList();
       return DisposalInstructions(
         primaryMethod: primaryMethod,
@@ -1365,55 +1536,79 @@ Output:
 
       // 🔧 ENHANCED ITEM NAME PARSING: Handle null itemName from AI
       var itemName = _safeStringParse(jsonContent['itemName']) ?? '';
-      
+
       if (itemName.isEmpty || itemName == 'null') {
+        WasteAppLogger.info(
+          'AI response contained empty or null itemName. Attempting extraction from other fields.',
+          null,
+          null,
+          {'jsonContent': jsonContent}, // Log the full JSON content for debugging
+        );
         // Try to extract item name from explanation or subcategory
         final explanation = _safeStringParse(jsonContent['explanation']) ?? '';
         final subcategory = _safeStringParse(jsonContent['subcategory']) ?? '';
         final category = _safeStringParse(jsonContent['category']) ?? '';
-        
-        WasteAppLogger.info('Operation completed', null, null, {'service': 'ai', 'file': 'ai_service'});
-        WasteAppLogger.info('Operation completed', null, null, {'service': 'ai', 'file': 'ai_service'});
-        WasteAppLogger.info('Operation completed', null, null, {'service': 'ai', 'file': 'ai_service'});
-        WasteAppLogger.info('Operation completed', null, null, {'service': 'ai', 'file': 'ai_service'});
-        
+
         // Try to extract from explanation first
         if (explanation.isNotEmpty) {
           // Look for patterns like "The image shows [item]" or "This is [item]"
           final patterns = [
-            RegExp(r'(?:shows?|depicts?|contains?|is)\s+(?:an?|the)?\s*([^.]+?)(?:\s+(?:which|that|in|on)|\.|$)', caseSensitive: false),
-            RegExp(r'(?:This|It)\s+(?:appears to be|looks like|is)\s+(?:an?|the)?\s*([^.]+?)(?:\s+(?:which|that|in|on)|\.|$)', caseSensitive: false),
+            RegExp(r'(?:shows?|depicts?|contains?|is)\s+(?:an?|the)?\s*([^.]+?)(?:\\s+(?:which|that|in|on)|\\.|$)',
+                caseSensitive: false),
+            RegExp(
+                r'(?:This|It)\\s+(?:appears to be|looks like|is)\\s+(?:an?|the)?\\s*([^.]+?)(?:\\s+(?:which|that|in|on)|\\.|$)',
+                caseSensitive: false),
           ];
-          
+
           for (final pattern in patterns) {
             final match = pattern.firstMatch(explanation);
             if (match != null && match.group(1) != null) {
               final extractedName = match.group(1)!.trim();
               if (extractedName.isNotEmpty && extractedName.length < 50) {
                 itemName = extractedName;
-                WasteAppLogger.info('Operation completed', null, null, {'service': 'ai', 'file': 'ai_service'});
+                WasteAppLogger.info(
+                  'Extracted itemName from explanation.',
+                  null,
+                  null,
+                  {'extractedName': itemName, 'explanation': explanation},
+                );
                 break;
               }
             }
           }
         }
-        
+
         // Fallback to subcategory if still empty
         if (itemName.isEmpty && subcategory.isNotEmpty) {
           itemName = subcategory;
-          WasteAppLogger.info('Operation completed', null, null, {'service': 'ai', 'file': 'ai_service'});
+          WasteAppLogger.info(
+            'Falling back to subcategory for itemName.',
+            null,
+            null,
+            {'subcategory': itemName},
+          );
         }
-        
+
         // Final fallback to category
         if (itemName.isEmpty && category.isNotEmpty) {
           itemName = category;
-          WasteAppLogger.info('Operation completed', null, null, {'service': 'ai', 'file': 'ai_service'});
+          WasteAppLogger.info(
+            'Falling back to category for itemName.',
+            null,
+            null,
+            {'category': itemName},
+          );
         }
-        
+
         // Last resort fallback
         if (itemName.isEmpty) {
-          itemName = 'Unidentified Item';
-          WasteAppLogger.info('Operation completed', null, null, {'service': 'ai', 'file': 'ai_service'});
+          itemName = 'Unidentified Item - Fallback';
+          WasteAppLogger.warning(
+            'Could not extract itemName from AI response; defaulting to "Unidentified Item".',
+            null,
+            null,
+            {'jsonContent': jsonContent},
+          );
         }
       }
 
@@ -1425,8 +1620,10 @@ Output:
       } else if (imagePath.contains('\\images\\')) {
         final index = imagePath.indexOf('\\images\\');
         imageRelativePath = imagePath.substring(index + 1).replaceAll('\\', '/');
-      } else if (imagePath.contains('.jpg') || imagePath.contains('.png') || 
-                 imagePath.contains('.jpeg') || imagePath.contains('.webp')) {
+      } else if (imagePath.contains('.jpg') ||
+          imagePath.contains('.png') ||
+          imagePath.contains('.jpeg') ||
+          imagePath.contains('.webp')) {
         final fileName = imagePath.split('/').last.split('\\').last;
         imageRelativePath = 'images/$fileName';
       }
@@ -1440,14 +1637,17 @@ Output:
         } else if (thumbnailPath.contains('\\thumbnails\\')) {
           final index = thumbnailPath.indexOf('\\thumbnails\\');
           thumbnailRelativePath = thumbnailPath.substring(index + 1).replaceAll('\\', '/');
-        } else if (thumbnailPath.contains('.jpg') || thumbnailPath.contains('.png') || 
-                   thumbnailPath.contains('.jpeg') || thumbnailPath.contains('.webp')) {
+        } else if (thumbnailPath.contains('.jpg') ||
+            thumbnailPath.contains('.png') ||
+            thumbnailPath.contains('.jpeg') ||
+            thumbnailPath.contains('.webp')) {
           final fileName = thumbnailPath.split('/').last.split('\\').last;
           thumbnailRelativePath = 'thumbnails/$fileName';
         }
       }
 
-      return WasteClassification(
+      // Create the classification with all fields
+      final classification = WasteClassification(
         id: classificationId,
         itemName: itemName,
         category: _safeStringParse(jsonContent['category']) ?? 'Requires Manual Review',
@@ -1485,16 +1685,50 @@ Output:
         processingTimeMs: _parseInt(jsonContent['processingTimeMs']),
         analysisSessionId: _safeStringParse(jsonContent['analysisSessionId']),
         disagreementReason: _safeStringParse(jsonContent['disagreementReason']),
-        pointsAwarded: _parseInt(jsonContent['pointsAwarded']) ?? 10, // Standard points for classification
         environmentalImpact: _safeStringParse(jsonContent['environmentalImpact']),
         relatedItems: _parseStringListSafely(jsonContent['relatedItems']),
         source: 'ai_analysis',
         reanalysisModelsTried: reanalysisModelsTried,
+        // Enhanced AI Analysis v2.0 fields
+        recyclability: _safeStringParse(jsonContent['recyclability']),
+        hazardLevel: _parseInt(jsonContent['hazardLevel']),
+        co2Impact: _parseDouble(jsonContent['co2Impact']),
+        decompositionTime: _safeStringParse(jsonContent['decompositionTime']),
+        properEquipment: _parseStringListSafely(jsonContent['properEquipment']),
+        materials: _parseStringListSafely(jsonContent['materials']),
+        subCategory: _safeStringParse(jsonContent['subCategory']),
+        commonUses: _parseStringListSafely(jsonContent['commonUses']),
+        alternativeOptions: _parseStringListSafely(jsonContent['alternativeOptions']),
+        localRegulations: _parseStringMapSafely(jsonContent['localRegulations']),
+        waterPollutionLevel: _parseInt(jsonContent['waterPollutionLevel']),
+        soilContaminationRisk: _parseInt(jsonContent['soilContaminationRisk']),
+        biodegradabilityDays: _parseInt(jsonContent['biodegradabilityDays']),
+        recyclingEfficiency: _parseInt(jsonContent['recyclingEfficiency']),
+        manufacturingEnergyFootprint: _parseDouble(jsonContent['manufacturingEnergyFootprint']),
+        transportationFootprint: _parseDouble(jsonContent['transportationFootprint']),
+        endOfLifeCost: _safeStringParse(jsonContent['endOfLifeCost']),
+        circularEconomyPotential: _parseStringListSafely(jsonContent['circularEconomyPotential']),
+        generatesMicroplastics: _parseBool(jsonContent['generatesMicroplastics']),
+        humanToxicityLevel: _parseInt(jsonContent['humanToxicityLevel']),
+        wildlifeImpactSeverity: _parseInt(jsonContent['wildlifeImpactSeverity']),
+        resourceScarcity: _safeStringParse(jsonContent['resourceScarcity']),
+        disposalCostEstimate: _parseDouble(jsonContent['disposalCostEstimate']),
+        bbmpComplianceStatus: _safeStringParse(jsonContent['bbmpComplianceStatus']),
+        localGuidelinesVersion: _safeStringParse(jsonContent['localGuidelinesVersion']),
       );
       
+      // Note: Local guidelines will be applied in the calling method since this is not async
+      // The classification will be enhanced with local guidelines after creation
+      
+      // Calculate dynamic points based on classification richness
+      final calculatedPoints = classification.calculatePoints();
+      
+      // Return classification with calculated points
+      return classification.copyWith(pointsAwarded: calculatedPoints);
     } catch (e) {
       WasteAppLogger.severe('Error occurred');
-      return _createFallbackClassification(jsonContent.toString(), imagePath, region, classificationId: classificationId);
+      return _createFallbackClassification(jsonContent.toString(), imagePath, region,
+          classificationId: classificationId);
     }
   }
 
@@ -1590,8 +1824,7 @@ Output:
     if (value == null) return null;
     if (value is Map) {
       return Map<String, double>.fromEntries(
-        value.entries.map((e) => MapEntry(e.key.toString(), _parseDouble(e.value) ?? 0.0))
-      );
+          value.entries.map((e) => MapEntry(e.key.toString(), _parseDouble(e.value) ?? 0.0)));
     }
     return null;
   }
@@ -1601,46 +1834,30 @@ Output:
     if (stepsString.trim().isEmpty) {
       return ['Please review manually'];
     }
-    
+
     var steps = <String>[];
-    
+
     // Try newline separation first
     if (stepsString.contains('\n')) {
-      steps = stepsString
-          .split('\n')
-          .map((step) => step.trim())
-          .where((step) => step.isNotEmpty)
-          .toList();
+      steps = stepsString.split('\n').map((step) => step.trim()).where((step) => step.isNotEmpty).toList();
     }
     // Try comma separation
     else if (stepsString.contains(',')) {
-      steps = stepsString
-          .split(',')
-          .map((step) => step.trim())
-          .where((step) => step.isNotEmpty)
-          .toList();
+      steps = stepsString.split(',').map((step) => step.trim()).where((step) => step.isNotEmpty).toList();
     }
     // Try semicolon separation
     else if (stepsString.contains(';')) {
-      steps = stepsString
-          .split(';')
-          .map((step) => step.trim())
-          .where((step) => step.isNotEmpty)
-          .toList();
+      steps = stepsString.split(';').map((step) => step.trim()).where((step) => step.isNotEmpty).toList();
     }
     // Try numbered list pattern (1. 2. 3.)
     else if (RegExp(r'\d+\.').hasMatch(stepsString)) {
-      steps = stepsString
-          .split(RegExp(r'\d+\.'))
-          .map((step) => step.trim())
-          .where((step) => step.isNotEmpty)
-          .toList();
+      steps = stepsString.split(RegExp(r'\d+\.')).map((step) => step.trim()).where((step) => step.isNotEmpty).toList();
     }
     // Single step
     else {
       steps = [stepsString.trim()];
     }
-    
+
     return steps.isNotEmpty ? steps : ['Please review manually'];
   }
 
@@ -1649,14 +1866,20 @@ Output:
   /// Attempts to extract basic information (itemName, category, explanation)
   /// from the raw content string using simple keyword matching and regex.
   /// Assigns moderate confidence and marks clarification as needed.
-  WasteClassification _createFallbackClassification(String content, String imagePath, String region, {String? classificationId}) {
-    WasteAppLogger.info('Operation completed', null, null, {'service': 'ai', 'file': 'ai_service'});
-    
+  WasteClassification _createFallbackClassification(String content, String imagePath, String region,
+      {String? classificationId}) {
+    WasteAppLogger.severe(
+      'Creating fallback classification due to JSON parsing error.',
+      null,
+      null,
+      {'rawContent': content, 'imagePath': imagePath, 'region': region},
+    );
+
     // Try to extract basic information from the text
-    var itemName = 'Unknown Item';
+    var itemName = 'Unknown Item - Fallback';
     var category = 'Dry Waste';
     var explanation = 'Classification extracted from partial AI response.';
-    
+
     // Basic text extraction
     final lines = content.split('\n');
     for (final line in lines) {
@@ -1685,7 +1908,7 @@ Output:
         }
       }
     }
-    
+
     return WasteClassification.fallback(
       imagePath,
       id: classificationId,
@@ -1704,7 +1927,7 @@ Output:
   Future<List<Map<String, dynamic>>> segmentImage(dynamic imageSource) async {
     try {
       Uint8List imageBytes;
-      
+
       // Handle different input types
       if (imageSource is File) {
         imageBytes = await imageSource.readAsBytes();
@@ -1731,7 +1954,7 @@ Output:
         for (var col = 0; col < segmentGridSize; col++) {
           final x = col * segmentWidth;
           final y = row * segmentHeight;
-          
+
           // Create segment data as Map<String, dynamic>
           final segment = <String, dynamic>{
             'id': row * segmentGridSize + col,
@@ -1741,10 +1964,11 @@ Output:
               'width': segmentWidth,
               'height': segmentHeight,
             },
-            'confidence': 0.8 + (0.2 * (row * segmentGridSize + col) / (segmentGridSize * segmentGridSize)), // Simulated confidence
+            'confidence': 0.8 +
+                (0.2 * (row * segmentGridSize + col) / (segmentGridSize * segmentGridSize)), // Simulated confidence
             'label': 'Object ${row * segmentGridSize + col + 1}',
           };
-          
+
           segments.add(segment);
         }
       }

@@ -5,7 +5,6 @@ import '../utils/constants.dart';
 
 /// Data model for chart data points
 class ChartData {
-  
   ChartData(this.label, this.value, this.color);
   final String label;
   final double value;
@@ -14,7 +13,6 @@ class ChartData {
 
 /// A pie chart widget for displaying waste category distribution with accessibility support
 class WasteCategoryPieChart extends StatelessWidget {
-  
   const WasteCategoryPieChart({
     super.key,
     required this.data,
@@ -24,7 +22,7 @@ class WasteCategoryPieChart extends StatelessWidget {
   final List<ChartData> data;
   final AnimationController animationController;
   final String? semanticsLabel;
-  
+
   @override
   Widget build(BuildContext context) {
     if (data.isEmpty) {
@@ -35,13 +33,13 @@ class WasteCategoryPieChart extends StatelessWidget {
         ),
       );
     }
-    
+
     // Calculate total for percentages
     final total = data.fold<double>(0, (sum, item) => sum + item.value);
-    
+
     // Create accessible description
     final accessibleDescription = _createAccessibleDescription(data, total);
-    
+
     return Semantics(
       label: semanticsLabel ?? 'Waste category distribution pie chart',
       value: accessibleDescription,
@@ -81,7 +79,7 @@ class WasteCategoryPieChart extends StatelessWidget {
                                 pieTouchResponse.touchedSection == null) {
                               return;
                             }
-                            
+
                             // Announce touched section for accessibility
                             final sectionIndex = pieTouchResponse.touchedSection!.touchedSectionIndex;
                             if (sectionIndex >= 0 && sectionIndex < data.length) {
@@ -100,7 +98,7 @@ class WasteCategoryPieChart extends StatelessWidget {
                 },
               ),
             ),
-            
+
             // Accessible legend
             const SizedBox(height: 16),
             _buildAccessibleLegend(data, total),
@@ -109,34 +107,32 @@ class WasteCategoryPieChart extends StatelessWidget {
       ),
     );
   }
-  
+
   String _createAccessibleDescription(List<ChartData> data, double total) {
-    final sortedData = List<ChartData>.from(data)
-      ..sort((a, b) => b.value.compareTo(a.value));
-    
+    final sortedData = List<ChartData>.from(data)..sort((a, b) => b.value.compareTo(a.value));
+
     final descriptions = sortedData.map((item) {
       final percentage = (item.value / total) * 100;
       return '${item.label}: ${item.value.toInt()} items (${percentage.toStringAsFixed(1)}%)';
     }).toList();
-    
+
     return 'Chart showing ${descriptions.join(', ')}';
   }
-  
+
   void _announceDetailedBreakdown(BuildContext context, List<ChartData> data, double total) {
-    final sortedData = List<ChartData>.from(data)
-      ..sort((a, b) => b.value.compareTo(a.value));
-    
+    final sortedData = List<ChartData>.from(data)..sort((a, b) => b.value.compareTo(a.value));
+
     final announcement = sortedData.map((item) {
       final percentage = (item.value / total) * 100;
       return '${item.label}: ${item.value.toInt()} items, ${percentage.toStringAsFixed(1)} percent';
     }).join('. ');
-    
+
     SemanticsService.announce(
       'Detailed breakdown: $announcement',
       TextDirection.ltr,
     );
   }
-  
+
   Widget _buildAccessibleLegend(List<ChartData> data, double total) {
     return Semantics(
       label: 'Chart legend',
@@ -171,7 +167,6 @@ class WasteCategoryPieChart extends StatelessWidget {
 
 /// A bar chart widget for displaying subcategories with accessibility support
 class TopSubcategoriesBarChart extends StatelessWidget {
-  
   const TopSubcategoriesBarChart({
     super.key,
     required this.data,
@@ -181,7 +176,7 @@ class TopSubcategoriesBarChart extends StatelessWidget {
   final List<ChartData> data;
   final AnimationController animationController;
   final String? semanticsLabel;
-  
+
   @override
   Widget build(BuildContext context) {
     if (data.isEmpty) {
@@ -192,17 +187,16 @@ class TopSubcategoriesBarChart extends StatelessWidget {
         ),
       );
     }
-    
+
     // Sort data by value (descending)
-    final sortedData = List<ChartData>.from(data)
-      ..sort((a, b) => b.value.compareTo(a.value));
-    
+    final sortedData = List<ChartData>.from(data)..sort((a, b) => b.value.compareTo(a.value));
+
     // Calculate the maximum value for scaling
     final maxValue = sortedData.map((item) => item.value).reduce((a, b) => a > b ? a : b);
-    
+
     // Create accessible description
     final accessibleDescription = _createAccessibleDescription(sortedData);
-    
+
     return Semantics(
       label: semanticsLabel ?? 'Top subcategories bar chart',
       value: accessibleDescription,
@@ -226,14 +220,14 @@ class TopSubcategoriesBarChart extends StatelessWidget {
                           touchTooltipData: BarTouchTooltipData(
                             getTooltipItem: (group, groupIndex, rod, rodIndex) {
                               if (groupIndex >= sortedData.length) return null;
-                              
+
                               final item = sortedData[groupIndex];
                               // Announce touched bar for accessibility
                               SemanticsService.announce(
                                 '${item.label}: ${rod.toY.toInt()} items',
                                 TextDirection.ltr,
                               );
-                              
+
                               return BarTooltipItem(
                                 '${item.label}\n',
                                 const TextStyle(
@@ -263,13 +257,11 @@ class TopSubcategoriesBarChart extends StatelessWidget {
                                 if (value >= sortedData.length || value < 0) {
                                   return const SizedBox.shrink();
                                 }
-                                
+
                                 final label = sortedData[value.toInt()].label;
                                 // Truncate long labels
-                                final displayLabel = label.length > 10 
-                                    ? '${label.substring(0, 7)}...' 
-                                    : label;
-                                    
+                                final displayLabel = label.length > 10 ? '${label.substring(0, 7)}...' : label;
+
                                 return SideTitleWidget(
                                   axisSide: meta.axisSide,
                                   child: Text(
@@ -292,7 +284,7 @@ class TopSubcategoriesBarChart extends StatelessWidget {
                                 if (value == 0) {
                                   return const SizedBox.shrink();
                                 }
-                                
+
                                 return SideTitleWidget(
                                   axisSide: meta.axisSide,
                                   child: Text(
@@ -345,7 +337,7 @@ class TopSubcategoriesBarChart extends StatelessWidget {
                 },
               ),
             ),
-            
+
             // Accessible data table
             const SizedBox(height: 16),
             _buildAccessibleDataTable(sortedData),
@@ -354,26 +346,22 @@ class TopSubcategoriesBarChart extends StatelessWidget {
       ),
     );
   }
-  
+
   String _createAccessibleDescription(List<ChartData> sortedData) {
-    final topItems = sortedData.take(3).map((item) => 
-      '${item.label}: ${item.value.toInt()} items'
-    ).toList();
-    
+    final topItems = sortedData.take(3).map((item) => '${item.label}: ${item.value.toInt()} items').toList();
+
     return 'Bar chart showing top subcategories: ${topItems.join(', ')}';
   }
-  
+
   void _announceDetailedBreakdown(BuildContext context, List<ChartData> sortedData) {
-    final announcement = sortedData.map((item) => 
-      '${item.label}: ${item.value.toInt()} items'
-    ).join('. ');
-    
+    final announcement = sortedData.map((item) => '${item.label}: ${item.value.toInt()} items').join('. ');
+
     SemanticsService.announce(
       'Detailed breakdown: $announcement',
       TextDirection.ltr,
     );
   }
-  
+
   Widget _buildAccessibleDataTable(List<ChartData> sortedData) {
     return Semantics(
       label: 'Data table for subcategories',
@@ -413,33 +401,33 @@ class TopSubcategoriesBarChart extends StatelessWidget {
                 ],
               ),
             ),
-            
+
             // Data rows
             ...sortedData.map((item) => Semantics(
-              label: '${item.label}: ${item.value.toInt()} items',
-              child: Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  border: Border(
-                    top: BorderSide(color: Colors.grey.shade300),
-                  ),
-                ),
-                child: Row(
-                  children: [
-                    Expanded(
-                      flex: 2,
-                      child: Text(item.label),
-                    ),
-                    Expanded(
-                      child: Text(
-                        item.value.toInt().toString(),
-                        textAlign: TextAlign.right,
+                  label: '${item.label}: ${item.value.toInt()} items',
+                  child: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      border: Border(
+                        top: BorderSide(color: Colors.grey.shade300),
                       ),
                     ),
-                  ],
-                ),
-              ),
-            )),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          flex: 2,
+                          child: Text(item.label),
+                        ),
+                        Expanded(
+                          child: Text(
+                            item.value.toInt().toString(),
+                            textAlign: TextAlign.right,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                )),
           ],
         ),
       ),
@@ -449,7 +437,6 @@ class TopSubcategoriesBarChart extends StatelessWidget {
 
 /// Weekly items chart with accessibility support
 class WeeklyItemsChart extends StatelessWidget {
-  
   const WeeklyItemsChart({
     super.key,
     required this.data,
@@ -459,7 +446,7 @@ class WeeklyItemsChart extends StatelessWidget {
   final List<ChartData> data;
   final AnimationController animationController;
   final String? semanticsLabel;
-  
+
   @override
   Widget build(BuildContext context) {
     if (data.isEmpty) {
@@ -470,13 +457,13 @@ class WeeklyItemsChart extends StatelessWidget {
         ),
       );
     }
-    
+
     // Calculate the maximum value for scaling
     final maxValue = data.map((item) => item.value).reduce((a, b) => a > b ? a : b);
-    
+
     // Create accessible description
     final accessibleDescription = _createAccessibleDescription(data);
-    
+
     return Semantics(
       label: semanticsLabel ?? 'Weekly items chart',
       value: accessibleDescription,
@@ -500,14 +487,14 @@ class WeeklyItemsChart extends StatelessWidget {
                           touchTooltipData: BarTouchTooltipData(
                             getTooltipItem: (group, groupIndex, rod, rodIndex) {
                               if (groupIndex >= data.length) return null;
-                              
+
                               final item = data[groupIndex];
                               // Announce touched bar for accessibility
                               SemanticsService.announce(
                                 '${item.label}: ${rod.toY.toInt()} items',
                                 TextDirection.ltr,
                               );
-                              
+
                               return BarTooltipItem(
                                 '${item.label}\n',
                                 const TextStyle(
@@ -537,7 +524,7 @@ class WeeklyItemsChart extends StatelessWidget {
                                 if (value >= data.length || value < 0) {
                                   return const SizedBox.shrink();
                                 }
-                                
+
                                 return SideTitleWidget(
                                   axisSide: meta.axisSide,
                                   child: Text(
@@ -559,7 +546,7 @@ class WeeklyItemsChart extends StatelessWidget {
                                 if (value == 0) {
                                   return const SizedBox.shrink();
                                 }
-                                
+
                                 return SideTitleWidget(
                                   axisSide: meta.axisSide,
                                   child: Text(
@@ -612,7 +599,7 @@ class WeeklyItemsChart extends StatelessWidget {
                 },
               ),
             ),
-            
+
             // Accessible summary
             const SizedBox(height: 16),
             _buildAccessibleSummary(data),
@@ -621,29 +608,27 @@ class WeeklyItemsChart extends StatelessWidget {
       ),
     );
   }
-  
+
   String _createAccessibleDescription(List<ChartData> data) {
     final totalItems = data.fold<double>(0, (sum, item) => sum + item.value);
     final topDay = data.reduce((a, b) => a.value > b.value ? a : b);
-    
+
     return 'Weekly chart showing ${totalItems.toInt()} total items. Highest day: ${topDay.label} with ${topDay.value.toInt()} items';
   }
-  
+
   void _announceDetailedBreakdown(BuildContext context, List<ChartData> data) {
-    final announcement = data.map((item) => 
-      '${item.label}: ${item.value.toInt()} items'
-    ).join('. ');
-    
+    final announcement = data.map((item) => '${item.label}: ${item.value.toInt()} items').join('. ');
+
     SemanticsService.announce(
       'Weekly breakdown: $announcement',
       TextDirection.ltr,
     );
   }
-  
+
   Widget _buildAccessibleSummary(List<ChartData> data) {
     final totalItems = data.fold<double>(0, (sum, item) => sum + item.value);
     final averageItems = totalItems / data.length;
-    
+
     return Semantics(
       label: 'Weekly summary',
       child: Container(
@@ -672,7 +657,6 @@ class WeeklyItemsChart extends StatelessWidget {
 
 /// A line chart widget for displaying waste generation over time
 class WasteTimeSeriesChart extends StatelessWidget {
-
   const WasteTimeSeriesChart({
     super.key,
     required this.data,
@@ -680,7 +664,7 @@ class WasteTimeSeriesChart extends StatelessWidget {
   });
   final List<ChartData> data;
   final AnimationController animationController;
-  
+
   @override
   Widget build(BuildContext context) {
     if (data.isEmpty) {
@@ -688,10 +672,10 @@ class WasteTimeSeriesChart extends StatelessWidget {
         child: Text('No data available'),
       );
     }
-    
+
     // Calculate the maximum value for scaling
     final maxValue = data.map((item) => item.value).reduce((a, b) => a > b ? a : b);
-    
+
     return AnimatedBuilder(
       animation: animationController,
       builder: (context, child) {
@@ -816,7 +800,7 @@ class WasteTimeSeriesChart extends StatelessWidget {
                 ),
                 belowBarData: BarAreaData(
                   show: true,
-                  color: AppTheme.primaryColor.withValues(alpha:0.2),
+                  color: AppTheme.primaryColor.withValues(alpha: 0.2),
                 ),
               ),
             ],
@@ -829,7 +813,6 @@ class WasteTimeSeriesChart extends StatelessWidget {
 
 /// A stacked area chart for displaying category distribution over time
 class CategoryDistributionChart extends StatelessWidget {
-  
   const CategoryDistributionChart({
     super.key,
     required this.data,
@@ -837,7 +820,7 @@ class CategoryDistributionChart extends StatelessWidget {
   });
   final List<Map<String, dynamic>> data;
   final AnimationController animationController;
-  
+
   @override
   Widget build(BuildContext context) {
     if (data.isEmpty) {
@@ -845,10 +828,10 @@ class CategoryDistributionChart extends StatelessWidget {
         child: Text('No data available'),
       );
     }
-    
+
     // Get all category keys excluding 'month'
     final categories = data.first.keys.where((key) => key != 'month').toList();
-    
+
     return AnimatedBuilder(
       animation: animationController,
       builder: (context, child) {
@@ -861,12 +844,12 @@ class CategoryDistributionChart extends StatelessWidget {
                   return touchedSpots.map((spot) {
                     final lineIndex = touchedSpots.indexOf(spot);
                     final itemIndex = spot.x.toInt();
-                    
+
                     if (itemIndex >= 0 && itemIndex < data.length && lineIndex < categories.length) {
                       final category = categories[lineIndex];
                       final month = data[itemIndex]['month'] as String;
                       final value = data[itemIndex][category] as double;
-                      
+
                       return LineTooltipItem(
                         '$category\n',
                         const TextStyle(
@@ -901,7 +884,7 @@ class CategoryDistributionChart extends StatelessWidget {
                     if (index < 0 || index >= data.length) {
                       return const SizedBox.shrink();
                     }
-                    
+
                     return SideTitleWidget(
                       axisSide: meta.axisSide,
                       child: Text(
@@ -958,13 +941,13 @@ class CategoryDistributionChart extends StatelessWidget {
       },
     );
   }
-  
+
   List<LineChartBarData> _createStackedAreaData(List<String> categories) {
     final result = <LineChartBarData>[];
-    
+
     // Track cumulative values for stacking
     final cumulativeValues = <int, double>{};
-    
+
     // Get colors for categories
     final categoryColors = <String, Color>{
       'Wet Waste': AppTheme.wetWasteColor,
@@ -973,29 +956,29 @@ class CategoryDistributionChart extends StatelessWidget {
       'Medical Waste': AppTheme.medicalWasteColor,
       'Non-Waste': AppTheme.nonWasteColor,
     };
-    
+
     // Create a line for each category
     for (var i = 0; i < categories.length; i++) {
       final category = categories[i];
       final color = categoryColors[category] ?? Colors.grey;
-      
+
       final spots = <FlSpot>[];
-      
+
       for (var j = 0; j < data.length; j++) {
         final value = data[j][category] as double;
         // Get previous cumulative value or 0
         final prevCumulative = cumulativeValues[j] ?? 0.0;
-        
+
         // Current value is previous cumulative plus this value
         final currentValue = prevCumulative + value;
-        
+
         // Save current cumulative value for next category
         cumulativeValues[j] = currentValue;
-        
+
         // Add spot with stacked value
         spots.add(FlSpot(j.toDouble(), currentValue * animationController.value));
       }
-      
+
       result.add(
         LineChartBarData(
           spots: spots,
@@ -1005,19 +988,15 @@ class CategoryDistributionChart extends StatelessWidget {
           dotData: const FlDotData(show: false),
           belowBarData: BarAreaData(
             show: true,
-            color: color.withValues(alpha:0.7),
+            color: color.withValues(alpha: 0.7),
             // For area below, we need the previous category's value
-            cutOffY: i > 0 
-                ? (result[i - 1].spots.isNotEmpty ? result[i - 1].spots.last.y : 0.0)
-                : 0.0,
+            cutOffY: i > 0 ? (result[i - 1].spots.isNotEmpty ? result[i - 1].spots.last.y : 0.0) : 0.0,
             applyCutOffY: true,
           ),
         ),
       );
     }
-    
+
     return result;
   }
 }
-
-

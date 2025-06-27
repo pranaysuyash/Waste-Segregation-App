@@ -34,159 +34,147 @@ void main() {
       await storageService.clearClassifications();
 
       // When: User makes their first classification
-      final classification = WasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
+      final classification = WasteClassification(
         itemName: 'Plastic Bottle',
+        category: 'plastic',
         subcategory: 'Recyclable Plastic',
-        isRecyclable: true,
-        isCompostable: false,
-        requiresSpecialDisposal: false,
-            region: 'Test Region',
-            visualFeatures: ['test feature'],
-            alternatives: [],
-        timestamp: DateTime(2023, 1, 1, 10),
-        imageUrl: 'test.jpg',
-        confidence: 0.95,
-        alternatives: const [],
-        region: 'US',
-        visualFeatures: const [],
-        hasUrgentTimeframe: false,
         explanation: 'Test classification',
+        region: 'US',
+        visualFeatures: const ['test feature'],
+        alternatives: const [],
         disposalInstructions: DisposalInstructions(
           primaryMethod: 'Recycle',
           steps: const ['Clean item', 'Place in recycling bin'],
           hasUrgentTimeframe: false,
         ),
+        timestamp: DateTime(2023, 1, 1, 10),
+        imageUrl: 'test.jpg',
+        confidence: 0.95,
+        isRecyclable: true,
+        isCompostable: false,
+        requiresSpecialDisposal: false,
+        hasUrgentTimeframe: false,
       );
 
       await gamificationService.processClassification(classification);
 
       // Then: First classification achievement should be unlocked
       final profile = await gamificationService.getProfile();
-      final firstClassificationAchievement = profile.achievements
-          .firstWhere((a) => a.id == 'first_classification');
-      
+      final firstClassificationAchievement = profile.achievements.firstWhere((a) => a.id == 'first_classification');
+
       expect(firstClassificationAchievement.isEarned, true);
     });
 
     test('Should unlock "Recycling Expert" achievement after 50 recyclable items', () async {
       // Given: 49 previous recyclable classifications
       await storageService.clearClassifications();
-      
+
       for (var i = 0; i < 49; i++) {
-        final classification = WasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
+        final classification = WasteClassification(
           itemName: 'Recyclable Item $i',
+          category: 'plastic',
           subcategory: 'Recyclable',
-          isRecyclable: true,
-          isCompostable: false,
-          requiresSpecialDisposal: false,
-            region: 'Test Region',
-            visualFeatures: ['test feature'],
-            alternatives: [],
-          timestamp: DateTime(2023, 1, 1, 10),
-          imageUrl: 'test.jpg',
-          confidence: 0.95,
-          alternatives: const [],
-          region: 'US',
-          visualFeatures: const [],
-          hasUrgentTimeframe: false,
           explanation: 'Test classification',
+          region: 'US',
+          visualFeatures: const ['test feature'],
+          alternatives: const [],
           disposalInstructions: DisposalInstructions(
             primaryMethod: 'Recycle',
             steps: const ['Clean item', 'Place in recycling bin'],
             hasUrgentTimeframe: false,
           ),
+          timestamp: DateTime(2023, 1, 1, 10),
+          imageUrl: 'test.jpg',
+          confidence: 0.95,
+          isRecyclable: true,
+          isCompostable: false,
+          requiresSpecialDisposal: false,
+          hasUrgentTimeframe: false,
         );
         await gamificationService.processClassification(classification);
       }
 
       // When: User classifies their 50th recyclable item
-      final finalClassification = WasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
+      final finalClassification = WasteClassification(
         itemName: 'Final Recyclable',
+        category: 'plastic',
         subcategory: 'Recyclable',
-        isRecyclable: true,
-        isCompostable: false,
-        requiresSpecialDisposal: false,
-            region: 'Test Region',
-            visualFeatures: ['test feature'],
-            alternatives: [],
-        timestamp: DateTime(2023, 1, 1, 11),
-        imageUrl: 'test.jpg',
-        confidence: 0.95,
-        alternatives: const [],
-        region: 'US',
-        visualFeatures: const [],
-        hasUrgentTimeframe: false,
         explanation: 'Test classification',
+        region: 'US',
+        visualFeatures: const ['test feature'],
+        alternatives: const [],
         disposalInstructions: DisposalInstructions(
           primaryMethod: 'Recycle',
           steps: const ['Clean item', 'Place in recycling bin'],
           hasUrgentTimeframe: false,
         ),
+        timestamp: DateTime(2023, 1, 1, 11),
+        imageUrl: 'test.jpg',
+        confidence: 0.95,
+        isRecyclable: true,
+        isCompostable: false,
+        requiresSpecialDisposal: false,
+        hasUrgentTimeframe: false,
       );
 
       await gamificationService.processClassification(finalClassification);
 
       // Then: Recycling Expert achievement should be unlocked
       final profile = await gamificationService.getProfile();
-      final recyclingExpertAchievement = profile.achievements
-          .firstWhere((a) => a.id == 'recycling_expert');
-      
+      final recyclingExpertAchievement = profile.achievements.firstWhere((a) => a.id == 'recycling_expert');
+
       expect(recyclingExpertAchievement.isEarned, true);
     });
 
     test('Should award different points based on classification type', () async {
       await storageService.clearClassifications();
-      
+
       final initialProfile = await gamificationService.getProfile();
       final initialPoints = initialProfile.points.total;
 
       // Test various classification types and their point values
       final classifications = [
-        WasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
+        WasteClassification(
           itemName: 'Compost',
+          category: 'plastic',
           subcategory: 'Organic',
-          isRecyclable: false,
-          isCompostable: true,
-          requiresSpecialDisposal: false,
-            region: 'Test Region',
-            visualFeatures: ['test feature'],
-            alternatives: [],
-          timestamp: DateTime(2023, 1, 1, 10),
-          imageUrl: 'test.jpg',
-          confidence: 0.95,
-          alternatives: const [],
-          region: 'US',
-          visualFeatures: const [],
-          hasUrgentTimeframe: false,
           explanation: 'Test classification',
+          region: 'US',
+          visualFeatures: const ['test feature'],
+          alternatives: const [],
           disposalInstructions: DisposalInstructions(
             primaryMethod: 'Compost',
             steps: const ['Add to compost bin'],
             hasUrgentTimeframe: false,
           ),
-        ),
-        WasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
-          itemName: 'Battery',
-          subcategory: 'Electronic Waste',
-          isRecyclable: false,
-          isCompostable: false,
-          requiresSpecialDisposal: true,
-            region: 'Test Region',
-            visualFeatures: ['test feature'],
-            alternatives: [],
-          timestamp: DateTime(2023, 1, 1, 11),
+          timestamp: DateTime(2023, 1, 1, 10),
           imageUrl: 'test.jpg',
           confidence: 0.95,
-          alternatives: const [],
-          region: 'US',
-          visualFeatures: const [],
+          isRecyclable: false,
+          isCompostable: true,
+          requiresSpecialDisposal: false,
           hasUrgentTimeframe: false,
+        ),
+        WasteClassification(
+          itemName: 'Battery',
+          category: 'plastic',
+          subcategory: 'Electronic Waste',
           explanation: 'Test classification',
+          region: 'US',
+          visualFeatures: const ['test feature'],
+          alternatives: const [],
           disposalInstructions: DisposalInstructions(
             primaryMethod: 'Special disposal',
             steps: const ['Take to hazardous waste facility'],
             hasUrgentTimeframe: false,
           ),
+          timestamp: DateTime(2023, 1, 1, 11),
+          imageUrl: 'test.jpg',
+          confidence: 0.95,
+          isRecyclable: false,
+          isCompostable: false,
+          requiresSpecialDisposal: true,
+          hasUrgentTimeframe: false,
         ),
       ];
 
@@ -195,84 +183,78 @@ void main() {
       }
 
       final finalProfile = await gamificationService.getProfile();
-      
+
       // Points should have increased
       expect(finalProfile.points.total, greaterThan(initialPoints));
     });
 
     test('Should maintain streak with consecutive daily classifications', () async {
       await storageService.clearClassifications();
-      
+
       // Simulate classifications on consecutive days
-      final classification1 = WasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
+      final classification1 = WasteClassification(
         itemName: 'Day 1 Item',
+        category: 'plastic',
         subcategory: 'Recyclable',
-        isRecyclable: true,
-        isCompostable: false,
-        requiresSpecialDisposal: false,
-            region: 'Test Region',
-            visualFeatures: ['test feature'],
-            alternatives: [],
+        explanation: 'Test classification',
+        region: 'US',
+        visualFeatures: const ['test feature'],
+        alternatives: const [],
+        disposalInstructions: DisposalInstructions(
+          primaryMethod: 'Recycle',
+          steps: const ['Clean item', 'Place in recycling bin'],
+          hasUrgentTimeframe: false,
+        ),
         timestamp: DateTime(2023, 1, 1, 10),
         imageUrl: 'test.jpg',
         confidence: 0.95,
-        alternatives: const [],
-        region: 'US',
-        visualFeatures: const [],
+        isRecyclable: true,
+        isCompostable: false,
+        requiresSpecialDisposal: false,
         hasUrgentTimeframe: false,
+      );
+      final classification2 = WasteClassification(
+        itemName: 'Day 2 Item',
+        category: 'plastic',
+        subcategory: 'Recyclable',
         explanation: 'Test classification',
+        region: 'US',
+        visualFeatures: const ['test feature'],
+        alternatives: const [],
         disposalInstructions: DisposalInstructions(
           primaryMethod: 'Recycle',
           steps: const ['Clean item', 'Place in recycling bin'],
           hasUrgentTimeframe: false,
         ),
-      );
-      final classification2 = WasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
-        itemName: 'Day 2 Item',
-        subcategory: 'Recyclable',
-        isRecyclable: true,
-        isCompostable: false,
-        requiresSpecialDisposal: false,
-            region: 'Test Region',
-            visualFeatures: ['test feature'],
-            alternatives: [],
         timestamp: DateTime(2023, 1, 2, 10),
         imageUrl: 'test.jpg',
         confidence: 0.95,
-        alternatives: const [],
-        region: 'US',
-        visualFeatures: const [],
-        hasUrgentTimeframe: false,
-        explanation: 'Test classification',
-        disposalInstructions: DisposalInstructions(
-          primaryMethod: 'Recycle',
-          steps: const ['Clean item', 'Place in recycling bin'],
-          hasUrgentTimeframe: false,
-        ),
-      );
-
-      final classification3 = WasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
-        itemName: 'Day 3 Item',
-        subcategory: 'Recyclable',
         isRecyclable: true,
         isCompostable: false,
         requiresSpecialDisposal: false,
-            region: 'Test Region',
-            visualFeatures: ['test feature'],
-            alternatives: [],
-        timestamp: DateTime(2023, 1, 3, 10),
-        imageUrl: 'test.jpg',
-        confidence: 0.95,
-        alternatives: const [],
-        region: 'US',
-        visualFeatures: const [],
         hasUrgentTimeframe: false,
+      );
+
+      final classification3 = WasteClassification(
+        itemName: 'Day 3 Item',
+        category: 'plastic',
+        subcategory: 'Recyclable',
         explanation: 'Test classification',
+        region: 'US',
+        visualFeatures: const ['test feature'],
+        alternatives: const [],
         disposalInstructions: DisposalInstructions(
           primaryMethod: 'Recycle',
           steps: const ['Clean item', 'Place in recycling bin'],
           hasUrgentTimeframe: false,
         ),
+        timestamp: DateTime(2023, 1, 3, 10),
+        imageUrl: 'test.jpg',
+        confidence: 0.95,
+        isRecyclable: true,
+        isCompostable: false,
+        requiresSpecialDisposal: false,
+        hasUrgentTimeframe: false,
       );
 
       await gamificationService.processClassification(classification1);
@@ -280,10 +262,10 @@ void main() {
       await gamificationService.processClassification(classification3);
 
       final profile = await gamificationService.getProfile();
-      
+
       // Streak should reflect consecutive classifications
       final dailyStreak = profile.streaks[StreakType.dailyClassification.toString()];
       expect(dailyStreak?.currentCount ?? 0, greaterThanOrEqualTo(1));
     });
   });
-} 
+}

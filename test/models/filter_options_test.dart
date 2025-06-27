@@ -91,7 +91,7 @@ void main() {
         expect(filterOptions.isEmpty, false);
         expect(filterOptions.isNotEmpty, true);
       });
-       test('isEmpty should be false if subcategories are set', () {
+      test('isEmpty should be false if subcategories are set', () {
         final filterOptions = FilterOptions(subcategories: ['bottle']);
         expect(filterOptions.isEmpty, false);
         expect(filterOptions.isNotEmpty, true);
@@ -203,12 +203,11 @@ void main() {
 
       test('toString with multiple filters', () {
         final options = FilterOptions(
-          searchText: 'bottle',
-          categories: ['plastic', 'glass'],
-          isRecyclable: true,
-          startDate: DateTime(2024, 1),
-          endDate: DateTime(2024,1,31)
-        );
+            searchText: 'bottle',
+            categories: ['plastic', 'glass'],
+            isRecyclable: true,
+            startDate: DateTime(2024, 1),
+            endDate: DateTime(2024, 1, 31));
         // Basic check, exact format might vary slightly based on implementation details not shown
         // For example, date formatting.
         // The model's _formatDate is 'day/month/year'
@@ -218,7 +217,7 @@ void main() {
         expect(options.toString(), contains('Date Range: 1/1/2024 to 31/1/2024'));
       });
 
-       test('toString with only searchText', () {
+      test('toString with only searchText', () {
         final options = FilterOptions(searchText: 'keyword');
         expect(options.toString(), 'Search: "keyword"');
       });
@@ -242,7 +241,7 @@ void main() {
         final options = FilterOptions(isCompostable: false);
         expect(options.toString(), 'Compostable: No');
       });
-       test('toString with only requiresSpecialDisposal true', () {
+      test('toString with only requiresSpecialDisposal true', () {
         final options = FilterOptions(requiresSpecialDisposal: true);
         expect(options.toString(), 'Special Disposal: Yes');
       });

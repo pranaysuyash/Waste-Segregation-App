@@ -131,7 +131,7 @@ void main() {
         };
 
         final feedItem = CommunityFeedItem.fromJson(json);
-        
+
         expect(feedItem.id, equals('feed_item_123'));
         expect(feedItem.userId, equals('user_456'));
         expect(feedItem.userName, equals('Anonymous User')); // Default value
@@ -159,7 +159,7 @@ void main() {
         };
 
         final feedItem = CommunityFeedItem.fromJson(json);
-        
+
         // Should default to classification for invalid activity type
         expect(feedItem.activityType, equals(CommunityActivityType.classification));
       });
@@ -176,7 +176,7 @@ void main() {
         };
 
         final feedItem = CommunityFeedItem.fromJson(json);
-        
+
         // Should use current time for invalid timestamp
         expect(feedItem.timestamp, isA<DateTime>());
         expect(feedItem.timestamp.difference(DateTime.now()).inMinutes, lessThan(1));
@@ -282,7 +282,7 @@ void main() {
 
       test('should return correct relative time strings', () {
         final now = DateTime.now();
-        
+
         // Just now
         final justNow = CommunityFeedItem(
           id: 'test',
@@ -486,7 +486,7 @@ void main() {
         };
 
         final stats = CommunityStats.fromJson(json);
-        
+
         expect(stats.totalUsers, equals(100));
         expect(stats.totalClassifications, equals(500));
         expect(stats.totalPoints, equals(0)); // Default value
@@ -514,12 +514,12 @@ void main() {
         );
 
         final topCategories = stats.topCategories;
-        
+
         expect(topCategories.length, equals(5)); // Top 5 categories
-        
+
         final categories = topCategories.keys.toList();
         final values = topCategories.values.toList();
-        
+
         // Should be sorted in descending order
         expect(categories[0], equals('Dry Waste'));
         expect(values[0], equals(400));
@@ -531,7 +531,7 @@ void main() {
         expect(values[3], equals(100));
         expect(categories[4], equals('E-Waste'));
         expect(values[4], equals(50));
-        
+
         // 'Other' should not be included as it's 6th
         expect(categories.contains('Other'), isFalse);
       });
@@ -608,7 +608,7 @@ void main() {
 
       test('should handle very long strings', () {
         final longString = 'A' * 1000;
-        
+
         final feedItem = CommunityFeedItem(
           id: longString,
           userId: longString,
@@ -627,7 +627,7 @@ void main() {
 
       test('should handle future timestamps', () {
         final futureDate = DateTime.now().add(const Duration(days: 365));
-        
+
         final feedItem = CommunityFeedItem(
           id: 'test',
           userId: 'user',

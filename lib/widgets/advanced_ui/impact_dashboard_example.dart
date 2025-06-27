@@ -14,11 +14,11 @@ class _WasteImpactDashboardState extends State<WasteImpactDashboard> {
   // Sample data - in a real app, this would come from your data services
   double wasteItemsClassified = 47.0;
   double monthlyTarget = 100.0;
-  
+
   @override
   Widget build(BuildContext context) {
     final progress = wasteItemsClassified / monthlyTarget;
-    
+
     return Scaffold(
       backgroundColor: WasteAppDesignSystem.lightGray,
       appBar: AppBar(
@@ -50,9 +50,9 @@ class _WasteImpactDashboardState extends State<WasteImpactDashboard> {
                 milestones: _buildWasteMilestones(),
               ),
             ),
-            
+
             const SizedBox(height: WasteAppDesignSystem.spacingXL),
-            
+
             // Secondary Impact Rings Grid
             Row(
               children: [
@@ -79,9 +79,9 @@ class _WasteImpactDashboardState extends State<WasteImpactDashboard> {
                 ),
               ],
             ),
-            
+
             const SizedBox(height: WasteAppDesignSystem.spacingL),
-            
+
             Row(
               children: [
                 Expanded(
@@ -107,9 +107,9 @@ class _WasteImpactDashboardState extends State<WasteImpactDashboard> {
                 ),
               ],
             ),
-            
+
             const SizedBox(height: WasteAppDesignSystem.spacingXL),
-            
+
             // Impact Summary Card
             _buildImpactSummaryCard(),
           ],
@@ -117,7 +117,7 @@ class _WasteImpactDashboardState extends State<WasteImpactDashboard> {
       ),
     );
   }
-  
+
   List<ImpactMilestone> _buildWasteMilestones() {
     return [
       ImpactMilestone(
@@ -154,7 +154,7 @@ class _WasteImpactDashboardState extends State<WasteImpactDashboard> {
       ),
     ];
   }
-  
+
   Widget _buildSecondaryImpactCard(
     String title,
     double currentValue,
@@ -164,12 +164,10 @@ class _WasteImpactDashboardState extends State<WasteImpactDashboard> {
     IconData icon,
   ) {
     final progress = currentValue / targetValue;
-    
+
     return Container(
       padding: const EdgeInsets.all(WasteAppDesignSystem.spacingM),
-      decoration: WasteAppDesignSystem.getCardDecoration(
-        
-      ),
+      decoration: WasteAppDesignSystem.getCardDecoration(),
       child: Column(
         children: [
           Row(
@@ -184,15 +182,15 @@ class _WasteImpactDashboardState extends State<WasteImpactDashboard> {
                 child: Text(
                   title,
                   style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
+                        fontWeight: FontWeight.bold,
+                      ),
                 ),
               ),
             ],
           ),
-          
+
           const SizedBox(height: WasteAppDesignSystem.spacingM),
-          
+
           // Mini impact ring
           SizedBox(
             width: 80,
@@ -208,20 +206,20 @@ class _WasteImpactDashboardState extends State<WasteImpactDashboard> {
               subtitle: '',
             ),
           ),
-          
+
           const SizedBox(height: WasteAppDesignSystem.spacingS),
-          
+
           Text(
             '${currentValue.toStringAsFixed(1)} $unit',
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: WasteAppDesignSystem.darkGray,
-            ),
+                  color: WasteAppDesignSystem.darkGray,
+                ),
           ),
         ],
       ),
     );
   }
-  
+
   Widget _buildImpactSummaryCard() {
     return Container(
       width: double.infinity,
@@ -244,14 +242,14 @@ class _WasteImpactDashboardState extends State<WasteImpactDashboard> {
               Text(
                 'Your Environmental Impact',
                 style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
+                      fontWeight: FontWeight.bold,
+                    ),
               ),
             ],
           ),
-          
+
           const SizedBox(height: WasteAppDesignSystem.spacingM),
-          
+
           _buildImpactStat(
             'Total Items Classified',
             '${wasteItemsClassified.toInt()}',
@@ -259,9 +257,9 @@ class _WasteImpactDashboardState extends State<WasteImpactDashboard> {
             Icons.recycling,
             WasteAppDesignSystem.primaryGreen,
           ),
-          
+
           const SizedBox(height: WasteAppDesignSystem.spacingM),
-          
+
           _buildImpactStat(
             'Environmental Savings',
             '23.5 kg CO₂',
@@ -269,9 +267,9 @@ class _WasteImpactDashboardState extends State<WasteImpactDashboard> {
             Icons.eco,
             WasteAppDesignSystem.wetWasteColor,
           ),
-          
+
           const SizedBox(height: WasteAppDesignSystem.spacingM),
-          
+
           _buildImpactStat(
             'Community Contribution',
             'Top 15%',
@@ -279,9 +277,9 @@ class _WasteImpactDashboardState extends State<WasteImpactDashboard> {
             Icons.group,
             WasteAppDesignSystem.secondaryGreen,
           ),
-          
+
           const SizedBox(height: WasteAppDesignSystem.spacingL),
-          
+
           // Call to action
           Container(
             width: double.infinity,
@@ -305,9 +303,9 @@ class _WasteImpactDashboardState extends State<WasteImpactDashboard> {
                   child: Text(
                     'Classify ${(monthlyTarget - wasteItemsClassified).toInt()} more items to reach your monthly goal!',
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: WasteAppDesignSystem.primaryGreen,
-                      fontWeight: FontWeight.w500,
-                    ),
+                          color: WasteAppDesignSystem.primaryGreen,
+                          fontWeight: FontWeight.w500,
+                        ),
                   ),
                 ),
               ],
@@ -317,7 +315,7 @@ class _WasteImpactDashboardState extends State<WasteImpactDashboard> {
       ),
     );
   }
-  
+
   Widget _buildImpactStat(
     String title,
     String value,
@@ -339,9 +337,7 @@ class _WasteImpactDashboardState extends State<WasteImpactDashboard> {
             size: 20,
           ),
         ),
-        
         const SizedBox(width: WasteAppDesignSystem.spacingM),
-        
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -349,24 +345,24 @@ class _WasteImpactDashboardState extends State<WasteImpactDashboard> {
               Text(
                 title,
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  fontWeight: FontWeight.w500,
-                ),
+                      fontWeight: FontWeight.w500,
+                    ),
               ),
               Row(
                 children: [
                   Text(
                     value,
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      color: color,
-                      fontWeight: FontWeight.bold,
-                    ),
+                          color: color,
+                          fontWeight: FontWeight.bold,
+                        ),
                   ),
                   const SizedBox(width: WasteAppDesignSystem.spacingXS),
                   Text(
                     subtitle,
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: WasteAppDesignSystem.darkGray,
-                    ),
+                          color: WasteAppDesignSystem.darkGray,
+                        ),
                   ),
                 ],
               ),
@@ -394,9 +390,7 @@ class WasteImpactConfigurations {
       secondaryColor: WasteAppDesignSystem.secondaryGreen,
       title: 'Daily Goal',
       subtitle: 'Items classified today',
-      centerText: itemsClassified >= dailyTarget 
-          ? 'Goal achieved!' 
-          : 'Keep going!',
+      centerText: itemsClassified >= dailyTarget ? 'Goal achieved!' : 'Keep going!',
       milestones: const [
         ImpactMilestone(
           threshold: 0.5,
@@ -510,9 +504,7 @@ class WasteImpactConfigurations {
     return Container(
       width: size + 40,
       padding: const EdgeInsets.all(WasteAppDesignSystem.spacingM),
-      decoration: WasteAppDesignSystem.getCardDecoration(
-        
-      ),
+      decoration: WasteAppDesignSystem.getCardDecoration(),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [

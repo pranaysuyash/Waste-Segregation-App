@@ -4,7 +4,6 @@ import '../utils/constants.dart'; // This imports AppIcons, AppTheme, and AppStr
 
 /// A widget that displays the user's current streak
 class StreakIndicator extends StatelessWidget {
-
   const StreakIndicator({
     super.key,
     required this.streak,
@@ -21,10 +20,10 @@ class StreakIndicator extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(AppTheme.paddingRegular),
         decoration: BoxDecoration(
-          color: _getStreakColor(streak.current).withValues(alpha:0.1),
+          color: _getStreakColor(streak.current).withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(AppTheme.borderRadiusRegular),
           border: Border.all(
-            color: _getStreakColor(streak.current).withValues(alpha:0.3),
+            color: _getStreakColor(streak.current).withValues(alpha: 0.3),
           ),
         ),
         child: Row(
@@ -66,10 +65,9 @@ class StreakIndicator extends StatelessWidget {
                   ),
                   decoration: BoxDecoration(
                     color: Colors.white,
-                    borderRadius:
-                        BorderRadius.circular(AppTheme.borderRadiusSmall),
+                    borderRadius: BorderRadius.circular(AppTheme.borderRadiusSmall),
                     border: Border.all(
-                      color: _getStreakColor(streak.current).withValues(alpha:0.3),
+                      color: _getStreakColor(streak.current).withValues(alpha: 0.3),
                     ),
                   ),
                   child: Row(
@@ -117,7 +115,6 @@ class StreakIndicator extends StatelessWidget {
 
 /// A widget that displays a challenge card
 class ChallengeCard extends StatelessWidget {
-
   const ChallengeCard({
     super.key,
     required this.challenge,
@@ -146,7 +143,7 @@ class ChallengeCard extends StatelessWidget {
               // Header
               Container(
                 padding: const EdgeInsets.all(AppTheme.paddingSmall),
-                color: challenge.color.withValues(alpha:0.1),
+                color: challenge.color.withValues(alpha: 0.1),
                 child: Row(
                   children: [
                     Icon(
@@ -195,7 +192,6 @@ class ChallengeCard extends StatelessWidget {
 
 /// A widget that displays the user's level and points
 class PointsIndicator extends StatelessWidget {
-
   const PointsIndicator({
     super.key,
     required this.points,
@@ -212,10 +208,10 @@ class PointsIndicator extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(AppTheme.paddingSmall),
         decoration: BoxDecoration(
-          color: AppTheme.primaryColor.withValues(alpha:0.1),
+          color: AppTheme.primaryColor.withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(AppTheme.borderRadiusRegular),
           border: Border.all(
-            color: AppTheme.primaryColor.withValues(alpha:0.3),
+            color: AppTheme.primaryColor.withValues(alpha: 0.3),
           ),
         ),
         child: Row(
@@ -261,14 +257,12 @@ class PointsIndicator extends StatelessWidget {
                 SizedBox(
                   width: 60,
                   child: ClipRRect(
-                    borderRadius:
-                        BorderRadius.circular(AppTheme.borderRadiusSmall),
+                    borderRadius: BorderRadius.circular(AppTheme.borderRadiusSmall),
                     child: LinearProgressIndicator(
                       value: (points.total % 100) / 100,
                       minHeight: 4,
-                      backgroundColor: Colors.grey.withValues(alpha:0.3),
-                      valueColor:
-                          const AlwaysStoppedAnimation<Color>(AppTheme.primaryColor),
+                      backgroundColor: Colors.grey.withValues(alpha: 0.3),
+                      valueColor: const AlwaysStoppedAnimation<Color>(AppTheme.primaryColor),
                     ),
                   ),
                 ),
@@ -283,7 +277,6 @@ class PointsIndicator extends StatelessWidget {
 
 /// A widget that displays achievement badges
 class AchievementGrid extends StatelessWidget {
-
   const AchievementGrid({
     super.key,
     required this.achievements,
@@ -371,10 +364,10 @@ class AchievementGrid extends StatelessWidget {
       message: achievement.title,
       child: Container(
         decoration: BoxDecoration(
-          color: achievement.color.withValues(alpha:0.1),
+          color: achievement.color.withValues(alpha: 0.1),
           shape: BoxShape.circle,
           border: Border.all(
-            color: achievement.color.withValues(alpha:0.3),
+            color: achievement.color.withValues(alpha: 0.3),
             width: 2,
           ),
         ),
@@ -392,7 +385,6 @@ class AchievementGrid extends StatelessWidget {
 
 /// A widget that displays a notification when a user earns an achievement
 class AchievementNotification extends StatelessWidget {
-
   const AchievementNotification({
     super.key,
     required this.achievement,
@@ -420,7 +412,7 @@ class AchievementNotification extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.all(AppTheme.paddingSmall),
                   decoration: BoxDecoration(
-                    color: achievement.color.withValues(alpha:0.2),
+                    color: achievement.color.withValues(alpha: 0.2),
                     shape: BoxShape.circle,
                   ),
                   child: Icon(

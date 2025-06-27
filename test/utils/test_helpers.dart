@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
 import 'package:waste_segregation_app/models/waste_classification.dart';
-import 'package:waste_segregation_app/models/user_profile.dart';
+import 'package:waste_segregation_app/models/user_profile.dart' as up;
 import 'package:waste_segregation_app/models/gamification.dart';
-import 'package:waste_segregation_app/models/enhanced_family.dart';
+import 'package:waste_segregation_app/models/enhanced_family.dart' as ef;
 import 'package:waste_segregation_app/models/filter_options.dart';
 import 'package:waste_segregation_app/models/leaderboard.dart';
 import 'package:waste_segregation_app/services/ai_service.dart';
@@ -25,10 +25,12 @@ class TestHelpers {
 
   /// Creates a basic test classification with minimal required fields
   static WasteClassification createBasicClassification([String? itemName]) {
-    return WasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
+    return WasteClassification(
       itemName: itemName ?? 'Test Item',
+      category: 'Dry Waste',
       subcategory: 'Test Subcategory',
       explanation: 'Test explanation for testing purposes',
+      disposalInstructions: DisposalInstructions(
         primaryMethod: 'Test disposal method',
         steps: ['Test step 1', 'Test step 2'],
         hasUrgentTimeframe: false,
@@ -51,10 +53,12 @@ class TestHelpers {
     int? recyclingCode,
     List<AlternativeClassification>? alternatives,
   }) {
-    return WasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
+    return WasteClassification(
       itemName: itemName ?? 'Detailed Test Item',
+      category: category ?? 'Dry Waste',
       subcategory: 'Plastic',
       explanation: 'Comprehensive test item with detailed properties for thorough testing scenarios',
+      disposalInstructions: DisposalInstructions(
         primaryMethod: 'Recycle in designated container',
         steps: [
           'Clean the item thoroughly',
@@ -71,14 +75,15 @@ class TestHelpers {
       timestamp: DateTime.now(),
       region: 'Test Region with detailed info',
       visualFeatures: ['plastic', 'bottle', 'clear', 'recyclable'],
-      alternatives: alternatives ?? [
-        AlternativeClassification(
-          category: 'Non-Waste',
-          subcategory: 'Reusable',
-          confidence: 0.3,
-          reason: 'Could potentially be reused for storage',
-        ),
-      ],
+      alternatives: alternatives ??
+          [
+            AlternativeClassification(
+              category: 'Non-Waste',
+              subcategory: 'Reusable',
+              confidence: 0.3,
+              reason: 'Could potentially be reused for storage',
+            ),
+          ],
       confidence: confidence ?? 0.92,
       isRecyclable: isRecyclable ?? true,
       isCompostable: false,
@@ -95,10 +100,12 @@ class TestHelpers {
 
   /// Creates a hazardous waste classification for testing special disposal
   static WasteClassification createHazardousClassification() {
-    return WasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
+    return WasteClassification(
       itemName: 'Lithium Battery',
+      category: 'Hazardous Waste',
       subcategory: 'Electronic Waste',
       explanation: 'Lithium-ion battery containing toxic materials requiring special handling',
+      disposalInstructions: DisposalInstructions(
         primaryMethod: 'Take to certified e-waste facility',
         steps: [
           'Do not throw in regular trash',
@@ -138,15 +145,17 @@ class TestHelpers {
   static List<WasteClassification> createClassificationList(int count, {String? userId}) {
     final categories = ['Dry Waste', 'Wet Waste', 'Hazardous Waste', 'Medical Waste', 'Non-Waste'];
     final items = ['Bottle', 'Can', 'Paper', 'Battery', 'Food', 'Glass', 'Plastic', 'Metal'];
-    
+
     return List.generate(count, (index) {
       final category = categories[index % categories.length];
       final item = items[index % items.length];
-      
-      return WasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
+
+      return WasteClassification(
         itemName: '$item ${index + 1}',
+        category: category,
         subcategory: 'Test Subcategory $index',
         explanation: 'Test explanation for $item ${index + 1}',
+        disposalInstructions: DisposalInstructions(
           primaryMethod: 'Test disposal for $category',
           steps: ['Step 1 for $item', 'Step 2 for $item'],
           hasUrgentTimeframe: category == 'Hazardous Waste',
@@ -212,19 +221,20 @@ class TestHelpers {
           lastActivityDate: DateTime.now(),
         ),
       },
-      achievements: achievements ?? [
-        Achievement(
-          id: 'waste_novice',
-          title: 'Waste Novice',
-          description: 'Classified your first 5 items',
-          type: AchievementType.wasteIdentified,
-          threshold: 5,
-          iconName: 'star',
-          color: Colors.blue,
-          progress: 1.0,
-          earnedOn: DateTime.now().subtract(const Duration(days: 5)),
-        ),
-      ],
+      achievements: achievements ??
+          [
+            Achievement(
+              id: 'waste_novice',
+              title: 'Waste Novice',
+              description: 'Classified your first 5 items',
+              type: AchievementType.wasteIdentified,
+              threshold: 5,
+              iconName: 'star',
+              color: Colors.blue,
+              progress: 1.0,
+              earnedOn: DateTime.now().subtract(const Duration(days: 5)),
+            ),
+          ],
       activeChallenges: [
         Challenge(
           id: 'weekly_classifier',
@@ -252,29 +262,30 @@ class TestHelpers {
     FamilySettings? settings,
   }) {
     final adminUser = createTestUser(id: 'admin_user_for_family');
-    return Family(
+    return ef.Family(
       id: id ?? 'test_family_123',
       name: name ?? 'Test Family',
       createdBy: createdBy ?? adminUser.id,
-      members: members ?? [createTestFamilyMember(userId: adminUser.id, role: UserRole.admin)],
-      settings: settings ?? FamilySettings.defaultSettings(),
+      createdAt: DateTime.now(),
+      members: members ?? [createTestFamilyMember(userId: adminUser.id, role: ef.UserRole.admin)],
+      settings: settings ?? ef.FamilySettings.defaultSettings(),
     );
   }
 
   /// Creates a test family member
-  static FamilyMember createTestFamilyMember({
+  static ef.FamilyMember createTestFamilyMember({
     String? userId,
     String? displayName,
-    UserRole? role,
+    ef.UserRole? role,
     DateTime? joinedAt,
-    UserStats? individualStats,
+    ef.UserStats? individualStats,
   }) {
-    return FamilyMember(
+    return ef.FamilyMember(
       userId: userId ?? 'member_user_123',
       displayName: displayName ?? 'Test Member',
-      role: role ?? UserRole.member,
+      role: role ?? ef.UserRole.member,
       joinedAt: joinedAt ?? DateTime.now(),
-      individualStats: individualStats ?? UserStats.empty(),
+      individualStats: individualStats ?? ef.UserStats.empty(),
     );
   }
 
@@ -339,7 +350,7 @@ class TestHelpers {
         ),
       );
     }
-    
+
     return MaterialApp(
       theme: theme,
       home: child,
@@ -369,51 +380,43 @@ class TestHelpers {
   }) {
     // Setup AI Service
     if (aiService != null) {
-      when(aiService.analyzeWebImage(any, any))
-          .thenAnswer((_) async => createBasicClassification());
+      when(aiService.analyzeWebImage(any, any)).thenAnswer((_) async => createBasicClassification());
     }
 
     // Setup Storage Service
     if (storageService != null) {
       when(storageService.getAllClassifications(filterOptions: anyNamed('filterOptions')))
           .thenAnswer((_) async => createClassificationList(10));
-      when(storageService.getClassificationsPaginated(page: anyNamed('page'), pageSize: anyNamed('pageSize'), filterOptions: anyNamed('filterOptions')))
+      when(storageService.getClassificationsPaginated(
+              page: anyNamed('page'), pageSize: anyNamed('pageSize'), filterOptions: anyNamed('filterOptions')))
           .thenAnswer((_) async => createClassificationList(5));
-      when(storageService.saveClassification(any))
-          .thenAnswer((_) async => {});
+      when(storageService.saveClassification(any)).thenAnswer((_) async => {});
       when(storageService.getAllClassifications(
-          filterOptions: FilterOptions(limit: 5, sortBy: SortBy.timestamp, sortDirection: SortDirection.descending)
-      )).thenAnswer((_) async => Future.value(<WasteClassification>[]));
+              filterOptions:
+                  FilterOptions(limit: 5, sortBy: SortBy.timestamp, sortDirection: SortDirection.descending)))
+          .thenAnswer((_) async => Future.value(<WasteClassification>[]));
       when(storageService.getClassificationsPaginated(page: 0, pageSize: 10, filterOptions: null))
           .thenAnswer((_) async => Future.value(<WasteClassification>[]));
     }
 
     // Setup Gamification Service
     if (gamificationService != null) {
-      when(gamificationService.getProfile())
-          .thenAnswer((_) async => createTestGamificationProfile());
-      when(gamificationService.getAchievements())
-          .thenAnswer((_) async => []);
-      when(gamificationService.getLeaderboard())
-          .thenAnswer((_) async => []);
+      when(gamificationService.getProfile()).thenAnswer((_) async => createTestGamificationProfile());
+      when(gamificationService.getAchievements()).thenAnswer((_) async => []);
+      when(gamificationService.getLeaderboard()).thenAnswer((_) async => []);
     }
 
     // Setup Analytics Service
     if (analyticsService != null) {
-      when(analyticsService.trackEvent(any))
-          .thenAnswer((_) async => {});
+      when(analyticsService.trackEvent(any)).thenAnswer((_) async => {});
     }
 
     // Setup Community Service
     if (communityService != null) {
-      when(communityService.trackClassificationActivity(any, any))
-          .thenAnswer((_) async => {});
-      when(communityService.getCommunityFeed(any, any, any))
-          .thenAnswer((_) async => []);
-      when(communityService.getCommunityStats())
-          .thenAnswer((_) async => createTestCommunityStats());
-      when(communityService.getUserActivity(any))
-          .thenAnswer((_) async => []);
+      when(communityService.trackClassificationActivity(any, any)).thenAnswer((_) async => {});
+      when(communityService.getCommunityFeed(any, any, any)).thenAnswer((_) async => []);
+      when(communityService.getCommunityStats()).thenAnswer((_) async => createTestCommunityStats());
+      when(communityService.getUserActivity(any)).thenAnswer((_) async => []);
     }
   }
 
@@ -439,7 +442,7 @@ class TestHelpers {
     expect(classification.disposalInstructions, isNotNull, reason: 'Disposal instructions required');
     expect(classification.timestamp, isNotNull, reason: 'Timestamp is required');
     expect(classification.confidence, isNotNull, reason: 'Confidence should be provided');
-    
+
     if (classification.confidence != null) {
       expect(classification.confidence!, greaterThanOrEqualTo(0.0), reason: 'Confidence should be >= 0');
       expect(classification.confidence!, lessThanOrEqualTo(1.0), reason: 'Confidence should be <= 1');
@@ -450,13 +453,14 @@ class TestHelpers {
   static void assertValidGamificationProfile(GamificationProfile profile) {
     expect(profile.userId, isNotEmpty, reason: 'User ID should not be empty');
     expect(profile.points.total, greaterThanOrEqualTo(0), reason: 'Points should be non-negative');
-    
+
     final dailyClassificationStreak = profile.streaks[StreakType.dailyClassification.toString()];
     expect(dailyClassificationStreak, isNotNull, reason: 'Daily classification streak should exist');
-    expect(dailyClassificationStreak!.currentCount, greaterThanOrEqualTo(0), reason: 'Current streak should be non-negative');
-    expect(dailyClassificationStreak.longestCount, greaterThanOrEqualTo(dailyClassificationStreak.currentCount), 
-           reason: 'Longest streak should be >= current streak');
-    
+    expect(dailyClassificationStreak!.currentCount, greaterThanOrEqualTo(0),
+        reason: 'Current streak should be non-negative');
+    expect(dailyClassificationStreak.longestCount, greaterThanOrEqualTo(dailyClassificationStreak.currentCount),
+        reason: 'Longest streak should be >= current streak');
+
     // Check achievement progress
     for (final achievement in profile.achievements) {
       expect(achievement.progress, greaterThanOrEqualTo(0.0), reason: 'Achievement progress should be >= 0');
@@ -492,9 +496,8 @@ class TestHelpers {
     final totalBytes = sizeMB * bytesPerMB;
     const listSize = 1000;
     final numLists = totalBytes ~/ (listSize * 4); // 4 bytes per int
-    
-    return List.generate(numLists, (index) => 
-      List.generate(listSize, (i) => index * listSize + i));
+
+    return List.generate(numLists, (index) => List.generate(listSize, (i) => index * listSize + i));
   }
 
   // =============================================================================
@@ -503,9 +506,11 @@ class TestHelpers {
 
   /// Creates invalid test data for testing error handling
   static WasteClassification createInvalidClassification() {
-    return WasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
+    return WasteClassification(
       itemName: '', // Invalid: empty name
+      category: 'Dry Waste',
       explanation: '', // Invalid: empty explanation
+      disposalInstructions: DisposalInstructions(
         primaryMethod: '',
         steps: [], // Invalid: no steps
         hasUrgentTimeframe: false,
@@ -523,17 +528,19 @@ class TestHelpers {
     return [
       // Very long item name
       createBasicClassification('A' * 1000),
-      
+
       // Very high confidence
       createDetailedClassification(confidence: 0.99999),
-      
+
       // Very low confidence
       createDetailedClassification(confidence: 0.00001),
-      
+
       // Maximum alternatives
-      WasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
+      WasteClassification(
         itemName: 'Ambiguous Item',
+        category: 'Dry Waste',
         explanation: 'Item with many possible classifications',
+        disposalInstructions: DisposalInstructions(
           primaryMethod: 'Multiple options',
           steps: ['Consider all options'],
           hasUrgentTimeframe: false,
@@ -541,12 +548,14 @@ class TestHelpers {
         timestamp: DateTime.now(),
         region: 'Test Region',
         visualFeatures: ['ambiguous'],
-        alternatives: List.generate(10, (i) => AlternativeClassification(
-          category: 'Alternative $i',
-          subcategory: 'Option $i',
-          confidence: 0.1 + (i * 0.05),
-          reason: 'Possible classification option $i',
-        )),
+        alternatives: List.generate(
+            10,
+            (i) => AlternativeClassification(
+                  category: 'Alternative $i',
+                  subcategory: 'Option $i',
+                  confidence: 0.1 + (i * 0.05),
+                  reason: 'Possible classification option $i',
+                )),
         confidence: 0.5,
       ),
     ];
@@ -572,11 +581,10 @@ class TestHelpers {
     final random = DateTime.now().millisecondsSinceEpoch;
     final availableCategories = categories ?? ['Dry Waste', 'Wet Waste', 'Hazardous Waste'];
     final category = availableCategories[random % availableCategories.length];
-    
-    final confidence = (minConfidence ?? 0.5) + 
-        ((maxConfidence ?? 1.0) - (minConfidence ?? 0.5)) * 
-        ((random % 1000) / 1000.0);
-    
+
+    final confidence =
+        (minConfidence ?? 0.5) + ((maxConfidence ?? 1.0) - (minConfidence ?? 0.5)) * ((random % 1000) / 1000.0);
+
     return createDetailedClassification(
       itemName: 'Random Item $random',
       category: category,
@@ -588,32 +596,32 @@ class TestHelpers {
     final mockStorageService = MockStorageService();
     // Default behavior for common calls
     when(mockStorageService.getCurrentUserProfile()).thenAnswer((_) async => createTestUser());
-    
+
     // General catch-all for getAllClassifications
     when(mockStorageService.getAllClassifications(filterOptions: anyNamed('filterOptions')))
         .thenAnswer((invocation) async {
-            // Simple mock: return a list of 10. Tests can be more specific if needed.
-            return Future.value(createClassificationList(10)); // Corrected return
-        });
+      // Simple mock: return a list of 10. Tests can be more specific if needed.
+      return Future.value(createClassificationList(10)); // Corrected return
+    });
 
     // Specific mock for getting recent items (sorted by timestamp descending)
     when(mockStorageService.getAllClassifications(
-        filterOptions: const FilterOptions(sortBy: SortField.date, sortNewestFirst: true) // Explicitly using SortField.date
-    )).thenAnswer((_) async => Future.value(createClassificationList(5))); // Corrected return
+            filterOptions:
+                const FilterOptions(sortBy: SortField.date, sortNewestFirst: true) // Explicitly using SortField.date
+            ))
+        .thenAnswer((_) async => Future.value(createClassificationList(5))); // Corrected return
 
     // General catch-all for getClassificationsPaginated
     // Ensuring parameters match StorageService.getClassificationsPaginated signature
     when(mockStorageService.getClassificationsPaginated(
-        page: anyNamed('page'), 
-        pageSize: anyNamed('pageSize'), 
-        filterOptions: anyNamed('filterOptions') 
-    )).thenAnswer((invocation) async {
-        final pageSize = invocation.namedArguments[const Symbol('pageSize')] as int?;
-        return Future.value(createClassificationList(pageSize ?? 5)); // Corrected return
+            page: anyNamed('page'), pageSize: anyNamed('pageSize'), filterOptions: anyNamed('filterOptions')))
+        .thenAnswer((invocation) async {
+      final pageSize = invocation.namedArguments[const Symbol('pageSize')] as int?;
+      return Future.value(createClassificationList(pageSize ?? 5)); // Corrected return
     });
 
     when(mockStorageService.saveClassification(any)).thenAnswer((_) async => Future.value());
-    
+
     // Mock for getCachedClassification if it was causing null issues for Uint8List/String
     // Assuming getCachedClassification takes a String hash and returns Future<WasteClassification?>
     when(mockStorageService.getCachedClassification(any)).thenAnswer((_) async => null);
@@ -624,10 +632,11 @@ class TestHelpers {
   static MockGamificationService getMockGamificationService() {
     final mockGamificationService = MockGamificationService();
     when(mockGamificationService.getProfile()).thenAnswer((_) async => createTestGamificationProfile());
-    
+
     // Add mocks for getAchievements and getLeaderboard
     when(mockGamificationService.getAchievements()).thenAnswer((_) async => Future.value(<Achievement>[]));
-    when(mockGamificationService.getLeaderboard(limit: anyNamed('limit'))).thenAnswer((_) async => Future.value(<LeaderboardEntry>[])); // Assuming LeaderboardEntry and limit param
+    when(mockGamificationService.getLeaderboard(limit: anyNamed('limit')))
+        .thenAnswer((_) async => Future.value(<LeaderboardEntry>[])); // Assuming LeaderboardEntry and limit param
     // If getLeaderboard() takes no parameters or different ones, adjust accordingly.
 
     // Example of mocking a method that might have had a null issue if it returns Future<void>
@@ -642,11 +651,17 @@ class TestHelpers {
 // =============================================================================
 
 class MockAiService extends Mock implements AiService {}
+
 class MockStorageService extends Mock implements StorageService {}
+
 class MockGamificationService extends Mock implements GamificationService {}
+
 class MockAnalyticsService extends Mock implements AnalyticsService {}
+
 class MockCommunityService extends Mock implements CommunityService {}
+
 class MockFirebaseFamilyService extends Mock implements FirebaseFamilyService {}
+
 class MockCacheService extends Mock implements CacheService {}
 
 // =============================================================================
@@ -654,10 +669,9 @@ class MockCacheService extends Mock implements CacheService {}
 // =============================================================================
 
 class _HasAccessibilityLabel extends Matcher {
-  
   _HasAccessibilityLabel(this.expectedLabel);
   final String expectedLabel;
-  
+
   @override
   bool matches(item, Map matchState) {
     if (item is Widget) {
@@ -667,7 +681,7 @@ class _HasAccessibilityLabel extends Matcher {
     }
     return false;
   }
-  
+
   @override
   Description describe(Description description) {
     return description.add('has accessibility label "$expectedLabel"');
@@ -675,11 +689,10 @@ class _HasAccessibilityLabel extends Matcher {
 }
 
 class _HasMinimumSize extends Matcher {
-  
   _HasMinimumSize(this.minWidth, this.minHeight);
   final double minWidth;
   final double minHeight;
-  
+
   @override
   bool matches(item, Map matchState) {
     if (item is Size) {
@@ -687,7 +700,7 @@ class _HasMinimumSize extends Matcher {
     }
     return false;
   }
-  
+
   @override
   Description describe(Description description) {
     return description.add('has minimum size of ${minWidth}x$minHeight');
@@ -702,14 +715,14 @@ class TestConfig {
   static const Duration defaultTimeout = Duration(seconds: 30);
   static const Duration shortTimeout = Duration(seconds: 5);
   static const Duration longTimeout = Duration(minutes: 2);
-  
+
   static const int smallDatasetSize = 10;
   static const int mediumDatasetSize = 100;
   static const int largeDatasetSize = 1000;
-  
+
   static const double minimumTouchTargetSize = 44.0;
   static const double minimumContrastRatio = 4.5;
-  
+
   static const Map<String, dynamic> defaultTestEnvironment = {
     'platform': 'test',
     'isDebugMode': true,

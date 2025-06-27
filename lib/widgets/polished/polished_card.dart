@@ -4,7 +4,6 @@ import '../../utils/app_theme.dart';
 
 /// Enhanced card with modern shadows, micro-interactions, and polish
 class PolishedCard extends StatefulWidget {
-
   const PolishedCard({
     super.key,
     required this.child,
@@ -35,8 +34,7 @@ class PolishedCard extends StatefulWidget {
   State<PolishedCard> createState() => _PolishedCardState();
 }
 
-class _PolishedCardState extends State<PolishedCard>
-    with SingleTickerProviderStateMixin {
+class _PolishedCardState extends State<PolishedCard> with SingleTickerProviderStateMixin {
   late AnimationController _animationController;
   late Animation<double> _scaleAnimation;
   bool _isPressed = false;
@@ -94,7 +92,7 @@ class _PolishedCardState extends State<PolishedCard>
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    
+
     final Widget card = Container(
       margin: widget.margin ?? const EdgeInsets.all(8.0),
       child: Material(
@@ -130,4 +128,4 @@ class _PolishedCardState extends State<PolishedCard>
 
     return card;
   }
-} 
+}

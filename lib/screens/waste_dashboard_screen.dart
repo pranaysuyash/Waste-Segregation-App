@@ -22,8 +22,7 @@ class WasteDashboardScreen extends StatefulWidget {
   State<WasteDashboardScreen> createState() => _WasteDashboardScreenState();
 }
 
-class _WasteDashboardScreenState extends State<WasteDashboardScreen>
-    with SingleTickerProviderStateMixin {
+class _WasteDashboardScreenState extends State<WasteDashboardScreen> with SingleTickerProviderStateMixin {
   // Classification data
   late List<WasteClassification> _classifications = [];
   DateTime? _firstClassificationDate;
@@ -67,8 +66,7 @@ class _WasteDashboardScreenState extends State<WasteDashboardScreen>
 
     try {
       // Try to refresh gamification, but don't block analytics if it fails
-      final gamificationService =
-          Provider.of<GamificationService>(context, listen: false);
+      final gamificationService = Provider.of<GamificationService>(context, listen: false);
       try {
         await gamificationService.syncGamificationData();
         await gamificationService.syncWeeklyStatsWithClassifications();
@@ -79,7 +77,7 @@ class _WasteDashboardScreenState extends State<WasteDashboardScreen>
       // Get the real data from storage service
       final storageService = Provider.of<StorageService>(context, listen: false);
       final classifications = await storageService.getAllClassifications();
-      
+
       // Process the classifications to generate statistics
       _processClassifications(classifications);
 
@@ -99,7 +97,7 @@ class _WasteDashboardScreenState extends State<WasteDashboardScreen>
           SnackBar(content: Text('Failed to load data: $e')),
         );
       }
-      
+
       setState(() {
         _isLoading = false;
       });
@@ -109,29 +107,29 @@ class _WasteDashboardScreenState extends State<WasteDashboardScreen>
   void _processClassifications(List<WasteClassification> classifications) {
     // Skip processing if no data
     if (classifications.isEmpty) return;
-    
+
     // Sort classifications by timestamp
     classifications.sort((a, b) => a.timestamp.compareTo(b.timestamp));
-    
+
     // Set first classification date
     _firstClassificationDate = classifications.first.timestamp;
-    
+
     // Reset counters
     _wasteCategoryCounts = {};
     _wasteSubcategoryCounts = {};
     _subcategoryCategoryMap.clear();
     _wasteByDate = {};
     _wasteByWeek = {};
-    
+
     // Process each classification
     for (final classification in classifications) {
       // Count categories
       _wasteCategoryCounts.update(
-        classification.category, 
+        classification.category,
         (value) => value + 1,
         ifAbsent: () => 1,
       );
-      
+
       // Count subcategories
       if (classification.subcategory?.isNotEmpty == true) {
         _wasteSubcategoryCounts.update(
@@ -144,16 +142,16 @@ class _WasteDashboardScreenState extends State<WasteDashboardScreen>
           () => classification.category,
         );
       }
-      
+
       // Count by date (using date only, not time)
       final date = DateTime(
         classification.timestamp.year,
         classification.timestamp.month,
         classification.timestamp.day,
       );
-      
+
       _wasteByDate.update(
-        date, 
+        date,
         (value) => value + 1,
         ifAbsent: () => 1,
       );
@@ -190,7 +188,7 @@ class _WasteDashboardScreenState extends State<WasteDashboardScreen>
               : _buildDashboard(),
     );
   }
-  
+
   Widget _buildDashboard() {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(AppTheme.paddingRegular),
@@ -200,44 +198,41 @@ class _WasteDashboardScreenState extends State<WasteDashboardScreen>
           // Summary stats
           _buildSummaryStats(),
           const SizedBox(height: AppTheme.paddingLarge),
-          
+
           // Activity
           _buildSectionHeader('Activity'),
           _buildTimescaleToggle(),
           const SizedBox(height: AppTheme.paddingSmall),
-          if (_selectedTimescale == _ChartTimescale.daily)
-            _buildDailyActivityChart()
-          else
-            _buildWeeklyActivityChart(),
+          if (_selectedTimescale == _ChartTimescale.daily) _buildDailyActivityChart() else _buildWeeklyActivityChart(),
           const SizedBox(height: AppTheme.paddingLarge),
-          
+
           // Category distribution
           _buildSectionHeader('Waste Category Distribution'),
           _buildCategoryDistribution(),
           const SizedBox(height: AppTheme.paddingLarge),
-          
+
           // Top subcategories
           _buildSectionHeader('Top Waste Types'),
           _buildTopSubcategories(),
           const SizedBox(height: AppTheme.paddingLarge),
-          
+
           // Recent classifications
           _buildSectionHeader('Recent Classifications'),
           _buildRecentClassifications(),
           const SizedBox(height: AppTheme.paddingLarge),
-          
+
           // Environmental impact
           _buildSectionHeader('Your Environmental Impact'),
           _buildImpactSection(),
           const SizedBox(height: AppTheme.paddingLarge),
-          
+
           // Gamification section
           _buildGamificationSection(),
         ],
       ),
     );
   }
-  
+
   Widget _buildSectionHeader(String title) {
     return Padding(
       padding: const EdgeInsets.only(bottom: AppTheme.paddingSmall),
@@ -247,12 +242,12 @@ class _WasteDashboardScreenState extends State<WasteDashboardScreen>
       ),
     );
   }
-  
+
   Widget _buildSummaryStats() {
     final totalItems = _wasteCategoryCounts.values.fold<int>(0, (sum, count) => sum + count);
     final trackingDays = _getDaysOfTracking();
     final recyclableItems = _classifications.where((c) => c.isRecyclable == true).length;
-    
+
     return Row(
       children: [
         _buildStatBox(
@@ -279,7 +274,7 @@ class _WasteDashboardScreenState extends State<WasteDashboardScreen>
       ],
     );
   }
-  
+
   Widget _buildStatBox(BuildContext context, String label, String value, IconData icon, Color color) {
     return Expanded(
       child: Card(
@@ -323,7 +318,7 @@ class _WasteDashboardScreenState extends State<WasteDashboardScreen>
       ),
     );
   }
-  
+
   Widget _buildTimescaleToggle() {
     return ToggleButtons(
       isSelected: [
@@ -441,12 +436,12 @@ class _WasteDashboardScreenState extends State<WasteDashboardScreen>
       ),
     );
   }
-  
+
   Widget _buildCategoryDistribution() {
-      if (_wasteCategoryCounts.isEmpty) {
-        return Card(
-          child: Container(
-            height: MediaQuery.of(context).size.height * 0.25,
+    if (_wasteCategoryCounts.isEmpty) {
+      return Card(
+        child: Container(
+          height: MediaQuery.of(context).size.height * 0.25,
           padding: const EdgeInsets.all(AppTheme.paddingLarge),
           child: const Center(
             child: Column(
@@ -455,28 +450,27 @@ class _WasteDashboardScreenState extends State<WasteDashboardScreen>
                 Icon(Icons.pie_chart, size: 48, color: Colors.grey),
                 SizedBox(height: 8),
                 Text('Not enough data yet'),
-                Text('Classify items to see category breakdown!', 
-                     style: TextStyle(fontSize: 12, color: Colors.grey)),
+                Text('Classify items to see category breakdown!', style: TextStyle(fontSize: 12, color: Colors.grey)),
               ],
             ),
           ),
         ),
       );
     }
-    
+
     final total = _wasteCategoryCounts.values.fold<int>(0, (sum, count) => sum + count);
     if (total == 0) {
       return const Center(child: Text('No category data available'));
     }
-    
+
     // Prepare data for the chart
     final pieData = <Map<String, dynamic>>[];
-    
+
     for (final entry in _wasteCategoryCounts.entries) {
       final color = _getCategoryColor(entry.key);
       final colorHex = '#${color.toARGB32().toRadixString(16).substring(2)}';
       final percentage = entry.value / total;
-      
+
       pieData.add({
         'label': entry.key,
         'value': entry.value,
@@ -484,7 +478,7 @@ class _WasteDashboardScreenState extends State<WasteDashboardScreen>
         'percentage': '${(percentage * 100).toStringAsFixed(0)}%',
       });
     }
-    
+
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(AppTheme.paddingRegular),
@@ -495,9 +489,9 @@ class _WasteDashboardScreenState extends State<WasteDashboardScreen>
               style: Theme.of(context).textTheme.titleSmall,
             ),
             const SizedBox(height: AppTheme.paddingRegular),
-              SizedBox(
-                height: MediaQuery.of(context).size.height * 0.3,
-                child: WebPieChartWidget(data: pieData),
+            SizedBox(
+              height: MediaQuery.of(context).size.height * 0.3,
+              child: WebPieChartWidget(data: pieData),
             ),
             const SizedBox(height: AppTheme.paddingRegular),
             SizedBox(
@@ -520,8 +514,7 @@ class _WasteDashboardScreenState extends State<WasteDashboardScreen>
               spacing: AppTheme.paddingRegular,
               runSpacing: AppTheme.paddingSmall,
               children: _wasteCategoryCounts.entries
-                  .map((entry) =>
-                      _buildLegendItem(entry.key, _getCategoryColor(entry.key)))
+                  .map((entry) => _buildLegendItem(entry.key, _getCategoryColor(entry.key)))
                   .toList(),
             ),
           ],
@@ -529,7 +522,7 @@ class _WasteDashboardScreenState extends State<WasteDashboardScreen>
       ),
     );
   }
-  
+
   Widget _buildLegendItem(String label, Color color) {
     return Row(
       mainAxisSize: MainAxisSize.min,
@@ -549,10 +542,10 @@ class _WasteDashboardScreenState extends State<WasteDashboardScreen>
       ],
     );
   }
-  
+
   Widget _buildTopSubcategories() {
     final topSubcategories = _getTopSubcategories(5);
-    
+
     if (topSubcategories.isEmpty) {
       return const Card(
         child: Padding(
@@ -563,7 +556,7 @@ class _WasteDashboardScreenState extends State<WasteDashboardScreen>
         ),
       );
     }
-    
+
     final data = topSubcategories
         .map((e) => ChartData(
               e.key,
@@ -594,7 +587,7 @@ class _WasteDashboardScreenState extends State<WasteDashboardScreen>
 
   Widget _buildRecentClassifications() {
     final recent = _classifications.reversed.take(8).toList();
-    
+
     if (recent.isEmpty) {
       return Card(
         child: Padding(
@@ -625,7 +618,7 @@ class _WasteDashboardScreenState extends State<WasteDashboardScreen>
         ),
       );
     }
-    
+
     return GridView.builder(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
@@ -640,7 +633,7 @@ class _WasteDashboardScreenState extends State<WasteDashboardScreen>
         final classification = recent[index];
         final category = classification.category;
         final categoryColor = _getCategoryColor(category);
-        
+
         return Card(
           clipBehavior: Clip.antiAlias,
           elevation: 2,
@@ -779,11 +772,11 @@ class _WasteDashboardScreenState extends State<WasteDashboardScreen>
       },
     );
   }
-  
+
   String _formatDate(DateTime dateTime) {
     final now = DateTime.now();
     final difference = now.difference(dateTime);
-    
+
     if (difference.inDays == 0) {
       if (difference.inHours == 0) {
         return '${difference.inMinutes}m ago';
@@ -797,7 +790,7 @@ class _WasteDashboardScreenState extends State<WasteDashboardScreen>
       return '${dateTime.day}/${dateTime.month}';
     }
   }
-  
+
   void _showClassificationDetails(WasteClassification classification) {
     showDialog(
       context: context,
@@ -836,7 +829,7 @@ class _WasteDashboardScreenState extends State<WasteDashboardScreen>
       ),
     );
   }
-  
+
   Widget _buildDetailRow(String label, String value) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
@@ -868,14 +861,14 @@ class _WasteDashboardScreenState extends State<WasteDashboardScreen>
     // Calculate environmental impact metrics
     final recyclableCount = _classifications.where((c) => c.isRecyclable == true).length;
     final totalItems = _classifications.length;
-    
+
     // Avoid division by zero
     final recyclingRate = totalItems > 0 ? (recyclableCount / totalItems) : 0;
-    
+
     // Very simplified impact calculations - these would be more sophisticated in a real app
     final estimatedCO2Saved = recyclableCount * 0.5; // kg of CO2
     final estimatedWaterSaved = recyclableCount * 100; // liters of water
-    
+
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(AppTheme.paddingRegular),
@@ -888,21 +881,21 @@ class _WasteDashboardScreenState extends State<WasteDashboardScreen>
             ),
             const SizedBox(height: AppTheme.paddingRegular),
             _buildImpactMetric(
-              'Recycling Rate', 
+              'Recycling Rate',
               '${(recyclingRate * 100).toStringAsFixed(1)}%',
               Icons.eco,
               AppTheme.primaryColor,
             ),
             const SizedBox(height: AppTheme.paddingSmall),
             _buildImpactMetric(
-              'CO₂ Emissions Saved', 
+              'CO₂ Emissions Saved',
               '${estimatedCO2Saved.toStringAsFixed(1)} kg',
               Icons.air,
               Colors.green,
             ),
             const SizedBox(height: AppTheme.paddingSmall),
             _buildImpactMetric(
-              'Water Saved', 
+              'Water Saved',
               '${estimatedWaterSaved.toStringAsFixed(0)} L',
               Icons.water_drop,
               Colors.blue,
@@ -912,7 +905,7 @@ class _WasteDashboardScreenState extends State<WasteDashboardScreen>
       ),
     );
   }
-  
+
   Widget _buildImpactMetric(String label, String value, IconData icon, Color color) {
     return Container(
       padding: const EdgeInsets.all(AppTheme.paddingSmall),
@@ -949,19 +942,18 @@ class _WasteDashboardScreenState extends State<WasteDashboardScreen>
       ),
     );
   }
-  
+
   // Helper methods
   int _getDaysOfTracking() {
     if (_firstClassificationDate == null) return 0;
-    
+
     final now = DateTime.now();
     return now.difference(_firstClassificationDate!).inDays + 1;
   }
-  
+
   List<MapEntry<String, int>> _getTopSubcategories(int count) {
-    final sortedEntries = _wasteSubcategoryCounts.entries.toList()
-      ..sort((a, b) => b.value.compareTo(a.value));
-    
+    final sortedEntries = _wasteSubcategoryCounts.entries.toList()..sort((a, b) => b.value.compareTo(a.value));
+
     return sortedEntries.take(count).toList();
   }
 
@@ -969,7 +961,7 @@ class _WasteDashboardScreenState extends State<WasteDashboardScreen>
     return Consumer<PointsEngineProvider>(
       builder: (context, pointsProvider, child) {
         final profile = pointsProvider.pointsEngine.currentProfile;
-        
+
         if (profile == null) {
           return const Card(
             child: Padding(
@@ -980,7 +972,7 @@ class _WasteDashboardScreenState extends State<WasteDashboardScreen>
             ),
           );
         }
-        
+
         final points = profile.points;
         final dailyStreak = profile.streaks[StreakType.dailyClassification.toString()];
         final streakCurrent = dailyStreak?.currentCount ?? 0;
@@ -995,69 +987,67 @@ class _WasteDashboardScreenState extends State<WasteDashboardScreen>
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                  Row(
-                    children: [
-                      const Icon(
-                        Icons.emoji_events,
-                        color: AppTheme.primaryColor,
-                        size: 24,
-                      ),
-                      const SizedBox(width: 8),
-                      Text(
-                        'Your Gamification Progress',
-                        style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                              fontWeight: FontWeight.bold,
-                              color: AppTheme.primaryColor,
-                            ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: AppTheme.paddingRegular),
-                  
-                  Row(
-                    children: [
-                      GamificationSummaryCard(
-                        title: 'Streak',
-                        value: streakCurrent.toString(),
-                        unit: 'days',
-                        icon: Icons.local_fire_department,
-                        color: Colors.orange,
-                      ),
-                      const SizedBox(width: AppTheme.paddingSmall),
-                      GamificationSummaryCard(
-                        title: 'Points',
-                        value: points.total.toString(),
-                        unit: 'Level ${points.level}',
-                        icon: Icons.stars,
-                        color: AppTheme.primaryColor,
-                      ),
-                    ],
-                  ),
-                
+                Row(
+                  children: [
+                    const Icon(
+                      Icons.emoji_events,
+                      color: AppTheme.primaryColor,
+                      size: 24,
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      'Your Gamification Progress',
+                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                            fontWeight: FontWeight.bold,
+                            color: AppTheme.primaryColor,
+                          ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: AppTheme.paddingRegular),
+                Row(
+                  children: [
+                    GamificationSummaryCard(
+                      title: 'Streak',
+                      value: streakCurrent.toString(),
+                      unit: 'days',
+                      icon: Icons.local_fire_department,
+                      color: Colors.orange,
+                    ),
+                    const SizedBox(width: AppTheme.paddingSmall),
+                    GamificationSummaryCard(
+                      title: 'Points',
+                      value: points.total.toString(),
+                      unit: 'Level ${points.level}',
+                      icon: Icons.stars,
+                      color: AppTheme.primaryColor,
+                    ),
+                  ],
+                ),
                 const SizedBox(height: AppTheme.paddingRegular),
                 Container(
                   padding: const EdgeInsets.all(AppTheme.paddingRegular),
                   decoration: BoxDecoration(
-                      color: Colors.grey.shade50,
+                    color: Colors.grey.shade50,
                     borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: Colors.grey.shade200),
+                    border: Border.all(color: Colors.grey.shade200),
                   ),
-                    child: Row(
+                  child: Row(
                     children: [
-                        Icon(
-                          Icons.leaderboard, 
-                          color: Colors.blueGrey.shade600,
-                          size: 20,
-                        ),
-                        const SizedBox(width: 8),
+                      Icon(
+                        Icons.leaderboard,
+                        color: Colors.blueGrey.shade600,
+                        size: 20,
+                      ),
+                      const SizedBox(width: 8),
                       Expanded(
                         child: Text(
                           "Leaderboard coming soon! Compete with others to see who's the top recycler.",
-                            style: TextStyle(
-                              fontSize: 13,
-                              color: Colors.blueGrey.shade700,
-                              fontStyle: FontStyle.italic,
-                            ),
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: Colors.blueGrey.shade700,
+                            fontStyle: FontStyle.italic,
+                          ),
                         ),
                       ),
                     ],
@@ -1073,12 +1063,18 @@ class _WasteDashboardScreenState extends State<WasteDashboardScreen>
 
   Color _getCategoryColor(String category) {
     switch (category) {
-      case 'Wet Waste': return AppTheme.wetWasteColor;
-      case 'Dry Waste': return AppTheme.dryWasteColor;
-      case 'Hazardous Waste': return AppTheme.hazardousWasteColor;
-      case 'Medical Waste': return AppTheme.medicalWasteColor;
-      case 'Non-Waste': return AppTheme.nonWasteColor;
-      default: return AppTheme.lightGreyColor;
+      case 'Wet Waste':
+        return AppTheme.wetWasteColor;
+      case 'Dry Waste':
+        return AppTheme.dryWasteColor;
+      case 'Hazardous Waste':
+        return AppTheme.hazardousWasteColor;
+      case 'Medical Waste':
+        return AppTheme.medicalWasteColor;
+      case 'Non-Waste':
+        return AppTheme.nonWasteColor;
+      default:
+        return AppTheme.lightGreyColor;
     }
   }
 
@@ -1086,11 +1082,11 @@ class _WasteDashboardScreenState extends State<WasteDashboardScreen>
     final category = _subcategoryCategoryMap[subcategory];
     return _getCategoryColor(category ?? subcategory);
   }
-  
+
   Widget _getCategoryIcon(String category) {
     IconData iconData;
     Color color;
-    
+
     switch (category) {
       case 'Wet Waste':
         iconData = Icons.compost;
@@ -1116,7 +1112,7 @@ class _WasteDashboardScreenState extends State<WasteDashboardScreen>
         iconData = Icons.category;
         color = AppTheme.lightGreyColor;
     }
-    
+
     return CircleAvatar(
       backgroundColor: color.withValues(alpha: 0.2),
       radius: 16,
@@ -1239,10 +1235,10 @@ class _WebChartWidgetState extends State<WebChartWidget> {
         'y': item['count'],
       };
     }).toList();
-    
+
     final jsonData = jsonEncode(chartData);
     final primaryColorHex = '#${AppTheme.primaryColor.toARGB32().toRadixString(16).substring(2)}';
-    
+
     return '''
       <!DOCTYPE html>
       <html>
@@ -1377,9 +1373,9 @@ class _WebChartWidgetState extends State<WebChartWidget> {
 
   @override
   Widget build(BuildContext context) {
-      if (_hasError) {
-        return Container(
-          height: MediaQuery.of(context).size.height * 0.25,
+    if (_hasError) {
+      return Container(
+        height: MediaQuery.of(context).size.height * 0.25,
         alignment: Alignment.center,
         child: const Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -1387,19 +1383,18 @@ class _WebChartWidgetState extends State<WebChartWidget> {
             Icon(Icons.error_outline, size: 48, color: Colors.grey),
             SizedBox(height: 8),
             Text('Chart failed to load'),
-            Text('Please check your internet connection', 
-                 style: TextStyle(fontSize: 12, color: Colors.grey)),
+            Text('Please check your internet connection', style: TextStyle(fontSize: 12, color: Colors.grey)),
           ],
         ),
       );
     }
-    
+
     return Stack(
       children: [
         WebViewWidget(controller: controller),
-          if (_isLoading)
-            Container(
-              height: MediaQuery.of(context).size.height * 0.25,
+        if (_isLoading)
+          Container(
+            height: MediaQuery.of(context).size.height * 0.25,
             alignment: Alignment.center,
             child: const CircularProgressIndicator(),
           ),
@@ -1454,7 +1449,7 @@ class _WebPieChartWidgetState extends State<WebPieChartWidget> {
 
   String _generateChartHtml() {
     final jsonData = jsonEncode(widget.data);
-    
+
     return '''
       <!DOCTYPE html>
       <html>
@@ -1555,9 +1550,9 @@ class _WebPieChartWidgetState extends State<WebPieChartWidget> {
 
   @override
   Widget build(BuildContext context) {
-      if (_hasError) {
-        return Container(
-          height: MediaQuery.of(context).size.height * 0.25,
+    if (_hasError) {
+      return Container(
+        height: MediaQuery.of(context).size.height * 0.25,
         alignment: Alignment.center,
         child: const Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -1565,19 +1560,18 @@ class _WebPieChartWidgetState extends State<WebPieChartWidget> {
             Icon(Icons.error_outline, size: 48, color: Colors.grey),
             SizedBox(height: 8),
             Text('Chart failed to load'),
-            Text('Please check your internet connection', 
-                 style: TextStyle(fontSize: 12, color: Colors.grey)),
+            Text('Please check your internet connection', style: TextStyle(fontSize: 12, color: Colors.grey)),
           ],
         ),
       );
     }
-    
+
     return Stack(
       children: [
         WebViewWidget(controller: controller),
-          if (_isLoading)
-            Container(
-              height: MediaQuery.of(context).size.height * 0.25,
+        if (_isLoading)
+          Container(
+            height: MediaQuery.of(context).size.height * 0.25,
             alignment: Alignment.center,
             child: const CircularProgressIndicator(),
           ),
@@ -1637,7 +1631,7 @@ class GamificationSummaryCard extends StatelessWidget {
                 Icon(icon, color: color, size: 18),
               ],
             ),
-            const SizedBox(height: AppTheme.paddingMicro), 
+            const SizedBox(height: AppTheme.paddingMicro),
             Text(
               value,
               style: const TextStyle(
@@ -1664,12 +1658,10 @@ class GamificationSummaryCard extends StatelessWidget {
                 if (trend != null) ...[
                   const SizedBox(width: 4),
                   Container(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: AppTheme.paddingMicro, vertical: 2),
+                    padding: const EdgeInsets.symmetric(horizontal: AppTheme.paddingMicro, vertical: 2),
                     decoration: BoxDecoration(
                       color: color.withValues(alpha: 0.15),
-                      borderRadius:
-                          BorderRadius.circular(AppTheme.borderRadiusSmall),
+                      borderRadius: BorderRadius.circular(AppTheme.borderRadiusSmall),
                     ),
                     child: Text(
                       trend!,

@@ -11,31 +11,32 @@ class LeaderboardService {
     if (limit <= 0) return [];
 
     try {
-      final querySnapshot = await _firestore
-          .collection(_leaderboardCollection)
-          .orderBy('points', descending: true)
-          .limit(limit)
-          .get();
+      final querySnapshot =
+          await _firestore.collection(_leaderboardCollection).orderBy('points', descending: true).limit(limit).get();
 
-      final entries = querySnapshot.docs.map((doc) {
-        try {
-          final data = doc.data();
-          // Add the document ID as userId if it's not explicitly in the data, 
-          // or ensure the existing userId matches.
-          // The schema for leaderboard_allTime uses userId as document ID.
-          data['userId'] = doc.id; 
-          return LeaderboardEntry.fromJson(data);
-        } catch (e) {
-          WasteAppLogger.severe('Error parsing leaderboard entry with id ${doc.id}: $e');
-          return null; // Skip entries that fail to parse
-        }
-      }).where((entry) => entry != null).cast<LeaderboardEntry>().toList();
-      
+      final entries = querySnapshot.docs
+          .map((doc) {
+            try {
+              final data = doc.data();
+              // Add the document ID as userId if it's not explicitly in the data,
+              // or ensure the existing userId matches.
+              // The schema for leaderboard_allTime uses userId as document ID.
+              data['userId'] = doc.id;
+              return LeaderboardEntry.fromJson(data);
+            } catch (e) {
+              WasteAppLogger.severe('Error parsing leaderboard entry with id ${doc.id}: $e');
+              return null; // Skip entries that fail to parse
+            }
+          })
+          .where((entry) => entry != null)
+          .cast<LeaderboardEntry>()
+          .toList();
+
       // Assign ranks based on sorted order
       for (var i = 0; i < entries.length; i++) {
         entries[i] = entries[i].copyWith(rank: i + 1);
       }
-      
+
       return entries;
     } catch (e) {
       WasteAppLogger.severe('Error fetching top N leaderboard entries: $e');
@@ -85,16 +86,12 @@ class LeaderboardService {
       final userPoints = userDoc.data()!['points'] as int? ?? 0;
 
       // Count users with more points
-      final querySnapshot = await _firestore
-          .collection(_leaderboardCollection)
-          .where('points', isGreaterThan: userPoints)
-          .count()
-          .get();
-      
+      final querySnapshot =
+          await _firestore.collection(_leaderboardCollection).where('points', isGreaterThan: userPoints).count().get();
+
       // Rank is 1 (if no one has more points) + count of users with more points
       final rank = (querySnapshot.count ?? 0) + 1;
       return rank;
-
     } catch (e) {
       WasteAppLogger.severe('Error fetching current user rank for $userId: $e');
       return null;
@@ -102,4 +99,4 @@ class LeaderboardService {
   }
 
   // TODO: Potentially add methods for weekly/monthly leaderboards if those collections are created.
-} 
+}

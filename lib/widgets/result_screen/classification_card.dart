@@ -5,7 +5,6 @@ import '../interactive_tag.dart';
 
 /// Main classification display card with thumbnail and basic information
 class ClassificationCard extends StatelessWidget {
-  
   const ClassificationCard({
     super.key,
     required this.classification,
@@ -17,7 +16,7 @@ class ClassificationCard extends StatelessWidget {
   final bool isLoading;
   final Widget Function(double size) thumbnailBuilder;
   final List<TagData> tags;
-  
+
   Color _getCategoryColor(String category) {
     switch (category.toLowerCase()) {
       case 'wet waste':
@@ -38,12 +37,12 @@ class ClassificationCard extends StatelessWidget {
         return Colors.grey;
     }
   }
-  
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    
+
     return Card(
       elevation: 4,
       shape: RoundedRectangleBorder(
@@ -56,9 +55,7 @@ class ClassificationCard extends StatelessWidget {
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: isDark 
-                ? [Colors.grey.shade800, Colors.grey.shade900]
-                : [Colors.white, Colors.grey.shade50],
+            colors: isDark ? [Colors.grey.shade800, Colors.grey.shade900] : [Colors.white, Colors.grey.shade50],
           ),
         ),
         child: Column(
@@ -109,9 +106,9 @@ class ClassificationCard extends StatelessWidget {
                 ),
               ],
             ),
-            
+
             const SizedBox(height: AppTheme.paddingLarge),
-            
+
             // Interactive Tags Section
             Text(
               'Tags & Actions',
@@ -130,4 +127,4 @@ class ClassificationCard extends StatelessWidget {
       ),
     );
   }
-} 
+}

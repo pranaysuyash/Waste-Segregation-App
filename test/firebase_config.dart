@@ -16,7 +16,7 @@ Future<void> configureFirebaseForTesting() async {
   if (useFirebaseEmulator) {
     // Configure Firebase to use emulators
     print('🧪 Configuring Firebase emulators for testing...');
-    
+
     // Note: Actual Firebase initialization should be done in your test setup
     // This is just a configuration helper
     print('🔥 Firestore emulator: $emulatorHost:$firestoreEmulatorPort');
@@ -25,4 +25,4 @@ Future<void> configureFirebaseForTesting() async {
   } else {
     print('🧪 Using mock Firebase services for testing');
   }
-} 
+}

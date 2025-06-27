@@ -8,8 +8,7 @@ class SyncSuccessWidget extends StatefulWidget {
   State<SyncSuccessWidget> createState() => _SyncSuccessWidgetState();
 }
 
-class _SyncSuccessWidgetState extends State<SyncSuccessWidget>
-    with SingleTickerProviderStateMixin {
+class _SyncSuccessWidgetState extends State<SyncSuccessWidget> with SingleTickerProviderStateMixin {
   late AnimationController _controller;
 
   @override

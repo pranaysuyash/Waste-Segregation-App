@@ -31,7 +31,7 @@ void main() {
       test('should switch back to light theme correctly', () async {
         await themeProvider.setThemeMode(ThemeMode.dark);
         expect(themeProvider.themeMode, ThemeMode.dark);
-        
+
         await themeProvider.setThemeMode(ThemeMode.light);
         expect(themeProvider.themeMode, ThemeMode.light);
       });
@@ -41,7 +41,7 @@ void main() {
       test('should save theme preference when changed', () async {
         await themeProvider.setThemeMode(ThemeMode.dark);
         expect(themeProvider.themeMode, ThemeMode.dark);
-        
+
         // Create a new provider to test persistence
         final newProvider = ThemeProvider();
         // Give it time to load from SharedPreferences
@@ -53,11 +53,11 @@ void main() {
         SharedPreferences.setMockInitialValues({
           'themeMode': 2, // ThemeMode.dark.index
         });
-        
+
         final provider = ThemeProvider();
         // Give it time to load from SharedPreferences
         await Future.delayed(const Duration(milliseconds: 100));
-        
+
         expect(provider.themeMode, ThemeMode.dark);
       });
 
@@ -65,22 +65,22 @@ void main() {
         SharedPreferences.setMockInitialValues({
           'themeMode': 999, // Invalid index
         });
-        
+
         final provider = ThemeProvider();
         // Give it time to load from SharedPreferences
         await Future.delayed(const Duration(milliseconds: 100));
-        
+
         // Should fallback to light theme (index 1)
         expect(provider.themeMode, ThemeMode.light);
       });
 
       test('should handle missing theme preference', () async {
         SharedPreferences.setMockInitialValues({});
-        
+
         final provider = ThemeProvider();
         // Give it time to load from SharedPreferences
         await Future.delayed(const Duration(milliseconds: 100));
-        
+
         // Should use default light theme
         expect(provider.themeMode, ThemeMode.light);
       });
@@ -92,9 +92,9 @@ void main() {
         themeProvider.addListener(() {
           notified = true;
         });
-        
+
         await themeProvider.setThemeMode(ThemeMode.dark);
-        
+
         expect(notified, true);
       });
 
@@ -103,11 +103,11 @@ void main() {
         themeProvider.addListener(() {
           notificationCount++;
         });
-        
+
         await themeProvider.setThemeMode(ThemeMode.dark);
         await themeProvider.setThemeMode(ThemeMode.system);
         await themeProvider.setThemeMode(ThemeMode.light);
-        
+
         expect(notificationCount, 3);
       });
     });
@@ -117,11 +117,11 @@ void main() {
         // Test light mode
         await themeProvider.setThemeMode(ThemeMode.light);
         expect(themeProvider.themeMode, ThemeMode.light);
-        
+
         // Test dark mode
         await themeProvider.setThemeMode(ThemeMode.dark);
         expect(themeProvider.themeMode, ThemeMode.dark);
-        
+
         // Test system mode
         await themeProvider.setThemeMode(ThemeMode.system);
         expect(themeProvider.themeMode, ThemeMode.system);
@@ -132,10 +132,9 @@ void main() {
       test('should handle SharedPreferences errors gracefully', () async {
         // This test ensures the provider doesn't crash if SharedPreferences fails
         final provider = ThemeProvider();
-        
+
         // Should not throw an exception
-        expect(() async => await provider.setThemeMode(ThemeMode.dark), 
-               returnsNormally);
+        expect(() async => await provider.setThemeMode(ThemeMode.dark), returnsNormally);
       });
     });
   });

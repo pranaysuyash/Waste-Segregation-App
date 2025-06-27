@@ -15,11 +15,10 @@ import 'dart:io';
 /// Service for syncing classifications to Firestore cloud storage
 /// Also handles admin data collection for ML training and data recovery
 class CloudStorageService {
-
   CloudStorageService(this._localStorageService);
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final StorageService _localStorageService;
-  
+
   // ✅ OPTIMIZATION: Add as class field to avoid creating new instances repeatedly
   late final GamificationService _gamificationService = GamificationService(_localStorageService, this);
 
@@ -34,10 +33,7 @@ class CloudStorageService {
 
     try {
       WasteAppLogger.info('Saving user profile to Firestore for user ${userProfile.id}');
-      await _firestore
-          .collection('users')
-          .doc(userProfile.id)
-          .set(userProfile.toJson(), SetOptions(merge: true));
+      await _firestore.collection('users').doc(userProfile.id).set(userProfile.toJson(), SetOptions(merge: true));
       WasteAppLogger.info('Successfully saved user profile to Firestore.');
 
       // After successfully saving the profile, update the leaderboard
@@ -87,19 +83,19 @@ class CloudStorageService {
   }) async {
     // Always save locally first
     await _localStorageService.saveClassification(classification);
-    
+
     // Check if we should prevent sync due to fresh start mode
     final shouldPreventSync = await FreshStartService.shouldPreventAutoSync();
     if (shouldPreventSync) {
       WasteAppLogger.info('Auto-sync prevented by Fresh Start service.');
       return;
     }
-    
+
     // If Google sync is enabled and user is signed in, also save to cloud
     if (isGoogleSyncEnabled) {
       await _syncClassificationToCloud(classification);
     }
-    
+
     // 🎮 GAMIFICATION FIX: Process gamification to ensure points are awarded
     // This fixes the disconnect where classifications exist but no points are earned
     if (processGamification) {
@@ -107,10 +103,10 @@ class CloudStorageService {
         // Check if this classification has already been processed for gamification
         // by looking for a gamification marker or checking the timestamp
         final shouldProcessGamification = await _shouldProcessGamification(classification);
-        
+
         if (shouldProcessGamification) {
           WasteAppLogger.info('Processing gamification for classification ${classification.id}');
-          
+
           // ✅ OPTIMIZATION: Use the singleton instance with error handling
           try {
             await _gamificationService.processClassification(classification);
@@ -139,22 +135,17 @@ class CloudStorageService {
       }
 
       WasteAppLogger.info('Updating classification ${classification.id} in cloud for user ${userProfile.id}');
-      
+
       // Use the local classification ID so we update the existing document
       final docId = classification.id;
-      
+
       // Add cloud metadata
       final cloudClassification = classification.copyWith(
         userId: userProfile.id,
       );
 
       // Update the user's personal collection
-      await _firestore
-          .collection('users')
-          .doc(userProfile.id)
-          .collection('classifications')
-          .doc(docId)
-          .update({
+      await _firestore.collection('users').doc(userProfile.id).collection('classifications').doc(docId).update({
         ...cloudClassification.toJson(),
         'updatedAt': FieldValue.serverTimestamp(),
       });
@@ -163,7 +154,6 @@ class CloudStorageService {
 
       // Also update the admin collection for consistency
       await _saveToAdminCollection(cloudClassification);
-
     } catch (e, s) {
       WasteAppLogger.severe('Error updating classification in cloud', e, s);
       // Don't throw error - this is a best-effort update
@@ -184,8 +174,9 @@ class CloudStorageService {
         return 0;
       }
 
-      WasteAppLogger.info('Batch updating ${classifications.length} classifications in cloud for user ${userProfile.id}');
-      
+      WasteAppLogger.info(
+          'Batch updating ${classifications.length} classifications in cloud for user ${userProfile.id}');
+
       var updatedCount = 0;
       var batch = _firestore.batch();
       var operationCount = 0;
@@ -194,12 +185,8 @@ class CloudStorageService {
         try {
           final docId = classification.id;
           final cloudClassification = classification.copyWith(userId: userProfile.id);
-          
-          final docRef = _firestore
-              .collection('users')
-              .doc(userProfile.id)
-              .collection('classifications')
-              .doc(docId);
+
+          final docRef = _firestore.collection('users').doc(userProfile.id).collection('classifications').doc(docId);
 
           batch.update(docRef, {
             ...cloudClassification.toJson(),
@@ -210,7 +197,8 @@ class CloudStorageService {
           updatedCount++;
 
           // Firestore batch limit is 500 operations
-          if (operationCount >= 450) { // Leave some buffer
+          if (operationCount >= 450) {
+            // Leave some buffer
             await batch.commit();
             batch = _firestore.batch();
             operationCount = 0;
@@ -229,7 +217,6 @@ class CloudStorageService {
 
       WasteAppLogger.info('Successfully updated $updatedCount classifications in cloud.');
       return updatedCount;
-
     } catch (e, s) {
       WasteAppLogger.severe('Error in batch update of classifications', e, s);
       return 0;
@@ -246,10 +233,10 @@ class CloudStorageService {
       }
 
       WasteAppLogger.info('Syncing classification ${classification.id} to cloud for user ${userProfile.id}');
-      
+
       // Use the local classification ID so repeated syncs overwrite existing docs
       final docId = classification.id;
-      
+
       // Add cloud metadata
       final cloudClassification = classification.copyWith(
         userId: userProfile.id,
@@ -257,12 +244,7 @@ class CloudStorageService {
       );
 
       // 1. Save to user's personal collection
-      await _firestore
-          .collection('users')
-          .doc(userProfile.id)
-          .collection('classifications')
-          .doc(docId)
-          .set({
+      await _firestore.collection('users').doc(userProfile.id).collection('classifications').doc(docId).set({
         ...cloudClassification.toJson(),
         'syncedAt': FieldValue.serverTimestamp(),
         'createdAt': FieldValue.serverTimestamp(),
@@ -280,7 +262,6 @@ class CloudStorageService {
         WasteAppLogger.severe('Error updating last cloud sync time', e, s);
         // Don't rethrow - main sync operation was successful
       }
-
     } catch (e, s) {
       WasteAppLogger.severe('Error syncing classification to cloud', e, s);
       // Don't throw error - local save was successful
@@ -326,7 +307,6 @@ class CloudStorageService {
 
       // Also update recovery metadata
       await _updateRecoveryMetadata(classification.userId!);
-
     } catch (e, s) {
       WasteAppLogger.severe('Error saving to admin collection', e, s);
       // Don't throw error - user experience not affected
@@ -337,11 +317,8 @@ class CloudStorageService {
   Future<void> _updateRecoveryMetadata(String userId) async {
     try {
       final hashedUserId = _hashUserId(userId);
-      
-      await _firestore
-          .collection('admin_user_recovery')
-          .doc(hashedUserId)
-          .set({
+
+      await _firestore.collection('admin_user_recovery').doc(hashedUserId).set({
         'lastBackup': FieldValue.serverTimestamp(),
         'classificationCount': FieldValue.increment(1),
         'appVersion': '0.1.6+98',
@@ -367,19 +344,19 @@ class CloudStorageService {
     try {
       // ✅ OPTIMIZATION: Use the singleton instance instead of creating new one
       final profile = await _gamificationService.getProfile();
-      
+
       // For now, we'll use a simple timestamp-based check
       // In a more sophisticated system, we might track processed classification IDs
       final classificationTime = classification.timestamp;
       final now = DateTime.now();
-      
+
       // Don't process if classification is older than 24 hours (likely already processed)
       // This prevents retroactive processing of old data while allowing recent classifications
       if (now.difference(classificationTime).inHours > 24) {
         WasteAppLogger.info('Skipping gamification for old classification ${classification.id}');
         return false;
       }
-      
+
       // Process if classification is recent (within 24 hours)
       WasteAppLogger.info('Proceeding with gamification for recent classification ${classification.id}');
       return true;
@@ -396,7 +373,7 @@ class CloudStorageService {
   ) async {
     // Get local classifications
     final localClassifications = await _localStorageService.getAllClassifications();
-    
+
     if (!isGoogleSyncEnabled) {
       WasteAppLogger.info('Google sync is disabled, returning local classifications only.');
       return localClassifications;
@@ -410,7 +387,7 @@ class CloudStorageService {
       }
 
       WasteAppLogger.info('Fetching classifications from cloud for user ${userProfile.id}');
-      
+
       // Get cloud classifications
       final cloudSnapshot = await _firestore
           .collection('users')
@@ -434,7 +411,7 @@ class CloudStorageService {
           .toList();
 
       WasteAppLogger.info('Found ${cloudClassifications.length} classifications in cloud.');
-      
+
       // Merge and deduplicate (cloud takes precedence for same timestamps)
       final merged = _mergeClassifications(localClassifications, cloudClassifications);
 
@@ -465,24 +442,25 @@ class CloudStorageService {
     List<WasteClassification> cloud,
   ) {
     final mergedMap = <String, WasteClassification>{};
-    
+
     // Add local classifications first
     for (final classification in local) {
       // Use the unique ID as the key for deduplication
       mergedMap[classification.id] = classification;
     }
-    
+
     // Add cloud classifications (will overwrite local if same ID)
     for (final classification in cloud) {
       // Use the unique ID as the key for deduplication
       mergedMap[classification.id] = classification;
     }
-    
+
     // Convert back to list and sort by timestamp
     final result = mergedMap.values.toList();
     result.sort((a, b) => b.timestamp.compareTo(a.timestamp));
-    
-    WasteAppLogger.info('Merged ${local.length} local and ${cloud.length} cloud classifications into ${result.length} unique items.');
+
+    WasteAppLogger.info(
+        'Merged ${local.length} local and ${cloud.length} cloud classifications into ${result.length} unique items.');
     return result;
   }
 
@@ -494,7 +472,7 @@ class CloudStorageService {
     try {
       // Find cloud classifications that don't exist locally using their unique IDs
       final localIds = local.map((c) => c.id).toSet();
-      
+
       final newCloudClassifications = cloud.where((cloudClassification) {
         return !localIds.contains(cloudClassification.id);
       }).toList();
@@ -524,15 +502,14 @@ class CloudStorageService {
         WasteAppLogger.info('Auto-sync prevented by Fresh Start service.');
         return 0;
       }
-      
+
       final userProfile = await _localStorageService.getCurrentUserProfile();
       if (userProfile == null || userProfile.id.isEmpty) {
         WasteAppLogger.info('No user profile found, skipping full cloud sync.');
         return 0;
       }
 
-      final localClassifications =
-          await _localStorageService.getAllClassifications();
+      final localClassifications = await _localStorageService.getAllClassifications();
 
       WasteAppLogger.info('🔄 Starting full sync of ${localClassifications.length} local classifications to cloud');
 
@@ -543,19 +520,18 @@ class CloudStorageService {
       for (final classification in localClassifications) {
         try {
           final userProfileId = userProfile.id;
-          final cloudClassification =
-              classification.copyWith(userId: userProfileId);
-          final docRef = _firestore
-              .collection('users')
-              .doc(userProfileId)
-              .collection('classifications')
-              .doc(classification.id);
+          final cloudClassification = classification.copyWith(userId: userProfileId);
+          final docRef =
+              _firestore.collection('users').doc(userProfileId).collection('classifications').doc(classification.id);
 
-          batch.set(docRef, {
-            ...cloudClassification.toJson(),
-            'syncedAt': FieldValue.serverTimestamp(),
-            'createdAt': FieldValue.serverTimestamp(),
-          }, SetOptions(merge: true));
+          batch.set(
+              docRef,
+              {
+                ...cloudClassification.toJson(),
+                'syncedAt': FieldValue.serverTimestamp(),
+                'createdAt': FieldValue.serverTimestamp(),
+              },
+              SetOptions(merge: true));
 
           opCount++;
           syncedCount++;
@@ -581,7 +557,8 @@ class CloudStorageService {
         await batch.commit();
       }
 
-      WasteAppLogger.info('🔄 ✅ Successfully synced $syncedCount/${localClassifications.length} classifications to cloud');
+      WasteAppLogger.info(
+          '🔄 ✅ Successfully synced $syncedCount/${localClassifications.length} classifications to cloud');
 
       if (syncedCount > 0) {
         try {
@@ -609,7 +586,7 @@ class CloudStorageService {
         WasteAppLogger.info('Auto-sync prevented by Fresh Start service.');
         return 0;
       }
-      
+
       final userProfile = await _localStorageService.getCurrentUserProfile();
       if (userProfile == null || userProfile.id.isEmpty) {
         WasteAppLogger.info('No user profile found, skipping cloud to local sync.');
@@ -661,27 +638,25 @@ class CloudStorageService {
       }
 
       WasteAppLogger.info('Clearing all cloud data for user ${userProfile.id}');
-      
+
       // Delete all classifications for this user
-      final classificationsQuery = await _firestore
-          .collection('users')
-          .doc(userProfile.id)
-          .collection('classifications')
-          .get();
+      final classificationsQuery =
+          await _firestore.collection('users').doc(userProfile.id).collection('classifications').get();
 
       final batch = _firestore.batch();
       for (final doc in classificationsQuery.docs) {
         batch.delete(doc.reference);
       }
-      
+
       await batch.commit();
-      
+
       WasteAppLogger.info('Successfully cleared all cloud data for user ${userProfile.id}');
     } catch (e, s) {
       WasteAppLogger.severe('Error clearing cloud data', e, s);
       rethrow;
     }
   }
+
   /// Save classification feedback to Firestore
   Future<void> saveClassificationFeedbackToCloud(ClassificationFeedback feedback) async {
     try {
@@ -696,7 +671,7 @@ class CloudStorageService {
   }
 
   /// Uploads an image file for batch processing and returns a publicly accessible URL
-  /// 
+  ///
   /// This method:
   /// 1. Uploads image to Firebase Storage
   /// 2. Returns a public download URL that OpenAI Batch API can access
@@ -709,16 +684,16 @@ class CloudStorageService {
 
       // Read image bytes
       final imageBytes = await imageFile.readAsBytes();
-      
+
       // Upload to Firebase Storage and get public URL
       final firebaseUrl = await _uploadToFirebaseStorage(imageBytes, userId);
-      
+
       WasteAppLogger.info('Successfully uploaded image for batch processing', null, null, {
         'service': 'cloud_storage_service',
         'userId': userId,
         'firebaseUrl': firebaseUrl,
       });
-      
+
       return firebaseUrl;
     } catch (e) {
       WasteAppLogger.severe('Failed to upload image for batch processing', e, null, {
@@ -736,16 +711,16 @@ class CloudStorageService {
       final timestamp = DateTime.now().millisecondsSinceEpoch;
       final fileName = 'batch_image_$timestamp.jpg';
       final path = 'batch_images/$userId/$fileName';
-      
+
       WasteAppLogger.info('Uploading to Firebase Storage', null, null, {
         'service': 'cloud_storage_service',
         'path': path,
         'size': imageBytes.length,
       });
-      
+
       // Create storage reference
       final ref = storage.ref().child(path);
-      
+
       // Upload with metadata
       final metadata = SettableMetadata(
         contentType: 'image/jpeg',
@@ -755,20 +730,20 @@ class CloudStorageService {
           'uploadedAt': DateTime.now().toIso8601String(),
         },
       );
-      
+
       // Upload the file
       final uploadTask = ref.putData(imageBytes, metadata);
       final snapshot = await uploadTask;
-      
+
       // Get the download URL
       final downloadUrl = await snapshot.ref.getDownloadURL();
-      
+
       WasteAppLogger.info('Firebase Storage upload completed', null, null, {
         'service': 'cloud_storage_service',
         'downloadUrl': downloadUrl,
         'bytesTransferred': snapshot.bytesTransferred,
       });
-      
+
       return downloadUrl;
     } catch (e) {
       WasteAppLogger.severe('Firebase Storage upload failed', e, null, {
@@ -778,4 +753,4 @@ class CloudStorageService {
       rethrow;
     }
   }
-} 
+}

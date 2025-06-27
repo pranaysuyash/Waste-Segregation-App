@@ -37,9 +37,8 @@ class _AuthScreenState extends State<AuthScreen> {
     final scaffoldMessenger = ScaffoldMessenger.of(context);
 
     try {
-      final googleDriveService =
-          Provider.of<GoogleDriveService>(context, listen: false);
-      
+      final googleDriveService = Provider.of<GoogleDriveService>(context, listen: false);
+
       final user = await googleDriveService.signIn();
 
       if (user != null && mounted) {
@@ -86,9 +85,9 @@ class _AuthScreenState extends State<AuthScreen> {
             end: Alignment.bottomRight,
             colors: [
               AppTheme.primaryColor,
-              AppTheme.primaryColor.withValues(alpha:0.8),
+              AppTheme.primaryColor.withValues(alpha: 0.8),
               AppTheme.secondaryColor,
-              AppTheme.secondaryColor.withValues(alpha:0.6),
+              AppTheme.secondaryColor.withValues(alpha: 0.6),
             ],
             stops: const [0.0, 0.3, 0.7, 1.0],
           ),
@@ -187,14 +186,11 @@ class _AuthScreenState extends State<AuthScreen> {
                 if (kIsWeb) ...[
                   const SizedBox(height: AppTheme.paddingRegular),
                   Container(
-                    padding:
-                        const EdgeInsets.all(AppTheme.paddingRegular),
+                    padding: const EdgeInsets.all(AppTheme.paddingRegular),
                     decoration: BoxDecoration(
-                      color: Colors.red.withValues(alpha:0.2),
-                      borderRadius: BorderRadius.circular(
-                          AppTheme.borderRadiusRegular),
-                      border:
-                          Border.all(color: Colors.red.withValues(alpha:0.5)),
+                      color: Colors.red.withValues(alpha: 0.2),
+                      borderRadius: BorderRadius.circular(AppTheme.borderRadiusRegular),
+                      border: Border.all(color: Colors.red.withValues(alpha: 0.5)),
                     ),
                     child: const Row(
                       children: [
@@ -221,9 +217,7 @@ class _AuthScreenState extends State<AuthScreen> {
 
                 // Google Sign-in card (disabled on web)
                 _buildAuthCard(
-                  onPressed: (kIsWeb || _isLoading)
-                      ? null
-                      : () => _signInWithGoogle(context),
+                  onPressed: (kIsWeb || _isLoading) ? null : () => _signInWithGoogle(context),
                   icon: _isLoading
                       ? const SizedBox(
                           width: 20,
@@ -240,9 +234,7 @@ class _AuthScreenState extends State<AuthScreen> {
                           size: 24,
                           color: Colors.blue,
                         ),
-                  title: kIsWeb
-                      ? 'Sign In Unavailable on Web'
-                      : AppStrings.signInWithGoogle,
+                  title: kIsWeb ? 'Sign In Unavailable on Web' : AppStrings.signInWithGoogle,
                   subtitle: 'Sync your progress across devices',
                   backgroundColor: Colors.white,
                   textColor: Colors.black87,
@@ -294,13 +286,11 @@ class _AuthScreenState extends State<AuthScreen> {
             padding: const EdgeInsets.all(AppTheme.paddingRegular),
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(AppTheme.borderRadiusLarge),
-              border: borderColor != null
-                  ? Border.all(color: borderColor, width: 2)
-                  : null,
+              border: borderColor != null ? Border.all(color: borderColor, width: 2) : null,
               boxShadow: backgroundColor != Colors.transparent
                   ? [
                       BoxShadow(
-                        color: Colors.black.withValues(alpha:0.1),
+                        color: Colors.black.withValues(alpha: 0.1),
                         blurRadius: 8,
                         offset: const Offset(0, 4),
                       ),
@@ -328,7 +318,7 @@ class _AuthScreenState extends State<AuthScreen> {
                         subtitle,
                         style: TextStyle(
                           fontSize: AppTheme.fontSizeSmall,
-                          color: textColor.withValues(alpha:0.7),
+                          color: textColor.withValues(alpha: 0.7),
                         ),
                       ),
                     ],
@@ -337,7 +327,7 @@ class _AuthScreenState extends State<AuthScreen> {
                 Icon(
                   Icons.arrow_forward_ios,
                   size: 16,
-                  color: textColor.withValues(alpha:0.5),
+                  color: textColor.withValues(alpha: 0.5),
                 ),
               ],
             ),
@@ -352,10 +342,10 @@ class _AuthScreenState extends State<AuthScreen> {
       height: 110, // Further increased height for better text visibility
       padding: const EdgeInsets.all(AppTheme.paddingSmall),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha:0.15),
+        color: Colors.white.withValues(alpha: 0.15),
         borderRadius: BorderRadius.circular(AppTheme.borderRadiusRegular),
         border: Border.all(
-          color: Colors.white.withValues(alpha:0.3),
+          color: Colors.white.withValues(alpha: 0.3),
         ),
       ),
       child: Column(

@@ -109,7 +109,7 @@ void main() {
     group('Data Validation Tests', () {
       test('should validate classification data integrity', () async {
         final classification = _createTestClassification('Data Integrity Test');
-        
+
         // Validate required fields
         expect(classification.itemName, isNotEmpty);
         expect(classification.category, isNotEmpty);
@@ -118,7 +118,7 @@ void main() {
         expect(classification.disposalInstructions, isNotNull);
         expect(classification.disposalInstructions.primaryMethod, isNotEmpty);
         expect(classification.disposalInstructions.steps, isNotEmpty);
-        
+
         // Validate optional fields
         expect(classification.confidence, isNull);
         expect(classification.userId, equals('test_user'));
@@ -188,11 +188,11 @@ void main() {
       test('should simulate classification workflow', () async {
         // Step 1: Create classification
         final classification = _createTestClassification('Workflow Test Item');
-        
+
         // Step 2: Validate classification was created
         expect(classification, isNotNull);
         expect(classification.itemName, equals('Workflow Test Item'));
-        
+
         // Step 3: Simulate processing results
         final processingResults = {
           'saved': true,
@@ -200,7 +200,7 @@ void main() {
           'challenges_updated': 2,
           'analytics_tracked': true,
         };
-        
+
         // Step 4: Validate processing results
         expect(processingResults['saved'], isTrue);
         expect(processingResults['points_awarded'], equals(10));
@@ -215,7 +215,7 @@ void main() {
           email: 'workflow@test.com',
           displayName: 'Workflow User',
         );
-        
+
         // Step 2: Create gamification profile
         final profile = GamificationProfile(
           userId: user.id,
@@ -223,22 +223,22 @@ void main() {
           streaks: <String, StreakDetails>{},
           achievements: [],
         );
-        
-                 // Step 3: Simulate activity
-         final updatedProfile = GamificationProfile(
-           userId: profile.userId,
-           points: const UserPoints(total: 50),
-           streaks: {
-             'daily': StreakDetails(
-               type: StreakType.dailyClassification,
-               currentCount: 3,
-               longestCount: 5,
-               lastActivityDate: DateTime.now(),
-             ),
-           },
-              achievements: [],
-         );
-        
+
+        // Step 3: Simulate activity
+        final updatedProfile = GamificationProfile(
+          userId: profile.userId,
+          points: const UserPoints(total: 50),
+          streaks: {
+            'daily': StreakDetails(
+              type: StreakType.dailyClassification,
+              currentCount: 3,
+              longestCount: 5,
+              lastActivityDate: DateTime.now(),
+            ),
+          },
+          achievements: [],
+        );
+
         // Step 4: Validate workflow
         expect(user.id, equals(profile.userId));
         expect(updatedProfile.points.total, greaterThan(profile.points.total));
@@ -247,26 +247,26 @@ void main() {
 
       test('should simulate batch processing workflow', () async {
         // Step 1: Create multiple classifications
-        final classifications = List.generate(5, (i) => 
-          _createTestClassification('Batch Item $i')
-        );
-        
+        final classifications = List.generate(5, (i) => _createTestClassification('Batch Item $i'));
+
         // Step 2: Validate batch creation
         expect(classifications.length, equals(5));
         expect(classifications.first.itemName, equals('Batch Item 0'));
         expect(classifications.last.itemName, equals('Batch Item 4'));
-        
+
         // Step 3: Simulate batch processing
-        final batchResults = classifications.map((classification) => {
-          'id': classification.itemName,
-          'processed': true,
-          'points': 5,
-        }).toList();
-        
+        final batchResults = classifications
+            .map((classification) => {
+                  'id': classification.itemName,
+                  'processed': true,
+                  'points': 5,
+                })
+            .toList();
+
         // Step 4: Validate batch results
         expect(batchResults.length, equals(5));
         expect(batchResults.every((result) => result['processed'] == true), isTrue);
-        
+
         final totalPoints = batchResults.fold<int>(0, (sum, result) => sum + (result['points'] as int));
         expect(totalPoints, equals(25));
       });
@@ -275,14 +275,12 @@ void main() {
     group('Performance Simulation Tests', () {
       test('should handle large dataset efficiently', () async {
         final stopwatch = Stopwatch()..start();
-        
+
         // Create large dataset
-        final largeDataset = List.generate(100, (i) => 
-          _createTestClassification('Performance Item $i')
-        );
-        
+        final largeDataset = List.generate(100, (i) => _createTestClassification('Performance Item $i'));
+
         stopwatch.stop();
-        
+
         // Validate performance
         expect(largeDataset.length, equals(100));
         expect(stopwatch.elapsedMilliseconds, lessThan(1000)); // Should be fast
@@ -293,15 +291,15 @@ void main() {
       test('should handle memory usage efficiently', () async {
         // Create memory test data
         final memoryTestData = <WasteClassification>[];
-        
+
         for (var i = 0; i < 50; i++) {
           memoryTestData.add(_createTestClassification('Memory Test $i'));
         }
-        
+
         // Validate memory efficiency
         expect(memoryTestData.length, equals(50));
         expect(memoryTestData.every((item) => item.itemName.startsWith('Memory Test')), isTrue);
-        
+
         // Clear data to test cleanup
         memoryTestData.clear();
         expect(memoryTestData, isEmpty);
@@ -332,7 +330,7 @@ void main() {
 
       test('should handle very long text fields', () async {
         final longText = 'A' * 1000; // 1000 character string
-        
+
         final longTextClassification = WasteClassification(
           itemName: 'Long Text Item',
           category: 'Test Category',
@@ -356,7 +354,7 @@ void main() {
       test('should handle extreme date values', () async {
         final futureDate = DateTime(2100, 12, 31);
         final pastDate = DateTime(1900, 1);
-        
+
         final futureDateClassification = WasteClassification(
           itemName: 'Future Item',
           category: 'Test Category',

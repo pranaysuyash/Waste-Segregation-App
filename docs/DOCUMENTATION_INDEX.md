@@ -27,6 +27,7 @@ This document provides a comprehensive index to all project documentation, now p
 ### `/docs/analysis/` - Project Analysis
 
 - **CODEBASE_DOCS_DISCREPANCY_REPORT.md** - Analysis of code vs documentation discrepancies
+- **CRITICAL_FIXES_ANALYSIS_SUMMARY.md** - Complete analysis of immediate critical fixes (June 2025)
 
 ### `/docs/archive/` - Archived Documentation
 
@@ -45,6 +46,7 @@ This document provides a comprehensive index to all project documentation, now p
 ### `/docs/features/` - Feature Documentation
 
 - **COMMUNITY_SYSTEM_DOCUMENTATION.md** - Community features and social system
+- **COMPREHENSIVE_ROADMAP_FEEDBACK_IMPLEMENTATION.md** - Complete roadmap implementation plan with verified codebase analysis
 
 ### `/docs/fixes/` - Fix Documentation
 
@@ -59,6 +61,7 @@ This document provides a comprehensive index to all project documentation, now p
 
 ### `/docs/planning/` - Project Planning & Strategy
 
+- **ENGINEERING_BACKLOG_CONSOLIDATED.md** - 📋 **12-week implementation-ready backlog** (June 2025)
 - **SPRINT_PLANNING.md** - Sprint planning and acceptance criteria
 - **COMPLETE_MODERNIZATION.md** - Modernization strategy and roadmap
 - **MASTER_TODO_COMPREHENSIVE.md** - Comprehensive TODO tracking
@@ -136,6 +139,14 @@ This document provides a comprehensive index to all project documentation, now p
 ### `/docs/implementation/` - Implementation Guides
 
 - **master_implementation_guide.md** - ML Training Data Collection System master guide
+
+### `/docs/work_logs/` - Session Work Logs
+
+- **SESSION_NOTES_2025_06_25.md** - Comprehensive session log for critical fixes implementation
+
+### `/docs/tasks/` - Task Management
+
+- **NEXT_PHASE_TASKS.md** - Detailed task breakdown for Phase 1 - Token Economy implementation
 - **step_1_ml_training_data_collection_service.md** - Core ML data collection implementation
 - **step_2_enhanced_firebase_cleanup_service.md** - GDPR-compliant deletion with ML preservation
 - **step_3_privacy_preserving_admin_recovery_service.md** - Privacy-preserving admin data recovery
@@ -162,11 +173,14 @@ This document provides a comprehensive index to all project documentation, now p
 
 ### **For Development**
 
-1. **DEVOPS_QUICK_REFERENCE.md** - Daily commands and procedures (START HERE)
-2. **SPRINT_PLANNING.md** - Current sprint goals and acceptance criteria
-3. **TEST_STATUS_SUMMARY.md** - Latest testing status
-4. **ISSUES_SUMMARY_2025-06-02.md** - Detailed technical issues
-5. **MANUAL_COMMIT_INSTRUCTIONS.md** - Git workflow procedures
+1. **ENGINEERING_BACKLOG_CONSOLIDATED.md** - 📋 **12-week roadmap** (START HERE for new features)
+2. **NEXT_PHASE_TASKS.md** - 🚀 **Phase 1 implementation tasks** (Token Economy)
+3. **SESSION_NOTES_2025_06_25.md** - 📝 **Latest session work log** (Critical fixes completed)
+4. **DEVOPS_QUICK_REFERENCE.md** - Daily commands and procedures 
+5. **SPRINT_PLANNING.md** - Current sprint goals and acceptance criteria
+6. **TEST_STATUS_SUMMARY.md** - Latest testing status
+7. **ISSUES_SUMMARY_2025-06-02.md** - Detailed technical issues
+8. **MANUAL_COMMIT_INSTRUCTIONS.md** - Git workflow procedures
 
 ### **For QA & Testing**
 

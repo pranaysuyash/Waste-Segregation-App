@@ -2,9 +2,8 @@ import 'package:flutter/material.dart';
 
 /// Simplified navigation service to reduce settings complexity and improve UX
 class SimplifiedNavigationService {
-  
   // ==================== DIRECT ACCESS HELPERS ====================
-  
+
   /// Navigate directly to specific settings sections without multiple taps
   static void navigateToAccountSettings(BuildContext context) {
     // Direct navigation to account-specific settings
@@ -15,7 +14,7 @@ class SimplifiedNavigationService {
       ),
     );
   }
-  
+
   static void navigateToAppPreferences(BuildContext context) {
     // Direct navigation to app preferences
     Navigator.push(
@@ -25,7 +24,7 @@ class SimplifiedNavigationService {
       ),
     );
   }
-  
+
   static void navigateToPrivacySettings(BuildContext context) {
     // Direct navigation to privacy settings
     Navigator.push(
@@ -35,7 +34,7 @@ class SimplifiedNavigationService {
       ),
     );
   }
-  
+
   static void navigateToHelpAndSupport(BuildContext context) {
     // Direct navigation to help
     Navigator.push(
@@ -45,9 +44,9 @@ class SimplifiedNavigationService {
       ),
     );
   }
-  
+
   // ==================== QUICK SETTINGS ACCESS ====================
-  
+
   /// Show quick settings bottom sheet for common actions
   static void showQuickSettings(BuildContext context) {
     showModalBottomSheet(
@@ -59,7 +58,7 @@ class SimplifiedNavigationService {
       builder: (context) => const QuickSettingsBottomSheet(),
     );
   }
-  
+
   /// Show profile quick actions
   static void showProfileQuickActions(BuildContext context) {
     showModalBottomSheet(
@@ -70,9 +69,9 @@ class SimplifiedNavigationService {
       builder: (context) => const ProfileQuickActionsSheet(),
     );
   }
-  
+
   // ==================== SIMPLIFIED SIGN OUT ====================
-  
+
   /// Improved sign out flow with proper confirmation
   static void showSignOutConfirmation(BuildContext context) {
     showDialog(
@@ -102,7 +101,7 @@ class SimplifiedNavigationService {
       ),
     );
   }
-  
+
   static Future<void> _performSignOut(BuildContext context) async {
     try {
       // Show loading indicator
@@ -113,11 +112,11 @@ class SimplifiedNavigationService {
           child: CircularProgressIndicator(),
         ),
       );
-      
+
       // Perform sign out logic here
       // This would typically involve calling auth service
       await Future.delayed(const Duration(seconds: 1)); // Simulate async operation
-      
+
       // Navigate to auth screen
       if (context.mounted) {
         Navigator.pushNamedAndRemoveUntil(
@@ -139,9 +138,9 @@ class SimplifiedNavigationService {
       }
     }
   }
-  
+
   // ==================== CONTEXTUAL SHORTCUTS ====================
-  
+
   /// Create contextual navigation based on current screen
   static List<Widget> getContextualActions(BuildContext context, String currentScreen) {
     switch (currentScreen) {
@@ -189,23 +188,23 @@ class SimplifiedNavigationService {
         ];
     }
   }
-  
+
   // ==================== HELPER METHODS ====================
-  
+
   static void _showHistoryFilters(BuildContext context) {
     showModalBottomSheet(
       context: context,
       builder: (context) => const HistoryFiltersSheet(),
     );
   }
-  
+
   static void _showExportOptions(BuildContext context) {
     showModalBottomSheet(
       context: context,
       builder: (context) => const ExportOptionsSheet(),
     );
   }
-  
+
   static void _showShareAchievements(BuildContext context) {
     showModalBottomSheet(
       context: context,
@@ -255,7 +254,7 @@ class _QuickSettingsBottomSheetState extends State<QuickSettingsBottomSheet> {
             ],
           ),
           const SizedBox(height: 20),
-          
+
           // Quick toggles
           SwitchListTile(
             title: const Text('Notifications'),
@@ -267,7 +266,7 @@ class _QuickSettingsBottomSheetState extends State<QuickSettingsBottomSheet> {
               });
             },
           ),
-          
+
           SwitchListTile(
             title: const Text('Dark Mode'),
             subtitle: const Text('Easier on the eyes'),
@@ -278,7 +277,7 @@ class _QuickSettingsBottomSheetState extends State<QuickSettingsBottomSheet> {
               });
             },
           ),
-          
+
           SwitchListTile(
             title: const Text('Sound Effects'),
             subtitle: const Text('Audio feedback for actions'),
@@ -289,9 +288,9 @@ class _QuickSettingsBottomSheetState extends State<QuickSettingsBottomSheet> {
               });
             },
           ),
-          
+
           const Divider(),
-          
+
           // Quick actions
           ListTile(
             leading: const Icon(Icons.settings),
@@ -302,7 +301,7 @@ class _QuickSettingsBottomSheetState extends State<QuickSettingsBottomSheet> {
               Navigator.pushNamed(context, '/settings');
             },
           ),
-          
+
           ListTile(
             leading: const Icon(Icons.help_outline),
             title: const Text('Help & Support'),
@@ -312,7 +311,7 @@ class _QuickSettingsBottomSheetState extends State<QuickSettingsBottomSheet> {
               SimplifiedNavigationService.navigateToHelpAndSupport(context);
             },
           ),
-          
+
           const SizedBox(height: 20),
         ],
       ),
@@ -350,7 +349,7 @@ class ProfileQuickActionsSheet extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 20),
-          
+
           // Profile actions
           ListTile(
             leading: const Icon(Icons.edit),
@@ -361,7 +360,7 @@ class ProfileQuickActionsSheet extends StatelessWidget {
               // Navigate to edit profile
             },
           ),
-          
+
           ListTile(
             leading: const Icon(Icons.timeline),
             title: const Text('View Progress'),
@@ -371,7 +370,7 @@ class ProfileQuickActionsSheet extends StatelessWidget {
               Navigator.pushNamed(context, '/achievements');
             },
           ),
-          
+
           ListTile(
             leading: const Icon(Icons.account_box),
             title: const Text('Account Settings'),
@@ -381,9 +380,9 @@ class ProfileQuickActionsSheet extends StatelessWidget {
               SimplifiedNavigationService.navigateToAccountSettings(context);
             },
           ),
-          
+
           const Divider(),
-          
+
           ListTile(
             leading: const Icon(Icons.logout, color: Colors.red),
             title: const Text('Sign Out', style: TextStyle(color: Colors.red)),
@@ -393,7 +392,7 @@ class ProfileQuickActionsSheet extends StatelessWidget {
               SimplifiedNavigationService.showSignOutConfirmation(context);
             },
           ),
-          
+
           const SizedBox(height: 20),
         ],
       ),
@@ -515,4 +514,4 @@ class ShareAchievementsSheet extends StatelessWidget {
       ),
     );
   }
-} 
+}

@@ -45,7 +45,7 @@ class ShareExampleScreen extends StatelessWidget {
                     ),
                   );
                 };
-                
+
                 // Share with callback notification
                 ShareService.share(
                   text: 'Check out this waste segregation app!',

@@ -16,7 +16,7 @@ class DialogHelper {
   }) async {
     // TODO: Use AppLocalizations when properly set up
     // final t = AppLocalizations.of(context)!;
-    
+
     return (await showDialog<bool>(
           context: context,
           builder: (_) => AlertDialog(
@@ -30,8 +30,7 @@ class DialogHelper {
               TextButton(
                 onPressed: () => Navigator.pop(_, true),
                 style: TextButton.styleFrom(
-                  foregroundColor: okColor ?? 
-                      (isDangerous ? Colors.red : Theme.of(context).primaryColor),
+                  foregroundColor: okColor ?? (isDangerous ? Colors.red : Theme.of(context).primaryColor),
                 ),
                 child: Text(okLabel ?? 'OK'),
               ),
@@ -147,24 +146,18 @@ class DialogHelper {
               Text(
                 title,
                 style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
+                      fontWeight: FontWeight.bold,
+                    ),
               ),
               const SizedBox(height: 16),
-              
               ...options.map((option) => ListTile(
-                leading: option.icon != null 
-                    ? Icon(option.icon, color: option.color)
-                    : null,
-                title: Text(option.title),
-                subtitle: option.subtitle != null 
-                    ? Text(option.subtitle!)
-                    : null,
-                onTap: () {
-                  Navigator.pop(context, option.value);
-                },
-              )),
-              
+                    leading: option.icon != null ? Icon(option.icon, color: option.color) : null,
+                    title: Text(option.title),
+                    subtitle: option.subtitle != null ? Text(option.subtitle!) : null,
+                    onTap: () {
+                      Navigator.pop(context, option.value);
+                    },
+                  )),
               const SizedBox(height: 16),
             ],
           ),
@@ -181,7 +174,7 @@ class DialogHelper {
   }) async {
     // TODO: Use AppLocalizations when properly set up
     // final t = AppLocalizations.of(context)!;
-    
+
     return (await showDialog<bool>(
           context: context,
           builder: (_) => AlertDialog(
@@ -224,4 +217,4 @@ class DialogOption<T> {
   final IconData? icon;
   final Color? color;
   final T value;
-} 
+}

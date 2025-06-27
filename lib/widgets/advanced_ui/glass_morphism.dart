@@ -4,7 +4,6 @@ import 'dart:math' as math;
 
 /// Glass morphism card with backdrop blur effect
 class GlassMorphismCard extends StatelessWidget {
-  
   const GlassMorphismCard({
     super.key,
     required this.child,
@@ -24,26 +23,27 @@ class GlassMorphismCard extends StatelessWidget {
   final EdgeInsets? padding;
   final EdgeInsets? margin;
   final List<BoxShadow>? boxShadow;
-  
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final effectiveColor = color ?? 
-        (theme.brightness == Brightness.dark 
-            ? Colors.white.withValues(alpha:opacity)
-            : Colors.black.withValues(alpha:opacity));
-    
+    final effectiveColor = color ??
+        (theme.brightness == Brightness.dark
+            ? Colors.white.withValues(alpha: opacity)
+            : Colors.black.withValues(alpha: opacity));
+
     return Container(
       margin: margin,
       decoration: BoxDecoration(
         borderRadius: borderRadius ?? BorderRadius.circular(16),
-        boxShadow: boxShadow ?? [
-          BoxShadow(
-            color: Colors.black.withValues(alpha:0.1),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
+        boxShadow: boxShadow ??
+            [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.1),
+                blurRadius: 10,
+                offset: const Offset(0, 4),
+              ),
+            ],
       ),
       child: ClipRRect(
         borderRadius: borderRadius ?? BorderRadius.circular(16),
@@ -54,7 +54,7 @@ class GlassMorphismCard extends StatelessWidget {
               color: effectiveColor,
               borderRadius: borderRadius ?? BorderRadius.circular(16),
               border: Border.all(
-                color: Colors.white.withValues(alpha:0.2),
+                color: Colors.white.withValues(alpha: 0.2),
               ),
             ),
             padding: padding ?? const EdgeInsets.all(16),
@@ -68,7 +68,6 @@ class GlassMorphismCard extends StatelessWidget {
 
 /// Shimmer loading effect for cards
 class ShimmerCard extends StatefulWidget {
-  
   const ShimmerCard({
     super.key,
     required this.child,
@@ -83,17 +82,15 @@ class ShimmerCard extends StatefulWidget {
   final List<Color> shimmerColors;
   final Duration duration;
   final BorderRadius? borderRadius;
-  
+
   @override
   _ShimmerCardState createState() => _ShimmerCardState();
 }
 
-class _ShimmerCardState extends State<ShimmerCard>
-    with SingleTickerProviderStateMixin {
-  
+class _ShimmerCardState extends State<ShimmerCard> with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _animation;
-  
+
   @override
   void initState() {
     super.initState();
@@ -101,7 +98,7 @@ class _ShimmerCardState extends State<ShimmerCard>
       duration: widget.duration,
       vsync: this,
     )..repeat();
-    
+
     _animation = Tween<double>(
       begin: -2.0,
       end: 2.0,
@@ -110,7 +107,7 @@ class _ShimmerCardState extends State<ShimmerCard>
       curve: Curves.easeInOut,
     ));
   }
-  
+
   @override
   Widget build(BuildContext context) {
     return AnimatedBuilder(
@@ -139,7 +136,7 @@ class _ShimmerCardState extends State<ShimmerCard>
       },
     );
   }
-  
+
   @override
   void dispose() {
     _controller.dispose();
@@ -149,7 +146,6 @@ class _ShimmerCardState extends State<ShimmerCard>
 
 /// Morphing progress indicator with smooth transitions
 class MorphingProgressIndicator extends StatefulWidget {
-  
   const MorphingProgressIndicator({
     super.key,
     required this.progress,
@@ -167,33 +163,31 @@ class MorphingProgressIndicator extends StatefulWidget {
   final double height;
   final double borderRadius;
   final Widget? child;
-  
+
   @override
   _MorphingProgressIndicatorState createState() => _MorphingProgressIndicatorState();
 }
 
-class _MorphingProgressIndicatorState extends State<MorphingProgressIndicator>
-    with TickerProviderStateMixin {
-  
+class _MorphingProgressIndicatorState extends State<MorphingProgressIndicator> with TickerProviderStateMixin {
   late AnimationController _progressController;
   late AnimationController _pulseController;
   late Animation<double> _progressAnimation;
   late Animation<double> _pulseAnimation;
-  
+
   @override
   void initState() {
     super.initState();
-    
+
     _progressController = AnimationController(
       duration: const Duration(milliseconds: 800),
       vsync: this,
     );
-    
+
     _pulseController = AnimationController(
       duration: const Duration(milliseconds: 1000),
       vsync: this,
     )..repeat(reverse: true);
-    
+
     _progressAnimation = Tween<double>(
       begin: 0.0,
       end: widget.progress,
@@ -201,7 +195,7 @@ class _MorphingProgressIndicatorState extends State<MorphingProgressIndicator>
       parent: _progressController,
       curve: Curves.easeOutCubic,
     ));
-    
+
     _pulseAnimation = Tween<double>(
       begin: 1.0,
       end: 1.05,
@@ -209,10 +203,10 @@ class _MorphingProgressIndicatorState extends State<MorphingProgressIndicator>
       parent: _pulseController,
       curve: Curves.easeInOut,
     ));
-    
+
     _progressController.forward();
   }
-  
+
   @override
   void didUpdateWidget(MorphingProgressIndicator oldWidget) {
     super.didUpdateWidget(oldWidget);
@@ -227,7 +221,7 @@ class _MorphingProgressIndicatorState extends State<MorphingProgressIndicator>
       _progressController.forward(from: 0);
     }
   }
-  
+
   @override
   Widget build(BuildContext context) {
     return AnimatedBuilder(
@@ -257,7 +251,7 @@ class _MorphingProgressIndicatorState extends State<MorphingProgressIndicator>
                       borderRadius: BorderRadius.circular(widget.borderRadius),
                       boxShadow: [
                         BoxShadow(
-                          color: widget.primaryColor.withValues(alpha:0.4),
+                          color: widget.primaryColor.withValues(alpha: 0.4),
                           blurRadius: 4,
                           spreadRadius: 1,
                         ),
@@ -265,10 +259,9 @@ class _MorphingProgressIndicatorState extends State<MorphingProgressIndicator>
                     ),
                   ),
                 ),
-                
+
                 // Optional child content
-                if (widget.child != null)
-                  Center(child: widget.child!),
+                if (widget.child != null) Center(child: widget.child!),
               ],
             ),
           ),
@@ -276,7 +269,7 @@ class _MorphingProgressIndicatorState extends State<MorphingProgressIndicator>
       },
     );
   }
-  
+
   @override
   void dispose() {
     _progressController.dispose();

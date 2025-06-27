@@ -113,7 +113,7 @@ class WasteAppAnimations {
                   borderRadius: BorderRadius.circular(20),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.green.withValues(alpha:0.3),
+                      color: Colors.green.withValues(alpha: 0.3),
                       blurRadius: 10,
                       offset: const Offset(0, 4),
                     ),
@@ -183,7 +183,7 @@ class WasteAppAnimations {
     return StatefulBuilder(
       builder: (context, setState) {
         var isPressed = false;
-        
+
         return GestureDetector(
           onTapDown: (_) => setState(() => isPressed = true),
           onTapUp: (_) => setState(() => isPressed = false),
@@ -201,7 +201,7 @@ class WasteAppAnimations {
                     ? []
                     : [
                         BoxShadow(
-                          color: Colors.black.withValues(alpha:0.1),
+                          color: Colors.black.withValues(alpha: 0.1),
                           blurRadius: 8,
                           offset: const Offset(0, 2),
                         ),
@@ -353,7 +353,7 @@ class WasteAppAnimations {
         return Container(
           height: height,
           decoration: BoxDecoration(
-            color: color.withValues(alpha:0.2),
+            color: color.withValues(alpha: 0.2),
             borderRadius: BorderRadius.circular(height / 2),
           ),
           child: Align(
@@ -421,7 +421,7 @@ class WasteAppAnimations {
     Duration staggerDelay = const Duration(milliseconds: 100),
   }) {
     final delay = staggerDelay * index;
-    
+
     return TweenAnimationBuilder<double>(
       tween: Tween(begin: 0.0, end: isVisible ? 1.0 : 0.0),
       duration: baseDuration + delay,
@@ -442,7 +442,6 @@ class WasteAppAnimations {
 
 /// Points Earned Popup Widget
 class PointsEarnedPopup extends StatelessWidget {
-
   const PointsEarnedPopup({
     super.key,
     required this.points,
@@ -515,7 +514,6 @@ class PointsEarnedPopup extends StatelessWidget {
 
 /// Loading Screen with Enhanced Animations
 class AnimatedLoadingScreen extends StatelessWidget {
-
   const AnimatedLoadingScreen({
     super.key,
     this.message = 'Loading...',
@@ -555,7 +553,6 @@ class AnimatedLoadingScreen extends StatelessWidget {
 
 /// Enhanced Card Widget with Animations
 class AnimatedCard extends StatelessWidget {
-
   const AnimatedCard({
     super.key,
     required this.child,

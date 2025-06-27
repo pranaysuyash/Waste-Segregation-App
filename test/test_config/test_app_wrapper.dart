@@ -36,18 +36,12 @@ class TestAppWrapper extends StatelessWidget {
   Widget build(BuildContext context) {
     return ProviderScope(
       overrides: [
-        if (mockAiService != null)
-          aiServiceProvider.overrideWithValue(mockAiService!),
-        if (mockStorageService != null)
-          storageServiceProvider.overrideWithValue(mockStorageService!),
-        if (mockGamificationService != null)
-          gamificationServiceProvider.overrideWithValue(mockGamificationService!),
-        if (mockPremiumService != null)
-          premiumServiceProvider.overrideWithValue(mockPremiumService!),
-        if (mockAnalyticsService != null)
-          analyticsServiceProvider.overrideWithValue(mockAnalyticsService!),
-        if (mockCommunityService != null)
-          communityServiceProvider.overrideWithValue(mockCommunityService!),
+        if (mockAiService != null) aiServiceProvider.overrideWithValue(mockAiService!),
+        if (mockStorageService != null) storageServiceProvider.overrideWithValue(mockStorageService!),
+        if (mockGamificationService != null) gamificationServiceProvider.overrideWithValue(mockGamificationService!),
+        if (mockPremiumService != null) premiumServiceProvider.overrideWithValue(mockPremiumService!),
+        if (mockAnalyticsService != null) analyticsServiceProvider.overrideWithValue(mockAnalyticsService!),
+        if (mockCommunityService != null) communityServiceProvider.overrideWithValue(mockCommunityService!),
       ],
       child: MaterialApp(
         title: 'Test App',
@@ -90,7 +84,7 @@ Future<void> initializeHiveForTesting() async {
     // Register any required Hive adapters here
     // This prevents "adapter not registered" errors in tests
   }
-  
+
   // Initialize Hive with a temporary directory for tests
   await Hive.initFlutter('test_hive');
 }
@@ -107,4 +101,4 @@ final storageServiceProvider = Provider<StorageService>((ref) => throw Unimpleme
 final gamificationServiceProvider = Provider<GamificationService>((ref) => throw UnimplementedError());
 final premiumServiceProvider = Provider<PremiumService>((ref) => throw UnimplementedError());
 final analyticsServiceProvider = Provider<AnalyticsService>((ref) => throw UnimplementedError());
-final communityServiceProvider = Provider<CommunityService>((ref) => throw UnimplementedError()); 
+final communityServiceProvider = Provider<CommunityService>((ref) => throw UnimplementedError());

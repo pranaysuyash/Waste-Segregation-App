@@ -4,7 +4,6 @@ import '../utils/ui_consistency_utils.dart';
 
 /// Enhanced empty state widgets with engaging illustrations and animations
 class EnhancedEmptyState extends StatefulWidget {
-
   const EnhancedEmptyState({
     super.key,
     required this.type,
@@ -23,8 +22,7 @@ class EnhancedEmptyState extends StatefulWidget {
   State<EnhancedEmptyState> createState() => _EnhancedEmptyStateState();
 }
 
-class _EnhancedEmptyStateState extends State<EnhancedEmptyState>
-    with TickerProviderStateMixin {
+class _EnhancedEmptyStateState extends State<EnhancedEmptyState> with TickerProviderStateMixin {
   late AnimationController _pulseController;
   late AnimationController _floatController;
   late Animation<double> _pulseAnimation;
@@ -33,17 +31,17 @@ class _EnhancedEmptyStateState extends State<EnhancedEmptyState>
   @override
   void initState() {
     super.initState();
-    
+
     _pulseController = AnimationController(
       duration: const Duration(seconds: 2),
       vsync: this,
     );
-    
+
     _floatController = AnimationController(
       duration: const Duration(seconds: 3),
       vsync: this,
     );
-    
+
     _pulseAnimation = Tween<double>(
       begin: 0.8,
       end: 1.0,
@@ -51,7 +49,7 @@ class _EnhancedEmptyStateState extends State<EnhancedEmptyState>
       parent: _pulseController,
       curve: Curves.easeInOut,
     ));
-    
+
     _floatAnimation = Tween<double>(
       begin: -5.0,
       end: 5.0,
@@ -59,7 +57,7 @@ class _EnhancedEmptyStateState extends State<EnhancedEmptyState>
       parent: _floatController,
       curve: Curves.easeInOut,
     ));
-    
+
     _pulseController.repeat(reverse: true);
     _floatController.repeat(reverse: true);
   }
@@ -74,7 +72,7 @@ class _EnhancedEmptyStateState extends State<EnhancedEmptyState>
   @override
   Widget build(BuildContext context) {
     final config = _getEmptyStateConfig(widget.type);
-    
+
     return Center(
       child: SingleChildScrollView(
         padding: const EdgeInsets.all(AppTheme.paddingLarge),
@@ -83,18 +81,18 @@ class _EnhancedEmptyStateState extends State<EnhancedEmptyState>
           children: [
             // Animated illustration
             _buildAnimatedIllustration(config),
-            
+
             const SizedBox(height: AppTheme.spacingXl),
-            
+
             // Title
             Text(
               widget.customTitle ?? config.title,
               style: UIConsistency.headingMedium(context),
               textAlign: TextAlign.center,
             ),
-            
+
             const SizedBox(height: AppTheme.spacingMd),
-            
+
             // Message
             Text(
               widget.customMessage ?? config.message,
@@ -103,9 +101,9 @@ class _EnhancedEmptyStateState extends State<EnhancedEmptyState>
               ),
               textAlign: TextAlign.center,
             ),
-            
+
             const SizedBox(height: AppTheme.spacingXl),
-            
+
             // Action button
             if (widget.customAction != null || config.actionText != null)
               widget.customAction ?? _buildActionButton(config),
@@ -131,7 +129,7 @@ class _EnhancedEmptyStateState extends State<EnhancedEmptyState>
                 shape: BoxShape.circle,
                 boxShadow: [
                   BoxShadow(
-                    color: config.backgroundColor.withValues(alpha:0.3),
+                    color: config.backgroundColor.withValues(alpha: 0.3),
                     blurRadius: 20,
                     offset: const Offset(0, 10),
                   ),
@@ -151,7 +149,7 @@ class _EnhancedEmptyStateState extends State<EnhancedEmptyState>
 
   Widget _buildActionButton(EmptyStateConfig config) {
     if (config.actionText == null) return const SizedBox.shrink();
-    
+
     return UIConsistency.primaryButton(
       text: config.actionText!,
       icon: config.actionIcon,
@@ -167,11 +165,12 @@ class _EnhancedEmptyStateState extends State<EnhancedEmptyState>
           backgroundColor: Colors.blue.shade100,
           iconColor: Colors.blue.shade600,
           title: 'No Classifications Yet',
-          message: 'Start scanning items to build your waste classification history and track your environmental impact!',
+          message:
+              'Start scanning items to build your waste classification history and track your environmental impact!',
           actionText: 'Start Scanning',
           actionIcon: Icons.camera_alt,
         );
-        
+
       case EmptyStateType.noResults:
         return EmptyStateConfig(
           icon: Icons.search_off,
@@ -182,7 +181,7 @@ class _EnhancedEmptyStateState extends State<EnhancedEmptyState>
           actionText: 'Clear Filters',
           actionIcon: Icons.clear_all,
         );
-        
+
       case EmptyStateType.noFavorites:
         return EmptyStateConfig(
           icon: Icons.favorite_border,
@@ -193,7 +192,7 @@ class _EnhancedEmptyStateState extends State<EnhancedEmptyState>
           actionText: 'Explore Content',
           actionIcon: Icons.explore,
         );
-        
+
       case EmptyStateType.noAchievements:
         return EmptyStateConfig(
           icon: Icons.emoji_events_outlined,
@@ -204,7 +203,7 @@ class _EnhancedEmptyStateState extends State<EnhancedEmptyState>
           actionText: 'Start Earning',
           actionIcon: Icons.play_arrow,
         );
-        
+
       case EmptyStateType.noEducationalContent:
         return EmptyStateConfig(
           icon: Icons.school_outlined,
@@ -215,7 +214,7 @@ class _EnhancedEmptyStateState extends State<EnhancedEmptyState>
           actionText: 'Refresh',
           actionIcon: Icons.refresh,
         );
-        
+
       case EmptyStateType.offline:
         return EmptyStateConfig(
           icon: Icons.cloud_off,
@@ -226,7 +225,7 @@ class _EnhancedEmptyStateState extends State<EnhancedEmptyState>
           actionText: 'Retry Connection',
           actionIcon: Icons.wifi,
         );
-        
+
       case EmptyStateType.error:
         return EmptyStateConfig(
           icon: Icons.error_outline,
@@ -237,7 +236,7 @@ class _EnhancedEmptyStateState extends State<EnhancedEmptyState>
           actionText: 'Try Again',
           actionIcon: Icons.refresh,
         );
-        
+
       case EmptyStateType.maintenance:
         return EmptyStateConfig(
           icon: Icons.construction,
@@ -246,7 +245,7 @@ class _EnhancedEmptyStateState extends State<EnhancedEmptyState>
           title: 'Under Maintenance',
           message: 'This feature is temporarily unavailable while we make improvements.',
         );
-        
+
       case EmptyStateType.comingSoon:
         return EmptyStateConfig(
           icon: Icons.rocket_launch,
@@ -261,7 +260,6 @@ class _EnhancedEmptyStateState extends State<EnhancedEmptyState>
 
 /// Specialized empty state for camera/scanning features
 class ScanningEmptyState extends StatefulWidget {
-
   const ScanningEmptyState({
     super.key,
     this.onStartScanning,
@@ -274,20 +272,19 @@ class ScanningEmptyState extends StatefulWidget {
   State<ScanningEmptyState> createState() => _ScanningEmptyStateState();
 }
 
-class _ScanningEmptyStateState extends State<ScanningEmptyState>
-    with TickerProviderStateMixin {
+class _ScanningEmptyStateState extends State<ScanningEmptyState> with TickerProviderStateMixin {
   late AnimationController _scanController;
   late Animation<double> _scanAnimation;
 
   @override
   void initState() {
     super.initState();
-    
+
     _scanController = AnimationController(
       duration: const Duration(seconds: 2),
       vsync: this,
     );
-    
+
     _scanAnimation = Tween<double>(
       begin: 0.0,
       end: 1.0,
@@ -295,7 +292,7 @@ class _ScanningEmptyStateState extends State<ScanningEmptyState>
       parent: _scanController,
       curve: Curves.easeInOut,
     ));
-    
+
     _scanController.repeat();
   }
 
@@ -315,17 +312,17 @@ class _ScanningEmptyStateState extends State<ScanningEmptyState>
           children: [
             // Animated scanning illustration
             _buildScanningAnimation(),
-            
+
             const SizedBox(height: AppTheme.spacingXl),
-            
+
             Text(
               'Ready to Scan!',
               style: UIConsistency.headingLarge(context),
               textAlign: TextAlign.center,
             ),
-            
+
             const SizedBox(height: AppTheme.spacingMd),
-            
+
             Text(
               'Point your camera at any item to instantly learn how to dispose of it properly and help protect the environment.',
               style: UIConsistency.bodyMedium(context).copyWith(
@@ -333,18 +330,18 @@ class _ScanningEmptyStateState extends State<ScanningEmptyState>
               ),
               textAlign: TextAlign.center,
             ),
-            
+
             const SizedBox(height: AppTheme.spacingXl),
-            
+
             // Action buttons
             UIConsistency.primaryButton(
               text: 'Start Scanning',
               icon: Icons.camera_alt,
               onPressed: widget.onStartScanning,
             ),
-            
+
             const SizedBox(height: AppTheme.spacingMd),
-            
+
             UIConsistency.viewAllButton(
               text: 'Learn How It Works',
               onPressed: widget.onLearnMore ?? () {},
@@ -367,8 +364,8 @@ class _ScanningEmptyStateState extends State<ScanningEmptyState>
             shape: BoxShape.circle,
             gradient: RadialGradient(
               colors: [
-                AppTheme.primaryColor.withValues(alpha:0.1),
-                AppTheme.primaryColor.withValues(alpha:0.05),
+                AppTheme.primaryColor.withValues(alpha: 0.1),
+                AppTheme.primaryColor.withValues(alpha: 0.05),
                 Colors.transparent,
               ],
               stops: const [0.3, 0.7, 1.0],
@@ -384,12 +381,12 @@ class _ScanningEmptyStateState extends State<ScanningEmptyState>
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   border: Border.all(
-                    color: AppTheme.primaryColor.withValues(alpha:1.0 - _scanAnimation.value),
+                    color: AppTheme.primaryColor.withValues(alpha: 1.0 - _scanAnimation.value),
                     width: 2,
                   ),
                 ),
               ),
-              
+
               // Camera icon
               Container(
                 width: 80,
@@ -399,7 +396,7 @@ class _ScanningEmptyStateState extends State<ScanningEmptyState>
                   shape: BoxShape.circle,
                   boxShadow: [
                     BoxShadow(
-                      color: AppTheme.primaryColor.withValues(alpha:0.3),
+                      color: AppTheme.primaryColor.withValues(alpha: 0.3),
                       blurRadius: 15,
                       offset: const Offset(0, 5),
                     ),
@@ -421,7 +418,6 @@ class _ScanningEmptyStateState extends State<ScanningEmptyState>
 
 /// Progress-based empty state for loading content
 class ProgressEmptyState extends StatefulWidget {
-
   const ProgressEmptyState({
     super.key,
     required this.title,
@@ -438,20 +434,19 @@ class ProgressEmptyState extends StatefulWidget {
   State<ProgressEmptyState> createState() => _ProgressEmptyStateState();
 }
 
-class _ProgressEmptyStateState extends State<ProgressEmptyState>
-    with SingleTickerProviderStateMixin {
+class _ProgressEmptyStateState extends State<ProgressEmptyState> with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _animation;
 
   @override
   void initState() {
     super.initState();
-    
+
     _controller = AnimationController(
       duration: const Duration(seconds: 2),
       vsync: this,
     );
-    
+
     _animation = Tween<double>(
       begin: 0.0,
       end: 1.0,
@@ -459,7 +454,7 @@ class _ProgressEmptyStateState extends State<ProgressEmptyState>
       parent: _controller,
       curve: Curves.easeInOut,
     ));
-    
+
     if (widget.isIndeterminate) {
       _controller.repeat();
     }
@@ -481,17 +476,17 @@ class _ProgressEmptyStateState extends State<ProgressEmptyState>
           children: [
             // Progress animation
             _buildProgressAnimation(),
-            
+
             const SizedBox(height: AppTheme.spacingXl),
-            
+
             Text(
               widget.title,
               style: UIConsistency.headingMedium(context),
               textAlign: TextAlign.center,
             ),
-            
+
             const SizedBox(height: AppTheme.spacingMd),
-            
+
             Text(
               widget.message,
               style: UIConsistency.bodyMedium(context).copyWith(
@@ -499,7 +494,7 @@ class _ProgressEmptyStateState extends State<ProgressEmptyState>
               ),
               textAlign: TextAlign.center,
             ),
-            
+
             if (!widget.isIndeterminate && widget.progress != null) ...[
               const SizedBox(height: AppTheme.spacingLg),
               Text(
@@ -554,7 +549,6 @@ enum EmptyStateType {
 }
 
 class EmptyStateConfig {
-
   const EmptyStateConfig({
     required this.icon,
     required this.backgroundColor,
@@ -571,4 +565,4 @@ class EmptyStateConfig {
   final String message;
   final String? actionText;
   final IconData? actionIcon;
-} 
+}

@@ -96,7 +96,7 @@ void main() {
 
     test('should create fallback classification correctly', () {
       final fallback = WasteClassification.fallback('unknown_item.jpg');
-      
+
       expect(fallback.itemName, contains('Unidentified'));
       expect(fallback.category, isNotEmpty);
       expect(fallback.explanation, isNotEmpty);
@@ -116,11 +116,7 @@ void main() {
         ],
         hasUrgentTimeframe: true,
         timeframe: 'Within 24 hours',
-        warnings: [
-          'Toxic material - wear gloves',
-          'Do not inhale fumes',
-          'Keep away from children'
-        ],
+        warnings: ['Toxic material - wear gloves', 'Do not inhale fumes', 'Keep away from children'],
         location: 'Certified hazardous waste facility',
       );
 
@@ -195,9 +191,9 @@ void main() {
     });
 
     test('should calculate level correctly from points', () {
-      const points1 = UserPoints(total: 50);   // Level 0 (50/100 = 0.5 floor = 0)
-      const points2 = UserPoints(total: 150);  // Level 1 (150/100 = 1.5 floor = 1)
-      const points3 = UserPoints(total: 350);  // Level 3 (350/100 = 3.5 floor = 3)
+      const points1 = UserPoints(total: 50); // Level 0 (50/100 = 0.5 floor = 0)
+      const points2 = UserPoints(total: 150); // Level 1 (150/100 = 1.5 floor = 1)
+      const points3 = UserPoints(total: 350); // Level 3 (350/100 = 3.5 floor = 3)
       const points4 = UserPoints(total: 1000); // Level 10 (1000/100 = 10.0 floor = 10)
 
       // The level is calculated as (total / 100).floor()
@@ -209,7 +205,7 @@ void main() {
 
     test('should handle StreakDetails calculations correctly', () {
       final yesterday = DateTime.now().subtract(const Duration(days: 1));
-      
+
       final streakDetails = StreakDetails(
         type: StreakType.dailyClassification,
         currentCount: 5,
@@ -271,7 +267,7 @@ void main() {
       expect(actualEarnedAchievement.isEarned, isTrue);
       expect(actualEarnedAchievement.progress, equals(1.0));
       expect(actualEarnedAchievement.earnedOn, equals(earnedDate));
-      
+
       // Test not-earned achievement
       expect(earnedAchievement.isEarned, isFalse); // earnedOn is null
     });
@@ -429,7 +425,7 @@ void main() {
       // Models should accept these values but they indicate data quality issues
       expect(highConfidence.confidence, equals(1.5));
       expect(negativeConfidence.confidence, equals(-0.5));
-      
+
       // In a real app, you might want validation logic
       expect(highConfidence.confidence! > 1.0, isTrue);
       expect(negativeConfidence.confidence! < 0.0, isTrue);
@@ -442,7 +438,7 @@ void main() {
         explanation: 'Test',
         disposalInstructions: DisposalInstructions(
           primaryMethod: 'Test',
-          steps: [],  // Empty steps
+          steps: [], // Empty steps
           hasUrgentTimeframe: false,
         ),
         region: 'Test Region',
@@ -460,7 +456,7 @@ void main() {
 
     test('should handle very long strings without issues', () {
       final longString = 'A' * 1000; // 1000 character string
-      
+
       final classification = WasteClassification(
         itemName: longString,
         category: 'Dry Waste',
@@ -483,7 +479,7 @@ void main() {
 
     test('should handle future dates appropriately', () {
       final futureDate = DateTime.now().add(const Duration(days: 365));
-      
+
       final classification = WasteClassification(
         itemName: 'Future Item',
         category: 'Dry Waste',

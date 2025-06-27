@@ -111,7 +111,7 @@ Widget _buildSettingTileVariants() {
             subtitle: 'Simple setting with icon',
             onTap: () {},
           ),
-          
+
           // Tile with custom colors
           SettingTile(
             icon: Icons.palette,
@@ -121,7 +121,7 @@ Widget _buildSettingTileVariants() {
             subtitle: 'Setting with custom colors',
             onTap: () {},
           ),
-          
+
           // Disabled tile
           SettingTile(
             icon: Icons.block,
@@ -130,7 +130,7 @@ Widget _buildSettingTileVariants() {
             enabled: false,
             onTap: () {},
           ),
-          
+
           // Tile with custom trailing
           SettingTile(
             icon: Icons.star,
@@ -154,7 +154,7 @@ Widget _buildSettingTileVariants() {
             ),
             onTap: () {},
           ),
-          
+
           // Toggle tile
           SettingToggleTile(
             icon: Icons.notifications,
@@ -163,7 +163,7 @@ Widget _buildSettingTileVariants() {
             value: true,
             onChanged: (value) {},
           ),
-          
+
           // Toggle tile disabled
           SettingToggleTile(
             icon: Icons.wifi,
@@ -191,7 +191,6 @@ Widget _buildSettingTileStates() {
             subtitle: 'Default state',
             onTap: () {},
           ),
-          
           const SizedBox(height: 16),
           const Text('Focused State (simulated)'),
           Focus(
@@ -203,7 +202,6 @@ Widget _buildSettingTileStates() {
               onTap: () {},
             ),
           ),
-          
           const SizedBox(height: 16),
           const Text('Disabled State'),
           SettingTile(
@@ -266,7 +264,7 @@ Widget _buildAccessibilityFeatures() {
               onTap: () {},
             ),
           ),
-          
+
           // High contrast example
           Container(
             color: Colors.black,
@@ -279,7 +277,7 @@ Widget _buildAccessibilityFeatures() {
               onTap: () {},
             ),
           ),
-          
+
           // Large text example
           MediaQuery(
             data: const MediaQueryData(textScaler: TextScaler.linear(2.0)),
@@ -302,7 +300,7 @@ Widget _buildResponsiveSettings() {
       body: LayoutBuilder(
         builder: (context, constraints) {
           final isTablet = constraints.maxWidth > 600;
-          
+
           if (isTablet) {
             // Two-column layout for tablets
             return Row(
@@ -380,4 +378,4 @@ Widget _buildResponsiveSettings() {
       ),
     ),
   );
-} 
+}

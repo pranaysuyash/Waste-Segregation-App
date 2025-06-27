@@ -1,5 +1,4 @@
 class PremiumFeature {
-
   const PremiumFeature({
     required this.id,
     required this.title,

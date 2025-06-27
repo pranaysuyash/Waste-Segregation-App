@@ -8,7 +8,7 @@ import 'storage_service.dart';
 import 'cloud_storage_service.dart';
 
 /// Service for managing token micro-economy
-/// 
+///
 /// Handles token earning, spending, conversion from points, and transaction history.
 /// Provides atomic operations to prevent race conditions and ensure wallet consistency.
 class TokenService extends ChangeNotifier {
@@ -27,10 +27,10 @@ class TokenService extends ChangeNotifier {
   final List<Completer<void>> _pendingOperations = [];
 
   // Configuration constants
-  static const int pointsToTokenRate = 100;  // 100 points = 1 token
-  static const int maxDailyConversions = 5;  // Max 5 conversions per day
-  static const int welcomeBonus = 10;        // 10 tokens for new users
-  static const int dailyLoginBonus = 2;      // 2 tokens for daily login
+  static const int pointsToTokenRate = 100; // 100 points = 1 token
+  static const int maxDailyConversions = 5; // Max 5 conversions per day
+  static const int welcomeBonus = 10; // 10 tokens for new users
+  static const int dailyLoginBonus = 2; // 2 tokens for daily login
 
   /// Get current wallet (cached or fresh)
   TokenWallet? get currentWallet => _cachedWallet;
@@ -38,14 +38,12 @@ class TokenService extends ChangeNotifier {
   /// Initialize token service and load wallet
   Future<void> initialize() async {
     if (_cachedWallet != null) return;
-    
+
     try {
       await _loadWallet();
     } catch (e) {
-      WasteAppLogger.severe('TokenService initialization failed', e, null, {
-        'component': 'token_service',
-        'operation': 'initialize'
-      });
+      WasteAppLogger.severe(
+          'TokenService initialization failed', e, null, {'component': 'token_service', 'operation': 'initialize'});
       // Create emergency fallback wallet
       _cachedWallet = TokenWallet.newUser();
     }
@@ -54,13 +52,13 @@ class TokenService extends ChangeNotifier {
   /// Load wallet from storage
   Future<TokenWallet> _loadWallet() async {
     final userProfile = await _storageService.getCurrentUserProfile();
-    
+
     if (userProfile?.tokenWallet != null) {
       _cachedWallet = userProfile!.tokenWallet!;
       notifyListeners();
       return _cachedWallet!;
     }
-    
+
     // Create new wallet for new users
     final newWallet = TokenWallet.newUser();
     await _saveWallet(newWallet);
@@ -69,23 +67,20 @@ class TokenService extends ChangeNotifier {
 
   /// Earn tokens with atomic operation
   Future<TokenWallet> earnTokens(
-    int amount, 
-    TokenTransactionType type, 
+    int amount,
+    TokenTransactionType type,
     String description, {
     String? reference,
     Map<String, dynamic>? metadata,
   }) async {
     return _executeAtomicOperation(() async {
       await initialize();
-      
+
       final wallet = _cachedWallet!;
-      
+
       if (amount <= 0) {
-        WasteAppLogger.warning('Invalid token amount to earn', null, null, {
-          'component': 'token_service',
-          'amount': amount,
-          'type': type.toString()
-        });
+        WasteAppLogger.warning('Invalid token amount to earn', null, null,
+            {'component': 'token_service', 'amount': amount, 'type': type.toString()});
         return wallet;
       }
 
@@ -111,16 +106,14 @@ class TokenService extends ChangeNotifier {
       await _saveWallet(newWallet);
       await _saveTransaction(transaction);
 
-      WasteAppLogger.gamificationEvent('tokens_earned', 
-        context: {
-          'type': type.toString(),
-          'description': description,
-          'tokens_earned': amount,
-          'new_balance': newWallet.balance,
-          'reference': reference,
-          'metadata': metadata
-        }
-      );
+      WasteAppLogger.gamificationEvent('tokens_earned', context: {
+        'type': type.toString(),
+        'description': description,
+        'tokens_earned': amount,
+        'new_balance': newWallet.balance,
+        'reference': reference,
+        'metadata': metadata
+      });
 
       return newWallet;
     });
@@ -128,16 +121,16 @@ class TokenService extends ChangeNotifier {
 
   /// Spend tokens with atomic operation and validation
   Future<TokenWallet> spendTokens(
-    int amount, 
+    int amount,
     String description, {
     String? reference,
     Map<String, dynamic>? metadata,
   }) async {
     return _executeAtomicOperation(() async {
       await initialize();
-      
+
       final wallet = _cachedWallet!;
-      
+
       if (amount <= 0) {
         throw Exception('Invalid token amount to spend: $amount');
       }
@@ -168,15 +161,13 @@ class TokenService extends ChangeNotifier {
       await _saveWallet(newWallet);
       await _saveTransaction(transaction);
 
-      WasteAppLogger.gamificationEvent('tokens_spent', 
-        context: {
-          'description': description,
-          'tokens_spent': amount,
-          'new_balance': newWallet.balance,
-          'reference': reference,
-          'metadata': metadata
-        }
-      );
+      WasteAppLogger.gamificationEvent('tokens_spent', context: {
+        'description': description,
+        'tokens_spent': amount,
+        'new_balance': newWallet.balance,
+        'reference': reference,
+        'metadata': metadata
+      });
 
       return newWallet;
     });
@@ -189,9 +180,9 @@ class TokenService extends ChangeNotifier {
   ) async {
     return _executeAtomicOperation(() async {
       await initialize();
-      
+
       final wallet = _cachedWallet!;
-      
+
       // Validate conversion amount
       if (pointsToConvert <= 0 || pointsToConvert % pointsToTokenRate != 0) {
         throw Exception('Points must be a multiple of $pointsToTokenRate');
@@ -208,7 +199,7 @@ class TokenService extends ChangeNotifier {
 
       final tokensToAdd = pointsToConvert ~/ pointsToTokenRate;
       final today = DateTime.now();
-      
+
       // Update conversion tracking
       final isNewDay = wallet.lastConversionDate == null ||
           today.day != wallet.lastConversionDate!.day ||
@@ -244,15 +235,13 @@ class TokenService extends ChangeNotifier {
       await _saveWallet(newWallet);
       await _saveTransaction(transaction);
 
-      WasteAppLogger.gamificationEvent('points_converted_to_tokens', 
-        context: {
-          'points_converted': pointsToConvert,
-          'tokens_earned': tokensToAdd,
-          'conversion_rate': pointsToTokenRate,
-          'new_balance': newWallet.balance,
-          'conversions_used_today': newConversionsUsed,
-        }
-      );
+      WasteAppLogger.gamificationEvent('points_converted_to_tokens', context: {
+        'points_converted': pointsToConvert,
+        'tokens_earned': tokensToAdd,
+        'conversion_rate': pointsToTokenRate,
+        'new_balance': newWallet.balance,
+        'conversions_used_today': newConversionsUsed,
+      });
 
       return newWallet;
     });
@@ -261,18 +250,16 @@ class TokenService extends ChangeNotifier {
   /// Process daily login bonus
   Future<TokenWallet> processDailyLogin() async {
     await initialize();
-    
+
     final wallet = _cachedWallet!;
     final today = DateTime.now();
     final lastUpdate = wallet.lastUpdated;
-    
+
     // Check if already received bonus today
-    if (lastUpdate.day == today.day && 
-        lastUpdate.month == today.month && 
-        lastUpdate.year == today.year) {
+    if (lastUpdate.day == today.day && lastUpdate.month == today.month && lastUpdate.year == today.year) {
       return wallet; // Already received today's bonus
     }
-    
+
     return earnTokens(
       dailyLoginBonus,
       TokenTransactionType.earn,
@@ -290,18 +277,14 @@ class TokenService extends ChangeNotifier {
     try {
       final userProfile = await _storageService.getCurrentUserProfile();
       if (userProfile?.tokenTransactions != null) {
-        _cachedTransactions = userProfile!.tokenTransactions!
-            .take(limit)
-            .toList();
+        _cachedTransactions = userProfile!.tokenTransactions!.take(limit).toList();
         return _cachedTransactions!;
       }
-      
+
       return [];
     } catch (e) {
-      WasteAppLogger.severe('Error loading transaction history', e, null, {
-        'component': 'token_service',
-        'operation': 'get_transaction_history'
-      });
+      WasteAppLogger.severe('Error loading transaction history', e, null,
+          {'component': 'token_service', 'operation': 'get_transaction_history'});
       return [];
     }
   }
@@ -309,22 +292,18 @@ class TokenService extends ChangeNotifier {
   /// Get wallet statistics
   Future<Map<String, dynamic>> getWalletStats() async {
     await initialize();
-    
+
     final wallet = _cachedWallet!;
     final transactions = await getTransactionHistory();
-    
-    // Calculate stats
-    final earnedToday = transactions
-        .where((t) => t.delta > 0 && _isToday(t.timestamp))
-        .fold(0, (sum, t) => sum + t.delta);
-    
-    final spentToday = transactions
-        .where((t) => t.delta < 0 && _isToday(t.timestamp))
-        .fold(0, (sum, t) => sum + t.delta.abs());
 
-    final conversionStats = transactions
-        .where((t) => t.type == TokenTransactionType.convert)
-        .length;
+    // Calculate stats
+    final earnedToday =
+        transactions.where((t) => t.delta > 0 && _isToday(t.timestamp)).fold(0, (sum, t) => sum + t.delta);
+
+    final spentToday =
+        transactions.where((t) => t.delta < 0 && _isToday(t.timestamp)).fold(0, (sum, t) => sum + t.delta.abs());
+
+    final conversionStats = transactions.where((t) => t.type == TokenTransactionType.convert).length;
 
     return {
       'current_balance': wallet.balance,
@@ -346,15 +325,15 @@ class TokenService extends ChangeNotifier {
       _pendingOperations.add(completer);
       await completer.future;
     }
-    
+
     _isUpdating = true;
-    
+
     try {
       final result = await operation();
       return result;
     } finally {
       _isUpdating = false;
-      
+
       // Complete all pending operations
       final pending = List<Completer<void>>.from(_pendingOperations);
       _pendingOperations.clear();
@@ -368,7 +347,7 @@ class TokenService extends ChangeNotifier {
   Future<void> _saveWallet(TokenWallet wallet) async {
     _cachedWallet = wallet;
     notifyListeners();
-    
+
     // Save to user profile
     final userProfile = await _storageService.getCurrentUserProfile();
     if (userProfile != null) {
@@ -376,9 +355,9 @@ class TokenService extends ChangeNotifier {
         tokenWallet: wallet,
         lastActive: DateTime.now(),
       );
-      
+
       await _storageService.saveUserProfile(updatedProfile);
-      
+
       // Try cloud sync (non-blocking)
       unawaited(_cloudStorageService.saveUserProfileToFirestore(updatedProfile));
     }
@@ -393,28 +372,24 @@ class TokenService extends ChangeNotifier {
         final updatedTransactions = [transaction, ...currentTransactions]
             .take(200) // Keep last 200 transactions
             .toList();
-        
+
         final updatedProfile = userProfile.copyWith(
           tokenTransactions: updatedTransactions,
         );
-        
+
         await _storageService.saveUserProfile(updatedProfile);
         _cachedTransactions = updatedTransactions;
       }
     } catch (e) {
-      WasteAppLogger.severe('Error saving transaction', e, null, {
-        'component': 'token_service',
-        'transaction_id': transaction.id
-      });
+      WasteAppLogger.severe(
+          'Error saving transaction', e, null, {'component': 'token_service', 'transaction_id': transaction.id});
     }
   }
 
   /// Check if date is today
   bool _isToday(DateTime date) {
     final now = DateTime.now();
-    return date.day == now.day && 
-           date.month == now.month && 
-           date.year == now.year;
+    return date.day == now.day && date.month == now.month && date.year == now.year;
   }
 
   /// Dispose resources
@@ -427,4 +402,4 @@ class TokenService extends ChangeNotifier {
 /// Extension to add unawaited helper
 extension on Future {
   void unawaited() {}
-} 
+}

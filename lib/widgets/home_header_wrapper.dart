@@ -11,7 +11,7 @@ class HomeHeaderWrapper extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final homeHeaderV2Enabled = ref.watch(homeHeaderV2EnabledProvider);
-    
+
     return homeHeaderV2Enabled.when(
       data: (isEnabled) {
         if (isEnabled) {
@@ -41,15 +41,15 @@ class HomeHeaderWrapper extends ConsumerWidget {
             Text(
               'Welcome back!',
               style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
+                    fontWeight: FontWeight.bold,
+                  ),
             ),
             const SizedBox(height: 8),
             Text(
               'Ready to make a difference today?',
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-              ),
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
             ),
           ],
         ),
@@ -90,11 +90,11 @@ class HomeHeaderRemoteConfigKeys {
   static const String homeHeaderV2Enabled = 'home_header_v2_enabled';
   static const String homeHeaderV2RolloutPercentage = 'home_header_v2_rollout_percentage';
   static const String homeHeaderV2TargetAudience = 'home_header_v2_target_audience';
-  
+
   /// Default values for remote config
   static const Map<String, dynamic> defaults = {
     homeHeaderV2Enabled: true,
     homeHeaderV2RolloutPercentage: 100,
     homeHeaderV2TargetAudience: 'all',
   };
-} 
+}

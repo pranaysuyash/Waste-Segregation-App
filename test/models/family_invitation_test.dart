@@ -256,7 +256,8 @@ void main() {
           createdAt: DateTime.now().subtract(const Duration(days: 10)),
           expiresAt: DateTime.now().subtract(const Duration(days: 3)), // Past expiry
         );
-        expect(pendingAndPastExpiry.isExpired, true, reason: 'Invitation should be expired if pending and past expiresAt');
+        expect(pendingAndPastExpiry.isExpired, true,
+            reason: 'Invitation should be expired if pending and past expiresAt');
 
         final pendingAndFutureExpiry = FamilyInvitation(
           id: 'invite124',
@@ -268,7 +269,8 @@ void main() {
           createdAt: DateTime.now().subtract(const Duration(days: 1)),
           expiresAt: DateTime.now().add(const Duration(days: 3)), // Future expiry
         );
-        expect(pendingAndFutureExpiry.isExpired, false, reason: 'Invitation should not be expired if pending and expiresAt is in the future');
+        expect(pendingAndFutureExpiry.isExpired, false,
+            reason: 'Invitation should not be expired if pending and expiresAt is in the future');
       });
 
       test('should detect if invitation will expire soon', () {
@@ -288,9 +290,14 @@ void main() {
         // expect(soonToExpireInvitation.expiresWithin(const Duration(hours: 6)), false); // Removed: expiresWithin not defined
         // Re-evaluate this test based on model capabilities (e.g., using expiresAt directly)
         final now = DateTime.now();
-        expect(soonToExpireInvitation.expiresAt.isAfter(now) && soonToExpireInvitation.expiresAt.isBefore(now.add(const Duration(days: 1))), true);
-        expect(soonToExpireInvitation.expiresAt.isAfter(now) && soonToExpireInvitation.expiresAt.isBefore(now.add(const Duration(hours: 6))), false);
-
+        expect(
+            soonToExpireInvitation.expiresAt.isAfter(now) &&
+                soonToExpireInvitation.expiresAt.isBefore(now.add(const Duration(days: 1))),
+            true);
+        expect(
+            soonToExpireInvitation.expiresAt.isAfter(now) &&
+                soonToExpireInvitation.expiresAt.isBefore(now.add(const Duration(hours: 6))),
+            false);
       });
 
       test('should calculate remaining time', () {
@@ -372,7 +379,8 @@ void main() {
           expiresAt: DateTime.now().add(const Duration(days: 7)),
         );
 
-        final expiredInvite = FamilyInvitation( // Renamed to avoid conflict with model's isExpired logic
+        final expiredInvite = FamilyInvitation(
+          // Renamed to avoid conflict with model's isExpired logic
           id: 'invite124',
           familyId: 'family456',
           familyName: 'Smith Family',
@@ -384,7 +392,7 @@ void main() {
           createdAt: DateTime.now().subtract(const Duration(days: 10)),
           expiresAt: DateTime.now().subtract(const Duration(days: 3)),
         );
-        
+
         final pendingButDateExpired = FamilyInvitation(
           id: 'invite125',
           familyId: 'family456',
@@ -395,7 +403,6 @@ void main() {
           createdAt: DateTime.now().subtract(const Duration(days: 10)),
           expiresAt: DateTime.now().subtract(const Duration(days: 3)),
         );
-
 
         expect(acceptableInvitation.isValid, true); // Adjusted to use model's isValid
         expect(expiredInvite.isValid, false); // Adjusted (status is not pending)
@@ -507,7 +514,7 @@ void main() {
         );
 
         final stringRepresentation = invitation.toString();
-        
+
         // The FamilyInvitation model does not override toString(), so it will use the default.
         // These expectations would fail. Commenting them out.
         // A more robust test would be expect(stringRepresentation, isA<String>()); or

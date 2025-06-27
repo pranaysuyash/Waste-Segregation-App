@@ -3,6 +3,7 @@ import '../screens/settings_screen.dart';
 import '../screens/profile_screen.dart';
 import '../utils/simplified_navigation_service.dart';
 import '../utils/constants.dart';
+import '../utils/waste_app_logger.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
 class GlobalSettingsMenu extends StatelessWidget {
@@ -37,7 +38,9 @@ class GlobalSettingsMenu extends StatelessWidget {
                 context,
                 MaterialPageRoute(builder: (context) => const SettingsScreen()),
               );
-            } catch (_) {}
+            } catch (e) {
+              WasteAppLogger.severe('Failed to navigate to settings screen', e);
+            }
             break;
           case 'profile':
             try {
@@ -45,7 +48,9 @@ class GlobalSettingsMenu extends StatelessWidget {
                 context,
                 MaterialPageRoute(builder: (context) => const ProfileScreen()),
               );
-            } catch (_) {}
+            } catch (e) {
+              WasteAppLogger.severe('Failed to navigate to profile screen', e);
+            }
             break;
           case 'help':
             _showHelpDialog(context);

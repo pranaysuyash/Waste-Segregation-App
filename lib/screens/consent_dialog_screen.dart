@@ -4,7 +4,6 @@ import '../utils/constants.dart';
 import 'legal_document_screen.dart';
 
 class ConsentDialogScreen extends StatelessWidget {
-  
   const ConsentDialogScreen({
     super.key,
     required this.onConsent,
@@ -23,13 +22,13 @@ class ConsentDialogScreen extends StatelessWidget {
           child: Column(
             children: [
               const SizedBox(height: AppTheme.paddingLarge),
-              
+
               // App logo or icon
               Container(
                 width: 100,
                 height: 100,
                 decoration: BoxDecoration(
-                  color: AppTheme.primaryColor.withValues(alpha:0.1),
+                  color: AppTheme.primaryColor.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: const Icon(
@@ -38,21 +37,21 @@ class ConsentDialogScreen extends StatelessWidget {
                   color: AppTheme.primaryColor,
                 ),
               ),
-              
+
               const SizedBox(height: AppTheme.paddingLarge),
-              
+
               // Welcome text
               Text(
                 AppStrings.appName,
                 style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: AppTheme.primaryColor,
-                ),
+                      fontWeight: FontWeight.bold,
+                      color: AppTheme.primaryColor,
+                    ),
                 textAlign: TextAlign.center,
               ),
-              
+
               const SizedBox(height: AppTheme.paddingSmall),
-              
+
               const Text(
                 'Please review and accept our Privacy Policy and Terms of Service to continue',
                 style: TextStyle(
@@ -61,18 +60,18 @@ class ConsentDialogScreen extends StatelessWidget {
                 ),
                 textAlign: TextAlign.center,
               ),
-              
+
               const SizedBox(height: AppTheme.paddingLarge * 2),
-              
+
               // Explanation text
               const Text(
                 'We care about your privacy and data security. We only collect data necessary to provide our waste classification service and improve your experience.',
                 style: TextStyle(fontSize: AppTheme.fontSizeRegular, color: AppTheme.textPrimaryColor),
                 textAlign: TextAlign.center,
               ),
-              
+
               const SizedBox(height: AppTheme.paddingRegular),
-              
+
               // Links to legal documents
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -108,9 +107,9 @@ class ConsentDialogScreen extends StatelessWidget {
                   ),
                 ],
               ),
-              
+
               const Spacer(),
-              
+
               // Accept button
               SizedBox(
                 width: double.infinity,
@@ -138,9 +137,9 @@ class ConsentDialogScreen extends StatelessWidget {
                   ),
                 ),
               ),
-              
+
               const SizedBox(height: AppTheme.paddingRegular),
-              
+
               // Decline button
               SizedBox(
                 width: double.infinity,

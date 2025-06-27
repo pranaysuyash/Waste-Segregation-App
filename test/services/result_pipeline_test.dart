@@ -4,9 +4,9 @@ import 'package:waste_segregation_app/services/result_pipeline.dart';
 import 'package:waste_segregation_app/models/gamification.dart';
 
 /// Tests for ResultPipelineState data class
-/// 
-/// Note: The current copyWith implementation uses the null-aware operator (??) 
-/// which means passing null explicitly preserves the existing value rather than 
+///
+/// Note: The current copyWith implementation uses the null-aware operator (??)
+/// which means passing null explicitly preserves the existing value rather than
 /// clearing it. This affects nullable fields like 'error' and 'completedChallenge'.
 /// The service code expects error: null to clear the error, suggesting a potential
 /// mismatch in the copyWith implementation.
@@ -15,7 +15,7 @@ void main() {
     group('Initial State', () {
       test('creates with correct default values', () {
         const state = ResultPipelineState();
-        
+
         expect(state.isProcessing, isFalse);
         expect(state.pointsEarned, equals(0));
         expect(state.newAchievements, isEmpty);
@@ -27,7 +27,7 @@ void main() {
     group('CopyWith Method', () {
       test('copyWith creates new instance with updated values', () {
         const originalState = ResultPipelineState();
-        
+
         final newState = originalState.copyWith(
           isProcessing: true,
           pointsEarned: 50,
@@ -74,7 +74,7 @@ void main() {
 
         // Verify updated field
         expect(newState.pointsEarned, equals(50));
-        
+
         // Verify other fields preserved
         expect(newState.isSaved, isTrue);
         expect(newState.error, equals('Initial error'));
@@ -91,7 +91,7 @@ void main() {
 
         // Passing null explicitly preserves existing value due to ?? operator
         final stateWithNullAttempt = originalState.copyWith(error: null);
-        
+
         expect(stateWithNullAttempt.error, equals('Some error')); // Preserved due to ?? operator
         expect(stateWithNullAttempt.pointsEarned, equals(50)); // Other fields preserved
       });
@@ -318,4 +318,4 @@ void main() {
       });
     });
   });
-} 
+}

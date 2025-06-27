@@ -9,17 +9,17 @@ import 'dart:convert';
 class MockAiService {
   WasteClassification? _mockResult;
   Exception? _mockException;
-  
+
   void setMockResult(WasteClassification result) {
     _mockResult = result;
     _mockException = null;
   }
-  
+
   void setMockException(Exception exception) {
     _mockException = exception;
     _mockResult = null;
   }
-  
+
   Future<WasteClassification> analyzeWebImage(Uint8List imageData, String filename) async {
     if (_mockException != null) {
       throw _mockException!;
@@ -90,10 +90,12 @@ void main() {
       // Test with mock service to avoid real API calls
       test('should return classification result from mock service', () async {
         final mockService = MockAiService();
-        final expectedClassification = WasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
+        final expectedClassification = WasteClassification(
           itemName: 'Plastic Bottle',
           subcategory: 'Plastic',
+          category: 'Dry Waste',
           explanation: 'This is a plastic bottle that can be recycled',
+          disposalInstructions: DisposalInstructions(
             primaryMethod: 'Recycle',
             steps: ['Clean the bottle', 'Remove cap', 'Place in recycling bin'],
             hasUrgentTimeframe: false,
@@ -107,10 +109,7 @@ void main() {
 
         mockService.setMockResult(expectedClassification);
 
-        final result = await mockService.analyzeWebImage(
-          Uint8List.fromList([1, 2, 3, 4]), 
-          'test.jpg'
-        );
+        final result = await mockService.analyzeWebImage(Uint8List.fromList([1, 2, 3, 4]), 'test.jpg');
 
         expect(result, isA<WasteClassification>());
         expect(result.itemName, equals('Plastic Bottle'));
@@ -121,10 +120,12 @@ void main() {
 
     group('Classification Result Validation', () {
       test('WasteClassification should have required fields', () {
-        final classification = WasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
+        final classification = WasteClassification(
           itemName: 'Test Item',
           subcategory: 'Plastic',
+          category: 'Dry Waste',
           explanation: 'Test explanation',
+          disposalInstructions: DisposalInstructions(
             primaryMethod: 'Recycle',
             steps: ['Step 1', 'Step 2'],
             hasUrgentTimeframe: false,
@@ -145,9 +146,12 @@ void main() {
       });
 
       test('should validate confidence score range', () {
-        final highConfidenceClassification = WasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
+        final highConfidenceClassification = WasteClassification(
           itemName: 'Test Item',
+          subcategory: 'Plastic',
+          category: 'Dry Waste',
           explanation: 'Test explanation',
+          disposalInstructions: DisposalInstructions(
             primaryMethod: 'Recycle',
             steps: ['Step 1'],
             hasUrgentTimeframe: false,
@@ -159,9 +163,12 @@ void main() {
           confidence: 0.95,
         );
 
-        final lowConfidenceClassification = WasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
+        final lowConfidenceClassification = WasteClassification(
           itemName: 'Test Item',
+          subcategory: 'Plastic',
+          category: 'Dry Waste',
           explanation: 'Test explanation',
+          disposalInstructions: DisposalInstructions(
             primaryMethod: 'Recycle',
             steps: ['Step 1'],
             hasUrgentTimeframe: false,
@@ -180,18 +187,15 @@ void main() {
 
     group('Category Validation', () {
       test('should recognize valid waste categories', () {
-        const validCategories = [
-          'Dry Waste',
-          'Wet Waste',
-          'Hazardous Waste',
-          'Medical Waste',
-          'Non-Waste'
-        ];
+        const validCategories = ['Dry Waste', 'Wet Waste', 'Hazardous Waste', 'Medical Waste', 'Non-Waste'];
 
         for (final category in validCategories) {
-          final classification = WasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
+          final classification = WasteClassification(
             itemName: 'Test Item',
+            subcategory: 'General',
+            category: category,
             explanation: 'Test explanation',
+            disposalInstructions: DisposalInstructions(
               primaryMethod: 'Test method',
               steps: ['Step 1'],
               hasUrgentTimeframe: false,
@@ -200,6 +204,7 @@ void main() {
             region: 'Test Region',
             visualFeatures: [],
             alternatives: [],
+            confidence: 0.8,
           );
 
           expect(validCategories.contains(classification.category), isTrue);
@@ -236,14 +241,11 @@ void main() {
 
       test('should handle mock API errors', () async {
         final mockService = MockAiService();
-        
+
         mockService.setMockException(Exception('Mock API Error'));
 
         expect(
-          () async => mockService.analyzeWebImage(
-            Uint8List.fromList([1, 2, 3, 4]), 
-            'test.jpg'
-          ),
+          () async => mockService.analyzeWebImage(Uint8List.fromList([1, 2, 3, 4]), 'test.jpg'),
           throwsA(isA<Exception>()),
         );
       });
@@ -280,12 +282,12 @@ void main() {
           "subcategory": "Plastic", // Made of plastic material
           "explanation": "A red plastic pen used for writing"
         }''';
-        
+
         final aiService = AiService();
         final cleanedJson = aiService.cleanJsonString(jsonWithComments);
-        
+
         expect(() => jsonDecode(cleanedJson), returnsNormally);
-        
+
         final parsed = jsonDecode(cleanedJson);
         expect(parsed['itemName'], equals('Red Pen'));
         expect(parsed['category'], equals('Dry Waste'));
@@ -301,12 +303,12 @@ void main() {
           "category": "Dry Waste",
           "explanation": "A blue plastic bottle"
         }''';
-        
+
         final aiService = AiService();
         final cleanedJson = aiService.cleanJsonString(jsonWithComments);
-        
+
         expect(() => jsonDecode(cleanedJson), returnsNormally);
-        
+
         final parsed = jsonDecode(cleanedJson);
         expect(parsed['itemName'], equals('Blue Bottle'));
         expect(parsed['category'], equals('Dry Waste'));
@@ -319,12 +321,12 @@ void main() {
           "category": "Dry Waste",
           "subcategory": "Metal"
         }''';
-        
+
         final aiService = AiService();
         final cleanedJson = aiService.cleanJsonString(normalJson);
-        
+
         expect(() => jsonDecode(cleanedJson), returnsNormally);
-        
+
         final parsed = jsonDecode(cleanedJson);
         expect(parsed['itemName'], equals('Green Can'));
         expect(parsed['category'], equals('Dry Waste'));
@@ -332,4 +334,4 @@ void main() {
       });
     });
   });
-} 
+}

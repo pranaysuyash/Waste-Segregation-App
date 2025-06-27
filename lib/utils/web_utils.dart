@@ -16,11 +16,11 @@ class WebUtils {
       }
     }
   }
-  
+
   /// Checks if the current web platform supports a specific feature
   static bool isSupportedOnWeb(String feature) {
     if (!kIsWeb) return true; // Not relevant for non-web platforms
-    
+
     switch (feature.toLowerCase()) {
       case 'camera':
         return web_interop.hasCameraSupport;

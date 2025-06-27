@@ -5,16 +5,22 @@ import '../models/gamification.dart'; // For Achievement class
 enum LeaderboardType {
   /// Global leaderboard across all users.
   global,
+
   /// Family-specific leaderboard.
   family,
+
   /// Weekly leaderboard (resets every week).
   weekly,
+
   /// Monthly leaderboard (resets every month).
   monthly,
+
   /// All-time leaderboard.
   allTime,
+
   /// Friends leaderboard (connected users).
   friends,
+
   /// Regional leaderboard (same geographic area).
   regional,
 }
@@ -23,12 +29,16 @@ enum LeaderboardType {
 enum LeaderboardPeriod {
   /// Today's activity only.
   today,
+
   /// This week's activity.
   thisWeek,
+
   /// This month's activity.
   thisMonth,
+
   /// This year's activity.
   thisYear,
+
   /// All-time activity.
   allTime,
 }
@@ -37,19 +47,22 @@ enum LeaderboardPeriod {
 enum RewardType {
   /// Digital badge or achievement.
   badge,
+
   /// Bonus points.
   points,
+
   /// Physical prize or gift.
   physical,
+
   /// Premium features unlock.
   premium,
+
   /// Recognition/title.
   recognition,
 }
 
 /// Represents a single entry in a leaderboard.
 class LeaderboardEntry {
-
   LeaderboardEntry({
     required this.userId,
     required this.displayName,
@@ -79,14 +92,13 @@ class LeaderboardEntry {
               ?.map((a) => Achievement.fromJson(a as Map<String, dynamic>))
               .toList() ??
           [],
-      stats: json['stats'] != null 
-          ? UserLeaderboardStats.fromJson(json['stats'] as Map<String, dynamic>) 
-          : null,
+      stats: json['stats'] != null ? UserLeaderboardStats.fromJson(json['stats'] as Map<String, dynamic>) : null,
       isCurrentUser: json['isCurrentUser'] as bool? ?? false,
       familyId: json['familyId'] as String?,
       familyName: json['familyName'] as String?,
     );
   }
+
   /// The user ID for this entry.
   final String userId;
 
@@ -188,7 +200,6 @@ class LeaderboardEntry {
 
 /// Represents a complete leaderboard with multiple entries.
 class Leaderboard {
-
   Leaderboard({
     required this.type,
     required this.period,
@@ -211,9 +222,8 @@ class Leaderboard {
         (e) => e.toString().split('.').last == json['period'],
         orElse: () => LeaderboardPeriod.allTime,
       ),
-      entries: (json['entries'] as List<dynamic>)
-          .map((e) => LeaderboardEntry.fromJson(e as Map<String, dynamic>))
-          .toList(),
+      entries:
+          (json['entries'] as List<dynamic>).map((e) => LeaderboardEntry.fromJson(e as Map<String, dynamic>)).toList(),
       lastUpdated: DateTime.parse(json['lastUpdated'] as String),
       metadata: LeaderboardMetadata.fromJson(json['metadata'] as Map<String, dynamic>),
       currentUserEntry: json['currentUserEntry'] != null
@@ -223,6 +233,7 @@ class Leaderboard {
       familyId: json['familyId'] as String?,
     );
   }
+
   /// The type of this leaderboard.
   final LeaderboardType type;
 
@@ -300,9 +311,7 @@ class Leaderboard {
 
   /// Gets entries within a specific rank range.
   List<LeaderboardEntry> getEntriesInRange(int startRank, int endRank) {
-    return entries
-        .where((entry) => entry.rank != null && entry.rank! >= startRank && entry.rank! <= endRank)
-        .toList();
+    return entries.where((entry) => entry.rank != null && entry.rank! >= startRank && entry.rank! <= endRank).toList();
   }
 
   /// Gets the minimum score to be in the top N.
@@ -314,7 +323,6 @@ class Leaderboard {
 
 /// Metadata about a leaderboard.
 class LeaderboardMetadata {
-
   LeaderboardMetadata({
     required this.title,
     required this.description,
@@ -344,6 +352,7 @@ class LeaderboardMetadata {
       showDetailedStats: json['showDetailedStats'] as bool? ?? true,
     );
   }
+
   /// The title/name of this leaderboard.
   final String title;
 
@@ -389,9 +398,7 @@ class LeaderboardMetadata {
   /// Checks if the leaderboard period is currently active.
   bool get isCurrentlyActive {
     final now = DateTime.now();
-    return isActive && 
-           now.isAfter(periodStart) && 
-           now.isBefore(periodEnd);
+    return isActive && now.isAfter(periodStart) && now.isBefore(periodEnd);
   }
 
   /// Gets the remaining time in the current period.
@@ -404,7 +411,6 @@ class LeaderboardMetadata {
 
 /// Statistics for a user on the leaderboard.
 class UserLeaderboardStats {
-
   UserLeaderboardStats({
     required this.totalClassifications,
     required this.currentStreak,
@@ -429,6 +435,7 @@ class UserLeaderboardStats {
       totalTimeSpent: json['totalTimeSpent'] as int,
     );
   }
+
   /// Total classifications made.
   final int totalClassifications;
 
@@ -470,7 +477,6 @@ class UserLeaderboardStats {
 
 /// Represents a reward for leaderboard performance.
 class LeaderboardReward {
-
   LeaderboardReward({
     required this.rankRange,
     required this.name,
@@ -494,6 +500,7 @@ class LeaderboardReward {
       value: json['value'] as int?,
     );
   }
+
   /// The rank range this reward applies to (e.g., "1-3" for top 3).
   final String rankRange;
 

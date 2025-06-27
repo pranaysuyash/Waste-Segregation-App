@@ -28,10 +28,8 @@ void main() {
       });
 
       test('should set and get analytics consent', () async {
-        when(mockSharedPreferences.setBool(any, any))
-            .thenAnswer((_) async => true);
-        when(mockSharedPreferences.getBool('analytics_consent'))
-            .thenReturn(true);
+        when(mockSharedPreferences.setBool(any, any)).thenAnswer((_) async => true);
+        when(mockSharedPreferences.getBool('analytics_consent')).thenReturn(true);
 
         await userConsentService.setAnalyticsConsent(true);
 
@@ -40,10 +38,8 @@ void main() {
       });
 
       test('should set and get marketing consent', () async {
-        when(mockSharedPreferences.setBool(any, any))
-            .thenAnswer((_) async => true);
-        when(mockSharedPreferences.getBool('marketing_consent'))
-            .thenReturn(true);
+        when(mockSharedPreferences.setBool(any, any)).thenAnswer((_) async => true);
+        when(mockSharedPreferences.getBool('marketing_consent')).thenReturn(true);
 
         await userConsentService.setMarketingConsent(true);
 
@@ -52,10 +48,8 @@ void main() {
       });
 
       test('should set and get functional consent', () async {
-        when(mockSharedPreferences.setBool(any, any))
-            .thenAnswer((_) async => true);
-        when(mockSharedPreferences.getBool('functional_consent'))
-            .thenReturn(true);
+        when(mockSharedPreferences.setBool(any, any)).thenAnswer((_) async => true);
+        when(mockSharedPreferences.getBool('functional_consent')).thenReturn(true);
 
         await userConsentService.setFunctionalConsent(true);
 
@@ -64,10 +58,8 @@ void main() {
       });
 
       test('should set and get data processing consent', () async {
-        when(mockSharedPreferences.setBool(any, any))
-            .thenAnswer((_) async => true);
-        when(mockSharedPreferences.getBool('data_processing_consent'))
-            .thenReturn(true);
+        when(mockSharedPreferences.setBool(any, any)).thenAnswer((_) async => true);
+        when(mockSharedPreferences.getBool('data_processing_consent')).thenReturn(true);
 
         await userConsentService.setDataProcessingConsent(true);
 
@@ -88,8 +80,7 @@ void main() {
       });
 
       test('should revoke all consents', () async {
-        when(mockSharedPreferences.setBool(any, any))
-            .thenAnswer((_) async => true);
+        when(mockSharedPreferences.setBool(any, any)).thenAnswer((_) async => true);
 
         await userConsentService.revokeAllConsents();
 
@@ -100,22 +91,17 @@ void main() {
       });
 
       test('should set consent timestamp', () async {
-        when(mockSharedPreferences.setString(any, any))
-            .thenAnswer((_) async => true);
+        when(mockSharedPreferences.setString(any, any)).thenAnswer((_) async => true);
 
         final timestamp = DateTime.now();
         await userConsentService.setConsentTimestamp(timestamp);
 
-        verify(mockSharedPreferences.setString(
-          'consent_timestamp', 
-          timestamp.toIso8601String()
-        )).called(1);
+        verify(mockSharedPreferences.setString('consent_timestamp', timestamp.toIso8601String())).called(1);
       });
 
       test('should get consent timestamp', () {
         final timestamp = DateTime(2024, 1, 15, 10, 30);
-        when(mockSharedPreferences.getString('consent_timestamp'))
-            .thenReturn(timestamp.toIso8601String());
+        when(mockSharedPreferences.getString('consent_timestamp')).thenReturn(timestamp.toIso8601String());
 
         final retrievedTimestamp = userConsentService.consentTimestamp;
 
@@ -123,8 +109,7 @@ void main() {
       });
 
       test('should handle null consent timestamp', () {
-        when(mockSharedPreferences.getString('consent_timestamp'))
-            .thenReturn(null);
+        when(mockSharedPreferences.getString('consent_timestamp')).thenReturn(null);
 
         final retrievedTimestamp = userConsentService.consentTimestamp;
 
@@ -136,8 +121,7 @@ void main() {
       test('should check if consent is expired', () {
         // Set consent timestamp to 1 year ago
         final oneYearAgo = DateTime.now().subtract(const Duration(days: 365));
-        when(mockSharedPreferences.getString('consent_timestamp'))
-            .thenReturn(oneYearAgo.toIso8601String());
+        when(mockSharedPreferences.getString('consent_timestamp')).thenReturn(oneYearAgo.toIso8601String());
 
         expect(userConsentService.isConsentExpired, true);
       });
@@ -145,15 +129,13 @@ void main() {
       test('should check if consent is still valid', () {
         // Set consent timestamp to 6 months ago
         final sixMonthsAgo = DateTime.now().subtract(const Duration(days: 180));
-        when(mockSharedPreferences.getString('consent_timestamp'))
-            .thenReturn(sixMonthsAgo.toIso8601String());
+        when(mockSharedPreferences.getString('consent_timestamp')).thenReturn(sixMonthsAgo.toIso8601String());
 
         expect(userConsentService.isConsentExpired, false);
       });
 
       test('should handle missing consent timestamp as expired', () {
-        when(mockSharedPreferences.getString('consent_timestamp'))
-            .thenReturn(null);
+        when(mockSharedPreferences.getString('consent_timestamp')).thenReturn(null);
 
         expect(userConsentService.isConsentExpired, true);
       });
@@ -161,8 +143,7 @@ void main() {
       test('should check if consent renewal is needed', () {
         // Set consent timestamp to 11 months ago (within renewal period)
         final elevenMonthsAgo = DateTime.now().subtract(const Duration(days: 330));
-        when(mockSharedPreferences.getString('consent_timestamp'))
-            .thenReturn(elevenMonthsAgo.toIso8601String());
+        when(mockSharedPreferences.getString('consent_timestamp')).thenReturn(elevenMonthsAgo.toIso8601String());
 
         expect(userConsentService.needsConsentRenewal, true);
       });
@@ -182,29 +163,23 @@ void main() {
       });
 
       test('should record data deletion request', () async {
-        when(mockSharedPreferences.setString(any, any))
-            .thenAnswer((_) async => true);
+        when(mockSharedPreferences.setString(any, any)).thenAnswer((_) async => true);
 
         final requestTime = DateTime.now();
         await userConsentService.recordDataDeletionRequest(requestTime);
 
-        verify(mockSharedPreferences.setString(
-          'data_deletion_request_timestamp',
-          requestTime.toIso8601String()
-        )).called(1);
+        verify(mockSharedPreferences.setString('data_deletion_request_timestamp', requestTime.toIso8601String()))
+            .called(1);
       });
 
       test('should record data export request', () async {
-        when(mockSharedPreferences.setString(any, any))
-            .thenAnswer((_) async => true);
+        when(mockSharedPreferences.setString(any, any)).thenAnswer((_) async => true);
 
         final requestTime = DateTime.now();
         await userConsentService.recordDataExportRequest(requestTime);
 
-        verify(mockSharedPreferences.setString(
-          'data_export_request_timestamp',
-          requestTime.toIso8601String()
-        )).called(1);
+        verify(mockSharedPreferences.setString('data_export_request_timestamp', requestTime.toIso8601String()))
+            .called(1);
       });
 
       test('should get data deletion request timestamp', () {
@@ -219,8 +194,7 @@ void main() {
 
       test('should get data export request timestamp', () {
         final timestamp = DateTime(2024, 1, 15, 10, 30);
-        when(mockSharedPreferences.getString('data_export_request_timestamp'))
-            .thenReturn(timestamp.toIso8601String());
+        when(mockSharedPreferences.getString('data_export_request_timestamp')).thenReturn(timestamp.toIso8601String());
 
         final retrievedTimestamp = userConsentService.dataExportRequestTimestamp;
 
@@ -230,10 +204,8 @@ void main() {
 
     group('Cookie Consent', () {
       test('should manage essential cookies consent', () async {
-        when(mockSharedPreferences.setBool(any, any))
-            .thenAnswer((_) async => true);
-        when(mockSharedPreferences.getBool('essential_cookies_consent'))
-            .thenReturn(true);
+        when(mockSharedPreferences.setBool(any, any)).thenAnswer((_) async => true);
+        when(mockSharedPreferences.getBool('essential_cookies_consent')).thenReturn(true);
 
         await userConsentService.setEssentialCookiesConsent(true);
 
@@ -242,10 +214,8 @@ void main() {
       });
 
       test('should manage performance cookies consent', () async {
-        when(mockSharedPreferences.setBool(any, any))
-            .thenAnswer((_) async => true);
-        when(mockSharedPreferences.getBool('performance_cookies_consent'))
-            .thenReturn(true);
+        when(mockSharedPreferences.setBool(any, any)).thenAnswer((_) async => true);
+        when(mockSharedPreferences.getBool('performance_cookies_consent')).thenReturn(true);
 
         await userConsentService.setPerformanceCookiesConsent(true);
 
@@ -254,10 +224,8 @@ void main() {
       });
 
       test('should manage advertising cookies consent', () async {
-        when(mockSharedPreferences.setBool(any, any))
-            .thenAnswer((_) async => true);
-        when(mockSharedPreferences.getBool('advertising_cookies_consent'))
-            .thenReturn(true);
+        when(mockSharedPreferences.setBool(any, any)).thenAnswer((_) async => true);
+        when(mockSharedPreferences.getBool('advertising_cookies_consent')).thenReturn(true);
 
         await userConsentService.setAdvertisingCookiesConsent(true);
 
@@ -268,10 +236,8 @@ void main() {
 
     group('Third-Party Services', () {
       test('should manage Google Analytics consent', () async {
-        when(mockSharedPreferences.setBool(any, any))
-            .thenAnswer((_) async => true);
-        when(mockSharedPreferences.getBool('google_analytics_consent'))
-            .thenReturn(true);
+        when(mockSharedPreferences.setBool(any, any)).thenAnswer((_) async => true);
+        when(mockSharedPreferences.getBool('google_analytics_consent')).thenReturn(true);
 
         await userConsentService.setGoogleAnalyticsConsent(true);
 
@@ -280,10 +246,8 @@ void main() {
       });
 
       test('should manage Firebase consent', () async {
-        when(mockSharedPreferences.setBool(any, any))
-            .thenAnswer((_) async => true);
-        when(mockSharedPreferences.getBool('firebase_consent'))
-            .thenReturn(true);
+        when(mockSharedPreferences.setBool(any, any)).thenAnswer((_) async => true);
+        when(mockSharedPreferences.getBool('firebase_consent')).thenReturn(true);
 
         await userConsentService.setFirebaseConsent(true);
 
@@ -292,10 +256,8 @@ void main() {
       });
 
       test('should manage crash reporting consent', () async {
-        when(mockSharedPreferences.setBool(any, any))
-            .thenAnswer((_) async => true);
-        when(mockSharedPreferences.getBool('crash_reporting_consent'))
-            .thenReturn(true);
+        when(mockSharedPreferences.setBool(any, any)).thenAnswer((_) async => true);
+        when(mockSharedPreferences.getBool('crash_reporting_consent')).thenReturn(true);
 
         await userConsentService.setCrashReportingConsent(true);
 
@@ -320,8 +282,7 @@ void main() {
       });
 
       test('should dismiss consent banner', () async {
-        when(mockSharedPreferences.setBool(any, any))
-            .thenAnswer((_) async => true);
+        when(mockSharedPreferences.setBool(any, any)).thenAnswer((_) async => true);
 
         await userConsentService.dismissConsentBanner();
 
@@ -329,8 +290,7 @@ void main() {
       });
 
       test('should check if banner was dismissed', () {
-        when(mockSharedPreferences.getBool('consent_banner_dismissed'))
-            .thenReturn(true);
+        when(mockSharedPreferences.getBool('consent_banner_dismissed')).thenReturn(true);
 
         expect(userConsentService.isConsentBannerDismissed, true);
       });
@@ -338,24 +298,17 @@ void main() {
 
     group('Consent Audit Trail', () {
       test('should record consent changes', () async {
-        when(mockSharedPreferences.setStringList(any, any))
-            .thenAnswer((_) async => true);
-        when(mockSharedPreferences.getStringList('consent_audit_trail'))
-            .thenReturn([]);
+        when(mockSharedPreferences.setStringList(any, any)).thenAnswer((_) async => true);
+        when(mockSharedPreferences.getStringList('consent_audit_trail')).thenReturn([]);
 
-        await userConsentService.recordConsentChange(
-          'analytics_consent', 
-          true, 
-          DateTime.now()
-        );
+        await userConsentService.recordConsentChange('analytics_consent', true, DateTime.now());
 
         verify(mockSharedPreferences.setStringList('consent_audit_trail', any)).called(1);
       });
 
       test('should get consent audit trail', () {
         const auditEntry = '2024-01-15T10:30:00.000|analytics_consent|true';
-        when(mockSharedPreferences.getStringList('consent_audit_trail'))
-            .thenReturn([auditEntry]);
+        when(mockSharedPreferences.getStringList('consent_audit_trail')).thenReturn([auditEntry]);
 
         final auditTrail = userConsentService.consentAuditTrail;
 
@@ -367,26 +320,16 @@ void main() {
 
       test('should limit audit trail size', () async {
         // Create a large audit trail
-        final largeAuditTrail = List.generate(200, (index) => 
-          '2024-01-${(index % 30) + 1}T10:30:00.000|analytics_consent|true'
-        );
+        final largeAuditTrail =
+            List.generate(200, (index) => '2024-01-${(index % 30) + 1}T10:30:00.000|analytics_consent|true');
 
-        when(mockSharedPreferences.getStringList('consent_audit_trail'))
-            .thenReturn(largeAuditTrail);
-        when(mockSharedPreferences.setStringList(any, any))
-            .thenAnswer((_) async => true);
+        when(mockSharedPreferences.getStringList('consent_audit_trail')).thenReturn(largeAuditTrail);
+        when(mockSharedPreferences.setStringList(any, any)).thenAnswer((_) async => true);
 
-        await userConsentService.recordConsentChange(
-          'marketing_consent', 
-          false, 
-          DateTime.now()
-        );
+        await userConsentService.recordConsentChange('marketing_consent', false, DateTime.now());
 
         // Verify that the audit trail is limited to 100 entries
-        final captured = verify(mockSharedPreferences.setStringList(
-          'consent_audit_trail', 
-          captureAny
-        )).captured;
+        final captured = verify(mockSharedPreferences.setStringList('consent_audit_trail', captureAny)).captured;
 
         expect(captured[0].length, lessThanOrEqualTo(100));
       });
@@ -394,8 +337,7 @@ void main() {
 
     group('Regional Compliance', () {
       test('should set user region for compliance', () async {
-        when(mockSharedPreferences.setString(any, any))
-            .thenAnswer((_) async => true);
+        when(mockSharedPreferences.setString(any, any)).thenAnswer((_) async => true);
 
         await userConsentService.setUserRegion('EU');
 
@@ -403,29 +345,25 @@ void main() {
       });
 
       test('should get user region', () {
-        when(mockSharedPreferences.getString('user_region'))
-            .thenReturn('US');
+        when(mockSharedPreferences.getString('user_region')).thenReturn('US');
 
         expect(userConsentService.userRegion, 'US');
       });
 
       test('should check if GDPR applies', () {
-        when(mockSharedPreferences.getString('user_region'))
-            .thenReturn('EU');
+        when(mockSharedPreferences.getString('user_region')).thenReturn('EU');
 
         expect(userConsentService.isGDPRApplicable, true);
       });
 
       test('should check if CCPA applies', () {
-        when(mockSharedPreferences.getString('user_region'))
-            .thenReturn('US');
+        when(mockSharedPreferences.getString('user_region')).thenReturn('US');
 
         expect(userConsentService.isCCPAApplicable, true);
       });
 
       test('should get required consents for region', () {
-        when(mockSharedPreferences.getString('user_region'))
-            .thenReturn('EU');
+        when(mockSharedPreferences.getString('user_region')).thenReturn('EU');
 
         final requiredConsents = userConsentService.requiredConsentsForRegion;
 
@@ -438,32 +376,27 @@ void main() {
 
     group('Error Handling', () {
       test('should handle SharedPreferences write errors gracefully', () async {
-        when(mockSharedPreferences.setBool(any, any))
-            .thenThrow(Exception('Storage error'));
+        when(mockSharedPreferences.setBool(any, any)).thenThrow(Exception('Storage error'));
 
-        expect(() async => await userConsentService.setAnalyticsConsent(true),
-               returnsNormally);
+        expect(() async => await userConsentService.setAnalyticsConsent(true), returnsNormally);
       });
 
       test('should handle SharedPreferences read errors gracefully', () {
-        when(mockSharedPreferences.getBool(any))
-            .thenThrow(Exception('Read error'));
+        when(mockSharedPreferences.getBool(any)).thenThrow(Exception('Read error'));
 
         expect(() => userConsentService.hasAnalyticsConsent, returnsNormally);
         expect(userConsentService.hasAnalyticsConsent, false);
       });
 
       test('should handle corrupted consent data', () {
-        when(mockSharedPreferences.getString('consent_timestamp'))
-            .thenReturn('invalid_timestamp');
+        when(mockSharedPreferences.getString('consent_timestamp')).thenReturn('invalid_timestamp');
 
         expect(userConsentService.consentTimestamp, null);
         expect(userConsentService.isConsentExpired, true);
       });
 
       test('should handle corrupted audit trail data', () {
-        when(mockSharedPreferences.getStringList('consent_audit_trail'))
-            .thenReturn(['invalid_audit_entry']);
+        when(mockSharedPreferences.getStringList('consent_audit_trail')).thenReturn(['invalid_audit_entry']);
 
         final auditTrail = userConsentService.consentAuditTrail;
         expect(auditTrail, isEmpty);
@@ -472,8 +405,7 @@ void main() {
 
     group('Data Minimization', () {
       test('should only store necessary consent data', () async {
-        when(mockSharedPreferences.setBool(any, any))
-            .thenAnswer((_) async => true);
+        when(mockSharedPreferences.setBool(any, any)).thenAnswer((_) async => true);
 
         await userConsentService.setAnalyticsConsent(true);
 
@@ -485,8 +417,7 @@ void main() {
       test('should provide minimal consent data export', () {
         when(mockSharedPreferences.getBool('analytics_consent')).thenReturn(true);
         when(mockSharedPreferences.getBool('marketing_consent')).thenReturn(false);
-        when(mockSharedPreferences.getString('consent_timestamp'))
-            .thenReturn(DateTime.now().toIso8601String());
+        when(mockSharedPreferences.getString('consent_timestamp')).thenReturn(DateTime.now().toIso8601String());
 
         final consentData = userConsentService.exportConsentData();
 
@@ -499,8 +430,7 @@ void main() {
 
     group('Performance Tests', () {
       test('should handle multiple rapid consent changes efficiently', () async {
-        when(mockSharedPreferences.setBool(any, any))
-            .thenAnswer((_) async => true);
+        when(mockSharedPreferences.setBool(any, any)).thenAnswer((_) async => true);
 
         // Simulate rapid consent changes
         for (var i = 0; i < 100; i++) {
@@ -512,12 +442,9 @@ void main() {
       });
 
       test('should handle large audit trail efficiently', () {
-        final largeAuditTrail = List.generate(1000, (index) => 
-          '2024-01-01T10:30:00.000|analytics_consent|true'
-        );
+        final largeAuditTrail = List.generate(1000, (index) => '2024-01-01T10:30:00.000|analytics_consent|true');
 
-        when(mockSharedPreferences.getStringList('consent_audit_trail'))
-            .thenReturn(largeAuditTrail);
+        when(mockSharedPreferences.getStringList('consent_audit_trail')).thenReturn(largeAuditTrail);
 
         final startTime = DateTime.now();
         final auditTrail = userConsentService.consentAuditTrail;

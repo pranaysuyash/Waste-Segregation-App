@@ -3,50 +3,48 @@ import 'package:flutter/material.dart';
 /// A simple shimmer effect widget for loading states.
 /// Provides a smooth animated placeholder without requiring external dependencies.
 class SimpleShimmer extends StatefulWidget {
-  
   const SimpleShimmer({
-    super.key, 
-    this.width = double.infinity, 
+    super.key,
+    this.width = double.infinity,
     this.height = 16,
     this.borderRadius,
   });
   final double width;
   final double height;
   final BorderRadius? borderRadius;
-  
+
   @override
   State<SimpleShimmer> createState() => _SimpleShimmerState();
 }
 
-class _SimpleShimmerState extends State<SimpleShimmer> 
-    with SingleTickerProviderStateMixin {
+class _SimpleShimmerState extends State<SimpleShimmer> with SingleTickerProviderStateMixin {
   late final AnimationController _controller;
   late final Animation<double> _animation;
-  
+
   @override
   void initState() {
     super.initState();
     _controller = AnimationController(
-      vsync: this, 
+      vsync: this,
       duration: const Duration(seconds: 2),
     )..repeat();
     _animation = Tween(begin: -1.0, end: 2.0).animate(
       CurvedAnimation(parent: _controller, curve: Curves.linear),
     );
   }
-  
+
   @override
   void dispose() {
     _controller.dispose();
     super.dispose();
   }
-  
+
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final baseColor = isDark ? Colors.grey.shade700 : Colors.grey.shade300;
     final highlightColor = isDark ? Colors.grey.shade600 : Colors.grey.shade100;
-    
+
     return AnimatedBuilder(
       animation: _animation,
       builder: (context, child) => Container(
@@ -78,10 +76,9 @@ class _SimpleShimmerState extends State<SimpleShimmer>
 
 /// A shimmer placeholder for card-like content
 class ShimmerCard extends StatelessWidget {
-  
   const ShimmerCard({super.key, this.height = 200});
   final double height;
-  
+
   @override
   Widget build(BuildContext context) {
     return Card(
@@ -160,4 +157,4 @@ class ShimmerCard extends StatelessWidget {
       ),
     );
   }
-} 
+}

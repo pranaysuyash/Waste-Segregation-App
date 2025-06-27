@@ -20,16 +20,24 @@ void main() {
 
     testWidgets('should not call setState after dispose during async operations', (WidgetTester tester) async {
       // Create a test classification
-      final testClassification = WasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
+      final testClassification = WasteClassification(
+        itemName: 'Test Item',
+        explanation: 'Test explanation',
+        category: 'plastic',
+        region: 'Test Region',
+        visualFeatures: ['test feature'],
+        alternatives: [],
+        disposalInstructions:
+            DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false),
         id: 'test-1',
         itemName: 'Test Item',
         subcategory: 'Plastic',
         confidence: 0.95,
         explanation: 'Test explanation',
         imageUrl: 'test/path',
-            region: 'Test Region',
-            visualFeatures: ['test feature'],
-            alternatives: [],
+        region: 'Test Region',
+        visualFeatures: ['test feature'],
+        alternatives: [],
         timestamp: DateTime.now(),
         userId: 'test-user',
       );
@@ -75,17 +83,26 @@ void main() {
     });
 
     testWidgets('should handle rapid navigation without memory leaks', (WidgetTester tester) async {
-      final testClassifications = List.generate(50, (index) => 
-        WasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
+      final testClassifications = List.generate(
+        50,
+        (index) => WasteClassification(
+          itemName: 'Test Item',
+          explanation: 'Test explanation',
+          category: 'plastic',
+          region: 'Test Region',
+          visualFeatures: ['test feature'],
+          alternatives: [],
+          disposalInstructions:
+              DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false),
           id: 'test-$index',
           itemName: 'Test Item $index',
           subcategory: 'Plastic',
           confidence: 0.95,
           explanation: 'Test explanation $index',
           imageUrl: 'test/path$index',
-            region: 'Test Region',
-            visualFeatures: ['test feature'],
-            alternatives: [],
+          region: 'Test Region',
+          visualFeatures: ['test feature'],
+          alternatives: [],
           timestamp: DateTime.now().subtract(Duration(days: index)),
           userId: 'test-user',
         ),
@@ -158,16 +175,24 @@ void main() {
     });
 
     testWidgets('should handle export operation cancellation gracefully', (WidgetTester tester) async {
-      final testClassification = WasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
+      final testClassification = WasteClassification(
+        itemName: 'Test Item',
+        explanation: 'Test explanation',
+        category: 'plastic',
+        region: 'Test Region',
+        visualFeatures: ['test feature'],
+        alternatives: [],
+        disposalInstructions:
+            DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false),
         id: 'test-1',
         itemName: 'Test Item',
         subcategory: 'Plastic',
         confidence: 0.95,
         explanation: 'Test explanation',
         imageUrl: 'test/path',
-            region: 'Test Region',
-            visualFeatures: ['test feature'],
-            alternatives: [],
+        region: 'Test Region',
+        visualFeatures: ['test feature'],
+        alternatives: [],
         timestamp: DateTime.now(),
         userId: 'test-user',
       );
@@ -194,7 +219,7 @@ void main() {
       // Find and tap the export button
       final exportButton = find.byIcon(Icons.share);
       expect(exportButton, findsOneWidget);
-      
+
       await tester.tap(exportButton);
       await tester.pump(const Duration(milliseconds: 50));
 
@@ -216,17 +241,26 @@ void main() {
     });
 
     testWidgets('should handle filter operations during disposal', (WidgetTester tester) async {
-      final testClassifications = List.generate(10, (index) => 
-        WasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
+      final testClassifications = List.generate(
+        10,
+        (index) => WasteClassification(
+          itemName: 'Test Item',
+          explanation: 'Test explanation',
+          category: 'plastic',
+          region: 'Test Region',
+          visualFeatures: ['test feature'],
+          alternatives: [],
+          disposalInstructions:
+              DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false),
           id: 'test-$index',
           itemName: 'Test Item $index',
           subcategory: 'Test Subcategory',
           confidence: 0.95,
           explanation: 'Test explanation $index',
           imageUrl: 'test/path$index',
-            region: 'Test Region',
-            visualFeatures: ['test feature'],
-            alternatives: [],
+          region: 'Test Region',
+          visualFeatures: ['test feature'],
+          alternatives: [],
           timestamp: DateTime.now().subtract(Duration(days: index)),
           userId: 'test-user',
         ),
@@ -272,4 +306,4 @@ void main() {
       expect(find.text('Filter Test Screen'), findsOneWidget);
     });
   });
-} 
+}

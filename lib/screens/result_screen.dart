@@ -50,21 +50,19 @@ class ResultScreen extends StatefulWidget {
   State<ResultScreen> createState() => _ResultScreenState();
 }
 
-class _ResultScreenState extends State<ResultScreen>
-    with SingleTickerProviderStateMixin {
+class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderStateMixin {
   bool _isSaved = false;
   bool _isAutoSaving = false;
   bool _showingClassificationFeedback = false;
-  final bool _isEducationalFactExpanded = false;
-  
+
   List<Achievement> _newlyEarnedAchievements = [];
   int _pointsEarned = 0;
   Challenge? _completedChallenge;
-  
+
   // Achievement celebration state
   bool _showCelebration = false;
   Achievement? _celebrationAchievement;
-  
+
   // Static set to track classifications being saved to prevent duplicates
   static final Set<String> _savingClassifications = <String>{};
 
@@ -75,7 +73,7 @@ class _ResultScreenState extends State<ResultScreen>
   void initState() {
     super.initState();
     _analyticsService = Provider.of<AnalyticsService>(context, listen: false);
-    
+
     // Track screen view with classification details
     _analyticsService.trackScreenView('ResultScreen', parameters: {
       'classification_id': widget.classification.id,
@@ -85,12 +83,12 @@ class _ResultScreenState extends State<ResultScreen>
       'confidence': widget.classification.confidence,
       'auto_analyze': widget.autoAnalyze,
     });
-    
+
     _animationController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 1500),
     );
-    
+
     // Process the classification for gamification only if it's a new classification
     // Skip auto-save processing for autoAnalyze mode since it's already saved in InstantAnalysisScreen
     if (widget.showActions && !widget.autoAnalyze) {
@@ -100,12 +98,12 @@ class _ResultScreenState extends State<ResultScreen>
       // But we need to show the points popup, so calculate the points earned
       _showPointsForAutoAnalyze();
     } else {
-      // 🎮 GAMIFICATION FIX: For existing classifications, check if they need 
+      // 🎮 GAMIFICATION FIX: For existing classifications, check if they need
       // retroactive gamification processing (fixes the 2/10 classifications but 0 points issue)
       _checkRetroactiveGamificationProcessing();
     }
   }
-  
+
   // Automatically save the classification and process gamification sequentially
   Future<void> _autoSaveAndProcess() async {
     if (!widget.showActions || _isSaved) return;
@@ -117,14 +115,14 @@ class _ResultScreenState extends State<ResultScreen>
     }
 
     _savingClassifications.add(classificationId);
-    if(mounted) setState(() => _isAutoSaving = true);
+    if (mounted) setState(() => _isAutoSaving = true);
 
     try {
       // Step 1: Get services
       final storageService = Provider.of<StorageService>(context, listen: false);
       final cloudStorageService = Provider.of<CloudStorageService>(context, listen: false);
       final gamificationService = Provider.of<GamificationService>(context, listen: false);
-      
+
       // Step 2: Save classification locally
       WasteAppLogger.info('Operation completed', null, null, {'service': 'screen', 'file': 'result_screen'});
       final savedClassification = widget.classification.copyWith(isSaved: true);
@@ -148,7 +146,7 @@ class _ResultScreenState extends State<ResultScreen>
           isGoogleSyncEnabled,
           processGamification: false, // Already processed
         );
-         await gamificationService.saveProfile(newProfile); // Explicitly save updated profile
+        await gamificationService.saveProfile(newProfile); // Explicitly save updated profile
         WasteAppLogger.info('Operation completed', null, null, {'service': 'screen', 'file': 'result_screen'});
       } else {
         WasteAppLogger.info('Operation completed', null, null, {'service': 'screen', 'file': 'result_screen'});
@@ -156,12 +154,11 @@ class _ResultScreenState extends State<ResultScreen>
 
       // Step 5: Update UI
       final earnedPoints = newProfile.points.total - oldProfile.points.total;
-      
+
       // Correctly and efficiently calculate newly earned achievements
       final oldAchievementIds = oldProfile.achievements.map((a) => a.id).toSet();
-      final newlyEarnedAchievements = newProfile.achievements
-          .where((a) => a.isEarned && !oldAchievementIds.contains(a.id))
-          .toList();
+      final newlyEarnedAchievements =
+          newProfile.achievements.where((a) => a.isEarned && !oldAchievementIds.contains(a.id)).toList();
 
       if (mounted) {
         setState(() {
@@ -172,7 +169,7 @@ class _ResultScreenState extends State<ResultScreen>
           _completedChallenge = newProfile.completedChallenges
               .where((c) => !oldProfile.completedChallenges.map((oc) => oc.id).contains(c.id))
               .firstOrNull;
-          
+
           // Show achievement celebration for major achievements
           if (newlyEarnedAchievements.isNotEmpty) {
             final majorAchievement = newlyEarnedAchievements.firstWhere(
@@ -181,10 +178,14 @@ class _ResultScreenState extends State<ResultScreen>
             );
             _showAchievementCelebration(majorAchievement);
           }
+
+          // ROADMAP FIX: Show points popup with proper timing to avoid race condition
+          if (earnedPoints > 0) {
+            _showPointsEarnedPopup(earnedPoints);
+          }
           
-          // Points earned will be shown on home screen via navigation result
-          WasteAppLogger.info('Points earned: $earnedPoints, Achievements: ${newlyEarnedAchievements.length}', 
-            null, null, {'service': 'screen', 'file': 'result_screen'});
+          WasteAppLogger.info('Points earned: $earnedPoints, Achievements: ${newlyEarnedAchievements.length}', null,
+              null, {'service': 'screen', 'file': 'result_screen'});
         });
 
         // Show feedback
@@ -199,20 +200,19 @@ class _ResultScreenState extends State<ResultScreen>
           HapticFeedback.lightImpact();
         }
       }
-
     } catch (e, stackTrace) {
       ErrorHandler.handleError(e, stackTrace);
-      if(mounted) {
+      if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
           content: Text('Error: ${ErrorHandler.getUserFriendlyMessage(e)}'),
         ));
       }
     } finally {
       _savingClassifications.remove(classificationId);
-      if(mounted) setState(() => _isAutoSaving = false);
+      if (mounted) setState(() => _isAutoSaving = false);
     }
   }
-  
+
   @override
   void dispose() {
     _animationController.dispose();
@@ -240,20 +240,20 @@ class _ResultScreenState extends State<ResultScreen>
       newlyEarnedAchievements: _newlyEarnedAchievements,
       completedChallenge: _completedChallenge,
     );
-    
+
     Navigator.of(context).pop(result);
   }
-  
+
   /// Show points popup for autoAnalyze mode
   /// The classification is already saved and processed, we just need to trigger the popup
   Future<void> _showPointsForAutoAnalyze() async {
     try {
       WasteAppLogger.info('🎯 POPUP FIX: Triggering points popup for autoAnalyze mode');
-      
+
       // Get the PointsEngine to trigger the global popup system
       final pointsEngineProvider = Provider.of<PointsEngineProvider>(context, listen: false);
       final pointsEngine = pointsEngineProvider.pointsEngine;
-      
+
       // Trigger the points earned event which will show the popup via navigation wrapper
       // Use standard classification points (consistent with GamificationService._pointValues)
       const pointsPerClassification = 10;
@@ -262,18 +262,17 @@ class _ResultScreenState extends State<ResultScreen>
         'classification_id': widget.classification.id,
         'category': widget.classification.category,
       });
-      
+
       setState(() {
         _isSaved = true;
         _pointsEarned = pointsPerClassification;
       });
-      
+
       WasteAppLogger.info('🎯 POPUP FIX: Points popup triggered via PointsEngine - $pointsPerClassification points');
-      
     } catch (e, stackTrace) {
       ErrorHandler.handleError(e, stackTrace);
       WasteAppLogger.severe('🎯 POPUP FIX: Error triggering points popup: $e');
-      
+
       // Fallback to standard points if PointsEngine fails
       setState(() {
         _isSaved = true;
@@ -281,32 +280,74 @@ class _ResultScreenState extends State<ResultScreen>
       });
     }
   }
-  
+
+  /// ROADMAP FIX: Show points earned popup with proper timing to avoid race condition
+  Future<void> _showPointsEarnedPopup(int points) async {
+    // Wait for navigation and UI to complete to avoid race condition
+    await Future.delayed(const Duration(milliseconds: 500));
+    
+    if (mounted && Navigator.of(context).canPop()) {
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => AlertDialog(
+          title: const Row(
+            children: [
+              Icon(Icons.star, color: Colors.amber),
+              SizedBox(width: 8),
+              Text('Points Earned!'),
+            ],
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                '+$points points',
+                style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                  color: Colors.green,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 8),
+              const Text('Great job classifying waste!'),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Continue'),
+            ),
+          ],  
+        ),
+      );
+    }
+  }
+
   /// Check if this existing classification needs retroactive gamification processing
   /// This fixes the issue where users have classifications but 0 points
   Future<void> _checkRetroactiveGamificationProcessing() async {
     try {
       WasteAppLogger.info('Operation completed', null, null, {'service': 'screen', 'file': 'result_screen'});
-      
+
       final gamificationService = Provider.of<GamificationService>(context, listen: false);
-      
+
       // Get current profile
       final profile = await gamificationService.getProfile();
       final currentPoints = profile.points.total;
-      
+
       // Get all classifications
       final storageService = Provider.of<StorageService>(context, listen: false);
       final allClassifications = await storageService.getAllClassifications();
-      
+
       // If user has classifications but 0 points, they need retroactive processing
       if (allClassifications.isNotEmpty && currentPoints == 0) {
         WasteAppLogger.info('Operation completed', null, null, {'service': 'screen', 'file': 'result_screen'});
-        
+
         // Process all classifications for gamification
         for (final classification in allClassifications) {
           await gamificationService.processClassification(classification);
         }
-        
+
         WasteAppLogger.info('Operation completed', null, null, {'service': 'screen', 'file': 'result_screen'});
       } else {
         WasteAppLogger.info('Operation completed', null, null, {'service': 'screen', 'file': 'result_screen'});
@@ -365,7 +406,7 @@ class _ResultScreenState extends State<ResultScreen>
 
   Future<void> _shareResult() async {
     if (_isAutoSaving) return;
-    
+
     _analyticsService.trackUserAction('classification_share', parameters: {
       'category': widget.classification.category,
       'item': widget.classification.itemName,
@@ -421,31 +462,31 @@ class _ResultScreenState extends State<ResultScreen>
 
     return tags;
   }
-  
+
   void _addEnvironmentalImpactTags(List<TagData> tags) {
     final co2Savings = _calculateCO2Savings();
     final waterSavings = _calculateWaterSavings();
     final difficulty = _getRecyclingDifficulty();
-    
+
     if (co2Savings > 0) {
       tags.add(TagFactory.environmentalImpact('${co2Savings}kg CO₂ saved', Colors.green));
     }
-    
+
     if (waterSavings > 0) {
       tags.add(TagFactory.environmentalImpact('${waterSavings}L water saved', Colors.blue));
     }
-    
+
     tags.add(TagFactory.recyclingDifficulty(difficulty.label, difficulty));
   }
-  
+
   DifficultyLevel _getRecyclingDifficulty() {
     final category = widget.classification.category.toLowerCase();
     final material = widget.classification.materialType?.toLowerCase();
-    
+
     if (category == 'hazardous waste' || category == 'medical waste') {
       return DifficultyLevel.expert;
     }
-    
+
     if (material == 'plastic') {
       // Check recycling code for difficulty
       final code = widget.classification.recyclingCode;
@@ -453,14 +494,14 @@ class _ResultScreenState extends State<ResultScreen>
       if (code == '5') return DifficultyLevel.medium;
       return DifficultyLevel.hard;
     }
-    
+
     if (material == 'paper') return DifficultyLevel.easy;
     if (material == 'glass') return DifficultyLevel.medium;
     if (material == 'metal') return DifficultyLevel.easy;
-    
+
     return DifficultyLevel.medium;
   }
-  
+
   double _calculateCO2Savings() {
     final category = widget.classification.category.toLowerCase();
     switch (category) {
@@ -475,7 +516,7 @@ class _ResultScreenState extends State<ResultScreen>
         return 0.0;
     }
   }
-  
+
   double _calculateWaterSavings() {
     final category = widget.classification.category.toLowerCase();
     switch (category) {
@@ -488,10 +529,10 @@ class _ResultScreenState extends State<ResultScreen>
         return 0.0;
     }
   }
-  
+
   void _addLocalInformationTags(List<TagData> tags) {
     final category = widget.classification.category.toLowerCase();
-    
+
     switch (category) {
       case 'wet waste':
         tags.add(TagFactory.localInfo('BBMP collects daily 6-10 AM', Icons.schedule));
@@ -505,10 +546,10 @@ class _ResultScreenState extends State<ResultScreen>
         break;
     }
   }
-  
+
   void _addUrgencyTags(List<TagData> tags) {
     final category = widget.classification.category.toLowerCase();
-    
+
     if (category == 'medical waste') {
       tags.add(TagFactory.timeUrgent('Medical waste', UrgencyLevel.critical));
     } else if (category == 'hazardous waste') {
@@ -517,11 +558,11 @@ class _ResultScreenState extends State<ResultScreen>
       tags.add(TagFactory.timeUrgent('Prevent odors', UrgencyLevel.medium));
     }
   }
-  
+
   void _addEducationalTips(List<TagData> tags) {
     final category = widget.classification.category.toLowerCase();
     final subcategory = widget.classification.subcategory?.toLowerCase();
-    
+
     if (subcategory == 'plastic') {
       tags.add(TagFactory.didYouKnow('Remove caps before recycling', Colors.blue));
       tags.add(TagFactory.commonMistake('Leaving food residue on containers', Colors.amber));
@@ -538,7 +579,7 @@ class _ResultScreenState extends State<ResultScreen>
   String _getEducationalFact() {
     final category = widget.classification.category.toLowerCase();
     final subcategory = widget.classification.subcategory?.toLowerCase();
-    
+
     if (subcategory == 'plastic') {
       return 'Plastic bottles can be recycled into new bottles, clothing, carpets, and even park benches! However, removing caps and labels before recycling helps ensure better quality recycled materials. Did you know that recycling one plastic bottle saves enough energy to power a 60-watt light bulb for 3 hours?';
     } else if (subcategory == 'paper') {
@@ -568,17 +609,14 @@ class _ResultScreenState extends State<ResultScreen>
             backgroundColor: Colors.orange.shade50,
             child: ListTile(
               leading: Icon(Icons.warning, color: Colors.orange.shade800),
-              title:
-                  Text('Low confidence (${(confidence * 100).round()}%)'),
+              title: Text('Low confidence (${(confidence * 100).round()}%)'),
               subtitle: const Text('You may want to re-analyze this item.'),
             ),
           ),
         ModernInfoTile(
-          icon: Icons.loop,
-          label: 'Use Type',
-          value: classification.isSingleUse == true
-              ? 'Single-Use'
-              : 'Reusable / Multi-Use'),
+            icon: Icons.loop,
+            label: 'Use Type',
+            value: classification.isSingleUse == true ? 'Single-Use' : 'Reusable / Multi-Use'),
         ModernInfoTile(
           icon: Icons.eco,
           label: 'Environmental Impact',
@@ -587,30 +625,23 @@ class _ResultScreenState extends State<ResultScreen>
         ModernInfoTile(
           icon: Icons.recycling,
           label: 'Recyclable',
-          value: classification.isRecyclable == null
-              ? 'Unknown'
-              : (classification.isRecyclable! ? 'Yes' : 'No'),
-          valueColor: classification.isRecyclable == null
-              ? null
-              : (classification.isRecyclable! ? Colors.green : Colors.red),
+          value: classification.isRecyclable == null ? 'Unknown' : (classification.isRecyclable! ? 'Yes' : 'No'),
+          valueColor:
+              classification.isRecyclable == null ? null : (classification.isRecyclable! ? Colors.green : Colors.red),
         ),
         ModernInfoTile(
           icon: Icons.compost,
           label: 'Compostable',
-          value: classification.isCompostable == null
-              ? 'Unknown'
-              : (classification.isCompostable! ? 'Yes' : 'No'),
-          valueColor: classification.isCompostable == null
-              ? null
-              : (classification.isCompostable! ? Colors.green : Colors.red),
+          value: classification.isCompostable == null ? 'Unknown' : (classification.isCompostable! ? 'Yes' : 'No'),
+          valueColor:
+              classification.isCompostable == null ? null : (classification.isCompostable! ? Colors.green : Colors.red),
         ),
         ModernInfoTile(
           icon: Icons.warning_amber,
           label: 'Risk Level',
           value: classification.riskLevel ?? 'Not assessed',
         ),
-        if (classification.requiredPPE != null &&
-            classification.requiredPPE!.isNotEmpty)
+        if (classification.requiredPPE != null && classification.requiredPPE!.isNotEmpty)
           ModernInfoTile(
             icon: Icons.health_and_safety,
             label: 'Required PPE',
@@ -666,10 +697,9 @@ class _ResultScreenState extends State<ResultScreen>
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         // Low confidence warning banner
-                        if (widget.classification.confidence != null && 
-                            widget.classification.confidence! < 0.7)
+                        if (widget.classification.confidence != null && widget.classification.confidence! < 0.7)
                           _buildLowConfidenceWarningBanner(),
-                        
+
                         ClassificationCard(
                           classification: widget.classification,
                           thumbnailBuilder: (size) => _buildThumbnail(size),
@@ -735,12 +765,10 @@ class _ResultScreenState extends State<ResultScreen>
                           const SizedBox(height: 16),
                           ModernCard(
                             child: ListTile(
-                              leading: const Icon(Icons.emoji_events,
-                                  color: Colors.amber, size: 32),
+                              leading: const Icon(Icons.emoji_events, color: Colors.amber, size: 32),
                               title: Text(_completedChallenge!.title),
                               subtitle: Text(_completedChallenge!.description),
-                              onTap: () =>
-                                  _showAchievementDetails(_completedChallenge!),
+                              onTap: () => _showAchievementDetails(_completedChallenge!),
                             ),
                           )
                         ],
@@ -763,9 +791,7 @@ class _ResultScreenState extends State<ResultScreen>
                         ),
                         const SizedBox(height: 24),
                         FutureBuilder<bool>(
-                          future: widget.showActions
-                              ? Future.value(true)
-                              : _isRecentClassification(),
+                          future: widget.showActions ? Future.value(true) : _isRecentClassification(),
                           builder: (context, snapshot) {
                             if (!(snapshot.data ?? false)) {
                               return const SizedBox.shrink();
@@ -795,14 +821,14 @@ class _ResultScreenState extends State<ResultScreen>
                           },
                         ),
                         ...[
-                        const SizedBox(height: 24),
-                        EnhancedDisposalInstructionsWidget(
-                          classification: widget.classification,
-                          onStepCompleted: (step) {
-                            _awardPointsForDisposalStep();
-                          },
-                        ),
-                      ],
+                          const SizedBox(height: 24),
+                          EnhancedDisposalInstructionsWidget(
+                            classification: widget.classification,
+                            onStepCompleted: (step) {
+                              _awardPointsForDisposalStep();
+                            },
+                          ),
+                        ],
                         const SizedBox(height: 24),
                       ],
                     ),
@@ -948,7 +974,7 @@ class _ResultScreenState extends State<ResultScreen>
       ErrorHandler.handleError(e, stackTrace);
     }
   }
-  
+
   // Handle user feedback submission
   Future<void> _handleFeedbackSubmission(WasteClassification updatedClassification) async {
     if (!mounted) return;
@@ -1033,20 +1059,19 @@ class _ResultScreenState extends State<ResultScreen>
 
   Future<bool> _isRecentClassification() async {
     try {
-      final storageService =
-          Provider.of<StorageService>(context, listen: false);
+      final storageService = Provider.of<StorageService>(context, listen: false);
       final settings = await storageService.getSettings();
-      
+
       final allowHistoryFeedback = settings['allowHistoryFeedback'] ?? true;
       if (!allowHistoryFeedback) {
         return false;
       }
-      
+
       final feedbackTimeframeDays = settings['feedbackTimeframeDays'] ?? 7;
       final now = DateTime.now();
       final classificationDate = widget.classification.timestamp;
       final daysDifference = now.difference(classificationDate).inDays;
-      
+
       return daysDifference <= feedbackTimeframeDays;
     } catch (e) {
       WasteAppLogger.severe('Error occurred', null, null, {'service': 'screen', 'file': 'result_screen'});
@@ -1066,7 +1091,7 @@ class _ResultScreenState extends State<ResultScreen>
   Widget _buildLowConfidenceWarningBanner() {
     final confidence = widget.classification.confidence!;
     final confidencePercent = (confidence * 100).round();
-    
+
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       padding: const EdgeInsets.all(16),

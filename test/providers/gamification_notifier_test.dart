@@ -27,7 +27,7 @@ void main() {
 
     setUp(() {
       mockRepository = MockGamificationRepository();
-      
+
       // Create test profile
       testProfile = GamificationProfile(
         userId: 'test_user_123',
@@ -116,8 +116,7 @@ void main() {
       test('should refresh profile data', () async {
         // Arrange
         when(mockRepository.getProfile()).thenAnswer((_) async => testProfile);
-        when(mockRepository.getProfile(forceRefresh: true))
-            .thenAnswer((_) async => testProfile.copyWith(
+        when(mockRepository.getProfile(forceRefresh: true)).thenAnswer((_) async => testProfile.copyWith(
               points: const UserPoints(total: 150, level: 3),
             ));
 
@@ -136,8 +135,7 @@ void main() {
       test('should handle refresh error', () async {
         // Arrange
         when(mockRepository.getProfile()).thenAnswer((_) async => testProfile);
-        when(mockRepository.getProfile(forceRefresh: true))
-            .thenThrow(AppException.network('Network error'));
+        when(mockRepository.getProfile(forceRefresh: true)).thenThrow(AppException.network('Network error'));
 
         // Act
         final notifier = container.read(gamificationNotifierProvider.notifier);
@@ -157,10 +155,9 @@ void main() {
         when(mockRepository.getProfile()).thenAnswer((_) async => testProfile);
         when(mockRepository.claimReward('test_achievement_1', any))
             .thenAnswer((_) async => testProfile.achievements.first.copyWith(
-              claimStatus: ClaimStatus.claimed,
-            ));
-        when(mockRepository.getProfile(forceRefresh: true))
-            .thenAnswer((_) async => testProfile.copyWith(
+                  claimStatus: ClaimStatus.claimed,
+                ));
+        when(mockRepository.getProfile(forceRefresh: true)).thenAnswer((_) async => testProfile.copyWith(
               points: const UserPoints(total: 110, level: 2),
               achievements: [
                 testProfile.achievements.first.copyWith(
@@ -188,13 +185,12 @@ void main() {
       test('should handle claim error with optimistic update rollback', () async {
         // Arrange
         when(mockRepository.getProfile()).thenAnswer((_) async => testProfile);
-        when(mockRepository.claimReward('test_achievement_1', any))
-            .thenThrow(AppException.storage('Claim failed'));
+        when(mockRepository.claimReward('test_achievement_1', any)).thenThrow(AppException.storage('Claim failed'));
 
         // Act
         final notifier = container.read(gamificationNotifierProvider.notifier);
         await container.read(gamificationNotifierProvider.future); // Initial load
-        
+
         expect(
           () => notifier.claimReward('test_achievement_1'),
           throwsA(isA<AppException>()),
@@ -460,19 +456,21 @@ void main() {
         userId: 'test_user',
         streaks: {},
         points: const UserPoints(total: 1000),
-        achievements: List.generate(100, (index) => Achievement(
-          id: 'achievement_$index',
-          title: 'Achievement $index',
-          description: 'Description $index',
-          type: AchievementType.wasteIdentified,
-          threshold: 10,
-          iconName: 'star',
-          color: const Color(0xFF4CAF50),
-          tier: AchievementTier.bronze,
-          pointsReward: 10,
-          progress: index % 2 == 0 ? 1.0 : 0.5,
-          claimStatus: index % 2 == 0 ? ClaimStatus.unclaimed : ClaimStatus.ineligible,
-        )),
+        achievements: List.generate(
+            100,
+            (index) => Achievement(
+                  id: 'achievement_$index',
+                  title: 'Achievement $index',
+                  description: 'Description $index',
+                  type: AchievementType.wasteIdentified,
+                  threshold: 10,
+                  iconName: 'star',
+                  color: const Color(0xFF4CAF50),
+                  tier: AchievementTier.bronze,
+                  pointsReward: 10,
+                  progress: index % 2 == 0 ? 1.0 : 0.5,
+                  claimStatus: index % 2 == 0 ? ClaimStatus.unclaimed : ClaimStatus.ineligible,
+                )),
         discoveredItemIds: {},
         unlockedHiddenContentIds: {},
       );
@@ -490,4 +488,4 @@ void main() {
       expect(stopwatch.elapsedMilliseconds, lessThan(100)); // Should be fast
     });
   });
-} 
+}

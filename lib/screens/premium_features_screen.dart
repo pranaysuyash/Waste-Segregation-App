@@ -43,15 +43,14 @@ class _PremiumFeaturesScreenState extends State<PremiumFeaturesScreen> {
         padding: const EdgeInsets.all(16.0),
         children: [
           // Developer test options (secure debug only)
-          if (DeveloperConfig.canShowPremiumToggles && _showTestOptions)
-            _buildDeveloperTestOptions(context),
-            
+          if (DeveloperConfig.canShowPremiumToggles && _showTestOptions) _buildDeveloperTestOptions(context),
+
           _buildHeader(context),
           const SizedBox(height: 24),
           _buildComingSoonFeatures(context),
           const SizedBox(height: 24),
           _buildPremiumFeatures(context),
-          
+
           // Purchase button at the bottom
           const SizedBox(height: 32),
           _buildPurchaseButton(context),
@@ -62,7 +61,7 @@ class _PremiumFeaturesScreenState extends State<PremiumFeaturesScreen> {
 
   Widget _buildDeveloperTestOptions(BuildContext context) {
     final premiumService = Provider.of<PremiumService>(context);
-    
+
     return Container(
       margin: const EdgeInsets.only(bottom: 24),
       padding: const EdgeInsets.all(16),
@@ -114,7 +113,7 @@ class _PremiumFeaturesScreenState extends State<PremiumFeaturesScreen> {
 
   Widget _buildFeatureToggle(PremiumFeature feature, PremiumService premiumService) {
     final isEnabled = premiumService.isPremiumFeature(feature.id);
-    
+
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
       child: Row(
@@ -152,7 +151,7 @@ class _PremiumFeaturesScreenState extends State<PremiumFeaturesScreen> {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha:0.1),
+            color: Colors.black.withValues(alpha: 0.1),
             blurRadius: 10,
             offset: const Offset(0, 5),
           ),
@@ -206,9 +205,9 @@ class _PremiumFeaturesScreenState extends State<PremiumFeaturesScreen> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha:0.2),
+        color: Colors.white.withValues(alpha: 0.2),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.white.withValues(alpha:0.3)),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.3)),
       ),
       child: Text(
         label,

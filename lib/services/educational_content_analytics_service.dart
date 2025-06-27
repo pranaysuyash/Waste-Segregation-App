@@ -22,7 +22,7 @@ class EducationalContentAnalyticsService extends ChangeNotifier {
   final Map<String, DateTime> _lastViewed = {};
   List<String> _recentlyViewed = [];
   List<String> _favoriteContent = [];
-  
+
   // Current session tracking
   String? _currentContentId;
   DateTime? _sessionStartTime;
@@ -32,23 +32,20 @@ class EducationalContentAnalyticsService extends ChangeNotifier {
 
   /// Get analytics for specific content
   ContentAnalytics getContentAnalytics(String contentId) {
-    return _contentAnalytics[contentId] ?? ContentAnalytics(
-      contentId: contentId,
-      views: 0,
-      totalTimeSpent: Duration.zero,
-      completions: 0,
-    );
+    return _contentAnalytics[contentId] ??
+        ContentAnalytics(
+          contentId: contentId,
+          views: 0,
+          totalTimeSpent: Duration.zero,
+          completions: 0,
+        );
   }
 
   /// Get most viewed content
   List<String> getMostViewedContent({int limit = 10}) {
-    final sortedAnalytics = _contentAnalytics.entries.toList()
-      ..sort((a, b) => b.value.views.compareTo(a.value.views));
-    
-    return sortedAnalytics
-        .take(limit)
-        .map((entry) => entry.key)
-        .toList();
+    final sortedAnalytics = _contentAnalytics.entries.toList()..sort((a, b) => b.value.views.compareTo(a.value.views));
+
+    return sortedAnalytics.take(limit).map((entry) => entry.key).toList();
   }
 
   /// Get recently viewed content
@@ -63,9 +60,8 @@ class EducationalContentAnalyticsService extends ChangeNotifier {
 
   /// Get popular categories based on views
   List<MapEntry<String, int>> getPopularCategories() {
-    final sortedCategories = _categoryViews.entries.toList()
-      ..sort((a, b) => b.value.compareTo(a.value));
-    
+    final sortedCategories = _categoryViews.entries.toList()..sort((a, b) => b.value.compareTo(a.value));
+
     return sortedCategories;
   }
 
@@ -98,17 +94,15 @@ class EducationalContentAnalyticsService extends ChangeNotifier {
     if (_lastViewed.isEmpty) return 0;
 
     final now = DateTime.now();
-    final sortedDates = _lastViewed.values.toList()
-      ..sort((a, b) => b.compareTo(a));
+    final sortedDates = _lastViewed.values.toList()..sort((a, b) => b.compareTo(a));
 
     var streak = 0;
     var currentDate = DateTime(now.year, now.month, now.day);
 
     for (final viewDate in sortedDates) {
       final viewDay = DateTime(viewDate.year, viewDate.month, viewDate.day);
-      
-      if (viewDay == currentDate || 
-          currentDate.difference(viewDay).inDays == 1) {
+
+      if (viewDay == currentDate || currentDate.difference(viewDay).inDays == 1) {
         streak++;
         currentDate = viewDay.subtract(const Duration(days: 1));
       } else {
@@ -125,12 +119,9 @@ class EducationalContentAnalyticsService extends ChangeNotifier {
     int limit = 5,
   }) {
     final recommendations = <String>[];
-    
+
     // Get user's favorite categories
-    final favoriteCategories = getPopularCategories()
-        .take(3)
-        .map((entry) => entry.key)
-        .toList();
+    final favoriteCategories = getPopularCategories().take(3).map((entry) => entry.key).toList();
 
     // Find content in favorite categories that hasn't been viewed much
     for (final content in allContent) {
@@ -146,8 +137,7 @@ class EducationalContentAnalyticsService extends ChangeNotifier {
     if (recommendations.length < limit) {
       final popular = getMostViewedContent(limit: limit * 2);
       for (final contentId in popular) {
-        if (!recommendations.contains(contentId) && 
-            !_recentlyViewed.take(3).contains(contentId)) {
+        if (!recommendations.contains(contentId) && !_recentlyViewed.take(3).contains(contentId)) {
           recommendations.add(contentId);
           if (recommendations.length >= limit) break;
         }
@@ -183,7 +173,7 @@ class EducationalContentAnalyticsService extends ChangeNotifier {
   /// Start content session (for time tracking)
   void startContentSession(String contentId) {
     _endCurrentSession(); // End any existing session
-    
+
     _currentContentId = contentId;
     _sessionStartTime = DateTime.now();
   }
@@ -195,7 +185,7 @@ class EducationalContentAnalyticsService extends ChangeNotifier {
     try {
       final sessionDuration = DateTime.now().difference(_sessionStartTime!);
       final contentId = _currentContentId!;
-      
+
       final analytics = getContentAnalytics(contentId);
       final updatedAnalytics = analytics.copyWith(
         totalTimeSpent: analytics.totalTimeSpent + sessionDuration,
@@ -263,9 +253,8 @@ class EducationalContentAnalyticsService extends ChangeNotifier {
 
   /// Get popular search queries
   List<MapEntry<String, int>> getPopularSearchQueries({int limit = 10}) {
-    final sortedQueries = _searchQueries.entries.toList()
-      ..sort((a, b) => b.value.compareTo(a.value));
-    
+    final sortedQueries = _searchQueries.entries.toList()..sort((a, b) => b.value.compareTo(a.value));
+
     return sortedQueries.take(limit).toList();
   }
 
@@ -280,7 +269,7 @@ class EducationalContentAnalyticsService extends ChangeNotifier {
   void _updateRecentlyViewed(String contentId) {
     _recentlyViewed.remove(contentId); // Remove if already exists
     _recentlyViewed.insert(0, contentId); // Add to front
-    
+
     // Keep only last 50 items
     if (_recentlyViewed.length > 50) {
       _recentlyViewed = _recentlyViewed.take(50).toList();
@@ -309,7 +298,7 @@ class EducationalContentAnalyticsService extends ChangeNotifier {
   Future<void> _loadAnalytics() async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      
+
       // Load content analytics
       final viewsJson = prefs.getString(_viewsKey);
       if (viewsJson != null) {
@@ -335,19 +324,18 @@ class EducationalContentAnalyticsService extends ChangeNotifier {
   Future<void> _saveAnalytics() async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      
+
       // Save content analytics
       // Convert _contentAnalytics to JSON and save
-      
+
       // Save category views
       // Convert _categoryViews to JSON and save
-      
+
       // Save search queries
       // Convert _searchQueries to JSON and save
-      
+
       // Save favorites
       await prefs.setStringList(_favoritesKey, _favoriteContent);
-      
     } catch (e) {
       WasteAppLogger.severe('Error saving analytics: $e');
     }
@@ -357,7 +345,7 @@ class EducationalContentAnalyticsService extends ChangeNotifier {
   Future<void> clearAllAnalytics() async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      
+
       await prefs.remove(_viewsKey);
       await prefs.remove(_timeSpentKey);
       await prefs.remove(_completionsKey);
@@ -383,7 +371,7 @@ class EducationalContentAnalyticsService extends ChangeNotifier {
   /// Export analytics data for user
   Map<String, dynamic> exportAnalyticsData() {
     final metrics = getTotalEngagementMetrics();
-    
+
     return {
       'totalMetrics': {
         'totalViews': metrics.totalViews,
@@ -393,16 +381,21 @@ class EducationalContentAnalyticsService extends ChangeNotifier {
         'favoriteCount': metrics.favoriteCount,
         'learningStreak': getLearningStreak(),
       },
-      'topCategories': getPopularCategories().take(5).map((entry) => {
-        'category': entry.key,
-        'views': entry.value,
-      }).toList(),
+      'topCategories': getPopularCategories()
+          .take(5)
+          .map((entry) => {
+                'category': entry.key,
+                'views': entry.value,
+              })
+          .toList(),
       'recentContent': _recentlyViewed.take(10).toList(),
       'favoriteContent': _favoriteContent,
-      'searchHistory': getPopularSearchQueries().map((entry) => {
-        'query': entry.key,
-        'count': entry.value,
-      }).toList(),
+      'searchHistory': getPopularSearchQueries()
+          .map((entry) => {
+                'query': entry.key,
+                'count': entry.value,
+              })
+          .toList(),
     };
   }
 }
@@ -450,20 +443,20 @@ class ContentAnalytics {
   /// Get engagement score (0-100)
   double get engagementScore {
     double score = 0;
-    
+
     // Views contribute 30%
     score += (views * 5).clamp(0, 30);
-    
+
     // Time spent contributes 40%
     final timeMinutes = totalTimeSpent.inMinutes;
     score += (timeMinutes * 2).clamp(0, 40);
-    
+
     // Completions contribute 20%
     score += (completions * 10).clamp(0, 20);
-    
+
     // Interactions contribute 10%
     score += (interactions * 2).clamp(0, 10);
-    
+
     return score.clamp(0, 100);
   }
 }
@@ -521,4 +514,4 @@ class EducationalContent {
   final String title;
   final String category;
   final String type;
-} 
+}

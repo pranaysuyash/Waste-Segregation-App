@@ -7,7 +7,7 @@ void main() {
     group('ClassificationException', () {
       test('should create exception with message only', () {
         final exception = ClassificationException('Test classification error');
-        
+
         expect(exception.message, equals('Test classification error'));
         expect(exception.code, equals('CLASSIFICATION_ERROR'));
         expect(exception.metadata, isNull);
@@ -17,7 +17,7 @@ void main() {
       test('should create exception with message and metadata', () {
         final metadata = {'imageSize': '1024x768', 'confidence': 0.85};
         final exception = ClassificationException('Test error', metadata);
-        
+
         expect(exception.message, equals('Test error'));
         expect(exception.code, equals('CLASSIFICATION_ERROR'));
         expect(exception.metadata, equals(metadata));
@@ -27,7 +27,7 @@ void main() {
         final metadata = {'imageSize': '1024x768'};
         final exception = ClassificationException('Test error', metadata);
         final map = exception.toMap();
-        
+
         expect(map['code'], equals('CLASSIFICATION_ERROR'));
         expect(map['message'], equals('Test error'));
         expect(map['metadata'], equals(metadata));
@@ -37,7 +37,7 @@ void main() {
       test('should have proper toString format', () {
         final exception = ClassificationException('Test error');
         final string = exception.toString();
-        
+
         expect(string, contains('WasteAppException(CLASSIFICATION_ERROR)'));
         expect(string, contains('Test error'));
       });
@@ -46,7 +46,7 @@ void main() {
     group('NetworkException', () {
       test('should create with correct code', () {
         final exception = NetworkException('Network timeout');
-        
+
         expect(exception.code, equals('NETWORK_ERROR'));
         expect(exception.message, equals('Network timeout'));
       });
@@ -54,7 +54,7 @@ void main() {
       test('should handle metadata', () {
         final metadata = {'endpoint': '/api/classify', 'timeout': 5000};
         final exception = NetworkException('Request failed', metadata);
-        
+
         expect(exception.metadata, equals(metadata));
       });
     });
@@ -62,7 +62,7 @@ void main() {
     group('StorageException', () {
       test('should create with correct code', () {
         final exception = StorageException('Storage full');
-        
+
         expect(exception.code, equals('STORAGE_ERROR'));
         expect(exception.message, equals('Storage full'));
       });
@@ -71,7 +71,7 @@ void main() {
     group('CameraException', () {
       test('should create with correct code', () {
         final exception = CameraException('Camera permission denied');
-        
+
         expect(exception.code, equals('CAMERA_ERROR'));
         expect(exception.message, equals('Camera permission denied'));
       });
@@ -80,7 +80,7 @@ void main() {
     group('AuthException', () {
       test('should create with correct code', () {
         final exception = AuthException('Invalid credentials');
-        
+
         expect(exception.code, equals('AUTH_ERROR'));
         expect(exception.message, equals('Invalid credentials'));
       });
@@ -92,61 +92,61 @@ void main() {
       test('should return appropriate message for ClassificationException', () {
         final exception = ClassificationException('AI model failed');
         final message = ErrorHandler.getUserFriendlyMessage(exception);
-        
+
         expect(message, equals('AI model failed'));
       });
 
       test('should return generic message for ClassificationException type', () {
         final exception = ClassificationException('Complex technical error');
         final message = ErrorHandler.getUserFriendlyMessage(exception);
-        
+
         expect(message, contains('Complex technical error'));
       });
 
       test('should return network message for NetworkException', () {
         final exception = NetworkException('HTTP 500 error');
         final message = ErrorHandler.getUserFriendlyMessage(exception);
-        
+
         expect(message, equals('HTTP 500 error'));
       });
 
       test('should return camera message for CameraException', () {
         final exception = CameraException('Camera not available');
         final message = ErrorHandler.getUserFriendlyMessage(exception);
-        
+
         expect(message, equals('Camera not available'));
       });
 
       test('should return storage message for StorageException', () {
         final exception = StorageException('Disk full');
         final message = ErrorHandler.getUserFriendlyMessage(exception);
-        
+
         expect(message, equals('Disk full'));
       });
 
       test('should return auth message for AuthException', () {
         final exception = AuthException('Token expired');
         final message = ErrorHandler.getUserFriendlyMessage(exception);
-        
+
         expect(message, equals('Token expired'));
       });
 
       test('should return generic message for unknown exceptions', () {
         final exception = Exception('Random error');
         final message = ErrorHandler.getUserFriendlyMessage(exception);
-        
+
         expect(message, equals('An unexpected error occurred. Please try again.'));
       });
 
       test('should handle null errors gracefully', () {
         final message = ErrorHandler.getUserFriendlyMessage(null);
-        
+
         expect(message, equals('An unexpected error occurred. Please try again.'));
       });
 
       test('should handle string errors', () {
         final message = ErrorHandler.getUserFriendlyMessage('String error');
-        
+
         expect(message, equals('An unexpected error occurred. Please try again.'));
       });
     });
@@ -283,7 +283,7 @@ void main() {
 
         // Should be valid ISO 8601 format
         expect(() => DateTime.parse(timestamp), returnsNormally);
-        
+
         final parsedTimestamp = DateTime.parse(timestamp);
         expect(parsedTimestamp, isA<DateTime>());
       });
@@ -298,9 +298,7 @@ void main() {
       });
 
       test('should have unique timestamps for multiple exceptions', () {
-        final exceptions = List.generate(5, (i) => 
-          ClassificationException('Error $i')
-        );
+        final exceptions = List.generate(5, (i) => ClassificationException('Error $i'));
 
         final timestamps = exceptions.map((e) => e.timestamp).toList();
         final uniqueTimestamps = timestamps.toSet();
@@ -324,7 +322,7 @@ void main() {
         final exception = NetworkException(specialMessage);
 
         expect(exception.message, equals(specialMessage));
-        
+
         final map = exception.toMap();
         expect(map['message'], equals(specialMessage));
       });
@@ -334,9 +332,7 @@ void main() {
           'level1': {
             'level2': {
               'level3': {
-                'level4': {
-                  'deepValue': 'found'
-                }
+                'level4': {'deepValue': 'found'}
               }
             }
           }
@@ -356,7 +352,7 @@ void main() {
         // Since we're using basic Map<String, dynamic>, this should work fine
         final metadata = <String, dynamic>{};
         metadata['self'] = metadata; // This would cause issues with JSON serialization
-        
+
         // Our exception should still be created without issues
         expect(
           () => ClassificationException('Circular reference test', {'simple': 'value'}),

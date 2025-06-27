@@ -4,7 +4,6 @@ import '../services/premium_service.dart';
 
 /// Premium segmentation toggle widget with visual indicators for free tier users
 class PremiumSegmentationToggle extends StatelessWidget {
-
   const PremiumSegmentationToggle({
     super.key,
     required this.value,
@@ -20,17 +19,13 @@ class PremiumSegmentationToggle extends StatelessWidget {
     return Consumer<PremiumService>(
       builder: (context, premiumService, child) {
         final hasAdvancedSegmentation = premiumService.isPremiumFeature('advanced_segmentation');
-        
+
         return Container(
           decoration: BoxDecoration(
-            color: hasAdvancedSegmentation 
-                ? Colors.blue.shade50 
-                : Colors.grey.shade100,
-                         borderRadius: BorderRadius.circular(8),
+            color: hasAdvancedSegmentation ? Colors.blue.shade50 : Colors.grey.shade100,
+            borderRadius: BorderRadius.circular(8),
             border: Border.all(
-              color: hasAdvancedSegmentation 
-                  ? Colors.blue.shade200 
-                  : Colors.grey.shade300,
+              color: hasAdvancedSegmentation ? Colors.blue.shade200 : Colors.grey.shade300,
             ),
           ),
           child: Column(
@@ -43,9 +38,7 @@ class PremiumSegmentationToggle extends StatelessWidget {
                         'Advanced Segmentation',
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(
-                          color: hasAdvancedSegmentation 
-                              ? null 
-                              : Colors.grey.shade600,
+                          color: hasAdvancedSegmentation ? null : Colors.grey.shade600,
                         ),
                       ),
                     ),
@@ -64,9 +57,7 @@ class PremiumSegmentationToggle extends StatelessWidget {
                         vertical: 2,
                       ),
                       decoration: BoxDecoration(
-                        color: hasAdvancedSegmentation 
-                            ? Colors.blue.shade600 
-                            : Colors.grey.shade500,
+                        color: hasAdvancedSegmentation ? Colors.blue.shade600 : Colors.grey.shade500,
                         borderRadius: BorderRadius.circular(4),
                       ),
                       child: const Text(
@@ -84,13 +75,11 @@ class PremiumSegmentationToggle extends StatelessWidget {
                   'Identify multiple objects in a single image',
                   style: TextStyle(
                     fontSize: 12,
-                    color: hasAdvancedSegmentation 
-                        ? null 
-                        : Colors.grey.shade500,
+                    color: hasAdvancedSegmentation ? null : Colors.grey.shade500,
                   ),
                 ),
                 value: hasAdvancedSegmentation ? value : false,
-                onChanged: hasAdvancedSegmentation 
+                onChanged: hasAdvancedSegmentation
                     ? onChanged
                     : (bool newValue) {
                         // Show upgrade prompt for free tier users
@@ -104,10 +93,10 @@ class PremiumSegmentationToggle extends StatelessWidget {
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
                     color: Colors.amber.shade50,
-                                         borderRadius: const BorderRadius.only(
-                       bottomLeft: Radius.circular(8),
-                       bottomRight: Radius.circular(8),
-                     ),
+                    borderRadius: const BorderRadius.only(
+                      bottomLeft: Radius.circular(8),
+                      bottomRight: Radius.circular(8),
+                    ),
                     border: Border(
                       top: BorderSide(color: Colors.amber.shade200),
                     ),
@@ -196,4 +185,4 @@ class PremiumSegmentationToggle extends StatelessWidget {
       ),
     );
   }
-} 
+}

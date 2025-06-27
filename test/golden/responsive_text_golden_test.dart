@@ -65,7 +65,7 @@ void main() {
     testWidgets('AppBar title golden test - narrow screen', (WidgetTester tester) async {
       // Set a narrow screen size
       await tester.binding.setSurfaceSize(const Size(300, 600));
-      
+
       await tester.pumpWidget(
         MaterialApp(
           theme: ThemeData(
@@ -91,7 +91,7 @@ void main() {
         find.byType(MaterialApp),
         matchesGoldenFile('golden/appbar_title_narrow.png'),
       );
-      
+
       // Reset screen size
       await tester.binding.setSurfaceSize(null);
     });
@@ -251,7 +251,7 @@ void main() {
 
       for (var i = 0; i < screenSizes.length; i++) {
         await tester.binding.setSurfaceSize(screenSizes[i]);
-        
+
         await tester.pumpWidget(
           MaterialApp(
             home: Scaffold(
@@ -308,10 +308,11 @@ void main() {
 
         await expectLater(
           find.byType(MaterialApp),
-          matchesGoldenFile('golden/screen_size_${i}_${screenSizes[i].width.toInt()}x${screenSizes[i].height.toInt()}.png'),
+          matchesGoldenFile(
+              'golden/screen_size_${i}_${screenSizes[i].width.toInt()}x${screenSizes[i].height.toInt()}.png'),
         );
       }
-      
+
       // Reset screen size
       await tester.binding.setSurfaceSize(null);
     });
@@ -583,7 +584,7 @@ void main() {
     testWidgets('StatsCard golden test - narrow screen', (WidgetTester tester) async {
       // Set a narrow screen size
       await tester.binding.setSurfaceSize(const Size(320, 568));
-      
+
       await tester.pumpWidget(
         const MaterialApp(
           home: Scaffold(
@@ -631,7 +632,7 @@ void main() {
         find.byType(Scaffold),
         matchesGoldenFile('golden/stats_cards_narrow_screen.png'),
       );
-      
+
       // Reset screen size
       await tester.binding.setSurfaceSize(null);
     });
@@ -651,7 +652,7 @@ void main() {
                       value: '42',
                       icon: Icons.analytics,
                       color: AppTheme.infoColor,
-                                                trend: Trend.up,
+                      trend: Trend.up,
                     ),
                   ),
                   SizedBox(width: 16),
@@ -671,7 +672,7 @@ void main() {
                       value: '1,250',
                       icon: Icons.stars,
                       color: Colors.amber,
-                                                trend: Trend.up,
+                      trend: Trend.up,
                     ),
                   ),
                 ],
@@ -757,4 +758,4 @@ void main() {
       );
     });
   });
-} 
+}

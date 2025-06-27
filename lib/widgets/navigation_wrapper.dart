@@ -28,7 +28,6 @@ import '../utils/waste_app_logger.dart';
 
 /// Main navigation wrapper that manages the bottom navigation and screen switching
 class MainNavigationWrapper extends StatefulWidget {
-
   const MainNavigationWrapper({
     super.key,
     this.isGuestMode = false,
@@ -44,10 +43,10 @@ class MainNavigationWrapper extends StatefulWidget {
 class _MainNavigationWrapperState extends State<MainNavigationWrapper> {
   int _currentIndex = 0;
   late PageController _pageController;
-  
+
   // ADD THESE FOR DIRECT CAMERA ACCESS:
   final ImagePicker _imagePicker = ImagePicker();
-  
+
   // NEW: Stream subscriptions for points and achievement popups
   StreamSubscription<int>? _pointsEarnedSub;
   StreamSubscription<Achievement>? _achievementEarnedSub;
@@ -56,42 +55,40 @@ class _MainNavigationWrapperState extends State<MainNavigationWrapper> {
   void initState() {
     super.initState();
     _pageController = PageController(initialPage: _currentIndex);
-    
+
     // NEW: Initialize points and achievement listeners
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _initializePopupListeners();
     });
   }
-  
+
   /// Initialize global popup listeners for points and achievements
   void _initializePopupListeners() {
     try {
       final pointsEngineProvider = Provider.of<PointsEngineProvider>(context, listen: false);
       final pointsEngine = pointsEngineProvider.pointsEngine;
-      
+
       // Listen for points earned events
       _pointsEarnedSub = pointsEngine.earnedStream.listen((delta) {
         if (delta > 0 && mounted) {
           _showPointsPopup(delta);
         }
       });
-      
+
       // Listen for achievement earned events
       _achievementEarnedSub = pointsEngine.achievementStream.listen((achievement) {
         if (mounted) {
           _showAchievementCelebration(achievement);
         }
       });
-      
+
       WasteAppLogger.info('Global popup listeners initialized', null, null, {
         'service': 'navigation_wrapper',
         'listeners': ['points_earned', 'achievement_earned']
       });
     } catch (e) {
-      WasteAppLogger.severe('Failed to initialize popup listeners', e, null, {
-        'service': 'navigation_wrapper',
-        'action': 'continue_without_popups'
-      });
+      WasteAppLogger.severe('Failed to initialize popup listeners', e, null,
+          {'service': 'navigation_wrapper', 'action': 'continue_without_popups'});
     }
   }
 
@@ -102,7 +99,7 @@ class _MainNavigationWrapperState extends State<MainNavigationWrapper> {
     _achievementEarnedSub?.cancel();
     super.dispose();
   }
-  
+
   /// Show points earned popup
   void _showPointsPopup(int delta) {
     final overlay = Overlay.of(context);
@@ -124,13 +121,10 @@ class _MainNavigationWrapperState extends State<MainNavigationWrapper> {
     );
 
     overlay.insert(entry);
-    WasteAppLogger.userAction('Showing points popup', context: {
-      'points_delta': delta,
-      'action': 'scanning_waste',
-      'ui_element': 'points_popup'
-    });
+    WasteAppLogger.userAction('Showing points popup',
+        context: {'points_delta': delta, 'action': 'scanning_waste', 'ui_element': 'points_popup'});
   }
-  
+
   /// Show achievement celebration
   void _showAchievementCelebration(Achievement achievement) {
     final overlay = Overlay.of(context);
@@ -155,7 +149,7 @@ class _MainNavigationWrapperState extends State<MainNavigationWrapper> {
     setState(() {
       _currentIndex = index;
     });
-    
+
     // Animate to the selected page
     _pageController.animateToPage(
       index,
@@ -265,7 +259,7 @@ class _MainNavigationWrapperState extends State<MainNavigationWrapper> {
               ),
             ),
             const SizedBox(height: AppTheme.paddingLarge),
-            
+
             ListTile(
               leading: const CircleAvatar(
                 backgroundColor: AppTheme.primaryColor,
@@ -301,7 +295,7 @@ class _MainNavigationWrapperState extends State<MainNavigationWrapper> {
   Future<void> _takePictureDirectly() async {
     try {
       WasteAppLogger.info('Taking picture directly from navigation...');
-      
+
       // Check camera permission first (mobile only)
       if (!kIsWeb) {
         final hasPermission = await PermissionHandler.checkCameraPermission();
@@ -312,7 +306,7 @@ class _MainNavigationWrapperState extends State<MainNavigationWrapper> {
       }
 
       XFile? image;
-      
+
       if (kIsWeb) {
         image = await _imagePicker.pickImage(
           source: ImageSource.camera,
@@ -353,7 +347,7 @@ class _MainNavigationWrapperState extends State<MainNavigationWrapper> {
   Future<void> _pickImageDirectly() async {
     try {
       WasteAppLogger.info('Picking image directly from navigation...');
-      
+
       // For modern Android (13+), image_picker handles permissions internally
       // Only check permissions for older Android versions
       if (!kIsWeb) {
@@ -361,7 +355,7 @@ class _MainNavigationWrapperState extends State<MainNavigationWrapper> {
           // Try to check permission, but don't block if it fails
           final hasPermission = await PermissionHandler.checkStoragePermission();
           WasteAppLogger.info('Storage/Photos permission check result: $hasPermission');
-          
+
           // Don't block the flow - let image_picker handle it
           // Modern Android versions handle this automatically
         } catch (e) {
@@ -369,7 +363,7 @@ class _MainNavigationWrapperState extends State<MainNavigationWrapper> {
           // Continue - image_picker will handle permissions
         }
       }
-      
+
       final image = await _imagePicker.pickImage(
         source: ImageSource.gallery,
         maxWidth: 1200,
@@ -441,11 +435,11 @@ class _MainNavigationWrapperState extends State<MainNavigationWrapper> {
       // Handle gamification and ads
       final adService = Provider.of<AdService>(context, listen: false);
       adService.trackClassificationCompleted();
-      
+
       if (adService.shouldShowInterstitial()) {
         adService.showInterstitialAd();
       }
-      
+
       // Success message removed to avoid overlapping with points popup
       // The points popup will show automatically via the global listener
     }
@@ -456,7 +450,7 @@ class _MainNavigationWrapperState extends State<MainNavigationWrapper> {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
     final width = MediaQuery.of(context).size.width;
-    
+
     return Consumer<NavigationSettingsService>(
       builder: (context, navSettings, child) {
         // Get navigation style
@@ -480,7 +474,7 @@ class _MainNavigationWrapperState extends State<MainNavigationWrapper> {
               isDark: isDark,
             );
         }
-        
+
         if (width >= 1024) {
           // Large screens - use NavigationDrawer
           return Scaffold(
@@ -500,9 +494,8 @@ class _MainNavigationWrapperState extends State<MainNavigationWrapper> {
                 ),
               ],
             ),
-            floatingActionButton: navSettings.fabEnabled
-                ? AnimatedFAB(onPressed: () => _showCaptureOptions(context))
-                : null,
+            floatingActionButton:
+                navSettings.fabEnabled ? AnimatedFAB(onPressed: () => _showCaptureOptions(context)) : null,
           );
         } else if (width >= 600) {
           // Medium screens - use NavigationRail
@@ -524,9 +517,8 @@ class _MainNavigationWrapperState extends State<MainNavigationWrapper> {
                 ),
               ],
             ),
-            floatingActionButton: navSettings.fabEnabled
-                ? AnimatedFAB(onPressed: () => _showCaptureOptions(context))
-                : null,
+            floatingActionButton:
+                navSettings.fabEnabled ? AnimatedFAB(onPressed: () => _showCaptureOptions(context)) : null,
           );
         }
 
@@ -599,7 +591,6 @@ class _MainNavigationWrapperState extends State<MainNavigationWrapper> {
 
 /// Alternative navigation wrapper with different styles
 class AlternativeNavigationWrapper extends StatefulWidget {
-
   const AlternativeNavigationWrapper({
     super.key,
     this.isGuestMode = false,
@@ -623,7 +614,7 @@ class _AlternativeNavigationWrapperState extends State<AlternativeNavigationWrap
 
   List<Widget> _getScreens() {
     return [
-              UltraModernHomeScreen(isGuestMode: widget.isGuestMode),
+      UltraModernHomeScreen(isGuestMode: widget.isGuestMode),
       const HistoryScreen(),
       const EducationalContentScreen(),
       const SocialScreen(),
@@ -670,7 +661,7 @@ class _AlternativeNavigationWrapperState extends State<AlternativeNavigationWrap
   ModernBottomNavStyle _getNavigationStyle() {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    
+
     switch (widget.style) {
       case NavigationStyle.glassmorphism:
         return ModernBottomNavStyle.glassmorphism(
@@ -698,9 +689,7 @@ class _AlternativeNavigationWrapperState extends State<AlternativeNavigationWrap
         children: _getScreens(),
       ),
       bottomNavigationBar: Container(
-        margin: widget.style == NavigationStyle.floating 
-               ? const EdgeInsets.all(16) 
-               : EdgeInsets.zero,
+        margin: widget.style == NavigationStyle.floating ? const EdgeInsets.all(16) : EdgeInsets.zero,
         child: ModernBottomNavigation(
           currentIndex: _currentIndex,
           onTap: _onTabTapped,

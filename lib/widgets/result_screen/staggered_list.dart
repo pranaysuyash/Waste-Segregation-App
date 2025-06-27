@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 
 /// A widget that displays a list of items with staggered entrance animations
 class StaggeredList<T> extends StatelessWidget {
-  
   const StaggeredList({
     super.key,
     required this.items,
@@ -16,7 +15,7 @@ class StaggeredList<T> extends StatelessWidget {
   final Duration initialDelay;
   final Duration stepDelay;
   final Axis direction;
-  
+
   @override
   Widget build(BuildContext context) {
     if (direction == Axis.vertical) {
@@ -29,7 +28,7 @@ class StaggeredList<T> extends StatelessWidget {
       );
     }
   }
-  
+
   List<Widget> _buildAnimatedItems(BuildContext context) {
     return items.asMap().entries.map((entry) {
       final index = entry.key;
@@ -44,7 +43,6 @@ class StaggeredList<T> extends StatelessWidget {
 
 /// A widget that displays its child with a delayed fade and slide animation
 class DelayedDisplay extends StatefulWidget {
-  
   const DelayedDisplay({
     super.key,
     required this.child,
@@ -56,17 +54,16 @@ class DelayedDisplay extends StatefulWidget {
   final Duration delay;
   final Duration duration;
   final Offset slideOffset;
-  
+
   @override
   State<DelayedDisplay> createState() => _DelayedDisplayState();
 }
 
-class _DelayedDisplayState extends State<DelayedDisplay>
-    with SingleTickerProviderStateMixin {
+class _DelayedDisplayState extends State<DelayedDisplay> with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _fadeAnimation;
   late Animation<Offset> _slideAnimation;
-  
+
   @override
   void initState() {
     super.initState();
@@ -74,7 +71,7 @@ class _DelayedDisplayState extends State<DelayedDisplay>
       duration: widget.duration,
       vsync: this,
     );
-    
+
     _fadeAnimation = Tween<double>(
       begin: 0.0,
       end: 1.0,
@@ -82,7 +79,7 @@ class _DelayedDisplayState extends State<DelayedDisplay>
       parent: _controller,
       curve: Curves.easeOut,
     ));
-    
+
     _slideAnimation = Tween<Offset>(
       begin: widget.slideOffset,
       end: Offset.zero,
@@ -90,7 +87,7 @@ class _DelayedDisplayState extends State<DelayedDisplay>
       parent: _controller,
       curve: Curves.easeOut,
     ));
-    
+
     // Start animation after delay
     Future.delayed(widget.delay, () {
       if (mounted) {
@@ -98,13 +95,13 @@ class _DelayedDisplayState extends State<DelayedDisplay>
       }
     });
   }
-  
+
   @override
   void dispose() {
     _controller.dispose();
     super.dispose();
   }
-  
+
   @override
   Widget build(BuildContext context) {
     return AnimatedBuilder(
@@ -124,13 +121,12 @@ class _DelayedDisplayState extends State<DelayedDisplay>
 
 /// Wrapper for staggered tag animations
 class StaggeredTagList extends StatelessWidget {
-  
   const StaggeredTagList({
     super.key,
     required this.tags,
   });
   final List<Widget> tags;
-  
+
   @override
   Widget build(BuildContext context) {
     return Wrap(
@@ -147,4 +143,4 @@ class StaggeredTagList extends StatelessWidget {
       }).toList(),
     );
   }
-} 
+}

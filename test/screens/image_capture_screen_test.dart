@@ -16,7 +16,9 @@ import '../test_helper.dart';
 
 // Mock classes for testing
 class MockAiService extends Mock implements AiService {}
+
 class MockFile extends Mock implements File {}
+
 class MockXFile extends Mock implements XFile {}
 
 void main() {
@@ -36,11 +38,13 @@ void main() {
     setUp(() {
       mockAiService = MockAiService();
       mockImageBytes = Uint8List.fromList([0xFF, 0xD8, 0xFF, 0xE0]); // Mock JPEG header
-      
-      mockClassification = WasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
+
+      mockClassification = WasteClassification(
         itemName: 'Test Plastic Bottle',
+        category: 'Dry Waste',
         subcategory: 'Plastic',
         explanation: 'Test recyclable plastic bottle',
+        disposalInstructions: DisposalInstructions(
           primaryMethod: 'Recycle',
           steps: ['Step 1', 'Step 2'],
           hasUrgentTimeframe: false,
@@ -167,7 +171,7 @@ void main() {
 
         // Verify PRO badge styling
         expect(find.text('PRO'), findsOneWidget);
-        
+
         // Verify container styling for segmentation section
         final containers = find.byType(Container);
         expect(containers, findsAtLeastNWidgets(1));
@@ -176,8 +180,7 @@ void main() {
 
     group('Image Analysis Tests', () {
       testWidgets('should start analysis when analyze button is pressed', (WidgetTester tester) async {
-        when(mockAiService.analyzeWebImage(any, any))
-            .thenAnswer((_) async => mockClassification);
+        when(mockAiService.analyzeWebImage(any, any)).thenAnswer((_) async => mockClassification);
 
         await tester.pumpWidget(createTestableWidget(webImage: mockImageBytes));
         await tester.pumpAndSettle();
@@ -195,8 +198,7 @@ void main() {
       });
 
       testWidgets('should handle successful analysis and navigate to results', (WidgetTester tester) async {
-        when(mockAiService.analyzeWebImage(any, any))
-            .thenAnswer((_) async => mockClassification);
+        when(mockAiService.analyzeWebImage(any, any)).thenAnswer((_) async => mockClassification);
 
         await tester.pumpWidget(createTestableWidget(webImage: mockImageBytes));
         await tester.pumpAndSettle();
@@ -215,8 +217,7 @@ void main() {
       });
 
       testWidgets('should handle analysis errors gracefully', (WidgetTester tester) async {
-        when(mockAiService.analyzeWebImage(any, any))
-            .thenThrow(Exception('Analysis failed'));
+        when(mockAiService.analyzeWebImage(any, any)).thenThrow(Exception('Analysis failed'));
 
         await tester.pumpWidget(createTestableWidget(webImage: mockImageBytes));
         await tester.pumpAndSettle();
@@ -236,11 +237,10 @@ void main() {
       });
 
       testWidgets('should prevent multiple simultaneous analyses', (WidgetTester tester) async {
-        when(mockAiService.analyzeWebImage(any, any))
-            .thenAnswer((_) async {
-              await Future.delayed(const Duration(milliseconds: 500));
-              return mockClassification;
-            });
+        when(mockAiService.analyzeWebImage(any, any)).thenAnswer((_) async {
+          await Future.delayed(const Duration(milliseconds: 500));
+          return mockClassification;
+        });
 
         await tester.pumpWidget(createTestableWidget(webImage: mockImageBytes));
         await tester.pumpAndSettle();
@@ -260,11 +260,10 @@ void main() {
       });
 
       testWidgets('should handle analysis cancellation', (WidgetTester tester) async {
-        when(mockAiService.analyzeWebImage(any, any))
-            .thenAnswer((_) async {
-              await Future.delayed(const Duration(seconds: 2));
-              return mockClassification;
-            });
+        when(mockAiService.analyzeWebImage(any, any)).thenAnswer((_) async {
+          await Future.delayed(const Duration(seconds: 2));
+          return mockClassification;
+        });
 
         await tester.pumpWidget(createTestableWidget(webImage: mockImageBytes));
         await tester.pumpAndSettle();
@@ -285,10 +284,13 @@ void main() {
 
     group('Segmentation Feature Tests', () {
       testWidgets('should toggle segmentation mode', (WidgetTester tester) async {
-        when(mockAiService.segmentImage(any))
-            .thenAnswer((_) async => [
-              {'bounds': {'x': 10.0, 'y': 10.0, 'width': 50.0, 'height': 50.0}},
-              {'bounds': {'x': 60.0, 'y': 60.0, 'width': 30.0, 'height': 30.0}},
+        when(mockAiService.segmentImage(any)).thenAnswer((_) async => [
+              {
+                'bounds': {'x': 10.0, 'y': 10.0, 'width': 50.0, 'height': 50.0}
+              },
+              {
+                'bounds': {'x': 60.0, 'y': 60.0, 'width': 30.0, 'height': 30.0}
+              },
             ]);
 
         await tester.pumpWidget(createTestableWidget(webImage: mockImageBytes));
@@ -310,8 +312,7 @@ void main() {
       });
 
       testWidgets('should handle segmentation errors', (WidgetTester tester) async {
-        when(mockAiService.segmentImage(any))
-            .thenThrow(Exception('Segmentation failed'));
+        when(mockAiService.segmentImage(any)).thenThrow(Exception('Segmentation failed'));
 
         await tester.pumpWidget(createTestableWidget(webImage: mockImageBytes));
         await tester.pumpAndSettle();
@@ -331,9 +332,10 @@ void main() {
       });
 
       testWidgets('should clear segments when segmentation is disabled', (WidgetTester tester) async {
-        when(mockAiService.segmentImage(any))
-            .thenAnswer((_) async => [
-              {'bounds': {'x': 10.0, 'y': 10.0, 'width': 50.0, 'height': 50.0}},
+        when(mockAiService.segmentImage(any)).thenAnswer((_) async => [
+              {
+                'bounds': {'x': 10.0, 'y': 10.0, 'width': 50.0, 'height': 50.0}
+              },
             ]);
 
         await tester.pumpWidget(createTestableWidget(webImage: mockImageBytes));
@@ -356,10 +358,13 @@ void main() {
       });
 
       testWidgets('should display segment selection UI when segments exist', (WidgetTester tester) async {
-        when(mockAiService.segmentImage(any))
-            .thenAnswer((_) async => [
-              {'bounds': {'x': 10.0, 'y': 10.0, 'width': 50.0, 'height': 50.0}},
-              {'bounds': {'x': 60.0, 'y': 60.0, 'width': 30.0, 'height': 30.0}},
+        when(mockAiService.segmentImage(any)).thenAnswer((_) async => [
+              {
+                'bounds': {'x': 10.0, 'y': 10.0, 'width': 50.0, 'height': 50.0}
+              },
+              {
+                'bounds': {'x': 60.0, 'y': 60.0, 'width': 30.0, 'height': 30.0}
+              },
             ]);
 
         await tester.pumpWidget(createTestableWidget(webImage: mockImageBytes));
@@ -414,8 +419,7 @@ void main() {
       });
 
       testWidgets('should navigate to results after successful analysis', (WidgetTester tester) async {
-        when(mockAiService.analyzeWebImage(any, any))
-            .thenAnswer((_) async => mockClassification);
+        when(mockAiService.analyzeWebImage(any, any)).thenAnswer((_) async => mockClassification);
 
         await tester.pumpWidget(createTestableWidget(webImage: mockImageBytes));
         await tester.pumpAndSettle();
@@ -436,8 +440,7 @@ void main() {
         final mockFile = MockFile();
         when(mockFile.path).thenReturn('/test/image.jpg');
         when(mockFile.exists()).thenAnswer((_) async => true);
-        when(mockAiService.analyzeImage(any))
-            .thenAnswer((_) async => mockClassification);
+        when(mockAiService.analyzeImage(any)).thenAnswer((_) async => mockClassification);
 
         await tester.pumpWidget(createTestableWidget(imageFile: mockFile));
         await tester.pumpAndSettle();
@@ -449,8 +452,7 @@ void main() {
         final mockXFile = MockXFile();
         when(mockXFile.name).thenReturn('test.jpg');
         when(mockXFile.readAsBytes()).thenAnswer((_) async => mockImageBytes);
-        when(mockAiService.analyzeWebImage(any, any))
-            .thenAnswer((_) async => mockClassification);
+        when(mockAiService.analyzeWebImage(any, any)).thenAnswer((_) async => mockClassification);
 
         await tester.pumpWidget(createTestableWidget(xFile: mockXFile));
         await tester.pumpAndSettle();
@@ -462,7 +464,7 @@ void main() {
     group('Error Handling and Edge Cases Tests', () {
       testWidgets('should handle empty image bytes', (WidgetTester tester) async {
         final emptyBytes = Uint8List(0);
-        
+
         await tester.pumpWidget(createTestableWidget(webImage: emptyBytes));
         await tester.pumpAndSettle();
 
@@ -470,8 +472,7 @@ void main() {
       });
 
       testWidgets('should handle analysis service unavailable', (WidgetTester tester) async {
-        when(mockAiService.analyzeWebImage(any, any))
-            .thenThrow(Exception('Service unavailable'));
+        when(mockAiService.analyzeWebImage(any, any)).thenThrow(Exception('Service unavailable'));
 
         await tester.pumpWidget(createTestableWidget(webImage: mockImageBytes));
         await tester.pumpAndSettle();
@@ -489,9 +490,8 @@ void main() {
       testWidgets('should handle very large images', (WidgetTester tester) async {
         // Create a large mock image (simulated)
         final largeImageBytes = Uint8List(10 * 1024 * 1024); // 10MB
-        
-        when(mockAiService.analyzeWebImage(any, any))
-            .thenAnswer((_) async => mockClassification);
+
+        when(mockAiService.analyzeWebImage(any, any)).thenAnswer((_) async => mockClassification);
 
         await tester.pumpWidget(createTestableWidget(webImage: largeImageBytes));
         await tester.pumpAndSettle();
@@ -500,11 +500,10 @@ void main() {
       });
 
       testWidgets('should handle network timeouts', (WidgetTester tester) async {
-        when(mockAiService.analyzeWebImage(any, any))
-            .thenAnswer((_) async {
-              await Future.delayed(const Duration(seconds: 30));
-              throw Exception('Network timeout');
-            });
+        when(mockAiService.analyzeWebImage(any, any)).thenAnswer((_) async {
+          await Future.delayed(const Duration(seconds: 30));
+          throw Exception('Network timeout');
+        });
 
         await tester.pumpWidget(createTestableWidget(webImage: mockImageBytes));
         await tester.pumpAndSettle();
@@ -521,9 +520,8 @@ void main() {
 
       testWidgets('should handle corrupted image data', (WidgetTester tester) async {
         final corruptedBytes = Uint8List.fromList([0x00, 0x01, 0x02, 0x03]); // Invalid image
-        
-        when(mockAiService.analyzeWebImage(any, any))
-            .thenThrow(Exception('Invalid image format'));
+
+        when(mockAiService.analyzeWebImage(any, any)).thenThrow(Exception('Invalid image format'));
 
         await tester.pumpWidget(createTestableWidget(webImage: corruptedBytes));
         await tester.pumpAndSettle();
@@ -538,11 +536,10 @@ void main() {
 
     group('State Management Tests', () {
       testWidgets('should maintain UI state during analysis', (WidgetTester tester) async {
-        when(mockAiService.analyzeWebImage(any, any))
-            .thenAnswer((_) async {
-              await Future.delayed(const Duration(milliseconds: 500));
-              return mockClassification;
-            });
+        when(mockAiService.analyzeWebImage(any, any)).thenAnswer((_) async {
+          await Future.delayed(const Duration(milliseconds: 500));
+          return mockClassification;
+        });
 
         await tester.pumpWidget(createTestableWidget(webImage: mockImageBytes));
         await tester.pumpAndSettle();
@@ -560,8 +557,7 @@ void main() {
       });
 
       testWidgets('should reset state after analysis error', (WidgetTester tester) async {
-        when(mockAiService.analyzeWebImage(any, any))
-            .thenThrow(Exception('Test error'));
+        when(mockAiService.analyzeWebImage(any, any)).thenThrow(Exception('Test error'));
 
         await tester.pumpWidget(createTestableWidget(webImage: mockImageBytes));
         await tester.pumpAndSettle();
@@ -577,11 +573,10 @@ void main() {
       });
 
       testWidgets('should handle widget disposal during analysis', (WidgetTester tester) async {
-        when(mockAiService.analyzeWebImage(any, any))
-            .thenAnswer((_) async {
-              await Future.delayed(const Duration(milliseconds: 100));
-              return mockClassification;
-            });
+        when(mockAiService.analyzeWebImage(any, any)).thenAnswer((_) async {
+          await Future.delayed(const Duration(milliseconds: 100));
+          return mockClassification;
+        });
 
         await tester.pumpWidget(createTestableWidget(webImage: mockImageBytes));
         await tester.pumpAndSettle();
@@ -627,7 +622,7 @@ void main() {
       testWidgets('should handle different screen sizes', (WidgetTester tester) async {
         // Test with small screen
         await tester.binding.setSurfaceSize(const Size(320, 568));
-        
+
         await tester.pumpWidget(createTestableWidget(webImage: mockImageBytes));
         await tester.pumpAndSettle();
 
@@ -641,8 +636,7 @@ void main() {
 
     group('Integration Tests', () {
       testWidgets('should work with real image data flow', (WidgetTester tester) async {
-        when(mockAiService.analyzeWebImage(any, any))
-            .thenAnswer((_) async => mockClassification);
+        when(mockAiService.analyzeWebImage(any, any)).thenAnswer((_) async => mockClassification);
 
         // Create realistic image data
         final jpegHeader = Uint8List.fromList([

@@ -37,20 +37,20 @@ void main() {
       expect(PointableAction.classification.category, equals('classification'));
       expect(PointableAction.instantAnalysis.category, equals('classification'));
       expect(PointableAction.manualClassification.category, equals('classification'));
-      
+
       expect(PointableAction.dailyStreak.category, equals('streak'));
       expect(PointableAction.streakBonus.category, equals('streak'));
-      
+
       expect(PointableAction.challengeComplete.category, equals('challenge'));
       expect(PointableAction.perfectWeek.category, equals('challenge'));
       expect(PointableAction.communityChallenge.category, equals('challenge'));
-      
+
       expect(PointableAction.badgeEarned.category, equals('achievement'));
       expect(PointableAction.achievementClaim.category, equals('achievement'));
-      
+
       expect(PointableAction.quizCompleted.category, equals('education'));
       expect(PointableAction.educationalContent.category, equals('education'));
-      
+
       expect(PointableAction.migrationSync.category, equals('system'));
       expect(PointableAction.retroactiveSync.category, equals('system'));
     });
@@ -61,7 +61,7 @@ void main() {
       expect(PointableAction.streakBonus.supportsCustomPoints, isTrue);
       expect(PointableAction.migrationSync.supportsCustomPoints, isTrue);
       expect(PointableAction.retroactiveSync.supportsCustomPoints, isTrue);
-      
+
       // Actions that don't support custom points
       expect(PointableAction.classification.supportsCustomPoints, isFalse);
       expect(PointableAction.dailyStreak.supportsCustomPoints, isFalse);
@@ -78,7 +78,7 @@ void main() {
 
     test('should have all required action keys', () {
       final allKeys = PointableAction.allKeys;
-      
+
       expect(allKeys, contains('classification'));
       expect(allKeys, contains('daily_streak'));
       expect(allKeys, contains('challenge_complete'));
@@ -93,7 +93,7 @@ void main() {
       expect(allKeys, contains('retroactive_sync'));
       expect(allKeys, contains('instant_analysis'));
       expect(allKeys, contains('manual_classification'));
-      
+
       // Should have exactly the expected number of actions
       expect(allKeys.length, equals(PointableAction.values.length));
     });
@@ -103,10 +103,10 @@ void main() {
         // Each action should be findable by its key
         final foundAction = PointableAction.fromKey(action.key);
         expect(foundAction, equals(action));
-        
+
         // Key should be valid
         expect(PointableAction.isValidAction(action.key), isTrue);
-        
+
         // String representation should match key
         expect(action.toString(), equals(action.key));
       }
@@ -118,11 +118,11 @@ void main() {
       // Null and empty string handling
       expect(PointableAction.fromKey(''), isNull);
       expect(PointableAction.isValidAction(''), isFalse);
-      
+
       // Case sensitivity
       expect(PointableAction.fromKey('CLASSIFICATION'), isNull);
       expect(PointableAction.isValidAction('CLASSIFICATION'), isFalse);
-      
+
       // Whitespace handling
       expect(PointableAction.fromKey(' classification '), isNull);
       expect(PointableAction.isValidAction(' classification '), isFalse);
@@ -130,11 +130,9 @@ void main() {
 
     test('should provide consistent point values', () {
       // Classification actions should have same points
-      expect(PointableAction.classification.defaultPoints, 
-             equals(PointableAction.instantAnalysis.defaultPoints));
-      expect(PointableAction.classification.defaultPoints, 
-             equals(PointableAction.manualClassification.defaultPoints));
-      
+      expect(PointableAction.classification.defaultPoints, equals(PointableAction.instantAnalysis.defaultPoints));
+      expect(PointableAction.classification.defaultPoints, equals(PointableAction.manualClassification.defaultPoints));
+
       // Custom point actions should have 0 default points
       expect(PointableAction.achievementClaim.defaultPoints, equals(0));
       expect(PointableAction.streakBonus.defaultPoints, equals(0));
@@ -142,4 +140,4 @@ void main() {
       expect(PointableAction.retroactiveSync.defaultPoints, equals(0));
     });
   });
-} 
+}

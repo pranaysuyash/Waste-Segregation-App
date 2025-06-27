@@ -22,7 +22,7 @@ void main() {
     setUp(() {
       mockEducationalService = MockEducationalContentService();
       mockAdService = MockAdService();
-      
+
       testContent = [
         EducationalContent(
           id: 'article_1',
@@ -142,7 +142,7 @@ void main() {
         expect(find.text('Quizzes'), findsOneWidget);
         expect(find.text('Tutorials'), findsOneWidget);
         expect(find.text('Tips'), findsOneWidget);
-        
+
         expect(find.byIcon(Icons.article), findsOneWidget);
         expect(find.byIcon(Icons.video_library), findsOneWidget);
         expect(find.byIcon(Icons.image), findsOneWidget);
@@ -579,9 +579,11 @@ void main() {
       });
 
       testWidgets('should handle very long content titles and descriptions', (tester) async {
-        const longContentTitle = 'This is a very long title that should be truncated to prevent overflow issues in the UI';
-        const longContentDescription = 'This is a very long description that should also be truncated to prevent UI overflow and maintain good user experience across different screen sizes';
-        
+        const longContentTitle =
+            'This is a very long title that should be truncated to prevent overflow issues in the UI';
+        const longContentDescription =
+            'This is a very long description that should also be truncated to prevent UI overflow and maintain good user experience across different screen sizes';
+
         final longContent = [
           EducationalContent(
             id: 'long_1',
@@ -661,20 +663,22 @@ void main() {
 
     group('Performance', () {
       testWidgets('should handle large content lists efficiently', (tester) async {
-        final largeContentList = List.generate(100, (index) => EducationalContent(
-          id: 'content_$index',
-          title: 'Content $index',
-          description: 'Description $index',
-          type: ContentType.values[index % ContentType.values.length],
-          level: ContentLevel.values[index % ContentLevel.values.length],
-          categories: ['Category${index % 5}'],
-          tags: ['tag$index'],
-          readTimeMinutes: index + 1,
-          content: 'Content $index...',
-          author: 'Author $index',
-          publishedDate: DateTime.now().subtract(Duration(days: index)),
-          lastUpdated: DateTime.now().subtract(Duration(days: index ~/ 2)),
-        ));
+        final largeContentList = List.generate(
+            100,
+            (index) => EducationalContent(
+                  id: 'content_$index',
+                  title: 'Content $index',
+                  description: 'Description $index',
+                  type: ContentType.values[index % ContentType.values.length],
+                  level: ContentLevel.values[index % ContentLevel.values.length],
+                  categories: ['Category${index % 5}'],
+                  tags: ['tag$index'],
+                  readTimeMinutes: index + 1,
+                  content: 'Content $index...',
+                  author: 'Author $index',
+                  publishedDate: DateTime.now().subtract(Duration(days: index)),
+                  lastUpdated: DateTime.now().subtract(Duration(days: index ~/ 2)),
+                ));
 
         when(mockEducationalService.getAllContent()).thenReturn(largeContentList);
         when(mockEducationalService.getContentByType(ContentType.article))

@@ -10,15 +10,15 @@ import '../utils/waste_app_logger.dart';
 /// SINGLETON: Ensures all services share the same instance for proper listener notifications
 class PointsEngine extends ChangeNotifier {
   PointsEngine._internal(this._storageService, this._cloudStorageService);
-  
+
   static PointsEngine? _instance;
-  
+
   /// Get singleton instance of PointsEngine
   static PointsEngine getInstance(StorageService storageService, CloudStorageService cloudStorageService) {
     _instance ??= PointsEngine._internal(storageService, cloudStorageService);
     return _instance!;
   }
-  
+
   /// Reset singleton instance (for testing)
   static void resetInstance() {
     _instance?.dispose();
@@ -30,7 +30,7 @@ class PointsEngine extends ChangeNotifier {
 
   // Single cached profile instance
   GamificationProfile? _cachedProfile;
-  
+
   // Synchronization locks
   bool _isUpdating = false;
   final List<Completer<void>> _pendingOperations = [];
@@ -38,10 +38,10 @@ class PointsEngine extends ChangeNotifier {
   // NEW: Streams for real-time events
   final _earnedController = StreamController<int>.broadcast();
   final _achievementController = StreamController<Achievement>.broadcast();
-  
+
   Stream<int> get earnedStream => _earnedController.stream;
   Stream<Achievement> get achievementStream => _achievementController.stream;
-  
+
   /// Internal access to achievement controller for GamificationService
   StreamController<Achievement> get achievementController => _achievementController;
 
@@ -51,14 +51,12 @@ class PointsEngine extends ChangeNotifier {
   /// Initialize the engine and load profile
   Future<void> initialize() async {
     if (_cachedProfile != null) return;
-    
+
     try {
       await _loadProfile();
     } catch (e) {
-      WasteAppLogger.severe('PointsEngine initialization failed', e, null, {
-        'component': 'points_engine',
-        'operation': 'initialize'
-      });
+      WasteAppLogger.severe(
+          'PointsEngine initialization failed', e, null, {'component': 'points_engine', 'operation': 'initialize'});
       // Create emergency fallback profile
       _cachedProfile = _createEmergencyProfile();
     }
@@ -67,13 +65,13 @@ class PointsEngine extends ChangeNotifier {
   /// Load profile from storage with caching
   Future<GamificationProfile> _loadProfile() async {
     final userProfile = await _storageService.getCurrentUserProfile();
-    
+
     if (userProfile?.gamificationProfile != null) {
       _cachedProfile = userProfile!.gamificationProfile!;
       notifyListeners();
       return _cachedProfile!;
     }
-    
+
     // Create new profile if none exists
     final newProfile = _createDefaultProfile(userProfile?.id ?? 'guest');
     await _saveProfile(newProfile);
@@ -81,53 +79,48 @@ class PointsEngine extends ChangeNotifier {
   }
 
   /// Add points with atomic operation and conflict resolution
-  Future<UserPoints> addPoints(String action, {
+  Future<UserPoints> addPoints(
+    String action, {
     String? category,
     int? customPoints,
     Map<String, dynamic>? metadata,
   }) async {
     return _executeAtomicOperation(() async {
       await initialize();
-      
+
       final profile = _cachedProfile!;
       final pointsToAdd = customPoints ?? _getPointsForAction(action);
-      
+
       if (pointsToAdd <= 0) {
-        WasteAppLogger.warning('No points to add for action', null, null, {
-          'component': 'points_engine',
-          'action': action,
-          'points_to_add': pointsToAdd
-        });
+        WasteAppLogger.warning('No points to add for action', null, null,
+            {'component': 'points_engine', 'action': action, 'points_to_add': pointsToAdd});
         return profile.points;
       }
 
       // Calculate new points with validation
       final newPoints = _calculateNewPoints(profile.points, pointsToAdd, category);
-      
+
       // Update profile
       final updatedProfile = profile.copyWith(points: newPoints);
       await _saveProfile(updatedProfile);
-      
+
       // NEW: Emit earned points event for popups
       _earnedController.add(pointsToAdd);
-      
+
       // Log the operation
-      WasteAppLogger.gamificationEvent('points_earned', 
-        pointsEarned: pointsToAdd, 
-        context: {
-          'action': action,
-          'category': category,
-          'total_points': newPoints.total,
-          'user_level': newPoints.level,
-          'metadata': metadata
-        }
-      );
-      
+      WasteAppLogger.gamificationEvent('points_earned', pointsEarned: pointsToAdd, context: {
+        'action': action,
+        'category': category,
+        'total_points': newPoints.total,
+        'user_level': newPoints.level,
+        'metadata': metadata
+      });
+
       // Track analytics if metadata provided
       if (metadata != null) {
         _trackPointsAnalytics(action, pointsToAdd, newPoints, metadata);
       }
-      
+
       return newPoints;
     });
   }
@@ -136,38 +129,35 @@ class PointsEngine extends ChangeNotifier {
   Future<StreakDetails> updateStreak(StreakType type) async {
     return _executeAtomicOperation(() async {
       await initialize();
-      
+
       final profile = _cachedProfile!;
       final streakKey = type.toString();
       final currentStreak = profile.streaks[streakKey];
-      
+
       final now = DateTime.now();
       final newStreak = _calculateNewStreak(currentStreak, now, type);
-      
+
       // Calculate streak bonus points
       final streakPoints = _calculateStreakPoints(newStreak, currentStreak);
-      
+
       // Update profile with new streak and points
       final updatedStreaks = Map<String, StreakDetails>.from(profile.streaks);
       updatedStreaks[streakKey] = newStreak;
-      
+
       var updatedProfile = profile.copyWith(streaks: updatedStreaks);
-      
+
       // Add streak points if earned
       if (streakPoints > 0) {
         final newPoints = _calculateNewPoints(profile.points, streakPoints, 'streak');
         updatedProfile = updatedProfile.copyWith(points: newPoints);
-        WasteAppLogger.gamificationEvent('streak_bonus', 
-          pointsEarned: streakPoints,
-          context: {
-            'streak_type': type.toString(),
-            'streak_current': newStreak.currentCount,
-            'streak_longest': newStreak.longestCount,
-            'total_points': newPoints.total
-          }
-        );
+        WasteAppLogger.gamificationEvent('streak_bonus', pointsEarned: streakPoints, context: {
+          'streak_type': type.toString(),
+          'streak_current': newStreak.currentCount,
+          'streak_longest': newStreak.longestCount,
+          'total_points': newPoints.total
+        });
       }
-      
+
       await _saveProfile(updatedProfile);
       return newStreak;
     });
@@ -177,76 +167,76 @@ class PointsEngine extends ChangeNotifier {
   Future<Achievement> claimAchievementReward(String achievementId) async {
     return _executeAtomicOperation(() async {
       await initialize();
-      
+
       final profile = _cachedProfile!;
       final achievementIndex = profile.achievements.indexWhere((a) => a.id == achievementId);
-      
+
       if (achievementIndex == -1) {
         throw Exception('Achievement not found: $achievementId');
       }
-      
+
       final achievement = profile.achievements[achievementIndex];
-      
+
       if (!achievement.isClaimable || achievement.claimStatus == ClaimStatus.claimed) {
         throw Exception('Achievement not claimable: $achievementId');
       }
-      
+
       // Update achievement status
       final updatedAchievement = achievement.copyWith(
         claimStatus: ClaimStatus.claimed,
         earnedOn: achievement.earnedOn ?? DateTime.now(),
       );
-      
+
       final updatedAchievements = List<Achievement>.from(profile.achievements);
       updatedAchievements[achievementIndex] = updatedAchievement;
-      
+
       // Add reward points
-      final newPoints = _calculateNewPoints(
-        profile.points, 
-        achievement.pointsReward, 
-        'achievement'
-      );
-      
+      final newPoints = _calculateNewPoints(profile.points, achievement.pointsReward, 'achievement');
+
       final updatedProfile = profile.copyWith(
         achievements: updatedAchievements,
         points: newPoints,
       );
-      
+
       await _saveProfile(updatedProfile);
-      
-      WasteAppLogger.gamificationEvent('achievement_claimed', 
-        pointsEarned: achievement.pointsReward,
-        achievementId: achievement.id,
-        context: {
-          'achievement_title': achievement.title,
-          'total_points': newPoints.total
-        }
-      );
+
+      WasteAppLogger.gamificationEvent('achievement_claimed',
+          pointsEarned: achievement.pointsReward,
+          achievementId: achievement.id,
+          context: {'achievement_title': achievement.title, 'total_points': newPoints.total});
       return updatedAchievement;
     });
   }
 
-  /// Sync points with classifications (retroactive correction)
+  /// Sync points with classifications using Enhanced AI Analysis v2.0 dynamic calculation
   Future<void> syncWithClassifications() async {
     await _executeAtomicOperation(() async {
       await initialize();
-      
+
       final classifications = await _storageService.getAllClassifications();
-      final expectedPoints = classifications.length * _getPointsForAction('classification');
       
+      // Calculate expected points using dynamic calculation for each classification
+      var expectedPoints = 0;
+      for (final classification in classifications) {
+        if (classification.pointsAwarded != null) {
+          expectedPoints += classification.pointsAwarded!;
+        } else {
+          // Use dynamic calculation for legacy classifications without calculated points
+          expectedPoints += classification.calculatePoints();
+        }
+      }
+
       final profile = _cachedProfile!;
       if (profile.points.total < expectedPoints) {
         final missingPoints = expectedPoints - profile.points.total;
-        WasteAppLogger.gamificationEvent('points_sync', 
-          pointsEarned: missingPoints,
-          context: {
-            'expected_points': expectedPoints,
-            'current_points': profile.points.total,
-            'missing_points': missingPoints,
-            'total_classifications': classifications.length
-          }
-        );
-        
+        WasteAppLogger.gamificationEvent('points_sync', pointsEarned: missingPoints, context: {
+          'expected_points': expectedPoints,
+          'current_points': profile.points.total,
+          'missing_points': missingPoints,
+          'total_classifications': classifications.length,
+          'dynamic_calculation': true
+        });
+
         final newPoints = _calculateNewPoints(profile.points, missingPoints, 'sync');
         final updatedProfile = profile.copyWith(points: newPoints);
         await _saveProfile(updatedProfile);
@@ -262,15 +252,15 @@ class PointsEngine extends ChangeNotifier {
       _pendingOperations.add(completer);
       await completer.future;
     }
-    
+
     _isUpdating = true;
-    
+
     try {
       final result = await operation();
       return result;
     } finally {
       _isUpdating = false;
-      
+
       // Complete all pending operations
       final pending = List<Completer<void>>.from(_pendingOperations);
       _pendingOperations.clear();
@@ -284,7 +274,7 @@ class PointsEngine extends ChangeNotifier {
   Future<void> _saveProfile(GamificationProfile profile) async {
     _cachedProfile = profile;
     notifyListeners();
-    
+
     // Save to local storage
     final userProfile = await _storageService.getCurrentUserProfile();
     if (userProfile != null) {
@@ -292,9 +282,9 @@ class PointsEngine extends ChangeNotifier {
         gamificationProfile: profile,
         lastActive: DateTime.now(),
       );
-      
+
       await _storageService.saveUserProfile(updatedUserProfile);
-      
+
       // Try cloud sync (non-blocking)
       unawaited(_cloudStorageService.saveUserProfileToFirestore(updatedUserProfile));
     }
@@ -306,12 +296,12 @@ class PointsEngine extends ChangeNotifier {
     final newWeekly = currentPoints.weeklyTotal + pointsToAdd;
     final newMonthly = currentPoints.monthlyTotal + pointsToAdd;
     final newLevel = (newTotal / 100).floor() + 1;
-    
+
     final newCategoryPoints = Map<String, int>.from(currentPoints.categoryPoints);
     if (category != null && category.isNotEmpty) {
       newCategoryPoints[category] = (newCategoryPoints[category] ?? 0) + pointsToAdd;
     }
-    
+
     return UserPoints(
       total: newTotal,
       weeklyTotal: newWeekly,
@@ -358,21 +348,26 @@ class PointsEngine extends ChangeNotifier {
     if (oldStreak == null || newStreak.currentCount <= oldStreak.currentCount) {
       return 0; // No streak increase
     }
-    
+
     // Award bonus points for streak milestones
     switch (newStreak.currentCount) {
-      case 3: return 15;  // 3-day streak bonus
-      case 7: return 35;  // Week streak bonus
-      case 14: return 70; // 2-week streak bonus
-      case 30: return 150; // Month streak bonus
-      default: return 5;  // Daily streak maintenance
+      case 3:
+        return 15; // 3-day streak bonus
+      case 7:
+        return 35; // Week streak bonus
+      case 14:
+        return 70; // 2-week streak bonus
+      case 30:
+        return 150; // Month streak bonus
+      default:
+        return 5; // Daily streak maintenance
     }
   }
 
-  /// Get points for action
+  /// Get points for action - Enhanced AI Analysis v2.0 with dynamic calculation
   int _getPointsForAction(String action) {
     const pointValues = {
-      'classification': 10,
+      'classification': 10, // Base value - can be overridden by customPoints
       'daily_streak': 5,
       'challenge_complete': 25,
       'badge_earned': 20,
@@ -380,9 +375,52 @@ class PointsEngine extends ChangeNotifier {
       'educational_content': 5,
       'perfect_week': 50,
       'community_challenge': 30,
+      'classification_sync': 10, // For retroactive sync operations
     };
-    
+
     return pointValues[action] ?? 0;
+  }
+  
+  /// Calculate enhanced points for classification based on AI analysis richness
+  int calculateEnhancedClassificationPoints({
+    int dataFieldsCount = 0,
+    bool hasEnvironmentalData = false,
+    bool hasLocalCompliance = false,
+    double confidence = 0.0,
+    bool isComplexItem = false,
+  }) {
+    var points = 10; // Base classification points
+    
+    // Data richness bonus (up to 15 points)
+    points += (dataFieldsCount * 1.5).round().clamp(0, 15);
+    
+    // Environmental analysis bonus (up to 10 points)
+    if (hasEnvironmentalData) {
+      points += 5;
+    }
+    
+    // Local compliance bonus (up to 5 points)
+    if (hasLocalCompliance) {
+      points += 3;
+    }
+    
+    // Confidence bonus/penalty (±5 points)
+    if (confidence >= 0.9) {
+      points += 5;
+    } else if (confidence >= 0.8) {
+      points += 3;
+    } else if (confidence >= 0.7) {
+      points += 1;
+    } else if (confidence < 0.5) {
+      points -= 2;
+    }
+    
+    // Complexity bonus (up to 5 points)
+    if (isComplexItem) {
+      points += 3;
+    }
+    
+    return points.clamp(5, 50);
   }
 
   /// Create default profile
@@ -446,4 +484,4 @@ class PointsEngine extends ChangeNotifier {
     _achievementController.close();
     super.dispose();
   }
-} 
+}

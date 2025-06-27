@@ -16,7 +16,7 @@ class WasteAppLogger {
     try {
       // Generate session ID
       _sessionId = 'session_${DateTime.now().millisecondsSinceEpoch}';
-      
+
       // Get app version
       try {
         final packageInfo = await PackageInfo.fromPlatform();
@@ -150,7 +150,7 @@ class WasteAppLogger {
       'waste_type': wasteType,
       if (context != null) ...context,
     };
-    
+
     if (error != null) {
       severe('Waste event failed: $event for $wasteType', error, null, wasteContext);
     } else {
@@ -166,7 +166,7 @@ class WasteAppLogger {
       if (context != null) ...context,
     };
     info('Performance: $operation took ${durationMs}ms', null, null, perfContext);
-    
+
     // If duration is high, also track as slow resource for analytics
     if (durationMs > 250) {
       _trackSlowResource(operation, durationMs, context);
@@ -199,7 +199,7 @@ class WasteAppLogger {
       if (tokensUsed != null) 'tokens_used': tokensUsed,
       if (context != null) ...context,
     };
-    
+
     if (error != null) {
       severe('AI event failed: $event', error, null, aiContext);
     } else {
@@ -207,7 +207,8 @@ class WasteAppLogger {
     }
   }
 
-  static void cacheEvent(String event, String cacheType, {bool? hit, String? key, Object? error, Map<String, dynamic>? context}) {
+  static void cacheEvent(String event, String cacheType,
+      {bool? hit, String? key, Object? error, Map<String, dynamic>? context}) {
     final cacheContext = {
       'event_type': 'cache_operation',
       'cache_type': cacheType,
@@ -216,7 +217,7 @@ class WasteAppLogger {
       if (key != null) 'cache_key': key,
       if (context != null) ...context,
     };
-    
+
     if (error != null) {
       severe('Cache event failed: $event', error, null, cacheContext);
     } else {
@@ -232,15 +233,16 @@ class WasteAppLogger {
       if (toScreen != null) 'to_screen': toScreen,
       if (context != null) ...context,
     };
-    
+
     if (toScreen != null) {
       setCurrentScreen(toScreen);
     }
-    
+
     info('Navigation: $event', null, null, navContext);
   }
 
-  static void gamificationEvent(String event, {int? pointsEarned, String? achievementId, Object? error, Map<String, dynamic>? context}) {
+  static void gamificationEvent(String event,
+      {int? pointsEarned, String? achievementId, Object? error, Map<String, dynamic>? context}) {
     final gamificationContext = {
       'event_type': 'gamification',
       'gamification_event': event,
@@ -248,11 +250,11 @@ class WasteAppLogger {
       if (achievementId != null) 'achievement_id': achievementId,
       if (context != null) ...context,
     };
-    
+
     if (error != null) {
       severe('Gamification event failed: $event', error, null, gamificationContext);
     } else {
       info('Gamification event: $event', null, null, gamificationContext);
     }
   }
-} 
+}

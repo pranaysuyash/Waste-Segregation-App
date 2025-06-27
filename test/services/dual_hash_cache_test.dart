@@ -31,7 +31,7 @@ void main() {
     // Initialize Hive for testing with temporary directory
     final tempDir = await Directory.systemTemp.createTemp('hive_test');
     Hive.init(tempDir.path);
-    
+
     // Register adapters if not already registered
     try {
       if (!Hive.isAdapterRegistered(2)) {
@@ -40,7 +40,7 @@ void main() {
     } catch (e) {
       // Adapter already registered, ignore
     }
-    
+
     try {
       if (!Hive.isAdapterRegistered(1)) {
         Hive.registerAdapter(WasteClassificationAdapter());
@@ -48,7 +48,7 @@ void main() {
     } catch (e) {
       // Adapter already registered, ignore
     }
-    
+
     try {
       if (!Hive.isAdapterRegistered(3)) {
         Hive.registerAdapter(DisposalInstructionsAdapter());
@@ -69,7 +69,7 @@ void main() {
     setUp(() async {
       // Reset feature flags to default state
       CacheFeatureFlags.setContentHashVerification(true);
-      
+
       cacheService = ClassificationCacheService();
       await cacheService.initialize();
     });
@@ -77,7 +77,7 @@ void main() {
     tearDown(() async {
       // Clean up after each test
       await cacheService.clearCache();
-      
+
       // Reset feature flags to default state
       CacheFeatureFlags.setContentHashVerification(true);
     });
@@ -151,7 +151,7 @@ void main() {
 
     test('should work correctly with new dual-hash entries', () async {
       final classification = _createTestClassification('New Item');
-      
+
       // Store with both hashes (new system)
       await cacheService.cacheClassification(
         'phash_123456789abcdef0',
@@ -183,7 +183,7 @@ void main() {
 
     test('should respect feature flag kill-switch', () async {
       final classification = _createTestClassification('Kill Switch Test');
-      
+
       // Store with both hashes
       await cacheService.cacheClassification(
         'phash_123456789abcdef4',
@@ -207,7 +207,7 @@ void main() {
 
     test('should maintain cache statistics correctly', () async {
       final classification = _createTestClassification('Stats Test Item');
-      
+
       // Cache with dual-hash
       await cacheService.cacheClassification(
         'phash_123456789abcdef6',
@@ -236,13 +236,13 @@ void main() {
 
     test('should handle corrupted legacy cache entries gracefully', () async {
       final box = cacheService.cacheBox;
-      
+
       // Store corrupted JSON
       await box.put('phash_123456789abcdef8', '{"invalid": json}');
-      
+
       // Should not crash and return null
       final result = await cacheService.getCachedClassification('phash_123456789abcdef8');
       expect(result, isNull);
     });
   });
-} 
+}

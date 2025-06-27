@@ -43,7 +43,7 @@ class _ContributionHistoryScreenState extends State<ContributionHistoryScreen> {
       });
     }
   }
-  
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -61,59 +61,59 @@ class _ContributionHistoryScreenState extends State<ContributionHistoryScreen> {
                   .where('userId', isEqualTo: _currentUserId)
                   .orderBy('timestamp', descending: true)
                   .snapshots(),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          }
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator());
+                }
 
-          if (snapshot.hasError) {
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    Icons.error_outline,
-                    size: 64,
-                    color: Colors.red[400],
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    'Error loading contributions',
-                    style: Theme.of(context).textTheme.headlineSmall,
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    snapshot.error.toString(),
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: Colors.grey[600],
+                if (snapshot.hasError) {
+                  return Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.error_outline,
+                          size: 64,
+                          color: Colors.red[400],
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          'Error loading contributions',
+                          style: Theme.of(context).textTheme.headlineSmall,
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          snapshot.error.toString(),
+                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                color: Colors.grey[600],
+                              ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ],
                     ),
-                    textAlign: TextAlign.center,
-                  ),
-                ],
-              ),
-            );
-          }
+                  );
+                }
 
-          final contributions = snapshot.data?.docs ?? [];
+                final contributions = snapshot.data?.docs ?? [];
 
-          if (contributions.isEmpty) {
-            return _buildEmptyState();
-          }
+                if (contributions.isEmpty) {
+                  return _buildEmptyState();
+                }
 
-          return ListView.builder(
-            padding: const EdgeInsets.all(AppTheme.paddingRegular),
-            itemCount: contributions.length,
-            itemBuilder: (context, index) {
-              final doc = contributions[index];
-              final contribution = UserContribution.fromJson(
-                doc.data() as Map<String, dynamic>,
-                doc.id,
-              );
-              return _buildContributionCard(contribution);
-            },
-          );
-        },
-      ),
+                return ListView.builder(
+                  padding: const EdgeInsets.all(AppTheme.paddingRegular),
+                  itemCount: contributions.length,
+                  itemBuilder: (context, index) {
+                    final doc = contributions[index];
+                    final contribution = UserContribution.fromJson(
+                      doc.data() as Map<String, dynamic>,
+                      doc.id,
+                    );
+                    return _buildContributionCard(contribution);
+                  },
+                );
+              },
+            ),
     );
   }
 
@@ -133,15 +133,15 @@ class _ContributionHistoryScreenState extends State<ContributionHistoryScreen> {
             Text(
               'No Contributions Yet',
               style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                color: Colors.grey[600],
-              ),
+                    color: Colors.grey[600],
+                  ),
             ),
             const SizedBox(height: 16),
             Text(
               'Start contributing by suggesting edits to disposal facilities or adding new ones to help improve the community database.',
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: Colors.grey[600],
-              ),
+                    color: Colors.grey[600],
+                  ),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 32),
@@ -191,16 +191,16 @@ class _ContributionHistoryScreenState extends State<ContributionHistoryScreen> {
                       Text(
                         _getContributionTypeTitle(contribution.contributionType),
                         style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
+                              fontWeight: FontWeight.bold,
+                            ),
                       ),
                       if (contribution.facilityId != null) ...[
                         const SizedBox(height: 4),
                         Text(
                           'Facility ID: ${contribution.facilityId}',
                           style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: Colors.grey[600],
-                          ),
+                                color: Colors.grey[600],
+                              ),
                         ),
                       ],
                     ],
@@ -210,10 +210,10 @@ class _ContributionHistoryScreenState extends State<ContributionHistoryScreen> {
               ],
             ),
             const SizedBox(height: AppTheme.paddingRegular),
-            
+
             // Contribution details
             _buildContributionDetails(contribution),
-            
+
             if (contribution.userNotes != null) ...[
               const SizedBox(height: AppTheme.paddingSmall),
               Container(
@@ -228,16 +228,16 @@ class _ContributionHistoryScreenState extends State<ContributionHistoryScreen> {
                     Text(
                       'Your Notes:',
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        color: Colors.grey[700],
-                      ),
+                            fontWeight: FontWeight.bold,
+                            color: Colors.grey[700],
+                          ),
                     ),
                     const SizedBox(height: 4),
                     Text(
                       contribution.userNotes!,
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: Colors.grey[700],
-                      ),
+                            color: Colors.grey[700],
+                          ),
                     ),
                   ],
                 ),
@@ -261,16 +261,16 @@ class _ContributionHistoryScreenState extends State<ContributionHistoryScreen> {
                     Text(
                       'Admin Review:',
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        color: _getStatusColor(contribution.status),
-                      ),
+                            fontWeight: FontWeight.bold,
+                            color: _getStatusColor(contribution.status),
+                          ),
                     ),
                     const SizedBox(height: 4),
                     Text(
                       contribution.reviewNotes!,
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: _getStatusColor(contribution.status),
-                      ),
+                            color: _getStatusColor(contribution.status),
+                          ),
                     ),
                   ],
                 ),
@@ -289,8 +289,8 @@ class _ContributionHistoryScreenState extends State<ContributionHistoryScreen> {
                 Text(
                   'Submitted: ${_formatDate(contribution.timestamp)}',
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: Colors.grey[600],
-                  ),
+                        color: Colors.grey[600],
+                      ),
                 ),
                 if (contribution.reviewTimestamp != null) ...[
                   const SizedBox(width: 16),
@@ -303,8 +303,8 @@ class _ContributionHistoryScreenState extends State<ContributionHistoryScreen> {
                   Text(
                     'Reviewed: ${_formatDate(contribution.reviewTimestamp!)}',
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: Colors.grey[600],
-                    ),
+                          color: Colors.grey[600],
+                        ),
                   ),
                 ],
               ],
@@ -317,48 +317,44 @@ class _ContributionHistoryScreenState extends State<ContributionHistoryScreen> {
 
   Widget _buildContributionDetails(UserContribution contribution) {
     final suggestedData = contribution.suggestedData;
-    
+
     switch (contribution.contributionType) {
       case ContributionType.editHours:
         final operatingHours = suggestedData['operatingHours'] as Map<String, dynamic>? ?? {};
         return _buildDataSection(
           'Operating Hours',
-          operatingHours.entries
-              .map((e) => '${_capitalizeFirstLetter(e.key)}: ${e.value}')
-              .toList(),
+          operatingHours.entries.map((e) => '${_capitalizeFirstLetter(e.key)}: ${e.value}').toList(),
         );
-      
+
       case ContributionType.editContact:
         final contactInfo = suggestedData['contactInfo'] as Map<String, dynamic>? ?? {};
         return _buildDataSection(
           'Contact Information',
-          contactInfo.entries
-              .map((e) => '${_capitalizeFirstLetter(e.key)}: ${e.value}')
-              .toList(),
+          contactInfo.entries.map((e) => '${_capitalizeFirstLetter(e.key)}: ${e.value}').toList(),
         );
-      
+
       case ContributionType.editAcceptedMaterials:
         final materials = suggestedData['acceptedMaterials'] as List<dynamic>? ?? [];
         return _buildDataSection(
           'Accepted Materials',
           materials.map((m) => m.toString()).toList(),
         );
-      
+
       case ContributionType.newFacility:
         return _buildNewFacilityDetails(suggestedData);
-      
+
       case ContributionType.reportClosure:
         return _buildDataSection(
           'Closure Report',
           ['Facility reported as permanently closed'],
         );
-      
+
       case ContributionType.addPhoto:
         return _buildDataSection(
           'Photo Contribution',
           ['Photos uploaded for facility identification'],
         );
-      
+
       case ContributionType.otherCorrection:
         final description = suggestedData['description'] ?? 'No description provided';
         return _buildDataSection(
@@ -375,8 +371,8 @@ class _ContributionHistoryScreenState extends State<ContributionHistoryScreen> {
         Text(
           'New Facility Details:',
           style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-            fontWeight: FontWeight.bold,
-          ),
+                fontWeight: FontWeight.bold,
+              ),
         ),
         const SizedBox(height: 8),
         if (data['name'] != null) ...[
@@ -419,17 +415,17 @@ class _ContributionHistoryScreenState extends State<ContributionHistoryScreen> {
         Text(
           '$title:',
           style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-            fontWeight: FontWeight.bold,
-          ),
+                fontWeight: FontWeight.bold,
+              ),
         ),
         const SizedBox(height: 4),
         ...items.map((item) => Padding(
-          padding: const EdgeInsets.only(left: 8, bottom: 2),
-          child: Text(
-            '• $item',
-            style: Theme.of(context).textTheme.bodySmall,
-          ),
-        )),
+              padding: const EdgeInsets.only(left: 8, bottom: 2),
+              child: Text(
+                '• $item',
+                style: Theme.of(context).textTheme.bodySmall,
+              ),
+            )),
       ],
     );
   }
@@ -525,7 +521,6 @@ class _ContributionHistoryScreenState extends State<ContributionHistoryScreen> {
         return 'Rejected';
       case ContributionStatus.needsMoreInfo:
         return 'Needs More Info';
-
     }
   }
 
@@ -539,7 +534,6 @@ class _ContributionHistoryScreenState extends State<ContributionHistoryScreen> {
         return Icons.cancel;
       case ContributionStatus.needsMoreInfo:
         return Icons.info_outline;
-
     }
   }
 
@@ -552,4 +546,4 @@ class _ContributionHistoryScreenState extends State<ContributionHistoryScreen> {
     final date = timestamp.toDate();
     return '${date.day}/${date.month}/${date.year}';
   }
-} 
+}

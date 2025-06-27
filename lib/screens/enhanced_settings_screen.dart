@@ -64,9 +64,7 @@ class _EnhancedSettingsScreenState extends State<EnhancedSettingsScreen> {
             button: true,
             child: IconButton(
               icon: Icon(
-                _showDeveloperOptions 
-                    ? Icons.developer_mode 
-                    : Icons.developer_mode_outlined,
+                _showDeveloperOptions ? Icons.developer_mode : Icons.developer_mode_outlined,
                 color: _showDeveloperOptions ? Colors.yellow : Colors.white,
               ),
               onPressed: _toggleDeveloperMode,
@@ -96,24 +94,24 @@ class _EnhancedSettingsScreenState extends State<EnhancedSettingsScreen> {
     return [
       const AccountSection(),
       const SettingsSectionSpacer(),
-      
+
       const PremiumSection(),
       const SettingsSectionSpacer(),
-      
+
       const AppSettingsSection(),
       const SettingsSectionSpacer(),
-      
+
       const NavigationSection(),
       const SettingsSectionSpacer(),
-      
+
       const FeaturesSection(),
       const SettingsSectionSpacer(),
-      
+
       const LegalSupportSection(),
       const SettingsSectionSpacer(),
-      
+
       DeveloperSection(showDeveloperOptions: _showDeveloperOptions),
-      
+
       // Demo section showing enhanced features
       _buildEnhancedFeaturesDemo(),
     ];
@@ -127,7 +125,7 @@ class _EnhancedSettingsScreenState extends State<EnhancedSettingsScreen> {
         const SettingsSectionSpacer(),
         // TODO(i18n): Use AppLocalizations.of(context)!.enhancedFeaturesDemo
         const SettingsSectionHeader(title: 'Enhanced Features Demo'),
-        
+
         // Hover state demo
         SettingTile(
           icon: Icons.mouse,
@@ -137,7 +135,7 @@ class _EnhancedSettingsScreenState extends State<EnhancedSettingsScreen> {
           subtitle: 'Hover over this tile to see cursor change',
           onTap: () => _showHoverDemo(context),
         ),
-        
+
         // Keyboard navigation demo
         SettingTile(
           icon: Icons.keyboard,
@@ -147,7 +145,7 @@ class _EnhancedSettingsScreenState extends State<EnhancedSettingsScreen> {
           subtitle: 'Press Tab to focus, Enter to activate',
           onTap: () => _showKeyboardDemo(context),
         ),
-        
+
         // Dialog helper demo
         SettingTile(
           icon: Icons.chat_bubble,
@@ -157,7 +155,7 @@ class _EnhancedSettingsScreenState extends State<EnhancedSettingsScreen> {
           subtitle: 'Demonstrates consistent dialog patterns',
           onTap: () => _showDialogDemo(context),
         ),
-        
+
         // Loading demo
         SettingTile(
           icon: Icons.hourglass_empty,
@@ -167,7 +165,7 @@ class _EnhancedSettingsScreenState extends State<EnhancedSettingsScreen> {
           subtitle: 'Shows loading dialog with async operation',
           onTap: () => _showLoadingDemo(context),
         ),
-        
+
         // Semantic labels demo
         Semantics(
           // TODO(i18n): Localize semantic label
@@ -209,10 +207,10 @@ class _EnhancedSettingsScreenState extends State<EnhancedSettingsScreen> {
     setState(() {
       _showDeveloperOptions = !_showDeveloperOptions;
     });
-    
+
     // Provide haptic feedback
     HapticFeedback.selectionClick();
-    
+
     // Show feedback
     SettingsTheme.showInfoSnackBar(
       context,
@@ -227,7 +225,7 @@ class _EnhancedSettingsScreenState extends State<EnhancedSettingsScreen> {
       // TODO(i18n): Localize
       title: 'Hover State Demo',
       message: 'This tile changes cursor to pointer on hover and provides '
-               'visual feedback on desktop and web platforms.',
+          'visual feedback on desktop and web platforms.',
       icon: Icons.mouse,
     );
   }
@@ -238,7 +236,7 @@ class _EnhancedSettingsScreenState extends State<EnhancedSettingsScreen> {
       // TODO(i18n): Localize
       title: 'Keyboard Navigation',
       message: 'Use Tab to navigate between settings, Enter or Space to '
-               'activate. This improves accessibility for keyboard users.',
+          'activate. This improves accessibility for keyboard users.',
       icon: Icons.keyboard,
     );
   }
@@ -249,11 +247,11 @@ class _EnhancedSettingsScreenState extends State<EnhancedSettingsScreen> {
       // TODO(i18n): Localize
       title: 'Confirmation Dialog',
       body: 'This demonstrates the consistent dialog pattern using DialogHelper. '
-            'All dialogs in the app use the same styling and behavior.',
+          'All dialogs in the app use the same styling and behavior.',
       okLabel: 'Confirm',
       cancelLabel: 'Cancel',
     );
-    
+
     if (confirmed && context.mounted) {
       SettingsTheme.showSuccessSnackBar(
         context,
@@ -275,7 +273,7 @@ class _EnhancedSettingsScreenState extends State<EnhancedSettingsScreen> {
         // TODO(i18n): Localize
         message: 'Processing your request...',
       );
-      
+
       if (context.mounted) {
         SettingsTheme.showSuccessSnackBar(context, result);
       }
@@ -296,9 +294,9 @@ class _EnhancedSettingsScreenState extends State<EnhancedSettingsScreen> {
       // TODO(i18n): Localize
       title: 'Semantic Labels',
       message: 'Screen readers will announce "Premium feature" when focusing '
-               'on the badge, making the app more accessible to users with '
-               'visual impairments.',
+          'on the badge, making the app more accessible to users with '
+          'visual impairments.',
       icon: Icons.accessibility,
     );
   }
-} 
+}

@@ -23,7 +23,7 @@ class _SocialScreenState extends ConsumerState<SocialScreen> {
     // Calculate safe bottom padding for FAB
     final bottomPadding = MediaQuery.of(context).padding.bottom;
     final isIOS = !kIsWeb && Platform.isIOS;
-    
+
     return Scaffold(
       body: IndexedStack(
         index: _currentIndex,
@@ -44,14 +44,14 @@ class _SocialScreenState extends ConsumerState<SocialScreen> {
         margin: EdgeInsets.only(
           bottom: (isIOS ? bottomPadding : 0) + _fabBottomOffset,
         ),
-        child: _currentIndex == 0 
+        child: _currentIndex == 0
             ? FloatingActionButton.extended(
                 onPressed: () => setState(() => _currentIndex = 1),
                 icon: const Icon(Icons.family_restroom),
                 label: const Text(AppStrings.family),
                 backgroundColor: Theme.of(context).colorScheme.secondary,
                 elevation: 6,
-              ) 
+              )
             : FloatingActionButton.extended(
                 onPressed: () => setState(() => _currentIndex = 0),
                 icon: const Icon(Icons.people),

@@ -154,7 +154,7 @@ void main() {
         await tester.pumpWidget(createTestWidget(isEnabled: true));
 
         final enabledCard = tester.widget<Card>(find.byType(Card));
-        
+
         // Test disabled state
         await tester.pumpWidget(createTestWidget(isEnabled: false));
 
@@ -170,7 +170,7 @@ void main() {
         await tester.pumpWidget(createTestWidget(isEnabled: true));
 
         expect(find.byIcon(Icons.check_circle), findsOneWidget);
-        
+
         final checkIcon = tester.widget<Icon>(find.byIcon(Icons.check_circle));
         expect(checkIcon.color, equals(Colors.green));
 
@@ -178,7 +178,7 @@ void main() {
         await tester.pumpWidget(createTestWidget(isEnabled: false));
 
         expect(find.byIcon(Icons.lock), findsOneWidget);
-        
+
         final lockIcon = tester.widget<Icon>(find.byIcon(Icons.lock));
         expect(lockIcon.color, equals(Colors.grey));
       });
@@ -188,7 +188,7 @@ void main() {
         await tester.pumpWidget(createTestWidget(isEnabled: true));
 
         final enabledIcons = tester.widgetList<Icon>(find.byType(Icon)).toList();
-        
+
         // Test disabled state
         await tester.pumpWidget(createTestWidget(isEnabled: false));
 
@@ -219,11 +219,11 @@ void main() {
         await tester.pumpWidget(createTestWidget());
 
         final card = tester.widget<Card>(find.byType(Card));
-        
+
         expect(card.margin, equals(const EdgeInsets.only(bottom: 16)));
         expect(card.clipBehavior, equals(Clip.antiAlias));
         expect(card.elevation, equals(2));
-        
+
         final shape = card.shape as RoundedRectangleBorder;
         expect(shape.borderRadius, equals(BorderRadius.circular(12)));
       });
@@ -240,7 +240,7 @@ void main() {
         await tester.pumpWidget(createTestWidget());
 
         final sizedBoxes = tester.widgetList<SizedBox>(find.byType(SizedBox));
-        
+
         // Should have SizedBox widgets for spacing
         expect(sizedBoxes.length, greaterThanOrEqualTo(2));
       });
@@ -249,7 +249,8 @@ void main() {
         final longTextFeature = const PremiumFeature(
           id: 'long_text',
           title: 'This is a very long title that should wrap properly and not overflow the layout boundaries',
-          description: 'This is an extremely long description that contains a lot of text and should be handled gracefully by the widget layout system without causing any overflow issues or layout problems in the user interface.',
+          description:
+              'This is an extremely long description that contains a lot of text and should be handled gracefully by the widget layout system without causing any overflow issues or layout problems in the user interface.',
           icon: 'description',
           route: '/long_text',
           isEnabled: true,
@@ -451,7 +452,7 @@ void main() {
             isEnabled: true,
           );
           await tester.pumpWidget(createTestWidget(feature: feature));
-          
+
           expect(find.text('Advanced Analytics'), findsOneWidget);
           expect(find.byType(Icon), findsAtLeastNWidgets(2));
         }
@@ -477,8 +478,9 @@ void main() {
           MaterialApp(
             home: Scaffold(
               body: ListView(
-                children: List.generate(50, (index) =>
-                  PremiumFeatureCard(
+                children: List.generate(
+                  50,
+                  (index) => PremiumFeatureCard(
                     feature: PremiumFeature(
                       id: 'feature_$index',
                       title: 'Feature $index',
@@ -502,7 +504,8 @@ void main() {
         final complexFeature = const PremiumFeature(
           id: 'complex_feature_with_very_long_id_that_tests_performance',
           title: 'Complex Feature with Very Long Title That Tests Layout Performance and Text Rendering Capabilities',
-          description: 'This is a very complex feature description that contains multiple sentences and a lot of detailed information about what this premium feature does and how it benefits the user in their waste management journey. It should test the performance of the text rendering and layout systems.',
+          description:
+              'This is a very complex feature description that contains multiple sentences and a lot of detailed information about what this premium feature does and how it benefits the user in their waste management journey. It should test the performance of the text rendering and layout systems.',
           icon: 'auto_awesome',
           route: '/complex_feature',
           isEnabled: true,
@@ -555,10 +558,10 @@ void main() {
 
       testWidgets('should handle widget disposal properly', (tester) async {
         await tester.pumpWidget(createTestWidget());
-        
+
         // Navigate away to trigger disposal
         await tester.pumpWidget(const MaterialApp(home: Text('Different Widget')));
-        
+
         expect(find.text('Different Widget'), findsOneWidget);
         expect(find.byType(PremiumFeatureCard), findsNothing);
       });

@@ -49,6 +49,7 @@ class DebugPrintConverter {
 
   /// Convert files by priority level (1=highest, 3=lowest)
   Future<void> convertByPriority(int priority, {bool dryRun = false}) async {
+    // Using print() for script output - appropriate for dev tools
     print('🎯 Converting priority $priority files...');
     
     final files = priorityFiles[priority.toString()] ?? [];

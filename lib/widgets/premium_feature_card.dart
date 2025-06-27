@@ -3,7 +3,6 @@ import '../models/premium_feature.dart';
 import '../utils/constants.dart';
 
 class PremiumFeatureCard extends StatelessWidget {
-
   const PremiumFeatureCard({
     super.key,
     required this.feature,
@@ -18,7 +17,7 @@ class PremiumFeatureCard extends StatelessWidget {
   Widget build(BuildContext context) {
     // Get icon using the AppIcons utility to prevent errors from invalid icon data
     final iconData = AppIcons.fromString(feature.icon);
-    
+
     return Card(
       margin: const EdgeInsets.only(bottom: 16),
       clipBehavior: Clip.antiAlias,
@@ -35,12 +34,12 @@ class PremiumFeatureCard extends StatelessWidget {
             gradient: LinearGradient(
               colors: isEnabled
                   ? [
-                      Theme.of(context).primaryColor.withValues(alpha:0.05),
-                      Theme.of(context).primaryColor.withValues(alpha:0.15),
+                      Theme.of(context).primaryColor.withValues(alpha: 0.05),
+                      Theme.of(context).primaryColor.withValues(alpha: 0.15),
                     ]
                   : [
-                      Colors.grey.withValues(alpha:0.05),
-                      Colors.grey.withValues(alpha:0.1),
+                      Colors.grey.withValues(alpha: 0.05),
+                      Colors.grey.withValues(alpha: 0.1),
                     ],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
@@ -54,8 +53,8 @@ class PremiumFeatureCard extends StatelessWidget {
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
                   color: isEnabled
-                      ? Theme.of(context).primaryColor.withValues(alpha:0.1)
-                      : Colors.grey.withValues(alpha:0.1),
+                      ? Theme.of(context).primaryColor.withValues(alpha: 0.1)
+                      : Colors.grey.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Icon(
@@ -65,7 +64,7 @@ class PremiumFeatureCard extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 16),
-              
+
               // Feature details
               Expanded(
                 child: Column(
@@ -89,7 +88,7 @@ class PremiumFeatureCard extends StatelessWidget {
                   ],
                 ),
               ),
-              
+
               // Status indicator
               Container(
                 margin: const EdgeInsets.only(left: 8),

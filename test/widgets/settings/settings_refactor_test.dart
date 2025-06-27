@@ -32,7 +32,7 @@ void main() {
 
     testWidgets('SettingToggleTile renders correctly', (WidgetTester tester) async {
       bool testValue = false;
-      
+
       await tester.pumpWidget(
         createTestWidget(
           StatefulBuilder(
@@ -128,11 +128,11 @@ void main() {
               final headingStyle = SettingsTheme.sectionHeadingStyle(context);
               final tileTitle = SettingsTheme.tileTitle(context);
               final tileSubtitle = SettingsTheme.tileSubtitle(context);
-              
+
               expect(headingStyle, isA<TextStyle>());
               expect(tileTitle, isA<TextStyle>());
               expect(tileSubtitle, isA<TextStyle>());
-              
+
               return const SizedBox();
             },
           ),
@@ -140,4 +140,4 @@ void main() {
       );
     });
   });
-} 
+}

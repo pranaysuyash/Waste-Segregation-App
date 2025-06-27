@@ -8,10 +8,10 @@ class PermissionHandler {
   /// Check and request camera permission
   static Future<bool> checkCameraPermission() async {
     if (kIsWeb) return true; // Web handles permissions differently
-    
+
     try {
       final status = await Permission.camera.status;
-      
+
       if (status.isGranted) {
         return true;
       } else if (status.isDenied) {
@@ -20,28 +20,28 @@ class PermissionHandler {
       } else if (status.isPermanentlyDenied) {
         return false;
       }
-      
+
       return false;
     } catch (e) {
       WasteAppLogger.severe('Error checking camera permission: $e');
       return false;
     }
   }
-  
+
   /// Check and request storage permission (for gallery access)
   static Future<bool> checkStoragePermission() async {
     if (kIsWeb) return true; // Web handles permissions differently
-    
+
     try {
       // For Android 13+ (API 33+), use photos permission instead of storage
       // For older versions, fall back to storage permission
       Permission permission;
-      
+
       // Try photos permission first (Android 13+)
       try {
         permission = Permission.photos;
         final status = await permission.status;
-        
+
         if (status.isGranted) {
           WasteAppLogger.info('Photos permission already granted');
           return true;
@@ -59,12 +59,12 @@ class PermissionHandler {
       } catch (e) {
         WasteAppLogger.info('Photos permission not available, trying storage: $e');
       }
-      
+
       // Fallback to storage permission for older Android versions
       try {
         permission = Permission.storage;
         final status = await permission.status;
-        
+
         if (status.isGranted) {
           WasteAppLogger.info('Storage permission already granted');
           return true;
@@ -82,17 +82,17 @@ class PermissionHandler {
       } catch (e) {
         WasteAppLogger.severe('Storage permission check failed: $e');
       }
-      
+
       return false;
     } catch (e) {
       WasteAppLogger.severe('Error checking storage/photos permission: $e');
       return false;
     }
   }
-  
+
   /// Show permission denied dialog
   static void showPermissionDeniedDialog(
-    BuildContext context, 
+    BuildContext context,
     String permissionType,
   ) {
     showDialog(
@@ -121,4 +121,4 @@ class PermissionHandler {
       ),
     );
   }
-} 
+}

@@ -37,10 +37,8 @@ Widget resultHeaderLowConfidenceUseCase(BuildContext context) {
 class _ResultHeaderDemo extends StatelessWidget {
   const _ResultHeaderDemo({
     this.category = 'Recyclable',
-    this.itemName = 'Aluminum Can',
     this.confidence = 0.92,
     this.pointsEarned = 15,
-    this.hasImage = true,
   });
 
   final String category;
@@ -102,7 +100,7 @@ class _ResultHeaderDemo extends StatelessWidget {
                   color: Theme.of(context).colorScheme.surface,
                   borderRadius: BorderRadius.circular(16),
                   border: Border.all(
-                    color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.2),
+                    color: Theme.of(context).colorScheme.outline.withAlpha(51),
                   ),
                 ),
                 child: ResultHeader(

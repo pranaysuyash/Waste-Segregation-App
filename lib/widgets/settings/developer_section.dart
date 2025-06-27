@@ -68,7 +68,7 @@ class DeveloperSection extends StatelessWidget {
               builder: (context, premiumService, child) {
                 return TextButton(
                   onPressed: () => _resetAllPremiumFeatures(
-                    context, 
+                    context,
                     premiumService,
                   ),
                   child: const Text('Reset All'),
@@ -140,7 +140,7 @@ class DeveloperSection extends StatelessWidget {
       subtitle: Text('Test mode: ${featureKey.replaceAll('_', ' ')}'),
       value: premiumService.isPremiumFeature(featureKey),
       onChanged: (value) async {
-                 // await premiumService.togglePremiumFeature(featureKey, value); // TODO: Check correct method name
+        // await premiumService.togglePremiumFeature(featureKey, value); // TODO: Check correct method name
         if (context.mounted) {
           // TODO(i18n): Localize feedback message
           SettingsTheme.showInfoSnackBar(
@@ -164,7 +164,7 @@ class DeveloperSection extends StatelessWidget {
             color: SettingsTheme.dangerColor,
             onPressed: () => _forceCrash(context),
           ),
-        
+
         const SizedBox(height: 8),
 
         // Consolidated Data Reset Button
@@ -175,9 +175,9 @@ class DeveloperSection extends StatelessWidget {
           color: SettingsTheme.dangerColor,
           onPressed: () => _confirmAndClearAllData(context),
         ),
-        
+
         const SizedBox(height: 8),
-        
+
         // Migration button for updating old classifications
         _buildDangerButton(
           context,
@@ -237,8 +237,7 @@ class DeveloperSection extends StatelessWidget {
         return AlertDialog(
           title: const Text('Clear All Data?'),
           content: const Text(
-            'This will clear all local and cloud data to simulate a fresh install. This action cannot be undone.'
-          ),
+              'This will clear all local and cloud data to simulate a fresh install. This action cannot be undone.'),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
@@ -266,13 +265,15 @@ class DeveloperSection extends StatelessWidget {
       () async {
         final cleanupService = FirebaseCleanupService();
         await cleanupService.clearAllDataForFreshInstall();
+        // Reinitialize Hive boxes after reset to prevent "Box has already been closed" errors
+        await StorageService.reinitializeAfterReset();
       },
       message: 'Clearing all data...',
     ).then((_) {
       if (context.mounted) {
         SettingsTheme.showSuccessSnackBar(
           context,
-          'All data cleared. Please restart the app.',
+          'All data cleared successfully!',
         );
       }
     }).catchError((e) {
@@ -288,10 +289,10 @@ class DeveloperSection extends StatelessWidget {
   Future<void> _runClassificationMigration(BuildContext context) async {
     try {
       final storageService = context.read<StorageService>();
-      
+
       // TODO: Implement classification migration logic
       // This would migrate old classification data to new format
-      
+
       if (context.mounted) {
         // TODO(i18n): Localize success message
         SettingsTheme.showSuccessSnackBar(
@@ -309,4 +310,4 @@ class DeveloperSection extends StatelessWidget {
       }
     }
   }
-} 
+}

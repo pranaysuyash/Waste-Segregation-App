@@ -6,7 +6,6 @@ import 'dart:io';
 
 /// Test configuration to setup plugin mocks and prevent MissingPluginException
 class PluginMockSetup {
-  
   /// Setup all plugin mocks for testing
   static void setupAll() {
     setupPathProvider();
@@ -20,11 +19,11 @@ class PluginMockSetup {
   /// Mock path_provider plugin
   static void setupPathProvider() {
     const channel = MethodChannel('plugins.flutter.io/path_provider');
-    
+
     // Create a temporary directory that actually exists and is writable
     final tempDir = Directory.systemTemp.createTempSync('flutter_test_');
     final testPath = tempDir.path;
-    
+
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger.setMockMethodCallHandler(
       channel,
       (MethodCall methodCall) async {
@@ -62,7 +61,7 @@ class PluginMockSetup {
   /// Mock device_info plugin
   static void setupDeviceInfo() {
     const channel = MethodChannel('plugins.flutter.io/device_info');
-    
+
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger.setMockMethodCallHandler(
       channel,
       (MethodCall methodCall) async {
@@ -93,7 +92,7 @@ class PluginMockSetup {
   /// Mock package_info plugin
   static void setupPackageInfo() {
     const channel = MethodChannel('plugins.flutter.io/package_info');
-    
+
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger.setMockMethodCallHandler(
       channel,
       (MethodCall methodCall) async {
@@ -110,7 +109,7 @@ class PluginMockSetup {
   /// Mock image_picker plugin
   static void setupImagePicker() {
     const channel = MethodChannel('plugins.flutter.io/image_picker');
-    
+
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger.setMockMethodCallHandler(
       channel,
       (MethodCall methodCall) async {
@@ -130,7 +129,7 @@ class PluginMockSetup {
   /// Mock camera plugin
   static void setupCamera() {
     const channel = MethodChannel('plugins.flutter.io/camera');
-    
+
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger.setMockMethodCallHandler(
       channel,
       (MethodCall methodCall) async {
@@ -221,7 +220,7 @@ class PluginMockSetup {
   /// Mock network connectivity
   static void setupConnectivity() {
     const channel = MethodChannel('dev.fluttercommunity/connectivity');
-    
+
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger.setMockMethodCallHandler(
       channel,
       (MethodCall methodCall) async {
@@ -244,7 +243,7 @@ class PluginMockSetup {
   /// Mock permission handler
   static void setupPermissions() {
     const channel = MethodChannel('flutter.baseflow.com/permissions/methods');
-    
+
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger.setMockMethodCallHandler(
       channel,
       (MethodCall methodCall) async {
@@ -270,42 +269,42 @@ class PluginMockSetup {
       const MethodChannel('plugins.flutter.io/path_provider'),
       null,
     );
-    
+
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger.setMockMethodCallHandler(
       const MethodChannel('plugins.flutter.io/device_info'),
       null,
     );
-    
+
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger.setMockMethodCallHandler(
       const MethodChannel('plugins.flutter.io/package_info'),
       null,
     );
-    
+
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger.setMockMethodCallHandler(
       const MethodChannel('plugins.flutter.io/image_picker'),
       null,
     );
-    
+
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger.setMockMethodCallHandler(
       const MethodChannel('plugins.flutter.io/camera'),
       null,
     );
-    
+
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger.setMockMethodCallHandler(
       const MethodChannel('plugins.flutter.io/firebase_core'),
       null,
     );
-    
+
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger.setMockMethodCallHandler(
       const MethodChannel('plugins.flutter.io/cloud_firestore'),
       null,
     );
-    
+
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger.setMockMethodCallHandler(
       const MethodChannel('dev.fluttercommunity/connectivity'),
       null,
     );
-    
+
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger.setMockMethodCallHandler(
       const MethodChannel('flutter.baseflow.com/permissions/methods'),
       null,
@@ -333,7 +332,6 @@ class PluginMockSetup {
 
 /// Test helper for common test setups
 class TestHelpers {
-  
   /// Standard test setup that includes all plugin mocks
   static void setUpAll() {
     TestWidgetsFlutterBinding.ensureInitialized();
@@ -368,11 +366,11 @@ class TestHelpers {
     bool shouldFail = false,
   }) async {
     await Future.delayed(delay);
-    
+
     if (shouldFail) {
       throw Exception('Mock network error');
     }
-    
+
     return {
       'status': 'success',
       'data': {'message': 'Mock response'},
@@ -385,7 +383,7 @@ class TestHelpers {
     Duration delay = const Duration(seconds: 2),
   }) async {
     await Future.delayed(delay);
-    
+
     return {
       'category': 'Recyclable',
       'confidence': 0.95,
@@ -398,7 +396,6 @@ class TestHelpers {
 
 /// Performance testing utilities
 class PerformanceTestHelpers {
-  
   /// Measure widget build time
   static Future<Duration> measureBuildTime(
     WidgetTester tester,
@@ -418,11 +415,11 @@ class PerformanceTestHelpers {
   ) async {
     final frameTimes = <Duration>[];
     final stopwatch = Stopwatch();
-    
+
     // Start measuring
     stopwatch.start();
     triggerAnimation();
-    
+
     // Pump frames and measure timing
     while (tester.binding.hasScheduledFrame) {
       final frameStart = stopwatch.elapsed;
@@ -430,19 +427,19 @@ class PerformanceTestHelpers {
       final frameEnd = stopwatch.elapsed;
       frameTimes.add(frameEnd - frameStart);
     }
-    
+
     stopwatch.stop();
-    
+
     if (frameTimes.isEmpty) {
       return {'total_time': Duration.zero, 'frame_count': 0, 'avg_frame_time': Duration.zero};
     }
-    
+
     final totalTime = stopwatch.elapsed;
     final frameCount = frameTimes.length;
     final avgFrameTime = Duration(
       microseconds: frameTimes.map((d) => d.inMicroseconds).reduce((a, b) => a + b) ~/ frameCount,
     );
-    
+
     return {
       'total_time': totalTime,
       'frame_count': frameCount,
@@ -455,11 +452,11 @@ class PerformanceTestHelpers {
   static bool meetsPerformanceTargets(Map<String, dynamic> metrics) {
     final avgFrameTime = metrics['avg_frame_time'] as Duration;
     final totalTime = metrics['total_time'] as Duration;
-    
+
     // 60fps = 16.67ms per frame
     const maxFrameTime = Duration(milliseconds: 17);
     const maxTotalTime = Duration(seconds: 1);
-    
+
     return avgFrameTime <= maxFrameTime && totalTime <= maxTotalTime;
   }
-} 
+}

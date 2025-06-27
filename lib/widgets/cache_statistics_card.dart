@@ -10,9 +10,8 @@ import 'package:waste_segregation_app/services/cache_service.dart';
 /// - Estimated data savings
 /// - Cache age
 class CacheStatisticsCard extends StatefulWidget {
-
   const CacheStatisticsCard({
-    super.key, 
+    super.key,
     required this.cacheService,
     this.autoRefresh = true,
     this.refreshInterval = const Duration(seconds: 30),
@@ -28,12 +27,12 @@ class CacheStatisticsCard extends StatefulWidget {
 class _CacheStatisticsCardState extends State<CacheStatisticsCard> {
   Map<String, dynamic> _statistics = {};
   Timer? _refreshTimer;
-  
+
   @override
   void initState() {
     super.initState();
     _updateStatistics();
-    
+
     // Set up auto-refresh if enabled
     if (widget.autoRefresh) {
       _refreshTimer = Timer.periodic(widget.refreshInterval, (_) {
@@ -41,23 +40,23 @@ class _CacheStatisticsCardState extends State<CacheStatisticsCard> {
       });
     }
   }
-  
+
   @override
   void dispose() {
     _refreshTimer?.cancel();
     super.dispose();
   }
-  
+
   void _updateStatistics() {
     setState(() {
       _statistics = widget.cacheService.getCacheStatistics();
     });
   }
-  
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    
+
     return Card(
       elevation: 2,
       child: Padding(
@@ -91,49 +90,49 @@ class _CacheStatisticsCardState extends State<CacheStatisticsCard> {
               Column(
                 children: [
                   _buildStatRow(
-                    context, 
-                    'Hit Rate:', 
+                    context,
+                    'Hit Rate:',
                     _statistics['hitRate'] ?? '0%',
                     Icons.trending_up,
                     _getHitRateColor(context),
                   ),
                   _buildStatRow(
-                    context, 
-                    'Cache Size:', 
+                    context,
+                    'Cache Size:',
                     '${_statistics['size'] ?? 0} entries',
                     Icons.storage,
                     null,
                   ),
                   _buildStatRow(
-                    context, 
-                    'Data Saved:', 
+                    context,
+                    'Data Saved:',
                     _statistics['bytesSavedFormatted'] ?? '0 bytes',
                     Icons.save,
                     Colors.green,
                   ),
                   _buildStatRow(
-                    context, 
-                    'Cache Age:', 
+                    context,
+                    'Cache Age:',
                     '${_statistics['ageHours'] ?? 0} hours',
                     Icons.access_time,
                     null,
                   ),
-                  
+
                   // Show similar hit rate when available
                   if (_statistics.containsKey('similarHits'))
                     _buildStatRow(
-                      context, 
-                      'Similar Matches:', 
+                      context,
+                      'Similar Matches:',
                       _statistics['similarHitRate'] ?? '0%',
                       Icons.find_replace,
                       Colors.blue,
                     ),
-                    
+
                   // Show hash type breakdown
-                  if (_statistics.containsKey('pHashCount')) 
+                  if (_statistics.containsKey('pHashCount'))
                     _buildStatRow(
-                      context, 
-                      'Perceptual Hashes:', 
+                      context,
+                      'Perceptual Hashes:',
                       '${_statistics['pHashCount']} entries',
                       Icons.image_search,
                       Colors.purple,
@@ -169,11 +168,11 @@ class _CacheStatisticsCardState extends State<CacheStatisticsCard> {
       ),
     );
   }
-  
+
   Widget _buildStatRow(
-    BuildContext context, 
-    String label, 
-    String value, 
+    BuildContext context,
+    String label,
+    String value,
     IconData icon,
     Color? valueColor,
   ) {
@@ -182,7 +181,7 @@ class _CacheStatisticsCardState extends State<CacheStatisticsCard> {
       color: valueColor,
       fontWeight: FontWeight.bold,
     );
-    
+
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: Row(
@@ -196,11 +195,11 @@ class _CacheStatisticsCardState extends State<CacheStatisticsCard> {
       ),
     );
   }
-  
+
   Color _getHitRateColor(BuildContext context) {
     final hitRateStr = (_statistics['hitRate'] as String?) ?? '0%';
     final hitRate = double.tryParse(hitRateStr.replaceAll('%', '')) ?? 0;
-    
+
     if (hitRate >= 80) {
       return Colors.green;
     } else if (hitRate >= 50) {
@@ -209,16 +208,14 @@ class _CacheStatisticsCardState extends State<CacheStatisticsCard> {
       return Colors.red;
     }
   }
-  
+
   Future<bool?> _showClearCacheDialog(BuildContext context) {
     return showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Clear Cache?'),
-        content: const Text(
-          'This will remove all cached image classifications. '
-          'You will need to re-analyze images that were previously classified.'
-        ),
+        content: const Text('This will remove all cached image classifications. '
+            'You will need to re-analyze images that were previously classified.'),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),

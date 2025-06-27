@@ -8,6 +8,10 @@ on:
     branches: [ main, develop ]
     paths: [ '**.md' ]
 
+permissions:
+  contents: write
+  pull-requests: write
+
 jobs:
   markdown-lint:
     runs-on: ubuntu-latest

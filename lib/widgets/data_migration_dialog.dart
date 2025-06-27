@@ -4,7 +4,6 @@ import '../services/storage_service.dart';
 import '../utils/constants.dart';
 
 class DataMigrationDialog extends StatefulWidget {
-
   const DataMigrationDialog({
     super.key,
     required this.guestDataCount,
@@ -20,7 +19,7 @@ class DataMigrationDialog extends StatefulWidget {
   static Future<void> showIfNeeded(BuildContext context) async {
     final storageService = Provider.of<StorageService>(context, listen: false);
     final guestDataCount = await storageService.getGuestDataMigrationCount();
-    
+
     if (guestDataCount > 0 && context.mounted) {
       await showDialog(
         context: context,
@@ -73,9 +72,9 @@ class _DataMigrationDialogState extends State<DataMigrationDialog> {
             Container(
               padding: const EdgeInsets.all(AppTheme.paddingRegular),
               decoration: BoxDecoration(
-                color: AppTheme.primaryColor.withValues(alpha:0.1),
+                color: AppTheme.primaryColor.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(AppTheme.borderRadiusRegular),
-                border: Border.all(color: AppTheme.primaryColor.withValues(alpha:0.3)),
+                border: Border.all(color: AppTheme.primaryColor.withValues(alpha: 0.3)),
               ),
               child: const Row(
                 children: [
@@ -129,9 +128,9 @@ class _DataMigrationDialogState extends State<DataMigrationDialog> {
             Container(
               padding: const EdgeInsets.all(AppTheme.paddingRegular),
               decoration: BoxDecoration(
-                color: Colors.green.withValues(alpha:0.1),
+                color: Colors.green.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(AppTheme.borderRadiusRegular),
-                border: Border.all(color: Colors.green.withValues(alpha:0.3)),
+                border: Border.all(color: Colors.green.withValues(alpha: 0.3)),
               ),
               child: const Row(
                 children: [
@@ -184,7 +183,7 @@ class _DataMigrationDialogState extends State<DataMigrationDialog> {
     try {
       final storageService = Provider.of<StorageService>(context, listen: false);
       final migratedCount = await storageService.migrateGuestDataToCurrentUser();
-      
+
       setState(() {
         _isMigrating = false;
         _migrationComplete = true;
@@ -194,7 +193,7 @@ class _DataMigrationDialogState extends State<DataMigrationDialog> {
       setState(() {
         _isMigrating = false;
       });
-      
+
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -205,4 +204,4 @@ class _DataMigrationDialogState extends State<DataMigrationDialog> {
       }
     }
   }
-} 
+}

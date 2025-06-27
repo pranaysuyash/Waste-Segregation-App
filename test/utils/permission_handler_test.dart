@@ -10,7 +10,7 @@ void main() {
         // Note: This test will always return true on web during testing
         // In a real web environment, the permission handling is different
         final result = await PermissionHandler.checkCameraPermission();
-        
+
         // On web, should return true
         expect(result, isTrue);
       });
@@ -33,7 +33,7 @@ void main() {
     group('Storage Permission Tests', () {
       testWidgets('should return true for web platform', (tester) async {
         final result = await PermissionHandler.checkStoragePermission();
-        
+
         // On web, should return true
         expect(result, isTrue);
       });
@@ -54,7 +54,7 @@ void main() {
       test('should handle permission request errors gracefully', () async {
         // Test that permission requests don't crash the app
         final result = await PermissionHandler.checkStoragePermission();
-        
+
         // Should complete without throwing
         expect(result, isA<bool>());
       });
@@ -149,7 +149,7 @@ void main() {
 
       testWidgets('should show correct permission type in dialog', (tester) async {
         const permissionTypes = ['Camera', 'Storage', 'Photos', 'Microphone'];
-        
+
         for (final permissionType in permissionTypes) {
           await tester.pumpWidget(
             MaterialApp(
@@ -218,7 +218,7 @@ void main() {
       test('should handle camera permission errors gracefully', () async {
         // Test that permission errors don't crash the app
         final result = await PermissionHandler.checkCameraPermission();
-        
+
         // Method should complete without throwing
         expect(result, isA<bool>());
       });
@@ -226,7 +226,7 @@ void main() {
       test('should handle storage permission errors gracefully', () async {
         // Test that permission errors don't crash the app
         final result = await PermissionHandler.checkStoragePermission();
-        
+
         // Method should complete without throwing
         expect(result, isA<bool>());
       });
@@ -257,7 +257,7 @@ void main() {
         );
 
         await tester.pumpAndSettle();
-        
+
         // Should complete without crashing
         expect(find.text('Test'), findsOneWidget);
       });
@@ -267,7 +267,7 @@ void main() {
       test('should handle complete camera permission flow', () async {
         // Test the complete flow without mocking (relies on platform behavior)
         final hasPermission = await PermissionHandler.checkCameraPermission();
-        
+
         // Should return a boolean result regardless of actual permission state
         expect(hasPermission, isA<bool>());
       });
@@ -275,7 +275,7 @@ void main() {
       test('should handle complete storage permission flow', () async {
         // Test the complete flow without mocking (relies on platform behavior)
         final hasPermission = await PermissionHandler.checkStoragePermission();
-        
+
         // Should return a boolean result regardless of actual permission state
         expect(hasPermission, isA<bool>());
       });
@@ -328,7 +328,7 @@ void main() {
         // Web platform should handle permissions differently
         final cameraResult = await PermissionHandler.checkCameraPermission();
         final storageResult = await PermissionHandler.checkStoragePermission();
-        
+
         // On web, both should typically return true (handled by browser)
         expect(cameraResult, isA<bool>());
         expect(storageResult, isA<bool>());
@@ -338,7 +338,7 @@ void main() {
         // Test that multiple permission checks are consistent
         final result1 = await PermissionHandler.checkCameraPermission();
         final result2 = await PermissionHandler.checkCameraPermission();
-        
+
         // Results should be consistent for the same permission in the same session
         expect(result1, equals(result2));
       });
@@ -351,9 +351,9 @@ void main() {
           PermissionHandler.checkCameraPermission(),
           PermissionHandler.checkStoragePermission(),
         ];
-        
+
         final results = await Future.wait(futures);
-        
+
         // All requests should complete
         expect(results.length, equals(4));
         for (final result in results) {
@@ -390,7 +390,7 @@ void main() {
         // Verify dialog components are present
         expect(find.byType(AlertDialog), findsOneWidget);
         expect(find.byType(TextButton), findsNWidgets(2)); // Cancel and Settings buttons
-        
+
         // Verify text content
         expect(find.text('Camera Permission Required'), findsOneWidget);
         expect(find.textContaining('This app needs Camera permission'), findsOneWidget);
@@ -406,7 +406,7 @@ void main() {
 
         for (final size in sizes) {
           await tester.binding.setSurfaceSize(size);
-          
+
           await tester.pumpWidget(
             MaterialApp(
               home: Scaffold(

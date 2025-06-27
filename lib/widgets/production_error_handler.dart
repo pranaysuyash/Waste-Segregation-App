@@ -5,7 +5,6 @@ import '../utils/performance_optimizer.dart';
 
 /// Production-ready error handler that prevents users from seeing internal errors
 class ProductionErrorHandler extends StatelessWidget {
-
   const ProductionErrorHandler({
     super.key,
     required this.child,
@@ -26,7 +25,7 @@ class ProductionErrorHandler extends StatelessWidget {
     if (kReleaseMode) {
       return _buildProductionErrorWidget(context);
     }
-    
+
     // In debug mode, show detailed error for developers
     return _buildProductionErrorWidget(context);
   }
@@ -80,9 +79,7 @@ class ProductionErrorHandler extends StatelessWidget {
             size: 48,
             color: Colors.red.shade600,
           ),
-          
           const SizedBox(height: 16),
-          
           Text(
             'Debug Error',
             style: TextStyle(
@@ -91,9 +88,7 @@ class ProductionErrorHandler extends StatelessWidget {
               color: Colors.red.shade800,
             ),
           ),
-          
           const SizedBox(height: 8),
-          
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
@@ -110,7 +105,6 @@ class ProductionErrorHandler extends StatelessWidget {
               ),
             ),
           ),
-          
           if (onRetry != null) ...[
             const SizedBox(height: 16),
             ElevatedButton.icon(
@@ -131,7 +125,6 @@ class ProductionErrorHandler extends StatelessWidget {
 
 /// Network error handler for API failures
 class NetworkErrorHandler extends StatelessWidget {
-
   const NetworkErrorHandler({
     super.key,
     this.onRetry,
@@ -162,31 +155,25 @@ class NetworkErrorHandler extends StatelessWidget {
               ),
             ),
           ),
-          
           const SizedBox(height: 24),
-          
           Text(
             'Connection Issue',
             style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-              fontWeight: FontWeight.w600,
-              color: Colors.grey.shade800,
-            ),
+                  fontWeight: FontWeight.w600,
+                  color: Colors.grey.shade800,
+                ),
             textAlign: TextAlign.center,
           ),
-          
           const SizedBox(height: 12),
-          
           Text(
             customMessage ?? 'Check your internet connection and try again.',
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              color: Colors.grey.shade600,
-              height: 1.4,
-            ),
+                  color: Colors.grey.shade600,
+                  height: 1.4,
+                ),
             textAlign: TextAlign.center,
           ),
-          
           const SizedBox(height: 32),
-          
           if (onRetry != null)
             PerformanceOptimizer.buildSnappyButton(
               onPressed: onRetry!,
@@ -214,7 +201,6 @@ class NetworkErrorHandler extends StatelessWidget {
 
 /// Empty state handler for when content is loading or unavailable
 class EmptyStateHandler extends StatelessWidget {
-
   const EmptyStateHandler({
     super.key,
     required this.title,
@@ -252,29 +238,24 @@ class EmptyStateHandler extends StatelessWidget {
               ),
             ),
           ),
-          
           const SizedBox(height: 32),
-          
           Text(
             title,
             style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-              fontWeight: FontWeight.w600,
-              color: Colors.grey.shade800,
-            ),
+                  fontWeight: FontWeight.w600,
+                  color: Colors.grey.shade800,
+                ),
             textAlign: TextAlign.center,
           ),
-          
           const SizedBox(height: 12),
-          
           Text(
             message,
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              color: Colors.grey.shade600,
-              height: 1.4,
-            ),
+                  color: Colors.grey.shade600,
+                  height: 1.4,
+                ),
             textAlign: TextAlign.center,
           ),
-          
           if (onAction != null && actionText != null) ...[
             const SizedBox(height: 32),
             PerformanceOptimizer.buildSnappyButton(
@@ -297,7 +278,6 @@ class EmptyStateHandler extends StatelessWidget {
 
 /// Loading state with shimmer effect
 class LoadingStateHandler extends StatelessWidget {
-
   const LoadingStateHandler({
     super.key,
     this.message,
@@ -321,19 +301,17 @@ class LoadingStateHandler extends StatelessWidget {
             )
           else
             const CircularProgressIndicator(),
-          
           const SizedBox(height: 24),
-          
           if (message != null)
             Text(
               message!,
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: Colors.grey.shade600,
-              ),
+                    color: Colors.grey.shade600,
+                  ),
               textAlign: TextAlign.center,
             ),
         ],
       ),
     );
   }
-} 
+}

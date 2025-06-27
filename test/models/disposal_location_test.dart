@@ -23,30 +23,21 @@ void main() {
 
     group('FacilitySource Enum Tests', () {
       test('should convert FacilitySource to string correctly', () {
-        expect(facilitySourceToString(FacilitySource.adminEntered), 
-               equals('ADMIN_ENTERED'));
-        expect(facilitySourceToString(FacilitySource.userSuggestedIntegrated), 
-               equals('USER_SUGGESTED_INTEGRATED'));
-        expect(facilitySourceToString(FacilitySource.bulkImported), 
-               equals('BULK_IMPORTED'));
+        expect(facilitySourceToString(FacilitySource.adminEntered), equals('ADMIN_ENTERED'));
+        expect(facilitySourceToString(FacilitySource.userSuggestedIntegrated), equals('USER_SUGGESTED_INTEGRATED'));
+        expect(facilitySourceToString(FacilitySource.bulkImported), equals('BULK_IMPORTED'));
       });
 
       test('should convert string to FacilitySource correctly', () {
-        expect(facilitySourceFromString('ADMIN_ENTERED'), 
-               equals(FacilitySource.adminEntered));
-        expect(facilitySourceFromString('USER_SUGGESTED_INTEGRATED'), 
-               equals(FacilitySource.userSuggestedIntegrated));
-        expect(facilitySourceFromString('BULK_IMPORTED'), 
-               equals(FacilitySource.bulkImported));
+        expect(facilitySourceFromString('ADMIN_ENTERED'), equals(FacilitySource.adminEntered));
+        expect(facilitySourceFromString('USER_SUGGESTED_INTEGRATED'), equals(FacilitySource.userSuggestedIntegrated));
+        expect(facilitySourceFromString('BULK_IMPORTED'), equals(FacilitySource.bulkImported));
       });
 
       test('should handle invalid source strings', () {
-        expect(facilitySourceFromString('INVALID_SOURCE'), 
-               equals(FacilitySource.adminEntered)); // Default fallback
-        expect(facilitySourceFromString(null), 
-               equals(FacilitySource.adminEntered));
-        expect(facilitySourceFromString(''), 
-               equals(FacilitySource.adminEntered));
+        expect(facilitySourceFromString('INVALID_SOURCE'), equals(FacilitySource.adminEntered)); // Default fallback
+        expect(facilitySourceFromString(null), equals(FacilitySource.adminEntered));
+        expect(facilitySourceFromString(''), equals(FacilitySource.adminEntered));
       });
     });
 
@@ -262,7 +253,7 @@ void main() {
         // Test fromJson
         const documentId = 'test_doc_123';
         final recreated = DisposalLocation.fromJson(json, documentId);
-        
+
         expect(recreated.id, equals(documentId));
         expect(recreated.name, equals(original.name));
         expect(recreated.address, equals(original.address));
@@ -526,7 +517,7 @@ void main() {
 
       test('should handle very long strings', () {
         final longString = 'A' * 1000;
-        
+
         final location = DisposalLocation(
           name: longString,
           address: longString,
@@ -560,9 +551,7 @@ void main() {
       });
 
       test('should handle future timestamps', () {
-        final futureTimestamp = Timestamp.fromDate(
-          DateTime.now().add(const Duration(days: 365))
-        );
+        final futureTimestamp = Timestamp.fromDate(DateTime.now().add(const Duration(days: 365)));
 
         final location = DisposalLocation(
           name: 'Future Facility',
@@ -618,9 +607,7 @@ void main() {
             url: 'https://example.com/sorting.jpg',
             uploadedByUserId: 'volunteer_123',
             caption: 'Sorting area for different materials',
-            uploadTimestamp: Timestamp.fromDate(
-              testTimestamp.toDate().add(const Duration(days: 1))
-            ),
+            uploadTimestamp: Timestamp.fromDate(testTimestamp.toDate().add(const Duration(days: 1))),
           ),
           DisposalLocationPhoto(
             url: 'https://example.com/equipment.jpg',
@@ -671,17 +658,17 @@ void main() {
         expect(complexLocation.acceptedMaterials.length, equals(10));
         expect(complexLocation.operatingHours.length, equals(7));
         expect(complexLocation.contactInfo.length, equals(4));
-        
+
         // Test that photos maintain their properties
         expect(complexLocation.photos![0].uploadedByUserId, equals('admin_user'));
         expect(complexLocation.photos![1].uploadedByUserId, equals('volunteer_123'));
         expect(complexLocation.photos![2].uploadedByUserId, isNull);
-        
+
         // Test serialization of complex location
         final json = complexLocation.toJson();
         expect(json['photos'], isA<List>());
         expect((json['photos'] as List).length, equals(3));
-        
+
         // Test deserialization
         const documentId = 'complex_doc_456';
         final recreated = DisposalLocation.fromJson(json, documentId);

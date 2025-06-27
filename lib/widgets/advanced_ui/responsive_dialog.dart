@@ -3,7 +3,6 @@ import '../../utils/constants.dart';
 
 /// A responsive dialog that adapts to different screen sizes
 class ResponsiveDialog extends StatelessWidget {
-
   const ResponsiveDialog({
     super.key,
     this.title,
@@ -37,15 +36,14 @@ class ResponsiveDialog extends StatelessWidget {
     final isMobile = screenWidth < 600;
 
     // Determine dialog dimensions based on screen size
-    final dialogWidth = maxWidth ?? (isTablet 
-        ? screenWidth * 0.5 
-        : isMobile 
-            ? screenWidth * 0.9 
-            : screenWidth * 0.6);
-    
-    final dialogHeight = maxHeight ?? (isMobile 
-        ? screenHeight * 0.8 
-        : screenHeight * 0.7);
+    final dialogWidth = maxWidth ??
+        (isTablet
+            ? screenWidth * 0.5
+            : isMobile
+                ? screenWidth * 0.9
+                : screenWidth * 0.6);
+
+    final dialogHeight = maxHeight ?? (isMobile ? screenHeight * 0.8 : screenHeight * 0.7);
 
     return Dialog(
       backgroundColor: Colors.transparent,
@@ -82,14 +80,15 @@ class ResponsiveDialog extends StatelessWidget {
                     ),
                   ),
                 ),
-                child: titleWidget ?? Text(
-                  title!,
-                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
+                child: titleWidget ??
+                    Text(
+                      title!,
+                      style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                            fontWeight: FontWeight.bold,
+                          ),
+                    ),
               ),
-            
+
             // Content section
             Flexible(
               child: Container(
@@ -101,7 +100,7 @@ class ResponsiveDialog extends StatelessWidget {
                     : content,
               ),
             ),
-            
+
             // Actions section
             if (actions != null && actions!.isNotEmpty)
               Container(
@@ -149,4 +148,4 @@ class ResponsiveDialog extends StatelessWidget {
       routeSettings: routeSettings,
     );
   }
-} 
+}

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../services/google_drive_service.dart';
 import '../../services/firebase_cleanup_service.dart';
+import '../../services/storage_service.dart';
 import '../../utils/dialog_helper.dart';
 import 'setting_tile.dart';
 import 'settings_theme.dart';
@@ -17,36 +18,30 @@ class AccountSection extends StatelessWidget {
       children: [
         // TODO(i18n): Localize section header
         const SettingsSectionHeader(title: 'Account'),
-        
+
         Consumer<GoogleDriveService>(
           builder: (context, googleDriveService, child) {
             return FutureBuilder<bool>(
               future: googleDriveService.isSignedIn(),
               builder: (context, snapshot) {
                 final isSignedIn = snapshot.data ?? false;
-                
+
                 return SettingTile(
                   icon: isSignedIn ? Icons.logout : Icons.login,
-                  iconColor: isSignedIn 
-                      ? SettingsTheme.accountSignOutColor 
-                      : SettingsTheme.accountSignInColor,
-                  titleColor: isSignedIn 
-                      ? SettingsTheme.accountSignOutColor 
-                      : SettingsTheme.accountSignInColor,
+                  iconColor: isSignedIn ? SettingsTheme.accountSignOutColor : SettingsTheme.accountSignInColor,
+                  titleColor: isSignedIn ? SettingsTheme.accountSignOutColor : SettingsTheme.accountSignInColor,
                   // TODO(i18n): Localize title and subtitle
                   title: isSignedIn ? 'Sign Out' : 'Switch to Google Account',
-                  subtitle: isSignedIn 
+                  subtitle: isSignedIn
                       ? 'Sign out and return to login screen'
                       : 'Currently in guest mode - sign in to sync data',
                   trailing: Icon(
                     Icons.chevron_right,
-                    color: isSignedIn 
-                        ? SettingsTheme.accountSignOutColor 
-                        : SettingsTheme.accountSignInColor,
+                    color: isSignedIn ? SettingsTheme.accountSignOutColor : SettingsTheme.accountSignInColor,
                   ),
                   onTap: () => _handleAccountAction(
-                    context, 
-                    isSignedIn, 
+                    context,
+                    isSignedIn,
                     googleDriveService,
                   ),
                 );
@@ -54,7 +49,7 @@ class AccountSection extends StatelessWidget {
             );
           },
         ),
-        
+
         // Simplified Reset
         SettingTile(
           icon: Icons.delete_forever,
@@ -90,7 +85,7 @@ class AccountSection extends StatelessWidget {
       context,
       title: 'Sign Out', // TODO(i18n): Localize
       body: 'Are you sure you want to sign out? Your data will remain on this device, '
-            'but you won\'t be able to sync with the cloud.', // TODO(i18n): Localize
+          'but you won\'t be able to sync with the cloud.', // TODO(i18n): Localize
       okLabel: 'Sign Out', // TODO(i18n): Localize
       isDangerous: true,
     );
@@ -102,7 +97,7 @@ class AccountSection extends StatelessWidget {
   ) async {
     try {
       await googleDriveService.signOut();
-      
+
       if (context.mounted) {
         // Navigate to auth screen after successful sign out
         Navigator.of(context).pushNamedAndRemoveUntil(
@@ -122,8 +117,8 @@ class AccountSection extends StatelessWidget {
   }
 
   Future<void> _navigateToAuth(BuildContext context) async {
-            final result = await Navigator.of(context).pushNamed('/');
-    
+    final result = await Navigator.of(context).pushNamed('/');
+
     // If user successfully signed in, show success message
     if (result == true && context.mounted) {
       // TODO(i18n): Localize success message
@@ -138,7 +133,8 @@ class AccountSection extends StatelessWidget {
     final shouldReset = await DialogHelper.confirm(
       context,
       title: 'Reset All App Data?',
-      body: 'This will permanently delete all your classifications, points, and settings from this device and the cloud. This action cannot be undone.',
+      body:
+          'This will permanently delete all your classifications, points, and settings from this device and the cloud. This action cannot be undone.',
       okLabel: 'DELETE EVERYTHING',
       isDangerous: true,
     );
@@ -154,11 +150,13 @@ class AccountSection extends StatelessWidget {
       () async {
         final cleanupService = FirebaseCleanupService();
         await cleanupService.clearAllDataForFreshInstall();
-        
+        // Reinitialize Hive boxes after reset to prevent "Box has already been closed" errors
+        await StorageService.reinitializeAfterReset();
+
         if (context.mounted) {
           SettingsTheme.showSuccessSnackBar(
             context,
-            'All data has been cleared. Please restart the app.',
+            'All data has been cleared successfully!',
           );
 
           await Navigator.of(context).pushNamedAndRemoveUntil(
@@ -177,4 +175,4 @@ class AccountSection extends StatelessWidget {
       }
     });
   }
-} 
+}

@@ -18,9 +18,25 @@ SharedWasteClassification createMockSharedClassification({
   List<FamilyReaction> reactions = const [],
   List<FamilyComment> comments = const [],
 }) {
-  return SharedWasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
+  return SharedWasteClassification(
+    itemName: 'Test Item',
+    explanation: 'Test explanation',
+    category: 'plastic',
+    region: 'Test Region',
+    visualFeatures: ['test feature'],
+    alternatives: [],
+    disposalInstructions:
+        DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false),
     id: id,
-    classification: wc_model.WasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
+    classification: wc_model.WasteClassification(
+      itemName: 'Test Item',
+      explanation: 'Test explanation',
+      category: 'plastic',
+      region: 'Test Region',
+      visualFeatures: ['test feature'],
+      alternatives: [],
+      disposalInstructions:
+          DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false),
       id: 'wc-$id',
       itemName: itemName,
       category: category,
@@ -76,12 +92,12 @@ FamilyComment createMockComment({
   );
 }
 
-
 void main() {
   Widget createTestableWidget(Widget child) {
     return MaterialApp(
       home: child,
-      theme: ThemeData( // Apply a theme similar to the app's for consistency
+      theme: ThemeData(
+        // Apply a theme similar to the app's for consistency
         primaryColor: AppTheme.primaryColor,
         colorScheme: ColorScheme.fromSeed(seedColor: AppTheme.primaryColor),
         textTheme: AppTheme.textTheme,
@@ -121,7 +137,8 @@ void main() {
     testWidgets('Displays reactions list correctly', (WidgetTester tester) async {
       final reactions = [
         createMockReaction(displayName: 'Bob'),
-        createMockReaction(displayName: 'Charlie', type: FamilyReactionType.love, photoUrl: 'https://example.com/charlie.jpg'),
+        createMockReaction(
+            displayName: 'Charlie', type: FamilyReactionType.love, photoUrl: 'https://example.com/charlie.jpg'),
       ];
       final mockClassification = createMockSharedClassification(reactions: reactions);
 
@@ -162,10 +179,10 @@ void main() {
 
     testWidgets('Displays correct date format for sharedAt and comment timestamps', (WidgetTester tester) async {
       final fixedTime = DateTime(2023, 1, 1, 10); // Known past time
-      final mockClassification = createMockSharedClassification(
-        sharedAt: fixedTime,
-        comments: [createMockComment(displayName: 'TestCommenter', text: 'Test', timestamp: fixedTime.add(const Duration(hours:1)))]
-      );
+      final mockClassification = createMockSharedClassification(sharedAt: fixedTime, comments: [
+        createMockComment(
+            displayName: 'TestCommenter', text: 'Test', timestamp: fixedTime.add(const Duration(hours: 1)))
+      ]);
 
       await tester.pumpWidget(createTestableWidget(ClassificationDetailsScreen(classification: mockClassification)));
 
@@ -175,6 +192,5 @@ void main() {
       // For widget test, checking for a part of the expected string can be an option.
       expect(find.textContaining('1/1/2023'), findsWidgets); // Shared on and comment on
     });
-
   });
 }

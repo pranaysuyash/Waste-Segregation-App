@@ -4,7 +4,6 @@ import '../utils/waste_app_logger.dart';
 
 /// A reusable share button widget that can be added to any screen
 class ShareButton extends StatelessWidget {
-
   const ShareButton({
     super.key,
     required this.text,
@@ -16,27 +15,28 @@ class ShareButton extends StatelessWidget {
     this.size = 24.0,
     this.showSnackBar = true,
   });
+
   /// The text content to share
   final String text;
-  
+
   /// Optional subject for the share
   final String? subject;
-  
+
   /// Optional list of file paths to share (currently not supported in our implementation)
   final List<String>? files;
-  
+
   /// Optional tooltip to show when long-pressing the button
   final String? tooltip;
-  
+
   /// Optional custom icon
   final IconData icon;
-  
+
   /// Optional custom color
   final Color? color;
-  
+
   /// Optional custom size
   final double size;
-  
+
   /// Whether to show a SnackBar notification
   final bool showSnackBar;
 
@@ -64,7 +64,7 @@ class ShareButton extends StatelessWidget {
             WasteAppLogger.info('Operation completed', null, null, {'service': 'widget', 'file': 'share_button'});
             // No visual notification
           };
-          
+
           ShareService.share(
             text: text,
             subject: subject,
@@ -78,7 +78,6 @@ class ShareButton extends StatelessWidget {
 
 /// A floating action button for sharing
 class ShareFloatingActionButton extends StatelessWidget {
-
   const ShareFloatingActionButton({
     super.key,
     required this.text,
@@ -89,24 +88,25 @@ class ShareFloatingActionButton extends StatelessWidget {
     this.foregroundColor,
     this.showSnackBar = true,
   });
+
   /// The text content to share
   final String text;
-  
+
   /// Optional subject for the share
   final String? subject;
-  
+
   /// Optional list of file paths to share (currently not supported in our implementation)
   final List<String>? files;
-  
+
   /// Optional tooltip to show when long-pressing the button
   final String? tooltip;
-  
+
   /// Optional custom color
   final Color? backgroundColor;
-  
+
   /// Optional custom foreground color
   final Color? foregroundColor;
-  
+
   /// Whether to show a SnackBar notification
   final bool showSnackBar;
 
@@ -136,7 +136,7 @@ class ShareFloatingActionButton extends StatelessWidget {
             WasteAppLogger.info('Operation completed', null, null, {'service': 'widget', 'file': 'share_button'});
             // No visual notification
           };
-          
+
           ShareService.share(
             text: text,
             subject: subject,

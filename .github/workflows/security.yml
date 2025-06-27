@@ -12,6 +12,8 @@ on:
 permissions:
   contents: read
   security-events: write
+  pull-requests: write
+  issues: write
 
 jobs:
   trivy-scan:
@@ -121,11 +123,12 @@ jobs:
         echo "" >> secrets-report.md
         
         # Basic patterns to check (expand as needed)
+        # Exclude task_alt which is a legitimate Flutter icon
         PATTERNS=(
           "password\s*=\s*['\"][^'\"]+['\"]"
           "api_key\s*=\s*['\"][^'\"]+['\"]"
           "secret\s*=\s*['\"][^'\"]+['\"]"
-          "token\s*=\s*['\"][^'\"]+['\"]"
+          "(?<!Icons\.)(?<!task_)token\s*=\s*['\"][^'\"]+['\"]"
           "firebase.*private_key"
         )
         

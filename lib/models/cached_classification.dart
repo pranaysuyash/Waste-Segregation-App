@@ -5,13 +5,12 @@ import 'package:waste_segregation_app/models/waste_classification.dart';
 part 'cached_classification.g.dart';
 
 /// Model for cached image classifications
-/// 
+///
 /// This model stores classification results for previously analyzed images
 /// and includes metadata about the cache entry like creation timestamp
 /// and usage statistics.
 @HiveType(typeId: 2)
 class CachedClassification extends HiveObject {
-
   CachedClassification({
     required this.imageHash,
     required this.classification,
@@ -50,6 +49,7 @@ class CachedClassification extends HiveObject {
       imageSize: imageSize,
     );
   }
+
   /// Unique identifier (image hash) for this cache entry
   @HiveField(0)
   final String imageHash;
@@ -112,17 +112,17 @@ class CachedClassification extends HiveObject {
 }
 
 /// TypeAdapter generation would typically go here,
-/// but we're using manual serialization/deserialization 
+/// but we're using manual serialization/deserialization
 /// since WasteClassification doesn't have a HiveTypeAdapter.
-/// 
+///
 /// If you later create a proper TypeAdapter for WasteClassification,
 /// you can replace the manual serialization with:
-/// 
+///
 /// @HiveType(typeId: 2)
 /// class CachedClassification {
 ///   ...fields with @HiveField annotations
 /// }
-/// 
+///
 /// part 'cached_classification.g.dart';
 ///
 /// And then run: flutter packages pub run build_runner build

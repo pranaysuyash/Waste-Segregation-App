@@ -18,12 +18,12 @@ class AnalysisSpeedSelector extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final walletAsync = ref.watch(tokenWalletProvider);
-    
+
     return walletAsync.when(
       data: (wallet) {
         final tokenBalance = wallet?.balance ?? 0;
         final canAffordInstant = tokenBalance >= AnalysisSpeed.instant.cost;
-        
+
         return Container(
           margin: const EdgeInsets.symmetric(horizontal: AppTheme.paddingRegular),
           padding: const EdgeInsets.all(12),
@@ -85,7 +85,7 @@ class AnalysisSpeedSelector extends ConsumerWidget {
                 ],
               ),
               const SizedBox(height: 12),
-              
+
               // Speed options
               Row(
                 children: [
@@ -113,14 +113,14 @@ class AnalysisSpeedSelector extends ConsumerWidget {
                       tokenCost: AnalysisSpeed.instant.cost,
                       isSelected: selectedSpeed == AnalysisSpeed.instant,
                       canAfford: canAffordInstant,
-                      onTap: canAffordInstant 
+                      onTap: canAffordInstant
                           ? () => onSpeedChanged(AnalysisSpeed.instant)
                           : () => _showInsufficientTokensDialog(context),
                     ),
                   ),
                 ],
               ),
-              
+
               // Cost savings message
               if (selectedSpeed == AnalysisSpeed.batch)
                 Padding(
@@ -179,21 +179,21 @@ class AnalysisSpeedSelector extends ConsumerWidget {
     required VoidCallback onTap,
   }) {
     final colorScheme = Theme.of(context).colorScheme;
-    
+
     return GestureDetector(
       onTap: onTap,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          color: isSelected 
+          color: isSelected
               ? colorScheme.primary.withValues(alpha: 0.1)
-              : canAfford 
+              : canAfford
                   ? colorScheme.surface
                   : colorScheme.surface.withValues(alpha: 0.5),
           borderRadius: BorderRadius.circular(8),
           border: Border.all(
-            color: isSelected 
+            color: isSelected
                 ? colorScheme.primary
                 : canAfford
                     ? colorScheme.outline.withValues(alpha: 0.3)
@@ -205,7 +205,7 @@ class AnalysisSpeedSelector extends ConsumerWidget {
           children: [
             Icon(
               icon,
-              color: isSelected 
+              color: isSelected
                   ? colorScheme.primary
                   : canAfford
                       ? colorScheme.onSurface
@@ -218,7 +218,7 @@ class AnalysisSpeedSelector extends ConsumerWidget {
               style: GoogleFonts.inter(
                 fontSize: 14,
                 fontWeight: FontWeight.w600,
-                color: isSelected 
+                color: isSelected
                     ? colorScheme.primary
                     : canAfford
                         ? colorScheme.onSurface
@@ -243,9 +243,7 @@ class AnalysisSpeedSelector extends ConsumerWidget {
               children: [
                 Icon(
                   Icons.bolt,
-                  color: canAfford
-                      ? colorScheme.primary
-                      : colorScheme.onSurface.withValues(alpha: 0.3),
+                  color: canAfford ? colorScheme.primary : colorScheme.onSurface.withValues(alpha: 0.3),
                   size: 12,
                 ),
                 const SizedBox(width: 2),
@@ -254,9 +252,7 @@ class AnalysisSpeedSelector extends ConsumerWidget {
                   style: GoogleFonts.inter(
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
-                    color: canAfford
-                        ? colorScheme.primary
-                        : colorScheme.onSurface.withValues(alpha: 0.3),
+                    color: canAfford ? colorScheme.primary : colorScheme.onSurface.withValues(alpha: 0.3),
                   ),
                 ),
               ],
@@ -291,4 +287,4 @@ class AnalysisSpeedSelector extends ConsumerWidget {
       ),
     );
   }
-} 
+}

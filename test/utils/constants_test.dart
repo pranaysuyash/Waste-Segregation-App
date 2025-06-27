@@ -8,7 +8,7 @@ void main() {
       test('should have valid API URLs', () {
         expect(ApiConfig.openAiBaseUrl, equals('https://api.openai.com/v1'));
         expect(ApiConfig.geminiBaseUrl, equals('https://generativelanguage.googleapis.com/v1beta'));
-        
+
         // URLs should be valid
         expect(() => Uri.parse(ApiConfig.openAiBaseUrl), returnsNormally);
         expect(() => Uri.parse(ApiConfig.geminiBaseUrl), returnsNormally);
@@ -20,7 +20,7 @@ void main() {
         expect(ApiConfig.secondaryModel2, isNotEmpty);
         expect(ApiConfig.tertiaryModel, isNotEmpty);
         expect(ApiConfig.geminiModel, isNotEmpty);
-        
+
         // Models should have reasonable names
         expect(ApiConfig.primaryModel, contains('gpt'));
         expect(ApiConfig.geminiModel, contains('gemini'));
@@ -29,12 +29,14 @@ void main() {
       test('should have API key placeholders', () {
         expect(ApiConfig.openAiApiKey, isNotEmpty);
         expect(ApiConfig.apiKey, isNotEmpty);
-        
+
         // Should have placeholder text (not actual keys in tests)
-        expect(ApiConfig.openAiApiKey, anyOf(
-          contains('your-openai-api-key-here'),
-          isA<String>(), // In case environment variable is set
-        ));
+        expect(
+            ApiConfig.openAiApiKey,
+            anyOf(
+              contains('your-openai-api-key-here'),
+              isA<String>(), // In case environment variable is set
+            ));
       });
 
       test('should handle environment variables gracefully', () {
@@ -56,10 +58,10 @@ void main() {
           StorageKeys.familiesBox,
           StorageKeys.invitationsBox,
         ];
-        
+
         final uniqueBoxes = boxes.toSet();
         expect(uniqueBoxes.length, equals(boxes.length));
-        
+
         // All box names should be non-empty
         for (final box in boxes) {
           expect(box, isNotEmpty);
@@ -79,10 +81,10 @@ void main() {
           StorageKeys.challengesKey,
           StorageKeys.weeklyStatsKey,
         ];
-        
+
         final uniqueKeys = keys.toSet();
         expect(uniqueKeys.length, equals(keys.length));
-        
+
         // All keys should be non-empty
         for (final key in keys) {
           expect(key, isNotEmpty);
@@ -94,7 +96,7 @@ void main() {
         expect(StorageKeys.userBox, endsWith('Box'));
         expect(StorageKeys.classificationsBox, endsWith('Box'));
         expect(StorageKeys.settingsBox, endsWith('Box'));
-        
+
         // Key names should be camelCase ending with 'Key'
         expect(StorageKeys.userProfileKey, endsWith('Key'));
         expect(StorageKeys.isDarkModeKey, endsWith('Key'));
@@ -106,7 +108,7 @@ void main() {
       group('Light Theme', () {
         test('should have proper light theme configuration', () {
           final theme = AppTheme.lightTheme;
-          
+
           expect(theme.brightness, equals(Brightness.light));
           expect(theme.primaryColor, equals(const Color(0xFF2E7D32)));
           expect(theme.scaffoldBackgroundColor, equals(const Color(0xFFFFFFFF)));
@@ -116,7 +118,7 @@ void main() {
         test('should have proper text theme for light mode', () {
           final theme = AppTheme.lightTheme;
           final textTheme = theme.textTheme;
-          
+
           expect(textTheme.bodyLarge?.color, equals(const Color(0xFF212121)));
           expect(textTheme.bodyMedium?.color, equals(const Color(0xFF212121)));
           expect(textTheme.bodySmall?.color, equals(const Color(0xFF757575)));
@@ -125,7 +127,7 @@ void main() {
         test('should have proper app bar theme', () {
           final theme = AppTheme.lightTheme;
           final appBarTheme = theme.appBarTheme;
-          
+
           expect(appBarTheme.backgroundColor, equals(const Color(0xFF2E7D32)));
           expect(appBarTheme.foregroundColor, equals(Colors.white));
           expect(appBarTheme.elevation, equals(2));
@@ -135,7 +137,7 @@ void main() {
       group('Dark Theme', () {
         test('should have proper dark theme configuration', () {
           final theme = AppTheme.darkTheme;
-          
+
           expect(theme.brightness, equals(Brightness.dark));
           expect(theme.primaryColor, equals(const Color(0xFF2E7D32)));
           expect(theme.scaffoldBackgroundColor, equals(const Color(0xFF121212)));
@@ -145,7 +147,7 @@ void main() {
         test('should have proper text theme for dark mode', () {
           final theme = AppTheme.darkTheme;
           final textTheme = theme.textTheme;
-          
+
           expect(textTheme.bodyLarge?.color, equals(Colors.white));
           expect(textTheme.bodyMedium?.color, equals(Colors.white));
           expect(textTheme.bodySmall?.color, equals(const Color(0xFFBDBDBD)));
@@ -154,7 +156,7 @@ void main() {
         test('should have different colors from light theme', () {
           final lightTheme = AppTheme.lightTheme;
           final darkTheme = AppTheme.darkTheme;
-          
+
           expect(lightTheme.scaffoldBackgroundColor, isNot(equals(darkTheme.scaffoldBackgroundColor)));
           expect(lightTheme.cardColor, isNot(equals(darkTheme.cardColor)));
           expect(lightTheme.textTheme.bodyLarge?.color, isNot(equals(darkTheme.textTheme.bodyLarge?.color)));
@@ -171,11 +173,11 @@ void main() {
             AppTheme.nonWasteColor,
             AppTheme.manualReviewColor,
           ];
-          
+
           // All colors should be unique
           final uniqueColors = colors.toSet();
           expect(uniqueColors.length, equals(colors.length));
-          
+
           // All colors should be valid
           for (final color in colors) {
             expect(color, isA<Color>());
@@ -188,7 +190,7 @@ void main() {
           expect(AppTheme.wetWasteColor, equals(const Color(0xFF2E7D32)));
           expect(AppTheme.dryWasteColor, equals(const Color(0xFFE65100)));
           expect(AppTheme.hazardousWasteColor, equals(const Color(0xFFD84315)));
-          
+
           // Colors should not be too light (for accessibility)
           expect(AppTheme.wetWasteColor.computeLuminance(), lessThan(0.5));
           expect(AppTheme.dryWasteColor.computeLuminance(), lessThan(0.5));
@@ -204,7 +206,7 @@ void main() {
           expect(AppTheme.fontSizeLarge, equals(18.0));
           expect(AppTheme.fontSizeExtraLarge, equals(24.0));
           expect(AppTheme.fontSizeHuge, equals(32.0));
-          
+
           // Font sizes should be in ascending order
           expect(AppTheme.fontSizeSmall, lessThan(AppTheme.fontSizeRegular));
           expect(AppTheme.fontSizeRegular, lessThan(AppTheme.fontSizeMedium));
@@ -238,7 +240,7 @@ void main() {
           expect(AppTheme.spacingLg, equals(24.0));
           expect(AppTheme.spacingXl, equals(32.0));
           expect(AppTheme.spacingXxl, equals(48.0));
-          
+
           // Should be in ascending order
           expect(AppTheme.spacingXs, lessThan(AppTheme.spacingSm));
           expect(AppTheme.spacingSm, lessThan(AppTheme.spacingMd));
@@ -288,7 +290,7 @@ void main() {
           expect(AppTheme.iconSizeMd, equals(24.0));
           expect(AppTheme.iconSizeLg, equals(32.0));
           expect(AppTheme.iconSizeXl, equals(48.0));
-          
+
           // Should be in ascending order
           expect(AppTheme.iconSizeSm, lessThan(AppTheme.iconSizeMd));
           expect(AppTheme.iconSizeMd, lessThan(AppTheme.iconSizeLg));
@@ -301,7 +303,7 @@ void main() {
           expect(AppTheme.animationFast.inMilliseconds, equals(150));
           expect(AppTheme.animationNormal.inMilliseconds, equals(300));
           expect(AppTheme.animationSlow.inMilliseconds, equals(500));
-          
+
           // Should be in ascending order
           expect(AppTheme.animationFast, lessThan(AppTheme.animationNormal));
           expect(AppTheme.animationNormal, lessThan(AppTheme.animationSlow));
@@ -326,12 +328,12 @@ void main() {
                     final confirmStyle = AppTheme.dialogConfirmButtonStyle(context);
                     final destructiveStyle = AppTheme.dialogDestructiveButtonStyle(context);
                     final primaryStyle = AppTheme.dialogPrimaryButtonStyle(context);
-                    
+
                     expect(cancelStyle, isA<ButtonStyle>());
                     expect(confirmStyle, isA<ButtonStyle>());
                     expect(destructiveStyle, isA<ButtonStyle>());
                     expect(primaryStyle, isA<ButtonStyle>());
-                    
+
                     return const Text('Test');
                   },
                 ),
@@ -397,7 +399,7 @@ void main() {
           AppStrings.errorNetwork,
           AppStrings.errorGeneral,
         ];
-        
+
         for (final message in errorMessages) {
           expect(message, isNotEmpty);
           expect(message.length, greaterThan(10)); // Should be descriptive
@@ -410,7 +412,7 @@ void main() {
           AppStrings.successShared,
           AppStrings.successSync,
         ];
-        
+
         for (final message in successMessages) {
           expect(message, isNotEmpty);
           expect(message.toLowerCase(), contains('success'));
@@ -430,7 +432,7 @@ void main() {
           AppStrings.stats,
           AppStrings.rewards,
         ];
-        
+
         for (final string in gamificationStrings) {
           expect(string, isNotEmpty);
         }
@@ -442,7 +444,7 @@ void main() {
         expect(AppStrings.uploadImage, equals('Upload Image'));
         expect(AppStrings.analyzeImage, equals('Analyze Image'));
         expect(AppStrings.retakePhoto, equals('Retake Photo'));
-        
+
         // Sentence case for messages
         expect(AppStrings.welcomeMessage, startsWith('Learn'));
         expect(AppStrings.analyzing, endsWith('...'));
@@ -470,7 +472,7 @@ void main() {
           AppIcons.medicalServices,
           AppIcons.autorenew,
         ];
-        
+
         for (final icon in icons) {
           expect(icon, isA<IconData>());
           expect(icon.codePoint, greaterThan(0));
@@ -487,7 +489,7 @@ void main() {
           'warning': AppIcons.warning,
           'search': AppIcons.search,
         };
-        
+
         stringToIconTests.forEach((string, expectedIcon) {
           final convertedIcon = AppIcons.fromString(string);
           expect(convertedIcon.codePoint, equals(expectedIcon.codePoint));
@@ -503,7 +505,7 @@ void main() {
       test('should handle empty and null strings', () {
         final emptyIcon = AppIcons.fromString('');
         final defaultIcon = AppIcons.fromString('invalid');
-        
+
         expect(emptyIcon, isA<IconData>());
         expect(defaultIcon, isA<IconData>());
         expect(emptyIcon.codePoint, equals(AppIcons.autorenew.codePoint));
@@ -521,7 +523,7 @@ void main() {
           'Non-Waste',
           'Requires Manual Review',
         ];
-        
+
         for (final category in requiredCategories) {
           expect(WasteInfo.categoryExamples.containsKey(category), isTrue);
           expect(WasteInfo.categoryExamples[category], isNotEmpty);
@@ -538,7 +540,7 @@ void main() {
           'Non-Waste',
           'Requires Manual Review',
         ];
-        
+
         for (final category in requiredCategories) {
           expect(WasteInfo.disposalInstructions.containsKey(category), isTrue);
           expect(WasteInfo.disposalInstructions[category], isNotEmpty);
@@ -554,7 +556,7 @@ void main() {
           'Biodegradable Packaging',
           'Other Wet Waste',
         ];
-        
+
         final dryWasteSubcategories = [
           'Paper',
           'Plastic',
@@ -566,7 +568,7 @@ void main() {
           'Wood',
           'Other Dry Waste',
         ];
-        
+
         for (final subcategory in [...wetWasteSubcategories, ...dryWasteSubcategories]) {
           expect(WasteInfo.subcategoryExamples.containsKey(subcategory), isTrue);
           expect(WasteInfo.subcategoryExamples[subcategory], isNotEmpty);
@@ -575,7 +577,7 @@ void main() {
 
       test('should have subcategory disposal instructions', () {
         final subcategories = WasteInfo.subcategoryExamples.keys.toList();
-        
+
         for (final subcategory in subcategories) {
           expect(WasteInfo.subcategoryDisposal.containsKey(subcategory), isTrue);
           expect(WasteInfo.subcategoryDisposal[subcategory], isNotEmpty);
@@ -585,11 +587,11 @@ void main() {
 
       test('should have valid color codes', () {
         const colorCodes = WasteInfo.colorCoding;
-        
+
         for (final color in colorCodes.values) {
           expect(color, startsWith('#'));
           expect(color.length, equals(7)); // #RRGGBB format
-          
+
           // Should be valid hex color
           final hexValue = color.substring(1);
           expect(() => int.parse(hexValue, radix: 16), returnsNormally);
@@ -598,7 +600,7 @@ void main() {
 
       test('should have recycling codes for all plastic types', () {
         final expectedCodes = ['1', '2', '3', '4', '5', '6', '7'];
-        
+
         for (final code in expectedCodes) {
           expect(WasteInfo.recyclingCodes.containsKey(code), isTrue);
           expect(WasteInfo.recyclingCodes[code], isNotEmpty);
@@ -610,34 +612,38 @@ void main() {
         // All main categories should have examples and disposal instructions
         final exampleCategories = WasteInfo.categoryExamples.keys.toSet();
         final disposalCategories = WasteInfo.disposalInstructions.keys.toSet();
-        
+
         expect(exampleCategories, equals(disposalCategories));
-        
+
         // All subcategories with examples should have disposal instructions
         final subcategoryExamples = WasteInfo.subcategoryExamples.keys.toSet();
         final subcategoryDisposals = WasteInfo.subcategoryDisposal.keys.toSet();
-        
+
         expect(subcategoryExamples, equals(subcategoryDisposals));
       });
 
       test('should have informative and actionable content', () {
         // Examples should contain common items
         final wetWasteExamples = WasteInfo.categoryExamples['Wet Waste']!;
-        expect(wetWasteExamples.toLowerCase(), anyOf(
-          contains('food'),
-          contains('fruit'),
-          contains('vegetable'),
-          contains('organic'),
-        ));
-        
+        expect(
+            wetWasteExamples.toLowerCase(),
+            anyOf(
+              contains('food'),
+              contains('fruit'),
+              contains('vegetable'),
+              contains('organic'),
+            ));
+
         // Disposal instructions should be actionable
         final hazardousDisposal = WasteInfo.disposalInstructions['Hazardous Waste']!;
-        expect(hazardousDisposal.toLowerCase(), anyOf(
-          contains('collection'),
-          contains('center'),
-          contains('special'),
-          contains('designated'),
-        ));
+        expect(
+            hazardousDisposal.toLowerCase(),
+            anyOf(
+              contains('collection'),
+              contains('center'),
+              contains('special'),
+              contains('designated'),
+            ));
       });
     });
 
@@ -660,7 +666,7 @@ void main() {
         // Font sizes should have reasonable jumps
         const fontSizeDiff1 = AppTheme.fontSizeMedium - AppTheme.fontSizeRegular;
         const fontSizeDiff2 = AppTheme.fontSizeLarge - AppTheme.fontSizeMedium;
-        
+
         expect(fontSizeDiff1, equals(2.0)); // 14 to 16
         expect(fontSizeDiff2, equals(2.0)); // 16 to 18
       });
@@ -684,7 +690,7 @@ void main() {
           AppTheme.warningColor,
           AppTheme.infoColor,
         ];
-        
+
         for (final color in colors) {
           expect(color.a, equals(255)); // Should be opaque
           expect(color.toARGB32(), greaterThan(0));
@@ -695,11 +701,11 @@ void main() {
         // Spacing values should be positive and reasonable
         expect(AppTheme.spacingSm, greaterThan(0));
         expect(AppTheme.spacingXxl, lessThan(100)); // Not too large
-        
+
         // Font sizes should be readable
         expect(AppTheme.fontSizeSmall, greaterThanOrEqualTo(10));
         expect(AppTheme.fontSizeHuge, lessThan(50)); // Not too large
-        
+
         // Border radius should be reasonable
         expect(AppTheme.borderRadiusXs, greaterThan(0));
         expect(AppTheme.borderRadiusXxl, lessThan(50));
@@ -713,7 +719,7 @@ void main() {
           AppStrings.errorGeneral,
           AppStrings.successSaved,
         ];
-        
+
         for (final string in strings) {
           expect(string, isNotEmpty);
           expect(string.trim(), equals(string)); // No leading/trailing whitespace

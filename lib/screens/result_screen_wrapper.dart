@@ -7,11 +7,11 @@ import 'result_screen.dart';
 import 'result_screen_v2.dart';
 
 /// ResultScreenWrapper handles feature flag conditional rendering
-/// 
+///
 /// Routes to either:
 /// - ResultScreenV2 (new composable UI) when results_v2_enabled = true
 /// - ResultScreen (legacy monolith) when results_v2_enabled = false
-/// 
+///
 /// This enables safe A/B testing and gradual rollout of the new UI
 class ResultScreenWrapper extends ConsumerWidget {
   const ResultScreenWrapper({
@@ -30,10 +30,9 @@ class ResultScreenWrapper extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final featureFlagAsync = ref.watch(resultScreenV2FeatureFlagProvider);
-    
+
     return featureFlagAsync.when(
       data: (useV2) {
-        
         // Log which version is being used for analytics
         WasteAppLogger.info('Result screen version selected', null, null, {
           'version': useV2 ? 'v2' : 'legacy',
@@ -41,7 +40,7 @@ class ResultScreenWrapper extends ConsumerWidget {
           'autoAnalyze': autoAnalyze,
           'service': 'ResultScreenWrapper',
         });
-        
+
         if (useV2) {
           return ResultScreenV2(
             classification: classification,
@@ -72,7 +71,7 @@ class ResultScreenWrapper extends ConsumerWidget {
           'classificationId': classification.id,
           'service': 'ResultScreenWrapper',
         });
-        
+
         return ResultScreen(
           classification: classification,
           showActions: showActions,
@@ -81,4 +80,4 @@ class ResultScreenWrapper extends ConsumerWidget {
       },
     );
   }
-} 
+}

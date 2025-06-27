@@ -8,7 +8,9 @@ import '../test_helper.dart';
 
 // Mock classes for testing
 class MockInterstitialAd extends Mock implements InterstitialAd {}
+
 class MockBannerAd extends Mock implements BannerAd {}
+
 class MockMobileAds extends Mock implements MobileAds {}
 
 void main() {
@@ -67,10 +69,10 @@ void main() {
       test('should not initialize twice', () async {
         await adService.initialize();
         final firstInit = adService.isInitialized;
-        
+
         await adService.initialize();
         final secondInit = adService.isInitialized;
-        
+
         expect(firstInit, equals(secondInit));
       });
 
@@ -105,7 +107,7 @@ void main() {
 
       test('should not show ads when premium is active', () {
         adService.setPremiumStatus(true);
-        
+
         final bannerWidget = adService.getBannerAd();
         expect(bannerWidget, isA<SizedBox>());
         expect((bannerWidget as SizedBox).width, equals(0.0));
@@ -117,7 +119,7 @@ void main() {
         adService.addListener(() => notified = true);
 
         adService.setPremiumStatus(true);
-        
+
         // Wait for post-frame callback
         WidgetsBinding.instance.addPostFrameCallback((_) {
           expect(notified, isTrue);
@@ -209,7 +211,7 @@ void main() {
       test('should not show interstitial too frequently', () async {
         // First call might succeed (if ad is loaded)
         await adService.showInterstitialAd();
-        
+
         // Second call should respect frequency limit
         final result = await adService.showInterstitialAd();
         expect(result, isFalse); // Should be false due to frequency limit
@@ -217,12 +219,12 @@ void main() {
 
       test('should track classification count for interstitial trigger', () {
         expect(adService.shouldShowInterstitial(), isFalse);
-        
+
         // Track multiple classifications
         for (var i = 0; i < 6; i++) {
           adService.trackClassificationCompleted();
         }
-        
+
         expect(adService.shouldShowInterstitial(), isTrue);
       });
 
@@ -250,12 +252,12 @@ void main() {
         for (var i = 0; i < 6; i++) {
           adService.trackClassificationCompleted();
         }
-        
+
         expect(adService.shouldShowInterstitial(), isTrue);
-        
+
         // Attempt to show interstitial (may fail in test environment)
         await adService.showInterstitialAd();
-        
+
         // Classification count should be reset (internal behavior)
         // We can't directly test this, but we verify the method doesn't crash
       });
@@ -269,7 +271,7 @@ void main() {
 
       test('should not notify listeners after disposal', () {
         adService.dispose();
-        
+
         // These operations should not crash after disposal
         expect(() => adService.setPremiumStatus(true), returnsNormally);
         expect(() => adService.setInClassificationFlow(true), returnsNormally);
@@ -278,11 +280,11 @@ void main() {
 
       test('should not perform operations after disposal', () {
         adService.dispose();
-        
+
         // Ad operations should handle disposed state gracefully
         final bannerWidget = adService.getBannerAd();
         expect(bannerWidget, isA<SizedBox>());
-        
+
         expect(() => adService.refreshBannerAd(), returnsNormally);
       });
     });
@@ -292,7 +294,7 @@ void main() {
         // In test environment, AdMob is not configured
         // Service should handle this gracefully without crashing
         await adService.initialize();
-        
+
         // Basic operations should work even without AdMob
         expect(() => adService.getBannerAd(), returnsNormally);
         expect(() async => adService.showInterstitialAd(), returnsNormally);
@@ -301,7 +303,7 @@ void main() {
       test('should handle network errors gracefully', () async {
         // Test that network failures don't crash the service
         await adService.initialize();
-        
+
         // Ad operations should handle network errors
         expect(() => adService.getBannerAd(), returnsNormally);
         expect(() async => adService.showInterstitialAd(), returnsNormally);
@@ -319,7 +321,7 @@ void main() {
         final stopwatch = Stopwatch()..start();
         await adService.initialize();
         stopwatch.stop();
-        
+
         // Initialization should be relatively fast (not blocking)
         expect(stopwatch.elapsedMilliseconds, lessThan(5000)); // 5 seconds max
       });
@@ -327,7 +329,7 @@ void main() {
       test('should cache banner widget for performance', () {
         final widget1 = adService.getBannerAd();
         final widget2 = adService.getBannerAd();
-        
+
         // Should return the same widget instance for performance
         if (!kIsWeb && !adService.shouldShowAds) {
           expect(widget1.runtimeType, equals(widget2.runtimeType));
@@ -340,7 +342,7 @@ void main() {
           adService.setInClassificationFlow(i.isEven);
           adService.setInEducationalContent(i.isOdd);
         }
-        
+
         expect(adService, isNotNull);
       });
     });
@@ -349,7 +351,7 @@ void main() {
       test('should handle ad requests with appropriate targeting', () {
         // Test that ad requests include appropriate keywords
         expect(() => adService.getBannerAd(), returnsNormally);
-        
+
         // In a real implementation, you might test:
         // - Consent management
         // - Targeted vs non-targeted ads
@@ -364,8 +366,7 @@ void main() {
     });
 
     group('Integration Tests', () {
-      testWidgets('should integrate correctly with Flutter widget tree',
-          (WidgetTester tester) async {
+      testWidgets('should integrate correctly with Flutter widget tree', (WidgetTester tester) async {
         await tester.pumpWidget(
           MaterialApp(
             home: Scaffold(
@@ -380,9 +381,9 @@ void main() {
       test('should work with ChangeNotifier pattern', () {
         var listenerCalled = false;
         adService.addListener(() => listenerCalled = true);
-        
+
         adService.setPremiumStatus(true);
-        
+
         // Verify listener pattern works
         WidgetsBinding.instance.addPostFrameCallback((_) {
           expect(listenerCalled, isTrue);
@@ -394,7 +395,7 @@ void main() {
       test('should allow premium upgrade to remove ads', () {
         // Test the core monetization flow
         expect(adService.shouldShowAds, isTrue); // Free users see ads
-        
+
         adService.setPremiumStatus(true); // User upgrades
         expect(adService.shouldShowAds, isFalse); // Premium users don't see ads
       });
@@ -403,18 +404,18 @@ void main() {
         // Test ad frequency for revenue optimization
         adService.trackClassificationCompleted();
         expect(adService.shouldShowInterstitial(), isFalse); // Too early
-        
+
         for (var i = 0; i < 5; i++) {
           adService.trackClassificationCompleted();
         }
-        
+
         expect(adService.shouldShowInterstitial(), isTrue); // Should trigger
       });
 
       test('should handle ad loading states for optimal revenue', () {
         // Test that ads are preloaded for better fill rates
         adService.initialize();
-        
+
         // Banner should show placeholder while loading
         final bannerWidget = adService.getBannerAd();
         expect(bannerWidget, isNotNull);
@@ -434,14 +435,14 @@ void main() {
         adService.setInEducationalContent(true);
         adService.setInSettings(true);
         adService.setPremiumStatus(true);
-        
+
         expect(adService.shouldShowAds, isFalse);
       });
 
       test('should handle disposal during ad operations', () {
         adService.trackClassification();
         adService.dispose();
-        
+
         // Should not crash after disposal
         expect(() => adService.trackClassification(), returnsNormally);
       });

@@ -16,10 +16,10 @@ class SettingsPerformanceMonitor {
   /// Start monitoring performance
   void startMonitoring() {
     if (_isMonitoring) return;
-    
+
     _isMonitoring = true;
     _frameTimings.clear();
-    
+
     if (kDebugMode) {
       SchedulerBinding.instance.addTimingsCallback(_onFrameTiming);
       WasteAppLogger.info('🔍 Settings Performance Monitor: Started');
@@ -29,9 +29,9 @@ class SettingsPerformanceMonitor {
   /// Stop monitoring performance
   void stopMonitoring() {
     if (!_isMonitoring) return;
-    
+
     _isMonitoring = false;
-    
+
     if (kDebugMode) {
       SchedulerBinding.instance.removeTimingsCallback(_onFrameTiming);
       _printPerformanceReport();
@@ -42,14 +42,14 @@ class SettingsPerformanceMonitor {
   /// Track widget rebuild
   void trackRebuild(String widgetName) {
     if (!_isMonitoring) return;
-    
+
     final metrics = _metrics.putIfAbsent(
       widgetName,
       () => PerformanceMetrics(widgetName),
     );
-    
+
     metrics.incrementRebuild();
-    
+
     if (kDebugMode && metrics.rebuildCount % 10 == 0) {
       WasteAppLogger.info('⚠️ Widget $widgetName has rebuilt ${metrics.rebuildCount} times');
     }
@@ -58,19 +58,19 @@ class SettingsPerformanceMonitor {
   /// Track animation performance
   void trackAnimation(String animationName, Duration duration) {
     if (!_isMonitoring) return;
-    
+
     final metrics = _metrics.putIfAbsent(
       animationName,
       () => PerformanceMetrics(animationName),
     );
-    
+
     metrics.addAnimationDuration(duration);
   }
 
   /// Track memory usage
   void trackMemoryUsage(String context) {
     if (!_isMonitoring || !kDebugMode) return;
-    
+
     // Note: This is a simplified memory tracking
     // In production, you might want to use more sophisticated tools
     final runtimeType = context.runtimeType.toString();
@@ -80,7 +80,7 @@ class SettingsPerformanceMonitor {
   /// Handle frame timing callback
   void _onFrameTiming(List<FrameTiming> timings) {
     if (!_isMonitoring) return;
-    
+
     for (final timing in timings) {
       final frameInfo = FrameTimingInfo(
         buildDuration: timing.buildDuration,
@@ -88,14 +88,14 @@ class SettingsPerformanceMonitor {
         totalSpan: timing.totalSpan,
         timestamp: DateTime.now(),
       );
-      
+
       _frameTimings.add(frameInfo);
-      
+
       // Keep only last 100 frames
       if (_frameTimings.length > 100) {
         _frameTimings.removeAt(0);
       }
-      
+
       // Warn about slow frames
       if (timing.totalSpan.inMilliseconds > 16) {
         WasteAppLogger.info('🐌 Slow frame detected: ${timing.totalSpan.inMilliseconds}ms');
@@ -106,10 +106,10 @@ class SettingsPerformanceMonitor {
   /// Print comprehensive performance report
   void _printPerformanceReport() {
     if (!kDebugMode) return;
-    
+
     WasteAppLogger.info('\n📊 Settings Performance Report');
     WasteAppLogger.info('=' * 50);
-    
+
     // Widget rebuild statistics
     WasteAppLogger.info('\n🔄 Widget Rebuilds:');
     for (final metrics in _metrics.values) {
@@ -117,7 +117,7 @@ class SettingsPerformanceMonitor {
         WasteAppLogger.info('  ${metrics.name}: ${metrics.rebuildCount} rebuilds');
       }
     }
-    
+
     // Animation performance
     WasteAppLogger.info('\n🎬 Animation Performance:');
     for (final metrics in _metrics.values) {
@@ -126,34 +126,31 @@ class SettingsPerformanceMonitor {
         WasteAppLogger.info('  ${metrics.name}: ${avgDuration.inMilliseconds}ms avg');
       }
     }
-    
+
     // Frame timing statistics
     if (_frameTimings.isNotEmpty) {
       WasteAppLogger.info('\n🖼️ Frame Timing Statistics:');
       final avgBuild = _calculateAverageFrameTime((f) => f.buildDuration);
       final avgRaster = _calculateAverageFrameTime((f) => f.rasterDuration);
       final avgTotal = _calculateAverageFrameTime((f) => f.totalSpan);
-      
+
       WasteAppLogger.info('  Average build time: ${avgBuild.inMilliseconds}ms');
       WasteAppLogger.info('  Average raster time: ${avgRaster.inMilliseconds}ms');
       WasteAppLogger.info('  Average total time: ${avgTotal.inMilliseconds}ms');
-      
+
       final slowFrames = _frameTimings.where((f) => f.totalSpan.inMilliseconds > 16).length;
       final frameRate = slowFrames / _frameTimings.length * 100;
       WasteAppLogger.info('  Slow frames: $slowFrames/${_frameTimings.length} (${frameRate.toStringAsFixed(1)}%)');
     }
-    
+
     WasteAppLogger.info('=' * 50);
   }
 
   Duration _calculateAverageFrameTime(Duration Function(FrameTimingInfo) selector) {
     if (_frameTimings.isEmpty) return Duration.zero;
-    
-    final totalMs = _frameTimings
-        .map(selector)
-        .map((d) => d.inMicroseconds)
-        .reduce((a, b) => a + b);
-    
+
+    final totalMs = _frameTimings.map(selector).map((d) => d.inMicroseconds).reduce((a, b) => a + b);
+
     return Duration(microseconds: totalMs ~/ _frameTimings.length);
   }
 
@@ -183,14 +180,14 @@ class PerformanceMetrics {
   void incrementRebuild() {
     rebuildCount++;
     final now = DateTime.now();
-    
+
     firstRebuild ??= now;
     lastRebuild = now;
   }
 
   void addAnimationDuration(Duration duration) {
     animationDurations.add(duration);
-    
+
     // Keep only last 50 animation timings
     if (animationDurations.length > 50) {
       animationDurations.removeAt(0);
@@ -199,11 +196,9 @@ class PerformanceMetrics {
 
   Duration get averageAnimationDuration {
     if (animationDurations.isEmpty) return Duration.zero;
-    
-    final totalMs = animationDurations
-        .map((d) => d.inMicroseconds)
-        .reduce((a, b) => a + b);
-    
+
+    final totalMs = animationDurations.map((d) => d.inMicroseconds).reduce((a, b) => a + b);
+
     return Duration(microseconds: totalMs ~/ animationDurations.length);
   }
 
@@ -211,7 +206,7 @@ class PerformanceMetrics {
     if (firstRebuild == null || lastRebuild == null || rebuildCount <= 1) {
       return null;
     }
-    
+
     final totalDuration = lastRebuild!.difference(firstRebuild!);
     return Duration(
       milliseconds: totalDuration.inMilliseconds ~/ (rebuildCount - 1),
@@ -263,11 +258,11 @@ class _PerformanceTrackerState extends State<PerformanceTracker> {
     if (widget.trackRebuilds) {
       _monitor.trackRebuild(widget.name);
     }
-    
+
     if (widget.trackMemory) {
       _monitor.trackMemoryUsage(widget.name);
     }
-    
+
     return widget.child;
   }
 }
@@ -275,18 +270,18 @@ class _PerformanceTrackerState extends State<PerformanceTracker> {
 /// Mixin for widgets that want to track their performance
 mixin PerformanceTrackingMixin<T extends StatefulWidget> on State<T> {
   final _monitor = SettingsPerformanceMonitor();
-  
+
   String get performanceTrackingName => widget.runtimeType.toString();
-  
+
   @override
   Widget build(BuildContext context) {
     _monitor.trackRebuild(performanceTrackingName);
     return buildWithTracking(context);
   }
-  
+
   /// Override this instead of build() when using the mixin
   Widget buildWithTracking(BuildContext context);
-  
+
   /// Track animation performance
   void trackAnimation(String animationName, Duration duration) {
     _monitor.trackAnimation('$performanceTrackingName.$animationName', duration);
@@ -308,15 +303,14 @@ class PerformanceAwareSettingsScreen extends StatefulWidget {
   State<PerformanceAwareSettingsScreen> createState() => _PerformanceAwareSettingsScreenState();
 }
 
-class _PerformanceAwareSettingsScreenState extends State<PerformanceAwareSettingsScreen>
-    with WidgetsBindingObserver {
+class _PerformanceAwareSettingsScreenState extends State<PerformanceAwareSettingsScreen> with WidgetsBindingObserver {
   final _monitor = SettingsPerformanceMonitor();
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    
+
     if (widget.enableMonitoring) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         _monitor.startMonitoring();
@@ -327,20 +321,20 @@ class _PerformanceAwareSettingsScreenState extends State<PerformanceAwareSetting
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
-    
+
     if (widget.enableMonitoring) {
       _monitor.stopMonitoring();
     }
-    
+
     super.dispose();
   }
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     super.didChangeAppLifecycleState(state);
-    
+
     if (!widget.enableMonitoring) return;
-    
+
     switch (state) {
       case AppLifecycleState.paused:
         _monitor.stopMonitoring();
@@ -408,4 +402,4 @@ class SettingsOptimizations {
       ],
     );
   }
-} 
+}

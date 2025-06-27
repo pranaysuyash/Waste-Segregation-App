@@ -87,7 +87,6 @@ ContributionStatus contributionStatusFromString(String? statusString) {
 }
 
 class UserContribution {
-
   UserContribution({
     this.id,
     required this.userId,
@@ -189,4 +188,4 @@ class UserContribution {
       downvotes: downvotes ?? this.downvotes,
     );
   }
-} 
+}

@@ -8,9 +8,13 @@ import 'package:waste_segregation_app/models/waste_classification.dart';
 
 // Manual mocks for testing
 class MockFirebaseFirestore extends Mock implements FirebaseFirestore {}
+
 class MockCollectionReference extends Mock implements CollectionReference<Map<String, dynamic>> {}
+
 class MockDocumentReference extends Mock implements DocumentReference<Map<String, dynamic>> {}
+
 class MockQuerySnapshot extends Mock implements QuerySnapshot<Map<String, dynamic>> {}
+
 class MockDocumentSnapshot extends Mock implements DocumentSnapshot<Map<String, dynamic>> {}
 
 void main() {
@@ -69,8 +73,7 @@ void main() {
         );
         final name = '';
 
-        expect(() async => familyService.createFamily(name, creator),
-               throwsA(isA<Exception>()));
+        expect(() async => familyService.createFamily(name, creator), throwsA(isA<Exception>()));
       });
     });
 
@@ -85,8 +88,7 @@ void main() {
         final mockQuerySnapshot = MockQuerySnapshot();
         final mockDocSnapshot = MockDocumentSnapshot();
 
-        when(mockCollection.where('inviteCode', isEqualTo: 'VALID123'))
-            .thenReturn(mockCollection);
+        when(mockCollection.where('inviteCode', isEqualTo: 'VALID123')).thenReturn(mockCollection);
         when(mockCollection.get()).thenAnswer((_) async => mockQuerySnapshot);
         when(mockQuerySnapshot.docs).thenReturn([mockDocSnapshot]);
         when(mockDocSnapshot.exists).thenReturn(true);
@@ -118,13 +120,11 @@ void main() {
 
         final mockQuerySnapshot = MockQuerySnapshot();
 
-        when(mockCollection.where('inviteCode', isEqualTo: 'INVALID'))
-            .thenReturn(mockCollection);
+        when(mockCollection.where('inviteCode', isEqualTo: 'INVALID')).thenReturn(mockCollection);
         when(mockCollection.get()).thenAnswer((_) async => mockQuerySnapshot);
         when(mockQuerySnapshot.docs).thenReturn([]);
 
-        expect(() async => familyService.acceptInvitation('INVALID', user.id),
-               throwsA(isA<Exception>()));
+        expect(() async => familyService.acceptInvitation('INVALID', user.id), throwsA(isA<Exception>()));
       });
 
       test('should remove family member', () async {
@@ -150,15 +150,23 @@ void main() {
 
     group('Family Data Synchronization', () {
       test('should sync classification to family', () async {
-        final classification = WasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
+        final classification = WasteClassification(
+          itemName: 'Test Item',
+          explanation: 'Test explanation',
+          category: 'plastic',
+          region: 'Test Region',
+          visualFeatures: ['test feature'],
+          alternatives: [],
+          disposalInstructions:
+              DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false),
           itemName: 'Test Item',
           subcategory: 'Plastic',
           isRecyclable: true,
           isCompostable: false,
           requiresSpecialDisposal: false,
-            region: 'Test Region',
-            visualFeatures: ['test feature'],
-            alternatives: [],
+          region: 'Test Region',
+          visualFeatures: ['test feature'],
+          alternatives: [],
           timestamp: DateTime.now(),
           imageUrl: 'test.jpg',
           confidence: 0.95,
@@ -355,10 +363,10 @@ void main() {
 
         // Admin should be able to remove members
         expect(familyService.canUserRemoveMember('admin_user', 'regular_user', family), isTrue);
-        
+
         // Regular user should not be able to remove other members
         expect(familyService.canUserRemoveMember('regular_user', 'admin_user', family), isFalse);
-        
+
         // Users should be able to leave family themselves
         expect(familyService.canUserLeaveFamily('regular_user', family), isTrue);
       });
@@ -383,15 +391,13 @@ void main() {
           ),
         );
 
-        expect(() async => familyService.createFamily(family),
-               throwsA(isA<FirebaseException>()));
+        expect(() async => familyService.createFamily(family), throwsA(isA<FirebaseException>()));
       });
 
       test('should handle network connectivity issues', () async {
         when(mockDocument.get()).thenThrow(Exception('Network error'));
 
-        expect(() async => familyService.getFamilyById('family_123'),
-               throwsA(isA<Exception>()));
+        expect(() async => familyService.getFamilyById('family_123'), throwsA(isA<Exception>()));
       });
 
       test('should validate data consistency', () async {
@@ -435,13 +441,15 @@ void main() {
           name: 'Large Family',
           createdBy: 'user_1',
           createdAt: DateTime.now(),
-          members: List.generate(100, (index) => FamilyMember(
-            userId: 'user_$index',
-            email: 'user$index@example.com',
-            displayName: 'User $index',
-            role: user_profile_models.UserRole.member,
-            joinedAt: DateTime.now(),
-          )),
+          members: List.generate(
+              100,
+              (index) => FamilyMember(
+                    userId: 'user_$index',
+                    email: 'user$index@example.com',
+                    displayName: 'User $index',
+                    role: user_profile_models.UserRole.member,
+                    joinedAt: DateTime.now(),
+                  )),
           settings: const FamilySettings(
             allowInvites: true,
           ),
@@ -467,16 +475,16 @@ extension FirebaseFamilyServiceTestExtension on FirebaseFamilyService {
     // Mock implementation for testing
     return 'INVITE${DateTime.now().millisecondsSinceEpoch.toString().substring(6)}';
   }
-  
+
   bool canUserViewFamily(String userId, Family family) {
     if (family.settings.isPublic) return true;
     return family.members.any((member) => member.userId == userId);
   }
-  
+
   bool canUserJoinFamily(String userId, Family family) {
     return family.settings.allowInvites && family.settings.isPublic;
   }
-  
+
   bool canUserRemoveMember(String requesterId, String targetUserId, Family family) {
     final requester = family.members.firstWhere(
       (member) => member.userId == requesterId,
@@ -484,15 +492,15 @@ extension FirebaseFamilyServiceTestExtension on FirebaseFamilyService {
     );
     return requester.role == UserRole.admin && requesterId != targetUserId;
   }
-  
+
   bool canUserLeaveFamily(String userId, Family family) {
     return family.members.any((member) => member.userId == userId);
   }
-  
+
   UserStats calculateFamilyStatistics(Family family) {
     return family.individualStats;
   }
-  
+
   bool validateFamilyData(Family family) {
     // Basic validation logic
     if (family.members.isEmpty && family.createdBy.isNotEmpty) {
@@ -500,7 +508,7 @@ extension FirebaseFamilyServiceTestExtension on FirebaseFamilyService {
     }
     return true;
   }
-  
+
   List<FamilyMember> getPaginatedMembers(Family family, {required int page, required int pageSize}) {
     final startIndex = page * pageSize;
     final endIndex = (startIndex + pageSize).clamp(0, family.members.length);

@@ -1,5 +1,6 @@
 import 'dart:typed_data';
 import 'dart:io';
+import 'dart:async';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/mockito.dart';
 import 'package:waste_segregation_app/services/ai_service.dart';
@@ -11,8 +12,12 @@ import 'package:waste_segregation_app/models/gamification.dart';
 
 // Mock services for performance testing
 class MockAiService extends Mock implements AiService {}
-class MockStorageService extends Mock implements StorageService {}
-class MockCacheService extends Mock implements CacheService {}
+class MockStorageService extends Mock implements StorageService {
+  Future<List<WasteClassification>> getRecentClassifications() async => [];
+}
+class MockCacheService extends Mock implements CacheService {
+  int getCacheMemoryUsage() => 1024 * 1024; // 1MB mock usage
+}
 class MockGamificationService extends Mock implements GamificationService {}
 
 void main() {
@@ -37,7 +42,7 @@ void main() {
         for (var i = 0; i < 50; i++) {
           final imageData = _generateTestImageData(1024 * 1024); // 1MB each
           
-          when(mockAiService.analyzeWebImage(any, any))
+          when(mockAiService.analyzeWebImage(imageData, 'test_$i.jpg'))
               .thenAnswer((_) async => _createTestClassification('Image $i'));
           
           final classification = await mockAiService.analyzeWebImage(imageData, 'test_$i.jpg');
@@ -93,7 +98,7 @@ void main() {
         
         // Setup cache service mock
         when(mockCacheService.getCacheMemoryUsage())
-            .thenAnswer((_) async => cacheLimit - (10 * 1024 * 1024)); // Near limit
+            .thenReturn(cacheLimit - (10 * 1024 * 1024)); // Near limit
         
         // Add items until cache limit
         for (var i = 0; i < 100; i++) {
@@ -114,12 +119,18 @@ void main() {
         // Try to perform memory-intensive operations
         final largeDataSet = List.generate(1000, (i) => _createTestClassification('Memory Test $i'));
         
-        when(mockStorageService.saveClassificationBatch(any))
-            .thenAnswer((_) async => {});
+        // Batch save multiple classifications
+        for (var classification in largeDataSet) {
+          when(mockStorageService.saveClassification(classification))
+              .thenAnswer((_) async => {});
+        }
         
         // Should complete without crashes
-        expect(() async => mockStorageService.saveClassificationBatch(largeDataSet), 
-               returnsNormally);
+        expect(() async {
+          for (var classification in largeDataSet) {
+            await mockStorageService.saveClassification(classification);
+          }
+        }, returnsNormally);
         
         final finalMemory = _getCurrentMemoryUsage();
         
@@ -173,7 +184,7 @@ void main() {
         final recentClassifications = List.generate(10, (i) => _createTestClassification('Recent $i'));
         final userProfile = _createTestUserProfile();
         
-        when(mockStorageService.getRecentClassifications(limit: 10))
+        when(mockStorageService.getRecentClassifications())
             .thenAnswer((_) async => recentClassifications);
         when(mockGamificationService.getUserProfile())
             .thenAnswer((_) async => userProfile);
@@ -467,10 +478,8 @@ void main() {
         
         // Should timeout and handle gracefully
         expect(() async {
-          await Future.timeout(
-            mockAiService.analyzeWebImage(Uint8List(100), 'test.jpg'),
-            const Duration(seconds: 5),
-          );
+          await mockAiService.analyzeWebImage(Uint8List(100), 'test.jpg')
+              .timeout(const Duration(seconds: 5));
         }, throwsA(isA<TimeoutException>()));
       });
     });
@@ -686,10 +695,12 @@ Future<void> _performOptimizedResourceOperation(ResourceTracker tracker) async {
 }
 
 WasteClassification _createTestClassification(String itemName) {
-  return WasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
+  return WasteClassification(
     itemName: itemName,
     subcategory: 'Test',
     explanation: 'Performance test classification',
+    category: 'plastic',
+    disposalInstructions: DisposalInstructions(
       primaryMethod: 'Test disposal',
       steps: ['Step 1'],
       hasUrgentTimeframe: false,

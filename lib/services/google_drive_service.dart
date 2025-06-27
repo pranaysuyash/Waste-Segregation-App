@@ -10,7 +10,6 @@ import '../models/user_profile.dart';
 import '../utils/waste_app_logger.dart';
 
 class GoogleDriveService {
-
   GoogleDriveService(this._storageService);
   final GoogleSignIn _googleSignIn = GoogleSignIn(
     scopes: [
@@ -29,18 +28,13 @@ class GoogleDriveService {
       if (docSnapshot.exists && docSnapshot.data() != null) {
         return UserProfile.fromJson(docSnapshot.data()!);
       }
-      WasteAppLogger.info('No user profile found in Firestore', null, null, {
-        'user_id': userId.substring(0, 16),
-        'service': 'google_drive',
-        'action': 'return_null_for_new_user'
-      });
+      WasteAppLogger.info('No user profile found in Firestore', null, null,
+          {'user_id': userId.substring(0, 16), 'service': 'google_drive', 'action': 'return_null_for_new_user'});
       return null;
     } catch (e) {
-      WasteAppLogger.severe('Error fetching user profile from Firestore', e, null, {
-        'user_id': userId.substring(0, 16),
-        'service': 'google_drive'
-      });
-      return null; 
+      WasteAppLogger.severe('Error fetching user profile from Firestore', e, null,
+          {'user_id': userId.substring(0, 16), 'service': 'google_drive'});
+      return null;
     }
   }
 
@@ -84,33 +78,25 @@ class GoogleDriveService {
             photoUrl: account.photoUrl ?? userProfile.photoUrl,
           );
         }
-        
+
         // Save the fetched/updated or newly created UserProfile to local storage
         await _storageService.saveUserProfile(userProfile);
-        WasteAppLogger.info('UserProfile saved locally after sign-in', null, null, {
-          'user_id': userId.substring(0, 16),
-          'service': 'google_drive',
-          'action': 'local_save_complete'
-        });
+        WasteAppLogger.info('UserProfile saved locally after sign-in', null, null,
+            {'user_id': userId.substring(0, 16), 'service': 'google_drive', 'action': 'local_save_complete'});
 
         // Optional: If it was a new user, explicitly save to Firestore now.
-        // Otherwise, CloudStorageService.saveUserProfileToFirestore will be called 
+        // Otherwise, CloudStorageService.saveUserProfileToFirestore will be called
         // by other services (like GamificationService) when they make changes.
         // For a new user, ensuring their basic profile exists in Firestore early can be beneficial.
-        if (userProfile.createdAt == userProfile.lastActive) { // Heuristic for new profile
-             try {
-               await _firestore
-                   .collection('users')
-                   .doc(userProfile.id)
-                   .set(userProfile.toJson(), SetOptions(merge: true));
-                WasteAppLogger.info('New UserProfile synced to Firestore', null, null, {
-                  'user_id': userId.substring(0, 16),
-                  'service': 'google_drive',
-                  'action': 'firestore_sync_complete'
-                });
-             } catch (e) {
-                WasteAppLogger.severe('Error syncing new UserProfile $userId to Firestore immediately: $e');
-             }
+        if (userProfile.createdAt == userProfile.lastActive) {
+          // Heuristic for new profile
+          try {
+            await _firestore.collection('users').doc(userProfile.id).set(userProfile.toJson(), SetOptions(merge: true));
+            WasteAppLogger.info('New UserProfile synced to Firestore', null, null,
+                {'user_id': userId.substring(0, 16), 'service': 'google_drive', 'action': 'firestore_sync_complete'});
+          } catch (e) {
+            WasteAppLogger.severe('Error syncing new UserProfile $userId to Firestore immediately: $e');
+          }
         }
       }
       return account;
@@ -270,8 +256,7 @@ class GoogleDriveService {
       folderId ??= await createFolder(appFolderName);
 
       // Backup file name with timestamp
-      final fileName =
-          'waste_seg_backup_${DateTime.now().millisecondsSinceEpoch}.json';
+      final fileName = 'waste_seg_backup_${DateTime.now().millisecondsSinceEpoch}.json';
 
       // Upload backup to drive
       return await uploadToDrive(
@@ -305,16 +290,14 @@ class GoogleDriveService {
 
       // Find app folder
       const appFolderName = 'WasteSegregationApp';
-      final folderId =
-          await findFileOrFolder(appFolderName, isFolder: true);
+      final folderId = await findFileOrFolder(appFolderName, isFolder: true);
 
       if (folderId == null) {
         return [];
       }
 
       // List files in the folder
-      final query =
-          "'$folderId' in parents and name contains 'waste_seg_backup_' and trashed = false";
+      final query = "'$folderId' in parents and name contains 'waste_seg_backup_' and trashed = false";
       final fileList = await driveApi.files.list(q: query);
 
       if (fileList.files == null) {
@@ -337,7 +320,6 @@ class GoogleDriveService {
 
 // Custom HTTP Client for authentication
 class _AuthenticatedClient extends http.BaseClient {
-
   _AuthenticatedClient(this._client, this._headers);
   final http.Client _client;
   final Map<String, String> _headers;

@@ -32,7 +32,7 @@ void main() {
 
     testWidgets('ActiveChallengeCard handles long titles without overflow', (WidgetTester tester) async {
       const longTitle = 'Very Long Daily Recycling Goal Challenge That Should Not Overflow';
-      
+
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
@@ -51,14 +51,15 @@ void main() {
 
       expect(find.byType(ActiveChallengeCard), findsOneWidget);
       expect(find.textContaining('Very Long'), findsOneWidget);
-      
+
       // Should not throw overflow errors
       await tester.pumpAndSettle();
     });
 
     testWidgets('ActiveChallengeCard handles long descriptions without overflow', (WidgetTester tester) async {
-      const longDescription = 'Very long challenge description that explains in detail what the user needs to do to complete this challenge successfully';
-      
+      const longDescription =
+          'Very long challenge description that explains in detail what the user needs to do to complete this challenge successfully';
+
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
@@ -78,7 +79,7 @@ void main() {
       expect(find.byType(ActiveChallengeCard), findsOneWidget);
       expect(find.text('Challenge Title'), findsOneWidget);
       expect(find.textContaining('Very long challenge'), findsOneWidget);
-      
+
       // Should not throw overflow errors
       await tester.pumpAndSettle();
     });
@@ -106,14 +107,14 @@ void main() {
       expect(find.byType(ActiveChallengeCard), findsOneWidget);
       expect(find.text('Daily Goal'), findsOneWidget);
       expect(find.text('Classify items'), findsOneWidget);
-      
+
       // Should handle narrow width gracefully
       await tester.pumpAndSettle();
     });
 
     testWidgets('ActiveChallengeCard handles tap events correctly', (WidgetTester tester) async {
       var tapped = false;
-      
+
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
@@ -134,7 +135,7 @@ void main() {
     testWidgets('ActiveChallengeCard handles progress values correctly', (WidgetTester tester) async {
       // Test with various progress values
       final progressValues = [0.0, 0.25, 0.5, 0.75, 1.0, -0.1, 1.5]; // Including invalid values
-      
+
       for (final progress in progressValues) {
         await tester.pumpWidget(
           MaterialApp(
@@ -151,7 +152,7 @@ void main() {
 
         expect(find.byType(ActiveChallengeCard), findsOneWidget);
         expect(find.byType(ProgressBadge), findsOneWidget);
-        
+
         // Should not throw errors even with invalid progress values
         await tester.pumpAndSettle();
       }
@@ -221,17 +222,20 @@ void main() {
       );
 
       expect(find.byType(ActiveChallengeCard), findsOneWidget);
-      
+
       // Find the icon and verify it uses the custom color
       final iconWidget = tester.widget<Icon>(find.byIcon(Icons.emoji_events));
       expect(iconWidget.color, Colors.purple);
     });
 
     testWidgets('ActiveChallengeCard handles extremely long text gracefully', (WidgetTester tester) async {
-      const extremelyLongTitle = 'This is an extremely long challenge title that should definitely cause overflow issues if not handled properly by the responsive text system';
-      const extremelyLongDescription = 'This is an extremely long challenge description that contains a lot of detailed information about what the user needs to do and should also be handled gracefully without causing any layout issues or overflow problems';
-      const extremelyLongTimeRemaining = 'This is an extremely long time remaining text that should not break the layout';
-      
+      const extremelyLongTitle =
+          'This is an extremely long challenge title that should definitely cause overflow issues if not handled properly by the responsive text system';
+      const extremelyLongDescription =
+          'This is an extremely long challenge description that contains a lot of detailed information about what the user needs to do and should also be handled gracefully without causing any layout issues or overflow problems';
+      const extremelyLongTimeRemaining =
+          'This is an extremely long time remaining text that should not break the layout';
+
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
@@ -252,7 +256,7 @@ void main() {
       );
 
       expect(find.byType(ActiveChallengeCard), findsOneWidget);
-      
+
       // Should not throw overflow errors
       await tester.pumpAndSettle();
     });
@@ -279,7 +283,7 @@ void main() {
       expect(find.text('This challenge is accessible'), findsOneWidget);
       expect(find.text('3 hours left'), findsOneWidget);
       expect(find.text('75 pts'), findsOneWidget);
-      
+
       // Should be tappable
       await tester.tap(find.byType(ActiveChallengeCard));
       await tester.pumpAndSettle();
@@ -366,14 +370,14 @@ void main() {
 
       expect(find.byType(ProgressBadge), findsOneWidget);
       expect(find.textContaining('Very Long'), findsOneWidget);
-      
+
       // Should not throw overflow errors
       await tester.pumpAndSettle();
     });
 
     testWidgets('ProgressBadge adapts to different sizes', (WidgetTester tester) async {
       final sizes = [24.0, 32.0, 40.0, 48.0];
-      
+
       for (final size in sizes) {
         await tester.pumpWidget(
           MaterialApp(
@@ -388,14 +392,14 @@ void main() {
 
         expect(find.byType(ProgressBadge), findsOneWidget);
         expect(find.text('60%'), findsOneWidget);
-        
+
         await tester.pumpAndSettle();
       }
     });
 
     testWidgets('ProgressBadge handles invalid progress values', (WidgetTester tester) async {
       final invalidValues = [-0.5, 1.5, double.infinity, double.nan];
-      
+
       for (final progress in invalidValues) {
         await tester.pumpWidget(
           MaterialApp(
@@ -409,7 +413,7 @@ void main() {
         );
 
         expect(find.byType(ProgressBadge), findsOneWidget);
-        
+
         // Should not throw errors even with invalid progress values
         await tester.pumpAndSettle();
       }
@@ -484,7 +488,7 @@ void main() {
       );
 
       expect(find.byType(ProgressBadge), findsOneWidget);
-      
+
       // Should adapt to available space
       await tester.pumpAndSettle();
     });
@@ -561,4 +565,4 @@ void main() {
       await tester.pumpAndSettle();
     });
   });
-} 
+}

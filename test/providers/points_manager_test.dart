@@ -32,8 +32,7 @@ void main() {
 
       // Setup default mocks
       when(mockStorageService.getCurrentUserProfile()).thenAnswer((_) async => null);
-      when(mockStorageService.getAllClassifications())
-          .thenAnswer((_) async => []);
+      when(mockStorageService.getAllClassifications()).thenAnswer((_) async => []);
       when(mockStorageService.saveUserProfile(any)).thenAnswer((_) async {});
     });
 
@@ -70,8 +69,7 @@ void main() {
           ),
         );
 
-        when(mockStorageService.getCurrentUserProfile())
-            .thenAnswer((_) async => existingProfile);
+        when(mockStorageService.getCurrentUserProfile()).thenAnswer((_) async => existingProfile);
 
         // Create new container with updated mock
         final newContainer = ProviderContainer(
@@ -95,7 +93,7 @@ void main() {
     group('Points Operations', () {
       test('should add points for classification action', () async {
         final pointsManager = container.read(pointsManagerProvider.notifier);
-        
+
         // Initialize with empty profile
         await container.read(pointsManagerProvider.future);
 
@@ -113,7 +111,7 @@ void main() {
 
       test('should add custom points for supported actions', () async {
         final pointsManager = container.read(pointsManagerProvider.notifier);
-        
+
         await container.read(pointsManagerProvider.future);
 
         when(mockStorageService.saveUserProfile(any)).thenAnswer((_) async {});
@@ -128,7 +126,7 @@ void main() {
 
       test('should handle legacy string actions', () async {
         final pointsManager = container.read(pointsManagerProvider.notifier);
-        
+
         await container.read(pointsManagerProvider.future);
 
         when(mockStorageService.saveUserProfile(any)).thenAnswer((_) async {});
@@ -140,7 +138,7 @@ void main() {
 
       test('should handle unknown legacy actions gracefully', () async {
         final pointsManager = container.read(pointsManagerProvider.notifier);
-        
+
         await container.read(pointsManagerProvider.future);
 
         when(mockStorageService.saveUserProfile(any)).thenAnswer((_) async {});
@@ -156,10 +154,10 @@ void main() {
     group('Convenience Providers', () {
       test('currentPointsProvider should return correct points', () async {
         await container.read(pointsManagerProvider.future);
-        
+
         final pointsManager = container.read(pointsManagerProvider.notifier);
         when(mockStorageService.saveUserProfile(any)).thenAnswer((_) async {});
-        
+
         await pointsManager.addPoints(PointableAction.classification);
 
         // Wait for state to update
@@ -188,8 +186,7 @@ void main() {
           ),
         );
 
-        when(mockStorageService.getCurrentUserProfile())
-            .thenAnswer((_) async => highPointsProfile);
+        when(mockStorageService.getCurrentUserProfile()).thenAnswer((_) async => highPointsProfile);
 
         final newContainer = ProviderContainer(
           overrides: [
@@ -213,8 +210,7 @@ void main() {
       });
 
       test('should handle error states', () async {
-        when(mockStorageService.getCurrentUserProfile())
-            .thenThrow(Exception('Storage error'));
+        when(mockStorageService.getCurrentUserProfile()).thenThrow(Exception('Storage error'));
 
         final errorContainer = ProviderContainer(
           overrides: [
@@ -233,12 +229,11 @@ void main() {
 
       test('should handle points operation errors', () async {
         final pointsManager = container.read(pointsManagerProvider.notifier);
-        
+
         await container.read(pointsManagerProvider.future);
 
         // Mock saveUserProfile to throw error
-        when(mockStorageService.saveUserProfile(any))
-            .thenThrow(Exception('Save error'));
+        when(mockStorageService.saveUserProfile(any)).thenThrow(Exception('Save error'));
 
         // The implementation handles save errors gracefully and still returns points
         final newPoints = await pointsManager.addPoints(PointableAction.classification);
@@ -250,7 +245,7 @@ void main() {
     group('State Management', () {
       test('should notify listeners on state changes', () async {
         final pointsManager = container.read(pointsManagerProvider.notifier);
-        
+
         await container.read(pointsManagerProvider.future);
 
         when(mockStorageService.saveUserProfile(any)).thenAnswer((_) async {});
@@ -277,7 +272,7 @@ void main() {
     group('Streak Management', () {
       test('should update streaks correctly', () async {
         final pointsManager = container.read(pointsManagerProvider.notifier);
-        
+
         await container.read(pointsManagerProvider.future);
 
         when(mockStorageService.saveUserProfile(any)).thenAnswer((_) async {});
@@ -297,7 +292,7 @@ void main() {
     group('Achievement Claiming', () {
       test('should claim achievement rewards correctly', () async {
         final pointsManager = container.read(pointsManagerProvider.notifier);
-        
+
         await container.read(pointsManagerProvider.future);
 
         when(mockStorageService.saveUserProfile(any)).thenAnswer((_) async {});
@@ -407,26 +402,25 @@ void main() {
     test('should provide category points correctly', () async {
       final testMockStorage = MockStorageService();
       final testMockCloud = MockCloudStorageService();
-      
-      when(testMockStorage.getCurrentUserProfile()).thenAnswer((_) async => UserProfile(
-        id: 'test-user',
-        gamificationProfile: const GamificationProfile(
-          userId: 'test-user',
-          points: UserPoints(
-            total: 100,
-            categoryPoints: {'Plastic': 50, 'Paper': 30, 'Glass': 20},
-          ),
-          streaks: {},
-          achievements: [],
-          activeChallenges: [],
-          completedChallenges: [],
-          discoveredItemIds: {},
-          unlockedHiddenContentIds: {},
-        ),
-      ));
 
-      when(testMockStorage.getAllClassifications())
-          .thenAnswer((_) async => []);
+      when(testMockStorage.getCurrentUserProfile()).thenAnswer((_) async => UserProfile(
+            id: 'test-user',
+            gamificationProfile: const GamificationProfile(
+              userId: 'test-user',
+              points: UserPoints(
+                total: 100,
+                categoryPoints: {'Plastic': 50, 'Paper': 30, 'Glass': 20},
+              ),
+              streaks: {},
+              achievements: [],
+              activeChallenges: [],
+              completedChallenges: [],
+              discoveredItemIds: {},
+              unlockedHiddenContentIds: {},
+            ),
+          ));
+
+      when(testMockStorage.getAllClassifications()).thenAnswer((_) async => []);
       when(testMockStorage.saveUserProfile(any)).thenAnswer((_) async {});
 
       final testContainer = ProviderContainer(
@@ -450,10 +444,10 @@ void main() {
     test('should handle provider dependencies correctly', () {
       final testMockStorage = MockStorageService();
       final testMockCloud = MockCloudStorageService();
-      
+
       when(testMockStorage.getCurrentUserProfile()).thenAnswer((_) async => null);
       when(testMockStorage.getAllClassifications()).thenAnswer((_) async => []);
-      
+
       // Test that providers can be created without throwing
       expect(() {
         final testContainer = ProviderContainer(
@@ -462,12 +456,12 @@ void main() {
             cloudStorageServiceProvider.overrideWithValue(testMockCloud),
           ],
         );
-        
+
         // Try to read the providers
         testContainer.read(currentPointsProvider);
         testContainer.read(currentLevelProvider);
         testContainer.read(categoryPointsProvider);
-        
+
         testContainer.dispose();
       }, returnsNormally);
     });

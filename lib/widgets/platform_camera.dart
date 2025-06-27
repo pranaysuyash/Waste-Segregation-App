@@ -18,11 +18,11 @@ class PlatformCamera {
         // Web doesn't need special setup
         return true;
       }
-      
+
       if (Platform.isAndroid || Platform.isIOS) {
         // Check camera permission first
         final cameraStatus = await Permission.camera.status;
-        
+
         if (cameraStatus.isGranted) {
           WasteAppLogger.userAction('camera_permission_granted');
           return true;
@@ -36,18 +36,15 @@ class PlatformCamera {
           }
           return result.isGranted;
         } else if (cameraStatus.isPermanentlyDenied) {
-          WasteAppLogger.warning('Camera permission permanently denied', null, null, {
-            'permission_status': 'permanently_denied'
-          });
+          WasteAppLogger.warning(
+              'Camera permission permanently denied', null, null, {'permission_status': 'permanently_denied'});
           return false;
         }
-        
+
         return false;
       }
     } catch (e) {
-      WasteAppLogger.severe('Camera setup failed', e, null, {
-        'platform': kIsWeb ? 'web' : Platform.operatingSystem
-      });
+      WasteAppLogger.severe('Camera setup failed', e, null, {'platform': kIsWeb ? 'web' : Platform.operatingSystem});
     }
 
     // Default return false for unsupported platforms
@@ -58,10 +55,9 @@ class PlatformCamera {
   /// Returns an XFile containing the image, or null if capture failed
   static Future<XFile?> takePicture() async {
     try {
-      WasteAppLogger.userAction('camera_capture_started', context: {
-        'platform': kIsWeb ? 'web' : Platform.operatingSystem
-      });
-      
+      WasteAppLogger.userAction('camera_capture_started',
+          context: {'platform': kIsWeb ? 'web' : Platform.operatingSystem});
+
       // Use image_picker for consistent camera interface
       final image = await _picker.pickImage(
         source: ImageSource.camera,
@@ -71,26 +67,20 @@ class PlatformCamera {
       );
 
       if (image != null) {
-        WasteAppLogger.userAction('camera_capture_success', context: {
-          'image_path': image.path,
-          'platform': kIsWeb ? 'web' : Platform.operatingSystem
-        });
+        WasteAppLogger.userAction('camera_capture_success',
+            context: {'image_path': image.path, 'platform': kIsWeb ? 'web' : Platform.operatingSystem});
 
         // For mobile platforms, verify file exists
         if (!kIsWeb && (Platform.isAndroid || Platform.isIOS)) {
           final file = File(image.path);
           if (await file.exists()) {
             final fileSize = await file.length();
-            WasteAppLogger.performanceLog('image_file_verification', 0, context: {
-              'file_size_bytes': fileSize,
-              'image_path': image.path
-            });
+            WasteAppLogger.performanceLog('image_file_verification', 0,
+                context: {'file_size_bytes': fileSize, 'image_path': image.path});
             return image;
           } else {
-            WasteAppLogger.severe('Camera captured image file does not exist', null, null, {
-              'image_path': image.path,
-              'platform': Platform.operatingSystem
-            });
+            WasteAppLogger.severe('Camera captured image file does not exist', null, null,
+                {'image_path': image.path, 'platform': Platform.operatingSystem});
             return null;
           }
         }
@@ -101,9 +91,7 @@ class PlatformCamera {
         return null;
       }
     } catch (e) {
-      WasteAppLogger.severe('Camera capture failed', e, null, {
-        'platform': kIsWeb ? 'web' : Platform.operatingSystem
-      });
+      WasteAppLogger.severe('Camera capture failed', e, null, {'platform': kIsWeb ? 'web' : Platform.operatingSystem});
       return null;
     }
   }
@@ -112,9 +100,7 @@ class PlatformCamera {
   static Future<void> cleanup() async {
     // Currently a no-op on all platforms
     // Could be extended for platform-specific cleanup
-            WasteAppLogger.info('Camera cleanup completed', null, null, {
-          'cleanup_type': 'dispose'
-        });
+    WasteAppLogger.info('Camera cleanup completed', null, null, {'cleanup_type': 'dispose'});
   }
 
   /// Checks if camera is available on the device
@@ -131,10 +117,8 @@ class PlatformCamera {
         return status.isGranted || status.isDenied; // Available if not permanently denied
       }
     } catch (e) {
-      WasteAppLogger.severe('Error checking camera availability', e, null, {
-        'platform': 'unknown',
-        'action': 'return_false'
-      });
+      WasteAppLogger.severe(
+          'Error checking camera availability', e, null, {'platform': 'unknown', 'action': 'return_false'});
     }
 
     return false;

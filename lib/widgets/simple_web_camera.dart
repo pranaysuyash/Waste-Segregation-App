@@ -6,7 +6,6 @@ import '../utils/constants.dart';
 /// This widget displays a dialog with a button to capture a photo
 /// using the device's camera on web platforms
 class SimpleWebCamera extends StatefulWidget {
-
   const SimpleWebCamera({
     super.key,
     required this.onCapture,

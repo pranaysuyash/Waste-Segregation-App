@@ -95,7 +95,7 @@ class _PolishedSettingsScreenState extends State<PolishedSettingsScreen>
             onPressed: _showPerformanceMetrics,
             tooltip: 'Performance Metrics',
           ),
-        
+
         // Developer mode toggle
         if (DeveloperConfig.canShowDeveloperOptions)
           Semantics(
@@ -104,9 +104,7 @@ class _PolishedSettingsScreenState extends State<PolishedSettingsScreen>
             button: true,
             child: IconButton(
               icon: Icon(
-                _showDeveloperOptions 
-                    ? Icons.developer_mode 
-                    : Icons.developer_mode_outlined,
+                _showDeveloperOptions ? Icons.developer_mode : Icons.developer_mode_outlined,
                 color: _showDeveloperOptions ? Colors.yellow : null,
               ),
               onPressed: _toggleDeveloperMode,
@@ -215,7 +213,7 @@ class _PolishedSettingsScreenState extends State<PolishedSettingsScreen>
 
   Widget _buildDeveloperSection() {
     if (!_showDeveloperOptions) return const SizedBox.shrink();
-    
+
     return _buildAnimatedSection(
       title: 'Developer Options', // TODO(i18n): Localize
       icon: Icons.developer_mode,
@@ -250,15 +248,15 @@ class _PolishedSettingsScreenState extends State<PolishedSettingsScreen>
 
   List<Widget> _interleaveSectionsWithSpacing(List<Widget> sections) {
     final result = <Widget>[];
-    
+
     for (var i = 0; i < sections.length; i++) {
       result.add(sections[i]);
-      
+
       if (i < sections.length - 1) {
         result.add(const SettingsSectionSpacer());
       }
     }
-    
+
     return result;
   }
 
@@ -266,18 +264,18 @@ class _PolishedSettingsScreenState extends State<PolishedSettingsScreen>
     setState(() {
       _showDeveloperOptions = !_showDeveloperOptions;
     });
-    
+
     // Provide haptic feedback
     HapticFeedback.selectionClick();
-    
+
     // Track animation performance
     final stopwatch = Stopwatch()..start();
-    
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
       stopwatch.stop();
       trackAnimation('developer_toggle', stopwatch.elapsed);
     });
-    
+
     // Show feedback
     SettingsTheme.showInfoSnackBar(
       context,
@@ -290,7 +288,7 @@ class _PolishedSettingsScreenState extends State<PolishedSettingsScreen>
     final monitor = SettingsPerformanceMonitor();
     final metrics = monitor.metrics;
     final frameTimings = monitor.frameTimings;
-    
+
     if (metrics.isEmpty && frameTimings.isEmpty) {
       await DialogHelper.showInfo(
         context,
@@ -300,9 +298,9 @@ class _PolishedSettingsScreenState extends State<PolishedSettingsScreen>
       );
       return;
     }
-    
+
     final buffer = StringBuffer();
-    
+
     // Widget rebuild statistics
     buffer.writeln('Widget Rebuilds:');
     for (final metric in metrics.values) {
@@ -310,7 +308,7 @@ class _PolishedSettingsScreenState extends State<PolishedSettingsScreen>
         buffer.writeln('• ${metric.name}: ${metric.rebuildCount} rebuilds');
       }
     }
-    
+
     // Animation performance
     buffer.writeln('\nAnimation Performance:');
     for (final metric in metrics.values) {
@@ -319,7 +317,7 @@ class _PolishedSettingsScreenState extends State<PolishedSettingsScreen>
         buffer.writeln('• ${metric.name}: ${avgDuration.inMilliseconds}ms avg');
       }
     }
-    
+
     // Frame timing statistics
     if (frameTimings.isNotEmpty) {
       final slowFrames = frameTimings.where((f) => f.isSlowFrame).length;
@@ -328,7 +326,7 @@ class _PolishedSettingsScreenState extends State<PolishedSettingsScreen>
       buffer.writeln('• Total frames: ${frameTimings.length}');
       buffer.writeln('• Slow frames: $slowFrames (${frameRate.toStringAsFixed(1)}%)');
     }
-    
+
     await DialogHelper.showInfo(
       context,
       title: 'Performance Metrics',
@@ -430,4 +428,4 @@ class GoldenTestSettingsScreen extends StatelessWidget {
       ),
     );
   }
-} 
+}

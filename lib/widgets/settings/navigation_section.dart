@@ -16,7 +16,7 @@ class NavigationSection extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         // Section header is handled by parent
-        
+
         Card(
           margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
           child: Consumer<NavigationSettingsService>(
@@ -29,7 +29,7 @@ class NavigationSection extends StatelessWidget {
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: const Icon(
-                    Icons.navigation, 
+                    Icons.navigation,
                     color: SettingsTheme.navigationColor,
                   ),
                 ),
@@ -49,8 +49,8 @@ class NavigationSection extends StatelessWidget {
                       subtitle: 'Show bottom navigation bar',
                       value: navSettings.bottomNavEnabled,
                       onChanged: (value) => _toggleBottomNav(
-                        context, 
-                        navSettings, 
+                        context,
+                        navSettings,
                         value,
                       ),
                     ),
@@ -64,8 +64,8 @@ class NavigationSection extends StatelessWidget {
                       subtitle: const Text('Show floating camera button'),
                       value: navSettings.fabEnabled,
                       onChanged: (value) => _toggleFab(
-                        context, 
-                        navSettings, 
+                        context,
+                        navSettings,
                         value,
                       ),
                     ),
@@ -91,8 +91,8 @@ class NavigationSection extends StatelessWidget {
                         ),
                       ],
                       onChanged: (value) => _changeNavigationStyle(
-                        context, 
-                        navSettings, 
+                        context,
+                        navSettings,
                         value,
                       ),
                     ),
@@ -102,7 +102,7 @@ class NavigationSection extends StatelessWidget {
             },
           ),
         ),
-        
+
         // Navigation Demo
         SettingTile(
           icon: Icons.navigation,
@@ -193,4 +193,4 @@ class NavigationSection extends StatelessWidget {
       ),
     );
   }
-} 
+}

@@ -92,7 +92,7 @@ void main() {
     group('Cache Management', () {
       test('should start with empty cache and zero statistics', () {
         final stats = service.getCacheStats();
-        
+
         expect(stats['cache_hits'], equals(0));
         expect(stats['cache_misses'], equals(0));
         expect(stats['hit_rate'], equals('0.0'));
@@ -105,12 +105,12 @@ void main() {
 
         // First access should be a cache miss
         await service.store(testKey, testValue);
-        
+
         // Second access should be a cache hit
         final result = await service.get<String>(testKey);
-        
+
         expect(result, equals(testValue));
-        
+
         final stats = service.getCacheStats();
         expect(stats['cache_hits'], greaterThan(0));
         expect(stats['cache_size'], greaterThan(0));
@@ -124,10 +124,10 @@ void main() {
 
         final stats = service.getCacheStats();
         expect(stats['cache_size'], lessThanOrEqualTo(EnhancedStorageService.MAX_CACHE_SIZE));
-        
+
         // Verify that older entries were evicted
         final newValue = await service.get<String>('key_${EnhancedStorageService.MAX_CACHE_SIZE + 5}');
-        
+
         // key_0 should have been evicted and result in cache miss
         // key_${MAX_CACHE_SIZE + 5} should be in cache and result in cache hit
         expect(newValue, equals('value_${EnhancedStorageService.MAX_CACHE_SIZE + 5}'));
@@ -139,10 +139,10 @@ void main() {
 
         // Store with very short TTL
         service.addToCache(testKey, testValue, ttl: const Duration(milliseconds: 1));
-        
+
         // Wait for expiration
         await Future.delayed(const Duration(milliseconds: 10));
-        
+
         // Should return null for expired cache entry
         final result = await service.get<String>(testKey);
         expect(result, isNull);
@@ -152,12 +152,12 @@ void main() {
         // Add some data to cache
         await service.store('key1', 'value1');
         await service.store('key2', 'value2');
-        
+
         expect(service.getCacheStats()['cache_size'], greaterThan(0));
-        
+
         // Clear cache
         service.clearCache();
-        
+
         final stats = service.getCacheStats();
         expect(stats['cache_hits'], equals(0));
         expect(stats['cache_misses'], equals(0));
@@ -169,14 +169,14 @@ void main() {
         const testValue = 'invalidate_value';
 
         await service.store(testKey, testValue);
-        
+
         // Verify it's in cache
         final result = await service.get<String>(testKey);
         expect(result, equals(testValue));
-        
+
         // Invalidate the entry
         service.invalidateCache(testKey);
-        
+
         // Should no longer be in cache
         final stats = service.getCacheStats();
         expect(stats['cache_size'], equals(0));
@@ -185,12 +185,12 @@ void main() {
       test('should calculate hit rate correctly', () async {
         await service.store('key1', 'value1');
         await service.store('key2', 'value2');
-        
+
         // Generate some hits and misses
         await service.get<String>('key1'); // hit
         await service.get<String>('key2'); // hit
         await service.get<String>('nonexistent'); // miss
-        
+
         final stats = service.getCacheStats();
         final hitRate = double.parse(stats['hit_rate']);
         expect(hitRate, greaterThan(0.0));
@@ -238,16 +238,12 @@ void main() {
               'categories': ['environment', 'science', 'health']
             }
           },
-          'analytics': {
-            'views': 100,
-            'completions': 75,
-            'averageTime': 8.5
-          }
+          'analytics': {'views': 100, 'completions': 75, 'averageTime': 8.5}
         };
 
         await service.store('complex_data', complexData);
         final result = await service.get<Map<String, dynamic>>('complex_data');
-        
+
         expect(result, equals(complexData));
         expect(result?['user']['preferences']['categories'], equals(['environment', 'science', 'health']));
         expect(result?['analytics']['averageTime'], equals(8.5));
@@ -281,7 +277,7 @@ void main() {
         final darkMode = await service.get<bool>(StorageKeys.isDarkModeKey);
         final syncEnabled = await service.get<bool>(StorageKeys.isGoogleSyncEnabledKey);
         final themeMode = await service.get<String>(StorageKeys.themeModeKey);
-        
+
         expect(darkMode, isTrue);
         expect(syncEnabled, isFalse);
         expect(themeMode, equals('auto'));
@@ -318,7 +314,7 @@ void main() {
 
         final profile = await service.get<Map<String, dynamic>>(StorageKeys.userGamificationProfileKey);
         final achievements = await service.get<List<String>>(StorageKeys.achievementsKey);
-        
+
         expect(profile?['points'], equals(1500));
         expect(achievements, equals(['first_classification', 'eco_warrior']));
       });
@@ -338,18 +334,18 @@ void main() {
     group('Performance and Optimization', () {
       test('should handle concurrent operations safely', () async {
         final futures = <Future>[];
-        
+
         // Simulate concurrent reads and writes
         for (var i = 0; i < 50; i++) {
           futures.add(service.store('concurrent_key_$i', 'value_$i'));
         }
-        
+
         for (var i = 0; i < 50; i++) {
           futures.add(service.get<String>('concurrent_key_$i'));
         }
-        
+
         await Future.wait(futures);
-        
+
         // Verify cache remains consistent
         final stats = service.getCacheStats();
         expect(stats['cache_size'], lessThanOrEqualTo(EnhancedStorageService.MAX_CACHE_SIZE));
@@ -357,7 +353,7 @@ void main() {
 
       test('should maintain performance with large datasets', () async {
         final stopwatch = Stopwatch()..start();
-        
+
         // Store many items
         for (var i = 0; i < 1000; i++) {
           await service.store('perf_key_$i', {
@@ -366,13 +362,13 @@ void main() {
             'timestamp': DateTime.now().toIso8601String(),
           });
         }
-        
+
         stopwatch.stop();
-        
+
         // Verify cache doesn't grow beyond limit
         final stats = service.getCacheStats();
         expect(stats['cache_size'], lessThanOrEqualTo(EnhancedStorageService.MAX_CACHE_SIZE));
-        
+
         // Performance should be reasonable (this is a rough check)
         expect(stopwatch.elapsedMilliseconds, lessThan(10000)); // 10 seconds max
       });
@@ -381,20 +377,20 @@ void main() {
         // Store some data
         await service.store('frequent_key', 'frequent_value');
         await service.store('rare_key', 'rare_value');
-        
+
         // Access frequent_key multiple times
         for (var i = 0; i < 10; i++) {
           await service.get<String>('frequent_key');
         }
-        
+
         // Access rare_key once
         await service.get<String>('rare_key');
-        
+
         // Add many more items to potentially evict from cache
         for (var i = 0; i < 50; i++) {
           await service.store('filler_$i', 'filler_value_$i');
         }
-        
+
         // Frequent key should still result in cache hit due to LRU
         final frequentResult = await service.get<String>('frequent_key');
         expect(frequentResult, equals('frequent_value'));
@@ -447,7 +443,7 @@ void main() {
 
         await service.store(longKey, longValue);
         final result = await service.get<String>(longKey);
-        
+
         expect(result, equals(longValue));
       });
 
@@ -457,18 +453,18 @@ void main() {
 
         await service.store(specialKey, specialValue);
         final result = await service.get<String>(specialKey);
-        
+
         expect(result, equals(specialValue));
       });
 
       test('should handle rapid cache invalidation', () async {
         const testKey = 'rapid_invalidate';
-        
+
         for (var i = 0; i < 100; i++) {
           await service.store(testKey, 'value_$i');
           service.invalidateCache(testKey);
         }
-        
+
         // Should not throw any errors
         final stats = service.getCacheStats();
         expect(stats, isMap);
@@ -508,12 +504,12 @@ void main() {
         await service.get<String>('nonexistent'); // miss
 
         final stats = service.getCacheStats();
-        
+
         expect(stats, containsPair('cache_hits', isA<int>()));
         expect(stats, containsPair('cache_misses', isA<int>()));
         expect(stats, containsPair('hit_rate', isA<String>()));
         expect(stats, containsPair('cache_size', isA<int>()));
-        
+
         expect(stats['cache_hits'], greaterThan(0));
         expect(stats['cache_misses'], greaterThan(0));
         expect(stats['cache_size'], greaterThan(0));
@@ -542,16 +538,16 @@ void main() {
       test('should calculate hit rate as percentage', () async {
         // Create predictable hit/miss pattern
         await service.store('hit_test', 'value');
-        
+
         // Generate 3 hits, 1 miss
         await service.get<String>('hit_test'); // hit
-        await service.get<String>('hit_test'); // hit  
+        await service.get<String>('hit_test'); // hit
         await service.get<String>('hit_test'); // hit
         await service.get<String>('miss_test'); // miss
 
         final stats = service.getCacheStats();
         final hitRate = stats['hit_rate'] as String;
-        
+
         // Should be 75% (3 hits out of 4 total)
         expect(hitRate, equals('75.0'));
       });
@@ -560,7 +556,7 @@ void main() {
     group('Memory Management', () {
       test('should not leak memory with frequent operations', () async {
         final initialStats = service.getCacheStats();
-        
+
         // Perform many operations
         for (var i = 0; i < 500; i++) {
           await service.store('memory_test_$i', 'value_$i');
@@ -568,12 +564,12 @@ void main() {
             await service.get<String>('memory_test_${i ~/ 2}');
           }
         }
-        
+
         final finalStats = service.getCacheStats();
-        
+
         // Cache size should be bounded
         expect(finalStats['cache_size'], lessThanOrEqualTo(EnhancedStorageService.MAX_CACHE_SIZE));
-        
+
         // Should have reasonable statistics
         expect(finalStats['cache_hits'], isA<int>());
         expect(finalStats['cache_misses'], isA<int>());

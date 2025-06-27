@@ -6,9 +6,7 @@ extension ColorValues on Color {
   ///
   /// The [alpha] value is expected to be between 0 and 1.
   Color withValues({double? alpha, int? red, int? green, int? blue}) {
-    final a = alpha != null
-        ? (alpha.clamp(0.0, 1.0) * 255).round()
-        : this.a.toInt();
+    final a = alpha != null ? (alpha.clamp(0.0, 1.0) * 255).round() : this.a.toInt();
     return Color.fromARGB(
       a,
       red ?? r.toInt(),

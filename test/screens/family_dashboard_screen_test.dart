@@ -29,8 +29,7 @@ UserProfile createMockUserProfile({
   String? photoUrl,
   String familyId = 'fam1',
 }) {
-  return UserProfile(
-      id: id, email: '$id@test.com', displayName: displayName, photoUrl: photoUrl, familyId: familyId);
+  return UserProfile(id: id, email: '$id@test.com', displayName: displayName, photoUrl: photoUrl, familyId: familyId);
 }
 
 Family createMockFamily({
@@ -45,19 +44,29 @@ Family createMockFamily({
     createdBy: 'creatorUser',
     createdAt: DateTime.now(),
     lastUpdated: DateTime.now(),
-    members: members ?? [FamilyMember(userId: 'user1', role: UserRole.admin, joinedAt: DateTime.now(), individualStats: UserStats.empty(), displayName: 'Test User')],
+    members: members ??
+        [
+          FamilyMember(
+              userId: 'user1',
+              role: UserRole.admin,
+              joinedAt: DateTime.now(),
+              individualStats: UserStats.empty(),
+              displayName: 'Test User')
+        ],
     settings: FamilySettings.defaultSettings(),
-    stats: stats ?? FamilyStats(
-        totalClassifications: 10,
-        totalPoints: 100,
-        currentStreak: 5,
-        bestStreak: 10,
-        categoryBreakdown: {'plastic': 5, 'organic': 5},
-        environmentalImpact: EnvironmentalImpact(co2Saved: 2.5, treesEquivalent: 0.1, waterSaved: 50, lastUpdated: DateTime.now()),
-        weeklyProgress: [],
-        achievementCount: 2,
-        lastUpdated: DateTime.now(),
-      ),
+    stats: stats ??
+        FamilyStats(
+          totalClassifications: 10,
+          totalPoints: 100,
+          currentStreak: 5,
+          bestStreak: 10,
+          categoryBreakdown: {'plastic': 5, 'organic': 5},
+          environmentalImpact:
+              EnvironmentalImpact(co2Saved: 2.5, treesEquivalent: 0.1, waterSaved: 50, lastUpdated: DateTime.now()),
+          weeklyProgress: [],
+          achievementCount: 2,
+          lastUpdated: DateTime.now(),
+        ),
   );
 }
 
@@ -70,9 +79,25 @@ SharedWasteClassification createMockSharedClassification({
   List<FamilyReaction> reactions = const [],
   List<FamilyComment> comments = const [],
 }) {
-  return SharedWasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
+  return SharedWasteClassification(
+    itemName: 'Test Item',
+    explanation: 'Test explanation',
+    category: 'plastic',
+    region: 'Test Region',
+    visualFeatures: ['test feature'],
+    alternatives: [],
+    disposalInstructions:
+        DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false),
     id: id,
-    classification: wc_model.WasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
+    classification: wc_model.WasteClassification(
+      itemName: 'Test Item',
+      explanation: 'Test explanation',
+      category: 'plastic',
+      region: 'Test Region',
+      visualFeatures: ['test feature'],
+      alternatives: [],
+      disposalInstructions:
+          DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false),
       id: 'wc1',
       itemName: itemName,
       category: category,
@@ -88,7 +113,6 @@ SharedWasteClassification createMockSharedClassification({
     comments: comments,
   );
 }
-
 
 @GenerateMocks([FirebaseFamilyService, StorageService])
 void main() {
@@ -109,14 +133,13 @@ void main() {
     classificationsStreamController = StreamController<List<SharedWasteClassification>>.broadcast();
 
     // Default stubs for services
-    when(mockStorageService.getCurrentUserProfile())
-        .thenAnswer((_) async => createMockUserProfile());
+    when(mockStorageService.getCurrentUserProfile()).thenAnswer((_) async => createMockUserProfile());
 
-    when(mockFamilyService.getFamilyStream(any))
-        .thenAnswer((_) => familyStreamController.stream);
+    when(mockFamilyService.getFamilyStream(any)).thenAnswer((_) => familyStreamController.stream);
     when(mockFamilyService.getFamilyClassificationsStream(any, limit: anyNamed('limit')))
         .thenAnswer((_) => classificationsStreamController.stream);
-    when(mockFamilyService.getFamilyMembers(any)).thenAnswer((_) async => [createMockUserProfile()]); // For initial member load
+    when(mockFamilyService.getFamilyMembers(any))
+        .thenAnswer((_) async => [createMockUserProfile()]); // For initial member load
   });
 
   tearDown(() {
@@ -189,8 +212,7 @@ void main() {
     });
 
     testWidgets('Shows error message if family stream has error', (WidgetTester tester) async {
-      when(mockStorageService.getCurrentUserProfile())
-          .thenAnswer((_) async => createMockUserProfile());
+      when(mockStorageService.getCurrentUserProfile()).thenAnswer((_) async => createMockUserProfile());
 
       await tester.pumpWidget(createTestableWidget(const FamilyDashboardScreen()));
       await tester.pumpAndSettle(); // Initial setup
@@ -204,8 +226,12 @@ void main() {
     testWidgets('Displays family data correctly from streams', (WidgetTester tester) async {
       final family = createMockFamily(name: 'Streamed Family', totalClassifications: 25, totalPoints: 250);
       final classifications = [
-        createMockSharedClassification(itemName: 'Old Newspaper', reactions: [FamilyReaction(userId: 'u2', type: FamilyReactionType.like, timestamp: DateTime.now(), displayName: 'User2')], comments: []),
-        createMockSharedClassification(itemName: 'Apple Core', comments: [FamilyComment(id: 'c1', userId: 'u3', text: 'Good job!', timestamp: DateTime.now(), displayName: 'User3')])
+        createMockSharedClassification(itemName: 'Old Newspaper', reactions: [
+          FamilyReaction(userId: 'u2', type: FamilyReactionType.like, timestamp: DateTime.now(), displayName: 'User2')
+        ], comments: []),
+        createMockSharedClassification(itemName: 'Apple Core', comments: [
+          FamilyComment(id: 'c1', userId: 'u3', text: 'Good job!', timestamp: DateTime.now(), displayName: 'User3')
+        ])
       ];
 
       when(mockStorageService.getCurrentUserProfile()).thenAnswer((_) async => createMockUserProfile());
@@ -221,12 +247,16 @@ void main() {
       expect(find.text('250'), findsOneWidget); // Total points
 
       expect(find.text('Old Newspaper'), findsOneWidget);
-      expect(find.descendant(of: find.widgetWithText(Card, 'Old Newspaper'), matching: find.text('1')), findsOneWidget); // 1 reaction
-      expect(find.descendant(of: find.widgetWithText(Card, 'Old Newspaper'), matching: find.text('0')), findsOneWidget); // 0 comments
+      expect(find.descendant(of: find.widgetWithText(Card, 'Old Newspaper'), matching: find.text('1')),
+          findsOneWidget); // 1 reaction
+      expect(find.descendant(of: find.widgetWithText(Card, 'Old Newspaper'), matching: find.text('0')),
+          findsOneWidget); // 0 comments
 
       expect(find.text('Apple Core'), findsOneWidget);
-      expect(find.descendant(of: find.widgetWithText(Card, 'Apple Core'), matching: find.text('0')), findsOneWidget); // 0 reactions
-      expect(find.descendant(of: find.widgetWithText(Card, 'Apple Core'), matching: find.text('1')), findsOneWidget); // 1 comment
+      expect(find.descendant(of: find.widgetWithText(Card, 'Apple Core'), matching: find.text('0')),
+          findsOneWidget); // 0 reactions
+      expect(find.descendant(of: find.widgetWithText(Card, 'Apple Core'), matching: find.text('1')),
+          findsOneWidget); // 1 comment
     });
 
     testWidgets('Environmental Impact Tooltips are present with correct messages', (WidgetTester tester) async {
@@ -238,9 +268,16 @@ void main() {
       await tester.pumpWidget(createTestableWidget(const FamilyDashboardScreen()));
       await tester.pumpAndSettle();
 
-      expect(find.byTooltip('Based on number of recyclable items reported. Each recyclable item is estimated to save 0.5kg of CO₂.'), findsOneWidget);
-      expect(find.byTooltip('Based on CO₂ savings. Roughly 22kg of CO₂ saved is equivalent to saving one tree.'), findsOneWidget);
-      expect(find.byTooltip('Based on number of recyclable items reported. Each recyclable item is estimated to save 10 liters of water.'), findsOneWidget);
+      expect(
+          find.byTooltip(
+              'Based on number of recyclable items reported. Each recyclable item is estimated to save 0.5kg of CO₂.'),
+          findsOneWidget);
+      expect(find.byTooltip('Based on CO₂ savings. Roughly 22kg of CO₂ saved is equivalent to saving one tree.'),
+          findsOneWidget);
+      expect(
+          find.byTooltip(
+              'Based on number of recyclable items reported. Each recyclable item is estimated to save 10 liters of water.'),
+          findsOneWidget);
     });
 
     testWidgets('Navigates to ClassificationDetailsScreen on activity tap', (WidgetTester tester) async {

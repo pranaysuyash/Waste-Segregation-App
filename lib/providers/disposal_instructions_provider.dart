@@ -8,9 +8,10 @@ final disposalInstructionsServiceProvider = Provider<DisposalInstructionsService
 });
 
 /// Provider for fetching disposal instructions for a specific material
-final disposalInstructionsProvider = FutureProvider.family<DisposalInstructions, DisposalInstructionsRequest>((ref, request) async {
+final disposalInstructionsProvider =
+    FutureProvider.family<DisposalInstructions, DisposalInstructionsRequest>((ref, request) async {
   final service = ref.read(disposalInstructionsServiceProvider);
-  
+
   return service.getDisposalInstructions(
     material: request.material,
     category: request.category,
@@ -21,7 +22,6 @@ final disposalInstructionsProvider = FutureProvider.family<DisposalInstructions,
 
 /// Request object for disposal instructions
 class DisposalInstructionsRequest {
-
   const DisposalInstructionsRequest({
     required this.material,
     this.category,
@@ -66,4 +66,4 @@ final clearDisposalCacheProvider = Provider<void Function()>((ref) {
     final service = ref.read(disposalInstructionsServiceProvider);
     service.clearCache();
   };
-}); 
+});

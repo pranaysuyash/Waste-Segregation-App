@@ -3,17 +3,15 @@ import 'dart:js_interop';
 @JS('window')
 external JSObject get _window;
 
-extension type _Window(JSObject o) {
-  external _Flutter get _flutter;
-}
+@JS('window.flutter')
+external JSObject? get _windowFlutter;
 
-extension type _Flutter(JSObject o) {
-  external JSObject? get buildConfig;
-}
+@JS('window.flutter.buildConfig')
+external JSObject? get _buildConfig;
 
 bool get hasWebError {
   try {
-    return (_window as _Window)._flutter.buildConfig == null;
+    return _buildConfig == null;
   } catch (e) {
     return true;
   }
@@ -22,15 +20,18 @@ bool get hasWebError {
 @JS('navigator')
 external JSObject? get _navigator;
 
-extension type _Navigator(JSObject o) {
-  external JSObject? get mediaDevices;
-  external JSObject? get share;
-  external JSObject? get clipboard;
-}
+@JS('navigator.mediaDevices')
+external JSObject? get _navigatorMediaDevices;
+
+@JS('navigator.share')
+external JSObject? get _navigatorShare;
+
+@JS('navigator.clipboard')
+external JSObject? get _navigatorClipboard;
 
 bool get hasCameraSupport {
   try {
-    return (_navigator as _Navigator?)?.mediaDevices != null;
+    return _navigatorMediaDevices != null;
   } catch (e) {
     return false;
   }
@@ -38,7 +39,7 @@ bool get hasCameraSupport {
 
 bool get hasShareSupport {
   try {
-    return (_navigator as _Navigator?)?.share != null;
+    return _navigatorShare != null;
   } catch (e) {
     return false;
   }
@@ -46,7 +47,7 @@ bool get hasShareSupport {
 
 bool get hasClipboardSupport {
   try {
-    return (_navigator as _Navigator?)?.clipboard != null;
+    return _navigatorClipboard != null;
   } catch (e) {
     return false;
   }
@@ -55,4 +56,4 @@ bool get hasClipboardSupport {
 @JS('File')
 external JSObject? get _file;
 
-bool get hasFileSupport => _file != null; 
+bool get hasFileSupport => _file != null;

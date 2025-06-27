@@ -31,7 +31,6 @@ FacilitySource facilitySourceFromString(String? sourceString) {
 }
 
 class DisposalLocationPhoto {
-
   DisposalLocationPhoto({
     required this.url,
     this.uploadedByUserId,
@@ -77,7 +76,6 @@ class DisposalLocationPhoto {
 }
 
 class DisposalLocation {
-
   DisposalLocation({
     this.id,
     required this.name,
@@ -169,4 +167,4 @@ class DisposalLocation {
       isActive: isActive ?? this.isActive,
     );
   }
-} 
+}

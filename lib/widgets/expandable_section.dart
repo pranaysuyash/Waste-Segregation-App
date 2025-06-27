@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 /// A reusable widget that provides smooth expand/collapse animations for content sections.
 /// Perfect for explanations, educational facts, and other collapsible content.
 class ExpandableSection extends StatefulWidget {
-  
   const ExpandableSection({
     super.key,
     required this.title,
@@ -26,12 +25,11 @@ class ExpandableSection extends StatefulWidget {
   State<ExpandableSection> createState() => _ExpandableSectionState();
 }
 
-class _ExpandableSectionState extends State<ExpandableSection>
-    with TickerProviderStateMixin {
+class _ExpandableSectionState extends State<ExpandableSection> with TickerProviderStateMixin {
   bool _expanded = false;
   late final AnimationController _controller;
   late final Animation<double> _animation;
-  
+
   @override
   void initState() {
     super.initState();
@@ -40,11 +38,11 @@ class _ExpandableSectionState extends State<ExpandableSection>
       duration: const Duration(milliseconds: 300),
     );
     _animation = CurvedAnimation(
-      parent: _controller, 
+      parent: _controller,
       curve: Curves.easeInOut,
     );
   }
-  
+
   void _toggle() {
     setState(() => _expanded = !_expanded);
     if (_expanded) {
@@ -53,7 +51,7 @@ class _ExpandableSectionState extends State<ExpandableSection>
       _controller.reverse();
     }
   }
-  
+
   @override
   void dispose() {
     _controller.dispose();
@@ -64,20 +62,17 @@ class _ExpandableSectionState extends State<ExpandableSection>
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    
+
     // Use theme-aware colors
-    final effectiveTitleColor = widget.titleColor == Colors.blueAccent 
-        ? theme.colorScheme.primary 
-        : widget.titleColor;
-    
-    final effectiveBackgroundColor = widget.backgroundColor ?? 
-        (isDark ? Colors.grey.shade800 : const Color(0xFFE3F2FD));
-    
-    final effectiveBorderColor = widget.borderColor ?? 
-        (isDark ? Colors.grey.shade600 : const Color(0xFF1976D2));
-    
+    final effectiveTitleColor = widget.titleColor == Colors.blueAccent ? theme.colorScheme.primary : widget.titleColor;
+
+    final effectiveBackgroundColor =
+        widget.backgroundColor ?? (isDark ? Colors.grey.shade800 : const Color(0xFFE3F2FD));
+
+    final effectiveBorderColor = widget.borderColor ?? (isDark ? Colors.grey.shade600 : const Color(0xFF1976D2));
+
     final textColor = isDark ? Colors.white : const Color(0xFF212121);
-    
+
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -111,7 +106,7 @@ class _ExpandableSectionState extends State<ExpandableSection>
             ],
           ),
           const SizedBox(height: 12),
-          
+
           // Content with animation
           AnimatedSize(
             duration: const Duration(milliseconds: 300),
@@ -161,4 +156,4 @@ class _ExpandableSectionState extends State<ExpandableSection>
       ),
     );
   }
-} 
+}

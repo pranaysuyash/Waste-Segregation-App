@@ -24,7 +24,7 @@ void main() {
     setUp(() {
       mockCommunityService = MockCommunityService();
       mockStorageService = MockStorageService();
-      
+
       testUserProfile = const UserProfile(
         id: 'test_user_123',
         displayName: 'Test User',
@@ -612,16 +612,18 @@ void main() {
 
     group('Large Data Sets', () {
       testWidgets('should handle large feed efficiently', (tester) async {
-        final largeFeedItems = List.generate(100, (index) => CommunityFeedItem(
-          id: 'feed_$index',
-          userId: 'user_$index',
-          userName: 'User $index',
-          activityType: CommunityActivityType.values[index % CommunityActivityType.values.length],
-          description: 'Activity $index',
-          timestamp: DateTime.now().subtract(Duration(minutes: index)),
-          points: index * 5,
-          metadata: {},
-        ));
+        final largeFeedItems = List.generate(
+            100,
+            (index) => CommunityFeedItem(
+                  id: 'feed_$index',
+                  userId: 'user_$index',
+                  userName: 'User $index',
+                  activityType: CommunityActivityType.values[index % CommunityActivityType.values.length],
+                  description: 'Activity $index',
+                  timestamp: DateTime.now().subtract(Duration(minutes: index)),
+                  points: index * 5,
+                  metadata: {},
+                ));
 
         when(mockStorageService.getCurrentUserProfile()).thenAnswer((_) async => testUserProfile);
         when(mockCommunityService.initCommunity()).thenAnswer((_) async {});
@@ -650,9 +652,7 @@ void main() {
           totalClassifications: 5000000,
           totalPoints: 50000000,
           activeToday: 10000,
-          topCategories: Map.fromEntries(
-            List.generate(50, (index) => MapEntry('Category $index', 1000 - index))
-          ),
+          topCategories: Map.fromEntries(List.generate(50, (index) => MapEntry('Category $index', 1000 - index))),
           weeklyGrowth: 25.7,
           averagePointsPerUser: 5000,
         );

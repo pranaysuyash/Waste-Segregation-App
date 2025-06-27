@@ -69,13 +69,38 @@ class WasteClassificationAdapter extends TypeAdapter<WasteClassification> {
       relatedItems: (fields[45] as List?)?.cast<String>(),
       imageRelativePath: fields[60] as String?,
       thumbnailRelativePath: fields[61] as String?,
+      recyclability: fields[62] as String?,
+      hazardLevel: fields[63] as int?,
+      co2Impact: fields[64] as double?,
+      decompositionTime: fields[65] as String?,
+      properEquipment: (fields[66] as List?)?.cast<String>(),
+      materials: (fields[67] as List?)?.cast<String>(),
+      subCategory: fields[68] as String?,
+      commonUses: (fields[69] as List?)?.cast<String>(),
+      alternativeOptions: (fields[70] as List?)?.cast<String>(),
+      localRegulations: (fields[71] as Map?)?.cast<String, String>(),
+      waterPollutionLevel: fields[72] as int?,
+      soilContaminationRisk: fields[73] as int?,
+      biodegradabilityDays: fields[74] as int?,
+      recyclingEfficiency: fields[75] as int?,
+      manufacturingEnergyFootprint: fields[76] as double?,
+      transportationFootprint: fields[77] as double?,
+      endOfLifeCost: fields[78] as String?,
+      circularEconomyPotential: (fields[79] as List?)?.cast<String>(),
+      generatesMicroplastics: fields[80] as bool?,
+      humanToxicityLevel: fields[81] as int?,
+      wildlifeImpactSeverity: fields[82] as int?,
+      resourceScarcity: fields[83] as String?,
+      disposalCostEstimate: fields[84] as double?,
+      bbmpComplianceStatus: fields[85] as String?,
+      localGuidelinesVersion: fields[86] as String?,
     );
   }
 
   @override
   void write(BinaryWriter writer, WasteClassification obj) {
     writer
-      ..writeByte(52)
+      ..writeByte(77)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
@@ -179,7 +204,57 @@ class WasteClassificationAdapter extends TypeAdapter<WasteClassification> {
       ..writeByte(48)
       ..write(obj.reanalysisModelsTried)
       ..writeByte(49)
-      ..write(obj.confirmedByModel);
+      ..write(obj.confirmedByModel)
+      ..writeByte(62)
+      ..write(obj.recyclability)
+      ..writeByte(63)
+      ..write(obj.hazardLevel)
+      ..writeByte(64)
+      ..write(obj.co2Impact)
+      ..writeByte(65)
+      ..write(obj.decompositionTime)
+      ..writeByte(66)
+      ..write(obj.properEquipment)
+      ..writeByte(67)
+      ..write(obj.materials)
+      ..writeByte(68)
+      ..write(obj.subCategory)
+      ..writeByte(69)
+      ..write(obj.commonUses)
+      ..writeByte(70)
+      ..write(obj.alternativeOptions)
+      ..writeByte(71)
+      ..write(obj.localRegulations)
+      ..writeByte(72)
+      ..write(obj.waterPollutionLevel)
+      ..writeByte(73)
+      ..write(obj.soilContaminationRisk)
+      ..writeByte(74)
+      ..write(obj.biodegradabilityDays)
+      ..writeByte(75)
+      ..write(obj.recyclingEfficiency)
+      ..writeByte(76)
+      ..write(obj.manufacturingEnergyFootprint)
+      ..writeByte(77)
+      ..write(obj.transportationFootprint)
+      ..writeByte(78)
+      ..write(obj.endOfLifeCost)
+      ..writeByte(79)
+      ..write(obj.circularEconomyPotential)
+      ..writeByte(80)
+      ..write(obj.generatesMicroplastics)
+      ..writeByte(81)
+      ..write(obj.humanToxicityLevel)
+      ..writeByte(82)
+      ..write(obj.wildlifeImpactSeverity)
+      ..writeByte(83)
+      ..write(obj.resourceScarcity)
+      ..writeByte(84)
+      ..write(obj.disposalCostEstimate)
+      ..writeByte(85)
+      ..write(obj.bbmpComplianceStatus)
+      ..writeByte(86)
+      ..write(obj.localGuidelinesVersion);
   }
 
   @override

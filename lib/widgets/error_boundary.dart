@@ -4,7 +4,6 @@ import '../utils/waste_app_logger.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 
 class ErrorBoundary extends StatefulWidget {
-
   const ErrorBoundary({
     super.key,
     required this.child,
@@ -28,7 +27,7 @@ class _ErrorBoundaryState extends State<ErrorBoundary> {
   @override
   void initState() {
     super.initState();
-    
+
     // Set up error handling for this widget tree
     FlutterError.onError = (FlutterErrorDetails details) {
       if (mounted) {
@@ -37,15 +36,15 @@ class _ErrorBoundaryState extends State<ErrorBoundary> {
           _errorDetails = details;
         });
       }
-      
+
       // Log error
       if (kDebugMode) {
         // Only log to console in debug mode
         WasteAppLogger.severe('Error Boundary caught exception', details.exception, details.stack, {
-      'widget': 'error_boundary',
-      'error_type': details.exception.runtimeType.toString(),
-      'action': 'display_error_widget'
-    });
+          'widget': 'error_boundary',
+          'error_type': details.exception.runtimeType.toString(),
+          'action': 'display_error_widget'
+        });
       } else {
         FirebaseCrashlytics.instance.recordFlutterFatalError(details);
       }
@@ -86,17 +85,16 @@ class _ErrorBoundaryState extends State<ErrorBoundary> {
               Text(
                 widget.errorTitle ?? 'Something went wrong',
                 style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
+                      fontWeight: FontWeight.bold,
+                    ),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 8),
               Text(
-                widget.errorMessage ?? 
-                'An unexpected error occurred. Please try again.',
+                widget.errorMessage ?? 'An unexpected error occurred. Please try again.',
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: Colors.grey.shade600,
-                ),
+                      color: Colors.grey.shade600,
+                    ),
                 textAlign: TextAlign.center,
               ),
               if (kDebugMode && _errorDetails != null) ...[
@@ -157,4 +155,4 @@ class _ErrorBoundaryState extends State<ErrorBoundary> {
       ),
     );
   }
-} 
+}

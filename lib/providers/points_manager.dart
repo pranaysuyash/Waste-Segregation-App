@@ -20,14 +20,14 @@ class PointsManager extends AsyncNotifier<UserPoints> {
     // Get dependencies from ref
     _storageService = ref.read(storageServiceProvider);
     _cloudStorageService = ref.read(cloudStorageServiceProvider);
-    
+
     // Initialize Points Engine (singleton)
     _pointsEngine = PointsEngine.getInstance(_storageService, _cloudStorageService);
     await _pointsEngine.initialize();
-    
+
     // Listen to Points Engine changes
     _pointsEngine.addListener(_onPointsEngineChanged);
-    
+
     // Return current points
     final profile = _pointsEngine.currentProfile;
     return profile?.points ?? const UserPoints();
@@ -53,7 +53,7 @@ class PointsManager extends AsyncNotifier<UserPoints> {
       if (customPoints != null && !action.supportsCustomPoints) {
         WasteAppLogger.warning('Warning occurred', null, null, {'service': 'points_manager', 'file': 'points_manager'});
       }
-      
+
       final newPoints = await _pointsEngine.addPoints(
         action.key,
         category: category ?? action.category,
@@ -65,13 +65,13 @@ class PointsManager extends AsyncNotifier<UserPoints> {
           ...?metadata,
         },
       );
-      
+
       // Update state immediately
       state = AsyncValue.data(newPoints);
-      
+
       // Validate points consistency
       await _validatePointsConsistency();
-      
+
       return newPoints;
     } catch (e, stackTrace) {
       WasteAppLogger.severe('Error occurred', null, null, {'service': 'points_manager', 'file': 'points_manager'});
@@ -92,7 +92,7 @@ class PointsManager extends AsyncNotifier<UserPoints> {
     if (action == null) {
       throw ArgumentError('Invalid action key: $actionKey');
     }
-    
+
     return addPoints(
       action,
       category: category,
@@ -105,13 +105,13 @@ class PointsManager extends AsyncNotifier<UserPoints> {
   Future<StreakDetails> updateStreak(StreakType type) async {
     try {
       final newStreak = await _pointsEngine.updateStreak(type);
-      
+
       // Update points state after streak update
       final profile = _pointsEngine.currentProfile;
       if (profile != null) {
         state = AsyncValue.data(profile.points);
       }
-      
+
       return newStreak;
     } catch (e, stackTrace) {
       WasteAppLogger.severe('Error occurred', null, null, {'service': 'points_manager', 'file': 'points_manager'});
@@ -124,13 +124,13 @@ class PointsManager extends AsyncNotifier<UserPoints> {
   Future<Achievement> claimAchievementReward(String achievementId) async {
     try {
       final achievement = await _pointsEngine.claimAchievementReward(achievementId);
-      
+
       // Update points state after claiming reward
       final profile = _pointsEngine.currentProfile;
       if (profile != null) {
         state = AsyncValue.data(profile.points);
       }
-      
+
       return achievement;
     } catch (e, stackTrace) {
       WasteAppLogger.severe('Error occurred', null, null, {'service': 'points_manager', 'file': 'points_manager'});
@@ -143,7 +143,7 @@ class PointsManager extends AsyncNotifier<UserPoints> {
   Future<void> syncWithClassifications() async {
     try {
       await _pointsEngine.syncWithClassifications();
-      
+
       // Update state after sync
       final profile = _pointsEngine.currentProfile;
       if (profile != null) {
@@ -160,7 +160,7 @@ class PointsManager extends AsyncNotifier<UserPoints> {
   Future<void> refresh() async {
     try {
       await _pointsEngine.refresh();
-      
+
       final profile = _pointsEngine.currentProfile;
       if (profile != null) {
         state = AsyncValue.data(profile.points);
@@ -178,20 +178,20 @@ class PointsManager extends AsyncNotifier<UserPoints> {
     try {
       final currentState = state;
       if (!currentState.hasValue) return;
-      
+
       final points = currentState.value!;
       final categorySum = points.categoryPoints.values.fold<int>(0, (sum, value) => sum + value);
-      
+
       // Allow some tolerance for legacy data
       const tolerance = 10;
       final difference = (points.total - categorySum).abs();
-      
+
       if (difference > tolerance) {
         WasteAppLogger.warning('Warning occurred', null, null, {'service': 'points_manager', 'file': 'points_manager'});
         WasteAppLogger.info('Operation completed', null, null, {'service': 'points_manager', 'file': 'points_manager'});
         WasteAppLogger.info('Operation completed', null, null, {'service': 'points_manager', 'file': 'points_manager'});
         WasteAppLogger.info('Operation completed', null, null, {'service': 'points_manager', 'file': 'points_manager'});
-        
+
         // Log for analytics but don't fail the operation
         // In production, this could trigger a background sync
       }
@@ -246,4 +246,4 @@ final categoryPointsProvider = Provider<Map<String, int>>((ref) {
 });
 
 // REMOVED: Duplicate provider declarations that were causing the issue
-// These are now imported from app_providers.dart 
+// These are now imported from app_providers.dart

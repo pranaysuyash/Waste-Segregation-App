@@ -61,7 +61,7 @@ void main() {
 
     testWidgets('ViewAllButton handles tap events correctly', (WidgetTester tester) async {
       var tapped = false;
-      
+
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
@@ -227,7 +227,7 @@ void main() {
 
     testWidgets('ViewAllButton performance test with rapid layout changes', (WidgetTester tester) async {
       double width = 200;
-      
+
       await tester.pumpWidget(
         StatefulBuilder(
           builder: (context, setState) {
@@ -369,4 +369,4 @@ void main() {
       expect(find.byType(ViewAllButton), findsOneWidget);
     });
   });
-} 
+}

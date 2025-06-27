@@ -11,7 +11,7 @@ import '../services/cloud_storage_service.dart';
 import '../utils/waste_app_logger.dart';
 
 /// Service for managing AI analysis jobs using OpenAI Batch API
-/// 
+///
 /// This service handles:
 /// - Creating batch jobs for cost-effective AI analysis (50% discount)
 /// - Managing job queue and status tracking
@@ -22,9 +22,10 @@ class AiJobService {
     FirebaseFirestore? firestore,
     TokenService? tokenService,
     StorageService? storageService,
-  }) : _firestore = firestore ?? FirebaseFirestore.instance,
-       _storageService = storageService ?? StorageService(),
-       _tokenService = tokenService ?? TokenService(storageService ?? StorageService(), CloudStorageService(storageService ?? StorageService()));
+  })  : _firestore = firestore ?? FirebaseFirestore.instance,
+        _storageService = storageService ?? StorageService(),
+        _tokenService = tokenService ??
+            TokenService(storageService ?? StorageService(), CloudStorageService(storageService ?? StorageService()));
 
   final FirebaseFirestore _firestore;
   final TokenService _tokenService;
@@ -34,7 +35,7 @@ class AiJobService {
   static const String _openaiApiBase = 'https://api.openai.com/v1';
 
   /// Creates a new batch job for AI analysis
-  /// 
+  ///
   /// This method:
   /// 1. Deducts tokens from user's wallet
   /// 2. Uploads image to storage
@@ -85,10 +86,10 @@ class AiJobService {
 
       // 4. Create OpenAI batch request
       final batchFileId = await _createOpenAIBatchFile(job);
-      
+
       // 5. Submit batch job to OpenAI
       final openAIBatchId = await _submitOpenAIBatchJob(batchFileId);
-      
+
       // 6. Update job with OpenAI batch ID
       final updatedJob = job.copyWith(
         metadata: {
@@ -113,7 +114,7 @@ class AiJobService {
         'service': 'ai_job_service',
         'userId': userId,
       });
-      
+
       // Refund tokens on failure
       try {
         await _tokenService.earnTokens(
@@ -128,7 +129,7 @@ class AiJobService {
           'userId': userId,
         });
       }
-      
+
       rethrow;
     }
   }
@@ -178,7 +179,7 @@ class AiJobService {
 
       // Upload to OpenAI Files API
       final fileId = await _uploadToOpenAI(jsonlContent, 'batch_${job.id}.jsonl');
-      
+
       WasteAppLogger.info('Created OpenAI batch file', null, null, {
         'service': 'ai_job_service',
         'jobId': job.id,
@@ -205,7 +206,7 @@ class AiJobService {
 
       request.headers['Authorization'] = 'Bearer ${_getOpenAIApiKey()}';
       request.fields['purpose'] = 'batch';
-      
+
       request.files.add(http.MultipartFile.fromString(
         'file',
         jsonlContent,
@@ -306,9 +307,7 @@ class AiJobService {
         .where('userId', isEqualTo: userId)
         .orderBy('createdAt', descending: true)
         .snapshots()
-        .map((snapshot) => snapshot.docs
-            .map((doc) => AiJob.fromJson(doc.data()))
-            .toList());
+        .map((snapshot) => snapshot.docs.map((doc) => AiJob.fromJson(doc.data())).toList());
   }
 
   /// Get queue statistics
@@ -347,11 +346,10 @@ class AiJobService {
       final failedJobs = jobs.where((job) => job['status'] == AiJobStatus.failed.name).length;
 
       // Calculate average processing time from completed jobs
-      final completedJobsWithTimes = jobs.where((job) => 
-        job['status'] == AiJobStatus.completed.name && 
-        job['completedAt'] != null &&
-        job['createdAt'] != null
-      ).toList();
+      final completedJobsWithTimes = jobs
+          .where((job) =>
+              job['status'] == AiJobStatus.completed.name && job['completedAt'] != null && job['createdAt'] != null)
+          .toList();
 
       var averageProcessingTime = const Duration(seconds: 30); // Default
       if (completedJobsWithTimes.isNotEmpty) {
@@ -403,7 +401,7 @@ class AiJobService {
         'service': 'ai_job_service',
         'method': 'getQueueStats',
       });
-      
+
       // Return empty stats on error
       return QueueStats.empty();
     }
@@ -462,7 +460,7 @@ Focus on accuracy and provide clear, actionable disposal instructions. Consider 
     // In production, this would come from secure environment variables
     // For now, return a placeholder that indicates missing configuration
     const apiKey = String.fromEnvironment('OPENAI_API_KEY');
-    
+
     if (apiKey.isEmpty) {
       WasteAppLogger.severe('OpenAI API key not configured', null, null, {
         'service': 'ai_job_service',
@@ -470,7 +468,7 @@ Focus on accuracy and provide clear, actionable disposal instructions. Consider 
       });
       throw Exception('OpenAI API key not configured. Please set OPENAI_API_KEY environment variable.');
     }
-    
+
     return apiKey;
   }
 }

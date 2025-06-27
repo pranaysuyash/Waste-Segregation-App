@@ -23,7 +23,7 @@ class AchievementsScreenRiverpod extends ConsumerStatefulWidget {
 class _AchievementsScreenRiverpodState extends ConsumerState<AchievementsScreenRiverpod>
     with SingleTickerProviderStateMixin, AutomaticKeepAliveClientMixin {
   late TabController _tabController;
-  
+
   // Achievement celebration state
   bool _showCelebration = false;
   Achievement? _celebrationAchievement;
@@ -35,8 +35,8 @@ class _AchievementsScreenRiverpodState extends ConsumerState<AchievementsScreenR
   void initState() {
     super.initState();
     _tabController = TabController(
-      length: 3, 
-      vsync: this, 
+      length: 3,
+      vsync: this,
       initialIndex: widget.initialTabIndex,
     );
   }
@@ -69,7 +69,7 @@ class _AchievementsScreenRiverpodState extends ConsumerState<AchievementsScreenR
   @override
   Widget build(BuildContext context) {
     super.build(context); // Required for AutomaticKeepAliveClientMixin
-    
+
     return Scaffold(
       appBar: AppBar(
         title: const Text(AppStrings.achievements),
@@ -155,7 +155,8 @@ class _StatsOverview extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Semantics(
-      label: 'Achievement statistics: ${stats.earned} of ${stats.total} achievements earned, ${stats.totalPoints} total points',
+      label:
+          'Achievement statistics: ${stats.earned} of ${stats.total} achievements earned, ${stats.totalPoints} total points',
       child: Card(
         child: Padding(
           padding: const EdgeInsets.all(AppTheme.spacingMd),
@@ -406,7 +407,7 @@ class _AchievementCardState extends ConsumerState<_AchievementCard> {
 
   Future<void> _claimReward(Achievement achievement) async {
     if (_isClaiming) return; // RACE CONDITION FIX: Prevent double claims
-    
+
     setState(() {
       _isClaiming = true;
     });
@@ -414,7 +415,7 @@ class _AchievementCardState extends ConsumerState<_AchievementCard> {
     try {
       final notifier = ref.read(gamificationProvider.notifier);
       final result = await notifier.claimReward(achievement.id);
-      
+
       result.when(
         success: (_) {
           widget.onCelebration(achievement);
@@ -502,9 +503,7 @@ class _ErrorView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final errorMessage = error is AppException 
-        ? (error as AppException).message 
-        : AppStrings.errorGeneral;
+    final errorMessage = error is AppException ? (error as AppException).message : AppStrings.errorGeneral;
 
     return Center(
       child: Padding(
@@ -540,4 +539,4 @@ class _ErrorView extends StatelessWidget {
       ),
     );
   }
-} 
+}

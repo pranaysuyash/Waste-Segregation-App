@@ -48,4 +48,4 @@ class HiveManager {
   static Future<void> closeAllBoxes() async {
     await Hive.close();
   }
-} 
+}
