@@ -103,7 +103,7 @@ class DisposalInstructionsService {
       'lang': lang,
     };
 
-    for (int attempt = 0; attempt <= maxRetries; attempt++) {
+    for (var attempt = 0; attempt <= maxRetries; attempt++) {
       try {
         WasteAppLogger.info('Disposal instructions API call attempt ${attempt + 1}/${maxRetries + 1}', 
             null, null, {
@@ -135,7 +135,7 @@ class DisposalInstructionsService {
         } else if (response.statusCode == 503) {
           // Server is temporarily unavailable - check for retry-after header
           final retryAfterHeader = response.headers['retry-after'];
-          int retryAfterSeconds = 0;
+          var retryAfterSeconds = 0;
           
           if (retryAfterHeader != null) {
             retryAfterSeconds = int.tryParse(retryAfterHeader) ?? 0;

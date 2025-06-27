@@ -204,7 +204,7 @@ class DynamicPricingService extends ChangeNotifier {
     bool isBatchMode = false,
   }) {
     // Get base pricing
-    final inputCost = getModelPricing(model, isOutput: false) * (inputTokens / 1000.0);
+    final inputCost = getModelPricing(model) * (inputTokens / 1000.0);
     final outputCost = getModelPricing(model, isOutput: true) * (outputTokens / 1000.0);
     final totalCost = inputCost + outputCost;
 
@@ -316,7 +316,6 @@ class DynamicPricingService extends ChangeNotifier {
       model: model,
       inputTokens: inputTokens,
       outputTokens: outputTokens,
-      isBatchMode: false,
     );
 
     final budgets = _cachedBudgets ?? _defaultBudgets;
@@ -383,7 +382,6 @@ class DynamicPricingService extends ChangeNotifier {
       model: model,
       inputTokens: inputTokens,
       outputTokens: outputTokens,
-      isBatchMode: false,
     );
 
     final batchCost = calculateCost(

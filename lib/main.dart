@@ -29,6 +29,7 @@ import 'services/haptic_settings_service.dart';
 import 'services/community_service.dart';
 import 'services/dynamic_link_service.dart';
 import 'services/cache_service.dart';
+import 'services/local_guidelines_plugin.dart';
 import 'screens/auth_screen.dart';
 import 'screens/consent_dialog_screen.dart';
 import 'screens/settings_screen.dart';
@@ -227,6 +228,10 @@ void main() async {
   final navigationSettingsService = NavigationSettingsService();
   final hapticSettingsService = HapticSettingsService();
   final communityService = CommunityService();
+
+  // Initialize Enhanced AI Analysis v2.0 - Local Guidelines Plugin System
+  LocalGuidelinesManager.initializeDefaultPlugins();
+  WasteAppLogger.info('Local guidelines plugins initialized (Enhanced AI Analysis v2.0)');
 
   try {
     if (kDebugMode) {

@@ -187,7 +187,7 @@ class AiCostTracker {
     );
 
     if (userRequestedInstant && batchModeEnforced) {
-      return OperationDecision(
+      return const OperationDecision(
         shouldProceed: true,
         forceAnalysisSpeed: AnalysisSpeed.batch,
         reason: 'Batch mode enforced due to budget constraints',
@@ -196,7 +196,7 @@ class AiCostTracker {
     }
 
     if (userRequestedInstant && !canAffordInstant) {
-      return OperationDecision(
+      return const OperationDecision(
         shouldProceed: true,
         forceAnalysisSpeed: AnalysisSpeed.batch,
         reason: 'Insufficient budget for instant analysis',
@@ -212,10 +212,8 @@ class AiCostTracker {
 
     return OperationDecision(
       shouldProceed: true,
-      forceAnalysisSpeed: null,
       recommendedSpeed: recommendedSpeed,
       reason: 'Normal operation',
-      recommendedMessage: null,
     );
   }
 }

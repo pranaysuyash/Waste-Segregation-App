@@ -208,13 +208,23 @@ class PointsEngine extends ChangeNotifier {
     });
   }
 
-  /// Sync points with classifications (retroactive correction)
+  /// Sync points with classifications using Enhanced AI Analysis v2.0 dynamic calculation
   Future<void> syncWithClassifications() async {
     await _executeAtomicOperation(() async {
       await initialize();
 
       final classifications = await _storageService.getAllClassifications();
-      final expectedPoints = classifications.length * _getPointsForAction('classification');
+      
+      // Calculate expected points using dynamic calculation for each classification
+      var expectedPoints = 0;
+      for (final classification in classifications) {
+        if (classification.pointsAwarded != null) {
+          expectedPoints += classification.pointsAwarded!;
+        } else {
+          // Use dynamic calculation for legacy classifications without calculated points
+          expectedPoints += classification.calculatePoints();
+        }
+      }
 
       final profile = _cachedProfile!;
       if (profile.points.total < expectedPoints) {
@@ -223,7 +233,8 @@ class PointsEngine extends ChangeNotifier {
           'expected_points': expectedPoints,
           'current_points': profile.points.total,
           'missing_points': missingPoints,
-          'total_classifications': classifications.length
+          'total_classifications': classifications.length,
+          'dynamic_calculation': true
         });
 
         final newPoints = _calculateNewPoints(profile.points, missingPoints, 'sync');
@@ -353,10 +364,10 @@ class PointsEngine extends ChangeNotifier {
     }
   }
 
-  /// Get points for action
+  /// Get points for action - Enhanced AI Analysis v2.0 with dynamic calculation
   int _getPointsForAction(String action) {
     const pointValues = {
-      'classification': 10,
+      'classification': 10, // Base value - can be overridden by customPoints
       'daily_streak': 5,
       'challenge_complete': 25,
       'badge_earned': 20,
@@ -364,9 +375,52 @@ class PointsEngine extends ChangeNotifier {
       'educational_content': 5,
       'perfect_week': 50,
       'community_challenge': 30,
+      'classification_sync': 10, // For retroactive sync operations
     };
 
     return pointValues[action] ?? 0;
+  }
+  
+  /// Calculate enhanced points for classification based on AI analysis richness
+  int calculateEnhancedClassificationPoints({
+    int dataFieldsCount = 0,
+    bool hasEnvironmentalData = false,
+    bool hasLocalCompliance = false,
+    double confidence = 0.0,
+    bool isComplexItem = false,
+  }) {
+    var points = 10; // Base classification points
+    
+    // Data richness bonus (up to 15 points)
+    points += (dataFieldsCount * 1.5).round().clamp(0, 15);
+    
+    // Environmental analysis bonus (up to 10 points)
+    if (hasEnvironmentalData) {
+      points += 5;
+    }
+    
+    // Local compliance bonus (up to 5 points)
+    if (hasLocalCompliance) {
+      points += 3;
+    }
+    
+    // Confidence bonus/penalty (±5 points)
+    if (confidence >= 0.9) {
+      points += 5;
+    } else if (confidence >= 0.8) {
+      points += 3;
+    } else if (confidence >= 0.7) {
+      points += 1;
+    } else if (confidence < 0.5) {
+      points -= 2;
+    }
+    
+    // Complexity bonus (up to 5 points)
+    if (isComplexItem) {
+      points += 3;
+    }
+    
+    return points.clamp(5, 50);
   }
 
   /// Create default profile

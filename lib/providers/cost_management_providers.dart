@@ -6,6 +6,10 @@ import '../services/ai_cost_tracker.dart';
 import '../services/remote_config_service.dart';
 import '../models/token_wallet.dart';
 
+// Re-export types for convenience
+export '../services/cost_guardrail_service.dart' show CostAlert, CostAlertType, CostAlertSeverity;
+export '../services/ai_cost_tracker.dart' show CostEstimate, TokenCounts, OperationDecision;
+
 /// Provider for the DynamicPricingService
 final dynamicPricingServiceProvider = Provider<DynamicPricingService>((ref) {
   final remoteConfigService = ref.watch(remoteConfigServiceProvider);
@@ -268,7 +272,3 @@ class BatchSavingsParams {
   @override
   int get hashCode => model.hashCode ^ estimatedInputTokens.hashCode ^ estimatedOutputTokens.hashCode;
 }
-
-// Re-export types for convenience
-export '../services/cost_guardrail_service.dart' show CostAlert, CostAlertType, CostAlertSeverity;
-export '../services/ai_cost_tracker.dart' show CostEstimate, TokenCounts, OperationDecision;

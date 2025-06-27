@@ -16,6 +16,7 @@ import 'cost_guardrail_service.dart';
 import 'enhanced_api_error_handler.dart';
 import 'package:uuid/uuid.dart';
 import '../utils/waste_app_logger.dart';
+import 'local_guidelines_plugin.dart';
 
 /// Service for analyzing waste items using AI models (OpenAI and Gemini).
 ///
@@ -208,75 +209,85 @@ You are familiar with global and local waste management rules (including $defaul
 Your goal is to provide accurate, actionable, and safe waste sorting guidance based on the latest environmental standards.
 ''';
 
-  /// Main classification prompt for analyzing waste items.
+  /// Enhanced AI Analysis v2.0 - Main classification prompt for comprehensive environmental analysis
   ///
   /// Instructs the AI model to return a comprehensive, strictly formatted JSON object
-  /// based on the provided image and context. Details the expected JSON structure
-  /// and rules for classification.
+  /// with 21+ data points including environmental impact, CO2 footprint, and local guidelines.
   String get _mainClassificationPrompt => '''
-Analyze the provided waste item (with optional image context) and return a comprehensive, strictly formatted JSON object matching the data model below.
+Analyze the provided waste item and return a comprehensive JSON object with detailed environmental analysis. Use your knowledge of materials science, environmental impact, and waste management to provide accurate assessments.
 
 Classification Hierarchy & Instructions:
 
-1. Main category (exactly one):
-   - Wet Waste (organic, compostable)
-   - Dry Waste (recyclable)
-   - Hazardous Waste (special handling)
-   - Medical Waste (potentially contaminated)
-   - Non-Waste (reusable, edible, donatable, etc.)
+1. BASIC CLASSIFICATION:
+   - Main category: Wet Waste, Dry Waste, Hazardous Waste, Medical Waste, Non-Waste
+   - Subcategory: Most specific classification (e.g., "PET Plastic", "Food Scraps", "E-waste")
+   - Material type: Primary material composition
+   - Recycling code: For plastics (1-7), if identifiable
 
-2. Subcategory: Most specific fit, based on local guidelines if available.
-3. Material type: E.g., PET plastic, cardboard, metal, glass, food scraps.
-4. Recycling code: For plastics (1–7), if identified.
-5. Disposal method: Short instruction (e.g., "Rinse and recycle in blue bin").
-6. Disposal instructions (object):
-   - primaryMethod: Main recommended action
-   - steps: Step-by-step list
-   - timeframe: If urgent (e.g., "Immediate", "Within 24 hours")
-   - location: Drop-off or bin type
-   - warnings: Any safety or contamination warnings
-   - tips: Helpful tips
-   - recyclingInfo: Extra recycling info
-   - estimatedTime: Time needed for disposal
-   - hasUrgentTimeframe: Boolean
+2. ENVIRONMENTAL IMPACT ANALYSIS (Enhanced v2.0):
+   - recyclability: "fully recyclable", "partially recyclable", "not recyclable"
+   - hazardLevel: Integer 1-5 (1=safe, 5=extremely hazardous)
+   - co2Impact: CO2 equivalent in kg (estimate lifecycle impact)
+   - decompositionTime: Natural decomposition timeline (e.g., "6 months", "500 years")
+   - waterPollutionLevel: Integer 1-5 (potential for water contamination)
+   - soilContaminationRisk: Integer 1-5 (soil pollution risk)
+   - biodegradabilityDays: Integer days for natural breakdown
+   - recyclingEfficiency: Percentage 0-100 (how much can actually be recycled)
+   - manufacturingEnergyFootprint: Energy in kWh to produce this item
+   - transportationFootprint: CO2 kg for typical transport to disposal
+   - endOfLifeCost: Environmental cost description (e.g., "landfill space", "toxic leachate")
+   - generatesMicroplastics: Boolean (does this create microplastic pollution?)
+   - humanToxicityLevel: Integer 1-5 (health risk to humans)
+   - wildlifeImpactSeverity: Integer 1-5 (impact on animals/ecosystems)
+   - resourceScarcity: "common", "uncommon", "rare" (how scarce are source materials?)
+   - disposalCostEstimate: Estimated cost in INR for proper disposal
 
-7. Risk & safety:
+3. CIRCULAR ECONOMY ANALYSIS:
+   - circularEconomyPotential: List of reuse/repurpose opportunities
+   - materials: List of component materials for better sorting
+   - commonUses: List of typical uses for this item
+   - alternativeOptions: List of eco-friendly alternatives
+
+4. LOCAL GUIDELINES (BANGALORE BBMP FOCUS):
+   - bbmpComplianceStatus: "compliant", "requires_attention", "violation" (BBMP regulations)
+   - localGuidelinesVersion: "BBMP 2024" or relevant local authority
+   - localRegulations: Key-value pairs of local rules (e.g., {"color_coding": "green_bin", "collection_day": "tuesday"})
+
+5. SAFETY & HANDLING:
+   - properEquipment: List of required PPE (e.g., ["gloves", "mask", "eye_protection"])
+   - requiredPPE: Safety equipment needed for handling
    - riskLevel: "safe", "caution", "hazardous"
-   - requiredPPE: ["gloves", "mask"], if needed
 
-8. Booleans:
-   - isRecyclable, isCompostable, requiresSpecialDisposal, isSingleUse
+6. STANDARD FIELDS:
+   - Disposal instructions with primaryMethod, steps, timeframe, location, warnings, tips
+   - Visual features, brand, product, barcode (if visible)
+   - Confidence score (0.0-1.0), clarificationNeeded boolean
+   - Alternative classifications with reasoning
+   - Multi-language support (hi, kn, en)
 
-9. Brand/product/barcode: If present/visible
-10. Region/locale: City/country string (e.g., "$defaultRegion")
-    - localGuidelinesReference: If possible (e.g., "BBMP 2024/5")
+7. DYNAMIC POINTS CALCULATION:
+   Instead of fixed pointsAwarded, use calculatePoints() method which considers:
+   - Data richness (more detailed analysis = more points)
+   - Environmental complexity (hazardous items = bonus points)
+   - Local compliance (BBMP compliance = bonus points)
+   - Confidence level (high confidence = bonus points)
+   Range: 5-50 points based on analysis quality
 
-11. Visual features: Notable characteristics from the image (e.g., ["broken", "dirty", "label missing"])
-12. Explanation: Detailed reasoning for decisions
-13. Suggested action: E.g., "Recycle", "Compost", "Donate", etc.
-14. Color code: Hex value for UI
-15. Confidence: 0.0–1.0, with a brief note if confidence < 0.7
-16. clarificationNeeded: Boolean if confidence < 0.7 or item ambiguous
-17. Alternatives: Up to 2 alternative category/subcategory suggestions, each with confidence and reason
-18. Model info:
-    - modelVersion, modelSource, processingTimeMs, analysisSessionId (set to null if not provided)
-
-19. Multilingual support:
-    - If instructionsLang provided, output translated disposal instructions as translatedInstructions for ["hi", "kn"] as well as "en".
-20. Gamification & Engagement:
-    - pointsAwarded: An integer representing the points for this classification (typically 10).
-    - environmentalImpact: A short sentence describing the positive or negative environmental impact of this item.
-    - relatedItems: A list of up to 3 related items that are often found with this one.
-21. User fields:
-    - Set isSaved, userConfirmed, userCorrection, disagreementReason, userNotes, viewCount to null unless provided in input context.
+SPECIAL INSTRUCTIONS FOR BANGALORE:
+- Reference BBMP waste segregation rules where applicable
+- Consider monsoon disposal challenges (May-October)
+- Include color-coded bin recommendations (Green/Brown/Red)
+- Factor in apartment vs independent house disposal differences
+- Consider local recycling market rates for valuable materials
 
 Rules:
-- Reply with only the JSON object (no extra commentary).
-- Use null for any unknown fields.
-- Strictly match the field names and structure below.
-- Do not hallucinate image URLs or user fields unless given.
+- Return ONLY the JSON object
+- Include all environmental analysis fields
+- Use scientific estimates for environmental impacts
+- Reference actual BBMP guidelines when possible
+- Set pointsAwarded to null (will be calculated dynamically)
 
-Format the response as a valid JSON object with these fields: itemName, category, subcategory, materialType, recyclingCode, explanation, disposalMethod, disposalInstructions, region, localGuidelinesReference, imageUrl, imageHash, imageMetrics, visualFeatures, isRecyclable, isCompostable, requiresSpecialDisposal, colorCode, riskLevel, requiredPPE, brand, product, barcode, isSaved, userConfirmed, userCorrection, disagreementReason, userNotes, viewCount, clarificationNeeded, confidence, modelVersion, processingTimeMs, modelSource, analysisSessionId, alternatives, suggestedAction, hasUrgentTimeframe, instructionsLang, translatedInstructions, pointsAwarded, isSingleUse, environmentalImpact, relatedItems
+JSON STRUCTURE with ALL fields: itemName, category, subcategory, materialType, recyclingCode, explanation, disposalMethod, disposalInstructions, region, localGuidelinesReference, imageUrl, imageHash, imageMetrics, visualFeatures, isRecyclable, isCompostable, requiresSpecialDisposal, colorCode, riskLevel, requiredPPE, brand, product, barcode, isSaved, userConfirmed, userCorrection, disagreementReason, userNotes, viewCount, clarificationNeeded, confidence, modelVersion, processingTimeMs, modelSource, analysisSessionId, alternatives, suggestedAction, hasUrgentTimeframe, instructionsLang, translatedInstructions, pointsAwarded, isSingleUse, environmentalImpact, relatedItems, recyclability, hazardLevel, co2Impact, decompositionTime, properEquipment, materials, subCategory, commonUses, alternativeOptions, localRegulations, waterPollutionLevel, soilContaminationRisk, biodegradabilityDays, recyclingEfficiency, manufacturingEnergyFootprint, transportationFootprint, endOfLifeCost, circularEconomyPotential, generatesMicroplastics, humanToxicityLevel, wildlifeImpactSeverity, resourceScarcity, disposalCostEstimate, bbmpComplianceStatus, localGuidelinesVersion
 ''';
 
   /// Correction/disagreement prompt for handling user feedback.
@@ -915,7 +926,6 @@ Output:
         model: modelKey,
         inputTokens: inputTokens,
         outputTokens: outputTokens,
-        isBatchMode: false,
       );
       
       // Record spending in guardrail service
@@ -924,7 +934,6 @@ Output:
         cost: cost,
         inputTokens: inputTokens,
         outputTokens: outputTokens,
-        isBatchMode: false,
       );
       
       WasteAppLogger.info('API cost recorded', null, null, {
@@ -936,7 +945,7 @@ Output:
         'processing_time_ms': processingTime.inMilliseconds,
       });
       
-      final classification = _processAiResponseData(
+      var classification = _processAiResponseData(
         responseData,
         imageName,
         region,
@@ -944,6 +953,12 @@ Output:
         null,
         classificationId,
         thumbnailPath: thumbnailPath,
+      );
+      
+      // Apply Enhanced AI Analysis v2.0 - Local Guidelines
+      classification = await LocalGuidelinesManager.applyLocalGuidelines(
+        classification,
+        region,
       );
 
       // Cache the result if we have a valid hash
@@ -1137,12 +1152,11 @@ Output:
         final outputTokens = usage?['candidatesTokenCount'] ?? 800; // Fallback estimate
         
         // Calculate and record cost for Gemini
-        final modelKey = 'gemini_2_0_flash';
+        const modelKey = 'gemini_2_0_flash';
         final cost = pricingService.calculateCost(
           model: modelKey,
           inputTokens: inputTokens,
           outputTokens: outputTokens,
-          isBatchMode: false,
         );
         
         // Record spending in guardrail service
@@ -1151,7 +1165,6 @@ Output:
           cost: cost,
           inputTokens: inputTokens,
           outputTokens: outputTokens,
-          isBatchMode: false,
         );
         
         WasteAppLogger.info('Gemini API cost recorded', null, null, {
@@ -1172,7 +1185,7 @@ Output:
           ]
         };
 
-        final classification = _processAiResponseData(
+        var classification = _processAiResponseData(
           openAiFormat,
           imageName,
           region,
@@ -1180,6 +1193,12 @@ Output:
           null,
           classificationId,
           thumbnailPath: thumbnailPath,
+        );
+        
+        // Apply Enhanced AI Analysis v2.0 - Local Guidelines
+        classification = await LocalGuidelinesManager.applyLocalGuidelines(
+          classification,
+          region,
         );
 
         // Cache the result if we have a valid hash
@@ -1519,24 +1538,25 @@ Output:
       var itemName = _safeStringParse(jsonContent['itemName']) ?? '';
 
       if (itemName.isEmpty || itemName == 'null') {
+        WasteAppLogger.info(
+          'AI response contained empty or null itemName. Attempting extraction from other fields.',
+          null,
+          null,
+          {'jsonContent': jsonContent}, // Log the full JSON content for debugging
+        );
         // Try to extract item name from explanation or subcategory
         final explanation = _safeStringParse(jsonContent['explanation']) ?? '';
         final subcategory = _safeStringParse(jsonContent['subcategory']) ?? '';
         final category = _safeStringParse(jsonContent['category']) ?? '';
 
-        WasteAppLogger.info('Operation completed', null, null, {'service': 'ai', 'file': 'ai_service'});
-        WasteAppLogger.info('Operation completed', null, null, {'service': 'ai', 'file': 'ai_service'});
-        WasteAppLogger.info('Operation completed', null, null, {'service': 'ai', 'file': 'ai_service'});
-        WasteAppLogger.info('Operation completed', null, null, {'service': 'ai', 'file': 'ai_service'});
-
         // Try to extract from explanation first
         if (explanation.isNotEmpty) {
           // Look for patterns like "The image shows [item]" or "This is [item]"
           final patterns = [
-            RegExp(r'(?:shows?|depicts?|contains?|is)\s+(?:an?|the)?\s*([^.]+?)(?:\s+(?:which|that|in|on)|\.|$)',
+            RegExp(r'(?:shows?|depicts?|contains?|is)\s+(?:an?|the)?\s*([^.]+?)(?:\\s+(?:which|that|in|on)|\\.|$)',
                 caseSensitive: false),
             RegExp(
-                r'(?:This|It)\s+(?:appears to be|looks like|is)\s+(?:an?|the)?\s*([^.]+?)(?:\s+(?:which|that|in|on)|\.|$)',
+                r'(?:This|It)\\s+(?:appears to be|looks like|is)\\s+(?:an?|the)?\\s*([^.]+?)(?:\\s+(?:which|that|in|on)|\\.|$)',
                 caseSensitive: false),
           ];
 
@@ -1546,7 +1566,12 @@ Output:
               final extractedName = match.group(1)!.trim();
               if (extractedName.isNotEmpty && extractedName.length < 50) {
                 itemName = extractedName;
-                WasteAppLogger.info('Operation completed', null, null, {'service': 'ai', 'file': 'ai_service'});
+                WasteAppLogger.info(
+                  'Extracted itemName from explanation.',
+                  null,
+                  null,
+                  {'extractedName': itemName, 'explanation': explanation},
+                );
                 break;
               }
             }
@@ -1556,19 +1581,34 @@ Output:
         // Fallback to subcategory if still empty
         if (itemName.isEmpty && subcategory.isNotEmpty) {
           itemName = subcategory;
-          WasteAppLogger.info('Operation completed', null, null, {'service': 'ai', 'file': 'ai_service'});
+          WasteAppLogger.info(
+            'Falling back to subcategory for itemName.',
+            null,
+            null,
+            {'subcategory': itemName},
+          );
         }
 
         // Final fallback to category
         if (itemName.isEmpty && category.isNotEmpty) {
           itemName = category;
-          WasteAppLogger.info('Operation completed', null, null, {'service': 'ai', 'file': 'ai_service'});
+          WasteAppLogger.info(
+            'Falling back to category for itemName.',
+            null,
+            null,
+            {'category': itemName},
+          );
         }
 
         // Last resort fallback
         if (itemName.isEmpty) {
-          itemName = 'Unidentified Item';
-          WasteAppLogger.info('Operation completed', null, null, {'service': 'ai', 'file': 'ai_service'});
+          itemName = 'Unidentified Item - Fallback';
+          WasteAppLogger.warning(
+            'Could not extract itemName from AI response; defaulting to "Unidentified Item".',
+            null,
+            null,
+            {'jsonContent': jsonContent},
+          );
         }
       }
 
@@ -1606,7 +1646,8 @@ Output:
         }
       }
 
-      return WasteClassification(
+      // Create the classification with all fields
+      final classification = WasteClassification(
         id: classificationId,
         itemName: itemName,
         category: _safeStringParse(jsonContent['category']) ?? 'Requires Manual Review',
@@ -1644,12 +1685,46 @@ Output:
         processingTimeMs: _parseInt(jsonContent['processingTimeMs']),
         analysisSessionId: _safeStringParse(jsonContent['analysisSessionId']),
         disagreementReason: _safeStringParse(jsonContent['disagreementReason']),
-        pointsAwarded: _parseInt(jsonContent['pointsAwarded']) ?? 10, // Standard points for classification
         environmentalImpact: _safeStringParse(jsonContent['environmentalImpact']),
         relatedItems: _parseStringListSafely(jsonContent['relatedItems']),
         source: 'ai_analysis',
         reanalysisModelsTried: reanalysisModelsTried,
+        // Enhanced AI Analysis v2.0 fields
+        recyclability: _safeStringParse(jsonContent['recyclability']),
+        hazardLevel: _parseInt(jsonContent['hazardLevel']),
+        co2Impact: _parseDouble(jsonContent['co2Impact']),
+        decompositionTime: _safeStringParse(jsonContent['decompositionTime']),
+        properEquipment: _parseStringListSafely(jsonContent['properEquipment']),
+        materials: _parseStringListSafely(jsonContent['materials']),
+        subCategory: _safeStringParse(jsonContent['subCategory']),
+        commonUses: _parseStringListSafely(jsonContent['commonUses']),
+        alternativeOptions: _parseStringListSafely(jsonContent['alternativeOptions']),
+        localRegulations: _parseStringMapSafely(jsonContent['localRegulations']),
+        waterPollutionLevel: _parseInt(jsonContent['waterPollutionLevel']),
+        soilContaminationRisk: _parseInt(jsonContent['soilContaminationRisk']),
+        biodegradabilityDays: _parseInt(jsonContent['biodegradabilityDays']),
+        recyclingEfficiency: _parseInt(jsonContent['recyclingEfficiency']),
+        manufacturingEnergyFootprint: _parseDouble(jsonContent['manufacturingEnergyFootprint']),
+        transportationFootprint: _parseDouble(jsonContent['transportationFootprint']),
+        endOfLifeCost: _safeStringParse(jsonContent['endOfLifeCost']),
+        circularEconomyPotential: _parseStringListSafely(jsonContent['circularEconomyPotential']),
+        generatesMicroplastics: _parseBool(jsonContent['generatesMicroplastics']),
+        humanToxicityLevel: _parseInt(jsonContent['humanToxicityLevel']),
+        wildlifeImpactSeverity: _parseInt(jsonContent['wildlifeImpactSeverity']),
+        resourceScarcity: _safeStringParse(jsonContent['resourceScarcity']),
+        disposalCostEstimate: _parseDouble(jsonContent['disposalCostEstimate']),
+        bbmpComplianceStatus: _safeStringParse(jsonContent['bbmpComplianceStatus']),
+        localGuidelinesVersion: _safeStringParse(jsonContent['localGuidelinesVersion']),
       );
+      
+      // Note: Local guidelines will be applied in the calling method since this is not async
+      // The classification will be enhanced with local guidelines after creation
+      
+      // Calculate dynamic points based on classification richness
+      final calculatedPoints = classification.calculatePoints();
+      
+      // Return classification with calculated points
+      return classification.copyWith(pointsAwarded: calculatedPoints);
     } catch (e) {
       WasteAppLogger.severe('Error occurred');
       return _createFallbackClassification(jsonContent.toString(), imagePath, region,
@@ -1793,10 +1868,15 @@ Output:
   /// Assigns moderate confidence and marks clarification as needed.
   WasteClassification _createFallbackClassification(String content, String imagePath, String region,
       {String? classificationId}) {
-    WasteAppLogger.info('Operation completed', null, null, {'service': 'ai', 'file': 'ai_service'});
+    WasteAppLogger.severe(
+      'Creating fallback classification due to JSON parsing error.',
+      null,
+      null,
+      {'rawContent': content, 'imagePath': imagePath, 'region': region},
+    );
 
     // Try to extract basic information from the text
-    var itemName = 'Unknown Item';
+    var itemName = 'Unknown Item - Fallback';
     var category = 'Dry Waste';
     var explanation = 'Classification extracted from partial AI response.';
 

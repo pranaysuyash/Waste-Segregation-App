@@ -53,7 +53,7 @@ class EnhancedApiErrorHandler {
       throw error;
     }
 
-    int attemptCount = 0;
+    var attemptCount = 0;
     Exception? lastException;
 
     while (attemptCount < maxRetries) {
@@ -253,7 +253,7 @@ class EnhancedApiErrorHandler {
   /// Calculate backoff delay with exponential backoff and jitter
   Duration _calculateBackoffDelay(int attemptCount, ClassifiedApiError error) {
     // Base delay starts at 1 second
-    int baseDelayMs = 1000;
+    var baseDelayMs = 1000;
 
     // Adjust base delay based on error type
     switch (error.type) {

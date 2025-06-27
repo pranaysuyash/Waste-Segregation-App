@@ -746,14 +746,28 @@ class GamificationService extends ChangeNotifier {
   // Process a waste classification for gamification
   // Returns a list of completed challenges
   Future<List<Challenge>> processClassification(WasteClassification classification) async {
-    WasteAppLogger.info('Operation completed', null, null, {'service': 'gamification', 'file': 'gamification_service'});
+    WasteAppLogger.info('Processing classification for gamification', null, null, {
+      'service': 'gamification', 
+      'file': 'gamification_service',
+      'item': classification.itemName,
+      'category': classification.category,
+    });
 
     // Get profile before making changes to detect newly earned achievements
     final profileBefore = await getProfile();
     final oldEarnedIds = profileBefore.achievements.where((a) => a.isEarned).map((a) => a.id).toSet();
 
-    await addPoints('classification', category: classification.category);
-    WasteAppLogger.info('Operation completed', null, null, {'service': 'gamification', 'file': 'gamification_service'});
+    // Use dynamic points calculation from Enhanced AI Analysis v2.0
+    final dynamicPoints = classification.pointsAwarded ?? classification.calculatePoints();
+    await addPoints('classification', category: classification.category, customPoints: dynamicPoints);
+    
+    WasteAppLogger.info('Dynamic points awarded', null, null, {
+      'service': 'gamification', 
+      'file': 'gamification_service',
+      'points_awarded': dynamicPoints,
+      'base_calculation': classification.calculatePoints(),
+      'ai_calculated': classification.pointsAwarded,
+    });
 
     final categoriesBeforeCount = profileBefore.points.categoryPoints.keys.length;
 

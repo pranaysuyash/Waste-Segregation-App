@@ -571,9 +571,10 @@ class _FamilyManagementScreenState extends State<FamilyManagementScreen> with Si
       await _familyService.createInvitation(family.id, _currentUser?.id ?? '', email, inviteRole);
       if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Invitation sent!')));
     } catch (e) {
-      if (mounted)
+      if (mounted) {
         ScaffoldMessenger.of(context)
             .showSnackBar(SnackBar(content: Text('Failed to send invitation: ${e.toString()}')));
+      }
     }
   }
 
@@ -673,8 +674,9 @@ class _FamilyManagementScreenState extends State<FamilyManagementScreen> with Si
       await _familyService.updateMemberRole(family.id, userId, newProfileRole);
       if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Member role updated.')));
     } catch (e) {
-      if (mounted)
+      if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to update role: ${e.toString()}')));
+      }
     }
   }
 
@@ -683,8 +685,9 @@ class _FamilyManagementScreenState extends State<FamilyManagementScreen> with Si
       await _familyService.removeMember(family.id, userId);
       if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Member removed.')));
     } catch (e) {
-      if (mounted)
+      if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to remove member: ${e.toString()}')));
+      }
     }
   }
 
@@ -693,9 +696,10 @@ class _FamilyManagementScreenState extends State<FamilyManagementScreen> with Si
       await _familyService.resendInvitation(invitation.id);
       if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Invitation resent.')));
     } catch (e) {
-      if (mounted)
+      if (mounted) {
         ScaffoldMessenger.of(context)
             .showSnackBar(SnackBar(content: Text('Failed to resend invitation: ${e.toString()}')));
+      }
     }
   }
 
@@ -704,9 +708,10 @@ class _FamilyManagementScreenState extends State<FamilyManagementScreen> with Si
       await _familyService.cancelInvitation(invitation.id);
       if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Invitation cancelled.')));
     } catch (e) {
-      if (mounted)
+      if (mounted) {
         ScaffoldMessenger.of(context)
             .showSnackBar(SnackBar(content: Text('Failed to cancel invitation: ${e.toString()}')));
+      }
     }
   }
 
@@ -775,12 +780,14 @@ class _FamilyManagementScreenState extends State<FamilyManagementScreen> with Si
     try {
       final updatedFamily = family.copyWith(isPublic: value);
       await _familyService.updateFamily(updatedFamily);
-      if (mounted)
+      if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Public setting updated to $value.')));
+      }
     } catch (e) {
-      if (mounted)
+      if (mounted) {
         ScaffoldMessenger.of(context)
             .showSnackBar(SnackBar(content: Text('Failed to update public setting: ${e.toString()}')));
+      }
     }
   }
 
@@ -789,13 +796,15 @@ class _FamilyManagementScreenState extends State<FamilyManagementScreen> with Si
       final updatedSettings = family.settings.copyWith(shareClassificationsPublicly: value);
       final updatedFamily = family.copyWith(settings: updatedSettings);
       await _familyService.updateFamily(updatedFamily);
-      if (mounted)
+      if (mounted) {
         ScaffoldMessenger.of(context)
             .showSnackBar(SnackBar(content: Text('Share classifications setting updated to $value.')));
+      }
     } catch (e) {
-      if (mounted)
+      if (mounted) {
         ScaffoldMessenger.of(context)
             .showSnackBar(SnackBar(content: Text('Failed to update share setting: ${e.toString()}')));
+      }
     }
   }
 
@@ -804,13 +813,15 @@ class _FamilyManagementScreenState extends State<FamilyManagementScreen> with Si
       final updatedSettings = family.settings.copyWith(showMemberActivityInFeed: value);
       final updatedFamily = family.copyWith(settings: updatedSettings);
       await _familyService.updateFamily(updatedFamily);
-      if (mounted)
+      if (mounted) {
         ScaffoldMessenger.of(context)
             .showSnackBar(SnackBar(content: Text('Show member activity setting updated to $value.')));
+      }
     } catch (e) {
-      if (mounted)
+      if (mounted) {
         ScaffoldMessenger.of(context)
             .showSnackBar(SnackBar(content: Text('Failed to update member activity setting: ${e.toString()}')));
+      }
     }
   }
 
@@ -881,9 +892,10 @@ class _FamilyManagementScreenState extends State<FamilyManagementScreen> with Si
           Navigator.of(context).pop();
         }
       } catch (e) {
-        if (mounted)
+        if (mounted) {
           ScaffoldMessenger.of(context)
               .showSnackBar(SnackBar(content: Text('Failed to delete family: ${e.toString()}')));
+        }
       }
     }
   }

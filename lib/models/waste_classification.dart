@@ -70,6 +70,22 @@ class WasteClassification extends HiveObject {
     this.commonUses,
     this.alternativeOptions,
     this.localRegulations,
+    // Enhanced AI Analysis v2.0 additional fields
+    this.waterPollutionLevel,
+    this.soilContaminationRisk,
+    this.biodegradabilityDays,
+    this.recyclingEfficiency,
+    this.manufacturingEnergyFootprint,
+    this.transportationFootprint,
+    this.endOfLifeCost,
+    this.circularEconomyPotential,
+    this.generatesMicroplastics,
+    this.humanToxicityLevel,
+    this.wildlifeImpactSeverity,
+    this.resourceScarcity,
+    this.disposalCostEstimate,
+    this.bbmpComplianceStatus,
+    this.localGuidelinesVersion,
   })  : id = id ?? const Uuid().v4(),
         timestamp = timestamp ?? DateTime.now();
 
@@ -77,7 +93,7 @@ class WasteClassification extends HiveObject {
   factory WasteClassification.fallback(String imagePath, {String? userId, String? id}) {
     return WasteClassification(
       id: id ?? const Uuid().v4(),
-      itemName: 'Unidentified Item',
+      itemName: 'Unidentified Item - Fallback',
       category: 'Requires Manual Review',
       subcategory: 'Classification Needed',
       explanation:
@@ -195,6 +211,32 @@ class WasteClassification extends HiveObject {
       relatedItems: json['relatedItems'] != null ? List<String>.from(json['relatedItems']) : null,
       imageRelativePath: json['imageRelativePath'],
       thumbnailRelativePath: json['thumbnailRelativePath'],
+      // Enhanced AI Analysis v2.0 additional fields
+      recyclability: json['recyclability'],
+      hazardLevel: json['hazardLevel'],
+      co2Impact: json['co2Impact']?.toDouble(),
+      decompositionTime: json['decompositionTime'],
+      properEquipment: json['properEquipment'] != null ? List<String>.from(json['properEquipment']) : null,
+      materials: json['materials'] != null ? List<String>.from(json['materials']) : null,
+      subCategory: json['subCategory'],
+      commonUses: json['commonUses'] != null ? List<String>.from(json['commonUses']) : null,
+      alternativeOptions: json['alternativeOptions'] != null ? List<String>.from(json['alternativeOptions']) : null,
+      localRegulations: json['localRegulations'] != null ? Map<String, String>.from(json['localRegulations']) : null,
+      waterPollutionLevel: json['waterPollutionLevel'],
+      soilContaminationRisk: json['soilContaminationRisk'],
+      biodegradabilityDays: json['biodegradabilityDays'],
+      recyclingEfficiency: json['recyclingEfficiency'],
+      manufacturingEnergyFootprint: json['manufacturingEnergyFootprint']?.toDouble(),
+      transportationFootprint: json['transportationFootprint']?.toDouble(),
+      endOfLifeCost: json['endOfLifeCost'],
+      circularEconomyPotential: json['circularEconomyPotential'] != null ? List<String>.from(json['circularEconomyPotential']) : null,
+      generatesMicroplastics: json['generatesMicroplastics'],
+      humanToxicityLevel: json['humanToxicityLevel'],
+      wildlifeImpactSeverity: json['wildlifeImpactSeverity'],
+      resourceScarcity: json['resourceScarcity'],
+      disposalCostEstimate: json['disposalCostEstimate']?.toDouble(),
+      bbmpComplianceStatus: json['bbmpComplianceStatus'],
+      localGuidelinesVersion: json['localGuidelinesVersion'],
     );
   }
   @HiveField(0)
@@ -332,7 +374,7 @@ class WasteClassification extends HiveObject {
   @HiveField(49)
   final String? confirmedByModel;
 
-  // Enhanced AI Analysis v2.0 - Environmental Impact Fields
+  // Enhanced AI Analysis v2.0 - Environmental Impact Fields (21+ data points)
   /// Recyclability level (fully, partially, not recyclable)
   @HiveField(62)
   final String? recyclability; // Using String for backward compatibility
@@ -373,6 +415,67 @@ class WasteClassification extends HiveObject {
   @HiveField(71)
   final Map<String, String>? localRegulations;
 
+  // Enhanced AI Analysis v2.0 - Additional Environmental Data Points
+  /// Water pollution impact level (1-5 scale)
+  @HiveField(72)
+  final int? waterPollutionLevel;
+
+  /// Soil contamination risk (1-5 scale)
+  @HiveField(73)
+  final int? soilContaminationRisk;
+
+  /// Biodegradability timeline in days
+  @HiveField(74)
+  final int? biodegradabilityDays;
+
+  /// Recycling efficiency percentage (0-100)
+  @HiveField(75)
+  final int? recyclingEfficiency;
+
+  /// Manufacturing energy footprint in kWh
+  @HiveField(76)
+  final double? manufacturingEnergyFootprint;
+
+  /// Transportation carbon footprint
+  @HiveField(77)
+  final double? transportationFootprint;
+
+  /// End-of-life environmental cost
+  @HiveField(78)
+  final String? endOfLifeCost;
+
+  /// Circular economy potential (reuse/repurpose opportunities)
+  @HiveField(79)
+  final List<String>? circularEconomyPotential;
+
+  /// Microplastic generation risk (boolean)
+  @HiveField(80)
+  final bool? generatesMicroplastics;
+
+  /// Toxicity level for humans (1-5 scale)
+  @HiveField(81)
+  final int? humanToxicityLevel;
+
+  /// Wildlife impact severity (1-5 scale)
+  @HiveField(82)
+  final int? wildlifeImpactSeverity;
+
+  /// Resource scarcity indicator (common/uncommon/rare)
+  @HiveField(83)
+  final String? resourceScarcity;
+
+  /// Disposal cost estimate in local currency
+  @HiveField(84)
+  final double? disposalCostEstimate;
+
+  /// BBMP compliance status for Bangalore
+  @HiveField(85)
+  final String? bbmpComplianceStatus;
+
+  /// Local guidelines version number
+  @HiveField(86)
+  final String? localGuidelinesVersion;
+
   /// Parse disposal instructions from various input formats
   static DisposalInstructions _parseDisposalInstructions(dynamic instructionsData) {
     if (instructionsData == null) {
@@ -403,6 +506,233 @@ class WasteClassification extends HiveObject {
       steps: ['Please review manually'],
       hasUrgentTimeframe: false,
     );
+  }
+
+  /// Calculate dynamic points based on classification richness and environmental impact
+  int calculatePoints() {
+    var points = 10; // Base points for classification
+    
+    // Data richness bonus (up to 15 points)
+    var dataFields = 0;
+    if (subcategory != null && subcategory!.isNotEmpty) dataFields++;
+    if (materialType != null && materialType!.isNotEmpty) dataFields++;
+    if (recyclingCode != null) dataFields++;
+    if (brand != null && brand!.isNotEmpty) dataFields++;
+    if (visualFeatures.isNotEmpty) dataFields++;
+    if (materials != null && materials!.isNotEmpty) dataFields++;
+    if (commonUses != null && commonUses!.isNotEmpty) dataFields++;
+    if (alternativeOptions != null && alternativeOptions!.isNotEmpty) dataFields++;
+    if (circularEconomyPotential != null && circularEconomyPotential!.isNotEmpty) dataFields++;
+    if (localRegulations != null && localRegulations!.isNotEmpty) dataFields++;
+    
+    // Award bonus points for detailed analysis (1-15 points)
+    points += (dataFields * 1.5).round().clamp(0, 15);
+    
+    // Environmental impact bonus (up to 10 points)
+    if (co2Impact != null && co2Impact! > 0) {
+      points += 2;
+    }
+    if (waterPollutionLevel != null && waterPollutionLevel! > 3) {
+      points += 2;
+    }
+    if (soilContaminationRisk != null && soilContaminationRisk! > 3) {
+      points += 2;
+    }
+    if (recyclability == 'fully recyclable') {
+      points += 3;
+    } else if (recyclability == 'partially recyclable') {
+      points += 1;
+    }
+    if (generatesMicroplastics == true) {
+      points += 2; // Awareness bonus
+    }
+    
+    // Complexity bonus (up to 5 points)
+    if (requiresSpecialDisposal == true) {
+      points += 3;
+    }
+    if (requiredPPE != null && requiredPPE!.isNotEmpty) {
+      points += 2;
+    }
+    if (hasUrgentTimeframe == true) {
+      points += 2;
+    }
+    
+    // Local guidelines bonus (up to 5 points)
+    if (bbmpComplianceStatus != null && bbmpComplianceStatus!.isNotEmpty) {
+      points += 3;
+    }
+    if (localGuidelinesReference != null && localGuidelinesReference!.isNotEmpty) {
+      points += 2;
+    }
+    
+    // Confidence bonus/penalty (±5 points)
+    if (confidence != null) {
+      if (confidence! >= 0.9) {
+        points += 5;
+      } else if (confidence! >= 0.8) {
+        points += 3;
+      } else if (confidence! >= 0.7) {
+        points += 1;
+      } else if (confidence! < 0.5) {
+        points -= 2;
+      }
+    }
+    
+    // Cap at reasonable maximum
+    return points.clamp(5, 50);
+  }
+  
+  /// Get environmental impact score (1-10 scale)
+  double getEnvironmentalImpactScore() {
+    var score = 5.0; // Neutral baseline
+    
+    // CO2 impact factor
+    if (co2Impact != null) {
+      if (co2Impact! > 10.0) {
+        score += 2.0;
+      } else if (co2Impact! > 5.0) {
+        score += 1.0;
+      } else if (co2Impact! < 1.0) {
+        score -= 1.0;
+      }
+    }
+    
+    // Pollution factors
+    if (waterPollutionLevel != null) {
+      score += (waterPollutionLevel! - 3) * 0.5;
+    }
+    if (soilContaminationRisk != null) {
+      score += (soilContaminationRisk! - 3) * 0.5;
+    }
+    
+    // Recyclability factor
+    if (recyclability == 'fully recyclable') {
+      score -= 2.0;
+    } else if (recyclability == 'not recyclable') {
+      score += 1.5;
+    }
+    
+    // Microplastics factor
+    if (generatesMicroplastics == true) {
+      score += 1.0;
+    }
+    
+    // Toxicity factors
+    if (humanToxicityLevel != null) {
+      score += (humanToxicityLevel! - 3) * 0.3;
+    }
+    if (wildlifeImpactSeverity != null) {
+      score += (wildlifeImpactSeverity! - 3) * 0.4;
+    }
+    
+    return score.clamp(1.0, 10.0);
+  }
+  
+  /// Get visual tags for this classification
+  List<ClassificationTag> getClassificationTags() {
+    final tags = <ClassificationTag>[];
+    
+    // Single-use vs Multi-use
+    if (isSingleUse == true) {
+      tags.add(const ClassificationTag(
+        label: 'Single-Use',
+        color: '#FF6B35', // Orange
+        icon: 'warning',
+        priority: 1,
+      ));
+    } else if (isSingleUse == false) {
+      tags.add(const ClassificationTag(
+        label: 'Multi-Use',
+        color: '#4CAF50', // Green
+        icon: 'autorenew',
+        priority: 2,
+      ));
+    }
+    
+    // Recyclability
+    if (recyclability != null) {
+      switch (recyclability) {
+        case 'fully recyclable':
+          tags.add(const ClassificationTag(
+            label: 'Fully Recyclable',
+            color: '#2E7D32', // Dark Green
+            icon: 'recycling',
+            priority: 3,
+          ));
+          break;
+        case 'partially recyclable':
+          tags.add(const ClassificationTag(
+            label: 'Partially Recyclable',
+            color: '#F57C00', // Orange
+            icon: 'recycling',
+            priority: 4,
+          ));
+          break;
+        case 'not recyclable':
+          tags.add(const ClassificationTag(
+            label: 'Not Recyclable',
+            color: '#D32F2F', // Red
+            icon: 'block',
+            priority: 5,
+          ));
+          break;
+      }
+    }
+    
+    // Hazard level
+    if (hazardLevel != null && hazardLevel! > 3) {
+      tags.add(const ClassificationTag(
+        label: 'Hazardous',
+        color: '#C62828', // Dark Red
+        icon: 'dangerous',
+        priority: 6,
+      ));
+    }
+    
+    // Special disposal
+    if (requiresSpecialDisposal == true) {
+      tags.add(const ClassificationTag(
+        label: 'Special Disposal',
+        color: '#7B1FA2', // Purple
+        icon: 'medical_services',
+        priority: 7,
+      ));
+    }
+    
+    // Compostable
+    if (isCompostable == true) {
+      tags.add(const ClassificationTag(
+        label: 'Compostable',
+        color: '#388E3C', // Green
+        icon: 'compost',
+        priority: 8,
+      ));
+    }
+    
+    // BBMP Compliance (Bangalore specific)
+    if (bbmpComplianceStatus != null && bbmpComplianceStatus!.isNotEmpty) {
+      tags.add(ClassificationTag(
+        label: 'BBMP: $bbmpComplianceStatus',
+        color: '#1565C0', // Blue
+        icon: 'verified',
+        priority: 9,
+      ));
+    }
+    
+    // High CO2 impact
+    if (co2Impact != null && co2Impact! > 5.0) {
+      tags.add(const ClassificationTag(
+        label: 'High CO₂ Impact',
+        color: '#FF5722', // Deep Orange
+        icon: 'co2',
+        priority: 10,
+      ));
+    }
+    
+    // Sort by priority and return top 5
+    tags.sort((a, b) => a.priority.compareTo(b.priority));
+    return tags.take(5).toList();
   }
 
   /// Converts the classification to JSON
@@ -460,6 +790,32 @@ class WasteClassification extends HiveObject {
       'relatedItems': relatedItems,
       'imageRelativePath': imageRelativePath,
       'thumbnailRelativePath': thumbnailRelativePath,
+      // Enhanced AI Analysis v2.0 additional fields
+      'recyclability': recyclability,
+      'hazardLevel': hazardLevel,
+      'co2Impact': co2Impact,
+      'decompositionTime': decompositionTime,
+      'properEquipment': properEquipment,
+      'materials': materials,
+      'subCategory': subCategory,
+      'commonUses': commonUses,
+      'alternativeOptions': alternativeOptions,
+      'localRegulations': localRegulations,
+      'waterPollutionLevel': waterPollutionLevel,
+      'soilContaminationRisk': soilContaminationRisk,
+      'biodegradabilityDays': biodegradabilityDays,
+      'recyclingEfficiency': recyclingEfficiency,
+      'manufacturingEnergyFootprint': manufacturingEnergyFootprint,
+      'transportationFootprint': transportationFootprint,
+      'endOfLifeCost': endOfLifeCost,
+      'circularEconomyPotential': circularEconomyPotential,
+      'generatesMicroplastics': generatesMicroplastics,
+      'humanToxicityLevel': humanToxicityLevel,
+      'wildlifeImpactSeverity': wildlifeImpactSeverity,
+      'resourceScarcity': resourceScarcity,
+      'disposalCostEstimate': disposalCostEstimate,
+      'bbmpComplianceStatus': bbmpComplianceStatus,
+      'localGuidelinesVersion': localGuidelinesVersion,
     };
   }
 
@@ -517,6 +873,32 @@ class WasteClassification extends HiveObject {
     List<String>? relatedItems,
     String? imageRelativePath,
     String? thumbnailRelativePath,
+    // Enhanced AI Analysis v2.0 additional fields
+    String? recyclability,
+    int? hazardLevel,
+    double? co2Impact,
+    String? decompositionTime,
+    List<String>? properEquipment,
+    List<String>? materials,
+    String? subCategory,
+    List<String>? commonUses,
+    List<String>? alternativeOptions,
+    Map<String, String>? localRegulations,
+    int? waterPollutionLevel,
+    int? soilContaminationRisk,
+    int? biodegradabilityDays,
+    int? recyclingEfficiency,
+    double? manufacturingEnergyFootprint,
+    double? transportationFootprint,
+    String? endOfLifeCost,
+    List<String>? circularEconomyPotential,
+    bool? generatesMicroplastics,
+    int? humanToxicityLevel,
+    int? wildlifeImpactSeverity,
+    String? resourceScarcity,
+    double? disposalCostEstimate,
+    String? bbmpComplianceStatus,
+    String? localGuidelinesVersion,
   }) {
     return WasteClassification(
       id: id ?? this.id,
@@ -571,6 +953,32 @@ class WasteClassification extends HiveObject {
       relatedItems: relatedItems ?? this.relatedItems,
       imageRelativePath: imageRelativePath ?? this.imageRelativePath,
       thumbnailRelativePath: thumbnailRelativePath ?? this.thumbnailRelativePath,
+      // Enhanced AI Analysis v2.0 additional fields
+      recyclability: recyclability ?? this.recyclability,
+      hazardLevel: hazardLevel ?? this.hazardLevel,
+      co2Impact: co2Impact ?? this.co2Impact,
+      decompositionTime: decompositionTime ?? this.decompositionTime,
+      properEquipment: properEquipment ?? this.properEquipment,
+      materials: materials ?? this.materials,
+      subCategory: subCategory ?? this.subCategory,
+      commonUses: commonUses ?? this.commonUses,
+      alternativeOptions: alternativeOptions ?? this.alternativeOptions,
+      localRegulations: localRegulations ?? this.localRegulations,
+      waterPollutionLevel: waterPollutionLevel ?? this.waterPollutionLevel,
+      soilContaminationRisk: soilContaminationRisk ?? this.soilContaminationRisk,
+      biodegradabilityDays: biodegradabilityDays ?? this.biodegradabilityDays,
+      recyclingEfficiency: recyclingEfficiency ?? this.recyclingEfficiency,
+      manufacturingEnergyFootprint: manufacturingEnergyFootprint ?? this.manufacturingEnergyFootprint,
+      transportationFootprint: transportationFootprint ?? this.transportationFootprint,
+      endOfLifeCost: endOfLifeCost ?? this.endOfLifeCost,
+      circularEconomyPotential: circularEconomyPotential ?? this.circularEconomyPotential,
+      generatesMicroplastics: generatesMicroplastics ?? this.generatesMicroplastics,
+      humanToxicityLevel: humanToxicityLevel ?? this.humanToxicityLevel,
+      wildlifeImpactSeverity: wildlifeImpactSeverity ?? this.wildlifeImpactSeverity,
+      resourceScarcity: resourceScarcity ?? this.resourceScarcity,
+      disposalCostEstimate: disposalCostEstimate ?? this.disposalCostEstimate,
+      bbmpComplianceStatus: bbmpComplianceStatus ?? this.bbmpComplianceStatus,
+      localGuidelinesVersion: localGuidelinesVersion ?? this.localGuidelinesVersion,
     );
   }
 }
@@ -1032,5 +1440,26 @@ extension NonWasteSubcategoryExtension on NonWasteSubcategory {
 
   String get color {
     return '#9C27B0'; // Purple (same as parent category)
+  }
+}
+
+/// Classification tag for visual representation
+class ClassificationTag {
+  const ClassificationTag({
+    required this.label,
+    required this.color,
+    required this.icon,
+    required this.priority,
+  });
+  
+  final String label;
+  final String color; // Hex color
+  final String icon; // Material icon name
+  final int priority; // Lower number = higher priority
+  
+  /// Convert hex color to integer
+  int get colorValue {
+    final hex = color.replaceFirst('#', '');
+    return int.parse('FF$hex', radix: 16);
   }
 }
