@@ -46,6 +46,10 @@ class DynamicPricingService extends ChangeNotifier {
   Map<String, int>? _cachedTokenLimits;
   DateTime? _lastUpdate;
 
+  // Timers for periodic updates
+  Timer? _pricingUpdateTimer;
+  Timer? _spendingResetTimer;
+
   // Current spending tracking
   final Map<String, double> _dailySpending = {};
   final Map<String, double> _weeklySpending = {};
@@ -131,7 +135,7 @@ class DynamicPricingService extends ChangeNotifier {
   /// Schedule periodic updates for pricing and spending resets
   void _schedulePeriodicUpdates() {
     // Update pricing from Remote Config every hour
-    Timer.periodic(const Duration(hours: 1), (_) async {
+    _pricingUpdateTimer = Timer.periodic(const Duration(hours: 1), (_) async {
       try {
         await _remoteConfigService.forceFetch();
         await _loadPricingFromRemoteConfig();
@@ -144,7 +148,7 @@ class DynamicPricingService extends ChangeNotifier {
     });
 
     // Reset daily spending every day at midnight
-    Timer.periodic(const Duration(hours: 1), (_) {
+    _spendingResetTimer = Timer.periodic(const Duration(hours: 1), (_) {
       _resetSpendingIfNeeded();
     });
   }
@@ -431,7 +435,9 @@ class DynamicPricingService extends ChangeNotifier {
 
   @override
   void dispose() {
-    // TODO: Cancel any active timers
+    // Cancel periodic timers to prevent memory leaks
+    _pricingUpdateTimer?.cancel();
+    _spendingResetTimer?.cancel();
     super.dispose();
   }
 }
