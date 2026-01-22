@@ -410,102 +410,92 @@ class StorageService {
     }
   }
 
-  /// Applies filters to the list of classifications
+  /// OPTIMIZATION: Applies filters to the list of classifications
+  /// Combined filtering logic in a single pass for better performance
   List<WasteClassification> _applyFilters(List<WasteClassification> classifications, FilterOptions filterOptions) {
-    // Create a filtered list
-    var filteredClassifications = List<WasteClassification>.from(classifications);
-
-    // Filter by search text (case-insensitive)
-    if (filterOptions.searchText != null && filterOptions.searchText!.isNotEmpty) {
-      final searchText = filterOptions.searchText!.toLowerCase();
-      filteredClassifications = filteredClassifications.where((classification) {
-        return classification.itemName.toLowerCase().contains(searchText) ||
+    // OPTIMIZATION: Combine all filters into a single where() predicate for better performance
+    // This avoids multiple iterations over the list
+    var filteredClassifications = classifications.where((classification) {
+      // Filter by search text (case-insensitive)
+      if (filterOptions.searchText != null && filterOptions.searchText!.isNotEmpty) {
+        final searchText = filterOptions.searchText!.toLowerCase();
+        final matchesSearch = classification.itemName.toLowerCase().contains(searchText) ||
             (classification.subcategory != null && classification.subcategory!.toLowerCase().contains(searchText)) ||
             (classification.materialType != null && classification.materialType!.toLowerCase().contains(searchText)) ||
             classification.category.toLowerCase().contains(searchText);
-      }).toList();
-    }
+        if (!matchesSearch) return false;
+      }
 
-    // Filter by categories
-    if (filterOptions.categories != null && filterOptions.categories!.isNotEmpty) {
-      filteredClassifications = filteredClassifications.where((classification) {
-        // Case-insensitive category comparison
-        return filterOptions.categories!
+      // Filter by categories
+      if (filterOptions.categories != null && filterOptions.categories!.isNotEmpty) {
+        final matchesCategory = filterOptions.categories!
             .any((category) => classification.category.toLowerCase() == category.toLowerCase());
-      }).toList();
-    }
+        if (!matchesCategory) return false;
+      }
 
-    // Filter by subcategories
-    if (filterOptions.subcategories != null && filterOptions.subcategories!.isNotEmpty) {
-      filteredClassifications = filteredClassifications.where((classification) {
+      // Filter by subcategories
+      if (filterOptions.subcategories != null && filterOptions.subcategories!.isNotEmpty) {
         if (classification.subcategory == null) return false;
-        // Case-insensitive subcategory comparison
-        return filterOptions.subcategories!
+        final matchesSubcategory = filterOptions.subcategories!
             .any((subcategory) => classification.subcategory!.toLowerCase() == subcategory.toLowerCase());
-      }).toList();
-    }
+        if (!matchesSubcategory) return false;
+      }
 
-    // Filter by material types
-    if (filterOptions.materialTypes != null && filterOptions.materialTypes!.isNotEmpty) {
-      filteredClassifications = filteredClassifications.where((classification) {
+      // Filter by material types
+      if (filterOptions.materialTypes != null && filterOptions.materialTypes!.isNotEmpty) {
         if (classification.materialType == null) return false;
-        // Case-insensitive material type comparison
-        return filterOptions.materialTypes!
+        final matchesMaterial = filterOptions.materialTypes!
             .any((materialType) => classification.materialType!.toLowerCase() == materialType.toLowerCase());
-      }).toList();
-    }
+        if (!matchesMaterial) return false;
+      }
 
-    // Filter by recyclable status
-    if (filterOptions.isRecyclable != null) {
-      filteredClassifications = filteredClassifications
-          .where((classification) => classification.isRecyclable == filterOptions.isRecyclable)
-          .toList();
-    }
+      // Filter by recyclable status
+      if (filterOptions.isRecyclable != null) {
+        if (classification.isRecyclable != filterOptions.isRecyclable) return false;
+      }
 
-    // Filter by compostable status
-    if (filterOptions.isCompostable != null) {
-      filteredClassifications = filteredClassifications
-          .where((classification) => classification.isCompostable == filterOptions.isCompostable)
-          .toList();
-    }
+      // Filter by compostable status
+      if (filterOptions.isCompostable != null) {
+        if (classification.isCompostable != filterOptions.isCompostable) return false;
+      }
 
-    // Filter by special disposal requirement
-    if (filterOptions.requiresSpecialDisposal != null) {
-      filteredClassifications = filteredClassifications
-          .where((classification) => classification.requiresSpecialDisposal == filterOptions.requiresSpecialDisposal)
-          .toList();
-    }
+      // Filter by special disposal requirement
+      if (filterOptions.requiresSpecialDisposal != null) {
+        if (classification.requiresSpecialDisposal != filterOptions.requiresSpecialDisposal) return false;
+      }
 
-    // Filter by date range
-    if (filterOptions.startDate != null) {
-      final startDate = DateTime(
-        filterOptions.startDate!.year,
-        filterOptions.startDate!.month,
-        filterOptions.startDate!.day,
-      );
-
-      filteredClassifications = filteredClassifications.where((classification) {
+      // Filter by date range
+      if (filterOptions.startDate != null) {
+        final startDate = DateTime(
+          filterOptions.startDate!.year,
+          filterOptions.startDate!.month,
+          filterOptions.startDate!.day,
+        );
         final classificationDate = DateTime(
           classification.timestamp.year,
           classification.timestamp.month,
           classification.timestamp.day,
         );
-        return classificationDate.isAtSameMomentAs(startDate) || classificationDate.isAfter(startDate);
-      }).toList();
-    }
+        if (!(classificationDate.isAtSameMomentAs(startDate) || classificationDate.isAfter(startDate))) {
+          return false;
+        }
+      }
 
-    if (filterOptions.endDate != null) {
-      final endDate = DateTime(
-        filterOptions.endDate!.year,
-        filterOptions.endDate!.month,
-        filterOptions.endDate!.day,
-        23, 59, 59, 999, // End of day
-      );
+      if (filterOptions.endDate != null) {
+        final endDate = DateTime(
+          filterOptions.endDate!.year,
+          filterOptions.endDate!.month,
+          filterOptions.endDate!.day,
+          23, 59, 59, 999, // End of day
+        );
+        if (!(classification.timestamp.isBefore(endDate) || 
+              classification.timestamp.isAtSameMomentAs(endDate))) {
+          return false;
+        }
+      }
 
-      filteredClassifications = filteredClassifications.where((classification) {
-        return classification.timestamp.isBefore(endDate) || classification.timestamp.isAtSameMomentAs(endDate);
-      }).toList();
-    }
+      return true;
+    }).toList();
 
     // Apply sorting
     switch (filterOptions.sortBy) {

@@ -1980,4 +1980,12 @@ Output:
       rethrow;
     }
   }
+
+  /// OPTIMIZATION: Dispose of resources to prevent memory leaks
+  /// Should be called when the service is no longer needed
+  void dispose() {
+    _cancelToken?.cancel('Service disposed');
+    _dio.close(force: true);
+    WasteAppLogger.info('AiService disposed: Dio client closed');
+  }
 }
