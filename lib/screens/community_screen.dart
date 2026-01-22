@@ -205,12 +205,19 @@ class _CommunityScreenState extends State<CommunityScreen> with TickerProviderSt
           final item = _feedItems[index];
           return _buildFeedItem(item);
         },
+        // Add key to each item for proper widget tracking
+        findChildIndexCallback: (Key key) {
+          final valueKey = key as ValueKey<String>;
+          final id = valueKey.value;
+          return _feedItems.indexWhere((item) => item.id == id);
+        },
       ),
     );
   }
 
   Widget _buildFeedItem(CommunityFeedItem item) {
     return ModernCard(
+      key: ValueKey<String>(item.id),
       padding: const EdgeInsets.all(16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

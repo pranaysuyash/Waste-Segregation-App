@@ -145,7 +145,9 @@ class _UltraModernHomeScreenState extends ConsumerState<UltraModernHomeScreen> w
     // Show achievement celebrations if any
     if (result.newlyEarnedAchievements.isNotEmpty) {
       Future.delayed(const Duration(milliseconds: 1500), () {
-        _showAchievementCelebration(result.newlyEarnedAchievements.first);
+        if (mounted) {
+          _showAchievementCelebration(result.newlyEarnedAchievements.first);
+        }
       });
     }
   }

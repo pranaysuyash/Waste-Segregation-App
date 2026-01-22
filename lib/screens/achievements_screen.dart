@@ -409,6 +409,9 @@ class _AchievementsScreenState extends State<AchievementsScreen> with SingleTick
                     final achievement = achievements[index];
                     return _buildAchievementCard(achievement, profile);
                   },
+                  // Add findChildIndexCallback for proper widget tracking
+                  addAutomaticKeepAlives: true,
+                  addRepaintBoundaries: true,
                 ),
                 const SizedBox(height: AppTheme.paddingLarge),
               ],
@@ -437,6 +440,7 @@ class _AchievementsScreenState extends State<AchievementsScreen> with SingleTick
     }
 
     return Card(
+      key: ValueKey<String>(achievement.id),
       clipBehavior: Clip.antiAlias,
       elevation: isEarned ? 3 : 1,
       shape: RoundedRectangleBorder(
