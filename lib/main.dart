@@ -30,6 +30,7 @@ import 'services/community_service.dart';
 import 'services/dynamic_link_service.dart';
 import 'services/cache_service.dart';
 import 'services/local_guidelines_plugin.dart';
+import 'services/hive_box_manager.dart';
 import 'screens/auth_screen.dart';
 import 'screens/consent_dialog_screen.dart';
 import 'screens/settings_screen.dart';
@@ -177,6 +178,12 @@ void main() async {
   await StorageService.initializeHive();
   if (kDebugMode) {
     WasteAppLogger.info('After StorageService.initializeHive');
+  }
+
+  // OPTIMIZATION: Initialize Hive box lifecycle manager
+  await HiveBoxManager.instance.initialize();
+  if (kDebugMode) {
+    WasteAppLogger.info('HiveBoxManager initialized for proper box lifecycle');
   }
 
   // Initialize cache feature flags
