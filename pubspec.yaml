@@ -78,6 +78,15 @@ dependencies:
 
   flutter_markdown: any
   firebase_dynamic_links: any
+  
+  # --- On-Device ML & Computer Vision ---
+  # TensorFlow Lite for on-device model inference (zero cost)
+  tflite_flutter: ^0.10.4  # For running TFLite models on device
+  tflite_flutter_helper: ^0.3.1  # Helper utilities for TFLite
+  
+  # Alternative ML framework options (commented out, choose based on needs)
+  # google_mlkit_object_detection: ^0.11.0  # Google ML Kit for object detection
+  # google_mlkit_image_labeling: ^0.11.0  # Google ML Kit for image labeling
 dev_dependencies:
   flutter_test:
     sdk: flutter
