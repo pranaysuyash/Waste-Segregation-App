@@ -795,6 +795,7 @@ class _HistoryScreenState extends State<HistoryScreen> with RestorationMixin {
 
           final classification = _classifications[index];
           return HistoryListItem(
+            key: ValueKey<String>(classification.id),
             classification: classification,
             onTap: () => _navigateToClassificationDetails(classification),
             onFeedbackSubmitted: _handleFeedbackSubmission,
