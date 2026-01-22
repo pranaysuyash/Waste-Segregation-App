@@ -794,11 +794,15 @@ class _HistoryScreenState extends State<HistoryScreen> with RestorationMixin {
           }
 
           final classification = _classifications[index];
-          return HistoryListItem(
-            classification: classification,
-            onTap: () => _navigateToClassificationDetails(classification),
-            onFeedbackSubmitted: _handleFeedbackSubmission,
-            showFeedbackButton: _canProvideFeedback(classification),
+          // OPTIMIZATION: RepaintBoundary prevents unnecessary repaints of list items
+          // Each item can repaint independently without affecting other items
+          return RepaintBoundary(
+            child: HistoryListItem(
+              classification: classification,
+              onTap: () => _navigateToClassificationDetails(classification),
+              onFeedbackSubmitted: _handleFeedbackSubmission,
+              showFeedbackButton: _canProvideFeedback(classification),
+            ),
           );
         },
       ),

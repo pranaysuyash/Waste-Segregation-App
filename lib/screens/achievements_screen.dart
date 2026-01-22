@@ -407,7 +407,10 @@ class _AchievementsScreenState extends State<AchievementsScreen> with SingleTick
                   itemCount: achievements.length,
                   itemBuilder: (context, index) {
                     final achievement = achievements[index];
-                    return _buildAchievementCard(achievement, profile);
+                    // OPTIMIZATION: RepaintBoundary prevents unnecessary repaints
+                    return RepaintBoundary(
+                      child: _buildAchievementCard(achievement, profile),
+                    );
                   },
                 ),
                 const SizedBox(height: AppTheme.paddingLarge),
