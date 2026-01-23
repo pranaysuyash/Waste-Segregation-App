@@ -34,6 +34,7 @@ class _EnhancedAnalysisLoaderState extends State<EnhancedAnalysisLoader> with Ti
 
   Timer? _stepTimer;
   Timer? _tipTimer;
+  final List<Timer> _stepProgressTimers = []; // Store step progression timers
 
   int _currentStep = 0;
   int _currentTipIndex = 0;
@@ -130,13 +131,14 @@ class _EnhancedAnalysisLoaderState extends State<EnhancedAnalysisLoader> with Ti
     // Simulate step progression
     var totalDuration = 0;
     for (var i = 0; i < _analysisSteps.length; i++) {
-      Timer(Duration(seconds: totalDuration), () {
+      final timer = Timer(Duration(seconds: totalDuration), () {
         if (mounted) {
           setState(() {
             _currentStep = i;
           });
         }
       });
+      _stepProgressTimers.add(timer);
       totalDuration += _analysisSteps[i].duration.inSeconds;
     }
 
@@ -168,6 +170,10 @@ class _EnhancedAnalysisLoaderState extends State<EnhancedAnalysisLoader> with Ti
     _particleController.dispose();
     _stepTimer?.cancel();
     _tipTimer?.cancel();
+    // Cancel all step progression timers
+    for (final timer in _stepProgressTimers) {
+      timer.cancel();
+    }
     super.dispose();
   }
 

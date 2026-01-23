@@ -148,10 +148,12 @@ class GlobalSettingsMenu extends StatelessWidget {
             onPressed: () {
               Navigator.of(context).pop();
               Future.delayed(const Duration(milliseconds: 100), () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => const SettingsScreen()),
-                );
+                if (context.mounted) {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const SettingsScreen()),
+                  );
+                }
               });
             },
             child: const Text('Settings'),

@@ -201,6 +201,7 @@ class _EducationalContentScreenState extends ConsumerState<EducationalContentScr
 
   Widget _buildContentCard(EducationalContent content) {
     return Card(
+      key: ValueKey<String>(content.id),
       margin: const EdgeInsets.only(bottom: AppTheme.paddingRegular),
       clipBehavior: Clip.antiAlias,
       shape: RoundedRectangleBorder(

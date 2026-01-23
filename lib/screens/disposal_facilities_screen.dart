@@ -355,6 +355,7 @@ class _DisposalFacilitiesScreenState extends State<DisposalFacilitiesScreen> {
 
   Widget _buildFacilityCard(DisposalLocation facility) {
     return Card(
+      key: ValueKey<String?>(facility.id),
       elevation: 2,
       margin: const EdgeInsets.only(bottom: AppTheme.paddingRegular),
       shape: RoundedRectangleBorder(
