@@ -81,10 +81,13 @@ dependencies:
   
   # --- On-Device ML & Computer Vision ---
   # TensorFlow Lite for on-device model inference (zero cost)
-  tflite_flutter: ^0.10.4  # For running TFLite models on device
-  tflite_flutter_helper: ^0.3.1  # Helper utilities for TFLite
+  tflite_flutter: ^0.9.0  # For running TFLite models on device
   
-  # Alternative ML framework options (commented out, choose based on needs)
+  # NOTE: Removed tflite_flutter_helper due to:
+  # - Requires image ^3.0.2 but project uses image ^4.0.17
+  # - Package is unmaintained
+  # SOLUTION: Implemented custom TFLitePreprocessingHelper in lib/services/
+  # Features: image resizing, normalization, postprocessing, batch operations
   # google_mlkit_object_detection: ^0.11.0  # Google ML Kit for object detection
   # google_mlkit_image_labeling: ^0.11.0  # Google ML Kit for image labeling
 dev_dependencies:
