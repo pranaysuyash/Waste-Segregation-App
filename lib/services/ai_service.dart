@@ -370,6 +370,8 @@ Output:
   /// the maximum size, or moderate compression if it exceeds the preferred size.
   /// Throws an exception if the image remains too large after compression,
   /// which can trigger a fallback to the Gemini API.
+  /// OPTIMIZATION: Compresses image for OpenAI API with quality control using compute isolate
+  /// This moves the CPU-intensive image processing off the main thread for better UI responsiveness
   Future<Uint8List> _compressImageForOpenAI(Uint8List imageBytes) async {
     const maxSizeBytes = 20 * 1024 * 1024; // 20MB OpenAI limit
     const preferredSizeBytes = 5 * 1024 * 1024; // 5MB preferred
@@ -382,38 +384,66 @@ Output:
       return imageBytes;
     }
 
+    // OPTIMIZATION: Use compute() to run compression in isolate (off main thread)
+    try {
+      final compressedBytes = await compute(
+        _compressImageIsolate,
+        {
+          'imageBytes': imageBytes,
+          'preferredSizeBytes': preferredSizeBytes,
+          'maxSizeBytes': maxSizeBytes,
+        },
+      );
+      
+      WasteAppLogger.info(
+        'Compressed image in isolate to ${(compressedBytes.length / 1024 / 1024).toStringAsFixed(2)} MB'
+      );
+      
+      return compressedBytes;
+    } catch (e, s) {
+      WasteAppLogger.severe('Error during isolate image compression', e, s);
+      // Fallback to synchronous compression if isolate fails
+      return _compressImageSync(imageBytes, preferredSizeBytes, maxSizeBytes);
+    }
+  }
+
+  /// Static method for isolate execution - compresses image bytes
+  static Uint8List _compressImageIsolate(Map<String, dynamic> params) {
+    final imageBytes = params['imageBytes'] as Uint8List;
+    final preferredSizeBytes = params['preferredSizeBytes'] as int;
+    final maxSizeBytes = params['maxSizeBytes'] as int;
+    
+    return _compressImageSync(imageBytes, preferredSizeBytes, maxSizeBytes);
+  }
+
+  /// Synchronous compression logic (used by both isolate and fallback)
+  static Uint8List _compressImageSync(
+    Uint8List imageBytes,
+    int preferredSizeBytes,
+    int maxSizeBytes,
+  ) {
     // Iteratively compress image until it's under the preferred size
     var quality = 95;
     var compressedBytes = imageBytes;
+    
     while (compressedBytes.length > preferredSizeBytes && quality > 10) {
       try {
         final image = img.decodeImage(compressedBytes);
         if (image == null) {
-          WasteAppLogger.severe('Failed to decode image for compression.');
-          return compressedBytes; // Return original if decoding fails
+          return compressedBytes; // Return current if decoding fails
         }
 
         compressedBytes = Uint8List.fromList(img.encodeJpg(image, quality: quality));
-        WasteAppLogger.info(
-            'Compressed image to ${(compressedBytes.length / 1024 / 1024).toStringAsFixed(2)} MB with quality $quality');
-
         quality -= 5;
-      } catch (e, s) {
-        WasteAppLogger.severe('Error during image compression', e, s);
+      } catch (e) {
         break; // Exit loop on error
       }
-    }
-
-    // Final check against OpenAI's hard limit
-    if (compressedBytes.length > maxSizeBytes) {
-      WasteAppLogger.warning('Image size after compression still exceeds 20MB limit. Further reduction needed.');
-      // Consider resizing the image here as a fallback
     }
 
     return compressedBytes;
   }
 
-  /// Compresses image [Uint8List] data for Gemini API if it's excessively large.
+  /// OPTIMIZATION: Compresses image for Gemini API using compute isolate
   /// Gemini has a more generous limit than OpenAI, so compression is lighter.
   Future<Uint8List> _compressImageForGemini(Uint8List imageBytes) async {
     const maxSizeBytes = 50 * 1024 * 1024; // 50MB for Gemini
@@ -423,6 +453,39 @@ Output:
     }
 
     WasteAppLogger.warning('Image exceeds Gemini max size, applying compression.');
+    
+    // OPTIMIZATION: Use compute() to run compression in isolate (off main thread)
+    try {
+      final compressedBytes = await compute(
+        _compressImageForGeminiIsolate,
+        {
+          'imageBytes': imageBytes,
+          'maxSizeBytes': maxSizeBytes,
+        },
+      );
+      
+      WasteAppLogger.info(
+        'Compressed image in isolate for Gemini: ${(compressedBytes.length / 1024 / 1024).toStringAsFixed(2)} MB'
+      );
+      
+      return compressedBytes;
+    } catch (e, s) {
+      WasteAppLogger.severe('Error during Gemini isolate compression', e, s);
+      // Fallback to synchronous compression
+      return _compressImageForGeminiSync(imageBytes, maxSizeBytes);
+    }
+  }
+
+  /// Static method for isolate execution - compresses image for Gemini
+  static Uint8List _compressImageForGeminiIsolate(Map<String, dynamic> params) {
+    final imageBytes = params['imageBytes'] as Uint8List;
+    final maxSizeBytes = params['maxSizeBytes'] as int;
+    
+    return _compressImageForGeminiSync(imageBytes, maxSizeBytes);
+  }
+
+  /// Synchronous Gemini compression logic
+  static Uint8List _compressImageForGeminiSync(Uint8List imageBytes, int maxSizeBytes) {
     var image = img.decodeImage(imageBytes);
 
     if (image == null) {
@@ -438,8 +501,6 @@ Output:
     );
 
     final List<int> compressedBytes = img.encodeJpg(image, quality: 80); // Maintain good quality
-    WasteAppLogger.info(
-        'Compressed image size for Gemini: ${(compressedBytes.length / 1024 / 1024).toStringAsFixed(2)} MB');
 
     if (compressedBytes.length > maxSizeBytes) {
       throw Exception(
@@ -1979,5 +2040,13 @@ Output:
       WasteAppLogger.severe('Error occurred');
       rethrow;
     }
+  }
+
+  /// OPTIMIZATION: Dispose of resources to prevent memory leaks
+  /// Should be called when the service is no longer needed
+  void dispose() {
+    _cancelToken?.cancel('Service disposed');
+    _dio.close(force: true);
+    WasteAppLogger.info('AiService disposed: Dio client closed');
   }
 }

@@ -2,32 +2,17 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/gamification.dart';
 import '../services/gamification_service.dart';
-import '../services/storage_service.dart';
-import '../services/cloud_storage_service.dart';
 import '../services/points_engine.dart';
 import '../utils/constants.dart';
 import '../utils/waste_app_logger.dart';
-import 'app_providers.dart'; // Import for profileProvider
+import 'app_providers.dart'; // Import for profileProvider, storageServiceProvider, cloudStorageServiceProvider, gamificationServiceProvider
 import 'points_manager.dart'; // Import for pointsManagerProvider
-// Import central providers
 
-/// Provider for GamificationService
-final gamificationServiceProvider = Provider<GamificationService>((ref) {
-  final storageService = ref.watch(storageServiceProvider);
-  final cloudStorageService = ref.watch(cloudStorageServiceProvider);
-  return GamificationService(storageService, cloudStorageService);
-});
-
-/// Provider for storage service
-final storageServiceProvider = Provider<StorageService>((ref) {
-  return StorageService();
-});
-
-/// Provider for cloud storage service
-final cloudStorageServiceProvider = Provider<CloudStorageService>((ref) {
-  final storageService = ref.watch(storageServiceProvider);
-  return CloudStorageService(storageService);
-});
+// OPTIMIZATION: Removed duplicate provider definitions
+// All service providers are now imported from app_providers.dart:
+// - gamificationServiceProvider
+// - storageServiceProvider
+// - cloudStorageServiceProvider
 
 /// AsyncNotifier for gamification profile with proper error handling
 class GamificationNotifier extends AsyncNotifier<GamificationProfile> {

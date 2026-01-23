@@ -28,6 +28,10 @@ class AnalyticsService extends ChangeNotifier {
   final List<AnalyticsEvent> _pendingEvents = [];
   final List<AnalyticsEvent> _sessionEvents = [];
 
+  // OPTIMIZATION: Prevent unbounded memory growth in analytics queues
+  static const int _maxPendingEvents = 1000;
+  static const int _maxSessionEvents = 500;
+
   // Connection state tracking
   bool _isFirestoreAvailable = false;
 
@@ -129,6 +133,14 @@ class AnalyticsService extends ChangeNotifier {
         WasteAppLogger.warning('Event validation failed, not tracking', null, null,
             {'event_name': eventName, 'validation_errors': validationResult.errors, 'service': 'AnalyticsService'});
         return;
+      }
+
+      // OPTIMIZATION: Prevent memory overflow by limiting queue size
+      if (_pendingEvents.length >= _maxPendingEvents) {
+        // Remove oldest events when at capacity (FIFO)
+        final eventsToRemove = (_pendingEvents.length - _maxPendingEvents) + 1;
+        _pendingEvents.removeRange(0, eventsToRemove);
+        WasteAppLogger.warning('Analytics queue at capacity, removed $eventsToRemove oldest events');
       }
 
       _pendingEvents.add(event);

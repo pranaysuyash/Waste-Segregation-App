@@ -555,6 +555,58 @@ class ClassificationCacheService {
     }
   }
 
+  /// OPTIMIZATION: Clean up expired cache entries based on age
+  /// Call periodically to prevent stale data accumulation
+  /// 
+  /// [maxAge]: Maximum age for cache entries (default: 30 days)
+  /// Returns the number of entries removed
+  Future<int> cleanupExpiredEntries({Duration maxAge = const Duration(days: 30)}) async {
+    try {
+      if (!_isInitialized) await initialize();
+
+      final now = DateTime.now();
+      final keysToRemove = <String>[];
+
+      // Find entries older than maxAge
+      for (final key in _lruMap.keys.toList()) {
+        try {
+          final entry = _deserializeEntry(key);
+          if (entry != null) {
+            final age = now.difference(entry.lastAccessed);
+            if (age > maxAge) {
+              keysToRemove.add(key);
+            }
+          }
+        } catch (e) {
+          // If we can't deserialize, mark for removal
+          keysToRemove.add(key);
+          WasteAppLogger.warning('Corrupted cache entry during cleanup', null, null, 
+            {'hash': key.substring(0, 16), 'action': 'removing'});
+        }
+      }
+
+      // Remove expired entries
+      for (final key in keysToRemove) {
+        await _cacheBox.delete(key);
+        _lruMap.remove(key);
+      }
+
+      if (keysToRemove.isNotEmpty) {
+        WasteAppLogger.cacheEvent('cache_cleanup', 'classification', context: {
+          'entries_removed': keysToRemove.length,
+          'max_age_days': maxAge.inDays,
+          'cache_size_after': _cacheBox.length,
+        });
+      }
+
+      return keysToRemove.length;
+    } catch (e) {
+      WasteAppLogger.severe('Error during cache cleanup', e, null, 
+        {'cache_size': _cacheBox.length, 'max_age_days': maxAge.inDays});
+      return 0;
+    }
+  }
+
   /// Get cache statistics
   Map<String, dynamic> getCacheStatistics() {
     final stats = Map<String, dynamic>.from(_statistics);

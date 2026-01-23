@@ -245,9 +245,17 @@ class WasteClassification extends HiveObject {
   final String itemName;
   @HiveField(2)
   final String category;
+  
+  /// DEPRECATED: Use subCategory (HiveField 68) for consistency with AI v2.0
+  /// This field is maintained for backward compatibility only
   @HiveField(3)
+  @Deprecated('Use subCategory field (HiveField 68) instead for AI model v2.0 compatibility')
   final String? subcategory;
+  
+  /// DEPRECATED: Use materials list (HiveField 67) for consistency with AI v2.0
+  /// This single string field is replaced by the more flexible materials list
   @HiveField(4)
+  @Deprecated('Use materials field (HiveField 67) instead for AI model v2.0 compatibility')
   final String? materialType;
   @HiveField(5)
   final int? recyclingCode;
@@ -507,6 +515,16 @@ class WasteClassification extends HiveObject {
       hasUrgentTimeframe: false,
     );
   }
+
+  // OPTIMIZATION: Migration helpers for accessing normalized field values
+  // These getters provide consistent access to data regardless of which field is populated
+  
+  /// Gets the subcategory value, preferring the newer subCategory field
+  String? get normalizedSubcategory => subCategory ?? subcategory;
+  
+  /// Gets materials as a list, converting from legacy materialType if needed
+  List<String> get normalizedMaterials => 
+      materials ?? (materialType != null ? [materialType!] : []);
 
   /// Calculate dynamic points based on classification richness and environmental impact
   int calculatePoints() {
