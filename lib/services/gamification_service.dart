@@ -1768,7 +1768,10 @@ class GamificationService extends ChangeNotifier {
       for (final archivedJson in archivedList) {
         try {
           final archived = jsonDecode(archivedJson);
-          totalLifetime += archived['totalLifetimePoints'] as int? ?? 0;
+          // Safe type extraction
+          final pointsValue = archived['totalLifetimePoints'];
+          final points = pointsValue is int ? pointsValue : 0;
+          totalLifetime += points;
         } catch (e) {
           WasteAppLogger.severe(
               'Error occurred', null, null, {'service': 'gamification', 'file': 'gamification_service'});

@@ -1,135 +1,255 @@
 import 'package:flutter/material.dart';
-import 'package:firebase_crashlytics/firebase_crashlytics.dart';
-import 'package:waste_segregation_app/utils/waste_app_logger.dart';
+import '../utils/waste_app_logger.dart';
 
-/// Comprehensive Error Management System for Waste Segregation App
-/// Provides standardized error types, handling, and user feedback
-
-/// Base class for all application-specific exceptions
-abstract class WasteAppException implements Exception {
-  WasteAppException._(this.message, this.code, this.metadata) : timestamp = DateTime.now();
-  final String message;
-  final String code;
-  final Map<String, dynamic>? metadata;
-  final DateTime timestamp;
-
-  @override
-  String toString() => 'WasteAppException($code): $message';
-
-  Map<String, dynamic> toMap() => {
-        'code': code,
-        'message': message,
-        'metadata': metadata,
-        'timestamp': timestamp.toIso8601String(),
-      };
-}
-
-/// Classification-related exceptions
-class ClassificationException extends WasteAppException {
-  ClassificationException(String message, [Map<String, dynamic>? metadata])
-      : super._(message, 'CLASSIFICATION_ERROR', metadata);
-}
-
-/// Network connectivity exceptions
-class NetworkException extends WasteAppException {
-  NetworkException(String message, [Map<String, dynamic>? metadata]) : super._(message, 'NETWORK_ERROR', metadata);
-}
-
-/// Storage and data persistence exceptions
-class StorageException extends WasteAppException {
-  StorageException(String message, [Map<String, dynamic>? metadata]) : super._(message, 'STORAGE_ERROR', metadata);
-}
-
-/// Camera and image processing exceptions
-class CameraException extends WasteAppException {
-  CameraException(String message, [Map<String, dynamic>? metadata]) : super._(message, 'CAMERA_ERROR', metadata);
-}
-
-/// Authentication and authorization exceptions
-class AuthException extends WasteAppException {
-  AuthException(String message, [Map<String, dynamic>? metadata]) : super._(message, 'AUTH_ERROR', metadata);
-}
-
-/// Global error handler
+/// Centralized error handling utility to eliminate duplicate error handling patterns
 class ErrorHandler {
-  static final FirebaseCrashlytics _crashlytics = FirebaseCrashlytics.instance;
-  static GlobalKey<NavigatorState>? navigatorKey;
+  static GlobalKey<NavigatorState>? _navigatorKey;
 
-  static void initialize(GlobalKey<NavigatorState> navKey) {
-    navigatorKey = navKey;
+  /// Initialize the error handler with navigator key
+  static void initialize(GlobalKey<NavigatorState> navigatorKey) {
+    _navigatorKey = navigatorKey;
   }
+  /// Handle common async operations with consistent error handling
+  static Future<T?> handleAsync<T>(
+    Future<T> Function() operation, {
+    String? context,
+    String? service,
+    String? file,
+    bool showSnackBar = false,
+    BuildContext? buildContext,
+    String? userMessage,
+  }) async {
+    try {
+      return await operation();
+    } catch (error, stackTrace) {
+      WasteAppLogger.severe(
+        'Error in ${context ?? 'operation'}',
+        error,
+        stackTrace,
+        {
+          if (service != null) 'service': service,
+          if (file != null) 'file': file,
+        },
+      );
 
-  static void handleError(
-    dynamic error,
-    StackTrace stackTrace, {
-    bool fatal = false,
-    Map<String, dynamic>? context,
-  }) {
-    // Log to console
-    WasteAppLogger.severe('Error: $error');
-    WasteAppLogger.info('StackTrace: $stackTrace');
+      if (showSnackBar && buildContext != null && buildContext.mounted) {
+        ScaffoldMessenger.of(buildContext).showSnackBar(
+          SnackBar(
+            content: Text(userMessage ?? 'An error occurred. Please try again.'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
 
-    // Report to Crashlytics
-    _crashlytics.recordError(error, stackTrace, fatal: fatal);
-
-    // Show user message
-    _showUserFriendlyError(error);
-  }
-
-  static void _showUserFriendlyError(dynamic error) {
-    final context = navigatorKey?.currentContext;
-    if (context == null) return;
-
-    var message = 'An error occurred. Please try again.';
-    var icon = Icons.error_outline;
-    Color color = Colors.red;
-
-    if (error is ClassificationException) {
-      message = 'Unable to analyze image. Try a clearer photo.';
-      icon = Icons.image_not_supported;
-      color = Colors.orange;
-    } else if (error is NetworkException) {
-      message = 'Connection problem. Check internet.';
-      icon = Icons.wifi_off;
-      color = Colors.red;
-    } else if (error is CameraException) {
-      message = 'Camera unavailable. Try gallery instead.';
-      icon = Icons.camera_alt_outlined;
-      color = Colors.amber;
+      return null;
     }
+  }
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Row(
-          children: [
-            Icon(icon, color: Colors.white, size: 20),
-            const SizedBox(width: 12),
-            Expanded(child: Text(message)),
-          ],
-        ),
-        backgroundColor: color,
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-        margin: const EdgeInsets.all(16),
+  /// Handle operations that don't return a value
+  static Future<bool> handleAsyncVoid(
+    Future<void> Function() operation, {
+    String? context,
+    String? service,
+    String? file,
+    bool showSnackBar = false,
+    BuildContext? buildContext,
+    String? userMessage,
+  }) async {
+    try {
+      await operation();
+      return true;
+    } catch (error, stackTrace) {
+      WasteAppLogger.severe(
+        'Error in ${context ?? 'operation'}',
+        error,
+        stackTrace,
+        {
+          if (service != null) 'service': service,
+          if (file != null) 'file': file,
+        },
+      );
+
+      if (showSnackBar && buildContext != null && buildContext.mounted) {
+        ScaffoldMessenger.of(buildContext).showSnackBar(
+          SnackBar(
+            content: Text(userMessage ?? 'An error occurred. Please try again.'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+
+      return false;
+    }
+  }
+
+  /// Handle synchronous operations with error logging
+  static T? handleSync<T>(
+    T Function() operation, {
+    String? context,
+    String? service,
+    String? file,
+    bool showSnackBar = false,
+    BuildContext? buildContext,
+    String? userMessage,
+  }) {
+    try {
+      return operation();
+    } catch (error, stackTrace) {
+      WasteAppLogger.severe(
+        'Error in ${context ?? 'operation'}',
+        error,
+        stackTrace,
+        {
+          if (service != null) 'service': service,
+          if (file != null) 'file': file,
+        },
+      );
+
+      if (showSnackBar && buildContext != null && buildContext.mounted) {
+        ScaffoldMessenger.of(buildContext).showSnackBar(
+          SnackBar(
+            content: Text(userMessage ?? 'An error occurred. Please try again.'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+
+      return null;
+    }
+  }
+
+  /// Show a standardized error dialog
+  static void showErrorDialog(
+    BuildContext context, {
+    String? title,
+    String? message,
+    VoidCallback? onRetry,
+  }) {
+    if (!context.mounted) return;
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(title ?? 'Error'),
+        content: Text(message ?? 'An unexpected error occurred. Please try again.'),
+        actions: [
+          if (onRetry != null)
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                onRetry();
+              },
+              child: const Text('Retry'),
+            ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('OK'),
+          ),
+        ],
       ),
     );
   }
 
-  /// Get a user-friendly error message from an exception
-  static String getUserFriendlyMessage(dynamic error) {
-    if (error is WasteAppException) {
-      return error.message;
-    } else if (error is ClassificationException) {
-      return 'Unable to analyze image. Try a clearer photo.';
-    } else if (error is NetworkException) {
-      return 'Connection problem. Check internet.';
-    } else if (error is CameraException) {
-      return 'Camera unavailable. Try gallery instead.';
-    } else if (error is StorageException) {
-      return 'Storage error. Please try again.';
-    } else if (error is AuthException) {
-      return 'Authentication error. Please sign in again.';
+  /// Show a standardized success message
+  static void showSuccessMessage(
+    BuildContext context,
+    String message, {
+    Duration duration = const Duration(seconds: 2),
+  }) {
+    if (!context.mounted) return;
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: Colors.green,
+        duration: duration,
+      ),
+    );
+  }
+
+  /// Show a standardized warning message
+  static void showWarningMessage(
+    BuildContext context,
+    String message, {
+    Duration duration = const Duration(seconds: 3),
+  }) {
+    if (!context.mounted) return;
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: Colors.orange,
+        duration: duration,
+      ),
+    );
+  }
+
+  /// Handle error with logging (legacy method for compatibility)
+  static void handleError(Object error, StackTrace? stackTrace, {String? context}) {
+    WasteAppLogger.severe(
+      'Error handled: ${context ?? 'unknown context'}',
+      error,
+      stackTrace,
+    );
+  }
+
+  /// Get user-friendly error message (legacy method for compatibility)
+  static String getUserFriendlyMessage(Object error) {
+    if (error is Exception) {
+      final errorString = error.toString();
+      if (errorString.contains('network') || errorString.contains('connection')) {
+        return 'Network connection issue. Please check your internet connection.';
+      }
+      if (errorString.contains('timeout')) {
+        return 'Operation timed out. Please try again.';
+      }
+      if (errorString.contains('permission')) {
+        return 'Permission denied. Please check app permissions.';
+      }
+      if (errorString.contains('storage') || errorString.contains('space')) {
+        return 'Storage issue. Please free up some space and try again.';
+      }
     }
     return 'An unexpected error occurred. Please try again.';
+  }
+
+  /// Common retry logic with exponential backoff
+  static Future<T?> retryOperation<T>(
+    Future<T> Function() operation, {
+    int maxRetries = 3,
+    Duration initialDelay = const Duration(seconds: 1),
+    double backoffMultiplier = 2.0,
+    String? context,
+  }) async {
+    int attempts = 0;
+    Duration delay = initialDelay;
+
+    while (attempts < maxRetries) {
+      try {
+        return await operation();
+      } catch (error) {
+        attempts++;
+        
+        if (attempts >= maxRetries) {
+          WasteAppLogger.severe(
+            'Operation failed after $maxRetries attempts: ${context ?? 'unknown'}',
+            error,
+            null,
+          );
+          rethrow;
+        }
+
+        WasteAppLogger.warning(
+          'Operation failed (attempt $attempts/$maxRetries), retrying in ${delay.inSeconds}s: ${context ?? 'unknown'}',
+          error,
+          null,
+        );
+
+        await Future.delayed(delay);
+        delay = Duration(milliseconds: (delay.inMilliseconds * backoffMultiplier).round());
+      }
+    }
+
+    return null;
   }
 }

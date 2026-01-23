@@ -671,9 +671,15 @@ class AnalyticsService extends ChangeNotifier {
     final contentDetails = <String, Map<String, dynamic>>{};
 
     for (final event in events) {
-      final contentId = event.parameters['content_id'] as String?;
-      final contentTitle = event.parameters['content_title'] as String?;
-      final contentType = event.parameters['content_type'] as String?;
+      // Safe type extraction
+      final contentIdValue = event.parameters['content_id'];
+      final contentId = contentIdValue is String ? contentIdValue : null;
+      
+      final contentTitleValue = event.parameters['content_title'];
+      final contentTitle = contentTitleValue is String ? contentTitleValue : null;
+      
+      final contentTypeValue = event.parameters['content_type'];
+      final contentType = contentTypeValue is String ? contentTypeValue : null;
 
       if (contentId != null) {
         contentCounts[contentId] = (contentCounts[contentId] ?? 0) + 1;
@@ -688,7 +694,13 @@ class AnalyticsService extends ChangeNotifier {
 
     // Sort by count and return top items
     final sortedContent = contentDetails.values.toList()
-      ..sort((a, b) => (b['count'] as int).compareTo(a['count'] as int));
+      ..sort((a, b) {
+        final countA = a['count'];
+        final countB = b['count'];
+        final intCountA = countA is int ? countA : 0;
+        final intCountB = countB is int ? countB : 0;
+        return intCountB.compareTo(intCountA);
+      });
 
     return sortedContent.take(limit).toList();
   }

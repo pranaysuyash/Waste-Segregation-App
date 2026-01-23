@@ -847,8 +847,14 @@ class CategoryDistributionChart extends StatelessWidget {
 
                     if (itemIndex >= 0 && itemIndex < data.length && lineIndex < categories.length) {
                       final category = categories[lineIndex];
-                      final month = data[itemIndex]['month'] as String;
-                      final value = data[itemIndex][category] as double;
+                      
+                      // Safe type extraction
+                      final monthValue = data[itemIndex]['month'];
+                      final month = monthValue is String ? monthValue : 'Unknown';
+                      
+                      final categoryValue = data[itemIndex][category];
+                      final value = categoryValue is double ? categoryValue : 
+                                   (categoryValue is int ? categoryValue.toDouble() : 0.0);
 
                       return LineTooltipItem(
                         '$category\n',
@@ -885,10 +891,14 @@ class CategoryDistributionChart extends StatelessWidget {
                       return const SizedBox.shrink();
                     }
 
+                    // Safe type extraction
+                    final monthValue = data[index]['month'];
+                    final month = monthValue is String ? monthValue : 'Unknown';
+                    
                     return SideTitleWidget(
                       axisSide: meta.axisSide,
                       child: Text(
-                        data[index]['month'] as String,
+                        month,
                         style: const TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.bold,
@@ -965,7 +975,10 @@ class CategoryDistributionChart extends StatelessWidget {
       final spots = <FlSpot>[];
 
       for (var j = 0; j < data.length; j++) {
-        final value = data[j][category] as double;
+        // Safe type extraction
+        final categoryValue = data[j][category];
+        final value = categoryValue is double ? categoryValue : 
+                     (categoryValue is int ? categoryValue.toDouble() : 0.0);
         // Get previous cumulative value or 0
         final prevCumulative = cumulativeValues[j] ?? 0.0;
 

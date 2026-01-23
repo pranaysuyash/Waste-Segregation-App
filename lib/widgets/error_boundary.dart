@@ -1,157 +1,352 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import '../utils/waste_app_logger.dart';
-import 'package:firebase_crashlytics/firebase_crashlytics.dart';
+import '../utils/error_handler.dart';
 
+/// Error boundary widget to catch and handle widget tree errors
 class ErrorBoundary extends StatefulWidget {
   const ErrorBoundary({
     super.key,
     required this.child,
-    this.errorTitle,
-    this.errorMessage,
-    this.onRetry,
+    this.fallback,
+    this.onError,
+    this.showErrorDetails = false,
+    this.context,
   });
+
   final Widget child;
-  final String? errorTitle;
-  final String? errorMessage;
-  final VoidCallback? onRetry;
+  final Widget Function(Object error, StackTrace? stackTrace)? fallback;
+  final void Function(Object error, StackTrace? stackTrace)? onError;
+  final bool showErrorDetails;
+  final String? context;
 
   @override
   State<ErrorBoundary> createState() => _ErrorBoundaryState();
 }
 
 class _ErrorBoundaryState extends State<ErrorBoundary> {
-  bool _hasError = false;
-  FlutterErrorDetails? _errorDetails;
-
-  @override
-  void initState() {
-    super.initState();
-
-    // Set up error handling for this widget tree
-    FlutterError.onError = (FlutterErrorDetails details) {
-      if (mounted) {
-        setState(() {
-          _hasError = true;
-          _errorDetails = details;
-        });
-      }
-
-      // Log error
-      if (kDebugMode) {
-        // Only log to console in debug mode
-        WasteAppLogger.severe('Error Boundary caught exception', details.exception, details.stack, {
-          'widget': 'error_boundary',
-          'error_type': details.exception.runtimeType.toString(),
-          'action': 'display_error_widget'
-        });
-      } else {
-        FirebaseCrashlytics.instance.recordFlutterFatalError(details);
-      }
-    };
-  }
-
-  void _retry() {
-    setState(() {
-      _hasError = false;
-      _errorDetails = null;
-    });
-    widget.onRetry?.call();
-  }
+  Object? _error;
+  StackTrace? _stackTrace;
 
   @override
   Widget build(BuildContext context) {
-    if (_hasError) {
-      return _buildErrorWidget(context);
+    if (_error != null) {
+      return widget.fallback?.call(_error!, _stackTrace) ?? 
+             _buildDefaultErrorWidget(context);
     }
 
+    return ErrorCatchingWidget(
+      onError: _handleError,
+      child: widget.child,
+    );
+  }
+
+  void _handleError(Object error, StackTrace? stackTrace) {
+    setState(() {
+      _error = error;
+      _stackTrace = stackTrace;
+    });
+
+    // Log the error
+    WasteAppLogger.severe(
+      'Error boundary caught error${widget.context != null ? ' in ${widget.context}' : ''}',
+      error,
+      stackTrace,
+    );
+
+    // Call custom error handler if provided
+    widget.onError?.call(error, stackTrace);
+  }
+
+  Widget _buildDefaultErrorWidget(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            Icons.error_outline,
+            size: 64,
+            color: Theme.of(context).colorScheme.error,
+          ),
+          const SizedBox(height: 16),
+          Text(
+            'Something went wrong',
+            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+              color: Theme.of(context).colorScheme.error,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'We encountered an unexpected error. Please try again.',
+            style: Theme.of(context).textTheme.bodyMedium,
+            textAlign: TextAlign.center,
+          ),
+          if (widget.showErrorDetails && _error != null) ...[
+            const SizedBox(height: 16),
+            Expanded(
+              child: SingleChildScrollView(
+                child: Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.errorContainer,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    _error.toString(),
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      fontFamily: 'monospace',
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
+          const SizedBox(height: 16),
+          ElevatedButton(
+            onPressed: () {
+              setState(() {
+                _error = null;
+                _stackTrace = null;
+              });
+            },
+            child: const Text('Try Again'),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Widget that catches errors in its child widget tree
+class ErrorCatchingWidget extends StatefulWidget {
+  const ErrorCatchingWidget({
+    super.key,
+    required this.child,
+    required this.onError,
+  });
+
+  final Widget child;
+  final void Function(Object error, StackTrace? stackTrace) onError;
+
+  @override
+  State<ErrorCatchingWidget> createState() => _ErrorCatchingWidgetState();
+}
+
+class _ErrorCatchingWidgetState extends State<ErrorCatchingWidget> {
+  @override
+  Widget build(BuildContext context) {
     return widget.child;
   }
 
-  Widget _buildErrorWidget(BuildContext context) {
-    return Scaffold(
-      body: Center(
-        child: Padding(
-          padding: const EdgeInsets.all(24.0),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(
-                Icons.error_outline,
-                size: 64,
-                color: Colors.red.shade400,
-              ),
-              const SizedBox(height: 16),
-              Text(
-                widget.errorTitle ?? 'Something went wrong',
-                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 8),
-              Text(
-                widget.errorMessage ?? 'An unexpected error occurred. Please try again.',
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: Colors.grey.shade600,
-                    ),
-                textAlign: TextAlign.center,
-              ),
-              if (kDebugMode && _errorDetails != null) ...[
-                const SizedBox(height: 16),
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: Colors.red.shade50,
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: Colors.red.shade200),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Debug Info:',
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          color: Colors.red.shade700,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        _errorDetails!.exception.toString(),
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontFamily: 'monospace',
-                          color: Colors.red.shade600,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-              const SizedBox(height: 24),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  ElevatedButton.icon(
-                    onPressed: _retry,
-                    icon: const Icon(Icons.refresh),
-                    label: const Text('Try Again'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Theme.of(context).primaryColor,
-                      foregroundColor: Colors.white,
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  TextButton(
-                    onPressed: () => Navigator.of(context).pop(),
-                    child: const Text('Go Back'),
-                  ),
-                ],
-              ),
-            ],
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _catchErrors();
+  }
+
+  void _catchErrors() {
+    FlutterError.onError = (FlutterErrorDetails details) {
+      widget.onError(details.exception, details.stack);
+    };
+  }
+}
+
+/// Specialized error boundary for async operations
+class AsyncErrorBoundary extends StatefulWidget {
+  const AsyncErrorBoundary({
+    super.key,
+    required this.future,
+    required this.builder,
+    this.errorBuilder,
+    this.loadingBuilder,
+    this.context,
+  });
+
+  final Future<dynamic> future;
+  final Widget Function(BuildContext context, dynamic data) builder;
+  final Widget Function(BuildContext context, Object error)? errorBuilder;
+  final Widget Function(BuildContext context)? loadingBuilder;
+  final String? context;
+
+  @override
+  State<AsyncErrorBoundary> createState() => _AsyncErrorBoundaryState();
+}
+
+class _AsyncErrorBoundaryState extends State<AsyncErrorBoundary> {
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder(
+      future: widget.future,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return widget.loadingBuilder?.call(context) ?? 
+                 const Center(child: CircularProgressIndicator());
+        }
+
+        if (snapshot.hasError) {
+          // Log the error
+          WasteAppLogger.severe(
+            'Async error boundary caught error${widget.context != null ? ' in ${widget.context}' : ''}',
+            snapshot.error,
+            snapshot.stackTrace,
+          );
+
+          return widget.errorBuilder?.call(context, snapshot.error!) ?? 
+                 _buildDefaultAsyncErrorWidget(context, snapshot.error!);
+        }
+
+        return widget.builder(context, snapshot.data);
+      },
+    );
+  }
+
+  Widget _buildDefaultAsyncErrorWidget(BuildContext context, Object error) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            Icons.cloud_off,
+            size: 64,
+            color: Theme.of(context).colorScheme.error,
           ),
-        ),
+          const SizedBox(height: 16),
+          Text(
+            'Failed to load data',
+            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+              color: Theme.of(context).colorScheme.error,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Please check your connection and try again.',
+            style: Theme.of(context).textTheme.bodyMedium,
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 16),
+          ElevatedButton(
+            onPressed: () {
+              setState(() {
+                // Trigger rebuild to retry the future
+              });
+            },
+            child: const Text('Retry'),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Error boundary specifically for network operations
+class NetworkErrorBoundary extends StatelessWidget {
+  const NetworkErrorBoundary({
+    super.key,
+    required this.child,
+    this.onNetworkError,
+  });
+
+  final Widget child;
+  final VoidCallback? onNetworkError;
+
+  @override
+  Widget build(BuildContext context) {
+    return ErrorBoundary(
+      context: 'Network Operation',
+      onError: (error, stackTrace) {
+        // Check if it's a network-related error
+        if (_isNetworkError(error)) {
+          onNetworkError?.call();
+          ErrorHandler.showWarningMessage(
+            context,
+            'Network connection issue. Please check your internet connection.',
+          );
+        }
+      },
+      fallback: (error, stackTrace) {
+        if (_isNetworkError(error)) {
+          return _buildNetworkErrorWidget(context);
+        }
+        return _buildGenericErrorWidget(context, error);
+      },
+      child: child,
+    );
+  }
+
+  bool _isNetworkError(Object error) {
+    final errorString = error.toString().toLowerCase();
+    return errorString.contains('network') ||
+           errorString.contains('connection') ||
+           errorString.contains('timeout') ||
+           errorString.contains('socket') ||
+           errorString.contains('http');
+  }
+
+  Widget _buildNetworkErrorWidget(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            Icons.wifi_off,
+            size: 64,
+            color: Theme.of(context).colorScheme.error,
+          ),
+          const SizedBox(height: 16),
+          Text(
+            'Connection Problem',
+            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+              color: Theme.of(context).colorScheme.error,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Please check your internet connection and try again.',
+            style: Theme.of(context).textTheme.bodyMedium,
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 16),
+          ElevatedButton.icon(
+            onPressed: onNetworkError,
+            icon: const Icon(Icons.refresh),
+            label: const Text('Retry'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildGenericErrorWidget(BuildContext context, Object error) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            Icons.error_outline,
+            size: 64,
+            color: Theme.of(context).colorScheme.error,
+          ),
+          const SizedBox(height: 16),
+          Text(
+            'Something went wrong',
+            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+              color: Theme.of(context).colorScheme.error,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'We encountered an unexpected error. Please try again.',
+            style: Theme.of(context).textTheme.bodyMedium,
+            textAlign: TextAlign.center,
+          ),
+        ],
       ),
     );
   }

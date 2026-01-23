@@ -62,7 +62,9 @@ class CommunityService {
 
         if (item.activityType == CommunityActivityType.classification) {
           totalClassifications++;
-          final category = item.metadata['category'] as String?;
+          // Safe type extraction
+          final categoryValue = item.metadata['category'];
+          final category = categoryValue is String ? categoryValue : null;
           if (category != null) {
             categoryBreakdown.update(category, (value) => value + 1, ifAbsent: () => 1);
           }
@@ -99,7 +101,9 @@ class CommunityService {
         });
       } else {
         final classificationIncrement = item.activityType == CommunityActivityType.classification ? 1 : 0;
-        final categoryKey = item.metadata['category'] as String?;
+        // Safe type extraction
+        final categoryValue = item.metadata['category'];
+        final categoryKey = categoryValue is String ? categoryValue : null;
 
         transaction.update(statsRef, {
           'totalClassifications': FieldValue.increment(classificationIncrement),
@@ -205,7 +209,10 @@ class CommunityService {
 
         final existingAchievementIds = existingItems
             .where((item) => item.activityType == CommunityActivityType.achievement)
-            .map((item) => item.metadata['achievementId'] as String?)
+            .map((item) {
+              final achievementIdValue = item.metadata['achievementId'];
+              return achievementIdValue is String ? achievementIdValue : null;
+            })
             .where((id) => id != null)
             .toSet();
 

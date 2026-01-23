@@ -197,7 +197,9 @@ class _CacheStatisticsCardState extends State<CacheStatisticsCard> {
   }
 
   Color _getHitRateColor(BuildContext context) {
-    final hitRateStr = (_statistics['hitRate'] as String?) ?? '0%';
+    // Safe type extraction
+    final hitRateValue = _statistics['hitRate'];
+    final hitRateStr = hitRateValue is String ? hitRateValue : '0%';
     final hitRate = double.tryParse(hitRateStr.replaceAll('%', '')) ?? 0;
 
     if (hitRate >= 80) {

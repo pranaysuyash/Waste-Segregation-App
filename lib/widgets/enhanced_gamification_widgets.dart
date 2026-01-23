@@ -95,6 +95,12 @@ class _EnhancedPointsIndicatorState extends State<EnhancedPointsIndicator> with 
 
   @override
   Widget build(BuildContext context) {
+    return RepaintBoundary(
+      child: _buildEnhancedPointsIndicator(context),
+    );
+  }
+
+  Widget _buildEnhancedPointsIndicator(BuildContext context) {
     final isLevelUp = widget.previousPoints != null && widget.points.level > widget.previousPoints!.level;
 
     return InkWell(
@@ -1260,9 +1266,14 @@ class ArchivedPointsHistoryWidget extends StatelessWidget {
           itemCount: archivedHistory.length,
           itemBuilder: (context, index) {
             final archive = archivedHistory[index];
-            final archivedAt = DateTime.tryParse(archive['archivedAt'] ?? '') ?? DateTime.now();
-            final points = archive['totalLifetimePoints'] as int? ?? 0;
-            final reason = archive['reason'] as String? ?? 'unknown';
+            final archivedAt = DateTime.tryParse(archive['archivedAt']?.toString() ?? '') ?? DateTime.now();
+            
+            // Safe type extraction
+            final pointsValue = archive['totalLifetimePoints'];
+            final points = pointsValue is int ? pointsValue : (pointsValue is double ? pointsValue.toInt() : 0);
+            
+            final reasonValue = archive['reason'];
+            final reason = reasonValue is String ? reasonValue : 'unknown';
 
             return Card(
               margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),

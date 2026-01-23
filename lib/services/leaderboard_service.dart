@@ -79,11 +79,20 @@ class LeaderboardService {
     try {
       // Get the user's points first
       final userDoc = await _firestore.collection(_leaderboardCollection).doc(userId).get();
-      if (!userDoc.exists || userDoc.data() == null) {
+      if (!userDoc.exists) {
         WasteAppLogger.info('User $userId not found in leaderboard_allTime.');
         return null; // User not on the leaderboard
       }
-      final userPoints = userDoc.data()!['points'] as int? ?? 0;
+      
+      final userData = userDoc.data();
+      if (userData == null) {
+        WasteAppLogger.info('User $userId has no data in leaderboard_allTime.');
+        return null;
+      }
+      
+      // Safe type extraction
+      final pointsValue = userData['points'];
+      final userPoints = pointsValue is int ? pointsValue : 0;
 
       // Count users with more points
       final querySnapshot =

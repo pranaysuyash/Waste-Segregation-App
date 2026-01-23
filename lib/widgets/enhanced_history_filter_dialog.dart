@@ -351,13 +351,21 @@ class _EnhancedHistoryFilterDialogState extends State<EnhancedHistoryFilterDialo
           spacing: 8,
           runSpacing: 8,
           children: quickRanges.map((range) {
-            final isSelected = _isQuickRangeSelected(range['days'] as int);
+            final days = range['days'];
+            final label = range['label'];
+            
+            // Safe type checking
+            if (days is! int || label is! String) {
+              return const SizedBox.shrink(); // Skip invalid entries
+            }
+            
+            final isSelected = _isQuickRangeSelected(days);
             return FilterChip(
-              label: Text(range['label'] as String),
+              label: Text(label),
               selected: isSelected,
               onSelected: (selected) {
                 if (selected) {
-                  _applyQuickDateRange(range['days'] as int);
+                  _applyQuickDateRange(days);
                 } else {
                   _clearDateFilters();
                 }

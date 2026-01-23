@@ -85,9 +85,9 @@ class FilterOptions {
   /// Returns true if no filters are applied
   bool get isEmpty {
     return searchText == null &&
-        (categories == null || categories!.isEmpty) &&
-        (subcategories == null || subcategories!.isEmpty) &&
-        (materialTypes == null || materialTypes!.isEmpty) &&
+        (categories?.isEmpty ?? true) &&
+        (subcategories?.isEmpty ?? true) &&
+        (materialTypes?.isEmpty ?? true) &&
         isRecyclable == null &&
         isCompostable == null &&
         requiresSpecialDisposal == null &&
@@ -103,40 +103,49 @@ class FilterOptions {
   String toString() {
     final appliedFilters = <String>[];
 
-    if (searchText != null && searchText!.isNotEmpty) {
-      appliedFilters.add('Search: "$searchText"');
+    final searchTextValue = searchText;
+    if (searchTextValue != null && searchTextValue.isNotEmpty) {
+      appliedFilters.add('Search: "$searchTextValue"');
     }
 
-    if (categories != null && categories!.isNotEmpty) {
-      appliedFilters.add('Categories: ${categories!.join(", ")}');
+    final categoriesValue = categories;
+    if (categoriesValue != null && categoriesValue.isNotEmpty) {
+      appliedFilters.add('Categories: ${categoriesValue.join(", ")}');
     }
 
-    if (subcategories != null && subcategories!.isNotEmpty) {
-      appliedFilters.add('Subcategories: ${subcategories!.join(", ")}');
+    final subcategoriesValue = subcategories;
+    if (subcategoriesValue != null && subcategoriesValue.isNotEmpty) {
+      appliedFilters.add('Subcategories: ${subcategoriesValue.join(", ")}');
     }
 
-    if (materialTypes != null && materialTypes!.isNotEmpty) {
-      appliedFilters.add('Materials: ${materialTypes!.join(", ")}');
+    final materialTypesValue = materialTypes;
+    if (materialTypesValue != null && materialTypesValue.isNotEmpty) {
+      appliedFilters.add('Materials: ${materialTypesValue.join(", ")}');
     }
 
-    if (isRecyclable != null) {
-      appliedFilters.add('Recyclable: ${isRecyclable! ? "Yes" : "No"}');
+    final isRecyclableValue = isRecyclable;
+    if (isRecyclableValue != null) {
+      appliedFilters.add('Recyclable: ${isRecyclableValue ? "Yes" : "No"}');
     }
 
-    if (isCompostable != null) {
-      appliedFilters.add('Compostable: ${isCompostable! ? "Yes" : "No"}');
+    final isCompostableValue = isCompostable;
+    if (isCompostableValue != null) {
+      appliedFilters.add('Compostable: ${isCompostableValue ? "Yes" : "No"}');
     }
 
-    if (requiresSpecialDisposal != null) {
-      appliedFilters.add('Special Disposal: ${requiresSpecialDisposal! ? "Yes" : "No"}');
+    final requiresSpecialDisposalValue = requiresSpecialDisposal;
+    if (requiresSpecialDisposalValue != null) {
+      appliedFilters.add('Special Disposal: ${requiresSpecialDisposalValue ? "Yes" : "No"}');
     }
 
-    if (startDate != null && endDate != null) {
-      appliedFilters.add('Date Range: ${_formatDate(startDate!)} to ${_formatDate(endDate!)}');
-    } else if (startDate != null) {
-      appliedFilters.add('From: ${_formatDate(startDate!)}');
-    } else if (endDate != null) {
-      appliedFilters.add('Until: ${_formatDate(endDate!)}');
+    final startDateValue = startDate;
+    final endDateValue = endDate;
+    if (startDateValue != null && endDateValue != null) {
+      appliedFilters.add('Date Range: ${_formatDate(startDateValue)} to ${_formatDate(endDateValue)}');
+    } else if (startDateValue != null) {
+      appliedFilters.add('From: ${_formatDate(startDateValue)}');
+    } else if (endDateValue != null) {
+      appliedFilters.add('Until: ${_formatDate(endDateValue)}');
     }
 
     if (appliedFilters.isEmpty) {

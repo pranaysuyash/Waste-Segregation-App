@@ -13,6 +13,12 @@ class ClassificationCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    return RepaintBoundary(
+      child: _buildCard(context),
+    );
+  }
+
+  Widget _buildCard(BuildContext context) {
     final catColor = _categoryColor(classification.category);
     final confidencePct = ((classification.confidence ?? 0) * 100).toInt();
     final timeAgo = _formatRelativeTime(classification.timestamp);

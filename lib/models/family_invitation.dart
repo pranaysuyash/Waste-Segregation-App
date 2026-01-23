@@ -1,5 +1,6 @@
 import 'package:uuid/uuid.dart';
 import 'user_profile.dart';
+import '../utils/safe_json_parser.dart';
 
 /// Status of a family invitation.
 enum InvitationStatus {
@@ -53,29 +54,31 @@ class FamilyInvitation {
 
   /// Creates a FamilyInvitation instance from a JSON map.
   factory FamilyInvitation.fromJson(Map<String, dynamic> json) {
+    // Validate required fields
+    SafeJsonParser.validateRequiredFields(json, [
+      'id', 'familyId', 'inviterUserId', 'invitedEmail', 'createdAt', 'expiresAt'
+    ]);
+
     return FamilyInvitation(
-      id: json['id'] as String,
-      familyId: json['familyId'] as String,
-      familyName: json['familyName'] as String? ?? 'Unknown Family',
-      inviterUserId: json['inviterUserId'] as String,
-      inviterName: json['inviterName'] as String?,
-      invitedEmail: json['invitedEmail'] as String,
-      invitedUserId: json['invitedUserId'] as String?,
-      status: InvitationStatus.values.firstWhere(
-        (e) => e.toString().split('.').last == json['status'],
-        orElse: () => InvitationStatus.pending,
+      id: SafeJsonParser.getString(json, 'id'),
+      familyId: SafeJsonParser.getString(json, 'familyId'),
+      familyName: SafeJsonParser.getOptionalString(json, 'familyName') ?? 'Unknown Family',
+      inviterUserId: SafeJsonParser.getString(json, 'inviterUserId'),
+      inviterName: SafeJsonParser.getOptionalString(json, 'inviterName'),
+      invitedEmail: SafeJsonParser.getString(json, 'invitedEmail'),
+      invitedUserId: SafeJsonParser.getOptionalString(json, 'invitedUserId'),
+      status: SafeJsonParser.getEnum(
+        json, 'status', InvitationStatus.values, InvitationStatus.pending,
       ),
-      method: InvitationMethod.values.firstWhere(
-        (e) => e.toString().split('.').last == (json['method'] ?? 'email'),
-        orElse: () => InvitationMethod.email,
+      method: SafeJsonParser.getEnum(
+        json, 'method', InvitationMethod.values, InvitationMethod.email,
       ),
-      roleToAssign: UserRole.values.firstWhere(
-        (e) => e.toString().split('.').last == json['roleToAssign'],
-        orElse: () => UserRole.member,
+      roleToAssign: SafeJsonParser.getEnum(
+        json, 'roleToAssign', UserRole.values, UserRole.member,
       ),
-      createdAt: DateTime.parse(json['createdAt'] as String),
-      expiresAt: DateTime.parse(json['expiresAt'] as String),
-      respondedAt: json['respondedAt'] != null ? DateTime.parse(json['respondedAt'] as String) : null,
+      createdAt: SafeJsonParser.getDateTime(json, 'createdAt'),
+      expiresAt: SafeJsonParser.getDateTime(json, 'expiresAt'),
+      respondedAt: SafeJsonParser.getOptionalDateTime(json, 'respondedAt'),
     );
   }
 
@@ -272,23 +275,26 @@ class BatchInvitation {
 
   /// Creates a BatchInvitation instance from a JSON map.
   factory BatchInvitation.fromJson(Map<String, dynamic> json) {
+    // Validate required fields
+    SafeJsonParser.validateRequiredFields(json, [
+      'id', 'familyId', 'createdBy', 'emails', 'role', 'createdAt', 'expiresAt', 'status'
+    ]);
+
     return BatchInvitation(
-      id: json['id'] as String,
-      familyId: json['familyId'] as String,
-      createdBy: json['createdBy'] as String,
-      emails: List<String>.from(json['emails'] as List),
-      role: UserRole.values.firstWhere(
-        (e) => e.toString().split('.').last == json['role'],
-        orElse: () => UserRole.member,
-      ),
-      createdAt: DateTime.parse(json['createdAt'] as String),
-      expiresAt: DateTime.parse(json['expiresAt'] as String),
-      message: json['message'] as String?,
-      invitations: (json['invitations'] as List<dynamic>?)
-              ?.map((inv) => FamilyInvitation.fromJson(inv as Map<String, dynamic>))
-              .toList() ??
-          [],
-      status: BatchInvitationStatus.fromJson(json['status'] as Map<String, dynamic>),
+      id: SafeJsonParser.getString(json, 'id'),
+      familyId: SafeJsonParser.getString(json, 'familyId'),
+      createdBy: SafeJsonParser.getString(json, 'createdBy'),
+      emails: SafeJsonParser.getList(json, 'emails', (item) => item.toString()),
+      role: SafeJsonParser.getEnum(json, 'role', UserRole.values, UserRole.member),
+      createdAt: SafeJsonParser.getDateTime(json, 'createdAt'),
+      expiresAt: SafeJsonParser.getDateTime(json, 'expiresAt'),
+      message: SafeJsonParser.getOptionalString(json, 'message'),
+      invitations: SafeJsonParser.getOptionalList(
+        json, 
+        'invitations', 
+        (item) => FamilyInvitation.fromJson(SafeJsonParser.safeCast(item, <String, dynamic>{})),
+      ) ?? [],
+      status: BatchInvitationStatus.fromJson(SafeJsonParser.getMap(json, 'status')),
     );
   }
 
@@ -352,11 +358,11 @@ class BatchInvitationStatus {
   /// Creates a BatchInvitationStatus instance from a JSON map.
   factory BatchInvitationStatus.fromJson(Map<String, dynamic> json) {
     return BatchInvitationStatus(
-      totalSent: json['totalSent'] as int,
-      accepted: json['accepted'] as int? ?? 0,
-      declined: json['declined'] as int? ?? 0,
-      pending: json['pending'] as int? ?? 0,
-      expired: json['expired'] as int? ?? 0,
+      totalSent: SafeJsonParser.getInt(json, 'totalSent'),
+      accepted: SafeJsonParser.getOptionalInt(json, 'accepted') ?? 0,
+      declined: SafeJsonParser.getOptionalInt(json, 'declined') ?? 0,
+      pending: SafeJsonParser.getOptionalInt(json, 'pending') ?? 0,
+      expired: SafeJsonParser.getOptionalInt(json, 'expired') ?? 0,
     );
   }
 

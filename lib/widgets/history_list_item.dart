@@ -27,6 +27,12 @@ class HistoryListItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    return RepaintBoundary(
+      child: _buildHistoryListItem(context),
+    );
+  }
+
+  Widget _buildHistoryListItem(BuildContext context) {
     final categoryColor = _getCategoryColor();
 
     return Semantics(

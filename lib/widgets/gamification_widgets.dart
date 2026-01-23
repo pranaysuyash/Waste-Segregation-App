@@ -14,6 +14,12 @@ class StreakIndicator extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    return RepaintBoundary(
+      child: _buildStreakIndicator(context),
+    );
+  }
+
+  Widget _buildStreakIndicator(BuildContext context) {
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(AppTheme.borderRadiusRegular),
@@ -125,6 +131,12 @@ class ChallengeCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    return RepaintBoundary(
+      child: _buildChallengeCard(context),
+    );
+  }
+
+  Widget _buildChallengeCard(BuildContext context) {
     final endDate = challenge.endDate;
     final daysLeft = endDate.difference(DateTime.now()).inDays;
 
@@ -202,6 +214,12 @@ class PointsIndicator extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    return RepaintBoundary(
+      child: _buildPointsIndicator(context),
+    );
+  }
+
+  Widget _buildPointsIndicator(BuildContext context) {
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(AppTheme.borderRadiusRegular),
@@ -287,6 +305,12 @@ class AchievementGrid extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    return RepaintBoundary(
+      child: _buildAchievementGrid(context),
+    );
+  }
+
+  Widget _buildAchievementGrid(BuildContext context) {
     // Get only earned achievements and take latest 4
     final earnedAchievements = achievements.where((a) => a.isEarned).toList()
       ..sort((a, b) => b.earnedOn!.compareTo(a.earnedOn!));
@@ -395,6 +419,12 @@ class AchievementNotification extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    return RepaintBoundary(
+      child: _buildAchievementNotification(context),
+    );
+  }
+
+  Widget _buildAchievementNotification(BuildContext context) {
     return Card(
       margin: const EdgeInsets.all(AppTheme.paddingRegular),
       shape: RoundedRectangleBorder(

@@ -291,7 +291,7 @@ class AnalyticsSchemaValidator {
 
     for (final entry in parameters.entries) {
       if (entry.value is String) {
-        final value = entry.value as String;
+        final value = entry.value; // Already checked as String above
         for (final piiEntry in piiPatterns.entries) {
           if (piiEntry.value.hasMatch(value)) {
             warnings.add('Potential ${piiEntry.key} detected in parameter ${entry.key}');
