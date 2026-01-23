@@ -139,3 +139,4 @@ flutter:
     - assets/images/
     - assets/icons/
     - assets/docs/
+    - assets/models/  # TFLite model files (download separately)
