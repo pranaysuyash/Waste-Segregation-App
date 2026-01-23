@@ -5,18 +5,18 @@ import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:dio/dio.dart';
 import 'package:image/image.dart' as img;
-import '../models/waste_classification.dart';
-import '../models/token_wallet.dart';
-import '../utils/constants.dart';
-import '../utils/image_utils.dart';
-import '../services/cache_service.dart';
-import 'enhanced_image_service.dart';
-import 'dynamic_pricing_service.dart';
-import 'cost_guardrail_service.dart';
-import 'enhanced_api_error_handler.dart';
+import 'package:waste_segregation_app/models/waste_classification.dart';
+import 'package:waste_segregation_app/models/token_wallet.dart';
+import 'package:waste_segregation_app/utils/constants.dart';
+import 'package:waste_segregation_app/utils/image_utils.dart';
+import 'package:waste_segregation_app/services/cache_service.dart';
+import 'package:waste_segregation_app/services/enhanced_image_service.dart';
+import 'package:waste_segregation_app/services/dynamic_pricing_service.dart';
+import 'package:waste_segregation_app/services/cost_guardrail_service.dart';
+import 'package:waste_segregation_app/services/enhanced_api_error_handler.dart';
 import 'package:uuid/uuid.dart';
-import '../utils/waste_app_logger.dart';
-import 'local_guidelines_plugin.dart';
+import 'package:waste_segregation_app/utils/waste_app_logger.dart';
+import 'package:waste_segregation_app/services/local_guidelines_plugin.dart';
 
 /// Service for analyzing waste items using AI models (OpenAI and Gemini).
 ///
@@ -576,7 +576,7 @@ Output:
         if (cachedResult != null) {
           WasteAppLogger.cacheEvent('cache_operation', 'classification',
               context: {'service': 'ai', 'file': 'ai_service'});
-          return cachedResult.classification.copyWith(id: currentClassificationId);
+          return Future.value(cachedResult.classification.copyWith(id: currentClassificationId));
         }
 
         WasteAppLogger.cacheEvent('cache_operation', 'classification',
@@ -716,7 +716,7 @@ Output:
         if (cachedResult != null) {
           WasteAppLogger.cacheEvent('cache_operation', 'classification',
               context: {'service': 'ai', 'file': 'ai_service'});
-          return cachedResult.classification.copyWith(id: currentClassificationId);
+          return Future.value(cachedResult.classification.copyWith(id: currentClassificationId));
         }
 
         WasteAppLogger.cacheEvent('cache_operation', 'classification',

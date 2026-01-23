@@ -3,12 +3,12 @@ import 'package:image/image.dart' as img;
 import '../utils/waste_app_logger.dart';
 
 /// Lightweight TensorFlow Lite preprocessing helper
-/// 
+///
 /// Replaces unmaintained tflite_flutter_helper package
 /// Handles image preprocessing for TFLite model inference
 class TFLitePreprocessingHelper {
   /// Preprocess image for TFLite model
-  /// 
+  ///
   /// Handles:
   /// - Image resizing to model input dimensions
   /// - Normalization (optional)
@@ -32,35 +32,39 @@ class TFLitePreprocessingHelper {
 
       // Convert to Float32 buffer
       final float32List = Float32List(inputWidth * inputHeight * 3);
-      
+
       int pixelIndex = 0;
       for (int y = 0; y < inputHeight; y++) {
         for (int x = 0; x < inputWidth; x++) {
           final pixel = resized.getPixelSafe(x, y);
-          
-          // Extract RGB channels
-          final r = img.getRed(pixel).toDouble();
-          final g = img.getGreen(pixel).toDouble();
-          final b = img.getBlue(pixel).toDouble();
+
+          // Extract RGB channels using image package API
+          final r = pixel.r.toDouble();
+          final g = pixel.g.toDouble();
+          final b = pixel.b.toDouble();
 
           // Normalize if requested
           if (normalize) {
             float32List[pixelIndex] = _normalize(r, normalizeMin, normalizeMax);
-            float32List[pixelIndex + 1] = _normalize(g, normalizeMin, normalizeMax);
-            float32List[pixelIndex + 2] = _normalize(b, normalizeMin, normalizeMax);
+            float32List[pixelIndex + 1] =
+                _normalize(g, normalizeMin, normalizeMax);
+            float32List[pixelIndex + 2] =
+                _normalize(b, normalizeMin, normalizeMax);
           } else {
             float32List[pixelIndex] = r;
             float32List[pixelIndex + 1] = g;
             float32List[pixelIndex + 2] = b;
           }
-          
+
           pixelIndex += 3;
         }
       }
 
       WasteAppLogger.info(
         'Image preprocessed for TFLite inference',
-        context: {
+        null,
+        null,
+        {
           'original_size': '${image.width}x${image.height}',
           'model_input': '${inputWidth}x${inputHeight}',
           'normalized': normalize,
@@ -91,7 +95,7 @@ class TFLitePreprocessingHelper {
   }
 
   /// Postprocess TFLite output probabilities
-  /// 
+  ///
   /// Takes raw model output and converts to readable predictions
   static Map<String, double> postprocessProbabilities({
     required List<double> predictions,
@@ -105,7 +109,7 @@ class TFLitePreprocessingHelper {
     }
 
     final results = <String, double>{};
-    
+
     for (int i = 0; i < predictions.length; i++) {
       final confidence = predictions[i];
       if (confidence >= confidenceThreshold) {
@@ -163,7 +167,7 @@ class TFLitePreprocessingHelper {
     bool normalize = true,
   }) async {
     final results = <List<Float32List>>[];
-    
+
     for (final image in images) {
       final processed = await preprocessImageForInference(
         image: image,
@@ -173,7 +177,7 @@ class TFLitePreprocessingHelper {
       );
       results.add(processed);
     }
-    
+
     return results;
   }
 }

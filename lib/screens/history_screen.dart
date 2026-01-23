@@ -81,13 +81,16 @@ class _HistoryScreenState extends State<HistoryScreen> with RestorationMixin {
 
   @override
   void restoreState(RestorationBucket? oldBucket, bool initialRestore) {
-    registerForRestoration(_selectedClassificationId, 'selected_classification_id');
+    registerForRestoration(
+        _selectedClassificationId, 'selected_classification_id');
 
     // When data is loaded, attempt to restore selected classification
-    if (_classifications.isNotEmpty && _selectedClassificationId.value != null) {
+    if (_classifications.isNotEmpty &&
+        _selectedClassificationId.value != null) {
       final id = _selectedClassificationId.value!;
       try {
-        _selectedClassification = _classifications.firstWhere((c) => c.id == id);
+        _selectedClassification =
+            _classifications.firstWhere((c) => c.id == id);
       } catch (_) {
         _selectedClassification = null;
       }
@@ -130,7 +133,8 @@ class _HistoryScreenState extends State<HistoryScreen> with RestorationMixin {
 
   // Scroll listener for pagination
   void _scrollListener() {
-    if (_scrollController.position.pixels >= _scrollController.position.maxScrollExtent - 200 &&
+    if (_scrollController.position.pixels >=
+            _scrollController.position.maxScrollExtent - 200 &&
         !_isLoadingMore &&
         _hasMorePages) {
       _loadMoreClassifications();
@@ -148,8 +152,10 @@ class _HistoryScreenState extends State<HistoryScreen> with RestorationMixin {
     });
 
     try {
-      final storageService = Provider.of<StorageService>(context, listen: false);
-      final cloudStorageService = Provider.of<CloudStorageService>(context, listen: false);
+      final storageService =
+          Provider.of<StorageService>(context, listen: false);
+      final cloudStorageService =
+          Provider.of<CloudStorageService>(context, listen: false);
 
       // Get Google sync and feedback settings
       final settings = await storageService.getSettings();
@@ -159,12 +165,15 @@ class _HistoryScreenState extends State<HistoryScreen> with RestorationMixin {
 
       // Load from cloud or local based on sync setting
       final allClassifications = isGoogleSyncEnabled
-          ? await cloudStorageService.getAllClassificationsWithCloudSync(isGoogleSyncEnabled)
-          : await storageService.getAllClassifications(filterOptions: _filterOptions);
+          ? await cloudStorageService
+              .getAllClassificationsWithCloudSync(isGoogleSyncEnabled)
+          : await storageService.getAllClassifications(
+              filterOptions: _filterOptions);
 
       // Apply filters if not already applied
       final filteredClassifications = isGoogleSyncEnabled
-          ? storageService.applyFiltersToClassifications(allClassifications, _filterOptions)
+          ? storageService.applyFiltersToClassifications(
+              allClassifications, _filterOptions)
           : allClassifications;
 
       // Get first page
@@ -172,7 +181,10 @@ class _HistoryScreenState extends State<HistoryScreen> with RestorationMixin {
       final endIndex = startIndex + _itemsPerPage;
       final pageClassifications = filteredClassifications.length > startIndex
           ? filteredClassifications.sublist(
-              startIndex, endIndex > filteredClassifications.length ? filteredClassifications.length : endIndex)
+              startIndex,
+              endIndex > filteredClassifications.length
+                  ? filteredClassifications.length
+                  : endIndex)
           : <WasteClassification>[];
 
       if (!mounted) return;
@@ -184,7 +196,8 @@ class _HistoryScreenState extends State<HistoryScreen> with RestorationMixin {
 
       if (_selectedClassificationId.value != null) {
         try {
-          _selectedClassification = _classifications.firstWhere((c) => c.id == _selectedClassificationId.value);
+          _selectedClassification = _classifications
+              .firstWhere((c) => c.id == _selectedClassificationId.value);
         } catch (_) {
           _selectedClassification = null;
         }
@@ -214,11 +227,13 @@ class _HistoryScreenState extends State<HistoryScreen> with RestorationMixin {
     });
 
     try {
-      final storageService = Provider.of<StorageService>(context, listen: false);
+      final storageService =
+          Provider.of<StorageService>(context, listen: false);
 
       // Load next page
       final nextPage = _currentPage + 1;
-      final moreClassifications = await storageService.getClassificationsWithPagination(
+      final moreClassifications =
+          await storageService.getClassificationsWithPagination(
         filterOptions: _filterOptions,
         pageSize: _itemsPerPage,
         page: nextPage,
@@ -307,7 +322,8 @@ class _HistoryScreenState extends State<HistoryScreen> with RestorationMixin {
   // Show date range picker
   Future<void> _showDateRangePicker() async {
     final initialDateRange = DateTimeRange(
-      start: _filterOptions.startDate ?? DateTime.now().subtract(const Duration(days: 30)),
+      start: _filterOptions.startDate ??
+          DateTime.now().subtract(const Duration(days: 30)),
       end: _filterOptions.endDate ?? DateTime.now(),
     );
 
@@ -340,7 +356,8 @@ class _HistoryScreenState extends State<HistoryScreen> with RestorationMixin {
   // Show filter dialog
   Future<void> _showFilterDialog() async {
     // Track filter dialog open
-    _analyticsService.trackUserAction('open_history_filter_dialog', parameters: {
+    _analyticsService
+        .trackUserAction('open_history_filter_dialog', parameters: {
       'current_active_filters': _isFilterActive(),
       'active_categories': _selectedCategories,
     });
@@ -371,7 +388,8 @@ class _HistoryScreenState extends State<HistoryScreen> with RestorationMixin {
                       spacing: 8,
                       runSpacing: 8,
                       children: _allCategories.map((category) {
-                        final isSelected = tempSelectedCategories.contains(category);
+                        final isSelected =
+                            tempSelectedCategories.contains(category);
                         final categoryColor = _getCategoryColor(category);
 
                         return FilterChip(
@@ -407,10 +425,12 @@ class _HistoryScreenState extends State<HistoryScreen> with RestorationMixin {
                       children: [
                         Expanded(
                           child: Text(
-                            _filterOptions.startDate != null || _filterOptions.endDate != null
+                            _filterOptions.startDate != null ||
+                                    _filterOptions.endDate != null
                                 ? '${_filterOptions.startDate != null ? _formatDate(_filterOptions.startDate!) : 'Any'} to ${_filterOptions.endDate != null ? _formatDate(_filterOptions.endDate!) : 'Now'}'
                                 : 'All time',
-                            style: const TextStyle(fontSize: AppTheme.fontSizeRegular),
+                            style: const TextStyle(
+                                fontSize: AppTheme.fontSizeRegular),
                           ),
                         ),
                         TextButton.icon(
@@ -469,7 +489,8 @@ class _HistoryScreenState extends State<HistoryScreen> with RestorationMixin {
                                 : _filterOptions.sortNewestFirst
                                     ? 'A to Z'
                                     : 'Z to A',
-                            style: const TextStyle(fontSize: AppTheme.fontSizeRegular),
+                            style: const TextStyle(
+                                fontSize: AppTheme.fontSizeRegular),
                           ),
                         ),
                         Switch(
@@ -502,7 +523,8 @@ class _HistoryScreenState extends State<HistoryScreen> with RestorationMixin {
                 ElevatedButton(
                   onPressed: () {
                     // Track filter application
-                    _analyticsService.trackUserAction('apply_history_filters', parameters: {
+                    _analyticsService
+                        .trackUserAction('apply_history_filters', parameters: {
                       'categories_selected': tempSelectedCategories,
                       'filters_count': tempSelectedCategories.length,
                     });
@@ -543,7 +565,8 @@ class _HistoryScreenState extends State<HistoryScreen> with RestorationMixin {
         _isLoading = true;
       });
 
-      final storageService = Provider.of<StorageService>(context, listen: false);
+      final storageService =
+          Provider.of<StorageService>(context, listen: false);
       final csvContent = await storageService.exportClassificationsToCSV(
         filterOptions: _filterOptions,
       );
@@ -552,7 +575,8 @@ class _HistoryScreenState extends State<HistoryScreen> with RestorationMixin {
 
       // Share the CSV file
       final directory = await _getTempDirectory();
-      final filePath = '${directory.path}/waste_classifications_${DateTime.now().millisecondsSinceEpoch}.csv';
+      final filePath =
+          '${directory.path}/waste_classifications_${DateTime.now().millisecondsSinceEpoch}.csv';
 
       final file = File(filePath);
       await file.writeAsString(csvContent);
@@ -646,7 +670,8 @@ class _HistoryScreenState extends State<HistoryScreen> with RestorationMixin {
   // Navigate to classification details
   void _navigateToClassificationDetails(WasteClassification classification) {
     // Track viewing classification from history
-    _analyticsService.trackUserAction('view_history_classification', parameters: {
+    _analyticsService
+        .trackUserAction('view_history_classification', parameters: {
       'classification_id': classification.id,
       'category': classification.category,
       'item_name': classification.itemName,
@@ -683,7 +708,8 @@ class _HistoryScreenState extends State<HistoryScreen> with RestorationMixin {
             : _classifications.isEmpty && !_isFilterActive()
                 ? EmptyStateWidget(
                     title: 'No History Yet',
-                    message: 'Start classifying items to build your waste history.',
+                    message:
+                        'Start classifying items to build your waste history.',
                     icon: Icons.history_toggle_off_outlined,
                     actionButton: Builder(
                       builder: (context) {
@@ -706,7 +732,8 @@ class _HistoryScreenState extends State<HistoryScreen> with RestorationMixin {
                 : _classifications.isEmpty && _isFilterActive()
                     ? EmptyStateWidget(
                         title: 'No Results Found',
-                        message: 'Try adjusting your filters or clearing them to see more items.',
+                        message:
+                            'Try adjusting your filters or clearing them to see more items.',
                         icon: Icons.filter_alt_off_outlined,
                         actionButton: ElevatedButton.icon(
                           icon: const Icon(Icons.clear_all),
@@ -811,9 +838,11 @@ class _HistoryScreenState extends State<HistoryScreen> with RestorationMixin {
     );
   }
 
-  Future<void> _handleFeedbackSubmission(WasteClassification updatedClassification) async {
+  Future<void> _handleFeedbackSubmission(
+      WasteClassification updatedClassification) async {
     try {
-      final storageService = Provider.of<StorageService>(context, listen: false);
+      final storageService =
+          Provider.of<StorageService>(context, listen: false);
       await storageService.saveClassification(updatedClassification);
 
       if (mounted) {
@@ -841,7 +870,8 @@ class _HistoryScreenState extends State<HistoryScreen> with RestorationMixin {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Failed to save feedback: ${ErrorHandler.getUserFriendlyMessage(e)}'),
+            content: Text(
+                'Failed to save feedback: ${ErrorHandler.getUserFriendlyMessage(e)}'),
             backgroundColor: Colors.red.shade600,
           ),
         );
