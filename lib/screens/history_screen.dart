@@ -796,8 +796,10 @@ class _HistoryScreenState extends State<HistoryScreen> with RestorationMixin {
           final classification = _classifications[index];
           // OPTIMIZATION: RepaintBoundary prevents unnecessary repaints of list items
           // Each item can repaint independently without affecting other items
+          // ValueKey ensures proper list semantics and prevents widget state issues
           return RepaintBoundary(
             child: HistoryListItem(
+              key: ValueKey<String>(classification.id),
               classification: classification,
               onTap: () => _navigateToClassificationDetails(classification),
               onFeedbackSubmitted: _handleFeedbackSubmission,

@@ -45,6 +45,7 @@ class DynamicLinkService {
 
   static void _handleLinkData(Uri? deepLink, BuildContext context) {
     if (deepLink == null) return;
+    if (!context.mounted) return;
 
     if (deepLink.pathSegments.contains('result')) {
       final id = deepLink.queryParameters['id'];
@@ -67,15 +68,17 @@ class DynamicLinkService {
           alternatives: const [],
         );
 
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (_) => ResultScreen(
-              classification: classification,
-              showActions: false,
+        if (context.mounted) {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => ResultScreen(
+                classification: classification,
+                showActions: false,
+              ),
             ),
-          ),
-        );
+          );
+        }
       }
     }
   }

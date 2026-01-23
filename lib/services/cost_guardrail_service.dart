@@ -33,6 +33,9 @@ class CostGuardrailService extends ChangeNotifier {
   double _budgetThresholdPercentage = 80.0;
   bool _forceBatchModeOnThreshold = true;
 
+  // Timer for periodic monitoring
+  Timer? _monitoringTimer;
+
   // Stream controllers for real-time updates
   final StreamController<bool> _batchModeStream = StreamController<bool>.broadcast();
   final StreamController<CostAlert> _alertStream = StreamController<CostAlert>.broadcast();
@@ -109,7 +112,7 @@ class CostGuardrailService extends ChangeNotifier {
   /// Start continuous cost monitoring
   void _startMonitoring() {
     // Monitor cost changes every minute
-    Timer.periodic(const Duration(minutes: 1), (_) async {
+    _monitoringTimer = Timer.periodic(const Duration(minutes: 1), (_) async {
       if (!_guardrailsEnabled) return;
       
       try {
@@ -451,6 +454,8 @@ class CostGuardrailService extends ChangeNotifier {
 
   @override
   void dispose() {
+    // Cancel monitoring timer to prevent memory leaks
+    _monitoringTimer?.cancel();
     _pricingService.removeListener(_onPricingServiceChange);
     _batchModeStream.close();
     _alertStream.close();
