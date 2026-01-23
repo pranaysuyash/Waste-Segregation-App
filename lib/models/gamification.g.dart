@@ -271,10 +271,10 @@ class GamificationProfileAdapter extends TypeAdapter<GamificationProfile> {
       activeChallenges: (fields[4] as List).cast<Challenge>(),
       completedChallenges: (fields[5] as List).cast<Challenge>(),
       weeklyStats: (fields[6] as List).cast<WeeklyStats>(),
-      discoveredItemIds: (fields[7] as List).cast<String>(),
+      discoveredItemIds: (fields[7] as List).cast<String>().toSet(),
       lastDailyEngagementBonusAwardedDate: fields[8] as DateTime?,
       lastViewPersonalStatsAwardedDate: fields[9] as DateTime?,
-      unlockedHiddenContentIds: (fields[10] as List).cast<String>(),
+      unlockedHiddenContentIds: (fields[10] as List).cast<String>().toSet(),
     );
   }
 

@@ -15,7 +15,7 @@ class BatchAnalysisRequest {
     required this.completer,
     this.region,
     this.instructionsLang,
-    this.timestamp,
+    DateTime? timestamp,
   }) : timestamp = timestamp ?? DateTime.now();
 
   final String id;
@@ -188,14 +188,24 @@ class BatchingService {
               'Request ID: ${request.id}. '
               'Batch size: ${batch.length}. '
               'Cost savings: ~50% vs instant mode.',
-          disposalInstructions: [
-            'Integrate OpenAI Batch API for production use',
-            'Batch API reduces costs by ~50%',
-            'Results delivered within 24 hours',
-            'Ideal for non-urgent classifications',
-          ],
+          disposalInstructions: DisposalInstructions(
+            primaryMethod: 'Batch Processing',
+            steps: [
+              'Integrate OpenAI Batch API for production use',
+              'Batch API reduces costs by ~50%',
+              'Results delivered within 24 hours',
+              'Ideal for non-urgent classifications',
+            ],
+            hasUrgentTimeframe: false,
+          ),
           visualFeatures: ['Batch processing', 'Cost optimized', 'Delayed results'],
-          alternatives: ['Instant mode available for urgent analysis'],
+          alternatives: [
+            AlternativeClassification(
+              category: 'Instant Mode',
+              confidence: 1.0,
+              reason: 'Available for urgent analysis',
+            ),
+          ],
           region: request.region ?? 'Global',
           confidence: 0.0, // Indicates placeholder result
           modelSource: 'batch-api-placeholder',

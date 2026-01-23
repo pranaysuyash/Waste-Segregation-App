@@ -84,7 +84,9 @@ class FirestoreBatchService {
       
       WasteAppLogger.info(
         'Successfully committed batch',
-        context: {
+        null,
+        null,
+        {
           'operations': opsCount,
           'cost_savings': '~${(opsCount * 0.4).toStringAsFixed(0)}% vs individual writes',
         },
@@ -140,7 +142,9 @@ class FirestoreBatchService {
     if (_operationCount > 0) {
       WasteAppLogger.warning(
         'FirestoreBatchService disposed with uncommitted operations',
-        context: {'pending_operations': _operationCount},
+        null,
+        null,
+        {'pending_operations': _operationCount},
       );
     }
     _currentBatch = null;
@@ -197,7 +201,9 @@ class FirestoreBatchManager {
 
     WasteAppLogger.info(
       'Committed all batches',
-      context: {
+      null,
+      null,
+      {
         'batches': results.length,
         'total_operations': results.values.fold(0, (sum, count) => sum + count),
       },
