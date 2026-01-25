@@ -1,0 +1,56 @@
+name: 'Block Failure Artifacts'
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+  push:
+    branches:
+      - main
+      - develop
+
+jobs:
+  check-no-failure-artifacts:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Prevent adding golden failure artifacts
+        id: check_failures
+        run: |
+          set -euo pipefail
+          echo "Checking for files matching failure patterns..."
+
+          # Determine files changed in the PR (compare head to base) for PRs
+          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+            BASE_REF="origin/${{ github.event.pull_request.base.ref }}"
+            git fetch origin ${{ github.event.pull_request.base.ref }} --depth=1 || true
+            FILES=$(git diff --name-only $BASE_REF...HEAD)
+          else
+            # For push events, check all changes in the push
+            FILES=$(git diff --name-only HEAD~1..HEAD || true)
+          fi
+
+          echo "Changed files:" 
+          echo "$FILES"
+
+          # Patterns to reject
+          REJECT_PATTERNS='(^|/)failures/|_maskedDiff|_isolatedDiff|_masterImage|_testImage|/boringssl|fix_boringssl_issue.sh|BoringSSL-Fix-Podfile.rb'
+
+          # Iterate changed files and detect any that match reject patterns
+          bad_files=()
+          while IFS= read -r f; do
+            if [[ -n "$f" && "$f" =~ $REJECT_PATTERNS ]]; then
+              bad_files+=("$f")
+            fi
+          done <<< "$FILES"
+
+          if [ ${#bad_files[@]} -ne 0 ]; then
+            echo "ERROR: Found forbidden files in the change set:" 
+            printf '%s\n' "${bad_files[@]}"
+            echo "\nPlease remove these artifacts from the commit. Only the master golden images under 'test/golden/golden/' may be committed. CI prevents committing generated failure artifacts."
+            exit 1
+          fi
+
+          echo "No forbidden failure artifacts found."
