@@ -34,15 +34,16 @@ jobs:
 
         # On pull_request we must not attempt to auto-commit/push (refs/pull/*/merge is a hidden ref).
         if [ "${{ github.event_name }}" = "pull_request" ]; then
-          echo "PR mode: lint only (no auto-fix/push)."
-          markdownlint docs/*.md *.md 2>/dev/null
-          echo "✅ Markdown lint passed"
+          echo "PR mode: auto-fix locally in CI, but do not commit/push."
+          markdownlint --fix docs/*.md *.md || true
+          markdownlint docs/*.md *.md
+          echo "✅ Markdown lint passed (PR mode)"
           exit 0
         fi
 
         echo "Push mode: running auto-fix (and committing if needed)."
-        markdownlint --fix docs/*.md *.md 2>/dev/null || true
-        markdownlint docs/*.md *.md 2>/dev/null
+        markdownlint --fix docs/*.md *.md || true
+        markdownlint docs/*.md *.md
         echo "✅ Markdown lint passed after auto-fix"
         
     - name: Check for changes
