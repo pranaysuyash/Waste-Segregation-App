@@ -72,6 +72,11 @@ class UserConsentService {
     _prefs ??= await SharedPreferences.getInstance();
   }
 
+  Future<void> _ensureInitialized() async {
+    if (_prefs != null) return;
+    await initialize();
+  }
+
   // Synchronous getters rely on injected prefs; tests inject mocks so no async needed.
   bool _getBool(String key) {
     try {
@@ -83,6 +88,7 @@ class UserConsentService {
 
   Future<void> _setBool(String key, bool value) async {
     try {
+      await _ensureInitialized();
       await _preferences.setBool(key, value);
     } catch (_) {}
   }
@@ -97,6 +103,7 @@ class UserConsentService {
 
   Future<void> _setString(String key, String value) async {
     try {
+      await _ensureInitialized();
       await _preferences.setString(key, value);
     } catch (_) {}
   }
@@ -111,6 +118,7 @@ class UserConsentService {
 
   Future<void> _setStringList(String key, List<String> value) async {
     try {
+      await _ensureInitialized();
       await _preferences.setStringList(key, value);
     } catch (_) {}
   }

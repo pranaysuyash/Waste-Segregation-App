@@ -122,8 +122,6 @@ class _AppBootstrapperState extends State<_AppBootstrapper> {
 
   Future<void> _startInitialization() async {
     try {
-      if (kDebugMode) print('BOOT: Starting initialization sequence');
-
       if (mounted) {
         setState(() {
           _error = null;
@@ -139,7 +137,7 @@ class _AppBootstrapperState extends State<_AppBootstrapper> {
       // 1. Core Logging & Error Handling
       await WasteAppLogger.initialize().timeout(const Duration(seconds: 3));
       _setupErrorHandling();
-      if (kDebugMode) print('BOOT: Logger initialized');
+      WasteAppLogger.debug('BOOT: Logger initialized');
 
       // Consent service should be ready early; if SharedPreferences hangs, we continue with a safe "false" default.
       try {
@@ -165,7 +163,7 @@ class _AppBootstrapperState extends State<_AppBootstrapper> {
           await Firebase.initializeApp(
             options: DefaultFirebaseOptions.currentPlatform,
           ).timeout(const Duration(seconds: 10));
-          if (kDebugMode) print('BOOT: Firebase initialized');
+          WasteAppLogger.debug('BOOT: Firebase initialized');
         } catch (e) {
           WasteAppLogger.severe('Firebase init failed', error: e);
         }
@@ -174,9 +172,7 @@ class _AppBootstrapperState extends State<_AppBootstrapper> {
       // 3. Storage & Database
       const skipHiveInit = bool.fromEnvironment('SKIP_HIVE');
       if (skipHiveInit) {
-        if (kDebugMode) {
-          print('BOOT: Skipping Hive init (SKIP_HIVE=true).');
-        }
+        WasteAppLogger.debug('BOOT: Skipping Hive init (SKIP_HIVE=true).');
         if (mounted) {
           setState(() {
             _minimalMode = true;
@@ -238,7 +234,7 @@ class _AppBootstrapperState extends State<_AppBootstrapper> {
           .initialize()
           .catchError((e) => WasteAppLogger.severe('Ad init failed: $e')));
 
-      if (kDebugMode) print('BOOT: All services instantiated');
+      WasteAppLogger.debug('BOOT: All services instantiated');
 
       if (mounted) {
         setState(() {
@@ -254,7 +250,6 @@ class _AppBootstrapperState extends State<_AppBootstrapper> {
         }
       });
     } catch (e, s) {
-      if (kDebugMode) print('BOOT: Initialization failed: $e');
       WasteAppLogger.severe('Fatal boot error', error: e, stackTrace: s);
       if (mounted) {
         setState(() {
@@ -272,15 +267,14 @@ class _AppBootstrapperState extends State<_AppBootstrapper> {
   }) async {
     try {
       await action().timeout(timeout);
-      if (kDebugMode) print('BOOT: Step $label finished');
+      WasteAppLogger.debug('BOOT: Step $label finished');
     } catch (e) {
       WasteAppLogger.severe('BOOT: Step $label failed', error: e);
       if (critical) {
         // For simulator/debug scenarios, failing Hive should still yield a visible UI.
-        if (kDebugMode) {
-          print(
-              'BOOT: Critical step failed ($label). Falling back to minimal mode.');
-        }
+        WasteAppLogger.debug(
+          'BOOT: Critical step failed ($label). Falling back to minimal mode.',
+        );
         if (mounted) {
           setState(() {
             _minimalMode = true;
