@@ -172,13 +172,23 @@ class _AppBootstrapperState extends State<_AppBootstrapper> {
       final skipFirebaseInit = !isFirebaseEnabled;
       if (!skipFirebaseInit) {
         try {
-          if (Firebase.apps.isEmpty) {
+          var alreadyInitialized = Firebase.apps.isNotEmpty;
+          if (!alreadyInitialized) {
+            // Some platforms auto-initialize the default app via native config.
+            // `Firebase.apps` may still appear empty early, so probe `Firebase.app()`.
+            try {
+              Firebase.app();
+              alreadyInitialized = true;
+            } catch (_) {}
+          }
+
+          if (alreadyInitialized) {
+            WasteAppLogger.debug('BOOT: Firebase already initialized');
+          } else {
             await Firebase.initializeApp(
               options: DefaultFirebaseOptions.currentPlatform,
             ).timeout(const Duration(seconds: 10));
             WasteAppLogger.debug('BOOT: Firebase initialized');
-          } else {
-            WasteAppLogger.debug('BOOT: Firebase already initialized');
           }
         } catch (e) {
           WasteAppLogger.severe('Firebase init failed', error: e);
