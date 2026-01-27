@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import '../services/user_consent_service.dart';
-import '../utils/constants.dart';
+import 'package:provider/provider.dart';
+import 'package:waste_segregation_app/services/user_consent_service.dart';
+import 'package:waste_segregation_app/utils/constants.dart';
 import 'legal_document_screen.dart';
 
 class ConsentDialogScreen extends StatelessWidget {
@@ -118,7 +119,7 @@ class ConsentDialogScreen extends StatelessWidget {
                 child: ElevatedButton(
                   onPressed: () async {
                     // Record user consent and continue
-                    final consentService = UserConsentService();
+                    final consentService = context.read<UserConsentService>();
                     await consentService.recordAllConsents();
                     onConsent();
                   },

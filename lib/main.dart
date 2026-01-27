@@ -125,6 +125,14 @@ class _AppBootstrapperState extends State<_AppBootstrapper> {
     try {
       if (kDebugMode) print('BOOT: Starting initialization sequence');
 
+      if (mounted) {
+        setState(() {
+          _error = null;
+          _initialized = false;
+          _minimalMode = false;
+        });
+      }
+
       if (!kIsWeb) {
         _setPreferredOrientationsSafe();
       }
