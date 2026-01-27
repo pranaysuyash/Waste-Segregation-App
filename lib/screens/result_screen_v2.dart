@@ -4,6 +4,8 @@ import 'package:flutter/services.dart';
 import 'package:waste_segregation_app/models/waste_classification.dart';
 import '../services/result_pipeline.dart';
 import '../services/haptic_settings_service.dart';
+import '../services/storage_service.dart';
+import '../services/analytics_service.dart';
 import '../widgets/result_screen/result_header.dart';
 import '../widgets/result_screen/disposal_accordion.dart';
 import '../widgets/result_screen/action_row.dart';
@@ -41,6 +43,7 @@ class _ResultScreenV2State extends ConsumerState<ResultScreenV2>
     with TickerProviderStateMixin, AchievementCelebrationMixin {
   late AnimationController _fadeController;
   late AnimationController _slideController;
+  late AnalyticsService _analyticsService;
   
   // Gamification state
   bool _hasShownPointsPopup = false;
@@ -49,6 +52,9 @@ class _ResultScreenV2State extends ConsumerState<ResultScreenV2>
   @override
   void initState() {
     super.initState();
+
+    // Initialize analytics (will be properly initialized with context)
+    _analyticsService = AnalyticsService(StorageService());
 
     // Initialize animations
     _fadeController = AnimationController(
@@ -98,11 +104,21 @@ class _ResultScreenV2State extends ConsumerState<ResultScreenV2>
   }
 
   void _trackScreenView() {
-    WasteAppLogger.aiEvent('result_screen_v2_viewed', context: {
+    // Use Legacy event name for parity
+    _analyticsService.trackScreenView('ResultScreen', parameters: {
+      'classification_id': widget.classification.id,
+      'category': widget.classification.category,
+      'item_name': widget.classification.itemName,
+      'confidence': widget.classification.confidence,
+      'show_actions': widget.showActions,
+      'auto_analyze': widget.autoAnalyze,
+      'version': 'v2',
+    });
+    
+    // Also log for debugging
+    WasteAppLogger.aiEvent('result_screen_viewed', context: {
       'classificationId': widget.classification.id,
       'category': widget.classification.category,
-      'confidence': widget.classification.confidence,
-      'autoAnalyze': widget.autoAnalyze,
       'version': 'v2',
     });
   }
@@ -132,7 +148,7 @@ class _ResultScreenV2State extends ConsumerState<ResultScreenV2>
                     Icons.arrow_back,
                     color: colorScheme.onSurface,
                   ),
-                  onPressed: () => Navigator.of(context).pop(),
+                  onPressed: _handleReanalyze,
                 ),
                 actions: widget.showActions
                     ? [
@@ -345,7 +361,13 @@ class _ResultScreenV2State extends ConsumerState<ResultScreenV2>
   }
 
   void _handleDisposeCorrectly() {
-    // Track user action
+    // Track user action (Legacy parity)
+    _analyticsService.trackUserAction('dispose_correctly_tapped', parameters: {
+      'category': widget.classification.category,
+      'item': widget.classification.itemName,
+    });
+    
+    // Also log for debugging
     WasteAppLogger.aiEvent('dispose_correctly_tapped', context: {
       'classificationId': widget.classification.id,
       'category': widget.classification.category,
@@ -413,6 +435,13 @@ class _ResultScreenV2State extends ConsumerState<ResultScreenV2>
   }
 
   void _handleCorrection() {
+    // Track user action (Legacy parity)
+    _analyticsService.trackUserAction('correction_requested', parameters: {
+      'category': widget.classification.category,
+      'item': widget.classification.itemName,
+    });
+    
+    // Also log for debugging
     WasteAppLogger.aiEvent('correction_requested', context: {
       'classificationId': widget.classification.id,
       'version': 'v2',
@@ -430,6 +459,12 @@ class _ResultScreenV2State extends ConsumerState<ResultScreenV2>
     try {
       final pipeline = ref.read(resultPipelineProvider.notifier);
       await pipeline.saveClassificationOnly(widget.classification);
+
+      // Track user action (Legacy parity)
+      _analyticsService.trackUserAction('classification_save', parameters: {
+        'category': widget.classification.category,
+        'item': widget.classification.itemName,
+      });
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -456,6 +491,12 @@ class _ResultScreenV2State extends ConsumerState<ResultScreenV2>
       final pipeline = ref.read(resultPipelineProvider.notifier);
       await pipeline.shareClassification(widget.classification);
 
+      // Track user action (Legacy parity)
+      _analyticsService.trackUserAction('classification_share', parameters: {
+        'category': widget.classification.category,
+        'item': widget.classification.itemName,
+      });
+
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -474,5 +515,16 @@ class _ResultScreenV2State extends ConsumerState<ResultScreenV2>
         );
       }
     }
+  }
+  
+  void _handleReanalyze() {
+    // Track user action (Legacy parity)
+    _analyticsService.trackUserAction('classification_reanalyze', parameters: {
+      'category': widget.classification.category,
+      'item': widget.classification.itemName,
+    });
+    
+    // Navigate back to camera
+    Navigator.of(context).pop();
   }
 }
