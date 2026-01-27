@@ -7,7 +7,8 @@ import 'package:waste_segregation_app/utils/waste_app_logger.dart';
 /// Tracks app performance metrics and provides optimization recommendations
 class PerformanceMonitor {
   static final Map<String, DateTime> _performanceMarkers = {};
-  static final LinkedHashMap<String, Duration> _performanceLog = LinkedHashMap();
+  static final LinkedHashMap<String, Duration> _performanceLog =
+      LinkedHashMap();
   static const int _maxLogEntries = 100;
 
   // Performance thresholds (in milliseconds)
@@ -24,7 +25,8 @@ class PerformanceMonitor {
   static Duration endTimer(String operationName) {
     final startTime = _performanceMarkers[operationName];
     if (startTime == null) {
-      WasteAppLogger.info('⚠️ Performance: No start marker found for "$operationName"');
+      WasteAppLogger.info(
+          '⚠️ Performance: No start marker found for "$operationName"');
       return Duration.zero;
     }
 
@@ -52,7 +54,8 @@ class PerformanceMonitor {
       return result;
     } catch (error) {
       endTimer(operationName);
-      WasteAppLogger.severe('❌ Performance: Operation "$operationName" failed: $error');
+      WasteAppLogger.severe(
+          '❌ Performance: Operation "$operationName" failed: $error');
       rethrow;
     }
   }
@@ -63,7 +66,8 @@ class PerformanceMonitor {
       return {'message': 'No performance data available'};
     }
 
-    final durations = _performanceLog.values.map((d) => d.inMilliseconds).toList();
+    final durations =
+        _performanceLog.values.map((d) => d.inMilliseconds).toList();
     durations.sort();
 
     final avgDuration = durations.reduce((a, b) => a + b) / durations.length;
@@ -95,7 +99,8 @@ class PerformanceMonitor {
       'fast_operations': fastOperations,
       'slow_operations': slowOperations,
       'critical_operations': criticalOperations,
-      'performance_score': _calculatePerformanceScore(fastOperations, slowOperations, criticalOperations),
+      'performance_score': _calculatePerformanceScore(
+          fastOperations, slowOperations, criticalOperations),
     };
   }
 
@@ -143,7 +148,8 @@ class PerformanceMonitor {
     }
 
     if (stats['slow_operations'] > stats['fast_operations']) {
-      recommendations.add('🟡 More slow operations than fast ones detected. Review image processing and AI calls.');
+      recommendations.add(
+          '🟡 More slow operations than fast ones detected. Review image processing and AI calls.');
     }
 
     if (stats['average_duration_ms'] > _warningThreshold) {
@@ -158,7 +164,8 @@ class PerformanceMonitor {
     }
 
     if (recommendations.isEmpty) {
-      recommendations.add('✅ Performance looks good! Keep monitoring for any degradation.');
+      recommendations.add(
+          '✅ Performance looks good! Keep monitoring for any degradation.');
     }
 
     return recommendations;
@@ -190,11 +197,14 @@ class PerformanceMonitor {
     final milliseconds = duration.inMilliseconds;
 
     if (milliseconds >= _criticalThreshold) {
-      WasteAppLogger.info('🔴 Performance: "$operationName" took ${milliseconds}ms (CRITICAL - over 2s)');
+      WasteAppLogger.info(
+          '🔴 Performance: "$operationName" took ${milliseconds}ms (CRITICAL - over 2s)');
     } else if (milliseconds >= _warningThreshold) {
-      WasteAppLogger.warning('🟡 Performance: "$operationName" took ${milliseconds}ms (WARNING - over 1s)');
+      WasteAppLogger.warning(
+          '🟡 Performance: "$operationName" took ${milliseconds}ms (WARNING - over 1s)');
     } else {
-      WasteAppLogger.info('✅ Performance: "$operationName" completed in ${milliseconds}ms');
+      WasteAppLogger.info(
+          '✅ Performance: "$operationName" completed in ${milliseconds}ms');
     }
   }
 
@@ -335,8 +345,9 @@ class StoragePerformanceMonitor {
     final avg = sum / count;
     final min = durations.first;
     final max = durations.last;
-    final median =
-        count % 2 == 0 ? (durations[count ~/ 2 - 1] + durations[count ~/ 2]) / 2 : durations[count ~/ 2].toDouble();
+    final median = count % 2 == 0
+        ? (durations[count ~/ 2 - 1] + durations[count ~/ 2]) / 2
+        : durations[count ~/ 2].toDouble();
 
     return {
       'operation': operationName,
@@ -382,12 +393,14 @@ class StoragePerformanceMonitor {
 
     // Sort by average time (slowest first)
     final sortedOperations = allStats.entries.toList()
-      ..sort((a, b) => (b.value['average_ms'] as int).compareTo(a.value['average_ms'] as int));
+      ..sort((a, b) => (b.value['average_ms'] as int)
+          .compareTo(a.value['average_ms'] as int));
 
     for (final entry in sortedOperations) {
       final name = entry.key;
       final stats = entry.value;
-      WasteAppLogger.info('   $name: avg=${stats['average_ms']}ms, count=${stats['count']}, max=${stats['max_ms']}ms');
+      WasteAppLogger.info(
+          '   $name: avg=${stats['average_ms']}ms, error: count=${stats['count']}, stackTrace: max=${stats['max_ms']}ms');
     }
   }
 }

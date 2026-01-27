@@ -52,11 +52,15 @@ void main() {
       final isDeveloperModeEnabled = DeveloperConfig.isDeveloperModeEnabled;
 
       // All developer feature flags should match the main flag
-      expect(DeveloperConfig.canShowDeveloperOptions, equals(isDeveloperModeEnabled));
-      expect(DeveloperConfig.canShowFactoryReset, equals(isDeveloperModeEnabled));
-      expect(DeveloperConfig.canShowPremiumToggles, equals(isDeveloperModeEnabled));
+      expect(DeveloperConfig.canShowDeveloperOptions,
+          equals(isDeveloperModeEnabled));
+      expect(
+          DeveloperConfig.canShowFactoryReset, equals(isDeveloperModeEnabled));
+      expect(DeveloperConfig.canShowPremiumToggles,
+          equals(isDeveloperModeEnabled));
       expect(DeveloperConfig.canShowCrashTest, equals(isDeveloperModeEnabled));
-      expect(DeveloperConfig.isDebugLoggingEnabled, equals(isDeveloperModeEnabled));
+      expect(DeveloperConfig.isDebugLoggingEnabled,
+          equals(isDeveloperModeEnabled));
     });
 
     test('should handle multiple calls to validateSecurity', () {
@@ -120,16 +124,20 @@ void main() {
         if (kReleaseMode) {
           // In release mode, absolutely no developer features should be available
           expect(DeveloperConfig.isDeveloperModeEnabled, isFalse,
-              reason: 'Developer mode should NEVER be enabled in release builds');
+              reason:
+                  'Developer mode should NEVER be enabled in release builds');
 
           expect(DeveloperConfig.canShowDeveloperOptions, isFalse,
-              reason: 'Developer options should NEVER be shown in release builds');
+              reason:
+                  'Developer options should NEVER be shown in release builds');
 
           expect(DeveloperConfig.canShowFactoryReset, isFalse,
-              reason: 'Factory reset should NEVER be available in release builds');
+              reason:
+                  'Factory reset should NEVER be available in release builds');
 
           expect(DeveloperConfig.canShowPremiumToggles, isFalse,
-              reason: 'Premium toggles should NEVER be available in release builds');
+              reason:
+                  'Premium toggles should NEVER be available in release builds');
 
           expect(DeveloperConfig.canShowCrashTest, isFalse,
               reason: 'Crash test should NEVER be available in release builds');

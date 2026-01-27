@@ -1,23 +1,24 @@
 import 'package:flutter/material.dart';
+import 'waste_app_logger.dart';
 
 /// OPTIMIZATION: Mixin for managing AnimationController lifecycle
-/// 
+///
 /// Provides automatic disposal of animation controllers to prevent memory leaks.
 /// Use this mixin in StatefulWidget State classes that use animations.
-/// 
+///
 /// Benefits:
 /// - Automatic cleanup of all animation controllers
 /// - Prevents memory leaks from undisposed controllers
 /// - Centralized controller management
 /// - Consistent disposal patterns across the app
-/// 
+///
 /// Usage:
 /// ```dart
-/// class _MyWidgetState extends State<MyWidget> 
+/// class _MyWidgetState extends State<MyWidget>
 ///     with SingleTickerProviderStateMixin, AnimationControllerMixin {
-///   
+///
 ///   late final AnimationController _fadeController;
-///   
+///
 ///   @override
 ///   void initState() {
 ///     super.initState();
@@ -25,15 +26,16 @@ import 'package:flutter/material.dart';
 ///       duration: Duration(milliseconds: 300),
 ///     );
 ///   }
-///   
+///
 ///   // dispose() is automatically called by the mixin
 /// }
 /// ```
-mixin AnimationControllerMixin<T extends StatefulWidget> on State<T>, TickerProviderStateMixin<T> {
+mixin AnimationControllerMixin<T extends StatefulWidget>
+    on State<T>, TickerProviderStateMixin<T> {
   final List<AnimationController> _controllers = [];
 
   /// Create an AnimationController that will be automatically disposed
-  /// 
+  ///
   /// [duration] - The length of time this animation should last
   /// [reverseDuration] - The length of time for the reverse animation (optional)
   /// [debugLabel] - A label to use when reporting errors (optional)
@@ -57,7 +59,7 @@ mixin AnimationControllerMixin<T extends StatefulWidget> on State<T>, TickerProv
       vsync: this,
       animationBehavior: animationBehavior,
     );
-    
+
     _controllers.add(controller);
     return controller;
   }
@@ -80,18 +82,18 @@ mixin AnimationControllerMixin<T extends StatefulWidget> on State<T>, TickerProv
 }
 
 /// OPTIMIZATION: Mixin for managing multiple types of disposable resources
-/// 
+///
 /// Extends AnimationControllerMixin to also handle other disposable resources
 /// like StreamSubscriptions, Timers, etc.
-/// 
+///
 /// Usage:
 /// ```dart
-/// class _MyWidgetState extends State<MyWidget> 
+/// class _MyWidgetState extends State<MyWidget>
 ///     with SingleTickerProviderStateMixin, ResourceManagementMixin {
-///   
+///
 ///   late final AnimationController _controller;
 ///   late final StreamSubscription _subscription;
-///   
+///
 ///   @override
 ///   void initState() {
 ///     super.initState();
@@ -101,9 +103,10 @@ mixin AnimationControllerMixin<T extends StatefulWidget> on State<T>, TickerProv
 ///   }
 /// }
 /// ```
-mixin ResourceManagementMixin<T extends StatefulWidget> on State<T>, TickerProviderStateMixin<T> 
+mixin ResourceManagementMixin<T extends StatefulWidget>
+    on State<T>, TickerProviderStateMixin<T>
     implements AnimationControllerMixin<T> {
-  
+  @override
   final List<AnimationController> _controllers = [];
   final List<void Function()> _disposables = [];
 
@@ -125,20 +128,20 @@ mixin ResourceManagementMixin<T extends StatefulWidget> on State<T>, TickerProvi
       vsync: this,
       animationBehavior: animationBehavior,
     );
-    
+
     _controllers.add(controller);
     return controller;
   }
 
   /// Register a disposable resource (StreamSubscription, Timer, etc.)
-  /// 
+  ///
   /// The dispose function will be called automatically when the widget is disposed.
-  /// 
+  ///
   /// Example:
   /// ```dart
   /// final subscription = stream.listen((data) { });
   /// registerDisposable(() => subscription.cancel());
-  /// 
+  ///
   /// final timer = Timer.periodic(Duration(seconds: 1), (_) { });
   /// registerDisposable(() => timer.cancel());
   /// ```
@@ -150,10 +153,8 @@ mixin ResourceManagementMixin<T extends StatefulWidget> on State<T>, TickerProvi
     } else if (resource.runtimeType.toString().contains('Timer')) {
       _disposables.add(() => (resource as dynamic).cancel());
     } else {
-      throw ArgumentError(
-        'Unsupported resource type: ${resource.runtimeType}. '
-        'Pass a disposal function instead: registerDisposable(() => resource.dispose())'
-      );
+      throw ArgumentError('Unsupported resource type: ${resource.runtimeType}. '
+          'Pass a disposal function instead: registerDisposable(() => resource.dispose())');
     }
   }
 
@@ -180,7 +181,7 @@ mixin ResourceManagementMixin<T extends StatefulWidget> on State<T>, TickerProvi
         disposeFn();
       } catch (e) {
         // Log but don't throw to ensure all resources are cleaned up
-        debugPrint('Error disposing resource: $e');
+        WasteAppLogger.warning('Error disposing resource: $e');
       }
     }
     _disposables.clear();

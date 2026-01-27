@@ -191,9 +191,12 @@ class CommunityStats {
       totalUsers: json['totalUsers'] as int? ?? 0,
       totalClassifications: json['totalClassifications'] as int? ?? 0,
       totalPoints: json['totalPoints'] as int? ?? 0,
-      categoryBreakdown:
-          json['categoryBreakdown'] != null ? Map<String, int>.from(json['categoryBreakdown'] as Map) : const {},
-      lastUpdated: json['lastUpdated'] != null ? _parseDateTime(json['lastUpdated']) : null,
+      categoryBreakdown: json['categoryBreakdown'] != null
+          ? Map<String, int>.from(json['categoryBreakdown'] as Map)
+          : const {},
+      lastUpdated: json['lastUpdated'] != null
+          ? _parseDateTime(json['lastUpdated'])
+          : null,
     );
   }
 
@@ -215,7 +218,8 @@ class CommunityStats {
 
   /// Get top categories as a map for display
   Map<String, int> get topCategories {
-    final sorted = categoryBreakdown.entries.toList()..sort((a, b) => b.value.compareTo(a.value));
+    final sorted = categoryBreakdown.entries.toList()
+      ..sort((a, b) => b.value.compareTo(a.value));
     return Map.fromEntries(sorted.take(5));
   }
 

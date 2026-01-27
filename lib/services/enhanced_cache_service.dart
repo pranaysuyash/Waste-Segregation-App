@@ -7,8 +7,7 @@ import 'package:flutter/foundation.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:image/image.dart' as img;
 import '../models/cached_classification.dart';
-import '../models/waste_classification.dart';
-import '../utils/constants.dart';
+import 'package:waste_segregation_app/models/waste_classification.dart';
 import '../utils/waste_app_logger.dart';
 
 /// Enhanced cache service with LRU eviction, size limits, and image compression
@@ -18,10 +17,10 @@ class EnhancedCacheService {
     int? maxCacheSizeBytes,
     double? compressionQuality,
     int? maxImageDimension,
-  }) : _maxCacheSize = maxCacheSize ?? 2000,
-       _maxCacheSizeBytes = maxCacheSizeBytes ?? 100 * 1024 * 1024, // 100MB
-       _compressionQuality = compressionQuality ?? 0.8,
-       _maxImageDimension = maxImageDimension ?? 1024;
+  })  : _maxCacheSize = maxCacheSize ?? 2000,
+        _maxCacheSizeBytes = maxCacheSizeBytes ?? 100 * 1024 * 1024, // 100MB
+        _compressionQuality = compressionQuality ?? 0.8,
+        _maxImageDimension = maxImageDimension ?? 1024;
 
   static final EnhancedCacheService _instance = EnhancedCacheService();
   static EnhancedCacheService get instance => _instance;
@@ -38,11 +37,12 @@ class EnhancedCacheService {
   bool _isInitialized = false;
 
   // LRU tracking
-  final LinkedHashMap<String, DateTime> _lruMap = LinkedHashMap<String, DateTime>();
-  
+  final LinkedHashMap<String, DateTime> _lruMap =
+      LinkedHashMap<String, DateTime>();
+
   // Size tracking
   int _currentCacheSizeBytes = 0;
-  
+
   // Statistics
   final Map<String, dynamic> _statistics = {
     'hits': 0,
@@ -73,20 +73,23 @@ class EnhancedCacheService {
       _startPeriodicCleanup();
 
       _isInitialized = true;
-      
-      WasteAppLogger.info('Enhanced cache service initialized', {
+
+      WasteAppLogger.info('Enhanced cache service initialized', context: {
         'service': 'enhanced_cache',
         'cache_entries': _cacheBox.length,
         'image_entries': _imageBox.length,
-        'cache_size_mb': (_currentCacheSizeBytes / (1024 * 1024)).toStringAsFixed(2),
+        'cache_size_mb':
+            (_currentCacheSizeBytes / (1024 * 1024)).toStringAsFixed(2),
         'max_size_mb': (_maxCacheSizeBytes / (1024 * 1024)).toStringAsFixed(2),
       });
     } catch (e) {
-      WasteAppLogger.severe('Enhanced cache initialization failed', e, null, {
-        'service': 'enhanced_cache',
-        'max_cache_size': _maxCacheSize,
-        'max_size_bytes': _maxCacheSizeBytes,
-      });
+      WasteAppLogger.severe('Enhanced cache initialization failed',
+          error: e,
+          context: {
+            'service': 'enhanced_cache',
+            'max_cache_size': _maxCacheSize,
+            'max_size_bytes': _maxCacheSizeBytes,
+          });
       rethrow;
     }
   }
@@ -94,14 +97,14 @@ class EnhancedCacheService {
   /// Load cache metadata for LRU tracking and size calculation
   Future<void> _loadCacheMetadata() async {
     _currentCacheSizeBytes = 0;
-    
+
     for (final String hash in _cacheBox.keys) {
       try {
         final jsonString = _cacheBox.get(hash);
         if (jsonString != null) {
           final cacheEntry = CachedClassification.deserialize(jsonString);
           _lruMap[hash] = cacheEntry.lastAccessed;
-          
+
           // Calculate size
           final entrySize = _calculateEntrySize(jsonString);
           final imageData = _imageBox.get(hash);
@@ -112,17 +115,19 @@ class EnhancedCacheService {
           }
         }
       } catch (e) {
-        WasteAppLogger.warning('Error loading cache entry metadata', e, null, {
-          'service': 'enhanced_cache',
-          'hash': hash.substring(0, 16),
-        });
+        WasteAppLogger.warning('Error loading cache entry metadata',
+            error: e,
+            context: {
+              'service': 'enhanced_cache',
+              'hash': hash.substring(0, 16),
+            });
       }
     }
 
     // Sort LRU map by access time
     final sortedEntries = _lruMap.entries.toList()
       ..sort((a, b) => b.value.compareTo(a.value));
-    
+
     _lruMap.clear();
     for (final entry in sortedEntries) {
       _lruMap[entry.key] = entry.value;
@@ -146,39 +151,42 @@ class EnhancedCacheService {
         if (cacheEntry != null) {
           _statistics['hits']++;
           await _updateLRU(imageHash, cacheEntry);
-          
-          WasteAppLogger.cacheEvent('cache_hit', 'enhanced_classification', 
-            hit: true,
-            key: imageHash.substring(0, 16),
-            context: {
-              'match_type': 'exact',
-              'cache_age_minutes': DateTime.now().difference(cacheEntry.timestamp).inMinutes,
-              'item_name': cacheEntry.classification.itemName,
-            });
-          
+
+          WasteAppLogger.cacheEvent('cache_hit', 'enhanced_classification',
+              hit: true,
+              key: imageHash.substring(0, 16),
+              context: {
+                'match_type': 'exact',
+                'cache_age_minutes':
+                    DateTime.now().difference(cacheEntry.timestamp).inMinutes,
+                'item_name': cacheEntry.classification.itemName,
+              });
+
           return cacheEntry;
         }
       }
 
       // Check for similar perceptual hashes if applicable
       if (imageHash.startsWith('phash_') && contentHash != null) {
-        final similarHash = await _findSimilarHash(imageHash, contentHash, similarityThreshold);
+        final similarHash =
+            await _findSimilarHash(imageHash, contentHash, similarityThreshold);
         if (similarHash != null) {
           final cacheEntry = await _getCacheEntry(similarHash);
           if (cacheEntry != null) {
             _statistics['hits']++;
             await _updateLRU(similarHash, cacheEntry);
-            
+
             WasteAppLogger.cacheEvent('cache_hit', 'enhanced_classification',
-              hit: true,
-              key: imageHash.substring(0, 16),
-              context: {
-                'match_type': 'similar',
-                'matched_hash': similarHash.substring(0, 16),
-                'cache_age_minutes': DateTime.now().difference(cacheEntry.timestamp).inMinutes,
-                'item_name': cacheEntry.classification.itemName,
-              });
-            
+                hit: true,
+                key: imageHash.substring(0, 16),
+                context: {
+                  'match_type': 'similar',
+                  'matched_hash': similarHash.substring(0, 16),
+                  'cache_age_minutes':
+                      DateTime.now().difference(cacheEntry.timestamp).inMinutes,
+                  'item_name': cacheEntry.classification.itemName,
+                });
+
             return cacheEntry;
           }
         }
@@ -187,19 +195,22 @@ class EnhancedCacheService {
       // Cache miss
       _statistics['misses']++;
       WasteAppLogger.cacheEvent('cache_miss', 'enhanced_classification',
-        hit: false,
-        key: imageHash.substring(0, 16),
-        context: {
-          'cache_size': _cacheBox.length,
-          'cache_size_mb': (_currentCacheSizeBytes / (1024 * 1024)).toStringAsFixed(2),
-        });
+          hit: false,
+          key: imageHash.substring(0, 16),
+          context: {
+            'cache_size': _cacheBox.length,
+            'cache_size_mb':
+                (_currentCacheSizeBytes / (1024 * 1024)).toStringAsFixed(2),
+          });
 
       return null;
     } catch (e) {
-      WasteAppLogger.severe('Error retrieving from enhanced cache', e, null, {
-        'service': 'enhanced_cache',
-        'hash': imageHash.substring(0, 16),
-      });
+      WasteAppLogger.severe('Error retrieving from enhanced cache',
+          error: e,
+          context: {
+            'service': 'enhanced_cache',
+            'hash': imageHash.substring(0, 16),
+          });
       _statistics['misses']++;
       return null;
     }
@@ -218,18 +229,20 @@ class EnhancedCacheService {
     try {
       // Compress image if provided
       Uint8List? compressedImageData;
-      int originalSize = 0;
-      int compressedSize = 0;
+      var originalSize = 0;
+      var compressedSize = 0;
 
       if (imagePath != null || imageData != null) {
-        final result = await _compressImage(imagePath: imagePath, imageData: imageData);
+        final result =
+            await _compressImage(imagePath: imagePath, imageData: imageData);
         if (result != null) {
           compressedImageData = result['compressed'];
           originalSize = result['originalSize'];
           compressedSize = result['compressedSize'];
-          
-          final compressionRatio = originalSize > 0 ? (compressedSize / originalSize) : 1.0;
-          _statistics['compressionSavings'] += (originalSize - compressedSize);
+
+          final compressionRatio =
+              originalSize > 0 ? (compressedSize / originalSize) : 1.0;
+          _statistics['compressionSavings'] += originalSize - compressedSize;
           _updateAverageCompressionRatio(compressionRatio);
         }
       }
@@ -244,12 +257,13 @@ class EnhancedCacheService {
 
       // Ensure cache size limits before adding
       await _ensureCacheSize(
-        additionalSize: _calculateEntrySize(cacheEntry.serialize()) + compressedSize,
+        additionalSize:
+            _calculateEntrySize(cacheEntry.serialize()) + compressedSize,
       );
 
       // Store classification data
       await _cacheBox.put(imageHash, cacheEntry.serialize());
-      
+
       // Store compressed image data if available
       if (compressedImageData != null) {
         await _imageBox.put(imageHash, compressedImageData);
@@ -259,27 +273,32 @@ class EnhancedCacheService {
       await _updateLRU(imageHash, cacheEntry);
 
       // Update size tracking
-      _currentCacheSizeBytes += _calculateEntrySize(cacheEntry.serialize()) + compressedSize;
+      _currentCacheSizeBytes +=
+          _calculateEntrySize(cacheEntry.serialize()) + compressedSize;
 
       WasteAppLogger.cacheEvent('cache_store', 'enhanced_classification',
-        key: imageHash.substring(0, 16),
-        context: {
-          'item_name': classification.itemName,
-          'has_content_hash': contentHash != null,
-          'has_image': compressedImageData != null,
-          'original_size': originalSize,
-          'compressed_size': compressedSize,
-          'compression_ratio': originalSize > 0 ? (compressedSize / originalSize).toStringAsFixed(3) : 'N/A',
-          'cache_size': _cacheBox.length,
-          'cache_size_mb': (_currentCacheSizeBytes / (1024 * 1024)).toStringAsFixed(2),
-        });
-
+          key: imageHash.substring(0, 16),
+          context: {
+            'item_name': classification.itemName,
+            'has_content_hash': contentHash != null,
+            'has_image': compressedImageData != null,
+            'original_size': originalSize,
+            'compressed_size': compressedSize,
+            'compression_ratio': originalSize > 0
+                ? (compressedSize / originalSize).toStringAsFixed(3)
+                : 'N/A',
+            'cache_size': _cacheBox.length,
+            'cache_size_mb':
+                (_currentCacheSizeBytes / (1024 * 1024)).toStringAsFixed(2),
+          });
     } catch (e) {
-      WasteAppLogger.severe('Error caching classification in enhanced cache', e, null, {
-        'service': 'enhanced_cache',
-        'hash': imageHash.substring(0, 16),
-        'item_name': classification.itemName,
-      });
+      WasteAppLogger.severe('Error caching classification in enhanced cache',
+          error: e,
+          context: {
+            'service': 'enhanced_cache',
+            'hash': imageHash.substring(0, 16),
+            'item_name': classification.itemName,
+          });
     }
   }
 
@@ -290,7 +309,7 @@ class EnhancedCacheService {
   }) async {
     try {
       Uint8List originalData;
-      
+
       if (imagePath != null) {
         final file = File(imagePath);
         if (!await file.exists()) return null;
@@ -315,14 +334,15 @@ class EnhancedCacheService {
       }
 
       // Decode image
-      img.Image? image = img.decodeImage(originalData);
+      var image = img.decodeImage(originalData);
       if (image == null) return null;
 
       // Resize if too large
-      if (image.width > _maxImageDimension || image.height > _maxImageDimension) {
+      if (image.width > _maxImageDimension ||
+          image.height > _maxImageDimension) {
         final aspectRatio = image.width / image.height;
         int newWidth, newHeight;
-        
+
         if (image.width > image.height) {
           newWidth = _maxImageDimension;
           newHeight = (_maxImageDimension / aspectRatio).round();
@@ -330,7 +350,7 @@ class EnhancedCacheService {
           newHeight = _maxImageDimension;
           newWidth = (_maxImageDimension * aspectRatio).round();
         }
-        
+
         image = img.copyResize(image, width: newWidth, height: newHeight);
       }
 
@@ -351,9 +371,8 @@ class EnhancedCacheService {
         'originalSize': originalSize,
         'compressedSize': compressedSize,
       };
-
     } catch (e) {
-      WasteAppLogger.warning('Image compression failed', e, null, {
+      WasteAppLogger.warning('Image compression failed', error: e, context: {
         'service': 'enhanced_cache',
         'image_path': imagePath?.substring(imagePath.length - 20),
         'has_image_data': imageData != null,
@@ -365,14 +384,16 @@ class EnhancedCacheService {
   /// Get cached image data
   Future<Uint8List?> getCachedImage(String imageHash) async {
     if (!_isInitialized) await initialize();
-    
+
     try {
       return _imageBox.get(imageHash);
     } catch (e) {
-      WasteAppLogger.warning('Error retrieving cached image', e, null, {
-        'service': 'enhanced_cache',
-        'hash': imageHash.substring(0, 16),
-      });
+      WasteAppLogger.warning('Error retrieving cached image',
+          error: e,
+          context: {
+            'service': 'enhanced_cache',
+            'hash': imageHash.substring(0, 16),
+          });
       return null;
     }
   }
@@ -382,21 +403,22 @@ class EnhancedCacheService {
     final projectedSize = _currentCacheSizeBytes + additionalSize;
     final projectedCount = _cacheBox.length + 1;
 
-    if (projectedSize <= _maxCacheSizeBytes && projectedCount <= _maxCacheSize) {
+    if (projectedSize <= _maxCacheSizeBytes &&
+        projectedCount <= _maxCacheSize) {
       return;
     }
 
     // Calculate how much to remove (remove 20% when limit is reached)
     final targetSize = (_maxCacheSizeBytes * 0.8).round();
     final targetCount = (_maxCacheSize * 0.8).round();
-    
+
     var removedSize = 0;
     var removedCount = 0;
     final keysToRemove = <String>[];
 
     // Remove least recently used entries
     for (final key in _lruMap.keys.toList().reversed) {
-      if (_currentCacheSizeBytes - removedSize <= targetSize && 
+      if (_currentCacheSizeBytes - removedSize <= targetSize &&
           _cacheBox.length - removedCount <= targetCount) {
         break;
       }
@@ -412,7 +434,7 @@ class EnhancedCacheService {
       await _removeEntry(key);
     }
 
-    WasteAppLogger.info('Cache eviction completed', {
+    WasteAppLogger.info('Cache eviction completed', context: {
       'service': 'enhanced_cache',
       'entries_removed': removedCount,
       'bytes_removed': removedSize,
@@ -425,28 +447,28 @@ class EnhancedCacheService {
   /// Remove a cache entry and update tracking
   Future<void> _removeEntry(String key) async {
     final entrySize = await _getEntrySize(key);
-    
+
     await _cacheBox.delete(key);
     await _imageBox.delete(key);
     _lruMap.remove(key);
-    
+
     _currentCacheSizeBytes -= entrySize;
   }
 
   /// Get the size of a cache entry
   Future<int> _getEntrySize(String key) async {
     var size = 0;
-    
+
     final classificationData = _cacheBox.get(key);
     if (classificationData != null) {
       size += _calculateEntrySize(classificationData);
     }
-    
+
     final imageData = _imageBox.get(key);
     if (imageData != null) {
       size += imageData.length;
     }
-    
+
     return size;
   }
 
@@ -462,10 +484,12 @@ class EnhancedCacheService {
       if (jsonString == null) return null;
       return CachedClassification.deserialize(jsonString);
     } catch (e) {
-      WasteAppLogger.warning('Error deserializing cache entry', e, null, {
-        'service': 'enhanced_cache',
-        'hash': hash.substring(0, 16),
-      });
+      WasteAppLogger.warning('Error deserializing cache entry',
+          error: e,
+          context: {
+            'service': 'enhanced_cache',
+            'hash': hash.substring(0, 16),
+          });
       // Remove corrupted entry
       await _removeEntry(hash);
       return null;
@@ -477,13 +501,14 @@ class EnhancedCacheService {
     entry.markUsed();
     _lruMap.remove(hash);
     _lruMap[hash] = entry.lastAccessed;
-    
+
     // Update stored entry
     await _cacheBox.put(hash, entry.serialize());
   }
 
   /// Find similar hash with content verification
-  Future<String?> _findSimilarHash(String pHash, String contentHash, int threshold) async {
+  Future<String?> _findSimilarHash(
+      String pHash, String contentHash, int threshold) async {
     if (!pHash.startsWith('phash_')) return null;
 
     final hexHash = pHash.substring(6);
@@ -497,7 +522,7 @@ class EnhancedCacheService {
 
     for (final String cachedHash in _cacheBox.keys) {
       if (!cachedHash.startsWith('phash_')) continue;
-      
+
       final cachedHexHash = cachedHash.substring(6);
       if (cachedHexHash.length != 16) continue;
 
@@ -505,7 +530,7 @@ class EnhancedCacheService {
       if (cachedBinaryHash.length != 64) continue;
 
       final distance = _hammingDistance(binaryHash, cachedBinaryHash);
-      
+
       if (distance <= threshold) {
         final cacheEntry = await _getCacheEntry(cachedHash);
         if (cacheEntry?.contentHash == contentHash && distance < bestDistance) {
@@ -532,7 +557,7 @@ class EnhancedCacheService {
   /// Calculate Hamming distance between binary strings
   int _hammingDistance(String a, String b) {
     if (a.length != b.length) return 64; // Max distance for invalid comparison
-    
+
     var distance = 0;
     for (var i = 0; i < a.length; i++) {
       if (a[i] != b[i]) distance++;
@@ -545,15 +570,15 @@ class EnhancedCacheService {
     // Safe type extraction
     final currentAvgValue = _statistics['averageCompressionRatio'];
     final currentAvg = currentAvgValue is double ? currentAvgValue : 0.0;
-    
+
     final totalRequestsValue = _statistics['totalRequests'];
     final totalRequests = totalRequestsValue is int ? totalRequestsValue : 0;
-    
+
     if (totalRequests <= 1) {
       _statistics['averageCompressionRatio'] = newRatio;
     } else {
-      _statistics['averageCompressionRatio'] = 
-        (currentAvg * (totalRequests - 1) + newRatio) / totalRequests;
+      _statistics['averageCompressionRatio'] =
+          (currentAvg * (totalRequests - 1) + newRatio) / totalRequests;
     }
   }
 
@@ -577,26 +602,29 @@ class EnhancedCacheService {
     try {
       // Clean up compression cache
       _compressionCache.clear();
-      
+
       // Validate cache integrity
       await _validateCacheIntegrity();
-      
-      WasteAppLogger.debug('Periodic cache cleanup completed', {
+
+      WasteAppLogger.debug('Periodic cache cleanup completed', context: {
         'service': 'enhanced_cache',
         'cache_size': _cacheBox.length,
-        'cache_size_mb': (_currentCacheSizeBytes / (1024 * 1024)).toStringAsFixed(2),
+        'cache_size_mb':
+            (_currentCacheSizeBytes / (1024 * 1024)).toStringAsFixed(2),
       });
     } catch (e) {
-      WasteAppLogger.warning('Periodic cache cleanup failed', e, null, {
-        'service': 'enhanced_cache',
-      });
+      WasteAppLogger.warning('Periodic cache cleanup failed',
+          error: e,
+          context: {
+            'service': 'enhanced_cache',
+          });
     }
   }
 
   /// Validate cache integrity and remove corrupted entries
   Future<void> _validateCacheIntegrity() async {
     final corruptedKeys = <String>[];
-    
+
     for (final key in _cacheBox.keys) {
       try {
         final entry = await _getCacheEntry(key);
@@ -607,13 +635,13 @@ class EnhancedCacheService {
         corruptedKeys.add(key);
       }
     }
-    
+
     for (final key in corruptedKeys) {
       await _removeEntry(key);
     }
-    
+
     if (corruptedKeys.isNotEmpty) {
-      WasteAppLogger.info('Removed corrupted cache entries', {
+      WasteAppLogger.info('Removed corrupted cache entries', context: {
         'service': 'enhanced_cache',
         'corrupted_count': corruptedKeys.length,
       });
@@ -623,55 +651,61 @@ class EnhancedCacheService {
   /// Get comprehensive cache statistics
   Map<String, dynamic> getCacheStatistics() {
     final stats = Map<String, dynamic>.from(_statistics);
-    
+
     // Calculate derived statistics with safe type extraction
     final totalRequestsValue = stats['totalRequests'];
     final totalRequests = totalRequestsValue is int ? totalRequestsValue : 0;
-    
+
     final hitsValue = stats['hits'];
     final hits = hitsValue is int ? hitsValue : 0;
-    
+
     final missesValue = stats['misses'];
     final misses = missesValue is int ? missesValue : 0;
-    
-    stats['hitRate'] = totalRequests > 0 ? 
-      ((hits / totalRequests) * 100).toStringAsFixed(1) + '%' : '0%';
-    
+
+    stats['hitRate'] = totalRequests > 0
+        ? '${((hits / totalRequests) * 100).toStringAsFixed(1)}%'
+        : '0%';
+
     stats['currentSize'] = _cacheBox.length;
     stats['currentSizeBytes'] = _currentCacheSizeBytes;
-    stats['currentSizeMB'] = (_currentCacheSizeBytes / (1024 * 1024)).toStringAsFixed(2);
-    stats['maxSizeMB'] = (_maxCacheSizeBytes / (1024 * 1024)).toStringAsFixed(2);
-    stats['utilizationPercent'] = 
-      ((_currentCacheSizeBytes / _maxCacheSizeBytes) * 100).toStringAsFixed(1) + '%';
-    
+    stats['currentSizeMB'] =
+        (_currentCacheSizeBytes / (1024 * 1024)).toStringAsFixed(2);
+    stats['maxSizeMB'] =
+        (_maxCacheSizeBytes / (1024 * 1024)).toStringAsFixed(2);
+    stats['utilizationPercent'] =
+        '${((_currentCacheSizeBytes / _maxCacheSizeBytes) * 100).toStringAsFixed(1)}%';
+
     // Compression statistics with safe type extraction
     final compressionSavingsValue = stats['compressionSavings'];
-    final compressionSavings = compressionSavingsValue is int ? compressionSavingsValue : 0;
-    stats['compressionSavingsMB'] = (compressionSavings / (1024 * 1024)).toStringAsFixed(2);
-    
+    final compressionSavings =
+        compressionSavingsValue is int ? compressionSavingsValue : 0;
+    stats['compressionSavingsMB'] =
+        (compressionSavings / (1024 * 1024)).toStringAsFixed(2);
+
     final avgCompressionValue = stats['averageCompressionRatio'];
-    final avgCompression = avgCompressionValue is double ? avgCompressionValue : 0.0;
+    final avgCompression =
+        avgCompressionValue is double ? avgCompressionValue : 0.0;
     stats['averageCompressionRatio'] = avgCompression.toStringAsFixed(3);
-    
+
     // Age statistics
     final age = DateTime.now().difference(stats['createdAt'] as DateTime);
     stats['ageHours'] = age.inHours;
     stats['ageDays'] = age.inDays;
-    
+
     return stats;
   }
 
   /// Clear all cache data
   Future<void> clearCache() async {
     if (!_isInitialized) await initialize();
-    
+
     try {
       await _cacheBox.clear();
       await _imageBox.clear();
       _lruMap.clear();
       _compressionCache.clear();
       _currentCacheSizeBytes = 0;
-      
+
       // Reset statistics
       _statistics.clear();
       _statistics.addAll({
@@ -682,14 +716,16 @@ class EnhancedCacheService {
         'averageCompressionRatio': 0.0,
         'createdAt': DateTime.now(),
       });
-      
-      WasteAppLogger.info('Enhanced cache cleared', {
+
+      WasteAppLogger.info('Enhanced cache cleared', context: {
         'service': 'enhanced_cache',
       });
     } catch (e) {
-      WasteAppLogger.severe('Error clearing enhanced cache', e, null, {
-        'service': 'enhanced_cache',
-      });
+      WasteAppLogger.severe('Error clearing enhanced cache',
+          error: e,
+          context: {
+            'service': 'enhanced_cache',
+          });
       rethrow;
     }
   }

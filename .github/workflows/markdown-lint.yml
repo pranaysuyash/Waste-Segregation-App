@@ -31,27 +31,20 @@ jobs:
     - name: Run markdown lint
       run: |
         echo "🔍 Running Markdown Lint..."
-        
-        # Count initial issues
-        initial_issues=$(markdownlint docs/*.md *.md 2>/dev/null | wc -l || echo "0")
-        echo "Initial markdown issues found: $initial_issues"
-        
-        # Run auto-fix
-        echo "🔧 Running auto-fix..."
-        markdownlint --fix docs/*.md *.md 2>/dev/null || true
-        
-        # Count remaining issues
-        remaining_issues=$(markdownlint docs/*.md *.md 2>/dev/null | wc -l || echo "0")
-        echo "Remaining markdown issues: $remaining_issues"
-        
-        if [ "$remaining_issues" -eq 0 ]; then
-          echo "✅ All markdown files are lint-free!"
+
+        # On pull_request we must not attempt to auto-commit/push (refs/pull/*/merge is a hidden ref).
+        if [ "${{ github.event_name }}" = "pull_request" ]; then
+          echo "PR mode: auto-fix locally in CI, but do not commit/push."
+          markdownlint --fix docs/*.md *.md || true
+          markdownlint docs/*.md *.md
+          echo "✅ Markdown lint passed (PR mode)"
           exit 0
-        else
-          echo "❌ Markdown lint issues found:"
-          markdownlint docs/*.md *.md 2>/dev/null || true
-          exit 1
         fi
+
+        echo "Push mode: running auto-fix (and committing if needed)."
+        markdownlint --fix docs/*.md *.md || true
+        markdownlint docs/*.md *.md
+        echo "✅ Markdown lint passed after auto-fix"
         
     - name: Check for changes
       id: verify-changed-files
@@ -65,7 +58,7 @@ jobs:
         fi
         
     - name: Commit auto-fixes
-      if: steps.verify-changed-files.outputs.changed == 'true'
+      if: steps.verify-changed-files.outputs.changed == 'true' && github.event_name == 'push'
       run: |
         git config --local user.email "action@github.com"
         git config --local user.name "GitHub Action"
@@ -73,7 +66,7 @@ jobs:
         git commit -m "🔧 Auto-fix markdown lint issues [skip ci]" || exit 0
         
     - name: Push changes
-      if: steps.verify-changed-files.outputs.changed == 'true'
+      if: steps.verify-changed-files.outputs.changed == 'true' && github.event_name == 'push'
       uses: ad-m/github-push-action@master
       with:
         github_token: ${{ secrets.GITHUB_TOKEN }}

@@ -8,30 +8,30 @@ enum VisionModelType {
   /// On-device models (zero cost)
   @HiveField(0)
   smolVLM,
-  
+
   @HiveField(1)
   mobileNetV3,
-  
+
   @HiveField(2)
   efficientNet,
-  
+
   @HiveField(3)
   yoloV8,
-  
+
   @HiveField(4)
   yoloV11,
-  
+
   /// Cloud-based models
   @HiveField(5)
   openAI,
-  
+
   @HiveField(6)
   gemini,
-  
+
   /// Custom trained models
   @HiveField(7)
   roboflowCustom,
-  
+
   @HiveField(8)
   tfliteCustom,
 }
@@ -41,13 +41,13 @@ enum VisionModelType {
 enum AnalysisMode {
   @HiveField(0)
   instant, // Individual analysis (higher cost)
-  
+
   @HiveField(1)
   batch, // Batched analysis (lower cost, slight delay)
-  
+
   @HiveField(2)
   onDevice, // On-device only (zero cost)
-  
+
   @HiveField(3)
   hybrid, // On-device first, cloud fallback
 }
@@ -71,6 +71,36 @@ class VisionModelConfig extends HiveObject {
     this.roboflowProject,
     this.preferOnDevice = true,
   });
+
+  /// Factory for default on-device configuration
+  factory VisionModelConfig.onDevice() {
+    return VisionModelConfig(
+      modelType: VisionModelType.yoloV8,
+      analysisMode: AnalysisMode.onDevice,
+      confidenceThreshold: 0.6,
+      enableObjectDetection: true,
+    );
+  }
+
+  /// Factory for hybrid configuration (on-device with cloud fallback)
+  factory VisionModelConfig.hybrid() {
+    return VisionModelConfig(
+      modelType: VisionModelType.yoloV8,
+      analysisMode: AnalysisMode.hybrid,
+      enableObjectDetection: true,
+    );
+  }
+
+  /// Factory for batch cloud configuration (cost optimized)
+  factory VisionModelConfig.batchCloud() {
+    return VisionModelConfig(
+      modelType: VisionModelType.openAI,
+      analysisMode: AnalysisMode.batch,
+      batchSize: 10,
+      batchTimeoutSeconds: 60,
+      preferOnDevice: false,
+    );
+  }
 
   @HiveField(0)
   final VisionModelType modelType;
@@ -114,39 +144,6 @@ class VisionModelConfig extends HiveObject {
   @HiveField(13)
   final bool preferOnDevice;
 
-  /// Factory for default on-device configuration
-  factory VisionModelConfig.onDevice() {
-    return VisionModelConfig(
-      modelType: VisionModelType.yoloV8,
-      analysisMode: AnalysisMode.onDevice,
-      confidenceThreshold: 0.6,
-      enableObjectDetection: true,
-      preferOnDevice: true,
-    );
-  }
-
-  /// Factory for hybrid configuration (on-device with cloud fallback)
-  factory VisionModelConfig.hybrid() {
-    return VisionModelConfig(
-      modelType: VisionModelType.yoloV8,
-      analysisMode: AnalysisMode.hybrid,
-      confidenceThreshold: 0.7,
-      enableObjectDetection: true,
-      preferOnDevice: true,
-    );
-  }
-
-  /// Factory for batch cloud configuration (cost optimized)
-  factory VisionModelConfig.batchCloud() {
-    return VisionModelConfig(
-      modelType: VisionModelType.openAI,
-      analysisMode: AnalysisMode.batch,
-      batchSize: 10,
-      batchTimeoutSeconds: 60,
-      preferOnDevice: false,
-    );
-  }
-
   VisionModelConfig copyWith({
     VisionModelType? modelType,
     AnalysisMode? analysisMode,
@@ -168,7 +165,8 @@ class VisionModelConfig extends HiveObject {
       analysisMode: analysisMode ?? this.analysisMode,
       confidenceThreshold: confidenceThreshold ?? this.confidenceThreshold,
       maxImageSize: maxImageSize ?? this.maxImageSize,
-      enableObjectDetection: enableObjectDetection ?? this.enableObjectDetection,
+      enableObjectDetection:
+          enableObjectDetection ?? this.enableObjectDetection,
       enableSegmentation: enableSegmentation ?? this.enableSegmentation,
       batchSize: batchSize ?? this.batchSize,
       batchTimeoutSeconds: batchTimeoutSeconds ?? this.batchTimeoutSeconds,

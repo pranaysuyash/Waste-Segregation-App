@@ -1,8 +1,5 @@
 import 'dart:async';
-import 'dart:convert';
-import 'dart:io';
 import 'package:dio/dio.dart';
-import 'package:flutter/foundation.dart';
 import '../utils/waste_app_logger.dart';
 import 'enhanced_api_error_handler.dart';
 import 'cost_tracking_interceptor.dart';
@@ -78,8 +75,8 @@ class UnifiedApiClient {
     _apiVersions.clear();
     _apiVersions.addAll(versions);
     _defaultVersion = defaultVersion ?? versions.values.first;
-    
-    WasteAppLogger.info('API versions configured', null, null, {
+
+    WasteAppLogger.info('API versions configured', context: {
       'versions': versions.keys.toList(),
       'default_version': _defaultVersion?.version,
     });
@@ -189,19 +186,20 @@ class UnifiedApiClient {
     // Get API version configuration
     final version = _getApiVersion(apiVersion);
     final versionedEndpoint = _buildVersionedEndpoint(endpoint, version);
-    
+
     // Build request key for deduplication
-    final requestKey = _buildRequestKey(method, versionedEndpoint, queryParameters, data);
-    
+    final requestKey =
+        _buildRequestKey(method, versionedEndpoint, queryParameters, data);
+
     // Check for duplicate requests
     if (enableRequestDeduplication && _isDuplicateRequest(requestKey)) {
-      WasteAppLogger.info('Deduplicating request', null, null, {
+      WasteAppLogger.info('Deduplicating request', context: {
         'operation_id': operationId,
         'request_key': requestKey,
         'method': method,
         'endpoint': versionedEndpoint,
       });
-      
+
       final existingRequest = _pendingRequests[requestKey]!;
       final response = await existingRequest;
       return _buildApiResponse<T>(response, operationId);
@@ -209,7 +207,7 @@ class UnifiedApiClient {
 
     // Apply rate limiting
     await _acquireRateLimit(version.serviceName);
-    
+
     // Execute request with error handling
     final requestFuture = _errorHandler.executeWithErrorHandling<Response>(
       serviceName: version.serviceName,
@@ -247,7 +245,7 @@ class UnifiedApiClient {
         _pendingRequests.remove(requestKey);
         _requestTimestamps.remove(requestKey);
       }
-      
+
       // Release rate limit
       _releaseRateLimit(version.serviceName);
     }
@@ -310,40 +308,41 @@ class UnifiedApiClient {
       onRequest: (options, handler) {
         final startTime = DateTime.now();
         options.extra['start_time'] = startTime;
-        
-        WasteAppLogger.info('API Request', null, null, {
+
+        WasteAppLogger.info('API Request', context: {
           'method': options.method,
           'url': options.uri.toString(),
           'headers': _sanitizeHeaders(options.headers),
           'has_data': options.data != null,
           'timestamp': startTime.toIso8601String(),
         });
-        
+
         handler.next(options);
       },
       onResponse: (response, handler) {
-        final startTime = response.requestOptions.extra['start_time'] as DateTime?;
-        final duration = startTime != null 
+        final startTime =
+            response.requestOptions.extra['start_time'] as DateTime?;
+        final duration = startTime != null
             ? DateTime.now().difference(startTime)
             : Duration.zero;
-        
-        WasteAppLogger.info('API Response', null, null, {
+
+        WasteAppLogger.info('API Response', context: {
           'method': response.requestOptions.method,
           'url': response.requestOptions.uri.toString(),
           'status_code': response.statusCode,
           'duration_ms': duration.inMilliseconds,
           'response_size': response.data?.toString().length ?? 0,
         });
-        
+
         handler.next(response);
       },
       onError: (error, handler) {
         final startTime = error.requestOptions.extra['start_time'] as DateTime?;
-        final duration = startTime != null 
+        final duration = startTime != null
             ? DateTime.now().difference(startTime)
             : Duration.zero;
-        
-        WasteAppLogger.warning('API Error', error, null, {
+
+        WasteAppLogger.warning('API Error', error: error, context: {
           'method': error.requestOptions.method,
           'url': error.requestOptions.uri.toString(),
           'error_type': error.type.name,
@@ -351,7 +350,7 @@ class UnifiedApiClient {
           'duration_ms': duration.inMilliseconds,
           'error_message': error.message,
         });
-        
+
         handler.next(error);
       },
     ));
@@ -368,13 +367,13 @@ class UnifiedApiClient {
       windowDuration: const Duration(minutes: 1),
       burstLimit: 10,
     );
-    
+
     _rateLimiters['gemini'] = RateLimiter(
       maxRequests: 100,
       windowDuration: const Duration(minutes: 1),
       burstLimit: 15,
     );
-    
+
     _rateLimiters['firebase'] = RateLimiter(
       maxRequests: 1000,
       windowDuration: const Duration(minutes: 1),
@@ -407,7 +406,7 @@ class UnifiedApiClient {
     if (!enableRateLimiting) return;
 
     _activeRequests--;
-    
+
     // Process queued requests
     if (_requestQueue.isNotEmpty) {
       final completer = _requestQueue.removeAt(0);
@@ -432,7 +431,8 @@ class UnifiedApiClient {
   }
 
   /// Build headers with version-specific additions
-  Map<String, String> _buildHeaders(Map<String, String>? headers, ApiVersion version) {
+  Map<String, String> _buildHeaders(
+      Map<String, String>? headers, ApiVersion version) {
     final combinedHeaders = <String, String>{
       ...?headers,
       ...version.headers,
@@ -465,10 +465,10 @@ class UnifiedApiClient {
   /// Check if request is duplicate within time window
   bool _isDuplicateRequest(String requestKey) {
     if (!_pendingRequests.containsKey(requestKey)) return false;
-    
+
     final timestamp = _requestTimestamps[requestKey];
     if (timestamp == null) return false;
-    
+
     final age = DateTime.now().difference(timestamp);
     return age < _deduplicationWindow;
   }
@@ -489,13 +489,13 @@ class UnifiedApiClient {
   Map<String, dynamic> _sanitizeHeaders(Map<String, dynamic> headers) {
     final sanitized = Map<String, dynamic>.from(headers);
     const sensitiveKeys = ['authorization', 'api-key', 'x-api-key', 'bearer'];
-    
+
     for (final key in sensitiveKeys) {
       if (sanitized.containsKey(key)) {
         sanitized[key] = '***REDACTED***';
       }
     }
-    
+
     return sanitized;
   }
 
@@ -503,13 +503,13 @@ class UnifiedApiClient {
   void _cleanupDeduplicationCache() {
     final now = DateTime.now();
     final expiredKeys = <String>[];
-    
+
     for (final entry in _requestTimestamps.entries) {
       if (now.difference(entry.value) > _deduplicationWindow) {
         expiredKeys.add(entry.key);
       }
     }
-    
+
     for (final key in expiredKeys) {
       _pendingRequests.remove(key);
       _requestTimestamps.remove(key);
@@ -522,9 +522,11 @@ class UnifiedApiClient {
       'active_requests': _activeRequests,
       'queued_requests': _requestQueue.length,
       'pending_deduplicated_requests': _pendingRequests.length,
-      'rate_limiters': _rateLimiters.map((key, value) => MapEntry(key, value.getStatistics())),
+      'rate_limiters': _rateLimiters
+          .map((key, value) => MapEntry(key, value.getStatistics())),
       'circuit_breaker_status': _errorHandler.getCircuitBreakerStatus(),
-      'api_versions': _apiVersions.map((key, value) => MapEntry(key, value.toMap())),
+      'api_versions':
+          _apiVersions.map((key, value) => MapEntry(key, value.toMap())),
     };
   }
 

@@ -6,29 +6,39 @@ void main() {
     test('should have all expected enum values', () {
       expect(UnlockedContentType.values, hasLength(4));
       expect(UnlockedContentType.values, contains(UnlockedContentType.badge));
-      expect(UnlockedContentType.values, contains(UnlockedContentType.achievement));
+      expect(UnlockedContentType.values,
+          contains(UnlockedContentType.achievement));
       expect(UnlockedContentType.values, contains(UnlockedContentType.mapArea));
-      expect(UnlockedContentType.values, contains(UnlockedContentType.loreSnippet));
+      expect(UnlockedContentType.values,
+          contains(UnlockedContentType.loreSnippet));
     });
   });
 
   group('HiddenContentTriggerType', () {
     test('should have all expected enum values', () {
       expect(HiddenContentTriggerType.values, hasLength(7));
-      expect(HiddenContentTriggerType.values, contains(HiddenContentTriggerType.specificItemDiscovery));
-      expect(HiddenContentTriggerType.values, contains(HiddenContentTriggerType.itemCountByTag));
-      expect(HiddenContentTriggerType.values, contains(HiddenContentTriggerType.itemCountByCategory));
-      expect(HiddenContentTriggerType.values, contains(HiddenContentTriggerType.itemCountByMaterial));
-      expect(HiddenContentTriggerType.values, contains(HiddenContentTriggerType.specificItemSequence));
-      expect(HiddenContentTriggerType.values, contains(HiddenContentTriggerType.classificationAccuracyStreak));
-      expect(HiddenContentTriggerType.values, contains(HiddenContentTriggerType.combinedItemProperties));
+      expect(HiddenContentTriggerType.values,
+          contains(HiddenContentTriggerType.specificItemDiscovery));
+      expect(HiddenContentTriggerType.values,
+          contains(HiddenContentTriggerType.itemCountByTag));
+      expect(HiddenContentTriggerType.values,
+          contains(HiddenContentTriggerType.itemCountByCategory));
+      expect(HiddenContentTriggerType.values,
+          contains(HiddenContentTriggerType.itemCountByMaterial));
+      expect(HiddenContentTriggerType.values,
+          contains(HiddenContentTriggerType.specificItemSequence));
+      expect(HiddenContentTriggerType.values,
+          contains(HiddenContentTriggerType.classificationAccuracyStreak));
+      expect(HiddenContentTriggerType.values,
+          contains(HiddenContentTriggerType.combinedItemProperties));
     });
   });
 
   group('Value Objects for Strongly Typed Parameters', () {
     group('SpecificItemDiscoveryParams', () {
       test('should create and validate correctly', () {
-        const params = SpecificItemDiscoveryParams(itemId: 'vintage_camera_001');
+        const params =
+            SpecificItemDiscoveryParams(itemId: 'vintage_camera_001');
         expect(params.itemId, equals('vintage_camera_001'));
         expect(params.validate(), isTrue);
       });
@@ -153,8 +163,10 @@ void main() {
       final validValues = {'item': 'bottle', 'location': 'park'};
       final invalidValues = {'item': 'bottle'}; // missing location
 
-      expect(TemplateInterpolator.validateTemplate(template, validValues), isTrue);
-      expect(TemplateInterpolator.validateTemplate(template, invalidValues), isFalse);
+      expect(
+          TemplateInterpolator.validateTemplate(template, validValues), isTrue);
+      expect(TemplateInterpolator.validateTemplate(template, invalidValues),
+          isFalse);
     });
   });
 
@@ -340,7 +352,8 @@ void main() {
       final triggerTypes = rule.getTriggerTypes();
       expect(triggerTypes, hasLength(2));
       expect(triggerTypes, contains(HiddenContentTriggerType.itemCountByTag));
-      expect(triggerTypes, contains(HiddenContentTriggerType.itemCountByCategory));
+      expect(
+          triggerTypes, contains(HiddenContentTriggerType.itemCountByCategory));
     });
 
     test('should check relevance for trigger types', () {
@@ -357,8 +370,14 @@ void main() {
         description: 'Relevance test rule',
       );
 
-      expect(rule.isRelevantForTriggerType(HiddenContentTriggerType.itemCountByTag), isTrue);
-      expect(rule.isRelevantForTriggerType(HiddenContentTriggerType.itemCountByCategory), isFalse);
+      expect(
+          rule.isRelevantForTriggerType(
+              HiddenContentTriggerType.itemCountByTag),
+          isTrue);
+      expect(
+          rule.isRelevantForTriggerType(
+              HiddenContentTriggerType.itemCountByCategory),
+          isFalse);
     });
 
     test('should use stable JSON mapping for UnlockedContentType', () {
@@ -371,7 +390,8 @@ void main() {
       );
 
       final json = rule.toJson();
-      expect(json['unlockedContentType'], equals('map_area')); // stable string format
+      expect(json['unlockedContentType'],
+          equals('map_area')); // stable string format
 
       final fromJson = HiddenContentRule.fromJson(json);
       expect(fromJson.unlockedContentType, equals(UnlockedContentType.mapArea));
@@ -540,7 +560,8 @@ void main() {
       expect(rule, isNotNull);
       expect(rule!.ruleId, equals('test_rule'));
 
-      final nonExistentRule = RuleEvaluationOptimizer.getRuleById('non_existent');
+      final nonExistentRule =
+          RuleEvaluationOptimizer.getRuleById('non_existent');
       expect(nonExistentRule, isNull);
     });
 
@@ -636,7 +657,8 @@ void main() {
       const template = DiscoveryQuestTemplate(
         templateId: 'special_chars_123',
         titleTemplate: 'Quest with émojis 🎯 and spëcial chars!',
-        descriptionTemplate: 'Description with "quotes" and \'apostrophes\' & symbols',
+        descriptionTemplate:
+            'Description with "quotes" and \'apostrophes\' & symbols',
         objectiveCriteria: {'unicode': '🔍', 'special': 'test@#\$%'},
         pointsReward: 42,
       );
@@ -645,7 +667,8 @@ void main() {
       final fromJson = DiscoveryQuestTemplate.fromJson(json);
 
       expect(fromJson.titleTemplate, equals(template.titleTemplate));
-      expect(fromJson.descriptionTemplate, equals(template.descriptionTemplate));
+      expect(
+          fromJson.descriptionTemplate, equals(template.descriptionTemplate));
       expect(fromJson.objectiveCriteria['unicode'], equals('🔍'));
     });
 
@@ -677,7 +700,8 @@ void main() {
       };
 
       final condition = TriggerCondition.fromJson(malformedJson);
-      expect(condition.type, equals(HiddenContentTriggerType.specificItemDiscovery)); // fallback
+      expect(condition.type,
+          equals(HiddenContentTriggerType.specificItemDiscovery)); // fallback
 
       final ruleJson = {
         'ruleId': 'test',
@@ -688,7 +712,8 @@ void main() {
       };
 
       final rule = HiddenContentRule.fromJson(ruleJson);
-      expect(rule.unlockedContentType, equals(UnlockedContentType.badge)); // fallback
+      expect(rule.unlockedContentType,
+          equals(UnlockedContentType.badge)); // fallback
     });
 
     test('should handle validation edge cases', () {

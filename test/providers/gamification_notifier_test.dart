@@ -116,13 +116,15 @@ void main() {
       test('should refresh profile data', () async {
         // Arrange
         when(mockRepository.getProfile()).thenAnswer((_) async => testProfile);
-        when(mockRepository.getProfile(forceRefresh: true)).thenAnswer((_) async => testProfile.copyWith(
-              points: const UserPoints(total: 150, level: 3),
-            ));
+        when(mockRepository.getProfile(forceRefresh: true))
+            .thenAnswer((_) async => testProfile.copyWith(
+                  points: const UserPoints(total: 150, level: 3),
+                ));
 
         // Act
         final notifier = container.read(gamificationNotifierProvider.notifier);
-        await container.read(gamificationNotifierProvider.future); // Initial load
+        await container
+            .read(gamificationNotifierProvider.future); // Initial load
         await notifier.refresh();
 
         // Assert
@@ -135,11 +137,13 @@ void main() {
       test('should handle refresh error', () async {
         // Arrange
         when(mockRepository.getProfile()).thenAnswer((_) async => testProfile);
-        when(mockRepository.getProfile(forceRefresh: true)).thenThrow(AppException.network('Network error'));
+        when(mockRepository.getProfile(forceRefresh: true))
+            .thenThrow(AppException.network('Network error'));
 
         // Act
         final notifier = container.read(gamificationNotifierProvider.notifier);
-        await container.read(gamificationNotifierProvider.future); // Initial load
+        await container
+            .read(gamificationNotifierProvider.future); // Initial load
         await notifier.refresh();
 
         // Assert
@@ -157,19 +161,21 @@ void main() {
             .thenAnswer((_) async => testProfile.achievements.first.copyWith(
                   claimStatus: ClaimStatus.claimed,
                 ));
-        when(mockRepository.getProfile(forceRefresh: true)).thenAnswer((_) async => testProfile.copyWith(
-              points: const UserPoints(total: 110, level: 2),
-              achievements: [
-                testProfile.achievements.first.copyWith(
-                  claimStatus: ClaimStatus.claimed,
-                ),
-                testProfile.achievements.last,
-              ],
-            ));
+        when(mockRepository.getProfile(forceRefresh: true))
+            .thenAnswer((_) async => testProfile.copyWith(
+                  points: const UserPoints(total: 110, level: 2),
+                  achievements: [
+                    testProfile.achievements.first.copyWith(
+                      claimStatus: ClaimStatus.claimed,
+                    ),
+                    testProfile.achievements.last,
+                  ],
+                ));
 
         // Act
         final notifier = container.read(gamificationNotifierProvider.notifier);
-        await container.read(gamificationNotifierProvider.future); // Initial load
+        await container
+            .read(gamificationNotifierProvider.future); // Initial load
         await notifier.claimReward('test_achievement_1');
 
         // Assert
@@ -182,14 +188,17 @@ void main() {
         verify(mockRepository.claimReward('test_achievement_1', any)).called(1);
       });
 
-      test('should handle claim error with optimistic update rollback', () async {
+      test('should handle claim error with optimistic update rollback',
+          () async {
         // Arrange
         when(mockRepository.getProfile()).thenAnswer((_) async => testProfile);
-        when(mockRepository.claimReward('test_achievement_1', any)).thenThrow(AppException.storage('Claim failed'));
+        when(mockRepository.claimReward('test_achievement_1', any))
+            .thenThrow(AppException.storage('Claim failed'));
 
         // Act
         final notifier = container.read(gamificationNotifierProvider.notifier);
-        await container.read(gamificationNotifierProvider.future); // Initial load
+        await container
+            .read(gamificationNotifierProvider.future); // Initial load
 
         expect(
           () => notifier.claimReward('test_achievement_1'),
@@ -211,11 +220,13 @@ void main() {
 
         // Act
         final notifier = container.read(gamificationNotifierProvider.notifier);
-        await container.read(gamificationNotifierProvider.future); // Initial load
+        await container
+            .read(gamificationNotifierProvider.future); // Initial load
 
         // Assert
         expect(
-          () => notifier.claimReward('test_achievement_2'), // Ineligible achievement
+          () => notifier
+              .claimReward('test_achievement_2'), // Ineligible achievement
           throwsA(isA<AppException>()),
         );
       });
@@ -229,12 +240,14 @@ void main() {
 
         // Act
         final notifier = container.read(gamificationNotifierProvider.notifier);
-        await container.read(gamificationNotifierProvider.future); // Initial load
+        await container
+            .read(gamificationNotifierProvider.future); // Initial load
         await notifier.updateStreak(StreakType.dailyClassification);
 
         // Assert
         final state = container.read(gamificationNotifierProvider).value!;
-        final streak = state.streaks[StreakType.dailyClassification.toString()]!;
+        final streak =
+            state.streaks[StreakType.dailyClassification.toString()]!;
         expect(streak.currentCount, equals(6)); // Incremented from 5
         verify(mockRepository.saveProfile(any)).called(1);
       });
@@ -255,12 +268,14 @@ void main() {
 
         // Act
         final notifier = container.read(gamificationNotifierProvider.notifier);
-        await container.read(gamificationNotifierProvider.future); // Initial load
+        await container
+            .read(gamificationNotifierProvider.future); // Initial load
         await notifier.updateStreak(StreakType.dailyClassification);
 
         // Assert
         final state = container.read(gamificationNotifierProvider).value!;
-        final streak = state.streaks[StreakType.dailyClassification.toString()]!;
+        final streak =
+            state.streaks[StreakType.dailyClassification.toString()]!;
         expect(streak.currentCount, equals(5)); // No change
         verifyNever(mockRepository.saveProfile(any));
       });
@@ -273,7 +288,8 @@ void main() {
               type: StreakType.dailyClassification,
               currentCount: 5,
               longestCount: 10,
-              lastActivityDate: DateTime.now().subtract(const Duration(days: 3)), // 3 days ago
+              lastActivityDate: DateTime.now()
+                  .subtract(const Duration(days: 3)), // 3 days ago
             ),
           },
         );
@@ -282,12 +298,14 @@ void main() {
 
         // Act
         final notifier = container.read(gamificationNotifierProvider.notifier);
-        await container.read(gamificationNotifierProvider.future); // Initial load
+        await container
+            .read(gamificationNotifierProvider.future); // Initial load
         await notifier.updateStreak(StreakType.dailyClassification);
 
         // Assert
         final state = container.read(gamificationNotifierProvider).value!;
-        final streak = state.streaks[StreakType.dailyClassification.toString()]!;
+        final streak =
+            state.streaks[StreakType.dailyClassification.toString()]!;
         expect(streak.currentCount, equals(1)); // Reset to 1
         expect(streak.longestCount, equals(10)); // Longest preserved
       });
@@ -301,7 +319,8 @@ void main() {
 
         // Act
         final notifier = container.read(gamificationNotifierProvider.notifier);
-        await container.read(gamificationNotifierProvider.future); // Initial load
+        await container
+            .read(gamificationNotifierProvider.future); // Initial load
         await notifier.addClassificationPoints('Dry Waste', 'Plastic');
 
         // Assert
@@ -317,7 +336,8 @@ void main() {
 
         // Act
         final notifier = container.read(gamificationNotifierProvider.notifier);
-        await container.read(gamificationNotifierProvider.future); // Initial load
+        await container
+            .read(gamificationNotifierProvider.future); // Initial load
         await notifier.addClassificationPoints('Dry Waste', 'Plastic');
 
         // Assert
@@ -361,12 +381,14 @@ void main() {
 
         // Act
         await container.read(gamificationNotifierProvider.future);
-        final claimableAchievements = container.read(claimableAchievementsProvider);
+        final claimableAchievements =
+            container.read(claimableAchievementsProvider);
 
         // Assert
         expect(claimableAchievements.length, equals(1));
         expect(claimableAchievements.first.id, equals('test_achievement_1'));
-        expect(claimableAchievements.first.claimStatus, equals(ClaimStatus.unclaimed));
+        expect(claimableAchievements.first.claimStatus,
+            equals(ClaimStatus.unclaimed));
       });
 
       test('should provide streaks', () async {
@@ -379,7 +401,8 @@ void main() {
 
         // Assert
         expect(streaks.length, equals(1));
-        expect(streaks[StreakType.dailyClassification.toString()]?.currentCount, equals(5));
+        expect(streaks[StreakType.dailyClassification.toString()]?.currentCount,
+            equals(5));
       });
     });
 
@@ -387,7 +410,8 @@ void main() {
       test('should handle loading state correctly', () {
         // Arrange
         when(mockRepository.getProfile()).thenAnswer(
-          (_) => Future.delayed(const Duration(milliseconds: 100), () => testProfile),
+          (_) => Future.delayed(
+              const Duration(milliseconds: 100), () => testProfile),
         );
 
         // Act
@@ -402,7 +426,8 @@ void main() {
       test('should provide fallback values during loading', () {
         // Arrange
         when(mockRepository.getProfile()).thenAnswer(
-          (_) => Future.delayed(const Duration(milliseconds: 100), () => testProfile),
+          (_) => Future.delayed(
+              const Duration(milliseconds: 100), () => testProfile),
         );
 
         // Act
@@ -418,7 +443,8 @@ void main() {
 
       test('should provide fallback values during error', () {
         // Arrange
-        when(mockRepository.getProfile()).thenThrow(AppException.storage('Error'));
+        when(mockRepository.getProfile())
+            .thenThrow(AppException.storage('Error'));
 
         // Act
         final points = container.read(gamificationPointsProvider);
@@ -469,7 +495,9 @@ void main() {
                   tier: AchievementTier.bronze,
                   pointsReward: 10,
                   progress: index % 2 == 0 ? 1.0 : 0.5,
-                  claimStatus: index % 2 == 0 ? ClaimStatus.unclaimed : ClaimStatus.ineligible,
+                  claimStatus: index % 2 == 0
+                      ? ClaimStatus.unclaimed
+                      : ClaimStatus.ineligible,
                 )),
         discoveredItemIds: {},
         unlockedHiddenContentIds: {},
@@ -480,7 +508,8 @@ void main() {
       // Act
       final stopwatch = Stopwatch()..start();
       await container.read(gamificationNotifierProvider.future);
-      final claimableAchievements = container.read(claimableAchievementsProvider);
+      final claimableAchievements =
+          container.read(claimableAchievementsProvider);
       stopwatch.stop();
 
       // Assert

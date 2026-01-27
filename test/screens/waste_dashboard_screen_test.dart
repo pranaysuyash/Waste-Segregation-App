@@ -32,8 +32,10 @@ void main() {
           region: 'Test Region',
           visualFeatures: ['test feature'],
           alternatives: [],
-          disposalInstructions:
-              DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false),
+          disposalInstructions: DisposalInstructions(
+              primaryMethod: 'Test method',
+              steps: ['Test step'],
+              hasUrgentTimeframe: false),
           id: 'test1',
           itemName: 'Plastic Bottle',
           subcategory: 'Plastic',
@@ -60,8 +62,10 @@ void main() {
           region: 'Test Region',
           visualFeatures: ['test feature'],
           alternatives: [],
-          disposalInstructions:
-              DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false),
+          disposalInstructions: DisposalInstructions(
+              primaryMethod: 'Test method',
+              steps: ['Test step'],
+              hasUrgentTimeframe: false),
           id: 'test2',
           itemName: 'Food Scraps',
           subcategory: 'Food Waste',
@@ -88,8 +92,10 @@ void main() {
           region: 'Test Region',
           visualFeatures: ['test feature'],
           alternatives: [],
-          disposalInstructions:
-              DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false),
+          disposalInstructions: DisposalInstructions(
+              primaryMethod: 'Test method',
+              steps: ['Test step'],
+              hasUrgentTimeframe: false),
           id: 'test3',
           itemName: 'Battery',
           subcategory: 'Batteries',
@@ -139,8 +145,10 @@ void main() {
       );
 
       // Set up default mock responses
-      when(mockStorageService.getAllClassifications()).thenAnswer((_) async => testClassifications);
-      when(mockGamificationService.getProfile()).thenAnswer((_) async => testGamificationProfile);
+      when(mockStorageService.getAllClassifications())
+          .thenAnswer((_) async => testClassifications);
+      when(mockGamificationService.getProfile())
+          .thenAnswer((_) async => testGamificationProfile);
     });
 
     Widget createTestWidget() {
@@ -197,8 +205,10 @@ void main() {
     });
 
     group('Empty State Handling', () {
-      testWidgets('should show empty state when no classifications', (tester) async {
-        when(mockStorageService.getAllClassifications()).thenAnswer((_) async => <WasteClassification>[]);
+      testWidgets('should show empty state when no classifications',
+          (tester) async {
+        when(mockStorageService.getAllClassifications())
+            .thenAnswer((_) async => <WasteClassification>[]);
 
         await tester.pumpWidget(createTestWidget());
         await tester.pumpAndSettle();
@@ -206,22 +216,27 @@ void main() {
         expect(find.byType(EmptyStateWidget), findsOneWidget);
         expect(find.text('No Data Yet'), findsOneWidget);
         expect(
-            find.text('Start classifying waste items to see your personalized analytics dashboard.'), findsOneWidget);
+            find.text(
+                'Start classifying waste items to see your personalized analytics dashboard.'),
+            findsOneWidget);
       });
     });
 
     group('Error Handling', () {
       testWidgets('should handle storage service errors', (tester) async {
-        when(mockStorageService.getAllClassifications()).thenThrow(Exception('Storage error'));
+        when(mockStorageService.getAllClassifications())
+            .thenThrow(Exception('Storage error'));
 
         await tester.pumpWidget(createTestWidget());
         await tester.pumpAndSettle();
 
-        expect(find.text('Failed to load data: Exception: Storage error'), findsOneWidget);
+        expect(find.text('Failed to load data: Exception: Storage error'),
+            findsOneWidget);
       });
 
       testWidgets('should handle gamification service errors', (tester) async {
-        when(mockGamificationService.getProfile()).thenThrow(Exception('Gamification error'));
+        when(mockGamificationService.getProfile())
+            .thenThrow(Exception('Gamification error'));
 
         await tester.pumpWidget(createTestWidget());
         await tester.pumpAndSettle();
@@ -239,7 +254,8 @@ void main() {
         expect(find.text('3'), findsOneWidget); // Total count
 
         expect(find.text('Days Tracking'), findsOneWidget);
-        expect(find.text('6'), findsOneWidget); // Days since first classification
+        expect(
+            find.text('6'), findsOneWidget); // Days since first classification
 
         expect(find.text('Recyclable'), findsOneWidget);
         expect(find.text('1'), findsOneWidget); // Recyclable count
@@ -252,7 +268,8 @@ void main() {
           ),
         ];
 
-        when(mockStorageService.getAllClassifications()).thenAnswer((_) async => singleDayClassifications);
+        when(mockStorageService.getAllClassifications())
+            .thenAnswer((_) async => singleDayClassifications);
 
         await tester.pumpWidget(createTestWidget());
         await tester.pumpAndSettle();
@@ -270,14 +287,17 @@ void main() {
         expect(find.text('Items classified over time'), findsOneWidget);
       });
 
-      testWidgets('should show empty chart message when no data', (tester) async {
-        when(mockStorageService.getAllClassifications()).thenAnswer((_) async => <WasteClassification>[]);
+      testWidgets('should show empty chart message when no data',
+          (tester) async {
+        when(mockStorageService.getAllClassifications())
+            .thenAnswer((_) async => <WasteClassification>[]);
 
         await tester.pumpWidget(createTestWidget());
         await tester.pumpAndSettle();
 
         expect(find.text('Not enough data yet'), findsAtLeastNWidgets(1));
-        expect(find.text('Classify some items to see your activity chart!'), findsOneWidget);
+        expect(find.text('Classify some items to see your activity chart!'),
+            findsOneWidget);
       });
     });
 
@@ -287,7 +307,8 @@ void main() {
         await tester.pumpAndSettle();
 
         expect(find.byType(WebPieChartWidget), findsOneWidget);
-        expect(find.text('Category breakdown of your classifications'), findsOneWidget);
+        expect(find.text('Category breakdown of your classifications'),
+            findsOneWidget);
       });
 
       testWidgets('should show category legend', (tester) async {
@@ -299,14 +320,17 @@ void main() {
         expect(find.text('Hazardous Waste'), findsAtLeastNWidgets(1));
       });
 
-      testWidgets('should show empty state for category distribution', (tester) async {
-        when(mockStorageService.getAllClassifications()).thenAnswer((_) async => <WasteClassification>[]);
+      testWidgets('should show empty state for category distribution',
+          (tester) async {
+        when(mockStorageService.getAllClassifications())
+            .thenAnswer((_) async => <WasteClassification>[]);
 
         await tester.pumpWidget(createTestWidget());
         await tester.pumpAndSettle();
 
         expect(find.text('Not enough data yet'), findsAtLeastNWidgets(1));
-        expect(find.text('Classify items to see category breakdown!'), findsOneWidget);
+        expect(find.text('Classify items to see category breakdown!'),
+            findsOneWidget);
       });
     });
 
@@ -315,13 +339,15 @@ void main() {
         await tester.pumpWidget(createTestWidget());
         await tester.pumpAndSettle();
 
-        expect(find.text('Most frequently identified waste types'), findsOneWidget);
+        expect(find.text('Most frequently identified waste types'),
+            findsOneWidget);
         expect(find.text('Plastic'), findsOneWidget);
         expect(find.text('Food Waste'), findsOneWidget);
         expect(find.text('Batteries'), findsOneWidget);
       });
 
-      testWidgets('should show progress bars for subcategories', (tester) async {
+      testWidgets('should show progress bars for subcategories',
+          (tester) async {
         await tester.pumpWidget(createTestWidget());
         await tester.pumpAndSettle();
 
@@ -329,12 +355,14 @@ void main() {
       });
 
       testWidgets('should show empty state for subcategories', (tester) async {
-        when(mockStorageService.getAllClassifications()).thenAnswer((_) async => <WasteClassification>[]);
+        when(mockStorageService.getAllClassifications())
+            .thenAnswer((_) async => <WasteClassification>[]);
 
         await tester.pumpWidget(createTestWidget());
         await tester.pumpAndSettle();
 
-        expect(find.text('Classify more items to see top waste types!'), findsOneWidget);
+        expect(find.text('Classify more items to see top waste types!'),
+            findsOneWidget);
       });
     });
 
@@ -366,14 +394,17 @@ void main() {
         expect(find.byIcon(Icons.do_not_disturb), findsAtLeastNWidgets(1));
       });
 
-      testWidgets('should show empty state for recent classifications', (tester) async {
-        when(mockStorageService.getAllClassifications()).thenAnswer((_) async => <WasteClassification>[]);
+      testWidgets('should show empty state for recent classifications',
+          (tester) async {
+        when(mockStorageService.getAllClassifications())
+            .thenAnswer((_) async => <WasteClassification>[]);
 
         await tester.pumpWidget(createTestWidget());
         await tester.pumpAndSettle();
 
         expect(find.text('No classifications yet'), findsOneWidget);
-        expect(find.text('Start classifying items to see your history!'), findsOneWidget);
+        expect(find.text('Start classifying items to see your history!'),
+            findsOneWidget);
       });
     });
 
@@ -413,9 +444,12 @@ void main() {
       });
 
       testWidgets('should handle zero recyclable items', (tester) async {
-        final nonRecyclableClassifications = testClassifications.map((c) => c.copyWith(isRecyclable: false)).toList();
+        final nonRecyclableClassifications = testClassifications
+            .map((c) => c.copyWith(isRecyclable: false))
+            .toList();
 
-        when(mockStorageService.getAllClassifications()).thenAnswer((_) async => nonRecyclableClassifications);
+        when(mockStorageService.getAllClassifications())
+            .thenAnswer((_) async => nonRecyclableClassifications);
 
         await tester.pumpWidget(createTestWidget());
         await tester.pumpAndSettle();
@@ -445,7 +479,8 @@ void main() {
         expect(find.text('Level 3'), findsOneWidget);
       });
 
-      testWidgets('should show leaderboard coming soon message', (tester) async {
+      testWidgets('should show leaderboard coming soon message',
+          (tester) async {
         await tester.pumpWidget(createTestWidget());
         await tester.pumpAndSettle();
 
@@ -589,7 +624,10 @@ void main() {
       testWidgets('should render WebChartWidget', (tester) async {
         final chartData = [
           {'date': DateTime.now(), 'count': 5},
-          {'date': DateTime.now().subtract(const Duration(days: 1)), 'count': 3},
+          {
+            'date': DateTime.now().subtract(const Duration(days: 1)),
+            'count': 3
+          },
         ];
 
         await tester.pumpWidget(
@@ -608,8 +646,18 @@ void main() {
 
       testWidgets('should render WebPieChartWidget', (tester) async {
         final pieData = [
-          {'label': 'Dry Waste', 'value': 10, 'color': '#FF0000', 'percentage': '50%'},
-          {'label': 'Wet Waste', 'value': 10, 'color': '#00FF00', 'percentage': '50%'},
+          {
+            'label': 'Dry Waste',
+            'value': 10,
+            'color': '#FF0000',
+            'percentage': '50%'
+          },
+          {
+            'label': 'Wet Waste',
+            'value': 10,
+            'color': '#00FF00',
+            'percentage': '50%'
+          },
         ];
 
         await tester.pumpWidget(
@@ -623,7 +671,8 @@ void main() {
         expect(find.byType(WebPieChartWidget), findsOneWidget);
       });
 
-      testWidgets('should handle WebChartWidget with empty data', (tester) async {
+      testWidgets('should handle WebChartWidget with empty data',
+          (tester) async {
         await tester.pumpWidget(
           const MaterialApp(
             home: Scaffold(
@@ -638,7 +687,8 @@ void main() {
         expect(find.byType(WebChartWidget), findsOneWidget);
       });
 
-      testWidgets('should handle WebPieChartWidget with empty data', (tester) async {
+      testWidgets('should handle WebPieChartWidget with empty data',
+          (tester) async {
         await tester.pumpWidget(
           const MaterialApp(
             home: Scaffold(
@@ -665,13 +715,15 @@ void main() {
         expect(find.text('Hazardous Waste'), findsAtLeastNWidgets(1));
       });
 
-      testWidgets('should handle classifications without subcategories', (tester) async {
+      testWidgets('should handle classifications without subcategories',
+          (tester) async {
         final classificationsWithoutSubcategories = [
           testClassifications.first.copyWith(),
           testClassifications.last.copyWith(subcategory: ''),
         ];
 
-        when(mockStorageService.getAllClassifications()).thenAnswer((_) async => classificationsWithoutSubcategories);
+        when(mockStorageService.getAllClassifications())
+            .thenAnswer((_) async => classificationsWithoutSubcategories);
 
         await tester.pumpWidget(createTestWidget());
         await tester.pumpAndSettle();
@@ -681,20 +733,23 @@ void main() {
         expect(find.text('2'), findsOneWidget);
       });
 
-      testWidgets('should sort classifications by date correctly', (tester) async {
+      testWidgets('should sort classifications by date correctly',
+          (tester) async {
         final unsortedClassifications = [
           testClassifications[2], // Most recent (1 day ago)
           testClassifications[0], // Oldest (5 days ago)
           testClassifications[1], // Middle (3 days ago)
         ];
 
-        when(mockStorageService.getAllClassifications()).thenAnswer((_) async => unsortedClassifications);
+        when(mockStorageService.getAllClassifications())
+            .thenAnswer((_) async => unsortedClassifications);
 
         await tester.pumpWidget(createTestWidget());
         await tester.pumpAndSettle();
 
         // Recent classifications should show most recent first
-        expect(find.text('Battery'), findsOneWidget); // Most recent should be visible
+        expect(find.text('Battery'),
+            findsOneWidget); // Most recent should be visible
       });
     });
 
@@ -709,8 +764,10 @@ void main() {
             region: 'Test Region',
             visualFeatures: ['test feature'],
             alternatives: [],
-            disposalInstructions:
-                DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false),
+            disposalInstructions: DisposalInstructions(
+                primaryMethod: 'Test method',
+                steps: ['Test step'],
+                hasUrgentTimeframe: false),
             id: 'test_$index',
             itemName: 'Item $index',
             subcategory: 'Subcategory $index',
@@ -747,7 +804,8 @@ void main() {
         expect(find.text('1000'), findsOneWidget); // Total items
       });
 
-      testWidgets('should handle classifications with null values', (tester) async {
+      testWidgets('should handle classifications with null values',
+          (tester) async {
         final classificationWithNulls = WasteClassification(
           itemName: 'Test Item',
           explanation: 'Test explanation',
@@ -755,8 +813,10 @@ void main() {
           region: 'Test Region',
           visualFeatures: ['test feature'],
           alternatives: [],
-          disposalInstructions:
-              DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false),
+          disposalInstructions: DisposalInstructions(
+              primaryMethod: 'Test method',
+              steps: ['Test step'],
+              hasUrgentTimeframe: false),
           id: 'test_null',
           itemName: 'Test Item',
           confidence: 0.5,
@@ -769,7 +829,8 @@ void main() {
           // Other fields are null by default
         );
 
-        when(mockStorageService.getAllClassifications()).thenAnswer((_) async => [classificationWithNulls]);
+        when(mockStorageService.getAllClassifications())
+            .thenAnswer((_) async => [classificationWithNulls]);
 
         await tester.pumpWidget(createTestWidget());
         await tester.pumpAndSettle();
@@ -791,7 +852,8 @@ void main() {
         await tester.pumpAndSettle();
 
         // Should handle multiple refresh calls gracefully
-        verify(mockStorageService.getAllClassifications()).called(greaterThan(1));
+        verify(mockStorageService.getAllClassifications())
+            .called(greaterThan(1));
       });
     });
 
@@ -826,7 +888,8 @@ void main() {
         expect(find.byType(SingleChildScrollView), findsOneWidget);
 
         // Test scrolling to bottom
-        await tester.drag(find.byType(SingleChildScrollView), const Offset(0, -500));
+        await tester.drag(
+            find.byType(SingleChildScrollView), const Offset(0, -500));
         await tester.pumpAndSettle();
 
         // Should still find gamification section

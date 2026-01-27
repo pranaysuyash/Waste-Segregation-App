@@ -21,7 +21,8 @@ class AchievementsScreen extends StatefulWidget {
   State<AchievementsScreen> createState() => _AchievementsScreenState();
 }
 
-class _AchievementsScreenState extends State<AchievementsScreen> with SingleTickerProviderStateMixin {
+class _AchievementsScreenState extends State<AchievementsScreen>
+    with SingleTickerProviderStateMixin {
   late TabController _tabController;
 
   // Achievement celebration state
@@ -35,7 +36,8 @@ class _AchievementsScreenState extends State<AchievementsScreen> with SingleTick
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 3, vsync: this, initialIndex: widget.initialTabIndex);
+    _tabController = TabController(
+        length: 3, vsync: this, initialIndex: widget.initialTabIndex);
     // Load initial profile asynchronously and trigger rebuild
     _loadInitialProfile();
   }
@@ -48,19 +50,26 @@ class _AchievementsScreenState extends State<AchievementsScreen> with SingleTick
       });
     }
 
+    // Capture provider values synchronously to avoid using BuildContext after awaits
+    final pointsEngine = context.read<PointsEngineProvider>().pointsEngine;
+
     try {
-      WasteAppLogger.info('Operation completed', null, null, {'service': 'screen', 'file': 'achievements_screen'});
+      WasteAppLogger.info('Operation completed',
+          context: {'service': 'screen', 'file': 'achievements_screen'});
 
       // Add timeout to prevent infinite loading
-      await context.read<PointsEngineProvider>().pointsEngine.initialize().timeout(
+      await pointsEngine.initialize().timeout(
         const Duration(seconds: 10),
         onTimeout: () {
-          WasteAppLogger.severe('Error occurred', null, null, {'service': 'screen', 'file': 'achievements_screen'});
-          throw TimeoutException('Profile loading timed out', const Duration(seconds: 10));
+          WasteAppLogger.severe('Error occurred',
+              context: {'service': 'screen', 'file': 'achievements_screen'});
+          throw TimeoutException(
+              'Profile loading timed out', const Duration(seconds: 10));
         },
       );
 
-      WasteAppLogger.info('Operation completed', null, null, {'service': 'screen', 'file': 'achievements_screen'});
+      WasteAppLogger.info('Operation completed',
+          context: {'service': 'screen', 'file': 'achievements_screen'});
 
       if (mounted) {
         setState(() {
@@ -70,7 +79,8 @@ class _AchievementsScreenState extends State<AchievementsScreen> with SingleTick
       }
       // The profile should now be available and the widget will rebuild due to Provider
     } catch (e) {
-      WasteAppLogger.severe('Error occurred', null, null, {'service': 'screen', 'file': 'achievements_screen'});
+      WasteAppLogger.severe('Error occurred',
+          context: {'service': 'screen', 'file': 'achievements_screen'});
 
       if (mounted) {
         setState(() {
@@ -81,8 +91,8 @@ class _AchievementsScreenState extends State<AchievementsScreen> with SingleTick
 
       // Try to force a profile creation as last resort
       try {
-        WasteAppLogger.info('Operation completed', null, null, {'service': 'screen', 'file': 'achievements_screen'});
-        final pointsEngine = context.read<PointsEngineProvider>().pointsEngine;
+        WasteAppLogger.info('Operation completed',
+            context: {'service': 'screen', 'file': 'achievements_screen'});
 
         // Force create a basic profile if none exists
         if (pointsEngine.currentProfile == null) {
@@ -96,13 +106,13 @@ class _AchievementsScreenState extends State<AchievementsScreen> with SingleTick
           }
         }
       } catch (emergencyError) {
-        WasteAppLogger.severe('Error occurred', null, null, {'service': 'screen', 'file': 'achievements_screen'});
+        WasteAppLogger.severe('Error occurred',
+            context: {'service': 'screen', 'file': 'achievements_screen'});
       }
 
       // Even if there's an error, the service should provide a fallback profile
-      final scaffoldMessenger = ScaffoldMessenger.of(context);
       if (mounted) {
-        scaffoldMessenger.showSnackBar(
+        ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Failed to load achievements: ${e.toString()}'),
             backgroundColor: Colors.orange,
@@ -118,7 +128,8 @@ class _AchievementsScreenState extends State<AchievementsScreen> with SingleTick
 
   Future<void> _refreshProfile() async {
     try {
-      WasteAppLogger.info('Operation completed', null, null, {'service': 'screen', 'file': 'achievements_screen'});
+      WasteAppLogger.info('Operation completed',
+          context: {'service': 'screen', 'file': 'achievements_screen'});
 
       if (mounted) {
         setState(() {
@@ -127,17 +138,18 @@ class _AchievementsScreenState extends State<AchievementsScreen> with SingleTick
       }
 
       await context.read<PointsEngineProvider>().pointsEngine.refresh();
-      WasteAppLogger.info('Operation completed', null, null, {'service': 'screen', 'file': 'achievements_screen'});
+      WasteAppLogger.info('Operation completed',
+          context: {'service': 'screen', 'file': 'achievements_screen'});
     } catch (e) {
-      WasteAppLogger.severe('Error occurred', null, null, {'service': 'screen', 'file': 'achievements_screen'});
+      WasteAppLogger.severe('Error occurred',
+          context: {'service': 'screen', 'file': 'achievements_screen'});
 
-      final scaffoldMessenger = ScaffoldMessenger.of(context);
       if (mounted) {
         setState(() {
           _hasLoadingError = true;
         });
 
-        scaffoldMessenger.showSnackBar(
+        ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Failed to refresh achievements: ${e.toString()}'),
             backgroundColor: Colors.red,
@@ -190,13 +202,17 @@ class _AchievementsScreenState extends State<AchievementsScreen> with SingleTick
                 final pointsProvider = context.watch<PointsEngineProvider>();
                 final profile = pointsProvider.pointsEngine.currentProfile;
 
-                WasteAppLogger.info(
-                    'Operation completed', null, null, {'service': 'screen', 'file': 'achievements_screen'});
+                WasteAppLogger.info('Operation completed', context: {
+                  'service': 'screen',
+                  'file': 'achievements_screen'
+                });
 
                 // Show loading state
                 if (profile == null && _isLoadingProfile) {
-                  WasteAppLogger.info(
-                      'Operation completed', null, null, {'service': 'screen', 'file': 'achievements_screen'});
+                  WasteAppLogger.info('Operation completed', context: {
+                    'service': 'screen',
+                    'file': 'achievements_screen'
+                  });
                   return const Center(
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -231,7 +247,8 @@ class _AchievementsScreenState extends State<AchievementsScreen> with SingleTick
                         const SizedBox(height: 16),
                         const Text(
                           'Failed to load achievements',
-                          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                          style: TextStyle(
+                              fontSize: 18, fontWeight: FontWeight.bold),
                         ),
                         const SizedBox(height: 8),
                         const Text(
@@ -264,8 +281,10 @@ class _AchievementsScreenState extends State<AchievementsScreen> with SingleTick
                   );
                 }
 
-                WasteAppLogger.info(
-                    'Operation completed', null, null, {'service': 'screen', 'file': 'achievements_screen'});
+                WasteAppLogger.info('Operation completed', context: {
+                  'service': 'screen',
+                  'file': 'achievements_screen'
+                });
 
                 return TabBarView(
                   controller: _tabController,
@@ -412,9 +431,6 @@ class _AchievementsScreenState extends State<AchievementsScreen> with SingleTick
                       child: _buildAchievementCard(achievement, profile),
                     );
                   },
-                  // Add findChildIndexCallback for proper widget tracking
-                  addAutomaticKeepAlives: true,
-                  addRepaintBoundaries: true,
                 ),
                 const SizedBox(height: AppTheme.paddingLarge),
               ],
@@ -425,21 +441,30 @@ class _AchievementsScreenState extends State<AchievementsScreen> with SingleTick
     );
   }
 
-  Widget _buildAchievementCard(Achievement achievement, GamificationProfile profile) {
+  Widget _buildAchievementCard(
+      Achievement achievement, GamificationProfile profile) {
     final isEarned = achievement.isEarned;
     final isClaimable = achievement.isClaimable;
     // FIXED: Check if achievement is locked based on user's current level
-    final isLocked = achievement.unlocksAtLevel != null && achievement.unlocksAtLevel! > profile.points.level;
+    final isLocked = achievement.unlocksAtLevel != null &&
+        achievement.unlocksAtLevel! > profile.points.level;
 
     // DEBUGGING: Log achievement state for "Waste Apprentice"
     if (achievement.id == 'waste_apprentice') {
-      WasteAppLogger.info('Operation completed', null, null, {'service': 'screen', 'file': 'achievements_screen'});
-      WasteAppLogger.info('Operation completed', null, null, {'service': 'screen', 'file': 'achievements_screen'});
-      WasteAppLogger.info('Operation completed', null, null, {'service': 'screen', 'file': 'achievements_screen'});
-      WasteAppLogger.info('Operation completed', null, null, {'service': 'screen', 'file': 'achievements_screen'});
-      WasteAppLogger.info('Operation completed', null, null, {'service': 'screen', 'file': 'achievements_screen'});
-      WasteAppLogger.info('Operation completed', null, null, {'service': 'screen', 'file': 'achievements_screen'});
-      WasteAppLogger.info('Operation completed', null, null, {'service': 'screen', 'file': 'achievements_screen'});
+      WasteAppLogger.info('Operation completed',
+          context: {'service': 'screen', 'file': 'achievements_screen'});
+      WasteAppLogger.info('Operation completed',
+          context: {'service': 'screen', 'file': 'achievements_screen'});
+      WasteAppLogger.info('Operation completed',
+          context: {'service': 'screen', 'file': 'achievements_screen'});
+      WasteAppLogger.info('Operation completed',
+          context: {'service': 'screen', 'file': 'achievements_screen'});
+      WasteAppLogger.info('Operation completed',
+          context: {'service': 'screen', 'file': 'achievements_screen'});
+      WasteAppLogger.info('Operation completed',
+          context: {'service': 'screen', 'file': 'achievements_screen'});
+      WasteAppLogger.info('Operation completed',
+          context: {'service': 'screen', 'file': 'achievements_screen'});
     }
 
     return Card(
@@ -448,7 +473,9 @@ class _AchievementsScreenState extends State<AchievementsScreen> with SingleTick
       elevation: isEarned ? 3 : 1,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(AppTheme.borderRadiusSmall),
-        side: isClaimable ? const BorderSide(color: Colors.amber, width: 2) : BorderSide.none,
+        side: isClaimable
+            ? const BorderSide(color: Colors.amber, width: 2)
+            : BorderSide.none,
       ),
       child: InkWell(
         onTap: () => _showAchievementDetails(achievement, profile),
@@ -501,14 +528,19 @@ class _AchievementsScreenState extends State<AchievementsScreen> with SingleTick
                   Container(
                     padding: const EdgeInsets.all(AppTheme.paddingSmall),
                     decoration: BoxDecoration(
-                      color: isEarned ? achievement.color.withValues(alpha: 0.2) : Colors.grey.shade200,
+                      color: isEarned
+                          ? achievement.color.withValues(alpha: 0.2)
+                          : Colors.grey.shade200,
                       shape: BoxShape.circle,
-                      border: isEarned && achievement.tier != AchievementTier.bronze
-                          ? Border.all(color: achievement.getTierColor(), width: 2)
-                          : null,
+                      border:
+                          isEarned && achievement.tier != AchievementTier.bronze
+                              ? Border.all(
+                                  color: achievement.getTierColor(), width: 2)
+                              : null,
                     ),
                     child: getAchievementIcon(achievement.iconName,
-                        color: isEarned ? achievement.color : Colors.grey, size: 36),
+                        color: isEarned ? achievement.color : Colors.grey,
+                        size: 36),
                   ),
                   const SizedBox(height: 8),
                   // Achievement title
@@ -520,7 +552,8 @@ class _AchievementsScreenState extends State<AchievementsScreen> with SingleTick
                       style: TextStyle(
                         fontSize: AppTheme.fontSizeSmall,
                         fontWeight: FontWeight.bold,
-                        color: isEarned ? AppTheme.textPrimaryColor : Colors.grey,
+                        color:
+                            isEarned ? AppTheme.textPrimaryColor : Colors.grey,
                       ),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
@@ -532,12 +565,14 @@ class _AchievementsScreenState extends State<AchievementsScreen> with SingleTick
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 12),
                       child: ClipRRect(
-                        borderRadius: BorderRadius.circular(AppTheme.borderRadiusSmall),
+                        borderRadius:
+                            BorderRadius.circular(AppTheme.borderRadiusSmall),
                         child: LinearProgressIndicator(
                           value: achievement.progress,
                           minHeight: 4,
                           backgroundColor: Colors.grey.shade200,
-                          valueColor: AlwaysStoppedAnimation<Color>(achievement.color.withValues(alpha: 0.7)),
+                          valueColor: AlwaysStoppedAnimation<Color>(
+                              achievement.color.withValues(alpha: 0.7)),
                         ),
                       ),
                     )
@@ -587,11 +622,15 @@ class _AchievementsScreenState extends State<AchievementsScreen> with SingleTick
   // Helper method to determine contrasting text color for tier badges
   Color _getContrastColor(Color backgroundColor) {
     // Calculate perceived brightness using the formula: (R * 0.299 + G * 0.587 + B * 0.114)
-    final brightness = (backgroundColor.r * 0.299 + backgroundColor.g * 0.587 + backgroundColor.b * 0.114) / 255;
+    final brightness = (backgroundColor.r * 0.299 +
+            backgroundColor.g * 0.587 +
+            backgroundColor.b * 0.114) /
+        255;
     return brightness > 0.5 ? Colors.black : Colors.white;
   }
 
-  void _showAchievementDetails(Achievement achievement, GamificationProfile profile) {
+  void _showAchievementDetails(
+      Achievement achievement, GamificationProfile profile) {
     // Show celebration for earned achievements when viewed
     if (achievement.isEarned && achievement.tier != AchievementTier.bronze) {
       _showAchievementCelebration(achievement);
@@ -602,8 +641,10 @@ class _AchievementsScreenState extends State<AchievementsScreen> with SingleTick
     Future<void> claimReward() async {
       try {
         // Use PointsEngine for atomic achievement claiming
-        final pointsEngineProvider = Provider.of<PointsEngineProvider>(context, listen: false);
-        await pointsEngineProvider.pointsEngine.claimAchievementReward(achievement.id);
+        final pointsEngineProvider =
+            Provider.of<PointsEngineProvider>(context, listen: false);
+        await pointsEngineProvider.pointsEngine
+            .claimAchievementReward(achievement.id);
 
         // Refresh the profile data
         if (mounted) {
@@ -621,7 +662,8 @@ class _AchievementsScreenState extends State<AchievementsScreen> with SingleTick
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('${achievement.pointsReward} points added to your account!'),
+              content: Text(
+                  '${achievement.pointsReward} points added to your account!'),
               backgroundColor: Colors.green,
             ),
           );
@@ -669,14 +711,18 @@ class _AchievementsScreenState extends State<AchievementsScreen> with SingleTick
             Container(
               padding: const EdgeInsets.all(AppTheme.paddingRegular),
               decoration: BoxDecoration(
-                color: achievement.isEarned ? achievement.color.withValues(alpha: 0.2) : Colors.grey.shade200,
+                color: achievement.isEarned
+                    ? achievement.color.withValues(alpha: 0.2)
+                    : Colors.grey.shade200,
                 shape: BoxShape.circle,
-                border: achievement.isEarned && achievement.tier != AchievementTier.bronze
+                border: achievement.isEarned &&
+                        achievement.tier != AchievementTier.bronze
                     ? Border.all(color: achievement.getTierColor(), width: 3)
                     : null,
               ),
               child: getAchievementIcon(achievement.iconName,
-                  color: achievement.isEarned ? achievement.color : Colors.grey, size: 48),
+                  color: achievement.isEarned ? achievement.color : Colors.grey,
+                  size: 48),
             ),
             const SizedBox(height: AppTheme.paddingRegular),
 
@@ -704,7 +750,8 @@ class _AchievementsScreenState extends State<AchievementsScreen> with SingleTick
 
             // Achievement points reward info
             Container(
-              margin: const EdgeInsets.symmetric(vertical: AppTheme.paddingSmall),
+              margin:
+                  const EdgeInsets.symmetric(vertical: AppTheme.paddingSmall),
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
               decoration: BoxDecoration(
                 color: Colors.amber.withValues(alpha: 0.2),
@@ -745,7 +792,8 @@ class _AchievementsScreenState extends State<AchievementsScreen> with SingleTick
                   ),
                   if (achievement.isClaimable)
                     Padding(
-                      padding: const EdgeInsets.only(top: AppTheme.paddingRegular),
+                      padding:
+                          const EdgeInsets.only(top: AppTheme.paddingRegular),
                       child: ElevatedButton.icon(
                         onPressed: claimReward,
                         icon: const Icon(Icons.redeem),
@@ -758,13 +806,15 @@ class _AchievementsScreenState extends State<AchievementsScreen> with SingleTick
                     ),
                 ],
               )
-            else if (achievement.unlocksAtLevel != null && achievement.unlocksAtLevel! > profile.points.level)
+            else if (achievement.unlocksAtLevel != null &&
+                achievement.unlocksAtLevel! > profile.points.level)
               Container(
                 margin: const EdgeInsets.only(top: AppTheme.paddingSmall),
                 padding: const EdgeInsets.all(AppTheme.paddingSmall),
                 decoration: BoxDecoration(
                   color: Colors.grey.shade200,
-                  borderRadius: BorderRadius.circular(AppTheme.borderRadiusSmall),
+                  borderRadius:
+                      BorderRadius.circular(AppTheme.borderRadiusSmall),
                 ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -795,12 +845,14 @@ class _AchievementsScreenState extends State<AchievementsScreen> with SingleTick
                   ),
                   const SizedBox(height: 8),
                   ClipRRect(
-                    borderRadius: BorderRadius.circular(AppTheme.borderRadiusSmall),
+                    borderRadius:
+                        BorderRadius.circular(AppTheme.borderRadiusSmall),
                     child: LinearProgressIndicator(
                       value: achievement.progress,
                       minHeight: 8,
                       backgroundColor: Colors.grey.shade200,
-                      valueColor: AlwaysStoppedAnimation<Color>(achievement.color),
+                      valueColor:
+                          AlwaysStoppedAnimation<Color>(achievement.color),
                     ),
                   ),
                 ],
@@ -813,7 +865,8 @@ class _AchievementsScreenState extends State<AchievementsScreen> with SingleTick
                 padding: const EdgeInsets.all(AppTheme.paddingSmall),
                 decoration: BoxDecoration(
                   color: Colors.grey.shade100,
-                  borderRadius: BorderRadius.circular(AppTheme.borderRadiusSmall),
+                  borderRadius:
+                      BorderRadius.circular(AppTheme.borderRadiusSmall),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -850,8 +903,9 @@ class _AchievementsScreenState extends State<AchievementsScreen> with SingleTick
   }
 
   Widget _buildChallengesTab(GamificationProfile profile) {
-    final activeChallenges =
-        profile.activeChallenges.where((challenge) => !challenge.isExpired && !challenge.isCompleted).toList();
+    final activeChallenges = profile.activeChallenges
+        .where((challenge) => !challenge.isExpired && !challenge.isCompleted)
+        .toList();
     final completedChallenges = profile.completedChallenges
         .take(5) // Show only the 5 most recent
         .toList();
@@ -879,7 +933,8 @@ class _AchievementsScreenState extends State<AchievementsScreen> with SingleTick
 
             if (activeChallenges.isEmpty)
               Padding(
-                padding: const EdgeInsets.symmetric(vertical: AppTheme.paddingLarge),
+                padding:
+                    const EdgeInsets.symmetric(vertical: AppTheme.paddingLarge),
                 child: Center(
                   child: Column(
                     children: [
@@ -901,8 +956,11 @@ class _AchievementsScreenState extends State<AchievementsScreen> with SingleTick
                         onPressed: () async {
                           // Generate new random challenges for the user
                           try {
-                            final gamificationService = Provider.of<GamificationService>(context, listen: false);
-                            final profile = await gamificationService.getProfile();
+                            final gamificationService =
+                                Provider.of<GamificationService>(context,
+                                    listen: false);
+                            final profile =
+                                await gamificationService.getProfile();
 
                             // Create sample new challenges
                             final newChallenges = [
@@ -912,10 +970,14 @@ class _AchievementsScreenState extends State<AchievementsScreen> with SingleTick
                                 description: 'Recycle 20 items this week',
                                 iconName: 'recycle',
                                 startDate: DateTime.now(),
-                                endDate: DateTime.now().add(const Duration(days: 7)),
+                                endDate:
+                                    DateTime.now().add(const Duration(days: 7)),
                                 pointsReward: 100,
                                 color: Colors.green,
-                                requirements: {'category': 'Dry Waste', 'count': 20},
+                                requirements: {
+                                  'category': 'Dry Waste',
+                                  'count': 20
+                                },
                               ),
                               Challenge(
                                 id: 'challenge_${DateTime.now().millisecondsSinceEpoch + 1}',
@@ -923,7 +985,8 @@ class _AchievementsScreenState extends State<AchievementsScreen> with SingleTick
                                 description: 'Take 10 waste segregation photos',
                                 iconName: 'camera_alt',
                                 startDate: DateTime.now(),
-                                endDate: DateTime.now().add(const Duration(days: 5)),
+                                endDate:
+                                    DateTime.now().add(const Duration(days: 5)),
                                 pointsReward: 75,
                                 color: Colors.blue,
                                 requirements: {'any_item': true, 'count': 10},
@@ -932,10 +995,14 @@ class _AchievementsScreenState extends State<AchievementsScreen> with SingleTick
 
                             // Add the new challenges to the profile
                             final updatedProfile = profile.copyWith(
-                              activeChallenges: [...profile.activeChallenges, ...newChallenges],
+                              activeChallenges: [
+                                ...profile.activeChallenges,
+                                ...newChallenges
+                              ],
                             );
 
-                            await gamificationService.saveProfile(updatedProfile);
+                            await gamificationService
+                                .saveProfile(updatedProfile);
 
                             if (mounted) {
                               setState(() {
@@ -953,7 +1020,8 @@ class _AchievementsScreenState extends State<AchievementsScreen> with SingleTick
                             if (mounted) {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 SnackBar(
-                                  content: Text('Failed to generate challenges: $e'),
+                                  content:
+                                      Text('Failed to generate challenges: $e'),
                                   backgroundColor: Colors.red,
                                 ),
                               );
@@ -1013,12 +1081,14 @@ class _AchievementsScreenState extends State<AchievementsScreen> with SingleTick
                             child: ListView.builder(
                               itemCount: profile.completedChallenges.length,
                               itemBuilder: (context, index) {
-                                final challenge = profile.completedChallenges[index];
+                                final challenge =
+                                    profile.completedChallenges[index];
                                 return ListTile(
                                   leading: Container(
                                     padding: const EdgeInsets.all(8),
                                     decoration: BoxDecoration(
-                                      color: challenge.color.withValues(alpha: 0.2),
+                                      color: challenge.color
+                                          .withValues(alpha: 0.2),
                                       shape: BoxShape.circle,
                                     ),
                                     child: getAchievementIcon(
@@ -1032,7 +1102,8 @@ class _AchievementsScreenState extends State<AchievementsScreen> with SingleTick
                                   trailing: Row(
                                     mainAxisSize: MainAxisSize.min,
                                     children: [
-                                      const Icon(Icons.stars, color: Colors.amber, size: 16),
+                                      const Icon(Icons.stars,
+                                          color: Colors.amber, size: 16),
                                       Text('${challenge.pointsReward}'),
                                     ],
                                   ),
@@ -1080,7 +1151,8 @@ class _AchievementsScreenState extends State<AchievementsScreen> with SingleTick
                     color: challenge.color.withValues(alpha: 0.2),
                     shape: BoxShape.circle,
                   ),
-                  child: getAchievementIcon(challenge.iconName, color: challenge.color, size: 28),
+                  child: getAchievementIcon(challenge.iconName,
+                      color: challenge.color, size: 28),
                 ),
                 const SizedBox(width: AppTheme.paddingSmall),
                 Expanded(
@@ -1120,7 +1192,9 @@ class _AchievementsScreenState extends State<AchievementsScreen> with SingleTick
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        isCompleted ? 'Completed!' : '${AppStrings.progress}: ${(challenge.progress * 100).round()}%',
+                        isCompleted
+                            ? 'Completed!'
+                            : '${AppStrings.progress}: ${(challenge.progress * 100).round()}%',
                         style: TextStyle(
                           fontSize: AppTheme.fontSizeSmall,
                           color: isCompleted ? challenge.color : null,
@@ -1129,12 +1203,14 @@ class _AchievementsScreenState extends State<AchievementsScreen> with SingleTick
                       ),
                       const SizedBox(height: 4),
                       ClipRRect(
-                        borderRadius: BorderRadius.circular(AppTheme.borderRadiusSmall),
+                        borderRadius:
+                            BorderRadius.circular(AppTheme.borderRadiusSmall),
                         child: LinearProgressIndicator(
                           value: isCompleted ? 1.0 : challenge.progress,
                           minHeight: 8,
                           backgroundColor: Colors.grey.shade200,
-                          valueColor: AlwaysStoppedAnimation<Color>(challenge.color),
+                          valueColor:
+                              AlwaysStoppedAnimation<Color>(challenge.color),
                         ),
                       ),
                     ],
@@ -1193,10 +1269,14 @@ class _AchievementsScreenState extends State<AchievementsScreen> with SingleTick
                       ),
                       const SizedBox(width: 4),
                       Text(
-                        daysLeft > 0 ? '$daysLeft ${daysLeft == 1 ? 'day' : 'days'} left' : 'Expires today',
+                        daysLeft > 0
+                            ? '$daysLeft ${daysLeft == 1 ? 'day' : 'days'} left'
+                            : 'Expires today',
                         style: TextStyle(
                           fontSize: AppTheme.fontSizeSmall,
-                          color: daysLeft < 2 ? Colors.orange : Colors.grey.shade600,
+                          color: daysLeft < 2
+                              ? Colors.orange
+                              : Colors.grey.shade600,
                         ),
                       ),
                     ],
@@ -1257,7 +1337,10 @@ class _AchievementsScreenState extends State<AchievementsScreen> with SingleTick
                     children: [
                       _buildStatItem(
                         'Achievements',
-                        profile.achievements.where((a) => a.isEarned).length.toString(),
+                        profile.achievements
+                            .where((a) => a.isEarned)
+                            .length
+                            .toString(),
                         Icons.emoji_events,
                         Colors.amber,
                       ),
@@ -1310,9 +1393,11 @@ class _AchievementsScreenState extends State<AchievementsScreen> with SingleTick
                 children: profile.points.categoryPoints.entries.map((entry) {
                   final categoryName = entry.key;
                   final points = entry.value;
-                  final itemCount = (points / 10).round(); // Convert points to item count
+                  final itemCount =
+                      (points / 10).round(); // Convert points to item count
                   return Padding(
-                    padding: const EdgeInsets.only(bottom: AppTheme.paddingSmall),
+                    padding:
+                        const EdgeInsets.only(bottom: AppTheme.paddingSmall),
                     child: Row(
                       children: [
                         Container(
@@ -1434,7 +1519,8 @@ class _AchievementsScreenState extends State<AchievementsScreen> with SingleTick
     );
   }
 
-  Widget _buildStatItem(String label, String value, IconData icon, Color color) {
+  Widget _buildStatItem(
+      String label, String value, IconData icon, Color color) {
     return Expanded(
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 4),
@@ -1577,7 +1663,20 @@ class _AchievementsScreenState extends State<AchievementsScreen> with SingleTick
     } else if (dateToCheck == yesterday) {
       return 'Yesterday';
     } else {
-      final months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+      final months = [
+        'Jan',
+        'Feb',
+        'Mar',
+        'Apr',
+        'May',
+        'Jun',
+        'Jul',
+        'Aug',
+        'Sep',
+        'Oct',
+        'Nov',
+        'Dec'
+      ];
       return '${months[date.month - 1]} ${date.day}, ${date.year}';
     }
   }
@@ -1595,13 +1694,16 @@ class _AchievementsScreenState extends State<AchievementsScreen> with SingleTick
   Color _getCategoryColor(String category) {
     switch (category.toLowerCase()) {
       case 'paper':
-        return const Color(0xFF2196F3); // Use direct color instead of deprecated Colors.blue
+        return const Color(
+            0xFF2196F3); // Use direct color instead of deprecated Colors.blue
       case 'plastic':
         return const Color(0xFFE91E63); // Pink
       case 'organic':
-        return const Color(0xFF4CAF50); // Use direct color instead of deprecated Colors.green
+        return const Color(
+            0xFF4CAF50); // Use direct color instead of deprecated Colors.green
       case 'hazardous':
-        return const Color(0xFFF44336); // Use direct color instead of deprecated Colors.red
+        return const Color(
+            0xFFF44336); // Use direct color instead of deprecated Colors.red
       default:
         return Colors.grey;
     }
@@ -1616,13 +1718,15 @@ class _AchievementsScreenState extends State<AchievementsScreen> with SingleTick
   // Helper methods for streak access
   int _getCurrentStreak(GamificationProfile profile) {
     // Get the daily classification streak, which is the primary streak
-    final dailyStreak = profile.streaks[StreakType.dailyClassification.toString()];
+    final dailyStreak =
+        profile.streaks[StreakType.dailyClassification.toString()];
     return dailyStreak?.currentCount ?? 0;
   }
 
   int _getLongestStreak(GamificationProfile profile) {
     // Get the longest streak from daily classification streak
-    final dailyStreak = profile.streaks[StreakType.dailyClassification.toString()];
+    final dailyStreak =
+        profile.streaks[StreakType.dailyClassification.toString()];
     return dailyStreak?.longestCount ?? 0;
   }
 }

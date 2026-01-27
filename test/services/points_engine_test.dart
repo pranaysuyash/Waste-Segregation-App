@@ -38,7 +38,8 @@ class TestStorageService implements StorageService {
 
 class TestCloudStorageService implements CloudStorageService {
   @override
-  Future<void> saveUserProfileToFirestore(UserProfile profile) async {
+  Future<void> saveUserProfileToFirestore(UserProfile profile,
+      {bool useBatching = true}) async {
     // No-op for testing
   }
 
@@ -66,15 +67,18 @@ void main() {
     });
 
     test('should create singleton instance', () {
-      final engine1 = PointsEngine.getInstance(testStorageService, testCloudStorageService);
-      final engine2 = PointsEngine.getInstance(testStorageService, testCloudStorageService);
+      final engine1 =
+          PointsEngine.getInstance(testStorageService, testCloudStorageService);
+      final engine2 =
+          PointsEngine.getInstance(testStorageService, testCloudStorageService);
 
       expect(engine1, same(engine2));
       expect(engine1, isNotNull);
     });
 
     test('should initialize without errors', () async {
-      final pointsEngine = PointsEngine.getInstance(testStorageService, testCloudStorageService);
+      final pointsEngine =
+          PointsEngine.getInstance(testStorageService, testCloudStorageService);
 
       await pointsEngine.initialize();
 
@@ -82,12 +86,17 @@ void main() {
       expect(pointsEngine.currentLevel, equals(1));
     });
 
-    test('should handle concurrent point operations without race conditions', () async {
-      final pointsEngine = PointsEngine.getInstance(testStorageService, testCloudStorageService);
+    test('should handle concurrent point operations without race conditions',
+        () async {
+      final pointsEngine =
+          PointsEngine.getInstance(testStorageService, testCloudStorageService);
       await pointsEngine.initialize();
 
       // Create multiple concurrent point addition operations
-      final futures = List.generate(5, (index) => pointsEngine.addPoints('classification', customPoints: 10));
+      final futures = List.generate(
+          5,
+          (index) =>
+              pointsEngine.addPoints('classification', customPoints: 10));
 
       // Wait for all operations to complete
       final results = await Future.wait(futures);
@@ -104,8 +113,10 @@ void main() {
 
     test('should handle multiple services using same singleton', () async {
       // Simulate GamificationService and PointsManager both using the same instance
-      final engine1 = PointsEngine.getInstance(testStorageService, testCloudStorageService);
-      final engine2 = PointsEngine.getInstance(testStorageService, testCloudStorageService);
+      final engine1 =
+          PointsEngine.getInstance(testStorageService, testCloudStorageService);
+      final engine2 =
+          PointsEngine.getInstance(testStorageService, testCloudStorageService);
 
       await engine1.initialize();
 
@@ -118,13 +129,17 @@ void main() {
     });
 
     test('should maintain consistency across async operations', () async {
-      final pointsEngine = PointsEngine.getInstance(testStorageService, testCloudStorageService);
+      final pointsEngine =
+          PointsEngine.getInstance(testStorageService, testCloudStorageService);
       await pointsEngine.initialize();
 
       // Start multiple async operations at the same time
-      final operation1 = pointsEngine.addPoints('classification', customPoints: 10);
-      final operation2 = pointsEngine.addPoints('daily_streak', customPoints: 5);
-      final operation3 = pointsEngine.addPoints('quiz_completed', customPoints: 15);
+      final operation1 =
+          pointsEngine.addPoints('classification', customPoints: 10);
+      final operation2 =
+          pointsEngine.addPoints('daily_streak', customPoints: 5);
+      final operation3 =
+          pointsEngine.addPoints('quiz_completed', customPoints: 15);
 
       final results = await Future.wait([operation1, operation2, operation3]);
 

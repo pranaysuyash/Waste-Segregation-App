@@ -42,13 +42,19 @@ class Family {
       description: json['description'] as String?,
       createdBy: json['createdBy'] as String,
       createdAt: DateTime.parse(json['createdAt'] as String),
-      updatedAt: json['updatedAt'] != null ? DateTime.parse(json['updatedAt'] as String) : null,
+      updatedAt: json['updatedAt'] != null
+          ? DateTime.parse(json['updatedAt'] as String)
+          : null,
       members: (json['members'] as List<dynamic>? ?? [])
           .map((e) => FamilyMember.fromJson(e as Map<String, dynamic>))
           .toList(),
-      settings: settingsJson != null ? FamilySettings.fromJson(settingsJson) : const FamilySettings(),
+      settings: settingsJson != null
+          ? FamilySettings.fromJson(settingsJson)
+          : const FamilySettings(),
       imageUrl: json['imageUrl'] as String?,
-      isPublic: json['isPublic'] as bool? ?? settingsJson?['isPublic'] as bool? ?? false,
+      isPublic: json['isPublic'] as bool? ??
+          settingsJson?['isPublic'] as bool? ??
+          false,
     );
   }
   final String id;
@@ -145,7 +151,8 @@ class FamilyMember {
         orElse: () => UserRole.member,
       ),
       joinedAt: DateTime.parse(json['joinedAt'] as String),
-      individualStats: UserStats.fromJson(json['individualStats'] as Map<String, dynamic>),
+      individualStats:
+          UserStats.fromJson(json['individualStats'] as Map<String, dynamic>),
       displayName: json['displayName'] as String?,
       photoUrl: json['photoUrl'] as String?,
     );
@@ -210,12 +217,17 @@ class FamilySettings {
       shareClassifications: json['shareClassifications'] as bool? ?? true,
       showMemberActivity: json['showMemberActivity'] as bool? ?? true,
       notifications: json['notifications'] != null
-          ? NotificationSettings.fromJson(json['notifications'] as Map<String, dynamic>)
+          ? NotificationSettings.fromJson(
+              json['notifications'] as Map<String, dynamic>)
           : null,
-      privacy: json['privacy'] != null ? PrivacySettings.fromJson(json['privacy'] as Map<String, dynamic>) : null,
+      privacy: json['privacy'] != null
+          ? PrivacySettings.fromJson(json['privacy'] as Map<String, dynamic>)
+          : null,
       customSettings: json['customSettings'] as Map<String, dynamic>? ?? {},
-      shareClassificationsPublicly: json['shareClassificationsPublicly'] as bool? ?? true,
-      showMemberActivityInFeed: json['showMemberActivityInFeed'] as bool? ?? true,
+      shareClassificationsPublicly:
+          json['shareClassificationsPublicly'] as bool? ?? true,
+      showMemberActivityInFeed:
+          json['showMemberActivityInFeed'] as bool? ?? true,
       leaderboardVisibility: FamilyLeaderboardVisibility.values.firstWhere(
         (e) => e.toString() == json['leaderboardVisibility'],
         orElse: () => FamilyLeaderboardVisibility.membersOnly,
@@ -259,9 +271,12 @@ class FamilySettings {
       notifications: notifications ?? this.notifications,
       privacy: privacy ?? this.privacy,
       customSettings: customSettings ?? this.customSettings,
-      shareClassificationsPublicly: shareClassificationsPublicly ?? this.shareClassificationsPublicly,
-      showMemberActivityInFeed: showMemberActivityInFeed ?? this.showMemberActivityInFeed,
-      leaderboardVisibility: leaderboardVisibility ?? this.leaderboardVisibility,
+      shareClassificationsPublicly:
+          shareClassificationsPublicly ?? this.shareClassificationsPublicly,
+      showMemberActivityInFeed:
+          showMemberActivityInFeed ?? this.showMemberActivityInFeed,
+      leaderboardVisibility:
+          leaderboardVisibility ?? this.leaderboardVisibility,
     );
   }
 
@@ -355,7 +370,10 @@ class PrivacySettings {
       showLastSeen: json['showLastSeen'] as bool? ?? true,
       showActivityStatus: json['showActivityStatus'] as bool? ?? true,
       allowSearchByName: json['allowSearchByName'] as bool? ?? true,
-      blockedUsers: (json['blockedUsers'] as List<dynamic>?)?.map((e) => e as String).toList() ?? [],
+      blockedUsers: (json['blockedUsers'] as List<dynamic>?)
+              ?.map((e) => e as String)
+              .toList() ??
+          [],
     );
   }
   final bool showLastSeen;
@@ -396,7 +414,9 @@ class FamilyStats {
       totalPoints: json['totalPoints'] as int? ?? 0,
       currentStreak: json['currentStreak'] as int? ?? 0,
       memberCount: json['memberCount'] as int? ?? 0,
-      categoryCounts: json['categoryCounts'] != null ? Map<String, int>.from(json['categoryCounts'] as Map) : const {},
+      categoryCounts: json['categoryCounts'] != null
+          ? Map<String, int>.from(json['categoryCounts'] as Map)
+          : const {},
     );
   }
 
@@ -467,8 +487,12 @@ class UserStats {
       totalClassifications: json['totalClassifications'] as int? ?? 0,
       currentStreak: json['currentStreak'] as int? ?? 0,
       bestStreak: json['bestStreak'] as int? ?? 0,
-      categoryBreakdown: Map<String, int>.from(json['categoryBreakdown'] as Map? ?? {}),
-      achievements: (json['achievements'] as List<dynamic>?)?.map((a) => a as String).toList() ?? [],
+      categoryBreakdown:
+          Map<String, int>.from(json['categoryBreakdown'] as Map? ?? {}),
+      achievements: (json['achievements'] as List<dynamic>?)
+              ?.map((a) => a as String)
+              .toList() ??
+          [],
       lastActive: DateTime.parse(json['lastActive'] as String),
     );
   }
@@ -576,7 +600,8 @@ class WeeklyProgress {
       weekEnd: DateTime.parse(json['weekEnd'] as String),
       classificationsCount: json['classificationsCount'] as int? ?? 0,
       pointsEarned: json['pointsEarned'] as int? ?? 0,
-      categoryBreakdown: Map<String, int>.from(json['categoryBreakdown'] as Map? ?? {}),
+      categoryBreakdown:
+          Map<String, int>.from(json['categoryBreakdown'] as Map? ?? {}),
     );
   }
   final DateTime weekStart;

@@ -87,7 +87,9 @@ class JobQueueScreen extends ConsumerWidget {
                 ),
                 SliverList(
                   delegate: SliverChildBuilderDelegate(
-                    (context, index) => _buildJobCard(context, activeJobs[index], isActive: true),
+                    (context, index) => _buildJobCard(
+                        context, activeJobs[index],
+                        isActive: true),
                     childCount: activeJobs.length,
                   ),
                 ),
@@ -110,7 +112,9 @@ class JobQueueScreen extends ConsumerWidget {
                 ),
                 SliverList(
                   delegate: SliverChildBuilderDelegate(
-                    (context, index) => _buildJobCard(context, completedJobs[index], isActive: false),
+                    (context, index) => _buildJobCard(
+                        context, completedJobs[index],
+                        isActive: false),
                     childCount: completedJobs.length,
                   ),
                 ),
@@ -126,10 +130,13 @@ class JobQueueScreen extends ConsumerWidget {
       },
       loading: () => const Center(child: CircularProgressIndicator()),
       error: (error, stack) {
-        WasteAppLogger.severe('Error loading jobs', error, stack, {
-          'screen': 'job_queue',
-          'userId': userId,
-        });
+        WasteAppLogger.severe('Error loading jobs',
+            error: error,
+            stackTrace: stack,
+            context: {
+              'screen': 'job_queue',
+              'userId': userId,
+            });
 
         return Center(
           child: Column(
@@ -195,7 +202,8 @@ class JobQueueScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildJobCard(BuildContext context, AiJob job, {required bool isActive}) {
+  Widget _buildJobCard(BuildContext context, AiJob job,
+      {required bool isActive}) {
     final colorScheme = Theme.of(context).colorScheme;
 
     return Card(
@@ -243,7 +251,8 @@ class JobQueueScreen extends ConsumerWidget {
                 ),
                 if (job.tokensSpent > 0)
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                     decoration: BoxDecoration(
                       color: colorScheme.primary.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(12),
@@ -301,7 +310,9 @@ class JobQueueScreen extends ConsumerWidget {
                   ),
                   const SizedBox(width: 8),
                   Text(
-                    job.queuePosition != null ? 'Position ${job.queuePosition} in queue' : 'Queued for processing',
+                    job.queuePosition != null
+                        ? 'Position ${job.queuePosition} in queue'
+                        : 'Queued for processing',
                     style: GoogleFonts.inter(
                       fontSize: 12,
                       color: Colors.orange.shade600,
@@ -323,7 +334,8 @@ class JobQueueScreen extends ConsumerWidget {
             ],
 
             // Error message for failed jobs
-            if (job.status == AiJobStatus.failed && job.errorMessage != null) ...[
+            if (job.status == AiJobStatus.failed &&
+                job.errorMessage != null) ...[
               const SizedBox(height: 12),
               Container(
                 padding: const EdgeInsets.all(12),

@@ -131,11 +131,11 @@ class AnimationSystem {
     Curve curve = standardCurve,
   }) {
     final animations = <Animation<double>>[];
-    
-    for (int i = 0; i < count; i++) {
+
+    for (var i = 0; i < count; i++) {
       final start = (i * staggerDelay).clamp(0.0, 1.0);
       final end = (start + (1.0 - start)).clamp(0.0, 1.0);
-      
+
       animations.add(
         Tween<double>(
           begin: 0.0,
@@ -148,7 +148,7 @@ class AnimationSystem {
         ),
       );
     }
-    
+
     return animations;
   }
 
@@ -160,16 +160,16 @@ class AnimationSystem {
     double damping = 10.0,
   }) {
     final controller = AnimationController.unbounded(vsync: vsync);
-    
+
     final spring = SpringDescription(
       mass: mass,
       stiffness: stiffness,
       damping: damping,
     );
-    
+
     final simulation = SpringSimulation(spring, 0.0, 1.0, 0.0);
     controller.animateWith(simulation);
-    
+
     return controller;
   }
 }
@@ -307,8 +307,9 @@ class _AnimatedFadeInState extends State<_AnimatedFadeIn>
       duration: widget.duration,
       vsync: this,
     );
-    _animation = AnimationSystem.createFadeAnimation(_controller, curve: widget.curve);
-    
+    _animation =
+        AnimationSystem.createFadeAnimation(_controller, curve: widget.curve);
+
     Future.delayed(widget.delay, () {
       if (mounted) {
         _controller.forward();
@@ -368,7 +369,7 @@ class _AnimatedSlideInState extends State<_AnimatedSlideIn>
       begin: widget.begin,
       curve: widget.curve,
     );
-    
+
     Future.delayed(widget.delay, () {
       if (mounted) {
         _controller.forward();
@@ -428,7 +429,7 @@ class _AnimatedScaleInState extends State<_AnimatedScaleIn>
       begin: widget.begin,
       curve: widget.curve,
     );
-    
+
     Future.delayed(widget.delay, () {
       if (mounted) {
         _controller.forward();
@@ -483,15 +484,16 @@ class _StaggeredAnimatedListState extends State<_StaggeredAnimatedList>
       duration: widget.duration,
       vsync: this,
     );
-    
-    final staggerDelayRatio = widget.staggerDelay.inMilliseconds / widget.duration.inMilliseconds;
+
+    final staggerDelayRatio =
+        widget.staggerDelay.inMilliseconds / widget.duration.inMilliseconds;
     _animations = AnimationSystem.createStaggeredAnimations(
       _controller,
       widget.children.length,
       staggerDelay: staggerDelayRatio,
       curve: widget.curve,
     );
-    
+
     _controller.forward();
   }
 

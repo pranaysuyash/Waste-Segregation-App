@@ -15,7 +15,8 @@ class CommunityScreen extends StatefulWidget {
   State<CommunityScreen> createState() => _CommunityScreenState();
 }
 
-class _CommunityScreenState extends State<CommunityScreen> with TickerProviderStateMixin {
+class _CommunityScreenState extends State<CommunityScreen>
+    with TickerProviderStateMixin {
   late TabController _tabController;
   List<CommunityFeedItem> _feedItems = [];
   CommunityStats? _stats;
@@ -36,8 +37,10 @@ class _CommunityScreenState extends State<CommunityScreen> with TickerProviderSt
 
   Future<void> _loadCommunityData() async {
     try {
-      final storageService = Provider.of<StorageService>(context, listen: false);
-      final communityService = Provider.of<CommunityService>(context, listen: false);
+      final storageService =
+          Provider.of<StorageService>(context, listen: false);
+      final communityService =
+          Provider.of<CommunityService>(context, listen: false);
       final userProfile = await storageService.getCurrentUserProfile();
 
       await communityService.initCommunity();
@@ -74,16 +77,21 @@ class _CommunityScreenState extends State<CommunityScreen> with TickerProviderSt
     });
 
     try {
-      final storageService = Provider.of<StorageService>(context, listen: false);
-      final communityService = Provider.of<CommunityService>(context, listen: false);
+      final storageService =
+          Provider.of<StorageService>(context, listen: false);
+      final communityService =
+          Provider.of<CommunityService>(context, listen: false);
       final userProfile = await storageService.getCurrentUserProfile();
 
       if (userProfile != null) {
         // Force sync all historical data
-        final userClassifications = await storageService.getAllClassifications();
-        WasteAppLogger.info('🔄 FORCE SYNC: Starting with ${userClassifications.length} classifications');
+        final userClassifications =
+            await storageService.getAllClassifications();
+        WasteAppLogger.info(
+            '🔄 FORCE SYNC: Starting with ${userClassifications.length} classifications');
 
-        await communityService.syncWithUserData(userClassifications, userProfile);
+        await communityService.syncWithUserData(
+            userClassifications, userProfile);
 
         // Reload data after sync
         final feedItems = await communityService.getFeedItems();
@@ -99,7 +107,8 @@ class _CommunityScreenState extends State<CommunityScreen> with TickerProviderSt
           // Show success message
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('✅ Synced ${feedItems.length} community activities'),
+              content:
+                  Text('✅ Synced ${feedItems.length} community activities'),
               backgroundColor: Colors.green,
             ),
           );
@@ -201,9 +210,12 @@ class _CommunityScreenState extends State<CommunityScreen> with TickerProviderSt
           bottomPadding,
         ),
         itemCount: _feedItems.length,
-        itemBuilder: (context, index) {
-          final item = _feedItems[index];
-          return _buildFeedItem(item);
+          itemBuilder: (context, index) {
+            final item = _feedItems[index];
+            return RepaintBoundary(
+            key: ValueKey<String>(item.id),
+            child: _buildFeedItem(item),
+          );
         },
         // Add key to each item for proper widget tracking
         findChildIndexCallback: (Key key) {
@@ -279,7 +291,8 @@ class _CommunityScreenState extends State<CommunityScreen> with TickerProviderSt
                         ),
                         decoration: BoxDecoration(
                           color: AppTheme.accentColor.withValues(alpha: 0.15),
-                          borderRadius: BorderRadius.circular(AppTheme.borderRadiusSm),
+                          borderRadius:
+                              BorderRadius.circular(AppTheme.borderRadiusSm),
                         ),
                         child: Text(
                           '+${item.points} pts',
@@ -336,9 +349,10 @@ class _CommunityScreenState extends State<CommunityScreen> with TickerProviderSt
                     const SizedBox(width: 8),
                     Text(
                       'Data Reconciliation',
-                      style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                            fontWeight: FontWeight.bold,
-                          ),
+                      style:
+                          Theme.of(context).textTheme.headlineSmall?.copyWith(
+                                fontWeight: FontWeight.bold,
+                              ),
                     ),
                   ],
                 ),
@@ -433,11 +447,13 @@ class _CommunityScreenState extends State<CommunityScreen> with TickerProviderSt
                             decoration: BoxDecoration(
                               color: Colors.orange.withValues(alpha: 0.1),
                               borderRadius: BorderRadius.circular(6),
-                              border: Border.all(color: Colors.orange.withValues(alpha: 0.3)),
+                              border: Border.all(
+                                  color: Colors.orange.withValues(alpha: 0.3)),
                             ),
                             child: Row(
                               children: [
-                                const Icon(Icons.warning_amber, color: Colors.orange, size: 16),
+                                const Icon(Icons.warning_amber,
+                                    color: Colors.orange, size: 16),
                                 const SizedBox(width: 8),
                                 Expanded(
                                   child: Text(
@@ -474,7 +490,8 @@ class _CommunityScreenState extends State<CommunityScreen> with TickerProviderSt
                 ),
                 const SizedBox(height: 16),
                 _buildStatRow('Total Users', '${_stats!.totalUsers}'),
-                _buildStatRow('Total Classifications', '${_stats!.totalClassifications}'),
+                _buildStatRow(
+                    'Total Classifications', '${_stats!.totalClassifications}'),
                 _buildStatRow('Total Points Earned', '${_stats!.totalPoints}'),
               ],
             ),
@@ -490,9 +507,10 @@ class _CommunityScreenState extends State<CommunityScreen> with TickerProviderSt
                   children: [
                     Text(
                       'Popular Categories',
-                      style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                            fontWeight: FontWeight.bold,
-                          ),
+                      style:
+                          Theme.of(context).textTheme.headlineSmall?.copyWith(
+                                fontWeight: FontWeight.bold,
+                              ),
                     ),
                     const SizedBox(height: AppTheme.paddingRegular),
                     ..._stats!.topCategories.entries.map((entry) {
@@ -534,7 +552,8 @@ class _CommunityScreenState extends State<CommunityScreen> with TickerProviderSt
 
   Future<int> _getExpectedActivityCount() async {
     try {
-      final storageService = Provider.of<StorageService>(context, listen: false);
+      final storageService =
+          Provider.of<StorageService>(context, listen: false);
       final classifications = await storageService.getAllClassifications();
       // Expected activity count should be at least the number of classifications
       // plus any achievements (rough estimate)

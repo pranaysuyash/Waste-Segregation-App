@@ -16,12 +16,8 @@ class ColorAdapter extends TypeAdapter<Color> {
 
   @override
   void write(BinaryWriter writer, Color obj) {
-    // Use proper color serialization without deprecated methods
-    final alpha = (obj.a * 255).round();
-    final red = (obj.r * 255).round();
-    final green = (obj.g * 255).round();
-    final blue = (obj.b * 255).round();
-    writer.writeUint32((alpha << 24) | (red << 16) | (green << 8) | blue);
+    // Color.value is ARGB packed as 0xAARRGGBB.
+    writer.writeUint32(obj.value);
   }
 }
 
@@ -139,7 +135,8 @@ class Achievement {
       iconName: json['iconName'],
       color: Color(json['color']),
       isSecret: json['isSecret'] ?? false,
-      earnedOn: json['earnedOn'] != null ? DateTime.parse(json['earnedOn']) : null,
+      earnedOn:
+          json['earnedOn'] != null ? DateTime.parse(json['earnedOn']) : null,
       progress: (json['progress'] as num?)?.toDouble() ?? 0.0,
       tier: json['tier'] != null
           ? AchievementTier.values.firstWhere(
@@ -155,11 +152,15 @@ class Achievement {
               orElse: () => ClaimStatus.ineligible,
             )
           : ClaimStatus.ineligible,
-      metadata: json['metadata'] != null ? Map<String, dynamic>.from(json['metadata']) : {},
+      metadata: json['metadata'] != null
+          ? Map<String, dynamic>.from(json['metadata'])
+          : {},
       pointsReward: json['pointsReward'] ?? 50,
-      relatedAchievementIds:
-          json['relatedAchievementIds'] != null ? List<String>.from(json['relatedAchievementIds']) : [],
-      clues: json['clues'] != null ? List<String>.from(json['clues']) : const [],
+      relatedAchievementIds: json['relatedAchievementIds'] != null
+          ? List<String>.from(json['relatedAchievementIds'])
+          : [],
+      clues:
+          json['clues'] != null ? List<String>.from(json['clues']) : const [],
     );
   }
   @HiveField(0)
@@ -235,10 +236,7 @@ class Achievement {
       'type': type.toString().split('.').last,
       'threshold': threshold,
       'iconName': iconName,
-      'color': ((color.a * 255).round() << 24) |
-          ((color.r * 255).round() << 16) |
-          ((color.g * 255).round() << 8) |
-          (color.b * 255).round(),
+      'color': color.value,
       'isSecret': isSecret,
       'earnedOn': earnedOn?.toIso8601String(),
       'progress': progress,
@@ -291,7 +289,8 @@ class Achievement {
       claimStatus: claimStatus ?? this.claimStatus,
       metadata: metadata ?? this.metadata,
       pointsReward: pointsReward ?? this.pointsReward,
-      relatedAchievementIds: relatedAchievementIds ?? this.relatedAchievementIds,
+      relatedAchievementIds:
+          relatedAchievementIds ?? this.relatedAchievementIds,
       clues: clues ?? this.clues,
     );
   }
@@ -317,7 +316,9 @@ class Streak {
     return Streak(
       current: json['current'] ?? 0,
       longest: json['longest'] ?? 0,
-      lastUsageDate: json['lastUsageDate'] != null ? DateTime.parse(json['lastUsageDate']) : DateTime.now(),
+      lastUsageDate: json['lastUsageDate'] != null
+          ? DateTime.parse(json['lastUsageDate'])
+          : DateTime.now(),
     );
   }
   final int current;
@@ -381,7 +382,9 @@ class Challenge {
       requirements: json['requirements'],
       isCompleted: json['isCompleted'] ?? false,
       progress: json['progress'] ?? 0.0,
-      participantIds: json['participantIds'] != null ? List<String>.from(json['participantIds']) : [],
+      participantIds: json['participantIds'] != null
+          ? List<String>.from(json['participantIds'])
+          : [],
     );
   }
   @HiveField(0)
@@ -409,7 +412,8 @@ class Challenge {
   @HiveField(11)
   final List<String> participantIds;
 
-  bool get isActive => DateTime.now().isAfter(startDate) && DateTime.now().isBefore(endDate);
+  bool get isActive =>
+      DateTime.now().isAfter(startDate) && DateTime.now().isBefore(endDate);
 
   bool get isExpired => DateTime.now().isAfter(endDate);
 
@@ -423,10 +427,7 @@ class Challenge {
       'endDate': endDate.toIso8601String(),
       'pointsReward': pointsReward,
       'iconName': iconName,
-      'color': ((color.a * 255).round() << 24) |
-          ((color.r * 255).round() << 16) |
-          ((color.g * 255).round() << 8) |
-          (color.b * 255).round(),
+      'color': color.value,
       'requirements': requirements,
       'isCompleted': isCompleted,
       'progress': progress,
@@ -486,7 +487,9 @@ class UserPoints {
       weeklyTotal: json['weeklyTotal'] ?? 0,
       monthlyTotal: json['monthlyTotal'] ?? 0,
       level: json['level'] ?? 1,
-      categoryPoints: json['categoryPoints'] != null ? Map<String, int>.from(json['categoryPoints']) : {},
+      categoryPoints: json['categoryPoints'] != null
+          ? Map<String, int>.from(json['categoryPoints'])
+          : {},
     );
   }
   @HiveField(0)
@@ -567,7 +570,9 @@ class WeeklyStats {
       challengesCompleted: json['challengesCompleted'] ?? 0,
       streakMaximum: json['streakMaximum'] ?? 0,
       pointsEarned: json['pointsEarned'] ?? 0,
-      categoryCounts: json['categoryCounts'] != null ? Map<String, int>.from(json['categoryCounts']) : {},
+      categoryCounts: json['categoryCounts'] != null
+          ? Map<String, int>.from(json['categoryCounts'])
+          : {},
     );
   }
   @HiveField(0)
@@ -637,30 +642,45 @@ class GamificationProfile {
     return GamificationProfile(
       userId: json['userId'],
       achievements: json['achievements'] != null
-          ? List<Map<String, dynamic>>.from(json['achievements']).map((a) => Achievement.fromJson(a)).toList()
+          ? List<Map<String, dynamic>>.from(json['achievements'])
+              .map((a) => Achievement.fromJson(a))
+              .toList()
           : [],
       streaks: (json['streaks'] as Map<String, dynamic>?)?.map(
-            (key, value) => MapEntry(key, StreakDetails.fromJson(value as Map<String, dynamic>)),
+            (key, value) => MapEntry(
+                key, StreakDetails.fromJson(value as Map<String, dynamic>)),
           ) ??
           const {},
-      points: json['points'] != null ? UserPoints.fromJson(json['points']) : const UserPoints(),
+      points: json['points'] != null
+          ? UserPoints.fromJson(json['points'])
+          : const UserPoints(),
       activeChallenges: json['activeChallenges'] != null
-          ? List<Map<String, dynamic>>.from(json['activeChallenges']).map((c) => Challenge.fromJson(c)).toList()
+          ? List<Map<String, dynamic>>.from(json['activeChallenges'])
+              .map((c) => Challenge.fromJson(c))
+              .toList()
           : [],
       completedChallenges: json['completedChallenges'] != null
-          ? List<Map<String, dynamic>>.from(json['completedChallenges']).map((c) => Challenge.fromJson(c)).toList()
+          ? List<Map<String, dynamic>>.from(json['completedChallenges'])
+              .map((c) => Challenge.fromJson(c))
+              .toList()
           : [],
       weeklyStats: json['weeklyStats'] != null
-          ? List<Map<String, dynamic>>.from(json['weeklyStats']).map((s) => WeeklyStats.fromJson(s)).toList()
+          ? List<Map<String, dynamic>>.from(json['weeklyStats'])
+              .map((s) => WeeklyStats.fromJson(s))
+              .toList()
           : [],
-      discoveredItemIds: Set<String>.from(json['discoveredItemIds'] as List<dynamic>? ?? []),
-      lastDailyEngagementBonusAwardedDate: json['lastDailyEngagementBonusAwardedDate'] != null
-          ? DateTime.parse(json['lastDailyEngagementBonusAwardedDate'])
-          : null,
-      lastViewPersonalStatsAwardedDate: json['lastViewPersonalStatsAwardedDate'] != null
-          ? DateTime.parse(json['lastViewPersonalStatsAwardedDate'])
-          : null,
-      unlockedHiddenContentIds: Set<String>.from(json['unlockedHiddenContentIds'] as List<dynamic>? ?? []),
+      discoveredItemIds:
+          Set<String>.from(json['discoveredItemIds'] as List<dynamic>? ?? []),
+      lastDailyEngagementBonusAwardedDate:
+          json['lastDailyEngagementBonusAwardedDate'] != null
+              ? DateTime.parse(json['lastDailyEngagementBonusAwardedDate'])
+              : null,
+      lastViewPersonalStatsAwardedDate:
+          json['lastViewPersonalStatsAwardedDate'] != null
+              ? DateTime.parse(json['lastViewPersonalStatsAwardedDate'])
+              : null,
+      unlockedHiddenContentIds: Set<String>.from(
+          json['unlockedHiddenContentIds'] as List<dynamic>? ?? []),
     );
   }
   @HiveField(0)
@@ -694,11 +714,14 @@ class GamificationProfile {
       'streaks': streaks.map((key, value) => MapEntry(key, value.toJson())),
       'points': points.toJson(),
       'activeChallenges': activeChallenges.map((c) => c.toJson()).toList(),
-      'completedChallenges': completedChallenges.map((c) => c.toJson()).toList(),
+      'completedChallenges':
+          completedChallenges.map((c) => c.toJson()).toList(),
       'weeklyStats': weeklyStats.map((s) => s.toJson()).toList(),
       'discoveredItemIds': discoveredItemIds.toList(),
-      'lastDailyEngagementBonusAwardedDate': lastDailyEngagementBonusAwardedDate?.toIso8601String(),
-      'lastViewPersonalStatsAwardedDate': lastViewPersonalStatsAwardedDate?.toIso8601String(),
+      'lastDailyEngagementBonusAwardedDate':
+          lastDailyEngagementBonusAwardedDate?.toIso8601String(),
+      'lastViewPersonalStatsAwardedDate':
+          lastViewPersonalStatsAwardedDate?.toIso8601String(),
       'unlockedHiddenContentIds': unlockedHiddenContentIds.toList(),
     };
   }
@@ -727,9 +750,12 @@ class GamificationProfile {
       weeklyStats: weeklyStats ?? this.weeklyStats,
       discoveredItemIds: discoveredItemIds ?? this.discoveredItemIds,
       lastDailyEngagementBonusAwardedDate:
-          lastDailyEngagementBonusAwardedDate ?? this.lastDailyEngagementBonusAwardedDate,
-      lastViewPersonalStatsAwardedDate: lastViewPersonalStatsAwardedDate ?? this.lastViewPersonalStatsAwardedDate,
-      unlockedHiddenContentIds: unlockedHiddenContentIds ?? this.unlockedHiddenContentIds,
+          lastDailyEngagementBonusAwardedDate ??
+              this.lastDailyEngagementBonusAwardedDate,
+      lastViewPersonalStatsAwardedDate: lastViewPersonalStatsAwardedDate ??
+          this.lastViewPersonalStatsAwardedDate,
+      unlockedHiddenContentIds:
+          unlockedHiddenContentIds ?? this.unlockedHiddenContentIds,
     );
   }
 }
@@ -834,10 +860,13 @@ class FamilyComment {
       timestamp: DateTime.parse(json['timestamp'] as String),
       parentCommentId: json['parentCommentId'] as String?,
       isEdited: json['isEdited'] as bool? ?? false,
-      editedAt: json['editedAt'] != null ? DateTime.parse(json['editedAt'] as String) : null,
-      replies:
-          (json['replies'] as List<dynamic>?)?.map((r) => FamilyComment.fromJson(r as Map<String, dynamic>)).toList() ??
-              [],
+      editedAt: json['editedAt'] != null
+          ? DateTime.parse(json['editedAt'] as String)
+          : null,
+      replies: (json['replies'] as List<dynamic>?)
+              ?.map((r) => FamilyComment.fromJson(r as Map<String, dynamic>))
+              .toList() ??
+          [],
     );
   }
   final String id;
@@ -971,7 +1000,9 @@ class LeaderboardEntry {
       points: json['points'] as int,
       classificationsCount: json['classificationsCount'] as int,
       rank: json['rank'] as int,
-      achievements: (json['achievements'] as List<dynamic>).map((a) => a as String).toList(),
+      achievements: (json['achievements'] as List<dynamic>)
+          .map((a) => a as String)
+          .toList(),
       lastActive: DateTime.parse(json['lastActive'] as String),
     );
   }
@@ -1190,12 +1221,14 @@ class StreakDetails {
 
   factory StreakDetails.fromJson(Map<String, dynamic> json) {
     return StreakDetails(
-      type: StreakType.values.byName(json['type'] ?? StreakType.dailyClassification.name),
+      type: StreakType.values
+          .byName(json['type'] ?? StreakType.dailyClassification.name),
       currentCount: json['currentCount'] ?? 0,
       longestCount: json['longestCount'] ?? 0,
       lastActivityDate: DateTime.parse(json['lastActivityDate']),
-      lastMaintenanceAwardedDate:
-          json['lastMaintenanceAwardedDate'] != null ? DateTime.parse(json['lastMaintenanceAwardedDate']) : null,
+      lastMaintenanceAwardedDate: json['lastMaintenanceAwardedDate'] != null
+          ? DateTime.parse(json['lastMaintenanceAwardedDate'])
+          : null,
       lastMilestoneAwardedLevel: json['lastMilestoneAwardedLevel'] ?? 0,
     );
   }
@@ -1217,7 +1250,8 @@ class StreakDetails {
         'currentCount': currentCount,
         'longestCount': longestCount,
         'lastActivityDate': lastActivityDate.toIso8601String(),
-        'lastMaintenanceAwardedDate': lastMaintenanceAwardedDate?.toIso8601String(),
+        'lastMaintenanceAwardedDate':
+            lastMaintenanceAwardedDate?.toIso8601String(),
         'lastMilestoneAwardedLevel': lastMilestoneAwardedLevel,
       };
 
@@ -1234,8 +1268,10 @@ class StreakDetails {
       currentCount: currentCount ?? this.currentCount,
       longestCount: longestCount ?? this.longestCount,
       lastActivityDate: lastActivityDate ?? this.lastActivityDate,
-      lastMaintenanceAwardedDate: lastMaintenanceAwardedDate ?? this.lastMaintenanceAwardedDate,
-      lastMilestoneAwardedLevel: lastMilestoneAwardedLevel ?? this.lastMilestoneAwardedLevel,
+      lastMaintenanceAwardedDate:
+          lastMaintenanceAwardedDate ?? this.lastMaintenanceAwardedDate,
+      lastMilestoneAwardedLevel:
+          lastMilestoneAwardedLevel ?? this.lastMilestoneAwardedLevel,
     );
   }
 }

@@ -5,7 +5,8 @@ import 'package:waste_segregation_app/widgets/modern_ui/modern_buttons.dart';
 
 void main() {
   group('Bottom Navigation Tests', () {
-    testWidgets('ModernBottomNavigation displays all items correctly', (WidgetTester tester) async {
+    testWidgets('ModernBottomNavigation displays all items correctly',
+        (WidgetTester tester) async {
       var selectedIndex = 0;
 
       await tester.pumpWidget(
@@ -41,10 +42,12 @@ void main() {
       expect(find.text('History'), findsOneWidget);
       expect(find.text('Learn'), findsOneWidget);
       expect(find.byIcon(Icons.home), findsOneWidget); // Selected icon
-      expect(find.byIcon(Icons.history_outlined), findsOneWidget); // Unselected icon
+      expect(find.byIcon(Icons.history_outlined),
+          findsOneWidget); // Unselected icon
     });
 
-    testWidgets('ModernBottomNavigation handles tap events correctly', (WidgetTester tester) async {
+    testWidgets('ModernBottomNavigation handles tap events correctly',
+        (WidgetTester tester) async {
       var selectedIndex = 0;
 
       await tester.pumpWidget(
@@ -79,11 +82,14 @@ void main() {
       await tester.tap(find.text('History'));
       await tester.pumpAndSettle();
 
-      expect(find.byIcon(Icons.history), findsOneWidget); // Should be selected now
-      expect(find.byIcon(Icons.home_outlined), findsOneWidget); // Should be unselected
+      expect(
+          find.byIcon(Icons.history), findsOneWidget); // Should be selected now
+      expect(find.byIcon(Icons.home_outlined),
+          findsOneWidget); // Should be unselected
     });
 
-    testWidgets('ModernBottomNavigation adapts to narrow screens', (WidgetTester tester) async {
+    testWidgets('ModernBottomNavigation adapts to narrow screens',
+        (WidgetTester tester) async {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
@@ -126,7 +132,8 @@ void main() {
       await tester.pumpAndSettle();
     });
 
-    testWidgets('ModernBottomNavigation with notch layout', (WidgetTester tester) async {
+    testWidgets('ModernBottomNavigation with notch layout',
+        (WidgetTester tester) async {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
@@ -152,7 +159,8 @@ void main() {
               onPressed: () {},
               child: const Icon(Icons.camera_alt),
             ),
-            floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+            floatingActionButtonLocation:
+                FloatingActionButtonLocation.centerDocked,
           ),
         ),
       );
@@ -162,7 +170,8 @@ void main() {
       expect(find.byType(BottomAppBar), findsOneWidget);
     });
 
-    testWidgets('ModernBottomNavigation glassmorphism style', (WidgetTester tester) async {
+    testWidgets('ModernBottomNavigation glassmorphism style',
+        (WidgetTester tester) async {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
@@ -193,7 +202,8 @@ void main() {
       expect(find.byType(ModernBottomNavigation), findsOneWidget);
     });
 
-    testWidgets('ModernBottomNavigation material3 style', (WidgetTester tester) async {
+    testWidgets('ModernBottomNavigation material3 style',
+        (WidgetTester tester) async {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
@@ -224,7 +234,8 @@ void main() {
       expect(find.byType(ModernBottomNavigation), findsOneWidget);
     });
 
-    testWidgets('ModernBottomNavigation floating style', (WidgetTester tester) async {
+    testWidgets('ModernBottomNavigation floating style',
+        (WidgetTester tester) async {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
@@ -255,7 +266,8 @@ void main() {
       expect(find.byType(ModernBottomNavigation), findsOneWidget);
     });
 
-    testWidgets('ModernBottomNavigation handles long labels gracefully', (WidgetTester tester) async {
+    testWidgets('ModernBottomNavigation handles long labels gracefully',
+        (WidgetTester tester) async {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
@@ -288,7 +300,8 @@ void main() {
       await tester.pumpAndSettle();
     });
 
-    testWidgets('ModernBottomNavigation animation test', (WidgetTester tester) async {
+    testWidgets('ModernBottomNavigation animation test',
+        (WidgetTester tester) async {
       var selectedIndex = 0;
 
       await tester.pumpWidget(
@@ -300,7 +313,8 @@ void main() {
                 bottomNavigationBar: ModernBottomNavigation(
                   currentIndex: selectedIndex,
                   onTap: (index) => setState(() => selectedIndex = index),
-                  animationDuration: const Duration(milliseconds: 100), // Fast for testing
+                  animationDuration:
+                      const Duration(milliseconds: 100), // Fast for testing
                   items: const [
                     BottomNavItem(
                       icon: Icons.home_outlined,
@@ -348,7 +362,8 @@ void main() {
       expect(find.byIcon(Icons.camera_alt), findsOneWidget);
     });
 
-    testWidgets('ModernFAB extended version displays correctly', (WidgetTester tester) async {
+    testWidgets('ModernFAB extended version displays correctly',
+        (WidgetTester tester) async {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
@@ -368,7 +383,8 @@ void main() {
       expect(find.text('Take Photo'), findsOneWidget);
     });
 
-    testWidgets('ModernFAB handles tap events correctly', (WidgetTester tester) async {
+    testWidgets('ModernFAB handles tap events correctly',
+        (WidgetTester tester) async {
       var tapped = false;
 
       await tester.pumpWidget(
@@ -387,7 +403,8 @@ void main() {
       expect(tapped, isTrue);
     });
 
-    testWidgets('ModernFAB with badge displays correctly', (WidgetTester tester) async {
+    testWidgets('ModernFAB with badge displays correctly',
+        (WidgetTester tester) async {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
@@ -450,7 +467,8 @@ void main() {
   });
 
   group('Bottom Navigation Integration Tests', () {
-    testWidgets('Bottom navigation with FAB integration', (WidgetTester tester) async {
+    testWidgets('Bottom navigation with FAB integration',
+        (WidgetTester tester) async {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
@@ -476,7 +494,8 @@ void main() {
               onPressed: () {},
               icon: Icons.camera_alt,
             ),
-            floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+            floatingActionButtonLocation:
+                FloatingActionButtonLocation.centerDocked,
           ),
         ),
       );
@@ -486,7 +505,8 @@ void main() {
       expect(find.byType(BottomAppBar), findsOneWidget);
     });
 
-    testWidgets('Bottom navigation theme compatibility', (WidgetTester tester) async {
+    testWidgets('Bottom navigation theme compatibility',
+        (WidgetTester tester) async {
       // Test with light theme
       await tester.pumpWidget(
         MaterialApp(
@@ -534,7 +554,8 @@ void main() {
       expect(find.byType(ModernBottomNavigation), findsOneWidget);
     });
 
-    testWidgets('Bottom navigation performance test', (WidgetTester tester) async {
+    testWidgets('Bottom navigation performance test',
+        (WidgetTester tester) async {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
@@ -562,7 +583,8 @@ void main() {
       }
     });
 
-    testWidgets('Bottom navigation accessibility test', (WidgetTester tester) async {
+    testWidgets('Bottom navigation accessibility test',
+        (WidgetTester tester) async {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(

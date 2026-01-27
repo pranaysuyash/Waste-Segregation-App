@@ -16,7 +16,8 @@ class PerformanceOptimizer {
   }
 
   /// Debounced state update to prevent lag
-  static void debouncedUpdate(VoidCallback callback, {Duration delay = const Duration(milliseconds: 100)}) {
+  static void debouncedUpdate(VoidCallback callback,
+      {Duration delay = const Duration(milliseconds: 100)}) {
     Future.delayed(delay, callback);
   }
 
@@ -93,7 +94,8 @@ class PerformanceOptimizer {
         },
         borderRadius: borderRadius ?? BorderRadius.circular(8),
         child: Container(
-          padding: padding ?? const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          padding: padding ??
+              const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           child: child,
         ),
       ),

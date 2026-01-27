@@ -4,7 +4,8 @@ import 'package:flutter/material.dart';
 class SettingsTheme {
   // Spacing constants
   static const EdgeInsets sectionPadding = EdgeInsets.fromLTRB(16, 16, 16, 8);
-  static const EdgeInsets tilePadding = EdgeInsets.symmetric(horizontal: 16, vertical: 4);
+  static const EdgeInsets tilePadding =
+      EdgeInsets.symmetric(horizontal: 16, vertical: 4);
   static const double sectionSpacing = 16.0;
   static const double tileSpacing = 4.0;
 

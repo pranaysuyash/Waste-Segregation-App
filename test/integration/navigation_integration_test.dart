@@ -7,7 +7,8 @@ void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
   group('Navigation Integration Tests', () {
-    testWidgets('Analysis flow should not cause double navigation', (WidgetTester tester) async {
+    testWidgets('Analysis flow should not cause double navigation',
+        (WidgetTester tester) async {
       // Start the app
       app.main();
       await tester.pumpAndSettle();
@@ -20,7 +21,8 @@ void main() {
       expect(cameraButton, findsOneWidget);
 
       // Get initial Navigator state
-      final navigator = tester.state<NavigatorState>(find.byType(Navigator).first);
+      final navigator =
+          tester.state<NavigatorState>(find.byType(Navigator).first);
       final initialRouteCount = navigator.widget.pages?.length ?? 1;
 
       // Tap the camera button
@@ -29,13 +31,15 @@ void main() {
 
       // Verify navigation occurred but not duplicated
       final newRouteCount = navigator.widget.pages?.length ?? 1;
-      expect(newRouteCount, equals(initialRouteCount + 1), reason: 'Should navigate to exactly one new screen');
+      expect(newRouteCount, equals(initialRouteCount + 1),
+          reason: 'Should navigate to exactly one new screen');
 
       // Visual verification - app should be in stable state
       await tester.pumpAndSettle();
     });
 
-    testWidgets('Rapid button taps should not cause multiple navigations', (WidgetTester tester) async {
+    testWidgets('Rapid button taps should not cause multiple navigations',
+        (WidgetTester tester) async {
       app.main();
       await tester.pumpAndSettle();
       await tester.pumpAndSettle(const Duration(seconds: 3));
@@ -46,7 +50,8 @@ void main() {
         final button = buttons.first;
 
         // Get initial state
-        final navigator = tester.state<NavigatorState>(find.byType(Navigator).first);
+        final navigator =
+            tester.state<NavigatorState>(find.byType(Navigator).first);
         final initialRouteCount = navigator.widget.pages?.length ?? 1;
 
         // Rapid fire taps
@@ -64,7 +69,8 @@ void main() {
       }
     });
 
-    testWidgets('Auto-analyze flow should complete without double processing', (WidgetTester tester) async {
+    testWidgets('Auto-analyze flow should complete without double processing',
+        (WidgetTester tester) async {
       app.main();
       await tester.pumpAndSettle();
       await tester.pumpAndSettle(const Duration(seconds: 3));
@@ -73,7 +79,8 @@ void main() {
       final autoAnalyzeButton = find.textContaining('Auto').first;
       if (autoAnalyzeButton.evaluate().isNotEmpty) {
         // Get initial Navigator state
-        final navigator = tester.state<NavigatorState>(find.byType(Navigator).first);
+        final navigator =
+            tester.state<NavigatorState>(find.byType(Navigator).first);
         final initialRouteCount = navigator.widget.pages?.length ?? 1;
 
         // Trigger auto-analyze
@@ -91,12 +98,16 @@ void main() {
         // Verify we're on the expected screen
         final resultFinder = find.textContaining('Result');
         final classificationFinder = find.textContaining('Classification');
-        expect(resultFinder.evaluate().isNotEmpty || classificationFinder.evaluate().isNotEmpty, isTrue,
+        expect(
+            resultFinder.evaluate().isNotEmpty ||
+                classificationFinder.evaluate().isNotEmpty,
+            isTrue,
             reason: 'Should find either Result or Classification text');
       }
     });
 
-    testWidgets('Navigation stack should remain clean after operations', (WidgetTester tester) async {
+    testWidgets('Navigation stack should remain clean after operations',
+        (WidgetTester tester) async {
       app.main();
       await tester.pumpAndSettle();
       await tester.pumpAndSettle(const Duration(seconds: 3));
@@ -121,20 +132,24 @@ void main() {
           await tester.pumpAndSettle();
 
           // Verify Navigator stack doesn't grow unnecessarily
-          final navigator = tester.state<NavigatorState>(find.byType(Navigator).first);
+          final navigator =
+              tester.state<NavigatorState>(find.byType(Navigator).first);
           final routeCount = navigator.widget.pages?.length ?? 1;
-          expect(routeCount, lessThanOrEqualTo(2), reason: 'Tab navigation should not accumulate routes');
+          expect(routeCount, lessThanOrEqualTo(2),
+              reason: 'Tab navigation should not accumulate routes');
         }
       }
     });
 
-    testWidgets('Error scenarios should not leave orphaned routes', (WidgetTester tester) async {
+    testWidgets('Error scenarios should not leave orphaned routes',
+        (WidgetTester tester) async {
       app.main();
       await tester.pumpAndSettle();
       await tester.pumpAndSettle(const Duration(seconds: 3));
 
       // Try to trigger error scenarios
-      final navigator = tester.state<NavigatorState>(find.byType(Navigator).first);
+      final navigator =
+          tester.state<NavigatorState>(find.byType(Navigator).first);
       final initialRouteCount = navigator.widget.pages?.length ?? 1;
 
       // Simulate network error or analysis failure
@@ -144,12 +159,14 @@ void main() {
       await tester.pumpAndSettle();
 
       final finalRouteCount = navigator.widget.pages?.length ?? 1;
-      expect(finalRouteCount, equals(initialRouteCount), reason: 'Error scenarios should not leave orphaned routes');
+      expect(finalRouteCount, equals(initialRouteCount),
+          reason: 'Error scenarios should not leave orphaned routes');
     });
   });
 
   group('Visual Navigation Tests', () {
-    testWidgets('Navigation animations should complete properly', (WidgetTester tester) async {
+    testWidgets('Navigation animations should complete properly',
+        (WidgetTester tester) async {
       app.main();
       await tester.pumpAndSettle();
       await tester.pumpAndSettle(const Duration(seconds: 3));

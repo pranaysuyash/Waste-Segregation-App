@@ -9,7 +9,8 @@ final leaderboardServiceProvider = Provider<LeaderboardService>((ref) {
 });
 
 /// Provider for leaderboard data (using LeaderboardEntry model)
-final leaderboardEntriesProvider = FutureProvider<List<LeaderboardEntry>>((ref) async {
+final leaderboardEntriesProvider =
+    FutureProvider<List<LeaderboardEntry>>((ref) async {
   final leaderboardService = ref.watch(leaderboardServiceProvider);
 
   try {
@@ -40,7 +41,8 @@ final userLeaderboardPositionProvider = FutureProvider<int?>((ref) async {
 });
 
 /// Provider for current user's leaderboard entry
-final currentUserLeaderboardEntryProvider = FutureProvider<LeaderboardEntry?>((ref) async {
+final currentUserLeaderboardEntryProvider =
+    FutureProvider<LeaderboardEntry?>((ref) async {
   final storageService = ref.watch(storageServiceProvider);
   final leaderboardService = ref.watch(leaderboardServiceProvider);
 
@@ -82,7 +84,8 @@ final leaderboardStatsProvider = Provider<LeaderboardStats>((ref) {
       }
 
       final totalUsers = entries.length;
-      final totalPoints = entries.fold<int>(0, (sum, entry) => sum + entry.points);
+      final totalPoints =
+          entries.fold<int>(0, (sum, entry) => sum + entry.points);
       final averagePoints = totalPoints / totalUsers;
       final topScore = entries.first.points;
 
@@ -119,10 +122,13 @@ class LeaderboardStats {
 }
 
 /// Combined data provider for leaderboard screen
-final leaderboardScreenDataProvider = FutureProvider<LeaderboardScreenData>((ref) async {
+final leaderboardScreenDataProvider =
+    FutureProvider<LeaderboardScreenData>((ref) async {
   final topEntries = await ref.watch(leaderboardEntriesProvider.future);
-  final currentUserEntry = await ref.watch(currentUserLeaderboardEntryProvider.future);
-  final currentUserRank = await ref.watch(userLeaderboardPositionProvider.future);
+  final currentUserEntry =
+      await ref.watch(currentUserLeaderboardEntryProvider.future);
+  final currentUserRank =
+      await ref.watch(userLeaderboardPositionProvider.future);
 
   return LeaderboardScreenData(
     topEntries: topEntries,

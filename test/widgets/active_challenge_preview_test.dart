@@ -5,7 +5,8 @@ import 'package:waste_segregation_app/widgets/modern_ui/modern_badges.dart';
 
 void main() {
   group('Active Challenge Preview Tests', () {
-    testWidgets('ActiveChallengeCard displays basic information correctly', (WidgetTester tester) async {
+    testWidgets('ActiveChallengeCard displays basic information correctly',
+        (WidgetTester tester) async {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
@@ -30,8 +31,10 @@ void main() {
       expect(find.byIcon(Icons.stars), findsOneWidget);
     });
 
-    testWidgets('ActiveChallengeCard handles long titles without overflow', (WidgetTester tester) async {
-      const longTitle = 'Very Long Daily Recycling Goal Challenge That Should Not Overflow';
+    testWidgets('ActiveChallengeCard handles long titles without overflow',
+        (WidgetTester tester) async {
+      const longTitle =
+          'Very Long Daily Recycling Goal Challenge That Should Not Overflow';
 
       await tester.pumpWidget(
         MaterialApp(
@@ -56,7 +59,9 @@ void main() {
       await tester.pumpAndSettle();
     });
 
-    testWidgets('ActiveChallengeCard handles long descriptions without overflow', (WidgetTester tester) async {
+    testWidgets(
+        'ActiveChallengeCard handles long descriptions without overflow',
+        (WidgetTester tester) async {
       const longDescription =
           'Very long challenge description that explains in detail what the user needs to do to complete this challenge successfully';
 
@@ -84,7 +89,8 @@ void main() {
       await tester.pumpAndSettle();
     });
 
-    testWidgets('ActiveChallengeCard adapts to narrow screens', (WidgetTester tester) async {
+    testWidgets('ActiveChallengeCard adapts to narrow screens',
+        (WidgetTester tester) async {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
@@ -112,7 +118,8 @@ void main() {
       await tester.pumpAndSettle();
     });
 
-    testWidgets('ActiveChallengeCard handles tap events correctly', (WidgetTester tester) async {
+    testWidgets('ActiveChallengeCard handles tap events correctly',
+        (WidgetTester tester) async {
       var tapped = false;
 
       await tester.pumpWidget(
@@ -132,9 +139,18 @@ void main() {
       expect(tapped, isTrue);
     });
 
-    testWidgets('ActiveChallengeCard handles progress values correctly', (WidgetTester tester) async {
+    testWidgets('ActiveChallengeCard handles progress values correctly',
+        (WidgetTester tester) async {
       // Test with various progress values
-      final progressValues = [0.0, 0.25, 0.5, 0.75, 1.0, -0.1, 1.5]; // Including invalid values
+      final progressValues = [
+        0.0,
+        0.25,
+        0.5,
+        0.75,
+        1.0,
+        -0.1,
+        1.5
+      ]; // Including invalid values
 
       for (final progress in progressValues) {
         await tester.pumpWidget(
@@ -158,7 +174,8 @@ void main() {
       }
     });
 
-    testWidgets('ActiveChallengeCard shows/hides optional elements correctly', (WidgetTester tester) async {
+    testWidgets('ActiveChallengeCard shows/hides optional elements correctly',
+        (WidgetTester tester) async {
       // Test without optional elements
       await tester.pumpWidget(
         MaterialApp(
@@ -205,7 +222,8 @@ void main() {
       expect(find.byIcon(Icons.stars), findsOneWidget);
     });
 
-    testWidgets('ActiveChallengeCard uses custom colors correctly', (WidgetTester tester) async {
+    testWidgets('ActiveChallengeCard uses custom colors correctly',
+        (WidgetTester tester) async {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
@@ -228,7 +246,8 @@ void main() {
       expect(iconWidget.color, Colors.purple);
     });
 
-    testWidgets('ActiveChallengeCard handles extremely long text gracefully', (WidgetTester tester) async {
+    testWidgets('ActiveChallengeCard handles extremely long text gracefully',
+        (WidgetTester tester) async {
       const extremelyLongTitle =
           'This is an extremely long challenge title that should definitely cause overflow issues if not handled properly by the responsive text system';
       const extremelyLongDescription =
@@ -261,7 +280,8 @@ void main() {
       await tester.pumpAndSettle();
     });
 
-    testWidgets('ActiveChallengeCard accessibility test', (WidgetTester tester) async {
+    testWidgets('ActiveChallengeCard accessibility test',
+        (WidgetTester tester) async {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
@@ -289,7 +309,8 @@ void main() {
       await tester.pumpAndSettle();
     });
 
-    testWidgets('ActiveChallengeCard performance test with multiple instances', (WidgetTester tester) async {
+    testWidgets('ActiveChallengeCard performance test with multiple instances',
+        (WidgetTester tester) async {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
@@ -323,7 +344,8 @@ void main() {
   });
 
   group('ProgressBadge Enhanced Tests', () {
-    testWidgets('ProgressBadge displays progress correctly', (WidgetTester tester) async {
+    testWidgets('ProgressBadge displays progress correctly',
+        (WidgetTester tester) async {
       await tester.pumpWidget(
         const MaterialApp(
           home: Scaffold(
@@ -339,7 +361,8 @@ void main() {
       expect(find.text('75%'), findsOneWidget);
     });
 
-    testWidgets('ProgressBadge handles custom text', (WidgetTester tester) async {
+    testWidgets('ProgressBadge handles custom text',
+        (WidgetTester tester) async {
       await tester.pumpWidget(
         const MaterialApp(
           home: Scaffold(
@@ -356,7 +379,8 @@ void main() {
       expect(find.text('3/6'), findsOneWidget);
     });
 
-    testWidgets('ProgressBadge handles very long text without overflow', (WidgetTester tester) async {
+    testWidgets('ProgressBadge handles very long text without overflow',
+        (WidgetTester tester) async {
       await tester.pumpWidget(
         const MaterialApp(
           home: Scaffold(
@@ -375,7 +399,8 @@ void main() {
       await tester.pumpAndSettle();
     });
 
-    testWidgets('ProgressBadge adapts to different sizes', (WidgetTester tester) async {
+    testWidgets('ProgressBadge adapts to different sizes',
+        (WidgetTester tester) async {
       final sizes = [24.0, 32.0, 40.0, 48.0];
 
       for (final size in sizes) {
@@ -397,7 +422,8 @@ void main() {
       }
     });
 
-    testWidgets('ProgressBadge handles invalid progress values', (WidgetTester tester) async {
+    testWidgets('ProgressBadge handles invalid progress values',
+        (WidgetTester tester) async {
       final invalidValues = [-0.5, 1.5, double.infinity, double.nan];
 
       for (final progress in invalidValues) {
@@ -419,7 +445,8 @@ void main() {
       }
     });
 
-    testWidgets('ProgressBadge respects showPercentage flag', (WidgetTester tester) async {
+    testWidgets('ProgressBadge respects showPercentage flag',
+        (WidgetTester tester) async {
       // Test with showPercentage = false
       await tester.pumpWidget(
         const MaterialApp(
@@ -452,7 +479,8 @@ void main() {
       expect(find.text('80%'), findsOneWidget);
     });
 
-    testWidgets('ProgressBadge uses custom colors correctly', (WidgetTester tester) async {
+    testWidgets('ProgressBadge uses custom colors correctly',
+        (WidgetTester tester) async {
       await tester.pumpWidget(
         const MaterialApp(
           home: Scaffold(
@@ -470,7 +498,8 @@ void main() {
       expect(find.text('70%'), findsOneWidget);
     });
 
-    testWidgets('ProgressBadge responsive sizing works correctly', (WidgetTester tester) async {
+    testWidgets('ProgressBadge responsive sizing works correctly',
+        (WidgetTester tester) async {
       // Test in constrained space
       await tester.pumpWidget(
         const MaterialApp(
@@ -495,7 +524,8 @@ void main() {
   });
 
   group('Active Challenge Preview Theme Tests', () {
-    testWidgets('ActiveChallengeCard respects theme colors', (WidgetTester tester) async {
+    testWidgets('ActiveChallengeCard respects theme colors',
+        (WidgetTester tester) async {
       await tester.pumpWidget(
         MaterialApp(
           theme: ThemeData.light(),
@@ -532,7 +562,8 @@ void main() {
       await tester.pumpAndSettle();
     });
 
-    testWidgets('ProgressBadge respects theme colors', (WidgetTester tester) async {
+    testWidgets('ProgressBadge respects theme colors',
+        (WidgetTester tester) async {
       await tester.pumpWidget(
         MaterialApp(
           theme: ThemeData.light(),

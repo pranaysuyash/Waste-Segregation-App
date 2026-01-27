@@ -51,7 +51,8 @@ class ModernTextField extends StatefulWidget {
   State<ModernTextField> createState() => _ModernTextFieldState();
 }
 
-class _ModernTextFieldState extends State<ModernTextField> with SingleTickerProviderStateMixin {
+class _ModernTextFieldState extends State<ModernTextField>
+    with SingleTickerProviderStateMixin {
   late AnimationController _animationController;
   late Animation<double> _focusAnimation;
   bool _isFocused = false;
@@ -123,7 +124,8 @@ class _ModernTextFieldState extends State<ModernTextField> with SingleTickerProv
                 hintText: widget.hintText,
                 helperText: widget.helperText,
                 errorText: widget.errorText,
-                prefixIcon: widget.prefixIcon != null ? Icon(widget.prefixIcon) : null,
+                prefixIcon:
+                    widget.prefixIcon != null ? Icon(widget.prefixIcon) : null,
                 suffixIcon: widget.suffixIcon != null
                     ? IconButton(
                         icon: Icon(widget.suffixIcon),
@@ -131,40 +133,46 @@ class _ModernTextFieldState extends State<ModernTextField> with SingleTickerProv
                       )
                     : null,
                 border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(AppTheme.borderRadiusRegular),
+                  borderRadius:
+                      BorderRadius.circular(AppTheme.borderRadiusRegular),
                   borderSide: BorderSide(
                     color: theme.colorScheme.outline,
                   ),
                 ),
                 enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(AppTheme.borderRadiusRegular),
+                  borderRadius:
+                      BorderRadius.circular(AppTheme.borderRadiusRegular),
                   borderSide: BorderSide(
                     color: theme.colorScheme.outline.withValues(alpha: 0.5),
                   ),
                 ),
                 focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(AppTheme.borderRadiusRegular),
+                  borderRadius:
+                      BorderRadius.circular(AppTheme.borderRadiusRegular),
                   borderSide: BorderSide(
                     color: theme.colorScheme.primary,
                     width: 2.0,
                   ),
                 ),
                 errorBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(AppTheme.borderRadiusRegular),
+                  borderRadius:
+                      BorderRadius.circular(AppTheme.borderRadiusRegular),
                   borderSide: BorderSide(
                     color: theme.colorScheme.error,
                   ),
                 ),
                 focusedErrorBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(AppTheme.borderRadiusRegular),
+                  borderRadius:
+                      BorderRadius.circular(AppTheme.borderRadiusRegular),
                   borderSide: BorderSide(
                     color: theme.colorScheme.error,
                     width: 2.0,
                   ),
                 ),
                 filled: true,
-                fillColor:
-                    _isFocused ? theme.colorScheme.primaryContainer.withValues(alpha: 0.1) : theme.colorScheme.surface,
+                fillColor: _isFocused
+                    ? theme.colorScheme.primaryContainer.withValues(alpha: 0.1)
+                    : theme.colorScheme.surface,
                 contentPadding: const EdgeInsets.symmetric(
                   horizontal: AppTheme.paddingRegular,
                   vertical: AppTheme.paddingRegular,

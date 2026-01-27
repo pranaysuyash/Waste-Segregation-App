@@ -9,13 +9,16 @@ class RefreshLoadingWidget extends StatefulWidget {
   State<RefreshLoadingWidget> createState() => _RefreshLoadingWidgetState();
 }
 
-class _RefreshLoadingWidgetState extends State<RefreshLoadingWidget> with SingleTickerProviderStateMixin {
+class _RefreshLoadingWidgetState extends State<RefreshLoadingWidget>
+    with SingleTickerProviderStateMixin {
   late AnimationController _controller;
 
   @override
   void initState() {
     super.initState();
-    _controller = AnimationHelpers.createController(vsync: this, duration: const Duration(seconds: 2))..repeat();
+    _controller = AnimationHelpers.createController(
+        vsync: this, duration: const Duration(seconds: 2))
+      ..repeat();
   }
 
   @override
@@ -74,7 +77,8 @@ class ShimmerBox extends StatefulWidget {
   State<ShimmerBox> createState() => _ShimmerBoxState();
 }
 
-class _ShimmerBoxState extends State<ShimmerBox> with SingleTickerProviderStateMixin {
+class _ShimmerBoxState extends State<ShimmerBox>
+    with SingleTickerProviderStateMixin {
   late AnimationController _controller;
 
   @override

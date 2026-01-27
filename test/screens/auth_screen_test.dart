@@ -40,14 +40,16 @@ void main() {
           home: const AuthScreen(),
           routes: {
             '/main': (context) => const MainNavigationWrapper(),
-            '/main_guest': (context) => const MainNavigationWrapper(isGuestMode: true),
+            '/main_guest': (context) =>
+                const MainNavigationWrapper(isGuestMode: true),
           },
         ),
       );
     }
 
     group('UI Rendering Tests', () {
-      testWidgets('should render all essential UI elements', (WidgetTester tester) async {
+      testWidgets('should render all essential UI elements',
+          (WidgetTester tester) async {
         await tester.pumpWidget(createTestableWidget());
         await tester.pumpAndSettle();
 
@@ -74,10 +76,14 @@ void main() {
         expect(find.text(AppStrings.continueAsGuest), findsOneWidget);
 
         // Verify info message
-        expect(find.text('Sign in to save your progress and sync data across devices'), findsOneWidget);
+        expect(
+            find.text(
+                'Sign in to save your progress and sync data across devices'),
+            findsOneWidget);
       });
 
-      testWidgets('should display impact cards with correct icons', (WidgetTester tester) async {
+      testWidgets('should display impact cards with correct icons',
+          (WidgetTester tester) async {
         await tester.pumpWidget(createTestableWidget());
         await tester.pumpAndSettle();
 
@@ -87,7 +93,8 @@ void main() {
         expect(find.byIcon(Icons.people), findsOneWidget);
       });
 
-      testWidgets('should have proper visual styling', (WidgetTester tester) async {
+      testWidgets('should have proper visual styling',
+          (WidgetTester tester) async {
         await tester.pumpWidget(createTestableWidget());
         await tester.pumpAndSettle();
 
@@ -104,7 +111,8 @@ void main() {
         expect(find.byType(SafeArea), findsOneWidget);
       });
 
-      testWidgets('should render auth cards with proper styling', (WidgetTester tester) async {
+      testWidgets('should render auth cards with proper styling',
+          (WidgetTester tester) async {
         await tester.pumpWidget(createTestableWidget());
         await tester.pumpAndSettle();
 
@@ -122,9 +130,11 @@ void main() {
     });
 
     group('Google Sign-In Tests', () {
-      testWidgets('should handle successful Google sign-in', (WidgetTester tester) async {
+      testWidgets('should handle successful Google sign-in',
+          (WidgetTester tester) async {
         // Mock successful sign-in
-        when(mockGoogleDriveService.signIn()).thenAnswer((_) async => 'mock_user');
+        when(mockGoogleDriveService.signIn())
+            .thenAnswer((_) async => 'mock_user');
 
         await tester.pumpWidget(createTestableWidget());
         await tester.pumpAndSettle();
@@ -145,9 +155,11 @@ void main() {
         verify(mockGoogleDriveService.signIn()).called(1);
       });
 
-      testWidgets('should handle Google sign-in failure', (WidgetTester tester) async {
+      testWidgets('should handle Google sign-in failure',
+          (WidgetTester tester) async {
         // Mock sign-in failure
-        when(mockGoogleDriveService.signIn()).thenThrow(Exception('Sign in failed'));
+        when(mockGoogleDriveService.signIn())
+            .thenThrow(Exception('Sign in failed'));
 
         await tester.pumpWidget(createTestableWidget());
         await tester.pumpAndSettle();
@@ -161,13 +173,15 @@ void main() {
 
         // Verify error snackbar is shown
         expect(find.byType(SnackBar), findsOneWidget);
-        expect(find.text('Sign in failed: Exception: Sign in failed'), findsOneWidget);
+        expect(find.text('Sign in failed: Exception: Sign in failed'),
+            findsOneWidget);
 
         // Verify sign-in was attempted
         verify(mockGoogleDriveService.signIn()).called(1);
       });
 
-      testWidgets('should show loading indicator during sign-in', (WidgetTester tester) async {
+      testWidgets('should show loading indicator during sign-in',
+          (WidgetTester tester) async {
         // Mock slow sign-in
         when(mockGoogleDriveService.signIn()).thenAnswer((_) async {
           await Future.delayed(const Duration(milliseconds: 500));
@@ -196,7 +210,8 @@ void main() {
         await tester.pumpAndSettle();
       });
 
-      testWidgets('should handle null user response from sign-in', (WidgetTester tester) async {
+      testWidgets('should handle null user response from sign-in',
+          (WidgetTester tester) async {
         // Mock sign-in returning null user
         when(mockGoogleDriveService.signIn()).thenAnswer((_) async => null);
 
@@ -213,7 +228,8 @@ void main() {
         expect(find.byType(AuthScreen), findsOneWidget);
       });
 
-      testWidgets('should disable Google sign-in button during loading', (WidgetTester tester) async {
+      testWidgets('should disable Google sign-in button during loading',
+          (WidgetTester tester) async {
         when(mockGoogleDriveService.signIn()).thenAnswer((_) async {
           await Future.delayed(const Duration(milliseconds: 100));
           return 'mock_user';
@@ -237,7 +253,8 @@ void main() {
     });
 
     group('Guest Mode Tests', () {
-      testWidgets('should handle guest mode navigation', (WidgetTester tester) async {
+      testWidgets('should handle guest mode navigation',
+          (WidgetTester tester) async {
         await tester.pumpWidget(createTestableWidget());
         await tester.pumpAndSettle();
 
@@ -253,7 +270,8 @@ void main() {
         expect(find.byType(AuthScreen), findsNothing);
       });
 
-      testWidgets('should disable guest button during Google sign-in loading', (WidgetTester tester) async {
+      testWidgets('should disable guest button during Google sign-in loading',
+          (WidgetTester tester) async {
         when(mockGoogleDriveService.signIn()).thenAnswer((_) async {
           await Future.delayed(const Duration(milliseconds: 500));
           return 'mock_user';
@@ -281,7 +299,8 @@ void main() {
         await tester.pumpAndSettle();
       });
 
-      testWidgets('should show correct guest mode styling', (WidgetTester tester) async {
+      testWidgets('should show correct guest mode styling',
+          (WidgetTester tester) async {
         await tester.pumpWidget(createTestableWidget());
         await tester.pumpAndSettle();
 
@@ -295,7 +314,8 @@ void main() {
 
     group('Platform-Specific Behavior Tests', () {
       // Note: These tests would require mocking kIsWeb or platform detection
-      testWidgets('should show web platform warning when on web', (WidgetTester tester) async {
+      testWidgets('should show web platform warning when on web',
+          (WidgetTester tester) async {
         // This test would need platform mocking to properly test web behavior
         await tester.pumpWidget(createTestableWidget(isWeb: true));
         await tester.pumpAndSettle();
@@ -308,7 +328,8 @@ void main() {
     });
 
     group('Error Handling Tests', () {
-      testWidgets('should handle multiple rapid taps gracefully', (WidgetTester tester) async {
+      testWidgets('should handle multiple rapid taps gracefully',
+          (WidgetTester tester) async {
         when(mockGoogleDriveService.signIn()).thenAnswer((_) async {
           await Future.delayed(const Duration(milliseconds: 200));
           return 'mock_user';
@@ -332,7 +353,8 @@ void main() {
         verify(mockGoogleDriveService.signIn()).called(1);
       });
 
-      testWidgets('should handle widget disposal during async operation', (WidgetTester tester) async {
+      testWidgets('should handle widget disposal during async operation',
+          (WidgetTester tester) async {
         when(mockGoogleDriveService.signIn()).thenAnswer((_) async {
           await Future.delayed(const Duration(milliseconds: 100));
           return 'mock_user';
@@ -346,14 +368,16 @@ void main() {
         await tester.pump();
 
         // Navigate away from screen (simulating disposal)
-        await tester.pumpWidget(const MaterialApp(home: Scaffold(body: Text('Different Screen'))));
+        await tester.pumpWidget(
+            const MaterialApp(home: Scaffold(body: Text('Different Screen'))));
         await tester.pumpAndSettle();
 
         // Should not crash when async operation completes
         await tester.pumpAndSettle();
       });
 
-      testWidgets('should handle network timeout gracefully', (WidgetTester tester) async {
+      testWidgets('should handle network timeout gracefully',
+          (WidgetTester tester) async {
         when(mockGoogleDriveService.signIn()).thenAnswer((_) async {
           await Future.delayed(const Duration(seconds: 5));
           throw Exception('Network timeout');
@@ -375,16 +399,19 @@ void main() {
     });
 
     group('Accessibility Tests', () {
-      testWidgets('should have proper accessibility labels', (WidgetTester tester) async {
+      testWidgets('should have proper accessibility labels',
+          (WidgetTester tester) async {
         await tester.pumpWidget(createTestableWidget());
         await tester.pumpAndSettle();
 
         // Verify key elements have proper semantics
         expect(find.byType(InkWell), findsAtLeastNWidgets(2));
-        expect(find.byType(Icon), findsAtLeastNWidgets(6)); // Impact cards + auth buttons + app logo
+        expect(find.byType(Icon),
+            findsAtLeastNWidgets(6)); // Impact cards + auth buttons + app logo
       });
 
-      testWidgets('should be navigable with keyboard/screen reader', (WidgetTester tester) async {
+      testWidgets('should be navigable with keyboard/screen reader',
+          (WidgetTester tester) async {
         await tester.pumpWidget(createTestableWidget());
         await tester.pumpAndSettle();
 
@@ -399,7 +426,8 @@ void main() {
         }
       });
 
-      testWidgets('should support large text sizes', (WidgetTester tester) async {
+      testWidgets('should support large text sizes',
+          (WidgetTester tester) async {
         await tester.pumpWidget(
           MediaQuery(
             data: const MediaQueryData(textScaler: TextScaler.linear(2.0)),
@@ -415,7 +443,8 @@ void main() {
     });
 
     group('UI State Management Tests', () {
-      testWidgets('should maintain correct button states', (WidgetTester tester) async {
+      testWidgets('should maintain correct button states',
+          (WidgetTester tester) async {
         await tester.pumpWidget(createTestableWidget());
         await tester.pumpAndSettle();
 
@@ -438,7 +467,8 @@ void main() {
         expect(guestInkWell.onTap, isNotNull);
       });
 
-      testWidgets('should show correct loading state elements', (WidgetTester tester) async {
+      testWidgets('should show correct loading state elements',
+          (WidgetTester tester) async {
         when(mockGoogleDriveService.signIn()).thenAnswer((_) async {
           await Future.delayed(const Duration(milliseconds: 200));
           return 'mock_user';
@@ -462,8 +492,10 @@ void main() {
     });
 
     group('Navigation Integration Tests', () {
-      testWidgets('should navigate to main screen after successful sign-in', (WidgetTester tester) async {
-        when(mockGoogleDriveService.signIn()).thenAnswer((_) async => 'test_user');
+      testWidgets('should navigate to main screen after successful sign-in',
+          (WidgetTester tester) async {
+        when(mockGoogleDriveService.signIn())
+            .thenAnswer((_) async => 'test_user');
 
         final mockObserver = MockNavigatorObserver();
         await tester.pumpWidget(
@@ -488,7 +520,8 @@ void main() {
         expect(find.byType(AuthScreen), findsNothing);
       });
 
-      testWidgets('should navigate to guest mode correctly', (WidgetTester tester) async {
+      testWidgets('should navigate to guest mode correctly',
+          (WidgetTester tester) async {
         final mockObserver = MockNavigatorObserver();
         await tester.pumpWidget(
           MultiProvider(
@@ -514,7 +547,8 @@ void main() {
     });
 
     group('Edge Cases and Stress Tests', () {
-      testWidgets('should handle very long app strings gracefully', (WidgetTester tester) async {
+      testWidgets('should handle very long app strings gracefully',
+          (WidgetTester tester) async {
         // This would test with very long strings in constants
         await tester.pumpWidget(createTestableWidget());
         await tester.pumpAndSettle();
@@ -523,8 +557,10 @@ void main() {
         expect(tester.takeException(), isNull);
       });
 
-      testWidgets('should handle small screen sizes', (WidgetTester tester) async {
-        await tester.binding.setSurfaceSize(const Size(320, 568)); // Small phone size
+      testWidgets('should handle small screen sizes',
+          (WidgetTester tester) async {
+        await tester.binding
+            .setSurfaceSize(const Size(320, 568)); // Small phone size
 
         await tester.pumpWidget(createTestableWidget());
         await tester.pumpAndSettle();
@@ -537,8 +573,10 @@ void main() {
         await tester.binding.setSurfaceSize(null);
       });
 
-      testWidgets('should handle very large screen sizes', (WidgetTester tester) async {
-        await tester.binding.setSurfaceSize(const Size(1200, 1600)); // Tablet size
+      testWidgets('should handle very large screen sizes',
+          (WidgetTester tester) async {
+        await tester.binding
+            .setSurfaceSize(const Size(1200, 1600)); // Tablet size
 
         await tester.pumpWidget(createTestableWidget());
         await tester.pumpAndSettle();
@@ -551,7 +589,8 @@ void main() {
         await tester.binding.setSurfaceSize(null);
       });
 
-      testWidgets('should handle rapid orientation changes', (WidgetTester tester) async {
+      testWidgets('should handle rapid orientation changes',
+          (WidgetTester tester) async {
         await tester.pumpWidget(createTestableWidget());
         await tester.pumpAndSettle();
 

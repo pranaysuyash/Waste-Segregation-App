@@ -89,7 +89,8 @@ class _PolishedSettingsScreenState extends State<PolishedSettingsScreen>
       elevation: 0,
       actions: [
         // Performance metrics button (debug only)
-        if (widget.enablePerformanceMonitoring && DeveloperConfig.canShowDeveloperOptions)
+        if (widget.enablePerformanceMonitoring &&
+            DeveloperConfig.canShowDeveloperOptions)
           IconButton(
             icon: const Icon(Icons.analytics),
             onPressed: _showPerformanceMetrics,
@@ -104,7 +105,9 @@ class _PolishedSettingsScreenState extends State<PolishedSettingsScreen>
             button: true,
             child: IconButton(
               icon: Icon(
-                _showDeveloperOptions ? Icons.developer_mode : Icons.developer_mode_outlined,
+                _showDeveloperOptions
+                    ? Icons.developer_mode
+                    : Icons.developer_mode_outlined,
                 color: _showDeveloperOptions ? Colors.yellow : null,
               ),
               onPressed: _toggleDeveloperMode,
@@ -293,7 +296,8 @@ class _PolishedSettingsScreenState extends State<PolishedSettingsScreen>
       await DialogHelper.showInfo(
         context,
         title: 'Performance Metrics',
-        message: 'No performance data available. Enable monitoring and interact with the settings to collect data.',
+        message:
+            'No performance data available. Enable monitoring and interact with the settings to collect data.',
         icon: Icons.analytics,
       );
       return;
@@ -324,7 +328,8 @@ class _PolishedSettingsScreenState extends State<PolishedSettingsScreen>
       final frameRate = slowFrames / frameTimings.length * 100;
       buffer.writeln('\nFrame Performance:');
       buffer.writeln('• Total frames: ${frameTimings.length}');
-      buffer.writeln('• Slow frames: $slowFrames (${frameRate.toStringAsFixed(1)}%)');
+      buffer.writeln(
+          '• Slow frames: $slowFrames (${frameRate.toStringAsFixed(1)}%)');
     }
 
     await DialogHelper.showInfo(
@@ -341,10 +346,12 @@ class PolishedSettingsDemoScreen extends StatefulWidget {
   const PolishedSettingsDemoScreen({super.key});
 
   @override
-  State<PolishedSettingsDemoScreen> createState() => _PolishedSettingsDemoScreenState();
+  State<PolishedSettingsDemoScreen> createState() =>
+      _PolishedSettingsDemoScreenState();
 }
 
-class _PolishedSettingsDemoScreenState extends State<PolishedSettingsDemoScreen> {
+class _PolishedSettingsDemoScreenState
+    extends State<PolishedSettingsDemoScreen> {
   bool _enableAnimations = true;
   bool _enablePerformanceMonitoring = true;
   bool _enableResponsiveLayout = true;

@@ -29,7 +29,7 @@ void main() {
     test('architecture provides adequate race condition protection', () {
       // This test documents the analysis findings rather than testing specific behavior
       // since the investigation showed that protection already exists
-      
+
       expect(true, isTrue, reason: '''
       ANALYSIS CONFIRMED: Race condition protection exists via:
       1. PointsEngine._executeAtomicOperation() provides local operation serialization

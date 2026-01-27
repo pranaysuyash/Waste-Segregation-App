@@ -6,7 +6,7 @@ import 'package:intl/intl.dart'; // Added for DateFormat
 // import 'package:path_provider/path_provider.dart'; // Unused
 import '../services/storage_service.dart';
 // import '../services/google_drive_service.dart';
-import '../models/waste_classification.dart';
+import 'package:waste_segregation_app/models/waste_classification.dart';
 import '../utils/share_service.dart'; // Added for ShareService
 // import '../utils/constants.dart';
 import '../utils/app_version.dart'; // For AppVersion.displayVersion
@@ -75,7 +75,8 @@ class _DataExportScreenState extends State<DataExportScreen> {
     }
 
     if (cutoffDate != null) {
-      filtered = filtered.where((c) => c.timestamp.isAfter(cutoffDate!)).toList();
+      filtered =
+          filtered.where((c) => c.timestamp.isAfter(cutoffDate!)).toList();
     }
 
     return filtered;
@@ -96,7 +97,8 @@ class _DataExportScreenState extends State<DataExportScreen> {
           if (!_isExporting)
             TextButton(
               onPressed: _classifications.isEmpty ? null : _exportData,
-              child: const Text('Export', style: TextStyle(color: Colors.white)),
+              child:
+                  const Text('Export', style: TextStyle(color: Colors.white)),
             ),
         ],
       ),
@@ -121,19 +123,22 @@ class _DataExportScreenState extends State<DataExportScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text('Export Format', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                        const Text('Export Format',
+                            style: TextStyle(
+                                fontSize: 18, fontWeight: FontWeight.bold)),
                         const SizedBox(height: 16),
-                        ...ExportFormat.values.map((format) => RadioListTile<ExportFormat>(
-                              title: Text(format.displayName),
-                              subtitle: Text(format.description),
-                              value: format,
-                              groupValue: _selectedFormat,
-                              onChanged: (value) {
-                                setState(() {
-                                  _selectedFormat = value!;
-                                });
-                              },
-                            )),
+                        ...ExportFormat.values
+                            .map((format) => RadioListTile<ExportFormat>(
+                                  title: Text(format.displayName),
+                                  subtitle: Text(format.description),
+                                  value: format,
+                                  groupValue: _selectedFormat,
+                                  onChanged: (value) {
+                                    setState(() {
+                                      _selectedFormat = value!;
+                                    });
+                                  },
+                                )),
                       ],
                     ),
                   ),
@@ -148,7 +153,9 @@ class _DataExportScreenState extends State<DataExportScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text('Date Range', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                        const Text('Date Range',
+                            style: TextStyle(
+                                fontSize: 18, fontWeight: FontWeight.bold)),
                         const SizedBox(height: 16),
                         DropdownButtonFormField<DateRange>(
                           value: _selectedDateRange,
@@ -182,7 +189,9 @@ class _DataExportScreenState extends State<DataExportScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text('Export Options', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                        const Text('Export Options',
+                            style: TextStyle(
+                                fontSize: 18, fontWeight: FontWeight.bold)),
                         CheckboxListTile(
                           title: const Text('Include Personal Data'),
                           subtitle: const Text('Timestamps, device info'),
@@ -195,7 +204,8 @@ class _DataExportScreenState extends State<DataExportScreen> {
                         ),
                         CheckboxListTile(
                           title: const Text('Include Analytics'),
-                          subtitle: const Text('Confidence scores and processing details'),
+                          subtitle: const Text(
+                              'Confidence scores and processing details'),
                           value: _includeAnalytics,
                           onChanged: (value) {
                             setState(() {
@@ -228,10 +238,14 @@ class _DataExportScreenState extends State<DataExportScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text('Export Summary', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                        const Text('Export Summary',
+                            style: TextStyle(
+                                fontSize: 18, fontWeight: FontWeight.bold)),
                         const SizedBox(height: 8),
-                        Text('Total classifications: ${_classifications.length}'),
-                        Text('Items to export: ${_getFilteredClassifications().length}'),
+                        Text(
+                            'Total classifications: ${_classifications.length}'),
+                        Text(
+                            'Items to export: ${_getFilteredClassifications().length}'),
                         Text('Format: ${_selectedFormat.displayName}'),
                       ],
                     ),
@@ -244,7 +258,8 @@ class _DataExportScreenState extends State<DataExportScreen> {
                 ElevatedButton.icon(
                   onPressed: _classifications.isEmpty ? null : _exportData,
                   icon: const Icon(Icons.file_download),
-                  label: Text('Export ${_getFilteredClassifications().length} Items'),
+                  label: Text(
+                      'Export ${_getFilteredClassifications().length} Items'),
                   style: ElevatedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: 16),
                   ),
@@ -313,7 +328,8 @@ class _DataExportScreenState extends State<DataExportScreen> {
     // Headers
     final headers = <String>['Item Name', 'Category', 'Timestamp'];
     if (_includeAnalytics) {
-      headers.addAll(['Confidence', 'Subcategory', 'Material Type', 'Model Version']);
+      headers.addAll(
+          ['Confidence', 'Subcategory', 'Material Type', 'Model Version']);
     }
     if (_includePersonalData) headers.add('Device');
     if (_includeImages && !kIsWeb) headers.add('Image Path');
@@ -389,7 +405,8 @@ class _DataExportScreenState extends State<DataExportScreen> {
   String _generateTXT(List<WasteClassification> data) {
     final buffer = StringBuffer();
     buffer.writeln('Waste Classification Export Report');
-    buffer.writeln('Generated: ${DateFormat('yyyy-MM-dd HH:mm:ss').format(DateTime.now())}');
+    buffer.writeln(
+        'Generated: ${DateFormat('yyyy-MM-dd HH:mm:ss').format(DateTime.now())}');
     buffer.writeln('Total Items: ${data.length}');
     buffer.writeln('=' * 50);
     buffer.writeln();
@@ -402,7 +419,8 @@ class _DataExportScreenState extends State<DataExportScreen> {
       if (item.subcategory != null) {
         buffer.writeln('  Subcategory: ${item.subcategory}');
       }
-      buffer.writeln('  Date: ${DateFormat('yyyy-MM-dd HH:mm:ss').format(item.timestamp)}');
+      buffer.writeln(
+          '  Date: ${DateFormat('yyyy-MM-dd HH:mm:ss').format(item.timestamp)}');
 
       if (_includeAnalytics) {
         if (item.materialType != null) {
@@ -412,7 +430,8 @@ class _DataExportScreenState extends State<DataExportScreen> {
           buffer.writeln('  Recyclable: ${item.isRecyclable! ? 'Yes' : 'No'}');
         }
         if (item.isCompostable != null) {
-          buffer.writeln('  Compostable: ${item.isCompostable! ? 'Yes' : 'No'}');
+          buffer
+              .writeln('  Compostable: ${item.isCompostable! ? 'Yes' : 'No'}');
         }
         if (item.recyclingCode != null) {
           buffer.writeln('  Recycling Code: ${item.recyclingCode}');

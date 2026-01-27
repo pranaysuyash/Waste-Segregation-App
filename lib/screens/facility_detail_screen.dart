@@ -45,7 +45,8 @@ class _FacilityDetailScreenState extends State<FacilityDetailScreen> {
             _buildOperatingHoursCard(),
             const SizedBox(height: AppTheme.paddingRegular),
             _buildAcceptedMaterialsCard(),
-            if (widget.facility.photos != null && widget.facility.photos!.isNotEmpty) ...[
+            if (widget.facility.photos != null &&
+                widget.facility.photos!.isNotEmpty) ...[
               const SizedBox(height: AppTheme.paddingRegular),
               _buildPhotosCard(),
             ],
@@ -118,11 +119,15 @@ class _FacilityDetailScreenState extends State<FacilityDetailScreen> {
                 ),
                 const SizedBox(width: 8),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   decoration: BoxDecoration(
                     color: _getFacilitySourceColor().withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(AppTheme.borderRadiusSmall),
-                    border: Border.all(color: _getFacilitySourceColor().withValues(alpha: 0.3)),
+                    borderRadius:
+                        BorderRadius.circular(AppTheme.borderRadiusSmall),
+                    border: Border.all(
+                        color:
+                            _getFacilitySourceColor().withValues(alpha: 0.3)),
                   ),
                   child: Text(
                     _getFacilitySourceLabel(),
@@ -135,18 +140,22 @@ class _FacilityDetailScreenState extends State<FacilityDetailScreen> {
                 ),
                 const Spacer(),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   decoration: BoxDecoration(
                     color: widget.facility.isActive
                         ? Colors.green.withValues(alpha: 0.1)
                         : Colors.red.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(AppTheme.borderRadiusSmall),
+                    borderRadius:
+                        BorderRadius.circular(AppTheme.borderRadiusSmall),
                   ),
                   child: Text(
                     widget.facility.isActive ? 'Active' : 'Inactive',
                     style: TextStyle(
                       fontSize: AppTheme.fontSizeSmall,
-                      color: widget.facility.isActive ? Colors.green[700] : Colors.red[700],
+                      color: widget.facility.isActive
+                          ? Colors.green[700]
+                          : Colors.red[700],
                       fontWeight: FontWeight.w500,
                     ),
                   ),
@@ -329,7 +338,8 @@ class _FacilityDetailScreenState extends State<FacilityDetailScreen> {
                 const Spacer(),
                 IconButton(
                   icon: const Icon(Icons.edit_outlined, size: 18),
-                  onPressed: () => _suggestEdit(ContributionType.editAcceptedMaterials),
+                  onPressed: () =>
+                      _suggestEdit(ContributionType.editAcceptedMaterials),
                   tooltip: 'Edit Materials',
                 ),
               ],
@@ -341,11 +351,15 @@ class _FacilityDetailScreenState extends State<FacilityDetailScreen> {
                 runSpacing: 8,
                 children: widget.facility.acceptedMaterials
                     .map((material) => Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 12, vertical: 6),
                           decoration: BoxDecoration(
                             color: AppTheme.primaryColor.withValues(alpha: 0.1),
-                            borderRadius: BorderRadius.circular(AppTheme.borderRadiusSmall),
-                            border: Border.all(color: AppTheme.primaryColor.withValues(alpha: 0.3)),
+                            borderRadius: BorderRadius.circular(
+                                AppTheme.borderRadiusSmall),
+                            border: Border.all(
+                                color: AppTheme.primaryColor
+                                    .withValues(alpha: 0.3)),
                           ),
                           child: Text(
                             material,
@@ -418,13 +432,15 @@ class _FacilityDetailScreenState extends State<FacilityDetailScreen> {
                     width: 120,
                     margin: const EdgeInsets.only(right: 8),
                     child: ClipRRect(
-                      borderRadius: BorderRadius.circular(AppTheme.borderRadiusSmall),
+                      borderRadius:
+                          BorderRadius.circular(AppTheme.borderRadiusSmall),
                       child: Image.network(
                         photo.url,
                         fit: BoxFit.cover,
                         errorBuilder: (context, error, stackTrace) => Container(
                           color: Colors.grey[300],
-                          child: const Icon(Icons.broken_image, color: Colors.grey),
+                          child: const Icon(Icons.broken_image,
+                              color: Colors.grey),
                         ),
                       ),
                     ),
@@ -517,7 +533,8 @@ class _FacilityDetailScreenState extends State<FacilityDetailScreen> {
               foregroundColor: Colors.white,
               padding: const EdgeInsets.symmetric(vertical: 12),
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(AppTheme.borderRadiusRegular),
+                borderRadius:
+                    BorderRadius.circular(AppTheme.borderRadiusRegular),
               ),
             ),
           ),
@@ -532,7 +549,8 @@ class _FacilityDetailScreenState extends State<FacilityDetailScreen> {
             style: OutlinedButton.styleFrom(
               padding: const EdgeInsets.symmetric(vertical: 12),
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(AppTheme.borderRadiusRegular),
+                borderRadius:
+                    BorderRadius.circular(AppTheme.borderRadiusRegular),
               ),
             ),
           ),
@@ -689,7 +707,10 @@ class _FacilityDetailScreenState extends State<FacilityDetailScreen> {
       case 'website':
         return 'Website';
       default:
-        return key.split('_').map((word) => _capitalizeFirstLetter(word)).join(' ');
+        return key
+            .split('_')
+            .map((word) => _capitalizeFirstLetter(word))
+            .join(' ');
     }
   }
 

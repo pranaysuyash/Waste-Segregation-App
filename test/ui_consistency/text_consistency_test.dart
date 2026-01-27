@@ -14,14 +14,21 @@ void main() {
           body: Builder(
             builder: (context) => Column(
               children: [
-                Text('Large Heading', style: UIConsistency.headingLarge(context)),
-                Text('Medium Heading', style: UIConsistency.headingMedium(context)),
-                Text('Small Heading', style: UIConsistency.headingSmall(context)),
-                Text('Large Body Text', style: UIConsistency.bodyLarge(context)),
-                Text('Medium Body Text', style: UIConsistency.bodyMedium(context)),
-                Text('Small Body Text', style: Theme.of(context).textTheme.bodySmall),
+                Text('Large Heading',
+                    style: UIConsistency.headingLarge(context)),
+                Text('Medium Heading',
+                    style: UIConsistency.headingMedium(context)),
+                Text('Small Heading',
+                    style: UIConsistency.headingSmall(context)),
+                Text('Large Body Text',
+                    style: UIConsistency.bodyLarge(context)),
+                Text('Medium Body Text',
+                    style: UIConsistency.bodyMedium(context)),
+                Text('Small Body Text',
+                    style: Theme.of(context).textTheme.bodySmall),
                 Text('Caption Text', style: UIConsistency.caption(context)),
-                Text('Label Text', style: Theme.of(context).textTheme.labelMedium),
+                Text('Label Text',
+                    style: Theme.of(context).textTheme.labelMedium),
               ],
             ),
           ),
@@ -31,7 +38,8 @@ void main() {
 
     /// Typography Consistency Tests
     group('Typography Consistency', () {
-      testWidgets('All headings use consistent typography', (WidgetTester tester) async {
+      testWidgets('All headings use consistent typography',
+          (WidgetTester tester) async {
         await tester.pumpWidget(testApp);
         await tester.pumpAndSettle();
 
@@ -68,15 +76,18 @@ void main() {
         expect(
             headingStyles
                 .where((s) =>
-                    s.fontSize == UIConsistency.headingLarge(context).fontSize ||
-                    s.fontSize == UIConsistency.headingMedium(context).fontSize ||
+                    s.fontSize ==
+                        UIConsistency.headingLarge(context).fontSize ||
+                    s.fontSize ==
+                        UIConsistency.headingMedium(context).fontSize ||
                     s.fontSize == UIConsistency.headingSmall(context).fontSize)
                 .length,
             greaterThan(0),
             reason: 'Should use predefined heading styles from UIConsistency');
       });
 
-      testWidgets('Body text uses consistent typography', (WidgetTester tester) async {
+      testWidgets('Body text uses consistent typography',
+          (WidgetTester tester) async {
         await tester.pumpWidget(testApp);
         await tester.pumpAndSettle();
 
@@ -90,15 +101,20 @@ void main() {
         final bodyMediumFamily = bodyMediumStyle.fontFamily ?? 'default';
         final bodySmallFamily = bodySmallStyle.fontFamily ?? 'default';
 
-        expect(bodyLargeFamily, equals(bodyMediumFamily), reason: 'Body large and medium should use same font family');
-        expect(bodyMediumFamily, equals(bodySmallFamily), reason: 'Body medium and small should use same font family');
+        expect(bodyLargeFamily, equals(bodyMediumFamily),
+            reason: 'Body large and medium should use same font family');
+        expect(bodyMediumFamily, equals(bodySmallFamily),
+            reason: 'Body medium and small should use same font family');
 
         // Verify size hierarchy
-        expect(bodyLargeStyle.fontSize!, greaterThan(bodyMediumStyle.fontSize!));
-        expect(bodyMediumStyle.fontSize!, greaterThan(bodySmallStyle.fontSize!));
+        expect(
+            bodyLargeStyle.fontSize!, greaterThan(bodyMediumStyle.fontSize!));
+        expect(
+            bodyMediumStyle.fontSize!, greaterThan(bodySmallStyle.fontSize!));
       });
 
-      testWidgets('Caption and label text maintains consistency', (WidgetTester tester) async {
+      testWidgets('Caption and label text maintains consistency',
+          (WidgetTester tester) async {
         await tester.pumpWidget(testApp);
         await tester.pumpAndSettle();
 
@@ -112,7 +128,8 @@ void main() {
 
         expect(captionFamily, isNotNull);
         expect(labelFamily, isNotNull);
-        expect(captionFamily, equals(labelFamily), reason: 'Caption and label should use same font family');
+        expect(captionFamily, equals(labelFamily),
+            reason: 'Caption and label should use same font family');
 
         // Caption should be smaller than or equal to label
         expect(captionStyle.fontSize!, lessThanOrEqualTo(labelStyle.fontSize!));
@@ -121,7 +138,8 @@ void main() {
 
     /// Font Size Consistency Tests
     group('Font Size Consistency', () {
-      testWidgets('Font sizes follow established hierarchy', (WidgetTester tester) async {
+      testWidgets('Font sizes follow established hierarchy',
+          (WidgetTester tester) async {
         await tester.pumpWidget(testApp);
         await tester.pumpAndSettle();
 
@@ -145,8 +163,10 @@ void main() {
         expect(bodySmall.fontSize!, greaterThanOrEqualTo(caption.fontSize!));
 
         // Verify reasonable size gaps (at least 2px difference) - only for larger text
-        expect(headingLarge.fontSize! - headingMedium.fontSize!, greaterThanOrEqualTo(2));
-        expect(headingMedium.fontSize! - headingSmall.fontSize!, greaterThanOrEqualTo(2));
+        expect(headingLarge.fontSize! - headingMedium.fontSize!,
+            greaterThanOrEqualTo(2));
+        expect(headingMedium.fontSize! - headingSmall.fontSize!,
+            greaterThanOrEqualTo(2));
       });
 
       testWidgets('No arbitrary font sizes used', (WidgetTester tester) async {
@@ -171,14 +191,16 @@ void main() {
         for (final textWidget in textWidgets) {
           final fontSize = textWidget.style?.fontSize ?? 14.0;
           expect(allowedSizes, contains(fontSize),
-              reason: 'Font size $fontSize not in allowed sizes. Text: "${textWidget.data}"');
+              reason:
+                  'Font size $fontSize not in allowed sizes. Text: "${textWidget.data}"');
         }
       });
     });
 
     /// Color Consistency Tests
     group('Text Color Consistency', () {
-      testWidgets('Text colors use theme-defined colors', (WidgetTester tester) async {
+      testWidgets('Text colors use theme-defined colors',
+          (WidgetTester tester) async {
         await tester.pumpWidget(testApp);
         await tester.pumpAndSettle();
 
@@ -210,12 +232,14 @@ void main() {
             // Check if color is dark enough for readability on light background
             final luminance = textColor.computeLuminance();
             expect(luminance, lessThan(0.7),
-                reason: 'Text color should be dark enough for readability. Text: "${textWidget.data}"');
+                reason:
+                    'Text color should be dark enough for readability. Text: "${textWidget.data}"');
           }
         }
       });
 
-      testWidgets('Sufficient color contrast for readability', (WidgetTester tester) async {
+      testWidgets('Sufficient color contrast for readability',
+          (WidgetTester tester) async {
         await tester.pumpWidget(testApp);
         await tester.pumpAndSettle();
 
@@ -240,7 +264,8 @@ void main() {
 
     /// Screen-Specific Text Consistency Tests
     group('Cross-Screen Text Consistency', () {
-      testWidgets('Text styles are consistent across app', (WidgetTester tester) async {
+      testWidgets('Text styles are consistent across app',
+          (WidgetTester tester) async {
         await tester.pumpWidget(testApp);
         await tester.pumpAndSettle();
 
@@ -250,7 +275,8 @@ void main() {
 
     /// Button Text Consistency Tests
     group('Button Text Consistency', () {
-      testWidgets('All buttons use consistent text styles', (WidgetTester tester) async {
+      testWidgets('All buttons use consistent text styles',
+          (WidgetTester tester) async {
         await tester.pumpWidget(testApp);
         await tester.pumpAndSettle();
 
@@ -286,7 +312,8 @@ void main() {
 
     /// Accessibility Text Tests
     group('Accessibility Text Requirements', () {
-      testWidgets('Text scales properly with system font size', (WidgetTester tester) async {
+      testWidgets('Text scales properly with system font size',
+          (WidgetTester tester) async {
         // Test with different text scale factors
         for (final scaleFactor in [0.8, 1.0, 1.2, 1.5]) {
           await tester.pumpWidget(
@@ -307,15 +334,18 @@ void main() {
 
               // Verify text has reasonable dimensions
               expect(size.width, greaterThan(0),
-                  reason: 'Text should have positive width at scale factor $scaleFactor: "${textWidget.data}"');
+                  reason:
+                      'Text should have positive width at scale factor $scaleFactor: "${textWidget.data}"');
               expect(size.height, greaterThan(0),
-                  reason: 'Text should have positive height at scale factor $scaleFactor: "${textWidget.data}"');
+                  reason:
+                      'Text should have positive height at scale factor $scaleFactor: "${textWidget.data}"');
             }
           }
         }
       });
 
-      testWidgets('Text has sufficient minimum size', (WidgetTester tester) async {
+      testWidgets('Text has sufficient minimum size',
+          (WidgetTester tester) async {
         await tester.pumpWidget(testApp);
         await tester.pumpAndSettle();
 
@@ -324,7 +354,8 @@ void main() {
         for (final textWidget in textWidgets) {
           final fontSize = textWidget.style?.fontSize ?? 14.0;
           expect(fontSize, greaterThanOrEqualTo(12.0),
-              reason: 'Text size should be at least 12px for accessibility: "${textWidget.data}"');
+              reason:
+                  'Text size should be at least 12px for accessibility: "${textWidget.data}"');
         }
       });
     });
@@ -332,24 +363,28 @@ void main() {
 }
 
 /// Helper function to test text consistency within a screen
-Future<void> _testScreenTextConsistency(WidgetTester tester, String screenName) async {
+Future<void> _testScreenTextConsistency(
+    WidgetTester tester, String screenName) async {
   final textWidgets = tester.widgetList<Text>(find.byType(Text)).toList();
   final usedStyles = <String, TextStyle>{};
 
   for (final textWidget in textWidgets) {
     if (textWidget.style != null) {
-      final styleKey = '${textWidget.style!.fontSize}_${textWidget.style!.fontWeight}_${textWidget.style!.fontFamily}';
+      final styleKey =
+          '${textWidget.style!.fontSize}_${textWidget.style!.fontWeight}_${textWidget.style!.fontFamily}';
       usedStyles[styleKey] = textWidget.style!;
     }
   }
 
   // Verify limited number of text styles (good design practice)
   expect(usedStyles.length, lessThanOrEqualTo(8),
-      reason: '$screenName screen should use no more than 8 distinct text styles');
+      reason:
+          '$screenName screen should use no more than 8 distinct text styles');
 
   // Verify all styles use consistent font family
   final fontFamilies = usedStyles.values.map((s) => s.fontFamily).toSet();
-  expect(fontFamilies.length, lessThanOrEqualTo(2), reason: '$screenName screen should use at most 2 font families');
+  expect(fontFamilies.length, lessThanOrEqualTo(2),
+      reason: '$screenName screen should use at most 2 font families');
 }
 
 /// Calculate contrast ratio between two colors

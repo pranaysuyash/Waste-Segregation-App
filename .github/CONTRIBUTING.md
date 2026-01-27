@@ -60,6 +60,14 @@ flutter test test/golden/
 
 **Important**: Golden test failures will block PRs until resolved!
 
+#### Updating Golden Files — Policy ✅
+- Keep canonical golden master images under `test/golden/golden/` only. These masters are the single source of truth and should be reviewed carefully before updating.
+- DO NOT commit any generated failure artifacts (diffs, masked images, isolated diffs, temporary test images). These live under `test/golden/failures/` or `test/widgets/failures/` and are ignored by `.gitignore`.
+- To intentionally update masters: run `./scripts/testing/golden_test_manager.sh update`, review the changes, and commit only the master images from `test/golden/golden/`.
+- To inspect failures locally, examine `test/golden/failures/` but do not add those files to your commit.
+- CI will automatically reject PRs that add files under `**/failures/**` to prevent noisy commits.
+
+
 ### 3. Integration Tests
 ```bash
 flutter test integration_test/

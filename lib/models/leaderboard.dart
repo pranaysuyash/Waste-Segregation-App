@@ -87,12 +87,15 @@ class LeaderboardEntry {
       points: json['points'] as int? ?? 0,
       rank: json['rank'] as int?,
       previousRank: json['previousRank'] as int?,
-      categoryBreakdown: Map<String, int>.from(json['categoryBreakdown'] as Map? ?? {}),
+      categoryBreakdown:
+          Map<String, int>.from(json['categoryBreakdown'] as Map? ?? {}),
       recentAchievements: (json['recentAchievements'] as List<dynamic>?)
               ?.map((a) => Achievement.fromJson(a as Map<String, dynamic>))
               .toList() ??
           [],
-      stats: json['stats'] != null ? UserLeaderboardStats.fromJson(json['stats'] as Map<String, dynamic>) : null,
+      stats: json['stats'] != null
+          ? UserLeaderboardStats.fromJson(json['stats'] as Map<String, dynamic>)
+          : null,
       isCurrentUser: json['isCurrentUser'] as bool? ?? false,
       familyId: json['familyId'] as String?,
       familyName: json['familyName'] as String?,
@@ -222,12 +225,15 @@ class Leaderboard {
         (e) => e.toString().split('.').last == json['period'],
         orElse: () => LeaderboardPeriod.allTime,
       ),
-      entries:
-          (json['entries'] as List<dynamic>).map((e) => LeaderboardEntry.fromJson(e as Map<String, dynamic>)).toList(),
+      entries: (json['entries'] as List<dynamic>)
+          .map((e) => LeaderboardEntry.fromJson(e as Map<String, dynamic>))
+          .toList(),
       lastUpdated: DateTime.parse(json['lastUpdated'] as String),
-      metadata: LeaderboardMetadata.fromJson(json['metadata'] as Map<String, dynamic>),
+      metadata: LeaderboardMetadata.fromJson(
+          json['metadata'] as Map<String, dynamic>),
       currentUserEntry: json['currentUserEntry'] != null
-          ? LeaderboardEntry.fromJson(json['currentUserEntry'] as Map<String, dynamic>)
+          ? LeaderboardEntry.fromJson(
+              json['currentUserEntry'] as Map<String, dynamic>)
           : null,
       totalParticipants: json['totalParticipants'] as int,
       familyId: json['familyId'] as String?,
@@ -311,7 +317,12 @@ class Leaderboard {
 
   /// Gets entries within a specific rank range.
   List<LeaderboardEntry> getEntriesInRange(int startRank, int endRank) {
-    return entries.where((entry) => entry.rank != null && entry.rank! >= startRank && entry.rank! <= endRank).toList();
+    return entries
+        .where((entry) =>
+            entry.rank != null &&
+            entry.rank! >= startRank &&
+            entry.rank! <= endRank)
+        .toList();
   }
 
   /// Gets the minimum score to be in the top N.
@@ -344,7 +355,8 @@ class LeaderboardMetadata {
       periodEnd: DateTime.parse(json['periodEnd'] as String),
       isActive: json['isActive'] as bool? ?? true,
       rewards: (json['rewards'] as List<dynamic>?)
-              ?.map((r) => LeaderboardReward.fromJson(r as Map<String, dynamic>))
+              ?.map(
+                  (r) => LeaderboardReward.fromJson(r as Map<String, dynamic>))
               .toList() ??
           [],
       minimumPoints: json['minimumPoints'] as int? ?? 0,
@@ -428,7 +440,8 @@ class UserLeaderboardStats {
       totalClassifications: json['totalClassifications'] as int,
       currentStreak: json['currentStreak'] as int,
       bestStreak: json['bestStreak'] as int,
-      averagePointsPerClassification: (json['averagePointsPerClassification'] as num).toDouble(),
+      averagePointsPerClassification:
+          (json['averagePointsPerClassification'] as num).toDouble(),
       mostActiveDay: json['mostActiveDay'] as String,
       topCategory: json['topCategory'] as String,
       accuracyPercentage: (json['accuracyPercentage'] as num).toDouble(),

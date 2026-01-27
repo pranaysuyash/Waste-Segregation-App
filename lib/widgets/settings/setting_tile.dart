@@ -29,7 +29,8 @@ class SettingTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final effectiveIconColor = iconColor ?? theme.colorScheme.primary;
-    final effectiveTitleColor = titleColor ?? (enabled ? theme.colorScheme.onSurface : theme.disabledColor);
+    final effectiveTitleColor = titleColor ??
+        (enabled ? theme.colorScheme.onSurface : theme.disabledColor);
 
     return MouseRegion(
       cursor: enabled ? SystemMouseCursors.click : SystemMouseCursors.basic,
@@ -68,7 +69,9 @@ class SettingTile extends StatelessWidget {
                     ? Text(
                         subtitle!,
                         style: theme.textTheme.bodyMedium?.copyWith(
-                          color: enabled ? theme.colorScheme.onSurfaceVariant : theme.disabledColor,
+                          color: enabled
+                              ? theme.colorScheme.onSurfaceVariant
+                              : theme.disabledColor,
                         ),
                       )
                     : null,
@@ -133,7 +136,9 @@ class SettingToggleTile extends StatelessWidget {
             ? Text(
                 subtitle!,
                 style: theme.textTheme.bodyMedium?.copyWith(
-                  color: enabled ? theme.colorScheme.onSurfaceVariant : theme.disabledColor,
+                  color: enabled
+                      ? theme.colorScheme.onSurfaceVariant
+                      : theme.disabledColor,
                 ),
               )
             : null,

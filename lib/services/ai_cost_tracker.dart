@@ -30,8 +30,8 @@ class AiCostTracker {
       isBatchMode: isBatchMode,
     );
 
-    final batchSavings = isBatchMode 
-        ? 0.0 
+    final batchSavings = isBatchMode
+        ? 0.0
         : pricingService.getEstimatedBatchSavings(
             model: model,
             estimatedInputTokens: estimatedInputTokens,
@@ -98,7 +98,7 @@ class AiCostTracker {
     );
 
     // Comprehensive logging
-    WasteAppLogger.info('AI cost recorded', null, null, {
+    WasteAppLogger.info('AI cost recorded', context: {
       'service': 'ai_cost_tracker',
       'operation_id': operationId,
       'classification_id': classificationId,
@@ -117,7 +117,8 @@ class AiCostTracker {
   }
 
   /// Extract token counts from OpenAI response
-  TokenCounts? extractTokenCountsFromResponse(Map<String, dynamic> responseData) {
+  TokenCounts? extractTokenCountsFromResponse(
+      Map<String, dynamic> responseData) {
     try {
       final usage = responseData['usage'];
       if (usage != null) {
@@ -128,16 +129,19 @@ class AiCostTracker {
         );
       }
     } catch (e) {
-      WasteAppLogger.warning('Failed to extract token counts from response', e, null, {
-        'service': 'ai_cost_tracker',
-        'error': 'token_extraction_failed',
-      });
+      WasteAppLogger.warning('Failed to extract token counts from response',
+          error: e,
+          context: {
+            'service': 'ai_cost_tracker',
+            'error': 'token_extraction_failed',
+          });
     }
     return null;
   }
 
   /// Extract token counts from Gemini response
-  TokenCounts? extractTokenCountsFromGeminiResponse(Map<String, dynamic> responseData) {
+  TokenCounts? extractTokenCountsFromGeminiResponse(
+      Map<String, dynamic> responseData) {
     try {
       final usageMetadata = responseData['usageMetadata'];
       if (usageMetadata != null) {
@@ -148,10 +152,13 @@ class AiCostTracker {
         );
       }
     } catch (e) {
-      WasteAppLogger.warning('Failed to extract token counts from Gemini response', e, null, {
-        'service': 'ai_cost_tracker',
-        'error': 'gemini_token_extraction_failed',
-      });
+      WasteAppLogger.warning(
+          'Failed to extract token counts from Gemini response',
+          error: e,
+          context: {
+            'service': 'ai_cost_tracker',
+            'error': 'gemini_token_extraction_failed',
+          });
     }
     return null;
   }
@@ -191,7 +198,8 @@ class AiCostTracker {
         shouldProceed: true,
         forceAnalysisSpeed: AnalysisSpeed.batch,
         reason: 'Batch mode enforced due to budget constraints',
-        recommendedMessage: 'Budget limit reached. Analysis will be processed in batch mode (2-6 hours).',
+        recommendedMessage:
+            'Budget limit reached. Analysis will be processed in batch mode (2-6 hours).',
       );
     }
 
@@ -200,7 +208,8 @@ class AiCostTracker {
         shouldProceed: true,
         forceAnalysisSpeed: AnalysisSpeed.batch,
         reason: 'Insufficient budget for instant analysis',
-        recommendedMessage: 'Switching to batch mode to stay within budget limits.',
+        recommendedMessage:
+            'Switching to batch mode to stay within budget limits.',
       );
     }
 
@@ -243,8 +252,10 @@ class CostEstimate {
   final Map<String, double> budgetUtilization;
 
   int get totalTokens => inputTokens + outputTokens;
-  double get costPerToken => totalTokens > 0 ? estimatedCost / totalTokens : 0.0;
-  double get savingsPercentage => estimatedCost > 0 ? (potentialBatchSavings / estimatedCost) * 100 : 0.0;
+  double get costPerToken =>
+      totalTokens > 0 ? estimatedCost / totalTokens : 0.0;
+  double get savingsPercentage =>
+      estimatedCost > 0 ? (potentialBatchSavings / estimatedCost) * 100 : 0.0;
 
   Map<String, dynamic> toJson() {
     return {
@@ -298,7 +309,7 @@ class OperationDecision {
   final String reason;
   final String? recommendedMessage;
 
-  AnalysisSpeed get effectiveSpeed => 
+  AnalysisSpeed get effectiveSpeed =>
       forceAnalysisSpeed ?? recommendedSpeed ?? AnalysisSpeed.instant;
 
   Map<String, dynamic> toJson() {
@@ -312,4 +323,3 @@ class OperationDecision {
     };
   }
 }
-

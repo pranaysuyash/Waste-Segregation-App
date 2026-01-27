@@ -21,7 +21,7 @@ void main(List<String> args) {
 
   final content = file.readAsStringSync();
   final lines = content.split('\n');
-  
+
   var hasOverflowIssues = false;
   final issues = <String>[];
 
@@ -47,23 +47,27 @@ void main(List<String> args) {
   }
 }
 
-bool _checkForOverflowPatterns(String line, int lineNumber, List<String> issues) {
+bool _checkForOverflowPatterns(
+    String line, int lineNumber, List<String> issues) {
   var foundIssue = false;
 
   // Pattern 1: Fixed width/height without Flexible/Expanded
-  if (line.contains(RegExp(r'width:\s*\d+')) && 
-      !line.contains('Flexible') && 
+  if (line.contains(RegExp(r'width:\s*\d+')) &&
+      !line.contains('Flexible') &&
       !line.contains('Expanded')) {
-    issues.add('Line $lineNumber: Fixed width without Flexible/Expanded wrapper');
+    issues
+        .add('Line $lineNumber: Fixed width without Flexible/Expanded wrapper');
     foundIssue = true;
   }
 
   // Pattern 2: Large padding values that might cause overflow
-  final paddingMatch = RegExp(r'padding:\s*EdgeInsets\.all\((\d+)\)').firstMatch(line);
+  final paddingMatch =
+      RegExp(r'padding:\s*EdgeInsets\.all\((\d+)\)').firstMatch(line);
   if (paddingMatch != null) {
     final paddingValue = int.tryParse(paddingMatch.group(1) ?? '0') ?? 0;
     if (paddingValue > 24) {
-      issues.add('Line $lineNumber: Large padding value ($paddingValue) may cause overflow');
+      issues.add(
+          'Line $lineNumber: Large padding value ($paddingValue) may cause overflow');
       foundIssue = true;
     }
   }
@@ -71,24 +75,26 @@ bool _checkForOverflowPatterns(String line, int lineNumber, List<String> issues)
   // Pattern 3: Row with multiple fixed-width children
   if (line.contains('Row(') && line.contains('children:')) {
     // This is a simplified check - in a real implementation, you'd parse the widget tree
-    issues.add('Line $lineNumber: Row detected - ensure children are wrapped in Flexible/Expanded');
+    issues.add(
+        'Line $lineNumber: Row detected - ensure children are wrapped in Flexible/Expanded');
     foundIssue = true;
   }
 
   // Pattern 4: Text without overflow handling
-  if (line.contains('Text(') && 
-      !line.contains('overflow:') && 
+  if (line.contains('Text(') &&
+      !line.contains('overflow:') &&
       !line.contains('maxLines:')) {
     issues.add('Line $lineNumber: Text widget without overflow handling');
     foundIssue = true;
   }
 
   // Pattern 5: Container with fixed dimensions in a scrollable context
-  if (line.contains('Container(') && 
+  if (line.contains('Container(') &&
       (line.contains('width:') || line.contains('height:'))) {
-    issues.add('Line $lineNumber: Container with fixed dimensions - consider using constraints');
+    issues.add(
+        'Line $lineNumber: Container with fixed dimensions - consider using constraints');
     foundIssue = true;
   }
 
   return foundIssue;
-} 
+}

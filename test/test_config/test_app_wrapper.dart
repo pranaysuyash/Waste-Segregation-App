@@ -36,12 +36,19 @@ class TestAppWrapper extends StatelessWidget {
   Widget build(BuildContext context) {
     return ProviderScope(
       overrides: [
-        if (mockAiService != null) aiServiceProvider.overrideWithValue(mockAiService!),
-        if (mockStorageService != null) storageServiceProvider.overrideWithValue(mockStorageService!),
-        if (mockGamificationService != null) gamificationServiceProvider.overrideWithValue(mockGamificationService!),
-        if (mockPremiumService != null) premiumServiceProvider.overrideWithValue(mockPremiumService!),
-        if (mockAnalyticsService != null) analyticsServiceProvider.overrideWithValue(mockAnalyticsService!),
-        if (mockCommunityService != null) communityServiceProvider.overrideWithValue(mockCommunityService!),
+        if (mockAiService != null)
+          aiServiceProvider.overrideWithValue(mockAiService!),
+        if (mockStorageService != null)
+          storageServiceProvider.overrideWithValue(mockStorageService!),
+        if (mockGamificationService != null)
+          gamificationServiceProvider
+              .overrideWithValue(mockGamificationService!),
+        if (mockPremiumService != null)
+          premiumServiceProvider.overrideWithValue(mockPremiumService!),
+        if (mockAnalyticsService != null)
+          analyticsServiceProvider.overrideWithValue(mockAnalyticsService!),
+        if (mockCommunityService != null)
+          communityServiceProvider.overrideWithValue(mockCommunityService!),
       ],
       child: MaterialApp(
         title: 'Test App',
@@ -74,7 +81,8 @@ class DebugNavigatorObserver extends NavigatorObserver {
   @override
   void didReplace({Route<dynamic>? newRoute, Route<dynamic>? oldRoute}) {
     super.didReplace(newRoute: newRoute, oldRoute: oldRoute);
-    debugPrint('🧭 NAVIGATION REPLACE: ${oldRoute?.settings.name} -> ${newRoute?.settings.name}');
+    debugPrint(
+        '🧭 NAVIGATION REPLACE: ${oldRoute?.settings.name} -> ${newRoute?.settings.name}');
   }
 }
 
@@ -96,9 +104,15 @@ Future<void> cleanupHiveAfterTesting() async {
 }
 
 // Provider definitions for dependency injection
-final aiServiceProvider = Provider<AiService>((ref) => throw UnimplementedError());
-final storageServiceProvider = Provider<StorageService>((ref) => throw UnimplementedError());
-final gamificationServiceProvider = Provider<GamificationService>((ref) => throw UnimplementedError());
-final premiumServiceProvider = Provider<PremiumService>((ref) => throw UnimplementedError());
-final analyticsServiceProvider = Provider<AnalyticsService>((ref) => throw UnimplementedError());
-final communityServiceProvider = Provider<CommunityService>((ref) => throw UnimplementedError());
+final aiServiceProvider =
+    Provider<AiService>((ref) => throw UnimplementedError());
+final storageServiceProvider =
+    Provider<StorageService>((ref) => throw UnimplementedError());
+final gamificationServiceProvider =
+    Provider<GamificationService>((ref) => throw UnimplementedError());
+final premiumServiceProvider =
+    Provider<PremiumService>((ref) => throw UnimplementedError());
+final analyticsServiceProvider =
+    Provider<AnalyticsService>((ref) => throw UnimplementedError());
+final communityServiceProvider =
+    Provider<CommunityService>((ref) => throw UnimplementedError());

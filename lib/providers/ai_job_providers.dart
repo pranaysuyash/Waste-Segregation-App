@@ -8,7 +8,8 @@ final aiJobServiceProvider = Provider<AiJobService>((ref) {
 });
 
 /// Provider for user's AI jobs stream
-final userAiJobsProvider = StreamProvider.family<List<AiJob>, String>((ref, userId) {
+final userAiJobsProvider =
+    StreamProvider.family<List<AiJob>, String>((ref, userId) {
   final aiJobService = ref.watch(aiJobServiceProvider);
   return aiJobService.getUserJobs(userId);
 });
@@ -32,7 +33,8 @@ final createBatchJobProvider = Provider<AiJobService>((ref) {
 
 /// State notifier for managing batch job creation
 class BatchJobCreationNotifier extends StateNotifier<AsyncValue<String?>> {
-  BatchJobCreationNotifier(this._aiJobService) : super(const AsyncValue.data(null));
+  BatchJobCreationNotifier(this._aiJobService)
+      : super(const AsyncValue.data(null));
 
   final AiJobService _aiJobService;
 
@@ -64,7 +66,8 @@ class BatchJobCreationNotifier extends StateNotifier<AsyncValue<String?>> {
 }
 
 /// Provider for batch job creation state
-final batchJobCreationProvider = StateNotifierProvider<BatchJobCreationNotifier, AsyncValue<String?>>((ref) {
+final batchJobCreationProvider =
+    StateNotifierProvider<BatchJobCreationNotifier, AsyncValue<String?>>((ref) {
   final aiJobService = ref.watch(aiJobServiceProvider);
   return BatchJobCreationNotifier(aiJobService);
 });

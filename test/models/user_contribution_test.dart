@@ -22,7 +22,8 @@ void main() {
         expect(contribution.userName, 'John Doe');
         expect(contribution.type, ContributionType.classification);
         expect(contribution.title, 'Plastic Bottle Classification');
-        expect(contribution.description, 'Helped identify plastic bottle disposal method');
+        expect(contribution.description,
+            'Helped identify plastic bottle disposal method');
         expect(contribution.points, 50);
         expect(contribution.timestamp, DateTime(2024, 1, 15, 10, 30));
         expect(contribution.status, ContributionStatus.approved);
@@ -91,7 +92,8 @@ void main() {
         expect(json['userName'], 'Alice Brown');
         expect(json['type'], 'disposal_location');
         expect(json['title'], 'New Recycling Center');
-        expect(json['description'], 'Added new recycling center location downtown');
+        expect(json['description'],
+            'Added new recycling center location downtown');
         expect(json['points'], 100);
         expect(json['timestamp'], isA<String>());
         expect(json['status'], 'pending');
@@ -131,7 +133,8 @@ void main() {
         expect(contribution.userName, 'Bob Wilson');
         expect(contribution.type, ContributionType.bug_report);
         expect(contribution.title, 'Camera Issue');
-        expect(contribution.description, 'Reported camera not working on Android devices');
+        expect(contribution.description,
+            'Reported camera not working on Android devices');
         expect(contribution.points, 25);
         expect(contribution.timestamp, DateTime(2024, 1, 15, 10, 30));
         expect(contribution.status, ContributionStatus.reviewed);
@@ -139,7 +142,8 @@ void main() {
         expect(contribution.tags, ['camera', 'android', 'bug']);
         expect(contribution.moderatorId, 'mod_002');
         expect(contribution.reviewedAt, DateTime(2024, 1, 15, 11));
-        expect(contribution.reviewNotes, 'Valid bug report, forwarded to dev team');
+        expect(contribution.reviewNotes,
+            'Valid bug report, forwarded to dev team');
         expect(contribution.quality, ContributionQuality.average);
         expect(contribution.visibility, ContributionVisibility.public);
         expect(contribution.upvotes, 3);
@@ -366,11 +370,16 @@ void main() {
       });
 
       test('should categorize contribution types by difficulty', () {
-        expect(ContributionType.classification.difficulty, ContributionDifficulty.easy);
-        expect(ContributionType.educational_content.difficulty, ContributionDifficulty.hard);
-        expect(ContributionType.disposal_location.difficulty, ContributionDifficulty.medium);
-        expect(ContributionType.bug_report.difficulty, ContributionDifficulty.medium);
-        expect(ContributionType.translation.difficulty, ContributionDifficulty.hard);
+        expect(ContributionType.classification.difficulty,
+            ContributionDifficulty.easy);
+        expect(ContributionType.educational_content.difficulty,
+            ContributionDifficulty.hard);
+        expect(ContributionType.disposal_location.difficulty,
+            ContributionDifficulty.medium);
+        expect(ContributionType.bug_report.difficulty,
+            ContributionDifficulty.medium);
+        expect(ContributionType.translation.difficulty,
+            ContributionDifficulty.hard);
       });
     });
 
@@ -624,7 +633,8 @@ void main() {
         expect(updated.moderatorId, 'mod_001');
         expect(updated.reviewNotes, 'Looks good!');
         expect(updated.quality, ContributionQuality.good);
-        expect(original.status, ContributionStatus.pending); // Original unchanged
+        expect(
+            original.status, ContributionStatus.pending); // Original unchanged
       });
     });
 

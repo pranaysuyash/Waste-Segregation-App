@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../models/waste_classification.dart';
+import 'package:waste_segregation_app/models/waste_classification.dart';
 import '../services/result_pipeline.dart';
 import '../widgets/result_screen/result_header.dart';
 import '../widgets/result_screen/disposal_accordion.dart';
@@ -32,7 +32,8 @@ class ResultScreenV2 extends ConsumerStatefulWidget {
   ConsumerState<ResultScreenV2> createState() => _ResultScreenV2State();
 }
 
-class _ResultScreenV2State extends ConsumerState<ResultScreenV2> with TickerProviderStateMixin {
+class _ResultScreenV2State extends ConsumerState<ResultScreenV2>
+    with TickerProviderStateMixin {
   late AnimationController _fadeController;
   late AnimationController _slideController;
 
@@ -77,10 +78,13 @@ class _ResultScreenV2State extends ConsumerState<ResultScreenV2> with TickerProv
         autoAnalyze: widget.autoAnalyze,
       );
     } catch (error, stackTrace) {
-      WasteAppLogger.severe('Failed to process classification in pipeline', error, stackTrace, {
-        'classificationId': widget.classification.id,
-        'service': 'ResultScreenV2',
-      });
+      WasteAppLogger.severe('Failed to process classification in pipeline',
+          error: error,
+          stackTrace: stackTrace,
+          context: {
+            'classificationId': widget.classification.id,
+            'service': 'ResultScreenV2',
+          });
     }
   }
 
@@ -290,7 +294,10 @@ class _ResultScreenV2State extends ConsumerState<ResultScreenV2> with TickerProv
                     width: 40,
                     height: 4,
                     decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.4),
+                      color: Theme.of(context)
+                          .colorScheme
+                          .onSurfaceVariant
+                          .withValues(alpha: 0.4),
                       borderRadius: BorderRadius.circular(2),
                     ),
                   ),

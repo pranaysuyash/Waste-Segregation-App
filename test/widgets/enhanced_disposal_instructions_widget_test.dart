@@ -10,30 +10,41 @@ void main() {
     late WasteClassification mockClassification;
 
     setUp(() {
-      mockClassification = WasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
+      mockClassification = WasteClassification(
         id: 'test-id',
         itemName: 'Plastic Bottle',
+        category: 'plastic',
         subcategory: 'Plastic',
         materialType: 'PET Plastic',
         explanation: 'This is a plastic bottle made of PET plastic',
         region: 'Test Region',
-        visualFeatures: ['transparent', 'bottle-shaped'],
-        alternatives: [],
+        visualFeatures: const ['transparent', 'bottle-shaped'],
+        alternatives: const [],
+        disposalInstructions: DisposalInstructions(
           primaryMethod: 'Recycle in blue bin',
-          steps: ['Clean the bottle', 'Remove cap', 'Place in recycling bin'],
+          steps: const [
+            'Clean the bottle',
+            'Remove cap',
+            'Place in recycling bin'
+          ],
           hasUrgentTimeframe: false,
         ),
-        timestamp: DateTime.now(),
+        timestamp: DateTime(2025, 1, 1),
+        confidence: 0.9,
+        userId: 'test-user',
       );
     });
 
-    testWidgets('should show loading widget initially', (WidgetTester tester) async {
+    testWidgets('should show loading widget initially',
+        (WidgetTester tester) async {
       await tester.pumpWidget(
         ProviderScope(
           child: MaterialApp(
             home: Scaffold(
-              body: EnhancedDisposalInstructionsWidget(
-                classification: mockClassification,
+              body: SingleChildScrollView(
+                child: EnhancedDisposalInstructionsWidget(
+                  classification: mockClassification,
+                ),
               ),
             ),
           ),
@@ -42,11 +53,13 @@ void main() {
 
       // Should show loading widget initially
       expect(find.text('Generating Disposal Instructions'), findsOneWidget);
-      expect(find.text('AI is creating personalized disposal guidance...'), findsOneWidget);
+      expect(find.text('AI is creating personalized disposal guidance...'),
+          findsOneWidget);
       expect(find.byType(LinearProgressIndicator), findsOneWidget);
     });
 
-    testWidgets('should show error widget when provider fails', (WidgetTester tester) async {
+    testWidgets('should show error widget when provider fails',
+        (WidgetTester tester) async {
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
@@ -56,8 +69,10 @@ void main() {
           ],
           child: MaterialApp(
             home: Scaffold(
-              body: EnhancedDisposalInstructionsWidget(
-                classification: mockClassification,
+              body: SingleChildScrollView(
+                child: EnhancedDisposalInstructionsWidget(
+                  classification: mockClassification,
+                ),
               ),
             ),
           ),
@@ -65,17 +80,21 @@ void main() {
       );
 
       // Wait for the provider to complete
-      await tester.pumpAndSettle();
+      await tester.pump(); // start the Future
+      await tester.pump(const Duration(
+          seconds: 1)); // allow completion without waiting on animations
 
       // Should show error message and fallback instructions
       expect(find.text('AI Instructions Unavailable'), findsOneWidget);
-      expect(find.text('Showing standard disposal guidance instead.'), findsOneWidget);
-      
+      expect(find.text('Showing standard disposal guidance instead.'),
+          findsOneWidget);
+
       // Should still show disposal instructions (fallback)
       expect(find.text('Disposal Instructions'), findsOneWidget);
     });
 
-    testWidgets('should show disposal instructions when provider succeeds', (WidgetTester tester) async {
+    testWidgets('should show disposal instructions when provider succeeds',
+        (WidgetTester tester) async {
       final mockInstructions = DisposalInstructions(
         primaryMethod: 'AI-generated disposal method',
         steps: [
@@ -100,8 +119,10 @@ void main() {
           ],
           child: MaterialApp(
             home: Scaffold(
-              body: EnhancedDisposalInstructionsWidget(
-                classification: mockClassification,
+              body: SingleChildScrollView(
+                child: EnhancedDisposalInstructionsWidget(
+                  classification: mockClassification,
+                ),
               ),
             ),
           ),
@@ -109,21 +130,23 @@ void main() {
       );
 
       // Wait for the provider to complete
-      await tester.pumpAndSettle();
+      await tester.pump();
+      await tester.pump(const Duration(seconds: 1));
 
       // Should show the disposal instructions widget with AI-generated content
       expect(find.text('Disposal Instructions'), findsOneWidget);
       expect(find.text('AI-generated disposal method'), findsOneWidget);
       expect(find.text('Steps to Follow'), findsOneWidget);
-      
+
       // Should show AI-generated steps
       expect(find.text('AI Step 1: Clean thoroughly'), findsOneWidget);
       expect(find.text('AI Step 2: Remove all labels'), findsOneWidget);
     });
 
-    testWidgets('should handle step completion callback', (WidgetTester tester) async {
+    testWidgets('should handle step completion callback',
+        (WidgetTester tester) async {
       String? completedStep;
-      
+
       final mockInstructions = DisposalInstructions(
         primaryMethod: 'Test method',
         steps: ['Step 1', 'Step 2'],
@@ -139,31 +162,35 @@ void main() {
           ],
           child: MaterialApp(
             home: Scaffold(
-              body: EnhancedDisposalInstructionsWidget(
-                classification: mockClassification,
-                onStepCompleted: (step) {
-                  completedStep = step;
-                },
+              body: SingleChildScrollView(
+                child: EnhancedDisposalInstructionsWidget(
+                  classification: mockClassification,
+                  onStepCompleted: (step) {
+                    completedStep = step;
+                  },
+                ),
               ),
             ),
           ),
         ),
       );
 
-      await tester.pumpAndSettle();
+      await tester.pump();
+      await tester.pump(const Duration(seconds: 1));
 
-      // Find and tap a step checkbox
-      final stepCheckbox = find.byType(Checkbox).first;
-      expect(stepCheckbox, findsOneWidget);
-      
-      await tester.tap(stepCheckbox);
+      // Steps are marked complete via a tappable circle (GestureDetector).
+      final stepToggle = find.byType(GestureDetector).first;
+      expect(stepToggle, findsOneWidget);
+
+      await tester.tap(stepToggle);
       await tester.pumpAndSettle();
 
       // Callback should have been called
       expect(completedStep, isNotNull);
     });
 
-    testWidgets('should generate correct material description', (WidgetTester tester) async {
+    testWidgets('should generate correct material description',
+        (WidgetTester tester) async {
       final classificationWithBrand = mockClassification.copyWith(
         brand: 'Coca-Cola',
         itemName: 'Soda Bottle',
@@ -186,15 +213,18 @@ void main() {
           ],
           child: MaterialApp(
             home: Scaffold(
-              body: EnhancedDisposalInstructionsWidget(
-                classification: classificationWithBrand,
+              body: SingleChildScrollView(
+                child: EnhancedDisposalInstructionsWidget(
+                  classification: classificationWithBrand,
+                ),
               ),
             ),
           ),
         ),
       );
 
-      await tester.pumpAndSettle();
+      await tester.pump();
+      await tester.pump(const Duration(seconds: 1));
 
       // Should include item name, material type, and brand
       expect(capturedMaterial, contains('Soda Bottle'));
@@ -202,4 +232,4 @@ void main() {
       expect(capturedMaterial, contains('Coca-Cola'));
     });
   });
-} 
+}

@@ -2,9 +2,28 @@
 
 ## Waste Segregation App Documentation Structure
 
-*Last Updated: June 8, 2025*
+_Last Updated: January 27, 2026_
 
 This document provides a comprehensive index to all project documentation, now properly organized in the `docs/` folder for better maintainability and navigation.
+
+---
+
+## 🎯 **START HERE FOR NEW AGENTS**
+
+### **📘 APP_KNOWLEDGE_BASE.md** - **MANDATORY READING**
+
+**The canonical, living reference for this project.** All coding agents MUST read this file before making any changes. It contains:
+
+- Comprehensive architecture overview
+- All models, services, screens documented
+- Current gaps and reality checks (what exists vs. what's aspirational)
+- Build/environment setup
+- Troubleshooting guides
+- Update protocols
+
+**Location:** `docs/APP_KNOWLEDGE_BASE.md`  
+**Status:** Living document - update after any significant change  
+**Length:** ~1000 lines, comprehensive
 
 ---
 
@@ -121,7 +140,7 @@ This document provides a comprehensive index to all project documentation, now p
 
 ### `/docs/technical/development/` - Development Documentation
 
-*(Ready for additional development guides)*
+_(Ready for additional development guides)_
 
 ### `/docs/technical/features/` - Technical Feature Documentation
 
@@ -176,7 +195,7 @@ This document provides a comprehensive index to all project documentation, now p
 1. **ENGINEERING_BACKLOG_CONSOLIDATED.md** - 📋 **12-week roadmap** (START HERE for new features)
 2. **NEXT_PHASE_TASKS.md** - 🚀 **Phase 1 implementation tasks** (Token Economy)
 3. **SESSION_NOTES_2025_06_25.md** - 📝 **Latest session work log** (Critical fixes completed)
-4. **DEVOPS_QUICK_REFERENCE.md** - Daily commands and procedures 
+4. **DEVOPS_QUICK_REFERENCE.md** - Daily commands and procedures
 5. **SPRINT_PLANNING.md** - Current sprint goals and acceptance criteria
 6. **TEST_STATUS_SUMMARY.md** - Latest testing status
 7. **ISSUES_SUMMARY_2025-06-02.md** - Detailed technical issues
@@ -266,7 +285,7 @@ Detailed implementation guides for ML training data collection system.
 
 - Use UPPERCASE for important status documents
 - Use descriptive names with dates for issue tracking
-- Use clear categorization prefixes (TEST_, DESIGN_, etc.)
+- Use clear categorization prefixes (TEST*, DESIGN*, etc.)
 - Update this index when adding new documentation
 
 ### **Cross-References:**
@@ -312,4 +331,4 @@ Many documents reference each other. When moving or renaming files, update inter
 
 ---
 
-*This index ensures all team members can quickly find the documentation they need while maintaining a clean, organized project structure.*
+_This index ensures all team members can quickly find the documentation they need while maintaining a clean, organized project structure._

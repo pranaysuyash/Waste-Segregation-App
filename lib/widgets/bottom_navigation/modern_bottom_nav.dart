@@ -27,7 +27,8 @@ class ModernBottomNavigation extends StatefulWidget {
   State<ModernBottomNavigation> createState() => _ModernBottomNavigationState();
 }
 
-class _ModernBottomNavigationState extends State<ModernBottomNavigation> with TickerProviderStateMixin {
+class _ModernBottomNavigationState extends State<ModernBottomNavigation>
+    with TickerProviderStateMixin {
   late AnimationController _animationController;
   late AnimationController _rippleController;
   late List<AnimationController> _itemControllers;
@@ -119,7 +120,8 @@ class _ModernBottomNavigationState extends State<ModernBottomNavigation> with Ti
       right: false,
       child: Container(
         decoration: BoxDecoration(
-          color: widget.style.backgroundColor ?? (isDark ? Colors.grey[900] : Colors.white),
+          color: widget.style.backgroundColor ??
+              (isDark ? Colors.grey[900] : Colors.white),
           boxShadow: widget.style.shadow ??
               [
                 BoxShadow(
@@ -178,7 +180,8 @@ class _ModernBottomNavigationState extends State<ModernBottomNavigation> with Ti
         child: AnimatedBuilder(
           animation: _itemAnimations[index],
           builder: (context, child) {
-            final scale = isSelected ? 1.0 + (_itemAnimations[index].value * 0.1) : 1.0;
+            final scale =
+                isSelected ? 1.0 + (_itemAnimations[index].value * 0.1) : 1.0;
 
             return Transform.scale(
               scale: scale,
@@ -193,18 +196,26 @@ class _ModernBottomNavigationState extends State<ModernBottomNavigation> with Ti
                       child: AnimatedContainer(
                         duration: widget.animationDuration,
                         curve: Curves.elasticOut,
-                        padding: isSelected ? const EdgeInsets.all(6) : const EdgeInsets.all(2),
+                        padding: isSelected
+                            ? const EdgeInsets.all(6)
+                            : const EdgeInsets.all(2),
                         decoration: isSelected
                             ? BoxDecoration(
-                                color: (widget.style.selectedColor ?? AppTheme.primaryColor).withValues(alpha: 0.15),
+                                color: (widget.style.selectedColor ??
+                                        AppTheme.primaryColor)
+                                    .withValues(alpha: 0.15),
                                 borderRadius: BorderRadius.circular(10),
                               )
                             : null,
                         child: Icon(
                           isSelected ? item.selectedIcon : item.icon,
                           color: isSelected
-                              ? (widget.style.selectedColor ?? AppTheme.primaryColor)
-                              : (widget.style.unselectedColor ?? (isDark ? Colors.grey[400] : Colors.grey[600])),
+                              ? (widget.style.selectedColor ??
+                                  AppTheme.primaryColor)
+                              : (widget.style.unselectedColor ??
+                                  (isDark
+                                      ? Colors.grey[400]
+                                      : Colors.grey[600])),
                           size: widget.style.iconSize,
                         ),
                       ),
@@ -218,10 +229,15 @@ class _ModernBottomNavigationState extends State<ModernBottomNavigation> with Ti
                           duration: widget.animationDuration,
                           style: TextStyle(
                             fontSize: widget.style.labelFontSize,
-                            fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
+                            fontWeight:
+                                isSelected ? FontWeight.w600 : FontWeight.w400,
                             color: isSelected
-                                ? (widget.style.selectedColor ?? AppTheme.primaryColor)
-                                : (widget.style.unselectedColor ?? (isDark ? Colors.grey[400] : Colors.grey[600])),
+                                ? (widget.style.selectedColor ??
+                                    AppTheme.primaryColor)
+                                : (widget.style.unselectedColor ??
+                                    (isDark
+                                        ? Colors.grey[400]
+                                        : Colors.grey[600])),
                           ),
                           child: Text(
                             item.label!,
@@ -241,7 +257,8 @@ class _ModernBottomNavigationState extends State<ModernBottomNavigation> with Ti
                         width: 4,
                         height: 4,
                         decoration: BoxDecoration(
-                          color: widget.style.selectedColor ?? AppTheme.primaryColor,
+                          color: widget.style.selectedColor ??
+                              AppTheme.primaryColor,
                           borderRadius: BorderRadius.circular(2),
                         ),
                       ),

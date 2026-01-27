@@ -67,7 +67,8 @@ class ProductionErrorHandler extends StatelessWidget {
     );
   }
 
-  Widget _buildDebugErrorWidget(BuildContext context, FlutterErrorDetails details) {
+  Widget _buildDebugErrorWidget(
+      BuildContext context, FlutterErrorDetails details) {
     return Container(
       padding: const EdgeInsets.all(16),
       color: Colors.red.shade50,

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../models/waste_classification.dart';
+import 'package:waste_segregation_app/models/waste_classification.dart';
 import '../providers/disposal_instructions_provider.dart';
 import '../utils/constants.dart';
 import 'disposal_instructions_widget.dart';
@@ -25,7 +25,8 @@ class EnhancedDisposalInstructionsWidget extends ConsumerWidget {
     );
 
     // Watch the disposal instructions provider
-    final disposalInstructionsAsync = ref.watch(disposalInstructionsProvider(request));
+    final disposalInstructionsAsync =
+        ref.watch(disposalInstructionsProvider(request));
 
     return disposalInstructionsAsync.when(
       data: (instructions) => DisposalInstructionsWidget(
@@ -211,7 +212,8 @@ class DebugDisposalInstructionsWidget extends ConsumerWidget {
       subcategory: classification.subcategory,
     );
 
-    final disposalInstructionsAsync = ref.watch(disposalInstructionsProvider(request));
+    final disposalInstructionsAsync =
+        ref.watch(disposalInstructionsProvider(request));
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -228,12 +230,14 @@ class DebugDisposalInstructionsWidget extends ConsumerWidget {
                 ),
                 decoration: BoxDecoration(
                   color: Colors.green.shade50,
-                  borderRadius: BorderRadius.circular(AppTheme.borderRadiusRegular),
+                  borderRadius:
+                      BorderRadius.circular(AppTheme.borderRadiusRegular),
                   border: Border.all(color: Colors.green.shade200),
                 ),
                 child: Row(
                   children: [
-                    Icon(Icons.auto_awesome, color: Colors.green.shade700, size: 16),
+                    Icon(Icons.auto_awesome,
+                        color: Colors.green.shade700, size: 16),
                     const SizedBox(width: 8),
                     const Text(
                       'AI-Generated Instructions',

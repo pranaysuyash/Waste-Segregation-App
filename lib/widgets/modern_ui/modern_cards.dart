@@ -54,7 +54,10 @@ class ModernCard extends StatelessWidget {
         margin: margin ?? const EdgeInsets.all(AppTheme.spacingSm),
         padding: padding ?? const EdgeInsets.all(AppTheme.spacingMd),
         decoration: BoxDecoration(
-          border: border ?? (enableGlassmorphism ? Border.all(color: Colors.white.withValues(alpha: 0.2)) : null),
+          border: border ??
+              (enableGlassmorphism
+                  ? Border.all(color: Colors.white.withValues(alpha: 0.2))
+                  : null),
           gradient: gradient,
         ),
         child: child,
@@ -261,7 +264,8 @@ class StatsCard extends StatelessWidget {
                 color: effectiveColor.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(AppTheme.borderRadiusMd),
               ),
-              child: Icon(icon, color: effectiveColor, size: AppTheme.iconSizeLg),
+              child:
+                  Icon(icon, color: effectiveColor, size: AppTheme.iconSizeLg),
             ),
             const SizedBox(width: AppTheme.spacingMd),
           ],
@@ -468,7 +472,8 @@ class ActiveChallengeCard extends StatelessWidget {
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
                         color: effectiveColor.withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(AppTheme.borderRadiusSm),
+                        borderRadius:
+                            BorderRadius.circular(AppTheme.borderRadiusSm),
                       ),
                       child: Icon(
                         icon,
@@ -536,12 +541,14 @@ class ActiveChallengeCard extends StatelessWidget {
                 children: [
                   Expanded(
                     child: ClipRRect(
-                      borderRadius: BorderRadius.circular(AppTheme.borderRadiusXs),
+                      borderRadius:
+                          BorderRadius.circular(AppTheme.borderRadiusXs),
                       child: LinearProgressIndicator(
                         value: clampedProgress,
                         minHeight: isNarrow ? 4 : 6,
                         backgroundColor: effectiveColor.withValues(alpha: 0.2),
-                        valueColor: AlwaysStoppedAnimation<Color>(effectiveColor),
+                        valueColor:
+                            AlwaysStoppedAnimation<Color>(effectiveColor),
                       ),
                     ),
                   ),
@@ -554,7 +561,8 @@ class ActiveChallengeCard extends StatelessWidget {
                       ),
                       decoration: BoxDecoration(
                         color: Colors.amber.withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(AppTheme.borderRadiusXs),
+                        borderRadius:
+                            BorderRadius.circular(AppTheme.borderRadiusXs),
                         border: Border.all(
                           color: Colors.amber.withValues(alpha: 0.3),
                         ),
@@ -623,7 +631,8 @@ class RecentClassificationCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final effectiveCategoryColor = categoryColor ?? _getDefaultCategoryColor(category);
+    final effectiveCategoryColor =
+        categoryColor ?? _getDefaultCategoryColor(category);
 
     return ModernCard(
       onTap: onTap,
@@ -653,7 +662,8 @@ class RecentClassificationCard extends StatelessWidget {
                     child: _buildImageWidget(isNarrow ? 50 : 60),
                   ),
                 ),
-                SizedBox(width: isNarrow ? AppTheme.spacingSm : AppTheme.spacingMd),
+                SizedBox(
+                    width: isNarrow ? AppTheme.spacingSm : AppTheme.spacingMd),
               ],
 
               // Content
@@ -671,7 +681,8 @@ class RecentClassificationCard extends StatelessWidget {
                             itemName,
                             style: theme.textTheme.titleSmall?.copyWith(
                               fontWeight: FontWeight.w600,
-                              fontSize: isVeryNarrow ? 13 : (isNarrow ? 14 : null),
+                              fontSize:
+                                  isVeryNarrow ? 13 : (isNarrow ? 14 : null),
                             ),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
@@ -686,7 +697,8 @@ class RecentClassificationCard extends StatelessWidget {
                             _formatDate(timestamp),
                             style: theme.textTheme.bodySmall?.copyWith(
                               color: theme.colorScheme.onSurfaceVariant,
-                              fontSize: isVeryNarrow ? 10 : (isNarrow ? 11 : null),
+                              fontSize:
+                                  isVeryNarrow ? 10 : (isNarrow ? 11 : null),
                             ),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
@@ -744,8 +756,10 @@ class RecentClassificationCard extends StatelessWidget {
     }
 
     // Reserve space for indicators and arrow
-    final indicatorSpace = indicatorCount * (isNarrow ? 18 : 20) + (indicatorCount > 0 ? AppTheme.spacingXs : 0);
-    final availableForBadges = availableWidth - indicatorSpace - 24; // 24 for arrow
+    final indicatorSpace = indicatorCount * (isNarrow ? 18 : 20) +
+        (indicatorCount > 0 ? AppTheme.spacingXs : 0);
+    final availableForBadges =
+        availableWidth - indicatorSpace - 24; // 24 for arrow
 
     // Determine if we need to stack badges vertically
     final shouldStackVertically = isVeryNarrow || availableForBadges < 120;
@@ -758,7 +772,8 @@ class RecentClassificationCard extends StatelessWidget {
           Row(
             children: [
               Flexible(
-                child: _buildCategoryBadges(categoryColor, isNarrow, isVeryNarrow),
+                child:
+                    _buildCategoryBadges(categoryColor, isNarrow, isVeryNarrow),
               ),
             ],
           ),
@@ -790,7 +805,8 @@ class RecentClassificationCard extends StatelessWidget {
     );
   }
 
-  Widget _buildCategoryBadges(Color categoryColor, bool isNarrow, bool isVeryNarrow) {
+  Widget _buildCategoryBadges(
+      Color categoryColor, bool isNarrow, bool isVeryNarrow) {
     return LayoutBuilder(
       builder: (context, constraints) {
         return Row(
@@ -811,7 +827,9 @@ class RecentClassificationCard extends StatelessWidget {
                   category,
                   style: TextStyle(
                     color: Colors.white,
-                    fontSize: isVeryNarrow ? 9 : (isNarrow ? 10 : AppTheme.fontSizeSmall),
+                    fontSize: isVeryNarrow
+                        ? 9
+                        : (isNarrow ? 10 : AppTheme.fontSizeSmall),
                     fontWeight: FontWeight.w600,
                   ),
                   maxLines: 1,
@@ -821,7 +839,9 @@ class RecentClassificationCard extends StatelessWidget {
             ),
 
             // Subcategory badge if available and space permits
-            if (subcategory != null && !isVeryNarrow && constraints.maxWidth > 100) ...[
+            if (subcategory != null &&
+                !isVeryNarrow &&
+                constraints.maxWidth > 100) ...[
               const SizedBox(width: 4),
               Flexible(
                 child: Container(
@@ -831,7 +851,8 @@ class RecentClassificationCard extends StatelessWidget {
                   ),
                   decoration: BoxDecoration(
                     color: Colors.black.withValues(alpha: 0.05),
-                    borderRadius: BorderRadius.circular(AppTheme.borderRadiusXs),
+                    borderRadius:
+                        BorderRadius.circular(AppTheme.borderRadiusXs),
                     border: Border.all(
                       color: categoryColor.withValues(alpha: 0.5),
                     ),

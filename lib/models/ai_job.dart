@@ -33,13 +33,17 @@ class AiJob {
       ),
       createdAt: DateTime.parse(json['createdAt']),
       result: json['result']?.cast<String, dynamic>(),
-      completedAt: json['completedAt'] != null ? DateTime.parse(json['completedAt']) : null,
+      completedAt: json['completedAt'] != null
+          ? DateTime.parse(json['completedAt'])
+          : null,
       errorMessage: json['errorMessage'],
       priority: json['priority'] ?? false,
       tokensSpent: json['tokensSpent'] ?? 0,
       metadata: json['metadata']?.cast<String, dynamic>(),
       queuePosition: json['queuePosition'],
-      estimatedCompletion: json['estimatedCompletion'] != null ? DateTime.parse(json['estimatedCompletion']) : null,
+      estimatedCompletion: json['estimatedCompletion'] != null
+          ? DateTime.parse(json['estimatedCompletion'])
+          : null,
     );
   }
 
@@ -82,11 +86,14 @@ class AiJob {
   final DateTime? estimatedCompletion; // Estimated completion time
 
   /// Check if job is still processing
-  bool get isProcessing => status == AiJobStatus.queued || status == AiJobStatus.processing;
+  bool get isProcessing =>
+      status == AiJobStatus.queued || status == AiJobStatus.processing;
 
   /// Check if job is completed (success or failure)
   bool get isCompleted =>
-      status == AiJobStatus.completed || status == AiJobStatus.failed || status == AiJobStatus.cancelled;
+      status == AiJobStatus.completed ||
+      status == AiJobStatus.failed ||
+      status == AiJobStatus.cancelled;
 
   /// Get estimated completion time based on queue position
   Duration? getEstimatedCompletion(int queuePosition) {
@@ -240,11 +247,16 @@ class QueueStats {
       averageWaitTime: Duration(milliseconds: json['averageWaitTimeMs']),
       lastUpdated: DateTime.parse(json['lastUpdated']),
       // Enhanced fields with fallbacks for backward compatibility
-      averageProcessingTime: Duration(milliseconds: json['averageProcessingTimeMs'] ?? 30000), // 30s default
-      estimatedWaitTime: Duration(milliseconds: json['estimatedWaitTimeMs'] ?? json['averageWaitTimeMs']),
+      averageProcessingTime: Duration(
+          milliseconds:
+              json['averageProcessingTimeMs'] ?? 30000), // 30s default
+      estimatedWaitTime: Duration(
+          milliseconds:
+              json['estimatedWaitTimeMs'] ?? json['averageWaitTimeMs']),
       successRate: (json['successRate'] ?? 0.95).toDouble(), // 95% default
       failureRate: (json['failureRate'] ?? 0.05).toDouble(), // 5% default
-      pendingJobs: json['pendingJobs'] ?? json['queuedJobs'], // Use queuedJobs as fallback
+      pendingJobs: json['pendingJobs'] ??
+          json['queuedJobs'], // Use queuedJobs as fallback
     );
   }
 

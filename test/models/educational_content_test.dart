@@ -24,7 +24,8 @@ void main() {
         final content = EducationalContent(
           id: 'edu_content_123',
           title: 'Understanding Waste Categories',
-          description: 'Learn about different types of waste and their disposal methods',
+          description:
+              'Learn about different types of waste and their disposal methods',
           type: ContentType.article,
           thumbnailUrl: 'https://example.com/thumbnail.jpg',
           categories: ['Waste Management', 'Environment'],
@@ -40,7 +41,8 @@ void main() {
         expect(content.title, equals('Understanding Waste Categories'));
         expect(content.description, isNotEmpty);
         expect(content.type, equals(ContentType.article));
-        expect(content.thumbnailUrl, equals('https://example.com/thumbnail.jpg'));
+        expect(
+            content.thumbnailUrl, equals('https://example.com/thumbnail.jpg'));
         expect(content.categories.length, equals(2));
         expect(content.level, equals(ContentLevel.beginner));
         expect(content.dateAdded, equals(testDate));
@@ -137,7 +139,8 @@ void main() {
 
         expect(infographic.type, equals(ContentType.infographic));
         expect(infographic.icon, equals(Icons.image));
-        expect(infographic.imageUrl, equals('https://example.com/sorting-infographic.jpg'));
+        expect(infographic.imageUrl,
+            equals('https://example.com/sorting-infographic.jpg'));
         expect(infographic.contentText, isNotEmpty);
         expect(infographic.videoUrl, isNull);
         expect(infographic.questions, isNull);
@@ -149,11 +152,17 @@ void main() {
             question: 'Which bin should plastic bottles go in?',
             options: ['Red bin', 'Blue bin', 'Green bin', 'Yellow bin'],
             correctOptionIndex: 1,
-            explanation: 'Plastic bottles are recyclable and go in the blue bin.',
+            explanation:
+                'Plastic bottles are recyclable and go in the blue bin.',
           ),
           const QuizQuestion(
             question: 'Are food containers recyclable after use?',
-            options: ['Always', 'Never', 'Only if cleaned', 'Depends on material'],
+            options: [
+              'Always',
+              'Never',
+              'Only if cleaned',
+              'Depends on material'
+            ],
             correctOptionIndex: 2,
             explanation: 'Food containers must be cleaned before recycling.',
           ),
@@ -228,7 +237,8 @@ void main() {
           title: 'Quick Recycling Tip',
           description: 'Daily tip for better recycling',
           thumbnailUrl: 'https://example.com/tip-thumb.jpg',
-          contentText: 'Always rinse containers before recycling to avoid contamination.',
+          contentText:
+              'Always rinse containers before recycling to avoid contamination.',
           categories: ['Tips', 'Daily'],
           tags: ['tip', 'daily', 'quick'],
         );
@@ -446,7 +456,8 @@ void main() {
         final tip = DailyTip(
           id: 'tip_daily_123',
           title: 'Recycling Tip of the Day',
-          content: 'Clean containers before recycling to prevent contamination.',
+          content:
+              'Clean containers before recycling to prevent contamination.',
           category: 'Recycling',
           date: testDate,
           actionText: 'Learn More',

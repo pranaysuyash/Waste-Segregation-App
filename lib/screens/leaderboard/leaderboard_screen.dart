@@ -35,23 +35,29 @@ class LeaderboardScreen extends ConsumerWidget {
 
           return RefreshIndicator(
             onRefresh: () async {
-              ref.invalidate(topLeaderboardEntriesProvider);
-              ref.invalidate(currentUserLeaderboardEntryProvider);
-              ref.invalidate(currentUserRankProvider);
+              ref
+                ..invalidate(topLeaderboardEntriesProvider)
+                ..invalidate(currentUserLeaderboardEntryProvider)
+                ..invalidate(currentUserRankProvider);
               await ref.read(leaderboardScreenDataProvider.future);
             },
             child: CustomScrollView(
               slivers: <Widget>[
                 if (currentUserEntry != null || currentUserRank != null)
                   SliverToBoxAdapter(
-                    child: _buildCurrentUserSection(context, currentUserEntry, currentUserRank),
+                    child: _buildCurrentUserSection(
+                        context, currentUserEntry, currentUserRank),
                   ),
                 SliverToBoxAdapter(
                   child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 20.0),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 16.0, vertical: 20.0),
                     child: Text(
                       'Top Performers',
-                      style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
+                      style: Theme.of(context)
+                          .textTheme
+                          .headlineSmall
+                          ?.copyWith(fontWeight: FontWeight.bold),
                     ),
                   ),
                 ),
@@ -60,15 +66,19 @@ class LeaderboardScreen extends ConsumerWidget {
                 else
                   const SliverFillRemaining(
                     child: Center(
-                        child: Text('No top performers yet.', style: TextStyle(fontSize: 16, color: Colors.grey))),
+                        child: Text('No top performers yet.',
+                            style:
+                                TextStyle(fontSize: 16, color: Colors.grey))),
                   ),
               ],
             ),
           );
         },
-        loading: () => const Center(child: LoadingStateHandler(showShimmer: false)),
+        loading: () =>
+            const Center(child: LoadingStateHandler(showShimmer: false)),
         error: (error, stackTrace) {
-          WasteAppLogger.severe('Error loading leaderboard screen: $error\n$stackTrace');
+          WasteAppLogger.severe(
+              'Error loading leaderboard screen: $error\n$stackTrace');
           return Center(
             child: EmptyStateHandler(
                 title: 'Leaderboard Error',
@@ -84,7 +94,8 @@ class LeaderboardScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildCurrentUserSection(BuildContext context, LeaderboardEntry? currentUserEntry, int? currentUserRank) {
+  Widget _buildCurrentUserSection(BuildContext context,
+      LeaderboardEntry? currentUserEntry, int? currentUserRank) {
     final rankToShow = currentUserRank ?? currentUserEntry?.rank;
     final pointsToShow = currentUserEntry?.points;
 
@@ -103,10 +114,9 @@ class LeaderboardScreen extends ConsumerWidget {
           children: [
             Text(
               'Your Position',
-              style: Theme.of(context)
-                  .textTheme
-                  .titleMedium
-                  ?.copyWith(fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.primary),
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: Theme.of(context).colorScheme.primary),
             ),
             const SizedBox(height: 12),
             Row(
@@ -116,18 +126,32 @@ class LeaderboardScreen extends ConsumerWidget {
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('Rank', style: Theme.of(context).textTheme.labelLarge?.copyWith(color: Colors.grey[700])),
+                      Text('Rank',
+                          style: Theme.of(context)
+                              .textTheme
+                              .labelLarge
+                              ?.copyWith(color: Colors.grey[700])),
                       Text('$rankToShow',
-                          style: Theme.of(context).textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.bold)),
+                          style: Theme.of(context)
+                              .textTheme
+                              .headlineMedium
+                              ?.copyWith(fontWeight: FontWeight.bold)),
                     ],
                   ),
                 if (pointsToShow != null)
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
-                      Text('Points', style: Theme.of(context).textTheme.labelLarge?.copyWith(color: Colors.grey[700])),
+                      Text('Points',
+                          style: Theme.of(context)
+                              .textTheme
+                              .labelLarge
+                              ?.copyWith(color: Colors.grey[700])),
                       Text('$pointsToShow',
-                          style: Theme.of(context).textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.bold)),
+                          style: Theme.of(context)
+                              .textTheme
+                              .headlineMedium
+                              ?.copyWith(fontWeight: FontWeight.bold)),
                     ],
                   ),
               ],
@@ -156,16 +180,25 @@ class LeaderboardScreen extends ConsumerWidget {
           return Card(
             margin: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 6.0),
             elevation: 1.5,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
             child: ListTile(
               leading: CircleAvatar(
-                backgroundColor: Theme.of(context).colorScheme.secondaryContainer,
+                backgroundColor:
+                    Theme.of(context).colorScheme.secondaryContainer,
                 child: entry.photoUrl != null && entry.photoUrl!.isNotEmpty
-                    ? ClipOval(child: Image.network(entry.photoUrl!, width: 40, height: 40, fit: BoxFit.cover))
+                    ? ClipOval(
+                        child: Image.network(entry.photoUrl!,
+                            width: 40, height: 40, fit: BoxFit.cover))
                     : Text(
-                        entry.displayName.isNotEmpty ? entry.displayName[0].toUpperCase() : 'U',
+                        entry.displayName.isNotEmpty
+                            ? entry.displayName[0].toUpperCase()
+                            : 'U',
                         style: TextStyle(
-                            color: Theme.of(context).colorScheme.onSecondaryContainer, fontWeight: FontWeight.bold),
+                            color: Theme.of(context)
+                                .colorScheme
+                                .onSecondaryContainer,
+                            fontWeight: FontWeight.bold),
                       ),
               ),
               title: Text(
@@ -175,8 +208,10 @@ class LeaderboardScreen extends ConsumerWidget {
               subtitle: Text('${entry.points} points'),
               trailing: Text(
                 '#$rank',
-                style:
-                    TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.primary),
+                style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: Theme.of(context).colorScheme.primary),
               ),
             ),
           );

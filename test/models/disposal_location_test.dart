@@ -17,27 +17,38 @@ void main() {
     });
 
     setUp(() {
-      testCoordinates = const GeoPoint(37.7749, -122.4194); // San Francisco coordinates
-      testTimestamp = Timestamp.fromDate(DateTime.parse('2024-01-15T10:30:00Z'));
+      testCoordinates =
+          const GeoPoint(37.7749, -122.4194); // San Francisco coordinates
+      testTimestamp =
+          Timestamp.fromDate(DateTime.parse('2024-01-15T10:30:00Z'));
     });
 
     group('FacilitySource Enum Tests', () {
       test('should convert FacilitySource to string correctly', () {
-        expect(facilitySourceToString(FacilitySource.adminEntered), equals('ADMIN_ENTERED'));
-        expect(facilitySourceToString(FacilitySource.userSuggestedIntegrated), equals('USER_SUGGESTED_INTEGRATED'));
-        expect(facilitySourceToString(FacilitySource.bulkImported), equals('BULK_IMPORTED'));
+        expect(facilitySourceToString(FacilitySource.adminEntered),
+            equals('ADMIN_ENTERED'));
+        expect(facilitySourceToString(FacilitySource.userSuggestedIntegrated),
+            equals('USER_SUGGESTED_INTEGRATED'));
+        expect(facilitySourceToString(FacilitySource.bulkImported),
+            equals('BULK_IMPORTED'));
       });
 
       test('should convert string to FacilitySource correctly', () {
-        expect(facilitySourceFromString('ADMIN_ENTERED'), equals(FacilitySource.adminEntered));
-        expect(facilitySourceFromString('USER_SUGGESTED_INTEGRATED'), equals(FacilitySource.userSuggestedIntegrated));
-        expect(facilitySourceFromString('BULK_IMPORTED'), equals(FacilitySource.bulkImported));
+        expect(facilitySourceFromString('ADMIN_ENTERED'),
+            equals(FacilitySource.adminEntered));
+        expect(facilitySourceFromString('USER_SUGGESTED_INTEGRATED'),
+            equals(FacilitySource.userSuggestedIntegrated));
+        expect(facilitySourceFromString('BULK_IMPORTED'),
+            equals(FacilitySource.bulkImported));
       });
 
       test('should handle invalid source strings', () {
-        expect(facilitySourceFromString('INVALID_SOURCE'), equals(FacilitySource.adminEntered)); // Default fallback
-        expect(facilitySourceFromString(null), equals(FacilitySource.adminEntered));
-        expect(facilitySourceFromString(''), equals(FacilitySource.adminEntered));
+        expect(facilitySourceFromString('INVALID_SOURCE'),
+            equals(FacilitySource.adminEntered)); // Default fallback
+        expect(facilitySourceFromString(null),
+            equals(FacilitySource.adminEntered));
+        expect(
+            facilitySourceFromString(''), equals(FacilitySource.adminEntered));
       });
     });
 
@@ -52,7 +63,8 @@ void main() {
 
         expect(photo.url, equals('https://example.com/facility-photo.jpg'));
         expect(photo.uploadedByUserId, equals('user_123'));
-        expect(photo.caption, equals('Main entrance of the recycling facility'));
+        expect(
+            photo.caption, equals('Main entrance of the recycling facility'));
         expect(photo.uploadTimestamp, equals(testTimestamp));
       });
 
@@ -67,7 +79,8 @@ void main() {
         expect(photo.uploadTimestamp, isNull);
       });
 
-      test('should serialize and deserialize DisposalLocationPhoto correctly', () {
+      test('should serialize and deserialize DisposalLocationPhoto correctly',
+          () {
         final original = DisposalLocationPhoto(
           url: 'https://example.com/test-photo.jpg',
           uploadedByUserId: 'user_456',
@@ -124,7 +137,8 @@ void main() {
         expect(updated.url, equals(original.url)); // Unchanged
         expect(updated.uploadedByUserId, equals('user_456')); // Changed
         expect(updated.caption, equals('Updated caption')); // Changed
-        expect(updated.uploadTimestamp, equals(original.uploadTimestamp)); // Unchanged
+        expect(updated.uploadTimestamp,
+            equals(original.uploadTimestamp)); // Unchanged
       });
     });
 
@@ -164,7 +178,8 @@ void main() {
         expect(location.isActive, isTrue);
       });
 
-      test('should create DisposalLocation with minimal fields and defaults', () {
+      test('should create DisposalLocation with minimal fields and defaults',
+          () {
         final location = DisposalLocation(
           name: 'Basic Facility',
           address: '456 Basic St',
@@ -212,7 +227,8 @@ void main() {
     });
 
     group('DisposalLocation Serialization Tests', () {
-      test('should serialize and deserialize correctly with fromJson/toJson', () {
+      test('should serialize and deserialize correctly with fromJson/toJson',
+          () {
         final original = DisposalLocation(
           name: 'Test Recycling Center',
           address: '123 Test Ave, Test City, TC 12345',
@@ -403,7 +419,8 @@ void main() {
 
         for (final location in locations) {
           expect(location.coordinates.latitude, inInclusiveRange(-90.0, 90.0));
-          expect(location.coordinates.longitude, inInclusiveRange(-180.0, 180.0));
+          expect(
+              location.coordinates.longitude, inInclusiveRange(-180.0, 180.0));
         }
       });
 
@@ -481,7 +498,8 @@ void main() {
 
         expect(location.acceptedMaterials.length, equals(12));
         expect(location.acceptedMaterials.contains('Electronics'), isTrue);
-        expect(location.acceptedMaterials.contains('Hazardous materials'), isTrue);
+        expect(
+            location.acceptedMaterials.contains('Hazardous materials'), isTrue);
       });
     });
 
@@ -551,7 +569,8 @@ void main() {
       });
 
       test('should handle future timestamps', () {
-        final futureTimestamp = Timestamp.fromDate(DateTime.now().add(const Duration(days: 365)));
+        final futureTimestamp =
+            Timestamp.fromDate(DateTime.now().add(const Duration(days: 365)));
 
         final location = DisposalLocation(
           name: 'Future Facility',
@@ -565,8 +584,10 @@ void main() {
           source: FacilitySource.adminEntered,
         );
 
-        expect(location.lastAdminUpdate?.toDate().isAfter(DateTime.now()), isTrue);
-        expect(location.lastVerifiedByAdmin?.toDate().isAfter(DateTime.now()), isTrue);
+        expect(
+            location.lastAdminUpdate?.toDate().isAfter(DateTime.now()), isTrue);
+        expect(location.lastVerifiedByAdmin?.toDate().isAfter(DateTime.now()),
+            isTrue);
       });
 
       test('should handle special characters in all fields', () {
@@ -588,14 +609,17 @@ void main() {
 
         expect(location.name, contains('émojis'));
         expect(location.address, contains('🌍'));
-        expect(location.operatingHours.keys.any((k) => k.contains('@')), isTrue);
-        expect(location.contactInfo.values.any((v) => v.contains('📧')), isTrue);
+        expect(
+            location.operatingHours.keys.any((k) => k.contains('@')), isTrue);
+        expect(
+            location.contactInfo.values.any((v) => v.contains('📧')), isTrue);
         expect(location.acceptedMaterials.any((m) => m.contains('♻️')), isTrue);
       });
     });
 
     group('Integration Tests with Photos', () {
-      test('should handle complex facility with multiple photos and updates', () {
+      test('should handle complex facility with multiple photos and updates',
+          () {
         final photos = [
           DisposalLocationPhoto(
             url: 'https://example.com/entrance.jpg',
@@ -607,7 +631,8 @@ void main() {
             url: 'https://example.com/sorting.jpg',
             uploadedByUserId: 'volunteer_123',
             caption: 'Sorting area for different materials',
-            uploadTimestamp: Timestamp.fromDate(testTimestamp.toDate().add(const Duration(days: 1))),
+            uploadTimestamp: Timestamp.fromDate(
+                testTimestamp.toDate().add(const Duration(days: 1))),
           ),
           DisposalLocationPhoto(
             url: 'https://example.com/equipment.jpg',
@@ -660,8 +685,10 @@ void main() {
         expect(complexLocation.contactInfo.length, equals(4));
 
         // Test that photos maintain their properties
-        expect(complexLocation.photos![0].uploadedByUserId, equals('admin_user'));
-        expect(complexLocation.photos![1].uploadedByUserId, equals('volunteer_123'));
+        expect(
+            complexLocation.photos![0].uploadedByUserId, equals('admin_user'));
+        expect(complexLocation.photos![1].uploadedByUserId,
+            equals('volunteer_123'));
         expect(complexLocation.photos![2].uploadedByUserId, isNull);
 
         // Test serialization of complex location
@@ -673,7 +700,8 @@ void main() {
         const documentId = 'complex_doc_456';
         final recreated = DisposalLocation.fromJson(json, documentId);
         expect(recreated.photos?.length, equals(3));
-        expect(recreated.photos![0].caption, equals('Main entrance with signage'));
+        expect(
+            recreated.photos![0].caption, equals('Main entrance with signage'));
       });
     });
   });

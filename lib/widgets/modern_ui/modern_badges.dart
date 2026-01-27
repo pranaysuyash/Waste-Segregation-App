@@ -26,8 +26,10 @@ class ModernBadge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final effectiveBackgroundColor = backgroundColor ?? theme.colorScheme.primary;
-    final effectiveTextColor = textColor ?? _getTextColor(theme, effectiveBackgroundColor);
+    final effectiveBackgroundColor =
+        backgroundColor ?? theme.colorScheme.primary;
+    final effectiveTextColor =
+        textColor ?? _getTextColor(theme, effectiveBackgroundColor);
 
     Widget badge = Container(
       padding: _getPadding(),
@@ -157,7 +159,8 @@ class PulseBadge extends StatefulWidget {
   State<PulseBadge> createState() => _PulseBadgeState();
 }
 
-class _PulseBadgeState extends State<PulseBadge> with SingleTickerProviderStateMixin {
+class _PulseBadgeState extends State<PulseBadge>
+    with SingleTickerProviderStateMixin {
   late AnimationController _animationController;
   late Animation<double> _pulseAnimation;
 
@@ -225,11 +228,13 @@ class ModernChip extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final effectiveSelectedColor = selectedColor ?? theme.colorScheme.primary;
-    final effectiveUnselectedColor = unselectedColor ?? theme.colorScheme.surfaceContainerHighest;
+    final effectiveUnselectedColor =
+        unselectedColor ?? theme.colorScheme.surfaceContainerHighest;
 
     return AnimatedContainer(
       duration: AppTheme.animationFast,
-      decoration: _getDecoration(theme, effectiveSelectedColor, effectiveUnselectedColor),
+      decoration: _getDecoration(
+          theme, effectiveSelectedColor, effectiveUnselectedColor),
       child: Material(
         color: Colors.transparent,
         child: InkWell(
@@ -274,7 +279,8 @@ class ModernChip extends StatelessWidget {
     );
   }
 
-  BoxDecoration _getDecoration(ThemeData theme, Color selectedColor, Color unselectedColor) {
+  BoxDecoration _getDecoration(
+      ThemeData theme, Color selectedColor, Color unselectedColor) {
     switch (style) {
       case ModernChipStyle.filled:
         return BoxDecoration(
@@ -292,7 +298,9 @@ class ModernChip extends StatelessWidget {
         );
       case ModernChipStyle.soft:
         return BoxDecoration(
-          color: isSelected ? selectedColor.withValues(alpha: 0.15) : unselectedColor.withValues(alpha: 0.5),
+          color: isSelected
+              ? selectedColor.withValues(alpha: 0.15)
+              : unselectedColor.withValues(alpha: 0.5),
           borderRadius: BorderRadius.circular(AppTheme.borderRadiusXl),
         );
     }
@@ -539,7 +547,8 @@ class ProgressBadge extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final effectiveProgressColor = progressColor ?? theme.colorScheme.primary;
-    final effectiveBackgroundColor = backgroundColor ?? theme.colorScheme.surfaceContainerHighest;
+    final effectiveBackgroundColor =
+        backgroundColor ?? theme.colorScheme.surfaceContainerHighest;
     final effectiveStrokeWidth = strokeWidth ?? (size * 0.1).clamp(2.0, 4.0);
 
     // Clamp progress to valid range
@@ -548,8 +557,9 @@ class ProgressBadge extends StatelessWidget {
     return LayoutBuilder(
       builder: (context, constraints) {
         // Responsive sizing based on available space
-        final responsiveSize =
-            constraints.maxWidth > 0 ? size.clamp(24.0, constraints.maxWidth.clamp(24.0, 48.0)) : size;
+        final responsiveSize = constraints.maxWidth > 0
+            ? size.clamp(24.0, constraints.maxWidth.clamp(24.0, 48.0))
+            : size;
 
         return SizedBox(
           width: responsiveSize,
@@ -561,10 +571,12 @@ class ProgressBadge extends StatelessWidget {
                 value: clampedProgress,
                 strokeWidth: effectiveStrokeWidth,
                 backgroundColor: effectiveBackgroundColor,
-                valueColor: AlwaysStoppedAnimation<Color>(effectiveProgressColor),
+                valueColor:
+                    AlwaysStoppedAnimation<Color>(effectiveProgressColor),
               ),
               if (text != null || showPercentage)
-                _buildCenterText(responsiveSize, effectiveProgressColor, clampedProgress),
+                _buildCenterText(
+                    responsiveSize, effectiveProgressColor, clampedProgress),
             ],
           ),
         );
@@ -589,7 +601,8 @@ class ProgressBadge extends StatelessWidget {
         }
 
         // Ensure minimum readable size
-        fontSize = fontSize.clamp(8.0, (size * 0.3).clamp(8.0, double.infinity));
+        fontSize =
+            fontSize.clamp(8.0, (size * 0.3).clamp(8.0, double.infinity));
 
         return FittedBox(
           fit: BoxFit.scaleDown,

@@ -49,7 +49,9 @@ class ActionRow extends ConsumerWidget {
           _buildActionButton(
             context: context,
             colorScheme: colorScheme,
-            icon: isSaved ? Icons.bookmark_rounded : Icons.bookmark_outline_rounded,
+            icon: isSaved
+                ? Icons.bookmark_rounded
+                : Icons.bookmark_outline_rounded,
             label: isSaved ? 'Saved' : 'Save',
             onPressed: isLoading ? null : onSave,
             semanticLabel: isSaved ? 'Already saved' : 'Save result',
@@ -82,7 +84,9 @@ class ActionRow extends ConsumerWidget {
               width: 48,
               height: 48,
               decoration: BoxDecoration(
-                color: isPrimary ? colorScheme.primaryContainer : colorScheme.surfaceContainerHighest,
+                color: isPrimary
+                    ? colorScheme.primaryContainer
+                    : colorScheme.surfaceContainerHighest,
                 borderRadius: BorderRadius.circular(24),
                 border: Border.all(
                   color: isPrimary
@@ -110,14 +114,19 @@ class ActionRow extends ConsumerWidget {
                               height: 20,
                               child: CircularProgressIndicator(
                                 strokeWidth: 2,
-                                color: isPrimary ? colorScheme.onPrimaryContainer : colorScheme.onSurfaceVariant,
+                                color: isPrimary
+                                    ? colorScheme.onPrimaryContainer
+                                    : colorScheme.onSurfaceVariant,
                               ),
                             )
                           : Icon(
                               icon,
                               color: onPressed != null
-                                  ? (isPrimary ? colorScheme.onPrimaryContainer : colorScheme.onSurfaceVariant)
-                                  : colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
+                                  ? (isPrimary
+                                      ? colorScheme.onPrimaryContainer
+                                      : colorScheme.onSurfaceVariant)
+                                  : colorScheme.onSurfaceVariant
+                                      .withValues(alpha: 0.5),
                               size: 20,
                             ),
                     ),
@@ -133,7 +142,9 @@ class ActionRow extends ConsumerWidget {
               label,
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
                     color: onPressed != null
-                        ? (isPrimary ? colorScheme.primary : colorScheme.onSurfaceVariant)
+                        ? (isPrimary
+                            ? colorScheme.primary
+                            : colorScheme.onSurfaceVariant)
                         : colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
                     fontWeight: isPrimary ? FontWeight.w600 : FontWeight.w500,
                     fontSize: 12,

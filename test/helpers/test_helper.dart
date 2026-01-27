@@ -15,7 +15,8 @@ import 'package:waste_segregation_app/models/filter_options.dart';
 /// Mock Storage Service for testing
 class MockStorageService extends StorageService {
   @override
-  Future<List<WasteClassification>> getAllClassifications({FilterOptions? filterOptions}) async {
+  Future<List<WasteClassification>> getAllClassifications(
+      {FilterOptions? filterOptions}) async {
     return [];
   }
 
@@ -46,7 +47,8 @@ class MockCloudStorageService extends CloudStorageService {
   }
 
   @override
-  Future<void> saveUserProfileToFirestore(UserProfile profile) async {
+  Future<void> saveUserProfileToFirestore(UserProfile userProfile,
+      {bool useBatching = true}) async {
     // Mock implementation - do nothing
   }
 
@@ -63,7 +65,8 @@ class MockCloudStorageService extends CloudStorageService {
 
 /// Mock Gamification Service for testing
 class MockGamificationService extends GamificationService {
-  MockGamificationService() : super(MockStorageService(), MockCloudStorageService());
+  MockGamificationService()
+      : super(MockStorageService(), MockCloudStorageService());
 
   @override
   Future<GamificationProfile> getProfile({bool forceRefresh = false}) async {
@@ -141,8 +144,27 @@ Widget createRiverpodTestWidget({
   );
 }
 
+/// Back-compat helper used by older golden tests.
+///
+/// Prefer [createRiverpodTestWidget] going forward.
+Widget createTestApp({
+  required Widget child,
+  ThemeData? theme,
+  List<Override>? overrides,
+}) {
+  return createRiverpodTestWidget(
+    child: child,
+    theme: theme,
+    overrides: overrides,
+  );
+}
+
 // Provider definitions for testing
-final storageServiceProvider = Provider<StorageService>((ref) => MockStorageService());
-final cloudStorageServiceProvider = Provider<CloudStorageService>((ref) => MockCloudStorageService());
-final gamificationServiceProvider = Provider<GamificationService>((ref) => MockGamificationService());
-final communityServiceProvider = Provider<CommunityService>((ref) => MockCommunityService());
+final storageServiceProvider =
+    Provider<StorageService>((ref) => MockStorageService());
+final cloudStorageServiceProvider =
+    Provider<CloudStorageService>((ref) => MockCloudStorageService());
+final gamificationServiceProvider =
+    Provider<GamificationService>((ref) => MockGamificationService());
+final communityServiceProvider =
+    Provider<CommunityService>((ref) => MockCommunityService());

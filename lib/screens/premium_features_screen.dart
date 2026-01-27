@@ -27,7 +27,9 @@ class _PremiumFeaturesScreenState extends State<PremiumFeaturesScreen> {
           if (DeveloperConfig.canShowPremiumToggles)
             IconButton(
               icon: Icon(
-                _showTestOptions ? Icons.developer_mode : Icons.developer_mode_outlined,
+                _showTestOptions
+                    ? Icons.developer_mode
+                    : Icons.developer_mode_outlined,
                 color: _showTestOptions ? Colors.yellow : Colors.white,
               ),
               onPressed: () {
@@ -43,7 +45,8 @@ class _PremiumFeaturesScreenState extends State<PremiumFeaturesScreen> {
         padding: const EdgeInsets.all(16.0),
         children: [
           // Developer test options (secure debug only)
-          if (DeveloperConfig.canShowPremiumToggles && _showTestOptions) _buildDeveloperTestOptions(context),
+          if (DeveloperConfig.canShowPremiumToggles && _showTestOptions)
+            _buildDeveloperTestOptions(context),
 
           _buildHeader(context),
           const SizedBox(height: 24),
@@ -91,7 +94,8 @@ class _PremiumFeaturesScreenState extends State<PremiumFeaturesScreen> {
                   await premiumService.resetPremiumFeatures();
                   if (mounted) {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('All premium features reset')),
+                      const SnackBar(
+                          content: Text('All premium features reset')),
                     );
                   }
                 },
@@ -105,13 +109,15 @@ class _PremiumFeaturesScreenState extends State<PremiumFeaturesScreen> {
             style: TextStyle(fontSize: 14),
           ),
           const SizedBox(height: 16),
-          ...PremiumFeature.features.map((feature) => _buildFeatureToggle(feature, premiumService)),
+          ...PremiumFeature.features
+              .map((feature) => _buildFeatureToggle(feature, premiumService)),
         ],
       ),
     );
   }
 
-  Widget _buildFeatureToggle(PremiumFeature feature, PremiumService premiumService) {
+  Widget _buildFeatureToggle(
+      PremiumFeature feature, PremiumService premiumService) {
     final isEnabled = premiumService.isPremiumFeature(feature.id);
 
     return Padding(
@@ -121,7 +127,9 @@ class _PremiumFeaturesScreenState extends State<PremiumFeaturesScreen> {
           Expanded(
             child: Text(
               feature.title,
-              style: const TextStyle(fontWeight: FontWeight.w500, color: AppTheme.textPrimaryColor),
+              style: const TextStyle(
+                  fontWeight: FontWeight.w500,
+                  color: AppTheme.textPrimaryColor),
             ),
           ),
           Switch(
@@ -283,7 +291,8 @@ class _PremiumFeaturesScreenState extends State<PremiumFeaturesScreen> {
           if (kDebugMode) {
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(
-                content: Text('In-app purchase flow would launch here. Use developer mode to test features.'),
+                content: Text(
+                    'In-app purchase flow would launch here. Use developer mode to test features.'),
               ),
             );
           } else {

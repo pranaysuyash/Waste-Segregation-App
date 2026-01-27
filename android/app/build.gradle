@@ -58,6 +58,11 @@ android {
     buildTypes {
         release {
             signingConfig signingConfigs.release
+            // Explicitly disable R8/Proguard until we have complete keep rules for
+            // ML / TFLite delegate classes referenced by plugins. This prevents
+            // release builds from failing with missing-class errors.
+            minifyEnabled false
+            shrinkResources false
         }
     }
 }

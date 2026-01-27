@@ -46,8 +46,10 @@ void main() {
         );
 
         // expect(invitation.message, 'Join our family!'); // Removed: message is not defined
-        expect(invitation.invitedUserId, 'user789'); // Renamed from inviteeUserId
-        expect(invitation.respondedAt, DateTime(2024, 1, 16)); // Renamed from acceptedAt
+        expect(
+            invitation.invitedUserId, 'user789'); // Renamed from inviteeUserId
+        expect(invitation.respondedAt,
+            DateTime(2024, 1, 16)); // Renamed from acceptedAt
       });
     });
 
@@ -216,9 +218,12 @@ void main() {
           expiresAt: DateTime.now().add(const Duration(days: 7)),
         );
 
-        expect(pendingInvitation.status == InvitationStatus.pending, true); // Adjusted
-        expect(pendingInvitation.status == InvitationStatus.accepted, false); // Adjusted
-        expect(pendingInvitation.status == InvitationStatus.declined, false); // Adjusted
+        expect(pendingInvitation.status == InvitationStatus.pending,
+            true); // Adjusted
+        expect(pendingInvitation.status == InvitationStatus.accepted,
+            false); // Adjusted
+        expect(pendingInvitation.status == InvitationStatus.declined,
+            false); // Adjusted
         expect(pendingInvitation.isExpired, false); // Model has isExpired
       });
 
@@ -237,15 +242,20 @@ void main() {
           respondedAt: DateTime.now(), // Renamed
         );
 
-        expect(acceptedInvitation.status == InvitationStatus.pending, false); // Adjusted
-        expect(acceptedInvitation.status == InvitationStatus.accepted, true); // Adjusted
-        expect(acceptedInvitation.status == InvitationStatus.declined, false); // Adjusted
+        expect(acceptedInvitation.status == InvitationStatus.pending,
+            false); // Adjusted
+        expect(acceptedInvitation.status == InvitationStatus.accepted,
+            true); // Adjusted
+        expect(acceptedInvitation.status == InvitationStatus.declined,
+            false); // Adjusted
         expect(acceptedInvitation.isExpired, false); // Model has isExpired
       });
     });
 
     group('Expiration Logic', () {
-      test('should detect expired invitation (when pending and past expiry date)', () {
+      test(
+          'should detect expired invitation (when pending and past expiry date)',
+          () {
         final pendingAndPastExpiry = FamilyInvitation(
           id: 'invite123',
           familyId: 'family456',
@@ -254,10 +264,12 @@ void main() {
           inviterName: 'John Smith',
           invitedEmail: 'jane@example.com',
           createdAt: DateTime.now().subtract(const Duration(days: 10)),
-          expiresAt: DateTime.now().subtract(const Duration(days: 3)), // Past expiry
+          expiresAt:
+              DateTime.now().subtract(const Duration(days: 3)), // Past expiry
         );
         expect(pendingAndPastExpiry.isExpired, true,
-            reason: 'Invitation should be expired if pending and past expiresAt');
+            reason:
+                'Invitation should be expired if pending and past expiresAt');
 
         final pendingAndFutureExpiry = FamilyInvitation(
           id: 'invite124',
@@ -267,10 +279,12 @@ void main() {
           inviterName: 'John Smith',
           invitedEmail: 'jane@example.com',
           createdAt: DateTime.now().subtract(const Duration(days: 1)),
-          expiresAt: DateTime.now().add(const Duration(days: 3)), // Future expiry
+          expiresAt:
+              DateTime.now().add(const Duration(days: 3)), // Future expiry
         );
         expect(pendingAndFutureExpiry.isExpired, false,
-            reason: 'Invitation should not be expired if pending and expiresAt is in the future');
+            reason:
+                'Invitation should not be expired if pending and expiresAt is in the future');
       });
 
       test('should detect if invitation will expire soon', () {
@@ -292,11 +306,13 @@ void main() {
         final now = DateTime.now();
         expect(
             soonToExpireInvitation.expiresAt.isAfter(now) &&
-                soonToExpireInvitation.expiresAt.isBefore(now.add(const Duration(days: 1))),
+                soonToExpireInvitation.expiresAt
+                    .isBefore(now.add(const Duration(days: 1))),
             true);
         expect(
             soonToExpireInvitation.expiresAt.isAfter(now) &&
-                soonToExpireInvitation.expiresAt.isBefore(now.add(const Duration(hours: 6))),
+                soonToExpireInvitation.expiresAt
+                    .isBefore(now.add(const Duration(hours: 6))),
             false);
       });
 
@@ -315,8 +331,10 @@ void main() {
 
         // final remaining = invitation.timeUntilExpiry; // Removed: timeUntilExpiry not defined
         // expect(remaining.inDays, 3);
-        expect(invitation.daysUntilExpiration, 3); // Adjusted to use model's getter
-        expect(invitation.hoursUntilExpiration, greaterThan(80)); // Adjusted (3*24 + 12 = 84)
+        expect(invitation.daysUntilExpiration,
+            3); // Adjusted to use model's getter
+        expect(invitation.hoursUntilExpiration,
+            greaterThan(80)); // Adjusted (3*24 + 12 = 84)
       });
     });
 
@@ -404,8 +422,10 @@ void main() {
           expiresAt: DateTime.now().subtract(const Duration(days: 3)),
         );
 
-        expect(acceptableInvitation.isValid, true); // Adjusted to use model's isValid
-        expect(expiredInvite.isValid, false); // Adjusted (status is not pending)
+        expect(acceptableInvitation.isValid,
+            true); // Adjusted to use model's isValid
+        expect(
+            expiredInvite.isValid, false); // Adjusted (status is not pending)
         expect(pendingButDateExpired.isValid, false); // Adjusted (date is past)
       });
     });
@@ -428,7 +448,8 @@ void main() {
           id: 'invite123',
           familyId: 'family456',
           familyName: 'Smith Family',
-          inviterUserId: 'test_inviter_id_eq1', // Added, same as invitation1 for equality
+          inviterUserId:
+              'test_inviter_id_eq1', // Added, same as invitation1 for equality
           inviterName: 'John Smith',
           invitedEmail: 'jane@example.com',
           // inviteCode: 'ABC123', // Removed

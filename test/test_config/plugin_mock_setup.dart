@@ -24,7 +24,8 @@ class PluginMockSetup {
     final tempDir = Directory.systemTemp.createTempSync('flutter_test_');
     final testPath = tempDir.path;
 
-    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger.setMockMethodCallHandler(
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(
       channel,
       (MethodCall methodCall) async {
         switch (methodCall.method) {
@@ -62,7 +63,8 @@ class PluginMockSetup {
   static void setupDeviceInfo() {
     const channel = MethodChannel('plugins.flutter.io/device_info');
 
-    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger.setMockMethodCallHandler(
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(
       channel,
       (MethodCall methodCall) async {
         switch (methodCall.method) {
@@ -93,7 +95,8 @@ class PluginMockSetup {
   static void setupPackageInfo() {
     const channel = MethodChannel('plugins.flutter.io/package_info');
 
-    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger.setMockMethodCallHandler(
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(
       channel,
       (MethodCall methodCall) async {
         return {
@@ -110,7 +113,8 @@ class PluginMockSetup {
   static void setupImagePicker() {
     const channel = MethodChannel('plugins.flutter.io/image_picker');
 
-    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger.setMockMethodCallHandler(
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(
       channel,
       (MethodCall methodCall) async {
         switch (methodCall.method) {
@@ -130,7 +134,8 @@ class PluginMockSetup {
   static void setupCamera() {
     const channel = MethodChannel('plugins.flutter.io/camera');
 
-    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger.setMockMethodCallHandler(
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(
       channel,
       (MethodCall methodCall) async {
         switch (methodCall.method) {
@@ -159,7 +164,8 @@ class PluginMockSetup {
   static void setupFirebase() {
     // Mock Firebase Core
     const coreChannel = MethodChannel('plugins.flutter.io/firebase_core');
-    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger.setMockMethodCallHandler(
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(
       coreChannel,
       (MethodCall methodCall) async {
         switch (methodCall.method) {
@@ -182,8 +188,10 @@ class PluginMockSetup {
     );
 
     // Mock Firestore
-    const firestoreChannel = MethodChannel('plugins.flutter.io/cloud_firestore');
-    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger.setMockMethodCallHandler(
+    const firestoreChannel =
+        MethodChannel('plugins.flutter.io/cloud_firestore');
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(
       firestoreChannel,
       (MethodCall methodCall) async {
         switch (methodCall.method) {
@@ -221,7 +229,8 @@ class PluginMockSetup {
   static void setupConnectivity() {
     const channel = MethodChannel('dev.fluttercommunity/connectivity');
 
-    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger.setMockMethodCallHandler(
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(
       channel,
       (MethodCall methodCall) async {
         switch (methodCall.method) {
@@ -244,7 +253,8 @@ class PluginMockSetup {
   static void setupPermissions() {
     const channel = MethodChannel('flutter.baseflow.com/permissions/methods');
 
-    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger.setMockMethodCallHandler(
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(
       channel,
       (MethodCall methodCall) async {
         switch (methodCall.method) {
@@ -265,47 +275,56 @@ class PluginMockSetup {
   /// Cleanup all mocks after tests
   static void tearDownAll() {
     // Reset all method channels
-    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger.setMockMethodCallHandler(
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(
       const MethodChannel('plugins.flutter.io/path_provider'),
       null,
     );
 
-    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger.setMockMethodCallHandler(
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(
       const MethodChannel('plugins.flutter.io/device_info'),
       null,
     );
 
-    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger.setMockMethodCallHandler(
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(
       const MethodChannel('plugins.flutter.io/package_info'),
       null,
     );
 
-    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger.setMockMethodCallHandler(
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(
       const MethodChannel('plugins.flutter.io/image_picker'),
       null,
     );
 
-    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger.setMockMethodCallHandler(
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(
       const MethodChannel('plugins.flutter.io/camera'),
       null,
     );
 
-    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger.setMockMethodCallHandler(
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(
       const MethodChannel('plugins.flutter.io/firebase_core'),
       null,
     );
 
-    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger.setMockMethodCallHandler(
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(
       const MethodChannel('plugins.flutter.io/cloud_firestore'),
       null,
     );
 
-    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger.setMockMethodCallHandler(
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(
       const MethodChannel('dev.fluttercommunity/connectivity'),
       null,
     );
 
-    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger.setMockMethodCallHandler(
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(
       const MethodChannel('flutter.baseflow.com/permissions/methods'),
       null,
     );
@@ -431,13 +450,19 @@ class PerformanceTestHelpers {
     stopwatch.stop();
 
     if (frameTimes.isEmpty) {
-      return {'total_time': Duration.zero, 'frame_count': 0, 'avg_frame_time': Duration.zero};
+      return {
+        'total_time': Duration.zero,
+        'frame_count': 0,
+        'avg_frame_time': Duration.zero
+      };
     }
 
     final totalTime = stopwatch.elapsed;
     final frameCount = frameTimes.length;
     final avgFrameTime = Duration(
-      microseconds: frameTimes.map((d) => d.inMicroseconds).reduce((a, b) => a + b) ~/ frameCount,
+      microseconds:
+          frameTimes.map((d) => d.inMicroseconds).reduce((a, b) => a + b) ~/
+              frameCount,
     );
 
     return {

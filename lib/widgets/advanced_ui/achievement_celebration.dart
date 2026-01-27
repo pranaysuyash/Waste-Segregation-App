@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'dart:math' as math;
 import '../../models/gamification.dart';
 import '../../l10n/app_localizations.dart';
+import '../../utils/constants.dart';
 
 /// Epic achievement celebration with confetti and 3D badge effect
 class AchievementCelebration extends StatefulWidget {
@@ -20,7 +21,8 @@ class AchievementCelebration extends StatefulWidget {
   _AchievementCelebrationState createState() => _AchievementCelebrationState();
 }
 
-class _AchievementCelebrationState extends State<AchievementCelebration> with TickerProviderStateMixin {
+class _AchievementCelebrationState extends State<AchievementCelebration>
+    with TickerProviderStateMixin {
   late AnimationController _mainController;
   late AnimationController _confettiController;
   late AnimationController _badgeController;
@@ -87,7 +89,8 @@ class _AchievementCelebrationState extends State<AchievementCelebration> with Ti
         velocityX: (random.nextDouble() - 0.5) * 0.5,
         velocityY: random.nextDouble() * 0.3 + 0.2,
         size: random.nextDouble() * 6 + 2,
-        color: _getConfettiColors()[random.nextInt(_getConfettiColors().length)],
+        color:
+            _getConfettiColors()[random.nextInt(_getConfettiColors().length)],
         rotation: random.nextDouble() * 2 * math.pi,
         rotationSpeed: (random.nextDouble() - 0.5) * 0.2,
       );
@@ -96,13 +99,13 @@ class _AchievementCelebrationState extends State<AchievementCelebration> with Ti
 
   List<Color> _getConfettiColors() {
     return [
-      Colors.amber,
-      Colors.orange,
+      AppTheme.rewardGold,
+      AppTheme.secondaryColor,
       widget.achievement.color,
       Colors.white,
-      const Color(0xFF06FFA5),
-      const Color(0xFF00B4D8),
-      const Color(0xFFFF6B6B),
+      AppTheme.wetWasteColor,
+      AppTheme.dryWasteColor,
+      AppTheme.hazardousWasteColor,
     ];
   }
 
@@ -156,7 +159,8 @@ class _AchievementCelebrationState extends State<AchievementCelebration> with Ti
                           child: Transform.translate(
                             offset: Offset(
                               0,
-                              _slideAnimation.value * MediaQuery.of(context).size.height,
+                              _slideAnimation.value *
+                                  MediaQuery.of(context).size.height,
                             ),
                             child: Transform.scale(
                               scale: _scaleAnimation.value,
@@ -236,7 +240,8 @@ class _AchievementCelebrationState extends State<AchievementCelebration> with Ti
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             decoration: BoxDecoration(
-              gradient: const LinearGradient(colors: [Colors.amber, Colors.orange]),
+              gradient:
+                  const LinearGradient(colors: [Colors.amber, Colors.orange]),
               borderRadius: BorderRadius.circular(20),
             ),
             child: Row(
@@ -372,7 +377,8 @@ class ConfettiPainter extends CustomPainter {
 
       if (y > size.height + 50) continue;
 
-      final rotation = particle.rotation + particle.rotationSpeed * progress * 10;
+      final rotation =
+          particle.rotation + particle.rotationSpeed * progress * 10;
       final opacity = math.max(0.0, 1.0 - (y / size.height));
 
       final paint = Paint()
@@ -434,7 +440,8 @@ class PointsEarnedPopup extends StatefulWidget {
   _PointsEarnedPopupState createState() => _PointsEarnedPopupState();
 }
 
-class _PointsEarnedPopupState extends State<PointsEarnedPopup> with TickerProviderStateMixin {
+class _PointsEarnedPopupState extends State<PointsEarnedPopup>
+    with TickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _scaleAnimation;
   late Animation<double> _slideAnimation;
@@ -490,7 +497,8 @@ class _PointsEarnedPopupState extends State<PointsEarnedPopup> with TickerProvid
             child: Opacity(
               opacity: _opacityAnimation.value,
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                 decoration: BoxDecoration(
                   gradient: const LinearGradient(
                     colors: [Colors.amber, Colors.orange],

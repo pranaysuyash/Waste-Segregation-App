@@ -3,7 +3,9 @@ import 'package:waste_segregation_app/utils/routes.dart';
 
 void main() {
   group('Premium Routes Test', () {
-    test('Routes.isValidRoute should return true for all premium route variants', () {
+    test(
+        'Routes.isValidRoute should return true for all premium route variants',
+        () {
       expect(Routes.isValidRoute('/premium'), isTrue);
       expect(Routes.isValidRoute('/premium-features'), isTrue);
       expect(Routes.isValidRoute('/premium_features'), isTrue);
@@ -26,7 +28,8 @@ void main() {
 
     test('All premium route variants should be in _allRoutes list', () {
       // This test ensures that our route additions are properly included
-      expect(Routes.isValidRoute(Routes.premium), isTrue, reason: 'Routes.premium should be in _allRoutes');
+      expect(Routes.isValidRoute(Routes.premium), isTrue,
+          reason: 'Routes.premium should be in _allRoutes');
       expect(Routes.isValidRoute(Routes.premiumFeatures), isTrue,
           reason: 'Routes.premiumFeatures should be in _allRoutes');
       expect(Routes.isValidRoute(Routes.premiumFeaturesHyphen), isTrue,

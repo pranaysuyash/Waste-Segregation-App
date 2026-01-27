@@ -28,8 +28,12 @@ class AccountSection extends StatelessWidget {
 
                 return SettingTile(
                   icon: isSignedIn ? Icons.logout : Icons.login,
-                  iconColor: isSignedIn ? SettingsTheme.accountSignOutColor : SettingsTheme.accountSignInColor,
-                  titleColor: isSignedIn ? SettingsTheme.accountSignOutColor : SettingsTheme.accountSignInColor,
+                  iconColor: isSignedIn
+                      ? SettingsTheme.accountSignOutColor
+                      : SettingsTheme.accountSignInColor,
+                  titleColor: isSignedIn
+                      ? SettingsTheme.accountSignOutColor
+                      : SettingsTheme.accountSignInColor,
                   // TODO(i18n): Localize title and subtitle
                   title: isSignedIn ? 'Sign Out' : 'Switch to Google Account',
                   subtitle: isSignedIn
@@ -37,7 +41,9 @@ class AccountSection extends StatelessWidget {
                       : 'Currently in guest mode - sign in to sync data',
                   trailing: Icon(
                     Icons.chevron_right,
-                    color: isSignedIn ? SettingsTheme.accountSignOutColor : SettingsTheme.accountSignInColor,
+                    color: isSignedIn
+                        ? SettingsTheme.accountSignOutColor
+                        : SettingsTheme.accountSignInColor,
                   ),
                   onTap: () => _handleAccountAction(
                     context,
@@ -84,7 +90,8 @@ class AccountSection extends StatelessWidget {
     return DialogHelper.confirm(
       context,
       title: 'Sign Out', // TODO(i18n): Localize
-      body: 'Are you sure you want to sign out? Your data will remain on this device, '
+      body:
+          'Are you sure you want to sign out? Your data will remain on this device, '
           'but you won\'t be able to sync with the cloud.', // TODO(i18n): Localize
       okLabel: 'Sign Out', // TODO(i18n): Localize
       isDangerous: true,

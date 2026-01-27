@@ -12,12 +12,9 @@ class ApiClientFactory {
   /// Get or create OpenAI API client
   static UnifiedApiClient getOpenAIClient() {
     return _clients.putIfAbsent('openai', () {
-      final errorHandler = _errorHandlers.putIfAbsent('openai', () => 
-        EnhancedApiErrorHandler(
-          maxRetries: 3,
-          circuitBreakerThreshold: 5,
-          circuitBreakerTimeout: const Duration(minutes: 5),
-        ),
+      final errorHandler = _errorHandlers.putIfAbsent(
+        'openai',
+        () => EnhancedApiErrorHandler(),
       );
 
       final client = UnifiedApiClient(
@@ -30,24 +27,22 @@ class ApiClientFactory {
         receiveTimeout: const Duration(minutes: 2),
         sendTimeout: const Duration(minutes: 1),
         errorHandler: errorHandler,
-        enableRequestDeduplication: true,
-        enableRateLimiting: true,
         maxConcurrentRequests: 5, // Conservative for OpenAI
       );
 
       // Configure API versions
       client.configureApiVersions(
         versions: {
-          'v1': ApiVersion.openAI(version: 'v1'),
+          'v1': ApiVersion.openAI(),
           'v1beta': ApiVersion.openAI(
             version: 'v1beta',
             additionalHeaders: {'OpenAI-Beta': 'assistants=v2'},
           ),
         },
-        defaultVersion: ApiVersion.openAI(version: 'v1'),
+        defaultVersion: ApiVersion.openAI(),
       );
 
-      WasteAppLogger.info('OpenAI API client created', null, null, {
+      WasteAppLogger.info('OpenAI API client created', context: {
         'base_url': ApiConfig.openAiBaseUrl,
         'max_concurrent_requests': 5,
         'rate_limiting_enabled': true,
@@ -60,9 +55,9 @@ class ApiClientFactory {
   /// Get or create Gemini API client
   static UnifiedApiClient getGeminiClient() {
     return _clients.putIfAbsent('gemini', () {
-      final errorHandler = _errorHandlers.putIfAbsent('gemini', () => 
-        EnhancedApiErrorHandler(
-          maxRetries: 3,
+      final errorHandler = _errorHandlers.putIfAbsent(
+        'gemini',
+        () => EnhancedApiErrorHandler(
           circuitBreakerThreshold: 8,
           circuitBreakerTimeout: const Duration(minutes: 3),
         ),
@@ -77,21 +72,19 @@ class ApiClientFactory {
         receiveTimeout: const Duration(minutes: 2),
         sendTimeout: const Duration(minutes: 1),
         errorHandler: errorHandler,
-        enableRequestDeduplication: true,
-        enableRateLimiting: true,
         maxConcurrentRequests: 8, // Higher limit for Gemini
       );
 
       // Configure API versions
       client.configureApiVersions(
         versions: {
-          'v1beta': ApiVersion.gemini(version: 'v1beta'),
+          'v1beta': ApiVersion.gemini(),
           'v1': ApiVersion.gemini(version: 'v1'),
         },
-        defaultVersion: ApiVersion.gemini(version: 'v1beta'),
+        defaultVersion: ApiVersion.gemini(),
       );
 
-      WasteAppLogger.info('Gemini API client created', null, null, {
+      WasteAppLogger.info('Gemini API client created', context: {
         'base_url': ApiConfig.geminiBaseUrl,
         'max_concurrent_requests': 8,
         'rate_limiting_enabled': true,
@@ -104,8 +97,9 @@ class ApiClientFactory {
   /// Get or create Firebase API client
   static UnifiedApiClient getFirebaseClient() {
     return _clients.putIfAbsent('firebase', () {
-      final errorHandler = _errorHandlers.putIfAbsent('firebase', () => 
-        EnhancedApiErrorHandler(
+      final errorHandler = _errorHandlers.putIfAbsent(
+        'firebase',
+        () => EnhancedApiErrorHandler(
           maxRetries: 2,
           circuitBreakerThreshold: 10,
           circuitBreakerTimeout: const Duration(minutes: 2),
@@ -121,20 +115,20 @@ class ApiClientFactory {
         receiveTimeout: const Duration(seconds: 30),
         sendTimeout: const Duration(seconds: 30),
         errorHandler: errorHandler,
-        enableRequestDeduplication: false, // Firebase operations should not be deduplicated
-        enableRateLimiting: true,
+        enableRequestDeduplication:
+            false, // Firebase operations should not be deduplicated
         maxConcurrentRequests: 20, // Higher limit for Firebase
       );
 
       // Configure API versions
       client.configureApiVersions(
         versions: {
-          'v1': ApiVersion.firebase(version: 'v1'),
+          'v1': ApiVersion.firebase(),
         },
-        defaultVersion: ApiVersion.firebase(version: 'v1'),
+        defaultVersion: ApiVersion.firebase(),
       );
 
-      WasteAppLogger.info('Firebase API client created', null, null, {
+      WasteAppLogger.info('Firebase API client created', context: {
         'max_concurrent_requests': 20,
         'rate_limiting_enabled': true,
         'deduplication_enabled': false,
@@ -162,8 +156,9 @@ class ApiClientFactory {
     ApiVersion? defaultVersion,
   }) {
     return _clients.putIfAbsent(serviceName, () {
-      final errorHandler = _errorHandlers.putIfAbsent(serviceName, () => 
-        EnhancedApiErrorHandler(
+      final errorHandler = _errorHandlers.putIfAbsent(
+        serviceName,
+        () => EnhancedApiErrorHandler(
           maxRetries: maxRetries,
           circuitBreakerThreshold: circuitBreakerThreshold,
           circuitBreakerTimeout: circuitBreakerTimeout,
@@ -193,7 +188,7 @@ class ApiClientFactory {
         );
       }
 
-      WasteAppLogger.info('Custom API client created', null, null, {
+      WasteAppLogger.info('Custom API client created', context: {
         'service_name': serviceName,
         'base_url': baseUrl,
         'max_concurrent_requests': maxConcurrentRequests,
@@ -213,11 +208,11 @@ class ApiClientFactory {
   /// Get statistics for all clients
   static Map<String, dynamic> getAllStatistics() {
     final stats = <String, dynamic>{};
-    
+
     for (final entry in _clients.entries) {
       stats[entry.key] = entry.value.getStatistics();
     }
-    
+
     return stats;
   }
 
@@ -226,8 +221,8 @@ class ApiClientFactory {
     final client = _clients.remove(serviceName);
     client?.dispose();
     _errorHandlers.remove(serviceName);
-    
-    WasteAppLogger.info('API client reset', null, null, {
+
+    WasteAppLogger.info('API client reset', context: {
       'service_name': serviceName,
     });
   }
@@ -237,11 +232,11 @@ class ApiClientFactory {
     for (final client in _clients.values) {
       client.dispose();
     }
-    
+
     _clients.clear();
     _errorHandlers.clear();
-    
-    WasteAppLogger.info('All API clients reset', null, null, {
+
+    WasteAppLogger.info('All API clients reset', context: {
       'timestamp': DateTime.now().toIso8601String(),
     });
   }
@@ -255,16 +250,17 @@ class ApiClientFactory {
   }) {
     final client = _clients[serviceName];
     if (client == null) {
-      WasteAppLogger.warning('Cannot configure rate limit for unknown service', null, null, {
-        'service_name': serviceName,
-        'available_services': _clients.keys.toList(),
-      });
+      WasteAppLogger.warning('Cannot configure rate limit for unknown service',
+          context: {
+            'service_name': serviceName,
+            'available_services': _clients.keys.toList(),
+          });
       return;
     }
 
     // Rate limit configuration would be applied here
     // This is a placeholder for the actual implementation
-    WasteAppLogger.info('Rate limit configured', null, null, {
+    WasteAppLogger.info('Rate limit configured', context: {
       'service_name': serviceName,
       'max_requests': maxRequests,
       'window_duration_ms': windowDuration.inMilliseconds,
@@ -276,16 +272,17 @@ class ApiClientFactory {
   static void updateApiKey(String serviceName, String newApiKey) {
     final client = _clients[serviceName];
     if (client == null) {
-      WasteAppLogger.warning('Cannot update API key for unknown service', null, null, {
-        'service_name': serviceName,
-        'available_services': _clients.keys.toList(),
-      });
+      WasteAppLogger.warning('Cannot update API key for unknown service',
+          context: {
+            'service_name': serviceName,
+            'available_services': _clients.keys.toList(),
+          });
       return;
     }
 
     // API key update would be implemented here
     // This would require modifying the client's default headers
-    WasteAppLogger.info('API key updated', null, null, {
+    WasteAppLogger.info('API key updated', context: {
       'service_name': serviceName,
       'timestamp': DateTime.now().toIso8601String(),
     });
@@ -294,7 +291,7 @@ class ApiClientFactory {
   /// Health check for all clients
   static Future<Map<String, bool>> healthCheck() async {
     final results = <String, bool>{};
-    
+
     for (final entry in _clients.entries) {
       try {
         // Perform a simple health check request
@@ -302,12 +299,14 @@ class ApiClientFactory {
         results[entry.key] = true;
       } catch (e) {
         results[entry.key] = false;
-        WasteAppLogger.warning('Health check failed for service', e, null, {
-          'service_name': entry.key,
-        });
+        WasteAppLogger.warning('Health check failed for service',
+            error: e,
+            context: {
+              'service_name': entry.key,
+            });
       }
     }
-    
+
     return results;
   }
 }

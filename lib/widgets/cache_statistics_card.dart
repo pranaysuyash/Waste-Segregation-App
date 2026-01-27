@@ -216,7 +216,8 @@ class _CacheStatisticsCardState extends State<CacheStatisticsCard> {
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Clear Cache?'),
-        content: const Text('This will remove all cached image classifications. '
+        content: const Text(
+            'This will remove all cached image classifications. '
             'You will need to re-analyze images that were previously classified.'),
         actions: [
           TextButton(

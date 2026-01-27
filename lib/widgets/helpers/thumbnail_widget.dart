@@ -79,8 +79,10 @@ class ThumbnailWidget extends StatelessWidget {
         return _buildLoadingWidget(context, loadingProgress);
       },
       errorBuilder: (context, error, stackTrace) {
-        WasteAppLogger.warning(
-            'Network image error', error, null, {'image_url': url.substring(0, 50), 'widget_type': 'thumbnail'});
+        WasteAppLogger.warning('Network image error', error: error, context: {
+          'image_url': url.substring(0, 50),
+          'widget_type': 'thumbnail'
+        });
         return _buildErrorWidget(context);
       },
     );
@@ -101,8 +103,12 @@ class ThumbnailWidget extends StatelessWidget {
             height: size,
             fit: fit,
             errorBuilder: (context, error, stackTrace) {
-              WasteAppLogger.warning(
-                  'Local image error', error, null, {'image_path': path.substring(0, 50), 'widget_type': 'thumbnail'});
+              WasteAppLogger.warning('Local image error',
+                  error: error,
+                  context: {
+                    'image_path': path.substring(0, 50),
+                    'widget_type': 'thumbnail'
+                  });
               return _buildErrorWidget(context);
             },
           );
@@ -114,9 +120,11 @@ class ThumbnailWidget extends StatelessWidget {
     );
   }
 
-  Widget _buildLoadingWidget(BuildContext context, ImageChunkEvent loadingProgress) {
+  Widget _buildLoadingWidget(
+      BuildContext context, ImageChunkEvent loadingProgress) {
     final progress = loadingProgress.expectedTotalBytes != null
-        ? loadingProgress.cumulativeBytesLoaded / loadingProgress.expectedTotalBytes!
+        ? loadingProgress.cumulativeBytesLoaded /
+            loadingProgress.expectedTotalBytes!
         : null;
 
     return Container(
@@ -178,7 +186,8 @@ class ThumbnailWidget extends StatelessWidget {
 }
 
 /// Helper function to build thumbnails with consistent styling
-Widget buildThumbnail(String? path, {double size = 64, double borderRadius = 12}) {
+Widget buildThumbnail(String? path,
+    {double size = 64, double borderRadius = 12}) {
   return ThumbnailWidget(
     imagePath: path,
     size: size,

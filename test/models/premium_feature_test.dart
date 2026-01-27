@@ -8,7 +8,8 @@ void main() {
         const feature = PremiumFeature(
           id: 'feature_001',
           title: 'Advanced Analytics', // name to title
-          description: 'Detailed analytics and insights about your waste patterns',
+          description:
+              'Detailed analytics and insights about your waste patterns',
           icon: 'analytics_icon',
           route: '/analytics', // Added route
           // category: FeatureCategory.analytics, // Removed
@@ -19,7 +20,8 @@ void main() {
 
         expect(feature.id, 'feature_001');
         expect(feature.title, 'Advanced Analytics'); // name to title
-        expect(feature.description, 'Detailed analytics and insights about your waste patterns');
+        expect(feature.description,
+            'Detailed analytics and insights about your waste patterns');
         expect(feature.icon, 'analytics_icon');
         expect(feature.route, '/analytics'); // Added route
         // expect(feature.category, FeatureCategory.analytics); // Removed
@@ -74,7 +76,8 @@ void main() {
 
         expect(json['id'], 'feature_003');
         expect(json['title'], 'AI Insights'); // name to title
-        expect(json['description'], 'AI-powered waste reduction recommendations');
+        expect(
+            json['description'], 'AI-powered waste reduction recommendations');
         expect(json['icon'], 'ai_icon');
         expect(json['route'], '/ai_insights'); // Added route
         // expect(json['category'], 'ai'); // Field does not exist in toJson
@@ -222,7 +225,8 @@ void main() {
           description: 'A feature coming soon',
           icon: 'soon_icon',
           route: '/coming_soon_feature_route',
-          isEnabled: true, // Assuming coming soon features are 'enabled' in data model
+          isEnabled:
+              true, // Assuming coming soon features are 'enabled' in data model
         );
 
         expect(enabledFeature.isEnabled, true); // isAvailable to isEnabled

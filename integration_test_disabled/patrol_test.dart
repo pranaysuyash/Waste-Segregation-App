@@ -5,7 +5,6 @@ import 'package:waste_segregation_app/main.dart' as app;
 
 void main() {
   group('Basic Waste Segregation App E2E Tests', () {
-    
     patrolTest(
       'App Launch and Basic Navigation - Patrol E2E',
       ($) async {
@@ -108,10 +107,9 @@ void main() {
 Future<void> _handleConsentFlow(PatrolIntegrationTester $) async {
   try {
     // Look for various consent dialog patterns
-    if ($(const Text('Privacy Policy')).exists || 
+    if ($(const Text('Privacy Policy')).exists ||
         $(const Text('Terms of Service')).exists ||
         $(const Text('Accept')).exists) {
-      
       // Try different accept button patterns
       if ($(const Text('Accept')).exists) {
         await $(const Text('Accept')).tap();
@@ -122,7 +120,7 @@ Future<void> _handleConsentFlow(PatrolIntegrationTester $) async {
       } else if ($(FilledButton).exists) {
         await $(FilledButton).first.tap();
       }
-      
+
       await $.pumpAndSettle();
     }
   } catch (e) {
@@ -134,7 +132,7 @@ Future<void> _handleAuthFlow(PatrolIntegrationTester $) async {
   try {
     // Look for auth screen and choose guest mode for testing
     await Future.delayed(const Duration(seconds: 2));
-    
+
     // Look for guest mode button with various text patterns
     if ($(const Text('Continue as Guest')).exists) {
       await $(const Text('Continue as Guest')).tap();
@@ -156,7 +154,7 @@ Future<void> _handleAuthFlow(PatrolIntegrationTester $) async {
         }
       }
     }
-    
+
     await $.pumpAndSettle();
     await Future.delayed(const Duration(seconds: 3));
   } catch (e) {
@@ -167,19 +165,18 @@ Future<void> _handleAuthFlow(PatrolIntegrationTester $) async {
 Future<void> _verifyHomeScreen(PatrolIntegrationTester $) async {
   // Wait a bit more for home screen to load
   await Future.delayed(const Duration(seconds: 3));
-  
+
   // Look for common home screen elements
   expect(
-    $(const Text('Waste Segregation')).exists || 
-    $(FloatingActionButton).exists ||
-    $(const Text('Scan')).exists ||
-    $(const Text('Home')).exists ||
-    $(Icons.camera_alt).exists ||
-    $(NavigationBar).exists ||
-    $(BottomNavigationBar).exists,
-    isTrue,
-    reason: 'Should find at least one home screen element'
-  );
+      $(const Text('Waste Segregation')).exists ||
+          $(FloatingActionButton).exists ||
+          $(const Text('Scan')).exists ||
+          $(const Text('Home')).exists ||
+          $(Icons.camera_alt).exists ||
+          $(NavigationBar).exists ||
+          $(BottomNavigationBar).exists,
+      isTrue,
+      reason: 'Should find at least one home screen element');
 }
 
 Future<void> _testBasicNavigation(PatrolIntegrationTester $) async {
@@ -195,14 +192,14 @@ Future<void> _testBasicNavigation(PatrolIntegrationTester $) async {
           await $.pumpAndSettle();
           await Future.delayed(const Duration(seconds: 1));
         }
-        
+
         // Tap on Learn/Educational tab
         if (destinations.at(2).exists) {
           await destinations.at(2).tap();
           await $.pumpAndSettle();
           await Future.delayed(const Duration(seconds: 1));
         }
-        
+
         // Return to home
         if (destinations.at(0).exists) {
           await destinations.at(0).tap();
@@ -217,7 +214,7 @@ Future<void> _testBasicNavigation(PatrolIntegrationTester $) async {
         await items.at(1).tap();
         await $.pumpAndSettle();
         await Future.delayed(const Duration(seconds: 1));
-        
+
         await items.at(0).tap();
         await $.pumpAndSettle();
       }
@@ -240,21 +237,20 @@ Future<void> _testClassificationFlow(PatrolIntegrationTester $) async {
       // Look for a scan button among filled buttons
       await $(FilledButton).first.tap();
     }
-    
+
     await $.pumpAndSettle();
     await Future.delayed(const Duration(seconds: 2));
-    
+
     // Handle camera permissions if requested
     try {
       await $.native.grantPermissionWhenInUse();
     } catch (e) {
       // Permission might not be needed or handled differently
     }
-    
+
     // If camera screen opens, go back
     await $.native.pressBack();
     await $.pumpAndSettle();
-    
   } catch (e) {
     // Classification flow might not be accessible
   }
@@ -263,24 +259,22 @@ Future<void> _testClassificationFlow(PatrolIntegrationTester $) async {
 Future<void> _testPointsSystem(PatrolIntegrationTester $) async {
   try {
     // Look for points display
-    if ($(const Text('Points')).exists || 
+    if ($(const Text('Points')).exists ||
         $(const Text('Score')).exists ||
         $(Icons.star).exists) {
-      
       // Points system exists, verify it's displayed
-      expect(
-        $(const Text('Points')).exists || $(const Text('Score')).exists,
-        isTrue,
-        reason: 'Points system should be visible'
-      );
+      expect($(const Text('Points')).exists || $(const Text('Score')).exists,
+          isTrue,
+          reason: 'Points system should be visible');
     }
-    
+
     // Try to navigate to achievements if possible
-    if ($(const Text('Achievements')).exists || $(const Text('Rewards')).exists) {
+    if ($(const Text('Achievements')).exists ||
+        $(const Text('Rewards')).exists) {
       await $(const Text('Achievements')).tap();
       await $.pumpAndSettle();
       await Future.delayed(const Duration(seconds: 1));
-      
+
       // Go back
       await $.native.pressBack();
       await $.pumpAndSettle();
@@ -304,19 +298,18 @@ Future<void> _testSettingsFlow(PatrolIntegrationTester $) async {
         await destinations.at(4).tap(); // Often the last tab
       }
     }
-    
+
     await $.pumpAndSettle();
     await Future.delayed(const Duration(seconds: 2));
-    
+
     // Verify we're in settings
     expect(
-      $(const Text('Settings')).exists ||
-      $(const Text('Preferences')).exists ||
-      $(const Text('Theme')).exists,
-      isTrue,
-      reason: 'Should be in settings screen'
-    );
-    
+        $(const Text('Settings')).exists ||
+            $(const Text('Preferences')).exists ||
+            $(const Text('Theme')).exists,
+        isTrue,
+        reason: 'Should be in settings screen');
+
     // Test theme toggle if available
     if ($(const Text('Theme')).exists) {
       await $(const Text('Theme')).tap();
@@ -324,7 +317,6 @@ Future<void> _testSettingsFlow(PatrolIntegrationTester $) async {
       await Future.delayed(const Duration(seconds: 1));
       await $.native.pressBack();
     }
-    
   } catch (e) {
     // Settings might not be accessible
   }
@@ -335,24 +327,23 @@ Future<void> _testOfflineMode(PatrolIntegrationTester $) async {
     // Disable network
     await $.native.disableWifi();
     await $.native.disableCellular();
-    
+
     await Future.delayed(const Duration(seconds: 2));
-    
+
     // Try to use the app
     if ($(FloatingActionButton).exists) {
       await $(FloatingActionButton).tap();
       await $.pumpAndSettle();
-      
+
       // Should show offline message or handle gracefully
       await $.native.pressBack();
     }
-    
+
     // Re-enable network
     await $.native.enableWifi();
     await $.native.enableCellular();
-    
+
     await Future.delayed(const Duration(seconds: 2));
-    
   } catch (e) {
     // Network control might not be available on all platforms
     try {

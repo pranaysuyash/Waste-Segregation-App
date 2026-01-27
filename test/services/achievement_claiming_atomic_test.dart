@@ -82,7 +82,8 @@ class TestStorageService implements StorageService {
 
 class TestCloudStorageService implements CloudStorageService {
   @override
-  Future<void> saveUserProfileToFirestore(UserProfile profile) async {
+  Future<void> saveUserProfileToFirestore(UserProfile profile,
+      {bool useBatching = true}) async {
     // No-op for testing
   }
 
@@ -110,7 +111,8 @@ void main() {
     });
 
     test('should claim achievement atomically and update points', () async {
-      final pointsEngine = PointsEngine.getInstance(testStorageService, testCloudStorageService);
+      final pointsEngine =
+          PointsEngine.getInstance(testStorageService, testCloudStorageService);
       await pointsEngine.initialize();
 
       // Verify initial state
@@ -124,7 +126,8 @@ void main() {
       expect(claimableAchievement.isClaimable, isTrue);
 
       // Claim the achievement
-      final claimedAchievement = await pointsEngine.claimAchievementReward('claimable_achievement');
+      final claimedAchievement =
+          await pointsEngine.claimAchievementReward('claimable_achievement');
 
       // Verify achievement was claimed
       expect(claimedAchievement.claimStatus, equals(ClaimStatus.claimed));
@@ -142,7 +145,8 @@ void main() {
     });
 
     test('should prevent double claiming of same achievement', () async {
-      final pointsEngine = PointsEngine.getInstance(testStorageService, testCloudStorageService);
+      final pointsEngine =
+          PointsEngine.getInstance(testStorageService, testCloudStorageService);
       await pointsEngine.initialize();
 
       // Claim achievement first time
@@ -160,15 +164,20 @@ void main() {
     });
 
     test('should handle concurrent claim attempts atomically', () async {
-      final pointsEngine = PointsEngine.getInstance(testStorageService, testCloudStorageService);
+      final pointsEngine =
+          PointsEngine.getInstance(testStorageService, testCloudStorageService);
       await pointsEngine.initialize();
 
       // Start multiple concurrent claim operations
-      final futures = List.generate(3, (index) => pointsEngine.claimAchievementReward('claimable_achievement'));
+      final futures = List.generate(
+          3,
+          (index) =>
+              pointsEngine.claimAchievementReward('claimable_achievement'));
 
       // Only one should succeed, others should fail
       final results = await Future.wait(
-        futures.map((f) => f.then<Object>((achievement) => achievement).catchError((e) => e)),
+        futures.map((f) =>
+            f.then<Object>((achievement) => achievement).catchError((e) => e)),
         eagerError: false,
       );
 
@@ -184,7 +193,8 @@ void main() {
     });
 
     test('should reject claim for already claimed achievement', () async {
-      final pointsEngine = PointsEngine.getInstance(testStorageService, testCloudStorageService);
+      final pointsEngine =
+          PointsEngine.getInstance(testStorageService, testCloudStorageService);
       await pointsEngine.initialize();
 
       // Attempt to claim already claimed achievement
@@ -198,7 +208,8 @@ void main() {
     });
 
     test('should reject claim for non-claimable achievement', () async {
-      final pointsEngine = PointsEngine.getInstance(testStorageService, testCloudStorageService);
+      final pointsEngine =
+          PointsEngine.getInstance(testStorageService, testCloudStorageService);
       await pointsEngine.initialize();
 
       // Attempt to claim non-claimable achievement
@@ -212,7 +223,8 @@ void main() {
     });
 
     test('should reject claim for non-existent achievement', () async {
-      final pointsEngine = PointsEngine.getInstance(testStorageService, testCloudStorageService);
+      final pointsEngine =
+          PointsEngine.getInstance(testStorageService, testCloudStorageService);
       await pointsEngine.initialize();
 
       // Attempt to claim non-existent achievement
@@ -226,7 +238,8 @@ void main() {
     });
 
     test('should maintain consistency across multiple operations', () async {
-      final pointsEngine = PointsEngine.getInstance(testStorageService, testCloudStorageService);
+      final pointsEngine =
+          PointsEngine.getInstance(testStorageService, testCloudStorageService);
       await pointsEngine.initialize();
 
       // Perform mixed operations
@@ -253,7 +266,8 @@ void main() {
     });
 
     test('should emit proper events during claim operation', () async {
-      final pointsEngine = PointsEngine.getInstance(testStorageService, testCloudStorageService);
+      final pointsEngine =
+          PointsEngine.getInstance(testStorageService, testCloudStorageService);
       await pointsEngine.initialize();
 
       var notificationCount = 0;

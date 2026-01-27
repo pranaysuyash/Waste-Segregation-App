@@ -69,7 +69,8 @@ void main() {
         home: MultiProvider(
           providers: [
             ChangeNotifierProvider<AdService>.value(value: mockAdService),
-            ChangeNotifierProvider<PremiumService>.value(value: mockPremiumService),
+            ChangeNotifierProvider<PremiumService>.value(
+                value: mockPremiumService),
           ],
           child: Scaffold(
             body: showAtBottom
@@ -92,7 +93,8 @@ void main() {
     }
 
     group('Widget Initialization', () {
-      testWidgets('should initialize with default height', (WidgetTester tester) async {
+      testWidgets('should initialize with default height',
+          (WidgetTester tester) async {
         mockPremiumService.setMockIsPremium(false);
         mockAdService.setMockBannerAd(const SizedBox(height: 50));
 
@@ -102,7 +104,8 @@ void main() {
         expect(find.byType(Container), findsOneWidget);
       });
 
-      testWidgets('should use custom height when provided', (WidgetTester tester) async {
+      testWidgets('should use custom height when provided',
+          (WidgetTester tester) async {
         mockPremiumService.setMockIsPremium(false);
         mockAdService.setMockBannerAd(const SizedBox(height: 100));
 
@@ -116,7 +119,8 @@ void main() {
         expect(widget.height, equals(100.0));
       });
 
-      testWidgets('should show at bottom when showAtBottom is true', (WidgetTester tester) async {
+      testWidgets('should show at bottom when showAtBottom is true',
+          (WidgetTester tester) async {
         mockPremiumService.setMockIsPremium(false);
         mockAdService.setMockBannerAd(const SizedBox(height: 50));
 
@@ -127,7 +131,9 @@ void main() {
         expect(positioned.bottom, equals(0));
       });
 
-      testWidgets('should not show positioned widget when showAtBottom is false', (WidgetTester tester) async {
+      testWidgets(
+          'should not show positioned widget when showAtBottom is false',
+          (WidgetTester tester) async {
         mockPremiumService.setMockIsPremium(false);
         mockAdService.setMockBannerAd(const SizedBox(height: 50));
 
@@ -139,7 +145,8 @@ void main() {
     });
 
     group('Premium Service Integration', () {
-      testWidgets('should call setPremiumStatus on ad service', (WidgetTester tester) async {
+      testWidgets('should call setPremiumStatus on ad service',
+          (WidgetTester tester) async {
         mockPremiumService.setMockIsPremium(true);
         mockAdService.setMockBannerAd(const SizedBox.shrink());
 
@@ -148,7 +155,8 @@ void main() {
         expect(mockAdService.mockPremiumStatus, isTrue);
       });
 
-      testWidgets('should handle premium status false', (WidgetTester tester) async {
+      testWidgets('should handle premium status false',
+          (WidgetTester tester) async {
         mockPremiumService.setMockIsPremium(false);
         mockAdService.setMockBannerAd(const SizedBox(height: 50));
 
@@ -157,7 +165,8 @@ void main() {
         expect(mockAdService.mockPremiumStatus, isFalse);
       });
 
-      testWidgets('should handle premium service errors gracefully', (WidgetTester tester) async {
+      testWidgets('should handle premium service errors gracefully',
+          (WidgetTester tester) async {
         // This test would need a more complex mock setup to simulate errors
         // For now, just test that the widget renders
         mockPremiumService.setMockIsPremium(false);
@@ -170,7 +179,8 @@ void main() {
     });
 
     group('Ad Service Integration', () {
-      testWidgets('should display ad from ad service', (WidgetTester tester) async {
+      testWidgets('should display ad from ad service',
+          (WidgetTester tester) async {
         mockPremiumService.setMockIsPremium(false);
         mockAdService.setMockBannerAd(
           Container(
@@ -195,7 +205,8 @@ void main() {
         expect(find.byType(BannerAdWidget), findsOneWidget);
       });
 
-      testWidgets('should handle ad service errors', (WidgetTester tester) async {
+      testWidgets('should handle ad service errors',
+          (WidgetTester tester) async {
         mockPremiumService.setMockIsPremium(false);
         // Don't set a mock banner ad to simulate error case
 
@@ -207,7 +218,8 @@ void main() {
     });
 
     group('Layout Tests', () {
-      testWidgets('should have correct height constraints', (WidgetTester tester) async {
+      testWidgets('should have correct height constraints',
+          (WidgetTester tester) async {
         mockPremiumService.setMockIsPremium(false);
         mockAdService.setMockBannerAd(const SizedBox(height: 50));
 
@@ -221,7 +233,8 @@ void main() {
         expect(widget.height, equals(50.0));
       });
 
-      testWidgets('should center align ad content', (WidgetTester tester) async {
+      testWidgets('should center align ad content',
+          (WidgetTester tester) async {
         mockPremiumService.setMockIsPremium(false);
         mockAdService.setMockBannerAd(const SizedBox(height: 50));
 
@@ -231,7 +244,8 @@ void main() {
         expect(container.alignment, equals(Alignment.center));
       });
 
-      testWidgets('should have safe area when shown at bottom', (WidgetTester tester) async {
+      testWidgets('should have safe area when shown at bottom',
+          (WidgetTester tester) async {
         mockPremiumService.setMockIsPremium(false);
         mockAdService.setMockBannerAd(const SizedBox(height: 50));
 
@@ -242,7 +256,8 @@ void main() {
         expect(safeArea.top, isFalse);
       });
 
-      testWidgets('should have white background when shown at bottom', (WidgetTester tester) async {
+      testWidgets('should have white background when shown at bottom',
+          (WidgetTester tester) async {
         mockPremiumService.setMockIsPremium(false);
         mockAdService.setMockBannerAd(const SizedBox(height: 50));
 
@@ -264,7 +279,8 @@ void main() {
         expect(find.byType(BannerAdWidget), findsOneWidget);
       });
 
-      testWidgets('should handle very large height', (WidgetTester tester) async {
+      testWidgets('should handle very large height',
+          (WidgetTester tester) async {
         mockPremiumService.setMockIsPremium(false);
         mockAdService.setMockBannerAd(const SizedBox(height: 1000));
 
@@ -292,14 +308,16 @@ void main() {
     });
 
     group('Performance Tests', () {
-      testWidgets('should handle widget disposal gracefully', (WidgetTester tester) async {
+      testWidgets('should handle widget disposal gracefully',
+          (WidgetTester tester) async {
         mockPremiumService.setMockIsPremium(false);
         mockAdService.setMockBannerAd(const SizedBox(height: 50));
 
         await tester.pumpWidget(createTestWidget());
 
         // Remove widget
-        await tester.pumpWidget(const MaterialApp(home: Scaffold(body: Text('Empty'))));
+        await tester
+            .pumpWidget(const MaterialApp(home: Scaffold(body: Text('Empty'))));
 
         // Should not cause any errors
         expect(find.text('Empty'), findsOneWidget);

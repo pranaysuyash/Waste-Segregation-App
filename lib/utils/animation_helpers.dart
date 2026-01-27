@@ -80,28 +80,34 @@ class AnimationHelpers {
   }
 
   /// Creates a bouncing animation for UI elements
-  static Animation<double> createBounceAnimation(AnimationController controller) {
+  static Animation<double> createBounceAnimation(
+      AnimationController controller) {
     return TweenSequence<double>([
       TweenSequenceItem(
-        tween: Tween<double>(begin: 1.0, end: 1.2).chain(CurveTween(curve: Curves.elasticOut)),
+        tween: Tween<double>(begin: 1.0, end: 1.2)
+            .chain(CurveTween(curve: Curves.elasticOut)),
         weight: 40.0,
       ),
       TweenSequenceItem(
-        tween: Tween<double>(begin: 1.2, end: 1.0).chain(CurveTween(curve: Curves.elasticIn)),
+        tween: Tween<double>(begin: 1.2, end: 1.0)
+            .chain(CurveTween(curve: Curves.elasticIn)),
         weight: 60.0,
       ),
     ]).animate(controller);
   }
 
   /// Creates a pulse animation for UI elements
-  static Animation<double> createPulseAnimation(AnimationController controller) {
+  static Animation<double> createPulseAnimation(
+      AnimationController controller) {
     return TweenSequence<double>([
       TweenSequenceItem(
-        tween: Tween<double>(begin: 1.0, end: 1.2).chain(CurveTween(curve: Curves.easeInOut)),
+        tween: Tween<double>(begin: 1.0, end: 1.2)
+            .chain(CurveTween(curve: Curves.easeInOut)),
         weight: 50.0,
       ),
       TweenSequenceItem(
-        tween: Tween<double>(begin: 1.2, end: 1.0).chain(CurveTween(curve: Curves.easeInOut)),
+        tween: Tween<double>(begin: 1.2, end: 1.0)
+            .chain(CurveTween(curve: Curves.easeInOut)),
         weight: 50.0,
       ),
     ]).animate(controller);
@@ -159,7 +165,8 @@ class CheckmarkPainter extends CustomPainter {
 
     // Guard against empty path metrics
     if (pathMetrics.isEmpty) {
-      WasteAppLogger.warning('Warning: Path metrics is empty, skipping checkmark animation');
+      WasteAppLogger.warning(
+          'Warning: Path metrics is empty, error: skipping checkmark animation');
       return;
     }
 
@@ -175,7 +182,9 @@ class CheckmarkPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(CheckmarkPainter oldDelegate) {
-    return oldDelegate.animation != animation || oldDelegate.color != color || oldDelegate.strokeWidth != strokeWidth;
+    return oldDelegate.animation != animation ||
+        oldDelegate.color != color ||
+        oldDelegate.strokeWidth != strokeWidth;
   }
 }
 
@@ -219,7 +228,8 @@ class ParticlePainter extends CustomPainter {
 
   @override
   bool shouldRepaint(ParticlePainter oldDelegate) {
-    return oldDelegate.animation.value != animation.value || oldDelegate.color != color;
+    return oldDelegate.animation.value != animation.value ||
+        oldDelegate.color != color;
   }
 }
 
@@ -245,7 +255,8 @@ class ScaleAnimation extends StatefulWidget {
   State<ScaleAnimation> createState() => _ScaleAnimationState();
 }
 
-class _ScaleAnimationState extends State<ScaleAnimation> with SingleTickerProviderStateMixin {
+class _ScaleAnimationState extends State<ScaleAnimation>
+    with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _animation;
 
@@ -259,11 +270,13 @@ class _ScaleAnimationState extends State<ScaleAnimation> with SingleTickerProvid
 
     _animation = TweenSequence<double>([
       TweenSequenceItem(
-        tween: Tween<double>(begin: 1.0, end: 1.2).chain(CurveTween(curve: widget.curve)),
+        tween: Tween<double>(begin: 1.0, end: 1.2)
+            .chain(CurveTween(curve: widget.curve)),
         weight: 40.0,
       ),
       TweenSequenceItem(
-        tween: Tween<double>(begin: 1.2, end: 1.0).chain(CurveTween(curve: widget.curve)),
+        tween: Tween<double>(begin: 1.2, end: 1.0)
+            .chain(CurveTween(curve: widget.curve)),
         weight: 60.0,
       ),
     ]).animate(_controller);
@@ -328,7 +341,8 @@ class FadeSlideAnimation extends StatefulWidget {
   State<FadeSlideAnimation> createState() => _FadeSlideAnimationState();
 }
 
-class _FadeSlideAnimationState extends State<FadeSlideAnimation> with SingleTickerProviderStateMixin {
+class _FadeSlideAnimationState extends State<FadeSlideAnimation>
+    with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _fadeAnimation;
   late Animation<Offset> _slideAnimation;

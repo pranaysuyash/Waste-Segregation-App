@@ -37,8 +37,10 @@ Widget resultHeaderLowConfidenceUseCase(BuildContext context) {
 class _ResultHeaderDemo extends StatelessWidget {
   const _ResultHeaderDemo({
     this.category = 'Recyclable',
+    this.itemName = 'Aluminum Can',
     this.confidence = 0.92,
     this.pointsEarned = 15,
+    this.hasImage = true,
   });
 
   final String category;
@@ -56,13 +58,18 @@ class _ResultHeaderDemo extends StatelessWidget {
       category: category,
       confidence: confidence,
       timestamp: DateTime.now(),
-      imageUrl: hasImage 
+      imageUrl: hasImage
           ? 'https://images.unsplash.com/photo-1572297662242-0e4b9f3e0b4a?w=400&h=300&fit=crop'
           : null,
       // Required parameters
-      explanation: 'This item appears to be a $itemName based on visual analysis.',
+      explanation:
+          'This item appears to be a $itemName based on visual analysis.',
       region: 'Demo Region',
-      visualFeatures: ['metallic surface', 'cylindrical shape', 'recyclable material'],
+      visualFeatures: [
+        'metallic surface',
+        'cylindrical shape',
+        'recyclable material'
+      ],
       alternatives: [],
       // Mock disposal instructions
       disposalInstructions: DisposalInstructions(
@@ -88,11 +95,11 @@ class _ResultHeaderDemo extends StatelessWidget {
                 child: Text(
                   'Result Header Component',
                   style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
+                        fontWeight: FontWeight.bold,
+                      ),
                 ),
               ),
-              
+
               // The actual component
               Container(
                 margin: const EdgeInsets.all(16),
@@ -117,7 +124,7 @@ class _ResultHeaderDemo extends StatelessWidget {
                   heroTag: 'story-hero',
                 ),
               ),
-              
+
               // Component info
               Padding(
                 padding: const EdgeInsets.all(16),
@@ -129,9 +136,10 @@ class _ResultHeaderDemo extends StatelessWidget {
                       children: [
                         Text(
                           'Component Details',
-                          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.bold,
-                          ),
+                          style:
+                              Theme.of(context).textTheme.titleMedium?.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                  ),
                         ),
                         const SizedBox(height: 8),
                         const Text('• Above-the-fold content (≈60% viewport)'),
@@ -139,14 +147,16 @@ class _ResultHeaderDemo extends StatelessWidget {
                         const Text('• Category chip with semantic colors'),
                         const Text('• Animated confidence bar'),
                         const Text('• Prominent item name'),
-                        const Text('• KPI chips (points & environmental impact)'),
+                        const Text(
+                            '• KPI chips (points & environmental impact)'),
                         const Text('• Primary CTA with haptic feedback'),
                         const SizedBox(height: 8),
                         Text(
                           'Current Values:',
-                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            fontWeight: FontWeight.w600,
-                          ),
+                          style:
+                              Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                    fontWeight: FontWeight.w600,
+                                  ),
                         ),
                         Text('Category: $category'),
                         Text('Confidence: ${(confidence * 100).round()}%'),
@@ -162,4 +172,4 @@ class _ResultHeaderDemo extends StatelessWidget {
       ),
     );
   }
-} 
+}

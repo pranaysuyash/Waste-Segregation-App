@@ -3,11 +3,12 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../models/waste_classification.dart';
+import 'package:waste_segregation_app/models/waste_classification.dart';
 import '../utils/constants.dart';
 import '../widgets/enhanced_analysis_loader.dart';
 import '../widgets/premium_segmentation_toggle.dart';
 import '../widgets/analysis_speed_selector.dart';
+import '../widgets/modern_ui/modern_cards.dart';
 import '../models/token_wallet.dart';
 import '../providers/ai_job_providers.dart';
 import '../providers/app_providers.dart';
@@ -23,7 +24,9 @@ class ImageCaptureScreen extends ConsumerStatefulWidget {
     this.autoAnalyze = false,
   });
 
-  factory ImageCaptureScreen.fromXFile(XFile xFile, {bool autoAnalyze = false}) => ImageCaptureScreen(
+  factory ImageCaptureScreen.fromXFile(XFile xFile,
+          {bool autoAnalyze = false}) =>
+      ImageCaptureScreen(
         xFile: xFile,
         imageFile: kIsWeb ? null : File(xFile.path),
         autoAnalyze: autoAnalyze,
@@ -37,7 +40,8 @@ class ImageCaptureScreen extends ConsumerStatefulWidget {
   ConsumerState<ImageCaptureScreen> createState() => _ImageCaptureScreenState();
 }
 
-class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen> with RestorationMixin {
+class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen>
+    with RestorationMixin, TickerProviderStateMixin {
   bool _isAnalyzing = false;
   bool _isCancelled = false;
 
@@ -52,6 +56,10 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen> with Re
 
   final RestorableStringN _imagePath = RestorableStringN(null);
   final RestorableBool _useSegmentationRestorable = RestorableBool(false);
+
+  late final AnimationController _scanPulseController;
+  late final Animation<double> _scanPulseScale;
+  late final Animation<double> _scanPulseOpacity;
 
   @override
   String? get restorationId => 'image_capture_screen';
@@ -85,6 +93,16 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen> with Re
     _imageFile = widget.imageFile;
     _xFile = widget.xFile;
     _webImageBytes = widget.webImage;
+    _scanPulseController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1800),
+    )..repeat();
+    _scanPulseScale = Tween<double>(begin: 0.85, end: 1.15).animate(
+      CurvedAnimation(parent: _scanPulseController, curve: Curves.easeOut),
+    );
+    _scanPulseOpacity = Tween<double>(begin: 0.35, end: 0.0).animate(
+      CurvedAnimation(parent: _scanPulseController, curve: Curves.easeOut),
+    );
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (_imageFile != null) {
         _imagePath.value = _imageFile!.path;
@@ -92,9 +110,10 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen> with Re
         _imagePath.value = _xFile!.path;
       }
       _useSegmentationRestorable.value = _useSegmentation;
-      if (widget.autoAnalyze && (_imageFile != null || _xFile != null || _webImageBytes != null)) {
-        WasteAppLogger.info(
-            'Auto-analyzing image on init.', null, null, {'service': 'screen', 'file': 'image_capture_screen'});
+      if (widget.autoAnalyze &&
+          (_imageFile != null || _xFile != null || _webImageBytes != null)) {
+        WasteAppLogger.info('Auto-analyzing image on init.',
+            context: {'service': 'screen', 'file': 'image_capture_screen'});
         _analyzeImage();
       }
     });
@@ -133,7 +152,10 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen> with Re
         }
       }
     } else {
-      if (mounted && _imageFile == null && _xFile == null && _webImageBytes == null) {
+      if (mounted &&
+          _imageFile == null &&
+          _xFile == null &&
+          _webImageBytes == null) {
         Navigator.of(context).pop();
       }
     }
@@ -187,8 +209,11 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen> with Re
             try {
               imageBytes = await _xFile!.readAsBytes();
               if (_isCancelled) {
-                WasteAppLogger.info('Analysis cancelled during image reading.', null, null,
-                    {'service': 'screen', 'file': 'image_capture_screen'});
+                WasteAppLogger.info('Analysis cancelled during image reading.',
+                    context: {
+                      'service': 'screen',
+                      'file': 'image_capture_screen'
+                    });
                 return;
               }
               if (mounted) {
@@ -197,8 +222,14 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen> with Re
                 });
               }
             } catch (bytesError, s) {
-              WasteAppLogger.severe('Failed to read image data for web analysis', bytesError, s,
-                  {'service': 'screen', 'file': 'image_capture_screen'});
+              WasteAppLogger.severe(
+                  'Failed to read image data for web analysis',
+                  error: bytesError,
+                  stackTrace: s,
+                  context: {
+                    'service': 'screen',
+                    'file': 'image_capture_screen'
+                  });
               throw Exception('Failed to read image data: $bytesError');
             }
           }
@@ -206,12 +237,12 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen> with Re
             throw Exception('Image data is empty or could not be read');
           }
           if (_isCancelled) {
-            WasteAppLogger.info('Analysis cancelled before starting.', null, null,
-                {'service': 'screen', 'file': 'image_capture_screen'});
+            WasteAppLogger.info('Analysis cancelled before starting.',
+                context: {'service': 'screen', 'file': 'image_capture_screen'});
             return;
           }
-          WasteAppLogger.info('Analyzing web image: ${_xFile!.name}, size: ${imageBytes.length} bytes', null, null,
-              {'service': 'screen', 'file': 'image_capture_screen'});
+          WasteAppLogger.info(
+              'Analyzing web image: ${_xFile!.name}, error: size: ${imageBytes.length} bytes');
           if (_useSegmentation && _selectedSegments.isNotEmpty) {
             if (_selectedSpeed == AnalysisSpeed.instant) {
               classification = await aiService.analyzeImageSegmentsWeb(
@@ -221,7 +252,8 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen> with Re
               );
             } else {
               await _createBatchJobWeb(imageBytes, _xFile!.name,
-                  segments: _selectedSegments.map((i) => _segments[i]).toList(), useSegmentation: true);
+                  segments: _selectedSegments.map((i) => _segments[i]).toList(),
+                  useSegmentation: true);
               return;
             }
           } else {
@@ -235,16 +267,17 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen> with Re
               return;
             }
           }
-          WasteAppLogger.info('Web image analysis complete: ${classification.itemName}', null, null,
-              {'service': 'screen', 'file': 'image_capture_screen'});
+          WasteAppLogger.info(
+              'Web image analysis complete: ${classification.itemName}',
+              context: {'service': 'screen', 'file': 'image_capture_screen'});
         } else if (_webImageBytes != null) {
           if (_isCancelled) {
-            WasteAppLogger.info('Analysis cancelled before starting.', null, null,
-                {'service': 'screen', 'file': 'image_capture_screen'});
+            WasteAppLogger.info('Analysis cancelled before starting.',
+                context: {'service': 'screen', 'file': 'image_capture_screen'});
             return;
           }
-          WasteAppLogger.info('Analyzing web image from bytes, size: ${_webImageBytes!.length} bytes', null, null,
-              {'service': 'screen', 'file': 'image_capture_screen'});
+          WasteAppLogger.info(
+              'Analyzing web image from bytes, error: size: ${_webImageBytes!.length} bytes');
           if (_useSegmentation && _selectedSegments.isNotEmpty) {
             classification = await aiService.analyzeImageSegmentsWeb(
               _webImageBytes!,
@@ -257,23 +290,24 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen> with Re
               'uploaded_image.jpg',
             );
           }
-          WasteAppLogger.info('Web image bytes analysis complete: ${classification.itemName}', null, null,
-              {'service': 'screen', 'file': 'image_capture_screen'});
+          WasteAppLogger.info(
+              'Web image bytes analysis complete: ${classification.itemName}',
+              context: {'service': 'screen', 'file': 'image_capture_screen'});
         } else {
           throw Exception('No image provided for analysis');
         }
       } else {
         if (_imageFile != null) {
           if (_isCancelled) {
-            WasteAppLogger.info('Analysis cancelled before starting.', null, null,
-                {'service': 'screen', 'file': 'image_capture_screen'});
+            WasteAppLogger.info('Analysis cancelled before starting.',
+                context: {'service': 'screen', 'file': 'image_capture_screen'});
             setState(() {
               _isAnalyzing = false;
             });
             return;
           }
-          WasteAppLogger.info('Analyzing mobile image: ${_imageFile!.path}', null, null,
-              {'service': 'screen', 'file': 'image_capture_screen'});
+          WasteAppLogger.info('Analyzing mobile image: ${_imageFile!.path}',
+              context: {'service': 'screen', 'file': 'image_capture_screen'});
           if (await _imageFile!.exists()) {
             if (_useSegmentation && _selectedSegments.isNotEmpty) {
               if (_selectedSpeed == AnalysisSpeed.instant) {
@@ -301,8 +335,9 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen> with Re
                 return;
               }
             }
-            WasteAppLogger.info('Mobile image analysis complete: ${classification.itemName}', null, null,
-                {'service': 'screen', 'file': 'image_capture_screen'});
+            WasteAppLogger.info(
+                'Mobile image analysis complete: ${classification.itemName}',
+                context: {'service': 'screen', 'file': 'image_capture_screen'});
           } else {
             throw Exception('Image file does not exist or could not be read');
           }
@@ -311,16 +346,16 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen> with Re
         }
       }
       if (_isCancelled) {
-        WasteAppLogger.info('Analysis cancelled after completion, not navigating.', null, null,
-            {'service': 'screen', 'file': 'image_capture_screen'});
+        WasteAppLogger.info(
+            'Analysis cancelled after completion, error: not navigating.');
         setState(() {
           _isAnalyzing = false;
         });
         return;
       }
       if (mounted && !_isCancelled) {
-        WasteAppLogger.info('Analysis complete, navigating to ResultScreen.', null, null,
-            {'service': 'screen', 'file': 'image_capture_screen'});
+        WasteAppLogger.info(
+            'Analysis complete, error: navigating to ResultScreen.');
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
@@ -337,7 +372,10 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen> with Re
         });
       }
     } catch (e, s) {
-      WasteAppLogger.severe('Analysis failed', e, s, {'service': 'screen', 'file': 'image_capture_screen'});
+      WasteAppLogger.severe('Analysis failed',
+          error: e,
+          stackTrace: s,
+          context: {'service': 'screen', 'file': 'image_capture_screen'});
       if (mounted && !_isCancelled) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -384,7 +422,7 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen> with Re
         Navigator.of(context).popUntil((route) => route.isFirst);
       }
     } catch (e) {
-      WasteAppLogger.severe('Failed to create batch job', e, null, {
+      WasteAppLogger.severe('Failed to create batch job', error: e, context: {
         'service': 'screen',
         'file': 'image_capture_screen',
       });
@@ -403,13 +441,15 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen> with Re
   }
 
   Future<void> _createBatchJobWeb(Uint8List imageBytes, String imageName,
-      {List<Map<String, dynamic>>? segments, bool useSegmentation = false}) async {
+      {List<Map<String, dynamic>>? segments,
+      bool useSegmentation = false}) async {
     // TODO: Implement web batch job creation using Riverpod
     // For now, show a placeholder
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Batch job (web) queued! You will be notified when analysis is complete.'),
+          content: Text(
+              'Batch job (web) queued! You will be notified when analysis is complete.'),
           duration: Duration(seconds: 3),
         ),
       );
@@ -420,7 +460,10 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen> with Re
   @override
   Widget build(BuildContext context) {
     // If no image is available yet and we are not analyzing, show a loader or placeholder
-    if (_imageFile == null && _xFile == null && _webImageBytes == null && !_isAnalyzing) {
+    if (_imageFile == null &&
+        _xFile == null &&
+        _webImageBytes == null &&
+        !_isAnalyzing) {
       return Scaffold(
         appBar: AppBar(
           title: const Text('Capture Image'),
@@ -443,7 +486,9 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen> with Re
       return Scaffold(
         body: _isAnalyzing
             ? EnhancedAnalysisLoader(
-                imageName: _imageFile?.path.split('/').last ?? _xFile?.name ?? 'captured_image.jpg',
+                imageName: _imageFile?.path.split('/').last ??
+                    _xFile?.name ??
+                    'captured_image.jpg',
                 onCancel: () {
                   // Cancel the AI service analysis
                   final aiService = ref.read(aiServiceProvider);
@@ -453,8 +498,10 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen> with Re
                     _isCancelled = true;
                     _isAnalyzing = false;
                   });
-                  WasteAppLogger.info(
-                      'Analysis cancelled by user.', null, null, {'service': 'screen', 'file': 'image_capture_screen'});
+                  WasteAppLogger.info('Analysis cancelled by user.', context: {
+                    'service': 'screen',
+                    'file': 'image_capture_screen'
+                  });
 
                   // Show cancellation feedback
                   if (mounted) {
@@ -488,7 +535,9 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen> with Re
       ),
       body: _isAnalyzing
           ? EnhancedAnalysisLoader(
-              imageName: _imageFile?.path.split('/').last ?? _xFile?.name ?? 'captured_image.jpg',
+              imageName: _imageFile?.path.split('/').last ??
+                  _xFile?.name ??
+                  'captured_image.jpg',
               onCancel: () {
                 // Cancel the AI service analysis
                 final aiService = ref.read(aiServiceProvider);
@@ -498,8 +547,10 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen> with Re
                   _isCancelled = true;
                   _isAnalyzing = false;
                 });
-                WasteAppLogger.info(
-                    'Analysis cancelled by user.', null, null, {'service': 'screen', 'file': 'image_capture_screen'});
+                WasteAppLogger.info('Analysis cancelled by user.', context: {
+                  'service': 'screen',
+                  'file': 'image_capture_screen'
+                });
 
                 // Show cancellation feedback
                 if (mounted) {
@@ -511,7 +562,8 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen> with Re
                   );
                 }
                 // Navigate back if cancelled
-                Navigator.pop(context); // Go back to the previous screen (e.g., camera)
+                Navigator.pop(
+                    context); // Go back to the previous screen (e.g., camera)
               },
             )
           : Column(
@@ -530,15 +582,30 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen> with Re
                                     final imageHeight = constraints.maxHeight;
 
                                     return Stack(
-                                      children: List.generate(_segments.length, (index) {
+                                      children: List.generate(_segments.length,
+                                          (index) {
                                         // Using segment bounds from Map
                                         final segment = _segments[index];
-                                        final bounds = segment['bounds'] as Map<String, dynamic>;
-                                        final left = (bounds['x'] as num).toDouble() * imageWidth / 100;
-                                        final top = (bounds['y'] as num).toDouble() * imageHeight / 100;
-                                        final width = (bounds['width'] as num).toDouble() * imageWidth / 100;
-                                        final height = (bounds['height'] as num).toDouble() * imageHeight / 100;
-                                        final selected = _selectedSegments.contains(index);
+                                        final bounds = segment['bounds']
+                                            as Map<String, dynamic>;
+                                        final left =
+                                            (bounds['x'] as num).toDouble() *
+                                                imageWidth /
+                                                100;
+                                        final top =
+                                            (bounds['y'] as num).toDouble() *
+                                                imageHeight /
+                                                100;
+                                        final width = (bounds['width'] as num)
+                                                .toDouble() *
+                                            imageWidth /
+                                            100;
+                                        final height = (bounds['height'] as num)
+                                                .toDouble() *
+                                            imageHeight /
+                                            100;
+                                        final selected =
+                                            _selectedSegments.contains(index);
 
                                         return Positioned(
                                           left: left,
@@ -549,7 +616,8 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen> with Re
                                             onTap: () {
                                               setState(() {
                                                 if (selected) {
-                                                  _selectedSegments.remove(index);
+                                                  _selectedSegments
+                                                      .remove(index);
                                                 } else {
                                                   _selectedSegments.add(index);
                                                 }
@@ -557,10 +625,14 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen> with Re
                                             },
                                             child: Container(
                                               decoration: BoxDecoration(
-                                                color:
-                                                    selected ? Colors.blue.withValues(alpha: 0.3) : Colors.transparent,
+                                                color: selected
+                                                    ? AppTheme.secondaryColor
+                                                        .withValues(alpha: 0.3)
+                                                    : Colors.transparent,
                                                 border: Border.all(
-                                                  color: selected ? Colors.blue : Colors.white,
+                                                  color: selected
+                                                      ? AppTheme.secondaryColor
+                                                      : Colors.white,
                                                   width: 2,
                                                 ),
                                               ),
@@ -578,10 +650,11 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen> with Re
                 ),
 
                 // Instructions
-                Container(
-                  padding: const EdgeInsets.all(AppTheme.paddingRegular),
-                  color: Colors.black.withValues(alpha: 0.05),
-                  child: const Row(
+                const ModernCard(
+                  margin:
+                      EdgeInsets.symmetric(horizontal: AppTheme.paddingRegular),
+                  padding: EdgeInsets.all(AppTheme.paddingRegular),
+                  child: Row(
                     children: [
                       Icon(Icons.info_outline, color: AppTheme.primaryColor),
                       SizedBox(width: 8),
@@ -594,10 +667,13 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen> with Re
                     ],
                   ),
                 ),
+                const SizedBox(height: AppTheme.paddingSmall),
+                _buildScanInsights(),
 
                 // Segmentation toggle with premium feature indication
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: AppTheme.paddingRegular),
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: AppTheme.paddingRegular),
                   child: PremiumSegmentationToggle(
                     value: _useSegmentation,
                     onChanged: (bool value) async {
@@ -616,12 +692,17 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen> with Re
                         try {
                           await _runSegmentation();
                         } catch (e) {
-                          WasteAppLogger.severe(
-                              'Segmentation failed', e, null, {'service': 'screen', 'file': 'image_capture_screen'});
+                          WasteAppLogger.severe('Segmentation failed',
+                              error: e,
+                              context: {
+                                'service': 'screen',
+                                'file': 'image_capture_screen'
+                              });
                           if (mounted) {
                             scaffoldMessenger.showSnackBar(
                               SnackBar(
-                                content: Text('Segmentation failed: ${e.toString()}'),
+                                content: Text(
+                                    'Segmentation failed: ${e.toString()}'),
                                 duration: const Duration(seconds: 5),
                               ),
                             );
@@ -646,24 +727,26 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen> with Re
                     padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
                     child: Row(
                       children: [
-                        Icon(
+                        const Icon(
                           Icons.info_outline,
                           size: 16,
-                          color: Colors.blue.shade600,
+                          color: AppTheme.secondaryColor,
                         ),
                         const SizedBox(width: 8),
                         Expanded(
                           child: Text(
                             '${_segments.length} objects detected. Tap to select for analysis.',
-                            style: TextStyle(
+                            style: const TextStyle(
                               fontSize: 14,
-                              color: Colors.blue.shade700,
+                              color: AppTheme.secondaryColor,
                             ),
                           ),
                         ),
                       ],
                     ),
                   ),
+                if (_useSegmentation && _segments.isNotEmpty)
+                  _buildDetectedObjectsCard(),
 
                 // Speed selector
                 const SizedBox(height: 16),
@@ -675,6 +758,8 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen> with Re
                     });
                   },
                 ),
+                const SizedBox(height: 12),
+                _buildAnalysisSummaryCard(),
 
                 // Action buttons
                 Padding(
@@ -706,7 +791,8 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen> with Re
                                 // Show tip about auto-analyze
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   const SnackBar(
-                                    content: Text('💡 Tip: Use camera button with long press for instant analysis!'),
+                                    content: Text(
+                                        '💡 Tip: Use camera button with long press for instant analysis!'),
                                     duration: Duration(seconds: 3),
                                   ),
                                 );
@@ -729,7 +815,8 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen> with Re
   }
 
   Widget _buildAnalyzeButton() {
-    final speedText = _selectedSpeed == AnalysisSpeed.instant ? 'Instant' : 'Batch';
+    final speedText =
+        _selectedSpeed == AnalysisSpeed.instant ? 'Instant' : 'Batch';
     final tokenCost = _selectedSpeed.cost;
 
     return SizedBox(
@@ -756,7 +843,9 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen> with Re
                   strokeWidth: 2.0,
                 ),
               )
-            : Icon(_selectedSpeed == AnalysisSpeed.instant ? Icons.flash_on : Icons.schedule),
+            : Icon(_selectedSpeed == AnalysisSpeed.instant
+                ? Icons.flash_on
+                : Icons.schedule),
         label: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -779,6 +868,240 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen> with Re
         ),
       ),
     );
+  }
+
+  Widget _buildAnalysisSummaryCard() {
+    final selectedCount = _selectedSegments.length;
+    final totalCount = _segments.length;
+    final segmentationStatus = _useSegmentation
+        ? (totalCount == 0
+            ? 'Detecting...'
+            : '$selectedCount of $totalCount selected')
+        : 'Off';
+    final tokenCost = _selectedSpeed.cost;
+
+    return ModernCard(
+      margin: const EdgeInsets.symmetric(horizontal: AppTheme.paddingRegular),
+      padding: const EdgeInsets.all(AppTheme.paddingRegular),
+      child: Column(
+        children: [
+          Row(
+            children: [
+              const Icon(Icons.speed, color: AppTheme.secondaryColor),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  'Mode',
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
+              ),
+              Text(
+                _selectedSpeed.displayName,
+                style: Theme.of(context)
+                    .textTheme
+                    .titleSmall
+                    ?.copyWith(fontWeight: FontWeight.bold),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              const Icon(Icons.auto_fix_high, color: AppTheme.primaryColor),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  'Model',
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
+              ),
+              Text(
+                _modelLabel(),
+                style: Theme.of(context)
+                    .textTheme
+                    .titleSmall
+                    ?.copyWith(fontWeight: FontWeight.bold),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              const Icon(Icons.bolt, color: AppTheme.rewardGold),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  'Status',
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
+              ),
+              Text(
+                _analysisStatusLabel(),
+                style: Theme.of(context)
+                    .textTheme
+                    .titleSmall
+                    ?.copyWith(fontWeight: FontWeight.bold),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              const Icon(Icons.flash_on, color: AppTheme.rewardGold),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  'Token cost',
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
+              ),
+              Text(
+                '$tokenCost ⚡',
+                style: Theme.of(context)
+                    .textTheme
+                    .titleSmall
+                    ?.copyWith(fontWeight: FontWeight.bold),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              const Icon(Icons.schedule, color: AppTheme.secondaryColor),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  'Estimated time',
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
+              ),
+              Text(
+                _estimateDurationLabel(),
+                style: Theme.of(context)
+                    .textTheme
+                    .titleSmall
+                    ?.copyWith(fontWeight: FontWeight.bold),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              const Icon(Icons.layers, color: AppTheme.primaryColor),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  'Segmentation',
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
+              ),
+              Text(
+                segmentationStatus,
+                style: Theme.of(context)
+                    .textTheme
+                    .titleSmall
+                    ?.copyWith(fontWeight: FontWeight.bold),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDetectedObjectsCard() {
+    return ModernCard(
+      margin: const EdgeInsets.symmetric(horizontal: AppTheme.paddingRegular),
+      padding: const EdgeInsets.all(AppTheme.paddingRegular),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(Icons.category, color: AppTheme.secondaryColor),
+              const SizedBox(width: 8),
+              Text(
+                'Detected Objects',
+                style: Theme.of(context)
+                    .textTheme
+                    .titleMedium
+                    ?.copyWith(fontWeight: FontWeight.bold),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: List.generate(_segments.length, (index) {
+              final segment = _segments[index];
+              final label =
+                  segment['label']?.toString() ?? 'Object ${index + 1}';
+              final confidence = segment['confidence'] is num
+                  ? (segment['confidence'] as num).toDouble()
+                  : null;
+              final isSelected = _selectedSegments.contains(index);
+              final color =
+                  isSelected ? AppTheme.secondaryColor : AppTheme.primaryColor;
+              final suffix =
+                  confidence == null ? '' : ' ${(confidence * 100).round()}%';
+
+              return Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                decoration: BoxDecoration(
+                  color: color.withValues(alpha: isSelected ? 0.2 : 0.1),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: color.withValues(alpha: 0.6)),
+                ),
+                child: Text(
+                  '$label$suffix',
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: color,
+                        fontWeight:
+                            isSelected ? FontWeight.w600 : FontWeight.w500,
+                      ),
+                ),
+              );
+            }),
+          ),
+        ],
+      ),
+    );
+  }
+
+  String _scanHintText() {
+    if (_useSegmentation && _segments.isNotEmpty) {
+      return 'Tap objects to focus the scan';
+    }
+    if (_useSegmentation && _segments.isEmpty) {
+      return 'Detecting multiple items...';
+    }
+    return _selectedSpeed == AnalysisSpeed.instant
+        ? 'Instant scan ready'
+        : 'Batch scan queued';
+  }
+
+  String _modelLabel() {
+    return _selectedSpeed == AnalysisSpeed.instant
+        ? 'Instant Vision'
+        : 'Batch Vision';
+  }
+
+  String _analysisStatusLabel() {
+    if (_isAnalyzing) {
+      return 'Analyzing';
+    }
+    if (_selectedSpeed == AnalysisSpeed.batch) {
+      return 'Queued';
+    }
+    return 'Ready';
+  }
+
+  String _estimateDurationLabel() {
+    return _selectedSpeed == AnalysisSpeed.instant
+        ? 'Under 1 min'
+        : '2-6 hours';
   }
 
   Widget _buildImagePreview() {
@@ -809,14 +1132,15 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen> with Re
           minScale: 0.5, // Minimum zoom out
           maxScale: 4.0, // Maximum zoom in
           child: Stack(
-            fit: StackFit.expand, // FIXED: Use StackFit.expand instead of infinite container
+            fit: StackFit
+                .expand, // FIXED: Use StackFit.expand instead of infinite container
             children: [
               // FIXED: Center the image within available space
               Center(child: imageWidget),
+              _buildVisionOverlay(),
               // Zoom instruction overlay (shows briefly)
               Positioned(
                 top: 16,
-                left: 16,
                 right: 16,
                 child: Container(
                   padding: const EdgeInsets.symmetric(
@@ -853,10 +1177,263 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen> with Re
         ));
   }
 
+  Widget _buildVisionOverlay() {
+    final confidence = _getConfidenceEstimate();
+    return Positioned.fill(
+      child: IgnorePointer(
+        child: Stack(
+          children: [
+            Align(
+              alignment: Alignment.topLeft,
+              child: Container(
+                margin: const EdgeInsets.all(16),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                decoration: BoxDecoration(
+                  color: Colors.black.withValues(alpha: 0.6),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(
+                    color: AppTheme.secondaryColor.withValues(alpha: 0.6),
+                  ),
+                ),
+                child: const Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.center_focus_strong,
+                        color: AppTheme.secondaryColor, size: 16),
+                    SizedBox(width: 6),
+                    Text(
+                      'AI Vision Mode',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            Align(
+              alignment: Alignment.topRight,
+              child: Container(
+                margin: const EdgeInsets.all(16),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                decoration: BoxDecoration(
+                  color: _confidenceColor(confidence).withValues(alpha: 0.18),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: _confidenceColor(confidence)),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.insights,
+                        color: _confidenceColor(confidence), size: 16),
+                    const SizedBox(width: 6),
+                    Text(
+                      '${_confidenceLabel(confidence)} ${(confidence * 100).round()}%',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            Center(
+              child: AnimatedBuilder(
+                animation: _scanPulseController,
+                builder: (context, child) {
+                  return Transform.scale(
+                    scale: _scanPulseScale.value,
+                    child: Container(
+                      width: 240,
+                      height: 240,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(28),
+                        border: Border.all(
+                          color: AppTheme.secondaryColor
+                              .withValues(alpha: _scanPulseOpacity.value),
+                          width: 2,
+                        ),
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+            Center(
+              child: Container(
+                width: 220,
+                height: 220,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(24),
+                  border: Border.all(
+                    color: AppTheme.secondaryColor.withValues(alpha: 0.7),
+                    width: 2,
+                  ),
+                  color: Colors.black.withValues(alpha: 0.05),
+                ),
+              ),
+            ),
+            Align(
+              alignment: Alignment.bottomCenter,
+              child: Container(
+                margin: const EdgeInsets.fromLTRB(16, 0, 16, 24),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                decoration: BoxDecoration(
+                  color: Colors.black.withValues(alpha: 0.6),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.auto_awesome,
+                        color: Colors.white, size: 16),
+                    const SizedBox(width: 6),
+                    Text(
+                      _scanHintText(),
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  double _getConfidenceEstimate() {
+    var base = switch (_selectedSpeed) {
+      AnalysisSpeed.batch => 0.72,
+      AnalysisSpeed.instant => 0.84,
+    };
+    final segmentConfidence = _getSegmentConfidence();
+    if (segmentConfidence != null) {
+      base = (base * 0.6) + (segmentConfidence * 0.4);
+    } else if (_useSegmentation && _segments.isNotEmpty) {
+      base += 0.06;
+    }
+    return base.clamp(0.5, 0.95).toDouble();
+  }
+
+  double? _getSegmentConfidence() {
+    final sourceSegments = _selectedSegments.isNotEmpty
+        ? _selectedSegments.map((index) => _segments[index]).toList()
+        : _segments;
+    if (sourceSegments.isEmpty) {
+      return null;
+    }
+    final confidenceValues = sourceSegments
+        .map((segment) => segment['confidence'])
+        .whereType<num>()
+        .map((value) => value.toDouble())
+        .toList();
+    if (confidenceValues.isEmpty) {
+      return null;
+    }
+    final total = confidenceValues.reduce((a, b) => a + b);
+    return total / confidenceValues.length;
+  }
+
+  String _confidenceLabel(double confidence) {
+    if (confidence >= 0.85) {
+      return 'High';
+    }
+    if (confidence >= 0.72) {
+      return 'Good';
+    }
+    return 'Est.';
+  }
+
+  Color _confidenceColor(double confidence) {
+    if (confidence >= 0.85) {
+      return AppTheme.wetWasteColor;
+    }
+    if (confidence >= 0.72) {
+      return AppTheme.rewardGold;
+    }
+    return AppTheme.hazardousWasteColor;
+  }
+
+  Widget _buildScanInsights() {
+    final hints = <String>[];
+    if (_useSegmentation) {
+      if (_segments.isNotEmpty) {
+        hints.add('Tap detected items to focus the analysis.');
+      } else {
+        hints.add('Segmentation is on. Detecting multiple items...');
+      }
+    } else {
+      hints.add('Enable multi-item scan if the photo has mixed waste.');
+    }
+    if (_selectedSpeed == AnalysisSpeed.batch) {
+      hints.add('Batch mode is cheaper but slower.');
+    } else {
+      hints.add('Instant mode prioritizes speed.');
+    }
+    hints.add('Model in use: ${_modelLabel()}.');
+    hints.add('Local disposal rules appear after analysis.');
+
+    return ModernCard(
+      margin: const EdgeInsets.symmetric(horizontal: AppTheme.paddingRegular),
+      padding: const EdgeInsets.all(AppTheme.paddingRegular),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(Icons.tips_and_updates, color: AppTheme.rewardGold),
+              const SizedBox(width: 8),
+              Text(
+                'Scan Insights',
+                style: Theme.of(context)
+                    .textTheme
+                    .titleMedium
+                    ?.copyWith(fontWeight: FontWeight.bold),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          ...hints.map(
+            (hint) => Padding(
+              padding: const EdgeInsets.only(bottom: 6),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Icon(Icons.check_circle,
+                      size: 14, color: AppTheme.secondaryColor),
+                  const SizedBox(width: 6),
+                  Expanded(
+                    child: Text(
+                      hint,
+                      style: Theme.of(context).textTheme.bodySmall,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   void dispose() {
     _imagePath.dispose();
     _useSegmentationRestorable.dispose();
+    _scanPulseController.dispose();
     super.dispose();
   }
 }

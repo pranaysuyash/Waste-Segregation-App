@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../models/waste_classification.dart';
+import 'package:waste_segregation_app/models/waste_classification.dart';
 import '../providers/feature_flags_provider.dart';
 import '../utils/waste_app_logger.dart';
 import 'result_screen.dart';
@@ -34,7 +34,7 @@ class ResultScreenWrapper extends ConsumerWidget {
     return featureFlagAsync.when(
       data: (useV2) {
         // Log which version is being used for analytics
-        WasteAppLogger.info('Result screen version selected', null, null, {
+        WasteAppLogger.info('Result screen version selected', context: {
           'version': useV2 ? 'v2' : 'legacy',
           'classificationId': classification.id,
           'autoAnalyze': autoAnalyze,
@@ -67,10 +67,14 @@ class ResultScreenWrapper extends ConsumerWidget {
       },
       error: (error, stackTrace) {
         // On error loading feature flags, default to legacy screen
-        WasteAppLogger.warning('Feature flags failed to load, defaulting to legacy', error, stackTrace, {
-          'classificationId': classification.id,
-          'service': 'ResultScreenWrapper',
-        });
+        WasteAppLogger.warning(
+            'Feature flags failed to load, defaulting to legacy',
+            error: error,
+            stackTrace: stackTrace,
+            context: {
+              'classificationId': classification.id,
+              'service': 'ResultScreenWrapper',
+            });
 
         return ResultScreen(
           classification: classification,

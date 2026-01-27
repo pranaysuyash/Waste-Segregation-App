@@ -4,7 +4,7 @@ import '../services/gamification_service.dart';
 import '../services/storage_service.dart';
 import '../services/community_service.dart';
 import '../models/gamification.dart';
-import '../models/waste_classification.dart';
+import 'package:waste_segregation_app/models/waste_classification.dart';
 import '../models/community_feed.dart';
 import '../utils/waste_app_logger.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -62,8 +62,9 @@ class DataSyncProvider extends ChangeNotifier {
   /// MAIN SYNC METHOD - This resolves all points inconsistency issues
   Future<void> forceSyncAllData() async {
     if (_isSyncing || _isUpdating) {
-      WasteAppLogger.debug('Data sync already in progress, skipping duplicate request',
-          {'is_syncing': _isSyncing, 'is_updating': _isUpdating});
+      WasteAppLogger.debug(
+          'Data sync already in progress, skipping duplicate request',
+          context: {'is_syncing': _isSyncing, 'is_updating': _isUpdating});
       return;
     }
 
@@ -72,7 +73,7 @@ class DataSyncProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      WasteAppLogger.info('Starting comprehensive data sync', null, null, {
+      WasteAppLogger.info('Starting comprehensive data sync', context: {
         'sync_type': 'full_data_sync',
         'cached_classifications_count': _cachedClassificationCount,
         'cached_points': _cachedPoints?.total
@@ -80,41 +81,51 @@ class DataSyncProvider extends ChangeNotifier {
 
       // 1. Force complete gamification sync first (this fixes points issues)
       await _gamificationService.syncGamificationData();
-      WasteAppLogger.info('Gamification sync complete', null, null, {'sync_step': 1});
+      WasteAppLogger.info('Gamification sync complete',
+          context: {'sync_step': 1});
 
       // 2. Refresh cached classifications
       _cachedClassifications = await _storageService.getAllClassifications();
       _cachedClassificationCount = _cachedClassifications?.length ?? 0;
-      WasteAppLogger.info('Classifications refreshed', null, null,
-          {'sync_step': 2, 'classifications_count': _cachedClassificationCount});
+      WasteAppLogger.info('Classifications refreshed', context: {
+        'sync_step': 2,
+        'classifications_count': _cachedClassificationCount
+      });
 
       // 3. Get latest profile and points (now guaranteed to be consistent)
-      _cachedProfile = await _gamificationService.getProfile(forceRefresh: true);
+      _cachedProfile =
+          await _gamificationService.getProfile(forceRefresh: true);
       _cachedPoints = _cachedProfile?.points;
-      WasteAppLogger.info('Profile refreshed', null, null, {'sync_step': 3, 'total_points': _cachedPoints?.total});
+      WasteAppLogger.info('Profile refreshed',
+          context: {'sync_step': 3, 'total_points': _cachedPoints?.total});
 
       // 4. Sync community data to remove stale entries
       await _syncCommunityData();
-      WasteAppLogger.info('Community data synced', null, null, {'sync_step': 4});
+      WasteAppLogger.info('Community data synced', context: {'sync_step': 4});
 
       // 5. Refresh images if needed (daily check)
       await _checkAndRefreshImages();
-      WasteAppLogger.info('Image refresh checked', null, null, {'sync_step': 5});
+      WasteAppLogger.info('Image refresh checked', context: {'sync_step': 5});
 
       // 6. Update last sync time
       _lastSyncTime = DateTime.now();
 
-      WasteAppLogger.info('Data sync complete', null, null, {
+      WasteAppLogger.info('Data sync complete', context: {
         'final_points': _cachedPoints?.total,
         'final_classifications_count': _cachedClassificationCount,
-        'sync_duration_ms': DateTime.now().difference(_lastSyncTime!).inMilliseconds
+        'sync_duration_ms': _lastSyncTime != null
+            ? DateTime.now().difference(_lastSyncTime!).inMilliseconds
+            : null
       });
     } catch (e, stackTrace) {
-      WasteAppLogger.severe('Data sync failed', e, stackTrace, {
-        'sync_type': 'full_data_sync',
-        'cached_classifications_count': _cachedClassificationCount,
-        'cached_points': _cachedPoints?.total
-      });
+      WasteAppLogger.severe('Data sync failed',
+          error: e,
+          stackTrace: stackTrace,
+          context: {
+            'sync_type': 'full_data_sync',
+            'cached_classifications_count': _cachedClassificationCount,
+            'cached_points': _cachedPoints?.total
+          });
       // Don't rethrow - we want the app to continue working even if sync fails
     } finally {
       _isSyncing = false;
@@ -131,26 +142,32 @@ class DataSyncProvider extends ChangeNotifier {
       // Sync with real user data
       if (_cachedClassifications != null) {
         final userProfile = await _storageService.getCurrentUserProfile();
-        await _communityService.syncWithUserData(_cachedClassifications!, userProfile);
+        await _communityService.syncWithUserData(
+            _cachedClassifications!, userProfile);
       }
 
       // Refresh community feed cache
       _cachedCommunityFeed = await _communityService.getFeedItems();
-    } catch (e) {
-      WasteAppLogger.warning('Community sync error', e, null, {
-        'classifications_count': _cachedClassifications?.length,
-        'community_feed_count': _cachedCommunityFeed?.length
-      });
+    } catch (e, stackTrace) {
+      WasteAppLogger.warning('Community sync error',
+          error: e,
+          stackTrace: stackTrace,
+          context: {
+            'classifications_count': _cachedClassifications?.length,
+            'community_feed_count': _cachedCommunityFeed?.length
+          });
     }
   }
 
   /// Get live data for a specific screen with automatic refresh
   Future<Map<String, dynamic>> getScreenData(String screenName) async {
-    WasteAppLogger.debug('Getting screen data', {
+    WasteAppLogger.debug('Getting screen data', context: {
       'screen_name': screenName,
       'has_cached_points': _cachedPoints != null,
       'has_cached_profile': _cachedProfile != null,
-      'last_sync_minutes_ago': _lastSyncTime != null ? DateTime.now().difference(_lastSyncTime!).inMinutes : null
+      'last_sync_minutes_ago': _lastSyncTime != null
+          ? DateTime.now().difference(_lastSyncTime!).inMinutes
+          : null
     });
 
     // Force sync if data is stale (more than 1 minute old) or if no data exists
@@ -161,9 +178,11 @@ class DataSyncProvider extends ChangeNotifier {
         _cachedProfile == null;
 
     if (needsSync) {
-      WasteAppLogger.info('Data is stale, forcing sync', null, null, {
+      WasteAppLogger.info('Data is stale, forcing sync', context: {
         'screen_name': screenName,
-        'last_sync_minutes_ago': _lastSyncTime != null ? DateTime.now().difference(_lastSyncTime!).inMinutes : null,
+        'last_sync_minutes_ago': _lastSyncTime != null
+            ? DateTime.now().difference(_lastSyncTime!).inMinutes
+            : null,
         'has_cached_points': _cachedPoints != null,
         'has_cached_profile': _cachedProfile != null
       });
@@ -174,7 +193,8 @@ class DataSyncProvider extends ChangeNotifier {
       'points': _cachedPoints?.toJson(),
       'profile': _cachedProfile?.toJson(),
       'classificationsCount': _cachedClassificationCount,
-      'classifications': _cachedClassifications?.map((c) => c.toJson()).toList(),
+      'classifications':
+          _cachedClassifications?.map((c) => c.toJson()).toList(),
       'communityFeed': _cachedCommunityFeed?.map((f) => f.toJson()).toList(),
       'lastUpdated': _lastSyncTime?.toIso8601String(),
       'screenName': screenName,
@@ -189,8 +209,11 @@ class DataSyncProvider extends ChangeNotifier {
       _cachedProfile = await _gamificationService.getProfile();
       _cachedPoints = _cachedProfile?.points;
       notifyListeners();
-    } catch (e) {
-      WasteAppLogger.warning('Quick refresh error', e, null, {'action': 'quick_refresh_profile_points'});
+    } catch (e, stackTrace) {
+      WasteAppLogger.warning('Quick refresh error',
+          error: e,
+          stackTrace: stackTrace,
+          context: {'action': 'quick_refresh_profile_points'});
     }
   }
 
@@ -221,27 +244,35 @@ class DataSyncProvider extends ChangeNotifier {
       _cachedPoints = _cachedProfile?.points;
 
       // Also refresh classification count periodically
-      if (_lastSyncTime == null || DateTime.now().difference(_lastSyncTime!).inMinutes > 5) {
+      if (_lastSyncTime == null ||
+          DateTime.now().difference(_lastSyncTime!).inMinutes > 5) {
         final classifications = await _storageService.getAllClassifications();
         _cachedClassificationCount = classifications.length;
       }
 
       notifyListeners();
-    } catch (e) {
-      WasteAppLogger.severe(
-          'Cache refresh error', e, null, {'operation': 'cache_refresh', 'action': 'continue_with_existing_cache'});
+    } catch (e, stackTrace) {
+      WasteAppLogger.severe('Cache refresh error',
+          error: e,
+          stackTrace: stackTrace,
+          context: {
+            'operation': 'cache_refresh',
+            'action': 'continue_with_existing_cache'
+          });
     }
   }
 
   /// Force refresh community feeds
   Future<void> refreshCommunityFeeds() async {
     try {
-      WasteAppLogger.info('Refreshing community feeds', null, null, {'operation': 'community_feeds_refresh'});
+      WasteAppLogger.info('Refreshing community feeds',
+          context: {'operation': 'community_feeds_refresh'});
       await _communityService.initCommunity();
 
       if (_cachedClassifications != null) {
         final userProfile = await _storageService.getCurrentUserProfile();
-        await _communityService.syncWithUserData(_cachedClassifications!, userProfile);
+        await _communityService.syncWithUserData(
+            _cachedClassifications!, userProfile);
       }
 
       // Refresh cached feed
@@ -266,7 +297,8 @@ class DataSyncProvider extends ChangeNotifier {
     try {
       final now = DateTime.now();
 
-      final classifications = _cachedClassifications ?? await _storageService.getAllClassifications();
+      final classifications = _cachedClassifications ??
+          await _storageService.getAllClassifications();
       final updatedClassifications = <WasteClassification>[];
 
       for (final classification in classifications) {
@@ -311,7 +343,8 @@ class DataSyncProvider extends ChangeNotifier {
   Map<String, dynamic> getImageRefreshStatus() {
     return {
       'lastRefresh': _lastImageRefresh?.toIso8601String(),
-      'needsRefresh': _lastImageRefresh == null || DateTime.now().difference(_lastImageRefresh!).inDays >= 1,
+      'needsRefresh': _lastImageRefresh == null ||
+          DateTime.now().difference(_lastImageRefresh!).inDays >= 1,
       'isRefreshing': _isSyncing,
     };
   }

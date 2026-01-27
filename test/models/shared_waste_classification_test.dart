@@ -5,7 +5,9 @@ import 'package:waste_segregation_app/models/waste_classification.dart';
 void main() {
   group('SharedWasteClassification Model Tests', () {
     group('SharedWasteClassification Model', () {
-      test('should create SharedWasteClassification with all required properties', () {
+      test(
+          'should create SharedWasteClassification with all required properties',
+          () {
         final originalClassification = WasteClassification(
           itemName: 'Test Item',
           explanation: 'Test explanation',
@@ -13,8 +15,10 @@ void main() {
           region: 'Test Region',
           visualFeatures: ['test feature'],
           alternatives: [],
-          disposalInstructions:
-              DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false),
+          disposalInstructions: DisposalInstructions(
+              primaryMethod: 'Test method',
+              steps: ['Test step'],
+              hasUrgentTimeframe: false),
           id: 'class_001',
           imageUrl: '/path/to/image.jpg',
           confidence: 0.95,
@@ -31,8 +35,10 @@ void main() {
           region: 'Test Region',
           visualFeatures: ['test feature'],
           alternatives: [],
-          disposalInstructions:
-              DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false),
+          disposalInstructions: DisposalInstructions(
+              primaryMethod: 'Test method',
+              steps: ['Test step'],
+              hasUrgentTimeframe: false),
           id: 'shared_001',
           originalClassification: originalClassification,
           sharedBy: 'user123',
@@ -43,7 +49,8 @@ void main() {
         );
 
         expect(sharedClassification.id, 'shared_001');
-        expect(sharedClassification.originalClassification, originalClassification);
+        expect(sharedClassification.originalClassification,
+            originalClassification);
         expect(sharedClassification.sharedBy, 'user123');
         expect(sharedClassification.sharedByName, 'John Doe');
         expect(sharedClassification.sharedAt, DateTime(2024, 1, 15, 11));
@@ -51,7 +58,8 @@ void main() {
         expect(sharedClassification.familyId, 'family456');
       });
 
-      test('should create SharedWasteClassification with optional properties', () {
+      test('should create SharedWasteClassification with optional properties',
+          () {
         final originalClassification = WasteClassification(
           itemName: 'Test Item',
           explanation: 'Test explanation',
@@ -59,8 +67,10 @@ void main() {
           region: 'Test Region',
           visualFeatures: ['test feature'],
           alternatives: [],
-          disposalInstructions:
-              DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false),
+          disposalInstructions: DisposalInstructions(
+              primaryMethod: 'Test method',
+              steps: ['Test step'],
+              hasUrgentTimeframe: false),
           id: 'class_002',
           imageUrl: '/path/to/image2.jpg',
           confidence: 0.88,
@@ -77,8 +87,10 @@ void main() {
           region: 'Test Region',
           visualFeatures: ['test feature'],
           alternatives: [],
-          disposalInstructions:
-              DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false),
+          disposalInstructions: DisposalInstructions(
+              primaryMethod: 'Test method',
+              steps: ['Test step'],
+              hasUrgentTimeframe: false),
           id: 'shared_002',
           originalClassification: originalClassification,
           sharedBy: 'user456',
@@ -106,11 +118,13 @@ void main() {
           ),
         );
 
-        expect(sharedClassification.description, 'Great example of paper waste');
+        expect(
+            sharedClassification.description, 'Great example of paper waste');
         expect(sharedClassification.tags, ['paper', 'recyclable', 'example']);
         expect(sharedClassification.likes, 5);
         expect(sharedClassification.comments.length, 1);
-        expect(sharedClassification.comments[0].content, 'Great classification!');
+        expect(
+            sharedClassification.comments[0].content, 'Great classification!');
         expect(sharedClassification.sharingSettings?.allowComments, true);
       });
 
@@ -122,8 +136,10 @@ void main() {
           region: 'Test Region',
           visualFeatures: ['test feature'],
           alternatives: [],
-          disposalInstructions:
-              DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false),
+          disposalInstructions: DisposalInstructions(
+              primaryMethod: 'Test method',
+              steps: ['Test step'],
+              hasUrgentTimeframe: false),
           id: 'class_003',
           imageUrl: '/path/to/image3.jpg',
           confidence: 0.92,
@@ -140,8 +156,10 @@ void main() {
           region: 'Test Region',
           visualFeatures: ['test feature'],
           alternatives: [],
-          disposalInstructions:
-              DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false),
+          disposalInstructions: DisposalInstructions(
+              primaryMethod: 'Test method',
+              steps: ['Test step'],
+              hasUrgentTimeframe: false),
           id: 'shared_003',
           originalClassification: originalClassification,
           sharedBy: 'user123',
@@ -166,7 +184,8 @@ void main() {
         expect(json['likes'], 3);
       });
 
-      test('should deserialize SharedWasteClassification from JSON correctly', () {
+      test('should deserialize SharedWasteClassification from JSON correctly',
+          () {
         final json = {
           'id': 'shared_004',
           'originalClassification': {
@@ -218,8 +237,10 @@ void main() {
           region: 'Test Region',
           visualFeatures: ['test feature'],
           alternatives: [],
-          disposalInstructions:
-              DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false),
+          disposalInstructions: DisposalInstructions(
+              primaryMethod: 'Test method',
+              steps: ['Test step'],
+              hasUrgentTimeframe: false),
           id: 'shared_public',
           originalClassification: WasteClassification(
             itemName: 'Test Item',
@@ -228,14 +249,18 @@ void main() {
             region: 'Test Region',
             visualFeatures: ['test feature'],
             alternatives: [],
-            disposalInstructions:
-                DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false),
+            disposalInstructions: DisposalInstructions(
+                primaryMethod: 'Test method',
+                steps: ['Test step'],
+                hasUrgentTimeframe: false),
             id: 'class',
             imageUrl: '/path',
             category: 'plastic',
             confidence: 0.9,
-            disposalInstructions:
-                DisposalInstructions(primaryMethod: 'Recycle', steps: ['Test step'], hasUrgentTimeframe: false),
+            disposalInstructions: DisposalInstructions(
+                primaryMethod: 'Recycle',
+                steps: ['Test step'],
+                hasUrgentTimeframe: false),
             timestamp: DateTime.now(),
           ),
           sharedBy: 'user123',
@@ -251,8 +276,10 @@ void main() {
           region: 'Test Region',
           visualFeatures: ['test feature'],
           alternatives: [],
-          disposalInstructions:
-              DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false),
+          disposalInstructions: DisposalInstructions(
+              primaryMethod: 'Test method',
+              steps: ['Test step'],
+              hasUrgentTimeframe: false),
           id: 'shared_family',
           originalClassification: WasteClassification(
             itemName: 'Test Item',
@@ -261,14 +288,18 @@ void main() {
             region: 'Test Region',
             visualFeatures: ['test feature'],
             alternatives: [],
-            disposalInstructions:
-                DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false),
+            disposalInstructions: DisposalInstructions(
+                primaryMethod: 'Test method',
+                steps: ['Test step'],
+                hasUrgentTimeframe: false),
             id: 'class',
             imageUrl: '/path',
             category: 'plastic',
             confidence: 0.9,
-            disposalInstructions:
-                DisposalInstructions(primaryMethod: 'Recycle', steps: ['Test step'], hasUrgentTimeframe: false),
+            disposalInstructions: DisposalInstructions(
+                primaryMethod: 'Recycle',
+                steps: ['Test step'],
+                hasUrgentTimeframe: false),
             timestamp: DateTime.now(),
           ),
           sharedBy: 'user123',
@@ -285,8 +316,10 @@ void main() {
           region: 'Test Region',
           visualFeatures: ['test feature'],
           alternatives: [],
-          disposalInstructions:
-              DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false),
+          disposalInstructions: DisposalInstructions(
+              primaryMethod: 'Test method',
+              steps: ['Test step'],
+              hasUrgentTimeframe: false),
           id: 'shared_private',
           originalClassification: WasteClassification(
             itemName: 'Test Item',
@@ -295,14 +328,18 @@ void main() {
             region: 'Test Region',
             visualFeatures: ['test feature'],
             alternatives: [],
-            disposalInstructions:
-                DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false),
+            disposalInstructions: DisposalInstructions(
+                primaryMethod: 'Test method',
+                steps: ['Test step'],
+                hasUrgentTimeframe: false),
             id: 'class',
             imageUrl: '/path',
             category: 'plastic',
             confidence: 0.9,
-            disposalInstructions:
-                DisposalInstructions(primaryMethod: 'Recycle', steps: ['Test step'], hasUrgentTimeframe: false),
+            disposalInstructions: DisposalInstructions(
+                primaryMethod: 'Recycle',
+                steps: ['Test step'],
+                hasUrgentTimeframe: false),
             timestamp: DateTime.now(),
           ),
           sharedBy: 'user123',
@@ -313,11 +350,14 @@ void main() {
 
         // Public can be viewed by anyone
         expect(publicClassification.canBeViewedBy('user456', null), true);
-        expect(publicClassification.canBeViewedBy('user456', 'family789'), true);
+        expect(
+            publicClassification.canBeViewedBy('user456', 'family789'), true);
 
         // Family can only be viewed by family members
-        expect(familyClassification.canBeViewedBy('user456', 'family456'), true);
-        expect(familyClassification.canBeViewedBy('user456', 'family789'), false);
+        expect(
+            familyClassification.canBeViewedBy('user456', 'family456'), true);
+        expect(
+            familyClassification.canBeViewedBy('user456', 'family789'), false);
         expect(familyClassification.canBeViewedBy('user456', null), false);
 
         // Private can only be viewed by owner
@@ -333,8 +373,10 @@ void main() {
           region: 'Test Region',
           visualFeatures: ['test feature'],
           alternatives: [],
-          disposalInstructions:
-              DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false),
+          disposalInstructions: DisposalInstructions(
+              primaryMethod: 'Test method',
+              steps: ['Test step'],
+              hasUrgentTimeframe: false),
           id: 'shared_001',
           originalClassification: WasteClassification(
             itemName: 'Test Item',
@@ -343,14 +385,18 @@ void main() {
             region: 'Test Region',
             visualFeatures: ['test feature'],
             alternatives: [],
-            disposalInstructions:
-                DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false),
+            disposalInstructions: DisposalInstructions(
+                primaryMethod: 'Test method',
+                steps: ['Test step'],
+                hasUrgentTimeframe: false),
             id: 'class',
             imageUrl: '/path',
             category: 'plastic',
             confidence: 0.9,
-            disposalInstructions:
-                DisposalInstructions(primaryMethod: 'Recycle', steps: ['Test step'], hasUrgentTimeframe: false),
+            disposalInstructions: DisposalInstructions(
+                primaryMethod: 'Recycle',
+                steps: ['Test step'],
+                hasUrgentTimeframe: false),
             timestamp: DateTime.now(),
           ),
           sharedBy: 'user123',
@@ -371,8 +417,10 @@ void main() {
           region: 'Test Region',
           visualFeatures: ['test feature'],
           alternatives: [],
-          disposalInstructions:
-              DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false),
+          disposalInstructions: DisposalInstructions(
+              primaryMethod: 'Test method',
+              steps: ['Test step'],
+              hasUrgentTimeframe: false),
           id: 'shared_002',
           originalClassification: WasteClassification(
             itemName: 'Test Item',
@@ -381,14 +429,18 @@ void main() {
             region: 'Test Region',
             visualFeatures: ['test feature'],
             alternatives: [],
-            disposalInstructions:
-                DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false),
+            disposalInstructions: DisposalInstructions(
+                primaryMethod: 'Test method',
+                steps: ['Test step'],
+                hasUrgentTimeframe: false),
             id: 'class',
             imageUrl: '/path',
             category: 'plastic',
             confidence: 0.9,
-            disposalInstructions:
-                DisposalInstructions(primaryMethod: 'Recycle', steps: ['Test step'], hasUrgentTimeframe: false),
+            disposalInstructions: DisposalInstructions(
+                primaryMethod: 'Recycle',
+                steps: ['Test step'],
+                hasUrgentTimeframe: false),
             timestamp: DateTime.now(),
           ),
           sharedBy: 'user123',
@@ -403,7 +455,8 @@ void main() {
         );
 
         expect(sharedClassification.canBeLikedBy('user456'), true);
-        expect(sharedClassification.canBeLikedBy('user123'), false); // Can't like own post
+        expect(sharedClassification.canBeLikedBy('user123'),
+            false); // Can't like own post
         expect(noLikesClassification.canBeLikedBy('user456'), false);
       });
 
@@ -415,8 +468,10 @@ void main() {
           region: 'Test Region',
           visualFeatures: ['test feature'],
           alternatives: [],
-          disposalInstructions:
-              DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false),
+          disposalInstructions: DisposalInstructions(
+              primaryMethod: 'Test method',
+              steps: ['Test step'],
+              hasUrgentTimeframe: false),
           id: 'shared_001',
           originalClassification: WasteClassification(
             itemName: 'Test Item',
@@ -425,14 +480,18 @@ void main() {
             region: 'Test Region',
             visualFeatures: ['test feature'],
             alternatives: [],
-            disposalInstructions:
-                DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false),
+            disposalInstructions: DisposalInstructions(
+                primaryMethod: 'Test method',
+                steps: ['Test step'],
+                hasUrgentTimeframe: false),
             id: 'class',
             imageUrl: '/path',
             category: 'plastic',
             confidence: 0.9,
-            disposalInstructions:
-                DisposalInstructions(primaryMethod: 'Recycle', steps: ['Test step'], hasUrgentTimeframe: false),
+            disposalInstructions: DisposalInstructions(
+                primaryMethod: 'Recycle',
+                steps: ['Test step'],
+                hasUrgentTimeframe: false),
             timestamp: DateTime.now(),
           ),
           sharedBy: 'user123',
@@ -453,8 +512,10 @@ void main() {
           region: 'Test Region',
           visualFeatures: ['test feature'],
           alternatives: [],
-          disposalInstructions:
-              DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false),
+          disposalInstructions: DisposalInstructions(
+              primaryMethod: 'Test method',
+              steps: ['Test step'],
+              hasUrgentTimeframe: false),
           id: 'shared_002',
           originalClassification: WasteClassification(
             itemName: 'Test Item',
@@ -463,14 +524,18 @@ void main() {
             region: 'Test Region',
             visualFeatures: ['test feature'],
             alternatives: [],
-            disposalInstructions:
-                DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false),
+            disposalInstructions: DisposalInstructions(
+                primaryMethod: 'Test method',
+                steps: ['Test step'],
+                hasUrgentTimeframe: false),
             id: 'class',
             imageUrl: '/path',
             category: 'plastic',
             confidence: 0.9,
-            disposalInstructions:
-                DisposalInstructions(primaryMethod: 'Recycle', steps: ['Test step'], hasUrgentTimeframe: false),
+            disposalInstructions: DisposalInstructions(
+                primaryMethod: 'Recycle',
+                steps: ['Test step'],
+                hasUrgentTimeframe: false),
             timestamp: DateTime.now(),
           ),
           sharedBy: 'user123',
@@ -485,7 +550,8 @@ void main() {
         );
 
         expect(sharedClassification.canBeCommentedBy('user456'), true);
-        expect(sharedClassification.canBeCommentedBy('user123'), true); // Can comment on own post
+        expect(sharedClassification.canBeCommentedBy('user123'),
+            true); // Can comment on own post
         expect(noCommentsClassification.canBeCommentedBy('user456'), false);
       });
 
@@ -497,8 +563,10 @@ void main() {
           region: 'Test Region',
           visualFeatures: ['test feature'],
           alternatives: [],
-          disposalInstructions:
-              DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false),
+          disposalInstructions: DisposalInstructions(
+              primaryMethod: 'Test method',
+              steps: ['Test step'],
+              hasUrgentTimeframe: false),
           id: 'shared_001',
           originalClassification: WasteClassification(
             itemName: 'Test Item',
@@ -507,14 +575,18 @@ void main() {
             region: 'Test Region',
             visualFeatures: ['test feature'],
             alternatives: [],
-            disposalInstructions:
-                DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false),
+            disposalInstructions: DisposalInstructions(
+                primaryMethod: 'Test method',
+                steps: ['Test step'],
+                hasUrgentTimeframe: false),
             id: 'class',
             imageUrl: '/path',
             category: 'plastic',
             confidence: 0.9,
-            disposalInstructions:
-                DisposalInstructions(primaryMethod: 'Recycle', steps: ['Test step'], hasUrgentTimeframe: false),
+            disposalInstructions: DisposalInstructions(
+                primaryMethod: 'Recycle',
+                steps: ['Test step'],
+                hasUrgentTimeframe: false),
             timestamp: DateTime.now(),
           ),
           sharedBy: 'user123',
@@ -548,8 +620,10 @@ void main() {
           region: 'Test Region',
           visualFeatures: ['test feature'],
           alternatives: [],
-          disposalInstructions:
-              DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false),
+          disposalInstructions: DisposalInstructions(
+              primaryMethod: 'Test method',
+              steps: ['Test step'],
+              hasUrgentTimeframe: false),
           id: 'shared_recent',
           originalClassification: WasteClassification(
             itemName: 'Test Item',
@@ -558,14 +632,18 @@ void main() {
             region: 'Test Region',
             visualFeatures: ['test feature'],
             alternatives: [],
-            disposalInstructions:
-                DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false),
+            disposalInstructions: DisposalInstructions(
+                primaryMethod: 'Test method',
+                steps: ['Test step'],
+                hasUrgentTimeframe: false),
             id: 'class',
             imageUrl: '/path',
             category: 'plastic',
             confidence: 0.9,
-            disposalInstructions:
-                DisposalInstructions(primaryMethod: 'Recycle', steps: ['Test step'], hasUrgentTimeframe: false),
+            disposalInstructions: DisposalInstructions(
+                primaryMethod: 'Recycle',
+                steps: ['Test step'],
+                hasUrgentTimeframe: false),
             timestamp: DateTime.now(),
           ),
           sharedBy: 'user123',
@@ -581,8 +659,10 @@ void main() {
           region: 'Test Region',
           visualFeatures: ['test feature'],
           alternatives: [],
-          disposalInstructions:
-              DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false),
+          disposalInstructions: DisposalInstructions(
+              primaryMethod: 'Test method',
+              steps: ['Test step'],
+              hasUrgentTimeframe: false),
           id: 'shared_old',
           originalClassification: WasteClassification(
             itemName: 'Test Item',
@@ -591,14 +671,18 @@ void main() {
             region: 'Test Region',
             visualFeatures: ['test feature'],
             alternatives: [],
-            disposalInstructions:
-                DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false),
+            disposalInstructions: DisposalInstructions(
+                primaryMethod: 'Test method',
+                steps: ['Test step'],
+                hasUrgentTimeframe: false),
             id: 'class',
             imageUrl: '/path',
             category: 'plastic',
             confidence: 0.9,
-            disposalInstructions:
-                DisposalInstructions(primaryMethod: 'Recycle', steps: ['Test step'], hasUrgentTimeframe: false),
+            disposalInstructions: DisposalInstructions(
+                primaryMethod: 'Recycle',
+                steps: ['Test step'],
+                hasUrgentTimeframe: false),
             timestamp: DateTime.now(),
           ),
           sharedBy: 'user123',
@@ -619,8 +703,10 @@ void main() {
           region: 'Test Region',
           visualFeatures: ['test feature'],
           alternatives: [],
-          disposalInstructions:
-              DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false),
+          disposalInstructions: DisposalInstructions(
+              primaryMethod: 'Test method',
+              steps: ['Test step'],
+              hasUrgentTimeframe: false),
           id: 'shared_001',
           originalClassification: WasteClassification(
             itemName: 'Test Item',
@@ -629,14 +715,18 @@ void main() {
             region: 'Test Region',
             visualFeatures: ['test feature'],
             alternatives: [],
-            disposalInstructions:
-                DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false),
+            disposalInstructions: DisposalInstructions(
+                primaryMethod: 'Test method',
+                steps: ['Test step'],
+                hasUrgentTimeframe: false),
             id: 'class',
             imageUrl: '/path',
             category: 'plastic',
             confidence: 0.9,
-            disposalInstructions:
-                DisposalInstructions(primaryMethod: 'Recycle', steps: ['Test step'], hasUrgentTimeframe: false),
+            disposalInstructions: DisposalInstructions(
+                primaryMethod: 'Recycle',
+                steps: ['Test step'],
+                hasUrgentTimeframe: false),
             timestamp: DateTime.now(),
           ),
           sharedBy: 'user123',
@@ -822,7 +912,8 @@ void main() {
           SharingVisibility.friends,
         ];
 
-        visibilityLevels.sort((a, b) => a.restrictionLevel.compareTo(b.restrictionLevel));
+        visibilityLevels
+            .sort((a, b) => a.restrictionLevel.compareTo(b.restrictionLevel));
 
         expect(visibilityLevels[0], SharingVisibility.public);
         expect(visibilityLevels[1], SharingVisibility.friends);
@@ -842,7 +933,9 @@ void main() {
                   visualFeatures: ['test feature'],
                   alternatives: [],
                   disposalInstructions: DisposalInstructions(
-                      primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false),
+                      primaryMethod: 'Test method',
+                      steps: ['Test step'],
+                      hasUrgentTimeframe: false),
                   id: '', // Empty ID
                   originalClassification: WasteClassification(
                     itemName: 'Test Item',
@@ -852,13 +945,17 @@ void main() {
                     visualFeatures: ['test feature'],
                     alternatives: [],
                     disposalInstructions: DisposalInstructions(
-                        primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false),
+                        primaryMethod: 'Test method',
+                        steps: ['Test step'],
+                        hasUrgentTimeframe: false),
                     id: 'class',
                     imageUrl: '/path',
                     category: 'plastic',
                     confidence: 0.9,
-                    disposalInstructions:
-                        DisposalInstructions(primaryMethod: 'Recycle', steps: ['Test step'], hasUrgentTimeframe: false),
+                    disposalInstructions: DisposalInstructions(
+                        primaryMethod: 'Recycle',
+                        steps: ['Test step'],
+                        hasUrgentTimeframe: false),
                     timestamp: DateTime.now(),
                   ),
                   sharedBy: 'user123',
@@ -877,7 +974,9 @@ void main() {
                   visualFeatures: ['test feature'],
                   alternatives: [],
                   disposalInstructions: DisposalInstructions(
-                      primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false),
+                      primaryMethod: 'Test method',
+                      steps: ['Test step'],
+                      hasUrgentTimeframe: false),
                   id: 'shared_001',
                   originalClassification: WasteClassification(
                     itemName: 'Test Item',
@@ -887,13 +986,17 @@ void main() {
                     visualFeatures: ['test feature'],
                     alternatives: [],
                     disposalInstructions: DisposalInstructions(
-                        primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false),
+                        primaryMethod: 'Test method',
+                        steps: ['Test step'],
+                        hasUrgentTimeframe: false),
                     id: 'class',
                     imageUrl: '/path',
                     category: 'plastic',
                     confidence: 0.9,
-                    disposalInstructions:
-                        DisposalInstructions(primaryMethod: 'Recycle', steps: ['Test step'], hasUrgentTimeframe: false),
+                    disposalInstructions: DisposalInstructions(
+                        primaryMethod: 'Recycle',
+                        steps: ['Test step'],
+                        hasUrgentTimeframe: false),
                     timestamp: DateTime.now(),
                   ),
                   sharedBy: '', // Empty shared by
@@ -936,7 +1039,9 @@ void main() {
                   visualFeatures: ['test feature'],
                   alternatives: [],
                   disposalInstructions: DisposalInstructions(
-                      primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false),
+                      primaryMethod: 'Test method',
+                      steps: ['Test step'],
+                      hasUrgentTimeframe: false),
                   id: 'shared_001',
                   originalClassification: WasteClassification(
                     itemName: 'Test Item',
@@ -946,13 +1051,17 @@ void main() {
                     visualFeatures: ['test feature'],
                     alternatives: [],
                     disposalInstructions: DisposalInstructions(
-                        primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false),
+                        primaryMethod: 'Test method',
+                        steps: ['Test step'],
+                        hasUrgentTimeframe: false),
                     id: 'class',
                     imageUrl: '/path',
                     category: 'plastic',
                     confidence: 0.9,
-                    disposalInstructions:
-                        DisposalInstructions(primaryMethod: 'Recycle', steps: ['Test step'], hasUrgentTimeframe: false),
+                    disposalInstructions: DisposalInstructions(
+                        primaryMethod: 'Recycle',
+                        steps: ['Test step'],
+                        hasUrgentTimeframe: false),
                     timestamp: DateTime.now(),
                   ),
                   sharedBy: 'user123',
@@ -985,8 +1094,10 @@ void main() {
           region: 'Test Region',
           visualFeatures: ['test feature'],
           alternatives: [],
-          disposalInstructions:
-              DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false),
+          disposalInstructions: DisposalInstructions(
+              primaryMethod: 'Test method',
+              steps: ['Test step'],
+              hasUrgentTimeframe: false),
           id: 'shared_001',
           originalClassification: WasteClassification(
             itemName: 'Test Item',
@@ -995,14 +1106,18 @@ void main() {
             region: 'Test Region',
             visualFeatures: ['test feature'],
             alternatives: [],
-            disposalInstructions:
-                DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false),
+            disposalInstructions: DisposalInstructions(
+                primaryMethod: 'Test method',
+                steps: ['Test step'],
+                hasUrgentTimeframe: false),
             id: 'class',
             imageUrl: '/path',
             category: 'plastic',
             confidence: 0.9,
-            disposalInstructions:
-                DisposalInstructions(primaryMethod: 'Recycle', steps: ['Test step'], hasUrgentTimeframe: false),
+            disposalInstructions: DisposalInstructions(
+                primaryMethod: 'Recycle',
+                steps: ['Test step'],
+                hasUrgentTimeframe: false),
             timestamp: DateTime(2024, 1, 15),
           ),
           sharedBy: 'user123',
@@ -1018,8 +1133,10 @@ void main() {
           region: 'Test Region',
           visualFeatures: ['test feature'],
           alternatives: [],
-          disposalInstructions:
-              DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false),
+          disposalInstructions: DisposalInstructions(
+              primaryMethod: 'Test method',
+              steps: ['Test step'],
+              hasUrgentTimeframe: false),
           id: 'shared_001',
           originalClassification: WasteClassification(
             itemName: 'Test Item',
@@ -1028,14 +1145,18 @@ void main() {
             region: 'Test Region',
             visualFeatures: ['test feature'],
             alternatives: [],
-            disposalInstructions:
-                DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false),
+            disposalInstructions: DisposalInstructions(
+                primaryMethod: 'Test method',
+                steps: ['Test step'],
+                hasUrgentTimeframe: false),
             id: 'class',
             imageUrl: '/path',
             category: 'plastic',
             confidence: 0.9,
-            disposalInstructions:
-                DisposalInstructions(primaryMethod: 'Recycle', steps: ['Test step'], hasUrgentTimeframe: false),
+            disposalInstructions: DisposalInstructions(
+                primaryMethod: 'Recycle',
+                steps: ['Test step'],
+                hasUrgentTimeframe: false),
             timestamp: DateTime(2024, 1, 15),
           ),
           sharedBy: 'user123',
@@ -1051,8 +1172,10 @@ void main() {
           region: 'Test Region',
           visualFeatures: ['test feature'],
           alternatives: [],
-          disposalInstructions:
-              DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false),
+          disposalInstructions: DisposalInstructions(
+              primaryMethod: 'Test method',
+              steps: ['Test step'],
+              hasUrgentTimeframe: false),
           id: 'shared_002',
           originalClassification: WasteClassification(
             itemName: 'Test Item',
@@ -1061,14 +1184,18 @@ void main() {
             region: 'Test Region',
             visualFeatures: ['test feature'],
             alternatives: [],
-            disposalInstructions:
-                DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false),
+            disposalInstructions: DisposalInstructions(
+                primaryMethod: 'Test method',
+                steps: ['Test step'],
+                hasUrgentTimeframe: false),
             id: 'class2',
             imageUrl: '/path2',
             category: 'paper',
             confidence: 0.8,
-            disposalInstructions:
-                DisposalInstructions(primaryMethod: 'Recycle', steps: ['Test step'], hasUrgentTimeframe: false),
+            disposalInstructions: DisposalInstructions(
+                primaryMethod: 'Recycle',
+                steps: ['Test step'],
+                hasUrgentTimeframe: false),
             timestamp: DateTime(2024, 1, 16),
           ),
           sharedBy: 'user456',
@@ -1091,8 +1218,10 @@ void main() {
             region: 'Test Region',
             visualFeatures: ['test feature'],
             alternatives: [],
-            disposalInstructions:
-                DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false),
+            disposalInstructions: DisposalInstructions(
+                primaryMethod: 'Test method',
+                steps: ['Test step'],
+                hasUrgentTimeframe: false),
             id: 'shared_1',
             originalClassification: WasteClassification(
               itemName: 'Test Item',
@@ -1101,14 +1230,18 @@ void main() {
               region: 'Test Region',
               visualFeatures: ['test feature'],
               alternatives: [],
-              disposalInstructions:
-                  DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false),
+              disposalInstructions: DisposalInstructions(
+                  primaryMethod: 'Test method',
+                  steps: ['Test step'],
+                  hasUrgentTimeframe: false),
               id: 'class',
               imageUrl: '/path',
               category: 'plastic',
               confidence: 0.9,
-              disposalInstructions:
-                  DisposalInstructions(primaryMethod: 'Recycle', steps: ['Test step'], hasUrgentTimeframe: false),
+              disposalInstructions: DisposalInstructions(
+                  primaryMethod: 'Recycle',
+                  steps: ['Test step'],
+                  hasUrgentTimeframe: false),
               timestamp: DateTime.now(),
             ),
             sharedBy: 'user123',
@@ -1124,8 +1257,10 @@ void main() {
             region: 'Test Region',
             visualFeatures: ['test feature'],
             alternatives: [],
-            disposalInstructions:
-                DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false),
+            disposalInstructions: DisposalInstructions(
+                primaryMethod: 'Test method',
+                steps: ['Test step'],
+                hasUrgentTimeframe: false),
             id: 'shared_2',
             originalClassification: WasteClassification(
               itemName: 'Test Item',
@@ -1134,14 +1269,18 @@ void main() {
               region: 'Test Region',
               visualFeatures: ['test feature'],
               alternatives: [],
-              disposalInstructions:
-                  DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false),
+              disposalInstructions: DisposalInstructions(
+                  primaryMethod: 'Test method',
+                  steps: ['Test step'],
+                  hasUrgentTimeframe: false),
               id: 'class',
               imageUrl: '/path',
               category: 'plastic',
               confidence: 0.9,
-              disposalInstructions:
-                  DisposalInstructions(primaryMethod: 'Recycle', steps: ['Test step'], hasUrgentTimeframe: false),
+              disposalInstructions: DisposalInstructions(
+                  primaryMethod: 'Recycle',
+                  steps: ['Test step'],
+                  hasUrgentTimeframe: false),
               timestamp: DateTime.now(),
             ),
             sharedBy: 'user123',
@@ -1152,7 +1291,8 @@ void main() {
           ),
         ];
 
-        classifications.sort((a, b) => b.engagementScore.compareTo(a.engagementScore));
+        classifications
+            .sort((a, b) => b.engagementScore.compareTo(a.engagementScore));
 
         expect(classifications[0].likes, 10);
         expect(classifications[1].likes, 5);

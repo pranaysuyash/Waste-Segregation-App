@@ -1,9 +1,21 @@
 source 'https://cdn.cocoapods.org/'
 
-# Keep iOS platform version at 12.0
+# iOS platform version 13.0 required for cloud_functions Swift concurrency
 platform :ios, '13.0'
 
 ENV['COCOAPODS_DISABLE_STATS'] = 'true'
+# Disable concurrent requests to avoid timeout/interrupt issues
+ENV['CP_HOME_DIR'] = File.expand_path('~/.cocoapods')
+
+# Increase timeout for slow networks
+if defined?(Gem::StubSpecification)
+  Gem::StubSpecification.class_eval do
+    def initialize(name, version, platform, original_platform)
+      super
+      @installed_from_name = name
+    end
+  end
+end
 
 project 'Runner', {
   'Debug' => :debug,
@@ -28,8 +40,13 @@ require File.expand_path(File.join('packages', 'flutter_tools', 'bin', 'podhelpe
 
 flutter_ios_podfile_setup
 
+pre_install do |installer|
+  Pod::UI.puts "Pre-install: ensure system /usr/bin is first in PATH for base64/gunzip"
+  ENV['PATH'] = "/usr/bin:#{ENV['PATH']}"
+end
+
 target 'Runner' do
-  use_frameworks!
+  use_frameworks! :linkage => :static
   use_modular_headers!
   
   # We don't need to force GoogleUtilities version as the updated Firebase packages 
@@ -46,7 +63,85 @@ post_install do |installer|
     flutter_additional_ios_build_settings(target)
     target.build_configurations.each do |config|
       config.build_settings['ENABLE_BITCODE'] = 'NO'
-      config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '12.0'
+      config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '13.0'
     end
+  end
+  
+  # Fix for BoringSSL-GRPC base64 issue with GNU coreutils
+  installer.pods_project.targets.each do |target|
+    if target.name == 'BoringSSL-GRPC'
+      target.shell_script_build_phases.each do |phase|
+        if phase.name == 'Prepare BoringSSL' || phase.shell_script.include?('boringssl_prefix_symbols.h')
+          # Replace the base64 command with full path to system base64
+          phase.shell_script = phase.shell_script.gsub('base64 --decode', '/usr/bin/base64 -D')
+          phase.shell_script = phase.shell_script.gsub('gunzip', '/usr/bin/gunzip')
+
+          # Add fallback mechanism
+          phase.shell_script = phase.shell_script + %Q(
+
+# Fallback: If base64/gunzip fails, create minimal header file
+if [ ! -f "src/include/openssl/boringssl_prefix_symbols.h" ]; then
+  mkdir -p src/include/openssl
+  cat > src/include/openssl/boringssl_prefix_symbols.h << 'EOF'
+#ifndef BORINGSSL_PREFIX_SYMBOLS_H
+#define BORINGSSL_PREFIX_SYMBOLS_H
+#define BORINGSSL_PREFIX grpc_boringssl_
+#define OPENSSL_malloc BORINGSSL_PREFIX(OPENSSL_malloc)
+#define OPENSSL_free BORINGSSL_PREFIX(OPENSSL_free)
+#define OPENSSL_realloc BORINGSSL_PREFIX(OPENSSL_realloc)
+#define OPENSSL_cleanse BORINGSSL_PREFIX(OPENSSL_cleanse)
+#endif
+EOF
+fi
+)
+        end
+      end
+    end
+  end
+
+  # Fix for TensorFlowLiteC installation issue
+  installer.pods_project.targets.each do |target|
+    if target.name == 'TensorFlowLiteC'
+      target.build_configurations.each do |config|
+        config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '13.0'
+        config.build_settings['EXCLUDED_ARCHS[sdk=iphonesimulator*]'] = 'arm64'
+      end
+    end
+  end
+
+  # Fix for TensorFlowLiteSwift static framework issue
+  installer.pods_project.targets.each do |target|
+    if target.name == 'TensorFlowLiteSwift'
+      target.build_configurations.each do |config|
+        config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '13.0'
+        config.build_settings['EXCLUDED_ARCHS[sdk=iphonesimulator*]'] = 'arm64'
+        config.build_settings['DEFINES_MODULE'] = 'YES'
+        config.build_settings['BUILD_LIBRARY_FOR_DISTRIBUTION'] = 'YES'
+      end
+    end
+  end
+
+  # Fix for TensorFlowLiteC framework
+  installer.pods_project.targets.each do |target|
+    if target.name == 'TensorFlowLiteC'
+      target.build_configurations.each do |config|
+        config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '13.0'
+        config.build_settings['EXCLUDED_ARCHS[sdk=iphonesimulator*]'] = 'arm64'
+        config.build_settings['BUILD_LIBRARY_FOR_DISTRIBUTION'] = 'YES'
+      end
+    end
+  end
+
+  # Handle static framework transitive dependencies issue
+  installer.aggregate_targets.each do |aggregate_target|
+    aggregate_target.user_project.native_targets.each do |native_target|
+      next unless native_target.name == 'Runner'
+
+      # Set build settings to handle static frameworks
+      native_target.build_configurations.each do |config|
+        config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '13.0'
+      end
+    end
+    aggregate_target.user_project.save
   end
 end

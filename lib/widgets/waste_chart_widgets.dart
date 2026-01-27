@@ -73,7 +73,8 @@ class WasteCategoryPieChart extends StatelessWidget {
                         sectionsSpace: 2,
                         centerSpaceRadius: 40,
                         pieTouchData: PieTouchData(
-                          touchCallback: (FlTouchEvent event, pieTouchResponse) {
+                          touchCallback:
+                              (FlTouchEvent event, pieTouchResponse) {
                             if (!event.isInterestedForInteractions ||
                                 pieTouchResponse == null ||
                                 pieTouchResponse.touchedSection == null) {
@@ -81,8 +82,10 @@ class WasteCategoryPieChart extends StatelessWidget {
                             }
 
                             // Announce touched section for accessibility
-                            final sectionIndex = pieTouchResponse.touchedSection!.touchedSectionIndex;
-                            if (sectionIndex >= 0 && sectionIndex < data.length) {
+                            final sectionIndex = pieTouchResponse
+                                .touchedSection!.touchedSectionIndex;
+                            if (sectionIndex >= 0 &&
+                                sectionIndex < data.length) {
                               final item = data[sectionIndex];
                               final percentage = (item.value / total) * 100;
                               SemanticsService.announce(
@@ -109,7 +112,8 @@ class WasteCategoryPieChart extends StatelessWidget {
   }
 
   String _createAccessibleDescription(List<ChartData> data, double total) {
-    final sortedData = List<ChartData>.from(data)..sort((a, b) => b.value.compareTo(a.value));
+    final sortedData = List<ChartData>.from(data)
+      ..sort((a, b) => b.value.compareTo(a.value));
 
     final descriptions = sortedData.map((item) {
       final percentage = (item.value / total) * 100;
@@ -119,8 +123,10 @@ class WasteCategoryPieChart extends StatelessWidget {
     return 'Chart showing ${descriptions.join(', ')}';
   }
 
-  void _announceDetailedBreakdown(BuildContext context, List<ChartData> data, double total) {
-    final sortedData = List<ChartData>.from(data)..sort((a, b) => b.value.compareTo(a.value));
+  void _announceDetailedBreakdown(
+      BuildContext context, List<ChartData> data, double total) {
+    final sortedData = List<ChartData>.from(data)
+      ..sort((a, b) => b.value.compareTo(a.value));
 
     final announcement = sortedData.map((item) {
       final percentage = (item.value / total) * 100;
@@ -142,7 +148,8 @@ class WasteCategoryPieChart extends StatelessWidget {
         children: data.map((item) {
           final percentage = (item.value / total) * 100;
           return Semantics(
-            label: '${item.label}: ${item.value.toInt()} items, ${percentage.toStringAsFixed(1)} percent',
+            label:
+                '${item.label}: ${item.value.toInt()} items, ${percentage.toStringAsFixed(1)} percent',
             child: Chip(
               avatar: Container(
                 width: 12,
@@ -189,10 +196,12 @@ class TopSubcategoriesBarChart extends StatelessWidget {
     }
 
     // Sort data by value (descending)
-    final sortedData = List<ChartData>.from(data)..sort((a, b) => b.value.compareTo(a.value));
+    final sortedData = List<ChartData>.from(data)
+      ..sort((a, b) => b.value.compareTo(a.value));
 
     // Calculate the maximum value for scaling
-    final maxValue = sortedData.map((item) => item.value).reduce((a, b) => a > b ? a : b);
+    final maxValue =
+        sortedData.map((item) => item.value).reduce((a, b) => a > b ? a : b);
 
     // Create accessible description
     final accessibleDescription = _createAccessibleDescription(sortedData);
@@ -260,7 +269,9 @@ class TopSubcategoriesBarChart extends StatelessWidget {
 
                                 final label = sortedData[value.toInt()].label;
                                 // Truncate long labels
-                                final displayLabel = label.length > 10 ? '${label.substring(0, 7)}...' : label;
+                                final displayLabel = label.length > 10
+                                    ? '${label.substring(0, 7)}...'
+                                    : label;
 
                                 return SideTitleWidget(
                                   axisSide: meta.axisSide,
@@ -320,7 +331,8 @@ class TopSubcategoriesBarChart extends StatelessWidget {
                             x: index,
                             barRods: [
                               BarChartRodData(
-                                toY: sortedData[index].value * animationController.value,
+                                toY: sortedData[index].value *
+                                    animationController.value,
                                 color: sortedData[index].color,
                                 width: 20,
                                 borderRadius: const BorderRadius.only(
@@ -348,13 +360,19 @@ class TopSubcategoriesBarChart extends StatelessWidget {
   }
 
   String _createAccessibleDescription(List<ChartData> sortedData) {
-    final topItems = sortedData.take(3).map((item) => '${item.label}: ${item.value.toInt()} items').toList();
+    final topItems = sortedData
+        .take(3)
+        .map((item) => '${item.label}: ${item.value.toInt()} items')
+        .toList();
 
     return 'Bar chart showing top subcategories: ${topItems.join(', ')}';
   }
 
-  void _announceDetailedBreakdown(BuildContext context, List<ChartData> sortedData) {
-    final announcement = sortedData.map((item) => '${item.label}: ${item.value.toInt()} items').join('. ');
+  void _announceDetailedBreakdown(
+      BuildContext context, List<ChartData> sortedData) {
+    final announcement = sortedData
+        .map((item) => '${item.label}: ${item.value.toInt()} items')
+        .join('. ');
 
     SemanticsService.announce(
       'Detailed breakdown: $announcement',
@@ -459,7 +477,8 @@ class WeeklyItemsChart extends StatelessWidget {
     }
 
     // Calculate the maximum value for scaling
-    final maxValue = data.map((item) => item.value).reduce((a, b) => a > b ? a : b);
+    final maxValue =
+        data.map((item) => item.value).reduce((a, b) => a > b ? a : b);
 
     // Create accessible description
     final accessibleDescription = _createAccessibleDescription(data);
@@ -582,7 +601,8 @@ class WeeklyItemsChart extends StatelessWidget {
                             x: index,
                             barRods: [
                               BarChartRodData(
-                                toY: data[index].value * animationController.value,
+                                toY: data[index].value *
+                                    animationController.value,
                                 color: data[index].color,
                                 width: 20,
                                 borderRadius: const BorderRadius.only(
@@ -617,7 +637,9 @@ class WeeklyItemsChart extends StatelessWidget {
   }
 
   void _announceDetailedBreakdown(BuildContext context, List<ChartData> data) {
-    final announcement = data.map((item) => '${item.label}: ${item.value.toInt()} items').join('. ');
+    final announcement = data
+        .map((item) => '${item.label}: ${item.value.toInt()} items')
+        .join('. ');
 
     SemanticsService.announce(
       'Weekly breakdown: $announcement',
@@ -674,7 +696,8 @@ class WasteTimeSeriesChart extends StatelessWidget {
     }
 
     // Calculate the maximum value for scaling
-    final maxValue = data.map((item) => item.value).reduce((a, b) => a > b ? a : b);
+    final maxValue =
+        data.map((item) => item.value).reduce((a, b) => a > b ? a : b);
 
     return AnimatedBuilder(
       animation: animationController,
@@ -721,7 +744,8 @@ class WasteTimeSeriesChart extends StatelessWidget {
               bottomTitles: AxisTitles(
                 sideTitles: SideTitles(
                   showTitles: true,
-                  interval: data.length > 5 ? (data.length / 5).ceil().toDouble() : 1,
+                  interval:
+                      data.length > 5 ? (data.length / 5).ceil().toDouble() : 1,
                   getTitlesWidget: (value, meta) {
                     final index = value.toInt();
                     if (index < 0 || index >= data.length) {
@@ -845,16 +869,22 @@ class CategoryDistributionChart extends StatelessWidget {
                     final lineIndex = touchedSpots.indexOf(spot);
                     final itemIndex = spot.x.toInt();
 
-                    if (itemIndex >= 0 && itemIndex < data.length && lineIndex < categories.length) {
+                    if (itemIndex >= 0 &&
+                        itemIndex < data.length &&
+                        lineIndex < categories.length) {
                       final category = categories[lineIndex];
-                      
+
                       // Safe type extraction
                       final monthValue = data[itemIndex]['month'];
-                      final month = monthValue is String ? monthValue : 'Unknown';
-                      
+                      final month =
+                          monthValue is String ? monthValue : 'Unknown';
+
                       final categoryValue = data[itemIndex][category];
-                      final value = categoryValue is double ? categoryValue : 
-                                   (categoryValue is int ? categoryValue.toDouble() : 0.0);
+                      final value = categoryValue is double
+                          ? categoryValue
+                          : (categoryValue is int
+                              ? categoryValue.toDouble()
+                              : 0.0);
 
                       return LineTooltipItem(
                         '$category\n',
@@ -865,7 +895,8 @@ class CategoryDistributionChart extends StatelessWidget {
                         ),
                         children: [
                           TextSpan(
-                            text: '$month: ${(value * 100).toStringAsFixed(1)}%',
+                            text:
+                                '$month: ${(value * 100).toStringAsFixed(1)}%',
                             style: const TextStyle(
                               color: Colors.white,
                               fontSize: 12,
@@ -894,7 +925,7 @@ class CategoryDistributionChart extends StatelessWidget {
                     // Safe type extraction
                     final monthValue = data[index]['month'];
                     final month = monthValue is String ? monthValue : 'Unknown';
-                    
+
                     return SideTitleWidget(
                       axisSide: meta.axisSide,
                       child: Text(
@@ -977,8 +1008,9 @@ class CategoryDistributionChart extends StatelessWidget {
       for (var j = 0; j < data.length; j++) {
         // Safe type extraction
         final categoryValue = data[j][category];
-        final value = categoryValue is double ? categoryValue : 
-                     (categoryValue is int ? categoryValue.toDouble() : 0.0);
+        final value = categoryValue is double
+            ? categoryValue
+            : (categoryValue is int ? categoryValue.toDouble() : 0.0);
         // Get previous cumulative value or 0
         final prevCumulative = cumulativeValues[j] ?? 0.0;
 
@@ -989,7 +1021,8 @@ class CategoryDistributionChart extends StatelessWidget {
         cumulativeValues[j] = currentValue;
 
         // Add spot with stacked value
-        spots.add(FlSpot(j.toDouble(), currentValue * animationController.value));
+        spots.add(
+            FlSpot(j.toDouble(), currentValue * animationController.value));
       }
 
       result.add(
@@ -1003,7 +1036,11 @@ class CategoryDistributionChart extends StatelessWidget {
             show: true,
             color: color.withValues(alpha: 0.7),
             // For area below, we need the previous category's value
-            cutOffY: i > 0 ? (result[i - 1].spots.isNotEmpty ? result[i - 1].spots.last.y : 0.0) : 0.0,
+            cutOffY: i > 0
+                ? (result[i - 1].spots.isNotEmpty
+                    ? result[i - 1].spots.last.y
+                    : 0.0)
+                : 0.0,
             applyCutOffY: true,
           ),
         ),

@@ -37,7 +37,8 @@ class ModernButton extends StatefulWidget {
   State<ModernButton> createState() => _ModernButtonState();
 }
 
-class _ModernButtonState extends State<ModernButton> with SingleTickerProviderStateMixin {
+class _ModernButtonState extends State<ModernButton>
+    with SingleTickerProviderStateMixin {
   late AnimationController _animationController;
   late Animation<double> _scaleAnimation;
 
@@ -78,7 +79,8 @@ class _ModernButtonState extends State<ModernButton> with SingleTickerProviderSt
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final effectiveColor = widget.backgroundColor ?? widget.color ?? theme.colorScheme.primary;
+    final effectiveColor =
+        widget.backgroundColor ?? widget.color ?? theme.colorScheme.primary;
 
     // Button styling based on style type
     late ButtonStyle buttonStyle;
@@ -185,7 +187,8 @@ class _ModernButtonState extends State<ModernButton> with SingleTickerProviderSt
   ButtonStyle _getFilledButtonStyle(ThemeData theme, Color color) {
     return ElevatedButton.styleFrom(
       backgroundColor: color,
-      foregroundColor: widget.foregroundColor ?? widget.textColor ?? Colors.white,
+      foregroundColor:
+          widget.foregroundColor ?? widget.textColor ?? Colors.white,
       elevation: widget.style == ModernButtonStyle.glassmorphism ? 0 : 2,
       shadowColor: color.withValues(alpha: 0.3),
       shape: RoundedRectangleBorder(
@@ -326,7 +329,8 @@ class ModernSearchBar extends StatefulWidget {
   State<ModernSearchBar> createState() => _ModernSearchBarState();
 }
 
-class _ModernSearchBarState extends State<ModernSearchBar> with SingleTickerProviderStateMixin {
+class _ModernSearchBarState extends State<ModernSearchBar>
+    with SingleTickerProviderStateMixin {
   late TextEditingController _controller;
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
@@ -450,7 +454,8 @@ class ModernFAB extends StatefulWidget {
   State<ModernFAB> createState() => _ModernFABState();
 }
 
-class _ModernFABState extends State<ModernFAB> with SingleTickerProviderStateMixin {
+class _ModernFABState extends State<ModernFAB>
+    with SingleTickerProviderStateMixin {
   late AnimationController _animationController;
   late Animation<double> _scaleAnimation;
 
@@ -507,15 +512,19 @@ class _ModernFABState extends State<ModernFAB> with SingleTickerProviderStateMix
             end: Alignment.bottomRight,
             colors: [
               widget.backgroundColor ?? theme.colorScheme.primary,
-              (widget.backgroundColor ?? theme.colorScheme.primary).withValues(alpha: 0.8),
+              (widget.backgroundColor ?? theme.colorScheme.primary)
+                  .withValues(alpha: 0.8),
             ],
           ),
           borderRadius: BorderRadius.circular(
-            widget.isExtended ? AppTheme.borderRadiusXl : AppTheme.borderRadiusRound,
+            widget.isExtended
+                ? AppTheme.borderRadiusXl
+                : AppTheme.borderRadiusRound,
           ),
           boxShadow: [
             BoxShadow(
-              color: (widget.backgroundColor ?? theme.colorScheme.primary).withValues(alpha: 0.3),
+              color: (widget.backgroundColor ?? theme.colorScheme.primary)
+                  .withValues(alpha: 0.3),
               blurRadius: 12,
               offset: const Offset(0, 6),
             ),
@@ -526,11 +535,14 @@ class _ModernFABState extends State<ModernFAB> with SingleTickerProviderStateMix
           child: InkWell(
             onTap: widget.onPressed,
             borderRadius: BorderRadius.circular(
-              widget.isExtended ? AppTheme.borderRadiusXl : AppTheme.borderRadiusRound,
+              widget.isExtended
+                  ? AppTheme.borderRadiusXl
+                  : AppTheme.borderRadiusRound,
             ),
             child: Padding(
               padding: EdgeInsets.symmetric(
-                horizontal: widget.isExtended ? AppTheme.spacingLg : AppTheme.spacingMd,
+                horizontal:
+                    widget.isExtended ? AppTheme.spacingLg : AppTheme.spacingMd,
                 vertical: AppTheme.spacingMd,
               ),
               child: Row(
@@ -538,7 +550,8 @@ class _ModernFABState extends State<ModernFAB> with SingleTickerProviderStateMix
                 children: [
                   Icon(
                     widget.icon,
-                    color: widget.foregroundColor ?? theme.colorScheme.onPrimary,
+                    color:
+                        widget.foregroundColor ?? theme.colorScheme.onPrimary,
                     size: AppTheme.iconSizeMd,
                   ),
                   if (widget.isExtended && widget.label != null) ...[
@@ -547,7 +560,8 @@ class _ModernFABState extends State<ModernFAB> with SingleTickerProviderStateMix
                       child: Text(
                         widget.label!,
                         style: theme.textTheme.labelLarge?.copyWith(
-                          color: widget.foregroundColor ?? theme.colorScheme.onPrimary,
+                          color: widget.foregroundColor ??
+                              theme.colorScheme.onPrimary,
                           fontWeight: FontWeight.w600,
                         ),
                         overflow: TextOverflow.ellipsis,

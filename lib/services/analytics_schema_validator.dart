@@ -16,14 +16,30 @@ class AnalyticsSchemaValidator {
   // Event-specific required fields
   static const Map<String, List<String>> _eventSpecificRequiredFields = {
     // Session events
-    AnalyticsEventNames.sessionStart: ['device_type', 'app_version', 'platform'],
-    AnalyticsEventNames.sessionEnd: ['session_duration_ms', 'events_in_session'],
+    AnalyticsEventNames.sessionStart: [
+      'device_type',
+      'app_version',
+      'platform'
+    ],
+    AnalyticsEventNames.sessionEnd: [
+      'session_duration_ms',
+      'events_in_session'
+    ],
     AnalyticsEventNames.pageView: ['screen_name', 'previous_screen'],
 
     // Classification events
-    AnalyticsEventNames.fileClassified: ['model_version', 'processing_duration_ms', 'confidence_score', 'category'],
+    AnalyticsEventNames.fileClassified: [
+      'model_version',
+      'processing_duration_ms',
+      'confidence_score',
+      'category'
+    ],
     AnalyticsEventNames.classificationStarted: ['input_method', 'source'],
-    AnalyticsEventNames.classificationRetried: ['original_confidence', 'retry_reason', 'attempt_number'],
+    AnalyticsEventNames.classificationRetried: [
+      'original_confidence',
+      'retry_reason',
+      'attempt_number'
+    ],
 
     // Interaction events
     AnalyticsEventNames.click: ['element_id', 'screen_name', 'element_type'],
@@ -33,12 +49,28 @@ class AnalyticsSchemaValidator {
     // Performance events
     AnalyticsEventNames.clientError: ['error_message', 'screen_name'],
     AnalyticsEventNames.apiError: ['endpoint', 'status_code', 'latency_ms'],
-    AnalyticsEventNames.slowResource: ['operation_name', 'duration_ms', 'resource_type'],
+    AnalyticsEventNames.slowResource: [
+      'operation_name',
+      'duration_ms',
+      'resource_type'
+    ],
 
     // Gamification events
-    AnalyticsEventNames.pointsEarned: ['points_amount', 'source_action', 'total_points'],
-    AnalyticsEventNames.achievementUnlocked: ['achievement_id', 'achievement_type', 'points_awarded'],
-    AnalyticsEventNames.levelUp: ['new_level', 'previous_level', 'points_required'],
+    AnalyticsEventNames.pointsEarned: [
+      'points_amount',
+      'source_action',
+      'total_points'
+    ],
+    AnalyticsEventNames.achievementUnlocked: [
+      'achievement_id',
+      'achievement_type',
+      'points_awarded'
+    ],
+    AnalyticsEventNames.levelUp: [
+      'new_level',
+      'previous_level',
+      'points_required'
+    ],
   };
 
   // Field type validation rules
@@ -94,7 +126,12 @@ class AnalyticsSchemaValidator {
     'source': ['manual', 'instant', 'batch'],
     'element_type': ['button', 'link', 'icon', 'card', 'tab'],
     'retry_reason': ['low_confidence', 'user_disagreement', 'technical_error'],
-    'resource_type': ['api_call', 'image_processing', 'database_query', 'file_operation'],
+    'resource_type': [
+      'api_call',
+      'image_processing',
+      'database_query',
+      'file_operation'
+    ],
     'achievement_type': ['milestone', 'streak', 'special', 'daily', 'weekly'],
   };
 
@@ -138,7 +175,8 @@ class AnalyticsSchemaValidator {
       final requiredFields = _eventSpecificRequiredFields[eventName];
       if (requiredFields != null) {
         for (final field in requiredFields) {
-          if (!event.parameters.containsKey(field) || event.parameters[field] == null) {
+          if (!event.parameters.containsKey(field) ||
+              event.parameters[field] == null) {
             errors.add('Missing required parameter for $eventName: $field');
           }
         }
@@ -155,7 +193,8 @@ class AnalyticsSchemaValidator {
 
       // Validate event name format
       if (!_isValidEventName(eventName)) {
-        errors.add('Invalid event name format: $eventName (should be snake_case)');
+        errors.add(
+            'Invalid event name format: $eventName (should be snake_case)');
       }
 
       // Validate timestamp format
@@ -167,11 +206,18 @@ class AnalyticsSchemaValidator {
       final isValid = errors.isEmpty;
 
       if (!isValid) {
-        WasteAppLogger.warning('Event validation failed', null, null,
-            {'event_name': eventName, 'errors': errors, 'warnings': warnings, 'service': 'AnalyticsSchemaValidator'});
+        WasteAppLogger.warning('Event validation failed', context: {
+          'event_name': eventName,
+          'errors': errors,
+          'warnings': warnings,
+          'service': 'AnalyticsSchemaValidator'
+        });
       } else if (warnings.isNotEmpty) {
-        WasteAppLogger.info('Event validation passed with warnings', null, null,
-            {'event_name': eventName, 'warnings': warnings, 'service': 'AnalyticsSchemaValidator'});
+        WasteAppLogger.info('Event validation passed with warnings', context: {
+          'event_name': eventName,
+          'warnings': warnings,
+          'service': 'AnalyticsSchemaValidator'
+        });
       }
 
       return ValidationResult(
@@ -180,8 +226,13 @@ class AnalyticsSchemaValidator {
         warnings: warnings,
       );
     } catch (e, stackTrace) {
-      WasteAppLogger.severe('Error during event validation', e, stackTrace,
-          {'event_name': event.eventName, 'service': 'AnalyticsSchemaValidator'});
+      WasteAppLogger.severe('Error during event validation',
+          error: e,
+          stackTrace: stackTrace,
+          context: {
+            'event_name': event.eventName,
+            'service': 'AnalyticsSchemaValidator'
+          });
 
       return ValidationResult(
         isValid: false,
@@ -192,12 +243,14 @@ class AnalyticsSchemaValidator {
   }
 
   /// Validates field types
-  void _validateFieldTypes(Map<String, dynamic> eventData, Map<String, dynamic> parameters, List<String> errors) {
+  void _validateFieldTypes(Map<String, dynamic> eventData,
+      Map<String, dynamic> parameters, List<String> errors) {
     // Validate event data types
     for (final entry in eventData.entries) {
       final expectedType = _fieldTypes[entry.key];
       if (expectedType != null && !_isCorrectType(entry.value, expectedType)) {
-        errors.add('Field ${entry.key} should be $expectedType but got ${entry.value.runtimeType}');
+        errors.add(
+            'Field ${entry.key} should be $expectedType but got ${entry.value.runtimeType}');
       }
     }
 
@@ -205,23 +258,27 @@ class AnalyticsSchemaValidator {
     for (final entry in parameters.entries) {
       final expectedType = _fieldTypes[entry.key];
       if (expectedType != null && !_isCorrectType(entry.value, expectedType)) {
-        errors.add('Parameter ${entry.key} should be $expectedType but got ${entry.value.runtimeType}');
+        errors.add(
+            'Parameter ${entry.key} should be $expectedType but got ${entry.value.runtimeType}');
       }
     }
   }
 
   /// Validates field values against allowed values
-  void _validateFieldValues(Map<String, dynamic> parameters, List<String> errors, List<String> warnings) {
+  void _validateFieldValues(Map<String, dynamic> parameters,
+      List<String> errors, List<String> warnings) {
     for (final entry in parameters.entries) {
       final validValues = _validValues[entry.key];
       if (validValues != null && !validValues.contains(entry.value)) {
-        errors.add('Invalid value for ${entry.key}: ${entry.value}. Valid values: ${validValues.join(', ')}');
+        errors.add(
+            'Invalid value for ${entry.key}: ${entry.value}. Valid values: ${validValues.join(', ')}');
       }
     }
   }
 
   /// Validates numeric ranges
-  void _validateNumericRanges(Map<String, dynamic> parameters, List<String> errors, List<String> warnings) {
+  void _validateNumericRanges(Map<String, dynamic> parameters,
+      List<String> errors, List<String> warnings) {
     for (final entry in parameters.entries) {
       final range = _numericRanges[entry.key];
       if (range != null && entry.value is num) {
@@ -230,7 +287,8 @@ class AnalyticsSchemaValidator {
         final max = range['max']!;
 
         if (value < min || value > max) {
-          errors.add('Value for ${entry.key} ($value) is outside valid range [$min, $max]');
+          errors.add(
+              'Value for ${entry.key} ($value) is outside valid range [$min, $max]');
         }
 
         // Add warnings for suspicious values
@@ -277,7 +335,8 @@ class AnalyticsSchemaValidator {
 
     // Timestamp shouldn't be more than 1 hour in the future or past
     if (diff.inHours > 1) {
-      errors.add('Timestamp is too far from current time: ${timestamp.toIso8601String()}');
+      errors.add(
+          'Timestamp is too far from current time: ${timestamp.toIso8601String()}');
     }
   }
 
@@ -294,7 +353,8 @@ class AnalyticsSchemaValidator {
         final value = entry.value; // Already checked as String above
         for (final piiEntry in piiPatterns.entries) {
           if (piiEntry.value.hasMatch(value)) {
-            warnings.add('Potential ${piiEntry.key} detected in parameter ${entry.key}');
+            warnings.add(
+                'Potential ${piiEntry.key} detected in parameter ${entry.key}');
           }
         }
       }
@@ -302,7 +362,8 @@ class AnalyticsSchemaValidator {
   }
 
   /// Validates multiple events in batch
-  Future<BatchValidationResult> validateEvents(List<AnalyticsEvent> events) async {
+  Future<BatchValidationResult> validateEvents(
+      List<AnalyticsEvent> events) async {
     final results = <ValidationResult>[];
     var validCount = 0;
     var errorCount = 0;
@@ -368,7 +429,8 @@ class BatchValidationResult {
   final int invalidEvents;
   final int eventsWithWarnings;
 
-  double get validationRate => totalEvents > 0 ? validEvents / totalEvents : 0.0;
+  double get validationRate =>
+      totalEvents > 0 ? validEvents / totalEvents : 0.0;
 
   Map<String, dynamic> toJson() => {
         'totalEvents': totalEvents,

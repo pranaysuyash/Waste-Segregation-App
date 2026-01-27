@@ -134,7 +134,8 @@ void main() {
         final provider = ThemeProvider();
 
         // Should not throw an exception
-        expect(() async => await provider.setThemeMode(ThemeMode.dark), returnsNormally);
+        expect(() async => await provider.setThemeMode(ThemeMode.dark),
+            returnsNormally);
       });
     });
   });

@@ -31,7 +31,8 @@ void main() {
       test('should authenticate with Google Drive successfully', () async {
         when(mockAuthClient.credentials).thenReturn(
           AccessCredentials(
-            AccessToken('token', 'Bearer', DateTime.now().add(const Duration(hours: 1))),
+            AccessToken('token', 'Bearer',
+                DateTime.now().add(const Duration(hours: 1))),
             'refresh_token',
             ['https://www.googleapis.com/auth/drive.file'],
           ),
@@ -54,19 +55,22 @@ void main() {
 
       test('should refresh expired token', () async {
         final expiredCredentials = AccessCredentials(
-          AccessToken('old_token', 'Bearer', DateTime.now().subtract(const Duration(hours: 1))),
+          AccessToken('old_token', 'Bearer',
+              DateTime.now().subtract(const Duration(hours: 1))),
           'refresh_token',
           ['https://www.googleapis.com/auth/drive.file'],
         );
 
         final refreshedCredentials = AccessCredentials(
-          AccessToken('new_token', 'Bearer', DateTime.now().add(const Duration(hours: 1))),
+          AccessToken('new_token', 'Bearer',
+              DateTime.now().add(const Duration(hours: 1))),
           'refresh_token',
           ['https://www.googleapis.com/auth/drive.file'],
         );
 
         when(mockAuthClient.credentials).thenReturn(expiredCredentials);
-        when(mockAuthClient.refreshCredentials()).thenAnswer((_) async => refreshedCredentials);
+        when(mockAuthClient.refreshCredentials())
+            .thenAnswer((_) async => refreshedCredentials);
 
         final result = await googleDriveService.refreshToken();
 
@@ -75,7 +79,8 @@ void main() {
       });
 
       test('should handle token refresh failure', () async {
-        when(mockAuthClient.refreshCredentials()).thenThrow(Exception('Refresh failed'));
+        when(mockAuthClient.refreshCredentials())
+            .thenThrow(Exception('Refresh failed'));
 
         final result = await googleDriveService.refreshToken();
 
@@ -107,7 +112,9 @@ void main() {
         expect(result, isNotNull);
         expect(result?.id, 'file_123');
         expect(result?.name, testFileName);
-        verify(mockFilesResource.create(any, uploadMedia: anyNamed('uploadMedia'))).called(1);
+        verify(mockFilesResource.create(any,
+                uploadMedia: anyNamed('uploadMedia')))
+            .called(1);
       });
 
       test('should handle file upload failure', () async {
@@ -171,7 +178,8 @@ void main() {
       test('should handle file deletion failure', () async {
         const fileId = 'file_123';
 
-        when(mockFilesResource.delete(fileId)).thenThrow(Exception('Delete failed'));
+        when(mockFilesResource.delete(fileId))
+            .thenThrow(Exception('Delete failed'));
 
         final result = await googleDriveService.deleteFile(fileId);
 
@@ -339,7 +347,8 @@ void main() {
 
         final mockFile = drive.File();
         mockFile.id = 'backup_123';
-        mockFile.name = 'waste_app_backup_${DateTime.now().millisecondsSinceEpoch}.json';
+        mockFile.name =
+            'waste_app_backup_${DateTime.now().millisecondsSinceEpoch}.json';
 
         when(mockFilesResource.create(
           any,
@@ -351,7 +360,9 @@ void main() {
         expect(result, isNotNull);
         expect(result?.id, 'backup_123');
         expect(result?.name, contains('waste_app_backup_'));
-        verify(mockFilesResource.create(any, uploadMedia: anyNamed('uploadMedia'))).called(1);
+        verify(mockFilesResource.create(any,
+                uploadMedia: anyNamed('uploadMedia')))
+            .called(1);
       });
 
       test('should restore backup successfully', () async {
@@ -445,7 +456,8 @@ void main() {
 
         when(mockFilesResource.delete(any)).thenAnswer((_) async => null);
 
-        final result = await googleDriveService.cleanupOldBackups(30); // Keep 30 days
+        final result =
+            await googleDriveService.cleanupOldBackups(30); // Keep 30 days
 
         expect(result, 2); // Should delete 2 old backups
         verify(mockFilesResource.delete('old_backup_1')).called(1);
@@ -483,7 +495,9 @@ void main() {
         final result = await googleDriveService.syncToCloud(syncData);
 
         expect(result, true);
-        verify(mockFilesResource.create(any, uploadMedia: anyNamed('uploadMedia'))).called(1);
+        verify(mockFilesResource.create(any,
+                uploadMedia: anyNamed('uploadMedia')))
+            .called(1);
       });
 
       test('should update existing sync file', () async {
@@ -588,7 +602,8 @@ void main() {
           q: anyNamed('q'),
           spaces: anyNamed('spaces'),
           fields: anyNamed('fields'),
-        )).thenThrow(TimeoutException('Network timeout', const Duration(seconds: 30)));
+        )).thenThrow(
+            TimeoutException('Network timeout', const Duration(seconds: 30)));
 
         final result = await googleDriveService.listFiles();
 
@@ -611,7 +626,8 @@ void main() {
       });
 
       test('should handle insufficient permissions', () async {
-        when(mockFilesResource.delete(any)).thenThrow(Exception('Insufficient permissions'));
+        when(mockFilesResource.delete(any))
+            .thenThrow(Exception('Insufficient permissions'));
 
         final result = await googleDriveService.deleteFile('file_123');
 
@@ -619,7 +635,8 @@ void main() {
       });
 
       test('should handle large file upload', () async {
-        final largeData = List.filled(10 * 1024 * 1024, 65); // 10MB of 'A' characters
+        final largeData =
+            List.filled(10 * 1024 * 1024, 65); // 10MB of 'A' characters
         const fileName = 'large_backup.json';
 
         final mockFile = drive.File();
@@ -671,7 +688,8 @@ void main() {
           ..usageInDrive = '3000000000'; // 3GB
 
         when(mockDriveApi.about).thenReturn(MockAboutResource());
-        when(mockDriveApi.about.get(fields: 'storageQuota')).thenAnswer((_) async => mockAbout);
+        when(mockDriveApi.about.get(fields: 'storageQuota'))
+            .thenAnswer((_) async => mockAbout);
 
         final result = await googleDriveService.getStorageInfo();
 
@@ -688,9 +706,11 @@ void main() {
           ..usage = '5000000000'; // 5GB
 
         when(mockDriveApi.about).thenReturn(MockAboutResource());
-        when(mockDriveApi.about.get(fields: 'storageQuota')).thenAnswer((_) async => mockAbout);
+        when(mockDriveApi.about.get(fields: 'storageQuota'))
+            .thenAnswer((_) async => mockAbout);
 
-        final hasSpace = await googleDriveService.hasEnoughSpace(1000000); // 1MB
+        final hasSpace =
+            await googleDriveService.hasEnoughSpace(1000000); // 1MB
 
         expect(hasSpace, true);
       });
@@ -702,9 +722,11 @@ void main() {
           ..usage = '14500000000'; // 14.5GB
 
         when(mockDriveApi.about).thenReturn(MockAboutResource());
-        when(mockDriveApi.about.get(fields: 'storageQuota')).thenAnswer((_) async => mockAbout);
+        when(mockDriveApi.about.get(fields: 'storageQuota'))
+            .thenAnswer((_) async => mockAbout);
 
-        final hasSpace = await googleDriveService.hasEnoughSpace(1000000000); // 1GB
+        final hasSpace =
+            await googleDriveService.hasEnoughSpace(1000000000); // 1GB
 
         expect(hasSpace, false);
       });

@@ -22,14 +22,16 @@ void main() {
       await StorageService.initializeHive();
       storageService = StorageService();
       cloudStorageService = MockCloudStorageService(storageService);
-      gamificationService = GamificationService(storageService, cloudStorageService as dynamic);
+      gamificationService =
+          GamificationService(storageService, cloudStorageService as dynamic);
     });
 
     tearDownAll(() {
       TestHelpers.tearDownAll();
     });
 
-    test('Should unlock "First Classification" achievement on first scan', () async {
+    test('Should unlock "First Classification" achievement on first scan',
+        () async {
       // Given: No previous classifications
       await storageService.clearClassifications();
 
@@ -60,12 +62,15 @@ void main() {
 
       // Then: First classification achievement should be unlocked
       final profile = await gamificationService.getProfile();
-      final firstClassificationAchievement = profile.achievements.firstWhere((a) => a.id == 'first_classification');
+      final firstClassificationAchievement = profile.achievements
+          .firstWhere((a) => a.id == 'first_classification');
 
       expect(firstClassificationAchievement.isEarned, true);
     });
 
-    test('Should unlock "Recycling Expert" achievement after 50 recyclable items', () async {
+    test(
+        'Should unlock "Recycling Expert" achievement after 50 recyclable items',
+        () async {
       // Given: 49 previous recyclable classifications
       await storageService.clearClassifications();
 
@@ -121,12 +126,14 @@ void main() {
 
       // Then: Recycling Expert achievement should be unlocked
       final profile = await gamificationService.getProfile();
-      final recyclingExpertAchievement = profile.achievements.firstWhere((a) => a.id == 'recycling_expert');
+      final recyclingExpertAchievement =
+          profile.achievements.firstWhere((a) => a.id == 'recycling_expert');
 
       expect(recyclingExpertAchievement.isEarned, true);
     });
 
-    test('Should award different points based on classification type', () async {
+    test('Should award different points based on classification type',
+        () async {
       await storageService.clearClassifications();
 
       final initialProfile = await gamificationService.getProfile();
@@ -188,7 +195,8 @@ void main() {
       expect(finalProfile.points.total, greaterThan(initialPoints));
     });
 
-    test('Should maintain streak with consecutive daily classifications', () async {
+    test('Should maintain streak with consecutive daily classifications',
+        () async {
       await storageService.clearClassifications();
 
       // Simulate classifications on consecutive days
@@ -264,7 +272,8 @@ void main() {
       final profile = await gamificationService.getProfile();
 
       // Streak should reflect consecutive classifications
-      final dailyStreak = profile.streaks[StreakType.dailyClassification.toString()];
+      final dailyStreak =
+          profile.streaks[StreakType.dailyClassification.toString()];
       expect(dailyStreak?.currentCount ?? 0, greaterThanOrEqualTo(1));
     });
   });

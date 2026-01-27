@@ -3,7 +3,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'waste_app_logger.dart';
-import 'error_handler.dart';
 
 /// Comprehensive app-level error handler that catches all unhandled errors
 class AppErrorHandler {
@@ -14,7 +13,7 @@ class AppErrorHandler {
   /// Initialize the global error handler
   static void initialize() {
     if (_isInitialized) return;
-    
+
     // Handle Flutter framework errors
     FlutterError.onError = (FlutterErrorDetails details) {
       _handleFlutterError(details);
@@ -55,15 +54,13 @@ class AppErrorHandler {
     _recordError(errorReport);
 
     // Log the error
-    WasteAppLogger.severe(
-      'Flutter Error: ${details.exception}',
-      details.exception,
-      details.stack,
-      {
-        'library': details.library,
-        'context': details.context?.toString(),
-      },
-    );
+    WasteAppLogger.severe('Flutter Error: ${details.exception}',
+        error: details.exception,
+        stackTrace: details.stack,
+        context: {
+          'library': details.library,
+          'context': details.context?.toString(),
+        });
 
     // In debug mode, show the red screen
     if (kDebugMode) {
@@ -83,12 +80,8 @@ class AppErrorHandler {
 
     _recordError(errorReport);
 
-    WasteAppLogger.severe(
-      'Platform Error: $error',
-      error,
-      stack,
-      {'source': 'platform'},
-    );
+    WasteAppLogger.severe('Platform Error: $error',
+        error: error, stackTrace: stack, context: {'source': 'platform'});
   }
 
   /// Handle zone errors (uncaught async errors)
@@ -103,18 +96,14 @@ class AppErrorHandler {
 
     _recordError(errorReport);
 
-    WasteAppLogger.severe(
-      'Zone Error: $error',
-      error,
-      stack,
-      {'source': 'zone'},
-    );
+    WasteAppLogger.severe('Zone Error: $error',
+        error: error, stackTrace: stack, context: {'source': 'zone'});
   }
 
   /// Record an error report
   static void _recordError(ErrorReport report) {
     _errorReports.add(report);
-    
+
     // Keep only the most recent errors
     if (_errorReports.length > _maxErrorReports) {
       _errorReports.removeAt(0);
@@ -134,7 +123,9 @@ class AppErrorHandler {
   /// Get recent error reports (last hour)
   static List<ErrorReport> getRecentErrorReports() {
     final oneHourAgo = DateTime.now().subtract(const Duration(hours: 1));
-    return _errorReports.where((report) => report.timestamp.isAfter(oneHourAgo)).toList();
+    return _errorReports
+        .where((report) => report.timestamp.isAfter(oneHourAgo))
+        .toList();
   }
 
   /// Clear all error reports
@@ -148,12 +139,15 @@ class AppErrorHandler {
     final lastHour = now.subtract(const Duration(hours: 1));
     final lastDay = now.subtract(const Duration(days: 1));
 
-    final recentErrors = _errorReports.where((r) => r.timestamp.isAfter(lastHour)).length;
-    final dailyErrors = _errorReports.where((r) => r.timestamp.isAfter(lastDay)).length;
+    final recentErrors =
+        _errorReports.where((r) => r.timestamp.isAfter(lastHour)).length;
+    final dailyErrors =
+        _errorReports.where((r) => r.timestamp.isAfter(lastDay)).length;
 
     final errorsByType = <ErrorType, int>{};
     for (final report in _errorReports) {
-      errorsByType[report.errorType] = (errorsByType[report.errorType] ?? 0) + 1;
+      errorsByType[report.errorType] =
+          (errorsByType[report.errorType] ?? 0) + 1;
     }
 
     return ErrorStatistics(
@@ -161,13 +155,16 @@ class AppErrorHandler {
       recentErrors: recentErrors,
       dailyErrors: dailyErrors,
       errorsByType: errorsByType,
-      oldestError: _errorReports.isNotEmpty ? _errorReports.first.timestamp : null,
-      newestError: _errorReports.isNotEmpty ? _errorReports.last.timestamp : null,
+      oldestError:
+          _errorReports.isNotEmpty ? _errorReports.first.timestamp : null,
+      newestError:
+          _errorReports.isNotEmpty ? _errorReports.last.timestamp : null,
     );
   }
 
   /// Show error dialog for critical errors
-  static void showCriticalErrorDialog(BuildContext context, ErrorReport report) {
+  static void showCriticalErrorDialog(
+      BuildContext context, ErrorReport report) {
     if (!context.mounted) return;
 
     showDialog(
@@ -185,7 +182,7 @@ class AppErrorHandler {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('A critical error has occurred:'),
+            const Text('A critical error has occurred:'),
             const SizedBox(height: 8),
             Container(
               padding: const EdgeInsets.all(8),
@@ -209,7 +206,8 @@ class AppErrorHandler {
               Clipboard.setData(ClipboardData(text: report.toString()));
               Navigator.of(context).pop();
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Error details copied to clipboard')),
+                const SnackBar(
+                    content: Text('Error details copied to clipboard')),
               );
             },
             child: const Text('Copy Details'),
@@ -222,7 +220,8 @@ class AppErrorHandler {
             onPressed: () {
               Navigator.of(context).pop();
               // Restart the app or navigate to a safe screen
-              Navigator.of(context).pushNamedAndRemoveUntil('/', (route) => false);
+              Navigator.of(context)
+                  .pushNamedAndRemoveUntil('/', (route) => false);
             },
             child: const Text('Restart App'),
           ),
@@ -237,7 +236,7 @@ class AppErrorHandler {
     String? context,
     T? fallbackValue,
   }) async {
-    return await runZonedGuarded(() async {
+    return await runZonedGuarded<Future<T?>>(() async {
       try {
         return await operation();
       } catch (error, stackTrace) {
@@ -251,12 +250,10 @@ class AppErrorHandler {
 
         _recordError(errorReport);
 
-        WasteAppLogger.severe(
-          'Safe zone error: $error',
-          error,
-          stackTrace,
-          {'context': context},
-        );
+        WasteAppLogger.severe('Safe zone error: $error',
+            error: error,
+            stackTrace: stackTrace,
+            context: {'context': context});
 
         return fallbackValue;
       }
@@ -271,25 +268,14 @@ class AppErrorHandler {
 
       _recordError(errorReport);
 
-      WasteAppLogger.severe(
-        'Safe zone uncaught error: $error',
-        error,
-        stackTrace,
-        {'context': context},
-      );
+      WasteAppLogger.severe('Safe zone uncaught error: $error',
+          error: error, stackTrace: stackTrace, context: {'context': context});
     });
   }
 }
 
 /// Error report data class
 class ErrorReport {
-  final Object error;
-  final StackTrace? stackTrace;
-  final String context;
-  final DateTime timestamp;
-  final ErrorType errorType;
-  final Map<String, dynamic>? details;
-
   const ErrorReport({
     required this.error,
     this.stackTrace,
@@ -298,6 +284,12 @@ class ErrorReport {
     required this.errorType,
     this.details,
   });
+  final Object error;
+  final StackTrace? stackTrace;
+  final String context;
+  final DateTime timestamp;
+  final ErrorType errorType;
+  final Map<String, dynamic>? details;
 
   @override
   String toString() {
@@ -333,13 +325,6 @@ enum ErrorType {
 
 /// Error statistics data class
 class ErrorStatistics {
-  final int totalErrors;
-  final int recentErrors;
-  final int dailyErrors;
-  final Map<ErrorType, int> errorsByType;
-  final DateTime? oldestError;
-  final DateTime? newestError;
-
   const ErrorStatistics({
     required this.totalErrors,
     required this.recentErrors,
@@ -348,6 +333,12 @@ class ErrorStatistics {
     this.oldestError,
     this.newestError,
   });
+  final int totalErrors;
+  final int recentErrors;
+  final int dailyErrors;
+  final Map<ErrorType, int> errorsByType;
+  final DateTime? oldestError;
+  final DateTime? newestError;
 
   @override
   String toString() {

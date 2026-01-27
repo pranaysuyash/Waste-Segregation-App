@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as path;
-import '../models/waste_classification.dart';
+import 'package:waste_segregation_app/models/waste_classification.dart';
 import '../utils/constants.dart';
 import '../services/enhanced_image_service.dart';
 import 'classification_feedback_widget.dart';
@@ -37,12 +37,15 @@ class HistoryListItem extends StatelessWidget {
 
     return Semantics(
       button: true,
-      label: 'Classification result for ${classification.itemName}, ${classification.category}',
+      label:
+          'Classification result for ${classification.itemName}, ${classification.category}',
       hint: 'Tap to view details',
       child: Card(
         color: Theme.of(context).colorScheme.surfaceContainerHighest,
         elevation: 2,
-        margin: const EdgeInsets.symmetric(vertical: AppTheme.paddingSmall, horizontal: AppTheme.paddingRegular),
+        margin: const EdgeInsets.symmetric(
+            vertical: AppTheme.paddingSmall,
+            horizontal: AppTheme.paddingRegular),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(AppTheme.borderRadiusRegular),
           side: BorderSide(color: categoryColor.withValues(alpha: 0.3)),
@@ -93,7 +96,8 @@ class HistoryListItem extends StatelessWidget {
                               const SizedBox(width: 4),
                               Expanded(
                                 child: Text(
-                                  _formatDateForDisplay(classification.timestamp),
+                                  _formatDateForDisplay(
+                                      classification.timestamp),
                                   style: const TextStyle(
                                     color: AppTheme.textSecondaryColor,
                                     fontSize: AppTheme.fontSizeSmall,
@@ -111,8 +115,10 @@ class HistoryListItem extends StatelessWidget {
                                     vertical: 2,
                                   ),
                                   decoration: BoxDecoration(
-                                    color: _getConfidenceColor().withValues(alpha: 0.2),
-                                    borderRadius: BorderRadius.circular(AppTheme.borderRadiusSmall),
+                                    color: _getConfidenceColor()
+                                        .withValues(alpha: 0.2),
+                                    borderRadius: BorderRadius.circular(
+                                        AppTheme.borderRadiusSmall),
                                     border: Border.all(
                                       color: _getConfidenceColor(),
                                     ),
@@ -140,7 +146,8 @@ class HistoryListItem extends StatelessWidget {
                         image: true,
                         label: 'Thumbnail image of ${classification.itemName}',
                         child: ClipRRect(
-                          borderRadius: BorderRadius.circular(AppTheme.borderRadiusSmall),
+                          borderRadius:
+                              BorderRadius.circular(AppTheme.borderRadiusSmall),
                           child: SizedBox(
                             width: 50,
                             height: 50,
@@ -411,14 +418,18 @@ class HistoryListItem extends StatelessWidget {
                     fit: BoxFit.cover,
                     cacheHeight: 90, // Optimize memory usage
                     errorBuilder: (context, error, stackTrace) {
-                      WasteAppLogger.severe(
-                          'Error occurred', null, null, {'service': 'widget', 'file': 'history_list_item'});
+                      WasteAppLogger.severe('Error occurred', context: {
+                        'service': 'widget',
+                        'file': 'history_list_item'
+                      });
                       return _buildImagePlaceholder();
                     },
                   );
                 }
-                WasteAppLogger.info(
-                    'Operation completed', null, null, {'service': 'widget', 'file': 'history_list_item'});
+                WasteAppLogger.info('Operation completed', context: {
+                  'service': 'widget',
+                  'file': 'history_list_item'
+                });
                 return _buildImagePlaceholder();
               },
             );
@@ -434,7 +445,8 @@ class HistoryListItem extends StatelessWidget {
         classification.imageUrl != null &&
         classification.imageUrl!.startsWith('http')) {
       return FutureBuilder<Uint8List?>(
-        future: EnhancedImageService().fetchImageWithRetry(classification.imageUrl!),
+        future: EnhancedImageService()
+            .fetchImageWithRetry(classification.imageUrl!),
         builder: (context, snap) {
           if (!snap.hasData) return _buildImagePlaceholder();
           // Persist to disk so next cold start is instant
@@ -450,9 +462,11 @@ class HistoryListItem extends StatelessWidget {
 
     // Fallback to legacy absolute path logic
     final url = classification.imageUrl;
-    WasteAppLogger.info('Operation completed', null, null, {'service': 'widget', 'file': 'history_list_item'});
+    WasteAppLogger.info('Operation completed',
+        context: {'service': 'widget', 'file': 'history_list_item'});
     if (url == null) {
-      WasteAppLogger.info('Operation completed', null, null, {'service': 'widget', 'file': 'history_list_item'});
+      WasteAppLogger.info('Operation completed',
+          context: {'service': 'widget', 'file': 'history_list_item'});
       return _buildImagePlaceholder();
     }
 
@@ -477,15 +491,20 @@ class HistoryListItem extends StatelessWidget {
                 );
               },
               errorBuilder: (context, error, stackTrace) {
-                WasteAppLogger.severe('Error occurred', null, null, {'service': 'widget', 'file': 'history_list_item'});
+                WasteAppLogger.severe('Error occurred', context: {
+                  'service': 'widget',
+                  'file': 'history_list_item'
+                });
                 return _buildImagePlaceholder();
               },
             );
           } else {
-            WasteAppLogger.info('Operation completed', null, null, {'service': 'widget', 'file': 'history_list_item'});
+            WasteAppLogger.info('Operation completed',
+                context: {'service': 'widget', 'file': 'history_list_item'});
           }
         } catch (e) {
-          WasteAppLogger.info('Operation completed', null, null, {'service': 'widget', 'file': 'history_list_item'});
+          WasteAppLogger.info('Operation completed',
+              context: {'service': 'widget', 'file': 'history_list_item'});
         }
         return _buildImagePlaceholder();
       }
@@ -505,7 +524,8 @@ class HistoryListItem extends StatelessWidget {
                 fit: BoxFit.cover,
               );
             }
-            WasteAppLogger.severe('Error occurred', null, null, {'service': 'widget', 'file': 'history_list_item'});
+            WasteAppLogger.severe('Error occurred',
+                context: {'service': 'widget', 'file': 'history_list_item'});
             return _buildImagePlaceholder();
           },
         );
@@ -530,12 +550,14 @@ class HistoryListItem extends StatelessWidget {
             fit: BoxFit.cover,
             cacheHeight: 90, // Optimize memory usage
             errorBuilder: (context, error, stackTrace) {
-              WasteAppLogger.severe('Error occurred', null, null, {'service': 'widget', 'file': 'history_list_item'});
+              WasteAppLogger.severe('Error occurred',
+                  context: {'service': 'widget', 'file': 'history_list_item'});
               return _buildImagePlaceholder();
             },
           );
         }
-        WasteAppLogger.info('Operation completed', null, null, {'service': 'widget', 'file': 'history_list_item'});
+        WasteAppLogger.info('Operation completed',
+            context: {'service': 'widget', 'file': 'history_list_item'});
         return _buildImagePlaceholder();
       },
     );
@@ -590,7 +612,8 @@ class HistoryListItem extends StatelessWidget {
       final full = await _getFullImagePath(relPath);
       await File(full).writeAsBytes(bytes, flush: true);
     } catch (e) {
-      WasteAppLogger.severe('Error occurred', null, null, {'service': 'widget', 'file': 'history_list_item'});
+      WasteAppLogger.severe('Error occurred',
+          context: {'service': 'widget', 'file': 'history_list_item'});
     }
   }
 }
@@ -614,7 +637,8 @@ class _CompactFeedbackButton extends StatelessWidget {
       icon: Icon(
         hasExistingFeedback ? Icons.feedback : Icons.feedback_outlined,
         size: 16,
-        color: hasExistingFeedback ? Colors.green.shade600 : AppTheme.primaryColor,
+        color:
+            hasExistingFeedback ? Colors.green.shade600 : AppTheme.primaryColor,
       ),
       iconSize: 16,
       padding: EdgeInsets.zero,

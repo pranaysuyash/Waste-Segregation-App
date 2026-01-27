@@ -12,7 +12,8 @@ enum ReviewStatus {
   final String value;
 
   static ReviewStatus fromString(String? value) {
-    return ReviewStatus.values.firstWhere((e) => e.value == value, orElse: () => ReviewStatus.pendingReview);
+    return ReviewStatus.values.firstWhere((e) => e.value == value,
+        orElse: () => ReviewStatus.pendingReview);
   }
 }
 
@@ -41,9 +42,10 @@ class ClassificationFeedback {
         appVersion = appVersion ?? '0.1.0',
         feedbackTimestamp = feedbackTimestamp ?? Timestamp.now();
 
-  factory ClassificationFeedback.fromJson(Map<String, dynamic> json, String documentId) {
+  factory ClassificationFeedback.fromJson(Map<String, dynamic> json,
+      [String? documentId]) {
     return ClassificationFeedback(
-      id: documentId,
+      id: documentId ?? (json['id'] as String?),
       userId: json['userId'] as String,
       originalClassificationId: json['originalClassificationId'] as String,
       originalAIItemName: json['originalAIItemName'] as String,

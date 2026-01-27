@@ -2,7 +2,6 @@ import 'dart:async';
 import '../utils/waste_app_logger.dart';
 import 'api_client_factory.dart';
 import 'enhanced_ai_api_service.dart';
-import 'cost_tracking_interceptor.dart';
 
 /// Comprehensive API management service
 ///
@@ -14,9 +13,10 @@ import 'cost_tracking_interceptor.dart';
 /// - Configuration management
 /// - Automatic scaling and optimization
 class ApiManagementService {
-  static final ApiManagementService _instance = ApiManagementService._internal();
   factory ApiManagementService() => _instance;
   ApiManagementService._internal();
+  static final ApiManagementService _instance =
+      ApiManagementService._internal();
 
   // Service instances
   EnhancedAiApiService? _aiApiService;
@@ -65,16 +65,18 @@ class ApiManagementService {
 
       _initialized = true;
 
-      WasteAppLogger.info('API Management Service initialized', null, null, {
+      WasteAppLogger.info('API Management Service initialized', context: {
         'monitoring_enabled': _monitoringEnabled,
         'optimization_enabled': _optimizationEnabled,
         'monitoring_interval_minutes': _monitoringInterval.inMinutes,
         'optimization_interval_minutes': _optimizationInterval.inMinutes,
       });
     } catch (e) {
-      WasteAppLogger.severe('Failed to initialize API Management Service', e, null, {
-        'error_type': e.runtimeType.toString(),
-      });
+      WasteAppLogger.severe('Failed to initialize API Management Service',
+          error: e,
+          context: {
+            'error_type': e.runtimeType.toString(),
+          });
       rethrow;
     }
   }
@@ -94,7 +96,7 @@ class ApiManagementService {
       _performMonitoringCycle();
     });
 
-    WasteAppLogger.info('API monitoring started', null, null, {
+    WasteAppLogger.info('API monitoring started', context: {
       'interval_minutes': _monitoringInterval.inMinutes,
     });
   }
@@ -106,7 +108,7 @@ class ApiManagementService {
       _performOptimizationCycle();
     });
 
-    WasteAppLogger.info('API optimization started', null, null, {
+    WasteAppLogger.info('API optimization started', context: {
       'interval_minutes': _optimizationInterval.inMinutes,
     });
   }
@@ -114,7 +116,7 @@ class ApiManagementService {
   /// Perform monitoring cycle
   Future<void> _performMonitoringCycle() async {
     try {
-      WasteAppLogger.fine('Starting monitoring cycle', null, null, {
+      WasteAppLogger.fine('Starting monitoring cycle', context: {
         'timestamp': DateTime.now().toIso8601String(),
       });
 
@@ -134,12 +136,12 @@ class ApiManagementService {
       // Update cost metrics
       _updateCostMetrics(clientStats);
 
-      WasteAppLogger.fine('Monitoring cycle completed', null, null, {
+      WasteAppLogger.fine('Monitoring cycle completed', context: {
         'total_clients': clientStats.length,
         'health_alerts': _healthAlerts.length,
       });
     } catch (e) {
-      WasteAppLogger.warning('Monitoring cycle failed', e, null, {
+      WasteAppLogger.warning('Monitoring cycle failed', error: e, context: {
         'cycle_time': DateTime.now().toIso8601String(),
       });
     }
@@ -148,7 +150,7 @@ class ApiManagementService {
   /// Perform optimization cycle
   Future<void> _performOptimizationCycle() async {
     try {
-      WasteAppLogger.fine('Starting optimization cycle', null, null, {
+      WasteAppLogger.fine('Starting optimization cycle', context: {
         'timestamp': DateTime.now().toIso8601String(),
       });
 
@@ -163,11 +165,11 @@ class ApiManagementService {
       // Clean up resources
       _cleanupResources();
 
-      WasteAppLogger.fine('Optimization cycle completed', null, null, {
+      WasteAppLogger.fine('Optimization cycle completed', context: {
         'optimizations_applied': optimizations.length,
       });
     } catch (e) {
-      WasteAppLogger.warning('Optimization cycle failed', e, null, {
+      WasteAppLogger.warning('Optimization cycle failed', error: e, context: {
         'cycle_time': DateTime.now().toIso8601String(),
       });
     }
@@ -182,7 +184,8 @@ class ApiManagementService {
       final stats = entry.value as Map<String, dynamic>;
 
       // Check circuit breaker status
-      final circuitStatus = stats['circuit_breaker_status'] as Map<String, dynamic>?;
+      final circuitStatus =
+          stats['circuit_breaker_status'] as Map<String, dynamic>?;
       if (circuitStatus != null) {
         final services = circuitStatus['services'] as Map<String, dynamic>?;
         if (services != null) {
@@ -203,7 +206,8 @@ class ApiManagementService {
           final limiterData = limiterEntry.value as Map<String, dynamic>;
           final utilization = limiterData['utilization_percent'] as int?;
           if (utilization != null && utilization > 90) {
-            _healthAlerts.add('High rate limit utilization for ${limiterEntry.key}: $utilization%');
+            _healthAlerts.add(
+                'High rate limit utilization for ${limiterEntry.key}: $utilization%');
           }
         }
       }
@@ -213,13 +217,14 @@ class ApiManagementService {
       final queuedRequests = stats['queued_requests'] as int?;
       if (activeRequests != null && queuedRequests != null) {
         if (queuedRequests > 10) {
-          _healthAlerts.add('High request queue for $serviceName: $queuedRequests requests');
+          _healthAlerts.add(
+              'High request queue for $serviceName: $queuedRequests requests');
         }
       }
     }
 
     if (_healthAlerts.isNotEmpty) {
-      WasteAppLogger.warning('Health alerts detected', null, null, {
+      WasteAppLogger.warning('Health alerts detected', context: {
         'alerts': _healthAlerts,
         'alert_count': _healthAlerts.length,
       });
@@ -228,8 +233,8 @@ class ApiManagementService {
 
   /// Update cost metrics
   void _updateCostMetrics(Map<String, dynamic> clientStats) {
-    double totalCost = 0.0;
-    int totalRequests = 0;
+    const totalCost = 0.0;
+    const totalRequests = 0;
 
     for (final entry in clientStats.entries) {
       final serviceName = entry.key;
@@ -242,8 +247,10 @@ class ApiManagementService {
 
     _costMetrics['total_cost'] = totalCost;
     _costMetrics['total_requests'] = totalRequests.toDouble();
-    _costMetrics['average_cost_per_request'] = totalRequests > 0 ? totalCost / totalRequests : 0.0;
-    _costMetrics['last_updated'] = DateTime.now().millisecondsSinceEpoch.toDouble();
+    _costMetrics['average_cost_per_request'] =
+        totalRequests > 0 ? totalCost / totalRequests : 0.0;
+    _costMetrics['last_updated'] =
+        DateTime.now().millisecondsSinceEpoch.toDouble();
   }
 
   /// Analyze performance patterns for optimization
@@ -261,7 +268,7 @@ class ApiManagementService {
         for (final limiterEntry in rateLimiters.entries) {
           final limiterData = limiterEntry.value as Map<String, dynamic>;
           final utilization = limiterData['utilization_percent'] as int?;
-          
+
           if (utilization != null) {
             if (utilization > 80) {
               actions.add(OptimizationAction(
@@ -283,7 +290,7 @@ class ApiManagementService {
 
     // Analyze request patterns for caching opportunities
     // This would be enhanced based on actual usage patterns
-    
+
     return actions;
   }
 
@@ -293,41 +300,43 @@ class ApiManagementService {
       switch (action.type) {
         case OptimizationType.increaseRateLimit:
           // Increase rate limit for service
-          WasteAppLogger.info('Applying rate limit increase', null, null, {
+          WasteAppLogger.info('Applying rate limit increase', context: {
             'service': action.serviceName,
             'details': action.details,
           });
           break;
-          
+
         case OptimizationType.decreaseRateLimit:
           // Decrease rate limit for service
-          WasteAppLogger.info('Applying rate limit decrease', null, null, {
+          WasteAppLogger.info('Applying rate limit decrease', context: {
             'service': action.serviceName,
             'details': action.details,
           });
           break;
-          
+
         case OptimizationType.enableCaching:
           // Enable caching for service
-          WasteAppLogger.info('Enabling caching', null, null, {
+          WasteAppLogger.info('Enabling caching', context: {
             'service': action.serviceName,
             'details': action.details,
           });
           break;
-          
+
         case OptimizationType.adjustTimeout:
           // Adjust timeout settings
-          WasteAppLogger.info('Adjusting timeout', null, null, {
+          WasteAppLogger.info('Adjusting timeout', context: {
             'service': action.serviceName,
             'details': action.details,
           });
           break;
       }
     } catch (e) {
-      WasteAppLogger.warning('Failed to apply optimization', e, null, {
-        'action_type': action.type.name,
-        'service': action.serviceName,
-      });
+      WasteAppLogger.warning('Failed to apply optimization',
+          error: e,
+          context: {
+            'action_type': action.type.name,
+            'service': action.serviceName,
+          });
     }
   }
 
@@ -335,12 +344,12 @@ class ApiManagementService {
   void _cleanupResources() {
     // Clean up expired cache entries, old metrics, etc.
     final now = DateTime.now();
-    
+
     // Remove old performance metrics (keep last 24 hours)
     final cutoff = now.subtract(const Duration(hours: 24));
     // Implementation would depend on actual metric storage structure
-    
-    WasteAppLogger.fine('Resource cleanup completed', null, null, {
+
+    WasteAppLogger.fine('Resource cleanup completed', context: {
       'cleanup_time': now.toIso8601String(),
     });
   }
@@ -382,8 +391,8 @@ class ApiManagementService {
     _costMetrics.clear();
     _healthAlerts.clear();
     _aiApiService?.resetStatistics();
-    
-    WasteAppLogger.info('API Management Service statistics reset', null, null, {
+
+    WasteAppLogger.info('API Management Service statistics reset', context: {
       'timestamp': DateTime.now().toIso8601String(),
     });
   }
@@ -427,29 +436,30 @@ class ApiManagementService {
       }
     }
 
-    WasteAppLogger.info('API Management Service configuration updated', null, null, {
-      'monitoring_enabled': _monitoringEnabled,
-      'optimization_enabled': _optimizationEnabled,
-      'monitoring_interval_minutes': _monitoringInterval.inMinutes,
-      'optimization_interval_minutes': _optimizationInterval.inMinutes,
-    });
+    WasteAppLogger.info('API Management Service configuration updated',
+        context: {
+          'monitoring_enabled': _monitoringEnabled,
+          'optimization_enabled': _optimizationEnabled,
+          'monitoring_interval_minutes': _monitoringInterval.inMinutes,
+          'optimization_interval_minutes': _optimizationInterval.inMinutes,
+        });
   }
 
   /// Dispose the service
   void dispose() {
     _monitoringTimer?.cancel();
     _optimizationTimer?.cancel();
-    
+
     _aiApiService?.dispose();
     ApiClientFactory.resetAllClients();
-    
+
     _performanceMetrics.clear();
     _costMetrics.clear();
     _healthAlerts.clear();
-    
+
     _initialized = false;
 
-    WasteAppLogger.info('API Management Service disposed', null, null, {
+    WasteAppLogger.info('API Management Service disposed', context: {
       'timestamp': DateTime.now().toIso8601String(),
     });
   }

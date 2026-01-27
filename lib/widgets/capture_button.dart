@@ -83,16 +83,23 @@ class _CaptureButtonState extends State<CaptureButton> {
     String semanticLabel;
     switch (widget.type) {
       case CaptureButtonType.camera:
-        semanticLabel = widget.isLoading ? 'Taking photo, please wait' : 'Take photo with camera';
+        semanticLabel = widget.isLoading
+            ? 'Taking photo, please wait'
+            : 'Take photo with camera';
         break;
       case CaptureButtonType.gallery:
-        semanticLabel = widget.isLoading ? 'Opening gallery, please wait' : 'Select image from gallery';
+        semanticLabel = widget.isLoading
+            ? 'Opening gallery, please wait'
+            : 'Select image from gallery';
         break;
       case CaptureButtonType.analyze:
-        semanticLabel = widget.isLoading ? 'Analyzing image, please wait' : 'Analyze image for waste classification';
+        semanticLabel = widget.isLoading
+            ? 'Analyzing image, please wait'
+            : 'Analyze image for waste classification';
         break;
       case CaptureButtonType.retry:
-        semanticLabel = widget.isLoading ? 'Retaking photo, please wait' : 'Retake photo';
+        semanticLabel =
+            widget.isLoading ? 'Retaking photo, please wait' : 'Retake photo';
         break;
     }
 
@@ -119,7 +126,8 @@ class _CaptureButtonState extends State<CaptureButton> {
                 ),
                 minimumSize: const Size(48, 48),
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(AppTheme.borderRadiusRegular),
+                  borderRadius:
+                      BorderRadius.circular(AppTheme.borderRadiusRegular),
                 ),
               ),
               icon: widget.isLoading
@@ -136,7 +144,9 @@ class _CaptureButtonState extends State<CaptureButton> {
                       child: Icon(icon),
                     ),
               label: Text(
-                widget.isLoading && widget.type == CaptureButtonType.analyze ? AppStrings.analyzing : label,
+                widget.isLoading && widget.type == CaptureButtonType.analyze
+                    ? AppStrings.analyzing
+                    : label,
                 style: const TextStyle(
                   fontSize: AppTheme.fontSizeMedium,
                   fontWeight: FontWeight.bold,

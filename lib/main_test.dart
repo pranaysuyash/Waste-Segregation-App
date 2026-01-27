@@ -10,8 +10,8 @@ void main() async {
     await WasteAppLogger.initialize();
     WasteAppLogger.info('Test app startup initiated');
     if (kDebugMode) {
-      WasteAppLogger.info('✅ WasteAppLogger initialized successfully', null, null,
-          {'initialization_step': 'success', 'test_mode': true});
+      WasteAppLogger.info('✅ WasteAppLogger initialized successfully',
+          context: {'initialization_step': 'success', 'test_mode': true});
     }
   } catch (e) {
     if (kDebugMode) {

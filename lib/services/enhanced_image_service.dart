@@ -29,14 +29,18 @@ class EnhancedImageService {
 
   /// Save raw image bytes to a permanent file location and
   /// return the file path. On web platforms, returns a base64 data URL.
-  Future<String> saveImagePermanently(Uint8List bytes, {String? fileName}) async {
+  Future<String> saveImagePermanently(Uint8List bytes,
+      {String? fileName}) async {
     if (kIsWeb) {
       final base64Data = base64Encode(bytes);
       // Detect image format or default to jpeg
       var mimeType = 'image/jpeg';
       if (bytes.length > 4) {
         // PNG signature: 0x89 0x50 0x4E 0x47
-        if (bytes[0] == 0x89 && bytes[1] == 0x50 && bytes[2] == 0x4E && bytes[3] == 0x47) {
+        if (bytes[0] == 0x89 &&
+            bytes[1] == 0x50 &&
+            bytes[2] == 0x4E &&
+            bytes[3] == 0x47) {
           mimeType = 'image/png';
         }
         // GIF signature: 'G' 'I' 'F'
@@ -98,7 +102,9 @@ class EnhancedImageService {
 
     // Create unique filename
     final id = const Uuid().v4();
-    final name = baseName != null ? '${baseName}_${DateTime.now().millisecondsSinceEpoch}.jpg' : '$id.jpg';
+    final name = baseName != null
+        ? '${baseName}_${DateTime.now().millisecondsSinceEpoch}.jpg'
+        : '$id.jpg';
 
     final file = File(p.join(thumbnailsDir.path, name));
     await file.writeAsBytes(thumbnailBytes, flush: true);
@@ -141,9 +147,11 @@ class EnhancedImageService {
         if (response.statusCode == 200) {
           return response.bodyBytes;
         }
-        WasteAppLogger.severe('Image download failed with status ${response.statusCode}');
+        WasteAppLogger.severe(
+            'Image download failed with status ${response.statusCode}');
       } catch (e) {
-        WasteAppLogger.severe('Image download error on attempt ${attempt + 1}: $e');
+        WasteAppLogger.severe(
+            'Image download error on attempt ${attempt + 1}: $e');
       }
       await Future.delayed(Duration(milliseconds: 500 * (attempt + 1)));
     }
@@ -198,26 +206,30 @@ class EnhancedImageService {
 
       var filesToRemove = files.length - targetFiles;
       if (filesToRemove <= 0) {
-        filesToRemove = files.length - (currentSize / (1024 * 1024) / targetSizeMB).round();
+        filesToRemove =
+            files.length - (currentSize / (1024 * 1024) / targetSizeMB).round();
       }
 
       for (var i = 0; i < filesToRemove && i < filesWithStats.length; i++) {
         try {
           await filesWithStats[i].key.delete();
-          WasteAppLogger.info('🗑️ Removed old thumbnail: ${p.basename(filesWithStats[i].key.path)}');
+          WasteAppLogger.info(
+              '🗑️ Removed old thumbnail: ${p.basename(filesWithStats[i].key.path)}');
         } catch (e) {
           WasteAppLogger.severe('Error removing thumbnail: $e');
         }
       }
 
-      WasteAppLogger.info('📊 Thumbnail cache maintenance: removed $filesToRemove files');
+      WasteAppLogger.info(
+          '📊 Thumbnail cache maintenance: removed $filesToRemove files');
     } catch (e) {
       WasteAppLogger.severe('Error maintaining thumbnail cache: $e');
     }
   }
 
   /// Clean up orphaned thumbnails that no longer have corresponding classifications
-  Future<void> cleanUpOrphanedThumbnails(List<String> validThumbnailPaths) async {
+  Future<void> cleanUpOrphanedThumbnails(
+      List<String> validThumbnailPaths) async {
     if (kIsWeb) return; // Not applicable for web
 
     try {
@@ -234,11 +246,13 @@ class EnhancedImageService {
           final relativePath = 'thumbnails/${p.basename(entity.path)}';
 
           // Check if this thumbnail is referenced by any classification
-          if (!validPaths.contains(relativePath) && !validPaths.contains(entity.path)) {
+          if (!validPaths.contains(relativePath) &&
+              !validPaths.contains(entity.path)) {
             try {
               await entity.delete();
               orphansRemoved++;
-              WasteAppLogger.info('🗑️ Removed orphaned thumbnail: ${p.basename(entity.path)}');
+              WasteAppLogger.info(
+                  '🗑️ Removed orphaned thumbnail: ${p.basename(entity.path)}');
             } catch (e) {
               WasteAppLogger.severe('Error removing orphaned thumbnail: $e');
             }
@@ -247,7 +261,8 @@ class EnhancedImageService {
       }
 
       if (orphansRemoved > 0) {
-        WasteAppLogger.info('🧹 Cleaned up $orphansRemoved orphaned thumbnails');
+        WasteAppLogger.info(
+            '🧹 Cleaned up $orphansRemoved orphaned thumbnails');
       }
     } catch (e) {
       WasteAppLogger.severe('Error cleaning up orphaned thumbnails: $e');
@@ -256,7 +271,8 @@ class EnhancedImageService {
 
   /// Remove files from the temporary directory older than the
   /// specified [olderThan] duration to free space.
-  Future<void> cleanUpTempImages({Duration olderThan = const Duration(days: 1)}) async {
+  Future<void> cleanUpTempImages(
+      {Duration olderThan = const Duration(days: 1)}) async {
     final dir = await getTemporaryDirectory();
     final now = DateTime.now();
     if (!await dir.exists()) return;
@@ -267,7 +283,9 @@ class EnhancedImageService {
           try {
             await entity.delete();
           } catch (e) {
-            WasteAppLogger.severe('Failed to delete temporary file: ${entity.path}', e);
+            WasteAppLogger.severe(
+                'Failed to delete temporary file: ${entity.path}',
+                error: e);
           }
         }
       }

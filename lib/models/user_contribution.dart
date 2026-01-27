@@ -104,15 +104,19 @@ class UserContribution {
     this.downvotes = 0,
   });
 
-  factory UserContribution.fromJson(Map<String, dynamic> json, String documentId) {
+  factory UserContribution.fromJson(
+      Map<String, dynamic> json, String documentId) {
     return UserContribution(
       id: documentId,
       userId: json['userId'] as String,
       facilityId: json['facilityId'] as String?,
-      contributionType: contributionTypeFromString(json['contributionType'] as String?),
+      contributionType:
+          contributionTypeFromString(json['contributionType'] as String?),
       suggestedData: json['suggestedData'] as Map<String, dynamic>,
       userNotes: json['userNotes'] as String?,
-      photoUrls: (json['photoUrls'] as List<dynamic>?)?.map((e) => e as String).toList(),
+      photoUrls: (json['photoUrls'] as List<dynamic>?)
+          ?.map((e) => e as String)
+          .toList(),
       timestamp: json['timestamp'] as Timestamp,
       status: contributionStatusFromString(json['status'] as String?),
       reviewNotes: json['reviewNotes'] as String?,

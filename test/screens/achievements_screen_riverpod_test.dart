@@ -122,7 +122,8 @@ void main() {
         // Check stats overview
         expect(find.text('Your Progress'), findsOneWidget);
         expect(find.text('1'), findsOneWidget); // Earned count
-        expect(find.text('1'), findsOneWidget); // Claimable count (appears twice)
+        expect(
+            find.text('1'), findsOneWidget); // Claimable count (appears twice)
         expect(find.text('500'), findsOneWidget); // Total points
       });
 
@@ -143,7 +144,8 @@ void main() {
         expect(find.text('Retry'), findsOneWidget);
       });
 
-      testWidgets('claim button works for claimable achievements', (tester) async {
+      testWidgets('claim button works for claimable achievements',
+          (tester) async {
         await tester.pumpWidget(createTestWidget());
         await tester.pumpAndSettle();
 
@@ -201,18 +203,21 @@ void main() {
           findsOneWidget,
         );
         expect(
-          find.bySemanticsLabel(RegExp(r'Streak Master.*gold tier.*60% complete')),
+          find.bySemanticsLabel(
+              RegExp(r'Streak Master.*gold tier.*60% complete')),
           findsOneWidget,
         );
 
         // Check stats overview semantic label
         expect(
-          find.bySemanticsLabel(RegExp(r'Achievement statistics.*1 of 4.*500 total points')),
+          find.bySemanticsLabel(
+              RegExp(r'Achievement statistics.*1 of 4.*500 total points')),
           findsOneWidget,
         );
       });
 
-      testWidgets('claimable achievements are marked as buttons', (tester) async {
+      testWidgets('claimable achievements are marked as buttons',
+          (tester) async {
         await tester.pumpWidget(createTestWidget());
         await tester.pumpAndSettle();
 
@@ -247,7 +252,8 @@ void main() {
         final containerWidget = tester.widget<Container>(container);
 
         // Check minimum height (48dp for accessibility)
-        expect(containerWidget.constraints?.minHeight, equals(AppTheme.buttonHeightSm));
+        expect(containerWidget.constraints?.minHeight,
+            equals(AppTheme.buttonHeightSm));
         expect(AppTheme.buttonHeightSm, greaterThanOrEqualTo(48.0));
       });
     });
@@ -270,7 +276,8 @@ void main() {
         await tester.pumpWidgetBuilder(
           ProviderScope(
             overrides: [
-              gamificationProvider.overrideWith((ref) => AsyncValue.data(mockProfile)),
+              gamificationProvider
+                  .overrideWith((ref) => AsyncValue.data(mockProfile)),
             ],
             child: TestApp(
               theme: AppTheme.darkTheme,
@@ -357,7 +364,8 @@ void main() {
     });
 
     group('Performance Tests', () {
-      testWidgets('handles large number of achievements efficiently', (tester) async {
+      testWidgets('handles large number of achievements efficiently',
+          (tester) async {
         // Create a large list of achievements
         final largeAchievementList = List.generate(100, (index) {
           return Achievement(
@@ -375,7 +383,8 @@ void main() {
           );
         });
 
-        final largeProfile = mockProfile.copyWith(achievements: largeAchievementList);
+        final largeProfile =
+            mockProfile.copyWith(achievements: largeAchievementList);
 
         final stopwatch = Stopwatch()..start();
 
@@ -408,7 +417,8 @@ void main() {
           );
         });
 
-        final largeProfile = mockProfile.copyWith(achievements: largeAchievementList);
+        final largeProfile =
+            mockProfile.copyWith(achievements: largeAchievementList);
 
         await tester.pumpWidget(createTestWidget(profile: largeProfile));
         await tester.pumpAndSettle();
@@ -438,13 +448,15 @@ void main() {
 
         // Should still show stats overview with zeros
         expect(find.text('Your Progress'), findsOneWidget);
-        expect(find.text('0'), findsWidgets); // Multiple zeros for earned, claimable
+        expect(find.text('0'),
+            findsWidgets); // Multiple zeros for earned, claimable
       });
 
       testWidgets('handles achievements with very long text', (tester) async {
         final longTextAchievement = Achievement(
           id: 'long_text',
-          title: 'This is a very long achievement title that should be truncated properly',
+          title:
+              'This is a very long achievement title that should be truncated properly',
           description:
               'This is an extremely long description that should also be truncated to prevent overflow and maintain proper layout in the achievement card widget',
           type: AchievementType.wasteIdentified,
@@ -457,7 +469,8 @@ void main() {
           pointsReward: 50,
         );
 
-        final profileWithLongText = mockProfile.copyWith(achievements: [longTextAchievement]);
+        final profileWithLongText =
+            mockProfile.copyWith(achievements: [longTextAchievement]);
 
         await tester.pumpWidget(createTestWidget(profile: profileWithLongText));
         await tester.pumpAndSettle();

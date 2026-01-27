@@ -13,10 +13,12 @@ class EnhancedHistoryFilterDialog extends StatefulWidget {
   final Function(FilterOptions) onFiltersChanged;
 
   @override
-  State<EnhancedHistoryFilterDialog> createState() => _EnhancedHistoryFilterDialogState();
+  State<EnhancedHistoryFilterDialog> createState() =>
+      _EnhancedHistoryFilterDialogState();
 }
 
-class _EnhancedHistoryFilterDialogState extends State<EnhancedHistoryFilterDialog> with TickerProviderStateMixin {
+class _EnhancedHistoryFilterDialogState
+    extends State<EnhancedHistoryFilterDialog> with TickerProviderStateMixin {
   late FilterOptions _tempFilters;
   late TabController _tabController;
 
@@ -105,7 +107,8 @@ class _EnhancedHistoryFilterDialogState extends State<EnhancedHistoryFilterDialo
           Container(
             padding: const EdgeInsets.all(8.0),
             decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
+              color:
+                  Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(8.0),
             ),
             child: Icon(
@@ -135,7 +138,10 @@ class _EnhancedHistoryFilterDialogState extends State<EnhancedHistoryFilterDialo
             onPressed: () => Navigator.of(context).pop(),
             icon: Icon(
               Icons.close,
-              color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
+              color: Theme.of(context)
+                  .colorScheme
+                  .onSurface
+                  .withValues(alpha: 0.6),
             ),
           ),
         ],
@@ -155,7 +161,8 @@ class _EnhancedHistoryFilterDialogState extends State<EnhancedHistoryFilterDialo
       child: TabBar(
         controller: _tabController,
         labelColor: Theme.of(context).colorScheme.primary,
-        unselectedLabelColor: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
+        unselectedLabelColor:
+            Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
         indicatorColor: Theme.of(context).colorScheme.primary,
         tabs: const [
           Tab(
@@ -196,13 +203,16 @@ class _EnhancedHistoryFilterDialogState extends State<EnhancedHistoryFilterDialo
               itemCount: _availableCategories.length,
               itemBuilder: (context, index) {
                 final category = _availableCategories[index];
-                final isSelected = _tempFilters.categories?.contains(category) ?? false;
+                final isSelected =
+                    _tempFilters.categories?.contains(category) ?? false;
 
                 return Container(
                   margin: const EdgeInsets.only(bottom: 8.0),
                   decoration: BoxDecoration(
                     border: Border.all(
-                      color: isSelected ? Theme.of(context).colorScheme.primary : Colors.grey.shade300,
+                      color: isSelected
+                          ? Theme.of(context).colorScheme.primary
+                          : Colors.grey.shade300,
                       width: isSelected ? 2 : 1,
                     ),
                     borderRadius: BorderRadius.circular(12.0),
@@ -212,7 +222,8 @@ class _EnhancedHistoryFilterDialogState extends State<EnhancedHistoryFilterDialo
                     value: isSelected,
                     onChanged: (value) {
                       setState(() {
-                        final currentCategories = List<String>.from(_tempFilters.categories ?? []);
+                        final currentCategories =
+                            List<String>.from(_tempFilters.categories ?? []);
                         if (value == true) {
                           if (!currentCategories.contains(category)) {
                             currentCategories.add(category);
@@ -221,7 +232,9 @@ class _EnhancedHistoryFilterDialogState extends State<EnhancedHistoryFilterDialo
                           currentCategories.remove(category);
                         }
                         _tempFilters = _tempFilters.copyWith(
-                          categories: currentCategories.isEmpty ? null : currentCategories,
+                          categories: currentCategories.isEmpty
+                              ? null
+                              : currentCategories,
                         );
                       });
                     },
@@ -353,12 +366,12 @@ class _EnhancedHistoryFilterDialogState extends State<EnhancedHistoryFilterDialo
           children: quickRanges.map((range) {
             final days = range['days'];
             final label = range['label'];
-            
+
             // Safe type checking
             if (days is! int || label is! String) {
               return const SizedBox.shrink(); // Skip invalid entries
             }
-            
+
             final isSelected = _isQuickRangeSelected(days);
             return FilterChip(
               label: Text(label),
@@ -370,7 +383,8 @@ class _EnhancedHistoryFilterDialogState extends State<EnhancedHistoryFilterDialo
                   _clearDateFilters();
                 }
               },
-              selectedColor: Theme.of(context).colorScheme.primary.withValues(alpha: 0.2),
+              selectedColor:
+                  Theme.of(context).colorScheme.primary.withValues(alpha: 0.2),
               checkmarkColor: Theme.of(context).colorScheme.primary,
             );
           }).toList(),
@@ -410,7 +424,9 @@ class _EnhancedHistoryFilterDialogState extends State<EnhancedHistoryFilterDialo
                           style: UIConsistency.caption(context),
                         ),
                         Text(
-                          _tempFilters.startDate != null ? _formatDate(_tempFilters.startDate!) : 'Select start date',
+                          _tempFilters.startDate != null
+                              ? _formatDate(_tempFilters.startDate!)
+                              : 'Select start date',
                           style: UIConsistency.bodyMedium(context),
                         ),
                       ],
@@ -429,7 +445,9 @@ class _EnhancedHistoryFilterDialogState extends State<EnhancedHistoryFilterDialo
                           style: UIConsistency.caption(context),
                         ),
                         Text(
-                          _tempFilters.endDate != null ? _formatDate(_tempFilters.endDate!) : 'Select end date',
+                          _tempFilters.endDate != null
+                              ? _formatDate(_tempFilters.endDate!)
+                              : 'Select end date',
                           style: UIConsistency.bodyMedium(context),
                         ),
                       ],
@@ -504,11 +522,15 @@ class _EnhancedHistoryFilterDialogState extends State<EnhancedHistoryFilterDialo
           child: SwitchListTile(
             title: Text(
               _tempFilters.sortBy == SortField.date
-                  ? (_tempFilters.sortNewestFirst ? 'Newest First' : 'Oldest First')
+                  ? (_tempFilters.sortNewestFirst
+                      ? 'Newest First'
+                      : 'Oldest First')
                   : (_tempFilters.sortNewestFirst ? 'A to Z' : 'Z to A'),
             ),
             subtitle: Text(
-              _tempFilters.sortBy == SortField.date ? 'Most recent classifications appear first' : 'Alphabetical order',
+              _tempFilters.sortBy == SortField.date
+                  ? 'Most recent classifications appear first'
+                  : 'Alphabetical order',
             ),
             value: _tempFilters.sortNewestFirst,
             onChanged: (value) {
@@ -584,7 +606,8 @@ class _EnhancedHistoryFilterDialogState extends State<EnhancedHistoryFilterDialo
         : DateTime(now.year, now.month, now.day).subtract(Duration(days: days));
     final expectedEnd = DateTime(now.year, now.month, now.day, 23, 59, 59);
 
-    return _isSameDay(_tempFilters.startDate!, expectedStart) && _isSameDay(_tempFilters.endDate!, expectedEnd);
+    return _isSameDay(_tempFilters.startDate!, expectedStart) &&
+        _isSameDay(_tempFilters.endDate!, expectedEnd);
   }
 
   void _applyQuickDateRange(int days) {
@@ -629,7 +652,8 @@ class _EnhancedHistoryFilterDialogState extends State<EnhancedHistoryFilterDialo
 
   Future<void> _showDateRangePicker() async {
     final initialDateRange = DateTimeRange(
-      start: _tempFilters.startDate ?? DateTime.now().subtract(const Duration(days: 30)),
+      start: _tempFilters.startDate ??
+          DateTime.now().subtract(const Duration(days: 30)),
       end: _tempFilters.endDate ?? DateTime.now(),
     );
 

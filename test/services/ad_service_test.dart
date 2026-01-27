@@ -158,7 +158,8 @@ void main() {
         expect(adService.shouldShowAds, isFalse);
 
         adService.setInClassificationFlow(false);
-        expect(adService.shouldShowAds, isFalse); // Still in educational content
+        expect(
+            adService.shouldShowAds, isFalse); // Still in educational content
 
         adService.setInEducationalContent(false);
         expect(adService.shouldShowAds, isTrue); // Now should show ads
@@ -366,7 +367,8 @@ void main() {
     });
 
     group('Integration Tests', () {
-      testWidgets('should integrate correctly with Flutter widget tree', (WidgetTester tester) async {
+      testWidgets('should integrate correctly with Flutter widget tree',
+          (WidgetTester tester) async {
         await tester.pumpWidget(
           MaterialApp(
             home: Scaffold(

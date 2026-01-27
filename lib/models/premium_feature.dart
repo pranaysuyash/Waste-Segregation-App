@@ -61,14 +61,16 @@ class PremiumFeature {
     PremiumFeature(
       id: 'advanced_analytics',
       title: 'Advanced Analytics',
-      description: 'Get detailed insights and statistics about your waste habits',
+      description:
+          'Get detailed insights and statistics about your waste habits',
       icon: 'analytics',
       route: '/analytics',
     ),
     PremiumFeature(
       id: 'export_data',
       title: 'Data Export',
-      description: 'Export your classification history and statistics to CSV or PDF',
+      description:
+          'Export your classification history and statistics to CSV or PDF',
       icon: 'file_download',
       route: '/settings/export',
     ),

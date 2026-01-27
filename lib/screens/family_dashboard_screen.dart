@@ -45,7 +45,8 @@ class _FamilyDashboardScreenState extends State<FamilyDashboardScreen> {
       _error = null;
     });
     try {
-      final storageService = Provider.of<StorageService>(context, listen: false);
+      final storageService =
+          Provider.of<StorageService>(context, listen: false);
       final currentUser = await storageService.getCurrentUserProfile();
       if (currentUser?.familyId == null) {
         if (!mounted) return;
@@ -122,21 +123,27 @@ class _FamilyDashboardScreenState extends State<FamilyDashboardScreen> {
   Widget build(BuildContext context) {
     if (_isInitialLoading) {
       return Scaffold(
-        appBar: widget.showAppBar ? AppBar(title: const Text('Family Dashboard')) : null,
+        appBar: widget.showAppBar
+            ? AppBar(title: const Text('Family Dashboard'))
+            : null,
         body: const Center(child: CircularProgressIndicator()),
       );
     }
 
     if (_familyId == null && _error != null) {
       return Scaffold(
-        appBar: widget.showAppBar ? AppBar(title: const Text('Family Dashboard')) : null,
+        appBar: widget.showAppBar
+            ? AppBar(title: const Text('Family Dashboard'))
+            : null,
         body: _buildErrorState(_error!),
       );
     }
 
     if (_familyId == null && _error == null) {
       return Scaffold(
-        appBar: widget.showAppBar ? AppBar(title: const Text('Family Dashboard')) : null,
+        appBar: widget.showAppBar
+            ? AppBar(title: const Text('Family Dashboard'))
+            : null,
         body: _buildNoFamilyState(),
       );
     }
@@ -146,7 +153,8 @@ class _FamilyDashboardScreenState extends State<FamilyDashboardScreen> {
       builder: (context, familySnapshot) {
         final family = familySnapshot.data;
         final appBarTitle = widget.showAppBar
-            ? (familySnapshot.connectionState == ConnectionState.active && family != null
+            ? (familySnapshot.connectionState == ConnectionState.active &&
+                    family != null
                 ? family.name
                 : 'Family Dashboard')
             : '';
@@ -163,19 +171,23 @@ class _FamilyDashboardScreenState extends State<FamilyDashboardScreen> {
     );
   }
 
-  Widget _buildBodyContent(AsyncSnapshot<family_models.Family?> familySnapshot, family_models.Family? family,
-      family_models.FamilyStats? statsFromState) {
+  Widget _buildBodyContent(AsyncSnapshot<family_models.Family?> familySnapshot,
+      family_models.Family? family, family_models.FamilyStats? statsFromState) {
     WasteAppLogger.severe(
-        '🏠 FAMILY: Building body content - family: ${family?.name}, hasError: ${familySnapshot.hasError}');
+        '🏠 FAMILY: Building body content - family: ${family?.name}, error: hasError: ${familySnapshot.hasError}');
 
-    if (familySnapshot.connectionState == ConnectionState.waiting && family == null && !_isStatsLoading) {
+    if (familySnapshot.connectionState == ConnectionState.waiting &&
+        family == null &&
+        !_isStatsLoading) {
       WasteAppLogger.info('🏠 FAMILY: Showing loading (waiting for family)');
       return const Center(child: CircularProgressIndicator());
     }
 
     if (familySnapshot.hasError && _error == null) {
-      WasteAppLogger.severe('🏠 FAMILY: Showing error state: ${familySnapshot.error}');
-      return _buildErrorState('Error loading family details: ${familySnapshot.error}');
+      WasteAppLogger.severe(
+          '🏠 FAMILY: Showing error state: ${familySnapshot.error}');
+      return _buildErrorState(
+          'Error loading family details: ${familySnapshot.error}');
     }
 
     if (_error != null && family == null) {
@@ -184,15 +196,19 @@ class _FamilyDashboardScreenState extends State<FamilyDashboardScreen> {
     }
 
     if (family == null) {
-      if (familySnapshot.connectionState == ConnectionState.waiting || _isInitialLoading || _isStatsLoading) {
-        WasteAppLogger.info('🏠 FAMILY: Showing loading (no family, still loading)');
+      if (familySnapshot.connectionState == ConnectionState.waiting ||
+          _isInitialLoading ||
+          _isStatsLoading) {
+        WasteAppLogger.info(
+            '🏠 FAMILY: Showing loading (no family, still loading)');
         return const Center(child: CircularProgressIndicator());
       }
       WasteAppLogger.info('🏠 FAMILY: Showing no family state');
       return _buildNoFamilyState();
     }
 
-    WasteAppLogger.info('🏠 FAMILY: Building normal family content for: ${family.name}');
+    WasteAppLogger.info(
+        '🏠 FAMILY: Building normal family content for: ${family.name}');
     const bottomPadding = AppTheme.paddingRegular + 56.0;
 
     return RefreshIndicator(
@@ -231,7 +247,8 @@ class _FamilyDashboardScreenState extends State<FamilyDashboardScreen> {
                             icon: const Icon(Icons.person_add_alt_1),
                             label: const Text('Invite Members'),
                             onPressed: () {
-                              WasteAppLogger.info('🏠 FAMILY: Invite button pressed');
+                              WasteAppLogger.info(
+                                  '🏠 FAMILY: Invite button pressed');
                               _navigateToInvite(family);
                             },
                           ),
@@ -242,7 +259,8 @@ class _FamilyDashboardScreenState extends State<FamilyDashboardScreen> {
                             icon: const Icon(Icons.manage_accounts),
                             label: const Text('Manage'),
                             onPressed: () {
-                              WasteAppLogger.info('🏠 FAMILY: Manage button pressed');
+                              WasteAppLogger.info(
+                                  '🏠 FAMILY: Manage button pressed');
                               _navigateToManagement(family);
                             },
                           ),
@@ -288,8 +306,11 @@ class _FamilyDashboardScreenState extends State<FamilyDashboardScreen> {
                 radius: 30,
                 backgroundColor: AppTheme.primaryColor.withValues(alpha: 0.1),
                 child: family.imageUrl != null && family.imageUrl!.isNotEmpty
-                    ? ClipOval(child: Image.network(family.imageUrl!, fit: BoxFit.cover, width: 60, height: 60))
-                    : const Icon(Icons.family_restroom, size: 30, color: AppTheme.primaryColor),
+                    ? ClipOval(
+                        child: Image.network(family.imageUrl!,
+                            fit: BoxFit.cover, width: 60, height: 60))
+                    : const Icon(Icons.family_restroom,
+                        size: 30, color: AppTheme.primaryColor),
               ),
             ),
             const SizedBox(width: AppTheme.paddingRegular),
@@ -299,14 +320,22 @@ class _FamilyDashboardScreenState extends State<FamilyDashboardScreen> {
                 children: [
                   Text(
                     family.name,
-                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
+                    style: Theme.of(context)
+                        .textTheme
+                        .headlineSmall
+                        ?.copyWith(fontWeight: FontWeight.bold),
                   ),
-                  if (family.description != null && family.description!.isNotEmpty)
+                  if (family.description != null &&
+                      family.description!.isNotEmpty)
                     Padding(
-                      padding: const EdgeInsets.only(top: AppTheme.paddingMicro),
+                      padding:
+                          const EdgeInsets.only(top: AppTheme.paddingMicro),
                       child: Text(
                         family.description!,
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(color: AppTheme.textSecondaryColor),
+                        style: Theme.of(context)
+                            .textTheme
+                            .bodySmall
+                            ?.copyWith(color: AppTheme.textSecondaryColor),
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                       ),
@@ -332,15 +361,20 @@ class _FamilyDashboardScreenState extends State<FamilyDashboardScreen> {
             children: [
               Text(
                 'Family Achievements',
-                style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+                style: Theme.of(context)
+                    .textTheme
+                    .titleLarge
+                    ?.copyWith(fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: AppTheme.paddingRegular),
               Container(
                 padding: const EdgeInsets.all(AppTheme.paddingLarge),
                 decoration: BoxDecoration(
                   color: AppTheme.primaryColor.withValues(alpha: 0.05),
-                  borderRadius: BorderRadius.circular(AppTheme.borderRadiusRegular),
-                  border: Border.all(color: AppTheme.primaryColor.withValues(alpha: 0.1)),
+                  borderRadius:
+                      BorderRadius.circular(AppTheme.borderRadiusRegular),
+                  border: Border.all(
+                      color: AppTheme.primaryColor.withValues(alpha: 0.1)),
                 ),
                 child: Column(
                   children: [
@@ -373,9 +407,12 @@ class _FamilyDashboardScreenState extends State<FamilyDashboardScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: [
-                  _buildStatItem(Icons.recycling, '0', 'Items Classified', AppTheme.primaryColor),
-                  _buildStatItem(Icons.star, '0', 'Total Points', AppTheme.accentColor),
-                  _buildStatItem(Icons.leaderboard, '0 days', 'Current Streak', AppTheme.secondaryColor),
+                  _buildStatItem(Icons.recycling, '0', 'Items Classified',
+                      AppTheme.primaryColor),
+                  _buildStatItem(
+                      Icons.star, '0', 'Total Points', AppTheme.accentColor),
+                  _buildStatItem(Icons.leaderboard, '0 days', 'Current Streak',
+                      AppTheme.secondaryColor),
                 ],
               ),
             ],
@@ -392,17 +429,21 @@ class _FamilyDashboardScreenState extends State<FamilyDashboardScreen> {
           children: [
             Text(
               'Family Achievements',
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+              style: Theme.of(context)
+                  .textTheme
+                  .titleLarge
+                  ?.copyWith(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: AppTheme.paddingRegular),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
-                _buildStatItem(
-                    Icons.recycling, '${stats.totalClassifications}', 'Items Classified', AppTheme.primaryColor),
-                _buildStatItem(Icons.star, '${stats.totalPoints}', 'Total Points', AppTheme.accentColor),
-                _buildStatItem(
-                    Icons.leaderboard, '${stats.currentStreak} days', 'Current Streak', AppTheme.secondaryColor),
+                _buildStatItem(Icons.recycling, '${stats.totalClassifications}',
+                    'Items Classified', AppTheme.primaryColor),
+                _buildStatItem(Icons.star, '${stats.totalPoints}',
+                    'Total Points', AppTheme.accentColor),
+                _buildStatItem(Icons.leaderboard, '${stats.currentStreak} days',
+                    'Current Streak', AppTheme.secondaryColor),
               ],
             ),
           ],
@@ -411,7 +452,8 @@ class _FamilyDashboardScreenState extends State<FamilyDashboardScreen> {
     );
   }
 
-  Widget _buildStatItem(IconData icon, String value, String label, Color color) {
+  Widget _buildStatItem(
+      IconData icon, String value, String label, Color color) {
     return Expanded(
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -419,11 +461,17 @@ class _FamilyDashboardScreenState extends State<FamilyDashboardScreen> {
           Icon(icon, size: 30, color: color),
           const SizedBox(height: AppTheme.paddingSmall),
           Text(value,
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold, color: color)),
+              style: Theme.of(context)
+                  .textTheme
+                  .titleMedium
+                  ?.copyWith(fontWeight: FontWeight.bold, color: color)),
           const SizedBox(height: AppTheme.paddingMicro),
           Text(label,
               textAlign: TextAlign.center,
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(color: AppTheme.textSecondaryColor)),
+              style: Theme.of(context)
+                  .textTheme
+                  .bodySmall
+                  ?.copyWith(color: AppTheme.textSecondaryColor)),
         ],
       ),
     );
@@ -431,14 +479,16 @@ class _FamilyDashboardScreenState extends State<FamilyDashboardScreen> {
 
   Widget _buildMembersSection(family_models.Family family) {
     if (_members.isEmpty && !_isInitialLoading) {
-      return const Center(child: Text('No members yet, or still loading members...'));
+      return const Center(
+          child: Text('No members yet, or still loading members...'));
     }
     if (_members.isEmpty && _isInitialLoading) {
       return const Center(child: CircularProgressIndicator());
     }
 
     return FutureBuilder<user_profile_models.UserProfile?>(
-      future: Provider.of<StorageService>(context, listen: false).getCurrentUserProfile(),
+      future: Provider.of<StorageService>(context, listen: false)
+          .getCurrentUserProfile(),
       builder: (context, snapshot) {
         final currentUserProfile = snapshot.data;
         final currentUserId = currentUserProfile?.id;
@@ -448,7 +498,10 @@ class _FamilyDashboardScreenState extends State<FamilyDashboardScreen> {
           children: [
             Text(
               'Family Members (${_members.length})',
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+              style: Theme.of(context)
+                  .textTheme
+                  .titleLarge
+                  ?.copyWith(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: AppTheme.paddingRegular),
             SizedBox(
@@ -458,7 +511,8 @@ class _FamilyDashboardScreenState extends State<FamilyDashboardScreen> {
                 itemCount: _members.length,
                 itemBuilder: (context, index) {
                   final memberProfile = _members[index];
-                  final familyMember = family.members.firstWhere((fm) => fm.userId == memberProfile.id,
+                  final familyMember = family.members.firstWhere(
+                      (fm) => fm.userId == memberProfile.id,
                       orElse: () => family_models.FamilyMember(
                           userId: memberProfile.id,
                           role: family_models.UserRole.member,
@@ -468,7 +522,8 @@ class _FamilyDashboardScreenState extends State<FamilyDashboardScreen> {
 
                   return Container(
                     width: 100,
-                    margin: const EdgeInsets.only(right: AppTheme.paddingRegular),
+                    margin:
+                        const EdgeInsets.only(right: AppTheme.paddingRegular),
                     child: Card(
                       elevation: AppTheme.elevationSm,
                       child: Padding(
@@ -481,11 +536,17 @@ class _FamilyDashboardScreenState extends State<FamilyDashboardScreen> {
                               children: [
                                 CircleAvatar(
                                   radius: 22,
-                                  backgroundImage: memberProfile.photoUrl != null && memberProfile.photoUrl!.isNotEmpty
+                                  backgroundImage: memberProfile.photoUrl !=
+                                              null &&
+                                          memberProfile.photoUrl!.isNotEmpty
                                       ? NetworkImage(memberProfile.photoUrl!)
                                       : null,
-                                  child: memberProfile.photoUrl == null || memberProfile.photoUrl!.isEmpty
-                                      ? Text(memberProfile.displayName?.substring(0, 1) ?? 'U',
+                                  child: memberProfile.photoUrl == null ||
+                                          memberProfile.photoUrl!.isEmpty
+                                      ? Text(
+                                          memberProfile.displayName
+                                                  ?.substring(0, 1) ??
+                                              'U',
                                           style: const TextStyle(fontSize: 18))
                                       : null,
                                 ),
@@ -499,7 +560,9 @@ class _FamilyDashboardScreenState extends State<FamilyDashboardScreen> {
                                         color: Colors.white,
                                         shape: BoxShape.circle,
                                       ),
-                                      child: const Icon(Icons.check_circle, color: AppTheme.primaryColor, size: 14),
+                                      child: const Icon(Icons.check_circle,
+                                          color: AppTheme.primaryColor,
+                                          size: 14),
                                     ),
                                   ),
                               ],
@@ -514,7 +577,9 @@ class _FamilyDashboardScreenState extends State<FamilyDashboardScreen> {
                                 style: Theme.of(context)
                                     .textTheme
                                     .bodySmall
-                                    ?.copyWith(fontWeight: FontWeight.bold, fontSize: 11),
+                                    ?.copyWith(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 11),
                               ),
                             ),
                             Flexible(
@@ -523,13 +588,16 @@ class _FamilyDashboardScreenState extends State<FamilyDashboardScreen> {
                                 style: Theme.of(context)
                                     .textTheme
                                     .bodySmall
-                                    ?.copyWith(color: AppTheme.textSecondaryColor, fontSize: 9),
+                                    ?.copyWith(
+                                        color: AppTheme.textSecondaryColor,
+                                        fontSize: 9),
                               ),
                             ),
                             if (userRole == family_models.UserRole.admin)
                               const Padding(
                                 padding: EdgeInsets.only(top: 2),
-                                child: Icon(Icons.admin_panel_settings, size: 10, color: AppTheme.accentColor),
+                                child: Icon(Icons.admin_panel_settings,
+                                    size: 10, color: AppTheme.accentColor),
                               )
                           ],
                         ),
@@ -549,16 +617,31 @@ class _FamilyDashboardScreenState extends State<FamilyDashboardScreen> {
     return StreamBuilder<List<invitation_models.FamilyInvitation>>(
       stream: _familyService.getInvitationsStream(familyId),
       builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting && !snapshot.hasData) {
+        if (snapshot.connectionState == ConnectionState.waiting &&
+            !snapshot.hasData) {
           return const Center(child: CircularProgressIndicator());
         }
         final invitations = snapshot.data ?? [];
         final total = invitations.length;
-        final accepted = invitations.where((i) => i.status == invitation_models.InvitationStatus.accepted).length;
-        final pending = invitations.where((i) => i.status == invitation_models.InvitationStatus.pending).length;
-        final declined = invitations.where((i) => i.status == invitation_models.InvitationStatus.declined).length;
-        final cancelled = invitations.where((i) => i.status == invitation_models.InvitationStatus.cancelled).length;
-        final qrCount = invitations.where((i) => i.method == invitation_models.InvitationMethod.qr).length;
+        final accepted = invitations
+            .where(
+                (i) => i.status == invitation_models.InvitationStatus.accepted)
+            .length;
+        final pending = invitations
+            .where(
+                (i) => i.status == invitation_models.InvitationStatus.pending)
+            .length;
+        final declined = invitations
+            .where(
+                (i) => i.status == invitation_models.InvitationStatus.declined)
+            .length;
+        final cancelled = invitations
+            .where(
+                (i) => i.status == invitation_models.InvitationStatus.cancelled)
+            .length;
+        final qrCount = invitations
+            .where((i) => i.method == invitation_models.InvitationMethod.qr)
+            .length;
 
         return Card(
           elevation: AppTheme.elevationSm,
@@ -569,7 +652,10 @@ class _FamilyDashboardScreenState extends State<FamilyDashboardScreen> {
               children: [
                 Text(
                   'Invitation Stats',
-                  style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+                  style: Theme.of(context)
+                      .textTheme
+                      .titleLarge
+                      ?.copyWith(fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: AppTheme.paddingRegular),
                 Wrap(
@@ -612,11 +698,13 @@ class _FamilyDashboardScreenState extends State<FamilyDashboardScreen> {
     return StreamBuilder<List<SharedWasteClassification>>(
       stream: _familyService.getFamilyClassificationsStream(_familyId!),
       builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting && !snapshot.hasData) {
+        if (snapshot.connectionState == ConnectionState.waiting &&
+            !snapshot.hasData) {
           return const Center(child: CircularProgressIndicator());
         }
         if (snapshot.hasError) {
-          return Text('Error loading recent activity: ${snapshot.error}', style: const TextStyle(color: Colors.red));
+          return Text('Error loading recent activity: ${snapshot.error}',
+              style: const TextStyle(color: Colors.red));
         }
         final recentClassifications = snapshot.data ?? [];
         return _buildRecentActivity(recentClassifications);
@@ -624,7 +712,8 @@ class _FamilyDashboardScreenState extends State<FamilyDashboardScreen> {
     );
   }
 
-  Widget _buildRecentActivity(List<SharedWasteClassification> recentClassifications) {
+  Widget _buildRecentActivity(
+      List<SharedWasteClassification> recentClassifications) {
     if (recentClassifications.isEmpty) {
       return const Card(
           elevation: AppTheme.elevationSm,
@@ -638,13 +727,18 @@ class _FamilyDashboardScreenState extends State<FamilyDashboardScreen> {
       children: [
         Text(
           'Recent Family Activity',
-          style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+          style: Theme.of(context)
+              .textTheme
+              .titleLarge
+              ?.copyWith(fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: AppTheme.paddingRegular),
         ListView.builder(
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
-          itemCount: recentClassifications.length > 5 ? 5 : recentClassifications.length,
+          itemCount: recentClassifications.length > 5
+              ? 5
+              : recentClassifications.length,
           itemBuilder: (context, index) {
             final item = recentClassifications[index];
             return Card(
@@ -652,17 +746,22 @@ class _FamilyDashboardScreenState extends State<FamilyDashboardScreen> {
               margin: const EdgeInsets.only(bottom: AppTheme.paddingRegular),
               child: ListTile(
                 leading: CircleAvatar(
-                  backgroundColor: AppTheme.secondaryColor.withValues(alpha: 0.1),
-                  child: Icon(_getCategoryIcon(item.classification.category), color: AppTheme.secondaryColor),
+                  backgroundColor:
+                      AppTheme.secondaryColor.withValues(alpha: 0.1),
+                  child: Icon(_getCategoryIcon(item.classification.category),
+                      color: AppTheme.secondaryColor),
                 ),
-                title: Text('${item.classification.itemName} (${item.classification.category})'),
-                subtitle: Text('Shared by ${item.sharedByDisplayName} • ${TimeAgo.format(item.sharedAt)}'),
+                title: Text(
+                    '${item.classification.itemName} (${item.classification.category})'),
+                subtitle: Text(
+                    'Shared by ${item.sharedByDisplayName} • ${TimeAgo.format(item.sharedAt)}'),
                 trailing: const Icon(Icons.arrow_forward_ios, size: 16),
                 onTap: () {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => ClassificationDetailsScreen(classification: item),
+                      builder: (context) =>
+                          ClassificationDetailsScreen(classification: item),
                     ),
                   );
                 },
@@ -688,7 +787,10 @@ class _FamilyDashboardScreenState extends State<FamilyDashboardScreen> {
           children: [
             Text(
               'Family Activity',
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+              style: Theme.of(context)
+                  .textTheme
+                  .titleLarge
+                  ?.copyWith(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: AppTheme.paddingRegular),
             GridView.count(
@@ -700,13 +802,29 @@ class _FamilyDashboardScreenState extends State<FamilyDashboardScreen> {
               mainAxisSpacing: AppTheme.paddingSmall,
               children: [
                 _buildImpactItem(
-                    Icons.people, 'Members', '${stats.memberCount}', AppTheme.wetWasteColor, stats.memberCount > 0),
-                _buildImpactItem(Icons.category, 'Classifications', '${stats.totalClassifications}',
-                    AppTheme.dryWasteColor, stats.totalClassifications > 0),
-                _buildImpactItem(Icons.star, 'Total Points', '${stats.totalPoints}', AppTheme.hazardousWasteColor,
+                    Icons.people,
+                    'Members',
+                    '${stats.memberCount}',
+                    AppTheme.wetWasteColor,
+                    stats.memberCount > 0),
+                _buildImpactItem(
+                    Icons.category,
+                    'Classifications',
+                    '${stats.totalClassifications}',
+                    AppTheme.dryWasteColor,
+                    stats.totalClassifications > 0),
+                _buildImpactItem(
+                    Icons.star,
+                    'Total Points',
+                    '${stats.totalPoints}',
+                    AppTheme.hazardousWasteColor,
                     stats.totalPoints > 0),
-                _buildImpactItem(Icons.timeline, 'Current Streak', '${stats.currentStreak} days',
-                    AppTheme.medicalWasteColor, stats.currentStreak > 0),
+                _buildImpactItem(
+                    Icons.timeline,
+                    'Current Streak',
+                    '${stats.currentStreak} days',
+                    AppTheme.medicalWasteColor,
+                    stats.currentStreak > 0),
               ],
             ),
           ],
@@ -715,7 +833,8 @@ class _FamilyDashboardScreenState extends State<FamilyDashboardScreen> {
     );
   }
 
-  Widget _buildImpactItem(IconData icon, String label, String value, Color color, bool hasImpact) {
+  Widget _buildImpactItem(
+      IconData icon, String label, String value, Color color, bool hasImpact) {
     return Container(
       padding: const EdgeInsets.all(AppTheme.paddingSmall),
       decoration: BoxDecoration(
@@ -926,7 +1045,8 @@ class _FamilyDashboardScreenState extends State<FamilyDashboardScreen> {
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Text('Enter family invitation ID (recommended) or family ID (direct join):'),
+              const Text(
+                  'Enter family invitation ID (recommended) or family ID (direct join):'),
               const SizedBox(height: AppTheme.paddingRegular),
               TextField(
                 controller: inviteController,
@@ -945,7 +1065,8 @@ class _FamilyDashboardScreenState extends State<FamilyDashboardScreen> {
           ),
           actions: [
             TextButton(
-              onPressed: isLoading ? null : () => Navigator.of(dialogContext).pop(),
+              onPressed:
+                  isLoading ? null : () => Navigator.of(dialogContext).pop(),
               child: const Text('Cancel'),
             ),
             ElevatedButton(
@@ -955,7 +1076,9 @@ class _FamilyDashboardScreenState extends State<FamilyDashboardScreen> {
                       final inviteId = inviteController.text.trim();
                       if (inviteId.isEmpty) {
                         ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Please enter a valid invitation ID')),
+                          const SnackBar(
+                              content:
+                                  Text('Please enter a valid invitation ID')),
                         );
                         return;
                       }
@@ -969,21 +1092,26 @@ class _FamilyDashboardScreenState extends State<FamilyDashboardScreen> {
                       final navigator = Navigator.of(dialogContext);
 
                       try {
-                        final storageService = Provider.of<StorageService>(context, listen: false);
-                        final currentUser = await storageService.getCurrentUserProfile();
+                        final storageService =
+                            Provider.of<StorageService>(context, listen: false);
+                        final currentUser =
+                            await storageService.getCurrentUserProfile();
 
                         if (currentUser == null) {
-                          throw Exception('User not found. Please sign in again.');
+                          throw Exception(
+                              'User not found. Please sign in again.');
                         }
 
                         // Determine if the entered ID is a direct family ID
-                        final existingFamily = await _familyService.getFamily(inviteId);
+                        final existingFamily =
+                            await _familyService.getFamily(inviteId);
                         if (existingFamily != null) {
                           // Check if user is already a member
-                          final isAlreadyMember =
-                              existingFamily.members.any((member) => member.userId == currentUser.id);
+                          final isAlreadyMember = existingFamily.members
+                              .any((member) => member.userId == currentUser.id);
                           if (isAlreadyMember) {
-                            throw Exception('You are already a member of this family.');
+                            throw Exception(
+                                'You are already a member of this family.');
                           }
                           // Join family directly
                           await _familyService.addMember(
@@ -993,7 +1121,8 @@ class _FamilyDashboardScreenState extends State<FamilyDashboardScreen> {
                           );
                         } else {
                           // Otherwise attempt to accept an invitation
-                          await _familyService.acceptInvitation(inviteId, currentUser.id);
+                          await _familyService.acceptInvitation(
+                              inviteId, currentUser.id);
                         }
 
                         navigator.pop();
@@ -1015,7 +1144,8 @@ class _FamilyDashboardScreenState extends State<FamilyDashboardScreen> {
                         if (mounted) {
                           scaffoldMessenger.showSnackBar(
                             SnackBar(
-                              content: Text('Failed to join family: ${e.toString()}'),
+                              content: Text(
+                                  'Failed to join family: ${e.toString()}'),
                               backgroundColor: Colors.red,
                             ),
                           );

@@ -2,10 +2,30 @@
 
 A comprehensive Flutter application for proper waste identification, segregation guidance, and environmental education, enhanced with world-class recycling research and AI-powered material recognition.
 
+## 🎯 **For Developers & AI Agents: Start Here**
+
+**📘 [APP_KNOWLEDGE_BASE.md](docs/APP_KNOWLEDGE_BASE.md)** - **REQUIRED READING**
+
+Before making ANY changes to this codebase, read the comprehensive knowledge base. It contains:
+
+- Complete architecture overview (1200+ lines)
+- All models, services, screens, and UI flows documented
+- Reality checks (what exists vs. what's aspirational)
+- Build/environment setup and troubleshooting
+- Update protocols and maintenance guidelines
+
+**Also see:**
+
+- [Agent Instructions](docs/.AGENT_INSTRUCTIONS.md) - Quick onboarding checklist
+- [Documentation Index](docs/DOCUMENTATION_INDEX.md) - All docs organized
+
+---
+
 ## 🚀 Latest: v2.3.0 - Documentation & Architecture Overhaul (June 18, 2025)
 
 This major update focuses on improving the developer experience, ensuring documentation is synchronized with the codebase, and solidifying the app's architecture.
 
+- ✅ **Comprehensive Knowledge Base:** New living document capturing all project context
 - ✅ **Documentation Sync:** Recursively reviewed and updated all documentation to match the current codebase.
 - ✅ **Architecture Documentation:** Enhanced technical documentation with accurate model definitions and service descriptions.
 - ✅ **Riverpod Migration Guide:** Updated to reflect the completed migration to pure Riverpod architecture.
@@ -19,7 +39,7 @@ This major update focuses on improving the developer experience, ensuring docume
 
 ## 🚨 Latest: Polished UI & Enhanced System Robustness v2.2.4 (December 2024)
 
-**Version 2.2.4 with Polished UI and Enhanced System Robustness is now live!**  
+**Version 2.2.4 with Polished UI and Enhanced System Robustness is now live!**
 
 - ✅ **Beautiful Classification Details Screen**: Enhanced with animated bookmark toggle, consistent avatar colors, improved reaction pills, and comment dividers
 - ✅ **Robust AI Discovery Content**: Improved null-safety, better documentation, enhanced error handling, and optimized performance
@@ -27,7 +47,7 @@ This major update focuses on improving the developer experience, ensuring docume
 - ✅ **Consistent Design**: Unified avatar fallback colors and enhanced visual hierarchy
 - ✅ **Comprehensive Documentation**: Added detailed inline documentation for all complex methods
 
-**Previous Version 0.1.6+99 Features:**  
+**Previous Version 0.1.6+99 Features:**
 
 - ✅ **Enhanced AI Analysis**: Upgraded from 8-field to comprehensive 21-field classification system
 - ✅ **Critical Memory Leaks Fixed**: Resolved setState() after dispose() crashes in Family Dashboard
@@ -41,7 +61,7 @@ This major update focuses on improving the developer experience, ensuring docume
 
 ## 🚨 Polished UI & Enhanced System Robustness v2.2.4 - Production Ready (2024-12-19)
 
-**Version 2.2.4 is now live!**  
+**Version 2.2.4 is now live!**
 
 - ✅ **Beautiful Classification Details Screen**: Enhanced with animated bookmark toggle, consistent avatar colors, improved reaction pills, and comment dividers
 - ✅ **Robust AI Discovery Content**: Improved null-safety, better documentation, enhanced error handling, and optimized performance
@@ -49,7 +69,7 @@ This major update focuses on improving the developer experience, ensuring docume
 - ✅ **Consistent Design**: Unified avatar fallback colors and enhanced visual hierarchy
 - ✅ **Comprehensive Documentation**: Added detailed inline documentation for all complex methods
 
-**Previous Version 2.2.2 Features:**  
+**Previous Version 2.2.2 Features:**
 
 - ✅ **Modernized Classification Details**: Beautiful redesign with ModernCard components and consistent styling
 - ✅ **Enhanced Visual Hierarchy**: Section headers with icons, proper typography, and improved spacing
@@ -73,7 +93,7 @@ This major update focuses on improving the developer experience, ensuring docume
 
 ## 🚨 Major System Overhaul & UI/UX Improvements (2025-01-08)
 
-**Version 2.0.2 is now live!**  
+**Version 2.0.2 is now live!**
 
 - ✅ **Auth Screen Redesign**: Fixed card text visibility, removed scrolling, cleaned redundant content
 - ✅ **Enhanced Firebase Cleanup**: Comprehensive data clearing including local Hive storage for true fresh install simulation
@@ -81,10 +101,10 @@ This major update focuses on improving the developer experience, ensuring docume
 - ✅ **Critical Bug Fixes**: Resolved opacity assertion errors and streak reset issues
 - ✅ **Code Quality**: Reduced lint issues from 218 to 116 (47% improvement)
 - ✅ **Build Stability**: Fixed all critical compilation errors
-- ✅ Educational Content Service: 23 unique items, robust search, and test coverage  
-- ✅ Family System: Real-time dashboard, invitations (email, QR, link), role management  
-- ✅ Firebase Firestore: All required indexes deployed, 80-95% faster queries  
-- ✅ Storage Service: Type safety, error recovery, and data consistency  
+- ✅ Educational Content Service: 23 unique items, robust search, and test coverage
+- ✅ Family System: Real-time dashboard, invitations (email, QR, link), role management
+- ✅ Firebase Firestore: All required indexes deployed, 80-95% faster queries
+- ✅ Storage Service: Type safety, error recovery, and data consistency
 - ✅ UI/UX: All overflow/navigation issues resolved
 
 **📋 [Comprehensive Fixes Summary](docs/COMPREHENSIVE_FIXES_SUMMARY.md)**  
@@ -92,7 +112,7 @@ This major update focuses on improving the developer experience, ensuring docume
 **👨‍👩‍👧‍👦 [Family System Implementation](docs/technical/fixes/FAMILY_SYSTEM_IMPLEMENTATION.md)**  
 **🔥 [Firebase Firestore Fixes](docs/technical/fixes/FIREBASE_FIRESTORE_FIXES.md)**
 
-*All previous status and achievements are preserved below for historical and learning value.*
+_All previous status and achievements are preserved below for historical and learning value._
 
 ## 📊 **Current Status: Major System Overhaul & Critical Bug Fixes Complete (January 6, 2025)**
 
@@ -109,7 +129,7 @@ This major update focuses on improving the developer experience, ensuring docume
 ### **🚀 Version 2.0.0 - Comprehensive System Overhaul**
 
 - ✅ **Educational Content Service**: Completely fixed and enhanced with 23 unique content items
-- ✅ **Family System**: Fully implemented with email invitations, QR codes, and real-time dashboard  
+- ✅ **Family System**: Fully implemented with email invitations, QR codes, and real-time dashboard
 - ✅ **Firebase Firestore**: Optimized with proper indexes (80-95% performance improvement)
 - ✅ **Storage Service**: Enhanced with robust error handling and type safety
 - ✅ **UI/UX**: Resolved all overflow issues and navigation problems
@@ -143,7 +163,7 @@ This major update focuses on improving the developer experience, ensuring docume
 ### **🎯 Next Priorities**
 
 - **Missing Await Statements**: 15 issues (async operation safety)
-- **BuildContext Issues**: 10 issues (widget lifecycle safety)  
+- **BuildContext Issues**: 10 issues (widget lifecycle safety)
 - **Unused Code Cleanup**: 60 issues (maintenance optimization)
 
 ---
@@ -384,7 +404,7 @@ This ensures a **professional, accessible, and consistently designed app** that 
      GEMINI_API_MODEL=gemini-2.0-flash
      # Firebase (if specific env vars are needed beyond google-services.json)
      # FIREBASE_PROJECT_ID=your_firebase_project_id
-     # FIREBASE_API_KEY=your_firebase_api_key 
+     # FIREBASE_API_KEY=your_firebase_api_key
      ```
 
    - The application loads these variables at runtime. API authentication uses the standard Bearer token format, handled by the `AIService`.
@@ -510,7 +530,7 @@ For comprehensive documentation including setup guides, technical details, and p
 - **User Data Isolation:** Fixed privacy issue where guest and Google account data was shared on same device
 - **ViewAllButton Styling:** Fixed invisible text in "View All" button for recent classifications
 - **AdWidget "Already in Tree" Error:** Fixed ad widget reuse causing development errors
-- **Layout Overflow Warnings:** Resolved overflow issues in History screen and modal dialogs  
+- **Layout Overflow Warnings:** Resolved overflow issues in History screen and modal dialogs
 - **Version Management:** Fixed Play Store version code conflicts
 - **Modal Responsiveness:** Added height constraints and scrolling for better UX on small screens
 
@@ -923,7 +943,7 @@ This ensures a **professional, accessible, and consistently designed app** that 
      GEMINI_API_MODEL=gemini-2.0-flash
      # Firebase (if specific env vars are needed beyond google-services.json)
      # FIREBASE_PROJECT_ID=your_firebase_project_id
-     # FIREBASE_API_KEY=your_firebase_api_key 
+     # FIREBASE_API_KEY=your_firebase_api_key
      ```
 
    - The application loads these variables at runtime. API authentication uses the standard Bearer token format, handled by the `AIService`.
@@ -1049,7 +1069,7 @@ For comprehensive documentation including setup guides, technical details, and p
 - **User Data Isolation:** Fixed privacy issue where guest and Google account data was shared on same device
 - **ViewAllButton Styling:** Fixed invisible text in "View All" button for recent classifications
 - **AdWidget "Already in Tree" Error:** Fixed ad widget reuse causing development errors
-- **Layout Overflow Warnings:** Resolved overflow issues in History screen and modal dialogs  
+- **Layout Overflow Warnings:** Resolved overflow issues in History screen and modal dialogs
 - **Version Management:** Fixed Play Store version code conflicts
 - **Modal Responsiveness:** Added height constraints and scrolling for better UX on small screens
 

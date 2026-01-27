@@ -35,8 +35,10 @@ void main() {
 
     test('should categorize actions correctly', () {
       expect(PointableAction.classification.category, equals('classification'));
-      expect(PointableAction.instantAnalysis.category, equals('classification'));
-      expect(PointableAction.manualClassification.category, equals('classification'));
+      expect(
+          PointableAction.instantAnalysis.category, equals('classification'));
+      expect(PointableAction.manualClassification.category,
+          equals('classification'));
 
       expect(PointableAction.dailyStreak.category, equals('streak'));
       expect(PointableAction.streakBonus.category, equals('streak'));
@@ -71,9 +73,11 @@ void main() {
     });
 
     test('should return correct string representation', () {
-      expect(PointableAction.classification.toString(), equals('classification'));
+      expect(
+          PointableAction.classification.toString(), equals('classification'));
       expect(PointableAction.dailyStreak.toString(), equals('daily_streak'));
-      expect(PointableAction.challengeComplete.toString(), equals('challenge_complete'));
+      expect(PointableAction.challengeComplete.toString(),
+          equals('challenge_complete'));
     });
 
     test('should have all required action keys', () {
@@ -130,8 +134,10 @@ void main() {
 
     test('should provide consistent point values', () {
       // Classification actions should have same points
-      expect(PointableAction.classification.defaultPoints, equals(PointableAction.instantAnalysis.defaultPoints));
-      expect(PointableAction.classification.defaultPoints, equals(PointableAction.manualClassification.defaultPoints));
+      expect(PointableAction.classification.defaultPoints,
+          equals(PointableAction.instantAnalysis.defaultPoints));
+      expect(PointableAction.classification.defaultPoints,
+          equals(PointableAction.manualClassification.defaultPoints));
 
       // Custom point actions should have 0 default points
       expect(PointableAction.achievementClaim.defaultPoints, equals(0));

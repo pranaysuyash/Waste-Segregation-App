@@ -136,7 +136,8 @@ class GreetingText extends StatelessWidget {
         textPainter.layout(maxWidth: constraints.maxWidth);
 
         // If text overflows, use responsive text with auto-sizing
-        if (textPainter.didExceedMaxLines || textPainter.width > constraints.maxWidth) {
+        if (textPainter.didExceedMaxLines ||
+            textPainter.width > constraints.maxWidth) {
           return AutoSizeText(
             greetingText,
             style: effectiveStyle,
@@ -202,8 +203,12 @@ class ResponsiveAppBarTitle extends StatelessWidget {
     // Create abbreviation for long titles
     final words = fullTitle.split(' ');
     if (words.length > 1) {
-      return words.map((word) => word.isNotEmpty ? word[0].toUpperCase() : '').join();
+      return words
+          .map((word) => word.isNotEmpty ? word[0].toUpperCase() : '')
+          .join();
     }
-    return fullTitle.length > 10 ? '${fullTitle.substring(0, 10)}...' : fullTitle;
+    return fullTitle.length > 10
+        ? '${fullTitle.substring(0, 10)}...'
+        : fullTitle;
   }
 }

@@ -17,7 +17,10 @@ class GlobalMenuWrapper extends StatelessWidget {
             alignment: Alignment.topRight,
             child: Container(
               decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.9),
+                color: Theme.of(context)
+                    .colorScheme
+                    .surface
+                    .withValues(alpha: 0.9),
                 borderRadius: BorderRadius.circular(20),
                 boxShadow: [
                   BoxShadow(

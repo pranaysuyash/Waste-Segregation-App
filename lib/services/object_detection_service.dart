@@ -1,7 +1,7 @@
 import 'dart:io';
 import 'dart:typed_data';
 import 'package:flutter/services.dart';
-import '../models/waste_classification.dart';
+import 'package:waste_segregation_app/models/waste_classification.dart';
 import '../models/vision_model_config.dart';
 import '../utils/waste_app_logger.dart';
 
@@ -54,19 +54,19 @@ class BoundingBox {
 }
 
 /// Service for object detection and segmentation using YOLO and other models
-/// 
+///
 /// Supports:
 /// - YOLOv8: Fast, accurate object detection
 /// - YOLOv11: Latest YOLO with improved performance
 /// - Roboflow: Custom trained models
 /// - Segmentation: Pixel-level waste identification
-/// 
+///
 /// Benefits:
 /// - Detect multiple waste items in single image
 /// - Precise localization with bounding boxes
 /// - Segmentation for complex scenes
 /// - Custom model support
-/// 
+///
 /// Use cases:
 /// - Multi-item waste classification
 /// - Waste sorting guidance
@@ -88,20 +88,21 @@ class ObjectDetectionService {
 
     try {
       WasteAppLogger.info('Initializing object detection service');
-      
+
       // Check if object detection is enabled
       if (!_config.enableObjectDetection) {
         WasteAppLogger.warning('Object detection is disabled in config');
         return;
       }
-      
+
       // Load model based on configuration
       await _loadModel();
-      
+
       _isInitialized = true;
       WasteAppLogger.info('Object detection service initialized');
     } catch (e, s) {
-      WasteAppLogger.severe('Failed to initialize object detection service', e, s);
+      WasteAppLogger.severe('Failed to initialize object detection service',
+          error: e, stackTrace: s);
       rethrow;
     }
   }
@@ -109,14 +110,16 @@ class ObjectDetectionService {
   /// Load object detection model
   Future<void> _loadModel() async {
     try {
-      WasteAppLogger.info('Loading object detection model: ${_config.modelType}');
-      
+      WasteAppLogger.info(
+          'Loading object detection model: ${_config.modelType}');
+
       // TODO: Implement actual model loading
       // For now, this is a placeholder
-      
+
       WasteAppLogger.info('Object detection model loaded (placeholder)');
     } catch (e, s) {
-      WasteAppLogger.severe('Failed to load object detection model', e, s);
+      WasteAppLogger.severe('Failed to load object detection model',
+          error: e, stackTrace: s);
       rethrow;
     }
   }
@@ -131,31 +134,33 @@ class ObjectDetectionService {
       final imageBytes = await imageFile.readAsBytes();
       return detectObjectsFromBytes(imageBytes);
     } catch (e, s) {
-      WasteAppLogger.severe('Object detection failed', e, s);
+      WasteAppLogger.severe('Object detection failed', error: e, stackTrace: s);
       rethrow;
     }
   }
 
   /// Detect objects from image bytes
-  Future<List<DetectedObject>> detectObjectsFromBytes(Uint8List imageBytes) async {
+  Future<List<DetectedObject>> detectObjectsFromBytes(
+      Uint8List imageBytes) async {
     if (!_isInitialized) {
       await initialize();
     }
 
     try {
       WasteAppLogger.info('Running object detection');
-      
+
       // TODO: Implement actual YOLO inference
       // For now, return placeholder results
       return _detectObjectsPlaceholder();
     } catch (e, s) {
-      WasteAppLogger.severe('Object detection from bytes failed', e, s);
+      WasteAppLogger.severe('Object detection from bytes failed',
+          error: e, stackTrace: s);
       rethrow;
     }
   }
 
   /// Placeholder for object detection
-  /// 
+  ///
   /// In production, this would:
   /// 1. Preprocess image for YOLO input
   /// 2. Run YOLO inference
@@ -164,7 +169,7 @@ class ObjectDetectionService {
   /// 5. Optionally run segmentation
   List<DetectedObject> _detectObjectsPlaceholder() {
     WasteAppLogger.info('Running object detection (placeholder mode)');
-    
+
     // Return example detections
     return [
       DetectedObject(
@@ -188,35 +193,51 @@ class ObjectDetectionService {
   }) async {
     try {
       WasteAppLogger.info('Classifying ${detections.length} detected objects');
-      
+
       // Analyze each detection
       final classifications = <String, List<String>>{};
       final allItems = <String>[];
       final allFeatures = <String>[];
-      
+
       for (final detection in detections) {
         final category = _mapToWasteCategory(detection.className);
         allItems.add(detection.className);
-        allFeatures.add('${detection.className} (${(detection.confidence * 100).toStringAsFixed(1)}%)');
-        
-        classifications.putIfAbsent(category, () => []).add(detection.className);
+        allFeatures.add(
+            '${detection.className} (${(detection.confidence * 100).toStringAsFixed(1)}%)');
+
+        classifications
+            .putIfAbsent(category, () => [])
+            .add(detection.className);
       }
-      
+
       // Create classification result
       final primaryCategory = _getPrimaryCategory(classifications);
       final itemName = allItems.join(', ');
-      
+
       return WasteClassification(
         itemName: itemName,
         category: primaryCategory,
-        explanation: 'Detected ${detections.length} waste items using object detection. '
+        explanation:
+            'Detected ${detections.length} waste items using object detection. '
             'Items found: ${allItems.join(", ")}. '
             'Categories: ${classifications.keys.join(", ")}.',
-        disposalInstructions: _getDisposalInstructions(classifications),
+        disposalInstructions: DisposalInstructions(
+          primaryMethod: 'Sort and dispose by category',
+          steps: _getDisposalInstructions(classifications),
+          hasUrgentTimeframe: false,
+        ),
         visualFeatures: allFeatures,
         alternatives: [
-          'Consider separating items into individual bins',
-          'Check local guidelines for mixed waste',
+          AlternativeClassification(
+            category: 'Mixed Waste',
+            confidence: 0.7,
+            reason: 'Consider separating items into individual bins',
+          ),
+          AlternativeClassification(
+            category: 'Local Guidelines',
+            confidence: 0.6,
+            reason: 'Check local guidelines for mixed waste',
+          ),
         ],
         region: region ?? 'Global',
         confidence: _calculateAverageConfidence(detections),
@@ -224,7 +245,8 @@ class ObjectDetectionService {
         modelVersion: '1.0.0-placeholder',
       );
     } catch (e, s) {
-      WasteAppLogger.severe('Failed to classify detected objects', e, s);
+      WasteAppLogger.severe('Failed to classify detected objects',
+          error: e, stackTrace: s);
       rethrow;
     }
   }
@@ -236,7 +258,8 @@ class ObjectDetectionService {
       return 'Dry Waste';
     } else if (className.contains('food') || className.contains('organic')) {
       return 'Wet Waste';
-    } else if (className.contains('battery') || className.contains('electronic')) {
+    } else if (className.contains('battery') ||
+        className.contains('electronic')) {
       return 'Hazardous Waste';
     } else if (className.contains('medical') || className.contains('syringe')) {
       return 'Medical Waste';
@@ -249,18 +272,18 @@ class ObjectDetectionService {
     if (classifications.isEmpty) {
       return 'Unidentified';
     }
-    
+
     // Return category with most items
-    String primaryCategory = '';
-    int maxCount = 0;
-    
+    var primaryCategory = '';
+    var maxCount = 0;
+
     classifications.forEach((category, items) {
       if (items.length > maxCount) {
         maxCount = items.length;
         primaryCategory = category;
       }
     });
-    
+
     return primaryCategory;
   }
 
@@ -269,27 +292,29 @@ class ObjectDetectionService {
     if (detections.isEmpty) {
       return 0.0;
     }
-    
+
     final sum = detections.fold<double>(
       0.0,
       (sum, detection) => sum + detection.confidence,
     );
-    
+
     return sum / detections.length;
   }
 
   /// Get disposal instructions based on classifications
-  List<String> _getDisposalInstructions(Map<String, List<String>> classifications) {
+  List<String> _getDisposalInstructions(
+      Map<String, List<String>> classifications) {
     final instructions = <String>[];
-    
+
     classifications.forEach((category, items) {
       instructions.add('$category: ${items.join(", ")}');
     });
-    
+
     if (classifications.length > 1) {
-      instructions.add('Separate items into different waste streams for proper disposal');
+      instructions.add(
+          'Separate items into different waste streams for proper disposal');
     }
-    
+
     return instructions;
   }
 

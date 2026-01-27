@@ -15,15 +15,16 @@ void main() {
 
     test('has correct model metadata', () {
       final metadata = ModelDownloadService.modelMetadata;
-      
+
       expect(metadata.length, 5);
       expect(metadata.containsKey(VisionModelType.smolVLM), true);
       expect(metadata.containsKey(VisionModelType.yoloV8), true);
     });
 
     test('model metadata has correct properties', () {
-      final smolVLMMetadata = ModelDownloadService.modelMetadata[VisionModelType.smolVLM];
-      
+      final smolVLMMetadata =
+          ModelDownloadService.modelMetadata[VisionModelType.smolVLM];
+
       expect(smolVLMMetadata?.fileName, 'smolvlm_waste_classifier.tflite');
       expect(smolVLMMetadata?.version, '1.0.0');
       expect(smolVLMMetadata?.sizeBytes, 200 * 1024 * 1024);
@@ -31,35 +32,39 @@ void main() {
     });
 
     test('formats size string correctly', () {
-      final metadata = ModelDownloadService.modelMetadata[VisionModelType.mobileNetV3];
-      
+      final metadata =
+          ModelDownloadService.modelMetadata[VisionModelType.mobileNetV3];
+
       expect(metadata?.sizeString, '20.0 MB');
     });
 
     test('yoloV8 metadata is correct', () {
-      final metadata = ModelDownloadService.modelMetadata[VisionModelType.yoloV8];
-      
+      final metadata =
+          ModelDownloadService.modelMetadata[VisionModelType.yoloV8];
+
       expect(metadata?.fileName, 'yolov8_waste_detector.tflite');
       expect(metadata?.sizeBytes, 50 * 1024 * 1024);
     });
 
     test('efficientNet metadata is correct', () {
-      final metadata = ModelDownloadService.modelMetadata[VisionModelType.efficientNet];
-      
+      final metadata =
+          ModelDownloadService.modelMetadata[VisionModelType.efficientNet];
+
       expect(metadata?.fileName, 'efficientnet_waste_classifier.tflite');
       expect(metadata?.sizeString, '50.0 MB');
     });
 
     test('returns null for unsupported model types', () async {
-      final isDownloaded = await service.isModelDownloaded(VisionModelType.openAI);
+      final isDownloaded =
+          await service.isModelDownloaded(VisionModelType.openAI);
       expect(isDownloaded, false);
     });
 
     test('model status includes metadata', () async {
       final allStatus = await service.getAllModelStatus();
-      
+
       expect(allStatus.length, 5);
-      
+
       for (final status in allStatus.values) {
         expect(status.modelType, isNotNull);
         expect(status.metadata, isNotNull);

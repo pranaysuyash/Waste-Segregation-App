@@ -8,7 +8,8 @@ import 'package:waste_segregation_app/utils/waste_app_logger.dart';
 /// Provider for the centralized Points Engine
 class PointsEngineProvider extends ChangeNotifier {
   PointsEngineProvider(this._storageService, this._cloudStorageService) {
-    _pointsEngine = PointsEngine.getInstance(_storageService, _cloudStorageService);
+    _pointsEngine =
+        PointsEngine.getInstance(_storageService, _cloudStorageService);
     _pointsEngine.addListener(_onPointsEngineChanged);
     _initialize();
   }
@@ -26,7 +27,8 @@ class PointsEngineProvider extends ChangeNotifier {
       await _pointsEngine.initialize();
       notifyListeners();
     } catch (e) {
-      WasteAppLogger.severe('🔥 PointsEngineProvider: Failed to initialize: $e');
+      WasteAppLogger.severe(
+          '🔥 PointsEngineProvider: Failed to initialize: $e');
     }
   }
 
@@ -37,15 +39,20 @@ class PointsEngineProvider extends ChangeNotifier {
 
   @override
   void dispose() {
-    _pointsEngine.removeListener(_onPointsEngineChanged);
-    _pointsEngine.dispose();
+    _pointsEngine
+      ..removeListener(_onPointsEngineChanged)
+      ..dispose();
     super.dispose();
   }
 }
 
 /// Extension to easily access Points Engine from context
 extension PointsEngineContext on BuildContext {
-  PointsEngine get pointsEngine => Provider.of<PointsEngineProvider>(this, listen: false).pointsEngine;
+  // Centralized lookup to avoid duplicate Provider.of calls with different listen flags.
+  PointsEngine _resolvePointsEngine({bool listen = false}) =>
+      Provider.of<PointsEngineProvider>(this, listen: listen).pointsEngine;
 
-  PointsEngine watchPointsEngine() => Provider.of<PointsEngineProvider>(this).pointsEngine;
+  PointsEngine get pointsEngine => _resolvePointsEngine();
+
+  PointsEngine watchPointsEngine() => _resolvePointsEngine(listen: true);
 }

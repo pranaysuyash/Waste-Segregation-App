@@ -40,16 +40,18 @@ class EnhancedApiErrorHandler {
         'Service $serviceName is temporarily unavailable',
         serviceName,
       );
-      
-      WasteAppLogger.severe('Circuit breaker open for service', error, null, {
-        'service': serviceName,
-        'operation_id': operationId,
-        'circuit_state': _circuitStates[serviceName]?.name,
-        'failure_count': _failureCount[serviceName],
-        'last_failure': _lastFailureTime[serviceName]?.toIso8601String(),
-        ...?metadata,
-      });
-      
+
+      WasteAppLogger.severe('Circuit breaker open for service',
+          error: error,
+          context: {
+            'service': serviceName,
+            'operation_id': operationId,
+            'circuit_state': _circuitStates[serviceName]?.name,
+            'failure_count': _failureCount[serviceName],
+            'last_failure': _lastFailureTime[serviceName]?.toIso8601String(),
+            ...?metadata,
+          });
+
       throw error;
     }
 
@@ -59,27 +61,28 @@ class EnhancedApiErrorHandler {
     while (attemptCount < maxRetries) {
       try {
         final result = await operation();
-        
+
         // Reset circuit breaker on success
         _resetCircuitBreaker(serviceName);
-        
-        WasteAppLogger.info('API operation successful', null, null, {
+
+        WasteAppLogger.info('API operation successful', context: {
           'service': serviceName,
           'operation_id': operationId,
           'attempt': attemptCount + 1,
           'total_attempts': attemptCount + 1,
           ...?metadata,
         });
-        
+
         return result;
       } catch (e) {
         attemptCount++;
         lastException = e is Exception ? e : Exception(e.toString());
-        
+
         final classifiedError = _classifyError(e, serviceName);
-        final shouldRetry = _shouldRetry(classifiedError, attemptCount, costSensitive);
-        
-        WasteAppLogger.warning('API operation failed', e, null, {
+        final shouldRetry =
+            _shouldRetry(classifiedError, attemptCount, costSensitive);
+
+        WasteAppLogger.warning('API operation failed', error: e, context: {
           'service': serviceName,
           'operation_id': operationId,
           'attempt': attemptCount,
@@ -100,27 +103,30 @@ class EnhancedApiErrorHandler {
 
         // Exponential backoff with jitter
         final delay = _calculateBackoffDelay(attemptCount, classifiedError);
-        WasteAppLogger.info('Retrying after delay', null, null, {
+        WasteAppLogger.info('Retrying after delay', context: {
           'service': serviceName,
           'operation_id': operationId,
           'delay_ms': delay.inMilliseconds,
           'attempt': attemptCount,
         });
-        
+
         await Future.delayed(delay);
       }
     }
 
     // All retries exhausted
-    final finalError = _enhanceErrorWithContext(lastException!, serviceName, attemptCount, metadata);
-    
-    WasteAppLogger.severe('API operation failed after all retries', finalError, null, {
-      'service': serviceName,
-      'operation_id': operationId,
-      'total_attempts': attemptCount,
-      'circuit_state': _circuitStates[serviceName]?.name,
-      ...?metadata,
-    });
+    final finalError = _enhanceErrorWithContext(
+        lastException!, serviceName, attemptCount, metadata);
+
+    WasteAppLogger.severe('API operation failed after all retries',
+        error: finalError,
+        context: {
+          'service': serviceName,
+          'operation_id': operationId,
+          'total_attempts': attemptCount,
+          'circuit_state': _circuitStates[serviceName]?.name,
+          ...?metadata,
+        });
 
     throw finalError;
   }
@@ -130,7 +136,7 @@ class EnhancedApiErrorHandler {
     if (error is DioException) {
       return _classifyDioError(error, serviceName);
     }
-    
+
     if (error is SocketException || error is TimeoutException) {
       return ClassifiedApiError(
         originalError: error,
@@ -225,7 +231,8 @@ class EnhancedApiErrorHandler {
   }
 
   /// Determine if error should be retried
-  bool _shouldRetry(ClassifiedApiError error, int attemptCount, bool costSensitive) {
+  bool _shouldRetry(
+      ClassifiedApiError error, int attemptCount, bool costSensitive) {
     // Never retry if not retryable
     if (!error.isRetryable) return false;
 
@@ -241,7 +248,8 @@ class EnhancedApiErrorHandler {
         case ApiErrorType.unknown:
           return false; // Don't retry these for cost-sensitive ops
         case ApiErrorType.rateLimit:
-          return attemptCount < 2; // Only retry rate limits once for cost-sensitive
+          return attemptCount <
+              2; // Only retry rate limits once for cost-sensitive
         default:
           return true;
       }
@@ -275,10 +283,13 @@ class EnhancedApiErrorHandler {
 
     // Add jitter (±25% of delay)
     final jitter = (exponentialDelay * 0.25).round();
-    final randomJitter = (jitter * 2 * (0.5 - (DateTime.now().millisecondsSinceEpoch % 1000) / 1000.0)).round();
+    final randomJitter = (jitter *
+            2 *
+            (0.5 - (DateTime.now().millisecondsSinceEpoch % 1000) / 1000.0))
+        .round();
 
     final finalDelay = exponentialDelay + randomJitter;
-    
+
     // Cap at 30 seconds
     return Duration(milliseconds: finalDelay.clamp(baseDelayMs, 30000));
   }
@@ -287,7 +298,7 @@ class EnhancedApiErrorHandler {
   bool _isCircuitOpen(String serviceName) {
     final state = _circuitStates[serviceName];
     final lastFailure = _lastFailureTime[serviceName];
-    
+
     if (state == CircuitBreakerState.open && lastFailure != null) {
       final timeSinceFailure = DateTime.now().difference(lastFailure);
       if (timeSinceFailure > circuitBreakerTimeout) {
@@ -297,7 +308,7 @@ class EnhancedApiErrorHandler {
       }
       return true;
     }
-    
+
     return false;
   }
 
@@ -308,8 +319,8 @@ class EnhancedApiErrorHandler {
 
     if (_failureCount[serviceName]! >= circuitBreakerThreshold) {
       _circuitStates[serviceName] = CircuitBreakerState.open;
-      
-      WasteAppLogger.warning('Circuit breaker opened for service', null, null, {
+
+      WasteAppLogger.warning('Circuit breaker opened for service', context: {
         'service': serviceName,
         'failure_count': _failureCount[serviceName],
         'threshold': circuitBreakerThreshold,
@@ -340,7 +351,8 @@ Attempts: $attemptCount/$maxRetries
 Circuit State: ${_circuitStates[serviceName]?.name ?? 'closed'}
 Original Error: ${originalError.toString()}
 ${metadata != null ? 'Metadata: ${metadata.toString()}' : ''}
-'''.trim();
+'''
+        .trim();
 
     if (originalError is ApiException) {
       return originalError.copyWith(message: errorMessage);
@@ -366,12 +378,12 @@ ${metadata != null ? 'Metadata: ${metadata.toString()}' : ''}
 
   bool _isRetryableStatusCode(int statusCode) {
     // Retry on server errors, rate limits, and some client errors
-    return statusCode >= 500 || 
-           statusCode == 429 || 
-           statusCode == 408 || 
-           statusCode == 503 ||
-           statusCode == 502 ||
-           statusCode == 504;
+    return statusCode >= 500 ||
+        statusCode == 429 ||
+        statusCode == 408 ||
+        statusCode == 503 ||
+        statusCode == 502 ||
+        statusCode == 504;
   }
 
   int _extractStatusCode(String? message) {
@@ -384,16 +396,16 @@ ${metadata != null ? 'Metadata: ${metadata.toString()}' : ''}
     try {
       if (error.response?.data is Map<String, dynamic>) {
         final data = error.response!.data as Map<String, dynamic>;
-        return data['error']?['message'] ?? 
-               data['message'] ?? 
-               data['detail'] ?? 
-               error.message ?? 
-               'Unknown API error';
+        return data['error']?['message'] ??
+            data['message'] ??
+            data['detail'] ??
+            error.message ??
+            'Unknown API error';
       }
     } catch (_) {
       // Fall through to default
     }
-    
+
     return error.message ?? 'API request failed';
   }
 
@@ -401,10 +413,10 @@ ${metadata != null ? 'Metadata: ${metadata.toString()}' : ''}
   Map<String, dynamic> getCircuitBreakerStatus() {
     return {
       'services': _circuitStates.map((key, value) => MapEntry(key, {
-        'state': value.name,
-        'failure_count': _failureCount[key] ?? 0,
-        'last_failure': _lastFailureTime[key]?.toIso8601String(),
-      })),
+            'state': value.name,
+            'failure_count': _failureCount[key] ?? 0,
+            'last_failure': _lastFailureTime[key]?.toIso8601String(),
+          })),
       'threshold': circuitBreakerThreshold,
       'timeout_minutes': circuitBreakerTimeout.inMinutes,
     };
@@ -413,8 +425,8 @@ ${metadata != null ? 'Metadata: ${metadata.toString()}' : ''}
 
 /// Circuit breaker states
 enum CircuitBreakerState {
-  closed,   // Normal operation
-  open,     // Failing, blocking requests
+  closed, // Normal operation
+  open, // Failing, blocking requests
   halfOpen, // Testing if service is back
 }
 

@@ -25,7 +25,8 @@ class ExpandableSection extends StatefulWidget {
   State<ExpandableSection> createState() => _ExpandableSectionState();
 }
 
-class _ExpandableSectionState extends State<ExpandableSection> with TickerProviderStateMixin {
+class _ExpandableSectionState extends State<ExpandableSection>
+    with TickerProviderStateMixin {
   bool _expanded = false;
   late final AnimationController _controller;
   late final Animation<double> _animation;
@@ -64,12 +65,15 @@ class _ExpandableSectionState extends State<ExpandableSection> with TickerProvid
     final isDark = theme.brightness == Brightness.dark;
 
     // Use theme-aware colors
-    final effectiveTitleColor = widget.titleColor == Colors.blueAccent ? theme.colorScheme.primary : widget.titleColor;
+    final effectiveTitleColor = widget.titleColor == Colors.blueAccent
+        ? theme.colorScheme.primary
+        : widget.titleColor;
 
-    final effectiveBackgroundColor =
-        widget.backgroundColor ?? (isDark ? Colors.grey.shade800 : const Color(0xFFE3F2FD));
+    final effectiveBackgroundColor = widget.backgroundColor ??
+        (isDark ? Colors.grey.shade800 : const Color(0xFFE3F2FD));
 
-    final effectiveBorderColor = widget.borderColor ?? (isDark ? Colors.grey.shade600 : const Color(0xFF1976D2));
+    final effectiveBorderColor = widget.borderColor ??
+        (isDark ? Colors.grey.shade600 : const Color(0xFF1976D2));
 
     final textColor = isDark ? Colors.white : const Color(0xFF212121);
 
@@ -117,7 +121,8 @@ class _ExpandableSectionState extends State<ExpandableSection> with TickerProvid
                 Text(
                   widget.content,
                   maxLines: _expanded ? null : widget.trimLines,
-                  overflow: _expanded ? TextOverflow.visible : TextOverflow.ellipsis,
+                  overflow:
+                      _expanded ? TextOverflow.visible : TextOverflow.ellipsis,
                   style: theme.textTheme.bodyMedium?.copyWith(
                     color: textColor,
                     height: 1.5,

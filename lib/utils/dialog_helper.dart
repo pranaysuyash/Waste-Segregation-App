@@ -30,7 +30,10 @@ class DialogHelper {
               TextButton(
                 onPressed: () => Navigator.pop(_, true),
                 style: TextButton.styleFrom(
-                  foregroundColor: okColor ?? (isDangerous ? Colors.red : Theme.of(context).primaryColor),
+                  foregroundColor: okColor ??
+                      (isDangerous
+                          ? Colors.red
+                          : Theme.of(context).primaryColor),
                 ),
                 child: Text(okLabel ?? 'OK'),
               ),
@@ -151,9 +154,12 @@ class DialogHelper {
               ),
               const SizedBox(height: 16),
               ...options.map((option) => ListTile(
-                    leading: option.icon != null ? Icon(option.icon, color: option.color) : null,
+                    leading: option.icon != null
+                        ? Icon(option.icon, color: option.color)
+                        : null,
                     title: Text(option.title),
-                    subtitle: option.subtitle != null ? Text(option.subtitle!) : null,
+                    subtitle:
+                        option.subtitle != null ? Text(option.subtitle!) : null,
                     onTap: () {
                       Navigator.pop(context, option.value);
                     },
@@ -179,7 +185,8 @@ class DialogHelper {
           context: context,
           builder: (_) => AlertDialog(
             title: Text('$featureName - Premium Feature'),
-            content: Text('$featureName is a premium feature. Upgrade to unlock this and other advanced features.'),
+            content: Text(
+                '$featureName is a premium feature. Upgrade to unlock this and other advanced features.'),
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(_, false),

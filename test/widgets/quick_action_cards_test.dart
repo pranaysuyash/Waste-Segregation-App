@@ -5,7 +5,8 @@ import 'package:waste_segregation_app/utils/constants.dart';
 
 void main() {
   group('Quick-action Cards Tests', () {
-    testWidgets('FeatureCard displays basic information correctly', (WidgetTester tester) async {
+    testWidgets('FeatureCard displays basic information correctly',
+        (WidgetTester tester) async {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
@@ -20,13 +21,16 @@ void main() {
       );
 
       expect(find.text('Analytics Dashboard'), findsOneWidget);
-      expect(find.text('View detailed insights and statistics'), findsOneWidget);
+      expect(
+          find.text('View detailed insights and statistics'), findsOneWidget);
       expect(find.byIcon(Icons.analytics), findsOneWidget);
       expect(find.byIcon(Icons.chevron_right), findsOneWidget);
     });
 
-    testWidgets('FeatureCard handles long titles without overflow', (WidgetTester tester) async {
-      const longTitle = 'Very Long Analytics Dashboard Title That Should Not Overflow';
+    testWidgets('FeatureCard handles long titles without overflow',
+        (WidgetTester tester) async {
+      const longTitle =
+          'Very Long Analytics Dashboard Title That Should Not Overflow';
 
       await tester.pumpWidget(
         MaterialApp(
@@ -51,7 +55,8 @@ void main() {
       await tester.pumpAndSettle();
     });
 
-    testWidgets('FeatureCard handles long subtitles without overflow', (WidgetTester tester) async {
+    testWidgets('FeatureCard handles long subtitles without overflow',
+        (WidgetTester tester) async {
       const longSubtitle =
           'Very long subtitle that describes detailed insights and statistics with comprehensive data analysis and reporting features';
 
@@ -79,7 +84,8 @@ void main() {
       await tester.pumpAndSettle();
     });
 
-    testWidgets('FeatureCard adapts to narrow screens', (WidgetTester tester) async {
+    testWidgets('FeatureCard adapts to narrow screens',
+        (WidgetTester tester) async {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
@@ -104,7 +110,8 @@ void main() {
       await tester.pumpAndSettle();
     });
 
-    testWidgets('FeatureCard handles tap events correctly', (WidgetTester tester) async {
+    testWidgets('FeatureCard handles tap events correctly',
+        (WidgetTester tester) async {
       var tapped = false;
 
       await tester.pumpWidget(
@@ -124,7 +131,8 @@ void main() {
       expect(tapped, isTrue);
     });
 
-    testWidgets('FeatureCard shows custom trailing widget when provided', (WidgetTester tester) async {
+    testWidgets('FeatureCard shows custom trailing widget when provided',
+        (WidgetTester tester) async {
       const customTrailing = Icon(Icons.star, key: Key('custom_trailing'));
 
       await tester.pumpWidget(
@@ -142,11 +150,12 @@ void main() {
       );
 
       expect(find.byKey(const Key('custom_trailing')), findsOneWidget);
-      expect(
-          find.byIcon(Icons.chevron_right), findsNothing); // Should not show chevron when custom trailing is provided
+      expect(find.byIcon(Icons.chevron_right),
+          findsNothing); // Should not show chevron when custom trailing is provided
     });
 
-    testWidgets('FeatureCard hides chevron when showChevron is false', (WidgetTester tester) async {
+    testWidgets('FeatureCard hides chevron when showChevron is false',
+        (WidgetTester tester) async {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
@@ -164,7 +173,8 @@ void main() {
       expect(find.byIcon(Icons.chevron_right), findsNothing);
     });
 
-    testWidgets('FeatureCard uses custom icon color', (WidgetTester tester) async {
+    testWidgets('FeatureCard uses custom icon color',
+        (WidgetTester tester) async {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
@@ -183,7 +193,8 @@ void main() {
       expect(iconWidget.color, Colors.red);
     });
 
-    testWidgets('FeatureCard uses custom icon size', (WidgetTester tester) async {
+    testWidgets('FeatureCard uses custom icon size',
+        (WidgetTester tester) async {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
@@ -202,7 +213,8 @@ void main() {
       expect(iconWidget.size, 40.0);
     });
 
-    testWidgets('FeatureCard handles missing subtitle gracefully', (WidgetTester tester) async {
+    testWidgets('FeatureCard handles missing subtitle gracefully',
+        (WidgetTester tester) async {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
@@ -220,7 +232,8 @@ void main() {
       expect(find.byIcon(Icons.chevron_right), findsOneWidget);
     });
 
-    testWidgets('FeatureCard responsive padding works correctly', (WidgetTester tester) async {
+    testWidgets('FeatureCard responsive padding works correctly',
+        (WidgetTester tester) async {
       // Test narrow screen (should use smaller padding)
       await tester.pumpWidget(
         MaterialApp(
@@ -262,7 +275,8 @@ void main() {
       await tester.pumpAndSettle();
     });
 
-    testWidgets('FeatureCard handles extremely long text gracefully', (WidgetTester tester) async {
+    testWidgets('FeatureCard handles extremely long text gracefully',
+        (WidgetTester tester) async {
       const extremelyLongTitle =
           'This is an extremely long title that should definitely cause overflow issues if not handled properly by the responsive text system';
       const extremelyLongSubtitle =
@@ -306,14 +320,16 @@ void main() {
 
       // Should be accessible by text content
       expect(find.text('Analytics Dashboard'), findsOneWidget);
-      expect(find.text('View detailed insights and statistics'), findsOneWidget);
+      expect(
+          find.text('View detailed insights and statistics'), findsOneWidget);
 
       // Should be tappable
       await tester.tap(find.byType(FeatureCard));
       await tester.pumpAndSettle();
     });
 
-    testWidgets('FeatureCard performance test with multiple instances', (WidgetTester tester) async {
+    testWidgets('FeatureCard performance test with multiple instances',
+        (WidgetTester tester) async {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
@@ -362,7 +378,8 @@ void main() {
       expect(navigatedToAnalytics, isTrue);
     });
 
-    testWidgets('Learn About Waste card navigation test', (WidgetTester tester) async {
+    testWidgets('Learn About Waste card navigation test',
+        (WidgetTester tester) async {
       var navigatedToEducation = false;
 
       await tester.pumpWidget(
@@ -382,7 +399,8 @@ void main() {
       expect(navigatedToEducation, isTrue);
     });
 
-    testWidgets('Quick-action cards tap area coverage test', (WidgetTester tester) async {
+    testWidgets('Quick-action cards tap area coverage test',
+        (WidgetTester tester) async {
       var tapped = false;
 
       await tester.pumpWidget(
@@ -419,7 +437,8 @@ void main() {
   });
 
   group('Quick-action Cards Color and Theme Tests', () {
-    testWidgets('FeatureCard respects theme colors', (WidgetTester tester) async {
+    testWidgets('FeatureCard respects theme colors',
+        (WidgetTester tester) async {
       await tester.pumpWidget(
         MaterialApp(
           theme: ThemeData.light(),
@@ -456,7 +475,8 @@ void main() {
       await tester.pumpAndSettle();
     });
 
-    testWidgets('FeatureCard uses standardized colors', (WidgetTester tester) async {
+    testWidgets('FeatureCard uses standardized colors',
+        (WidgetTester tester) async {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(

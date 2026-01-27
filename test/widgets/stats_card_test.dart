@@ -5,7 +5,8 @@ import 'package:waste_segregation_app/utils/constants.dart';
 
 void main() {
   group('Horizontal Stat Cards Tests', () {
-    testWidgets('StatsCard displays basic information correctly', (WidgetTester tester) async {
+    testWidgets('StatsCard displays basic information correctly',
+        (WidgetTester tester) async {
       await tester.pumpWidget(
         const MaterialApp(
           home: Scaffold(
@@ -61,7 +62,8 @@ void main() {
       expect(find.text('+150%'), findsOneWidget);
     });
 
-    testWidgets('StatsCard handles negative trends', (WidgetTester tester) async {
+    testWidgets('StatsCard handles negative trends',
+        (WidgetTester tester) async {
       await tester.pumpWidget(
         const MaterialApp(
           home: Scaffold(
@@ -81,7 +83,8 @@ void main() {
       expect(find.byIcon(Icons.trending_down), findsOneWidget);
     });
 
-    testWidgets('StatsCard adapts to narrow width', (WidgetTester tester) async {
+    testWidgets('StatsCard adapts to narrow width',
+        (WidgetTester tester) async {
       await tester.pumpWidget(
         const MaterialApp(
           home: Scaffold(
@@ -102,7 +105,8 @@ void main() {
       expect(find.text('1,234,567'), findsOneWidget);
     });
 
-    testWidgets('StatsCard trend chip uses correct colors', (WidgetTester tester) async {
+    testWidgets('StatsCard trend chip uses correct colors',
+        (WidgetTester tester) async {
       // Test positive trend
       await tester.pumpWidget(
         const MaterialApp(
@@ -154,7 +158,8 @@ void main() {
       expect(tapped, isTrue);
     });
 
-    testWidgets('StatsCard row layout handles multiple cards', (WidgetTester tester) async {
+    testWidgets('StatsCard row layout handles multiple cards',
+        (WidgetTester tester) async {
       await tester.pumpWidget(
         const MaterialApp(
           home: Scaffold(
@@ -232,7 +237,8 @@ void main() {
       expect(find.text('42'), findsOneWidget);
     });
 
-    testWidgets('StatsCard performs well with multiple instances', (WidgetTester tester) async {
+    testWidgets('StatsCard performs well with multiple instances',
+        (WidgetTester tester) async {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
@@ -258,7 +264,8 @@ void main() {
       }
     });
 
-    testWidgets('StatsCard color standardization test', (WidgetTester tester) async {
+    testWidgets('StatsCard color standardization test',
+        (WidgetTester tester) async {
       await tester.pumpWidget(
         const MaterialApp(
           home: Scaffold(

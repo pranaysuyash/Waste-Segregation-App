@@ -37,9 +37,11 @@ class CostGuardrailService extends ChangeNotifier {
   Timer? _monitoringTimer;
 
   // Stream controllers for real-time updates
-  final StreamController<bool> _batchModeStream = StreamController<bool>.broadcast();
-  final StreamController<CostAlert> _alertStream = StreamController<CostAlert>.broadcast();
-  final StreamController<Map<String, double>> _budgetUtilizationStream = 
+  final StreamController<bool> _batchModeStream =
+      StreamController<bool>.broadcast();
+  final StreamController<CostAlert> _alertStream =
+      StreamController<CostAlert>.broadcast();
+  final StreamController<Map<String, double>> _budgetUtilizationStream =
       StreamController<Map<String, double>>.broadcast();
 
   /// Stream of batch mode enforcement state
@@ -49,7 +51,8 @@ class CostGuardrailService extends ChangeNotifier {
   Stream<CostAlert> get costAlerts => _alertStream.stream;
 
   /// Stream of budget utilization percentages
-  Stream<Map<String, double>> get budgetUtilization => _budgetUtilizationStream.stream;
+  Stream<Map<String, double>> get budgetUtilization =>
+      _budgetUtilizationStream.stream;
 
   /// Current batch mode enforcement status
   bool get isBatchModeEnforced => _batchModeEnforced;
@@ -64,16 +67,18 @@ class CostGuardrailService extends ChangeNotifier {
       await _loadConfiguration();
       _startMonitoring();
 
-      WasteAppLogger.info('CostGuardrailService initialized', null, null, {
+      WasteAppLogger.info('CostGuardrailService initialized', context: {
         'service': 'cost_guardrail_service',
         'guardrails_enabled': _guardrailsEnabled,
         'threshold_percentage': _budgetThresholdPercentage,
         'force_batch_mode': _forceBatchModeOnThreshold,
       });
     } catch (e) {
-      WasteAppLogger.severe('Failed to initialize CostGuardrailService', e, null, {
-        'service': 'cost_guardrail_service',
-      });
+      WasteAppLogger.severe('Failed to initialize CostGuardrailService',
+          error: e,
+          context: {
+            'service': 'cost_guardrail_service',
+          });
       rethrow;
     }
   }
@@ -82,30 +87,34 @@ class CostGuardrailService extends ChangeNotifier {
   Future<void> _loadConfiguration() async {
     try {
       _guardrailsEnabled = await _remoteConfigService.getBool(
-        'cost_guardrails_enabled', 
-        defaultValue: true,
-      );
-      
-      _budgetThresholdPercentage = (await _remoteConfigService.getInt(
-        'budget_threshold_percentage', 
-        defaultValue: 80,
-      )).toDouble();
-      
-      _forceBatchModeOnThreshold = await _remoteConfigService.getBool(
-        'force_batch_mode_on_threshold', 
+        'cost_guardrails_enabled',
         defaultValue: true,
       );
 
-      WasteAppLogger.info('Loaded cost guardrail configuration', null, null, {
+      _budgetThresholdPercentage = (await _remoteConfigService.getInt(
+        'budget_threshold_percentage',
+        defaultValue: 80,
+      ))
+          .toDouble();
+
+      _forceBatchModeOnThreshold = await _remoteConfigService.getBool(
+        'force_batch_mode_on_threshold',
+        defaultValue: true,
+      );
+
+      WasteAppLogger.info('Loaded cost guardrail configuration', context: {
         'service': 'cost_guardrail_service',
         'guardrails_enabled': _guardrailsEnabled,
         'threshold_percentage': _budgetThresholdPercentage,
         'force_batch_mode': _forceBatchModeOnThreshold,
       });
     } catch (e) {
-      WasteAppLogger.warning('Failed to load guardrail configuration, using defaults', e, null, {
-        'service': 'cost_guardrail_service',
-      });
+      WasteAppLogger.warning(
+          'Failed to load guardrail configuration, using defaults',
+          error: e,
+          context: {
+            'service': 'cost_guardrail_service',
+          });
     }
   }
 
@@ -114,15 +123,17 @@ class CostGuardrailService extends ChangeNotifier {
     // Monitor cost changes every minute
     _monitoringTimer = Timer.periodic(const Duration(minutes: 1), (_) async {
       if (!_guardrailsEnabled) return;
-      
+
       try {
         await _checkBudgetThresholds();
         await _updateBudgetUtilizationStream();
       } catch (e) {
-        WasteAppLogger.warning('Error during cost monitoring', e, null, {
-          'service': 'cost_guardrail_service',
-          'operation': 'monitoring_cycle',
-        });
+        WasteAppLogger.warning('Error during cost monitoring',
+            error: e,
+            context: {
+              'service': 'cost_guardrail_service',
+              'operation': 'monitoring_cycle',
+            });
       }
     });
 
@@ -133,7 +144,7 @@ class CostGuardrailService extends ChangeNotifier {
   /// Handle pricing service changes
   void _onPricingServiceChange() {
     if (!_guardrailsEnabled) return;
-    
+
     // Check if we need to update batch mode enforcement
     final shouldEnforce = _pricingService.shouldEnforceBatchMode();
     _updateBatchModeEnforcement(shouldEnforce);
@@ -210,15 +221,16 @@ class CostGuardrailService extends ChangeNotifier {
     // Enforce batch mode if configured
     if (_forceBatchModeOnThreshold) {
       _updateBatchModeEnforcement(true);
-      
-      WasteAppLogger.warning('Enforcing batch mode due to budget threshold', null, null, {
-        'service': 'cost_guardrail_service',
-        'period': period,
-        'percentage': percentage,
-        'threshold': _budgetThresholdPercentage,
-        'budget': budget,
-        'spending': spending,
-      });
+
+      WasteAppLogger.warning('Enforcing batch mode due to budget threshold',
+          context: {
+            'service': 'cost_guardrail_service',
+            'period': period,
+            'percentage': percentage,
+            'threshold': _budgetThresholdPercentage,
+            'budget': budget,
+            'spending': spending,
+          });
     }
   }
 
@@ -240,7 +252,8 @@ class CostGuardrailService extends ChangeNotifier {
       final severity = warning.$2;
       final message = warning.$3;
 
-      if (percentage >= threshold && !_wasAlertSentForThreshold(period, threshold)) {
+      if (percentage >= threshold &&
+          !_wasAlertSentForThreshold(period, threshold)) {
         final alert = CostAlert(
           id: 'budget_warning_${period}_${threshold.toInt()}_${DateTime.now().millisecondsSinceEpoch}',
           type: CostAlertType.budgetWarning,
@@ -261,7 +274,7 @@ class CostGuardrailService extends ChangeNotifier {
   /// Send a cost alert
   Future<void> _sendAlert(CostAlert alert) async {
     _recentAlerts.add(alert);
-    
+
     // Keep only last 50 alerts
     if (_recentAlerts.length > 50) {
       _recentAlerts.removeAt(0);
@@ -270,7 +283,7 @@ class CostGuardrailService extends ChangeNotifier {
     // Add to stream
     _alertStream.add(alert);
 
-    WasteAppLogger.warning('Cost alert sent', null, null, {
+    WasteAppLogger.warning('Cost alert sent', context: {
       'service': 'cost_guardrail_service',
       'alert_id': alert.id,
       'alert_type': alert.type.name,
@@ -290,11 +303,11 @@ class CostGuardrailService extends ChangeNotifier {
     if (_batchModeEnforced != shouldEnforce) {
       _batchModeEnforced = shouldEnforce;
       _batchModeEnforcedAt = shouldEnforce ? DateTime.now() : null;
-      
+
       _batchModeStream.add(_batchModeEnforced);
       notifyListeners();
 
-      WasteAppLogger.info('Batch mode enforcement updated', null, null, {
+      WasteAppLogger.info('Batch mode enforcement updated', context: {
         'service': 'cost_guardrail_service',
         'batch_mode_enforced': _batchModeEnforced,
         'enforced_at': _batchModeEnforcedAt?.toIso8601String(),
@@ -384,7 +397,8 @@ class CostGuardrailService extends ChangeNotifier {
   /// Check if an alert was already sent for a specific threshold
   bool _wasAlertSentForThreshold(String period, double threshold) {
     final now = DateTime.now();
-    final cutoff = now.subtract(const Duration(hours: 1)); // Don't repeat alerts within 1 hour
+    final cutoff = now.subtract(
+        const Duration(hours: 1)); // Don't repeat alerts within 1 hour
 
     return _recentAlerts.any((alert) =>
         alert.period == period &&
@@ -402,7 +416,7 @@ class CostGuardrailService extends ChangeNotifier {
   Map<String, dynamic> getCostAnalyticsSummary() {
     final utilization = _pricingService.getBudgetUtilization();
     final budgets = _pricingService.getBudgets();
-    
+
     return {
       'batch_mode_enforced': _batchModeEnforced,
       'batch_mode_enforced_at': _batchModeEnforcedAt?.toIso8601String(),
@@ -414,15 +428,16 @@ class CostGuardrailService extends ChangeNotifier {
       'weekly_spending': _pricingService.getWeeklySpending(),
       'monthly_spending': _pricingService.getMonthlySpending(),
       'recent_alerts_count': _recentAlerts.length,
-      'last_alert': _recentAlerts.isNotEmpty ? _recentAlerts.last.toJson() : null,
+      'last_alert':
+          _recentAlerts.isNotEmpty ? _recentAlerts.last.toJson() : null,
     };
   }
 
   /// Manually override batch mode enforcement (for testing or admin)
   void overrideBatchModeEnforcement({required bool enforce, String? reason}) {
     _updateBatchModeEnforcement(enforce);
-    
-    WasteAppLogger.info('Batch mode enforcement manually overridden', null, null, {
+
+    WasteAppLogger.info('Batch mode enforcement manually overridden', context: {
       'service': 'cost_guardrail_service',
       'enforce': enforce,
       'reason': reason,
@@ -431,20 +446,22 @@ class CostGuardrailService extends ChangeNotifier {
   }
 
   /// Temporarily disable guardrails (for emergencies)
-  void temporarilyDisableGuardrails({required Duration duration, String? reason}) {
+  void temporarilyDisableGuardrails(
+      {required Duration duration, String? reason}) {
     _guardrailsEnabled = false;
     _updateBatchModeEnforcement(false);
-    
+
     Timer(duration, () {
       _guardrailsEnabled = true;
-      WasteAppLogger.info('Guardrails re-enabled after temporary disable', null, null, {
-        'service': 'cost_guardrail_service',
-        'disabled_duration_minutes': duration.inMinutes,
-        'reason': reason,
-      });
+      WasteAppLogger.info('Guardrails re-enabled after temporary disable',
+          context: {
+            'service': 'cost_guardrail_service',
+            'disabled_duration_minutes': duration.inMinutes,
+            'reason': reason,
+          });
     });
 
-    WasteAppLogger.warning('Guardrails temporarily disabled', null, null, {
+    WasteAppLogger.warning('Guardrails temporarily disabled', context: {
       'service': 'cost_guardrail_service',
       'duration_minutes': duration.inMinutes,
       'reason': reason,

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../models/waste_classification.dart';
+import 'package:waste_segregation_app/models/waste_classification.dart';
 import '../utils/constants.dart';
 
 /// Widget to display disposal instructions
@@ -13,10 +13,12 @@ class DisposalInstructionsWidget extends StatefulWidget {
   final Function(String)? onStepCompleted;
 
   @override
-  State<DisposalInstructionsWidget> createState() => _DisposalInstructionsWidgetState();
+  State<DisposalInstructionsWidget> createState() =>
+      _DisposalInstructionsWidgetState();
 }
 
-class _DisposalInstructionsWidgetState extends State<DisposalInstructionsWidget> {
+class _DisposalInstructionsWidgetState
+    extends State<DisposalInstructionsWidget> {
   final Set<int> _completedSteps = {};
 
   @override
@@ -41,13 +43,18 @@ class _DisposalInstructionsWidgetState extends State<DisposalInstructionsWidget>
               gradient: LinearGradient(
                 colors: widget.instructions.hasUrgentTimeframe
                     ? [Colors.red.shade400, Colors.red.shade600]
-                    : [AppTheme.primaryColor, AppTheme.primaryColor.withValues(alpha: 0.8)],
+                    : [
+                        AppTheme.primaryColor,
+                        AppTheme.primaryColor.withValues(alpha: 0.8)
+                      ],
               ),
             ),
             child: Row(
               children: [
                 Icon(
-                  widget.instructions.hasUrgentTimeframe ? Icons.warning : Icons.delete_outline,
+                  widget.instructions.hasUrgentTimeframe
+                      ? Icons.warning
+                      : Icons.delete_outline,
                   color: Colors.white,
                   size: 28,
                 ),
@@ -130,7 +137,9 @@ class _DisposalInstructionsWidgetState extends State<DisposalInstructionsWidget>
           ),
 
           // Safety warnings if present
-          if (widget.instructions.warnings != null && widget.instructions.warnings!.isNotEmpty) _buildSafetyWarnings(),
+          if (widget.instructions.warnings != null &&
+              widget.instructions.warnings!.isNotEmpty)
+            _buildSafetyWarnings(),
 
           // Steps
           Padding(
@@ -159,7 +168,9 @@ class _DisposalInstructionsWidgetState extends State<DisposalInstructionsWidget>
           ),
 
           // Tips if present
-          if (widget.instructions.tips != null && widget.instructions.tips!.isNotEmpty) _buildTipsSection(),
+          if (widget.instructions.tips != null &&
+              widget.instructions.tips!.isNotEmpty)
+            _buildTipsSection(),
 
           // Recycling info if present
           if (widget.instructions.recyclingInfo != null) _buildRecyclingInfo(),
@@ -290,7 +301,9 @@ class _DisposalInstructionsWidgetState extends State<DisposalInstructionsWidget>
               overflow: TextOverflow.ellipsis, // Added ellipsis
               style: TextStyle(
                 fontSize: AppTheme.fontSizeRegular,
-                color: isCompleted ? Colors.grey.shade600 : AppTheme.textPrimaryColor,
+                color: isCompleted
+                    ? Colors.grey.shade600
+                    : AppTheme.textPrimaryColor,
                 decoration: isCompleted ? TextDecoration.lineThrough : null,
               ),
             ),

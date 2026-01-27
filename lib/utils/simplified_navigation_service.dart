@@ -115,7 +115,8 @@ class SimplifiedNavigationService {
 
       // Perform sign out logic here
       // This would typically involve calling auth service
-      await Future.delayed(const Duration(seconds: 1)); // Simulate async operation
+      await Future.delayed(
+          const Duration(seconds: 1)); // Simulate async operation
 
       // Navigate to auth screen
       if (context.mounted) {
@@ -142,7 +143,8 @@ class SimplifiedNavigationService {
   // ==================== CONTEXTUAL SHORTCUTS ====================
 
   /// Create contextual navigation based on current screen
-  static List<Widget> getContextualActions(BuildContext context, String currentScreen) {
+  static List<Widget> getContextualActions(
+      BuildContext context, String currentScreen) {
     switch (currentScreen) {
       case 'home':
         return [
@@ -220,7 +222,8 @@ class QuickSettingsBottomSheet extends StatefulWidget {
   const QuickSettingsBottomSheet({super.key});
 
   @override
-  State<QuickSettingsBottomSheet> createState() => _QuickSettingsBottomSheetState();
+  State<QuickSettingsBottomSheet> createState() =>
+      _QuickSettingsBottomSheetState();
 }
 
 class _QuickSettingsBottomSheetState extends State<QuickSettingsBottomSheet> {

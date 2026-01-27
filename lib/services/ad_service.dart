@@ -61,7 +61,11 @@ class AdService extends ChangeNotifier {
   bool get isInitialized => _isInitialized;
 
   bool get shouldShowAds =>
-      !kIsWeb && !_hasPremium && !_isInClassificationFlow && !_isInEducationalContent && !_isInSettings;
+      !kIsWeb &&
+      !_hasPremium &&
+      !_isInClassificationFlow &&
+      !_isInEducationalContent &&
+      !_isInSettings;
 
   bool get canShowInterstitialAd {
     if (_lastInterstitialAdTime == null) return true;
@@ -135,7 +139,9 @@ class AdService extends ChangeNotifier {
     // Use microtask to avoid blocking the main thread
     scheduleMicrotask(() async {
       try {
-        final adUnitId = Platform.isAndroid ? _bannerAdUnitIds['android']! : _bannerAdUnitIds['ios']!;
+        final adUnitId = Platform.isAndroid
+            ? _bannerAdUnitIds['android']!
+            : _bannerAdUnitIds['ios']!;
 
         // Use adaptive banner for better performance and responsive design
         final newBannerAd = BannerAd(
@@ -224,14 +230,19 @@ class AdService extends ChangeNotifier {
 
   // Load interstitial ad with performance optimization
   void _loadInterstitialAd() {
-    if (kIsWeb || _isInterstitialAdLoading || _interstitialAd != null || _disposed) return;
+    if (kIsWeb ||
+        _isInterstitialAdLoading ||
+        _interstitialAd != null ||
+        _disposed) return;
 
     _isInterstitialAdLoading = true;
 
     // Use microtask to avoid blocking the main thread
     scheduleMicrotask(() async {
       try {
-        final adUnitId = Platform.isAndroid ? _interstitialAdUnitIds['android']! : _interstitialAdUnitIds['ios']!;
+        final adUnitId = Platform.isAndroid
+            ? _interstitialAdUnitIds['android']!
+            : _interstitialAdUnitIds['ios']!;
 
         await InterstitialAd.load(
           adUnitId: adUnitId,
@@ -255,11 +266,13 @@ class AdService extends ChangeNotifier {
                       _interstitialAd = null;
                       if (!_disposed) {
                         // Preload next ad asynchronously
-                        Future.delayed(const Duration(seconds: 5), _loadInterstitialAd);
+                        Future.delayed(
+                            const Duration(seconds: 5), _loadInterstitialAd);
                       }
                     },
                     onAdFailedToShowFullScreenContent: (ad, error) {
-                      WasteAppLogger.severe('Failed to show interstitial ad: $error');
+                      WasteAppLogger.severe(
+                          'Failed to show interstitial ad: $error');
                       ad.dispose();
                       _interstitialAd = null;
                       if (!_disposed) {
@@ -314,7 +327,8 @@ class AdService extends ChangeNotifier {
     }
 
     _interstitialRetryCount++;
-    final delay = Duration(minutes: _interstitialRetryCount); // 1min, 2min, 3min
+    final delay =
+        Duration(minutes: _interstitialRetryCount); // 1min, 2min, 3min
 
     Future.delayed(delay, () {
       if (!_disposed) {
@@ -391,7 +405,8 @@ class AdService extends ChangeNotifier {
                 height: 12,
                 child: CircularProgressIndicator(
                   strokeWidth: 1.5,
-                  valueColor: AlwaysStoppedAnimation<Color>(Colors.grey.shade500),
+                  valueColor:
+                      AlwaysStoppedAnimation<Color>(Colors.grey.shade500),
                 ),
               ),
               const SizedBox(width: 8),
@@ -412,7 +427,11 @@ class AdService extends ChangeNotifier {
 
   // Show interstitial ad
   Future<bool> showInterstitialAd() async {
-    if (kIsWeb || !shouldShowAds || !canShowInterstitialAd || _interstitialAd == null || _disposed) {
+    if (kIsWeb ||
+        !shouldShowAds ||
+        !canShowInterstitialAd ||
+        _interstitialAd == null ||
+        _disposed) {
       return false;
     }
 
@@ -440,7 +459,9 @@ class AdService extends ChangeNotifier {
     _classificationsSinceLastAd++;
 
     // If approaching threshold, preload the ad
-    if (_classificationsSinceLastAd >= 3 && _interstitialAd == null && !_isInterstitialAdLoading) {
+    if (_classificationsSinceLastAd >= 3 &&
+        _interstitialAd == null &&
+        !_isInterstitialAdLoading) {
       _loadInterstitialAd();
     }
   }

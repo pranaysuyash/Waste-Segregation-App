@@ -17,10 +17,12 @@ class AchievementsScreenRiverpod extends ConsumerStatefulWidget {
   final int initialTabIndex;
 
   @override
-  ConsumerState<AchievementsScreenRiverpod> createState() => _AchievementsScreenRiverpodState();
+  ConsumerState<AchievementsScreenRiverpod> createState() =>
+      _AchievementsScreenRiverpodState();
 }
 
-class _AchievementsScreenRiverpodState extends ConsumerState<AchievementsScreenRiverpod>
+class _AchievementsScreenRiverpodState
+    extends ConsumerState<AchievementsScreenRiverpod>
     with SingleTickerProviderStateMixin, AutomaticKeepAliveClientMixin {
   late TabController _tabController;
 
@@ -136,7 +138,8 @@ class _AchievementsTab extends ConsumerWidget {
             error: (error, stack) => SliverFillRemaining(
               child: _ErrorView(
                 error: error,
-                onRetry: () => ref.read(gamificationProvider.notifier).refresh(),
+                onRetry: () =>
+                    ref.read(gamificationProvider.notifier).refresh(),
               ),
             ),
           ),
@@ -298,7 +301,8 @@ class _AchievementCardState extends ConsumerState<_AchievementCard> {
   @override
   Widget build(BuildContext context) {
     final achievement = widget.achievement;
-    final isClaimable = achievement.isClaimable && !_isClaiming; // Disable during claim
+    final isClaimable =
+        achievement.isClaimable && !_isClaiming; // Disable during claim
     final backgroundColor = achievement.getTierBackgroundColor();
     final textColor = achievement.getContrastSafeTextColor(context);
 
@@ -307,7 +311,8 @@ class _AchievementCardState extends ConsumerState<_AchievementCard> {
       label: achievement.getSemanticLabel(),
       child: Card(
         color: backgroundColor,
-        elevation: achievement.isEarned ? AppTheme.elevationMd : AppTheme.elevationSm,
+        elevation:
+            achievement.isEarned ? AppTheme.elevationMd : AppTheme.elevationSm,
         child: InkWell(
           onTap: isClaimable ? () => _claimReward(achievement) : null,
           borderRadius: BorderRadius.circular(AppTheme.borderRadiusMd),
@@ -342,7 +347,8 @@ class _AchievementCardState extends ConsumerState<_AchievementCard> {
                         height: AppTheme.iconSizeMd,
                         child: CircularProgressIndicator(
                           strokeWidth: 2,
-                          valueColor: AlwaysStoppedAnimation(context.colorScheme.primary),
+                          valueColor: AlwaysStoppedAnimation(
+                              context.colorScheme.primary),
                         ),
                       ),
                   ],
@@ -360,7 +366,8 @@ class _AchievementCardState extends ConsumerState<_AchievementCard> {
                 const SizedBox(height: AppTheme.spacingXs),
                 Text(
                   achievement.description,
-                  style: context.textTheme.bodySmall?.copyWith(color: textColor),
+                  style:
+                      context.textTheme.bodySmall?.copyWith(color: textColor),
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -369,12 +376,14 @@ class _AchievementCardState extends ConsumerState<_AchievementCard> {
                   LinearProgressIndicator(
                     value: achievement.progressPercent,
                     backgroundColor: textColor.withValues(alpha: 0.3),
-                    valueColor: AlwaysStoppedAnimation(achievement.getTierColor()),
+                    valueColor:
+                        AlwaysStoppedAnimation(achievement.getTierColor()),
                   ),
                   const SizedBox(height: AppTheme.spacingXs),
                   Text(
                     '${achievement.progressPercentInt}%',
-                    style: context.textTheme.bodySmall?.copyWith(color: textColor),
+                    style:
+                        context.textTheme.bodySmall?.copyWith(color: textColor),
                   ),
                 ],
                 if (achievement.isClaimable)
@@ -383,7 +392,8 @@ class _AchievementCardState extends ConsumerState<_AchievementCard> {
                     height: AppTheme.buttonHeightSm,
                     margin: const EdgeInsets.only(top: AppTheme.spacingXs),
                     child: ElevatedButton(
-                      onPressed: _isClaiming ? null : () => _claimReward(achievement),
+                      onPressed:
+                          _isClaiming ? null : () => _claimReward(achievement),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: context.colorScheme.primary,
                         foregroundColor: context.colorScheme.onPrimary,
@@ -503,7 +513,9 @@ class _ErrorView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final errorMessage = error is AppException ? (error as AppException).message : AppStrings.errorGeneral;
+    final errorMessage = error is AppException
+        ? (error as AppException).message
+        : AppStrings.errorGeneral;
 
     return Center(
       child: Padding(

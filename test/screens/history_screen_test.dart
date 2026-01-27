@@ -29,8 +29,10 @@ void main() {
     }
 
     group('Widget Rendering', () {
-      testWidgets('should render history screen with empty state', (WidgetTester tester) async {
-        when(mockStorageService.getAllClassifications()).thenAnswer((_) async => []);
+      testWidgets('should render history screen with empty state',
+          (WidgetTester tester) async {
+        when(mockStorageService.getAllClassifications())
+            .thenAnswer((_) async => []);
 
         await tester.pumpWidget(createTestWidget());
         await tester.pumpAndSettle();
@@ -40,7 +42,8 @@ void main() {
         expect(find.byIcon(Icons.history), findsOneWidget);
       });
 
-      testWidgets('should render history list with classifications', (WidgetTester tester) async {
+      testWidgets('should render history list with classifications',
+          (WidgetTester tester) async {
         final mockClassifications = [
           WasteClassification(
             itemName: 'Test Item',
@@ -50,7 +53,9 @@ void main() {
             visualFeatures: ['test feature'],
             alternatives: [],
             disposalInstructions: DisposalInstructions(
-                primaryMethod: 'Recycle in plastic bin', steps: ['Test step'], hasUrgentTimeframe: false),
+                primaryMethod: 'Recycle in plastic bin',
+                steps: ['Test step'],
+                hasUrgentTimeframe: false),
             id: 'class_1',
             imageUrl: '/path/to/image1.jpg',
             confidence: 0.95,
@@ -63,8 +68,10 @@ void main() {
             region: 'Test Region',
             visualFeatures: ['test feature'],
             alternatives: [],
-            disposalInstructions:
-                DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false),
+            disposalInstructions: DisposalInstructions(
+                primaryMethod: 'Test method',
+                steps: ['Test step'],
+                hasUrgentTimeframe: false),
             id: 'class_2',
             imageUrl: '/path/to/image2.jpg',
             confidence: 0.88,
@@ -72,8 +79,8 @@ void main() {
           ),
         ];
 
-        when(mockStorageService.getAllClassifications())
-            .thenAnswer((_) async => mockClassifications.cast<WasteClassification>());
+        when(mockStorageService.getAllClassifications()).thenAnswer(
+            (_) async => mockClassifications.cast<WasteClassification>());
 
         await tester.pumpWidget(createTestWidget());
         await tester.pumpAndSettle();
@@ -85,7 +92,8 @@ void main() {
         expect(find.text('88%'), findsOneWidget);
       });
 
-      testWidgets('should show loading indicator while fetching data', (WidgetTester tester) async {
+      testWidgets('should show loading indicator while fetching data',
+          (WidgetTester tester) async {
         when(mockStorageService.getAllClassifications()).thenAnswer((_) async {
           await Future.delayed(const Duration(milliseconds: 500));
           return [];
@@ -102,7 +110,8 @@ void main() {
     });
 
     group('User Interactions', () {
-      testWidgets('should navigate to classification details on tap', (WidgetTester tester) async {
+      testWidgets('should navigate to classification details on tap',
+          (WidgetTester tester) async {
         final mockClassification = WasteClassification(
           itemName: 'Test Item',
           explanation: 'Test explanation',
@@ -110,15 +119,18 @@ void main() {
           region: 'Test Region',
           visualFeatures: ['test feature'],
           alternatives: [],
-          disposalInstructions:
-              DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false),
+          disposalInstructions: DisposalInstructions(
+              primaryMethod: 'Test method',
+              steps: ['Test step'],
+              hasUrgentTimeframe: false),
           id: 'class_1',
           imageUrl: '/path/to/image1.jpg',
           confidence: 0.95,
           timestamp: DateTime.now(),
         );
 
-        when(mockStorageService.getAllClassifications()).thenAnswer((_) async => [mockClassification]);
+        when(mockStorageService.getAllClassifications())
+            .thenAnswer((_) async => [mockClassification]);
 
         await tester.pumpWidget(createTestWidget());
         await tester.pumpAndSettle();
@@ -130,8 +142,10 @@ void main() {
         verify(mockStorageService.getAllClassifications()).called(1);
       });
 
-      testWidgets('should show search functionality', (WidgetTester tester) async {
-        when(mockStorageService.getAllClassifications()).thenAnswer((_) async => []);
+      testWidgets('should show search functionality',
+          (WidgetTester tester) async {
+        when(mockStorageService.getAllClassifications())
+            .thenAnswer((_) async => []);
 
         await tester.pumpWidget(createTestWidget());
         await tester.pumpAndSettle();
@@ -145,7 +159,8 @@ void main() {
         expect(find.text('Search classifications...'), findsOneWidget);
       });
 
-      testWidgets('should filter classifications by search query', (WidgetTester tester) async {
+      testWidgets('should filter classifications by search query',
+          (WidgetTester tester) async {
         final mockClassifications = [
           WasteClassification(
             itemName: 'Test Item',
@@ -154,8 +169,10 @@ void main() {
             region: 'Test Region',
             visualFeatures: ['test feature'],
             alternatives: [],
-            disposalInstructions:
-                DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false),
+            disposalInstructions: DisposalInstructions(
+                primaryMethod: 'Test method',
+                steps: ['Test step'],
+                hasUrgentTimeframe: false),
             id: 'class_1',
             imageUrl: '/path/to/image1.jpg',
             confidence: 0.95,
@@ -168,8 +185,10 @@ void main() {
             region: 'Test Region',
             visualFeatures: ['test feature'],
             alternatives: [],
-            disposalInstructions:
-                DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false),
+            disposalInstructions: DisposalInstructions(
+                primaryMethod: 'Test method',
+                steps: ['Test step'],
+                hasUrgentTimeframe: false),
             id: 'class_2',
             imageUrl: '/path/to/image2.jpg',
             confidence: 0.88,
@@ -177,8 +196,8 @@ void main() {
           ),
         ];
 
-        when(mockStorageService.getAllClassifications())
-            .thenAnswer((_) async => mockClassifications.cast<WasteClassification>());
+        when(mockStorageService.getAllClassifications()).thenAnswer(
+            (_) async => mockClassifications.cast<WasteClassification>());
         // Note: searchClassifications method doesn't exist in StorageService
 
         await tester.pumpWidget(createTestWidget());
@@ -197,7 +216,8 @@ void main() {
       });
 
       testWidgets('should show filter options', (WidgetTester tester) async {
-        when(mockStorageService.getAllClassifications()).thenAnswer((_) async => []);
+        when(mockStorageService.getAllClassifications())
+            .thenAnswer((_) async => []);
 
         await tester.pumpWidget(createTestWidget());
         await tester.pumpAndSettle();
@@ -213,7 +233,8 @@ void main() {
         expect(find.text('Confidence'), findsOneWidget);
       });
 
-      testWidgets('should delete classification on swipe', (WidgetTester tester) async {
+      testWidgets('should delete classification on swipe',
+          (WidgetTester tester) async {
         final mockClassification = WasteClassification(
           itemName: 'Test Item',
           explanation: 'Test explanation',
@@ -221,16 +242,20 @@ void main() {
           region: 'Test Region',
           visualFeatures: ['test feature'],
           alternatives: [],
-          disposalInstructions:
-              DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false),
+          disposalInstructions: DisposalInstructions(
+              primaryMethod: 'Test method',
+              steps: ['Test step'],
+              hasUrgentTimeframe: false),
           id: 'class_1',
           imageUrl: '/path/to/image1.jpg',
           confidence: 0.95,
           timestamp: DateTime.now(),
         );
 
-        when(mockStorageService.getAllClassifications()).thenAnswer((_) async => [mockClassification]);
-        when(mockStorageService.deleteClassification('class_1')).thenAnswer((_) async => true);
+        when(mockStorageService.getAllClassifications())
+            .thenAnswer((_) async => [mockClassification]);
+        when(mockStorageService.deleteClassification('class_1'))
+            .thenAnswer((_) async => true);
 
         await tester.pumpWidget(createTestWidget());
         await tester.pumpAndSettle();
@@ -253,8 +278,10 @@ void main() {
     });
 
     group('Data Management', () {
-      testWidgets('should refresh data on pull-to-refresh', (WidgetTester tester) async {
-        when(mockStorageService.getAllClassifications()).thenAnswer((_) async => []);
+      testWidgets('should refresh data on pull-to-refresh',
+          (WidgetTester tester) async {
+        when(mockStorageService.getAllClassifications())
+            .thenAnswer((_) async => []);
 
         await tester.pumpWidget(createTestWidget());
         await tester.pumpAndSettle();
@@ -266,7 +293,8 @@ void main() {
         verify(mockStorageService.getAllClassifications()).called(2);
       });
 
-      testWidgets('should handle pagination for large datasets', (WidgetTester tester) async {
+      testWidgets('should handle pagination for large datasets',
+          (WidgetTester tester) async {
         final largeClassificationList = List.generate(
             100,
             (index) => WasteClassification(
@@ -277,15 +305,17 @@ void main() {
                   visualFeatures: ['test feature'],
                   alternatives: [],
                   disposalInstructions: DisposalInstructions(
-                      primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false),
+                      primaryMethod: 'Test method',
+                      steps: ['Test step'],
+                      hasUrgentTimeframe: false),
                   id: 'class_$index',
                   imageUrl: '/path/to/image$index.jpg',
                   confidence: 0.8 + (index % 20) * 0.01,
                   timestamp: DateTime.now().subtract(Duration(hours: index)),
                 ));
 
-        when(mockStorageService.getAllClassifications())
-            .thenAnswer((_) async => largeClassificationList.cast<WasteClassification>());
+        when(mockStorageService.getAllClassifications()).thenAnswer(
+            (_) async => largeClassificationList.cast<WasteClassification>());
 
         await tester.pumpWidget(createTestWidget());
         await tester.pumpAndSettle();
@@ -301,7 +331,8 @@ void main() {
         expect(find.text('Load More'), findsNothing); // Should auto-load
       });
 
-      testWidgets('should export classification data', (WidgetTester tester) async {
+      testWidgets('should export classification data',
+          (WidgetTester tester) async {
         final mockClassifications = [
           WasteClassification(
             itemName: 'Test Item',
@@ -310,8 +341,10 @@ void main() {
             region: 'Test Region',
             visualFeatures: ['test feature'],
             alternatives: [],
-            disposalInstructions:
-                DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false),
+            disposalInstructions: DisposalInstructions(
+                primaryMethod: 'Test method',
+                steps: ['Test step'],
+                hasUrgentTimeframe: false),
             id: 'class_1',
             imageUrl: '/path/to/image1.jpg',
             confidence: 0.95,
@@ -319,8 +352,8 @@ void main() {
           ),
         ];
 
-        when(mockStorageService.getAllClassifications())
-            .thenAnswer((_) async => mockClassifications.cast<WasteClassification>());
+        when(mockStorageService.getAllClassifications()).thenAnswer(
+            (_) async => mockClassifications.cast<WasteClassification>());
 
         await tester.pumpWidget(createTestWidget());
         await tester.pumpAndSettle();
@@ -341,8 +374,10 @@ void main() {
     });
 
     group('Error Handling', () {
-      testWidgets('should show error message when data loading fails', (WidgetTester tester) async {
-        when(mockStorageService.getAllClassifications()).thenThrow(Exception('Failed to load data'));
+      testWidgets('should show error message when data loading fails',
+          (WidgetTester tester) async {
+        when(mockStorageService.getAllClassifications())
+            .thenThrow(Exception('Failed to load data'));
 
         await tester.pumpWidget(createTestWidget());
         await tester.pumpAndSettle();
@@ -352,8 +387,10 @@ void main() {
         expect(find.byIcon(Icons.error), findsOneWidget);
       });
 
-      testWidgets('should retry loading data on error', (WidgetTester tester) async {
-        when(mockStorageService.getAllClassifications()).thenThrow(Exception('Failed to load data'));
+      testWidgets('should retry loading data on error',
+          (WidgetTester tester) async {
+        when(mockStorageService.getAllClassifications())
+            .thenThrow(Exception('Failed to load data'));
 
         await tester.pumpWidget(createTestWidget());
         await tester.pumpAndSettle();
@@ -361,7 +398,8 @@ void main() {
         expect(find.text('Retry'), findsOneWidget);
 
         // Mock successful retry
-        when(mockStorageService.getAllClassifications()).thenAnswer((_) async => []);
+        when(mockStorageService.getAllClassifications())
+            .thenAnswer((_) async => []);
 
         await tester.tap(find.text('Retry'));
         await tester.pumpAndSettle();
@@ -370,7 +408,8 @@ void main() {
         verify(mockStorageService.getAllClassifications()).called(2);
       });
 
-      testWidgets('should handle delete operation failure', (WidgetTester tester) async {
+      testWidgets('should handle delete operation failure',
+          (WidgetTester tester) async {
         final mockClassification = WasteClassification(
           itemName: 'Test Item',
           explanation: 'Test explanation',
@@ -378,16 +417,20 @@ void main() {
           region: 'Test Region',
           visualFeatures: ['test feature'],
           alternatives: [],
-          disposalInstructions:
-              DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false),
+          disposalInstructions: DisposalInstructions(
+              primaryMethod: 'Test method',
+              steps: ['Test step'],
+              hasUrgentTimeframe: false),
           id: 'class_1',
           imageUrl: '/path/to/image1.jpg',
           confidence: 0.95,
           timestamp: DateTime.now(),
         );
 
-        when(mockStorageService.getAllClassifications()).thenAnswer((_) async => [mockClassification]);
-        when(mockStorageService.deleteClassification('class_1')).thenThrow(Exception('Delete failed'));
+        when(mockStorageService.getAllClassifications())
+            .thenAnswer((_) async => [mockClassification]);
+        when(mockStorageService.deleteClassification('class_1'))
+            .thenThrow(Exception('Delete failed'));
 
         await tester.pumpWidget(createTestWidget());
         await tester.pumpAndSettle();
@@ -405,7 +448,8 @@ void main() {
     });
 
     group('Sorting and Organization', () {
-      testWidgets('should sort classifications by date', (WidgetTester tester) async {
+      testWidgets('should sort classifications by date',
+          (WidgetTester tester) async {
         final mockClassifications = [
           WasteClassification(
             itemName: 'Test Item',
@@ -414,8 +458,10 @@ void main() {
             region: 'Test Region',
             visualFeatures: ['test feature'],
             alternatives: [],
-            disposalInstructions:
-                DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false),
+            disposalInstructions: DisposalInstructions(
+                primaryMethod: 'Test method',
+                steps: ['Test step'],
+                hasUrgentTimeframe: false),
             id: 'class_1',
             imageUrl: '/path/to/image1.jpg',
             confidence: 0.95,
@@ -428,8 +474,10 @@ void main() {
             region: 'Test Region',
             visualFeatures: ['test feature'],
             alternatives: [],
-            disposalInstructions:
-                DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false),
+            disposalInstructions: DisposalInstructions(
+                primaryMethod: 'Test method',
+                steps: ['Test step'],
+                hasUrgentTimeframe: false),
             id: 'class_2',
             imageUrl: '/path/to/image2.jpg',
             confidence: 0.88,
@@ -437,8 +485,8 @@ void main() {
           ),
         ];
 
-        when(mockStorageService.getAllClassifications())
-            .thenAnswer((_) async => mockClassifications.cast<WasteClassification>());
+        when(mockStorageService.getAllClassifications()).thenAnswer(
+            (_) async => mockClassifications.cast<WasteClassification>());
 
         await tester.pumpWidget(createTestWidget());
         await tester.pumpAndSettle();
@@ -459,7 +507,8 @@ void main() {
         expect(listItems, findsWidgets);
       });
 
-      testWidgets('should group classifications by category', (WidgetTester tester) async {
+      testWidgets('should group classifications by category',
+          (WidgetTester tester) async {
         final mockClassifications = [
           WasteClassification(
             itemName: 'Test Item',
@@ -468,8 +517,10 @@ void main() {
             region: 'Test Region',
             visualFeatures: ['test feature'],
             alternatives: [],
-            disposalInstructions:
-                DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false),
+            disposalInstructions: DisposalInstructions(
+                primaryMethod: 'Test method',
+                steps: ['Test step'],
+                hasUrgentTimeframe: false),
             id: 'class_1',
             imageUrl: '/path/to/image1.jpg',
             confidence: 0.95,
@@ -482,8 +533,10 @@ void main() {
             region: 'Test Region',
             visualFeatures: ['test feature'],
             alternatives: [],
-            disposalInstructions:
-                DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false),
+            disposalInstructions: DisposalInstructions(
+                primaryMethod: 'Test method',
+                steps: ['Test step'],
+                hasUrgentTimeframe: false),
             id: 'class_2',
             imageUrl: '/path/to/image2.jpg',
             confidence: 0.88,
@@ -496,8 +549,10 @@ void main() {
             region: 'Test Region',
             visualFeatures: ['test feature'],
             alternatives: [],
-            disposalInstructions:
-                DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false),
+            disposalInstructions: DisposalInstructions(
+                primaryMethod: 'Test method',
+                steps: ['Test step'],
+                hasUrgentTimeframe: false),
             id: 'class_3',
             imageUrl: '/path/to/image3.jpg',
             confidence: 0.92,
@@ -505,8 +560,8 @@ void main() {
           ),
         ];
 
-        when(mockStorageService.getAllClassifications())
-            .thenAnswer((_) async => mockClassifications.cast<WasteClassification>());
+        when(mockStorageService.getAllClassifications()).thenAnswer(
+            (_) async => mockClassifications.cast<WasteClassification>());
 
         await tester.pumpWidget(createTestWidget());
         await tester.pumpAndSettle();
@@ -521,7 +576,8 @@ void main() {
     });
 
     group('Accessibility', () {
-      testWidgets('should support screen reader navigation', (WidgetTester tester) async {
+      testWidgets('should support screen reader navigation',
+          (WidgetTester tester) async {
         final mockClassification = WasteClassification(
           itemName: 'Test Item',
           explanation: 'Test explanation',
@@ -529,15 +585,18 @@ void main() {
           region: 'Test Region',
           visualFeatures: ['test feature'],
           alternatives: [],
-          disposalInstructions:
-              DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false),
+          disposalInstructions: DisposalInstructions(
+              primaryMethod: 'Test method',
+              steps: ['Test step'],
+              hasUrgentTimeframe: false),
           id: 'class_1',
           imageUrl: '/path/to/image1.jpg',
           confidence: 0.95,
           timestamp: DateTime.now(),
         );
 
-        when(mockStorageService.getAllClassifications()).thenAnswer((_) async => [mockClassification]);
+        when(mockStorageService.getAllClassifications())
+            .thenAnswer((_) async => [mockClassification]);
 
         await tester.pumpWidget(createTestWidget());
         await tester.pumpAndSettle();
@@ -555,7 +614,8 @@ void main() {
         );
       });
 
-      testWidgets('should support keyboard navigation', (WidgetTester tester) async {
+      testWidgets('should support keyboard navigation',
+          (WidgetTester tester) async {
         final mockClassifications = [
           WasteClassification(
             itemName: 'Test Item',
@@ -564,8 +624,10 @@ void main() {
             region: 'Test Region',
             visualFeatures: ['test feature'],
             alternatives: [],
-            disposalInstructions:
-                DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false),
+            disposalInstructions: DisposalInstructions(
+                primaryMethod: 'Test method',
+                steps: ['Test step'],
+                hasUrgentTimeframe: false),
             id: 'class_1',
             imageUrl: '/path/to/image1.jpg',
             confidence: 0.95,
@@ -578,8 +640,10 @@ void main() {
             region: 'Test Region',
             visualFeatures: ['test feature'],
             alternatives: [],
-            disposalInstructions:
-                DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false),
+            disposalInstructions: DisposalInstructions(
+                primaryMethod: 'Test method',
+                steps: ['Test step'],
+                hasUrgentTimeframe: false),
             id: 'class_2',
             imageUrl: '/path/to/image2.jpg',
             confidence: 0.88,
@@ -587,8 +651,8 @@ void main() {
           ),
         ];
 
-        when(mockStorageService.getAllClassifications())
-            .thenAnswer((_) async => mockClassifications.cast<WasteClassification>());
+        when(mockStorageService.getAllClassifications()).thenAnswer(
+            (_) async => mockClassifications.cast<WasteClassification>());
 
         await tester.pumpWidget(createTestWidget());
         await tester.pumpAndSettle();
@@ -603,7 +667,8 @@ void main() {
     });
 
     group('Performance', () {
-      testWidgets('should handle large datasets efficiently', (WidgetTester tester) async {
+      testWidgets('should handle large datasets efficiently',
+          (WidgetTester tester) async {
         final largeDataset = List.generate(
             1000,
             (index) => WasteClassification(
@@ -614,7 +679,9 @@ void main() {
                   visualFeatures: ['test feature'],
                   alternatives: [],
                   disposalInstructions: DisposalInstructions(
-                      primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false),
+                      primaryMethod: 'Test method',
+                      steps: ['Test step'],
+                      hasUrgentTimeframe: false),
                   id: 'class_$index',
                   imageUrl: '/path/to/image$index.jpg',
                   confidence: 0.9,
@@ -638,7 +705,8 @@ void main() {
         expect(find.text('plastic'), findsWidgets);
       });
 
-      testWidgets('should implement lazy loading for images', (WidgetTester tester) async {
+      testWidgets('should implement lazy loading for images',
+          (WidgetTester tester) async {
         final mockClassifications = List.generate(
             20,
             (index) => WasteClassification(
@@ -649,15 +717,17 @@ void main() {
                   visualFeatures: ['test feature'],
                   alternatives: [],
                   disposalInstructions: DisposalInstructions(
-                      primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false),
+                      primaryMethod: 'Test method',
+                      steps: ['Test step'],
+                      hasUrgentTimeframe: false),
                   id: 'class_$index',
                   imageUrl: '/path/to/image$index.jpg',
                   confidence: 0.9,
                   timestamp: DateTime.now(),
                 ));
 
-        when(mockStorageService.getAllClassifications())
-            .thenAnswer((_) async => mockClassifications.cast<WasteClassification>());
+        when(mockStorageService.getAllClassifications()).thenAnswer(
+            (_) async => mockClassifications.cast<WasteClassification>());
 
         await tester.pumpWidget(createTestWidget());
         await tester.pumpAndSettle();

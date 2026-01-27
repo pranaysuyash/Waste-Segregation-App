@@ -8,13 +8,15 @@ class SyncSuccessWidget extends StatefulWidget {
   State<SyncSuccessWidget> createState() => _SyncSuccessWidgetState();
 }
 
-class _SyncSuccessWidgetState extends State<SyncSuccessWidget> with SingleTickerProviderStateMixin {
+class _SyncSuccessWidgetState extends State<SyncSuccessWidget>
+    with SingleTickerProviderStateMixin {
   late AnimationController _controller;
 
   @override
   void initState() {
     super.initState();
-    _controller = AnimationHelpers.createController(vsync: this, duration: const Duration(seconds: 1));
+    _controller = AnimationHelpers.createController(
+        vsync: this, duration: const Duration(seconds: 1));
     _controller.forward();
   }
 

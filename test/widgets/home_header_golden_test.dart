@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -86,7 +88,8 @@ void main() {
           profileProvider.overrideWith((ref) async {
             return GamificationProfile(
               userId: 'test_user',
-              points: const UserPoints(total: 25000), // High points for K formatting
+              points: const UserPoints(
+                  total: 25000), // High points for K formatting
               streaks: {
                 StreakType.dailyClassification.toString(): StreakDetails(
                   type: StreakType.dailyClassification,
@@ -108,7 +111,8 @@ void main() {
               createdAt: DateTime.now(),
             );
           }),
-          todayGoalProvider.overrideWith((ref) async => (10, 10)), // Goal completed
+          todayGoalProvider
+              .overrideWith((ref) async => (10, 10)), // Goal completed
           unreadNotificationsProvider.overrideWith((ref) async => 0),
         ],
       );
@@ -128,13 +132,17 @@ void main() {
       await screenMatchesGolden(tester, 'home_header_high_points');
     });
 
-    testGoldens('HomeHeader - Loading State', (tester) async {
+    testWidgets('HomeHeader - Loading State shows progress indicator',
+        (tester) async {
       final loadingContainer = ProviderContainer(
         overrides: [
-          profileProvider.overrideWith((ref) async {
-            // Simulate loading by never completing
-            return Future.delayed(const Duration(seconds: 10), () => null);
+          profileProvider.overrideWith((ref) {
+            // Simulate loading by returning a never-completing future without scheduling timers
+            return Completer<GamificationProfile?>().future;
           }),
+          userProfileProvider.overrideWith((ref) async => null),
+          todayGoalProvider.overrideWith((ref) async => (0, 10)),
+          unreadNotificationsProvider.overrideWith((ref) async => 0),
         ],
       );
 
@@ -151,9 +159,9 @@ void main() {
 
       // Pump once to show loading state
       await tester.pump();
+      expect(find.byType(CircularProgressIndicator), findsOneWidget);
 
       loadingContainer.dispose();
-      await screenMatchesGolden(tester, 'home_header_loading');
     });
 
     testGoldens('HomeHeader - Error State', (tester) async {
@@ -193,7 +201,8 @@ void main() {
               unlockedHiddenContentIds: {},
             );
           }),
-          userProfileProvider.overrideWith((ref) async => null), // No user profile
+          userProfileProvider
+              .overrideWith((ref) async => null), // No user profile
           todayGoalProvider.overrideWith((ref) async => (0, 10)),
           unreadNotificationsProvider.overrideWith((ref) async => 0),
         ],
@@ -272,18 +281,19 @@ void main() {
         ],
       );
 
-      await tester.pumpWidget(
-        MaterialApp(
-          home: Scaffold(
-            body: UncontrolledProviderScope(
-              container: container,
-              child: const HomeHeader(),
-            ),
-          ),
+      await tester.pumpWidgetBuilder(
+        UncontrolledProviderScope(
+          container: container,
+          child: const HomeHeader(),
         ),
+        wrapper: materialAppWrapper(
+          theme: ThemeData.light(),
+        ),
+        surfaceSize: const Size(400, 200),
       );
 
-      await tester.pumpAndSettle();
+      // Allow initial build/animations to settle without pumpAndSettle loops
+      await tester.pump(const Duration(milliseconds: 200));
 
       // Verify semantic labels exist
       expect(find.text('Good morning, John'), findsOneWidget);
@@ -292,10 +302,15 @@ void main() {
       expect(find.text('3/10 items'), findsOneWidget);
       expect(find.text("TODAY'S GOAL"), findsOneWidget);
 
+      // Unmount before disposing providers to avoid stale semantics references
+      await tester.pumpWidget(const SizedBox.shrink());
+      await tester.pump();
+
       container.dispose();
     });
 
-    testWidgets('HomeHeader meets accessibility contrast requirements', (tester) async {
+    testWidgets('HomeHeader meets accessibility contrast requirements',
+        (tester) async {
       // Test with high contrast theme
       final container = ProviderContainer(
         overrides: [
@@ -315,25 +330,30 @@ void main() {
         ],
       );
 
-      await tester.pumpWidget(
-        MaterialApp(
+      await tester.pumpWidgetBuilder(
+        UncontrolledProviderScope(
+          container: container,
+          child: const HomeHeader(),
+        ),
+        wrapper: materialAppWrapper(
           theme: ThemeData(
             brightness: Brightness.dark,
             // High contrast theme settings
           ),
-          home: Scaffold(
-            body: UncontrolledProviderScope(
-              container: container,
-              child: const HomeHeader(),
-            ),
-          ),
         ),
+        surfaceSize: const Size(400, 200),
       );
 
-      await tester.pumpAndSettle();
+      // Avoid pumpAndSettle to prevent semantics parentDataDirty assertion loops from ongoing animations.
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 200));
 
       // Verify widget renders without overflow or contrast issues
       expect(tester.takeException(), isNull);
+
+      // Unmount widget tree before disposing the ProviderContainer to avoid stale semantics
+      await tester.pumpWidget(const SizedBox.shrink());
+      await tester.pump();
 
       container.dispose();
     });

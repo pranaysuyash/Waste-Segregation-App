@@ -6,7 +6,8 @@ import 'package:waste_segregation_app/utils/constants.dart';
 void main() {
   group('Layout Overflow Detection Tests', () {
     group('StatsCard RenderFlex Overflow Tests', () {
-      testWidgets('Single StatsCard should not overflow on narrow screen', (WidgetTester tester) async {
+      testWidgets('Single StatsCard should not overflow on narrow screen',
+          (WidgetTester tester) async {
         await tester.binding.setSurfaceSize(const Size(300, 600));
 
         await tester.pumpWidget(
@@ -15,12 +16,14 @@ void main() {
               body: Padding(
                 padding: EdgeInsets.all(16.0),
                 child: StatsCard(
-                  title: 'Very Long Classification Title That Could Potentially Overflow',
+                  title:
+                      'Very Long Classification Title That Could Potentially Overflow',
                   value: '1,234,567,890',
                   icon: Icons.analytics,
                   color: AppTheme.primaryColor,
                   trend: '+999%',
-                  subtitle: 'Really long subtitle that might cause layout issues',
+                  subtitle:
+                      'Really long subtitle that might cause layout issues',
                 ),
               ),
             ),
@@ -30,7 +33,8 @@ void main() {
         await tester.pump();
 
         // Check for any RenderFlex overflow errors
-        expect(tester.takeException(), isNull, reason: 'Single StatsCard should not overflow');
+        expect(tester.takeException(), isNull,
+            reason: 'Single StatsCard should not overflow');
 
         // Verify the card is rendered
         expect(find.byType(StatsCard), findsOneWidget);
@@ -38,8 +42,10 @@ void main() {
         await tester.binding.setSurfaceSize(null);
       });
 
-      testWidgets('Three StatsCards in row should handle tight space', (WidgetTester tester) async {
-        await tester.binding.setSurfaceSize(const Size(320, 568)); // iPhone SE size
+      testWidgets('Three StatsCards in row should handle tight space',
+          (WidgetTester tester) async {
+        await tester.binding
+            .setSurfaceSize(const Size(320, 568)); // iPhone SE size
 
         await tester.pumpWidget(
           const MaterialApp(
@@ -87,7 +93,9 @@ void main() {
         await tester.pump();
 
         // Check for overflow errors
-        expect(tester.takeException(), isNull, reason: 'Three StatsCards should fit without overflow on small screen');
+        expect(tester.takeException(), isNull,
+            reason:
+                'Three StatsCards should fit without overflow on small screen');
 
         // Verify all cards are rendered
         expect(find.byType(StatsCard), findsNWidgets(3));
@@ -95,8 +103,10 @@ void main() {
         await tester.binding.setSurfaceSize(null);
       });
 
-      testWidgets('StatsCard handles extremely long values gracefully', (WidgetTester tester) async {
-        await tester.binding.setSurfaceSize(const Size(280, 600)); // Very narrow
+      testWidgets('StatsCard handles extremely long values gracefully',
+          (WidgetTester tester) async {
+        await tester.binding
+            .setSurfaceSize(const Size(280, 600)); // Very narrow
 
         await tester.pumpWidget(
           const MaterialApp(
@@ -120,19 +130,23 @@ void main() {
         await tester.pump();
 
         // Very long content should be handled gracefully
-        expect(tester.takeException(), isNull, reason: 'Extremely long text should be truncated to prevent overflow');
+        expect(tester.takeException(), isNull,
+            reason:
+                'Extremely long text should be truncated to prevent overflow');
 
         await tester.binding.setSurfaceSize(null);
       });
 
-      testWidgets('StatsCard with large text scaling should not overflow', (WidgetTester tester) async {
+      testWidgets('StatsCard with large text scaling should not overflow',
+          (WidgetTester tester) async {
         await tester.binding.setSurfaceSize(const Size(350, 600));
 
         await tester.pumpWidget(
           const MaterialApp(
             home: MediaQuery(
               data: MediaQueryData(
-                textScaler: TextScaler.linear(2.0), // Large text scaling for accessibility
+                textScaler: TextScaler.linear(
+                    2.0), // Large text scaling for accessibility
               ),
               child: Scaffold(
                 body: Padding(
@@ -153,14 +167,16 @@ void main() {
         await tester.pump();
 
         // Large text scaling should not cause overflow
-        expect(tester.takeException(), isNull, reason: 'Large text scaling should not cause overflow');
+        expect(tester.takeException(), isNull,
+            reason: 'Large text scaling should not cause overflow');
 
         await tester.binding.setSurfaceSize(null);
       });
     });
 
     group('Impact Goal Layout Tests', () {
-      testWidgets('Today\'s Impact Goal handles narrow screens', (WidgetTester tester) async {
+      testWidgets('Today\'s Impact Goal handles narrow screens',
+          (WidgetTester tester) async {
         await tester.binding.setSurfaceSize(const Size(300, 600));
 
         await tester.pumpWidget(
@@ -175,7 +191,8 @@ void main() {
                       children: [
                         Row(
                           children: [
-                            Icon(Icons.emoji_events, color: AppTheme.primaryColor),
+                            Icon(Icons.emoji_events,
+                                color: AppTheme.primaryColor),
                             SizedBox(width: 8),
                             Expanded(
                               child: Text(
@@ -190,7 +207,9 @@ void main() {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Text('2', style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold)),
+                            Text('2',
+                                style: TextStyle(
+                                    fontSize: 32, fontWeight: FontWeight.bold)),
                             Text(' of '),
                             Text('10', style: TextStyle(fontSize: 20)),
                           ],
@@ -213,15 +232,18 @@ void main() {
         await tester.pump();
 
         // No overflow in impact goal section
-        expect(tester.takeException(), isNull, reason: 'Today\'s Impact Goal should handle narrow screens');
+        expect(tester.takeException(), isNull,
+            reason: 'Today\'s Impact Goal should handle narrow screens');
 
         await tester.binding.setSurfaceSize(null);
       });
     });
 
     group('Edge Case Layout Tests', () {
-      testWidgets('Extremely narrow width (200px) handles gracefully', (WidgetTester tester) async {
-        await tester.binding.setSurfaceSize(const Size(200, 600)); // Extremely narrow
+      testWidgets('Extremely narrow width (200px) handles gracefully',
+          (WidgetTester tester) async {
+        await tester.binding
+            .setSurfaceSize(const Size(200, 600)); // Extremely narrow
 
         await tester.pumpWidget(
           const MaterialApp(
@@ -267,12 +289,14 @@ void main() {
         await tester.pump();
 
         // Even extremely narrow screens should not overflow
-        expect(tester.takeException(), isNull, reason: 'Extremely narrow screens should be handled gracefully');
+        expect(tester.takeException(), isNull,
+            reason: 'Extremely narrow screens should be handled gracefully');
 
         await tester.binding.setSurfaceSize(null);
       });
 
-      testWidgets('Dynamic value changes do not cause overflow', (WidgetTester tester) async {
+      testWidgets('Dynamic value changes do not cause overflow',
+          (WidgetTester tester) async {
         await tester.binding.setSurfaceSize(const Size(350, 600));
 
         var testValue = '0';
@@ -315,7 +339,8 @@ void main() {
         await tester.pump();
 
         // Even very large values should not cause overflow
-        expect(tester.takeException(), isNull, reason: 'Dynamic value changes should not cause overflow');
+        expect(tester.takeException(), isNull,
+            reason: 'Dynamic value changes should not cause overflow');
 
         await tester.binding.setSurfaceSize(null);
       });

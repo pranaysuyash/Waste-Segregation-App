@@ -17,11 +17,11 @@ void main() {
 
         // ✅ Verify home screen loads
         expect(find.byType(Scaffold), findsAtLeastNWidgets(1));
-        
+
         // 🎯 Look for premium features button
         final premiumButton = find.textContaining('Premium');
         final starIcon = find.byIcon(Icons.star);
-        
+
         if (premiumButton.evaluate().isNotEmpty) {
           await tester.tap(premiumButton.first);
           await tester.pumpAndSettle();
@@ -29,7 +29,7 @@ void main() {
           await tester.tap(starIcon.first);
           await tester.pumpAndSettle();
         }
-        
+
         // ✅ Verify we're still in a valid state
         expect(find.byType(Scaffold), findsAtLeastNWidgets(1));
       },
@@ -45,7 +45,7 @@ void main() {
         // 🎯 Start classification
         final cameraIcon = find.byIcon(Icons.camera_alt);
         final classifyText = find.textContaining('Classify');
-        
+
         if (cameraIcon.evaluate().isNotEmpty) {
           await tester.tap(cameraIcon.first);
           await tester.pumpAndSettle();
@@ -53,16 +53,17 @@ void main() {
           await tester.tap(classifyText.first);
           await tester.pumpAndSettle();
         }
-        
+
         // ✅ Verify camera/classification screen
         expect(find.byType(Scaffold), findsAtLeastNWidgets(1));
-        
+
         // Look for capture button or FAB
         final captureButton = find.byIcon(Icons.camera);
         final fab = find.byType(FloatingActionButton);
-        
-        expect(captureButton.evaluate().isNotEmpty || fab.evaluate().isNotEmpty, 
-               isTrue, reason: 'Should find capture button or FAB');
+
+        expect(captureButton.evaluate().isNotEmpty || fab.evaluate().isNotEmpty,
+            isTrue,
+            reason: 'Should find capture button or FAB');
       },
     );
 
@@ -76,7 +77,7 @@ void main() {
         // 🎯 Test history navigation
         final historyText = find.textContaining('History');
         final historyIcon = find.byIcon(Icons.history);
-        
+
         if (historyText.evaluate().isNotEmpty) {
           await tester.tap(historyText.first);
           await tester.pumpAndSettle();
@@ -84,19 +85,21 @@ void main() {
           await tester.tap(historyIcon.first);
           await tester.pumpAndSettle();
         }
-        
+
         // ✅ Verify history screen
         expect(find.byType(Scaffold), findsAtLeastNWidgets(1));
-        
+
         // Look for history list or empty state
         final listView = find.byType(ListView);
         final scrollView = find.byType(CustomScrollView);
         final emptyText = find.textContaining('No history');
-        
-        expect(listView.evaluate().isNotEmpty || 
-               scrollView.evaluate().isNotEmpty || 
-               emptyText.evaluate().isNotEmpty,
-               isTrue, reason: 'Should find history list or empty state');
+
+        expect(
+            listView.evaluate().isNotEmpty ||
+                scrollView.evaluate().isNotEmpty ||
+                emptyText.evaluate().isNotEmpty,
+            isTrue,
+            reason: 'Should find history list or empty state');
       },
     );
 
@@ -110,7 +113,7 @@ void main() {
         // 🎯 Navigate to settings
         final settingsText = find.textContaining('Settings');
         final settingsIcon = find.byIcon(Icons.settings);
-        
+
         if (settingsText.evaluate().isNotEmpty) {
           await tester.tap(settingsText.first);
           await tester.pumpAndSettle();
@@ -118,15 +121,16 @@ void main() {
           await tester.tap(settingsIcon.first);
           await tester.pumpAndSettle();
         }
-        
+
         // ✅ Verify settings screen
         expect(find.byType(Scaffold), findsAtLeastNWidgets(1));
-        
+
         // 🎨 Look for theme toggle
         final themeText = find.textContaining('Theme');
         final switchWidget = find.byType(Switch);
-        
-        if (themeText.evaluate().isNotEmpty || switchWidget.evaluate().isNotEmpty) {
+
+        if (themeText.evaluate().isNotEmpty ||
+            switchWidget.evaluate().isNotEmpty) {
           // Theme settings exist
           expect(find.byType(Scaffold), findsAtLeastNWidgets(1));
         }
@@ -147,19 +151,19 @@ void main() {
           if (historyText.evaluate().isNotEmpty) {
             await tester.tap(historyText.first);
             await tester.pumpAndSettle();
-            
+
             final backButton = find.byIcon(Icons.arrow_back);
             if (backButton.evaluate().isNotEmpty) {
               await tester.tap(backButton.first);
               await tester.pumpAndSettle();
             }
           }
-          
+
           final settingsText = find.textContaining('Settings');
           if (settingsText.evaluate().isNotEmpty) {
             await tester.tap(settingsText.first);
             await tester.pumpAndSettle();
-            
+
             final backButton = find.byIcon(Icons.arrow_back);
             if (backButton.evaluate().isNotEmpty) {
               await tester.tap(backButton.first);
@@ -167,7 +171,7 @@ void main() {
             }
           }
         }
-        
+
         // ✅ App should still be responsive
         expect(find.byType(Scaffold), findsAtLeastNWidgets(1));
       },
@@ -183,16 +187,17 @@ void main() {
         // 🎯 Look for points display
         final pointsText = find.textContaining('Points');
         final scoreText = find.textContaining('Score');
-        
-        if (pointsText.evaluate().isNotEmpty || scoreText.evaluate().isNotEmpty) {
+
+        if (pointsText.evaluate().isNotEmpty ||
+            scoreText.evaluate().isNotEmpty) {
           expect(find.byType(Scaffold), findsAtLeastNWidgets(1));
-          
+
           // Perform point-earning action
           final cameraIcon = find.byIcon(Icons.camera_alt);
           if (cameraIcon.evaluate().isNotEmpty) {
             await tester.tap(cameraIcon.first);
             await tester.pumpAndSettle();
-            
+
             // Navigate back
             final backButton = find.byIcon(Icons.arrow_back);
             if (backButton.evaluate().isNotEmpty) {
@@ -201,7 +206,7 @@ void main() {
             }
           }
         }
-        
+
         // ✅ App should still be functional
         expect(find.byType(Scaffold), findsAtLeastNWidgets(1));
       },
@@ -219,16 +224,16 @@ void main() {
         // Test with different screen sizes
         await tester.binding.setSurfaceSize(const Size(400, 800));
         await tester.pumpAndSettle();
-        
+
         // Verify app handles different sizes
         expect(find.byType(Scaffold), findsAtLeastNWidgets(1));
-        
+
         // Test with larger screen
         await tester.binding.setSurfaceSize(const Size(600, 1000));
         await tester.pumpAndSettle();
-        
+
         expect(find.byType(Scaffold), findsAtLeastNWidgets(1));
       },
     );
   });
-} 
+}

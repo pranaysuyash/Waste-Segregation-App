@@ -34,7 +34,8 @@ class PolishedCard extends StatefulWidget {
   State<PolishedCard> createState() => _PolishedCardState();
 }
 
-class _PolishedCardState extends State<PolishedCard> with SingleTickerProviderStateMixin {
+class _PolishedCardState extends State<PolishedCard>
+    with SingleTickerProviderStateMixin {
   late AnimationController _animationController;
   late Animation<double> _scaleAnimation;
   bool _isPressed = false;

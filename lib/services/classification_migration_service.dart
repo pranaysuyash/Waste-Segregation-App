@@ -1,14 +1,15 @@
 import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:path_provider/path_provider.dart';
-import '../models/waste_classification.dart';
+import 'package:waste_segregation_app/models/waste_classification.dart';
 import 'storage_service.dart';
 import 'cloud_storage_service.dart';
 import 'package:waste_segregation_app/utils/waste_app_logger.dart';
 
 /// Service to migrate old classification records and update them with existing images
 class ClassificationMigrationService {
-  ClassificationMigrationService(this._localStorageService, this._cloudStorageService);
+  ClassificationMigrationService(
+      this._localStorageService, this._cloudStorageService);
   final StorageService _localStorageService;
   final CloudStorageService _cloudStorageService;
 
@@ -32,8 +33,10 @@ class ClassificationMigrationService {
       }
 
       // Get all local classifications
-      final localClassifications = await _localStorageService.getAllClassifications();
-      WasteAppLogger.info('📊 Found ${localClassifications.length} local classifications');
+      final localClassifications =
+          await _localStorageService.getAllClassifications();
+      WasteAppLogger.info(
+          '📊 Found ${localClassifications.length} local classifications');
 
       var totalProcessed = 0;
       var updated = 0;
@@ -46,7 +49,8 @@ class ClassificationMigrationService {
 
         try {
           // Check if classification already has a valid imageUrl
-          if (classification.imageUrl != null && classification.imageUrl!.isNotEmpty) {
+          if (classification.imageUrl != null &&
+              classification.imageUrl!.isNotEmpty) {
             // For mobile platforms, check if the file exists
             if (!kIsWeb) {
               final file = File(classification.imageUrl!);
@@ -62,24 +66,29 @@ class ClassificationMigrationService {
           }
 
           // Try to find an image for this classification
-          final updatedClassification = await _findAndUpdateImage(classification);
+          final updatedClassification =
+              await _findAndUpdateImage(classification);
 
           if (updatedClassification != null) {
             // Save updated classification locally
-            await _localStorageService.saveClassification(updatedClassification);
+            await _localStorageService
+                .saveClassification(updatedClassification);
 
             // Add to list for batch cloud update
             updatedClassifications.add(updatedClassification);
 
             updated++;
-            WasteAppLogger.info('✅ Updated classification: ${classification.itemName}');
+            WasteAppLogger.info(
+                '✅ Updated classification: ${classification.itemName}');
           } else {
             skipped++;
-            WasteAppLogger.info('⏭️ No image found for: ${classification.itemName}');
+            WasteAppLogger.info(
+                '⏭️ No image found for: ${classification.itemName}');
           }
         } catch (e) {
           errors++;
-          WasteAppLogger.severe('❌ Error processing ${classification.itemName}: $e');
+          WasteAppLogger.severe(
+              '❌ Error processing ${classification.itemName}: $e');
         }
       }
 
@@ -88,9 +97,12 @@ class ClassificationMigrationService {
       if (updatedClassifications.isNotEmpty) {
         final isGoogleSyncEnabled = await _isGoogleSyncEnabled();
         if (isGoogleSyncEnabled) {
-          WasteAppLogger.info('☁️ Batch updating ${updatedClassifications.length} classifications in cloud...');
-          cloudUpdated = await _cloudStorageService.batchUpdateClassificationsInCloud(updatedClassifications);
-          WasteAppLogger.info('☁️ Successfully updated $cloudUpdated classifications in cloud');
+          WasteAppLogger.info(
+              '☁️ Batch updating ${updatedClassifications.length} classifications in cloud...');
+          cloudUpdated = await _cloudStorageService
+              .batchUpdateClassificationsInCloud(updatedClassifications);
+          WasteAppLogger.info(
+              '☁️ Successfully updated $cloudUpdated classifications in cloud');
         }
       }
 
@@ -127,7 +139,8 @@ class ClassificationMigrationService {
   }
 
   /// Try to find an existing image for a classification
-  Future<WasteClassification?> _findAndUpdateImage(WasteClassification classification) async {
+  Future<WasteClassification?> _findAndUpdateImage(
+      WasteClassification classification) async {
     // Strategy 1: Look for images with classification ID in filename
     var foundImagePath = await _findImageByClassificationId(classification.id);
 
@@ -191,7 +204,8 @@ class ClassificationMigrationService {
             final stat = await file.stat();
             final fileTime = stat.modified;
 
-            if (fileTime.isAfter(timestamp.subtract(timeWindow)) && fileTime.isBefore(timestamp.add(timeWindow))) {
+            if (fileTime.isAfter(timestamp.subtract(timeWindow)) &&
+                fileTime.isBefore(timestamp.add(timeWindow))) {
               return file.path;
             }
           }
@@ -210,7 +224,8 @@ class ClassificationMigrationService {
 
     try {
       final searchPaths = await _getImageSearchPaths();
-      final cleanItemName = itemName.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]'), '');
+      final cleanItemName =
+          itemName.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]'), '');
 
       for (final searchPath in searchPaths) {
         final directory = Directory(searchPath);

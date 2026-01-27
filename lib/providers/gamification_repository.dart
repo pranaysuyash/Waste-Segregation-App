@@ -8,7 +8,7 @@ import '../models/gamification.dart';
 import '../services/storage_service.dart';
 import '../services/cloud_storage_service.dart';
 import '../utils/constants.dart';
-import 'gamification_provider.dart';
+import 'app_providers.dart';
 import 'package:waste_segregation_app/utils/waste_app_logger.dart';
 
 /// Repository that provides a single source of truth for gamification data
@@ -64,7 +64,8 @@ class GamificationRepository {
       }
 
       // 4. Resolve conflicts and return best profile
-      final resolvedProfile = _resolveConflicts(cloudProfile, localProfile, userProfile.id);
+      final resolvedProfile =
+          _resolveConflicts(cloudProfile, localProfile, userProfile.id);
 
       // 5. Cache the resolved profile
       await _cacheProfile(resolvedProfile);
@@ -92,7 +93,8 @@ class GamificationRepository {
         await _saveCloudProfile(profile);
       } catch (e) {
         if (kDebugMode) {
-          WasteAppLogger.severe('🔄 Cloud save failed, queueing for later: $e');
+          WasteAppLogger.severe(
+              '🔄 Cloud save failed, error: queueing for later: $e');
         }
         await _queueOfflineOperation('save_profile', profile.toJson());
       }
@@ -102,8 +104,10 @@ class GamificationRepository {
   }
 
   /// Claim achievement reward with validation
-  Future<Achievement> claimReward(String achievementId, GamificationProfile currentProfile) async {
-    final achievementIndex = currentProfile.achievements.indexWhere((a) => a.id == achievementId);
+  Future<Achievement> claimReward(
+      String achievementId, GamificationProfile currentProfile) async {
+    final achievementIndex =
+        currentProfile.achievements.indexWhere((a) => a.id == achievementId);
 
     if (achievementIndex == -1) {
       throw AppException.storage('Achievement not found');
@@ -127,7 +131,8 @@ class GamificationRepository {
     );
 
     // Update profile with new points and achievement status
-    final updatedAchievements = List<Achievement>.from(currentProfile.achievements);
+    final updatedAchievements =
+        List<Achievement>.from(currentProfile.achievements);
     updatedAchievements[achievementIndex] = updatedAchievement;
 
     final updatedPoints = currentProfile.points.copyWith(
@@ -169,7 +174,8 @@ class GamificationRepository {
       }
 
       // Remove processed operations from queue
-      final remainingQueue = queue.where((op) => !processedOperations.contains(op)).toList();
+      final remainingQueue =
+          queue.where((op) => !processedOperations.contains(op)).toList();
 
       if (remainingQueue.isEmpty) {
         await box.delete(_offlineQueueKey);
@@ -287,20 +293,27 @@ class GamificationRepository {
   }
 
   /// Queue operation for offline processing
-  Future<void> _queueOfflineOperation(String type, Map<String, dynamic> data) async {
+  Future<void> _queueOfflineOperation(
+      String type, Map<String, dynamic> data) async {
     try {
       final box = await Hive.openBox('gamification_cache');
       final queueJson = box.get(_offlineQueueKey) as String?;
 
-      final queue =
-          queueJson != null ? List<Map<String, dynamic>>.from(jsonDecode(queueJson)) : <Map<String, dynamic>>[];
+      final queue = queueJson != null
+          ? List<Map<String, dynamic>>.from(jsonDecode(queueJson))
+          : <Map<String, dynamic>>[];
 
+      // Suppress informational lint about duplicate receiver usage — using 'queue' repeatedly here is intentional.
+      // ignore: cascade_invocations
       queue.add({
         'type': type,
         'data': data,
         'timestamp': DateTime.now().toIso8601String(),
       });
 
+      // Using the same 'box' variable for get/put is intentional and clearer here.
+      // The cascade_invocations lint is informational; suppress at this site.
+      // ignore: cascade_invocations
       await box.put(_offlineQueueKey, jsonEncode(queue));
     } catch (e) {
       if (kDebugMode) {

@@ -39,7 +39,8 @@ class ImageUtils {
   /// [imageBytes]: The raw image data as Uint8List
   ///
   /// Returns a Map with 'perceptualHash' and 'contentHash' keys
-  static Future<Map<String, String>> generateDualHashes(Uint8List imageBytes) async {
+  static Future<Map<String, String>> generateDualHashes(
+      Uint8List imageBytes) async {
     try {
       // Normalize bytes first for consistent hashing
       final normalizedBytes = await _normalizedBytes(imageBytes);
@@ -73,7 +74,8 @@ class ImageUtils {
         }
 
         // Resize to exactly 8x8 for DCT (Discrete Cosine Transform approximation)
-        final smallImage = img.copyResize(img.grayscale(image), width: 8, height: 8);
+        final smallImage =
+            img.copyResize(img.grayscale(image), width: 8, height: 8);
 
         // Calculate the average pixel value
         var totalValue = 0;
@@ -165,7 +167,8 @@ class ImageUtils {
       // Fallback to a simpler hash if perceptual hashing fails
       try {
         // Generate a simple average hash as fallback
-        final bytesToHash = await preprocessImage(imageBytes, targetWidth: 16, targetHeight: 16);
+        final bytesToHash = await preprocessImage(imageBytes,
+            targetWidth: 16, targetHeight: 16);
 
         // Use SHA-256 on the preprocessed image
         final digest = sha256.convert(bytesToHash);
@@ -297,7 +300,8 @@ class ImageUtils {
   }
 
   /// Helper method to run image preprocessing in an isolate
-  static Future<Uint8List> _preprocessImageIsolate(_PreprocessImageArgs args) async {
+  static Future<Uint8List> _preprocessImageIsolate(
+      _PreprocessImageArgs args) async {
     try {
       // Decode the image
       final image = img.decodeImage(args.imageBytes);
@@ -314,7 +318,8 @@ class ImageUtils {
       );
 
       // Convert to grayscale if requested
-      final processedImage = args.convertToGrayscale ? img.grayscale(resizedImage) : resizedImage;
+      final processedImage =
+          args.convertToGrayscale ? img.grayscale(resizedImage) : resizedImage;
 
       // Apply blur to reduce noise sensitivity
       // Use stronger blur for perceptual hashing to be more robust to small changes
@@ -358,7 +363,12 @@ class ImageUtils {
       final height = (rect.height * image.height).round();
 
       // Ensure coordinates are valid
-      if (x < 0 || y < 0 || width <= 0 || height <= 0 || x + width > image.width || y + height > image.height) {
+      if (x < 0 ||
+          y < 0 ||
+          width <= 0 ||
+          height <= 0 ||
+          x + width > image.width ||
+          y + height > image.height) {
         return null;
       }
 
@@ -441,7 +451,8 @@ class ImageUtils {
 
     try {
       // Check if it's a network URL
-      if (imageSource.startsWith('http://') || imageSource.startsWith('https://')) {
+      if (imageSource.startsWith('http://') ||
+          imageSource.startsWith('https://')) {
         return Image.network(
           imageSource,
           width: width,
@@ -502,7 +513,8 @@ class ImageUtils {
       ImageProvider? backgroundImage;
 
       // Check if it's a network URL
-      if (imageSource.startsWith('http://') || imageSource.startsWith('https://')) {
+      if (imageSource.startsWith('http://') ||
+          imageSource.startsWith('https://')) {
         backgroundImage = NetworkImage(imageSource);
       } else if (imageSource.startsWith('assets/')) {
         backgroundImage = AssetImage(imageSource);
@@ -526,7 +538,8 @@ class ImageUtils {
         onBackgroundImageError: backgroundImage != null
             ? (exception, stackTrace) {
                 // Handle image loading error silently
-                WasteAppLogger.severe('Avatar image failed to load: $exception');
+                WasteAppLogger.severe(
+                    'Avatar image failed to load: $exception');
               }
             : null,
         child: backgroundImage == null ? child : null,
@@ -543,7 +556,8 @@ class ImageUtils {
   /// Checks if an image source is valid and accessible
   static Future<bool> isImageSourceValid(String imageSource) async {
     try {
-      if (imageSource.startsWith('http://') || imageSource.startsWith('https://')) {
+      if (imageSource.startsWith('http://') ||
+          imageSource.startsWith('https://')) {
         // For network images, we'd need to make a HEAD request to check
         // For now, assume network URLs are valid if properly formatted
         return Uri.tryParse(imageSource) != null;

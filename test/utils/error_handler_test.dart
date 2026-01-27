@@ -96,7 +96,8 @@ void main() {
         expect(message, equals('AI model failed'));
       });
 
-      test('should return generic message for ClassificationException type', () {
+      test('should return generic message for ClassificationException type',
+          () {
         final exception = ClassificationException('Complex technical error');
         final message = ErrorHandler.getUserFriendlyMessage(exception);
 
@@ -135,19 +136,22 @@ void main() {
         final exception = Exception('Random error');
         final message = ErrorHandler.getUserFriendlyMessage(exception);
 
-        expect(message, equals('An unexpected error occurred. Please try again.'));
+        expect(
+            message, equals('An unexpected error occurred. Please try again.'));
       });
 
       test('should handle null errors gracefully', () {
         final message = ErrorHandler.getUserFriendlyMessage(null);
 
-        expect(message, equals('An unexpected error occurred. Please try again.'));
+        expect(
+            message, equals('An unexpected error occurred. Please try again.'));
       });
 
       test('should handle string errors', () {
         final message = ErrorHandler.getUserFriendlyMessage('String error');
 
-        expect(message, equals('An unexpected error occurred. Please try again.'));
+        expect(
+            message, equals('An unexpected error occurred. Please try again.'));
       });
     });
 
@@ -248,7 +252,8 @@ void main() {
         final map = exception.toMap();
 
         expect(map['metadata'], equals(metadata));
-        expect(map['metadata']['request']['url'], equals('https://api.example.com'));
+        expect(map['metadata']['request']['url'],
+            equals('https://api.example.com'));
         expect(map['metadata']['response']['status'], equals(500));
       });
 
@@ -293,12 +298,18 @@ void main() {
         final exception = NetworkException('Test');
         final after = DateTime.now();
 
-        expect(exception.timestamp.isAfter(before.subtract(const Duration(seconds: 1))), isTrue);
-        expect(exception.timestamp.isBefore(after.add(const Duration(seconds: 1))), isTrue);
+        expect(
+            exception.timestamp
+                .isAfter(before.subtract(const Duration(seconds: 1))),
+            isTrue);
+        expect(
+            exception.timestamp.isBefore(after.add(const Duration(seconds: 1))),
+            isTrue);
       });
 
       test('should have unique timestamps for multiple exceptions', () {
-        final exceptions = List.generate(5, (i) => ClassificationException('Error $i'));
+        final exceptions =
+            List.generate(5, (i) => ClassificationException('Error $i'));
 
         final timestamps = exceptions.map((e) => e.timestamp).toList();
         final uniqueTimestamps = timestamps.toSet();
@@ -318,7 +329,8 @@ void main() {
       });
 
       test('should handle special characters in messages', () {
-        const specialMessage = 'Error with émojis 🚫 and ñovel characters: <>&"\'';
+        const specialMessage =
+            'Error with émojis 🚫 and ñovel characters: <>&"\'';
         final exception = NetworkException(specialMessage);
 
         expect(exception.message, equals(specialMessage));
@@ -351,11 +363,13 @@ void main() {
         // Note: This test ensures we don't have issues with circular references
         // Since we're using basic Map<String, dynamic>, this should work fine
         final metadata = <String, dynamic>{};
-        metadata['self'] = metadata; // This would cause issues with JSON serialization
+        metadata['self'] =
+            metadata; // This would cause issues with JSON serialization
 
         // Our exception should still be created without issues
         expect(
-          () => ClassificationException('Circular reference test', {'simple': 'value'}),
+          () => ClassificationException(
+              'Circular reference test', {'simple': 'value'}),
           returnsNormally,
         );
       });

@@ -156,7 +156,7 @@ void main() {
       );
 
       final str = stats.toString();
-      
+
       expect(str, contains('n=50'));
       expect(str, contains('latency=100ms'));
       expect(str, contains('cost=\$0.0030'));

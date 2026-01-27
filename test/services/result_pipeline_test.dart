@@ -92,8 +92,10 @@ void main() {
         // Passing null explicitly preserves existing value due to ?? operator
         final stateWithNullAttempt = originalState.copyWith(error: null);
 
-        expect(stateWithNullAttempt.error, equals('Some error')); // Preserved due to ?? operator
-        expect(stateWithNullAttempt.pointsEarned, equals(50)); // Other fields preserved
+        expect(stateWithNullAttempt.error,
+            equals('Some error')); // Preserved due to ?? operator
+        expect(stateWithNullAttempt.pointsEarned,
+            equals(50)); // Other fields preserved
       });
 
       test('copyWith with achievements', () {
@@ -124,11 +126,14 @@ void main() {
         );
 
         expect(stateWithAchievements.newAchievements, hasLength(2));
-        expect(stateWithAchievements.newAchievements[0].id, equals('achievement-1'));
-        expect(stateWithAchievements.newAchievements[1].id, equals('achievement-2'));
+        expect(stateWithAchievements.newAchievements[0].id,
+            equals('achievement-1'));
+        expect(stateWithAchievements.newAchievements[1].id,
+            equals('achievement-2'));
 
         // Clear achievements
-        final clearedState = stateWithAchievements.copyWith(newAchievements: []);
+        final clearedState =
+            stateWithAchievements.copyWith(newAchievements: []);
         expect(clearedState.newAchievements, isEmpty);
       });
     });
@@ -174,7 +179,8 @@ void main() {
 
         // Attempting to clear with null preserves existing value
         final attemptToClear = stateWithError.copyWith(error: null);
-        expect(attemptToClear.error, equals('Test error message')); // Still preserved
+        expect(attemptToClear.error,
+            equals('Test error message')); // Still preserved
 
         // To clear error, create new state (as done in reset method)
         const clearedState = ResultPipelineState();
@@ -188,7 +194,8 @@ void main() {
           isProcessing: true,
         );
 
-        final stateWithError = stateWithData.copyWith(error: 'Something went wrong');
+        final stateWithError =
+            stateWithData.copyWith(error: 'Something went wrong');
 
         expect(stateWithError.error, equals('Something went wrong'));
         expect(stateWithError.pointsEarned, equals(75));

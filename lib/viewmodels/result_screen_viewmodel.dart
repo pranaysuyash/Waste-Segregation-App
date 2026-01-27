@@ -1,7 +1,6 @@
 import 'package:flutter/foundation.dart';
-import '../models/waste_classification.dart';
+import 'package:waste_segregation_app/models/waste_classification.dart';
 import '../models/gamification.dart';
-import '../models/gamification_result.dart';
 import '../services/storage_service.dart';
 import '../services/gamification_service.dart';
 import '../services/cloud_storage_service.dart';
@@ -9,10 +8,10 @@ import '../services/analytics_service.dart';
 import '../utils/waste_app_logger.dart';
 
 /// OPTIMIZATION: ViewModel for ResultScreen to separate business logic from UI
-/// 
+///
 /// Extracts 500+ lines of business logic from ResultScreen into a dedicated ViewModel.
 /// This follows the MVVM pattern for better testability and maintainability.
-/// 
+///
 /// Benefits:
 /// - Separation of concerns (business logic vs UI)
 /// - Easier unit testing (no widget context needed)
@@ -58,7 +57,8 @@ class ResultScreenViewModel extends ChangeNotifier {
   /// Auto-save classification and process gamification
   Future<void> autoSaveAndProcess() async {
     if (_isSaved || _isAutoSaving) {
-      WasteAppLogger.debug('Classification already saved or saving in progress');
+      WasteAppLogger.debug(
+          'Classification already saved or saving in progress');
       return;
     }
 
@@ -83,7 +83,7 @@ class ResultScreenViewModel extends ChangeNotifier {
         },
       );
     } catch (e, s) {
-      WasteAppLogger.severe('Error during auto-save', e, s);
+      WasteAppLogger.severe('Error during auto-save', error: e, stackTrace: s);
       _error = 'Failed to save classification';
     } finally {
       _isAutoSaving = false;
@@ -116,7 +116,8 @@ class ResultScreenViewModel extends ChangeNotifier {
 
       notifyListeners();
     } catch (e, s) {
-      WasteAppLogger.severe('Error saving classification', e, s);
+      WasteAppLogger.severe('Error saving classification',
+          error: e, stackTrace: s);
       _error = 'Failed to save classification';
       notifyListeners();
     }
@@ -139,27 +140,39 @@ class ResultScreenViewModel extends ChangeNotifier {
       }
 
       // Process classification for gamification
-      final result = await _gamificationService.processClassificationForGamification(
-        classification,
-        userProfile.id,
+      final beforePoints = userProfile.gamificationProfile?.points.total ?? 0;
+      final completedChallenges =
+          await _gamificationService.processClassification(classification);
+
+      final updatedProfile =
+          await _gamificationService.getProfile(forceRefresh: true);
+      final afterPoints = updatedProfile.points.total ?? beforePoints;
+
+      _pointsEarned = afterPoints - beforePoints;
+
+      final beforeEarnedIds = userProfile.gamificationProfile?.achievements
+              .where((a) => a.isEarned)
+              .map((a) => a.id)
+              .toSet() ??
+          <String>{};
+      _newlyEarnedAchievements = updatedProfile.achievements
+              .where((a) => a.isEarned && !beforeEarnedIds.contains(a.id))
+              .toList() ??
+          [];
+      _completedChallenge =
+          (completedChallenges.isNotEmpty ? completedChallenges.first : null);
+
+      WasteAppLogger.info(
+        'Gamification processed',
+        context: {
+          'points': _pointsEarned,
+          'achievements': _newlyEarnedAchievements.length,
+          'challenge_completed': _completedChallenge != null,
+        },
       );
-
-      if (result != null) {
-        _pointsEarned = result.pointsEarned;
-        _newlyEarnedAchievements = result.newAchievements;
-        _completedChallenge = result.completedChallenge;
-
-        WasteAppLogger.info(
-          'Gamification processed',
-          context: {
-            'points': _pointsEarned,
-            'achievements': _newlyEarnedAchievements.length,
-            'challenge_completed': _completedChallenge != null,
-          },
-        );
-      }
     } catch (e, s) {
-      WasteAppLogger.severe('Error processing gamification', e, s);
+      WasteAppLogger.severe('Error processing gamification',
+          error: e, stackTrace: s);
       // Don't set error - gamification is optional
     } finally {
       _isProcessingGamification = false;
@@ -182,7 +195,7 @@ class ResultScreenViewModel extends ChangeNotifier {
       // Share logic will be handled by UI using ShareService
       notifyListeners();
     } catch (e, s) {
-      WasteAppLogger.severe('Error preparing share', e, s);
+      WasteAppLogger.severe('Error preparing share', error: e, stackTrace: s);
       _error = 'Failed to share';
       notifyListeners();
     }
@@ -214,7 +227,8 @@ class ResultScreenViewModel extends ChangeNotifier {
 
       notifyListeners();
     } catch (e, s) {
-      WasteAppLogger.severe('Error submitting correction', e, s);
+      WasteAppLogger.severe('Error submitting correction',
+          error: e, stackTrace: s);
       _error = 'Failed to submit correction';
       notifyListeners();
     }
@@ -243,7 +257,8 @@ class ResultScreenViewModel extends ChangeNotifier {
 
       notifyListeners();
     } catch (e, s) {
-      WasteAppLogger.severe('Error confirming classification', e, s);
+      WasteAppLogger.severe('Error confirming classification',
+          error: e, stackTrace: s);
       _error = 'Failed to confirm';
       notifyListeners();
     }
@@ -268,7 +283,8 @@ class ResultScreenViewModel extends ChangeNotifier {
 
       return true;
     } catch (e, s) {
-      WasteAppLogger.severe('Error deleting classification', e, s);
+      WasteAppLogger.severe('Error deleting classification',
+          error: e, stackTrace: s);
       _error = 'Failed to delete';
       notifyListeners();
       return false;

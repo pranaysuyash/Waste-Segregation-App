@@ -91,7 +91,8 @@ class DisposalLocation {
     this.isActive = true,
   });
 
-  factory DisposalLocation.fromJson(Map<String, dynamic> json, String documentId) {
+  factory DisposalLocation.fromJson(
+      Map<String, dynamic> json, String documentId) {
     return DisposalLocation(
       id: documentId,
       name: json['name'] as String,
@@ -99,9 +100,12 @@ class DisposalLocation {
       coordinates: json['coordinates'] as GeoPoint,
       operatingHours: Map<String, String>.from(json['operatingHours'] as Map),
       contactInfo: Map<String, String>.from(json['contactInfo'] as Map),
-      acceptedMaterials: (json['acceptedMaterials'] as List<dynamic>).map((e) => e as String).toList(),
+      acceptedMaterials: (json['acceptedMaterials'] as List<dynamic>)
+          .map((e) => e as String)
+          .toList(),
       photos: (json['photos'] as List<dynamic>?)
-          ?.map((p) => DisposalLocationPhoto.fromJson(p as Map<String, dynamic>))
+          ?.map(
+              (p) => DisposalLocationPhoto.fromJson(p as Map<String, dynamic>))
           .toList(),
       lastAdminUpdate: json['lastAdminUpdate'] as Timestamp?,
       lastVerifiedByAdmin: json['lastVerifiedByAdmin'] as Timestamp?,
@@ -114,7 +118,8 @@ class DisposalLocation {
   final String address;
   final GeoPoint coordinates;
   final Map<String, String> operatingHours; // e.g., {"monday": "9am-5pm", ...}
-  final Map<String, String> contactInfo; // e.g., {"phone": "...", "email": "...", "website": "..."}
+  final Map<String, String>
+      contactInfo; // e.g., {"phone": "...", "email": "...", "website": "..."}
   final List<String> acceptedMaterials;
   final List<DisposalLocationPhoto>? photos;
   final Timestamp? lastAdminUpdate;

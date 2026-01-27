@@ -17,7 +17,8 @@ class SimpleShimmer extends StatefulWidget {
   State<SimpleShimmer> createState() => _SimpleShimmerState();
 }
 
-class _SimpleShimmerState extends State<SimpleShimmer> with SingleTickerProviderStateMixin {
+class _SimpleShimmerState extends State<SimpleShimmer>
+    with SingleTickerProviderStateMixin {
   late final AnimationController _controller;
   late final Animation<double> _animation;
 

@@ -6,13 +6,14 @@ import '../utils/error_handler.dart';
 
 /// Service that provides resilient network operations with retry logic and fallback mechanisms
 class ResilientNetworkService {
-  static final ResilientNetworkService _instance = ResilientNetworkService._internal();
   factory ResilientNetworkService() => _instance;
   ResilientNetworkService._internal();
+  static final ResilientNetworkService _instance =
+      ResilientNetworkService._internal();
 
   final Connectivity _connectivity = Connectivity();
   StreamSubscription<List<ConnectivityResult>>? _connectivitySubscription;
-  
+
   bool _isOnline = true;
   final List<Function()> _pendingOperations = [];
   final Map<String, dynamic> _cache = {};
@@ -28,12 +29,13 @@ class ResilientNetworkService {
       (List<ConnectivityResult> results) {
         final wasOnline = _isOnline;
         _isOnline = !results.contains(ConnectivityResult.none);
-        
+
         if (!wasOnline && _isOnline) {
           _processPendingOperations();
         }
-        
-        WasteAppLogger.info('Connectivity changed: ${results.map((r) => r.name).join(', ')}, online: $_isOnline');
+
+        WasteAppLogger.info(
+            'Connectivity changed: ${results.map((r) => r.name).join(', ')}, error: online: $_isOnline');
       },
     );
   }
@@ -62,16 +64,17 @@ class ResilientNetworkService {
         WasteAppLogger.info('Using cached value for $operationName (offline)');
         return _cache[cacheKey] as T?;
       }
-      
+
       if (fallbackValue != null) {
-        WasteAppLogger.info('Using fallback value for $operationName (offline)');
+        WasteAppLogger.info(
+            'Using fallback value for $operationName (offline)');
         return fallbackValue;
       }
-      
+
       throw NetworkException('Device is offline and no fallback available');
     }
 
-    return await ErrorHandler.retryOperation<T>(
+    return ErrorHandler.retryOperation<T>(
       operation,
       maxRetries: maxRetries,
       initialDelay: initialDelay,
@@ -80,15 +83,17 @@ class ResilientNetworkService {
     ).catchError((error) {
       // If operation fails, try fallback options
       if (useCache && cacheKey != null && _cache.containsKey(cacheKey)) {
-        WasteAppLogger.info('Using cached value for $operationName (after failure)');
+        WasteAppLogger.info(
+            'Using cached value for $operationName (after failure)');
         return _cache[cacheKey] as T?;
       }
-      
+
       if (fallbackValue != null) {
-        WasteAppLogger.info('Using fallback value for $operationName (after failure)');
+        WasteAppLogger.info(
+            'Using fallback value for $operationName (after failure)');
         return fallbackValue;
       }
-      
+
       throw error;
     });
   }
@@ -121,17 +126,18 @@ class ResilientNetworkService {
   /// Process all pending operations
   void _processPendingOperations() {
     if (_pendingOperations.isEmpty) return;
-    
-    WasteAppLogger.info('Processing ${_pendingOperations.length} pending operations');
-    
+
+    WasteAppLogger.info(
+        'Processing ${_pendingOperations.length} pending operations');
+
     final operations = List.from(_pendingOperations);
     _pendingOperations.clear();
-    
+
     for (final operation in operations) {
       try {
         operation();
       } catch (e) {
-        WasteAppLogger.severe('Error processing pending operation', e, null);
+        WasteAppLogger.severe('Error processing pending operation', error: e);
       }
     }
   }
@@ -145,41 +151,45 @@ class ResilientNetworkService {
     Duration resetTimeout = const Duration(minutes: 1),
   }) async {
     final circuitBreaker = _getCircuitBreaker(operationName ?? 'default');
-    
+
     if (circuitBreaker.state == CircuitBreakerState.open) {
-      if (DateTime.now().difference(circuitBreaker.lastFailureTime!) > resetTimeout) {
+      if (DateTime.now().difference(circuitBreaker.lastFailureTime!) >
+          resetTimeout) {
         circuitBreaker.state = CircuitBreakerState.halfOpen;
-        WasteAppLogger.info('Circuit breaker for $operationName moved to half-open');
+        WasteAppLogger.info(
+            'Circuit breaker for $operationName moved to half-open');
       } else {
-        throw CircuitBreakerOpenException('Circuit breaker is open for $operationName');
+        throw CircuitBreakerOpenException(
+            'Circuit breaker is open for $operationName');
       }
     }
 
     try {
       final result = await operation().timeout(timeout);
-      
+
       if (circuitBreaker.state == CircuitBreakerState.halfOpen) {
         circuitBreaker.state = CircuitBreakerState.closed;
         circuitBreaker.failureCount = 0;
         WasteAppLogger.info('Circuit breaker for $operationName closed');
       }
-      
+
       return result;
     } catch (e) {
       circuitBreaker.failureCount++;
       circuitBreaker.lastFailureTime = DateTime.now();
-      
+
       if (circuitBreaker.failureCount >= failureThreshold) {
         circuitBreaker.state = CircuitBreakerState.open;
-        WasteAppLogger.warning('Circuit breaker for $operationName opened after $failureThreshold failures');
+        WasteAppLogger.warning(
+            'Circuit breaker for $operationName opened after $failureThreshold failures');
       }
-      
+
       rethrow;
     }
   }
 
   final Map<String, CircuitBreaker> _circuitBreakers = {};
-  
+
   CircuitBreaker _getCircuitBreaker(String name) {
     return _circuitBreakers.putIfAbsent(name, () => CircuitBreaker());
   }
@@ -194,7 +204,8 @@ class ResilientNetworkService {
     try {
       return await operation().timeout(timeout);
     } on TimeoutException {
-      WasteAppLogger.warning('Operation $operationName timed out after ${timeout.inSeconds}s');
+      WasteAppLogger.warning(
+          'Operation $operationName timed out after ${timeout.inSeconds}s');
       if (fallbackValue != null) {
         return fallbackValue;
       }
@@ -203,7 +214,8 @@ class ResilientNetworkService {
   }
 
   /// Check if a specific host is reachable
-  Future<bool> isHostReachable(String host, {int port = 80, Duration timeout = const Duration(seconds: 5)}) async {
+  Future<bool> isHostReachable(String host,
+      {int port = 80, Duration timeout = const Duration(seconds: 5)}) async {
     try {
       final socket = await Socket.connect(host, port, timeout: timeout);
       socket.destroy();
@@ -216,14 +228,15 @@ class ResilientNetworkService {
   /// Get network quality indicator
   Future<NetworkQuality> getNetworkQuality() async {
     if (!_isOnline) return NetworkQuality.offline;
-    
+
     try {
       final stopwatch = Stopwatch()..start();
-      final isReachable = await isHostReachable('google.com', timeout: const Duration(seconds: 3));
+      final isReachable = await isHostReachable('google.com',
+          timeout: const Duration(seconds: 3));
       stopwatch.stop();
-      
+
       if (!isReachable) return NetworkQuality.poor;
-      
+
       final latency = stopwatch.elapsedMilliseconds;
       if (latency < 100) return NetworkQuality.excellent;
       if (latency < 300) return NetworkQuality.good;
@@ -248,25 +261,25 @@ enum NetworkQuality { offline, poor, fair, good, excellent }
 
 /// Custom exceptions for network operations
 class NetworkException implements Exception {
-  final String message;
   NetworkException(this.message);
-  
+  final String message;
+
   @override
   String toString() => 'NetworkException: $message';
 }
 
 class CircuitBreakerOpenException implements Exception {
-  final String message;
   CircuitBreakerOpenException(this.message);
-  
+  final String message;
+
   @override
   String toString() => 'CircuitBreakerOpenException: $message';
 }
 
 class NetworkTimeoutException implements Exception {
-  final String message;
   NetworkTimeoutException(this.message);
-  
+  final String message;
+
   @override
   String toString() => 'NetworkTimeoutException: $message';
 }

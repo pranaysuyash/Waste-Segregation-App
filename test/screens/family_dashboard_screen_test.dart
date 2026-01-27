@@ -10,7 +10,8 @@ import 'package:waste_segregation_app/models/enhanced_family.dart';
 import 'package:waste_segregation_app/models/gamification.dart';
 import 'package:waste_segregation_app/models/shared_waste_classification.dart';
 import 'package:waste_segregation_app/models/user_profile.dart';
-import 'package:waste_segregation_app/models/waste_classification.dart' as wc_model;
+import 'package:waste_segregation_app/models/waste_classification.dart'
+    as wc_model;
 import 'package:waste_segregation_app/screens/classification_details_screen.dart';
 import 'package:waste_segregation_app/screens/family_dashboard_screen.dart';
 import 'package:waste_segregation_app/services/firebase_family_service.dart';
@@ -29,7 +30,12 @@ UserProfile createMockUserProfile({
   String? photoUrl,
   String familyId = 'fam1',
 }) {
-  return UserProfile(id: id, email: '$id@test.com', displayName: displayName, photoUrl: photoUrl, familyId: familyId);
+  return UserProfile(
+      id: id,
+      email: '$id@test.com',
+      displayName: displayName,
+      photoUrl: photoUrl,
+      familyId: familyId);
 }
 
 Family createMockFamily({
@@ -61,8 +67,11 @@ Family createMockFamily({
           currentStreak: 5,
           bestStreak: 10,
           categoryBreakdown: {'plastic': 5, 'organic': 5},
-          environmentalImpact:
-              EnvironmentalImpact(co2Saved: 2.5, treesEquivalent: 0.1, waterSaved: 50, lastUpdated: DateTime.now()),
+          environmentalImpact: EnvironmentalImpact(
+              co2Saved: 2.5,
+              treesEquivalent: 0.1,
+              waterSaved: 50,
+              lastUpdated: DateTime.now()),
           weeklyProgress: [],
           achievementCount: 2,
           lastUpdated: DateTime.now(),
@@ -86,8 +95,10 @@ SharedWasteClassification createMockSharedClassification({
     region: 'Test Region',
     visualFeatures: ['test feature'],
     alternatives: [],
-    disposalInstructions:
-        DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false),
+    disposalInstructions: DisposalInstructions(
+        primaryMethod: 'Test method',
+        steps: ['Test step'],
+        hasUrgentTimeframe: false),
     id: id,
     classification: wc_model.WasteClassification(
       itemName: 'Test Item',
@@ -96,13 +107,16 @@ SharedWasteClassification createMockSharedClassification({
       region: 'Test Region',
       visualFeatures: ['test feature'],
       alternatives: [],
-      disposalInstructions:
-          DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false),
+      disposalInstructions: DisposalInstructions(
+          primaryMethod: 'Test method',
+          steps: ['Test step'],
+          hasUrgentTimeframe: false),
       id: 'wc1',
       itemName: itemName,
       category: category,
       explanation: 'A plastic bottle.',
-      disposalInstructions: wc_model.DisposalInstructions(primaryMethod: 'Recycle bin', steps: ['Empty', 'Rinse']),
+      disposalInstructions: wc_model.DisposalInstructions(
+          primaryMethod: 'Recycle bin', steps: ['Empty', 'Rinse']),
       timestamp: DateTime.now(),
     ),
     sharedBy: sharedBy,
@@ -122,7 +136,8 @@ void main() {
 
   // Stream controllers for dashboard
   late StreamController<Family?> familyStreamController;
-  late StreamController<List<SharedWasteClassification>> classificationsStreamController;
+  late StreamController<List<SharedWasteClassification>>
+      classificationsStreamController;
 
   setUp(() {
     mockFamilyService = MockFirebaseFamilyService();
@@ -130,16 +145,20 @@ void main() {
     mockNavigatorObserver = MockNavigatorObserver();
 
     familyStreamController = StreamController<Family?>.broadcast();
-    classificationsStreamController = StreamController<List<SharedWasteClassification>>.broadcast();
+    classificationsStreamController =
+        StreamController<List<SharedWasteClassification>>.broadcast();
 
     // Default stubs for services
-    when(mockStorageService.getCurrentUserProfile()).thenAnswer((_) async => createMockUserProfile());
+    when(mockStorageService.getCurrentUserProfile())
+        .thenAnswer((_) async => createMockUserProfile());
 
-    when(mockFamilyService.getFamilyStream(any)).thenAnswer((_) => familyStreamController.stream);
-    when(mockFamilyService.getFamilyClassificationsStream(any, limit: anyNamed('limit')))
+    when(mockFamilyService.getFamilyStream(any))
+        .thenAnswer((_) => familyStreamController.stream);
+    when(mockFamilyService.getFamilyClassificationsStream(any,
+            limit: anyNamed('limit')))
         .thenAnswer((_) => classificationsStreamController.stream);
-    when(mockFamilyService.getFamilyMembers(any))
-        .thenAnswer((_) async => [createMockUserProfile()]); // For initial member load
+    when(mockFamilyService.getFamilyMembers(any)).thenAnswer(
+        (_) async => [createMockUserProfile()]); // For initial member load
   });
 
   tearDown(() {
@@ -168,42 +187,52 @@ void main() {
   }
 
   group('FamilyDashboardScreen Tests', () {
-    testWidgets('Shows "No Family" state when user has no familyId', (WidgetTester tester) async {
-      when(mockStorageService.getCurrentUserProfile())
-          .thenAnswer((_) async => createMockUserProfile(familyId: '')); // User with no family ID
+    testWidgets('Shows "No Family" state when user has no familyId',
+        (WidgetTester tester) async {
+      when(mockStorageService.getCurrentUserProfile()).thenAnswer((_) async =>
+          createMockUserProfile(familyId: '')); // User with no family ID
 
-      await tester.pumpWidget(createTestableWidget(const FamilyDashboardScreen()));
+      await tester
+          .pumpWidget(createTestableWidget(const FamilyDashboardScreen()));
       await tester.pumpAndSettle(); // Settle for future to complete
 
       expect(find.text('Join or Create a Family'), findsOneWidget);
-      expect(find.text('Test Family'), findsNothing); // Family name should not be there
+      expect(find.text('Test Family'),
+          findsNothing); // Family name should not be there
     });
 
-    testWidgets('Shows loading indicator initially while fetching familyId', (WidgetTester tester) async {
+    testWidgets('Shows loading indicator initially while fetching familyId',
+        (WidgetTester tester) async {
       // Delay the response from getCurrentUserProfile
       when(mockStorageService.getCurrentUserProfile()).thenAnswer((_) async {
         await Future.delayed(const Duration(milliseconds: 100));
         return createMockUserProfile(); // User with family ID
       });
 
-      await tester.pumpWidget(createTestableWidget(const FamilyDashboardScreen()));
-      expect(find.byType(CircularProgressIndicator), findsOneWidget); // Initial loading for familyId
+      await tester
+          .pumpWidget(createTestableWidget(const FamilyDashboardScreen()));
+      expect(find.byType(CircularProgressIndicator),
+          findsOneWidget); // Initial loading for familyId
 
       await tester.pumpAndSettle(); // Let futures complete
       // Now it might show another loader for the family stream, or content
     });
 
-    testWidgets('Shows loading indicator while family stream is connecting', (WidgetTester tester) async {
-      when(mockStorageService.getCurrentUserProfile())
-          .thenAnswer((_) async => createMockUserProfile()); // User with family ID
+    testWidgets('Shows loading indicator while family stream is connecting',
+        (WidgetTester tester) async {
+      when(mockStorageService.getCurrentUserProfile()).thenAnswer(
+          (_) async => createMockUserProfile()); // User with family ID
       // Don't add data to familyStreamController yet
 
-      await tester.pumpWidget(createTestableWidget(const FamilyDashboardScreen()));
+      await tester
+          .pumpWidget(createTestableWidget(const FamilyDashboardScreen()));
       await tester.pump(); // Initial pump for initState
-      await tester.pump(); // Pump again for StreamBuilder to pick up initial ConnectionState.waiting
+      await tester
+          .pump(); // Pump again for StreamBuilder to pick up initial ConnectionState.waiting
 
       // After initial familyId load, the StreamBuilder for family data will be in waiting state
-      expect(find.byType(CircularProgressIndicator), findsWidgets); // One for family, one for classifications
+      expect(find.byType(CircularProgressIndicator),
+          findsWidgets); // One for family, one for classifications
 
       familyStreamController.add(createMockFamily()); // Add data to stream
       classificationsStreamController.add([]);
@@ -211,32 +240,49 @@ void main() {
       expect(find.byType(CircularProgressIndicator), findsNothing);
     });
 
-    testWidgets('Shows error message if family stream has error', (WidgetTester tester) async {
-      when(mockStorageService.getCurrentUserProfile()).thenAnswer((_) async => createMockUserProfile());
+    testWidgets('Shows error message if family stream has error',
+        (WidgetTester tester) async {
+      when(mockStorageService.getCurrentUserProfile())
+          .thenAnswer((_) async => createMockUserProfile());
 
-      await tester.pumpWidget(createTestableWidget(const FamilyDashboardScreen()));
+      await tester
+          .pumpWidget(createTestableWidget(const FamilyDashboardScreen()));
       await tester.pumpAndSettle(); // Initial setup
 
       familyStreamController.addError(Exception('Family stream error'));
       await tester.pumpAndSettle();
 
-      expect(find.textContaining('Error loading family details'), findsOneWidget);
+      expect(
+          find.textContaining('Error loading family details'), findsOneWidget);
     });
 
-    testWidgets('Displays family data correctly from streams', (WidgetTester tester) async {
-      final family = createMockFamily(name: 'Streamed Family', totalClassifications: 25, totalPoints: 250);
+    testWidgets('Displays family data correctly from streams',
+        (WidgetTester tester) async {
+      final family = createMockFamily(
+          name: 'Streamed Family', totalClassifications: 25, totalPoints: 250);
       final classifications = [
         createMockSharedClassification(itemName: 'Old Newspaper', reactions: [
-          FamilyReaction(userId: 'u2', type: FamilyReactionType.like, timestamp: DateTime.now(), displayName: 'User2')
+          FamilyReaction(
+              userId: 'u2',
+              type: FamilyReactionType.like,
+              timestamp: DateTime.now(),
+              displayName: 'User2')
         ], comments: []),
         createMockSharedClassification(itemName: 'Apple Core', comments: [
-          FamilyComment(id: 'c1', userId: 'u3', text: 'Good job!', timestamp: DateTime.now(), displayName: 'User3')
+          FamilyComment(
+              id: 'c1',
+              userId: 'u3',
+              text: 'Good job!',
+              timestamp: DateTime.now(),
+              displayName: 'User3')
         ])
       ];
 
-      when(mockStorageService.getCurrentUserProfile()).thenAnswer((_) async => createMockUserProfile());
+      when(mockStorageService.getCurrentUserProfile())
+          .thenAnswer((_) async => createMockUserProfile());
 
-      await tester.pumpWidget(createTestableWidget(const FamilyDashboardScreen()));
+      await tester
+          .pumpWidget(createTestableWidget(const FamilyDashboardScreen()));
 
       familyStreamController.add(family);
       classificationsStreamController.add(classifications);
@@ -247,32 +293,50 @@ void main() {
       expect(find.text('250'), findsOneWidget); // Total points
 
       expect(find.text('Old Newspaper'), findsOneWidget);
-      expect(find.descendant(of: find.widgetWithText(Card, 'Old Newspaper'), matching: find.text('1')),
+      expect(
+          find.descendant(
+              of: find.widgetWithText(Card, 'Old Newspaper'),
+              matching: find.text('1')),
           findsOneWidget); // 1 reaction
-      expect(find.descendant(of: find.widgetWithText(Card, 'Old Newspaper'), matching: find.text('0')),
+      expect(
+          find.descendant(
+              of: find.widgetWithText(Card, 'Old Newspaper'),
+              matching: find.text('0')),
           findsOneWidget); // 0 comments
 
       expect(find.text('Apple Core'), findsOneWidget);
-      expect(find.descendant(of: find.widgetWithText(Card, 'Apple Core'), matching: find.text('0')),
+      expect(
+          find.descendant(
+              of: find.widgetWithText(Card, 'Apple Core'),
+              matching: find.text('0')),
           findsOneWidget); // 0 reactions
-      expect(find.descendant(of: find.widgetWithText(Card, 'Apple Core'), matching: find.text('1')),
+      expect(
+          find.descendant(
+              of: find.widgetWithText(Card, 'Apple Core'),
+              matching: find.text('1')),
           findsOneWidget); // 1 comment
     });
 
-    testWidgets('Environmental Impact Tooltips are present with correct messages', (WidgetTester tester) async {
+    testWidgets(
+        'Environmental Impact Tooltips are present with correct messages',
+        (WidgetTester tester) async {
       final family = createMockFamily();
-      when(mockStorageService.getCurrentUserProfile()).thenAnswer((_) async => createMockUserProfile());
+      when(mockStorageService.getCurrentUserProfile())
+          .thenAnswer((_) async => createMockUserProfile());
       familyStreamController.add(family);
       classificationsStreamController.add([]);
 
-      await tester.pumpWidget(createTestableWidget(const FamilyDashboardScreen()));
+      await tester
+          .pumpWidget(createTestableWidget(const FamilyDashboardScreen()));
       await tester.pumpAndSettle();
 
       expect(
           find.byTooltip(
               'Based on number of recyclable items reported. Each recyclable item is estimated to save 0.5kg of CO₂.'),
           findsOneWidget);
-      expect(find.byTooltip('Based on CO₂ savings. Roughly 22kg of CO₂ saved is equivalent to saving one tree.'),
+      expect(
+          find.byTooltip(
+              'Based on CO₂ savings. Roughly 22kg of CO₂ saved is equivalent to saving one tree.'),
           findsOneWidget);
       expect(
           find.byTooltip(
@@ -280,16 +344,21 @@ void main() {
           findsOneWidget);
     });
 
-    testWidgets('Navigates to ClassificationDetailsScreen on activity tap', (WidgetTester tester) async {
-      final mockClassification = createMockSharedClassification(id: 'detail_test');
-      when(mockStorageService.getCurrentUserProfile()).thenAnswer((_) async => createMockUserProfile());
+    testWidgets('Navigates to ClassificationDetailsScreen on activity tap',
+        (WidgetTester tester) async {
+      final mockClassification =
+          createMockSharedClassification(id: 'detail_test');
+      when(mockStorageService.getCurrentUserProfile())
+          .thenAnswer((_) async => createMockUserProfile());
       familyStreamController.add(createMockFamily());
       classificationsStreamController.add([mockClassification]);
 
-      await tester.pumpWidget(createTestableWidget(const FamilyDashboardScreen()));
+      await tester
+          .pumpWidget(createTestableWidget(const FamilyDashboardScreen()));
       await tester.pumpAndSettle();
 
-      expect(find.text(mockClassification.classification.itemName), findsOneWidget);
+      expect(find.text(mockClassification.classification.itemName),
+          findsOneWidget);
       await tester.tap(find.text(mockClassification.classification.itemName));
       await tester.pumpAndSettle();
 
@@ -297,7 +366,8 @@ void main() {
       expect(find.byType(ClassificationDetailsScreen), findsOneWidget);
 
       // Verify correct classification was passed
-      final detailScreen = tester.widget<ClassificationDetailsScreen>(find.byType(ClassificationDetailsScreen));
+      final detailScreen = tester.widget<ClassificationDetailsScreen>(
+          find.byType(ClassificationDetailsScreen));
       expect(detailScreen.classification.id, mockClassification.id);
     });
   });

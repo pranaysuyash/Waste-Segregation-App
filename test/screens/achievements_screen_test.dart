@@ -153,8 +153,10 @@ void main() {
     }
 
     group('Widget Initialization', () {
-      testWidgets('should display app bar with correct title and tabs', (tester) async {
-        when(mockGamificationService.getProfile()).thenAnswer((_) async => testProfile);
+      testWidgets('should display app bar with correct title and tabs',
+          (tester) async {
+        when(mockGamificationService.getProfile())
+            .thenAnswer((_) async => testProfile);
 
         await tester.pumpWidget(createTestWidget());
         await tester.pump(); // Allow FutureBuilder to complete
@@ -166,7 +168,8 @@ void main() {
       });
 
       testWidgets('should initialize with specified tab index', (tester) async {
-        when(mockGamificationService.getProfile()).thenAnswer((_) async => testProfile);
+        when(mockGamificationService.getProfile())
+            .thenAnswer((_) async => testProfile);
 
         await tester.pumpWidget(createTestWidget(initialTabIndex: 1));
         await tester.pump();
@@ -190,7 +193,8 @@ void main() {
       });
 
       testWidgets('should handle error state', (tester) async {
-        when(mockGamificationService.getProfile()).thenThrow(Exception('Network error'));
+        when(mockGamificationService.getProfile())
+            .thenThrow(Exception('Network error'));
 
         await tester.pumpWidget(createTestWidget());
         await tester.pump();
@@ -221,7 +225,8 @@ void main() {
       });
 
       testWidgets('should handle no data state', (tester) async {
-        when(mockGamificationService.getProfile()).thenAnswer((_) async => null);
+        when(mockGamificationService.getProfile())
+            .thenAnswer((_) async => null);
 
         await tester.pumpWidget(createTestWidget());
         await tester.pump();
@@ -232,7 +237,8 @@ void main() {
 
     group('Achievements Tab', () {
       testWidgets('should display profile summary card', (tester) async {
-        when(mockGamificationService.getProfile()).thenAnswer((_) async => testProfile);
+        when(mockGamificationService.getProfile())
+            .thenAnswer((_) async => testProfile);
 
         await tester.pumpWidget(createTestWidget());
         await tester.pump();
@@ -241,7 +247,8 @@ void main() {
       });
 
       testWidgets('should display daily streak information', (tester) async {
-        when(mockGamificationService.getProfile()).thenAnswer((_) async => testProfile);
+        when(mockGamificationService.getProfile())
+            .thenAnswer((_) async => testProfile);
 
         await tester.pumpWidget(createTestWidget());
         await tester.pump();
@@ -253,8 +260,10 @@ void main() {
         expect(find.byIcon(Icons.local_fire_department), findsOneWidget);
       });
 
-      testWidgets('should display achievements grouped by type', (tester) async {
-        when(mockGamificationService.getProfile()).thenAnswer((_) async => testProfile);
+      testWidgets('should display achievements grouped by type',
+          (tester) async {
+        when(mockGamificationService.getProfile())
+            .thenAnswer((_) async => testProfile);
 
         await tester.pumpWidget(createTestWidget());
         await tester.pump();
@@ -265,8 +274,10 @@ void main() {
         expect(find.text('Recycling Expert'), findsOneWidget);
       });
 
-      testWidgets('should display achievement cards with correct status', (tester) async {
-        when(mockGamificationService.getProfile()).thenAnswer((_) async => testProfile);
+      testWidgets('should display achievement cards with correct status',
+          (tester) async {
+        when(mockGamificationService.getProfile())
+            .thenAnswer((_) async => testProfile);
 
         await tester.pumpWidget(createTestWidget());
         await tester.pump();
@@ -286,8 +297,10 @@ void main() {
         expect(find.byIcon(Icons.lock), findsOneWidget);
       });
 
-      testWidgets('should show achievement details dialog when tapped', (tester) async {
-        when(mockGamificationService.getProfile()).thenAnswer((_) async => testProfile);
+      testWidgets('should show achievement details dialog when tapped',
+          (tester) async {
+        when(mockGamificationService.getProfile())
+            .thenAnswer((_) async => testProfile);
 
         await tester.pumpWidget(createTestWidget());
         await tester.pump();
@@ -301,9 +314,12 @@ void main() {
       });
 
       testWidgets('should handle claiming rewards', (tester) async {
-        when(mockGamificationService.getProfile()).thenAnswer((_) async => testProfile);
+        when(mockGamificationService.getProfile())
+            .thenAnswer((_) async => testProfile);
         when(mockGamificationService.saveProfile(any)).thenAnswer((_) async {});
-        when(mockGamificationService.addPoints(any, customPoints: anyNamed('customPoints'))).thenAnswer((_) async {});
+        when(mockGamificationService.addPoints(any,
+                customPoints: anyNamed('customPoints')))
+            .thenAnswer((_) async {});
 
         await tester.pumpWidget(createTestWidget());
         await tester.pump();
@@ -318,12 +334,16 @@ void main() {
         await tester.pumpAndSettle();
 
         verify(mockGamificationService.saveProfile(any)).called(1);
-        verify(mockGamificationService.addPoints('achievement_claim', customPoints: 150)).called(1);
+        verify(mockGamificationService.addPoints('achievement_claim',
+                customPoints: 150))
+            .called(1);
       });
 
       testWidgets('should handle claim reward errors', (tester) async {
-        when(mockGamificationService.getProfile()).thenAnswer((_) async => testProfile);
-        when(mockGamificationService.saveProfile(any)).thenThrow(Exception('Save failed'));
+        when(mockGamificationService.getProfile())
+            .thenAnswer((_) async => testProfile);
+        when(mockGamificationService.saveProfile(any))
+            .thenThrow(Exception('Save failed'));
 
         await tester.pumpWidget(createTestWidget());
         await tester.pump();
@@ -334,10 +354,12 @@ void main() {
         await tester.tap(find.text('Claim Reward'));
         await tester.pumpAndSettle();
 
-        expect(find.text('Failed to claim reward: Exception: Save failed'), findsOneWidget);
+        expect(find.text('Failed to claim reward: Exception: Save failed'),
+            findsOneWidget);
       });
 
-      testWidgets('should not show secret achievements that are not earned', (tester) async {
+      testWidgets('should not show secret achievements that are not earned',
+          (tester) async {
         final profileWithSecret = testProfile.copyWith(
           achievements: [
             ...testProfile.achievements,
@@ -357,7 +379,8 @@ void main() {
           ],
         );
 
-        when(mockGamificationService.getProfile()).thenAnswer((_) async => profileWithSecret);
+        when(mockGamificationService.getProfile())
+            .thenAnswer((_) async => profileWithSecret);
 
         await tester.pumpWidget(createTestWidget());
         await tester.pump();
@@ -368,7 +391,8 @@ void main() {
 
     group('Challenges Tab', () {
       testWidgets('should display active challenges', (tester) async {
-        when(mockGamificationService.getProfile()).thenAnswer((_) async => testProfile);
+        when(mockGamificationService.getProfile())
+            .thenAnswer((_) async => testProfile);
 
         await tester.pumpWidget(createTestWidget(initialTabIndex: 1));
         await tester.pump();
@@ -380,7 +404,8 @@ void main() {
       });
 
       testWidgets('should display completed challenges', (tester) async {
-        when(mockGamificationService.getProfile()).thenAnswer((_) async => testProfile);
+        when(mockGamificationService.getProfile())
+            .thenAnswer((_) async => testProfile);
 
         await tester.pumpWidget(createTestWidget(initialTabIndex: 1));
         await tester.pump();
@@ -390,9 +415,12 @@ void main() {
         expect(find.text('Completed!'), findsOneWidget);
       });
 
-      testWidgets('should show empty state when no active challenges', (tester) async {
-        final profileWithoutChallenges = testProfile.copyWith(activeChallenges: []);
-        when(mockGamificationService.getProfile()).thenAnswer((_) async => profileWithoutChallenges);
+      testWidgets('should show empty state when no active challenges',
+          (tester) async {
+        final profileWithoutChallenges =
+            testProfile.copyWith(activeChallenges: []);
+        when(mockGamificationService.getProfile())
+            .thenAnswer((_) async => profileWithoutChallenges);
 
         await tester.pumpWidget(createTestWidget(initialTabIndex: 1));
         await tester.pump();
@@ -402,9 +430,12 @@ void main() {
         expect(find.byIcon(Icons.emoji_events_outlined), findsOneWidget);
       });
 
-      testWidgets('should generate new challenges when button pressed', (tester) async {
-        final profileWithoutChallenges = testProfile.copyWith(activeChallenges: []);
-        when(mockGamificationService.getProfile()).thenAnswer((_) async => profileWithoutChallenges);
+      testWidgets('should generate new challenges when button pressed',
+          (tester) async {
+        final profileWithoutChallenges =
+            testProfile.copyWith(activeChallenges: []);
+        when(mockGamificationService.getProfile())
+            .thenAnswer((_) async => profileWithoutChallenges);
         when(mockGamificationService.saveProfile(any)).thenAnswer((_) async {});
 
         await tester.pumpWidget(createTestWidget(initialTabIndex: 1));
@@ -418,9 +449,12 @@ void main() {
       });
 
       testWidgets('should handle challenge generation errors', (tester) async {
-        final profileWithoutChallenges = testProfile.copyWith(activeChallenges: []);
-        when(mockGamificationService.getProfile()).thenAnswer((_) async => profileWithoutChallenges);
-        when(mockGamificationService.saveProfile(any)).thenThrow(Exception('Generation failed'));
+        final profileWithoutChallenges =
+            testProfile.copyWith(activeChallenges: []);
+        when(mockGamificationService.getProfile())
+            .thenAnswer((_) async => profileWithoutChallenges);
+        when(mockGamificationService.saveProfile(any))
+            .thenThrow(Exception('Generation failed'));
 
         await tester.pumpWidget(createTestWidget(initialTabIndex: 1));
         await tester.pump();
@@ -428,11 +462,16 @@ void main() {
         await tester.tap(find.text('Get New Challenges'));
         await tester.pumpAndSettle();
 
-        expect(find.text('Failed to generate challenges: Exception: Generation failed'), findsOneWidget);
+        expect(
+            find.text(
+                'Failed to generate challenges: Exception: Generation failed'),
+            findsOneWidget);
       });
 
-      testWidgets('should show time remaining for active challenges', (tester) async {
-        when(mockGamificationService.getProfile()).thenAnswer((_) async => testProfile);
+      testWidgets('should show time remaining for active challenges',
+          (tester) async {
+        when(mockGamificationService.getProfile())
+            .thenAnswer((_) async => testProfile);
 
         await tester.pumpWidget(createTestWidget(initialTabIndex: 1));
         await tester.pump();
@@ -442,7 +481,8 @@ void main() {
       });
 
       testWidgets('should display reward information', (tester) async {
-        when(mockGamificationService.getProfile()).thenAnswer((_) async => testProfile);
+        when(mockGamificationService.getProfile())
+            .thenAnswer((_) async => testProfile);
 
         await tester.pumpWidget(createTestWidget(initialTabIndex: 1));
         await tester.pump();
@@ -452,7 +492,8 @@ void main() {
         expect(find.byIcon(Icons.stars), findsOneWidget);
       });
 
-      testWidgets('should show view all completed challenges dialog', (tester) async {
+      testWidgets('should show view all completed challenges dialog',
+          (tester) async {
         // Create profile with more than 5 completed challenges
         final profileWithManyChallenges = testProfile.copyWith(
           completedChallenges: List.generate(
@@ -461,7 +502,8 @@ void main() {
                     id: 'challenge_$index',
                     title: 'Challenge $index',
                     description: 'Description $index',
-                    startDate: DateTime.now().subtract(Duration(days: 10 + index)),
+                    startDate:
+                        DateTime.now().subtract(Duration(days: 10 + index)),
                     endDate: DateTime.now().subtract(Duration(days: 3 + index)),
                     pointsReward: 50 + (index * 10),
                     iconName: 'challenge',
@@ -472,7 +514,8 @@ void main() {
                   )),
         );
 
-        when(mockGamificationService.getProfile()).thenAnswer((_) async => profileWithManyChallenges);
+        when(mockGamificationService.getProfile())
+            .thenAnswer((_) async => profileWithManyChallenges);
 
         await tester.pumpWidget(createTestWidget(initialTabIndex: 1));
         await tester.pump();
@@ -490,7 +533,8 @@ void main() {
 
     group('Stats Tab', () {
       testWidgets('should display overall progress stats', (tester) async {
-        when(mockGamificationService.getProfile()).thenAnswer((_) async => testProfile);
+        when(mockGamificationService.getProfile())
+            .thenAnswer((_) async => testProfile);
 
         await tester.pumpWidget(createTestWidget(initialTabIndex: 2));
         await tester.pump();
@@ -505,13 +549,15 @@ void main() {
       });
 
       testWidgets('should display correct stat values', (tester) async {
-        when(mockGamificationService.getProfile()).thenAnswer((_) async => testProfile);
+        when(mockGamificationService.getProfile())
+            .thenAnswer((_) async => testProfile);
 
         await tester.pumpWidget(createTestWidget(initialTabIndex: 2));
         await tester.pump();
 
         // Check calculated values
-        expect(find.text('125'), findsOneWidget); // Total items (1250 points / 10)
+        expect(
+            find.text('125'), findsOneWidget); // Total items (1250 points / 10)
         expect(find.text('3'), findsOneWidget); // Categories count
         expect(find.text('2'), findsOneWidget); // Earned achievements count
         expect(find.text('1'), findsOneWidget); // Completed challenges count
@@ -520,7 +566,8 @@ void main() {
       });
 
       testWidgets('should display category breakdown', (tester) async {
-        when(mockGamificationService.getProfile()).thenAnswer((_) async => testProfile);
+        when(mockGamificationService.getProfile())
+            .thenAnswer((_) async => testProfile);
 
         await tester.pumpWidget(createTestWidget(initialTabIndex: 2));
         await tester.pump();
@@ -535,7 +582,8 @@ void main() {
       });
 
       testWidgets('should display weekly stats', (tester) async {
-        when(mockGamificationService.getProfile()).thenAnswer((_) async => testProfile);
+        when(mockGamificationService.getProfile())
+            .thenAnswer((_) async => testProfile);
 
         await tester.pumpWidget(createTestWidget(initialTabIndex: 2));
         await tester.pump();
@@ -546,9 +594,12 @@ void main() {
         expect(find.text('250'), findsOneWidget); // Points from first week
       });
 
-      testWidgets('should show empty state for weekly stats when none available', (tester) async {
+      testWidgets(
+          'should show empty state for weekly stats when none available',
+          (tester) async {
         final profileWithoutWeeklyStats = testProfile.copyWith(weeklyStats: []);
-        when(mockGamificationService.getProfile()).thenAnswer((_) async => profileWithoutWeeklyStats);
+        when(mockGamificationService.getProfile())
+            .thenAnswer((_) async => profileWithoutWeeklyStats);
 
         await tester.pumpWidget(createTestWidget(initialTabIndex: 2));
         await tester.pump();
@@ -558,7 +609,8 @@ void main() {
       });
 
       testWidgets('should calculate mini stats correctly', (tester) async {
-        when(mockGamificationService.getProfile()).thenAnswer((_) async => testProfile);
+        when(mockGamificationService.getProfile())
+            .thenAnswer((_) async => testProfile);
 
         await tester.pumpWidget(createTestWidget(initialTabIndex: 2));
         await tester.pump();
@@ -573,7 +625,8 @@ void main() {
 
     group('Tab Navigation', () {
       testWidgets('should switch tabs correctly', (tester) async {
-        when(mockGamificationService.getProfile()).thenAnswer((_) async => testProfile);
+        when(mockGamificationService.getProfile())
+            .thenAnswer((_) async => testProfile);
 
         await tester.pumpWidget(createTestWidget());
         await tester.pump();
@@ -599,14 +652,17 @@ void main() {
     });
 
     group('Refresh Functionality', () {
-      testWidgets('should refresh data when pull to refresh is triggered', (tester) async {
-        when(mockGamificationService.getProfile()).thenAnswer((_) async => testProfile);
+      testWidgets('should refresh data when pull to refresh is triggered',
+          (tester) async {
+        when(mockGamificationService.getProfile())
+            .thenAnswer((_) async => testProfile);
 
         await tester.pumpWidget(createTestWidget());
         await tester.pump();
 
         // Trigger refresh
-        await tester.fling(find.byType(SingleChildScrollView).first, const Offset(0, 300), 1000);
+        await tester.fling(find.byType(SingleChildScrollView).first,
+            const Offset(0, 300), 1000);
         await tester.pump();
         await tester.pump(const Duration(seconds: 1));
 
@@ -614,7 +670,8 @@ void main() {
       });
 
       testWidgets('should refresh from error state', (tester) async {
-        when(mockGamificationService.getProfile()).thenThrow(Exception('Network error'));
+        when(mockGamificationService.getProfile())
+            .thenThrow(Exception('Network error'));
 
         await tester.pumpWidget(createTestWidget());
         await tester.pump();
@@ -622,7 +679,8 @@ void main() {
         expect(find.text('Error loading profile'), findsOneWidget);
 
         // Trigger refresh from error state
-        await tester.fling(find.byType(SingleChildScrollView).first, const Offset(0, 300), 1000);
+        await tester.fling(find.byType(SingleChildScrollView).first,
+            const Offset(0, 300), 1000);
         await tester.pump();
 
         verify(mockGamificationService.getProfile()).called(atLeast(2));
@@ -632,7 +690,8 @@ void main() {
     group('Edge Cases and Error Handling', () {
       testWidgets('should handle empty achievements list', (tester) async {
         final emptyProfile = testProfile.copyWith(achievements: []);
-        when(mockGamificationService.getProfile()).thenAnswer((_) async => emptyProfile);
+        when(mockGamificationService.getProfile())
+            .thenAnswer((_) async => emptyProfile);
 
         await tester.pumpWidget(createTestWidget());
         await tester.pump();
@@ -643,12 +702,14 @@ void main() {
 
       testWidgets('should handle achievements without streaks', (tester) async {
         final profileWithoutStreaks = testProfile.copyWith(streaks: {});
-        when(mockGamificationService.getProfile()).thenAnswer((_) async => profileWithoutStreaks);
+        when(mockGamificationService.getProfile())
+            .thenAnswer((_) async => profileWithoutStreaks);
 
         await tester.pumpWidget(createTestWidget());
         await tester.pump();
 
-        expect(find.text('0 days'), findsAtLeastNWidgets(2)); // Current and longest streak should be 0
+        expect(find.text('0 days'),
+            findsAtLeastNWidgets(2)); // Current and longest streak should be 0
       });
 
       testWidgets('should handle achievements with null dates', (tester) async {
@@ -667,7 +728,8 @@ void main() {
           achievements: [achievementWithNullDate],
         );
 
-        when(mockGamificationService.getProfile()).thenAnswer((_) async => profileWithNullDate);
+        when(mockGamificationService.getProfile())
+            .thenAnswer((_) async => profileWithNullDate);
 
         await tester.pumpWidget(createTestWidget());
         await tester.pump();
@@ -685,7 +747,8 @@ void main() {
           ),
         );
 
-        when(mockGamificationService.getProfile()).thenAnswer((_) async => profileWithLargeNumbers);
+        when(mockGamificationService.getProfile())
+            .thenAnswer((_) async => profileWithLargeNumbers);
 
         await tester.pumpWidget(createTestWidget(initialTabIndex: 2));
         await tester.pump();
@@ -712,7 +775,8 @@ void main() {
           activeChallenges: [expiredChallenge],
         );
 
-        when(mockGamificationService.getProfile()).thenAnswer((_) async => profileWithExpired);
+        when(mockGamificationService.getProfile())
+            .thenAnswer((_) async => profileWithExpired);
 
         await tester.pumpWidget(createTestWidget(initialTabIndex: 1));
         await tester.pump();
@@ -725,7 +789,8 @@ void main() {
 
     group('Helper Functions', () {
       testWidgets('should format dates correctly', (tester) async {
-        when(mockGamificationService.getProfile()).thenAnswer((_) async => testProfile);
+        when(mockGamificationService.getProfile())
+            .thenAnswer((_) async => testProfile);
 
         await tester.pumpWidget(createTestWidget());
         await tester.pump();
@@ -739,7 +804,8 @@ void main() {
       });
 
       testWidgets('should get correct category colors', (tester) async {
-        when(mockGamificationService.getProfile()).thenAnswer((_) async => testProfile);
+        when(mockGamificationService.getProfile())
+            .thenAnswer((_) async => testProfile);
 
         await tester.pumpWidget(createTestWidget(initialTabIndex: 2));
         await tester.pump();
@@ -750,8 +816,10 @@ void main() {
         expect(find.text('Organic'), findsOneWidget);
       });
 
-      testWidgets('should display achievement tier badges correctly', (tester) async {
-        when(mockGamificationService.getProfile()).thenAnswer((_) async => testProfile);
+      testWidgets('should display achievement tier badges correctly',
+          (tester) async {
+        when(mockGamificationService.getProfile())
+            .thenAnswer((_) async => testProfile);
 
         await tester.pumpWidget(createTestWidget());
         await tester.pump();
@@ -764,7 +832,8 @@ void main() {
 
     group('Accessibility', () {
       testWidgets('should have proper semantic labels', (tester) async {
-        when(mockGamificationService.getProfile()).thenAnswer((_) async => testProfile);
+        when(mockGamificationService.getProfile())
+            .thenAnswer((_) async => testProfile);
 
         await tester.pumpWidget(createTestWidget());
         await tester.pump();
@@ -775,8 +844,10 @@ void main() {
         expect(find.byType(RefreshIndicator), findsAtLeastNWidgets(1));
       });
 
-      testWidgets('should support keyboard navigation for tabs', (tester) async {
-        when(mockGamificationService.getProfile()).thenAnswer((_) async => testProfile);
+      testWidgets('should support keyboard navigation for tabs',
+          (tester) async {
+        when(mockGamificationService.getProfile())
+            .thenAnswer((_) async => testProfile);
 
         await tester.pumpWidget(createTestWidget());
         await tester.pump();

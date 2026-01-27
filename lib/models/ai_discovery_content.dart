@@ -41,7 +41,8 @@ const _triggerTypeMap = {
   'item_count_by_category': HiddenContentTriggerType.itemCountByCategory,
   'item_count_by_material': HiddenContentTriggerType.itemCountByMaterial,
   'specific_item_sequence': HiddenContentTriggerType.specificItemSequence,
-  'classification_accuracy_streak': HiddenContentTriggerType.classificationAccuracyStreak,
+  'classification_accuracy_streak':
+      HiddenContentTriggerType.classificationAccuracyStreak,
   'combined_item_properties': HiddenContentTriggerType.combinedItemProperties,
 };
 
@@ -51,7 +52,8 @@ const _triggerTypeReverseMap = {
   HiddenContentTriggerType.itemCountByCategory: 'item_count_by_category',
   HiddenContentTriggerType.itemCountByMaterial: 'item_count_by_material',
   HiddenContentTriggerType.specificItemSequence: 'specific_item_sequence',
-  HiddenContentTriggerType.classificationAccuracyStreak: 'classification_accuracy_streak',
+  HiddenContentTriggerType.classificationAccuracyStreak:
+      'classification_accuracy_streak',
   HiddenContentTriggerType.combinedItemProperties: 'combined_item_properties',
 };
 
@@ -89,7 +91,8 @@ class ItemCountByTagParams {
 }
 
 class ItemCountByCategoryParams {
-  const ItemCountByCategoryParams({required this.category, required this.count});
+  const ItemCountByCategoryParams(
+      {required this.category, required this.count});
 
   factory ItemCountByCategoryParams.from(Map<String, dynamic> params) {
     return ItemCountByCategoryParams(
@@ -106,7 +109,8 @@ class ItemCountByCategoryParams {
 }
 
 class ItemCountByMaterialParams {
-  const ItemCountByMaterialParams({required this.material, required this.count});
+  const ItemCountByMaterialParams(
+      {required this.material, required this.count});
 
   factory ItemCountByMaterialParams.from(Map<String, dynamic> params) {
     return ItemCountByMaterialParams(
@@ -157,7 +161,8 @@ class ClassificationAccuracyStreakParams {
 
   factory ClassificationAccuracyStreakParams.from(Map<String, dynamic> params) {
     return ClassificationAccuracyStreakParams(
-      accuracyThreshold: (params['accuracyThreshold'] as num?)?.toDouble() ?? 0.95,
+      accuracyThreshold:
+          (params['accuracyThreshold'] as num?)?.toDouble() ?? 0.95,
       streakLength: (params['streakLength'] as num?)?.toInt() ?? 10,
     );
   }
@@ -169,7 +174,8 @@ class ClassificationAccuracyStreakParams {
         'streakLength': streakLength,
       };
 
-  bool validate() => accuracyThreshold > 0 && accuracyThreshold <= 1.0 && streakLength > 0;
+  bool validate() =>
+      accuracyThreshold > 0 && accuracyThreshold <= 1.0 && streakLength > 0;
 }
 
 class CombinedItemPropertiesParams {
@@ -205,7 +211,8 @@ class CombinedItemPropertiesParams {
       };
 
   bool validate() {
-    final hasAtLeastOneProperty = material != null || tag != null || era != null || category != null;
+    final hasAtLeastOneProperty =
+        material != null || tag != null || era != null || category != null;
     return hasAtLeastOneProperty && count > 0;
   }
 }
@@ -229,7 +236,10 @@ class TemplateInterpolator {
   ///
   /// Returns a Set of all unique placeholder keys found in the template.
   static Set<String> extractPlaceholders(String template) {
-    return _placeholderRegex.allMatches(template).map((match) => match.group(1)!).toSet();
+    return _placeholderRegex
+        .allMatches(template)
+        .map((match) => match.group(1)!)
+        .toSet();
   }
 
   /// Validate that all placeholders in template have corresponding values
@@ -251,8 +261,10 @@ class TriggerCondition {
   factory TriggerCondition.fromJson(Map<String, dynamic> json) {
     // Improved null-safety: check type before casting
     final typeValue = json['type'];
-    final typeString = typeValue is String ? typeValue : 'specific_item_discovery';
-    final type = _triggerTypeMap[typeString] ?? HiddenContentTriggerType.specificItemDiscovery;
+    final typeString =
+        typeValue is String ? typeValue : 'specific_item_discovery';
+    final type = _triggerTypeMap[typeString] ??
+        HiddenContentTriggerType.specificItemDiscovery;
 
     return TriggerCondition(
       type: type,
@@ -269,27 +281,36 @@ class TriggerCondition {
   String get category => parameters['category'] as String? ?? '';
   String get material => parameters['material'] as String? ?? '';
   String get itemId => parameters['itemId'] as String? ?? '';
-  double get accuracyThreshold => (parameters['accuracyThreshold'] as num?)?.toDouble() ?? 0.95;
+  double get accuracyThreshold =>
+      (parameters['accuracyThreshold'] as num?)?.toDouble() ?? 0.95;
   int get streakLength => (parameters['streakLength'] as num?)?.toInt() ?? 10;
-  List<String> get items => List<String>.from(parameters['items'] as List<dynamic>? ?? []);
+  List<String> get items =>
+      List<String>.from(parameters['items'] as List<dynamic>? ?? []);
   bool get ordered => parameters['ordered'] as bool? ?? true;
-  int get withinSeconds => (parameters['withinSeconds'] as num?)?.toInt() ?? 300;
+  int get withinSeconds =>
+      (parameters['withinSeconds'] as num?)?.toInt() ?? 300;
 
   // Strongly typed parameter objects
-  SpecificItemDiscoveryParams get asSpecificItemDiscovery => SpecificItemDiscoveryParams.from(parameters);
+  SpecificItemDiscoveryParams get asSpecificItemDiscovery =>
+      SpecificItemDiscoveryParams.from(parameters);
 
-  ItemCountByTagParams get asItemCountByTag => ItemCountByTagParams.from(parameters);
+  ItemCountByTagParams get asItemCountByTag =>
+      ItemCountByTagParams.from(parameters);
 
-  ItemCountByCategoryParams get asItemCountByCategory => ItemCountByCategoryParams.from(parameters);
+  ItemCountByCategoryParams get asItemCountByCategory =>
+      ItemCountByCategoryParams.from(parameters);
 
-  ItemCountByMaterialParams get asItemCountByMaterial => ItemCountByMaterialParams.from(parameters);
+  ItemCountByMaterialParams get asItemCountByMaterial =>
+      ItemCountByMaterialParams.from(parameters);
 
-  SpecificItemSequenceParams get asSpecificItemSequence => SpecificItemSequenceParams.from(parameters);
+  SpecificItemSequenceParams get asSpecificItemSequence =>
+      SpecificItemSequenceParams.from(parameters);
 
   ClassificationAccuracyStreakParams get asClassificationAccuracyStreak =>
       ClassificationAccuracyStreakParams.from(parameters);
 
-  CombinedItemPropertiesParams get asCombinedItemProperties => CombinedItemPropertiesParams.from(parameters);
+  CombinedItemPropertiesParams get asCombinedItemProperties =>
+      CombinedItemPropertiesParams.from(parameters);
 
   Map<String, dynamic> toJson() => {
         'type': _triggerTypeReverseMap[type] ?? 'specific_item_discovery',
@@ -353,7 +374,8 @@ class HiddenContentRule {
     // Improved null-safety: check type before casting
     final typeValue = json['unlockedContentType'];
     final typeString = typeValue is String ? typeValue : 'badge';
-    final unlockedContentType = _unlockedContentTypeMap[typeString] ?? UnlockedContentType.badge;
+    final unlockedContentType =
+        _unlockedContentTypeMap[typeString] ?? UnlockedContentType.badge;
 
     return HiddenContentRule(
       ruleId: json['ruleId'] ?? '',
@@ -365,11 +387,14 @@ class HiddenContentRule {
       description: json['description'] ?? '',
       isActive: json['isActive'] ?? true,
       pointsBonus: json['pointsBonus'] ?? 0,
-      notificationMessages: List<String>.from(json['notificationMessages'] as List<dynamic>? ?? []),
+      notificationMessages: List<String>.from(
+          json['notificationMessages'] as List<dynamic>? ?? []),
       allMustMatch: json['allMustMatch'] ?? true,
       anyOfGroups: (json['anyOfGroups'] as List<dynamic>? ?? [])
-          .map((group) =>
-              (group as List<dynamic>).map((tc) => TriggerCondition.fromJson(tc as Map<String, dynamic>)).toList())
+          .map((group) => (group as List<dynamic>)
+              .map(
+                  (tc) => TriggerCondition.fromJson(tc as Map<String, dynamic>))
+              .toList())
           .toList(),
     );
   }
@@ -377,7 +402,8 @@ class HiddenContentRule {
   final String ruleId;
   final String contentIdToUnlock;
   final UnlockedContentType unlockedContentType;
-  final List<TriggerCondition> triggerConditions; // Main conditions (AND logic if allMustMatch=true)
+  final List<TriggerCondition>
+      triggerConditions; // Main conditions (AND logic if allMustMatch=true)
   final String description;
   final bool isActive;
   final int pointsBonus;
@@ -388,14 +414,18 @@ class HiddenContentRule {
   Map<String, dynamic> toJson() => {
         'ruleId': ruleId,
         'contentIdToUnlock': contentIdToUnlock,
-        'unlockedContentType': _unlockedContentTypeReverseMap[unlockedContentType] ?? 'badge',
-        'triggerConditions': triggerConditions.map((tc) => tc.toJson()).toList(),
+        'unlockedContentType':
+            _unlockedContentTypeReverseMap[unlockedContentType] ?? 'badge',
+        'triggerConditions':
+            triggerConditions.map((tc) => tc.toJson()).toList(),
         'description': description,
         'isActive': isActive,
         'pointsBonus': pointsBonus,
         'notificationMessages': notificationMessages,
         'allMustMatch': allMustMatch,
-        'anyOfGroups': anyOfGroups.map((group) => group.map((tc) => tc.toJson()).toList()).toList(),
+        'anyOfGroups': anyOfGroups
+            .map((group) => group.map((tc) => tc.toJson()).toList())
+            .toList(),
       };
 
   /// Validate the entire rule and all its conditions
@@ -433,11 +463,9 @@ class HiddenContentRule {
   /// the main triggerConditions and all anyOfGroups. This is used by
   /// the RuleEvaluationOptimizer for efficient rule indexing.
   Set<HiddenContentTriggerType> getTriggerTypes() {
-    final types = <HiddenContentTriggerType>{};
-    types.addAll(triggerConditions.map((c) => c.type));
-    for (final group in anyOfGroups) {
-      types.addAll(group.map((c) => c.type));
-    }
+    final types = <HiddenContentTriggerType>{}
+      ..addAll(triggerConditions.map((c) => c.type))
+      ..addAll(anyOfGroups.expand((g) => g.map((c) => c.type)));
     return types;
   }
 
@@ -496,10 +524,12 @@ class DiscoveryQuestTemplate {
       templateId: json['templateId'] ?? '',
       titleTemplate: json['titleTemplate'] ?? '',
       descriptionTemplate: json['descriptionTemplate'] ?? '',
-      objectiveCriteria: Map<String, dynamic>.from(json['objectiveCriteria'] ?? {}),
+      objectiveCriteria:
+          Map<String, dynamic>.from(json['objectiveCriteria'] ?? {}),
       pointsReward: json['pointsReward'] ?? 0,
       achievementIdOnCompletion: json['achievementIdOnCompletion'],
-      aiPersonalizationHints: List<String>.from(json['aiPersonalizationHints'] as List<dynamic>? ?? []),
+      aiPersonalizationHints: List<String>.from(
+          json['aiPersonalizationHints'] as List<dynamic>? ?? []),
       isActive: json['isActive'] ?? true,
       durationDays: json['durationDays'] ?? 7,
     );
@@ -534,8 +564,10 @@ class DiscoveryQuestTemplate {
   /// Returns a Set of all unique placeholder keys required to fully
   /// instantiate both the title and description templates.
   Set<String> getRequiredPlaceholders() {
-    final titlePlaceholders = TemplateInterpolator.extractPlaceholders(titleTemplate);
-    final descriptionPlaceholders = TemplateInterpolator.extractPlaceholders(descriptionTemplate);
+    final titlePlaceholders =
+        TemplateInterpolator.extractPlaceholders(titleTemplate);
+    final descriptionPlaceholders =
+        TemplateInterpolator.extractPlaceholders(descriptionTemplate);
     return {...titlePlaceholders, ...descriptionPlaceholders};
   }
 
@@ -545,7 +577,9 @@ class DiscoveryQuestTemplate {
   /// Returns false if any validation fails or if an exception occurs.
   bool validate() {
     try {
-      if (templateId.isEmpty || titleTemplate.isEmpty || descriptionTemplate.isEmpty) {
+      if (templateId.isEmpty ||
+          titleTemplate.isEmpty ||
+          descriptionTemplate.isEmpty) {
         return false;
       }
       if (pointsReward < 0 || durationDays <= 0) return false;
@@ -595,8 +629,10 @@ class DiscoveryQuestTemplate {
       descriptionTemplate: descriptionTemplate ?? this.descriptionTemplate,
       objectiveCriteria: objectiveCriteria ?? this.objectiveCriteria,
       pointsReward: pointsReward ?? this.pointsReward,
-      achievementIdOnCompletion: achievementIdOnCompletion ?? this.achievementIdOnCompletion,
-      aiPersonalizationHints: aiPersonalizationHints ?? this.aiPersonalizationHints,
+      achievementIdOnCompletion:
+          achievementIdOnCompletion ?? this.achievementIdOnCompletion,
+      aiPersonalizationHints:
+          aiPersonalizationHints ?? this.aiPersonalizationHints,
       isActive: isActive ?? this.isActive,
       durationDays: durationDays ?? this.durationDays,
     );
@@ -605,7 +641,8 @@ class DiscoveryQuestTemplate {
 
 // Performance optimization helper for rule evaluation
 class RuleEvaluationOptimizer {
-  static final Map<HiddenContentTriggerType, List<HiddenContentRule>> _rulesByTriggerType = {};
+  static final Map<HiddenContentTriggerType, List<HiddenContentRule>>
+      _rulesByTriggerType = {};
   static final Map<String, HiddenContentRule> _rulesById = {};
 
   /// Index rules by trigger type for fast lookup
@@ -631,7 +668,8 @@ class RuleEvaluationOptimizer {
   /// Returns a list of rules that contain conditions matching the specified
   /// trigger type. This enables efficient rule evaluation by only processing
   /// relevant rules instead of all rules.
-  static List<HiddenContentRule> getRulesForTriggerType(HiddenContentTriggerType triggerType) {
+  static List<HiddenContentRule> getRulesForTriggerType(
+      HiddenContentTriggerType triggerType) {
     return _rulesByTriggerType[triggerType] ?? [];
   }
 

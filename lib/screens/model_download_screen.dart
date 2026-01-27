@@ -3,7 +3,7 @@ import '../services/model_download_service.dart';
 import '../models/vision_model_config.dart';
 
 /// UI for managing model downloads
-/// 
+///
 /// Features:
 /// - View available models
 /// - Download models with progress
@@ -23,8 +23,8 @@ class ModelDownloadScreen extends StatefulWidget {
 
 class _ModelDownloadScreenState extends State<ModelDownloadScreen> {
   Map<VisionModelType, ModelStatus>? _modelStatus;
-  Map<VisionModelType, double> _downloadProgress = {};
-  Map<VisionModelType, String> _downloadStatus = {};
+  final Map<VisionModelType, double> _downloadProgress = {};
+  final Map<VisionModelType, String> _downloadStatus = {};
   bool _isLoading = true;
 
   @override
@@ -35,7 +35,7 @@ class _ModelDownloadScreenState extends State<ModelDownloadScreen> {
 
   Future<void> _loadModelStatus() async {
     setState(() => _isLoading = true);
-    
+
     try {
       final status = await widget.downloadService.getAllModelStatus();
       setState(() {
@@ -78,7 +78,7 @@ class _ModelDownloadScreenState extends State<ModelDownloadScreen> {
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
+          const SnackBar(
             content: Text('Model downloaded successfully'),
             backgroundColor: Colors.green,
           ),
@@ -189,7 +189,7 @@ class _ModelDownloadScreenState extends State<ModelDownloadScreen> {
       builder: (context, snapshot) {
         final totalSize = snapshot.data ?? 0;
         final sizeMB = (totalSize / (1024 * 1024)).toStringAsFixed(1);
-        
+
         return Container(
           padding: const EdgeInsets.all(16),
           color: Colors.blue.shade50,
@@ -278,7 +278,8 @@ class _ModelDownloadScreenState extends State<ModelDownloadScreen> {
                 if (status.isDownloaded)
                   const Icon(Icons.check_circle, color: Colors.green, size: 20)
                 else
-                  const Icon(Icons.cloud_download, color: Colors.grey, size: 20),
+                  const Icon(Icons.cloud_download,
+                      color: Colors.grey, size: 20),
               ],
             ),
             if (isDownloading) ...[

@@ -24,7 +24,8 @@ class EnhancedAnalysisLoader extends StatefulWidget {
   State<EnhancedAnalysisLoader> createState() => _EnhancedAnalysisLoaderState();
 }
 
-class _EnhancedAnalysisLoaderState extends State<EnhancedAnalysisLoader> with TickerProviderStateMixin {
+class _EnhancedAnalysisLoaderState extends State<EnhancedAnalysisLoader>
+    with TickerProviderStateMixin {
   late AnimationController _progressController;
   late AnimationController _pulseController;
   late AnimationController _particleController;
@@ -345,12 +346,18 @@ class _EnhancedAnalysisLoaderState extends State<EnhancedAnalysisLoader> with Ti
               height: 12,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: isCompleted || isCurrent ? _analysisSteps[index].color : Colors.grey.shade300,
-                border: isCurrent ? Border.all(color: Colors.white, width: 2) : null,
+                color: isCompleted || isCurrent
+                    ? _analysisSteps[index].color
+                    : Colors.grey.shade300,
+                border: isCurrent
+                    ? Border.all(color: Colors.white, width: 2)
+                    : null,
                 boxShadow: isCurrent
                     ? [
                         BoxShadow(
-                          color: _analysisSteps[index].color.withValues(alpha: 0.5),
+                          color: _analysisSteps[index]
+                              .color
+                              .withValues(alpha: 0.5),
                           blurRadius: 8,
                           spreadRadius: 2,
                         ),
@@ -449,7 +456,9 @@ class _EnhancedAnalysisLoaderState extends State<EnhancedAnalysisLoader> with Ti
   }
 
   String _getRemainingTime() {
-    final remainingSeconds = ((1.0 - _estimatedProgress) * widget.estimatedDuration.inSeconds).round();
+    final remainingSeconds =
+        ((1.0 - _estimatedProgress) * widget.estimatedDuration.inSeconds)
+            .round();
     if (remainingSeconds <= 0) return 'Almost done...';
     if (remainingSeconds < 60) return '${remainingSeconds}s remaining';
     return '${(remainingSeconds / 60).ceil()}m remaining';
@@ -494,7 +503,8 @@ class AnalysisParticlePainter extends CustomPainter {
     for (var i = 0; i < 8; i++) {
       final angle = (i * math.pi * 2 / 8) + (animationValue * math.pi * 2);
       final particleRadius = radius * 0.7;
-      final particleSize = 3.0 + (math.sin(animationValue * math.pi * 4 + i) * 2);
+      final particleSize =
+          3.0 + (math.sin(animationValue * math.pi * 4 + i) * 2);
 
       final particleCenter = Offset(
         center.dx + math.cos(angle) * particleRadius,
@@ -507,6 +517,7 @@ class AnalysisParticlePainter extends CustomPainter {
 
   @override
   bool shouldRepaint(AnalysisParticlePainter oldDelegate) {
-    return oldDelegate.animationValue != animationValue || oldDelegate.color != color;
+    return oldDelegate.animationValue != animationValue ||
+        oldDelegate.color != color;
   }
 }

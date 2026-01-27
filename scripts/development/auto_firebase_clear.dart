@@ -7,7 +7,7 @@ import 'dart:io';
 void main() async {
   print('🔥 Automated Firebase Data Clearing');
   print('===================================');
-  
+
   // Check if Firebase CLI is available
   final firebaseResult = await Process.run('firebase', ['--version']);
   if (firebaseResult.exitCode != 0) {
@@ -15,14 +15,14 @@ void main() async {
     print('   npm install -g firebase-tools');
     exit(1);
   }
-  
+
   print('✅ Firebase CLI found');
   print('🗑️  Clearing Firebase collections...');
-  
+
   // Collections to clear
   final collections = [
     'users',
-    'community_feed', 
+    'community_feed',
     'community_stats',
     'families',
     'invitations',
@@ -30,19 +30,20 @@ void main() async {
     'analytics_events',
     'family_stats',
   ];
-  
+
   for (final collection in collections) {
     print('   Clearing $collection...');
-    
+
     // Use Firebase CLI to delete collection
     final result = await Process.run('firebase', [
       'firestore:delete',
-      '--project', 'waste-segregation-app-b6e8b',
+      '--project',
+      'waste-segregation-app-b6e8b',
       '--recursive',
       '--force',
       collection
     ]);
-    
+
     if (result.exitCode == 0) {
       print('   ✅ Cleared $collection');
     } else {
@@ -50,7 +51,7 @@ void main() async {
       print('       ${result.stderr}');
     }
   }
-  
+
   print('\n✅ Firebase data clearing completed!');
   print('\n📱 Next steps:');
   print('   1. Firebase collections have been cleared');

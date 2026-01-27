@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
-import 'frame_performance_monitor.dart';
 import 'waste_app_logger.dart';
 
 /// Utility class for implementing lazy loading in lists and grids
@@ -70,7 +68,8 @@ class LazyLoadingUtils {
   /// Creates a performance-optimized image gallery with lazy loading
   static Widget createLazyImageGallery({
     required List<String> imagePaths,
-    required Widget Function(BuildContext context, String imagePath, int index) imageBuilder,
+    required Widget Function(BuildContext context, String imagePath, int index)
+        imageBuilder,
     int crossAxisCount = 2,
     double crossAxisSpacing = 8.0,
     double mainAxisSpacing = 8.0,
@@ -143,11 +142,12 @@ class _LazyListViewState extends State<_LazyListView> {
 
     // Log lazy loading initialization
     if (widget.debugLabel != null) {
-      WasteAppLogger.info('Lazy ListView initialized: ${widget.debugLabel}', null, null, {
-        'total_items': widget.itemCount,
-        'initial_visible': _visibleItemCount,
-        'service': 'LazyLoadingUtils',
-      });
+      WasteAppLogger.info('Lazy ListView initialized: ${widget.debugLabel}',
+          context: {
+            'total_items': widget.itemCount,
+            'initial_visible': _visibleItemCount,
+            'service': 'LazyLoadingUtils',
+          });
     }
   }
 
@@ -167,7 +167,7 @@ class _LazyListViewState extends State<_LazyListView> {
     final position = _scrollController.position;
     final maxScroll = position.maxScrollExtent;
     final currentScroll = position.pixels;
-    
+
     // Calculate remaining items to scroll
     final remainingScroll = maxScroll - currentScroll;
     final itemHeight = widget.itemExtent ?? 80.0; // Estimate if not provided
@@ -191,15 +191,16 @@ class _LazyListViewState extends State<_LazyListView> {
         setState(() {
           final newCount = (_visibleItemCount + widget.initialVisibleItems)
               .clamp(0, widget.itemCount);
-          
+
           if (widget.debugLabel != null) {
-            WasteAppLogger.info('Loading more items: ${widget.debugLabel}', null, null, {
-              'previous_count': _visibleItemCount,
-              'new_count': newCount,
-              'service': 'LazyLoadingUtils',
-            });
+            WasteAppLogger.info('Loading more items: ${widget.debugLabel}',
+                context: {
+                  'previous_count': _visibleItemCount,
+                  'new_count': newCount,
+                  'service': 'LazyLoadingUtils',
+                });
           }
-          
+
           _visibleItemCount = newCount;
           _isLoading = false;
         });
@@ -223,7 +224,7 @@ class _LazyListViewState extends State<_LazyListView> {
       itemBuilder: (context, index) {
         if (index >= _visibleItemCount) {
           // Show loading indicator
-          return widget.loadingBuilder?.call(context) ?? 
+          return widget.loadingBuilder?.call(context) ??
               const Center(
                 child: Padding(
                   padding: EdgeInsets.all(16.0),
@@ -288,11 +289,12 @@ class _LazyGridViewState extends State<_LazyGridView> {
     _scrollController.addListener(_onScroll);
 
     if (widget.debugLabel != null) {
-      WasteAppLogger.info('Lazy GridView initialized: ${widget.debugLabel}', null, null, {
-        'total_items': widget.itemCount,
-        'initial_visible': _visibleItemCount,
-        'service': 'LazyLoadingUtils',
-      });
+      WasteAppLogger.info('Lazy GridView initialized: ${widget.debugLabel}',
+          context: {
+            'total_items': widget.itemCount,
+            'initial_visible': _visibleItemCount,
+            'service': 'LazyLoadingUtils',
+          });
     }
   }
 
@@ -312,8 +314,9 @@ class _LazyGridViewState extends State<_LazyGridView> {
     final position = _scrollController.position;
     final maxScroll = position.maxScrollExtent;
     final currentScroll = position.pixels;
-    
-    if (maxScroll - currentScroll <= 200) { // 200px threshold for grid
+
+    if (maxScroll - currentScroll <= 200) {
+      // 200px threshold for grid
       _loadMoreItems();
     }
   }
@@ -330,15 +333,16 @@ class _LazyGridViewState extends State<_LazyGridView> {
         setState(() {
           final newCount = (_visibleItemCount + widget.initialVisibleItems)
               .clamp(0, widget.itemCount);
-          
+
           if (widget.debugLabel != null) {
-            WasteAppLogger.info('Loading more grid items: ${widget.debugLabel}', null, null, {
-              'previous_count': _visibleItemCount,
-              'new_count': newCount,
-              'service': 'LazyLoadingUtils',
-            });
+            WasteAppLogger.info('Loading more grid items: ${widget.debugLabel}',
+                context: {
+                  'previous_count': _visibleItemCount,
+                  'new_count': newCount,
+                  'service': 'LazyLoadingUtils',
+                });
           }
-          
+
           _visibleItemCount = newCount;
           _isLoading = false;
         });
@@ -362,7 +366,7 @@ class _LazyGridViewState extends State<_LazyGridView> {
       itemBuilder: (context, index) {
         if (index >= _visibleItemCount) {
           // Show loading indicator
-          return widget.loadingBuilder?.call(context) ?? 
+          return widget.loadingBuilder?.call(context) ??
               const Center(
                 child: CircularProgressIndicator(),
               );
@@ -392,7 +396,8 @@ class _LazyImageGallery extends StatefulWidget {
   });
 
   final List<String> imagePaths;
-  final Widget Function(BuildContext context, String imagePath, int index) imageBuilder;
+  final Widget Function(BuildContext context, String imagePath, int index)
+      imageBuilder;
   final int crossAxisCount;
   final double crossAxisSpacing;
   final double mainAxisSpacing;
@@ -415,15 +420,18 @@ class _LazyImageGalleryState extends State<_LazyImageGallery> {
   void initState() {
     super.initState();
     _scrollController = widget.controller ?? ScrollController();
-    _visibleItemCount = widget.initialVisibleItems.clamp(0, widget.imagePaths.length);
+    _visibleItemCount =
+        widget.initialVisibleItems.clamp(0, widget.imagePaths.length);
     _scrollController.addListener(_onScroll);
 
     if (widget.debugLabel != null) {
-      WasteAppLogger.info('Lazy Image Gallery initialized: ${widget.debugLabel}', null, null, {
-        'total_images': widget.imagePaths.length,
-        'initial_visible': _visibleItemCount,
-        'service': 'LazyLoadingUtils',
-      });
+      WasteAppLogger.info(
+          'Lazy Image Gallery initialized: ${widget.debugLabel}',
+          context: {
+            'total_images': widget.imagePaths.length,
+            'initial_visible': _visibleItemCount,
+            'service': 'LazyLoadingUtils',
+          });
     }
   }
 
@@ -443,8 +451,9 @@ class _LazyImageGalleryState extends State<_LazyImageGallery> {
     final position = _scrollController.position;
     final maxScroll = position.maxScrollExtent;
     final currentScroll = position.pixels;
-    
-    if (maxScroll - currentScroll <= 300) { // 300px threshold for images
+
+    if (maxScroll - currentScroll <= 300) {
+      // 300px threshold for images
       _loadMoreImages();
     }
   }
@@ -462,15 +471,16 @@ class _LazyImageGalleryState extends State<_LazyImageGallery> {
         setState(() {
           final newCount = (_visibleItemCount + widget.initialVisibleItems)
               .clamp(0, widget.imagePaths.length);
-          
+
           if (widget.debugLabel != null) {
-            WasteAppLogger.info('Loading more images: ${widget.debugLabel}', null, null, {
-              'previous_count': _visibleItemCount,
-              'new_count': newCount,
-              'service': 'LazyLoadingUtils',
-            });
+            WasteAppLogger.info('Loading more images: ${widget.debugLabel}',
+                context: {
+                  'previous_count': _visibleItemCount,
+                  'new_count': newCount,
+                  'service': 'LazyLoadingUtils',
+                });
           }
-          
+
           _visibleItemCount = newCount;
           _isLoading = false;
         });
@@ -527,10 +537,12 @@ class PerformanceMonitoredWidget extends StatefulWidget {
   final void Function(Map<String, dynamic> metrics)? onPerformanceUpdate;
 
   @override
-  State<PerformanceMonitoredWidget> createState() => _PerformanceMonitoredWidgetState();
+  State<PerformanceMonitoredWidget> createState() =>
+      _PerformanceMonitoredWidgetState();
 }
 
-class _PerformanceMonitoredWidgetState extends State<PerformanceMonitoredWidget> {
+class _PerformanceMonitoredWidgetState
+    extends State<PerformanceMonitoredWidget> {
   DateTime? _lastFrameTime;
   int _frameCount = 0;
   double _averageFrameTime = 0.0;
@@ -548,10 +560,12 @@ class _PerformanceMonitoredWidgetState extends State<PerformanceMonitoredWidget>
     if (_lastFrameTime != null) {
       final frameTime = now.difference(_lastFrameTime!).inMicroseconds / 1000.0;
       _frameCount++;
-      _averageFrameTime = ((_averageFrameTime * (_frameCount - 1)) + frameTime) / _frameCount;
+      _averageFrameTime =
+          ((_averageFrameTime * (_frameCount - 1)) + frameTime) / _frameCount;
 
       // Report performance metrics periodically
-      if (_frameCount % 60 == 0) { // Every 60 frames (~1 second at 60fps)
+      if (_frameCount % 60 == 0) {
+        // Every 60 frames (~1 second at 60fps)
         final metrics = {
           'widget_label': widget.debugLabel ?? 'unknown',
           'frame_count': _frameCount,
@@ -562,10 +576,11 @@ class _PerformanceMonitoredWidgetState extends State<PerformanceMonitoredWidget>
         widget.onPerformanceUpdate?.call(metrics);
 
         if (widget.debugLabel != null) {
-          WasteAppLogger.info('Widget performance: ${widget.debugLabel}', null, null, {
-            ...metrics,
-            'service': 'PerformanceMonitoredWidget',
-          });
+          WasteAppLogger.info('Widget performance: ${widget.debugLabel}',
+              context: {
+                ...metrics,
+                'service': 'PerformanceMonitoredWidget',
+              });
         }
       }
     }

@@ -23,7 +23,8 @@ class AnimatedFAB extends StatefulWidget {
   State<AnimatedFAB> createState() => _AnimatedFABState();
 }
 
-class _AnimatedFABState extends State<AnimatedFAB> with TickerProviderStateMixin {
+class _AnimatedFABState extends State<AnimatedFAB>
+    with TickerProviderStateMixin {
   late AnimationController _pulseController;
   late AnimationController _celebrationController;
   late AnimationController _rippleController;
@@ -265,7 +266,8 @@ class FlameStreakWidget extends StatefulWidget {
   State<FlameStreakWidget> createState() => _FlameStreakWidgetState();
 }
 
-class _FlameStreakWidgetState extends State<FlameStreakWidget> with TickerProviderStateMixin {
+class _FlameStreakWidgetState extends State<FlameStreakWidget>
+    with TickerProviderStateMixin {
   late AnimationController _flameController;
   late Animation<double> _flameAnimation;
   late Animation<Color?> _colorAnimation;
@@ -368,7 +370,8 @@ class CelebrationOverlay extends StatefulWidget {
   State<CelebrationOverlay> createState() => _CelebrationOverlayState();
 }
 
-class _CelebrationOverlayState extends State<CelebrationOverlay> with TickerProviderStateMixin {
+class _CelebrationOverlayState extends State<CelebrationOverlay>
+    with TickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _scaleAnimation;
   late Animation<double> _fadeAnimation;
@@ -442,7 +445,8 @@ class _CelebrationOverlayState extends State<CelebrationOverlay> with TickerProv
         return Positioned.fill(
           child: IgnorePointer(
             child: Container(
-              color: Colors.black.withValues(alpha: 0.3 * (1 - _fadeAnimation.value)),
+              color: Colors.black
+                  .withValues(alpha: 0.3 * (1 - _fadeAnimation.value)),
               child: Center(
                 child: SlideTransition(
                   position: _slideAnimation,

@@ -7,8 +7,8 @@ void main() async {
 
   if (kDebugMode) {
     await WasteAppLogger.initialize();
-    WasteAppLogger.info(
-        '🌐 Starting simplified web debug mode', null, null, {'platform': kIsWeb ? 'web' : 'mobile', 'mode': 'debug'});
+    WasteAppLogger.info('🌐 Starting simplified web debug mode',
+        context: {'platform': kIsWeb ? 'web' : 'mobile', 'mode': 'debug'});
   }
 
   runApp(const DebugWasteApp());
@@ -68,8 +68,10 @@ class DebugHomePage extends StatelessWidget {
             const SizedBox(height: 20),
             ElevatedButton(
               onPressed: () {
-                WasteAppLogger.userAction('debug_button_pressed',
-                    context: {'screen': 'debug_home', 'test_type': 'rendering'});
+                WasteAppLogger.userAction('debug_button_pressed', context: {
+                  'screen': 'debug_home',
+                  'test_type': 'rendering'
+                });
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(content: Text('Debug test successful!')),
                 );
@@ -81,7 +83,8 @@ class DebugHomePage extends StatelessWidget {
               width: 200,
               height: 100,
               decoration: BoxDecoration(
-                color: Colors.blue.withValues(alpha: 0.3),
+                // Colors.blue is a MaterialColor; pick a concrete shade (Color) before adjusting opacity.
+                color: Colors.blue.shade500.withOpacity(0.3),
                 borderRadius: BorderRadius.circular(10),
                 border: Border.all(color: Colors.blue),
               ),

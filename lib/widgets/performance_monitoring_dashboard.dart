@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import '../services/model_selection_service.dart';
-import '../models/vision_model_config.dart';
 
 /// Performance monitoring dashboard for vision models
-/// 
+///
 /// Displays:
 /// - Model usage distribution (pie chart)
 /// - Cost analysis over time
@@ -29,7 +28,7 @@ class _PerformanceMonitoringDashboardState
   @override
   Widget build(BuildContext context) {
     final stats = widget.modelService.getStatistics();
-    
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Model Performance'),
@@ -63,7 +62,7 @@ class _PerformanceMonitoringDashboardState
     final totalAnalyses = stats['total_analyses'] as int;
     final totalCost = stats['total_cost'] as String;
     final avgCost = stats['average_cost_per_analysis'] as String;
-    
+
     return Row(
       children: [
         Expanded(
@@ -177,21 +176,24 @@ class _PerformanceMonitoringDashboardState
                     if (onDeviceCount > 0)
                       PieChartSectionData(
                         value: onDeviceCount.toDouble(),
-                        title: '${(onDeviceCount / total * 100).toStringAsFixed(0)}%',
+                        title:
+                            '${(onDeviceCount / total * 100).toStringAsFixed(0)}%',
                         color: Colors.green,
                         radius: 100,
                       ),
                     if (cloudCount > 0)
                       PieChartSectionData(
                         value: cloudCount.toDouble(),
-                        title: '${(cloudCount / total * 100).toStringAsFixed(0)}%',
+                        title:
+                            '${(cloudCount / total * 100).toStringAsFixed(0)}%',
                         color: Colors.blue,
                         radius: 100,
                       ),
                     if (batchCount > 0)
                       PieChartSectionData(
                         value: batchCount.toDouble(),
-                        title: '${(batchCount / total * 100).toStringAsFixed(0)}%',
+                        title:
+                            '${(batchCount / total * 100).toStringAsFixed(0)}%',
                         color: Colors.orange,
                         radius: 100,
                       ),
@@ -254,17 +256,18 @@ class _PerformanceMonitoringDashboardState
         ) ??
         0.0;
     final totalAnalyses = stats['total_analyses'] as int;
-    
+
     // Estimate potential savings with different strategies
     final currentAvgCost = totalAnalyses > 0 ? totalCost / totalAnalyses : 0.0;
-    final onDevicePercent =
-        double.tryParse(stats['on_device_percentage'].toString().replaceAll('%', '')) ?? 0.0;
-    
+    final onDevicePercent = double.tryParse(
+            stats['on_device_percentage'].toString().replaceAll('%', '')) ??
+        0.0;
+
     // Calculate what cost would be with different strategies
     final cloudOnlyCost = totalAnalyses * 0.01; // $0.01 per analysis
     final hybridCost = totalAnalyses * 0.003; // 70% on-device
-    final onDeviceCost = 0.0;
-    
+    const onDeviceCost = 0.0;
+
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -335,31 +338,35 @@ class _PerformanceMonitoringDashboardState
 
   Widget _buildRecommendations(Map<String, dynamic> stats) {
     final totalAnalyses = stats['total_analyses'] as int;
-    final onDevicePercent =
-        double.tryParse(stats['on_device_percentage'].toString().replaceAll('%', '')) ?? 0.0;
+    final onDevicePercent = double.tryParse(
+            stats['on_device_percentage'].toString().replaceAll('%', '')) ??
+        0.0;
     final recommendedStrategy = widget.modelService.getRecommendedStrategy();
-    
+
     final recommendations = <String>[];
-    
+
     if (totalAnalyses < 10) {
-      recommendations.add('Not enough data yet. Continue using the app to get recommendations.');
+      recommendations.add(
+          'Not enough data yet. Continue using the app to get recommendations.');
     } else {
       if (onDevicePercent < 50) {
-        recommendations.add('💡 Consider increasing on-device usage to reduce costs.');
+        recommendations
+            .add('💡 Consider increasing on-device usage to reduce costs.');
         recommendations.add('Try lowering the confidence threshold to 0.6.');
       }
-      
+
       if (onDevicePercent > 90) {
-        recommendations.add('⚠️ Very high on-device usage. Consider if accuracy is sufficient.');
+        recommendations.add(
+            '⚠️ Very high on-device usage. Consider if accuracy is sufficient.');
       }
-      
+
       if (recommendedStrategy != widget.modelService.strategy) {
         recommendations.add(
           '🎯 Recommended strategy: ${recommendedStrategy.name}',
         );
       }
     }
-    
+
     if (recommendations.isEmpty) {
       recommendations.add('✅ Your current configuration looks optimal!');
     }

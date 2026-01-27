@@ -151,7 +151,8 @@ void main() {
 
         expect(classification.confidence, equals(0.95));
         expect(classification.category, equals('Wet Waste'));
-        expect(classification.alternatives.first.category, equals('Biogas production'));
+        expect(classification.alternatives.first.category,
+            equals('Biogas production'));
         expect(classification.visualFeatures, contains('organic'));
         expect(classification.visualFeatures, contains('biodegradable'));
       });
@@ -247,7 +248,8 @@ void main() {
 
       test('should simulate batch processing workflow', () async {
         // Step 1: Create multiple classifications
-        final classifications = List.generate(5, (i) => _createTestClassification('Batch Item $i'));
+        final classifications =
+            List.generate(5, (i) => _createTestClassification('Batch Item $i'));
 
         // Step 2: Validate batch creation
         expect(classifications.length, equals(5));
@@ -265,9 +267,11 @@ void main() {
 
         // Step 4: Validate batch results
         expect(batchResults.length, equals(5));
-        expect(batchResults.every((result) => result['processed'] == true), isTrue);
+        expect(batchResults.every((result) => result['processed'] == true),
+            isTrue);
 
-        final totalPoints = batchResults.fold<int>(0, (sum, result) => sum + (result['points'] as int));
+        final totalPoints = batchResults.fold<int>(
+            0, (sum, result) => sum + (result['points'] as int));
         expect(totalPoints, equals(25));
       });
     });
@@ -277,7 +281,8 @@ void main() {
         final stopwatch = Stopwatch()..start();
 
         // Create large dataset
-        final largeDataset = List.generate(100, (i) => _createTestClassification('Performance Item $i'));
+        final largeDataset = List.generate(
+            100, (i) => _createTestClassification('Performance Item $i'));
 
         stopwatch.stop();
 
@@ -298,7 +303,10 @@ void main() {
 
         // Validate memory efficiency
         expect(memoryTestData.length, equals(50));
-        expect(memoryTestData.every((item) => item.itemName.startsWith('Memory Test')), isTrue);
+        expect(
+            memoryTestData
+                .every((item) => item.itemName.startsWith('Memory Test')),
+            isTrue);
 
         // Clear data to test cleanup
         memoryTestData.clear();
@@ -347,7 +355,8 @@ void main() {
         );
 
         expect(longTextClassification.explanation.length, equals(1000));
-        expect(longTextClassification.disposalInstructions.steps.first.length, equals(1000));
+        expect(longTextClassification.disposalInstructions.steps.first.length,
+            equals(1000));
         expect(longTextClassification.explanation, equals(longText));
       });
 
@@ -371,7 +380,8 @@ void main() {
         );
 
         expect(futureDateClassification.timestamp.year, equals(2100));
-        expect(futureDateClassification.timestamp.isAfter(DateTime.now()), isTrue);
+        expect(
+            futureDateClassification.timestamp.isAfter(DateTime.now()), isTrue);
       });
     });
   });

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../models/waste_classification.dart';
+import 'package:waste_segregation_app/models/waste_classification.dart';
 
 /// ResultHeader displays the hero image, classification info, and key metrics
 /// This is the above-the-fold content (≈60% viewport) as per the design spec
@@ -63,7 +63,8 @@ class ResultHeader extends ConsumerWidget {
             height: 120,
             width: double.infinity,
             fit: BoxFit.cover,
-            errorBuilder: (context, error, stackTrace) => _buildPlaceholderImage(),
+            errorBuilder: (context, error, stackTrace) =>
+                _buildPlaceholderImage(),
           )
         : _buildPlaceholderImage();
 
@@ -98,7 +99,8 @@ class ResultHeader extends ConsumerWidget {
     );
   }
 
-  Widget _buildCategoryConfidenceRow(BuildContext context, ColorScheme colorScheme) {
+  Widget _buildCategoryConfidenceRow(
+      BuildContext context, ColorScheme colorScheme) {
     final confidence = classification.confidence;
     final category = classification.category;
 
@@ -167,7 +169,8 @@ class ResultHeader extends ConsumerWidget {
                       gradient: LinearGradient(
                         colors: [
                           _getConfidenceColor(confidence ?? 0.0),
-                          _getConfidenceColor(confidence ?? 0.0).withValues(alpha: 0.8),
+                          _getConfidenceColor(confidence ?? 0.0)
+                              .withValues(alpha: 0.8),
                         ],
                       ),
                     ),

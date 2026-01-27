@@ -3,7 +3,7 @@ import '../models/leaderboard.dart'; // Assuming this is where LeaderboardEntry 
 import 'package:waste_segregation_app/utils/waste_app_logger.dart';
 
 class LeaderboardService {
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  late final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   static const String _leaderboardCollection = 'leaderboard_allTime';
 
   /// Fetches the top N leaderboard entries.
@@ -11,8 +11,11 @@ class LeaderboardService {
     if (limit <= 0) return [];
 
     try {
-      final querySnapshot =
-          await _firestore.collection(_leaderboardCollection).orderBy('points', descending: true).limit(limit).get();
+      final querySnapshot = await _firestore
+          .collection(_leaderboardCollection)
+          .orderBy('points', descending: true)
+          .limit(limit)
+          .get();
 
       final entries = querySnapshot.docs
           .map((doc) {
@@ -24,7 +27,8 @@ class LeaderboardService {
               data['userId'] = doc.id;
               return LeaderboardEntry.fromJson(data);
             } catch (e) {
-              WasteAppLogger.severe('Error parsing leaderboard entry with id ${doc.id}: $e');
+              WasteAppLogger.severe(
+                  'Error parsing leaderboard entry with id ${doc.id}: $e');
               return null; // Skip entries that fail to parse
             }
           })
@@ -52,7 +56,8 @@ class LeaderboardService {
     if (userId.isEmpty) return null;
 
     try {
-      final docSnapshot = await _firestore.collection(_leaderboardCollection).doc(userId).get();
+      final docSnapshot =
+          await _firestore.collection(_leaderboardCollection).doc(userId).get();
 
       if (docSnapshot.exists) {
         final data = docSnapshot.data();
@@ -65,7 +70,8 @@ class LeaderboardService {
       }
       return null;
     } catch (e) {
-      WasteAppLogger.severe('Error fetching user leaderboard entry for $userId: $e');
+      WasteAppLogger.severe(
+          'Error fetching user leaderboard entry for $userId: $e');
       return null;
     }
   }
@@ -78,25 +84,29 @@ class LeaderboardService {
 
     try {
       // Get the user's points first
-      final userDoc = await _firestore.collection(_leaderboardCollection).doc(userId).get();
+      final userDoc =
+          await _firestore.collection(_leaderboardCollection).doc(userId).get();
       if (!userDoc.exists) {
         WasteAppLogger.info('User $userId not found in leaderboard_allTime.');
         return null; // User not on the leaderboard
       }
-      
+
       final userData = userDoc.data();
       if (userData == null) {
         WasteAppLogger.info('User $userId has no data in leaderboard_allTime.');
         return null;
       }
-      
+
       // Safe type extraction
       final pointsValue = userData['points'];
       final userPoints = pointsValue is int ? pointsValue : 0;
 
       // Count users with more points
-      final querySnapshot =
-          await _firestore.collection(_leaderboardCollection).where('points', isGreaterThan: userPoints).count().get();
+      final querySnapshot = await _firestore
+          .collection(_leaderboardCollection)
+          .where('points', isGreaterThan: userPoints)
+          .count()
+          .get();
 
       // Rank is 1 (if no one has more points) + count of users with more points
       final rank = (querySnapshot.count ?? 0) + 1;

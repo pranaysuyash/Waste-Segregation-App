@@ -14,7 +14,11 @@ void main() {
         explanation: 'Clear plastic bottle, recyclable with PET code 1',
         disposalInstructions: DisposalInstructions(
           primaryMethod: 'Recycle in blue bin',
-          steps: ['Remove cap and label', 'Rinse thoroughly', 'Place in recycling bin'],
+          steps: [
+            'Remove cap and label',
+            'Rinse thoroughly',
+            'Place in recycling bin'
+          ],
           hasUrgentTimeframe: false,
           warnings: ['Ensure bottle is empty'],
           tips: ['Check for recycling code'],
@@ -116,7 +120,11 @@ void main() {
         ],
         hasUrgentTimeframe: true,
         timeframe: 'Within 24 hours',
-        warnings: ['Toxic material - wear gloves', 'Do not inhale fumes', 'Keep away from children'],
+        warnings: [
+          'Toxic material - wear gloves',
+          'Do not inhale fumes',
+          'Keep away from children'
+        ],
         location: 'Certified hazardous waste facility',
       );
 
@@ -183,8 +191,14 @@ void main() {
       expect(profile.points.total, equals(150));
       expect(profile.points.level, equals(1));
       expect(profile.points.categoryPoints.length, equals(3));
-      expect(profile.streaks[StreakType.dailyClassification.toString()]?.currentCount, equals(5));
-      expect(profile.streaks[StreakType.dailyClassification.toString()]?.longestCount, equals(12));
+      expect(
+          profile
+              .streaks[StreakType.dailyClassification.toString()]?.currentCount,
+          equals(5));
+      expect(
+          profile
+              .streaks[StreakType.dailyClassification.toString()]?.longestCount,
+          equals(12));
       expect(profile.achievements.length, equals(1));
       expect(profile.activeChallenges.length, equals(1));
       expect(profile.activeChallenges.first.progress, equals(0.6));
@@ -192,9 +206,12 @@ void main() {
 
     test('should calculate level correctly from points', () {
       const points1 = UserPoints(total: 50); // Level 0 (50/100 = 0.5 floor = 0)
-      const points2 = UserPoints(total: 150); // Level 1 (150/100 = 1.5 floor = 1)
-      const points3 = UserPoints(total: 350); // Level 3 (350/100 = 3.5 floor = 3)
-      const points4 = UserPoints(total: 1000); // Level 10 (1000/100 = 10.0 floor = 10)
+      const points2 =
+          UserPoints(total: 150); // Level 1 (150/100 = 1.5 floor = 1)
+      const points3 =
+          UserPoints(total: 350); // Level 3 (350/100 = 3.5 floor = 3)
+      const points4 =
+          UserPoints(total: 1000); // Level 10 (1000/100 = 10.0 floor = 10)
 
       // The level is calculated as (total / 100).floor()
       expect((points1.total / 100).floor(), equals(0));
@@ -473,7 +490,8 @@ void main() {
 
       expect(classification.itemName.length, equals(1000));
       expect(classification.explanation.length, equals(1000));
-      expect(classification.disposalInstructions.primaryMethod.length, equals(1000));
+      expect(classification.disposalInstructions.primaryMethod.length,
+          equals(1000));
       expect(classification.visualFeatures.first.length, equals(1000));
     });
 

@@ -90,7 +90,8 @@ class WasteClassification extends HiveObject {
         timestamp = timestamp ?? DateTime.now();
 
   /// Creates a fallback classification when AI analysis fails
-  factory WasteClassification.fallback(String imagePath, {String? userId, String? id}) {
+  factory WasteClassification.fallback(String imagePath,
+      {String? userId, String? id}) {
     return WasteClassification(
       id: id ?? const Uuid().v4(),
       itemName: 'Unidentified Item - Fallback',
@@ -108,7 +109,10 @@ class WasteClassification extends HiveObject {
           'When in doubt, contact your local waste management authority'
         ],
         hasUrgentTimeframe: false,
-        warnings: ['Do not dispose until properly identified', 'Some items may require special handling'],
+        warnings: [
+          'Do not dispose until properly identified',
+          'Some items may require special handling'
+        ],
         tips: [
           'Take a clearer photo with better lighting if possible',
           'Ensure the item fills most of the image frame',
@@ -123,26 +127,30 @@ class WasteClassification extends HiveObject {
           category: 'Wet Waste',
           subcategory: 'Food Waste',
           confidence: 0.0,
-          reason: 'If this is food scraps or organic matter, it belongs in wet waste',
+          reason:
+              'If this is food scraps or organic matter, it belongs in wet waste',
         ),
         AlternativeClassification(
           category: 'Dry Waste',
           subcategory: 'Recyclable Material',
           confidence: 0.0,
-          reason: 'If this is paper, plastic, glass, or metal, it likely belongs in dry waste',
+          reason:
+              'If this is paper, plastic, glass, or metal, it likely belongs in dry waste',
         ),
         AlternativeClassification(
           category: 'Hazardous Waste',
           subcategory: 'Special Disposal',
           confidence: 0.0,
-          reason: 'If this contains batteries, electronics, or chemicals, it needs special handling',
+          reason:
+              'If this contains batteries, electronics, or chemicals, it needs special handling',
         ),
       ],
       imageUrl: imagePath,
       confidence: 0.0,
       clarificationNeeded: true,
       riskLevel: 'unknown',
-      suggestedAction: 'Please identify the item manually and provide feedback to help improve our AI',
+      suggestedAction:
+          'Please identify the item manually and provide feedback to help improve our AI',
     );
   }
 
@@ -169,15 +177,21 @@ class WasteClassification extends HiveObject {
       localGuidelinesReference: json['localGuidelinesReference'],
       imageUrl: json['imageUrl'],
       imageHash: json['imageHash'],
-      imageMetrics: json['imageMetrics'] != null ? Map<String, double>.from(json['imageMetrics']) : null,
-      visualFeatures: json['visualFeatures'] != null ? List<String>.from(json['visualFeatures']) : [],
+      imageMetrics: json['imageMetrics'] != null
+          ? Map<String, double>.from(json['imageMetrics'])
+          : null,
+      visualFeatures: json['visualFeatures'] != null
+          ? List<String>.from(json['visualFeatures'])
+          : [],
       isRecyclable: json['isRecyclable'],
       isCompostable: json['isCompostable'],
       requiresSpecialDisposal: json['requiresSpecialDisposal'],
       isSingleUse: json['isSingleUse'],
       colorCode: json['colorCode'],
       riskLevel: json['riskLevel'],
-      requiredPPE: json['requiredPPE'] != null ? List<String>.from(json['requiredPPE']) : null,
+      requiredPPE: json['requiredPPE'] != null
+          ? List<String>.from(json['requiredPPE'])
+          : null,
       brand: json['brand'],
       product: json['product'],
       barcode: json['barcode'],
@@ -194,21 +208,29 @@ class WasteClassification extends HiveObject {
       modelSource: json['modelSource'],
       analysisSessionId: json['analysisSessionId'],
       alternatives: json['alternatives'] != null
-          ? (json['alternatives'] as List).map((alt) => AlternativeClassification.fromJson(alt)).toList()
+          ? (json['alternatives'] as List)
+              .map((alt) => AlternativeClassification.fromJson(alt))
+              .toList()
           : [],
       suggestedAction: json['suggestedAction'],
       hasUrgentTimeframe: json['hasUrgentTimeframe'],
       instructionsLang: json['instructionsLang'],
-      translatedInstructions:
-          json['translatedInstructions'] != null ? Map<String, String>.from(json['translatedInstructions']) : null,
+      translatedInstructions: json['translatedInstructions'] != null
+          ? Map<String, String>.from(json['translatedInstructions'])
+          : null,
       source: json['source'],
-      timestamp: json['timestamp'] != null ? DateTime.parse(json['timestamp']) : DateTime.now(),
-      reanalysisModelsTried:
-          json['reanalysisModelsTried'] != null ? List<String>.from(json['reanalysisModelsTried']) : null,
+      timestamp: json['timestamp'] != null
+          ? DateTime.parse(json['timestamp'])
+          : DateTime.now(),
+      reanalysisModelsTried: json['reanalysisModelsTried'] != null
+          ? List<String>.from(json['reanalysisModelsTried'])
+          : null,
       confirmedByModel: json['confirmedByModel'],
       pointsAwarded: json['pointsAwarded'],
       environmentalImpact: json['environmentalImpact'],
-      relatedItems: json['relatedItems'] != null ? List<String>.from(json['relatedItems']) : null,
+      relatedItems: json['relatedItems'] != null
+          ? List<String>.from(json['relatedItems'])
+          : null,
       imageRelativePath: json['imageRelativePath'],
       thumbnailRelativePath: json['thumbnailRelativePath'],
       // Enhanced AI Analysis v2.0 additional fields
@@ -216,20 +238,33 @@ class WasteClassification extends HiveObject {
       hazardLevel: json['hazardLevel'],
       co2Impact: json['co2Impact']?.toDouble(),
       decompositionTime: json['decompositionTime'],
-      properEquipment: json['properEquipment'] != null ? List<String>.from(json['properEquipment']) : null,
-      materials: json['materials'] != null ? List<String>.from(json['materials']) : null,
+      properEquipment: json['properEquipment'] != null
+          ? List<String>.from(json['properEquipment'])
+          : null,
+      materials: json['materials'] != null
+          ? List<String>.from(json['materials'])
+          : null,
       subCategory: json['subCategory'],
-      commonUses: json['commonUses'] != null ? List<String>.from(json['commonUses']) : null,
-      alternativeOptions: json['alternativeOptions'] != null ? List<String>.from(json['alternativeOptions']) : null,
-      localRegulations: json['localRegulations'] != null ? Map<String, String>.from(json['localRegulations']) : null,
+      commonUses: json['commonUses'] != null
+          ? List<String>.from(json['commonUses'])
+          : null,
+      alternativeOptions: json['alternativeOptions'] != null
+          ? List<String>.from(json['alternativeOptions'])
+          : null,
+      localRegulations: json['localRegulations'] != null
+          ? Map<String, String>.from(json['localRegulations'])
+          : null,
       waterPollutionLevel: json['waterPollutionLevel'],
       soilContaminationRisk: json['soilContaminationRisk'],
       biodegradabilityDays: json['biodegradabilityDays'],
       recyclingEfficiency: json['recyclingEfficiency'],
-      manufacturingEnergyFootprint: json['manufacturingEnergyFootprint']?.toDouble(),
+      manufacturingEnergyFootprint:
+          json['manufacturingEnergyFootprint']?.toDouble(),
       transportationFootprint: json['transportationFootprint']?.toDouble(),
       endOfLifeCost: json['endOfLifeCost'],
-      circularEconomyPotential: json['circularEconomyPotential'] != null ? List<String>.from(json['circularEconomyPotential']) : null,
+      circularEconomyPotential: json['circularEconomyPotential'] != null
+          ? List<String>.from(json['circularEconomyPotential'])
+          : null,
       generatesMicroplastics: json['generatesMicroplastics'],
       humanToxicityLevel: json['humanToxicityLevel'],
       wildlifeImpactSeverity: json['wildlifeImpactSeverity'],
@@ -245,17 +280,19 @@ class WasteClassification extends HiveObject {
   final String itemName;
   @HiveField(2)
   final String category;
-  
+
   /// DEPRECATED: Use subCategory (HiveField 68) for consistency with AI v2.0
   /// This field is maintained for backward compatibility only
   @HiveField(3)
-  @Deprecated('Use subCategory field (HiveField 68) instead for AI model v2.0 compatibility')
+  @Deprecated(
+      'Use subCategory field (HiveField 68) instead for AI model v2.0 compatibility')
   final String? subcategory;
-  
+
   /// DEPRECATED: Use materials list (HiveField 67) for consistency with AI v2.0
   /// This single string field is replaced by the more flexible materials list
   @HiveField(4)
-  @Deprecated('Use materials field (HiveField 67) instead for AI model v2.0 compatibility')
+  @Deprecated(
+      'Use materials field (HiveField 67) instead for AI model v2.0 compatibility')
   final String? materialType;
   @HiveField(5)
   final int? recyclingCode;
@@ -485,7 +522,8 @@ class WasteClassification extends HiveObject {
   final String? localGuidelinesVersion;
 
   /// Parse disposal instructions from various input formats
-  static DisposalInstructions _parseDisposalInstructions(dynamic instructionsData) {
+  static DisposalInstructions _parseDisposalInstructions(
+      dynamic instructionsData) {
     if (instructionsData == null) {
       return DisposalInstructions(
         primaryMethod: 'Review required',
@@ -502,7 +540,9 @@ class WasteClassification extends HiveObject {
     // If it's a string, create basic instructions from it
     if (instructionsData is String) {
       return DisposalInstructions(
-        primaryMethod: instructionsData.length > 100 ? '${instructionsData.substring(0, 100)}...' : instructionsData,
+        primaryMethod: instructionsData.length > 100
+            ? '${instructionsData.substring(0, 100)}...'
+            : instructionsData,
         steps: DisposalInstructions._parseStepsFromString(instructionsData),
         hasUrgentTimeframe: false,
       );
@@ -518,18 +558,18 @@ class WasteClassification extends HiveObject {
 
   // OPTIMIZATION: Migration helpers for accessing normalized field values
   // These getters provide consistent access to data regardless of which field is populated
-  
+
   /// Gets the subcategory value, preferring the newer subCategory field
   String? get normalizedSubcategory => subCategory ?? subcategory;
-  
+
   /// Gets materials as a list, converting from legacy materialType if needed
-  List<String> get normalizedMaterials => 
+  List<String> get normalizedMaterials =>
       materials ?? (materialType != null ? [materialType!] : []);
 
   /// Calculate dynamic points based on classification richness and environmental impact
   int calculatePoints() {
     var points = 10; // Base points for classification
-    
+
     // Data richness bonus (up to 15 points)
     var dataFields = 0;
     if (subcategory != null && subcategory!.isNotEmpty) dataFields++;
@@ -539,13 +579,15 @@ class WasteClassification extends HiveObject {
     if (visualFeatures.isNotEmpty) dataFields++;
     if (materials != null && materials!.isNotEmpty) dataFields++;
     if (commonUses != null && commonUses!.isNotEmpty) dataFields++;
-    if (alternativeOptions != null && alternativeOptions!.isNotEmpty) dataFields++;
-    if (circularEconomyPotential != null && circularEconomyPotential!.isNotEmpty) dataFields++;
+    if (alternativeOptions != null && alternativeOptions!.isNotEmpty)
+      dataFields++;
+    if (circularEconomyPotential != null &&
+        circularEconomyPotential!.isNotEmpty) dataFields++;
     if (localRegulations != null && localRegulations!.isNotEmpty) dataFields++;
-    
+
     // Award bonus points for detailed analysis (1-15 points)
     points += (dataFields * 1.5).round().clamp(0, 15);
-    
+
     // Environmental impact bonus (up to 10 points)
     if (co2Impact != null && co2Impact! > 0) {
       points += 2;
@@ -564,7 +606,7 @@ class WasteClassification extends HiveObject {
     if (generatesMicroplastics == true) {
       points += 2; // Awareness bonus
     }
-    
+
     // Complexity bonus (up to 5 points)
     if (requiresSpecialDisposal == true) {
       points += 3;
@@ -575,15 +617,16 @@ class WasteClassification extends HiveObject {
     if (hasUrgentTimeframe == true) {
       points += 2;
     }
-    
+
     // Local guidelines bonus (up to 5 points)
     if (bbmpComplianceStatus != null && bbmpComplianceStatus!.isNotEmpty) {
       points += 3;
     }
-    if (localGuidelinesReference != null && localGuidelinesReference!.isNotEmpty) {
+    if (localGuidelinesReference != null &&
+        localGuidelinesReference!.isNotEmpty) {
       points += 2;
     }
-    
+
     // Confidence bonus/penalty (±5 points)
     if (confidence != null) {
       if (confidence! >= 0.9) {
@@ -596,15 +639,15 @@ class WasteClassification extends HiveObject {
         points -= 2;
       }
     }
-    
+
     // Cap at reasonable maximum
     return points.clamp(5, 50);
   }
-  
+
   /// Get environmental impact score (1-10 scale)
   double getEnvironmentalImpactScore() {
     var score = 5.0; // Neutral baseline
-    
+
     // CO2 impact factor
     if (co2Impact != null) {
       if (co2Impact! > 10.0) {
@@ -615,7 +658,7 @@ class WasteClassification extends HiveObject {
         score -= 1.0;
       }
     }
-    
+
     // Pollution factors
     if (waterPollutionLevel != null) {
       score += (waterPollutionLevel! - 3) * 0.5;
@@ -623,19 +666,19 @@ class WasteClassification extends HiveObject {
     if (soilContaminationRisk != null) {
       score += (soilContaminationRisk! - 3) * 0.5;
     }
-    
+
     // Recyclability factor
     if (recyclability == 'fully recyclable') {
       score -= 2.0;
     } else if (recyclability == 'not recyclable') {
       score += 1.5;
     }
-    
+
     // Microplastics factor
     if (generatesMicroplastics == true) {
       score += 1.0;
     }
-    
+
     // Toxicity factors
     if (humanToxicityLevel != null) {
       score += (humanToxicityLevel! - 3) * 0.3;
@@ -643,14 +686,14 @@ class WasteClassification extends HiveObject {
     if (wildlifeImpactSeverity != null) {
       score += (wildlifeImpactSeverity! - 3) * 0.4;
     }
-    
+
     return score.clamp(1.0, 10.0);
   }
-  
+
   /// Get visual tags for this classification
   List<ClassificationTag> getClassificationTags() {
     final tags = <ClassificationTag>[];
-    
+
     // Single-use vs Multi-use
     if (isSingleUse == true) {
       tags.add(const ClassificationTag(
@@ -667,7 +710,7 @@ class WasteClassification extends HiveObject {
         priority: 2,
       ));
     }
-    
+
     // Recyclability
     if (recyclability != null) {
       switch (recyclability) {
@@ -697,7 +740,7 @@ class WasteClassification extends HiveObject {
           break;
       }
     }
-    
+
     // Hazard level
     if (hazardLevel != null && hazardLevel! > 3) {
       tags.add(const ClassificationTag(
@@ -707,7 +750,7 @@ class WasteClassification extends HiveObject {
         priority: 6,
       ));
     }
-    
+
     // Special disposal
     if (requiresSpecialDisposal == true) {
       tags.add(const ClassificationTag(
@@ -717,7 +760,7 @@ class WasteClassification extends HiveObject {
         priority: 7,
       ));
     }
-    
+
     // Compostable
     if (isCompostable == true) {
       tags.add(const ClassificationTag(
@@ -727,7 +770,7 @@ class WasteClassification extends HiveObject {
         priority: 8,
       ));
     }
-    
+
     // BBMP Compliance (Bangalore specific)
     if (bbmpComplianceStatus != null && bbmpComplianceStatus!.isNotEmpty) {
       tags.add(ClassificationTag(
@@ -737,7 +780,7 @@ class WasteClassification extends HiveObject {
         priority: 9,
       ));
     }
-    
+
     // High CO2 impact
     if (co2Impact != null && co2Impact! > 5.0) {
       tags.add(const ClassificationTag(
@@ -747,7 +790,7 @@ class WasteClassification extends HiveObject {
         priority: 10,
       ));
     }
-    
+
     // Sort by priority and return top 5
     tags.sort((a, b) => a.priority.compareTo(b.priority));
     return tags.take(5).toList();
@@ -930,14 +973,16 @@ class WasteClassification extends HiveObject {
       disposalInstructions: disposalInstructions ?? this.disposalInstructions,
       userId: userId ?? this.userId,
       region: region ?? this.region,
-      localGuidelinesReference: localGuidelinesReference ?? this.localGuidelinesReference,
+      localGuidelinesReference:
+          localGuidelinesReference ?? this.localGuidelinesReference,
       imageUrl: imageUrl ?? this.imageUrl,
       imageHash: imageHash ?? this.imageHash,
       imageMetrics: imageMetrics ?? this.imageMetrics,
       visualFeatures: visualFeatures ?? this.visualFeatures,
       isRecyclable: isRecyclable ?? this.isRecyclable,
       isCompostable: isCompostable ?? this.isCompostable,
-      requiresSpecialDisposal: requiresSpecialDisposal ?? this.requiresSpecialDisposal,
+      requiresSpecialDisposal:
+          requiresSpecialDisposal ?? this.requiresSpecialDisposal,
       isSingleUse: isSingleUse ?? this.isSingleUse,
       colorCode: colorCode ?? this.colorCode,
       riskLevel: riskLevel ?? this.riskLevel,
@@ -961,16 +1006,19 @@ class WasteClassification extends HiveObject {
       suggestedAction: suggestedAction ?? this.suggestedAction,
       hasUrgentTimeframe: hasUrgentTimeframe ?? this.hasUrgentTimeframe,
       instructionsLang: instructionsLang ?? this.instructionsLang,
-      translatedInstructions: translatedInstructions ?? this.translatedInstructions,
+      translatedInstructions:
+          translatedInstructions ?? this.translatedInstructions,
       source: source ?? this.source,
       timestamp: timestamp ?? this.timestamp,
-      reanalysisModelsTried: reanalysisModelsTried ?? this.reanalysisModelsTried,
+      reanalysisModelsTried:
+          reanalysisModelsTried ?? this.reanalysisModelsTried,
       confirmedByModel: confirmedByModel ?? this.confirmedByModel,
       pointsAwarded: pointsAwarded ?? this.pointsAwarded,
       environmentalImpact: environmentalImpact ?? this.environmentalImpact,
       relatedItems: relatedItems ?? this.relatedItems,
       imageRelativePath: imageRelativePath ?? this.imageRelativePath,
-      thumbnailRelativePath: thumbnailRelativePath ?? this.thumbnailRelativePath,
+      thumbnailRelativePath:
+          thumbnailRelativePath ?? this.thumbnailRelativePath,
       // Enhanced AI Analysis v2.0 additional fields
       recyclability: recyclability ?? this.recyclability,
       hazardLevel: hazardLevel ?? this.hazardLevel,
@@ -983,20 +1031,27 @@ class WasteClassification extends HiveObject {
       alternativeOptions: alternativeOptions ?? this.alternativeOptions,
       localRegulations: localRegulations ?? this.localRegulations,
       waterPollutionLevel: waterPollutionLevel ?? this.waterPollutionLevel,
-      soilContaminationRisk: soilContaminationRisk ?? this.soilContaminationRisk,
+      soilContaminationRisk:
+          soilContaminationRisk ?? this.soilContaminationRisk,
       biodegradabilityDays: biodegradabilityDays ?? this.biodegradabilityDays,
       recyclingEfficiency: recyclingEfficiency ?? this.recyclingEfficiency,
-      manufacturingEnergyFootprint: manufacturingEnergyFootprint ?? this.manufacturingEnergyFootprint,
-      transportationFootprint: transportationFootprint ?? this.transportationFootprint,
+      manufacturingEnergyFootprint:
+          manufacturingEnergyFootprint ?? this.manufacturingEnergyFootprint,
+      transportationFootprint:
+          transportationFootprint ?? this.transportationFootprint,
       endOfLifeCost: endOfLifeCost ?? this.endOfLifeCost,
-      circularEconomyPotential: circularEconomyPotential ?? this.circularEconomyPotential,
-      generatesMicroplastics: generatesMicroplastics ?? this.generatesMicroplastics,
+      circularEconomyPotential:
+          circularEconomyPotential ?? this.circularEconomyPotential,
+      generatesMicroplastics:
+          generatesMicroplastics ?? this.generatesMicroplastics,
       humanToxicityLevel: humanToxicityLevel ?? this.humanToxicityLevel,
-      wildlifeImpactSeverity: wildlifeImpactSeverity ?? this.wildlifeImpactSeverity,
+      wildlifeImpactSeverity:
+          wildlifeImpactSeverity ?? this.wildlifeImpactSeverity,
       resourceScarcity: resourceScarcity ?? this.resourceScarcity,
       disposalCostEstimate: disposalCostEstimate ?? this.disposalCostEstimate,
       bbmpComplianceStatus: bbmpComplianceStatus ?? this.bbmpComplianceStatus,
-      localGuidelinesVersion: localGuidelinesVersion ?? this.localGuidelinesVersion,
+      localGuidelinesVersion:
+          localGuidelinesVersion ?? this.localGuidelinesVersion,
     );
   }
 }
@@ -1129,19 +1184,35 @@ class DisposalInstructions {
 
     // Try newline separation first
     if (stepsString.contains('\n')) {
-      steps = stepsString.split('\n').map((step) => step.trim()).where((step) => step.isNotEmpty).toList();
+      steps = stepsString
+          .split('\n')
+          .map((step) => step.trim())
+          .where((step) => step.isNotEmpty)
+          .toList();
     }
     // Try comma separation
     else if (stepsString.contains(',')) {
-      steps = stepsString.split(',').map((step) => step.trim()).where((step) => step.isNotEmpty).toList();
+      steps = stepsString
+          .split(',')
+          .map((step) => step.trim())
+          .where((step) => step.isNotEmpty)
+          .toList();
     }
     // Try semicolon separation
     else if (stepsString.contains(';')) {
-      steps = stepsString.split(';').map((step) => step.trim()).where((step) => step.isNotEmpty).toList();
+      steps = stepsString
+          .split(';')
+          .map((step) => step.trim())
+          .where((step) => step.isNotEmpty)
+          .toList();
     }
     // Try numbered list pattern (1. 2. 3.)
     else if (RegExp(r'\d+\.').hasMatch(stepsString)) {
-      steps = stepsString.split(RegExp(r'\d+\.')).map((step) => step.trim()).where((step) => step.isNotEmpty).toList();
+      steps = stepsString
+          .split(RegExp(r'\d+\.'))
+          .map((step) => step.trim())
+          .where((step) => step.isNotEmpty)
+          .toList();
     }
     // Single step
     else {
@@ -1469,12 +1540,12 @@ class ClassificationTag {
     required this.icon,
     required this.priority,
   });
-  
+
   final String label;
   final String color; // Hex color
   final String icon; // Material icon name
   final int priority; // Lower number = higher priority
-  
+
   /// Convert hex color to integer
   int get colorValue {
     final hex = color.replaceFirst('#', '');

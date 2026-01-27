@@ -31,7 +31,10 @@ class HomeHeaderWrapper extends ConsumerWidget {
   Widget _buildLegacyHeader(BuildContext context) {
     return Card(
       margin: EdgeInsets.zero,
-      color: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.4),
+      color: Theme.of(context)
+          .colorScheme
+          .surfaceContainerHighest
+          .withValues(alpha: 0.4),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       child: Padding(
         padding: const EdgeInsets.all(20),
@@ -88,8 +91,10 @@ class HomeHeaderAnalytics {
 /// Remote Config keys for A/B testing
 class HomeHeaderRemoteConfigKeys {
   static const String homeHeaderV2Enabled = 'home_header_v2_enabled';
-  static const String homeHeaderV2RolloutPercentage = 'home_header_v2_rollout_percentage';
-  static const String homeHeaderV2TargetAudience = 'home_header_v2_target_audience';
+  static const String homeHeaderV2RolloutPercentage =
+      'home_header_v2_rollout_percentage';
+  static const String homeHeaderV2TargetAudience =
+      'home_header_v2_target_audience';
 
   /// Default values for remote config
   static const Map<String, dynamic> defaults = {

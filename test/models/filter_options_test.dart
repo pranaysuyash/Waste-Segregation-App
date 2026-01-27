@@ -67,7 +67,8 @@ void main() {
         expect(filterOptions.startDate, null);
         expect(filterOptions.endDate, null);
         expect(filterOptions.sortNewestFirst, true); // Default from constructor
-        expect(filterOptions.sortBy, SortField.date); // Default from constructor
+        expect(
+            filterOptions.sortBy, SortField.date); // Default from constructor
         expect(filterOptions.isEmpty, true);
       });
     });
@@ -128,8 +129,10 @@ void main() {
       });
 
       test('isEmpty should be true if only sort options are non-default', () {
-        final filterOptions = FilterOptions(sortBy: SortField.name, sortNewestFirst: false);
-        expect(filterOptions.isEmpty, true); // Sorting options don't count as filters for isEmpty
+        final filterOptions =
+            FilterOptions(sortBy: SortField.name, sortNewestFirst: false);
+        expect(filterOptions.isEmpty,
+            true); // Sorting options don't count as filters for isEmpty
         expect(filterOptions.isNotEmpty, false);
       });
     });
@@ -214,7 +217,8 @@ void main() {
         expect(options.toString(), contains('Search: "bottle"'));
         expect(options.toString(), contains('Categories: plastic, glass'));
         expect(options.toString(), contains('Recyclable: Yes'));
-        expect(options.toString(), contains('Date Range: 1/1/2024 to 31/1/2024'));
+        expect(
+            options.toString(), contains('Date Range: 1/1/2024 to 31/1/2024'));
       });
 
       test('toString with only searchText', () {

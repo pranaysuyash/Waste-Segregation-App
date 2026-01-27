@@ -5,7 +5,8 @@ import 'package:waste_segregation_app/utils/constants.dart';
 
 void main() {
   group('Quick-action Cards Golden Tests', () {
-    testWidgets('FeatureCard basic layout golden test', (WidgetTester tester) async {
+    testWidgets('FeatureCard basic layout golden test',
+        (WidgetTester tester) async {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
@@ -41,7 +42,8 @@ void main() {
       );
     });
 
-    testWidgets('FeatureCard overflow handling golden test', (WidgetTester tester) async {
+    testWidgets('FeatureCard overflow handling golden test',
+        (WidgetTester tester) async {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
@@ -53,7 +55,8 @@ void main() {
                     width: 300,
                     child: FeatureCard(
                       icon: Icons.analytics,
-                      title: 'Very Long Analytics Dashboard Title That Should Not Overflow',
+                      title:
+                          'Very Long Analytics Dashboard Title That Should Not Overflow',
                       subtitle:
                           'Very long subtitle that describes detailed insights and statistics with comprehensive data analysis and reporting features',
                       iconColor: AppTheme.infoColor,
@@ -84,7 +87,8 @@ void main() {
       );
     });
 
-    testWidgets('FeatureCard theme variations golden test', (WidgetTester tester) async {
+    testWidgets('FeatureCard theme variations golden test',
+        (WidgetTester tester) async {
       // Test light theme
       await tester.pumpWidget(
         MaterialApp(

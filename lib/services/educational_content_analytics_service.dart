@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:waste_segregation_app/utils/waste_app_logger.dart';
@@ -43,7 +45,8 @@ class EducationalContentAnalyticsService extends ChangeNotifier {
 
   /// Get most viewed content
   List<String> getMostViewedContent({int limit = 10}) {
-    final sortedAnalytics = _contentAnalytics.entries.toList()..sort((a, b) => b.value.views.compareTo(a.value.views));
+    final sortedAnalytics = _contentAnalytics.entries.toList()
+      ..sort((a, b) => b.value.views.compareTo(a.value.views));
 
     return sortedAnalytics.take(limit).map((entry) => entry.key).toList();
   }
@@ -60,7 +63,8 @@ class EducationalContentAnalyticsService extends ChangeNotifier {
 
   /// Get popular categories based on views
   List<MapEntry<String, int>> getPopularCategories() {
-    final sortedCategories = _categoryViews.entries.toList()..sort((a, b) => b.value.compareTo(a.value));
+    final sortedCategories = _categoryViews.entries.toList()
+      ..sort((a, b) => b.value.compareTo(a.value));
 
     return sortedCategories;
   }
@@ -94,7 +98,8 @@ class EducationalContentAnalyticsService extends ChangeNotifier {
     if (_lastViewed.isEmpty) return 0;
 
     final now = DateTime.now();
-    final sortedDates = _lastViewed.values.toList()..sort((a, b) => b.compareTo(a));
+    final sortedDates = _lastViewed.values.toList()
+      ..sort((a, b) => b.compareTo(a));
 
     var streak = 0;
     var currentDate = DateTime(now.year, now.month, now.day);
@@ -102,7 +107,8 @@ class EducationalContentAnalyticsService extends ChangeNotifier {
     for (final viewDate in sortedDates) {
       final viewDay = DateTime(viewDate.year, viewDate.month, viewDate.day);
 
-      if (viewDay == currentDate || currentDate.difference(viewDay).inDays == 1) {
+      if (viewDay == currentDate ||
+          currentDate.difference(viewDay).inDays == 1) {
         streak++;
         currentDate = viewDay.subtract(const Duration(days: 1));
       } else {
@@ -121,7 +127,8 @@ class EducationalContentAnalyticsService extends ChangeNotifier {
     final recommendations = <String>[];
 
     // Get user's favorite categories
-    final favoriteCategories = getPopularCategories().take(3).map((entry) => entry.key).toList();
+    final favoriteCategories =
+        getPopularCategories().take(3).map((entry) => entry.key).toList();
 
     // Find content in favorite categories that hasn't been viewed much
     for (final content in allContent) {
@@ -137,7 +144,8 @@ class EducationalContentAnalyticsService extends ChangeNotifier {
     if (recommendations.length < limit) {
       final popular = getMostViewedContent(limit: limit * 2);
       for (final contentId in popular) {
-        if (!recommendations.contains(contentId) && !_recentlyViewed.take(3).contains(contentId)) {
+        if (!recommendations.contains(contentId) &&
+            !_recentlyViewed.take(3).contains(contentId)) {
           recommendations.add(contentId);
           if (recommendations.length >= limit) break;
         }
@@ -170,9 +178,47 @@ class EducationalContentAnalyticsService extends ChangeNotifier {
     }
   }
 
+  /// Record additional time spent on specific content
+  Future<void> recordTimeSpent(String contentId, Duration duration) async {
+    try {
+      if (duration.isNegative) return;
+
+      final analytics = getContentAnalytics(contentId);
+      final updatedAnalytics = analytics.copyWith(
+        totalTimeSpent: analytics.totalTimeSpent + duration,
+      );
+
+      _contentAnalytics[contentId] = updatedAnalytics;
+      _sessionTimes[contentId] =
+          (_sessionTimes[contentId] ?? Duration.zero) + duration;
+
+      await _saveAnalytics();
+      notifyListeners();
+    } catch (e) {
+      WasteAppLogger.severe('Error recording time spent: $e');
+    }
+  }
+
+  /// Record a completion event for specific content
+  Future<void> recordCompletion(String contentId) async {
+    try {
+      final analytics = getContentAnalytics(contentId);
+      final updatedAnalytics = analytics.copyWith(
+        completions: analytics.completions + 1,
+      );
+
+      _contentAnalytics[contentId] = updatedAnalytics;
+
+      await _saveAnalytics();
+      notifyListeners();
+    } catch (e) {
+      WasteAppLogger.severe('Error recording completion: $e');
+    }
+  }
+
   /// Start content session (for time tracking)
-  void startContentSession(String contentId) {
-    _endCurrentSession(); // End any existing session
+  Future<void> startContentSession(String contentId) async {
+    await _endCurrentSession(); // End any existing session
 
     _currentContentId = contentId;
     _sessionStartTime = DateTime.now();
@@ -189,7 +235,8 @@ class EducationalContentAnalyticsService extends ChangeNotifier {
       final analytics = getContentAnalytics(contentId);
       final updatedAnalytics = analytics.copyWith(
         totalTimeSpent: analytics.totalTimeSpent + sessionDuration,
-        completions: wasCompleted ? analytics.completions + 1 : analytics.completions,
+        completions:
+            wasCompleted ? analytics.completions + 1 : analytics.completions,
       );
 
       _contentAnalytics[contentId] = updatedAnalytics;
@@ -206,7 +253,8 @@ class EducationalContentAnalyticsService extends ChangeNotifier {
   }
 
   /// Track content interaction (like, share, bookmark, etc.)
-  Future<void> trackContentInteraction(String contentId, ContentInteractionType type) async {
+  Future<void> trackContentInteraction(
+      String contentId, ContentInteractionType type) async {
     try {
       final analytics = getContentAnalytics(contentId);
       final updatedAnalytics = analytics.copyWith(
@@ -243,7 +291,8 @@ class EducationalContentAnalyticsService extends ChangeNotifier {
 
     try {
       final normalizedQuery = query.toLowerCase().trim();
-      _searchQueries[normalizedQuery] = (_searchQueries[normalizedQuery] ?? 0) + 1;
+      _searchQueries[normalizedQuery] =
+          (_searchQueries[normalizedQuery] ?? 0) + 1;
 
       await _saveAnalytics();
     } catch (e) {
@@ -253,16 +302,22 @@ class EducationalContentAnalyticsService extends ChangeNotifier {
 
   /// Get popular search queries
   List<MapEntry<String, int>> getPopularSearchQueries({int limit = 10}) {
-    final sortedQueries = _searchQueries.entries.toList()..sort((a, b) => b.value.compareTo(a.value));
+    final sortedQueries = _searchQueries.entries.toList()
+      ..sort((a, b) => b.value.compareTo(a.value));
 
     return sortedQueries.take(limit).toList();
   }
 
+  /// Get overall engagement metrics (alias for total metrics)
+  EngagementMetrics getOverallEngagementMetrics() {
+    return getTotalEngagementMetrics();
+  }
+
   // ==================== PRIVATE METHODS ====================
 
-  void _endCurrentSession() {
+  Future<void> _endCurrentSession() async {
     if (_currentContentId != null) {
-      endContentSession(); // This will save and clear current session
+      await endContentSession(); // This will save and clear current session
     }
   }
 
@@ -302,18 +357,74 @@ class EducationalContentAnalyticsService extends ChangeNotifier {
       // Load content analytics
       final viewsJson = prefs.getString(_viewsKey);
       if (viewsJson != null) {
-        // Parse and load stored analytics data
-        // Implementation would depend on your JSON serialization approach
+        final decoded = jsonDecode(viewsJson) as Map<String, dynamic>;
+        final contentData =
+            decoded['contentAnalytics'] as Map<String, dynamic>?;
+        final categoryData = decoded['categoryViews'] as Map<String, dynamic>?;
+        final searchData = decoded['searchQueries'] as Map<String, dynamic>?;
+        final favoriteData = decoded['favorites'] as List<dynamic>?;
+        final lastViewedData = decoded['lastViewed'] as Map<String, dynamic>?;
+
+        if (contentData != null) {
+          _contentAnalytics
+            ..clear()
+            ..addAll(
+              contentData.map((key, value) {
+                final mapValue = value as Map<String, dynamic>;
+                return MapEntry(
+                  key,
+                  ContentAnalytics(
+                    contentId: key,
+                    views: (mapValue['views'] as num?)?.toInt() ?? 0,
+                    totalTimeSpent: Duration(
+                        milliseconds:
+                            (mapValue['timeSpentMs'] as num?)?.toInt() ?? 0),
+                    completions:
+                        (mapValue['completions'] as num?)?.toInt() ?? 0,
+                    interactions:
+                        (mapValue['interactions'] as num?)?.toInt() ?? 0,
+                    lastViewed: mapValue['lastViewed'] != null
+                        ? DateTime.tryParse(mapValue['lastViewed'] as String)
+                        : null,
+                    isFavorite: mapValue['isFavorite'] as bool? ?? false,
+                  ),
+                );
+              }),
+            );
+        }
+
+        if (categoryData != null) {
+          _categoryViews
+            ..clear()
+            ..addAll(categoryData
+                .map((key, value) => MapEntry(key, (value as num).toInt())));
+        }
+
+        if (searchData != null) {
+          _searchQueries
+            ..clear()
+            ..addAll(searchData
+                .map((key, value) => MapEntry(key, (value as num).toInt())));
+        }
+
+        if (favoriteData != null) {
+          _favoriteContent = favoriteData.cast<String>();
+        }
+
+        if (lastViewedData != null) {
+          _lastViewed
+            ..clear()
+            ..addAll(
+              lastViewedData.map(
+                (key, value) => MapEntry(
+                    key, DateTime.tryParse(value as String) ?? DateTime.now()),
+              ),
+            );
+        }
       }
 
-      // Load category preferences
-      final categoryJson = prefs.getString(_categoryPreferencesKey);
-      if (categoryJson != null) {
-        // Parse and load category data
-      }
-
-      // Load favorites
-      _favoriteContent = prefs.getStringList(_favoritesKey) ?? [];
+      // Load favorites (fallback if not present in main payload)
+      _favoriteContent = prefs.getStringList(_favoritesKey) ?? _favoriteContent;
 
       notifyListeners();
     } catch (e) {
@@ -325,20 +436,37 @@ class EducationalContentAnalyticsService extends ChangeNotifier {
     try {
       final prefs = await SharedPreferences.getInstance();
 
-      // Save content analytics
-      // Convert _contentAnalytics to JSON and save
+      final analyticsPayload = {
+        'contentAnalytics': _contentAnalytics.map(
+          (key, value) => MapEntry(
+            key,
+            {
+              'views': value.views,
+              'timeSpentMs': value.totalTimeSpent.inMilliseconds,
+              'completions': value.completions,
+              'interactions': value.interactions,
+              'lastViewed': value.lastViewed?.toIso8601String(),
+              'isFavorite': value.isFavorite,
+            },
+          ),
+        ),
+        'categoryViews': _categoryViews,
+        'searchQueries': _searchQueries,
+        'favorites': _favoriteContent,
+        'lastViewed': _lastViewed
+            .map((key, value) => MapEntry(key, value.toIso8601String())),
+      };
 
-      // Save category views
-      // Convert _categoryViews to JSON and save
-
-      // Save search queries
-      // Convert _searchQueries to JSON and save
-
-      // Save favorites
+      await prefs.setString(_viewsKey, jsonEncode(analyticsPayload));
       await prefs.setStringList(_favoritesKey, _favoriteContent);
     } catch (e) {
       WasteAppLogger.severe('Error saving analytics: $e');
     }
+  }
+
+  /// Clear analytics data (public facing)
+  Future<void> clearAnalyticsData() async {
+    await clearAllAnalytics();
   }
 
   /// Clear all analytics data

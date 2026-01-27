@@ -28,7 +28,8 @@ void main() {
           userAvatar: 'https://example.com/avatar.jpg',
           activityType: CommunityActivityType.classification,
           title: 'Classified a plastic bottle',
-          description: 'Successfully identified and classified a recyclable plastic bottle',
+          description:
+              'Successfully identified and classified a recyclable plastic bottle',
           timestamp: testTimestamp,
           metadata: {'category': 'Dry Waste', 'confidence': 0.95},
           likes: 5,
@@ -40,9 +41,13 @@ void main() {
         expect(feedItem.userId, equals('user_456'));
         expect(feedItem.userName, equals('John Doe'));
         expect(feedItem.userAvatar, equals('https://example.com/avatar.jpg'));
-        expect(feedItem.activityType, equals(CommunityActivityType.classification));
+        expect(feedItem.activityType,
+            equals(CommunityActivityType.classification));
         expect(feedItem.title, equals('Classified a plastic bottle'));
-        expect(feedItem.description, equals('Successfully identified and classified a recyclable plastic bottle'));
+        expect(
+            feedItem.description,
+            equals(
+                'Successfully identified and classified a recyclable plastic bottle'));
         expect(feedItem.timestamp, equals(testTimestamp));
         expect(feedItem.metadata['category'], equals('Dry Waste'));
         expect(feedItem.metadata['confidence'], equals(0.95));
@@ -73,7 +78,8 @@ void main() {
     });
 
     group('CommunityFeedItem Serialization Tests', () {
-      test('should serialize and deserialize correctly with toJson/fromJson', () {
+      test('should serialize and deserialize correctly with toJson/fromJson',
+          () {
         final original = CommunityFeedItem(
           id: 'feed_item_123',
           userId: 'user_456',
@@ -81,7 +87,8 @@ void main() {
           userAvatar: 'https://example.com/avatar.jpg',
           activityType: CommunityActivityType.streak,
           title: 'Maintained 7-day streak',
-          description: 'Successfully maintained classification streak for 7 days',
+          description:
+              'Successfully maintained classification streak for 7 days',
           timestamp: testTimestamp,
           metadata: {'streakDays': 7, 'category': 'consistency'},
           likes: 12,
@@ -136,7 +143,8 @@ void main() {
         expect(feedItem.userId, equals('user_456'));
         expect(feedItem.userName, equals('Anonymous User')); // Default value
         expect(feedItem.userAvatar, isNull);
-        expect(feedItem.activityType, equals(CommunityActivityType.classification));
+        expect(feedItem.activityType,
+            equals(CommunityActivityType.classification));
         expect(feedItem.title, equals('Test title'));
         expect(feedItem.description, equals('Test description'));
         expect(feedItem.timestamp, isA<DateTime>());
@@ -161,7 +169,8 @@ void main() {
         final feedItem = CommunityFeedItem.fromJson(json);
 
         // Should default to classification for invalid activity type
-        expect(feedItem.activityType, equals(CommunityActivityType.classification));
+        expect(feedItem.activityType,
+            equals(CommunityActivityType.classification));
       });
 
       test('should handle invalid timestamp in fromJson', () {
@@ -179,7 +188,8 @@ void main() {
 
         // Should use current time for invalid timestamp
         expect(feedItem.timestamp, isA<DateTime>());
-        expect(feedItem.timestamp.difference(DateTime.now()).inMinutes, lessThan(1));
+        expect(feedItem.timestamp.difference(DateTime.now()).inMinutes,
+            lessThan(1));
       });
     });
 
@@ -471,7 +481,8 @@ void main() {
         // Test fromJson
         final recreated = CommunityStats.fromJson(json);
         expect(recreated.totalUsers, equals(original.totalUsers));
-        expect(recreated.totalClassifications, equals(original.totalClassifications));
+        expect(recreated.totalClassifications,
+            equals(original.totalClassifications));
         expect(recreated.totalAchievements, equals(original.totalAchievements));
         expect(recreated.categoryBreakdown, equals(original.categoryBreakdown));
         expect(recreated.lastUpdated, equals(original.lastUpdated));
@@ -565,7 +576,8 @@ void main() {
 
         expect(feedItem.id, equals(''));
         expect(feedItem.userId, equals(''));
-        expect(feedItem.displayName, equals('User')); // Default for empty username
+        expect(
+            feedItem.displayName, equals('User')); // Default for empty username
         expect(feedItem.title, equals(''));
         expect(feedItem.description, equals(''));
       });

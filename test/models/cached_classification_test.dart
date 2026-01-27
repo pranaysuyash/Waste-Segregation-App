@@ -25,7 +25,11 @@ void main() {
         explanation: 'Clear plastic bottle, recyclable with PET code 1',
         disposalInstructions: DisposalInstructions(
           primaryMethod: 'Recycle in blue bin',
-          steps: ['Remove cap and label', 'Rinse thoroughly', 'Place in recycling bin'],
+          steps: [
+            'Remove cap and label',
+            'Rinse thoroughly',
+            'Place in recycling bin'
+          ],
           hasUrgentTimeframe: false,
         ),
         timestamp: testTimestamp,
@@ -57,7 +61,9 @@ void main() {
         expect(cached.imageSize, equals(imageSize));
       });
 
-      test('should create CachedClassification with default timestamp and lastAccessed', () {
+      test(
+          'should create CachedClassification with default timestamp and lastAccessed',
+          () {
         const imageHash = 'test_hash_123';
         final now = DateTime.now();
 
@@ -92,9 +98,12 @@ void main() {
     });
 
     group('Usage Tracking Tests', () {
-      test('should increment use count and update last accessed when marked used', () {
+      test(
+          'should increment use count and update last accessed when marked used',
+          () {
         const imageHash = 'test_hash_usage';
-        final originalLastAccessed = DateTime.now().subtract(const Duration(hours: 1));
+        final originalLastAccessed =
+            DateTime.now().subtract(const Duration(hours: 1));
 
         final cached = CachedClassification(
           imageHash: imageHash,
@@ -133,7 +142,8 @@ void main() {
     });
 
     group('Serialization Tests', () {
-      test('should serialize and deserialize correctly with toJson/fromJson', () {
+      test('should serialize and deserialize correctly with toJson/fromJson',
+          () {
         const imageHash = 'test_hash_serialize';
         const imageSize = 1500;
 
@@ -162,8 +172,10 @@ void main() {
         expect(recreated.imageSize, equals(original.imageSize));
         expect(recreated.timestamp, equals(original.timestamp));
         expect(recreated.lastAccessed, equals(original.lastAccessed));
-        expect(recreated.classification.itemName, equals(original.classification.itemName));
-        expect(recreated.classification.category, equals(original.classification.category));
+        expect(recreated.classification.itemName,
+            equals(original.classification.itemName));
+        expect(recreated.classification.category,
+            equals(original.classification.category));
       });
 
       test('should serialize to string and deserialize correctly', () {
@@ -186,7 +198,8 @@ void main() {
         expect(recreated.imageHash, equals(original.imageHash));
         expect(recreated.useCount, equals(original.useCount));
         expect(recreated.timestamp, equals(original.timestamp));
-        expect(recreated.classification.itemName, equals(original.classification.itemName));
+        expect(recreated.classification.itemName,
+            equals(original.classification.itemName));
       });
 
       test('should handle null fields in serialization', () {
@@ -223,7 +236,8 @@ void main() {
 
       test('should handle last accessed time for LRU eviction', () {
         const imageHash = 'test_hash_lru';
-        final recentlyAccessed = DateTime.now().subtract(const Duration(minutes: 5));
+        final recentlyAccessed =
+            DateTime.now().subtract(const Duration(minutes: 5));
         final longerAgo = DateTime.now().subtract(const Duration(hours: 2));
 
         final cached1 = CachedClassification(
@@ -345,14 +359,20 @@ void main() {
         );
 
         // Verify classification data is preserved exactly
-        expect(cached.classification.itemName, equals(mockClassification.itemName));
-        expect(cached.classification.category, equals(mockClassification.category));
-        expect(cached.classification.subcategory, equals(mockClassification.subcategory));
-        expect(cached.classification.confidence, equals(mockClassification.confidence));
-        expect(cached.classification.visualFeatures, equals(mockClassification.visualFeatures));
+        expect(cached.classification.itemName,
+            equals(mockClassification.itemName));
+        expect(cached.classification.category,
+            equals(mockClassification.category));
+        expect(cached.classification.subcategory,
+            equals(mockClassification.subcategory));
+        expect(cached.classification.confidence,
+            equals(mockClassification.confidence));
+        expect(cached.classification.visualFeatures,
+            equals(mockClassification.visualFeatures));
         expect(cached.classification.disposalInstructions.primaryMethod,
             equals(mockClassification.disposalInstructions.primaryMethod));
-        expect(cached.classification.disposalInstructions.steps, equals(mockClassification.disposalInstructions.steps));
+        expect(cached.classification.disposalInstructions.steps,
+            equals(mockClassification.disposalInstructions.steps));
       });
 
       test('should handle classification with all optional fields', () {
@@ -363,7 +383,11 @@ void main() {
           explanation: 'Complex hazardous chemical requiring special handling',
           disposalInstructions: DisposalInstructions(
             primaryMethod: 'Special facility disposal',
-            steps: ['Contact facility', 'Use protective equipment', 'Transport safely'],
+            steps: [
+              'Contact facility',
+              'Use protective equipment',
+              'Transport safely'
+            ],
             hasUrgentTimeframe: true,
             timeframe: 'Within 24 hours',
             warnings: ['Toxic', 'Corrosive'],
@@ -403,10 +427,14 @@ void main() {
 
         // Verify all fields are preserved
         expect(cached.classification.requiresSpecialDisposal, isTrue);
-        expect(cached.classification.disposalInstructions.hasUrgentTimeframe, isTrue);
-        expect(cached.classification.disposalInstructions.timeframe, equals('Within 24 hours'));
-        expect(cached.classification.disposalInstructions.warnings?.length, equals(2));
-        expect(cached.classification.disposalInstructions.tips?.length, equals(2));
+        expect(cached.classification.disposalInstructions.hasUrgentTimeframe,
+            isTrue);
+        expect(cached.classification.disposalInstructions.timeframe,
+            equals('Within 24 hours'));
+        expect(cached.classification.disposalInstructions.warnings?.length,
+            equals(2));
+        expect(
+            cached.classification.disposalInstructions.tips?.length, equals(2));
         expect(cached.classification.alternatives.length, equals(1));
         expect(cached.classification.brand, equals('ChemCorp'));
         expect(cached.classification.userId, equals('test_user_456'));

@@ -19,7 +19,8 @@ class AnimatedSettingsToggle extends StatefulWidget {
   State<AnimatedSettingsToggle> createState() => _AnimatedSettingsToggleState();
 }
 
-class _AnimatedSettingsToggleState extends State<AnimatedSettingsToggle> with SingleTickerProviderStateMixin {
+class _AnimatedSettingsToggleState extends State<AnimatedSettingsToggle>
+    with SingleTickerProviderStateMixin {
   late AnimationController _controller;
 
   @override
@@ -77,7 +78,8 @@ class ProfileUpdateWidget extends StatefulWidget {
   State<ProfileUpdateWidget> createState() => _ProfileUpdateWidgetState();
 }
 
-class _ProfileUpdateWidgetState extends State<ProfileUpdateWidget> with SingleTickerProviderStateMixin {
+class _ProfileUpdateWidgetState extends State<ProfileUpdateWidget>
+    with SingleTickerProviderStateMixin {
   late AnimationController _controller;
 
   @override

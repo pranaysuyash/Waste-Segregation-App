@@ -60,7 +60,8 @@ class PremiumFeatureCard extends StatelessWidget {
                 child: Icon(
                   iconData,
                   size: 28,
-                  color: isEnabled ? Theme.of(context).primaryColor : Colors.grey,
+                  color:
+                      isEnabled ? Theme.of(context).primaryColor : Colors.grey,
                 ),
               ),
               const SizedBox(width: 16),
@@ -93,7 +94,8 @@ class PremiumFeatureCard extends StatelessWidget {
               Container(
                 margin: const EdgeInsets.only(left: 8),
                 child: isEnabled
-                    ? const Icon(Icons.check_circle, color: Colors.green, size: 24)
+                    ? const Icon(Icons.check_circle,
+                        color: Colors.green, size: 24)
                     : const Icon(Icons.lock, color: Colors.grey, size: 24),
               ),
             ],

@@ -89,7 +89,8 @@ void main() {
         expect(find.text('Settings'), findsOneWidget);
       });
 
-      testWidgets('should handle cancel button in permission dialog', (tester) async {
+      testWidgets('should handle cancel button in permission dialog',
+          (tester) async {
         await tester.pumpWidget(
           MaterialApp(
             home: Scaffold(
@@ -118,7 +119,8 @@ void main() {
         expect(find.text('Storage Permission Required'), findsNothing);
       });
 
-      testWidgets('should handle settings button in permission dialog', (tester) async {
+      testWidgets('should handle settings button in permission dialog',
+          (tester) async {
         await tester.pumpWidget(
           MaterialApp(
             home: Scaffold(
@@ -147,7 +149,8 @@ void main() {
         expect(find.text('Photos Permission Required'), findsNothing);
       });
 
-      testWidgets('should show correct permission type in dialog', (tester) async {
+      testWidgets('should show correct permission type in dialog',
+          (tester) async {
         const permissionTypes = ['Camera', 'Storage', 'Photos', 'Microphone'];
 
         for (final permissionType in permissionTypes) {
@@ -156,7 +159,8 @@ void main() {
               home: Scaffold(
                 body: Builder(
                   builder: (context) => ElevatedButton(
-                    onPressed: () => PermissionHandler.showPermissionDeniedDialog(
+                    onPressed: () =>
+                        PermissionHandler.showPermissionDeniedDialog(
                       context,
                       permissionType,
                     ),
@@ -172,7 +176,8 @@ void main() {
           await tester.pumpAndSettle();
 
           // Verify correct permission type is shown
-          expect(find.text('$permissionType Permission Required'), findsOneWidget);
+          expect(
+              find.text('$permissionType Permission Required'), findsOneWidget);
           expect(
             find.textContaining('This app needs $permissionType permission'),
             findsOneWidget,
@@ -184,7 +189,8 @@ void main() {
         }
       });
 
-      testWidgets('should handle dialog with custom permission type', (tester) async {
+      testWidgets('should handle dialog with custom permission type',
+          (tester) async {
         await tester.pumpWidget(
           MaterialApp(
             home: Scaffold(
@@ -206,7 +212,8 @@ void main() {
         await tester.pumpAndSettle();
 
         // Verify custom permission type is handled
-        expect(find.text('Custom Permission Permission Required'), findsOneWidget);
+        expect(
+            find.text('Custom Permission Permission Required'), findsOneWidget);
         expect(
           find.textContaining('This app needs Custom Permission permission'),
           findsOneWidget,
@@ -231,7 +238,8 @@ void main() {
         expect(result, isA<bool>());
       });
 
-      testWidgets('should handle dialog context errors gracefully', (tester) async {
+      testWidgets('should handle dialog context errors gracefully',
+          (tester) async {
         // Test showing dialog with invalid context
         await tester.pumpWidget(
           MaterialApp(
@@ -389,11 +397,13 @@ void main() {
 
         // Verify dialog components are present
         expect(find.byType(AlertDialog), findsOneWidget);
-        expect(find.byType(TextButton), findsNWidgets(2)); // Cancel and Settings buttons
+        expect(find.byType(TextButton),
+            findsNWidgets(2)); // Cancel and Settings buttons
 
         // Verify text content
         expect(find.text('Camera Permission Required'), findsOneWidget);
-        expect(find.textContaining('This app needs Camera permission'), findsOneWidget);
+        expect(find.textContaining('This app needs Camera permission'),
+            findsOneWidget);
       });
 
       testWidgets('should handle different screen sizes', (tester) async {
@@ -412,7 +422,8 @@ void main() {
               home: Scaffold(
                 body: Builder(
                   builder: (context) => ElevatedButton(
-                    onPressed: () => PermissionHandler.showPermissionDeniedDialog(
+                    onPressed: () =>
+                        PermissionHandler.showPermissionDeniedDialog(
                       context,
                       'Storage',
                     ),

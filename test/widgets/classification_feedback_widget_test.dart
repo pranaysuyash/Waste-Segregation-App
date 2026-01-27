@@ -24,18 +24,23 @@ void main() {
         submittedClassifications.add(classification);
       };
 
-      testClassification = WasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
+      testClassification = WasteClassification(
         id: 'test-id',
         itemName: 'Test Item',
+        category: 'Dry Waste',
         subcategory: 'Paper',
         explanation: 'This is a test item for classification feedback testing.',
+        disposalInstructions: DisposalInstructions(
           primaryMethod: 'Recycle in paper bin',
-          steps: ['Remove any plastic components', 'Place in recycling bin'],
+          steps: const [
+            'Remove any plastic components',
+            'Place in recycling bin'
+          ],
           hasUrgentTimeframe: false,
         ),
         region: 'Test Region',
-        visualFeatures: ['paper', 'white', 'rectangular'],
-        alternatives: [
+        visualFeatures: const ['paper', 'white', 'rectangular'],
+        alternatives: const [
           AlternativeClassification(
             category: 'Wet Waste',
             subcategory: 'Compostable',
@@ -44,7 +49,8 @@ void main() {
           ),
         ],
         confidence: 0.85,
-        timestamp: DateTime.now(),
+        timestamp: DateTime(2025, 1, 1),
+        userId: 'test-user',
       );
     });
 
@@ -78,7 +84,10 @@ void main() {
       testWidgets('should render full feedback widget', (tester) async {
         await tester.pumpWidget(createTestWidget());
 
-        expect(find.text('Your feedback helps train our AI model to be more accurate.'), findsOneWidget);
+        expect(
+            find.text(
+                'Your feedback helps train our AI model to be more accurate.'),
+            findsOneWidget);
         expect(find.text('Is this classification correct?'), findsOneWidget);
         expect(find.text('Yes'), findsOneWidget);
         expect(find.text('No'), findsOneWidget);
@@ -93,17 +102,19 @@ void main() {
 
       testWidgets('should handle widget disposal properly', (tester) async {
         await tester.pumpWidget(createTestWidget());
-        
+
         // Navigate away to trigger disposal
-        await tester.pumpWidget(const MaterialApp(home: Text('Different Widget')));
-        
+        await tester
+            .pumpWidget(const MaterialApp(home: Text('Different Widget')));
+
         // Should complete without errors
         expect(find.text('Different Widget'), findsOneWidget);
       });
     });
 
     group('User Confirmation', () {
-      testWidgets('should handle correct confirmation in compact mode', (tester) async {
+      testWidgets('should handle correct confirmation in compact mode',
+          (tester) async {
         await tester.pumpWidget(createTestWidget(showCompactVersion: true));
 
         await tester.tap(find.text('Correct'));
@@ -114,7 +125,8 @@ void main() {
         expect(submittedClassifications.first.userCorrection, isNull);
       });
 
-      testWidgets('should handle incorrect confirmation in compact mode', (tester) async {
+      testWidgets('should handle incorrect confirmation in compact mode',
+          (tester) async {
         await tester.pumpWidget(createTestWidget(showCompactVersion: true));
 
         await tester.tap(find.text('Incorrect'));
@@ -125,7 +137,8 @@ void main() {
         expect(find.text('Hazardous Waste'), findsOneWidget);
       });
 
-      testWidgets('should handle correct confirmation in full mode', (tester) async {
+      testWidgets('should handle correct confirmation in full mode',
+          (tester) async {
         await tester.pumpWidget(createTestWidget());
 
         await tester.tap(find.text('Yes'));
@@ -138,36 +151,42 @@ void main() {
         expect(submittedClassifications.first.userConfirmed, isTrue);
       });
 
-      testWidgets('should handle incorrect confirmation in full mode', (tester) async {
+      testWidgets('should handle incorrect confirmation in full mode',
+          (tester) async {
         await tester.pumpWidget(createTestWidget());
 
         await tester.tap(find.text('No'));
         await tester.pumpAndSettle();
 
-        expect(find.text('What should the correct classification be?'), findsOneWidget);
+        expect(find.text('What should the correct classification be?'),
+            findsOneWidget);
         expect(find.text('Wet Waste'), findsOneWidget);
         expect(find.text('Dry Waste'), findsOneWidget);
       });
 
-      testWidgets('should maintain state when switching between options', (tester) async {
+      testWidgets('should maintain state when switching between options',
+          (tester) async {
         await tester.pumpWidget(createTestWidget());
 
         // Select incorrect first
         await tester.tap(find.text('No'));
         await tester.pumpAndSettle();
 
-        expect(find.text('What should the correct classification be?'), findsOneWidget);
+        expect(find.text('What should the correct classification be?'),
+            findsOneWidget);
 
         // Switch back to correct
         await tester.tap(find.text('Yes'));
         await tester.pumpAndSettle();
 
-        expect(find.text('What should the correct classification be?'), findsNothing);
+        expect(find.text('What should the correct classification be?'),
+            findsNothing);
       });
     });
 
     group('Correction Options', () {
-      testWidgets('should show correction options when incorrect is selected', (tester) async {
+      testWidgets('should show correction options when incorrect is selected',
+          (tester) async {
         await tester.pumpWidget(createTestWidget(showCompactVersion: true));
 
         await tester.tap(find.text('Incorrect'));
@@ -237,11 +256,14 @@ void main() {
         await tester.pumpAndSettle();
 
         expect(submittedClassifications.length, equals(1));
-        expect(submittedClassifications.first.userCorrection, equals(customCorrection));
+        expect(submittedClassifications.first.userCorrection,
+            equals(customCorrection));
         expect(submittedClassifications.first.userConfirmed, isFalse);
       });
 
-      testWidgets('should clear custom correction when selecting predefined option', (tester) async {
+      testWidgets(
+          'should clear custom correction when selecting predefined option',
+          (tester) async {
         await tester.pumpWidget(createTestWidget());
 
         await tester.tap(find.text('No'));
@@ -261,7 +283,8 @@ void main() {
         await tester.pumpAndSettle();
 
         // Custom correction field should not be visible
-        expect(find.widgetWithText(TextField, 'Custom correction'), findsNothing);
+        expect(
+            find.widgetWithText(TextField, 'Custom correction'), findsNothing);
       });
     });
 
@@ -313,12 +336,14 @@ void main() {
         await tester.tap(find.text('Submit Feedback'));
         await tester.pumpAndSettle();
 
-        expect(submittedClassifications.first.userNotes, equals('This note has whitespace'));
+        expect(submittedClassifications.first.userNotes,
+            equals('This note has whitespace'));
       });
     });
 
     group('Compact Mode Specific Features', () {
-      testWidgets('should show more options expansion in compact mode', (tester) async {
+      testWidgets('should show more options expansion in compact mode',
+          (tester) async {
         await tester.pumpWidget(createTestWidget(showCompactVersion: true));
 
         await tester.tap(find.text('Incorrect'));
@@ -333,7 +358,8 @@ void main() {
         expect(find.text('Additional notes (optional)'), findsOneWidget);
       });
 
-      testWidgets('should handle responsive layout in compact mode', (tester) async {
+      testWidgets('should handle responsive layout in compact mode',
+          (tester) async {
         // Test narrow screen
         tester.binding.window.physicalSizeTestValue = const Size(300, 600);
         tester.binding.window.devicePixelRatioTestValue = 1.0;
@@ -351,7 +377,8 @@ void main() {
         addTearDown(tester.binding.window.clearDevicePixelRatioTestValue);
       });
 
-      testWidgets('should handle wide screen layout in compact mode', (tester) async {
+      testWidgets('should handle wide screen layout in compact mode',
+          (tester) async {
         // Test wide screen
         tester.binding.window.physicalSizeTestValue = const Size(800, 600);
         tester.binding.window.devicePixelRatioTestValue = 1.0;
@@ -368,7 +395,8 @@ void main() {
     });
 
     group('Reanalysis Functionality', () {
-      testWidgets('should show reanalysis button when correction is selected', (tester) async {
+      testWidgets('should show reanalysis button when correction is selected',
+          (tester) async {
         await tester.pumpWidget(createTestWidget(showCompactVersion: true));
 
         await tester.tap(find.text('Incorrect'));
@@ -380,7 +408,8 @@ void main() {
         expect(find.text('Re-analyze with correction'), findsOneWidget);
       });
 
-      testWidgets('should handle reanalysis with mock AI service', (tester) async {
+      testWidgets('should handle reanalysis with mock AI service',
+          (tester) async {
         final reanalyzedClassification = testClassification.copyWith(
           category: 'Wet Waste',
           confidence: 0.92,
@@ -405,7 +434,8 @@ void main() {
         await tester.pumpAndSettle();
 
         // Should show reanalyzing indicator
-        expect(find.text('Re-analyzing with your correction...'), findsOneWidget);
+        expect(
+            find.text('Re-analyzing with your correction...'), findsOneWidget);
         expect(find.byType(CircularProgressIndicator), findsOneWidget);
 
         // Wait for reanalysis to complete
@@ -443,7 +473,8 @@ void main() {
 
         expect(find.text('Reanalysis failed'), findsOneWidget);
         expect(submittedClassifications.length, equals(1));
-        expect(submittedClassifications.first.userCorrection, equals('Wet Waste'));
+        expect(
+            submittedClassifications.first.userCorrection, equals('Wet Waste'));
       });
 
       testWidgets('should handle exhausted models scenario', (tester) async {
@@ -468,12 +499,14 @@ void main() {
         await tester.pumpAndSettle();
 
         expect(find.text('No more reanalysis possible'), findsOneWidget);
-        expect(find.textContaining('All available AI models have been tried'), findsOneWidget);
+        expect(find.textContaining('All available AI models have been tried'),
+            findsOneWidget);
       });
     });
 
     group('Feedback Submission', () {
-      testWidgets('should submit feedback with all required information', (tester) async {
+      testWidgets('should submit feedback with all required information',
+          (tester) async {
         await tester.pumpWidget(createTestWidget());
 
         await tester.tap(find.text('No'));
@@ -500,7 +533,8 @@ void main() {
         expect(submitted.viewCount, equals(1));
       });
 
-      testWidgets('should update disposal instructions when correction is made', (tester) async {
+      testWidgets('should update disposal instructions when correction is made',
+          (tester) async {
         await tester.pumpWidget(createTestWidget(showCompactVersion: true));
 
         await tester.tap(find.text('Incorrect'));
@@ -517,11 +551,13 @@ void main() {
 
         final submitted = submittedClassifications.first;
         expect(submitted.category, equals('Hazardous Waste'));
-        expect(submitted.disposalInstructions.primaryMethod, equals('Special disposal facility'));
+        expect(submitted.disposalInstructions.primaryMethod,
+            equals('Special disposal facility'));
         expect(submitted.disposalInstructions.hasUrgentTimeframe, isTrue);
       });
 
-      testWidgets('should handle feedback submission without correction', (tester) async {
+      testWidgets('should handle feedback submission without correction',
+          (tester) async {
         await tester.pumpWidget(createTestWidget());
 
         await tester.tap(find.text('Yes'));
@@ -539,7 +575,8 @@ void main() {
     });
 
     group('FeedbackButton Widget', () {
-      testWidgets('should render feedback button with no existing feedback', (tester) async {
+      testWidgets('should render feedback button with no existing feedback',
+          (tester) async {
         await tester.pumpWidget(
           MaterialApp(
             home: Scaffold(
@@ -555,7 +592,8 @@ void main() {
         expect(find.byIcon(Icons.feedback_outlined), findsOneWidget);
       });
 
-      testWidgets('should render feedback button with existing feedback', (tester) async {
+      testWidgets('should render feedback button with existing feedback',
+          (tester) async {
         final classificationWithFeedback = testClassification.copyWith(
           userConfirmed: true,
         );
@@ -597,7 +635,8 @@ void main() {
         expect(find.byIcon(Icons.close), findsOneWidget);
       });
 
-      testWidgets('should close feedback dialog when close button is tapped', (tester) async {
+      testWidgets('should close feedback dialog when close button is tapped',
+          (tester) async {
         await tester.pumpWidget(
           MaterialApp(
             home: Scaffold(
@@ -623,7 +662,8 @@ void main() {
     });
 
     group('Accessibility', () {
-      testWidgets('should have proper semantics for correction chips', (tester) async {
+      testWidgets('should have proper semantics for correction chips',
+          (tester) async {
         await tester.pumpWidget(createTestWidget(showCompactVersion: true));
 
         await tester.tap(find.text('Incorrect'));
@@ -631,12 +671,15 @@ void main() {
 
         // Check semantics for correction chips
         expect(
-          tester.widget<Semantics>(
-            find.ancestor(
-              of: find.text('Wet Waste'),
-              matching: find.byType(Semantics),
-            ),
-          ).properties.button,
+          tester
+              .widget<Semantics>(
+                find.ancestor(
+                  of: find.text('Wet Waste'),
+                  matching: find.byType(Semantics),
+                ),
+              )
+              .properties
+              .button,
           isTrue,
         );
       });
@@ -676,20 +719,24 @@ void main() {
     });
 
     group('Edge Cases and Error Handling', () {
-      testWidgets('should handle null classification gracefully', (tester) async {
-        final nullFieldsClassification = WasteClassification(itemName: 'Test Item', explanation: 'Test explanation', category: 'plastic', region: 'Test Region', visualFeatures: ['test feature'], alternatives: [], disposalInstructions: DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false), 
+      testWidgets('should handle null classification gracefully',
+          (tester) async {
+        final nullFieldsClassification = WasteClassification(
           id: 'test_id',
           itemName: 'Test Item',
+          category: 'plastic',
           explanation: 'Test explanation',
+          disposalInstructions: DisposalInstructions(
             primaryMethod: 'Test disposal',
-            steps: ['Test step'],
+            steps: const ['Test step'],
             hasUrgentTimeframe: false,
           ),
           region: 'Test Region',
-          visualFeatures: [],
-          alternatives: [],
+          visualFeatures: const [],
+          alternatives: const [],
           confidence: 0.5,
-          timestamp: DateTime.now(),
+          timestamp: DateTime(2025, 1, 1),
+          userId: 'test-user',
         );
 
         await tester.pumpWidget(createTestWidget(
@@ -699,9 +746,11 @@ void main() {
         expect(find.text('Was this classification correct?'), findsOneWidget);
       });
 
-      testWidgets('should handle very long classification names', (tester) async {
+      testWidgets('should handle very long classification names',
+          (tester) async {
         final longNameClassification = testClassification.copyWith(
-          itemName: 'This is a very long item name that should be handled gracefully by the widget even if it exceeds normal length expectations',
+          itemName:
+              'This is a very long item name that should be handled gracefully by the widget even if it exceeds normal length expectations',
           category: 'Very Long Category Name That Should Not Break Layout',
         );
 
@@ -713,7 +762,8 @@ void main() {
         expect(find.text('Was this classification correct?'), findsOneWidget);
       });
 
-      testWidgets('should handle rapid button taps without crashing', (tester) async {
+      testWidgets('should handle rapid button taps without crashing',
+          (tester) async {
         await tester.pumpWidget(createTestWidget(showCompactVersion: true));
 
         // Rapidly tap correct button multiple times
@@ -728,7 +778,8 @@ void main() {
         expect(submittedClassifications.length, equals(1));
       });
 
-      testWidgets('should preserve existing feedback when initializing', (tester) async {
+      testWidgets('should preserve existing feedback when initializing',
+          (tester) async {
         final existingFeedbackClassification = testClassification.copyWith(
           userConfirmed: false,
           userCorrection: 'Wet Waste',
@@ -743,7 +794,8 @@ void main() {
         expect(find.text('Original note'), findsOneWidget);
       });
 
-      testWidgets('should handle empty custom correction submission', (tester) async {
+      testWidgets('should handle empty custom correction submission',
+          (tester) async {
         await tester.pumpWidget(createTestWidget());
 
         await tester.tap(find.text('No'));
@@ -762,16 +814,20 @@ void main() {
     });
 
     group('Performance Tests', () {
-      testWidgets('should handle multiple feedback widgets without performance issues', (tester) async {
+      testWidgets(
+          'should handle multiple feedback widgets without performance issues',
+          (tester) async {
         await tester.pumpWidget(
           MaterialApp(
             home: Scaffold(
               body: Provider<AiService>.value(
                 value: mockAiService,
                 child: ListView(
-                  children: List.generate(10, (index) =>
-                    ClassificationFeedbackWidget(
-                      classification: testClassification.copyWith(id: 'test_$index'),
+                  children: List.generate(
+                    10,
+                    (index) => ClassificationFeedbackWidget(
+                      classification:
+                          testClassification.copyWith(id: 'test_$index'),
                       onFeedbackSubmitted: mockOnFeedbackSubmitted,
                       showCompactVersion: true,
                     ),
@@ -782,7 +838,8 @@ void main() {
           ),
         );
 
-        expect(find.text('Was this classification correct?'), findsNWidgets(10));
+        expect(
+            find.text('Was this classification correct?'), findsNWidgets(10));
       });
 
       testWidgets('should efficiently handle state changes', (tester) async {

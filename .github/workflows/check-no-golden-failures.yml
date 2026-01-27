@@ -1,0 +1,82 @@
+name: 'Block Failure Artifacts'
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+  push:
+    branches:
+      - main
+      - develop
+
+jobs:
+  check-no-failure-artifacts:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Prevent adding golden failure artifacts
+        id: check_failures
+        run: |
+          set -euo pipefail
+          echo "Checking for files matching failure patterns..."
+
+            # Determine files changed in the PR (compare head to base) for PRs
+            if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+              BASE_REF="origin/${{ github.event.pull_request.base.ref }}"
+              git fetch origin ${{ github.event.pull_request.base.ref }} --depth=1 || true
+              # Include status so we can allow deletions (cleanup) while still blocking additions/updates.
+              FILES=$(git diff --name-status $BASE_REF...HEAD)
+            else
+              # For push events, check all changes across the push range (not just the last commit).
+              BEFORE_SHA="${{ github.event.before }}"
+              AFTER_SHA="${{ github.sha }}"
+
+              # On the first push of a new branch, `before` is all zeros.
+              if [[ "$BEFORE_SHA" == "0000000000000000000000000000000000000000" ]]; then
+                EMPTY_TREE=$(git hash-object -t tree /dev/null)
+                FILES=$(git diff --name-status "$EMPTY_TREE" "$AFTER_SHA" || true)
+              else
+                FILES=$(git diff --name-status "$BEFORE_SHA".."$AFTER_SHA" || true)
+              fi
+            fi
+
+          echo "Changed files:" 
+          echo "$FILES"
+
+          # Patterns to reject
+          REJECT_PATTERNS='(^|/)failures/|_maskedDiff|_isolatedDiff|_masterImage|_testImage|/boringssl|fix_boringssl_issue.sh|BoringSSL-Fix-Podfile.rb'
+
+          # Iterate changed files and detect any that match reject patterns.
+          # Allow deletions so we can remove previously-committed failure artifacts.
+          bad_files=()
+          while IFS= read -r f; do
+            # name-status format: <status>\t<path> (or for renames: Rxxx\t<old>\t<new>)
+            [[ -z "$f" ]] && continue
+            status=$(echo "$f" | awk '{print $1}')
+
+            # Only enforce on non-deletions.
+            if [[ "$status" =~ ^D ]]; then
+              continue
+            fi
+
+            # Extract all paths from the line (1 or 2 paths).
+            # shellcheck disable=SC2206
+            parts=($f)
+            for ((i=1; i<${#parts[@]}; i++)); do
+              path="${parts[$i]}"
+              if [[ -n "$path" && "$path" =~ $REJECT_PATTERNS ]]; then
+                bad_files+=("$path")
+              fi
+            done
+          done <<< "$FILES"
+
+          if [ ${#bad_files[@]} -ne 0 ]; then
+            echo "ERROR: Found forbidden files in the change set:" 
+            printf '%s\n' "${bad_files[@]}"
+            echo "\nPlease remove these artifacts from the commit. Only the master golden images under 'test/golden/golden/' may be committed. CI prevents committing generated failure artifacts."
+            exit 1
+          fi
+
+          echo "No forbidden failure artifacts found."

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:app_links/app_links.dart';
-import '../models/waste_classification.dart';
+import 'package:waste_segregation_app/models/waste_classification.dart';
 import '../screens/result_screen.dart';
 
 /// Handles deep linking for sharing and navigation using app_links

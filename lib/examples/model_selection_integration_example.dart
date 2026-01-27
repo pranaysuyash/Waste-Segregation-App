@@ -6,12 +6,12 @@ import 'package:waste_segregation_app/services/batching_service.dart';
 import 'package:waste_segregation_app/models/vision_model_config.dart';
 
 /// Example integration of ModelSelectionService with existing AI service
-/// 
+///
 /// This example shows how to integrate the new alternative vision models
 /// into the existing app architecture.
 class ModelSelectionIntegrationExample {
   /// Create a model selection service that integrates with existing AI service
-  /// 
+  ///
   /// This can be used as a drop-in replacement for AIService in most cases.
   static ModelSelectionService createModelSelectionService(
     AiService existingAiService, {
@@ -37,7 +37,7 @@ class ModelSelectionIntegrationExample {
   }
 
   /// Initialize the model selection service
-  /// 
+  ///
   /// Call this during app startup, after initializing your existing AI service.
   static Future<void> initialize(ModelSelectionService service) async {
     await service.initialize();
@@ -133,7 +133,7 @@ class ModelSelectionIntegrationExample {
     required ValueChanged<ModelSelectionStrategy> onChanged,
   }) {
     final isSelected = strategy == currentStrategy;
-    
+
     return Card(
       color: isSelected ? Colors.green.shade50 : null,
       child: RadioListTile<ModelSelectionStrategy>(
@@ -163,7 +163,7 @@ class ModelSelectionIntegrationExample {
   /// Example widget showing usage statistics
   static Widget buildStatisticsCard(ModelSelectionService service) {
     final stats = service.getStatistics();
-    
+
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -184,7 +184,8 @@ class ModelSelectionIntegrationExample {
             _buildStatRow('Batch', stats['batch_percentage'] as String),
             const Divider(),
             _buildStatRow('Total Cost', stats['total_cost'] as String),
-            _buildStatRow('Avg Cost/Analysis', stats['average_cost_per_analysis'] as String),
+            _buildStatRow('Avg Cost/Analysis',
+                stats['average_cost_per_analysis'] as String),
           ],
         ),
       ),
@@ -218,10 +219,12 @@ class ModelSelectionSettingsPage extends StatefulWidget {
   final ModelSelectionService modelService;
 
   @override
-  State<ModelSelectionSettingsPage> createState() => _ModelSelectionSettingsPageState();
+  State<ModelSelectionSettingsPage> createState() =>
+      _ModelSelectionSettingsPageState();
 }
 
-class _ModelSelectionSettingsPageState extends State<ModelSelectionSettingsPage> {
+class _ModelSelectionSettingsPageState
+    extends State<ModelSelectionSettingsPage> {
   late ModelSelectionStrategy _currentStrategy;
 
   @override

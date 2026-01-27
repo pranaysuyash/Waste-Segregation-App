@@ -3,19 +3,24 @@ import 'package:mockito/mockito.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:waste_segregation_app/services/firebase_family_service.dart';
 import 'package:waste_segregation_app/models/enhanced_family.dart';
-import 'package:waste_segregation_app/models/user_profile.dart' as user_profile_models;
+import 'package:waste_segregation_app/models/user_profile.dart'
+    as user_profile_models;
 import 'package:waste_segregation_app/models/waste_classification.dart';
 
 // Manual mocks for testing
 class MockFirebaseFirestore extends Mock implements FirebaseFirestore {}
 
-class MockCollectionReference extends Mock implements CollectionReference<Map<String, dynamic>> {}
+class MockCollectionReference extends Mock
+    implements CollectionReference<Map<String, dynamic>> {}
 
-class MockDocumentReference extends Mock implements DocumentReference<Map<String, dynamic>> {}
+class MockDocumentReference extends Mock
+    implements DocumentReference<Map<String, dynamic>> {}
 
-class MockQuerySnapshot extends Mock implements QuerySnapshot<Map<String, dynamic>> {}
+class MockQuerySnapshot extends Mock
+    implements QuerySnapshot<Map<String, dynamic>> {}
 
-class MockDocumentSnapshot extends Mock implements DocumentSnapshot<Map<String, dynamic>> {}
+class MockDocumentSnapshot extends Mock
+    implements DocumentSnapshot<Map<String, dynamic>> {}
 
 void main() {
   group('FirebaseFamilyService', () {
@@ -73,7 +78,8 @@ void main() {
         );
         final name = '';
 
-        expect(() async => familyService.createFamily(name, creator), throwsA(isA<Exception>()));
+        expect(() async => familyService.createFamily(name, creator),
+            throwsA(isA<Exception>()));
       });
     });
 
@@ -88,7 +94,8 @@ void main() {
         final mockQuerySnapshot = MockQuerySnapshot();
         final mockDocSnapshot = MockDocumentSnapshot();
 
-        when(mockCollection.where('inviteCode', isEqualTo: 'VALID123')).thenReturn(mockCollection);
+        when(mockCollection.where('inviteCode', isEqualTo: 'VALID123'))
+            .thenReturn(mockCollection);
         when(mockCollection.get()).thenAnswer((_) async => mockQuerySnapshot);
         when(mockQuerySnapshot.docs).thenReturn([mockDocSnapshot]);
         when(mockDocSnapshot.exists).thenReturn(true);
@@ -120,11 +127,13 @@ void main() {
 
         final mockQuerySnapshot = MockQuerySnapshot();
 
-        when(mockCollection.where('inviteCode', isEqualTo: 'INVALID')).thenReturn(mockCollection);
+        when(mockCollection.where('inviteCode', isEqualTo: 'INVALID'))
+            .thenReturn(mockCollection);
         when(mockCollection.get()).thenAnswer((_) async => mockQuerySnapshot);
         when(mockQuerySnapshot.docs).thenReturn([]);
 
-        expect(() async => familyService.acceptInvitation('INVALID', user.id), throwsA(isA<Exception>()));
+        expect(() async => familyService.acceptInvitation('INVALID', user.id),
+            throwsA(isA<Exception>()));
       });
 
       test('should remove family member', () async {
@@ -157,8 +166,10 @@ void main() {
           region: 'Test Region',
           visualFeatures: ['test feature'],
           alternatives: [],
-          disposalInstructions:
-              DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false),
+          disposalInstructions: DisposalInstructions(
+              primaryMethod: 'Test method',
+              steps: ['Test step'],
+              hasUrgentTimeframe: false),
           itemName: 'Test Item',
           subcategory: 'Plastic',
           isRecyclable: true,
@@ -184,13 +195,15 @@ void main() {
 
         when(mockDocument.update(any)).thenAnswer((_) async => Future.value());
 
-        await familyService.saveSharedClassification('family_123', 'user_123', classification, 10);
+        await familyService.saveSharedClassification(
+            'family_123', 'user_123', classification, 10);
 
         // verify(mockDocument.update(any)).called(1); // Can't verify without DI
       });
 
       test('should handle real-time family updates', () async {
-        final mockStream = Stream<DocumentSnapshot<Map<String, dynamic>>>.fromIterable([
+        final mockStream =
+            Stream<DocumentSnapshot<Map<String, dynamic>>>.fromIterable([
           MockDocumentSnapshot(),
         ]);
 
@@ -217,7 +230,8 @@ void main() {
           'lastActivity': DateTime.now().toIso8601String(),
         };
 
-        when(mockDocument.update(updates)).thenAnswer((_) async => Future.value({}));
+        when(mockDocument.update(updates))
+            .thenAnswer((_) async => Future.value({}));
 
         await familyService.batchUpdateFamilyStats('family_123', updates);
 
@@ -273,7 +287,8 @@ void main() {
         expect(calculatedStats.totalPoints, equals(750));
         expect(calculatedStats.categoryCounts['Dry Waste'], equals(10));
         expect(calculatedStats.categoryCounts['Wet Waste'], equals(5));
-        expect(calculatedStats.environmentalImpact.estimatedCO2Saved, equals(2.5));
+        expect(
+            calculatedStats.environmentalImpact.estimatedCO2Saved, equals(2.5));
       });
 
       /*
@@ -330,8 +345,10 @@ void main() {
           ),
         );
 
-        expect(familyService.canUserViewFamily('external_user', privateFamily), isFalse);
-        expect(familyService.canUserJoinFamily('external_user', privateFamily), isFalse);
+        expect(familyService.canUserViewFamily('external_user', privateFamily),
+            isFalse);
+        expect(familyService.canUserJoinFamily('external_user', privateFamily),
+            isFalse);
       });
 
       test('should validate user permissions for family operations', () async {
@@ -362,13 +379,20 @@ void main() {
         );
 
         // Admin should be able to remove members
-        expect(familyService.canUserRemoveMember('admin_user', 'regular_user', family), isTrue);
+        expect(
+            familyService.canUserRemoveMember(
+                'admin_user', 'regular_user', family),
+            isTrue);
 
         // Regular user should not be able to remove other members
-        expect(familyService.canUserRemoveMember('regular_user', 'admin_user', family), isFalse);
+        expect(
+            familyService.canUserRemoveMember(
+                'regular_user', 'admin_user', family),
+            isFalse);
 
         // Users should be able to leave family themselves
-        expect(familyService.canUserLeaveFamily('regular_user', family), isTrue);
+        expect(
+            familyService.canUserLeaveFamily('regular_user', family), isTrue);
       });
     });
 
@@ -391,13 +415,15 @@ void main() {
           ),
         );
 
-        expect(() async => familyService.createFamily(family), throwsA(isA<FirebaseException>()));
+        expect(() async => familyService.createFamily(family),
+            throwsA(isA<FirebaseException>()));
       });
 
       test('should handle network connectivity issues', () async {
         when(mockDocument.get()).thenThrow(Exception('Network error'));
 
-        expect(() async => familyService.getFamilyById('family_123'), throwsA(isA<Exception>()));
+        expect(() async => familyService.getFamilyById('family_123'),
+            throwsA(isA<Exception>()));
       });
 
       test('should validate data consistency', () async {
@@ -485,7 +511,8 @@ extension FirebaseFamilyServiceTestExtension on FirebaseFamilyService {
     return family.settings.allowInvites && family.settings.isPublic;
   }
 
-  bool canUserRemoveMember(String requesterId, String targetUserId, Family family) {
+  bool canUserRemoveMember(
+      String requesterId, String targetUserId, Family family) {
     final requester = family.members.firstWhere(
       (member) => member.userId == requesterId,
       orElse: () => throw Exception('User not found'),
@@ -509,7 +536,8 @@ extension FirebaseFamilyServiceTestExtension on FirebaseFamilyService {
     return true;
   }
 
-  List<FamilyMember> getPaginatedMembers(Family family, {required int page, required int pageSize}) {
+  List<FamilyMember> getPaginatedMembers(Family family,
+      {required int page, required int pageSize}) {
     final startIndex = page * pageSize;
     final endIndex = (startIndex + pageSize).clamp(0, family.members.length);
     return family.members.sublist(startIndex, endIndex);

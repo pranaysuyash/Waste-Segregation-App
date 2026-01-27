@@ -19,10 +19,12 @@ class EnhancedPointsIndicator extends StatefulWidget {
   final VoidCallback? onTap;
 
   @override
-  State<EnhancedPointsIndicator> createState() => _EnhancedPointsIndicatorState();
+  State<EnhancedPointsIndicator> createState() =>
+      _EnhancedPointsIndicatorState();
 }
 
-class _EnhancedPointsIndicatorState extends State<EnhancedPointsIndicator> with SingleTickerProviderStateMixin {
+class _EnhancedPointsIndicatorState extends State<EnhancedPointsIndicator>
+    with SingleTickerProviderStateMixin {
   late AnimationController _animationController;
   late Animation<double> _progressAnimation;
   late Animation<double> _scaleAnimation;
@@ -37,7 +39,9 @@ class _EnhancedPointsIndicatorState extends State<EnhancedPointsIndicator> with 
 
     // Animate the progress bar
     _progressAnimation = Tween<double>(
-      begin: widget.previousPoints != null ? (widget.previousPoints!.total % 100) / 100 : 0.0,
+      begin: widget.previousPoints != null
+          ? (widget.previousPoints!.total % 100) / 100
+          : 0.0,
       end: (widget.points.total % 100) / 100,
     ).animate(
       CurvedAnimation(
@@ -49,11 +53,13 @@ class _EnhancedPointsIndicatorState extends State<EnhancedPointsIndicator> with 
     // Animate the level badge scale
     _scaleAnimation = TweenSequence<double>([
       TweenSequenceItem(
-        tween: Tween<double>(begin: 1.0, end: 1.3).chain(CurveTween(curve: Curves.easeOut)),
+        tween: Tween<double>(begin: 1.0, end: 1.3)
+            .chain(CurveTween(curve: Curves.easeOut)),
         weight: 40.0,
       ),
       TweenSequenceItem(
-        tween: Tween<double>(begin: 1.3, end: 1.0).chain(CurveTween(curve: Curves.elasticOut)),
+        tween: Tween<double>(begin: 1.3, end: 1.0)
+            .chain(CurveTween(curve: Curves.elasticOut)),
         weight: 60.0,
       ),
     ]).animate(_animationController);
@@ -101,7 +107,8 @@ class _EnhancedPointsIndicatorState extends State<EnhancedPointsIndicator> with 
   }
 
   Widget _buildEnhancedPointsIndicator(BuildContext context) {
-    final isLevelUp = widget.previousPoints != null && widget.points.level > widget.previousPoints!.level;
+    final isLevelUp = widget.previousPoints != null &&
+        widget.points.level > widget.previousPoints!.level;
 
     return InkWell(
       onTap: widget.onTap,
@@ -141,7 +148,8 @@ class _EnhancedPointsIndicatorState extends State<EnhancedPointsIndicator> with 
                           boxShadow: isLevelUp
                               ? [
                                   BoxShadow(
-                                    color: AppTheme.primaryColor.withValues(alpha: 0.5),
+                                    color: AppTheme.primaryColor
+                                        .withValues(alpha: 0.5),
                                     blurRadius: 8,
                                     spreadRadius: 1,
                                   ),
@@ -181,7 +189,8 @@ class _EnhancedPointsIndicatorState extends State<EnhancedPointsIndicator> with 
                             fontWeight: FontWeight.bold,
                           ),
                         ),
-                        if (widget.previousPoints != null && widget.points.total > widget.previousPoints!.total)
+                        if (widget.previousPoints != null &&
+                            widget.points.total > widget.previousPoints!.total)
                           Padding(
                             padding: const EdgeInsets.only(left: 4.0),
                             child: Text(
@@ -207,12 +216,16 @@ class _EnhancedPointsIndicatorState extends State<EnhancedPointsIndicator> with 
                               animation: _progressAnimation,
                               builder: (context, child) {
                                 return ClipRRect(
-                                  borderRadius: BorderRadius.circular(AppTheme.borderRadiusSmall),
+                                  borderRadius: BorderRadius.circular(
+                                      AppTheme.borderRadiusSmall),
                                   child: LinearProgressIndicator(
                                     value: _progressAnimation.value,
                                     minHeight: 4,
-                                    backgroundColor: Colors.grey.withValues(alpha: 0.3),
-                                    valueColor: const AlwaysStoppedAnimation<Color>(AppTheme.primaryColor),
+                                    backgroundColor:
+                                        Colors.grey.withValues(alpha: 0.3),
+                                    valueColor:
+                                        const AlwaysStoppedAnimation<Color>(
+                                            AppTheme.primaryColor),
                                   ),
                                 );
                               },
@@ -282,7 +295,8 @@ class ClassificationFeedback extends StatefulWidget {
   State<ClassificationFeedback> createState() => _ClassificationFeedbackState();
 }
 
-class _ClassificationFeedbackState extends State<ClassificationFeedback> with SingleTickerProviderStateMixin {
+class _ClassificationFeedbackState extends State<ClassificationFeedback>
+    with SingleTickerProviderStateMixin {
   late AnimationController _animationController;
 
   @override
@@ -359,7 +373,8 @@ class _ClassificationFeedbackState extends State<ClassificationFeedback> with Si
                       ),
                       decoration: BoxDecoration(
                         color: _getCategoryColor(widget.category),
-                        borderRadius: BorderRadius.circular(AppTheme.borderRadiusRegular),
+                        borderRadius:
+                            BorderRadius.circular(AppTheme.borderRadiusRegular),
                       ),
                       child: Text(
                         widget.category,
@@ -414,7 +429,8 @@ class PointsEarnedPopup extends StatefulWidget {
   State<PointsEarnedPopup> createState() => _PointsEarnedPopupState();
 }
 
-class _PointsEarnedPopupState extends State<PointsEarnedPopup> with SingleTickerProviderStateMixin {
+class _PointsEarnedPopupState extends State<PointsEarnedPopup>
+    with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _scaleAnimation;
   late Animation<double> _fadeAnimation;
@@ -427,10 +443,10 @@ class _PointsEarnedPopupState extends State<PointsEarnedPopup> with SingleTicker
       duration: const Duration(milliseconds: 800),
     );
 
-    _scaleAnimation =
-        Tween<double>(begin: 0.5, end: 1.0).animate(CurvedAnimation(parent: _controller, curve: Curves.elasticOut));
-    _fadeAnimation =
-        Tween<double>(begin: 0.0, end: 1.0).animate(CurvedAnimation(parent: _controller, curve: Curves.easeIn));
+    _scaleAnimation = Tween<double>(begin: 0.5, end: 1.0).animate(
+        CurvedAnimation(parent: _controller, curve: Curves.elasticOut));
+    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0)
+        .animate(CurvedAnimation(parent: _controller, curve: Curves.easeIn));
 
     _controller.forward();
 
@@ -511,10 +527,12 @@ class ChallengeCompletedPopup extends StatefulWidget {
   final VoidCallback? onDismiss;
 
   @override
-  State<ChallengeCompletedPopup> createState() => _ChallengeCompletedPopupState();
+  State<ChallengeCompletedPopup> createState() =>
+      _ChallengeCompletedPopupState();
 }
 
-class _ChallengeCompletedPopupState extends State<ChallengeCompletedPopup> with SingleTickerProviderStateMixin {
+class _ChallengeCompletedPopupState extends State<ChallengeCompletedPopup>
+    with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _scaleAnimation;
   late Animation<double> _fadeAnimation;
@@ -527,10 +545,10 @@ class _ChallengeCompletedPopupState extends State<ChallengeCompletedPopup> with 
       duration: const Duration(milliseconds: 800),
     );
 
-    _scaleAnimation =
-        Tween<double>(begin: 0.5, end: 1.0).animate(CurvedAnimation(parent: _controller, curve: Curves.elasticOut));
-    _fadeAnimation =
-        Tween<double>(begin: 0.0, end: 1.0).animate(CurvedAnimation(parent: _controller, curve: Curves.easeIn));
+    _scaleAnimation = Tween<double>(begin: 0.5, end: 1.0).animate(
+        CurvedAnimation(parent: _controller, curve: Curves.elasticOut));
+    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0)
+        .animate(CurvedAnimation(parent: _controller, curve: Curves.easeIn));
 
     _controller.forward();
 
@@ -623,10 +641,12 @@ class FloatingAchievementBadge extends StatefulWidget {
   final VoidCallback? onTap;
 
   @override
-  State<FloatingAchievementBadge> createState() => _FloatingAchievementBadgeState();
+  State<FloatingAchievementBadge> createState() =>
+      _FloatingAchievementBadgeState();
 }
 
-class _FloatingAchievementBadgeState extends State<FloatingAchievementBadge> with SingleTickerProviderStateMixin {
+class _FloatingAchievementBadgeState extends State<FloatingAchievementBadge>
+    with SingleTickerProviderStateMixin {
   late AnimationController _animationController;
   late Animation<double> _bounceAnimation;
   late Animation<double> _opacityAnimation;
@@ -636,13 +656,15 @@ class _FloatingAchievementBadgeState extends State<FloatingAchievementBadge> wit
     super.initState();
     _animationController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 3000), // Duration for the entire sequence
+      duration: const Duration(
+          milliseconds: 3000), // Duration for the entire sequence
     );
 
     _bounceAnimation = TweenSequence<double>([
       TweenSequenceItem(
         // Bounce in from top
-        tween: Tween<double>(begin: -50.0, end: 0.0).chain(CurveTween(curve: Curves.elasticOut)), // Elastic effect
+        tween: Tween<double>(begin: -50.0, end: 0.0)
+            .chain(CurveTween(curve: Curves.elasticOut)), // Elastic effect
         weight: 30.0, // % of total duration
       ),
       TweenSequenceItem(
@@ -652,7 +674,8 @@ class _FloatingAchievementBadgeState extends State<FloatingAchievementBadge> wit
       ),
       TweenSequenceItem(
         // Float up and out
-        tween: Tween<double>(begin: 0.0, end: -50.0).chain(CurveTween(curve: Curves.easeInBack)), // Smooth exit
+        tween: Tween<double>(begin: 0.0, end: -50.0)
+            .chain(CurveTween(curve: Curves.easeInBack)), // Smooth exit
         weight: 30.0,
       ),
     ]).animate(_animationController);
@@ -660,7 +683,8 @@ class _FloatingAchievementBadgeState extends State<FloatingAchievementBadge> wit
     _opacityAnimation = TweenSequence<double>([
       TweenSequenceItem(
         // Fade in
-        tween: Tween<double>(begin: 0.0, end: 1.0).chain(CurveTween(curve: Curves.easeIn)),
+        tween: Tween<double>(begin: 0.0, end: 1.0)
+            .chain(CurveTween(curve: Curves.easeIn)),
         weight: 15.0, // Quick fade in
       ),
       TweenSequenceItem(
@@ -670,7 +694,8 @@ class _FloatingAchievementBadgeState extends State<FloatingAchievementBadge> wit
       ),
       TweenSequenceItem(
         // Fade out
-        tween: Tween<double>(begin: 1.0, end: 0.0).chain(CurveTween(curve: Curves.easeOut)),
+        tween: Tween<double>(begin: 1.0, end: 0.0)
+            .chain(CurveTween(curve: Curves.easeOut)),
         weight: 15.0, // Quick fade out
       ),
     ]).animate(_animationController);
@@ -703,10 +728,14 @@ class _FloatingAchievementBadgeState extends State<FloatingAchievementBadge> wit
               opacity: _opacityAnimation.value,
               child: Transform.translate(
                 // Using translate Y for bounce if not in Positioned top
-                offset: Offset(0, _bounceAnimation.value), // If not using Positioned.top, this handles Y movement
+                offset: Offset(
+                    0,
+                    _bounceAnimation
+                        .value), // If not using Positioned.top, this handles Y movement
                 child: InkWell(
                   onTap: widget.onTap,
-                  borderRadius: BorderRadius.circular(AppTheme.borderRadiusLarge), // Match container
+                  borderRadius: BorderRadius.circular(
+                      AppTheme.borderRadiusLarge), // Match container
                   child: Container(
                     padding: const EdgeInsets.symmetric(
                       horizontal: AppTheme.paddingRegular,
@@ -714,10 +743,12 @@ class _FloatingAchievementBadgeState extends State<FloatingAchievementBadge> wit
                     ),
                     decoration: BoxDecoration(
                       color: Colors.white,
-                      borderRadius: BorderRadius.circular(AppTheme.borderRadiusLarge),
+                      borderRadius:
+                          BorderRadius.circular(AppTheme.borderRadiusLarge),
                       boxShadow: [
                         BoxShadow(
-                          color: widget.achievement.color.withValues(alpha: 0.3),
+                          color:
+                              widget.achievement.color.withValues(alpha: 0.3),
                           blurRadius: 8,
                           spreadRadius: 2,
                         ),
@@ -730,11 +761,13 @@ class _FloatingAchievementBadgeState extends State<FloatingAchievementBadge> wit
                         Container(
                           padding: const EdgeInsets.all(6),
                           decoration: BoxDecoration(
-                            color: widget.achievement.color.withValues(alpha: 0.1),
+                            color:
+                                widget.achievement.color.withValues(alpha: 0.1),
                             shape: BoxShape.circle,
                           ),
                           child: Icon(
-                            AppIcons.fromString(widget.achievement.iconName), // Assumes AppIcons.fromString exists
+                            AppIcons.fromString(widget.achievement
+                                .iconName), // Assumes AppIcons.fromString exists
                             color: widget.achievement.color,
                             size: 16,
                           ),
@@ -797,10 +830,12 @@ class EnhancedAchievementNotification extends StatefulWidget {
   final VoidCallback? onDismiss;
 
   @override
-  State<EnhancedAchievementNotification> createState() => _EnhancedAchievementNotificationState();
+  State<EnhancedAchievementNotification> createState() =>
+      _EnhancedAchievementNotificationState();
 }
 
-class _EnhancedAchievementNotificationState extends State<EnhancedAchievementNotification>
+class _EnhancedAchievementNotificationState
+    extends State<EnhancedAchievementNotification>
     with SingleTickerProviderStateMixin {
   late AnimationController _animationController;
   late Animation<double> _scaleAnimation;
@@ -816,11 +851,13 @@ class _EnhancedAchievementNotificationState extends State<EnhancedAchievementNot
 
     _scaleAnimation = TweenSequence<double>([
       TweenSequenceItem(
-        tween: Tween<double>(begin: 0.0, end: 1.1).chain(CurveTween(curve: Curves.easeOutBack)),
+        tween: Tween<double>(begin: 0.0, end: 1.1)
+            .chain(CurveTween(curve: Curves.easeOutBack)),
         weight: 30.0,
       ),
       TweenSequenceItem(
-        tween: Tween<double>(begin: 1.1, end: 1.0).chain(CurveTween(curve: Curves.easeInOut)),
+        tween: Tween<double>(begin: 1.1, end: 1.0)
+            .chain(CurveTween(curve: Curves.easeInOut)),
         weight: 20.0,
       ),
       TweenSequenceItem(
@@ -832,7 +869,8 @@ class _EnhancedAchievementNotificationState extends State<EnhancedAchievementNot
 
     _opacityAnimation = TweenSequence<double>([
       TweenSequenceItem(
-        tween: Tween<double>(begin: 0.0, end: 1.0).chain(CurveTween(curve: Curves.easeIn)),
+        tween: Tween<double>(begin: 0.0, end: 1.0)
+            .chain(CurveTween(curve: Curves.easeIn)),
         weight: 20.0,
       ),
       TweenSequenceItem(
@@ -870,7 +908,8 @@ class _EnhancedAchievementNotificationState extends State<EnhancedAchievementNot
               child: Card(
                 elevation: 8,
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(AppTheme.borderRadiusRegular),
+                  borderRadius:
+                      BorderRadius.circular(AppTheme.borderRadiusRegular),
                 ),
                 child: Padding(
                   padding: const EdgeInsets.all(AppTheme.paddingRegular),
@@ -891,7 +930,8 @@ class _EnhancedAchievementNotificationState extends State<EnhancedAchievementNot
                         width: 60,
                         height: 60,
                         decoration: BoxDecoration(
-                          color: widget.achievement.color.withValues(alpha: 0.1),
+                          color:
+                              widget.achievement.color.withValues(alpha: 0.1),
                           shape: BoxShape.circle,
                           border: Border.all(
                             color: widget.achievement.color,
@@ -900,7 +940,8 @@ class _EnhancedAchievementNotificationState extends State<EnhancedAchievementNot
                         ),
                         child: Center(
                           child: Icon(
-                            AppIcons.fromString(widget.achievement.iconName), // Assumes AppIcons.fromString exists
+                            AppIcons.fromString(widget.achievement
+                                .iconName), // Assumes AppIcons.fromString exists
                             color: widget.achievement.color,
                             size: 32,
                           ),
@@ -923,10 +964,11 @@ class _EnhancedAchievementNotificationState extends State<EnhancedAchievementNot
 
                       Text(
                         widget.achievement.title,
-                        style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                              // Use theme
-                              fontWeight: FontWeight.bold,
-                            ),
+                        style:
+                            Theme.of(context).textTheme.headlineSmall?.copyWith(
+                                  // Use theme
+                                  fontWeight: FontWeight.bold,
+                                ),
                         textAlign: TextAlign.center,
                       ),
 
@@ -951,8 +993,10 @@ class _EnhancedAchievementNotificationState extends State<EnhancedAchievementNot
                         ),
                         decoration: BoxDecoration(
                           color: Colors.amber.withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(AppTheme.borderRadiusRegular),
-                          border: Border.all(color: Colors.amber.withValues(alpha: 0.5)),
+                          borderRadius: BorderRadius.circular(
+                              AppTheme.borderRadiusRegular),
+                          border: Border.all(
+                              color: Colors.amber.withValues(alpha: 0.5)),
                         ),
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
@@ -965,7 +1009,10 @@ class _EnhancedAchievementNotificationState extends State<EnhancedAchievementNot
                             const SizedBox(width: AppTheme.paddingSmall),
                             Text(
                               '+${widget.achievement.pointsReward} Points',
-                              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .titleMedium
+                                  ?.copyWith(
                                     // Use theme
                                     fontWeight: FontWeight.bold,
                                   ),
@@ -974,17 +1021,24 @@ class _EnhancedAchievementNotificationState extends State<EnhancedAchievementNot
                         ),
                       ),
 
-                      const SizedBox(height: AppTheme.paddingLarge), // More space before button
+                      const SizedBox(
+                          height: AppTheme
+                              .paddingLarge), // More space before button
 
                       // Close button
                       ElevatedButton(
-                        onPressed: widget.onDismiss ?? () => Navigator.of(context).pop(), // Default dismiss
+                        onPressed: widget.onDismiss ??
+                            () =>
+                                Navigator.of(context).pop(), // Default dismiss
                         style: ElevatedButton.styleFrom(
                           backgroundColor: widget.achievement.color,
                           foregroundColor: Colors.white, // Text color
                           minimumSize: const Size(150, 48), // Larger button
-                          textStyle:
-                              Theme.of(context).textTheme.labelLarge?.copyWith(fontWeight: FontWeight.bold), //Use theme
+                          textStyle: Theme.of(context)
+                              .textTheme
+                              .labelLarge
+                              ?.copyWith(
+                                  fontWeight: FontWeight.bold), //Use theme
                         ),
                         child: const Text('Awesome!'),
                       ),
@@ -1012,12 +1066,17 @@ class EnhancedChallengeCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final progress =
-        challenge.progress < 0 ? 0.0 : (challenge.progress > 1 ? 1.0 : challenge.progress); // Clamped progress
+    final progress = challenge.progress < 0
+        ? 0.0
+        : (challenge.progress > 1
+            ? 1.0
+            : challenge.progress); // Clamped progress
 
     return Card(
       elevation: 2.0,
-      margin: const EdgeInsets.symmetric(vertical: AppTheme.paddingSmall, horizontal: AppTheme.paddingSmall / 2),
+      margin: const EdgeInsets.symmetric(
+          vertical: AppTheme.paddingSmall,
+          horizontal: AppTheme.paddingSmall / 2),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(AppTheme.borderRadiusRegular),
       ),
@@ -1033,8 +1092,8 @@ class EnhancedChallengeCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Icon(
-                    AppIcons.fromString(
-                        challenge.iconName), // Assuming AppIcons.fromString and challenge.iconName exist
+                    AppIcons.fromString(challenge
+                        .iconName), // Assuming AppIcons.fromString and challenge.iconName exist
                     color: challenge.color, // Assuming Challenge has a color
                     size: 36,
                   ),
@@ -1045,17 +1104,23 @@ class EnhancedChallengeCard extends StatelessWidget {
                       children: [
                         LayoutBuilder(builder: (context, constraints) {
                           // Added LayoutBuilder
-                          WasteAppLogger.debug('EnhancedChallengeCard rendering', {
-                            'challenge_title': challenge.title,
-                            'max_width': constraints.maxWidth,
-                            'max_height': constraints.maxHeight,
-                            'is_completed': challenge.isCompleted
-                          });
+                          WasteAppLogger.debug(
+                              'EnhancedChallengeCard rendering',
+                              context: {
+                                'challenge_title': challenge.title,
+                                'max_width': constraints.maxWidth,
+                                'max_height': constraints.maxHeight,
+                                'is_completed': challenge.isCompleted
+                              });
                           return Text(
                             challenge.title,
-                            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                            style: Theme.of(context)
+                                .textTheme
+                                .titleMedium
+                                ?.copyWith(
                                   fontWeight: FontWeight.bold,
-                                  color: AppTheme.textPrimaryColor, // Use theme color
+                                  color: AppTheme
+                                      .textPrimaryColor, // Use theme color
                                 ),
                           );
                         }),
@@ -1063,7 +1128,10 @@ class EnhancedChallengeCard extends StatelessWidget {
                           const SizedBox(height: AppTheme.paddingMicro),
                           Text(
                             challenge.description,
-                            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            style: Theme.of(context)
+                                .textTheme
+                                .bodyMedium
+                                ?.copyWith(
                                   color: AppTheme.textSecondaryColor,
                                 ),
                             maxLines: 2,
@@ -1075,7 +1143,8 @@ class EnhancedChallengeCard extends StatelessWidget {
                   ),
                   if (challenge.isCompleted) ...[
                     const SizedBox(width: AppTheme.paddingSmall),
-                    const Icon(Icons.check_circle, color: Colors.green, size: 24),
+                    const Icon(Icons.check_circle,
+                        color: Colors.green, size: 24),
                   ] else if (challenge.pointsReward > 0) ...[
                     const SizedBox(width: AppTheme.paddingSmall),
                     Column(
@@ -1084,11 +1153,15 @@ class EnhancedChallengeCard extends StatelessWidget {
                         Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            const Icon(Icons.stars, color: Colors.amber, size: 16),
+                            const Icon(Icons.stars,
+                                color: Colors.amber, size: 16),
                             const SizedBox(width: AppTheme.paddingMicro),
                             Text(
                               '${challenge.pointsReward}',
-                              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .bodyMedium
+                                  ?.copyWith(
                                     fontWeight: FontWeight.bold,
                                     color: Colors.amber,
                                   ),
@@ -1097,9 +1170,10 @@ class EnhancedChallengeCard extends StatelessWidget {
                         ),
                         Text(
                           'Points',
-                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                color: Colors.amber.shade700,
-                              ),
+                          style:
+                              Theme.of(context).textTheme.bodySmall?.copyWith(
+                                    color: Colors.amber.shade700,
+                                  ),
                         ),
                       ],
                     )
@@ -1112,15 +1186,19 @@ class EnhancedChallengeCard extends StatelessWidget {
                 children: [
                   Expanded(
                     child: ClipRRect(
-                      borderRadius: BorderRadius.circular(AppTheme.borderRadiusSmall),
+                      borderRadius:
+                          BorderRadius.circular(AppTheme.borderRadiusSmall),
                       child: LinearProgressIndicator(
                         value: progress,
                         minHeight: 10,
-                        backgroundColor:
-                            challenge.color.withValues(alpha: 0.2), // Lighter shade of challenge color for background
-                        valueColor: AlwaysStoppedAnimation<Color>(challenge.isCompleted || progress >= 1.0
+                        backgroundColor: challenge.color.withValues(
+                            alpha:
+                                0.2), // Lighter shade of challenge color for background
+                        valueColor: AlwaysStoppedAnimation<Color>(
+                            challenge.isCompleted || progress >= 1.0
                                 ? AppTheme.successColor // Green for completed
-                                : challenge.color // Original challenge color during progress
+                                : challenge
+                                    .color // Original challenge color during progress
                             ),
                       ),
                     ),
@@ -1188,7 +1266,8 @@ class LifetimePointsIndicator extends StatelessWidget {
             const SizedBox(width: 6),
             if (showLifetimePoints)
               FutureBuilder<int>(
-                future: Provider.of<GamificationService>(context, listen: false).getTotalLifetimePoints(),
+                future: Provider.of<GamificationService>(context, listen: false)
+                    .getTotalLifetimePoints(),
                 builder: (context, snapshot) {
                   final lifetimePoints = snapshot.data ?? points.total;
                   return Column(
@@ -1237,7 +1316,8 @@ class ArchivedPointsHistoryWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final gamificationService = Provider.of<GamificationService>(context, listen: false);
+    final gamificationService =
+        Provider.of<GamificationService>(context, listen: false);
 
     return FutureBuilder<List<Map<String, dynamic>>>(
       future: gamificationService.getArchivedPointsHistory(),
@@ -1266,12 +1346,16 @@ class ArchivedPointsHistoryWidget extends StatelessWidget {
           itemCount: archivedHistory.length,
           itemBuilder: (context, index) {
             final archive = archivedHistory[index];
-            final archivedAt = DateTime.tryParse(archive['archivedAt']?.toString() ?? '') ?? DateTime.now();
-            
+            final archivedAt =
+                DateTime.tryParse(archive['archivedAt']?.toString() ?? '') ??
+                    DateTime.now();
+
             // Safe type extraction
             final pointsValue = archive['totalLifetimePoints'];
-            final points = pointsValue is int ? pointsValue : (pointsValue is double ? pointsValue.toInt() : 0);
-            
+            final points = pointsValue is int
+                ? pointsValue
+                : (pointsValue is double ? pointsValue.toInt() : 0);
+
             final reasonValue = archive['reason'];
             final reason = reasonValue is String ? reasonValue : 'unknown';
 

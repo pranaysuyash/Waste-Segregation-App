@@ -6,7 +6,8 @@ class DynamicThemeHelper {
   static const double minContrastRatio = 4.5;
 
   /// Fallback seed color for dynamic color generation
-  static const Color fallbackSeedColor = Color(0xFF2E7D32); // App's primary green
+  static const Color fallbackSeedColor =
+      Color(0xFF2E7D32); // App's primary green
 
   /// Generate dynamic light theme with WCAG contrast validation
   static ThemeData generateLightTheme(ColorScheme? dynamicColorScheme) {
@@ -67,7 +68,8 @@ class DynamicThemeHelper {
     );
 
     // If contrast is insufficient, fall back to seed-based scheme
-    if (primaryContrast < minContrastRatio || surfaceContrast < minContrastRatio) {
+    if (primaryContrast < minContrastRatio ||
+        surfaceContrast < minContrastRatio) {
       return ColorScheme.fromSeed(
         seedColor: scheme.primary.withValues(alpha: 1.0),
         brightness: brightness,

@@ -62,10 +62,12 @@ void main() {
           ),
         ];
 
-        when(mockLeaderboardService.getTopNEntries(100)).thenAnswer((_) async => mockEntries);
+        when(mockLeaderboardService.getTopNEntries(100))
+            .thenAnswer((_) async => mockEntries);
 
         // Act
-        final result = await container.read(topLeaderboardEntriesProvider.future);
+        final result =
+            await container.read(topLeaderboardEntriesProvider.future);
 
         // Assert
         expect(result, equals(mockEntries));
@@ -77,10 +79,12 @@ void main() {
 
       test('should handle empty leaderboard', () async {
         // Arrange
-        when(mockLeaderboardService.getTopNEntries(100)).thenAnswer((_) async => <LeaderboardEntry>[]);
+        when(mockLeaderboardService.getTopNEntries(100))
+            .thenAnswer((_) async => <LeaderboardEntry>[]);
 
         // Act
-        final result = await container.read(topLeaderboardEntriesProvider.future);
+        final result =
+            await container.read(topLeaderboardEntriesProvider.future);
 
         // Assert
         expect(result, isEmpty);
@@ -89,10 +93,12 @@ void main() {
 
       test('should handle service errors', () async {
         // Arrange
-        when(mockLeaderboardService.getTopNEntries(100)).thenThrow(Exception('Network error'));
+        when(mockLeaderboardService.getTopNEntries(100))
+            .thenThrow(Exception('Network error'));
 
         // Act
-        final result = await container.read(topLeaderboardEntriesProvider.future);
+        final result =
+            await container.read(topLeaderboardEntriesProvider.future);
 
         // Assert
         expect(result, isEmpty);
@@ -101,7 +107,8 @@ void main() {
 
       test('should auto-dispose when not used', () async {
         // Arrange
-        when(mockLeaderboardService.getTopNEntries(100)).thenAnswer((_) async => <LeaderboardEntry>[]);
+        when(mockLeaderboardService.getTopNEntries(100))
+            .thenAnswer((_) async => <LeaderboardEntry>[]);
 
         // Act
         final provider = topLeaderboardEntriesProvider;
@@ -131,11 +138,14 @@ void main() {
           photoUrl: 'https://example.com/avatar.png',
         );
 
-        when(mockStorageService.getCurrentUserProfile()).thenAnswer((_) async => mockUserProfile);
-        when(mockLeaderboardService.getUserEntry('user123')).thenAnswer((_) async => mockLeaderboardEntry);
+        when(mockStorageService.getCurrentUserProfile())
+            .thenAnswer((_) async => mockUserProfile);
+        when(mockLeaderboardService.getUserEntry('user123'))
+            .thenAnswer((_) async => mockLeaderboardEntry);
 
         // Act
-        final result = await container.read(currentUserLeaderboardEntryProvider.future);
+        final result =
+            await container.read(currentUserLeaderboardEntryProvider.future);
 
         // Assert
         expect(result, equals(mockLeaderboardEntry));
@@ -147,10 +157,12 @@ void main() {
 
       test('should return null when no user is logged in', () async {
         // Arrange
-        when(mockStorageService.getCurrentUserProfile()).thenAnswer((_) async => null);
+        when(mockStorageService.getCurrentUserProfile())
+            .thenAnswer((_) async => null);
 
         // Act
-        final result = await container.read(currentUserLeaderboardEntryProvider.future);
+        final result =
+            await container.read(currentUserLeaderboardEntryProvider.future);
 
         // Assert
         expect(result, isNull);
@@ -166,11 +178,14 @@ void main() {
           email: 'test@example.com',
         );
 
-        when(mockStorageService.getCurrentUserProfile()).thenAnswer((_) async => mockUserProfile);
-        when(mockLeaderboardService.getUserEntry('')).thenAnswer((_) async => null);
+        when(mockStorageService.getCurrentUserProfile())
+            .thenAnswer((_) async => mockUserProfile);
+        when(mockLeaderboardService.getUserEntry(''))
+            .thenAnswer((_) async => null);
 
         // Act
-        final result = await container.read(currentUserLeaderboardEntryProvider.future);
+        final result =
+            await container.read(currentUserLeaderboardEntryProvider.future);
 
         // Assert
         expect(result, isNull);
@@ -186,11 +201,14 @@ void main() {
           email: 'test@example.com',
         );
 
-        when(mockStorageService.getCurrentUserProfile()).thenAnswer((_) async => mockUserProfile);
-        when(mockLeaderboardService.getUserEntry('user123')).thenAnswer((_) async => null);
+        when(mockStorageService.getCurrentUserProfile())
+            .thenAnswer((_) async => mockUserProfile);
+        when(mockLeaderboardService.getUserEntry('user123'))
+            .thenAnswer((_) async => null);
 
         // Act
-        final result = await container.read(currentUserLeaderboardEntryProvider.future);
+        final result =
+            await container.read(currentUserLeaderboardEntryProvider.future);
 
         // Assert
         expect(result, isNull);
@@ -209,8 +227,10 @@ void main() {
         );
         const expectedRank = 15;
 
-        when(mockStorageService.getCurrentUserProfile()).thenAnswer((_) async => mockUserProfile);
-        when(mockLeaderboardService.getCurrentUserRank('user123')).thenAnswer((_) async => expectedRank);
+        when(mockStorageService.getCurrentUserProfile())
+            .thenAnswer((_) async => mockUserProfile);
+        when(mockLeaderboardService.getCurrentUserRank('user123'))
+            .thenAnswer((_) async => expectedRank);
 
         // Act
         final result = await container.read(currentUserRankProvider.future);
@@ -223,7 +243,8 @@ void main() {
 
       test('should return null when no user is logged in', () async {
         // Arrange
-        when(mockStorageService.getCurrentUserProfile()).thenAnswer((_) async => null);
+        when(mockStorageService.getCurrentUserProfile())
+            .thenAnswer((_) async => null);
 
         // Act
         final result = await container.read(currentUserRankProvider.future);
@@ -242,8 +263,10 @@ void main() {
           email: 'test@example.com',
         );
 
-        when(mockStorageService.getCurrentUserProfile()).thenAnswer((_) async => mockUserProfile);
-        when(mockLeaderboardService.getCurrentUserRank('user123')).thenAnswer((_) async => null);
+        when(mockStorageService.getCurrentUserProfile())
+            .thenAnswer((_) async => mockUserProfile);
+        when(mockLeaderboardService.getCurrentUserRank('user123'))
+            .thenAnswer((_) async => null);
 
         // Act
         final result = await container.read(currentUserRankProvider.future);
@@ -288,13 +311,18 @@ void main() {
         );
         const mockUserRank = 2;
 
-        when(mockStorageService.getCurrentUserProfile()).thenAnswer((_) async => mockUserProfile);
-        when(mockLeaderboardService.getTopNEntries(100)).thenAnswer((_) async => mockTopEntries);
-        when(mockLeaderboardService.getUserEntry('user123')).thenAnswer((_) async => mockUserEntry);
-        when(mockLeaderboardService.getCurrentUserRank('user123')).thenAnswer((_) async => mockUserRank);
+        when(mockStorageService.getCurrentUserProfile())
+            .thenAnswer((_) async => mockUserProfile);
+        when(mockLeaderboardService.getTopNEntries(100))
+            .thenAnswer((_) async => mockTopEntries);
+        when(mockLeaderboardService.getUserEntry('user123'))
+            .thenAnswer((_) async => mockUserEntry);
+        when(mockLeaderboardService.getCurrentUserRank('user123'))
+            .thenAnswer((_) async => mockUserRank);
 
         // Act
-        final result = await container.read(leaderboardScreenDataProvider.future);
+        final result =
+            await container.read(leaderboardScreenDataProvider.future);
 
         // Assert
         expect(result.topEntries, equals(mockTopEntries));
@@ -315,26 +343,33 @@ void main() {
           ),
         ];
 
-        when(mockStorageService.getCurrentUserProfile()).thenAnswer((_) async => null);
-        when(mockLeaderboardService.getTopNEntries(100)).thenAnswer((_) async => mockTopEntries);
+        when(mockStorageService.getCurrentUserProfile())
+            .thenAnswer((_) async => null);
+        when(mockLeaderboardService.getTopNEntries(100))
+            .thenAnswer((_) async => mockTopEntries);
 
         // Act
-        final result = await container.read(leaderboardScreenDataProvider.future);
+        final result =
+            await container.read(leaderboardScreenDataProvider.future);
 
         // Assert
         expect(result.topEntries, equals(mockTopEntries));
         expect(result.currentUserEntry, isNull);
         expect(result.currentUserRank, isNull);
-        verify(mockStorageService.getCurrentUserProfile()).called(2); // Called by both user providers
+        verify(mockStorageService.getCurrentUserProfile())
+            .called(2); // Called by both user providers
       });
 
       test('should handle service errors gracefully', () async {
         // Arrange
-        when(mockStorageService.getCurrentUserProfile()).thenThrow(Exception('Storage error'));
-        when(mockLeaderboardService.getTopNEntries(100)).thenAnswer((_) async => <LeaderboardEntry>[]);
+        when(mockStorageService.getCurrentUserProfile())
+            .thenThrow(Exception('Storage error'));
+        when(mockLeaderboardService.getTopNEntries(100))
+            .thenAnswer((_) async => <LeaderboardEntry>[]);
 
         // Act
-        final result = await container.read(leaderboardScreenDataProvider.future);
+        final result =
+            await container.read(leaderboardScreenDataProvider.future);
 
         // Assert
         expect(result.topEntries, isEmpty);
@@ -359,13 +394,18 @@ void main() {
           ),
         ];
 
-        when(mockStorageService.getCurrentUserProfile()).thenAnswer((_) async => mockUserProfile);
-        when(mockLeaderboardService.getTopNEntries(100)).thenAnswer((_) async => mockTopEntries);
-        when(mockLeaderboardService.getUserEntry('user123')).thenAnswer((_) async => null); // User not on leaderboard
-        when(mockLeaderboardService.getCurrentUserRank('user123')).thenAnswer((_) async => null); // User not ranked
+        when(mockStorageService.getCurrentUserProfile())
+            .thenAnswer((_) async => mockUserProfile);
+        when(mockLeaderboardService.getTopNEntries(100))
+            .thenAnswer((_) async => mockTopEntries);
+        when(mockLeaderboardService.getUserEntry('user123'))
+            .thenAnswer((_) async => null); // User not on leaderboard
+        when(mockLeaderboardService.getCurrentUserRank('user123'))
+            .thenAnswer((_) async => null); // User not ranked
 
         // Act
-        final result = await container.read(leaderboardScreenDataProvider.future);
+        final result =
+            await container.read(leaderboardScreenDataProvider.future);
 
         // Assert
         expect(result.topEntries, equals(mockTopEntries));
@@ -387,11 +427,14 @@ void main() {
           ),
         ];
 
-        when(mockLeaderboardService.getTopNEntries(100)).thenAnswer((_) async => mockEntries);
+        when(mockLeaderboardService.getTopNEntries(100))
+            .thenAnswer((_) async => mockEntries);
 
         // Act
-        final result1 = await container.read(topLeaderboardEntriesProvider.future);
-        final result2 = await container.read(topLeaderboardEntriesProvider.future);
+        final result1 =
+            await container.read(topLeaderboardEntriesProvider.future);
+        final result2 =
+            await container.read(topLeaderboardEntriesProvider.future);
 
         // Assert
         expect(result1, equals(result2));
@@ -412,12 +455,15 @@ void main() {
           ),
         ];
 
-        when(mockLeaderboardService.getTopNEntries(100)).thenAnswer((_) async => mockEntries);
+        when(mockLeaderboardService.getTopNEntries(100))
+            .thenAnswer((_) async => mockEntries);
 
         // Act
-        final result1 = await container.read(topLeaderboardEntriesProvider.future);
+        final result1 =
+            await container.read(topLeaderboardEntriesProvider.future);
         container.refresh(topLeaderboardEntriesProvider);
-        final result2 = await container.read(topLeaderboardEntriesProvider.future);
+        final result2 =
+            await container.read(topLeaderboardEntriesProvider.future);
 
         // Assert
         expect(result1, equals(mockEntries));
@@ -429,10 +475,12 @@ void main() {
     group('Error Recovery', () {
       test('should handle network timeouts gracefully', () async {
         // Arrange
-        when(mockLeaderboardService.getTopNEntries(any)).thenThrow(Exception('Timeout'));
+        when(mockLeaderboardService.getTopNEntries(any))
+            .thenThrow(Exception('Timeout'));
 
         // Act
-        final result = await container.read(topLeaderboardEntriesProvider.future);
+        final result =
+            await container.read(topLeaderboardEntriesProvider.future);
 
         // Assert
         expect(result, isEmpty);
@@ -441,10 +489,12 @@ void main() {
 
       test('should handle malformed data gracefully', () async {
         // Arrange
-        when(mockStorageService.getCurrentUserProfile()).thenThrow(const FormatException('Invalid user data'));
+        when(mockStorageService.getCurrentUserProfile())
+            .thenThrow(const FormatException('Invalid user data'));
 
         // Act
-        final result = await container.read(currentUserLeaderboardEntryProvider.future);
+        final result =
+            await container.read(currentUserLeaderboardEntryProvider.future);
 
         // Assert
         expect(result, isNull);

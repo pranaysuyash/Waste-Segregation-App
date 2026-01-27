@@ -140,9 +140,11 @@ class EnhancedStorageService extends StorageService {
     try {
       // Load critical data using the base class methods
       await Future.wait([
-        getCurrentUserProfile().then((data) => addToCache(StorageKeys.userProfileKey, data)),
+        getCurrentUserProfile()
+            .then((data) => addToCache(StorageKeys.userProfileKey, data)),
         getSettings().then((data) => addToCache('settings', data)),
-        getAllClassifications().then((data) => addToCache('all_classifications', data)),
+        getAllClassifications()
+            .then((data) => addToCache('all_classifications', data)),
       ]);
     } catch (e) {
       WasteAppLogger.severe('Error preloading critical data: $e');
@@ -205,7 +207,8 @@ class EnhancedStorageService extends StorageService {
     return {
       'cache_hits': _cacheHits,
       'cache_misses': _cacheMisses,
-      'hit_rate': total > 0 ? (_cacheHits / total * 100).toStringAsFixed(1) : '0.0',
+      'hit_rate':
+          total > 0 ? (_cacheHits / total * 100).toStringAsFixed(1) : '0.0',
       'cache_size': _lruCache.length,
     };
   }

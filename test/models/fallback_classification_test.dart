@@ -3,7 +3,8 @@ import 'package:waste_segregation_app/models/waste_classification.dart';
 
 void main() {
   group('Fallback Classification Tests', () {
-    test('should create proper fallback classification with helpful messaging', () {
+    test('should create proper fallback classification with helpful messaging',
+        () {
       const imagePath = '/test/image.jpg';
       const userId = 'test_user_123';
 
@@ -20,14 +21,17 @@ void main() {
       expect(fallback.riskLevel, equals('unknown'));
 
       // Verify explanation is helpful and informative
-      expect(fallback.explanation, contains('AI was unable to automatically identify'));
+      expect(fallback.explanation,
+          contains('AI was unable to automatically identify'));
       expect(fallback.explanation, contains('image quality'));
       expect(fallback.explanation, contains('feedback'));
 
       // Verify disposal instructions are comprehensive
-      expect(fallback.disposalInstructions.primaryMethod, equals('Manual identification required'));
+      expect(fallback.disposalInstructions.primaryMethod,
+          equals('Manual identification required'));
       expect(fallback.disposalInstructions.steps, isNotEmpty);
-      expect(fallback.disposalInstructions.steps.length, greaterThanOrEqualTo(5));
+      expect(
+          fallback.disposalInstructions.steps.length, greaterThanOrEqualTo(5));
       expect(fallback.disposalInstructions.warnings, isNotNull);
       expect(fallback.disposalInstructions.tips, isNotNull);
       expect(fallback.disposalInstructions.hasUrgentTimeframe, isFalse);
@@ -39,7 +43,8 @@ void main() {
       expect(steps, contains('feedback'));
 
       // Verify warnings are present
-      final warnings = fallback.disposalInstructions.warnings!.join(' ').toLowerCase();
+      final warnings =
+          fallback.disposalInstructions.warnings!.join(' ').toLowerCase();
       expect(warnings, contains('do not dispose'));
       expect(warnings, contains('special handling'));
 
@@ -53,7 +58,8 @@ void main() {
       expect(fallback.alternatives, isNotEmpty);
       expect(fallback.alternatives.length, equals(3));
 
-      final categories = fallback.alternatives.map((alt) => alt.category).toList();
+      final categories =
+          fallback.alternatives.map((alt) => alt.category).toList();
       expect(categories, contains('Wet Waste'));
       expect(categories, contains('Dry Waste'));
       expect(categories, contains('Hazardous Waste'));
@@ -112,7 +118,8 @@ void main() {
       expect(fallback1.category, equals(fallback2.category));
       expect(fallback1.subcategory, equals(fallback2.subcategory));
       expect(fallback1.explanation, equals(fallback2.explanation));
-      expect(fallback1.disposalInstructions.primaryMethod, equals(fallback2.disposalInstructions.primaryMethod));
+      expect(fallback1.disposalInstructions.primaryMethod,
+          equals(fallback2.disposalInstructions.primaryMethod));
     });
 
     test('should be serializable to and from JSON', () {
@@ -128,8 +135,10 @@ void main() {
       expect(restored.subcategory, equals(original.subcategory));
       expect(restored.explanation, equals(original.explanation));
       expect(restored.confidence, equals(original.confidence));
-      expect(restored.clarificationNeeded, equals(original.clarificationNeeded));
-      expect(restored.alternatives.length, equals(original.alternatives.length));
+      expect(
+          restored.clarificationNeeded, equals(original.clarificationNeeded));
+      expect(
+          restored.alternatives.length, equals(original.alternatives.length));
     });
   });
 }

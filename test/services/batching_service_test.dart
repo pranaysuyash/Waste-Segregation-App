@@ -22,7 +22,7 @@ void main() {
 
     test('initializes with correct configuration', () {
       final status = service.getBatchStatus();
-      
+
       expect(status['pending_requests'], 0);
       expect(status['batch_size'], 3);
       expect(status['batch_timeout_seconds'], 2);
@@ -31,24 +31,24 @@ void main() {
 
     test('queues analysis request', () async {
       final imageBytes = Uint8List.fromList([1, 2, 3, 4]);
-      
+
       // Queue without waiting for result
       final future = service.queueAnalysisBytes(
         imageBytes: imageBytes,
         imagePath: 'test.jpg',
       );
-      
+
       // Check that request is queued
       final status = service.getBatchStatus();
       expect(status['pending_requests'], 1);
-      
+
       // Cancel to avoid hanging test
       service.cancelAll();
     });
 
     test('processes batch when size is reached', () async {
       final imageBytes = Uint8List.fromList([1, 2, 3, 4]);
-      
+
       // Queue 3 requests (batch size)
       final futures = <Future>[];
       for (var i = 0; i < 3; i++) {
@@ -57,10 +57,10 @@ void main() {
           imagePath: 'test$i.jpg',
         ));
       }
-      
+
       // Wait for processing
       await Future.wait(futures);
-      
+
       // All requests should be processed
       final status = service.getBatchStatus();
       expect(status['pending_requests'], 0);
@@ -68,7 +68,7 @@ void main() {
 
     test('flush processes pending requests immediately', () async {
       final imageBytes = Uint8List.fromList([1, 2, 3, 4]);
-      
+
       // Queue 2 requests (less than batch size)
       final futures = <Future>[];
       for (var i = 0; i < 2; i++) {
@@ -77,11 +77,11 @@ void main() {
           imagePath: 'test$i.jpg',
         ));
       }
-      
+
       // Flush immediately
       await service.flush();
       await Future.wait(futures);
-      
+
       // All requests should be processed
       final status = service.getBatchStatus();
       expect(status['pending_requests'], 0);
@@ -89,19 +89,19 @@ void main() {
 
     test('cancelAll cancels pending requests', () async {
       final imageBytes = Uint8List.fromList([1, 2, 3, 4]);
-      
+
       // Queue request
       final future = service.queueAnalysisBytes(
         imageBytes: imageBytes,
         imagePath: 'test.jpg',
       );
-      
+
       // Cancel all
       service.cancelAll();
-      
+
       // Request should be cancelled with error
       expect(future, throwsA(isA<Exception>()));
-      
+
       final status = service.getBatchStatus();
       expect(status['pending_requests'], 0);
     });
@@ -116,25 +116,25 @@ void main() {
       for (final config in configs) {
         final testService = BatchingService(config: config);
         final status = testService.getBatchStatus();
-        
+
         expect(status['batch_size'], config.batchSize);
-        
+
         testService.dispose();
       }
     });
 
     test('dispose cancels all pending requests', () async {
       final imageBytes = Uint8List.fromList([1, 2, 3, 4]);
-      
+
       // Queue request
       final future = service.queueAnalysisBytes(
         imageBytes: imageBytes,
         imagePath: 'test.jpg',
       );
-      
+
       // Dispose service
       service.dispose();
-      
+
       // Request should be cancelled
       expect(future, throwsA(isA<Exception>()));
     });

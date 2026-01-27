@@ -89,7 +89,8 @@ class TestHelper {
 }
 
 /// Mock ClassificationCacheService that doesn't require Hive
-class MockClassificationCacheService extends Mock implements ClassificationCacheService {
+class MockClassificationCacheService extends Mock
+    implements ClassificationCacheService {
   final Map<String, CachedClassification> _mockCache = {};
 
   @override

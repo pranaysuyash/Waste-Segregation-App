@@ -5,17 +5,17 @@ import '../utils/waste_app_logger.dart';
 import 'dart:convert';
 
 /// OPTIMIZATION: Focused service for user profile storage operations
-/// 
+///
 /// Extracted from the 1300+ line StorageService god object.
 /// Handles only user profile-related persistence operations.
-/// 
+///
 /// Benefits:
 /// - Single Responsibility Principle
 /// - Easier to test in isolation
 /// - Clear user profile management API
 /// - Better maintainability
 class UserProfileStorageService {
-  static const String _userProfileBoxName = StorageKeys.userProfileBox;
+  static const String _userProfileBoxName = StorageKeys.userBox;
   static const String _settingsBoxName = StorageKeys.settingsBox;
 
   /// Save user profile
@@ -23,7 +23,7 @@ class UserProfileStorageService {
     try {
       final box = await Hive.openBox(_userProfileBoxName);
       await box.put(userProfile.id, jsonEncode(userProfile.toJson()));
-      
+
       WasteAppLogger.info(
         'User profile saved',
         context: {
@@ -32,7 +32,8 @@ class UserProfileStorageService {
         },
       );
     } catch (e, s) {
-      WasteAppLogger.severe('Error saving user profile', e, s);
+      WasteAppLogger.severe('Error saving user profile',
+          error: e, stackTrace: s);
       rethrow;
     }
   }
@@ -41,7 +42,7 @@ class UserProfileStorageService {
   Future<UserProfile?> getCurrentUserProfile() async {
     try {
       final box = await Hive.openBox(_userProfileBoxName);
-      
+
       if (box.isEmpty) {
         return null;
       }
@@ -58,14 +59,15 @@ class UserProfileStorageService {
         final json = jsonDecode(data);
         return UserProfile.fromJson(json);
       } else if (data is Map) {
-        return UserProfile.fromJson(
-          data is Map<String, dynamic> ? data : Map<String, dynamic>.from(data)
-        );
+        return UserProfile.fromJson(data is Map<String, dynamic>
+            ? data
+            : Map<String, dynamic>.from(data));
       }
 
       return null;
     } catch (e, s) {
-      WasteAppLogger.severe('Error getting current user profile', e, s);
+      WasteAppLogger.severe('Error getting current user profile',
+          error: e, stackTrace: s);
       return null;
     }
   }
@@ -84,14 +86,15 @@ class UserProfileStorageService {
         final json = jsonDecode(data);
         return UserProfile.fromJson(json);
       } else if (data is Map) {
-        return UserProfile.fromJson(
-          data is Map<String, dynamic> ? data : Map<String, dynamic>.from(data)
-        );
+        return UserProfile.fromJson(data is Map<String, dynamic>
+            ? data
+            : Map<String, dynamic>.from(data));
       }
 
       return null;
     } catch (e, s) {
-      WasteAppLogger.severe('Error getting user profile by ID', e, s, {'userId': userId});
+      WasteAppLogger.severe('Error getting user profile by ID',
+          error: e, stackTrace: s, context: {'userId': userId});
       return null;
     }
   }
@@ -101,10 +104,11 @@ class UserProfileStorageService {
     try {
       final box = await Hive.openBox(_userProfileBoxName);
       await box.delete(userId);
-      
+
       WasteAppLogger.info('User profile deleted', context: {'userId': userId});
     } catch (e, s) {
-      WasteAppLogger.severe('Error deleting user profile', e, s, {'userId': userId});
+      WasteAppLogger.severe('Error deleting user profile',
+          error: e, stackTrace: s, context: {'userId': userId});
       rethrow;
     }
   }
@@ -114,10 +118,11 @@ class UserProfileStorageService {
     try {
       final box = await Hive.openBox(_userProfileBoxName);
       await box.clear();
-      
+
       WasteAppLogger.info('All user profiles cleared');
     } catch (e, s) {
-      WasteAppLogger.severe('Error clearing user profiles', e, s);
+      WasteAppLogger.severe('Error clearing user profiles',
+          error: e, stackTrace: s);
       rethrow;
     }
   }
@@ -151,13 +156,13 @@ class UserProfileStorageService {
       }
 
       await box.putAll(settings);
-      
+
       WasteAppLogger.info(
         'User settings saved',
         context: {'settings_count': settings.length},
       );
     } catch (e, s) {
-      WasteAppLogger.severe('Error saving settings', e, s);
+      WasteAppLogger.severe('Error saving settings', error: e, stackTrace: s);
       rethrow;
     }
   }
@@ -166,7 +171,7 @@ class UserProfileStorageService {
   Future<Map<String, dynamic>> getSettings() async {
     try {
       final box = await Hive.openBox(_settingsBoxName);
-      
+
       // Return default settings if empty
       if (box.isEmpty) {
         return {
@@ -185,7 +190,7 @@ class UserProfileStorageService {
 
       return settings;
     } catch (e, s) {
-      WasteAppLogger.severe('Error getting settings', e, s);
+      WasteAppLogger.severe('Error getting settings', error: e, stackTrace: s);
       return {
         'googleSyncEnabled': false,
         'notifications': true,
@@ -200,10 +205,11 @@ class UserProfileStorageService {
     try {
       final box = await Hive.openBox(_settingsBoxName);
       final value = box.get(key, defaultValue: defaultValue);
-      
+
       return value as T?;
     } catch (e, s) {
-      WasteAppLogger.severe('Error getting setting', e, s, {'key': key});
+      WasteAppLogger.severe('Error getting setting',
+          error: e, stackTrace: s, context: {'key': key});
       return defaultValue;
     }
   }
@@ -213,10 +219,10 @@ class UserProfileStorageService {
     try {
       final box = await Hive.openBox(_settingsBoxName);
       await box.clear();
-      
+
       WasteAppLogger.info('All settings cleared');
     } catch (e, s) {
-      WasteAppLogger.severe('Error clearing settings', e, s);
+      WasteAppLogger.severe('Error clearing settings', error: e, stackTrace: s);
       rethrow;
     }
   }
@@ -229,26 +235,28 @@ class UserProfileStorageService {
 
   /// Update user profile with new data
   Future<void> updateUserProfile(
-    String userId, 
+    String userId,
     Map<String, dynamic> updates,
   ) async {
     try {
       final currentProfile = await getUserProfileById(userId);
-      
+
       if (currentProfile == null) {
-        WasteAppLogger.warning('Cannot update non-existent user profile', null, null, {
-          'userId': userId,
-        });
+        WasteAppLogger.warning('Cannot update non-existent user profile',
+            context: {
+              'userId': userId,
+            });
         return;
       }
 
       // Merge updates with current data
       final updatedData = currentProfile.toJson()..addAll(updates);
       final updatedProfile = UserProfile.fromJson(updatedData);
-      
+
       await saveUserProfile(updatedProfile);
     } catch (e, s) {
-      WasteAppLogger.severe('Error updating user profile', e, s, {'userId': userId});
+      WasteAppLogger.severe('Error updating user profile',
+          error: e, stackTrace: s, context: {'userId': userId});
       rethrow;
     }
   }

@@ -1,7 +1,8 @@
 import 'package:uuid/uuid.dart';
 import 'waste_classification.dart';
 // Import family reaction/comment classes from gamification.dart
-import 'gamification.dart' show FamilyReaction, FamilyComment, ClassificationLocation;
+import 'gamification.dart'
+    show FamilyReaction, FamilyComment, ClassificationLocation;
 
 /// Types of visibility levels for shared classifications.
 enum ClassificationVisibility {
@@ -62,7 +63,8 @@ class SharedWasteClassification {
   factory SharedWasteClassification.fromJson(Map<String, dynamic> json) {
     return SharedWasteClassification(
       id: json['id'] as String,
-      classification: WasteClassification.fromJson(json['classification'] as Map<String, dynamic>),
+      classification: WasteClassification.fromJson(
+          json['classification'] as Map<String, dynamic>),
       sharedBy: json['sharedBy'] as String,
       sharedByDisplayName: json['sharedByDisplayName'] as String,
       sharedByPhotoUrl: json['sharedByPhotoUrl'] as String?,
@@ -76,8 +78,10 @@ class SharedWasteClassification {
               ?.map((c) => FamilyComment.fromJson(c as Map<String, dynamic>))
               .toList() ??
           [],
-      location:
-          json['location'] != null ? ClassificationLocation.fromJson(json['location'] as Map<String, dynamic>) : null,
+      location: json['location'] != null
+          ? ClassificationLocation.fromJson(
+              json['location'] as Map<String, dynamic>)
+          : null,
       isVisible: json['isVisible'] as bool? ?? true,
       familyTags: List<String>.from(json['familyTags'] as List? ?? []),
     );
@@ -222,7 +226,8 @@ class SharedWasteClassification {
   bool get isFromToday {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
-    final classificationDate = DateTime(sharedAt.year, sharedAt.month, sharedAt.day);
+    final classificationDate =
+        DateTime(sharedAt.year, sharedAt.month, sharedAt.day);
     return classificationDate == today;
   }
 

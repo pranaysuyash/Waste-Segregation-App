@@ -26,7 +26,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   Future<_ProfileData> _loadData() async {
     final storageService = Provider.of<StorageService>(context, listen: false);
-    final gamificationService = Provider.of<GamificationService>(context, listen: false);
+    final gamificationService =
+        Provider.of<GamificationService>(context, listen: false);
 
     // Ensure points haven't fallen behind classifications
     await gamificationService.syncClassificationPoints();
@@ -67,10 +68,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
               children: [
                 CircleAvatar(
                   radius: 40,
-                  backgroundImage: profile?.photoUrl != null && profile!.photoUrl!.isNotEmpty
-                      ? NetworkImage(profile.photoUrl!)
-                      : null,
-                  child: profile?.photoUrl == null || profile?.photoUrl?.isEmpty == true
+                  backgroundImage:
+                      profile?.photoUrl != null && profile!.photoUrl!.isNotEmpty
+                          ? NetworkImage(profile.photoUrl!)
+                          : null,
+                  child: profile?.photoUrl == null ||
+                          profile?.photoUrl?.isEmpty == true
                       ? const Icon(Icons.person, size: 40)
                       : null,
                 ),

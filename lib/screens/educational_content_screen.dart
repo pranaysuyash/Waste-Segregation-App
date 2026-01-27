@@ -17,10 +17,12 @@ class EducationalContentScreen extends ConsumerStatefulWidget {
   final String? initialSubcategory;
 
   @override
-  ConsumerState<EducationalContentScreen> createState() => _EducationalContentScreenState();
+  ConsumerState<EducationalContentScreen> createState() =>
+      _EducationalContentScreenState();
 }
 
-class _EducationalContentScreenState extends ConsumerState<EducationalContentScreen>
+class _EducationalContentScreenState
+    extends ConsumerState<EducationalContentScreen>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
   String _searchQuery = '';
@@ -40,10 +42,14 @@ class _EducationalContentScreenState extends ConsumerState<EducationalContentScr
     for (final content in allContent) {
       categorySet.addAll(content.categories);
     }
-    _allCategories = [AppStrings.allCategories, ...categorySet.toList()..sort()];
+    _allCategories = [
+      AppStrings.allCategories,
+      ...categorySet.toList()..sort()
+    ];
 
     if (widget.initialCategory != null) {
-      final categoryContent = educationalService.getContentByCategory(widget.initialCategory!);
+      final categoryContent =
+          educationalService.getContentByCategory(widget.initialCategory!);
       if (categoryContent.isNotEmpty) {
         final typeCount = <ContentType, int>{};
         for (final content in categoryContent) {
@@ -58,7 +64,9 @@ class _EducationalContentScreenState extends ConsumerState<EducationalContentScr
           }
         });
         final typeIndex = mostCommonType?.index;
-        if (typeIndex != null && _tabController.index >= 0 && typeIndex < _tabController.length) {
+        if (typeIndex != null &&
+            _tabController.index >= 0 &&
+            typeIndex < _tabController.length) {
           _tabController.index = typeIndex;
         }
       }
@@ -78,7 +86,9 @@ class _EducationalContentScreenState extends ConsumerState<EducationalContentScr
     final contentType = ContentType.values[_tabController.index];
     filteredContent = educationalService.getContentByType(contentType);
     if (_selectedCategory != null && _selectedCategory != 'All') {
-      filteredContent = filteredContent.where((content) => content.categories.contains(_selectedCategory)).toList();
+      filteredContent = filteredContent
+          .where((content) => content.categories.contains(_selectedCategory))
+          .toList();
     }
     if (_searchQuery.isNotEmpty) {
       final query = _searchQuery.toLowerCase();
@@ -87,7 +97,8 @@ class _EducationalContentScreenState extends ConsumerState<EducationalContentScr
               content.title.toLowerCase().contains(query) ||
               content.description.toLowerCase().contains(query) ||
               content.tags.any((tag) => tag.toLowerCase().contains(query)) ||
-              content.categories.any((category) => category.toLowerCase().contains(query)))
+              content.categories
+                  .any((category) => category.toLowerCase().contains(query)))
           .toList();
     }
     return filteredContent;
@@ -134,7 +145,8 @@ class _EducationalContentScreenState extends ConsumerState<EducationalContentScr
                           hintText: 'Search...',
                           prefixIcon: const Icon(Icons.search),
                           border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(AppTheme.borderRadiusRegular),
+                            borderRadius: BorderRadius.circular(
+                                AppTheme.borderRadiusRegular),
                           ),
                           contentPadding: const EdgeInsets.symmetric(),
                         ),
@@ -147,7 +159,9 @@ class _EducationalContentScreenState extends ConsumerState<EducationalContentScr
                     ),
                     const SizedBox(width: AppTheme.paddingRegular),
                     DropdownButton<String>(
-                      value: _allCategories.contains(_selectedCategory) ? _selectedCategory : 'All',
+                      value: _allCategories.contains(_selectedCategory)
+                          ? _selectedCategory
+                          : 'All',
                       icon: const Icon(Icons.filter_list),
                       underline: Container(
                         height: 2,
@@ -155,10 +169,12 @@ class _EducationalContentScreenState extends ConsumerState<EducationalContentScr
                       ),
                       onChanged: (String? newValue) {
                         setState(() {
-                          _selectedCategory = newValue == 'All' ? null : newValue;
+                          _selectedCategory =
+                              newValue == 'All' ? null : newValue;
                         });
                       },
-                      items: _allCategories.map<DropdownMenuItem<String>>((String value) {
+                      items: _allCategories
+                          .map<DropdownMenuItem<String>>((String value) {
                         return DropdownMenuItem<String>(
                           value: value,
                           child: Text(value),
@@ -185,7 +201,10 @@ class _EducationalContentScreenState extends ConsumerState<EducationalContentScr
                       itemCount: filteredContent.length,
                       itemBuilder: (context, index) {
                         final content = filteredContent[index];
-                        return _buildContentCard(content);
+                        return RepaintBoundary(
+                          key: ValueKey('content_${content.id}'),
+                          child: _buildContentCard(content),
+                        );
                       },
                     );
                   }).toList(),
@@ -241,7 +260,8 @@ class _EducationalContentScreenState extends ConsumerState<EducationalContentScr
                     ),
                     decoration: BoxDecoration(
                       color: content.getTypeColor(),
-                      borderRadius: BorderRadius.circular(AppTheme.borderRadiusSmall),
+                      borderRadius:
+                          BorderRadius.circular(AppTheme.borderRadiusSmall),
                     ),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
@@ -275,7 +295,8 @@ class _EducationalContentScreenState extends ConsumerState<EducationalContentScr
                       ),
                       decoration: BoxDecoration(
                         color: Colors.amber,
-                        borderRadius: BorderRadius.circular(AppTheme.borderRadiusSmall),
+                        borderRadius:
+                            BorderRadius.circular(AppTheme.borderRadiusSmall),
                       ),
                       child: const Row(
                         mainAxisSize: MainAxisSize.min,
@@ -334,7 +355,8 @@ class _EducationalContentScreenState extends ConsumerState<EducationalContentScr
                         ),
                         decoration: BoxDecoration(
                           color: Colors.grey.shade200,
-                          borderRadius: BorderRadius.circular(AppTheme.borderRadiusSmall),
+                          borderRadius:
+                              BorderRadius.circular(AppTheme.borderRadiusSmall),
                         ),
                         child: Text(
                           content.getLevelText(),

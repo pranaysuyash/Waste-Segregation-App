@@ -21,7 +21,7 @@ class CostTrackingInterceptor extends Interceptor {
   void onRequest(RequestOptions options, RequestInterceptorHandler handler) {
     // Extract service name from URL or headers
     final serviceName = _extractServiceName(options);
-    
+
     // Record request start
     options.extra['cost_tracking'] = {
       'service_name': serviceName,
@@ -30,7 +30,7 @@ class CostTrackingInterceptor extends Interceptor {
     };
 
     if (enableDetailedLogging) {
-      WasteAppLogger.fine('Cost tracking started', null, null, {
+      WasteAppLogger.fine('Cost tracking started', context: {
         'service': serviceName,
         'method': options.method,
         'endpoint': options.path,
@@ -43,17 +43,18 @@ class CostTrackingInterceptor extends Interceptor {
 
   @override
   void onResponse(Response response, ResponseInterceptorHandler handler) {
-    final costData = response.requestOptions.extra['cost_tracking'] as Map<String, dynamic>?;
-    
+    final costData =
+        response.requestOptions.extra['cost_tracking'] as Map<String, dynamic>?;
+
     if (costData != null) {
       final serviceName = costData['service_name'] as String;
       final startTime = costData['start_time'] as DateTime;
       final requestSize = costData['request_size'] as int;
-      
+
       final endTime = DateTime.now();
       final duration = endTime.difference(startTime);
       final responseSize = _calculateResponseSize(response);
-      
+
       // Calculate estimated cost
       final estimatedCost = _calculateCost(
         serviceName: serviceName,
@@ -75,7 +76,7 @@ class CostTrackingInterceptor extends Interceptor {
       );
 
       if (enableDetailedLogging) {
-        WasteAppLogger.info('Cost tracking completed', null, null, {
+        WasteAppLogger.info('Cost tracking completed', context: {
           'service': serviceName,
           'estimated_cost': estimatedCost,
           'duration_ms': duration.inMilliseconds,
@@ -91,16 +92,17 @@ class CostTrackingInterceptor extends Interceptor {
 
   @override
   void onError(DioException err, ErrorInterceptorHandler handler) {
-    final costData = err.requestOptions.extra['cost_tracking'] as Map<String, dynamic>?;
-    
+    final costData =
+        err.requestOptions.extra['cost_tracking'] as Map<String, dynamic>?;
+
     if (costData != null) {
       final serviceName = costData['service_name'] as String;
       final startTime = costData['start_time'] as DateTime;
       final requestSize = costData['request_size'] as int;
-      
+
       final endTime = DateTime.now();
       final duration = endTime.difference(startTime);
-      
+
       // Even failed requests may incur costs
       final estimatedCost = _calculateCost(
         serviceName: serviceName,
@@ -124,13 +126,15 @@ class CostTrackingInterceptor extends Interceptor {
       );
 
       if (enableDetailedLogging) {
-        WasteAppLogger.warning('Cost tracking for failed request', err, null, {
-          'service': serviceName,
-          'estimated_cost': estimatedCost,
-          'duration_ms': duration.inMilliseconds,
-          'request_size_bytes': requestSize,
-          'error_type': err.type.name,
-        });
+        WasteAppLogger.warning('Cost tracking for failed request',
+            error: err,
+            context: {
+              'service': serviceName,
+              'estimated_cost': estimatedCost,
+              'duration_ms': duration.inMilliseconds,
+              'request_size_bytes': requestSize,
+              'error_type': err.type.name,
+            });
       }
     }
 
@@ -160,18 +164,19 @@ class CostTrackingInterceptor extends Interceptor {
 
   /// Calculate request size in bytes
   int _calculateRequestSize(RequestOptions options) {
-    int size = 0;
-    
+    var size = 0;
+
     // Headers size
     options.headers.forEach((key, value) {
-      size += key.length + value.toString().length + 4; // +4 for ": " and "\r\n"
+      size +=
+          key.length + value.toString().length + 4; // +4 for ": " and "\r\n"
     });
-    
+
     // Query parameters size
     options.queryParameters.forEach((key, value) {
       size += key.length + value.toString().length + 2; // +2 for "=" and "&"
     });
-    
+
     // Body size
     if (options.data != null) {
       if (options.data is String) {
@@ -183,21 +188,21 @@ class CostTrackingInterceptor extends Interceptor {
         size += options.data.toString().length;
       }
     }
-    
+
     return size;
   }
 
   /// Calculate response size in bytes
   int _calculateResponseSize(Response response) {
-    int size = 0;
-    
+    var size = 0;
+
     // Headers size
     response.headers.map.forEach((key, values) {
       for (final value in values) {
         size += key.length + value.length + 4; // +4 for ": " and "\r\n"
       }
     });
-    
+
     // Body size
     if (response.data != null) {
       if (response.data is String) {
@@ -209,7 +214,7 @@ class CostTrackingInterceptor extends Interceptor {
         size += response.data.toString().length;
       }
     }
-    
+
     return size;
   }
 
@@ -223,25 +228,27 @@ class CostTrackingInterceptor extends Interceptor {
     bool isError = false,
   }) {
     final baseCost = _defaultCosts[serviceName] ?? 0.001;
-    
+
     // Adjust cost based on various factors
-    double multiplier = 1.0;
-    
+    var multiplier = 1.0;
+
     // Size-based multiplier (larger requests/responses cost more)
     final totalSize = requestSize + responseSize;
-    if (totalSize > 100000) { // 100KB
+    if (totalSize > 100000) {
+      // 100KB
       multiplier *= 1.5;
-    } else if (totalSize > 10000) { // 10KB
+    } else if (totalSize > 10000) {
+      // 10KB
       multiplier *= 1.2;
     }
-    
+
     // Duration-based multiplier (longer requests might indicate more processing)
     if (duration.inSeconds > 30) {
       multiplier *= 1.3;
     } else if (duration.inSeconds > 10) {
       multiplier *= 1.1;
     }
-    
+
     // Error-based adjustment (failed requests might still incur partial costs)
     if (isError) {
       if (statusCode >= 400 && statusCode < 500) {
@@ -250,7 +257,7 @@ class CostTrackingInterceptor extends Interceptor {
         multiplier *= 0.5; // Server errors - partial cost
       }
     }
-    
+
     return baseCost * multiplier;
   }
 
@@ -284,32 +291,33 @@ class CostTrackingInterceptor extends Interceptor {
   /// Get cost statistics for all services
   Map<String, dynamic> getCostStatistics() {
     final stats = <String, dynamic>{};
-    
-    double totalCost = 0.0;
-    int totalRequests = 0;
-    
+
+    var totalCost = 0.0;
+    var totalRequests = 0;
+
     for (final tracker in _serviceTrackers.values) {
       final serviceStats = tracker.getStatistics();
       stats[tracker.serviceName] = serviceStats;
       totalCost += serviceStats['total_cost'] as double;
       totalRequests += serviceStats['total_requests'] as int;
     }
-    
+
     stats['summary'] = {
       'total_cost': totalCost,
       'total_requests': totalRequests,
-      'average_cost_per_request': totalRequests > 0 ? totalCost / totalRequests : 0.0,
+      'average_cost_per_request':
+          totalRequests > 0 ? totalCost / totalRequests : 0.0,
       'tracked_services': _serviceTrackers.keys.toList(),
     };
-    
+
     return stats;
   }
 
   /// Reset cost tracking data
   void resetCostTracking() {
     _serviceTrackers.clear();
-    
-    WasteAppLogger.info('Cost tracking data reset', null, null, {
+
+    WasteAppLogger.info('Cost tracking data reset', context: {
       'timestamp': DateTime.now().toIso8601String(),
     });
   }
@@ -317,8 +325,8 @@ class CostTrackingInterceptor extends Interceptor {
   /// Set custom cost for a service
   void setServiceCost(String serviceName, double costPerRequest) {
     _defaultCosts[serviceName] = costPerRequest;
-    
-    WasteAppLogger.info('Service cost updated', null, null, {
+
+    WasteAppLogger.info('Service cost updated', context: {
       'service': serviceName,
       'cost_per_request': costPerRequest,
     });
@@ -331,7 +339,7 @@ class ServiceCostTracker {
 
   final String serviceName;
   final List<RequestCostData> _requests = [];
-  
+
   /// Record a request with cost data
   void recordRequest({
     required double cost,
@@ -352,7 +360,7 @@ class ServiceCostTracker {
       endpoint: endpoint,
       isError: isError,
     ));
-    
+
     // Keep only last 1000 requests to prevent memory issues
     if (_requests.length > 1000) {
       _requests.removeRange(0, _requests.length - 1000);
@@ -376,13 +384,16 @@ class ServiceCostTracker {
     final totalCost = _requests.fold<double>(0.0, (sum, req) => sum + req.cost);
     final totalRequests = _requests.length;
     final errorRequests = _requests.where((req) => req.isError).length;
-    final totalDuration = _requests.fold<int>(0, (sum, req) => sum + req.duration.inMilliseconds);
-    final totalDataBytes = _requests.fold<int>(0, (sum, req) => sum + req.requestSize + req.responseSize);
+    final totalDuration =
+        _requests.fold<int>(0, (sum, req) => sum + req.duration.inMilliseconds);
+    final totalDataBytes = _requests.fold<int>(
+        0, (sum, req) => sum + req.requestSize + req.responseSize);
 
     // Recent statistics (last hour)
     final oneHourAgo = DateTime.now().subtract(const Duration(hours: 1));
-    final recentRequests = _requests.where((req) => req.timestamp.isAfter(oneHourAgo)).toList();
-    
+    final recentRequests =
+        _requests.where((req) => req.timestamp.isAfter(oneHourAgo)).toList();
+
     return {
       'service_name': serviceName,
       'total_requests': totalRequests,
@@ -392,7 +403,8 @@ class ServiceCostTracker {
       'average_duration_ms': totalDuration / totalRequests,
       'total_data_bytes': totalDataBytes,
       'recent_requests_1h': recentRequests.length,
-      'recent_cost_1h': recentRequests.fold<double>(0.0, (sum, req) => sum + req.cost),
+      'recent_cost_1h':
+          recentRequests.fold<double>(0.0, (sum, req) => sum + req.cost),
       'most_expensive_endpoint': _getMostExpensiveEndpoint(),
       'slowest_endpoint': _getSlowestEndpoint(),
       'first_request': _requests.first.timestamp.toIso8601String(),
@@ -403,12 +415,13 @@ class ServiceCostTracker {
   /// Get the most expensive endpoint
   String _getMostExpensiveEndpoint() {
     if (_requests.isEmpty) return '';
-    
+
     final endpointCosts = <String, double>{};
     for (final request in _requests) {
-      endpointCosts[request.endpoint] = (endpointCosts[request.endpoint] ?? 0.0) + request.cost;
+      endpointCosts[request.endpoint] =
+          (endpointCosts[request.endpoint] ?? 0.0) + request.cost;
     }
-    
+
     return endpointCosts.entries
         .reduce((a, b) => a.value > b.value ? a : b)
         .key;
@@ -417,17 +430,21 @@ class ServiceCostTracker {
   /// Get the slowest endpoint
   String _getSlowestEndpoint() {
     if (_requests.isEmpty) return '';
-    
+
     final endpointDurations = <String, List<Duration>>{};
     for (final request in _requests) {
-      endpointDurations.putIfAbsent(request.endpoint, () => []).add(request.duration);
+      endpointDurations
+          .putIfAbsent(request.endpoint, () => [])
+          .add(request.duration);
     }
-    
+
     final endpointAvgDurations = endpointDurations.map((endpoint, durations) {
-      final avgDuration = durations.fold<int>(0, (sum, d) => sum + d.inMilliseconds) / durations.length;
+      final avgDuration =
+          durations.fold<int>(0, (sum, d) => sum + d.inMilliseconds) /
+              durations.length;
       return MapEntry(endpoint, avgDuration);
     });
-    
+
     return endpointAvgDurations.entries
         .reduce((a, b) => a.value > b.value ? a : b)
         .key;

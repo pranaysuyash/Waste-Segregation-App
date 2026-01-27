@@ -34,7 +34,8 @@ void main() {
       expect(classification.itemName, 'Unidentified Item');
       expect(classification.category, 'Requires Manual Review');
       expect(classification.subcategory, 'Classification Needed');
-      expect(classification.explanation, contains('unable to automatically identify'));
+      expect(classification.explanation,
+          contains('unable to automatically identify'));
       expect(classification.imageUrl, '/path/to/image.jpg');
       expect(classification.confidence, 0.0);
       expect(classification.clarificationNeeded, true);
@@ -64,7 +65,8 @@ void main() {
       expect(classification.region, 'Test Region');
       expect(classification.visualFeatures, ['feature1', 'feature2']);
       expect(classification.confidence, 0.85);
-      expect(classification.timestamp, DateTime.parse('2024-01-15T10:30:00.000Z'));
+      expect(
+          classification.timestamp, DateTime.parse('2024-01-15T10:30:00.000Z'));
     });
 
     test('should handle copyWith correctly', () {
@@ -156,7 +158,11 @@ void main() {
     test('should create DisposalInstructions from JSON', () {
       final json = {
         'primaryMethod': 'Compost bin',
-        'steps': ['Remove any stickers', 'Cut into smaller pieces', 'Add to compost'],
+        'steps': [
+          'Remove any stickers',
+          'Cut into smaller pieces',
+          'Add to compost'
+        ],
         'hasUrgentTimeframe': true,
         'warnings': ['Do not include meat scraps'],
         'tips': ['Mix with brown materials'],
