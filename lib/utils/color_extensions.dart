@@ -24,6 +24,16 @@ extension ColorValues on Color {
       blue ?? this.blue,
     );
   }
+
+  /// Back-compat for Flutter versions that don't yet expose `Color.toARGB32()`.
+  ///
+  /// Newer Flutter versions include `toARGB32()` on `Color`; older versions
+  /// only have the deprecated `value` getter. This method keeps the codebase
+  /// compiling across Flutter SDK versions (CI currently uses an older stable).
+  int toARGB32() {
+    // ignore: deprecated_member_use
+    return value;
+  }
 }
 
 /// Extension to apply fractional opacity to a Color in a const-friendly way.

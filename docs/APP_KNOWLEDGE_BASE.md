@@ -1112,7 +1112,9 @@ flutter build web --release --dart-define-from-file=.env
 
 # Tests
 flutter test
-flutter test integration_test/
+# Note: integration tests are currently kept in `integration_test_disabled/`
+# and may not be wired into CI yet.
+flutter test integration_test_disabled/
 
 # Code generation
 flutter pub run build_runner build --delete-conflicting-outputs

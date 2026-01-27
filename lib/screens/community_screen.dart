@@ -210,10 +210,10 @@ class _CommunityScreenState extends State<CommunityScreen>
           bottomPadding,
         ),
         itemCount: _feedItems.length,
-        itemBuilder: (context, index) {
-          final item = _feedItems[index];
-          return RepaintBoundary(
-            key: ValueKey('feed_${item.id}'),
+          itemBuilder: (context, index) {
+            final item = _feedItems[index];
+            return RepaintBoundary(
+            key: ValueKey<String>(item.id),
             child: _buildFeedItem(item),
           );
         },
